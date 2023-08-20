@@ -1,0 +1,21 @@
+@font-face {
+    font-family: "SF-Pro-Rounded";
+    src: url(../fonts/SF-Pro-Rounded.ttf);
+}
+@font-face {
+    font-family: 'SF-Pro-Rounded-Light';
+    src: url(../fonts/FontsFree-Net-SF-Pro-Rounded-Light.ttf);
+}
+@font-face {
+    font-family:'SF-Pro-Rounded-Medium' ;
+    src: url(../fonts/FontsFree-Net-SF-Pro-Rounded-Medium.ttf);
+}
+* [aria-labelledby='en-regular']{
+    font-family: 'SF-Pro-Rounded';
+}
+* [aria-labelledby='en-light']{
+    font-family: 'SF-Pro-Rounded-Light';
+}
+* [aria-labelledby='en-medium']{
+    font-family: 'SF-Pro-Rounded-Medium';
+}
