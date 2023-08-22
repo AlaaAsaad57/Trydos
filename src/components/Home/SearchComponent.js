@@ -5,7 +5,7 @@ import CloseIcon from "@/assets/svg/CloseIcon.svg"
 import { useSelector } from "react-redux";
 function SearchComponent({searchEnabled,close}) {
   const language=useSelector((state)=>state.homepage.language)
-    const [searchValue,setSearchValue]=useState('')
+    const [searchValue,setSearchValue]=useState(null)
     function useOutsideAlerter(ref) {
         useEffect(() => {
           /**
@@ -13,7 +13,8 @@ function SearchComponent({searchEnabled,close}) {
            */
           function handleClickOutside(event) {
             if (ref.current && !ref.current.contains(event.target)) {
-              if(searchEnabled&&!searchValue.length>0){
+             
+              if(searchValue?.length===0){
                 close()
               }
             }
@@ -30,6 +31,7 @@ function SearchComponent({searchEnabled,close}) {
       const inputRef = useRef(null);
       useOutsideAlerter(wrapperRef);
       useEffect(()=>{
+        setSearchValue('')
         if(searchEnabled){
             inputRef.current.focus()
         }
