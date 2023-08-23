@@ -8,6 +8,5 @@ export const store = createStore(rootReducer, undefined, composeEnhancers(applyM
 
 
 const unsubscribe = store.subscribe(() => {
-    const state = store.getState();
-    saveToLocalStorage(state);
+  
 });

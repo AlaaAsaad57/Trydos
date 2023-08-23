@@ -1,6 +1,7 @@
 function Logo() {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" width="136.5" height="38.812" viewBox="0 0 136.5 38.812">
+    <div className="logo-container">
+         <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" width="136.5" height="38.812" viewBox="0 0 136.5 38.812">
     <defs>
       <clipPath id="clip-path">
         <rect id="Rectangle_4613" data-name="Rectangle 4613" width="132" height="30" transform="translate(0 0)" fill="none"/>
@@ -54,6 +55,8 @@ function Logo() {
       </g>
     </g>
   </svg>  
+    </div>
+ 
   )
 }
 

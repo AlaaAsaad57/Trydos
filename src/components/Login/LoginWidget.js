@@ -7,11 +7,19 @@ import AccountIcon from '@/assets/svg/AccountIcon.svg'
 import { useSelector } from 'react-redux'
 import LoginQR from './LoginQR'
 import LoginPhone from './LoginPhone'
-function LoginWidget({close}) {
+import LoginSuccessWidget from './LoginSuccessWidget'
+function LoginWidget({close,loginSuccessVar,setLoginSucces}) {
+    const wrongNumber=useSelector((state)=>state.auth.wrongNumber)
+    const LoginSuccess=()=>{
+        
+    }
     const language=useSelector((state)=>state.homepage.language)
     const [loginMethod,setLoginMethod]=useState(null)
   return (
-    <div className='login-widget-container'>
+  <>
+  {loginSuccessVar?
+  <LoginSuccessWidget/>:
+   <div className='login-widget-container'>
         <div className='login-label-container'>
             <Border height={40}/>
             <div className='login-label'>
@@ -27,12 +35,12 @@ function LoginWidget({close}) {
             </div>
             
         </div>
-        <LoginQR selectedMethod={loginMethod==='qr'} selectMethod={()=>setLoginMethod('qr')}/>
-        <LoginPhone selectedMethod={loginMethod==='phone'} selectMethod={()=>setLoginMethod('phone')}/>
+        <LoginQR setLoginSucces={()=>setLoginSucces(true)} selectedMethod={loginMethod==='qr'} selectMethod={()=>setLoginMethod('qr')}/>
+        <LoginPhone  LoginSuccess={()=>setLoginSucces(true)} selectedMethod={loginMethod==='phone'} selectMethod={()=>setLoginMethod('phone')}/>
         <div className='login-blue-question' aria-labelledby={language+'-light'}>
             {translate('Don’t Have Account?',language)}
         </div>
-        <div className='login-label-container create-account-button'>
+        <div className={`${wrongNumber&&'absolute-create-button'} login-label-container create-account-button`}>
             <Border height={50}/>
             <div className='login-label'>
             <div className='login-label-title'>
@@ -45,7 +53,8 @@ function LoginWidget({close}) {
             </div>
             
         </div>
-    </div>
+    </div>}
+  </> 
   )
 }
 

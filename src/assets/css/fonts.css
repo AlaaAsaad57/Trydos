@@ -11,6 +11,10 @@
     src: url(../fonts/FontsFree-Net-SF-Pro-Rounded-Medium.ttf);
 }
 @font-face {
+    font-family:'SF-Pro-Rounded-semibold' ;
+    src: url(../fonts/FontsFree-Net-SF-Pro-Rounded-Semibold.ttf);
+}
+@font-face {
     font-family:'icon-font' ;
     src: url(../fonts/NotoColorEmoji-Regular.ttf);
 }
@@ -22,4 +26,7 @@
 }
 * [aria-labelledby='en-medium']{
     font-family: 'SF-Pro-Rounded-Medium';
+}
+* [aria-labelledby='en-semibold']{
+    font-family: 'SF-Pro-Rounded-semibold';
 }
