@@ -1,7 +1,7 @@
 import { useEffect,useRef, useState } from "react";
-import SearchIcon from "@/assets/svg/SearchIcon.svg"
-import Divider from "@/assets/svg/DividerIcon.svg"
-import CloseIcon from "@/assets/svg/CloseIcon.svg"
+import SearchIcon from "statics/assets/svg/SearchIcon.svg"
+import Divider from "statics/assets/svg/DividerIcon.svg"
+import CloseIcon from "statics/assets/svg/CloseIcon.svg"
 import { useSelector } from "react-redux";
 function SearchComponent({searchEnabled,close}) {
   const language=useSelector((state)=>state.homepage.language)
@@ -37,7 +37,7 @@ function SearchComponent({searchEnabled,close}) {
         }
       },[searchEnabled])
   return (
-    <div  ref={wrapperRef}  className={`search-component-container ${!searchEnabled&&'hide-bar'}`}>
+    <div aria-details={language} ref={wrapperRef}  className={`search-component-container ${!searchEnabled&&'hide-bar'}`}>
         <SearchIcon/>
         <Divider style={{marginLeft:"10px"}}/>
         <input aria-labelledby={language+'-light'} ref={inputRef} value={searchValue} onChange={(e)=>setSearchValue(e.target.value)}/>

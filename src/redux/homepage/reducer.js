@@ -1,10 +1,10 @@
-const initialState = {language:"en"}
+const initialState = {language:"ar"}
 
 const HomeReducer=(state = initialState, { type, payload }) => {
   switch (type) {
 
-case "":{
-    
+case "APP-LANGUAGE":{
+    return{...state,language:payload}
 }
   default:
     return state

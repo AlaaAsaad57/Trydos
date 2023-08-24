@@ -1,4 +1,4 @@
-import userImage from '@/assets/images/user.png'
+import userImage from 'statics/assets/images/user.png'
 export const Login =(pin,mobile)=>{
     if(pin==='111111'){
         return({type:"LOGIN_SUCCESS",payload:{name:"Mohamad",avatar:userImage}})
