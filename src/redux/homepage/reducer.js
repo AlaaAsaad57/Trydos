@@ -1,4 +1,4 @@
-const initialState = {language:"ar"}
+const initialState = {language:"ar",loading:true}
 
 const HomeReducer=(state = initialState, { type, payload }) => {
   switch (type) {

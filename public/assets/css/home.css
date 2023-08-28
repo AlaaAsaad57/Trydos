@@ -610,3 +610,22 @@
 .translations-container:hover .translations-container-inner .ar-icon{
     top: -140px;
 }
+/*Loading Page*/
+.loading-container{
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    left: 0px;
+    top: 0px;
+    backdrop-filter: blur(2px);
+    z-index: 10;
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 40;
+}
+.Logo-loading{
+    display: flex;
+    transform: scale(2);
+}

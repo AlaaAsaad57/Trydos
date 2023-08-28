@@ -4,11 +4,13 @@ import { translate } from '@/utils/functions'
 import LoginIcon from 'statics/assets/svg/login.svg'
 import CloseIcon from 'statics/assets/svg/CloseIcon.svg'
 import AccountIcon from 'statics/assets/svg/AccountIcon.svg'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import LoginQR from './LoginQR'
 import LoginPhone from './LoginPhone'
 import LoginSuccessWidget from './LoginSuccessWidget'
+import { ReInitialise } from '@/redux/auth/actions'
 function LoginWidget({close,loginSuccessVar,setLoginSucces}) {
+    const dispatch=useDispatch()
     const wrongNumber=useSelector((state)=>state.auth.wrongNumber)
     const LoginSuccess=()=>{
         
@@ -35,8 +37,8 @@ function LoginWidget({close,loginSuccessVar,setLoginSucces}) {
             </div>
             
         </div>
-        <LoginQR setLoginSucces={()=>setLoginSucces(true)} selectedMethod={loginMethod==='qr'} selectMethod={()=>setLoginMethod('qr')}/>
-        <LoginPhone  LoginSuccess={()=>setLoginSucces(true)} selectedMethod={loginMethod==='phone'} selectMethod={()=>setLoginMethod('phone')}/>
+        <LoginQR setLoginSucces={()=>setLoginSucces(true)} selectedMethod={loginMethod==='qr'} selectMethod={()=>{ dispatch(ReInitialise()); setLoginMethod('qr');}}/>
+        <LoginPhone  LoginSuccess={()=>setLoginSucces(true)} selectedMethod={loginMethod==='phone'} selectMethod={()=>{ dispatch(ReInitialise()); setLoginMethod('phone');}}/>
         <div aria-details={language}className='login-blue-question' aria-labelledby={language+'-light'}>
             {translate('Don’t Have Account?',language)}
         </div>
