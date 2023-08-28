@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import ChatIcon from "statics/assets/svg/ChatIcon.svg"
-import CartIcon from "statics/assets/svg/CartIcon.svg"
+import ChatIcon from "assets/svg/ChatIcon.svg"
+import CartIcon from "assets/svg/CartIcon.svg"
 import { translate } from '@/utils/functions'
 import UserAvatar from './UserAvatar'
 function AuthNavSection() {

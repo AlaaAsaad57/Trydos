@@ -1,7 +1,7 @@
 import React from 'react'
-import TranslationsIcon from "statics/assets/svg/translations.svg"
-import UKIcon from "statics/assets/svg/uk.svg"
-import UAEIcon from "statics/assets/svg/uae.svg"
+import TranslationsIcon from "assets/svg/translations.svg"
+import UKIcon from "assets/svg/uk.svg"
+import UAEIcon from "assets/svg/uae.svg"
 import { useDispatch, useSelector } from 'react-redux'
 import { changeAppLanguage } from '@/redux/homepage/actions'
 function TranslationsMenu() {

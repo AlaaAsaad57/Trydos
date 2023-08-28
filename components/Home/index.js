@@ -1,5 +1,5 @@
 "use client";
-import "statics/assets/css/home.css"
+import "styles/home.css"
 import Navbar from '@/components/Home/Navbar'
 import { useSelector } from "react-redux";
 import TranslationsMenu from "@/components/global/TranslationsMenu";

@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react'
-import PhoneIcon from "statics/assets/svg/PhoneIcon.svg"
-import SolidPhoneIcon from "statics/assets/svg/SolidPhoneIcon.svg"
-import QuestionIcon from "statics/assets/svg/questionIcon.svg"
+import PhoneIcon from "assets/svg/PhoneIcon.svg"
+import SolidPhoneIcon from "assets/svg/SolidPhoneIcon.svg"
+import QuestionIcon from "assets/svg/questionIcon.svg"
 import { useDispatch, useSelector } from 'react-redux'
 import { translate } from '@/utils/functions'
 import Border from '../global/Border'
-import LeftArrowIcon from "statics/assets/svg/LeftArrowIcon.svg"
-import CheckedIcon from "statics/assets/svg/CheckedIcon.svg"
-import PenIcon from "statics/assets/svg/PenIcon.svg"
-import WAIcon from "statics/assets/svg/WAIcon.svg"
+import LeftArrowIcon from "assets/svg/LeftArrowIcon.svg"
+import CheckedIcon from "assets/svg/CheckedIcon.svg"
+import PenIcon from "assets/svg/PenIcon.svg"
+import WAIcon from "assets/svg/WAIcon.svg"
 import { textMarshal } from 'text-marshal'
 import { allCountries } from 'country-telephone-data'
 import replaceString from 'replace-string';
-import MessageIcon from "statics/assets/svg/MessageIcon.svg"
+import MessageIcon from "assets/svg/MessageIcon.svg"
 import Timer from './Timer'
 import PinInputs from './PinInput'
 import { CheckPhone, Login, ReInitialise } from '@/redux/auth/actions'

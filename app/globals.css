@@ -1,8 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('statics/assets/css/fonts.css');
-@import url("statics/assets/css/home.css");
+@import url('styles/fonts.css');
+@import url('styles/home.css');
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;

@@ -2,7 +2,7 @@ import { translate } from '@/utils/functions'
 import React from 'react'
 import { useSelector } from 'react-redux'
 import Border from '../global/Border'
-import LoginSuccessIcon from "statics/assets/svg/LoginSuccessIcon.svg"
+import LoginSuccessIcon from "assets/svg/LoginSuccessIcon.svg"
 function LoginSuccessWidget() {
     const user=useSelector((state)=>state.auth.user)
     const language=useSelector((state)=>state.homepage.language)

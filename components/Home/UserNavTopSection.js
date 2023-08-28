@@ -1,9 +1,9 @@
 import { translate } from '@/utils/functions'
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
-import QuestionIcon from 'statics/assets/svg/questionIcon.svg'
-import LoginIcon from 'statics/assets/svg/login.svg'
-import UserIcon from 'statics/assets/svg/userIcon.svg'
+import QuestionIcon from 'assets/svg/questionIcon.svg'
+import LoginIcon from 'assets/svg/login.svg'
+import UserIcon from 'assets/svg/userIcon.svg'
 import LoginWidget from '../Login/LoginWidget'
 import AuthNavSection from './AuthNavSection'
 function UserNavTopSection({loginOpen,openLogin}) {

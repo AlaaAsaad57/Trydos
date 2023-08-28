@@ -1,22 +1,22 @@
 @font-face {
     font-family: "SF-Pro-Rounded";
-    src: url(../fonts/SF-Pro-Rounded.ttf);
+    src: url('/fonts/SF-Pro-Rounded.ttf');
 }
 @font-face {
     font-family: 'SF-Pro-Rounded-Light';
-    src: url(../fonts/FontsFree-Net-SF-Pro-Rounded-Light.ttf);
+    src: url('/fonts/FontsFree-Net-SF-Pro-Rounded-Light.ttf');
 }
 @font-face {
     font-family:'SF-Pro-Rounded-Medium' ;
-    src: url(../fonts/FontsFree-Net-SF-Pro-Rounded-Medium.ttf);
+    src: url('/fonts/FontsFree-Net-SF-Pro-Rounded-Medium.ttf');
 }
 @font-face {
     font-family:'SF-Pro-Rounded-semibold' ;
-    src: url(../fonts/FontsFree-Net-SF-Pro-Rounded-Semibold.ttf);
+    src: url("/fonts/FontsFree-Net-SF-Pro-Rounded-Semibold.ttf");
 }
 @font-face {
     font-family:'icon-font' ;
-    src: url(../fonts/NotoColorEmoji-Regular.ttf);
+    src: url("/fonts/NotoColorEmoji-Regular.ttf");
 }
 * [aria-labelledby='en-regular']{
     font-family: 'SF-Pro-Rounded';
