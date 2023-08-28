@@ -9,7 +9,7 @@ function TranslationsMenu() {
     const dispatch=useDispatch()
   return (
     <div className='translations-container'>
-       <div className='translations-container-inner'>
+       <div className='translations-container-inner'> 
        <div className='translation-icon'>
             <TranslationsIcon/>
         </div>
