@@ -66,10 +66,5 @@ export const translations={
         "Attempts":"محاولات",
         "Didn`t You Receive A Code?":"لم تستلم رمزاً؟",
         "Change The Method Of Receiving":"تغيير طريقة استلام الرمز"
-
-
-
-
-
     }
     }

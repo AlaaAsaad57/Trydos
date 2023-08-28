@@ -1,5 +1,5 @@
 import React from 'react'
-import UserIcon from "statics/assets/svg/UserIcon.svg"
+import UserIcon from "statics/assets/svg/userIcon.svg"
 import Image from 'next/image'
 import { useSelector } from 'react-redux'
 function UserAvatar({avatar}) {
