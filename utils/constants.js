@@ -4,6 +4,7 @@ import KidsIcon from "assets/svg/KidsIcon.svg"
 import HomeIcon from "assets/svg/HomeIcon.svg"
 import ElectricalIcon from "assets/svg/ElectricalIcon.svg"
 import StoreIcon from "assets/svg/ShopIcon.svg"
+import { Cloudinary } from '@cloudinary/url-gen';
 import SearchIcon from "assets/svg/SearchIcon.svg"
 export const categories=[
     {
@@ -35,3 +36,10 @@ export const categories=[
         icon: <SearchIcon/>,
     }
 ]
+
+
+export const myCld = new Cloudinary({
+  cloud: {
+    cloudName: "djooohujg",
+  },
+});
