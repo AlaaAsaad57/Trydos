@@ -9,26 +9,26 @@ function Logo({animated}) {
     <filter id="Path_21301" x="44.472" y="18.477" width="13.409" height="13.409" filterUnits="userSpaceOnUse">
       <feOffset dy="2" input="SourceAlpha"/>
       <feGaussianBlur stdDeviation="1" result="blur"/>
-      <feFlood flood-opacity="0.2"/>
+      <feFlood floodOpacity="0.2"/>
       <feComposite operator="in" in2="blur"/>
       <feComposite in="SourceGraphic"/>
     </filter>
     <filter id="Path_21301-2" x="44.472" y="18.477" width="13.409" height="13.409" filterUnits="userSpaceOnUse">
       <feOffset dy="3" input="SourceAlpha"/>
       <feGaussianBlur stdDeviation="2" result="blur-2"/>
-      <feFlood flood-color="#fff" flood-opacity="0.302" result="color"/>
+      <feFlood floodColor="#fff" floodOpacity="0.302" result="color"/>
       <feComposite operator="out" in="SourceGraphic" in2="blur-2"/>
       <feComposite operator="in" in="color"/>
       <feComposite operator="in" in2="SourceGraphic"/>
     </filter>
     <linearGradient id="linear-gradient" x1="0.5" y1="0.543" x2="0.5" gradientUnits="objectBoundingBox">
-      <stop offset="0" stop-color="#f53c3c"/>
-      <stop offset="1" stop-color="#ff9696"/>
+      <stop offset="0" stopColor="#f53c3c"/>
+      <stop offset="1" stopColor="#ff9696"/>
     </linearGradient>
     <filter id="Path_21413" x="0" y="0" width="38.812" height="38.812" filterUnits="userSpaceOnUse">
       <feOffset dy="3" input="SourceAlpha"/>
       <feGaussianBlur stdDeviation="1.5" result="blur-3"/>
-      <feFlood flood-opacity="0.2"/>
+      <feFlood floodOpacity="0.2"/>
       <feComposite operator="in" in2="blur-3"/>
       <feComposite in="SourceGraphic"/>
     </filter>

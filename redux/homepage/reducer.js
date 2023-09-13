@@ -1,3 +1,5 @@
+import { configureStory } from "@/utils/functions"
+
 const initialState = {language:"ar",loading:true,selectedStory:null,storiesData:[]}
 
 const HomeReducer=(state = initialState, { type, payload }) => {
@@ -11,6 +13,28 @@ case "STORY-SELECTED":{
 }
 case "STORY-DATA":{
   return {...state,storiesData:payload}
+}
+case "NEXT-STORY":{
+  let index;
+  state.storiesData.map((story,i)=>{
+    if(story.id===payload)
+    index=i
+  })
+  if(index<state.storiesData.length-1)
+     return{...state,selectedStory:configureStory(state.storiesData.filter((story,i)=>i===index+1)[0])}
+  else
+     return{...state,selectedStory:null}
+}
+case "PREV-STORY":{
+  let index;
+  state.storiesData.map((story,i)=>{
+    if(story.id===payload)
+    index=i
+     })
+  if(index>0)
+    return{...state,selectedStory:configureStory(state.storiesData.filter((story,i)=>i===index-1)[0])}
+  else
+   return{...state,selectedStory:null}
 }
   default:
     return state

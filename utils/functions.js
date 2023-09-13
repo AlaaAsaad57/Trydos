@@ -1,4 +1,10 @@
 import {translations} from "assets/translations/translations.js"
+import { myCld } from "./constants";
+import ImageStory from "@/components/Home/Stories/ImageStory";
+import { quality } from "@cloudinary/url-gen/actions/delivery";
+import { auto } from "@cloudinary/url-gen/qualifiers/quality";
+import { Resize } from "@cloudinary/url-gen/actions";
+import VideoStory from "@/components/Home/Stories/VideoStory";
 export function translate(key,language){
 return translations[language][key] || key
 }
@@ -11,4 +17,49 @@ export const getStoriesHeaders=()=>{
         },
         cache: 'force-cache' ,
     }
+}
+export const configureStory=(story)=>{
+    let returnedData=[]
+    story.stories.map((storyItem)=>{
+         if(storyItem.full_video_path){
+            let vid = myCld.video(storyItem.full_video_path?.split("/").pop().split(".")[0]).delivery(quality(auto()));
+            returnedData.push({ 
+             url:vid.toURL(),
+             FixedUrl:vid,
+             header: {
+                heading: 'Mohit Karekar',
+                subheading: 'Posted 30m ago',
+                profileImage: 'https://picsum.photos/100/100',
+            },
+             duration:5000,
+             preloadResource:true,
+             type:"video"
+          })
+        }
+        else if(storyItem.photo_path){
+            let img = myCld.image(storyItem.photo_path?.split("/").pop().split(".")[0]).delivery(quality(auto()));
+            returnedData.push({ 
+             url:img.toURL(),
+             FixedUrl:img,
+             duration:5000,
+             header: {
+                heading: 'Mohit Karekar',
+                subheading: 'Posted 30m ago',
+                profileImage: 'https://picsum.photos/100/100',
+            },
+             preloadResource:true,
+             type:"image"
+          })
+        }
+    })
+   return {...story,stories:returnedData}
+}
+export const getThumb=(url,isVideo)=>{
+  if(url) {
+    if(isVideo){
+        return (myCld.video(url?.split("/").pop().split(".")[0]).resize(Resize.thumbnail('145','255')).format('jpg').delivery(quality(auto())))
+    }
+    else
+    return  (myCld.image(url?.split("/").pop().split(".")[0]).resize(Resize.thumbnail('145','255')).delivery(quality(auto())))}
+
 }

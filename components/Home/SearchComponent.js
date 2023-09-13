@@ -40,7 +40,7 @@ function SearchComponent({searchEnabled,close}) {
     <div aria-details={language} ref={wrapperRef}  className={`search-component-container ${!searchEnabled&&'hide-bar'}`}>
         <SearchIcon/>
         <Divider style={{marginLeft:"10px"}}/>
-        <input aria-labelledby={language+'-light'} ref={inputRef} value={searchValue} onChange={(e)=>setSearchValue(e.target.value)}/>
+        <input aria-labelledby={language+'-light'} ref={inputRef} value={searchValue||""} onChange={(e)=>setSearchValue(e.target.value)}/>
         <CloseIcon style={{cursor:"pointer"}} onClick={()=>{ setSearchValue(''); close();}}/>
 
     </div>

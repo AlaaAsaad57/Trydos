@@ -9,8 +9,8 @@ const [searchEnabled,setSearchEnabled]=useState(false)
   return (
     <div aria-details={language}className="categories-bar-container" style={{marginLeft:searchEnabled?"13px":"50px"}}>
       {
-        categories.map((category)=>(
-          <CategoryNavItem searchEnabled={searchEnabled} close={()=>setSearchEnabled(false)} openSearch={()=>setSearchEnabled(true)} name={category.name} icon={category.icon}/>
+        categories.map((category,key)=>(
+          <CategoryNavItem key={key} searchEnabled={searchEnabled} close={()=>setSearchEnabled(false)} openSearch={()=>setSearchEnabled(true)} name={category.name} icon={category.icon}/>
         ))
       }
      
