@@ -1,10 +1,8 @@
 import {translations} from "assets/translations/translations.js"
 import { myCld } from "./constants";
-import ImageStory from "@/components/Home/Stories/ImageStory";
 import { quality } from "@cloudinary/url-gen/actions/delivery";
 import { auto } from "@cloudinary/url-gen/qualifiers/quality";
 import { Resize } from "@cloudinary/url-gen/actions";
-import VideoStory from "@/components/Home/Stories/VideoStory";
 export function translate(key,language){
 return translations[language][key] || key
 }

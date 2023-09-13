@@ -19,7 +19,7 @@ function StoryComponent({story,viewedStory,select}) {
         <Stories  key={story.id.id} 
             preloadCount={3}
             currentIndex={currentStoryId}
-            onPrevious={()=>currentStoryId>0 ?setCurrentStoryId(currentStoryId-1):dispatch(setPreviousStory(story.id))}
+            onPrevious={()=> currentStoryId>0 ?setCurrentStoryId(currentStoryId-1):dispatch(setPreviousStory(story.id))}
             onNext={()=>currentStoryId<story.stories.length-1 ? setCurrentStoryId(currentStoryId+1):dispatch(setNextStory(story.id))}
 		      	stories={selectedStory.stories}
             storyContainerStyles={{width:"100%",height:"100%"}}
