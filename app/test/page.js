@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 import React from 'react'
 
 const getStories=async()=>{
-  revalidatePath("/test")
+ 
   const res = await fetch(STORIES_URL+GET_USERS_STORIES,getStoriesHeaders())
   const repo = await res.json()
   return repo.data.data
