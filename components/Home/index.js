@@ -12,7 +12,6 @@ export default function Home({stories,res}) {
   const language=useSelector((state)=>state.homepage.language)
   const loading=useSelector((state)=>state.homepage.loading)
   useEffect(()=>{ 
-    revalidatePath("/test")
     dispatch(GetStoryData(stories))
   },[])
   const storiesData=useSelector((state)=>state.homepage.storiesData)
