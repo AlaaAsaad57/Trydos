@@ -36,6 +36,16 @@ case "PREV-STORY":{
   else
    return{...state,selectedStory:null}
 }
+case "ADD-STORY":{
+  let arr=[]
+  state.storiesData.map((storyItem)=>{
+    if(storyItem.id===payload.user_id){arr.push({...storyItem,stories:[payload,...storyItem.stories]})}
+    else{
+      arr.push(storyItem)
+    }
+  })
+  return({...state,storiesData:arr})
+}
   default:
     return state
   }

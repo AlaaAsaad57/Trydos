@@ -1,3 +1,5 @@
+import { revalidatePath } from "next/cache"
+
 export const changeAppLanguage=(language)=>{
     return({type:"APP-LANGUAGE",payload:language})
 }
@@ -12,4 +14,8 @@ export const setNextStory=(storyId)=>{
 }
 export const setPreviousStory=(storyId)=>{
     return({type:"PREV-STORY",payload:storyId})
+}
+export const AddStoryAction=(story)=>{
+
+    return({type:"ADD-STORY",payload:story})
 }

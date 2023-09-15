@@ -5,6 +5,7 @@ import StoryComponent from './StoryComponent';
 import { AdvancedVideo } from '@cloudinary/react';
 import { useDispatch, useSelector } from 'react-redux';
 import { SelectStory, setNextStory } from '@/redux/homepage/actions';
+import AddStory from './AddStory';
 function StoriesBar({stories}) {
     const selectedStory=useSelector(state => state.homepage.selectedStory)
   
@@ -18,6 +19,7 @@ function StoriesBar({stories}) {
         {stories.map((story,index)=>
             (<StoryComponent key={index}  story={story}  viewedStory={story.stories[0]} select={(e)=>setSelectStory(e)} />)
         )}
+        <AddStory/>
     </div>
   </>
   )

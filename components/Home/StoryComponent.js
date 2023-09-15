@@ -15,15 +15,15 @@ function StoryComponent({story,viewedStory,select}) {
   return (
     <div className='story-component' onClick={()=>select(configureStory(story))}>
       {selectedStory?.id===story.id&&
-    <div style={{position:"fixed",left:"0px",top:"0px",zIndex:"100"}} key={selectedStory.id}>
+    <div className='fixed-layout' style={{position:"fixed",left:"0px",top:"0px",zIndex:"100"}} key={selectedStory.id}>
         <Stories  key={story.id.id} 
             preloadCount={3}
             currentIndex={currentStoryId}
             onPrevious={()=> currentStoryId>0 ?setCurrentStoryId(currentStoryId-1):dispatch(setPreviousStory(story.id))}
             onNext={()=>currentStoryId<story.stories.length-1 ? setCurrentStoryId(currentStoryId+1):dispatch(setNextStory(story.id))}
 		      	stories={selectedStory.stories}
-            storyContainerStyles={{width:"100%",height:"100%"}}
-            storyStyles={{width:"100wv",height:"100vh"}}
+            storyContainerStyles={{width:"100%",height:"100%",display:"flex"}}
+            storyStyles={{width:"100wv",height:"auto",display:"flex",alignItems:"center",justifyContent:"center"}}
 			      width={'100vw'}
 			      height={'100vh'}
             onAllStoriesEnd={()=>{ setTimeout(() => {
