@@ -19,7 +19,7 @@ export default function Home({stories}) {
         <div aria-details={language}className='home-page-container'>
            <TranslationsMenu/>
             <Navbar/>
-            <StoriesBar stories={storiesData}/>
+
         </div>
     </div>
   )
