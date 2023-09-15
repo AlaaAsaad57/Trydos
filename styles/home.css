@@ -8,6 +8,9 @@
 * {
     box-sizing: border-box;
 }
+body{
+    background: none !important;
+}
 .logo-container{
     display: flex;
     min-width: 136px;
@@ -663,4 +666,11 @@
 }
 .story-component video{
     width: 100vw;
+}
+/*animated log*/
+.animated-container{
+    width: 100%;
+    display: flex;
+    padding: 20px;
+
 }
