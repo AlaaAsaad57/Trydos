@@ -11,9 +11,9 @@ const getStories=async()=>{
 const getStoriesRes=async()=>{
   const res = await fetch(STORIES_URL+GET_USERS_STORIES,getStoriesHeaders())
   const repo = await res.json()
-  return repo.data.data
+  return repo
 }
-async function Test() {
+async function Test() { 
   const data = await getStories();
     return(<>
        <Animated res={getStoriesRes()} stories={data}/>

@@ -10,11 +10,11 @@ export default function Home({stories,res}) {
   
   const language=useSelector((state)=>state.homepage.language)
   const loading=useSelector((state)=>state.homepage.loading)
-  useEffect(()=>{
+  useEffect(()=>{ 
     dispatch(GetStoryData(stories))
   },[])
   const storiesData=useSelector((state)=>state.homepage.storiesData)
-  const dispatch=useDispatch()
+  const dispatch=useDispatch() 
   return (
      <div aria-details={language}className='site-container'>
         <div aria-details={language}className='home-page-container'>
