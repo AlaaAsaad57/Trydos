@@ -5,7 +5,8 @@ import "@/styles/home.css"
 import { useDispatch, useSelector } from 'react-redux'
 import StoriesBar from '../Home/Stories';
 import { GetStoryData } from '@/redux/homepage/actions';
-function Animated({stories}) {
+function Animated({stories,res}) {
+    console.log(res,stories);
     const storiesData=useSelector((state)=>state.homepage.storiesData)
     const dispatch=useDispatch()
     useEffect(()=>{

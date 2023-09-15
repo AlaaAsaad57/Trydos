@@ -8,11 +8,15 @@ const getStories=async()=>{
   const repo = await res.json()
   return repo.data.data
 }
-
+const getStoriesRes=async()=>{
+  const res = await fetch(STORIES_URL+GET_USERS_STORIES,getStoriesHeaders())
+  const repo = await res.json()
+  return repo.data.data
+}
 async function Test() {
   const data = await getStories();
     return(<>
-       <Animated stories={data}/>
+       <Animated res={getStoriesRes()} stories={data}/>
 
     </>
   )

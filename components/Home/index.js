@@ -6,7 +6,8 @@ import TranslationsMenu from "@/components/global/TranslationsMenu";
 import { useEffect, useState } from "react";
 import StoriesBar from "./Stories";
 import { GetStoryData } from "@/redux/homepage/actions";
-export default function Home({stories}) {
+export default function Home({stories,res}) {
+  
   const language=useSelector((state)=>state.homepage.language)
   const loading=useSelector((state)=>state.homepage.loading)
   useEffect(()=>{
