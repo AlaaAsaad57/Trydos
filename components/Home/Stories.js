@@ -15,7 +15,7 @@ function StoriesBar({stories}) {
   return (
   <>
     <div className='stories-container'>
-        {stories.map((story,index)=>
+        {stories?.map((story,index)=>
             (<StoryComponent key={index}  story={story}  viewedStory={story.stories[0]} select={(e)=>setSelectStory(e)} />)
         )}
         <AddStory/>

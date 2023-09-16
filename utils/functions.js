@@ -21,7 +21,7 @@ export const getStoriesHeaders=()=>{
 }
 export const configureStory=(story)=>{
     let returnedData=[]
-    story.stories.map((storyItem)=>{
+    story?.stories?.map((storyItem)=>{
          if(storyItem.full_video_path){
             let vid = myCld.video(storyItem.full_video_path?.split("/").pop().split(".")[0]).delivery(quality(auto()));
             returnedData.push({ 
