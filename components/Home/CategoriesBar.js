@@ -1,4 +1,4 @@
-import { categories } from "@/utils/constants"
+import { categories } from "../../utils/constants"
 import CategoryNavItem from "./CategoryNavItem"
 import { useState } from "react"
 import { useSelector } from "react-redux"

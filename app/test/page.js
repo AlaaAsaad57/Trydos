@@ -1,7 +1,6 @@
-import Animated from '@/components/global/Animated'
-import { GET_USERS_STORIES, STORIES_URL } from '@/utils/endpointConfig'
-import { getStoriesHeaders } from '@/utils/functions'
-import { revalidatePath } from 'next/cache'
+import Animated from '../../components/global/Animated'
+import { GET_USERS_STORIES, STORIES_URL } from '../../utils/endpointConfig'
+import { getStoriesHeaders } from '../../utils/functions'
 import React from 'react'
 
 const getStories=async()=>{

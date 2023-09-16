@@ -1,11 +1,11 @@
 "use client"
-import { upload } from '@/utils/functions';
+import { upload } from '../../utils/functions';
 import React, { useState } from 'react'
 import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
-import PlusIcon from "assets/svg/chatplus.svg"
+import PlusIcon from "../../public/svg/chatplus.svg"
 import { useDispatch } from 'react-redux';
-import { AddStoryAction } from '@/redux/homepage/actions';
+import { AddStoryAction } from '../../redux/homepage/actions';
 import { revalidatePath } from 'next/cache';
 
 function AddStory() {
@@ -28,6 +28,8 @@ if(e.target.files[0].type.includes("video")){
         setIsSelected(null)
         setFile(null)
       })
+      setIsSelected(path)
+      setFile(e.target.files[0])
       dispatch(AddStoryAction(path))
       setIsSelected(null);
       setFile(null)
@@ -40,10 +42,10 @@ else if(e.target.files[0].type.includes("image")){
         reader.onload = async () => {
           setIsSelected(reader.result);
           let path=await  upload(e.target.files[0],(e)=>setUpload(e),0,()=>{
-            setIsSelected(path)
-            setFile(e.target.files[0])
-          })
 
+          })
+          setIsSelected(path)
+          setFile(e.target.files[0])
           dispatch(AddStoryAction(path));
           setIsSelected(null);
           setFile(null)
@@ -65,7 +67,7 @@ else if(e.target.files[0].type.includes("image")){
         };
         Image.type = "file";
         Image.hidden = true;
-        Image.accept = "image/*,video/*";
+        Image.accept = "image/*;capture=camera,video/*;capture=camera";
         Image.style = { position: "absolute", opacity: "0" };
         let i = document.body.appendChild(Image);
         i.click();

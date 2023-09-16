@@ -1,12 +1,11 @@
 import 'react-loading-skeleton/dist/skeleton.css'
 import Image from 'next/image'
 import React, { useState } from 'react'
-import { configureStory, getThumb } from '@/utils/functions';
+import { configureStory, getThumb } from '../../utils/functions';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
-import { myCld } from '@/utils/constants';
 import Stories from 'react-insta-stories';
 import { useDispatch, useSelector } from 'react-redux';
-import { setNextStory, setPreviousStory } from '@/redux/homepage/actions';
+import { setNextStory, setPreviousStory } from '../../redux/homepage/actions';
 import { AdvancedImage } from '@cloudinary/react';
 function StoryComponent({story,viewedStory,select}) {
     const [currentStoryId,setCurrentStoryId]=useState(0)
@@ -36,7 +35,7 @@ function StoryComponent({story,viewedStory,select}) {
             <Skeleton duration={0.5} count={1} style={{position:"absolute",top:"0px",left:"0px",borderRadius:"10px",width:"100%",height:"100%"}}/>
 
         {(viewedStory.full_video_path||viewedStory.photo_path)&&
-        <AdvancedImage className='thumb-img' alt='story' width={145} height={255} priority cldImg={getThumb(viewedStory.full_video_path||viewedStory.photo_path,viewedStory.full_video_path)} style={{width:"100%",height:"100%",borderRadius:"10px",objectFit:"cover",zIndex:"2"}}/>}
+        <AdvancedImage className='thumb-img' alt='story' width={145} height={255} priority={"true"} cldImg={getThumb(viewedStory.full_video_path||viewedStory.photo_path,viewedStory.full_video_path)} style={{width:"100%",height:"100%",borderRadius:"10px",objectFit:"cover",zIndex:"2"}}/>}
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import './globals.css'
 require( "external-svg-loader");
 import { Inter } from 'next/font/google'
-import {Providers} from "@/redux/provider"
+import {Providers} from "../redux/provider"
 
 const inter = Inter({ subsets: ['latin'] })
 

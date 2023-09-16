@@ -712,3 +712,7 @@ body{
   .CircularProgressbar-background {
     fill: green;
   }
+  #Path_21306{
+    stroke-dashoffset: 21.4;
+    stroke-dasharray: 21.4;
+  }

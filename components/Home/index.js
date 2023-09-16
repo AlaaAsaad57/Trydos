@@ -1,11 +1,11 @@
 "use client";
 import "styles/home.css"
-import Navbar from '@/components/Home/Navbar'
+import Navbar from '../../components/Home/Navbar'
 import { useDispatch, useSelector } from "react-redux";
-import TranslationsMenu from "@/components/global/TranslationsMenu";
+import TranslationsMenu from "../../components/global/TranslationsMenu";
 import { useEffect, useState } from "react";
 import StoriesBar from "./Stories";
-import { GetStoryData } from "@/redux/homepage/actions";
+import { GetStoryData } from "../../redux/homepage/actions";
 import { revalidatePath } from "next/cache";
 export default function Home({stories,res}) {
   

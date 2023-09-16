@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
 import Border from '../global/Border'
-import { translate } from '@/utils/functions'
-import LoginIcon from 'assets/svg/login.svg'
-import CloseIcon from 'assets/svg/CloseIcon.svg'
-import AccountIcon from 'assets/svg/AccountIcon.svg'
+import { translate } from '../../utils/functions'
+import LoginIcon from '../../public/svg/login.svg'
+import CloseIcon from '../../public/svg/CloseIcon.svg'
+import AccountIcon from '../../public/svg/AccountIcon.svg'
 import { useDispatch, useSelector } from 'react-redux'
 import LoginQR from './LoginQR'
 import LoginPhone from './LoginPhone'
 import LoginSuccessWidget from './LoginSuccessWidget'
-import { ReInitialise } from '@/redux/auth/actions'
+import { ReInitialise } from '../../redux/auth/actions'
 function LoginWidget({close,loginSuccessVar,setLoginSucces}) {
     const dispatch=useDispatch()
     const wrongNumber=useSelector((state)=>state.auth.wrongNumber)

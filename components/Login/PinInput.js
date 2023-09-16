@@ -1,5 +1,5 @@
 
-import { ReInitialise } from '@/redux/auth/actions';
+import { ReInitialise } from '../../redux/auth/actions';
 import React, { use, useEffect, useState } from 'react'
 import PinInput from "react-pin-input";
 import { useDispatch, useSelector } from 'react-redux';

@@ -1,8 +1,8 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import ChatIcon from "assets/svg/ChatIcon.svg"
-import CartIcon from "assets/svg/CartIcon.svg"
-import { translate } from '@/utils/functions'
+import ChatIcon from "../../public/svg/ChatIcon.svg"
+import CartIcon from "../../public/svg/CartIcon.svg"
+import { translate } from '../../utils/functions'
 import UserAvatar from './UserAvatar'
 function AuthNavSection() {
     const language=useSelector((state)=>state.homepage.language)

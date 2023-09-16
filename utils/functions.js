@@ -1,4 +1,4 @@
-import {translations} from "assets/translations/translations.js"
+import {translations} from "../public/translations/translations.js"
 import { myCld } from "./constants";
 import { quality } from "@cloudinary/url-gen/actions/delivery";
 import { auto } from "@cloudinary/url-gen/qualifiers/quality";

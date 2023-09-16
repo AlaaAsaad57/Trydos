@@ -2,9 +2,8 @@
 import React, {useEffect, useState } from 'react'
 import Stories, { WithSeeMore } from 'react-insta-stories';
 import StoryComponent from './StoryComponent';
-import { AdvancedVideo } from '@cloudinary/react';
 import { useDispatch, useSelector } from 'react-redux';
-import { SelectStory, setNextStory } from '@/redux/homepage/actions';
+import { SelectStory, setNextStory } from '../../redux/homepage/actions';
 import AddStory from './AddStory';
 function StoriesBar({stories}) {
     const selectedStory=useSelector(state => state.homepage.selectedStory)

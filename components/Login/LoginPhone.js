@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from 'react'
-import PhoneIcon from "assets/svg/PhoneIcon.svg"
-import SolidPhoneIcon from "assets/svg/SolidPhoneIcon.svg"
-import QuestionIcon from "assets/svg/questionIcon.svg"
+import PhoneIcon from "../../public/svg/PhoneIcon.svg"
+import SolidPhoneIcon from "../../public/svg/SolidPhoneIcon.svg"
+import QuestionIcon from "../../public/svg/questionIcon.svg"
 import { useDispatch, useSelector } from 'react-redux'
-import { translate } from '@/utils/functions'
+import { translate } from '../../utils/functions'
 import Border from '../global/Border'
-import LeftArrowIcon from "assets/svg/LeftArrowIcon.svg"
-import CheckedIcon from "assets/svg/CheckedIcon.svg"
-import PenIcon from "assets/svg/PenIcon.svg"
-import WAIcon from "assets/svg/WAIcon.svg"
+import LeftArrowIcon from "../../public/svg/LeftArrowIcon.svg"
+import CheckedIcon from "../../public/svg/CheckedIcon.svg"
+import PenIcon from "../../public/svg/PenIcon.svg"
+import WAIcon from "../../public/svg/WAIcon.svg"
 import { textMarshal } from 'text-marshal'
 import { allCountries } from 'country-telephone-data'
 import replaceString from 'replace-string';
-import MessageIcon from "assets/svg/MessageIcon.svg"
+import MessageIcon from "../../public/svg/MessageIcon.svg"
 import Timer from './Timer'
 import PinInputs from './PinInput'
-import { CheckPhone, Login, ReInitialise } from '@/redux/auth/actions'
+import { CheckPhone, Login, ReInitialise } from '../../redux/auth/actions'
 const {flag} = require('country-emoji');
 function LoginPhone({selectedMethod,selectMethod,LoginSuccess}) {
   const dispatch=useDispatch()

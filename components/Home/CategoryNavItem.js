@@ -1,6 +1,6 @@
-import { translate } from "@/utils/functions"
+import { translate } from "../../utils/functions"
 import { useSelector } from "react-redux"
-import NavIcon from "assets/svg/navIcon.svg"
+import NavIcon from "../../public/svg/navIcon.svg"
 import SearchComponent from "./SearchComponent"
 function CategoryNavItem({name, icon,searchEnabled,close,openSearch}) {
     const language=useSelector((state)=>state.homepage.language)

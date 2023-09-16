@@ -1,4 +1,4 @@
-import { configureStory } from "@/utils/functions"
+import { configureStory } from "../../utils/functions"
 
 const initialState = {language:"ar",loading:true,selectedStory:null,storiesData:[]}
 

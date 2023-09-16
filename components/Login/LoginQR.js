@@ -1,9 +1,9 @@
 import React from 'react'
 import Border from '../global/Border'
-import ScanIcon from "assets/svg/ScanIcon.svg"
-import QuestionIcon from "assets/svg/questionIcon.svg"
+import ScanIcon from "../../public/svg/ScanIcon.svg"
+import QuestionIcon from "../../public/svg/questionIcon.svg"
 import { useSelector } from 'react-redux'
-import { translate } from '@/utils/functions'
+import { translate } from '../../utils/functions'
 import QRCode from "react-qr-code";
 function LoginQR({selectedMethod,selectMethod}) {
     const language=useSelector((state)=>state.homepage.language)
