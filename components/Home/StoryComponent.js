@@ -22,7 +22,7 @@ function StoryComponent({story,viewedStory,select}) {
             onNext={()=>currentStoryId<story.stories.length-1 ? setCurrentStoryId(currentStoryId+1):dispatch(setNextStory(story.id))}
 		      	stories={selectedStory.stories}
             storyContainerStyles={{width:"100%",height:"100%",display:"flex"}}
-            storyStyles={{width:"100wv",height:"auto",display:"flex",alignItems:"center",justifyContent:"center"}}
+            storyStyles={{width:"100wv",height:"auto",maxHeight:"96vh",maxWidth:"96vw",display:"flex",alignItems:"center",justifyContent:"center"}}
 			      width={'100vw'}
 			      height={'100vh'}
             onAllStoriesEnd={()=>{ setTimeout(() => {

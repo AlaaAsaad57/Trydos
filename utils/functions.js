@@ -17,6 +17,7 @@ export const getStoriesHeaders=()=>{
             Authorization: `Bearer ${token}`,
         },
         cache: 'force-cache' ,
+        next:{tags:['stories']}
     }
 }
 export const configureStory=(story)=>{

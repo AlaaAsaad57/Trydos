@@ -4,7 +4,7 @@ import { getStoriesHeaders } from '../utils/functions'
 import React from 'react'
 const getStories=async()=>{
   try{
-    const res = await fetch(STORIES_URL+GET_USERS_STORIES,getStoriesHeaders())
+    const res = await fetch(STORIES_URL+GET_USERS_STORIES,getStoriesHeaders(),)
     const repo = await res.json()
     return repo.data.data
   }catch(e){
