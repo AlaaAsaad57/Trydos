@@ -1,0 +1,32 @@
+.logo_svg__logocircle{
+    animation: anim 1s ease-in 0s 1 forwards;
+}
+@keyframes anim {
+    0%{
+        opacity: 0;
+        transform: translate(3px,-10px);
+    }
+    100%{
+        opacity: 1;
+        transform: translate(3px,0.003px);
+        
+    }
+}
+.logo_svg__logoline{
+    opacity: 0;
+    animation: anma 1.5s ease-in 1.2s 1 forwards;
+    transform-origin: left;
+}
+@keyframes anma {
+0%{
+    opacity: 0;
+    transform: scale(0.4) translate(-7px, 9px);
+}
+1%{
+    opacity: 1;
+}
+100%{
+    opacity: 1;
+    transform: initial;
+}    
+}
