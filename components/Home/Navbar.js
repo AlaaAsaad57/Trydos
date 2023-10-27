@@ -11,7 +11,7 @@ function Navbar() {
   return (
     <div aria-details={language}className="home-navbar">
         <Logo/>
-        <CategoriesBar/>
+        <CategoriesBar forMobile={false}/>
         {<UserNavTopSection loginOpen={loginOpen} openLogin={(e)=>setLoginOpen(e)}/>}
    
     </div>

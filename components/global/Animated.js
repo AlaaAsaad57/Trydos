@@ -16,7 +16,7 @@ function Animated({stories}) {
         dispatch(GetStoryData(stories))
        try{
          fetch(STORIES_URL+GET_USERS_STORIES,getStoriesHeaders()).then((res) => res.json()).then((data)=>{
-            console.log(data)
+      
         }).catch(e=>{console.log("stories endpoints error")})}
         catch(e){
           

@@ -1,0 +1,21 @@
+import React from 'react'
+import QuickIcon from "../../../public/svg/quickIcon.svg"
+import BarDescribtion from '../Bars/BarDescribtion'
+import StopWatch from "./StopWatch"
+function QuickEventBar() {
+  return (
+    <div className='quick-event-bar'>
+        <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="50" viewBox="0 0 100% 50">
+        <g id="Rectangle_4745" data-name="Rectangle 4745" fill="none" stroke="#19171b" stroke-width="0.5" stroke-dasharray="3 3">
+            <rect width="100%" height="50" rx="15" stroke="none"/>
+            <rect x="0.25" y="0.25" width="100%" height="49.5" rx="14.75" fill="none"/>
+        </g>
+        </svg>
+    <QuickIcon/>
+    <BarDescribtion name={"Quick Offer"} desc={"This Offer Is For Only 4 Hours, Remaining:"}/>
+    <StopWatch stopHour={new Date().setHours(new Date().getHours()+1,new Date().getMinutes()+2,new Date().getSeconds()+59)}/>
+    </div>
+  )
+}
+
+export default QuickEventBar

@@ -18,6 +18,18 @@
     font-family:'icon-font' ;
     src: url("/fonts/NotoColorEmoji-Regular.ttf");
 }
+@font-face {
+    font-family:'quicksand' ;
+    src: url("/fonts/Quicksand-Regular.ttf");
+}
+@font-face {
+    font-family:'quicksand-med' ;
+    src: url("/fonts/Quicksand-Medium.ttf");
+}
+@font-face {
+    font-family:'quicksand-bold' ;
+    src: url("/fonts/Quicksand-Bold.ttf");
+}
 * [aria-labelledby='en-regular']{
     font-family: 'SF-Pro-Rounded';
 }

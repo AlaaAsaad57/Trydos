@@ -1,0 +1,20 @@
+import React from 'react'
+import OfferImage from "../../../public/images/Kids_BannerInteriorHalloween_2609.jpg"
+import OfferAvatars from "./OfferAvatars"
+import BorderImage from "./BorderImage"
+import Image from 'next/image'
+function OfferSlideItem({isSingle}) {
+  return (
+    <div className='offer-slide-item'>
+
+    <div className='image-offer'>
+        <div className='image-inner-shadow' style={{height:"135px"}}/>
+         <Image className="OfferImage" src={OfferImage} width={360} height={155} alt="offer"/>
+        <BorderImage/>
+    </div>
+        <OfferAvatars/>
+    </div>
+  )
+}
+
+export default OfferSlideItem

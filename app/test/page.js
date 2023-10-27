@@ -9,7 +9,7 @@ const getStories=async()=>{
   const repo = await res.json()
   return repo.data.data
  } catch(e){
-console.log(e)
+;
  }
 
 }
