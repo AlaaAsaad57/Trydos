@@ -1,15 +1,17 @@
+"use client"
 import React, { useEffect } from 'react'
 import StoryElement from "./StoryElement"
 import { useSelector } from 'react-redux'
 function index() {
   const language=useSelector((state)=>state.homepage.language)
 const getBorderWidth=()=>{
-  let elem=document.querySelector(".site-container")
+  let elem=typeof document !== 'undefined' &&document.querySelector(".site-container")
   if(elem?.clientWidth <1443)
   return elem?.clientWidth
 else return 1433
 }
-const slider = document.querySelector('.stories-bars');
+if (typeof document !== 'undefined'){
+  const slider = document?.querySelector('.stories-bars');
 let isDown = false;
 let startX;
 let scrollLeft;
@@ -34,7 +36,7 @@ slider?.addEventListener('mousemove', (e) => {
   const x = e.pageX - slider.offsetLeft;
   const walk = (x - startX) * 3; //scroll-fast
   slider.scrollLeft = scrollLeft - walk;
-});
+});}
   return (
     <div className='stories-bar-container'>
             <div id="stories-bar" className='stories-bar'>

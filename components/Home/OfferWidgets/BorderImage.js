@@ -2,12 +2,16 @@ import React from 'react'
 
 function BorderImage({id}) {
     const getHeight=()=>{
-        let elem=document.querySelector(`#${id}`)
+      let elem
+      if(typeof document !== 'undefined'){
+           elem=document.querySelector(`#${id}`)
    
-        return elem?.clientHeight
+      
+      }
+      return elem?.clientHeight
     }
     const getWidth=()=>{
-        let elem=document.querySelector(".OfferImage")
+        
         return "100%"
     }
   return (
