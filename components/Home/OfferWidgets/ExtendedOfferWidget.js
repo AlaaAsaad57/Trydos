@@ -7,12 +7,16 @@ import KidsIcon from "../../../public/svg/KidsIcon.svg"
 import SaleIcon from "../../../public/svg/saleIcon.svg"
 import DiscountIcon from "../../../public/svg/discountIcon.svg"
 import GiftIcon from "../../../public/svg/giftIcon.svg"
+import { useSelector } from 'react-redux'
+import { translate } from '../../../utils/functions'
 function ExtendedOfferWidget({offer}) {
+  const language=useSelector((state)=>state.homepage.language)
+
   return (
     <div className='offer-widget extended-widget'>
     <div className='offer-blured-background'/>
     <div className='offer-blured'/>
-    <div className='offer-container'>
+    <div className='offer-container' aria-details={language}>
     <div className='offer-logo'>
         <LogoOffer/>
     </div>
@@ -21,8 +25,8 @@ function ExtendedOfferWidget({offer}) {
             <WomanIcon/>
             <KidsIcon/>
         </div>
-    <div className='offer-desc'>
-    Mango Famous Turkish Brand Best Offers 
+    <div className='offer-desc' >
+    {translate("Mango Famous Turkish Brand Best Offers",language )}
      </div>
      <div className='offer-details'>
         <div className='offer-details-item'>
@@ -30,7 +34,7 @@ function ExtendedOfferWidget({offer}) {
                 <SaleIcon/>
             </div>
             <div className='offer-details-text'>
-            <span className='bold-text'>50 %</span> <span>Sale</span>   
+            <span className='bold-text'>50 %</span> <span>{translate("Sale",language)}</span>   
             </div>
         </div>
         <div className='offer-details-item'>
@@ -38,7 +42,7 @@ function ExtendedOfferWidget({offer}) {
                 <DiscountIcon/>
             </div>
             <div className='offer-details-text'>
-            <span>Second </span> 
+            <span>{translate("Second",language)} </span> 
             <span className='bold-text'>20 %</span>  
             </div>
         </div>
@@ -47,7 +51,7 @@ function ExtendedOfferWidget({offer}) {
                 <GiftIcon/>
             </div>
             <div className='offer-details-text'>
-                <span>Buy 1 gift 1</span>
+                <span>{translate("Buy 1 gift 1",language)}</span>
             </div>
         </div>
      </div>

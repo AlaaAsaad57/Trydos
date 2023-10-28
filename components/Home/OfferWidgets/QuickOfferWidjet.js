@@ -5,12 +5,16 @@ import WomanIcon from "../../../public/svg/WomanIcon.svg"
 import OfferPhotosSlider from "./OfferPhotosSlider"
 import KidsIcon from "../../../public/svg/KidsIcon.svg"
 import QuickEventBar from "./QuickEventBar"
+import { useSelector } from 'react-redux'
+import { translate } from '../../../utils/functions'
 function QuickOfferWidjet({offer}) {
+  const language=useSelector((state)=>state.homepage.language)
+
     return (
         <div className='offer-widget quick-widget'>
         <div className='offer-blured-background'/>
         <div className='offer-blured'/>
-        <div className='offer-container'>
+        <div className='offer-container' aria-details={language}>
         <div className='offer-logo'>
             <LogoOffer/>
         </div>
@@ -20,7 +24,7 @@ function QuickOfferWidjet({offer}) {
                 <KidsIcon/>
             </div>
         <div className='offer-desc'>
-        Mango Famous Turkish Brand Best Offers 
+        {translate("Mango Famous Turkish Brand Best Offers",language )} 
          </div>
          <OfferPhotosSlider  OfferPhotos={offer.photos}/>
         </div>
