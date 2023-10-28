@@ -3,14 +3,16 @@ import OfferImage from "../../../public/images/Kids_BannerInteriorHalloween_2609
 import OfferAvatars from "./OfferAvatars"
 import BorderImage from "./BorderImage"
 import Image from 'next/image'
+import { getId } from '../../../utils/functions'
 function OfferSlideItem({isSingle}) {
+  let id=getId()
   return (
     <div className='offer-slide-item'>
 
     <div className='image-offer'>
-        <div className='image-inner-shadow' style={{height:"135px"}}/>
-         <Image className="OfferImage" src={OfferImage} width={360} height={155} alt="offer"/>
-        <BorderImage/>
+        <div className='image-inner-shadow' style={{height:"100%"}}/>
+         <Image id={id} className="OfferImage" src={OfferImage} width={360} height={155} alt="offer"/>
+        <BorderImage id={id}/>
     </div>
         <OfferAvatars/>
     </div>

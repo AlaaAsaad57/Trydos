@@ -546,8 +546,11 @@ body{
     top: 363px;
     z-index: 2;
 }
-.nav-img-item{
+.nav-img-item.nav-question-item{
     width: 30px;
+    min-width: 30px;
+    padding: 0px;
+    display: flex !important;
     height: 30px;
     display: flex;
 }
@@ -897,12 +900,13 @@ body{
     height: 54vw;
     max-height: 766px;
     flex-direction: column;
+    min-height: 235px;
     display: flex;
     position: relative;
     background-image: url("../public/images/Kids_BannerInteriorHalloween_2609.jpg");
     background-position: center center;
     background-repeat: no-repeat;
-    background-size: 169% 54vw;
+    background-size: 169% 56vw;
 
     box-shadow: rgba(0, 0, 0, 0.1) 0px 3px 10px;
     border-radius: 15px;
@@ -1090,8 +1094,9 @@ html, body{
     position: relative;
   }
   .extended-widget{
-    height: 292px !important;
-    background-size: 169% 292px; 
+    height: 67vw !important;
+    background-size: 169% 67vw;
+    max-height: 766px; 
   }
   .image-inner-shadow{
     position: absolute;
@@ -1104,7 +1109,7 @@ html, body{
   }
   .offer-details{
     display: flex;
-    width: 85%;
+    width: 98%;
     align-items: center;
     justify-content: space-between;
   }
@@ -1132,8 +1137,9 @@ html, body{
     font-family: "quicksand-bold";
   }
   .quick-widget{
-    height: 285px;
-    background-size: 169% 285px; 
+    height: 64vw;
+    background-size: 169% 64vw;
+    max-height: 766px; 
   }
   .quick-event-bar{
     display: flex;
@@ -1248,13 +1254,13 @@ html, body{
     direction: rtl;
    }
   @media only screen and (max-width: 912px) {
-   .categories-bar-container, .welcome-user, .nav-question-item:nth-child(4){
+   .categories-bar-container, .welcome-user, .nav-question-item:not(.nav-img-item):nth-child(4){
     display: none !important;
    }
    .home-page-container{
     padding-top: 52px;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding-left: 15px;
+    padding-right: 15px;
     align-items: center;
    }
    .home-navbar{
@@ -1272,7 +1278,8 @@ html, body{
    }
    .home-page-container .categories-bar-container.mobile-bar{
     display: flex !important;
-    margin-left: 25px !important;
+    margin-left: 0px !important;
+    margin-right: 0px !important;
     width: 100% !important;
     max-width: 400px !important;
     justify-content: center;
@@ -1309,5 +1316,13 @@ html, body{
   .nav-question-item:hover span{
     opacity: 1;
   }
+  .nav-img-item.nav-question-item, .user-nav-container .nav-question-item.nav-img-item:nth-child(4){
+    width: 30px;
+    min-width: 30px;
+    padding: 0px;
+    display: flex !important;
+    height: 30px;
+    display: flex;
+}
   }
 

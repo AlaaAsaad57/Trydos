@@ -8,10 +8,10 @@ function QuickEventBar() {
   const language=useSelector((state)=>state.homepage.language)
   return (
     <div className='quick-event-bar' aria-details={language}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="50" viewBox="0 0 100% 50">
+        <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100% 50">
         <g id="Rectangle_4745" data-name="Rectangle 4745" fill="none" stroke="#19171b" stroke-width="0.5" stroke-dasharray="3 3">
-            <rect width="100%" height="50" rx="15" stroke="none"/>
-            <rect x="0.25" y="0.25" width="100%" height="49.5" rx="14.75" fill="none"/>
+            <rect width="100%" height="100%" rx="15" stroke="none"/>
+            <rect x="0.25" y="0.25" width="100%" height="calc(100% - 0.5px)" rx="14.75" fill="none"/>
         </g>
         </svg>
     <QuickIcon/>
