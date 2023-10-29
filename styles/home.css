@@ -809,6 +809,8 @@ body{
     justify-content: center;
     border-radius: 50%;
     object-fit: cover;
+    object-position: center top;
+
   }
   .story-element-item{
     width: 100px;
@@ -858,7 +860,7 @@ body{
   .home-bar{
     width: 100%;
     height: 50px;
-    max-width: 1000px;
+    max-width: 1366px;
     align-items: center;
     display: flex;
     border-radius: 15px;
@@ -895,10 +897,21 @@ body{
     justify-content: flex-start;
     margin-top: 25px;
   }
+  .fixed-layout div:nth-child(2)>div:first-child{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+  .fixed-layout div:nth-child(2)>div:nth-child(2) img{
+    object-fit: cover;
+    object-position: center top;
+  }
   .offer-widget{
     width: 100%;
     height: 54vw;
     max-height: 766px;
+    max-height: 476px;
     flex-direction: column;
     min-height: 235px;
     display: flex;
@@ -981,8 +994,9 @@ body{
     margin-top: 9px;
     justify-content: center;
     margin-left: 3px;
-    height: 66%;
+    height: 31.4vw;
     width: 100%;
+    max-height: 385px;
 }
 .offer-slide-item{
     display: flex;
@@ -990,13 +1004,16 @@ body{
     justify-content: flex-start;
     position: relative;
     width: 95%;
+    max-height: 385px;
     height:100%;
+    
 }
 .offer-slide-item img{
     width: 100%;
     height: 100%;
     border-radius: 15px;
-    object-fit: fill;
+    object-fit: cover;
+    object-position: center;
 
 }
 .offer-avatars-container{
@@ -1096,7 +1113,7 @@ html, body{
   .extended-widget{
     height: 67vw !important;
     background-size: 169% 67vw;
-    max-height: 766px; 
+    max-height: 476px; 
   }
   .image-inner-shadow{
     position: absolute;
@@ -1326,3 +1343,27 @@ html, body{
 }
   }
 
+  @media only screen and (max-width: 430px) {
+    .offer-slider-container{
+        height: 31.4vw;
+    }
+    .offer-widget{
+        height: 54vw;
+        max-height: 476px;
+    }
+}
+@media only screen and (min-width: 500px) {
+    .offer-slider-container{
+        height: 38.4vw;
+    }
+    .offer-widget{
+        height: 54vw;
+        max-height: 476px;
+    }
+}
+.slick-slide>div, .slick-track, .slick-list, .slick-slider{
+    height: 100%;
+}
+.extended-widget .offer-slider-container{
+    max-height: 340px;
+}

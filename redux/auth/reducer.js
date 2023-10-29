@@ -6,7 +6,7 @@ const AuthReducer=(state = initialState, { type, payload }) => {
   case 'LOGIN_SUCCESS':
     return { ...state,user:payload,failedLogin:false }
   case "LOGIN_FAILED":{
-    console.log(payload)
+
     return {...state,failedLogin:true,attempts:state.attempts-1}
   }
   case 'RE-INITILIASE':{

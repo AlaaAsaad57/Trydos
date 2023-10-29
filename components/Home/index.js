@@ -12,6 +12,7 @@ import QuickOffer from "./Bars/QuickOffer"
 import OfferBar from "./Bars/OfferBar"
 import CategoryBar from "./Bars/CategoryBar"
 import OffersList from "./OfferWidgets/OfferList"
+import StoriesComponent from "./Stories/StoriesComponent"
 export default function Home({stories,res}) {
   
   const language=useSelector((state)=>state.homepage.language)
@@ -19,12 +20,21 @@ export default function Home({stories,res}) {
   useEffect(()=>{ 
     dispatch(GetStoryData(stories))
   },[])
-  const storiesData=useSelector((state)=>state.homepage.storiesData)
+  const selectedStory=useSelector(state => state.homepage.selectedStory)
+  useEffect(()=>{
+    if(selectedStory){
+      document.body.style.overflowY = 'hidden'
+    }
+    else{
+      document.body.style.overflowY = 'initial'
+    }
+  },[selectedStory])
   const dispatch=useDispatch() 
   return (
      <div aria-details={language}className='site-container'>
         <div aria-details={language}className='home-page-container'>
            <TranslationsMenu/>
+           <StoriesComponent/>
             <Navbar/>
             <Stories/>
             <CategoriesBar forMobile={true}/>

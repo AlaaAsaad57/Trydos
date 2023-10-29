@@ -58,7 +58,7 @@ export const translations={
         "Remaining":"متبقي",
         "More":"المزيد",
         "Second":"تخفيض اضافي",
-        "Buy 1 gift 1":"اشتري 1 واحصل على 1 هدية",
+        "Buy 1 gift 1":"اشتري 1 واربح 1 ",
         "Category":"الأصناف",
         "Mango Famous Turkish Brand Best Discounts":"أفضل التخفيضات من العلامة التركية المشهورة Mango",
         "Mango Famous Turkish Brand Best Offers":"أفضل العروض من العلامة التركية المشهورة Mango",

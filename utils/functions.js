@@ -27,14 +27,17 @@ export const configureStory=(story)=>{
     let returnedData=[]
     story?.stories?.map((storyItem)=>{
          if(storyItem.full_video_path){
-            let vid = myCld.video(storyItem.full_video_path?.split("/").pop().split(".")[0]).delivery(quality(auto()));
+            // let vid = myCld.video(storyItem.full_video_path?.split("/").pop().split(".")[0]).delivery(quality(auto()));
             returnedData.push({ 
-             url:vid.toURL(),
-             FixedUrl:vid,
+            //  url:vid.toURL(),
+            //  FixedUrl:vid,
+             url:storyItem.full_video_path,
+             FixedUrl:storyItem.full_video_path,
+ 
              header: {
-                heading: 'Mohit Karekar',
+                heading: story.name,
                 subheading: 'Posted 30m ago',
-                profileImage: 'https://picsum.photos/100/100',
+                profileImage: story.avatar,
             },
              duration:5000,
              preloadResource:true,
@@ -42,15 +45,17 @@ export const configureStory=(story)=>{
           })
         }
         else if(storyItem.photo_path){
-            let img = myCld.image(storyItem.photo_path?.split("/").pop().split(".")[0]).delivery(quality(auto()));
+            // let img = myCld.image(storyItem.photo_path?.split("/").pop().split(".")[0]).delivery(quality(auto()));
             returnedData.push({ 
-             url:img.toURL(),
-             FixedUrl:img,
+             url:storyItem.photo_path.src,
+             FixedUrl:storyItem.photo_path.src,
+            //  url:img.toURL(),
+            //  FixedUrl:img,
              duration:20000,
              header: {
-                heading: 'Mohit Karekar',
+                heading: story.name,
                 subheading: 'Posted 30m ago',
-                profileImage: 'https://picsum.photos/100/100',
+                profileImage: story.avatar.src,
             },
              preloadResource:true,
              type:"image"
