@@ -70,7 +70,8 @@ export const getThumb=(url,isVideo)=>{
         return (myCld.video(url?.split("/").pop().split(".")[0]).resize(Resize.thumbnail('145','255')).format('jpg').delivery(quality(auto())))
     }
     else
-    return  (myCld.image(url?.split("/").pop().split(".")[0]).resize(Resize.thumbnail('145','255')).delivery(quality(auto())))}
+    return  (myCld.image(url?.split("/").pop().split(".")[0]).resize(Resize.thumbnail('145','255')).delivery(quality(auto())))
+}
 
 }
 export const upload=async (file,callback,is_video,endUpload)=>{
