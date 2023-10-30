@@ -996,7 +996,7 @@ body{
     margin-left: 3px;
     height: 31.4vw;
     width: 100%;
-    max-height: 385px;
+    max-height: 342px;
 }
 .offer-slide-item{
     display: flex;
@@ -1004,7 +1004,7 @@ body{
     justify-content: flex-start;
     position: relative;
     width: 95%;
-    max-height: 385px;
+    max-height: 342px;
     height:100%;
     
 }
@@ -1154,7 +1154,7 @@ html, body{
     font-family: "quicksand-bold";
   }
   .quick-widget{
-    height: 64vw;
+    height: 64vw !important;
     background-size: 169% 64vw;
     max-height: 766px; 
   }
