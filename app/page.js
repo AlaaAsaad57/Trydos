@@ -10,7 +10,7 @@ const getStories=async()=>{
   }catch(e){
 
   }
-
+ 
 }
 async function page() {
   const data = await getStories();
