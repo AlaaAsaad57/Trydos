@@ -5,6 +5,7 @@ import { auto } from "@cloudinary/url-gen/qualifiers/quality";
 import { Resize } from "@cloudinary/url-gen/actions";
 import axios from "axios";
 import { STORIES_URL, UPLOAD_STORY_URL } from "./endpointConfig";
+import profilePicture from "../public/images/profileNo.png"
 export function translate(key,language){
 return translations[language][key] || key
 }
@@ -27,17 +28,17 @@ export const configureStory=(story)=>{
     let returnedData=[]
     story?.stories?.map((storyItem)=>{
          if(storyItem.full_video_path){
-            // let vid = myCld.video(storyItem.full_video_path?.split("/").pop().split(".")[0]).delivery(quality(auto()));
+            let vid = myCld.video(storyItem.full_video_path?.split("/").pop().split(".")[0]).delivery(quality(auto()));
             returnedData.push({ 
-            //  url:vid.toURL(),
-            //  FixedUrl:vid,
+             url:vid.toURL(),
+             FixedUrl:vid,
              url:storyItem.full_video_path,
              FixedUrl:storyItem.full_video_path,
  
              header: {
-                heading: story.name,
+                heading: story.name??story.mobile_phone??'Unknown',
                 subheading: 'Posted 30m ago',
-                profileImage: story.avatar,
+                profileImage: story.photo_path??profilePicture.src,
             },
              duration:5000,
              preloadResource:true,
@@ -45,17 +46,15 @@ export const configureStory=(story)=>{
           })
         }
         else if(storyItem.photo_path){
-            // let img = myCld.image(storyItem.photo_path?.split("/").pop().split(".")[0]).delivery(quality(auto()));
+            let img = myCld.image(storyItem.photo_path?.split("/").pop().split(".")[0]).delivery(quality(auto()));
             returnedData.push({ 
-             url:storyItem.photo_path.src,
-             FixedUrl:storyItem.photo_path.src,
-            //  url:img.toURL(),
-            //  FixedUrl:img,
+             url:img.toURL(),
+             FixedUrl:img,
              duration:20000,
              header: {
-                heading: story.name,
+                heading: story.name??story.mobile_phone??'Unknown',
                 subheading: 'Posted 30m ago',
-                profileImage: story.avatar.src,
+                profileImage: story.photo_path??profilePicture.src,
             },
              preloadResource:true,
              type:"image"

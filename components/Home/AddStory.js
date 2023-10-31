@@ -7,6 +7,7 @@ import PlusIcon from "../../public/svg/chatplus.svg"
 import { useDispatch } from 'react-redux';
 import { AddStoryAction } from '../../redux/homepage/actions';
 import { revalidatePath } from 'next/cache';
+import { revalidateStories } from '../../utils/serverActions';
 
 function AddStory() {
     const [uploaded,setUpload]=useState(0)
@@ -29,10 +30,12 @@ if(e.target.files[0].type.includes("video")){
         setFile(null)
       })
       setIsSelected(path)
+      
       setFile(e.target.files[0])
       dispatch(AddStoryAction(path))
       setIsSelected(null);
       setFile(null)
+      revalidateStories()
       
 }
 else if(e.target.files[0].type.includes("image")){
@@ -49,7 +52,7 @@ else if(e.target.files[0].type.includes("image")){
           dispatch(AddStoryAction(path));
           setIsSelected(null);
           setFile(null)
-        
+          revalidateStories()
         };
       });
  
@@ -57,7 +60,7 @@ else if(e.target.files[0].type.includes("image")){
 }
 }
   return (
-    <div className='story-component' style={{animation:"none",backgroundColor:!isSelected&&"#f0f0f0",display:"flex",alignItems:"center",justifyContent:"center"}} onClick={()=>{if(!isSelected) {
+    <div className='story-element-container' style={{borderRadius:"20px",animation:"none",backgroundColor:!isSelected&&"#f0f0f0",display:"flex",alignItems:"center",justifyContent:"center"}} onClick={()=>{if(!isSelected) {
         let Image = document.createElement("input");
         Image.onblur = () => {
           ;
@@ -74,10 +77,10 @@ else if(e.target.files[0].type.includes("image")){
     }}}>
         {isSelected?
         <>
-       {uploaded&& <div className="progress-container" style={{position:"absolute",top:"0px",left:"0px",zIndex:"20",width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>
+       {uploaded&& <div className="progress-container" style={{borderRadius:"20px",position:"absolute",top:"0px",left:"0px",zIndex:"20",width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>
             <CircularProgressbar strokeWidth={2} value={uploaded} text={`${uploaded} %`}/>
         </div>}
-       {file?.type?.includes("video")?<video style={{objectFit:"cover",height:"100%"}} src={isSelected} />: <img style={{objectFit:"cover",width:"100%",height:"100%"}} className='thumb-img' alt='story' src={isSelected}/>}
+       {file?.type?.includes("video")?<video style={{borderRadius:"20px",objectFit:"cover",height:"100%"}} src={isSelected} />: <img style={{objectFit:"cover",width:"100%",height:"100%",borderRadius:"20px"}} className='thumb-img' alt='story' src={isSelected}/>}
         </>:
         <>
        

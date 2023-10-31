@@ -4,7 +4,7 @@ import Image from 'next/image'
 function StoryAvatar({avatar}) {
   return (
     <div className='story-avatar'>
-        <Image src={avatar} alt="user" width={28} height={28}/>
+      {avatar&&  <Image src={avatar} alt="user" width={28} height={28}/>}
     </div>
   )
 }

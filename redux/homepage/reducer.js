@@ -2,20 +2,7 @@ import { configureStory } from "../../utils/functions"
 import userImg from "../../public/images/user.png"
 import userImg1 from "../../public/images/PNEL32DL23IY-GIS_front.jpg"
 import userImg2 from "../../public/images/PNL7KNBW23IY-MIX_view1.jpg"
-const initialState = {language:"ar",loading:true,selectedStory:null,storiesData:[
-  {id:1,name:"Alaa Asaad",stories:[{photo_path:userImg},{photo_path:userImg1}],avatar:userImg2},
-  {id:2,name:"Ali Ali",stories:[{photo_path:userImg2},{photo_path:userImg1}],avatar:userImg},
-  {id:3,name:"Aya",stories:[{photo_path:userImg1},{photo_path:userImg2}],avatar:userImg1},
-  {id:4,name:"Alaa Asaad",stories:[{photo_path:userImg},{photo_path:userImg1}],avatar:userImg2},
-  {id:5,name:"Ali Ali",stories:[{photo_path:userImg2},{photo_path:userImg1}],avatar:userImg},
-  {id:6,name:"Aya",stories:[{photo_path:userImg1},{photo_path:userImg2}],avatar:userImg1},
-  {id:7,name:"Alaa Asaad",stories:[{photo_path:userImg},{photo_path:userImg1}],avatar:userImg2},
-  {id:8,name:"Ali Ali",stories:[{photo_path:userImg2},{photo_path:userImg1}],avatar:userImg},
-  {id:9,name:"Aya",stories:[{photo_path:userImg1},{photo_path:userImg2}],avatar:userImg1},
-  {id:10,name:"Alaa Asaad",stories:[{photo_path:userImg},{photo_path:userImg1}],avatar:userImg2},
-  {id:11,name:"Ali Ali",stories:[{photo_path:userImg2},{photo_path:userImg1}],avatar:userImg},
-  {id:12,name:"Aya",stories:[{photo_path:userImg1},{photo_path:userImg2}],avatar:userImg1},
-]}
+const initialState = {language:"ar",loading:true,selectedStory:null,storiesData:[]}
 
 const HomeReducer=(state = initialState, { type, payload }) => {
   switch (type) {
@@ -28,7 +15,7 @@ case "STORY-SELECTED":{
 }
 case "STORY-DATA":{
   return {...state,
-    // storiesData:payload
+    storiesData:payload
   }
 }
 case "NEXT-STORY":{
@@ -61,7 +48,7 @@ case "ADD-STORY":{
       arr.push(storyItem)
     }
   })
-  return({...state,storiesData:arr})
+  return({...state,storiesData:[arr.filter((storyUser)=>storyUser.id===payload.user_id)[0],...arr.filter((storyUser)=>storyUser.id!==payload.user_id)]})
 }
   default:
     return state

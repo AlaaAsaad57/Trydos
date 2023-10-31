@@ -1,6 +1,7 @@
 "use client"
 import React, { useEffect } from 'react'
 import StoryElement from "./StoryElement"
+import AddStory from "../AddStory"
 import { useDispatch, useSelector } from 'react-redux'
 import { SelectStory } from '../../../redux/homepage/actions'
 function index() {
@@ -53,6 +54,7 @@ slider?.addEventListener('mousemove', (e) => {
             <line id="Line_1107" data-name="Line 1107" x2={getBorderWidth()} transform="translate(0 0.25)" fill="none" stroke="#3c3c3c" stroke-width="0.5" stroke-dasharray="3 3"/>
             </svg>
             <div className='stories-bars' aria-details={language}>
+              <AddStory/>
             {storiesData.map((story,index)=>(
                           <StoryElement key={index}  story={story} stories={story} viewedStory={story.stories[0]} select={(e)=>setSelectStory(e)} />
             ))}

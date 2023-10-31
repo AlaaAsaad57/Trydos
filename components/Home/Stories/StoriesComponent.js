@@ -17,7 +17,7 @@ function StoriesComponent() {
     <>
     {selectedStory?.id===story.id&&
         <div className='fixed-layout' style={{position:"fixed",left:"0px",top:"0px",zIndex:"1400"}} key={selectedStory.id}>
-          <CloseIcon close={()=>setSelectStory(null)}/>
+          <CloseIcon close={()=>{setSelectStory(null); setCurrentStoryId(0)}}/>
             <Stories  key={story.id.id} 
                 preloadCount={3}
                 currentIndex={currentStoryId}
@@ -32,6 +32,7 @@ function StoriesComponent() {
                   setCurrentStoryId(0)
                     dispatch(setNextStory(selectedStory.id))
                 }, 10);}}
+                onStoryEnd={()=>currentStoryId<story.stories.length-1 ? setCurrentStoryId(currentStoryId+1):dispatch(setNextStory(story.id))}
             />
         </div>  }
     </>
