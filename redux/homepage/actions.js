@@ -4,8 +4,9 @@ import { SSRDetect } from "../../utils/functions"
 /*General Actions */
 export const RegisterDevice=async ()=>{
     try{
+        if(SSRDetect()&&!localStorage.getItem('DEVICE-TOKEN')){
         let response=await axios.post(OTP_URL+REGISTER_DEVICE_URL)
-        localStorage.setItem('DEVICE-TOKEN',response.data.data.token)
+        localStorage.setItem('DEVICE-TOKEN',response.data.data.token)}
     }
     catch(e){
 
