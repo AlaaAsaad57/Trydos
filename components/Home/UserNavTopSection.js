@@ -15,7 +15,7 @@ function UserNavTopSection({loginOpen,openLogin}) {
         {loginOpen&&<div aria-details={language}onClick={()=>openLogin(false)} className='backdrop-login'/>}
         {loginOpen&&<LoginWidget loginSuccessVar={loginSuccessVar} setLoginSucces={(e)=>setLoginSucces(e)} close={()=>openLogin(false)}/>}
        {
-        !loginSuccessVar&&<>
+        !loginSuccessVar||!user&&<>
              <div aria-details={language}className='welcome-user' aria-labelledby={language+'-medium'}>
            <span aria-labelledby={language+'-medium'}> {translate('Hello',language)} </span><span aria-labelledby={language+'-medium'}>,</span> <span aria-labelledby={language+'-light'}>{translate('Welcome',language)}</span>
         </div>
@@ -33,7 +33,7 @@ function UserNavTopSection({loginOpen,openLogin}) {
         </div>
         </>
        }
-       {loginSuccessVar&&<AuthNavSection/>}
+       {loginSuccessVar||user&&<AuthNavSection/>}
     </div>
   )
 }

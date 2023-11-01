@@ -2,6 +2,7 @@ import axios from 'axios'
 import userImage from '../../public/images/profileNo.png'
 import { LOG_IN_STORIES, OTP_URL, SEND_OTP, STORIES_URL, VERFIY_OTP } from '../../utils/endpointConfig'
 import { store } from '../store'
+import { SSRDetect } from '../../utils/functions'
 export const Login =(pin,mobile)=>{
    
     if(pin==='111111'){
@@ -53,7 +54,8 @@ export const VerifyOtp=async (code,verficationID)=>{
         localStorage.setItem("ID-TOKEN",response.data.data.id_token)
         localStorage.setItem("TOKEN",response.data.data.token)
         localStorage.setItem("USER",JSON.stringify(response.data.data.user))
-        store.dispatch({type:"LOGIN_SUCCESS",payload:{id:response.data.data.user.id,idToken:response.data.data.id_token,name:response.data.data.user.name||response.data.data.phone,avatar:userImage}})
+        store.dispatch({type:"LOGIN_SUCCESS",payload:{id:response.data.data.user.id,idToken:response.data.data.id_token,name:response.data.data.user.name||response.data.data.user.phone,avatar:userImage}})
+        loginStories()
     }
     catch(e){
         return({type:"WRONG-NUMBER",payload:'failed to send verify otp code please try again'})
@@ -61,14 +63,20 @@ export const VerifyOtp=async (code,verficationID)=>{
 }
 export const loginStories=async ()=>{
     try{
-        let response=await axios.post(STORIES_URL+LOG_IN_STORIES,JSON.stringify({
-            otp_id_token:localStorage.getItem('ID-TOKEN'),
-            mobile_phone:JSON.parse(localStorage.getItem('USER')).mobilePhone
-        }))
+        let response=await axios.post(STORIES_URL+LOG_IN_STORIES,{
+            'otp_id_token':localStorage.getItem('ID-TOKEN'),
+            'mobile_phone':"+"+JSON.parse(localStorage.getItem('USER')).phone
+        })
         localStorage.setItem('USER-STORIES',JSON.stringify(response.data.data))
         localStorage.setItem('STORIES-TOKEN',response.data.data.access_token)
     }
     catch(e){
         return({type:"WRONG-NUMBER",payload:'failed  please try again'})
+    }
+}
+export const CheckLogin=()=>{
+    if(SSRDetect()&&localStorage.getItem("USER")&&localStorage.getItem("ID-TOKEN")&&localStorage.getItem("TOKEN")){
+        store.dispatch({type:"LOGIN_SUCCESS",payload:{id:JSON.parse(localStorage.getItem("USER")).id,idToken:localStorage.getItem("ID-TOKEN"),name:JSON.parse(localStorage.getItem("USER")).name||JSON.parse(localStorage.getItem("USER")).phone,avatar:JSON.parse(localStorage.getItem("USER")).avatar||userImage}})
+        loginStories()
     }
 }

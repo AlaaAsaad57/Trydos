@@ -13,12 +13,14 @@ import OfferBar from "./Bars/OfferBar"
 import CategoryBar from "./Bars/CategoryBar"
 import OffersList from "./OfferWidgets/OfferList"
 import StoriesComponent from "./Stories/StoriesComponent"
+import { CheckLogin } from "../../redux/auth/actions";
 export default function Home({stories,res,categories,settings}) {
   
   const language=useSelector((state)=>state.homepage.language)
   useEffect(()=>{ 
     dispatch(GetStoryData(stories))
     dispatch(GetMainData(categories,settings))
+    CheckLogin()
     setTimeout(()=>{
       RegisterDevice()
     },5000)
