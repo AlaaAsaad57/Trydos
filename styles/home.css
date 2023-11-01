@@ -789,7 +789,7 @@ body{
   }
   .story-element-container{
     display: flex;
-    width: 110px;
+    min-width: 110px;
     height: 160px;
     position: relative;
     justify-content: flex-start;

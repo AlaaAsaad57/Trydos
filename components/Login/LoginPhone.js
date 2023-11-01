@@ -71,6 +71,11 @@ function LoginPhone({selectedMethod,selectMethod,LoginSuccess}) {
         setDisabled(true)
       }
     },[attempts])
+    useEffect(()=>{
+      if(wrongNumber.length>0){
+        setStepHeight(282)
+      }
+    },[wrongNumber])
   return (
     <div aria-details={language}className='login-label-container' onClick={()=>selectMethod()} style={{height:`${stepHeight}px`,marginTop:"10px",paddingTop:"15px",alignItems:"flex-start",cursor:"pointer"}}>
     <Border height={stepHeight}/>
@@ -89,7 +94,7 @@ function LoginPhone({selectedMethod,selectMethod,LoginSuccess}) {
                 {translate('Enter Your Phone Number Registered With Us',language)}
             </div>
             </div>
-            <div aria-details={language}className='login-phone-element' style={{backgroundColor:wrongNumber?'#FFF5F5':stepHeight>152&&'#F5F5F5'}}>
+            <div aria-details={language}className='login-phone-element' style={{backgroundColor:wrongNumber.length>0?'#FFF5F5':stepHeight>152&&'#F5F5F5'}}>
           {stepHeight===152&& <Border height={50} width={350} color={validNumber&&'#4D84FF'}/>}
             <div aria-details={language}className='phone-input-element'>
             <SolidPhoneIcon/>
@@ -109,10 +114,10 @@ function LoginPhone({selectedMethod,selectMethod,LoginSuccess}) {
             </div>
         </>}
     </div>  
-    {selectMethod&&stepHeight===282&&wrongNumber&&
+    {selectMethod&&stepHeight===282&&wrongNumber.length>0&&
     <div aria-details={language}className='login-qr-section'>
       <div aria-details={language}className='signup-text' aria-labelledby={language+'-regular'}>
-        {translate('Sorry, This Number Is Not Registered With Us',language)}
+        {translate(wrongNumber,language)}
       </div>
       <div aria-details={language}className='login-blue-text' aria-labelledby={language+'-light'}>
         {translate('Register With Us In A Few Simple Steps',language)}

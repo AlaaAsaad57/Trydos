@@ -1,12 +1,16 @@
 import axios from "axios"
-import { GET_USERS_STORIES, OTP_URL, STORIES_URL,REGISTER_DEVICE_URL } from "../../utils/endpointConfig"
+import { GET_USERS_STORIES, OTP_URL, STORIES_URL,REGISTER_DEVICE_URL, STARTER_SETTINGS } from "../../utils/endpointConfig"
 import { SSRDetect } from "../../utils/functions"
+import { store } from "../store"
 /*General Actions */
 export const RegisterDevice=async ()=>{
     try{
         if(SSRDetect()&&!localStorage.getItem('DEVICE-TOKEN')){
         let response=await axios.post(OTP_URL+REGISTER_DEVICE_URL)
-        localStorage.setItem('DEVICE-TOKEN',response.data.data.token)}
+        localStorage.setItem('DEVICE-TOKEN',response.data.data.token)
+    }
+    let res= await axios.get(OTP_URL+STARTER_SETTINGS);
+    store.dispatch({type:"GET_SETTINGS",payload:res.data})
     }
     catch(e){
 
@@ -15,8 +19,8 @@ export const RegisterDevice=async ()=>{
 export const changeAppLanguage=(language)=>{
     return({type:"APP-LANGUAGE",payload:language})
 }
-export const GetMainData=(categories,settings)=>{
-    return({type:"SITE-MAIN-DATA",payload:{categories:categories,settings:settings}})
+export const GetMainData=(data)=>{
+    return({type:"SITE-MAIN-DATA",payload:data})
 }
 /*Stories Actions */
 export const SelectStory=(e)=>{

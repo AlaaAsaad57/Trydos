@@ -1,16 +1,16 @@
 import Home from '../components/Home'
-import { getCategories, getMainSetting, getStories } from '../redux/homepage/cachedActions';
+import { getHomeData, getStories } from '../redux/homepage/cachedActions';
 import React from 'react'
 
 async function page() {
   const stories = await getStories(); 
-  const [categories,settings]=await getCategories();
+  const HomeData=await getHomeData();
 
 
 
   return (
     <>
-      <Home stories={stories} categories={categories} settings={settings}/>
+      <Home stories={stories} HomeData={HomeData}/>
     </>
   )
 }

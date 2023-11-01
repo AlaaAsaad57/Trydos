@@ -17,11 +17,10 @@ function PinInputs({disabled,LoginSuccess,Login,rerender,setRender,onFailedLogin
        
         if(user&&!failedLogin){
             let elements=document.querySelectorAll('.pin-border-element');
+            console.log(elements)
             elements.forEach((element)=>{
                 element.classList.add('input-success')
-                setTimeout(() => {
-                    element.classList.remove('input-success')
-                }, 1000);
+                
             })
            
             setTimeout(() => {
@@ -32,7 +31,7 @@ function PinInputs({disabled,LoginSuccess,Login,rerender,setRender,onFailedLogin
                 
                 document.querySelectorAll('.pincode-input-text').forEach((element)=>{element.value=''; })
                 setRender(false)
-            }, 1400);
+            }, 3000);
             setTimeout(() => {
                 setRender(true)
                 document.querySelectorAll('.pincode-input-text')[0]?.focus()
@@ -66,9 +65,9 @@ function PinInputs({disabled,LoginSuccess,Login,rerender,setRender,onFailedLogin
     <div aria-details={language}className='pin-inputs-container'>
         <div aria-details={language}className='pin-border-container' style={{zIndex:"1"}}>
         {Array(6).fill(1).map((e,index)=>(
-            <div aria-details={language}className='pin-border-element' style={{backgroundColor:(pin[index]||disabled)?'#f5f5f5':'#fafafa',borderRadius:"15px"}}>
+            <div aria-details={language} className={'pin-border-element'+' '+user&&'input-success'} style={{backgroundColor:(pin[index]||disabled)?'#f5f5f5':'#fafafa',borderRadius:"15px"}}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50" style={{opacity:(pin[index]||disabled)?'0':'1'}}>
-                <g id="Rectangle_4722" data-name="Rectangle 4722" fill="#fafafa" stroke="#4d84ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5" stroke-dasharray="3 3">
+                <g id="Rectangle_4722" data-name="Rectangle 4722" fill={user?"none":"#fafafa"} stroke="#4d84ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5" stroke-dasharray="3 3">
                     <rect width="50" height="50" rx="15" stroke="none"/>
                     <rect x="0.25" y="0.25" width="49.5" height="49.5" rx="14.75" fill="none"/>
                 </g>

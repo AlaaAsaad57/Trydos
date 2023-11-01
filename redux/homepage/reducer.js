@@ -51,8 +51,13 @@ case "SITE-MAIN-DATA":{
   return({
     ...state,
     loading:false,
-    categories:payload.categories,
-    settings:payload.settings
+    ...payload
+  })
+}
+case "GET_SETTINGS":{
+  return({
+    ...state,
+    settings:payload.data
   })
 }
   default:

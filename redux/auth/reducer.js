@@ -1,4 +1,4 @@
-const initialState = {user:null,failedLogin:false,attempts:4,wrongNumber:false,loading:false,verficationID:null}
+const initialState = {user:null,failedLogin:false,attempts:4,wrongNumber:'',loading:false,verficationID:null}
 
 const AuthReducer=(state = initialState, { type, payload }) => {
   switch (type) {
@@ -10,10 +10,10 @@ const AuthReducer=(state = initialState, { type, payload }) => {
     return {...state,failedLogin:true,attempts:state.attempts-1}
   }
   case 'RE-INITILIASE':{
-    return {...state,failedLogin:false,wrongNumber:false}
+    return {...state,failedLogin:false,wrongNumber:''}
   }
   case 'WRONG-NUMBER':{
-    return{...state,wrongNumber:true}
+    return{...state,wrongNumber:payload}
   }
   case "LOADING-OTP":{
     return({
@@ -25,6 +25,12 @@ const AuthReducer=(state = initialState, { type, payload }) => {
     return({
       ...state,
       verficationID:payload
+    })
+  }
+  case "UPDATE_USER_INFO":{
+    return({
+      ...state,
+      user:payload
     })
   }
   default:
