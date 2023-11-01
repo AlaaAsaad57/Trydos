@@ -37,8 +37,8 @@ function LoginWidget({close,loginSuccessVar,setLoginSucces}) {
             </div>
             
         </div>
-        <LoginQR setLoginSucces={()=>setLoginSucces(true)} selectedMethod={loginMethod==='qr'} selectMethod={()=>{ dispatch(ReInitialise()); setLoginMethod('qr');}}/>
-        <LoginPhone  LoginSuccess={()=>setLoginSucces(true)} selectedMethod={loginMethod==='phone'} selectMethod={()=>{ dispatch(ReInitialise()); setLoginMethod('phone');}}/>
+        <LoginQR setLoginSucces={()=>setLoginSucces(true)} selectedMethod={loginMethod==='qr'} selectMethod={()=>{ if(loginMethod!=="qr") dispatch(ReInitialise()); setLoginMethod('qr');}}/>
+        <LoginPhone  LoginSuccess={()=>setLoginSucces(true)} selectedMethod={loginMethod==='phone'} selectMethod={()=>{ if(loginMethod!=="phone") dispatch(ReInitialise()); setLoginMethod('phone');}}/>
         <div aria-details={language}className='login-blue-question' aria-labelledby={language+'-light'}>
             {translate('Don’t Have Account?',language)}
         </div>

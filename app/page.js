@@ -1,23 +1,16 @@
 import Home from '../components/Home'
-import { GET_USERS_STORIES, STORIES_URL } from '../utils/endpointConfig'
-import { getStoriesHeaders } from '../utils/functions'
+import { getCategories, getMainSetting, getStories } from '../redux/homepage/cachedActions';
 import React from 'react'
-const getStories=async()=>{
-  try{
-    const res = await fetch(STORIES_URL+GET_USERS_STORIES,getStoriesHeaders(),)
-    const repo = await res.json()
-    return repo.data.data
-  }catch(e){
 
-  }
- 
-}
 async function page() {
-  const data = await getStories();
+  const stories = await getStories(); 
+  const [categories,settings]=await getCategories();
+
+
 
   return (
     <>
-      <Home stories={data}/>
+      <Home stories={stories} categories={categories} settings={settings}/>
     </>
   )
 }

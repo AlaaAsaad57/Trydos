@@ -1,8 +1,5 @@
 import { configureStory } from "../../utils/functions"
-import userImg from "../../public/images/user.png"
-import userImg1 from "../../public/images/PNEL32DL23IY-GIS_front.jpg"
-import userImg2 from "../../public/images/PNL7KNBW23IY-MIX_view1.jpg"
-const initialState = {language:"ar",loading:true,selectedStory:null,storiesData:[]}
+const initialState = {language:"ar",loading:true,selectedStory:null,storiesData:[],categories:[],settings:null}
 
 const HomeReducer=(state = initialState, { type, payload }) => {
   switch (type) {
@@ -49,6 +46,14 @@ case "ADD-STORY":{
     }
   })
   return({...state,storiesData:[arr.filter((storyUser)=>storyUser.id===payload.user_id)[0],...arr.filter((storyUser)=>storyUser.id!==payload.user_id)]})
+}
+case "SITE-MAIN-DATA":{
+  return({
+    ...state,
+    loading:false,
+    categories:payload.categories,
+    settings:payload.settings
+  })
 }
   default:
     return state

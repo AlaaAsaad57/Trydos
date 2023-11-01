@@ -86,6 +86,10 @@ body{
 .categories-bar-item-icon{
     display: flex;
     transition: 0.3s;
+    width: 100%;
+}
+.categories-bar-item-icon>span:first-child{
+    width: 24px;
 }
 .categories-bar-item:hover .categories-bar-item-description{
     opacity: 1;
@@ -824,6 +828,7 @@ body{
   .story-element-item img{
     width: 100px;
     height: 150px;
+    z-index: 2;
     border-radius: 20px;
     display: flex;
     object-fit: cover;

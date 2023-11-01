@@ -1,5 +1,5 @@
 "use client"
-import { upload } from '../../utils/functions';
+import { upload } from '../../redux/homepage/actions';
 import React, { useState } from 'react'
 import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';

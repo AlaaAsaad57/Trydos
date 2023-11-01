@@ -4,7 +4,7 @@ import Navbar from '../../components/Home/Navbar'
 import { useDispatch, useSelector } from "react-redux";
 import TranslationsMenu from "../../components/global/TranslationsMenu";
 import { useEffect } from "react";
-import { GetStoryData } from "../../redux/homepage/actions";
+import { GetMainData, GetStoryData, RegisterDevice } from "../../redux/homepage/actions";
 import Stories from "./Stories/index"
 import CategoriesBar from "./CategoriesBar";
 import BrandsBar from "./Bars/BrandsBar"
@@ -13,12 +13,15 @@ import OfferBar from "./Bars/OfferBar"
 import CategoryBar from "./Bars/CategoryBar"
 import OffersList from "./OfferWidgets/OfferList"
 import StoriesComponent from "./Stories/StoriesComponent"
-export default function Home({stories,res}) {
+export default function Home({stories,res,categories,settings}) {
   
   const language=useSelector((state)=>state.homepage.language)
-  const loading=useSelector((state)=>state.homepage.loading)
   useEffect(()=>{ 
     dispatch(GetStoryData(stories))
+    dispatch(GetMainData(categories,settings))
+    setTimeout(()=>{
+      RegisterDevice()
+    },5000)
   },[])
   const selectedStory=useSelector(state => state.homepage.selectedStory)
   useEffect(()=>{

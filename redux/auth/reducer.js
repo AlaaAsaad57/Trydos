@@ -1,4 +1,4 @@
-const initialState = {user:null,failedLogin:false,attempts:4,wrongNumber:false}
+const initialState = {user:null,failedLogin:false,attempts:4,wrongNumber:false,loading:false,verficationID:null}
 
 const AuthReducer=(state = initialState, { type, payload }) => {
   switch (type) {
@@ -14,6 +14,18 @@ const AuthReducer=(state = initialState, { type, payload }) => {
   }
   case 'WRONG-NUMBER':{
     return{...state,wrongNumber:true}
+  }
+  case "LOADING-OTP":{
+    return({
+      ...state,
+      loading:payload
+    })
+  }
+  case "SET-VERFICATION-ID":{
+    return({
+      ...state,
+      verficationID:payload
+    })
   }
   default:
     return state

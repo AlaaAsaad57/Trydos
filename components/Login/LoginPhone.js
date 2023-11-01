@@ -15,7 +15,7 @@ import replaceString from 'replace-string';
 import MessageIcon from "../../public/svg/MessageIcon.svg"
 import Timer from './Timer'
 import PinInputs from './PinInput'
-import { CheckPhone, Login, ReInitialise } from '../../redux/auth/actions'
+import { CheckPhone, Login, ReInitialise, SendOtp, VerifyOtp } from '../../redux/auth/actions'
 const {flag} = require('country-emoji');
 function LoginPhone({selectedMethod,selectMethod,LoginSuccess}) {
   const dispatch=useDispatch()
@@ -33,7 +33,7 @@ function LoginPhone({selectedMethod,selectMethod,LoginSuccess}) {
         let country=getCountry()
         setStepHeight(152)
         if(country){
-          console.log(country)
+        
           pattern=  replaceString((country.format||''), '.', 'x');
           pattern=replaceString(pattern,'-','  ')
           pattern=replaceString(pattern,'+','')
@@ -58,6 +58,7 @@ function LoginPhone({selectedMethod,selectMethod,LoginSuccess}) {
     const [stepHeight,setStepHeight]=useState(50)
     const language=useSelector((state)=>state.homepage.language)
     const attempts=useSelector((state)=>state.auth.attempts)
+    const verficationID=useSelector((state)=>state.auth.verficationID)
     const wrongNumber=useSelector((state)=>state.auth.wrongNumber)
     useEffect(()=>{
         if(selectedMethod)
@@ -97,9 +98,9 @@ function LoginPhone({selectedMethod,selectMethod,LoginSuccess}) {
            </span>
            <span className='plus-icon-phone' ar>+</span>
            <input disabled={stepHeight>152} onChange={(e)=>handleInput(e)} className='login-phone-input'/>
-           {validNumber&&stepHeight===152&&<LeftArrowIcon onClick={()=>{dispatch(CheckPhone(inputValue,(e)=>setStepHeight(e)));}} className='phone-arrow'/>}
+           {validNumber&&stepHeight===152&&<LeftArrowIcon onClick={()=>{CheckPhone(inputValue,(e)=>setStepHeight(e));}} className='phone-arrow'/>}
            {stepHeight>152&& <PenIcon className='phone-arrow' onClick={()=>{setStepHeight(152);
-           dispatch(ReInitialise())
+           dispatch(ReInitialise());
             setTimeout(() => {
               document.querySelector('.login-phone-input').focus()
             }, 400);
@@ -135,7 +136,7 @@ function LoginPhone({selectedMethod,selectMethod,LoginSuccess}) {
             </div>
             </div>
             <div aria-details={language}className='login-qr-section message-recieve-options'>
-              <div aria-details={language}className='message-recieve-option' onClick={()=>{setMessageMethod('WA'); setStepHeight(287)}}>
+              <div aria-details={language}className='message-recieve-option' onClick={()=>{setMessageMethod('WA'); setStepHeight(287); SendOtp(inputValue,0,(e)=>{setStepHeight(e)})}}>
                 <div aria-details={language}className='border-option'>
                 <svg xmlns="http://www.w3.org/2000/svg" width="170" height="50" viewBox="0 0 170 50">
                 <g id="Rectangle_4729" data-name="Rectangle 4729" fill="none" stroke="#4d84ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5" stroke-dasharray="3 3">
@@ -149,7 +150,7 @@ function LoginPhone({selectedMethod,selectMethod,LoginSuccess}) {
                   {translate('WhatsApp',language)}
                 </div>
               </div>
-              <div aria-details={language}className='message-recieve-option' onClick={()=>{setMessageMethod('SMS'); setStepHeight(287)}}>
+              <div aria-details={language}className='message-recieve-option' onClick={()=>{setMessageMethod('SMS'); setStepHeight(287); SendOtp(inputValue,0,(e)=>{setStepHeight(e)})}}>
               <div aria-details={language}className='border-option'>
                 <svg xmlns="http://www.w3.org/2000/svg" width="170" height="50" viewBox="0 0 170 50">
                 <g id="Rectangle_4729" data-name="Rectangle 4729" fill="none" stroke="#4d84ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5" stroke-dasharray="3 3">
@@ -196,7 +197,7 @@ function LoginPhone({selectedMethod,selectMethod,LoginSuccess}) {
         }
     </div> 
     <div aria-details={language}className='login-qr-section'>
-            <PinInputs onFailedLogin={()=>setStepHeight(416)} rerender={rerender} setRender={(e)=>setRender(e)} LoginSuccess={()=>{LoginSuccess()}} Login={(value)=>dispatch(Login(value,inputValue))} disabled={disabled}/>
+            <PinInputs onFailedLogin={()=>setStepHeight(416)} rerender={rerender} setRender={(e)=>setRender(e)} LoginSuccess={()=>{LoginSuccess()}} Login={(value)=>VerifyOtp(value,verficationID)} disabled={disabled}/>
       </div> 
         </>
            }
