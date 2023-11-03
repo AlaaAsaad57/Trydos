@@ -4,8 +4,10 @@ import StoryElement from "./StoryElement"
 import AddStory from "../AddStory"
 import { useDispatch, useSelector } from 'react-redux'
 import { SelectStory } from '../../../redux/homepage/actions'
+import Skeleton from 'react-loading-skeleton'
 function index() {
   const storiesData=useSelector((state)=>state.homepage.storiesData)
+  const loading=useSelector((state)=>state.homepage.loading)
   const dispatch=useDispatch()
   const setSelectStory=(e)=>{
       dispatch(SelectStory(e))
@@ -55,6 +57,15 @@ slider?.addEventListener('mousemove', (e) => {
             </svg>
             <div className='stories-bars' aria-details={language}>
               <AddStory/>
+              {loading&&[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1].map((elen)=>(
+                <div className='story-element-container'>
+                <div className='story-element-item'>
+                 <Skeleton duration={0.5} count={1} style={{position:"absolute",top:"0px",left:"0px",borderRadius:"10px",width:"100%",height:"100%"}}/>
+                </div>
+                </div>
+              ))
+
+              }
             {storiesData.map((story,index)=>(
                           <StoryElement key={index}  story={story} stories={story} viewedStory={story.stories[0]} select={(e)=>setSelectStory(e)} />
             ))}
