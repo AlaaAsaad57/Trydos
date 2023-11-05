@@ -20,7 +20,6 @@ if(e.target.files[0].type.includes("video")){
         const reader = new FileReader();
         reader.readAsDataURL(e.target.files[0]);
         reader.onload = async () => {
-            console.log(reader.result)
             setFile(e.target.files[0])
           setIsSelected(reader.result);
         };

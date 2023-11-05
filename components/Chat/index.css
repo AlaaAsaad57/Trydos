@@ -1,0 +1,48 @@
+.app{
+    position: relative;
+    min-width: 430px;
+    overflow: hidden;
+    max-width: 430px;
+    height: calc(100vh - 110px);
+    max-height: 919px;
+    z-index: 3000;
+}
+@font-face {
+    font-family: "SF-Pro-Rounded-med";
+    src: url('../../public/fonts/FontsFree-Net-SF-Pro-Rounded-Medium.ttf');
+}
+@font-face {
+    font-family: "SF-Pro-Rounded-Light";
+    src: url('../../public/fonts/FontsFree-Net-SF-Pro-Rounded-Light.ttf');
+}
+@font-face {
+    font-family: "SF-Pro-Rounded-Semibold";
+    src: url('../../public/fonts/FontsFree-Net-SF-Pro-Rounded-Semibold.ttf');
+}
+@font-face {
+    font-family: "SF-Pro-Rounded";
+    src: url('../../public/fonts/SF-Pro-Rounded.ttf');
+}
+@font-face {
+    font-family: "SF-Pro-Rounded-Bold";
+    src: url('../../public/fonts/FontsFree-Net-SF-Pro-Rounded-Bold.ttf');
+}
+.contact-icon-header{
+    display: flex;
+    position: absolute;
+    z-index: 14;
+    right: 20px;
+    top: 19px
+}
+.active-chat-icon path{
+    fill: #5d5d5d;
+}
+.lang-modalDisable {
+    content: "";
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: -webkit-fill-available;
+    height: -webkit-fill-available;
+    z-index: 2000;
+}

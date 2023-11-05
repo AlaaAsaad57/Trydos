@@ -6,6 +6,9 @@ import ElectricalIcon from "../public/svg/ElectricalIcon.svg"
 import StoreIcon from "../public/svg/ShopIcon.svg"
 import { Cloudinary } from '@cloudinary/url-gen';
 import SearchIcon from "../public/svg/SearchIcon.svg"
+import Pusher from "pusher-js"
+import { CHAT_URL } from "./endpointConfig"
+import { store } from "../redux/store"
 export const categories=[
     {
         name:"Man",
@@ -43,3 +46,19 @@ export const myCld = new Cloudinary({
     cloudName: "djooohujg",
   },
 });
+export const pusher = new Pusher(`cd403c68a9fbb7ce7da6`, {
+    cluster: "ap2",
+    encrypted: true,
+    channelAuthorization: {
+        endpoint:CHAT_URL +
+                "/broadcasting/auth",
+    
+        headersProvider: () => {
+            return {
+                Authorization: "Bearer " + localStorage.getItem("CHAT-TOKEN"),
+                
+            };
+        }
+    },
+});
+Pusher.logToConsole = true

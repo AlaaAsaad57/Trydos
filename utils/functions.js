@@ -82,3 +82,9 @@ export const getThumb=(url,isVideo)=>{
 }
 
 }
+export const getUser=()=>{
+    return localStorage.getItem('USER')&&JSON.parse(localStorage.getItem('USER'))
+}
+export const getUserChat=()=>{
+    return localStorage.getItem('USER-CHAT')&&JSON.parse(localStorage.getItem('USER-CHAT'))
+}

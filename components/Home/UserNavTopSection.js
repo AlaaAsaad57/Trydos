@@ -8,7 +8,7 @@ import LoginWidget from '../Login/LoginWidget'
 import AuthNavSection from './AuthNavSection'
 function UserNavTopSection({loginOpen,openLogin}) {
     const language=useSelector((state)=>state.homepage.language)
-    const user=useSelector((state)=>state.auth.user)
+    const user = useSelector((state)=>state.auth.user)
     const [loginSuccessVar,setLoginSucces]=useState(false)
   return (
     <div aria-details={language}className='user-nav-container'>

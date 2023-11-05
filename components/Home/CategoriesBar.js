@@ -16,8 +16,8 @@ const [searchEnabled,setSearchEnabled]=useState(false)
         <>
         {loading?
         <div className="categories-bar-item" aria-details={language} key={key}>
-          <div className="categories-bar-item-icon" aria-details={language}>
-            <Skeleton duration={0.5} count={1} circle={true} width={'100%'} height={'100%'}/>
+          <div className="categories-bar-item-icon" aria-details={language} key={key}>
+            <Skeleton key={key} duration={0.5} count={1} circle={true} width={'100%'} height={'100%'}/>
           </div>
         </div>
         :

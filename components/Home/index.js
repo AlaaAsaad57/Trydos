@@ -14,6 +14,10 @@ import CategoryBar from "./Bars/CategoryBar"
 import OffersList from "./OfferWidgets/OfferList"
 import StoriesComponent from "./Stories/StoriesComponent"
 import { CheckLogin } from "../../redux/auth/actions";
+import ChatModal from '../Chat/ChatModal'
+import { ToastContainer } from "react-toastify";
+import  "react-toastify/dist/ReactToastify.min.css";
+import "react-toastify/dist/ReactToastify.css"
 export default function Home({stories,res,HomeData}) {
   
   const language=useSelector((state)=>state.homepage.language)
@@ -37,10 +41,12 @@ export default function Home({stories,res,HomeData}) {
   const dispatch=useDispatch() 
   return (
      <div aria-details={language}className='site-container'>
+      <ToastContainer/>
         <div aria-details={language}className='home-page-container'>
            <TranslationsMenu/>
            <StoriesComponent/>
             <Navbar/>
+            <ChatModal/>
             <Stories/>
             <CategoriesBar forMobile={true}/>
             <BrandsBar/>

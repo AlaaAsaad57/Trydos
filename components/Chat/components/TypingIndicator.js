@@ -1,0 +1,10 @@
+import React from 'react'
+
+function TypingIndicator() {
+  return (
+    <svg style={{marginLeft:"0px",marginTop:"12px"}} xmlns="http://www.w3.org/2000/svg" width="90" height="14" viewBox="0 0 90 14" ><g id="Group_10729" data-name="Group 10729" transform="translate(-1012 -302)"><text id="Typing" transform="translate(1012 313)" fill="#007cff" font-size="10" font-family="SF-Pro-Rounded" letter-spacing="0.01em"><tspan x="0" y="0">Typing</tspan></text><g id="Group_10604" data-name="Group 10604" transform="translate(931 89)"><g id="Ellipse_276" data-name="Ellipse 276" transform="translate(174 219)" fill="#007cff" stroke="#007cff" strokeWidth="1"><circle cx="2.5" cy="2.5" r="2.5" stroke="none"></circle><circle cx="2.5" cy="2.5" r="2" fill="none"></circle></g><g id="Ellipse_275" data-name="Ellipse 275" transform="translate(165 219)" fill="#007cff" stroke="#007cff" strokeWidth="1"><circle cx="2.5" cy="2.5" r="2.5" stroke="none"></circle><circle cx="2.5" cy="2.5" r="2" fill="none"></circle></g><g id="Ellipse_274" data-name="Ellipse 274" transform="translate(156 219)" fill="none" stroke="#007cff" strokeWidth="1"><circle cx="2.5" cy="2.5" r="2.5" stroke="none"></circle><circle cx="2.5" cy="2.5" r="2" fill="none"></circle></g><g id="Ellipse_273" data-name="Ellipse 273" transform="translate(147 219)" fill="none" stroke="#007cff" strokeWidth="1"><circle cx="2.5" cy="2.5" r="2.5" stroke="none"></circle><circle cx="2.5" cy="2.5" r="2" fill="none"></circle></g><g id="Ellipse_272" data-name="Ellipse 272" transform="translate(138 219)" fill="none" stroke="#007cff" strokeWidth="1"><circle cx="2.5" cy="2.5" r="2.5" stroke="none"></circle><circle cx="2.5" cy="2.5" r="2" fill="none"></circle></g><g id="Ellipse_271" data-name="Ellipse 271" transform="translate(129 219)" fill="none" stroke="#007cff" strokeWidth="1"><circle cx="2.5" cy="2.5" r="2.5" stroke="none"></circle><circle cx="2.5" cy="2.5" r="2" fill="none"></circle></g></g></g></svg>
+  
+  )
+}
+
+export default TypingIndicator

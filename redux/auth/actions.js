@@ -1,9 +1,9 @@
 import axios from 'axios'
 import userImage from '../../public/images/profileNo.png'
-import { CUSTOMER_INFO_URL, LOG_IN_STORIES, OTP_URL, SEND_OTP, STORIES_URL, VERFIY_OTP } from '../../utils/endpointConfig'
+import { CHAT_URL, CUSTOMER_INFO_URL, LOG_IN_CHAT, LOG_IN_STORIES, OTP_URL, SEND_OTP, STORIES_URL, VERFIY_OTP } from '../../utils/endpointConfig'
 import { store } from '../store'
 import { SSRDetect } from '../../utils/functions'
-import { headers } from 'next/dist/client/components/headers'
+import { GetChats } from '../chat/actions'
 export const Login =(pin,mobile)=>{
    
     if(pin==='111111'){
@@ -36,7 +36,7 @@ export const RegisterGuest=()=>{
 export const SendOtp=async (mobilePhone,is_via_whatsapp,step)=>{
     try{
         
-        let response=await axios.get(OTP_URL+SEND_OTP+`?phone=${mobilePhone}&is_via_whatsapp=${is_via_whatsapp}`)
+        let response=await axios.get(OTP_URL+SEND_OTP+`?phone=+${mobilePhone}&is_via_whatsapp=${is_via_whatsapp}`)
         if(response.data.data.verificationId){
             store.dispatch({type:"SET-VERFICATION-ID",payload:response.data.data.verificationId})
         }
@@ -52,7 +52,7 @@ export const SendOtp=async (mobilePhone,is_via_whatsapp,step)=>{
 export const VerifyOtp=async (code,verficationID)=>{
     try{
         let response=await axios.get(OTP_URL+VERFIY_OTP+`?verificationId=${verficationID}&otp=${code}`)
-        if(response.data?.errors?.length>0){
+        if(response.data?.isSuccessful===false){
             if(response.data.message==='please verify your number again'){
 
             }
@@ -61,11 +61,12 @@ export const VerifyOtp=async (code,verficationID)=>{
         localStorage.setItem("ID-TOKEN",response.data.data.id_token)
         localStorage.setItem("MARKET-TOKEN",response.data.data.token)
         localStorage.setItem("USER",JSON.stringify(response.data.data.user))
-        store.dispatch({type:"LOGIN_SUCCESS",payload:{id:response.data.data.user.id,idToken:response.data.data.id_token,name:response.data.data.user.name||response.data.data.user.phone,avatar:userImage}})
+        store.dispatch({type:"LOGIN_SUCCESS",payload:{id:response.data.data.user.id,idToken:response.data.data.id_token,name:response.data.data.user.name,avatar:userImage}})
         loginStories()
+        loginChat()
     }
     catch(e){
-        console.log(e.response.data)
+        console.log(e)
         if(e.response.data.message==="user not found"){
             store.dispatch({type:"WRONG-NUMBER",payload:'user not found'})
         }
@@ -88,9 +89,26 @@ export const loginStories=async ()=>{
         return({type:"WRONG-NUMBER",payload:'failed  please try again'})
     }
 }
+export const loginChat=async ()=>{
+    try{
+        let response=await axios.post(CHAT_URL+LOG_IN_CHAT,{
+            'otp_id_token':localStorage.getItem('ID-TOKEN'),
+            'mobile_phone':JSON.parse(localStorage.getItem('USER')).phone,
+            "name": JSON.parse(localStorage.getItem("USER"))?.name,
+            "original_user_id":JSON.parse(localStorage.getItem("USER")).id
+        })
+        localStorage.setItem('USER-CHAT',JSON.stringify(response.data.data))
+        localStorage.setItem('CHAT-TOKEN',response.data.data.access_token)
+    }
+    catch(e){
+        return({type:"WRONG-NUMBER",payload:'failed  please try again'})
+    }
+}
+
 export const CheckLogin=()=>{
     if(SSRDetect()&&localStorage.getItem("USER")&&localStorage.getItem("ID-TOKEN")&&localStorage.getItem("MARKET-TOKEN")){
-        store.dispatch({type:"LOGIN_SUCCESS",payload:{id:JSON.parse(localStorage.getItem("USER")).id,idToken:localStorage.getItem("ID-TOKEN"),name:JSON.parse(localStorage.getItem("USER")).name||JSON.parse(localStorage.getItem("USER")).phone,avatar:JSON.parse(localStorage.getItem("USER")).avatar||userImage}})
+        store.dispatch({type:"LOGIN_SUCCESS",payload:{id:JSON.parse(localStorage.getItem("USER")).id,idToken:localStorage.getItem("ID-TOKEN"),name:JSON.parse(localStorage.getItem("USER")).name,avatar:JSON.parse(localStorage.getItem("USER")).avatar||userImage}})
+        GetChats(false)
         setTimeout(()=>{
             getCustomerInfo()
         },7000)

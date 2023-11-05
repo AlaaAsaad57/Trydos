@@ -144,7 +144,7 @@ function LoginPhone({selectedMethod,selectMethod,LoginSuccess}) {
               <div aria-details={language}className='message-recieve-option' onClick={()=>{setMessageMethod('WA'); setStepHeight(287); SendOtp(inputValue,0,(e)=>{setStepHeight(e)})}}>
                 <div aria-details={language}className='border-option'>
                 <svg xmlns="http://www.w3.org/2000/svg" width="170" height="50" viewBox="0 0 170 50">
-                <g id="Rectangle_4729" data-name="Rectangle 4729" fill="none" stroke="#4d84ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5" stroke-dasharray="3 3">
+                <g id="Rectangle_4729" data-name="Rectangle 4729" fill="none" stroke="#4d84ff" stroke-linecap="round" stroke-linejoin="round" strokeWidth="0.5" strokeDasharray="3 3">
                   <rect width="170" height="50" rx="15" stroke="none"/>
                   <rect x="0.25" y="0.25" width="169.5" height="49.5" rx="14.75" fill="none"/>
                 </g>
@@ -158,7 +158,7 @@ function LoginPhone({selectedMethod,selectMethod,LoginSuccess}) {
               <div aria-details={language}className='message-recieve-option' onClick={()=>{setMessageMethod('SMS'); setStepHeight(287); SendOtp(inputValue,0,(e)=>{setStepHeight(e)})}}>
               <div aria-details={language}className='border-option'>
                 <svg xmlns="http://www.w3.org/2000/svg" width="170" height="50" viewBox="0 0 170 50">
-                <g id="Rectangle_4729" data-name="Rectangle 4729" fill="none" stroke="#4d84ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5" stroke-dasharray="3 3">
+                <g id="Rectangle_4729" data-name="Rectangle 4729" fill="none" stroke="#4d84ff" stroke-linecap="round" stroke-linejoin="round" strokeWidth="0.5" strokeDasharray="3 3">
                   <rect width="170" height="50" rx="15" stroke="none"/>
                   <rect x="0.25" y="0.25" width="169.5" height="49.5" rx="14.75" fill="none"/>
                 </g>
