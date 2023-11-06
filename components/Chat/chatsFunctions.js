@@ -14,12 +14,12 @@ export const getUser=()=>{
         )
 }
 export const getMessageStatusIcon=(status_array)=>{
-    if(status_array.filter((a) => a.user_id !== getUser().id)[0]?.is_watched === true)
+    if(status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUser().id))[0]?.is_watched === true||status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUser().id))[0]?.watched_at)
         return(
         <>
         <ReadIcon className="status-icon" ></ReadIcon>
         </>)
-    else if(status_array.filter((a) => a.user_id !== getUser().id)[0]?.is_received === 1)
+    else if(status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUser().id))[0]?.is_received === 1||status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUser().id))[0].received_at)
     return(
         <ReceiveIcon className="status-icon" ></ReceiveIcon>
     )
