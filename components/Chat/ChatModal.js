@@ -3,6 +3,10 @@ import CallComponent from "./components/CallComponent"
 import Chat from "./index"
 import { useDispatch, useSelector } from 'react-redux'
 import { ChatConroller } from '../../redux/chat/actions'
+import { requestFirebaseNotificationPermission } from '../../utils/firebaseInit'
+import { store } from '../../redux/store'
+import { SSRDetect, getUserChat } from '../../utils/functions'
+import { StoreToken } from '../../redux/auth/actions'
 function ChatModal() {
     const isCallIncoming = useSelector(state => state.chat.isCallIncoming)
     const chatVar = useSelector(state => state.chat.chatVar)
@@ -10,7 +14,29 @@ function ChatModal() {
   return (
     <>
           {isCallIncoming && <CallComponent reply={() => dispatch(ChatConroller(true))} />}
-          {chatVar&& <Chat open={chatVar} close={() => dispatch(ChatConroller(false))} callIn />} 
+          {chatVar&&SSRDetect()&& <Chat open={chatVar} close={() => {
+      typeof window !=='undefined'&& 'serviceWorker' in navigator&&  requestFirebaseNotificationPermission()
+            .then((firebaseToken) => {
+            try {
+                  if(!firebaseToken) {
+                    toast.error("Please Check Notifications Premissions")
+                  }
+                  else{    
+                    localStorage.setItem("firebase_token",firebaseToken)
+           
+                    StoreToken( {
+                      id: getUserChat().id,
+                      token: firebaseToken,
+                      user:getUserChat()
+                    });      
+                  
+                }
+                } catch (e) {
+            
+                }
+              
+            })
+            dispatch(ChatConroller(false));}} callIn />} 
     </>
   )
 }

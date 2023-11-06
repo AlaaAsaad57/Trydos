@@ -7,7 +7,7 @@ function UserInfoHeader() {
     
   return (
     <div className='chat-window-header-user'>
-        <div className={`avatar-holder ${(getUserChat().photo_path.includes('eu')||!getUserChat().photo_path) && 'text-avatar'}`}>
+        <div className={`avatar-holder ${(getUserChat()?.photo_path?.includes('eu')||!getUserChat().photo_path) &&getUserChat().name&& 'text-avatar'}`}>
             <div className='inset-shadow'/>
             {getUserChat().photo_path?.includes('eu')?
             getUserChat().name?
@@ -15,8 +15,9 @@ function UserInfoHeader() {
             <Image src={40} width={40} height={ProfilePicture.src}/>
             :
             getUserChat().photo_path? <Image src={40} width={40} height={getUserChat().photo_path}/>:
-
-getTwoLetters(getUserChat().name)
+            getUserChat().name?
+            getTwoLetters(getUserChat().name):
+            <Image height={40} width={40} src={ProfilePicture.src}/>
             }
         </div>
             <span>{localStorage.getItem("USER-CHAT")&&getUserChat().name||localStorage.getItem("USER-CHAT")&&getUserChat().name||'User'}</span>

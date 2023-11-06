@@ -61,4 +61,4 @@ export const pusher = new Pusher(`cd403c68a9fbb7ce7da6`, {
         }
     },
 });
-Pusher.logToConsole = true
+Pusher.logToConsole = false

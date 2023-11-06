@@ -4,6 +4,7 @@ import { CHAT_URL, CUSTOMER_INFO_URL, LOG_IN_CHAT, LOG_IN_STORIES, OTP_URL, SEND
 import { store } from '../store'
 import { SSRDetect } from '../../utils/functions'
 import { GetChats } from '../chat/actions'
+import {requestFirebaseNotificationPermission} from "../../utils/firebaseInit"
 export const Login =(pin,mobile)=>{
    
     if(pin==='111111'){
@@ -99,15 +100,70 @@ export const loginChat=async ()=>{
         })
         localStorage.setItem('USER-CHAT',JSON.stringify(response.data.data))
         localStorage.setItem('CHAT-TOKEN',response.data.data.access_token)
+        if(response.data.data?.id){
+            typeof window !=='undefined'&& 'serviceWorker' in navigator&&    requestFirebaseNotificationPermission().then((firebaseToken) => {
+                console.log(firebaseToken)
+                localStorage.setItem("firebase_token",firebaseToken)
+                if (response.data.data) {
+                  try {
+                    if(!firebaseToken) {
+                   }
+                    else{
+                    StoreToken( {
+                        id: response.data.data.id,
+                        token: firebaseToken,
+                        user:response.data.data
+                      }); 
+                  }
+                  } catch (e) {
+              
+                  }
+                }
+              })
+              GetChats(false)
+              }
+              else{
+                error()
+                throw new Error()
+              }
     }
     catch(e){
         return({type:"WRONG-NUMBER",payload:'failed  please try again'})
     }
 }
-
+export async  function StoreToken(payload) {
+    try {
+      const AxiosInstance = axios.create({
+        baseURL:
+          CHAT_URL,
+        timeout: 0,
+        headers: {
+          Authorization:
+            "Bearer " +
+            payload.user.access_token,
+          "Content-Type": "application/json",
+        },
+      });
+      let res = await AxiosInstance.post(
+        "/api/v1/firebase_tokens",
+        JSON.stringify({
+          token: payload.token
+        })
+      );
+     store.dispatch({type:"STORE_TOKEN_RED",payload:payload.token})
+      localStorage.setItem("firebase_id", res.data.data.id)
+  
+    } catch (e) {
+      console.log(e);
+    }
+  }
 export const CheckLogin=()=>{
     if(SSRDetect()&&localStorage.getItem("USER")&&localStorage.getItem("ID-TOKEN")&&localStorage.getItem("MARKET-TOKEN")){
         store.dispatch({type:"LOGIN_SUCCESS",payload:{id:JSON.parse(localStorage.getItem("USER")).id,idToken:localStorage.getItem("ID-TOKEN"),name:JSON.parse(localStorage.getItem("USER")).name,avatar:JSON.parse(localStorage.getItem("USER")).avatar||userImage}})
+        if(!localStorage.getItem('firebase_id'))
+       SSRDetect()&& requestFirebaseNotificationPermission().then((fb)=>{
+            console.log(fb)
+        })
         GetChats(false)
         setTimeout(()=>{
             getCustomerInfo()

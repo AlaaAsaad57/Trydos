@@ -7,7 +7,7 @@ import axios from "axios";
 import { STORIES_URL, UPLOAD_STORY_URL } from "./endpointConfig";
 import profilePicture from "../public/images/profileNo.png"
 export const SSRDetect=()=>{
-    return (typeof document !== 'undefined')
+    return (typeof window !== 'undefined' )
 }
 export function translate(key,language){
 return translations[language][key] || key

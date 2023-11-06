@@ -155,7 +155,7 @@ const handleClick=()=>{
         {newMessage===0&&pinned&&<PinnedChatIcon/>}
       </div>
           <div className={`chat-conversation-item ${status&&status!=='null'&&'typing'} ${isActive && 'active-chat-effect'}`} onMouseUp={()=>handleClick()}>
-          {!(photo.includes('eu'))?
+          {photo&&(!(photo?.includes('eu')))?
             <Image priority={false} width={60} height={60} alt='user' loading='eager'  src={ photo }/>:
          SenderName? <div className='text-avatar'>
           {getTwoLetters(SenderName)}

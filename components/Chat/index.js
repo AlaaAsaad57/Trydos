@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import ConversationContainer from './pages/ConversationContainer'
 import NewChatsSide from './components/NewChatsSide'
 import { useState } from 'react'
+import { SSRDetect } from '../../utils/functions'
 function ChatContainer(props) {
   const dispatch=useDispatch()
   const ViewedScreen=useSelector((state)=>state.chat.main)
@@ -25,7 +26,7 @@ function ChatContainer(props) {
          dispatch({type:"OPEN-CHAT",payload:null})}}} className={`lang-modalDisable ${props.open && "open"}`}></div>
             <div className='app' style={{position:"fixed",top:"105px",right:"30px"}}><textarea id="text-copy"></textarea>
       <ChatWindow open={contactOpen} setOpenContacts={(e)=>setOpenContacts(e)} search={search} setSearch={(e)=>setSearch(e)} activeChat={activeChat} ViewedScreen={ViewedScreen} />
-      <ConversationContainer first={first}  loading={loading} active={activeChat}   ViewedScreen={(ViewedScreen==="chat"&&!contactOpen)}/>
+     {SSRDetect()&& <ConversationContainer first={first}  loading={loading} active={activeChat}   ViewedScreen={(ViewedScreen==="chat"&&!contactOpen)}/>}
       <NewChatsSide activeChat={activeChat} chats={chats}/>
     </div>
     </>

@@ -490,13 +490,13 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
             
             let chat = state.data
             chat.map((a) => {
-                if (a.id === ac.id && a.messages.filter((m)=>m.id&&(m?.id===payload.message?.id)).length===0) {
+                if (parseInt(a.id) === parseInt(ac.id) && a.messages.filter((m)=>m.id&&(m?.id===payload.message?.id)).length===0) {
                     a.messages.push(payload.message)
                 }
             })
             let arr = []
             chat.map((a) => {
-                if (a.id === ac.id) {
+                if (parseInt(a.id) === parseInt(ac.id)) {
                     arr.push(a)
                 }
             })
@@ -504,7 +504,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
                 arr.push({...payload.act,messages:[...payload.act.messages.filter((m)=>m?.id!==payload.message?.id),payload.message]})
             }
             chat.map((a) => {
-                if (a.id !== ac.id) {
+                if (parseInt(a.id) !== parseInt(ac.id)) {
                     arr.push(a)
                 }
             })
@@ -512,7 +512,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
             return ({
                 ...state,
                 data: arr,
-                activeChat:state.activeChat?.id===ac.id? arr.filter((t) => (t.id === state.activeChat?.id) || (t.mid === state.activeChat?.mid))[0] : state.activeChat,
+                activeChat:parseInt(state.activeChat?.id)===parseInt(ac.id)? arr.filter((t) => (parseInt(t.id) === parseInt(state.activeChat?.id)) || (t.mid === state.activeChat?.mid))[0] : state.activeChat,
                 ref: !state.ref,
                 refs: !state.refs,
                 replyMessage:null

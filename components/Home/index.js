@@ -18,9 +18,11 @@ import ChatModal from '../Chat/ChatModal'
 import { ToastContainer } from "react-toastify";
 import  "react-toastify/dist/ReactToastify.min.css";
 import "react-toastify/dist/ReactToastify.css"
+import { onMessageListener } from "../../utils/firebaseInit";
 export default function Home({stories,res,HomeData}) {
   
   const language=useSelector((state)=>state.homepage.language)
+  const fbtoken=useSelector((state)=>state.homepage.fbtokfbTokenen)
   useEffect(()=>{ 
     dispatch(GetStoryData(stories))
     dispatch(GetMainData(HomeData))
@@ -29,6 +31,17 @@ export default function Home({stories,res,HomeData}) {
       RegisterDevice()
     },5000)
   },[])
+  useEffect(()=>{
+   
+    try {
+      typeof window !=='undefined'&& 'serviceWorker' in navigator&& onMessageListener().then(payload => {
+        console.log(payload)
+     }).catch(err => console.log('failed: ', err));
+    }catch(e){
+
+    } 
+  },[])
+
   const selectedStory=useSelector(state => state.homepage.selectedStory)
   useEffect(()=>{
     if(selectedStory){

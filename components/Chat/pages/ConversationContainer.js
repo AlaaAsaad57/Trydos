@@ -24,6 +24,7 @@ import { useCallback } from 'react';
 import Observable from '../components/ChatHistoryElement';
 import Image from 'next/image';
 import { SendMessage, getMessagesBetweenMessage, getPage } from '../../../redux/chat/actions';
+import { SSRDetect } from '../../../utils/functions';
 function ConversationContainer({ViewedScreen,active,loading,first}) {
 
   const [vid, setVid] = useState(null)
@@ -582,7 +583,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
   </div>
   {vid ? <video src={vid} controls><source src={vid} /></video> : <Image fill sizes='100vw' alt="imgs" src={imgs} />}
 </div>}
-      <Recorder blobs={blobs} isRecording={isRecording} setblobUrl={setblobUrl} onStop={onStop}/>
+      {SSRDetect()&&<Recorder blobs={blobs} isRecording={isRecording} setblobUrl={setblobUrl} onStop={onStop}/>}
       <div
         className={"chat-screen"}
         style={{ right: ViewedScreen ? "0px" : "431px" }}
