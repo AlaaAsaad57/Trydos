@@ -20,7 +20,7 @@ function LoginWidget({close,loginSuccessVar,setLoginSucces}) {
   return (
   <>
   {loginSuccessVar?
-  <LoginSuccessWidget/>:
+  <LoginSuccessWidget close={()=>close()}/>:
    <div aria-details={language}className='login-widget-container'>
         <div aria-details={language}className='login-label-container'>
             <Border height={40}/>

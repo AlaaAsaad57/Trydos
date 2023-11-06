@@ -150,7 +150,7 @@ function LoginPhone({selectedMethod,selectMethod,LoginSuccess}) {
                 </g>
               </svg>
                 </div>
-                <WAIcon style={{position:"absolute",left:"34px",top:"17px"}}/>
+                <WAIcon style={{left:"34px",top:"17px"}}/>
                 <div aria-details={language}className='message-recieve-option-text' aria-labelledby={language+'-regular'}>
                   {translate('WhatsApp',language)}
                 </div>
@@ -164,7 +164,7 @@ function LoginPhone({selectedMethod,selectMethod,LoginSuccess}) {
                 </g>
               </svg>
                 </div>
-                <MessageIcon style={{position:"absolute",left:"48px",top:"17px"}}/>
+                <MessageIcon style={{left:"48px",top:"17px"}}/>
                 <div aria-details={language}className='message-recieve-option-text' aria-labelledby={language+'-regular'}>
                   {translate('SMS',language)}
                 </div>

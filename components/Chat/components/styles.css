@@ -110,7 +110,7 @@ letter-spacing: 0.01em;
 }
 .chat-tab-icon .number-of-new-item{
     position: absolute;
-    right: 51px;
+    
     top: 9px;
     display: flex;
     align-items: center;

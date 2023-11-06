@@ -669,7 +669,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
           <>
            {replyMessage&&<ReplyMessage message={replyMessage} cancel={()=>{dispatch({type:"REPLY-MESSAGE",payload:null})}}/>}
           <div className={"chat-input-container" + ` ${mics && "bac40"}`}>
-            <PlusIcon
+            <PlusIcon style={{minWidth:"43px"}}
               onClick={() => uploadPhoto()}
               height={"40"}
              
@@ -692,7 +692,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
               
             </div>
             {message.length > 0 ? (
-              <SendIcon
+              <SendIcon style={{minWidth:"50px"}}
                 onClick={() => {
                   send_mes(message, "TextMessage");
                   setMessage("");
@@ -701,7 +701,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
               ></SendIcon>
             ) : (
             <>
-            <CameraIcon className='camer-icon'></CameraIcon>
+            <CameraIcon style={{minWidth:"50px"}} className='camer-icon'></CameraIcon>
              <RedMicIcon
                 onClick={() => {
                   navigator.mediaDevices

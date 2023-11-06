@@ -1,8 +1,8 @@
 .app{
     position: relative;
-    min-width: 430px;
-    overflow: hidden;
     max-width: 430px;
+    overflow: hidden;
+   width: 100%;
     height: calc(100vh - 110px);
     max-height: 919px;
     z-index: 3000;

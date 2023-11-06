@@ -28,7 +28,7 @@ function ChatTabIcon({index,SelectedTab,Icon,ActiveIcon,HasNewItemIcon,NumberOfI
     <div className='chat-tab-icon' style={getStyle()}>
         {getIcon()}
         {NumberOfItems>0&&
-        <div className='number-of-new-item' style={{right:index===2?"36px":"51px"}}>
+        <div className='number-of-new-item' style={{left:index===2?"72px":"28px"}}>
             <BellIcon></BellIcon>
             <span>{NumberOfItems}</span>
         </div>}

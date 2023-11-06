@@ -1,5 +1,6 @@
 .chat-window{
-    width: 430px;
+    width: 100%;
+    max-width: 430px;
     height: calc(100vh - 110px);
     max-height: 919px;
     overflow: hidden;
@@ -617,7 +618,7 @@ img{
     outline: none !important;
     background-color: #FAFAFA;
     border-radius: 15px;
-    width: 229px;
+    width: fit-content;
     color: #404040;
     height: 40px;
     border: #c7c7c741 0.4px solid;
