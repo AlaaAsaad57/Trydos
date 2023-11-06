@@ -8,6 +8,7 @@ import MicIcon from "../svg/mic.svg"
 import RedMicIcon from "../svg/redmic.svg"
 import WaveIcon from "../svg/wave.svg"
 import ShareIcon from "../svg/sharechat.svg"
+import WebcamCapture from "../components/CameraComponent"
 import PlusIcon from "../svg/chatplus.svg"
 import CameraIcon from "../svg/camera.svg"
 import SendIcon from "../svg/sendbutton.svg"
@@ -27,8 +28,8 @@ import { SendMessage, getMessagesBetweenMessage, getPage } from '../../../redux/
 import { SSRDetect } from '../../../utils/functions';
 function ConversationContainer({ViewedScreen,active,loading,first}) {
 
-  const [vid, setVid] = useState(null)
-  const [imgs, setImgs] = useState(null)
+  const [vid, setVid] = useState(null);
+  const [imgs, setImgs] = useState(null);
   const mid=useSelector((state)=>state.chat.mid)
   const openChat=useSelector((state)=>state.chat.openChat)
   const qouted=useSelector((state)=>state.chat.qouted)
@@ -564,10 +565,23 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
 
 
   };
+  const [cameraEnabled,setCameraEnabled]=useState(false)
+  const enableCamera=(bool)=>{
+    if(!bool){
+      ;
+    }
+    if(navigator.mediaDevices.getUserMedia({video: true})){
+      setCameraEnabled(bool)
+    }
+  }
   return (
     <>
        {activeChat?.id && call === "vid" && <VideoCall name={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.name||activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.username} active={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user.photo_path ? FILE_SERVER + (activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user.photo_path) : avat} channel={activeChat?.pusher_channel_name} user_id={activeChat.channel_members.filter((u) => u.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user_id} />}
       {activeChat?.id && call === "aud" && <VoiceCall name={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.name||activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.username} active={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user.photo_path ? FILE_SERVER + (activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user.photo_path) : avat} channel={activeChat?.pusher_channel_name} user_id={activeChat.channel_members.filter((u) => u.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user_id} />}
+      {cameraEnabled&&<div className='fixed-img-prev'>
+      <div className="bac-drop" onClick={()=>enableCamera(false)}></div>
+      <WebcamCapture save={(d)=>{setImgs(d); enableCamera(false)}}/>
+       </div>}
       {(imgs || vid) &&
 
 <div className="fixed-img-prev">
@@ -701,7 +715,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
               ></SendIcon>
             ) : (
             <>
-            <CameraIcon style={{minWidth:"50px"}} className='camer-icon'></CameraIcon>
+            <CameraIcon style={{minWidth:"50px"}} className='camer-icon' onClick={()=>enableCamera(true)}></CameraIcon>
              <RedMicIcon
                 onClick={() => {
                   navigator.mediaDevices
