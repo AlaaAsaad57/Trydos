@@ -13,12 +13,13 @@ import OfferBar from "./Bars/OfferBar"
 import CategoryBar from "./Bars/CategoryBar"
 import OffersList from "./OfferWidgets/OfferList"
 import StoriesComponent from "./Stories/StoriesComponent"
-import { CheckLogin } from "../../redux/auth/actions";
+import { CheckLogin, StoreToken } from "../../redux/auth/actions";
 import ChatModal from '../Chat/ChatModal'
 import { ToastContainer } from "react-toastify";
 import  "react-toastify/dist/ReactToastify.min.css";
 import "react-toastify/dist/ReactToastify.css"
-import { onMessageListener } from "../../utils/firebaseInit";
+import { onMessageListener, requestFirebaseNotificationPermission } from "../../utils/firebaseInitv1";
+import { getUserChat } from "../../utils/functions";
 export default function Home({stories,res,HomeData}) {
   
   const language=useSelector((state)=>state.homepage.language)
@@ -31,16 +32,22 @@ export default function Home({stories,res,HomeData}) {
       RegisterDevice()
     },5000)
   },[])
-  useEffect(()=>{
-   
-    try {
-      typeof window !=='undefined'&& 'serviceWorker' in navigator&& onMessageListener().then(payload => {
-        console.log(payload)
-     }).catch(err => console.log('failed: ', err));
-    }catch(e){
-      console.log(e)
-    } 
-  },[])
+  try {
+    requestFirebaseNotificationPermission().then((fbtoken)=>{
+      if(fbtoken){
+        StoreToken({
+          id:getUserChat().id,
+          token:fbtoken,
+          user:getUserChat()
+        })
+      }
+    })
+    typeof window !=='undefined'&& 'serviceWorker' in navigator&& onMessageListener().then(payload => {
+      console.log(payload)
+   }).catch(err => console.log('failed: ', err));
+  }catch(e){
+    console.log(e)
+  } 
 
   const selectedStory=useSelector(state => state.homepage.selectedStory)
   useEffect(()=>{

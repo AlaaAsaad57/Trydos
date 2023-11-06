@@ -4,7 +4,7 @@ import { CHAT_URL, CUSTOMER_INFO_URL, LOG_IN_CHAT, LOG_IN_STORIES, OTP_URL, SEND
 import { store } from '../store'
 import { SSRDetect } from '../../utils/functions'
 import { GetChats } from '../chat/actions'
-import {requestFirebaseNotificationPermission} from "../../utils/firebaseInit"
+import {requestFirebaseNotificationPermission} from "../../utils/firebaseInitv1"
 export const Login =(pin,mobile)=>{
    
     if(pin==='111111'){
