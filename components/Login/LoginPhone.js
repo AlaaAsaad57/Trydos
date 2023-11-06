@@ -141,7 +141,7 @@ function LoginPhone({selectedMethod,selectMethod,LoginSuccess}) {
             </div>
             </div>
             <div aria-details={language}className='login-qr-section message-recieve-options'>
-              <div aria-details={language}className='message-recieve-option' onClick={()=>{setMessageMethod('WA'); setStepHeight(287); SendOtp(inputValue,0,(e)=>{setStepHeight(e)})}}>
+              <div aria-details={language}className='message-recieve-option' onClick={()=>{setMessageMethod('WA'); setStepHeight(287); SendOtp(inputValue,1,(e)=>{setStepHeight(e)})}}>
                 <div aria-details={language}className='border-option'>
                 <svg xmlns="http://www.w3.org/2000/svg" width="170" height="50" viewBox="0 0 170 50">
                 <g id="Rectangle_4729" data-name="Rectangle 4729" fill="none" stroke="#4d84ff" stroke-linecap="round" stroke-linejoin="round" strokeWidth="0.5" strokeDasharray="3 3">
