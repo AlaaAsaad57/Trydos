@@ -38,7 +38,7 @@ export default function Home({stories,res,HomeData}) {
         console.log(payload)
      }).catch(err => console.log('failed: ', err));
     }catch(e){
-
+      console.log(e)
     } 
   },[])
 

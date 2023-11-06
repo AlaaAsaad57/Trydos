@@ -326,11 +326,11 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
                 })
         }
         case "WATCH_CHANNEL_RED": {
-            let id = payload
+            let id = parseInt(payload)
             let newChats = []
             let active = null
             state.data.map((a) => {
-                if (a.id === id) {
+                if (parseInt(a.id) === id) {
                     let m = []
                     a.messages.map((mes) => {
                         let newst = []
@@ -354,7 +354,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
                     newChats.push({ ...a, messages: m })
                     if (state.activeChat && state.activeChat.id) {
                         active = state.activeChat
-                        if (active.id === payload) {
+                        if (parseInt(active.id) === parseInt(payload)) {
                             active = { ...a, messages: m }
                         }
                     }
@@ -367,17 +367,17 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
                 ...state,
                 data: newChats,
                 activeChat: active,
-                newChats: state.newChats.filter((a) => a.id !== payload)
+                newChats: state.newChats.filter((a) => parseInt(a.id) !== payload)
             })
         }
         case "WATCH_CHANNEL":{
             watchChannel(payload)
-            let id = payload
+            let id = parseInt(payload)
             let newChats = []
             let active = null
-            if(state.data.filter((s)=>s.id===id).length>0){
+            if(state.data.filter((s)=>parseInt(s.id)===parseInt(id)).length>0){
                 state.data.map((a) => {
-                    if (a.id === id) {
+                    if (parseInt(a.id) === id) {
                         let m = []
                         a.messages.map((mes) => {
                             let newst = []
@@ -402,7 +402,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
                         newChats.push({ ...a, messages: m })
                         if (state.activeChat && state.activeChat.id) {
                             active = state.activeChat
-                            if (active.id === payload) {
+                            if (parseInt(active.id) === parseInt(payload)) {
                                 active = { ...a, messages: m }
                             }
                         }
@@ -415,17 +415,17 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
                     ...state,
                     data: newChats,
                     activeChat: active,
-                    newChats: state.newChats.filter((a) => a.id !== payload)
+                    newChats: state.newChats.filter((a) => parseInt(a.id) !== parseInt(payload))
                 })
             }  
         }
         case "REC_CHANNEL_RED": {
             Recive(payload)
-            let id = payload
+            let id = parseInt(payload)
             let newChats = []
             let active = null
             state.data.map((a) => {
-                if (a.id === id) {
+                if (parseInt(a.id) === id) {
                     let m = []
                     a.messages.map((mes) => {
                         let newst = []
@@ -510,11 +510,11 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
             })
             console.log(parseInt(state.activeChat?.id) === parseInt(ac.id)
             ? arr.filter((t) => (parseInt(t.id) === parseInt(state.activeChat?.id)) || (t.mid === state.activeChat?.mid))[0]
-             : state.activeChat,arr,parseInt(state.activeChat?.id));
+             : state.activeChat,arr,parseInt(state.activeChat?.id),ac.id);
             return ({
                 ...state,
                 data: arr,
-                activeChat:parseInt(state.activeChat?.id) === parseInt(ac.id)
+                activeChat:state.activeChat&&parseInt(state.activeChat?.id) === parseInt(ac.id)
                 ? arr.filter((t) => (parseInt(t.id) === parseInt(state.activeChat?.id)) || (t.mid === state.activeChat?.mid))[0]
                  : state.activeChat,
                 ref: !state.ref,

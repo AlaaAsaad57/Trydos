@@ -109,6 +109,7 @@ export const loginChat=async ()=>{
                     if(!firebaseToken) {
                    }
                     else{
+                        console.log(firebaseToken)
                         localStorage.setItem("firebase_token",firebaseToken)
                     StoreToken({
                         id: response.data.data.id,
