@@ -490,7 +490,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
             
             let chat = state.data
             chat.map((a) => {
-                if (parseInt(a.id) === parseInt(ac.id) && a.messages.filter((m)=>m.id&&(m?.id===payload.message?.id)).length===0) {
+                if (parseInt(a.id) === parseInt(ac.id) && a.messages.filter((m)=>m.id&&(parseInt(m?.id)===parseInt(payload.message?.id))).length===0) {
                     a.messages.push(payload.message)
                 }
             })
@@ -501,18 +501,22 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
                 }
             })
             if(!ac.id){
-                arr.push({...payload.act,messages:[...payload.act.messages.filter((m)=>m?.id!==payload.message?.id),payload.message]})
+                arr.push({...payload.act,messages:[...payload.act.messages.filter((m)=>parseInt(m?.id)!==parseInt(payload.message?.id)),payload.message]})
             }
             chat.map((a) => {
                 if (parseInt(a.id) !== parseInt(ac.id)) {
                     arr.push(a)
                 }
             })
-            
+            console.log(parseInt(state.activeChat?.id) === parseInt(ac.id)
+            ? arr.filter((t) => (parseInt(t.id) === parseInt(state.activeChat?.id)) || (t.mid === state.activeChat?.mid))[0]
+             : state.activeChat,arr,parseInt(state.activeChat?.id));
             return ({
                 ...state,
                 data: arr,
-                activeChat:parseInt(state.activeChat?.id)===parseInt(ac.id)? arr.filter((t) => (parseInt(t.id) === parseInt(state.activeChat?.id)) || (t.mid === state.activeChat?.mid))[0] : state.activeChat,
+                activeChat:parseInt(state.activeChat?.id) === parseInt(ac.id)
+                ? arr.filter((t) => (parseInt(t.id) === parseInt(state.activeChat?.id)) || (t.mid === state.activeChat?.mid))[0]
+                 : state.activeChat,
                 ref: !state.ref,
                 refs: !state.refs,
                 replyMessage:null

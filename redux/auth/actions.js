@@ -109,6 +109,7 @@ export const loginChat=async ()=>{
                     if(!firebaseToken) {
                    }
                     else{
+                        localStorage.setItem("firebase_token",firebaseToken)
                     StoreToken({
                         id: response.data.data.id,
                         token: firebaseToken,
@@ -161,9 +162,9 @@ export const CheckLogin=()=>{
     const fbtokens=localStorage.getItem('firebase_id')
     if(SSRDetect()&&localStorage.getItem("USER")&&localStorage.getItem("ID-TOKEN")&&localStorage.getItem("MARKET-TOKEN")){
         store.dispatch({type:"LOGIN_SUCCESS",payload:{id:JSON.parse(localStorage.getItem("USER")).id,idToken:localStorage.getItem("ID-TOKEN"),name:JSON.parse(localStorage.getItem("USER")).name,avatar:JSON.parse(localStorage.getItem("USER")).avatar||userImage}})
-        if(!fbtokens)
        SSRDetect()&& requestFirebaseNotificationPermission().then((fb)=>{
-            StoreToken({
+        localStorage.setItem("firebase_token",fb)   
+        StoreToken({
                 id:JSON.parse(localStorage.getItem('USER-CHAT'))?.id,
                 token:fb,
                 user:JSON.parse(localStorage.getItem('USER-CHAT'))
