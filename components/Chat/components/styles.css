@@ -566,6 +566,9 @@ color: #388CFF;
     flex-direction: row;
     box-shadow: rgba(0, 0, 0, 0.17) 0px 0.5px 0px;
 }
+.chat-screen-top svg{
+    cursor: pointer;
+}
 .img-uer{
     width: 40px;
     position: relative;

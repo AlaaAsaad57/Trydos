@@ -12,7 +12,7 @@ import WebcamCapture from "../components/CameraComponent"
 import PlusIcon from "../svg/chatplus.svg"
 import CameraIcon from "../svg/camera.svg"
 import SendIcon from "../svg/sendbutton.svg"
-import { upload } from '../chatsFunctions';
+import { dataURLtoFile, upload } from '../chatsFunctions';
 import { toast } from 'react-toastify';
 import { getUser } from '../chatsFunctions';
 import ReplyMessage from '../components/ReplyMessage';
@@ -29,6 +29,7 @@ import { SSRDetect } from '../../../utils/functions';
 function ConversationContainer({ViewedScreen,active,loading,first}) {
 
   const [vid, setVid] = useState(null);
+  const imageFile =useRef(null)
   const [imgs, setImgs] = useState(null);
   const mid=useSelector((state)=>state.chat.mid)
   const openChat=useSelector((state)=>state.chat.openChat)
@@ -412,6 +413,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
       let i = Math.random();
       if(e.target.files[0].type.includes("image"))
      { sendPhoto(e.target.files[0], i,"ImageMessage");
+     console.log(e.target.files[0])
       let pat = await upload(e.target.files[0]);
      
       sendStatues(null)
@@ -455,6 +457,65 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
     let i = document.body.appendChild(Image);
     i.click();
   };
+  const SendCameraImg=async (imageFile)=>{
+    let i=parseInt(Math.random()*1000)
+    dispatch({
+      type: "SEND-MESSAGE",
+      payload: {
+            act: activeChat,
+            message: {
+              parent_message: replyMessage,
+              receiver_user_id: activeChat.channel_members.filter(
+                (a) =>
+                  parseInt(a.user_id) !==
+                  parseInt(getUser().id)
+              )[0].user_id,
+              receiver_role_id: activeChat.channel_members.filter(
+                (a) =>
+                  parseInt(a.user_id) !==
+                  parseInt(getUser().id)
+              )[0].role_id,
+              sender_role_id: getUser().role_id,
+              sender_user_id: getUser().id,
+              message_type: { name: "ImageMessage" },
+              message_content: [{ file_path: imageFile }],
+              type: "pending",
+              created_at:new Date(),
+              message_status:  [{ is_watched: false, is_received: 0,user_id:(localStorage.getItem("USER-CHAT")&&getUser().id) }
+    ,{is_received:0,is_watched:false,user_id:activeChat.channel_members.filter(
+    (a) =>
+      parseInt(a.user_id) !==
+      parseInt(getUser().id)
+    )[0].user_id}],
+              mid: i,
+              cid: activeChat.id,
+            },
+          },
+        });
+        var file =dataURLtoFile(imageFile,"image-" + i+'.jpg');
+        console.log(file)
+      let pat = await upload(file);
+     
+      sendStatues(null)
+      SendMessage({
+        receiver_user_id: activeChat.channel_members.filter(
+          (a) =>
+            parseInt(a.user_id) !==
+            parseInt(getUser().id)
+        )[0].user_id,
+        receiver_role_id: activeChat.channel_members.filter(
+          (a) =>
+            parseInt(a.user_id) !==
+            parseInt(getUser().id)
+        )[0].role_id,
+        sender_role_id: getUser().role_id,
+        content: [{ file_path: pat.path,file_name:pat.name }],
+      parent_message_id: replyMessage?.id,
+        message_type: "ImageMessage",
+        mid: i,
+        cid: activeChat.id,
+      },!activeChat?.id)
+  }
   useEffect(() => {
    
   }, [blobUrl, blobs]);
@@ -578,14 +639,32 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
     <>
        {activeChat?.id && call === "vid" && <VideoCall name={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.name||activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.username} active={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user.photo_path ? FILE_SERVER + (activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user.photo_path) : avat} channel={activeChat?.pusher_channel_name} user_id={activeChat.channel_members.filter((u) => u.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user_id} />}
       {activeChat?.id && call === "aud" && <VoiceCall name={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.name||activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.username} active={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user.photo_path ? FILE_SERVER + (activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user.photo_path) : avat} channel={activeChat?.pusher_channel_name} user_id={activeChat.channel_members.filter((u) => u.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user_id} />}
-      {cameraEnabled&&<div className='fixed-img-prev'>
+      {cameraEnabled&&<div className='fixed-img-prev' >
       <div className="bac-drop" onClick={()=>enableCamera(false)}></div>
-      <WebcamCapture setImgs={(e)=>setImgs(e)} imgs={imgs} save={(d)=>{setImgs(d);}} send={()=>enableCamera(false)}/>
+      <WebcamCapture
+      imageFile={imageFile}
+       setImgs={(e)=>setImgs(e)}
+        imgs={imgs}
+         close={()=>enableCamera(false)}
+          save={(d)=>{setImgs(d);}}
+           send={(d)=>{SendCameraImg(d);enableCamera(false)}}/>
        </div>}
       {(imgs || vid) &&
 
-<div className="fixed-img-prev">
+<div className="fixed-img-prev" style={{zIndex:"99999999999999"}}>
   <div className="bac-drop"></div>
+  {
+ 
+         <div className="svv" onClick={() => { setImgs(null); setVid(); }}> 
+         <svg xmlns="http://www.w3.org/2000/svg" width="17.828" height="17.829" viewBox="0 0 17.828 17.829">
+         <g id="Group_10676" data-name="Group 10676" transform="translate(-67.032 -2460.283)">
+           <line id="Line_879" data-name="Line 879" y2="21.213" transform="translate(83.447 2461.697) rotate(45)" fill="none" stroke="#555" stroke-linecap="round" strokeWidth="2"/>
+           <line id="Line_880" data-name="Line 880" y2="21.213" transform="translate(83.447 2476.697) rotate(135)" fill="none" stroke="#555" stroke-linecap="round" strokeWidth="2"/>
+         </g>
+       </svg>
+       
+         </div>
+        }
   <div className="svv" onClick={() => { setImgs(null); setVid(); }}> 
   <svg xmlns="http://www.w3.org/2000/svg" width="17.828" height="17.829" viewBox="0 0 17.828 17.829">
   <g id="Group_10676" data-name="Group 10676" transform="translate(-67.032 -2460.283)">
@@ -650,7 +729,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         <>
         {replyMessage&&<ReplyMessage message={replyMessage} cancel={()=>{dispatch({type:"REPLY-MESSAGE",payload:null})}}/>}
         <div className={"chat-input-container" + ` ${mics && "bac40"}`}>
-            <MicIcon height={"40"}></MicIcon>
+            <MicIcon height={"40"} style={{cursor:"pointer"}}></MicIcon>
             <div className="mic-chat">
               <span className="time-mic">{showDuration()}</span>
               <WaveIcon className="wave-svg" ></WaveIcon>
@@ -683,7 +762,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
           <>
            {replyMessage&&<ReplyMessage message={replyMessage} cancel={()=>{dispatch({type:"REPLY-MESSAGE",payload:null})}}/>}
           <div className={"chat-input-container" + ` ${mics && "bac40"}`}>
-            <PlusIcon style={{minWidth:"43px"}}
+            <PlusIcon style={{minWidth:"43px",cursor:"pointer"}}
               onClick={() => uploadPhoto()}
               height={"40"}
              
@@ -706,7 +785,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
               
             </div>
             {message.length > 0 ? (
-              <SendIcon style={{minWidth:"50px"}}
+              <SendIcon style={{minWidth:"50px",cursor:"pointer"}}
                 onClick={() => {
                   send_mes(message, "TextMessage");
                   setMessage("");
@@ -715,8 +794,8 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
               ></SendIcon>
             ) : (
             <>
-            <CameraIcon style={{minWidth:"50px"}} className='camer-icon' onClick={()=>enableCamera(true)}></CameraIcon>
-             <RedMicIcon
+            <CameraIcon style={{minWidth:"50px",cursor:"pointer"}} className='camer-icon' onClick={()=>enableCamera(true)}></CameraIcon>
+             <RedMicIcon  style={{cursor:"pointer"}}
                 onClick={() => {
                   navigator.mediaDevices
                     .getUserMedia({ audio: true, video: false })
