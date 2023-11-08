@@ -580,7 +580,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
       {activeChat?.id && call === "aud" && <VoiceCall name={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.name||activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.username} active={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user.photo_path ? FILE_SERVER + (activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user.photo_path) : avat} channel={activeChat?.pusher_channel_name} user_id={activeChat.channel_members.filter((u) => u.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user_id} />}
       {cameraEnabled&&<div className='fixed-img-prev'>
       <div className="bac-drop" onClick={()=>enableCamera(false)}></div>
-      <WebcamCapture save={(d)=>{setImgs(d); enableCamera(false)}}/>
+      <WebcamCapture setImgs={(e)=>setImgs(e)} imgs={imgs} save={(d)=>{setImgs(d);}} send={()=>enableCamera(false)}/>
        </div>}
       {(imgs || vid) &&
 

@@ -1259,7 +1259,9 @@ svg.redwave g g path{
     display: flex;
     z-index: 9999999999;
     align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 20px;
 }
 
 .fixed-img-prev .svv {
@@ -1267,9 +1269,20 @@ svg.redwave g g path{
     top: 29px;
     right: 30px;
     cursor: pointer;
-    z-index: 99999;
+    z-index: 9999999999999;
 
 
+}
+.fixed-img-prev video.cameraInput{
+    height: 100%;
+    width: 100% !important;
+    inset: 0px !important;
+    max-height: 100vh;
+    color: transparent;
+    -o-object-fit: fill;
+    object-fit: fill;
+    position: absolute !important;
+    z-index: 99999999;
 }
 
 .fixed-img-prev .bac-drop {
@@ -1285,11 +1298,14 @@ svg.redwave g g path{
 
 .fixed-img-prev img,
 .fixed-img-prev video {
-    width: auto;
-    max-width: 90%;
-    z-index: 999999999;
     height: auto;
-    max-height: 90%;
+    width: 100% !important;
+    inset: 0px !important;
+    max-height: 90vh;
+    color: transparent;
+    object-fit: fill;
+    position: static !important;
+    z-index: 99999999;
 }
 .play-vid-icon{
     position: absolute;
@@ -1364,4 +1380,33 @@ svg.redwave g g path{
     color: #8696a0;
     font-size: 11px;
     text-transform: uppercase;
+}
+.button-bases{
+    position: fixed;
+    bottom: 20px;
+    left: 10px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 99999999999;
+}
+.button-bases button{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #DDDDDD;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: #0000002a 0px 3px 6px;
+
+}
+.button-bases button svg path{
+  
+    fill: #555;
+}
+.button-bases button:disabled svg path{
+     fill: #8e8d92;
 }

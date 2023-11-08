@@ -279,7 +279,7 @@ color: #388CFF;
 .chat-info svg:not(:first-child){
     margin-left: 4.8px;
 }
-.chat-info svg g g g:nth-child(1){
+.chat-info svg:not(.message-type-icon) g g g:nth-child(1){
     transition:none;
     animation: points 1.2s ease-in 0.2s infinite ;
 }
