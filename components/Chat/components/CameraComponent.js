@@ -13,14 +13,14 @@ import Image from "next/image";
     });
     const webcamRef = React.useRef(null);
     const capture = () => {
-      imageFile.current = webcamRef.current.getScreenshot();
+      imageFile.current = webcamRef.current?.getScreenshot();
        
       }
       useEffect(()=>{},[imgs])
       const hasTwoCameras=async()=>{
-        const devices = await navigator.mediaDevices.enumerateDevices();
+        const devices = await navigator?.mediaDevices?.enumerateDevices();
        
-        return devices.filter((dev)=>dev.kind==='videoinput').length<1
+        return devices?.filter((dev)=>dev?.kind==='videoinput').length<1
       }
     return (
       <>
