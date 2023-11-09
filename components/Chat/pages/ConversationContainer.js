@@ -677,8 +677,13 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
     if(!bool){
       ;
     }
-    if(navigator.mediaDevices.getUserMedia({video: true})){
-      setCameraEnabled(bool)
+   {
+      navigator.mediaDevices.getUserMedia({video: true}).then((s)=>{
+        setCameraEnabled(bool)
+      }).catch((e)=>{
+        console.log(e,"camera-error")
+        toast.error('check camera premmissions and refresh')
+      })
     }
   }
   return (
