@@ -457,6 +457,52 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
     let i = document.body.appendChild(Image);
     i.click();
   };
+  const openCameraMobile=()=>{
+    sendStatues("Sending Photo...")
+    let Image = document.createElement("input");
+    Image.onblur=()=>{
+   ;
+    }
+    Image.onchange = async (e) => {
+      let i = Math.random();
+      if(e.target.files[0].type.includes("image"))
+     { sendPhoto(e.target.files[0], i,"ImageMessage");
+     console.log(e.target.files[0])
+      let pat = await upload(e.target.files[0]);
+     
+      sendStatues(null)
+      SendMessage({
+        receiver_user_id: activeChat.channel_members.filter(
+          (a) =>
+            parseInt(a.user_id) !==
+            parseInt(getUser().id)
+        )[0].user_id,
+        receiver_role_id: activeChat.channel_members.filter(
+          (a) =>
+            parseInt(a.user_id) !==
+            parseInt(getUser().id)
+        )[0].role_id,
+        sender_role_id: getUser().role_id,
+        content: [{ file_path: pat.path,file_name:pat.name }],
+      parent_message_id: replyMessage?.id,
+        message_type: "ImageMessage",
+        mid: i,
+        cid: activeChat.id,
+      },!activeChat?.id)
+    }
+     
+    };
+    setTimeout(() => {
+    sendStatues(null)
+      
+    }, 5000);
+    Image.type = "file";
+    Image.hidden = true;
+    Image.accept = "image/*;capture=camera";
+    Image.style = { position: "absolute", opacity: "0" };
+    let i = document.body.appendChild(Image);
+    i.click();
+  }
   const SendCameraImg=async (imageFile)=>{
     let i=parseInt(Math.random()*1000)
     dispatch({
@@ -639,15 +685,17 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
     <>
        {activeChat?.id && call === "vid" && <VideoCall name={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.name||activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.username} active={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user.photo_path ? FILE_SERVER + (activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user.photo_path) : avat} channel={activeChat?.pusher_channel_name} user_id={activeChat.channel_members.filter((u) => u.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user_id} />}
       {activeChat?.id && call === "aud" && <VoiceCall name={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.name||activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.username} active={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user.photo_path ? FILE_SERVER + (activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user.photo_path) : avat} channel={activeChat?.pusher_channel_name} user_id={activeChat.channel_members.filter((u) => u.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user_id} />}
-      {cameraEnabled&&<div className='fixed-img-prev' >
+      {cameraEnabled&&window.innerWidth>800&&<div className='fixed-img-prev' >
       <div className="bac-drop" onClick={()=>enableCamera(false)}></div>
-      <WebcamCapture
+      {window.innerWidth>800?<WebcamCapture
       imageFile={imageFile}
        setImgs={(e)=>setImgs(e)}
         imgs={imgs}
          close={()=>enableCamera(false)}
           save={(d)=>{setImgs(d);}}
-           send={(d)=>{SendCameraImg(d);enableCamera(false)}}/>
+           send={(d)=>{SendCameraImg(d);enableCamera(false)}}/>:
+           <></>
+           }
        </div>}
       {(imgs || vid) &&
 
@@ -794,7 +842,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
               ></SendIcon>
             ) : (
             <>
-            <CameraIcon style={{minWidth:"50px",cursor:"pointer"}} className='camer-icon' onClick={()=>enableCamera(true)}></CameraIcon>
+            <CameraIcon style={{minWidth:"50px",cursor:"pointer"}} className='camer-icon' onClick={()=>{enableCamera(true); if(window.innerWidth<800) openCameraMobile()}}></CameraIcon>
              <RedMicIcon  style={{cursor:"pointer"}}
                 onClick={() => {
                   navigator.mediaDevices
