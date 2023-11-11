@@ -1,19 +1,11 @@
 import axios from 'axios'
 import userImage from '../../public/images/profileNo.png'
-import { CHAT_URL, CUSTOMER_INFO_URL, LOG_IN_CHAT, LOG_IN_STORIES, OTP_URL, SEND_OTP, STORIES_URL, VERFIY_OTP } from '../../utils/endpointConfig'
+import { CHAT_URL, CUSTOMER_INFO_URL, LOG_IN_CHAT, LOG_IN_STORIES, OTP_URL, SEND_OTP, STARTER_SETTINGS, STORIES_URL, VERFIY_OTP } from '../../utils/endpointConfig'
 import { store } from '../store'
 import { SSRDetect } from '../../utils/functions'
 import { GetChats } from '../chat/actions'
 import {requestFirebaseNotificationPermission} from "../../utils/firebaseInitv1"
-export const Login =(pin,mobile)=>{
-   
-    if(pin==='111111'){
-        return({type:"LOGIN_SUCCESS",payload:{name:"Mohamad",avatar:userImage}})
-    }
-    else{
-        return({type:"LOGIN_FAILED"})
-    }
-}
+
 export const ReInitialise=()=>{
     return {type:"RE-INITILIASE"}
 }
@@ -159,23 +151,33 @@ export async  function StoreToken(payload) {
       console.log(e);
     }
   }
-export const CheckLogin=()=>{
+export const CheckLogin=async()=>{
     const fbtokens=localStorage.getItem('firebase_id')
     if(SSRDetect()&&localStorage.getItem("USER")&&localStorage.getItem("ID-TOKEN")&&localStorage.getItem("MARKET-TOKEN")){
         store.dispatch({type:"LOGIN_SUCCESS",payload:{id:JSON.parse(localStorage.getItem("USER")).id,idToken:localStorage.getItem("ID-TOKEN"),name:JSON.parse(localStorage.getItem("USER")).name,avatar:JSON.parse(localStorage.getItem("USER")).avatar||userImage}})
-       SSRDetect()&& requestFirebaseNotificationPermission().then((fb)=>{
-        localStorage.setItem("firebase_token",fb)   
-        StoreToken({
-                id:JSON.parse(localStorage.getItem('USER-CHAT'))?.id,
-                token:fb,
-                user:JSON.parse(localStorage.getItem('USER-CHAT'))
-            })
-        })
-        GetChats(false)
+    //    SSRDetect()&& requestFirebaseNotificationPermission().then((fb)=>{
+    //     localStorage.setItem("firebase_token",fb)   
+    //    fb&& StoreToken({
+    //             id:JSON.parse(localStorage.getItem('USER-CHAT'))?.id,
+    //             token:fb,
+    //             user:JSON.parse(localStorage.getItem('USER-CHAT'))
+    //         })
+    //     })
         setTimeout(()=>{
-            getCustomerInfo()
-        },7000)
+            getClientData()
+        },6000)
+
     }
+}
+export const getClientData=async()=>{
+    if(!localStorage.getItem('customer-info'))
+    await getCustomerInfo()
+    let res= await axios.get(OTP_URL+STARTER_SETTINGS);
+    store.dispatch({type:"GET_SETTINGS",payload:res.data})
+    sessionStorage.setItem('starttingSetting',JSON.stringify(res.data.data))
+setTimeout(()=>{
+    GetChats(false)
+},2000)
 }
 export const getCustomerInfo=async ()=>{
     try{
@@ -183,6 +185,7 @@ export const getCustomerInfo=async ()=>{
             Authorization:`Bearer ${localStorage.getItem('MARKET-TOKEN')}`
         }})
         store.dispatch({type:"UPDATE_USER_INFO",payload:res.data.data.customer_info})
+        localStorage.setItem('customer-info',JSON.stringify(res.data.data.customer_info))
     }
     catch(e){
 

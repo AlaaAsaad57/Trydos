@@ -27,15 +27,17 @@ export default function Home({stories,res,HomeData}) {
   useEffect(()=>{ 
     dispatch(GetStoryData(stories))
     dispatch(GetMainData(HomeData))
-    CheckLogin()
     setTimeout(()=>{
       RegisterDevice()
-    },5000)
+      CheckLogin()
+    },2000)
+
+
   },[])
   try {
     requestFirebaseNotificationPermission().then((fbtoken)=>{
       if(fbtoken){
-        StoreToken({
+       fbtoken&& StoreToken({
           id:getUserChat().id,
           token:fbtoken,
           user:getUserChat()

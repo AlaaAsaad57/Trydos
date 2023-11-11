@@ -24,7 +24,7 @@ const initialState = {
     data: [],
     activeChat: null,
     main: "main",
-    loading: false,
+    loading: true,
     refs: false,
     contacts:[],
     channels: [],

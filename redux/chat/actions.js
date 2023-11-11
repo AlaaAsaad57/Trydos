@@ -10,6 +10,9 @@ export const ChatConroller =(payload)=>{
 }
 export const GetChats=async (payload) =>{
     try{
+      if (!payload){
+        store.dispatch({type:"CHAT_LOADING"})
+      }
         let resp= await axios.post(CHAT_URL+GET_CHATS_URL,{role_id:116},{
             headers:{
                 Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token

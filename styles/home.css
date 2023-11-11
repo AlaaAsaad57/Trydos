@@ -1292,7 +1292,7 @@ html, body{
     direction: rtl;
    }
   @media only screen and (max-width: 912px) {
-   .categories-bar-container, .welcome-user, .nav-question-item:not(.nav-img-item):nth-child(4){
+   .categories-bar-container, .welcome-user{
     display: none !important;
    }
    .home-page-container{

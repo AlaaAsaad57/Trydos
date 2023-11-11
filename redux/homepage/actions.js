@@ -5,12 +5,11 @@ import { store } from "../store"
 /*General Actions */
 export const RegisterDevice=async ()=>{
     try{
-        if(SSRDetect()&&!localStorage.getItem('DEVICE-TOKEN')){
+        if(SSRDetect()&&!localStorage.getItem('DEVICE-TOKEN')&&!localStorage.getItem('USER')){
         let response=await axios.post(OTP_URL+REGISTER_DEVICE_URL)
         localStorage.setItem('DEVICE-TOKEN',response.data.data.token)
     }
-    let res= await axios.get(OTP_URL+STARTER_SETTINGS);
-    store.dispatch({type:"GET_SETTINGS",payload:res.data})
+
     }
     catch(e){
 

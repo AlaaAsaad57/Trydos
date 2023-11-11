@@ -7,13 +7,14 @@ import UserAvatar from './UserAvatar'
 import {ChatConroller} from "../../redux/chat/actions"
 function AuthNavSection() {
     const language=useSelector((state)=>state.homepage.language)
+    const loading=useSelector((state)=>state.chat.loading)
     const user=useSelector((state)=>state.auth.user)
     const dispatch = useDispatch()
   return (
     <>     
-     <div aria-details={language} className='nav-question-item'style={{marginRight:"30px",marginLeft:"0px"}} onClick={()=>dispatch(ChatConroller(true))}>
+     {!loading&&<div aria-details={language} className='nav-question-item'style={{marginRight:"30px",marginLeft:"0px"}} onClick={()=>dispatch(ChatConroller(true))}>
             <ChatIcon/>
-     </div>
+     </div>}
      <div aria-details={language}className='nav-question-item' style={{marginRight:"20px",marginLeft:"0px"}}>
             <CartIcon/>
      </div>
