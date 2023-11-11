@@ -14,10 +14,10 @@ function UserInfoHeader() {
             getTwoLetters(getUserChat().name):
             <Image src={40} width={40} height={ProfilePicture.src}/>
             :
-            getUserChat().photo_path? <Image src={40} width={40} height={getUserChat().photo_path}/>:
+            getUserChat().photo_path? <Image alt="user-img" src={40} width={40} height={getUserChat().photo_path}/>:
             getUserChat().name?
             getTwoLetters(getUserChat().name):
-            <Image height={40} width={40} src={ProfilePicture.src}/>
+            <Image alt="user-img" height={40} width={40} src={ProfilePicture.src}/>
             }
         </div>
             <span>{localStorage.getItem("USER-CHAT")&&getUserChat().name||localStorage.getItem("USER-CHAT")&&getUserChat().name||'User'}</span>

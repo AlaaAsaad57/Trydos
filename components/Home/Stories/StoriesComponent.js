@@ -13,10 +13,10 @@ function StoriesComponent() {
     }
   return (
    <>
-   {storiesData.map((story)=>(
-    <>
-    {selectedStory?.id===story.id&&
-        <div className='fixed-layout' style={{position:"fixed",left:"0px",top:"0px",zIndex:"1400"}} key={selectedStory.id}>
+   {storiesData.map((story,key)=>(
+    
+    selectedStory?.id===story.id&&
+        <div className='fixed-layout' style={{position:"fixed",left:"0px",top:"0px",zIndex:"1400"}} key={key}>
           <CloseIcon close={()=>{setSelectStory(null); setCurrentStoryId(0)}}/>
             <Stories  key={story.id.id} 
                 preloadCount={3}
@@ -34,8 +34,8 @@ function StoriesComponent() {
                 }, 10);}}
                 onStoryEnd={()=>currentStoryId<story.stories.length-1 ? setCurrentStoryId(currentStoryId+1):dispatch(setNextStory(story.id))}
             />
-        </div>  }
-    </>
+        </div>  
+    
    ))}
         </> 
   )

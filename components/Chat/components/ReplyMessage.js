@@ -38,7 +38,7 @@ function ReplyMessage({message,cancel}) {
         }
         if(message.message_type.name==="FileMessage"){
             return(<>
-            <Image width={26} height={20} src={out.src} style={{width:"15px",height:"18px",borderRadius:"0px"}}/> File
+            <Image alt="file" width={26} height={20} src={out.src} style={{width:"15px",height:"18px",borderRadius:"0px"}}/> File
             </>)
         }
     }

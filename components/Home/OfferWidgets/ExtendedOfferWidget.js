@@ -9,11 +9,11 @@ import DiscountIcon from "../../../public/svg/discountIcon.svg"
 import GiftIcon from "../../../public/svg/giftIcon.svg"
 import { useSelector } from 'react-redux'
 import { translate } from '../../../utils/functions'
-function ExtendedOfferWidget({offer}) {
+function ExtendedOfferWidget({offer,key}) {
   const language=useSelector((state)=>state.homepage.language)
 
   return (
-    <div className='offer-widget extended-widget'>
+    <div className='offer-widget extended-widget' key={key}>
     <div className='offer-blured-background'/>
     <div className='offer-blured'/>
     <div className='offer-container' aria-details={language}>

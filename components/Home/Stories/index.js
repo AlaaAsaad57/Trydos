@@ -57,8 +57,8 @@ slider?.addEventListener('mousemove', (e) => {
             </svg>
             <div className='stories-bars' aria-details={language}>
               <AddStory/>
-              {loading&&[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1].map((elen)=>(
-                <div className='story-element-container'>
+              {loading&&[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1].map((elen,key)=>(
+                <div className='story-element-container' key={key}>
                 <div className='story-element-item'>
                  <Skeleton duration={0.5} count={1} style={{position:"absolute",top:"0px",left:"0px",borderRadius:"10px",width:"100%",height:"100%"}}/>
                 </div>

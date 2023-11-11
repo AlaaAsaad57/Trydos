@@ -70,7 +70,7 @@ export default function Home({stories,res,HomeData}) {
             <Navbar/>
             <ChatModal/>
             <Stories/>
-            <CategoriesBar forMobile={true}/>
+            <CategoriesBar forMobile={true} />
             <BrandsBar/>
             <OffersList offers={[1,1,1]}/>
             <CategoryBar/>

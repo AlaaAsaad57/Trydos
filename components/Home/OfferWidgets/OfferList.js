@@ -8,8 +8,8 @@ function OfferList({offers,quick}) {
         {quick?
         <QuickOfferWidjet offer={{photos:[1]}}/>
         :offers.map((offer,Index)=>(Index!==2?
-            <NormalWidget offer={{photos:[1,1,1].filter((item,index)=>index<=Index)}}/>:
-            <ExtendedOfferWidget offer={{photos:[1,1,1].filter((item,index)=>index<=Index)}}/>
+            <NormalWidget key={Index} offer={{photos:[1,1,1].filter((item,index)=>index<=Index)}}/>:
+            <ExtendedOfferWidget key={Index} offer={{photos:[1,1,1].filter((item,index)=>index<=Index)}}/>
         ))}
     </div>
   )

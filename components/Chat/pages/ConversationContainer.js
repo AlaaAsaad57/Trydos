@@ -727,7 +727,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
 </svg>
 
   </div>
-  {vid ? <video src={vid} controls><source src={vid} /></video> : <Image fill sizes='100vw' alt="imgs" src={imgs} />}
+  {vid ? <video src={vid} controls><source src={vid} /></video> : <Image  fill sizes='100vw' alt="imgs" src={imgs} />}
 </div>}
       {SSRDetect()&&<Recorder blobs={blobs} isRecording={isRecording} setblobUrl={setblobUrl} onStop={onStop}/>}
       <div

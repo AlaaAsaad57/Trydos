@@ -3,7 +3,7 @@ import { getTwoLetters, getUser } from '../chatsFunctions';
 import ProfilePicture from "../../../public/images/profileNo.png"
 import { useDispatch, useSelector } from 'react-redux';
 
-function SearchResult({photo,SenderName,isUser,handleClickChat,item}) {
+function SearchResult({key,photo,SenderName,isUser,handleClickChat,item}) {
     const dispatch=useDispatch()
     const chats=useSelector((state)=>state.chat.data)
     const handleClick=()=>{
@@ -20,7 +20,7 @@ function SearchResult({photo,SenderName,isUser,handleClickChat,item}) {
     }
   return (
     <div>
-          <div className='chat-conversation-item-container'>
+          <div className='chat-conversation-item-container' key={key}>
           {!isUser&&<div className='chat-activated-options' style={{color:"#388cff",fontSize:"16px",bottom:"22px",cursor:"pointer"}}>
             Invite
           </div>}

@@ -2,7 +2,7 @@ import { translate } from "../../utils/functions"
 import { useSelector } from "react-redux"
 import NavIcon from "../../public/svg/navIcon.svg"
 import SearchComponent from "./SearchComponent"
-function CategoryNavItem({name, icon,searchEnabled,close,openSearch,key}) {
+const CategoryNavItem=({name, icon,searchEnabled,close,openSearch,key})=> {
     const language=useSelector((state)=>state.homepage.language)
     const clickItem=()=>{
       if(name==='Search'){
@@ -10,8 +10,8 @@ function CategoryNavItem({name, icon,searchEnabled,close,openSearch,key}) {
       }
     }
   return (
-  <>
-    {(!searchEnabled||name==='Search')&& <div aria-details={language}className="categories-bar-item" onClick={()=>clickItem()} key={key}>
+ (!searchEnabled||name==='Search')&& 
+    <div aria-details={language}className="categories-bar-item" onClick={()=>clickItem()} key={key}>
        {!searchEnabled&& <div aria-details={language}className="categories-bar-item-icon">
            {icon}
         </div>}
@@ -25,8 +25,7 @@ function CategoryNavItem({name, icon,searchEnabled,close,openSearch,key}) {
         {
             name==='Search'&&<SearchComponent close={()=>close()} searchEnabled={searchEnabled}/>
         }
-    </div>}
-  </>
+    </div>
  
   )
 }

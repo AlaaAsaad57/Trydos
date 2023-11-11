@@ -18,8 +18,8 @@ function OfferPhotosSlider({OfferPhotos,extended}) {
     <div className='offer-slider-container' style={{marginTop:extended&&"39px"}}>
     <Slider {...settings} >
 
-    {OfferPhotos.map((offerPhoto)=>(
-         <OfferSlideItem/>
+    {OfferPhotos.map((offerPhoto,key)=>(
+         <OfferSlideItem key={key}/>
     ))}
     </Slider>
        
