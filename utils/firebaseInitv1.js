@@ -2,7 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import {store} from '../redux/store';
 import { getUserChat } from './functions';
-import { GetChats } from '../redux/chat/actions';
+import { GetChats, InitPusherChannel } from '../redux/chat/actions';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
@@ -36,6 +36,7 @@ export const requestFirebaseNotificationPermission = async () => {
 export const onMessageListener = () =>
   new Promise((resolve) => {
     onMessage(messaging, (payload) => {
+      InitPusherChannel(JSON.parse(payload.data.message).channel.id)
       console.log(payload,store?.getState()?.chat?.data.filter((chat)=>parseInt(chat.id)===parseInt(JSON.parse(payload?.data.message)?.channel?.id))[0])
       if(store?.getState()?.chat?.data.filter((chat)=>parseInt(chat.id)===parseInt(JSON.parse(payload?.data.message)?.channel?.id))[0]?.messages.filter((message)=>parseInt(message.id)===parseInt(payload.data.prev_message_id)).length>0){
          store.dispatch({type:"SET_LAST_NOTIFICATION_DATE",payload:(new Date()).toLocaleString()})

@@ -287,7 +287,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
            
             return ({
                 ...state,
-                channels: payload
+                channels: [...state.channels,payload]
             })
         }
         case "REFS": {

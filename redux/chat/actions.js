@@ -19,8 +19,6 @@ export const GetChats=async (payload) =>{
             }
         })
         if (!payload) {
-            let channels = [];
-            let chats=[...resp.data.data.pinned_channels,...resp.data.data.channels]
             let channel = pusher.subscribe(`user-${getUserChat()?.id}-messages`);
               channel.bind("ChannelWatchedEvent", (data) => {
                 store.dispatch({
@@ -45,60 +43,60 @@ export const GetChats=async (payload) =>{
                 store.dispatch({ type: "REC_CHANNEL_RED", payload: data.channel_id });
       
               });
-             chats.map( (cg) => {
-              store.dispatch({
-                type: "REC_CHA",
-                payload: cg.id,
-              });
-              let chs =  pusher.subscribe(`presence-video-call-${cg.id?.toString(16)}`)
-               chs.bind(`client-signal-${getUserChat().id}`, (signal) => {
-                let caller = cg.channel_members.filter(one => one.user_id !== getUserChat().id)[0]
-                let callerChannel = cg
-                store.dispatch({
-                  type: "INCOMING_CALL", payload: {
-                    signal,
-                    caller,
-                    callerChannel
-                  }
-                })
-              })
-               chs.bind(`client-signal-voice-${getUserChat().id}`, (signal) => {
-                let caller = cg.channel_members.filter(one => one.user_id !== getUserChat().id)[0]
-                let callerChannel = cg
-                store.dispatch({
-                  type: "INCOMING_VOICE_CALL", payload: {
-                    signal,
-                    caller,
-                    callerChannel
-                  }
-                })
-              })
-              let ch = pusher.subscribe(`presence-typing-${cg.id?.toString(16)}`);
-              ch.bind("client-TypingEvent", (data) => {
+            //  chats.map( (cg) => {
+            //   store.dispatch({
+            //     type: "REC_CHA",
+            //     payload: cg.id,
+            //   });
+            //   let chs =  pusher.subscribe(`presence-video-call-${cg.id?.toString(16)}`)
+            //    chs.bind(`client-signal-${getUserChat().id}`, (signal) => {
+            //     let caller = cg.channel_members.filter(one => one.user_id !== getUserChat().id)[0]
+            //     let callerChannel = cg
+            //     store.dispatch({
+            //       type: "INCOMING_CALL", payload: {
+            //         signal,
+            //         caller,
+            //         callerChannel
+            //       }
+            //     })
+            //   })
+            //    chs.bind(`client-signal-voice-${getUserChat().id}`, (signal) => {
+            //     let caller = cg.channel_members.filter(one => one.user_id !== getUserChat().id)[0]
+            //     let callerChannel = cg
+            //     store.dispatch({
+            //       type: "INCOMING_VOICE_CALL", payload: {
+            //         signal,
+            //         caller,
+            //         callerChannel
+            //       }
+            //     })
+            //   })
+            //   let ch = pusher.subscribe(`presence-typing-${cg.id?.toString(16)}`);
+            //   ch.bind("client-TypingEvent", (data) => {
               
-                if (
-                  parseInt(JSON.parse(JSON.stringify(data)).uid) !== getUserChat().id
-                )
-                {
-                  store.dispatch({ type: "IS_TYPING_TRUE", payload: JSON.parse(JSON.stringify(data)) });}
-              });
+            //     if (
+            //       parseInt(JSON.parse(JSON.stringify(data)).uid) !== getUserChat().id
+            //     )
+            //     {
+            //       store.dispatch({ type: "IS_TYPING_TRUE", payload: JSON.parse(JSON.stringify(data)) });}
+            //   });
               
-              channels.push({ id: cg.id, channel: ch });
+            //   channels.push({ id: cg.id, channel: ch });
               
-               ch.bind("pusher:subscription_succeeded", (data) => {
-                store.dispatch({ type: "PUSHER_CHANNEL", payload: { id: cg.id, channel: ch } })
-              });
-              // await ch.bind("pusher:subscription_error", (data) => {
-              //   // console.log(
-              //   //   "pusher:subscription_error" +
-              //   //   " on " +
-              //   //   `presence-typing-${cg.id?.toString(16)}`
-              //   // );
-              // });
+            //    ch.bind("pusher:subscription_succeeded", (data) => {
+            //     store.dispatch({ type: "PUSHER_CHANNEL", payload: { id: cg.id, channel: ch } })
+            //   });
+            //   // await ch.bind("pusher:subscription_error", (data) => {
+            //   //   // console.log(
+            //   //   //   "pusher:subscription_error" +
+            //   //   //   " on " +
+            //   //   //   `presence-typing-${cg.id?.toString(16)}`
+            //   //   // );
+            //   // });
       
-            });
+            // });
            
-             store.dispatch({ type: "PUSHER_RED", payload: channels });
+            //  store.dispatch({ type: "PUSHER_RED", payload: channels });
           }
           store.dispatch({ type: "GET_CHAT_RED", payload: resp.data.data.channels,param:resp.data.data.pinned_channels })
           store.dispatch({type:"SET_LAST_NOTIFICATION_DATE",payload:(new Date()).toLocaleString()})
@@ -244,7 +242,7 @@ export async function StartChat(payload) {
           (localStorage.getItem("USER-CHAT") &&
             getUserChat().access_token),
         current_role_id:
-          localStorage.getItem("USER-CHATr") &&
+          localStorage.getItem("USER-CHAT") &&
             getUserChat().role_id
             ? localStorage.getItem("USER-CHAT") &&
             getUserChat().role_id
@@ -476,4 +474,17 @@ export async function checkForUpdate(){
   }catch(e){
     console.log(e)
   }
+}
+export const InitPusherChannel=(channelId)=>{
+  if(store.getState().chat.channels.filter((ch)=>ch.id===channelId).length===0){
+  let ch = pusher.subscribe(`presence-typing-${channelId?.toString(16)}`);
+  ch.bind("client-TypingEvent", (data) => {
+  
+    if (
+      parseInt(JSON.parse(JSON.stringify(data)).uid) !== getUserChat().id
+    )
+    {
+      store.dispatch({ type: "IS_TYPING_TRUE", payload: JSON.parse(JSON.stringify(data)) });}
+  });  
+   store.dispatch({ type: "PUSHER_RED", payload: { id: channelId, channel: ch } });}
 }

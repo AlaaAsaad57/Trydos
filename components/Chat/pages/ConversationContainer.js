@@ -24,7 +24,7 @@ import { FILE_SERVER } from '../chatsFunctions';
 import { useCallback } from 'react';
 import Observable from '../components/ChatHistoryElement';
 import Image from 'next/image';
-import { SendMessage, getMessagesBetweenMessage, getPage } from '../../../redux/chat/actions';
+import { InitPusherChannel, SendMessage, getMessagesBetweenMessage, getPage } from '../../../redux/chat/actions';
 import { SSRDetect } from '../../../utils/functions';
 function ConversationContainer({ViewedScreen,active,loading,first}) {
 
@@ -636,6 +636,8 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
   ]);
   useEffect(()=>{
     document.querySelector("#scroled").scrollIntoView({block:"center",inline:"center"});
+    if(activeChat?.id)
+    InitPusherChannel(activeChat.id)
   },[openChat])
 
   useEffect(()=>{
