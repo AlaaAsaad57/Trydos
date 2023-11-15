@@ -27,6 +27,7 @@ const [searchEnabled,setSearchEnabled]=useState(false)
         openSearch={()=>setSearchEnabled(true)}
         name={category.name}
         key={key}
+        myKey={key}
         icon={category.icon}/>
         
       

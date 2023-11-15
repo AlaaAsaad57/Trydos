@@ -11,7 +11,7 @@ import ChatOptions from './ChatOptions'
 import { useDispatch } from 'react-redux'
 import { useState } from 'react'
 import Image from 'next/image'
-function ChatItem({key,isActive,unread,handleClickChat,SenderName,photo,lastMessage,id,status,newMessage,pinned,muted}) {
+function ChatItem({myKey,key,isActive,unread,handleClickChat,SenderName,photo,lastMessage,id,status,newMessage,pinned,muted}) {
     const [Moving,setMoving]=useState(false)
     var timeout
   function handleTouchStart(evt, a, index) {

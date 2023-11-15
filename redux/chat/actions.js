@@ -21,6 +21,30 @@ export const GetChats=async (payload) =>{
         if (!payload) {
             let channels = [];
             let chats=[...resp.data.data.pinned_channels,...resp.data.data.channels]
+            let channel = pusher.subscribe(`user-${getUserChat()?.id}-messages`);
+              channel.bind("ChannelWatchedEvent", (data) => {
+                store.dispatch({
+                  type: "WATCH_CHANNEL_RED",
+                  payload: data.channel_id,
+                });
+      
+              });
+               channel.bind("TextMessageEvent", (data) => {
+      
+                if (data.message.sender_user_id !== getUserChat().id) {
+                  let not = new Audio(WA);
+                  not.volume = 0.5
+                  if(!store.getState().chat.main==="chat")
+                  not.play()
+                }
+                store.dispatch({ type: "REFS" })
+                store.dispatch({ type: "REC_CHA", payload: data.message.channel.id })
+                if (data.message.sender_user_id !== getUserChat().id) store.dispatch({ type: "SEND_MES_RED", payload: { ...data.message, cid: data.message.channel.id, recive: true } })
+              })
+               channel.bind("ChannelReceivedEvent", (data) => {
+                store.dispatch({ type: "REC_CHANNEL_RED", payload: data.channel_id });
+      
+              });
              chats.map( (cg) => {
               store.dispatch({
                 type: "REC_CHA",
@@ -58,31 +82,9 @@ export const GetChats=async (payload) =>{
                 {
                   store.dispatch({ type: "IS_TYPING_TRUE", payload: JSON.parse(JSON.stringify(data)) });}
               });
-              let channel = pusher.subscribe(cg.id?.toString(16));
+              
               channels.push({ id: cg.id, channel: ch });
-              channel.bind("ChannelWatchedEvent", (data) => {
-                store.dispatch({
-                  type: "WATCH_CHANNEL_RED",
-                  payload: data.channel_id,
-                });
-      
-              });
-               channel.bind("TextMessageEvent", (data) => {
-      
-                if (data.message.sender_user_id !== getUserChat().id) {
-                  let not = new Audio(WA);
-                  not.volume = 0.5
-                  if(!store.getState().chat.main==="chat")
-                  not.play()
-                }
-                store.dispatch({ type: "REFS" })
-                store.dispatch({ type: "REC_CHA", payload: data.message.channel.id })
-                if (data.message.sender_user_id !== getUserChat().id) store.dispatch({ type: "SEND_MES_RED", payload: { ...data.message, cid: data.message.channel.id, recive: true } })
-              })
-               channel.bind("ChannelReceivedEvent", (data) => {
-                store.dispatch({ type: "REC_CHANNEL_RED", payload: data.channel_id });
-      
-              });
+              
                ch.bind("pusher:subscription_succeeded", (data) => {
                 store.dispatch({ type: "PUSHER_CHANNEL", payload: { id: cg.id, channel: ch } })
               });

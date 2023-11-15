@@ -9,7 +9,7 @@ function OfferList({offers,quick}) {
         <QuickOfferWidjet offer={{photos:[1]}}/>
         :offers.map((offer,Index)=>(Index!==2?
             <NormalWidget myKey={Index} key={Index} offer={{photos:[1,1,1].filter((item,index)=>index<=Index)}}/>:
-            <ExtendedOfferWidget myKey={Index} offer={{photos:[1,1,1].filter((item,index)=>index<=Index)}}/>
+            <ExtendedOfferWidget myKey={Index} key={Index} offer={{photos:[1,1,1].filter((item,index)=>index<=Index)}}/>
         ))}
     </div>
   )

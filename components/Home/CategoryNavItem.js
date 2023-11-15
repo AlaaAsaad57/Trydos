@@ -2,7 +2,7 @@ import { translate } from "../../utils/functions"
 import { useSelector } from "react-redux"
 import NavIcon from "../../public/svg/navIcon.svg"
 import SearchComponent from "./SearchComponent"
-const CategoryNavItem=({name, icon,searchEnabled,close,openSearch,key})=> {
+const CategoryNavItem=({name, icon,searchEnabled,close,openSearch,myKey})=> {
     const language=useSelector((state)=>state.homepage.language)
     const clickItem=()=>{
       if(name==='Search'){
@@ -11,7 +11,7 @@ const CategoryNavItem=({name, icon,searchEnabled,close,openSearch,key})=> {
     }
   return (
  (!searchEnabled||name==='Search')&& 
-    <div aria-details={language}className="categories-bar-item" onClick={()=>clickItem()} key={key}>
+    <div aria-details={language}className="categories-bar-item" onClick={()=>clickItem()} key={myKey}>
        {!searchEnabled&& <div aria-details={language}className="categories-bar-item-icon">
            {icon}
         </div>}

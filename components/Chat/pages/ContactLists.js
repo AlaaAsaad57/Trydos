@@ -22,17 +22,17 @@ const handleClick=(e)=>{
         {
         <>
         {
-            contacts.filter((contact)=>{if(props.search.length===0) return true ; else return (contact.name.toLowerCase().includes(props.search.toLowerCase())||contact.mobile_phone.toLowerCase().includes(props.search.toLowerCase()))}).map((contact)=>{
+            contacts.filter((contact)=>{if(props.search.length===0) return true ; else return (contact.name.toLowerCase().includes(props.search.toLowerCase())||contact.mobile_phone.toLowerCase().includes(props.search.toLowerCase()))}).map((contact,key)=>{
                 if(chats.filter((chat)=>chat.channel_members.filter((mem)=>parseInt(mem.user_id)===parseInt(contact?.contact_user?.id)).length>0).length>0){
                     return(
-                        <ChatItem isActive={false} handleClickChat={()=>{
+                        <ChatItem myKey={key} key={key} isActive={false} handleClickChat={()=>{
                             props.close()
                             handleClick(chats.filter((chat)=>chat.channel_members.filter((mem)=>parseInt(mem.user_id)===parseInt(contact?.contact_user?.id)).length>0)[0]);}} status={chats.filter((chat)=>chat.channel_members.filter((mem)=>parseInt(mem.user_id)===parseInt(contact?.contact_user?.id)).length>0)[0].status} unread={chats.filter((chat)=>chat.channel_members.filter((mem)=>parseInt(mem.user_id)===parseInt(contact?.contact_user?.id)).length>0)[0].unread} newMessage={0} pinned={false} muted={false} SenderName={chats.filter((chat)=>chat.channel_members.filter((mem)=>parseInt(mem.user_id)===parseInt(contact?.contact_user?.id)).length>0)[0]?.channel_members.filter((member)=>parseInt(member?.user_id)!==parseInt(getUserChat()?.id))[0]?.user?.name||chats.filter((chat)=>chat.channel_members.filter((mem)=>parseInt(mem.user_id)===parseInt(contact?.contact_user?.id)).length>0)[0]?.channel_members.filter((member)=>parseInt(member?.user_id)!==parseInt(getUserChat()?.id))[0]?.user?.mobile_phone||'User'} photo={chats.filter((chat)=>chat.channel_members.filter((mem)=>parseInt(mem.user_id)===parseInt(contact?.contact_user?.id)).length>0)[0]?.channel_members.filter((member)=>parseInt(member?.user_id)!==getUserChat()?.id)[0]?.user?.photo_path} lastMessage={null} id={chats.filter((chat)=>chat.channel_members.filter((mem)=>parseInt(mem.user_id)===parseInt(contact?.contact_user?.id)).length>0)[0].id} chat={chats.filter((chat)=>chat.channel_members.filter((mem)=>mem.user_id===contact?.contact_user?.id).length>0)[0]}/>
                     )
                 }
                 else{
                     return(
-                        <SearchResult item={contact} handleClickChat={(e)=>{
+                        <SearchResult myKey={key} key={key} item={contact} handleClickChat={(e)=>{
                             props.close()
                             handleClick(e);}} SenderName={contact.name||contact.mobile_phone} isUser={Boolean(contact.contact_user_id)}/>
                     )
