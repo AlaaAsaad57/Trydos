@@ -1092,11 +1092,11 @@ width: 100%;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    height: 30px !important;
+    height: 24px !important;
     opacity: 0;
     transition: 0.3s;
     top: 39px;
-    padding-top: 12px;
+    padding-top: 4px;
     position: absolute;
     left: 0;
     font-family: "quicksand";
@@ -1432,6 +1432,9 @@ html, body{
 }
 .extended-widget .offer-slider-container{
     max-height: 340px;
+}
+.extended-widget .offer-slider-container .offer-avatars-container{
+    bottom: 7% !important;
 }
 
 .offer-avatar:not(.hasMore).active-hover{
