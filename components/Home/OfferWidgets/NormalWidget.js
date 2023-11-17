@@ -7,6 +7,7 @@ import KidsIcon from "../../../public/svg/KidsIcon.svg"
 import OfferSlideItem from './OfferSlideItem'
 import { useSelector } from 'react-redux'
 import { translate } from '../../../utils/functions'
+import OfferAvatars from './OfferAvatars'
 const NormalWidget=({offer,myKey})=> {
   const language=useSelector((state)=>state.homepage.language)
 
@@ -29,6 +30,7 @@ const NormalWidget=({offer,myKey})=> {
         {offer.photos.length>1 ?<OfferPhotosSlider OfferPhotos={offer.photos}/>:
         <div className='offer-slider-container'>
              <OfferSlideItem isSingle={true}/>
+             <OfferAvatars/>
         </div>
        }
         </div>

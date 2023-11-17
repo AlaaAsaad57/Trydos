@@ -14,7 +14,7 @@ function OfferSlideItem({isSingle,key}) {
          <Image id={id} className="OfferImage" src={OfferImage} width={360} height={155} alt="offer"/>
         <BorderImage id={id}/>
     </div>
-        <OfferAvatars/>
+      
     </div>
   )
 }

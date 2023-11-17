@@ -3,6 +3,7 @@ import OfferSlideItem from "./OfferSlideItem"
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import OfferAvatars from './OfferAvatars';
 function OfferPhotosSlider({OfferPhotos,extended}) {
     var settings = {
         dots: false,
@@ -19,10 +20,14 @@ function OfferPhotosSlider({OfferPhotos,extended}) {
     <Slider {...settings} >
 
     {OfferPhotos.map((offerPhoto,key)=>(
-         <OfferSlideItem key={key}/>
+        <>
+        <OfferSlideItem key={key}/>
+
+        </> 
     ))}
+
     </Slider>
-       
+                <OfferAvatars/>
     </div>
   )
 }
