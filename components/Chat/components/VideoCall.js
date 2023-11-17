@@ -67,16 +67,9 @@ function VideoCall(props) {
         throw new Error(`Unable to fetch stream ${err}`);
       })
   }, [])
-const videoEnabled=useRef(true)
-const setVideoEnabled=(d)=>{
-  ;
-  videoEnabled.current=d
-}
-const audioEnabled=useRef(true)
-const setAudioEnabled=(d)=>{
-  ;
-  audioEnabled.current=d
-}
+const [videoEnabled,setVideoEnabled]=useState(true);
+
+const [audioEnabled,setAudioEnabled]=useState(true);
   const startPeer = (userId, initiator = true) => {
     const peer = new Peer({
       initiator,
@@ -114,14 +107,14 @@ const setAudioEnabled=(d)=>{
         data: data
       });
       channel.bind('client-user-toggle-vid',(data)=>{
-        if(data.userId!==parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)){
+        if(parseInt(data.userId)!==parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)){
          
-        setVideoEnabled(data.value)}
+        setVideoEnabled(parseInt(data.value)===0?1:0)}
       })
       channel.bind('client-user-toggle-aud',(data)=>{
-        if(data.userId!==parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)){
+        if(parseInt(data.userId)!==parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)){
           
-        setAudioEnabled(data.value)}
+        setAudioEnabled(parseInt(data.value)===0?1:0)}
       })
       channel.bind(`client-refuse-${userId}`, () => {
         userEndCall()
@@ -219,28 +212,22 @@ const setAudioEnabled=(d)=>{
     userMediaHandler.current=null
     pause()
   }
-  const UseraudioEnabled=useRef(true)
-  const UservideoEnabled=useRef(true)
-  const setAudioUserEnabled=(d)=>{
-    UseraudioEnabled.current=d
-  }
-  const setUservideoEnabled=(d)=>{
-    UservideoEnabled.current=d
-  }
+  const [UseraudioEnabled,setAudioUserEnabled]=useState(1)
+  const [UservideoEnabled,setUservideoEnabled]=useState(1)
 const togglevid=()=>{
- channel.trigger("client-user-toggle-vid",{value:!UservideoEnabled.current,userId:JSON.parse(localStorage.getItem("USER-CHAT")).id})
- setUservideoEnabled(!UservideoEnabled.current)
+ channel.trigger("client-user-toggle-vid",{value:UservideoEnabled===0?1:0,userId:JSON.parse(localStorage.getItem("USER-CHAT")).id})
+ setUservideoEnabled(UservideoEnabled===0?1:0)
 
 }
 const toggleAudio=()=>{
-  channel.trigger("client-user-toggle-aud",{value:!UseraudioEnabled.current,userId:JSON.parse(localStorage.getItem("USER-CHAT")).id})
-  setAudioUserEnabled(!UseraudioEnabled.current)
+  channel.trigger("client-user-toggle-aud",{value:UseraudioEnabled===0?1:0,userId:JSON.parse(localStorage.getItem("USER-CHAT")).id})
+  setAudioUserEnabled(UseraudioEnabled===0?1:0)
 }
   return (
     <>
       {<div
         className='video-call'
-      >{(!userMediaHandler.current||!videoEnabled.current)&&
+      >{(!userMediaHandler.current||!videoEnabled)&&
       <>
       <div className='hgg' style={{
         backgroundImage: `url(${props.active})`,
@@ -254,7 +241,7 @@ const toggleAudio=()=>{
           id="remote-stream"
           muted={audioEnabled.current?false:true}
           className='my-screen'
-          style={userMediaHandler.current && { zIndex: 3 ,opacity:videoEnabled.current?"1":"0"}}
+          style={userMediaHandler.current && { zIndex: 3 ,opacity:videoEnabled?"1":"0"}}
         >
           {/* <img style={{ width: "100%", height: "100%", filter: "blur(10px)" }} src={props.active} /> */}
         </video>}
@@ -274,11 +261,11 @@ const toggleAudio=()=>{
         <div className='add-caller-icon'>
           <AddUserIcon></AddUserIcon>
         </div>
-        <div className={'toggle-mic ' +( !UseraudioEnabled.current&&"active-mic-svg")} onClick={()=>toggleAudio()}><MicIcon></MicIcon></div>
-        <div className={'toggle-vid '+ (!UservideoEnabled.current&&"active-mic-svg")} onClick={()=>togglevid()}><VideoIcon></VideoIcon></div>
+        <div className={'toggle-mic ' +( UseraudioEnabled===0&&"active-mic-svg")} onClick={()=>toggleAudio()}><MicIcon></MicIcon></div>
+        <div className={'toggle-vid '+ (UservideoEnabled===0&&"active-mic-svg")} onClick={()=>togglevid()}><VideoIcon></VideoIcon></div>
         {!userMediaHandler.current&&<div className='call-status'>
-         {userMediaHandler.current?<CallIcon></CallIcon>: <CallingIcon></CallingIcon>}
-         {userMediaHandler.current?<span>{minutes}:{seconds}</span>:<span>Calling ...</span>}
+         {userMediaHandler?<CallIcon></CallIcon>: <CallingIcon></CallingIcon>}
+         {userMediaHandler?<span>{minutes}:{seconds}</span>:<span>Calling ...</span>}
         </div>}
       </div>}
     </>
