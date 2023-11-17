@@ -22,4 +22,4 @@ export const SEND_MESSAGE_URL = "/api/v1/messages/send";
 export const SEARCH_USERS_URL="/wallet-users-backend/public/api/v1/employees/search/";
 export const SEARCH_CONTACTS_URL="/api/v1/users/search/";
 export const DELETE_CHAT_URL="/api/v1/channels/destroy";
-export const SET_CHANNEL_OPT_UTL="/api/v1/channel_members/set"
+export const SET_CHANNEL_OPT_UTL="/api/v1/channel_members/set";

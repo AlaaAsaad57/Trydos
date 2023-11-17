@@ -7,6 +7,7 @@ import { useDispatch } from 'react-redux';
 import { getNew, getTwoLetters } from '../chatsFunctions';
 import Image from 'next/image';
 import { getUserChat } from '../../../utils/functions'
+import { EstablishChannel, makeVideoCall, makeVoiceCall } from '../../../redux/chat/actions'
 function ChatHeader({chats,activeChat,openDetails}) {
     const dispatch=useDispatch()
 
@@ -81,8 +82,10 @@ function ChatHeader({chats,activeChat,openDetails}) {
       )}
     </div>
     <div className="chat-top-contact">
-      <VideoIcon onClick={()=>dispatch({ type: "VIDEO_CALL" })} className="vcall" ></VideoIcon>
-      <CallIcon onClick={()=> dispatch({ type: "AUDIO_CALL" })} className="call" ></CallIcon>
+    {/* <VideoIcon onClick={()=>dispatch({ type: "VIDEO_CALL" })} className="vcall" ></VideoIcon>
+      <CallIcon onClick={()=> dispatch({ type: "AUDIO_CALL" })} className="call" ></CallIcon>EstablishChannel */}
+      <VideoIcon onClick={()=>{makeVideoCall(activeChat.id); EstablishChannel(activeChat)}} className="vcall" ></VideoIcon>
+      <CallIcon onClick={()=> {makeVoiceCall(activeChat.id); EstablishChannel(activeChat)}} className="call" ></CallIcon>
     </div>
   </div>
   )
