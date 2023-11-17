@@ -1039,6 +1039,7 @@ width: 100%;
 }
 .offer-avatars-container{
     display: flex;
+    z-index: 999;
     align-items: center;
     position: absolute;
     left: 0;
@@ -1052,6 +1053,7 @@ width: 100%;
 .offer-avatar{
     width: 40px;
     height: 40px;
+    transition: 0.3s;
     border-radius: 50%;
     position: relative;
     display: flex;
@@ -1079,8 +1081,20 @@ width: 100%;
     z-index: 15;
     left: 0px;
 }
+.offer-avatar div{
+    width: 100%;
+    height: 100%;
+}
+.offer-avatar:hover{
+    width: 55px;
+    height: 55px;
+    z-index: 999 !important;
+    
+}
 .offer-avatar span{
     font-family: "quicksand";
+    width: 100%;
+    height: 100%;
     font-size: 10px;
     color: #FFFFFF;
     position: absolute;
@@ -1100,6 +1114,8 @@ width: 100%;
 .offer-avatar img{
     object-position: center top;
     object-fit: cover;
+    width: 100%;
+    height: 100% !important;
 }
 .slick-slider{
     max-width: 100%;
@@ -1393,14 +1409,4 @@ html, body{
 }
 .extended-widget .offer-slider-container{
     max-height: 340px;
-}
-.offer-category svg{
-    transition: 0.5s;
-    cursor: pointer;
-}
-.offer-category svg:hover{
-    transform: scale(1);
-}
-.offer-category svg:hover path{
-    fill: #3C3C3C;
 }
