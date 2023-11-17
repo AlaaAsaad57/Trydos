@@ -485,7 +485,10 @@ export const makeVideoCall=async(channelId)=>{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
   })
+  setTimeout(() => {
     store.dispatch({type:"VIDEO_CALL"})
+  }, 3000);
+    
   }
   catch(e){
 
@@ -498,7 +501,10 @@ export const makeVoiceCall=async(channelId)=>{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
   })
+  setTimeout(() => {
     store.dispatch({ type: "AUDIO_CALL" })
+  }, 3000);
+   
   }
   catch(e){
 
