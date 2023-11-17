@@ -240,6 +240,6 @@ z-index: 9;
 left: 20px;
 top: 15px;
 }
-.active-mic-svg svg g g .line-path, .active-mic-svg svg g line{
+.active-mic-svg svg g g .vidIcon_svg__line-path, .active-mic-svg svg g path[data-name="Line 903"]{
     display: none;
 }
