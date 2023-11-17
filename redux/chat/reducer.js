@@ -117,7 +117,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
         }
         case "ME_END_CALL": {
             const userId = getUserChat().id
-            let chs = pusher.subscribe(`presence-video-call-${state.activeChat?.id?.toString(16)}`)
+            let chs = pusher.subscribe(`presence-video-call-${state.activeChat?.pusher_channel_name}`)
             chs.trigger(`client-end-call-${userId}`, {
                 type: 'signal',
                 data: {
@@ -147,7 +147,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
         }
         case "REFUSE_CALL": {
             const userId = getUserChat().id
-            let chs = pusher.subscribe(`presence-video-call-${state.callerChannel?.id?.toString(16)}`)
+            let chs = pusher.subscribe(`presence-video-call-${state.callerChannel?.pusher_channel_name}`)
             chs.trigger(`client-refuse-${userId}`, {
                 type: 'signal',
                 data: { userId }

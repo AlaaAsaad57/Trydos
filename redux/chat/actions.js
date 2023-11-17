@@ -531,7 +531,7 @@ export const RefuseCall=async(channelId)=>{
   }
 }
 export const EstablishChannel=(cg)=>{
-   let chs =  pusher.subscribe(`presence-video-call-${cg.id?.toString(16)}`)
+   let chs =  pusher.subscribe(`presence-video-call-${cg.pusher_channel_name}`)
                chs.bind(`client-signal-${getUserChat().id}`, (signal) => {
                 let caller = cg.channel_members.filter(one => one.user_id !== getUserChat().id)[0]
                 let callerChannel = cg
