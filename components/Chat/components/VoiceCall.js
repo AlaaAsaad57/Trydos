@@ -14,6 +14,7 @@ import CallingIcon from '../svg/calling.svg';
 import AddUserIcon from '../svg/addUser.svg';
 import LeftArrowIcon from '../svg/leftArrow.svg';
 import { RefuseCall } from '../../../redux/chat/actions';
+import { getTwoLetters } from '../chatsFunctions';
 function VideoCall(props) {
    const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
   useStopwatch({ autoStart: false });
@@ -210,9 +211,24 @@ function VideoCall(props) {
 
         {
       <>
-      <div className='hgg' style={{
-        backgroundImage: `url(${props.active})`,
-      }}></div>
+      {props.active?
+     <div className='hgg' style={{
+      backgroundImage: `url(${props.active})`,
+    }}>
+      
+    </div>
+    :
+    props.name?
+        <div className='hgg text-avatar'>
+          {getTwoLetters(props.name)}
+        </div>
+    :
+    <div className='hgg' style={{
+      backgroundImage: `url(${'/images/profileNo.png'})`,
+    }}>
+      
+    </div>
+    }
       <span className='caller-name'>
         {props.name}
       </span>

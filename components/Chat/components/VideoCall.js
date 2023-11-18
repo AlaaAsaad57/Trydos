@@ -12,6 +12,7 @@ import Peer from 'simple-peer';
 import { useDispatch, useSelector } from 'react-redux';
 import {useStopwatch} from 'react-timer-hook'
 import { RefuseCall } from '../../../redux/chat/actions';
+import { getTwoLetters } from '../chatsFunctions';
 function VideoCall(props) {
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
   useStopwatch({ autoStart: false });
@@ -242,9 +243,24 @@ const toggleAudio=()=>{
         className='video-call'
       >{(!userMediaHandler.current||!videoEnabled.current)&&
       <>
-      <div className='hgg' style={{
-        backgroundImage: `url(${props.active})`,
-      }}></div>
+      {props.active?
+     <div className='hgg' style={{
+      backgroundImage: `url(${props.active})`,
+    }}>
+      
+    </div>
+    :
+    props.name?
+        <div className='hgg'>
+          {getTwoLetters(props.name)}
+        </div>
+    :
+    <div className='hgg' style={{
+      backgroundImage: `url(${'/images/profileNo.png'})`,
+    }}>
+      
+    </div>
+    }
       <span className='caller-name'>
         {props.name}
       </span>
