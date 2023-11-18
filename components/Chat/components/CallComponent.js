@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react'
-import auds from "../../../public/default.mp3"
 import { useSelector, useDispatch } from 'react-redux'
+import { RefuseCall } from '../../../redux/chat/actions'
+import profilePng from "../../../public/images/profileNo.png"
+import { getTwoLetters } from '../chatsFunctions'
 function CallComponent(props) {
     const caller = useSelector(state => state.chat.caller)
     const incomeCallType = useSelector(state => state.chat.incomeCallType)
@@ -8,10 +10,18 @@ function CallComponent(props) {
     const ref = useRef()
     return (
         <div className='call-element'>
-            <audio  ref={ref} loop autoPlay src={auds}>
-                <source src={auds}></source>
+            <audio  ref={ref} loop autoPlay src={'/default.mp3'}>
+                <source src={'/default.mp3'}></source>
             </audio>
-            <img src={process.env.REACT_APP_BASE_FILE_URL + caller.user.photo_path} />
+           {caller.user.photo_path? <img src={caller.user.photo_path} />:caller.user.name?
+           <>
+            <div className='text-avatar' style={{width:"40px",height:"40px",}}>
+          {getTwoLetters(caller.user.name)}
+             </div>
+           </>
+           :
+           <img src={profilePng}/>
+           }
             <div className='call-s'>
                 <span className='incomin'> {incomeCallType === "audio" ? "Incoming Voice Call.." : "Incoming Video Call.."} </span>
                 <span className='call-ss'>{caller.user.name}</span>
@@ -31,6 +41,7 @@ function CallComponent(props) {
                 </div>
                 <div className='call-dec'
                     onClick={() => {
+                        RefuseCall()
                         ref.current.pause();
                         ref.current.currentTime = 0;
                         dispatch({ type: "REFUSE_CALL" })

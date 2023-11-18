@@ -1446,3 +1446,7 @@ html, body{
 .offer-avatar:not(.hasMore).active-hover .offer-avatar-info{
     opacity: 1;
 }
+.loading-svg path{
+    fill: #969696;
+    stroke:#969696;
+}

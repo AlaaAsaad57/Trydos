@@ -10,8 +10,8 @@ import "./index.css"
 import { pusher } from '../../../utils/constants';
 import Peer from 'simple-peer';
 import { useDispatch, useSelector } from 'react-redux';
-import auds from "../../../public/default.mp3"
 import {useStopwatch} from 'react-timer-hook'
+import { RefuseCall } from '../../../redux/chat/actions';
 function VideoCall(props) {
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
   useStopwatch({ autoStart: false });
@@ -258,17 +258,17 @@ const toggleAudio=()=>{
         >
           {/* <img style={{ width: "100%", height: "100%", filter: "blur(10px)" }} src={props.active} /> */}
         </video>}
-        <audio ref={ref} loop autoPlay src={auds} muted={userMediaHandler.current} onPlay={() => ref.current.volume = 0.05}>
-          <source src={auds}></source>
+        <audio ref={ref} loop autoPlay src={'/default.mp3'} muted={userMediaHandler.current} onPlay={() => ref.current.volume = 0.05}>
+          <source src={'/default.mp3'}></source>
         </audio>
         <div
           style={myMediaHandler.current && { zIndex: 3 }}
           className="end-icon"
-          onClick={() => meEndCall()}>
+          onClick={() => {meEndCall(); RefuseCall(activeChat.id)}}>
           <EndCallIcon ></EndCallIcon>
           <span>End Call</span>
         </div>
-        <div className='cancel-call-icon'>
+        <div className='cancel-call-icon' onClick={() => {meEndCall(); RefuseCall(activeChat.id)}}>
           <LeftArrowIcon></LeftArrowIcon>
         </div>
         <div className='add-caller-icon'>

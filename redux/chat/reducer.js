@@ -56,7 +56,8 @@ const initialState = {
     forwarded_message:null,
     calls:[{from:{name:"Grant Marshall",avatar:null},created_at:new Date(),type:"incoming"},{from:{name:"Grant Marshall",avatar:null},created_at:new Date(),type:"missed"},{from:{name:"Grant Marshall",avatar:null},created_at:new Date(),type:"outgoing"}],
     searchResults:[],
-    lastNotification:null
+    lastNotification:null,
+    callLoading:null
 }
 const showDate = (d) => {
     var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -77,6 +78,12 @@ const showDate = (d) => {
 }
 export const ChatReducer = (state = initialState, { type, payload ,param}) => {
     switch (type) {
+        case "CALL-LOADING":{
+            return({
+                ...state,
+                callLoading:payload
+            })
+        }
         case "CHAT-OPEN":{
             return({
                 ...state,

@@ -3,14 +3,14 @@ import ArrowIcon from "../svg/arrow.svg"
 import VideoIcon from "../svg/vcall.svg"
 import CallIcon from "../svg/call.svg"
 import profile from "../../../public/images/profileNo.png"
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { getNew, getTwoLetters } from '../chatsFunctions';
 import Image from 'next/image';
 import { getUserChat } from '../../../utils/functions'
 import { EstablishChannel, makeVideoCall, makeVoiceCall } from '../../../redux/chat/actions'
 function ChatHeader({chats,activeChat,openDetails}) {
     const dispatch=useDispatch()
-
+    const callLoading=useSelector((state)=>state.chat.callLoading)
   return (
     <div className="chat-screen-top">
     <ArrowIcon
@@ -84,8 +84,9 @@ function ChatHeader({chats,activeChat,openDetails}) {
     <div className="chat-top-contact">
     {/* <VideoIcon onClick={()=>dispatch({ type: "VIDEO_CALL" })} className="vcall" ></VideoIcon>
       <CallIcon onClick={()=> dispatch({ type: "AUDIO_CALL" })} className="call" ></CallIcon>EstablishChannel */}
-      <VideoIcon onClick={()=>{makeVideoCall(activeChat.id); EstablishChannel(activeChat)}} className="vcall" ></VideoIcon>
-      <CallIcon onClick={()=> {makeVoiceCall(activeChat.id); EstablishChannel(activeChat)}} className="call" ></CallIcon>
+      {console.log(callLoading)}
+      <VideoIcon className={`${(callLoading==='video') && 'loading-svg'} vcall`} onClick={()=>{!callLoading&&makeVideoCall(activeChat.id); EstablishChannel(activeChat)}} ></VideoIcon>
+      <CallIcon className={`${(callLoading==='voice') && 'loading-svg'} call`} onClick={()=> {!callLoading&&makeVoiceCall(activeChat.id); EstablishChannel(activeChat)}} ></CallIcon>
     </div>
   </div>
   )

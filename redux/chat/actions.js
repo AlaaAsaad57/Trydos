@@ -53,7 +53,7 @@ export const GetChats=async (payload) =>{
                 console.log(data)
               })
               channel.bind("RefuseCallEvent",(data)=>{
-                console.log(data)
+                store.dispatch({ type: "USER_END_CALL" })
               })
             //  chats.map( (cg) => {
             //   store.dispatch({
@@ -480,13 +480,18 @@ export const InitPusherChannel=(channelId)=>{
 }
 export const makeVideoCall=async(channelId)=>{
   try{
+    store.dispatch({type:"CALL-LOADING",payload:'video'})
     await axios.get(CHAT_URL+`/api/v1/channels/${channelId}/video_call`,{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
+  }).then((data)=>{
+   
   })
+  
   setTimeout(() => {
     store.dispatch({type:"VIDEO_CALL"})
+    store.dispatch({type:"CALL-LOADING",payload:null})
   }, 3000);
     
   }
@@ -496,15 +501,19 @@ export const makeVideoCall=async(channelId)=>{
 }
 export const makeVoiceCall=async(channelId)=>{
   try{
+    store.dispatch({type:"CALL-LOADING",payload:'voice'})
     await axios.get(CHAT_URL+`/api/v1/channels/${channelId}/voice_call`,{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
+  }).then((data)=>{
+    
   })
   setTimeout(() => {
     store.dispatch({ type: "AUDIO_CALL" })
+    store.dispatch({type:"CALL-LOADING",payload:null})
   }, 3000);
-   
+  
   }
   catch(e){
 
