@@ -13,6 +13,7 @@ import CallIcon from '../svg/CallInProg.svg';
 import CallingIcon from '../svg/calling.svg';
 import AddUserIcon from '../svg/addUser.svg';
 import LeftArrowIcon from '../svg/leftArrow.svg';
+import { RefuseCall } from '../../../redux/chat/actions';
 function VideoCall(props) {
    const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
   useStopwatch({ autoStart: false });
@@ -226,11 +227,11 @@ function VideoCall(props) {
         <div
           style={myMediaHandler.current && { zIndex: 3 }}
           className="end-icon"
-          onClick={() => meEndCall()}>
+          onClick={() => {meEndCall(); RefuseCall(activeChat.id)}}>
           <EndCallIcon ></EndCallIcon>
           <span>End Call</span>
         </div>
-        <div className='cancel-call-icon'>
+        <div className='cancel-call-icon'  onClick={() => {meEndCall(); RefuseCall(activeChat.id)}}>
           <LeftArrowIcon></LeftArrowIcon>
         </div>
         <div className='add-caller-icon'>
