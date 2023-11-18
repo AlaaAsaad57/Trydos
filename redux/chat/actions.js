@@ -50,7 +50,7 @@ export const GetChats=async (payload) =>{
                 EstablishChannel(store.getState().chat.data.filter((cg)=>parseInt(cg.id)===parseInt(data.channel_id))[0])
               })
               channel.bind("AnswerCallEvent",(data)=>{
-                console.log(data)
+                
               })
               channel.bind("RefuseCallEvent",(data)=>{
                 store.dispatch({ type: "USER_END_CALL" })
@@ -99,7 +99,7 @@ export const GetChats=async (payload) =>{
        store.dispatch({type:"GET_CONTACTS_RED",payload:response.data.data})
     }
     catch(e){
-    console.log(e)
+
     }
 }
 export const SendMessage=async (payload,isNew) =>{
@@ -140,11 +140,7 @@ export const SendMessage=async (payload,isNew) =>{
               payload: { id: a.data.data.channel.id, channel: ch },
             });
             channel.bind("pusher:subscription_succeeded", (data) => {
-              // console.log(
-              //   "pusher:subscription_succeeded" +
-              //   " on " +
-              //   a.data.data.channel.id?.toString(16)
-              // );
+            
             });
             channel.bind("ChannelWatchedEvent", (data) => {
               store.dispatch({
@@ -462,7 +458,7 @@ export async function checkForUpdate(){
       GetChats(true)
   }
   }catch(e){
-    console.log(e)
+
   }
 }
 export const InitPusherChannel=(channelId)=>{

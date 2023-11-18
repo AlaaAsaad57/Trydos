@@ -15,6 +15,7 @@ import AddUserIcon from '../svg/addUser.svg';
 import LeftArrowIcon from '../svg/leftArrow.svg';
 import { RefuseCall } from '../../../redux/chat/actions';
 import { getTwoLetters } from '../chatsFunctions';
+import { translate } from '../../../utils/functions';
 function VideoCall(props) {
    const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
   useStopwatch({ autoStart: false });
@@ -257,7 +258,7 @@ function VideoCall(props) {
         <div className='toggle-vid'><VideoIcon></VideoIcon></div>
         {<div className='call-status'>
          {userMediaHandler.current?<CallIcon></CallIcon>: <CallingIcon></CallingIcon>}
-         {userMediaHandler.current?<span>{minutes<10?"0"+minutes:minutes}:{seconds<10?"0"+seconds:seconds}</span>:<span>Calling ...</span>}
+         {userMediaHandler.current?<span>{minutes<10?"0"+minutes:minutes}:{seconds<10?"0"+seconds:seconds}</span>:<span>{translate("Calling",language)}</span>}
         </div>}
       </div>}
     </>

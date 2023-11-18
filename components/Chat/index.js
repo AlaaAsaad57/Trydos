@@ -13,6 +13,7 @@ function ChatContainer(props) {
   const chats=useSelector((state)=>state.chat.data)
   const loading=useSelector((state)=>state.chat.fetch);
   const activeChat=useSelector((state)=>state.chat.activeChat)
+  const language=useSelector((state)=>state.homepage.language)
   const forwarded_message=useSelector((state)=>state.chat.forwarded_message)
   const [search,setSearch]=useState("")
   const [contactOpen,setOpenContacts]=useState(false)
@@ -24,7 +25,7 @@ function ChatContainer(props) {
         props.close();
         dispatch({type:"MAIN",payload:'main'})
          dispatch({type:"OPEN-CHAT",payload:null})}}} className={`lang-modalDisable ${props.open && "open"}`}></div>
-            <div className='app' style={{position:"fixed",top:"105px",right:"30px"}}><textarea id="text-copy"></textarea>
+            <div className='app' style={{position:"fixed",top:"105px",right:language==='en'?"30px":"initial",left:language==='en'?'initial':'30px'}}><textarea id="text-copy"></textarea>
       <ChatWindow open={contactOpen} setOpenContacts={(e)=>setOpenContacts(e)} search={search} setSearch={(e)=>setSearch(e)} activeChat={activeChat} ViewedScreen={ViewedScreen} />
      {SSRDetect()&& <ConversationContainer first={first}  loading={loading} active={activeChat}   ViewedScreen={(ViewedScreen==="chat"&&!contactOpen)}/>}
       <NewChatsSide activeChat={activeChat} chats={chats}/>

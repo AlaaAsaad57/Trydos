@@ -3,8 +3,10 @@ import { useSelector, useDispatch } from 'react-redux'
 import { RefuseCall } from '../../../redux/chat/actions'
 import profilePng from "../../../public/images/profileNo.png"
 import { getTwoLetters } from '../chatsFunctions'
+import { translate } from '../../../utils/functions'
 function CallComponent(props) {
     const caller = useSelector(state => state.chat.caller)
+    const language=useSelector((state)=>state.homepage.language)
     const incomeCallType = useSelector(state => state.chat.incomeCallType)
     const dispatch = useDispatch()
     const ref = useRef()
@@ -23,7 +25,7 @@ function CallComponent(props) {
            <img src={profilePng}/>
            }
             <div className='call-s'>
-                <span className='incomin'> {incomeCallType === "audio" ? "Incoming Voice Call.." : "Incoming Video Call.."} </span>
+                <span className='incomin'> {incomeCallType === "audio" ? translate("Incoming Voice Call..",language) : translate("Incoming Video Call..",language)} </span>
                 <span className='call-ss'>{caller.user.name}</span>
             </div>
             <div className='call-options'>

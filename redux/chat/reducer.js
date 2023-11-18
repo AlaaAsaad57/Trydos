@@ -1,6 +1,7 @@
-import {  getUser, getUserChat } from "../../utils/functions"
+import {  getUser, getUserChat, translate } from "../../utils/functions"
 import { pusher } from "../../utils/constants";
 import { MuteChat, PinnChat, Recive, deleteChat, watchChannel } from "./actions";
+import { store } from "../store";
 
 // const sortChats = (arr) => {
 //     let l = arr.sort((a, b) => compares(a, b))
@@ -60,21 +61,22 @@ const initialState = {
     callLoading:null
 }
 const showDate = (d) => {
-    var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const language=store.getState().homepage.language;
+    var days = [translate('Sunday',language), translate('Monday',language), translate('Tuesday',language), translate('Wednesday',language), translate('Thursday',language), translate('Friday',language), translate('Saturday',language)];
     let now = new Date();
     let nowString = `${now.getFullYear()}-${(now.getMonth() + 1) > 9 ? (now.getMonth() + 1).toString() : ("0" + (now.getMonth() + 1).toString())}-${(now.getDate()) > 9 ? now.getDate() : "0" + parseInt(now.getDate()).toString()}`
 
     let day = new Date(d)
     day = days[day.getDay()]
     if (d === nowString)
-        return ("Today")
+        return (translate("Today",language))
     else if ((new Date(nowString) - new Date(d)) === 86400000) {
-        return ("Yesterday")
+        return (translate("Yesterday",language))
     }
     else if ((new Date(nowString) - new Date(d)) < (86400000 * 6))
         return (day)
     else
-        return (d)
+    return (language==='ar'?d.toLocaleString('ar-EG'):d)
 }
 export const ChatReducer = (state = initialState, { type, payload ,param}) => {
     switch (type) {
@@ -515,7 +517,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
                     arr.push(a)
                 }
             })
-            console.log(parseInt(state.activeChat?.id) === parseInt(ac.id)
+            (parseInt(state.activeChat?.id) === parseInt(ac.id)
             ? arr.filter((t) => (parseInt(t.id) === parseInt(state.activeChat?.id)) || (t.mid === state.activeChat?.mid))[0]
              : state.activeChat,arr,parseInt(state.activeChat?.id),ac.id);
             return ({

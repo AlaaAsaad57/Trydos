@@ -8,6 +8,7 @@ import {store} from "../../redux/store"
 import axios from "axios"
 import { CHAT_URL } from "../../utils/endpointConfig"
 import { SendMessage } from "../../redux/chat/actions"
+import { getUserChat } from "../../utils/functions"
 export const FILE_SERVER=CHAT_URL
 export const getUser=()=>{
     return(
@@ -15,12 +16,12 @@ export const getUser=()=>{
         )
 }
 export const getMessageStatusIcon=(status_array)=>{
-    if(status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUser().id))[0]?.is_watched === true||status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUser().id))[0]?.watched_at)
+    if(status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.is_watched === true||status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.watched_at)
         return(
         <>
         <ReadIcon className="status-icon" ></ReadIcon>
         </>)
-    else if(status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUser().id))[0]?.is_received === 1||status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUser().id))[0].received_at)
+    else if(status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.is_received === 1||status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0].received_at)
     return(
         <ReceiveIcon className="status-icon" ></ReceiveIcon>
     )
@@ -37,7 +38,7 @@ export const    getMessageTime = (lastMessage) => {
     }
 }
 export const isNew = (ch) => {
-    let a = ch?.filter((mes) => mes.sender_user_id !== getUser()?.id && mes.message_status.filter((st) => st.user_id === getUser()?.id)[0]?.is_watched === false).length
+    let a = ch?.filter((mes) => mes.sender_user_id !== getUserChat()?.id && mes.message_status.filter((st) => st.user_id === getUserChat()?.id)[0]?.is_watched === false).length
     return (a)
   }
   export const getCallType=(type)=>{

@@ -57,6 +57,11 @@ letter-spacing: 0.01em;
     justify-content: center;
     position: relative;
 }
+.chat-window-search-holder[aria-label='ar'] input{
+    padding-left: 0px;
+    padding-right: 50px;
+    direction: rtl;
+}
 .chat-window-search-holder input{
     width: 410px;
     height: 40px;
@@ -79,6 +84,15 @@ letter-spacing: 0.01em;
     z-index: 6;
     position: absolute;
     left: 20px;
+    width: 20px;
+    height: 20px;
+}
+.chat-window-search-holder[aria-label='ar'] svg{
+    top: 10px;
+    z-index: 6;
+    position: absolute;
+    left: initial;
+    right: 20px;
     width: 20px;
     height: 20px;
 }

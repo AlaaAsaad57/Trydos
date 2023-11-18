@@ -1234,6 +1234,23 @@ svg.redwave g g path{
     background-color: #f7f7f7;
     padding: 12px;
 }
+.forwarded-label[aria-label='ar']{
+    height: 50px;
+    width: 100%;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: flex-start;
+    background-color: #f7f7f7;
+    padding: 12px;
+}
+
+.forwarded-label[aria-label='ar'] .forward-text{
+    font-family: "SF-Pro-Rounded-Light";
+    margin-left: initial;
+    margin-right: 20px;
+    direction: rtl;
+}
 .forward-cancel-icon{
     display: flex;
 }

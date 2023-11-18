@@ -36,8 +36,7 @@ export const requestFirebaseNotificationPermission = async () => {
 export const onMessageListener = () =>
   new Promise((resolve) => {
     onMessage(messaging, (payload) => {
-      InitPusherChannel(JSON.parse(payload.data.message).channel.id)
-      console.log(payload,store?.getState()?.chat?.data.filter((chat)=>parseInt(chat.id)===parseInt(JSON.parse(payload?.data.message)?.channel?.id))[0])
+      InitPusherChannel(JSON.parse(payload.data.message).channel.id);
       if(store?.getState()?.chat?.data.filter((chat)=>parseInt(chat.id)===parseInt(JSON.parse(payload?.data.message)?.channel?.id))[0]?.messages.filter((message)=>parseInt(message.id)===parseInt(payload.data.prev_message_id)).length>0){
          store.dispatch({type:"SET_LAST_NOTIFICATION_DATE",payload:(new Date()).toLocaleString()})
       store.dispatch({ type: "REC_CHA", payload: parseInt(JSON.parse(payload.data.message).channel.id)})
@@ -57,7 +56,7 @@ export const onMessageListener = () =>
       
       }
       store.dispatch({type:"SEND-MESSAGE",payload:{act:JSON.parse(payload.data.message).channel,message:{...JSON.parse(payload.data.message),channel:null}}})
-        console.log(payload);
+        
       resolve(payload);}
       else{
         GetChats(true)

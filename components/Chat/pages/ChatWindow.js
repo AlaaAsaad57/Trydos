@@ -11,8 +11,10 @@ import StoriesList from './StoriesList'
 
 import { useDispatch, useSelector } from 'react-redux'
 import ContactLists from './ContactLists'
+import { translate } from '../../../utils/functions'
 function ChatWindow(props) {
   const Tabs=["Chats","Calls","Stories"]
+  const language=useSelector((state)=>state.homepage.language)
   let forwarded_message=useSelector((state)=>state.chat.forwarded_message)
   const [SelectedTab,setSelectedTab]=useState("Chats")
   const dispatch=useDispatch()
@@ -21,7 +23,7 @@ function ChatWindow(props) {
       <ContactIcon className='contact-icon-header' onClick={()=>{props.setOpenContacts(true)}} />
       <ChatWindowHeader openContact={props.open} search={props.search} setSearch={(e)=>props.setSearch(e)} Tabs={Tabs} SelectedTab={SelectedTab} setSelectedTab={setSelectedTab}/>
       {forwarded_message?
-      <div className='forwarded-label'>
+      <div className='forwarded-label' aria-label={language}>
         <div className='forward-cancel-icon' onClick={()=>{dispatch({type:"FORWARD-MESSAGEs",payload:null}); dispatch({ type: "MAIN", payload: "chat" });}}>
         <ArrowIcon/>
         </div>
@@ -30,11 +32,11 @@ function ChatWindow(props) {
       :<>
       
      {props.open?<>
-      <div className='forwarded-label'>
+      <div className='forwarded-label' aria-label={language}>
         <div className='forward-cancel-icon' onClick={()=>{props.setOpenContacts(false);}}>
         <ArrowIcon/>
         </div>
-        <div className='forward-text'>Contacts List</div>
+        <div className='forward-text'>{translate("Contacts List",language)}</div>
       </div>
      </>: <ChatWindowTabs SelectedTab={SelectedTab} setSelectedTab={setSelectedTab}/>}</>}
       {SelectedTab==="Chats"&&!props.open&&<ChatLists search={props.search} />}
