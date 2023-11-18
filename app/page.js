@@ -1,3 +1,4 @@
+"use server"
 import Home from '../components/Home'
 import { getHomeData, getStories } from '../redux/homepage/cachedActions';
 import React from 'react'

@@ -60,6 +60,9 @@ export const upload=async (file,callback,is_video,endUpload)=>{
     endUpload()
   } 
 }
+export const UserStartStory=()=>{
+    
+}
+export const UserEndStory=()=>{
 
-
-
+}
