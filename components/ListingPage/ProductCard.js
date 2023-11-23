@@ -78,11 +78,16 @@ function ProductCard() {
          <SwiperSlide
          style={{
            backgroundImage:
-             `url(${img})`
+             `url(${img})`,
+             overflow:"visible"
          }}
        >
            {({ isActive }) => (
+            <>
            <BorderImage/>
+           <div className='inset-shadow-img'/>
+            </>
+
            )}
     
        </SwiperSlide>

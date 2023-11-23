@@ -53,6 +53,7 @@ height: 82%;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
+    z-index: 10;
     width: 100%;
    min-height: 306px;
    max-height: 306px;
@@ -84,6 +85,7 @@ height: 82%;
     width: 35px;
     height: 35px;
     border-radius: 50%;
+    cursor: pointer;
     position: relative;
     display: flex;
 
@@ -200,15 +202,18 @@ display: flex;
 }
 .buy-button{
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: flex-start;
     color: #414141;
+    cursor: pointer;
 }
 .buy-button span{
     display: flex;
     color: #414141;
-    font-size: 12px; 
+    font-size: 10px;
     font-family: 'quicksand-light';
+    align-items: flex-start;
+    padding-top: 1px;
 }
 .buy-button svg{
     margin-left: 8px;
@@ -220,6 +225,7 @@ display: flex;
     align-items: flex-start;
     justify-content: flex-start;
     width: 100%;
+    z-index: 0;
 }
 .prouct-details{
     display: flex;
@@ -252,3 +258,29 @@ display: flex;
     font-family: 'quicksand';
     font-size: 10px;
 }
+.inset-shadow-img{
+    position: absolute;
+    top: 0px;
+    border-radius: 15px;
+    left: 0px;
+    height: 100%;
+    width: 100%;
+    box-shadow: inset 0px 3px 6px hsla(0, 0%, 100%, 0.5);
+}
+.shadow-inset-avatar{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 100%;
+    width: 100%;
+    box-shadow: inset 0px 4px 6px hsla(0, 0%, 100%, 0.5);
+    border-radius: 50%;
+}
+svg{
+    overflow: visible;
+}
+.swiper-3d .swiper-slide-shadow {
+    background: rgba(0,0,0,.15);
+    border-radius: 15px;
+}
+

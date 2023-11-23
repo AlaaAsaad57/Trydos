@@ -25,6 +25,7 @@ function ImageAvatar({image,width,height,alt,zIndex,isActive,onClick,index,swipe
         Blue
     </div>
     }
+    <div className='shadow-inset-avatar'/>
         <Image src={image} width={width} height={height} alt={alt} objectFit='cover' objectPosition='center' style={{borderRadius:"50%"}}/>
     </div>
   )
