@@ -1,0 +1,22 @@
+import React from 'react'
+
+function PriceLabel() {
+  return (
+    <div className='price-label'>
+        <span className='old-price'>
+            100
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="1" viewBox="0 0 17 1">
+            <line id="Line_1" data-name="Line 1" x2="100%" transform="translate(0 0.5)" fill="none" stroke="#3c3c3c" stroke-width="1"/>
+            </svg>
+        </span>
+        <span className='new-price'>
+            90
+        </span>
+        <span className='currency-label'>
+            USD
+        </span>
+    </div>
+  )
+}
+
+export default PriceLabel

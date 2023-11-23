@@ -1,0 +1,254 @@
+.swiper{
+    height: 100% !important;
+}
+.swiper-slide-active{
+    opacity: 1 !important;
+}
+.swiper-slide{
+    opacity: 0;
+    background-size: 100% auto;
+    background-repeat: no-repeat;
+    background-position: center;
+  border-radius: 15px;
+  position: relative;
+}
+.swiper-slide svg{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 99;
+}
+.swiper-slide.swiper-slide-prev, .swiper-slide.swiper-slide-next{
+opacity: 1;
+height: 82%;
+}
+.swiper-wrapper{
+    align-items: center;
+}
+.product-container{
+    width: 200px;
+    height: 369px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 15px;
+    position: relative;
+    background-image: url("../public/images/Kids_BannerInteriorHalloween_2609.jpg");
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+.product-container-slider{
+    width: 200px;
+    min-height: 290px;
+    transition: 0.4s;
+}
+.product-photos:hover .product-container-slider{
+    width: 170px;
+    height: 246px;
+    min-height: initial !important;
+}
+.product-photos{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+   min-height: 306px;
+   max-height: 306px;
+}
+.product-photos-slider{
+    width: 100% !important;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    overflow: visible;
+    justify-content: center;
+    transform: translateX(10px) translateY(-13px);
+    z-index: 10;
+}
+.product-photos-slider{
+    transition: 0.3s;
+    width: auto;
+    transform: translateX(10px) translateY(-13px);
+    height: 35px;
+    display: flex;
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+}
+.image-avatar{
+    overflow: visible;
+    filter: drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.1));
+    transition: 0.3s;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+
+}
+.w-35{
+    width: 20px !important;
+    height: 20px !important;
+}
+.w-30{
+    width: 15px !important;
+    height: 15px !important;
+}
+.w-25{
+    width: 12px !important;
+    height: 12px !important;
+}
+.w-20{
+    width: 10px !important;
+    height: 10px !important;
+}
+.w-15{
+    width: 8px;
+    height: 8px;
+}
+.product-photos:hover .product-photos-slider{
+    transform: translateX(10px) translateY(15px);
+    
+}
+.product-photos:hover .w-35{
+    width: 35px !important;
+    height: 35px !important;
+}
+.product-photos:hover .w-30{
+    width: 30px !important;
+    height: 30px !important;
+}
+.product-photos:hover .w-25{
+    width: 25px !important;
+    height: 25px !important;
+}
+.product-photos:hover .w-20{
+    width: 20px !important;
+    height: 20px !important;
+}
+.product-photos:hover .w-15{
+    width: 15px;
+    height: 15px;
+}
+.image-avatar svg{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 5;
+    overflow: visible;
+}
+.image-avatar .avatar-text-element{
+    position: absolute;
+    top: -16px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    color: #0048AC;
+    font-family: 'quicksand-med';
+    font-size: 12px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+.product-photos:hover .product-photos-slider .image-avatar .avatar-text-element{
+display: flex;
+}
+.product-footer{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding-left: 17.5px;
+    padding-right: 15px;
+    position: absolute;
+    align-items: center;
+    left: 0px;
+    bottom: 7px;
+}
+.price-label{
+    display: flex;
+    align-items: baseline;
+}
+.old-price{
+    position: relative;
+    font-size: 12px;
+    font-family: 'quicksand-light';
+    color:#3C3C3C;
+}
+.old-price svg{
+    right: -1px;
+    width: 100%;
+    bottom: 7px;
+    position: absolute;
+}
+.new-price{
+    display: flex;
+    font-family: 'quicksand-bold';
+    font-size: 12px;
+    color:#3C3C3C;
+    margin-left: 2px;
+
+}
+.currency-label{
+    font-size: 10px;
+    font-family: 'quicksand-light';
+    color:#3C3C3C;
+    display: flex;
+    margin-left: 2px;
+}
+.buy-button{
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    color: #414141;
+}
+.buy-button span{
+    display: flex;
+    color: #414141;
+    font-size: 12px; 
+    font-family: 'quicksand-light';
+}
+.buy-button svg{
+    margin-left: 8px;
+}
+.product-body{
+    display: flex;
+    flex-direction: column;
+    padding-left: 16px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+}
+.prouct-details{
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    margin-top: 2px;
+}
+.quantity{
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-family: 'quicksand-med';
+    font-size: 10px;
+    color: #5D5D5D;
+}
+.product-category-icon{
+    display: flex;
+    align-items: center;
+    margin-left: 2px;
+}
+.product-details-text{
+    display: block;
+    margin-left: 3px;
+    max-width: 151px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #3C3C3C;
+    font-family: 'quicksand';
+    font-size: 10px;
+}

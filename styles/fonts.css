@@ -23,6 +23,10 @@
     src: url("/fonts/Quicksand-Regular.ttf");
 }
 @font-face {
+    font-family:'quicksand-light' ;
+    src: url("/fonts/Quicksand-Light.ttf");
+}
+@font-face {
     font-family:'quicksand-med' ;
     src: url("/fonts/Quicksand-Medium.ttf");
 }
