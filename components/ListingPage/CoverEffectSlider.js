@@ -56,11 +56,10 @@ else if(i===activeIndex-4||i===activeIndex+4) return 15
 else  return 15
 
 }
-console.log(activeColor,images)
   return (
-    <div ref={ref} className='product-photos-slider'  id="slider" onMouseDown={(e)=>{console.log('add');setDown(true)}}  onMouseUp={()=>{setDown(false); console.log('removed')}} onMouseMove={(e)=>handleMoveMouse(e)} onTouchStart={(e)=>handleMove(e)} onTouchMove={(e)=>handleMove(e)} onMouseLeave={(e)=>handleEnd(e)} onTouchEnd={(e)=>handleEnd(e)}>
+    <div ref={ref} className='product-photos-slider'  id="slider" onMouseDown={(e)=>{setDown(true)}}  onMouseUp={()=>{setDown(false);}} onMouseMove={(e)=>handleMoveMouse(e)} onTouchStart={(e)=>handleMove(e)} onTouchMove={(e)=>handleMove(e)} onMouseLeave={(e)=>handleEnd(e)} onTouchEnd={(e)=>handleEnd(e)}>
       {images.map((img,i)=>
-    { console.log(i,img.photos[0])
+    { 
       return(    <ImageAvatar 
         className={`w-${getSize(i)}`}
         alt={'alt'}

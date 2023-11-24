@@ -19,7 +19,6 @@ const messaging = firebase.messaging();
 let url = `http://localhost:3006`;
 
 messaging.onBackgroundMessage(async function (payload) {
-  console.log(payload)
   if(payload.data.message){ 
     const notificationTitle = JSON.parse(payload.data.message).sender_user.name;
  
