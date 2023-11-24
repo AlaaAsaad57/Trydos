@@ -11,7 +11,7 @@ function UserAvatar({avatar}) {
     <>
      <div aria-details={language}className='nav-question-item nav-img-item' style={{marginLeft:"0px",position:"relative",padding:"0px",width:"46px",height:"46px",alignItems:"center",justifyContent:"center"}}>
       <div aria-details={language}className='inset-shadow'></div>
-      <Image alt="user-img" width={30} height={30}  src={avatar} quality={100} priority={"true"} placeholder='blur' className='avatar-user-image'/>
+      <Image alt="user-img" width={30} height={30}  src={avatar} quality={100} priority={"true"}  className='avatar-user-image'/>
      </div>
     </>:
     <div aria-details={language}className='nav-question-item' style={{marginLeft:"0px"}}>

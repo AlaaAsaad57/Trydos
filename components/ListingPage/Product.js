@@ -6,8 +6,11 @@ import BuyButton from './BuyButton'
 import TopSlider from "./TopSlider"
 import CoverEffectSlider from "./CoverEffectSlider"
 import { Swiper, SwiperSlide, useSwiper } from 'swiper/react';
-
+import Image from 'next/image';
+import Skeleton from 'react-loading-skeleton';
+import '../../styles/skeleton.css'
 function Product({product}) {
+ 
     const [isActiveTopSlide,setActiveTopSlide]=useState(false)
     const ref=useRef()
     const [activeColor,setActiveColor]=useState(product.colors[Math.round(product.colors.length/2)-1])
@@ -117,15 +120,16 @@ function Product({product}) {
   {activeColor.photos.map((img)=>(
      <SwiperSlide
      style={{
-       backgroundImage:
-         `url(${img})`,
-         overflow:"visible"
+         overflow:"visible",
+         position: 'relative'
      }}
    >
        {({ isActive }) => (
         <>
        <BorderImage/>
        <div className='inset-shadow-img'/>
+       <Image style={{borderRadius:'15px',zIndex:'3'}} fill src={img} alt='alt' />
+       <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'15px',zIndex:'2'}}/>
         </>
   
        )}

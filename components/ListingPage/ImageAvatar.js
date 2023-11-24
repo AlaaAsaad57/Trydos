@@ -1,10 +1,13 @@
 import Image from 'next/image'
 import React from 'react'
+import Skeleton from 'react-loading-skeleton'
 
 function ImageAvatar({image,width,height,alt,zIndex,isActive,onClick,index,swiperRef,name}) {
     
   return (
     <div className={`image-avatar w-${width}`} style={{width:`${width}px` ,height:`${height}px`,zIndex:isActive?'10':zIndex,transform:`translateX(-${(zIndex-1)*5}px)`}} onClick={()=>{onClick()}}>
+       <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'50%',zIndex:'2'}}/>
+
         {isActive?
             <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 35 35">
   <g id="Ellipse_5" data-name="Ellipse 5" fill="none" stroke={name==='blue'?"#0048AC":name} stroke-width="0.5">
@@ -26,7 +29,7 @@ function ImageAvatar({image,width,height,alt,zIndex,isActive,onClick,index,swipe
     </div>
     }
     <div className='shadow-inset-avatar'/>
-        <Image quality={80} src={image} width={width} height={height} alt={alt} objectFit='cover' objectPosition='center' style={{borderRadius:"50%"}}/>
+        <Image quality={80} src={image} width={width} height={height} alt={alt} objectFit='cover' objectPosition='center' style={{borderRadius:"50%",zIndex:'3'}}/>
     </div>
   )
 }

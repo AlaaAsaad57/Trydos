@@ -3,7 +3,7 @@ import ImageAvatar from './ImageAvatar'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { EffectCoverflow } from "swiper";
 function CoverEffectSlider({images,swiperRef,onClick,activeColor,setActiveColor}) {
-  const [activeIndex,setActive]=useState(Math.round(images.length/2)-1)
+  const [activeIndex,setActive]=useState(images.findIndex((element)=>element.name===activeColor.name))
   var [isDown,setDown]=useState(false)
   const handleMove=(e)=>{
     let elementWidth=ref.current.clientWidth
