@@ -57,34 +57,74 @@ else  return 15
 
 }
   return (
-    <div ref={ref} className='product-photos-slider'  id="slider" onMouseDown={(e)=>{setDown(true)}}  onMouseUp={()=>{setDown(false);}} onMouseMove={(e)=>handleMoveMouse(e)} onTouchStart={(e)=>handleMove(e)} onTouchMove={(e)=>handleMove(e)} onMouseLeave={(e)=>handleEnd(e)} onTouchEnd={(e)=>handleEnd(e)}>
-      {images.map((img,i)=>
-    { 
-      return(    <ImageAvatar 
-        className={`w-${getSize(i)}`}
-        alt={'alt'}
-        width={getSize(i)}
-        height={getSize(i)}
-        isActive={activeIndex===i}
-        image={img.photos[0]}
-        name={img.name}
-        index={i}
-        onClick={()=>{}}
-        zIndex={i+1}
-        key={i}
-        style={{
-          backgroundImage:
-            `url(${img.photos[0]})`,
-          maxWidth: "35px",
-          height: "35px",
-          borderRadius: "50%",
-          backgroundPosition: "cover",
-          backgroundSize: "cover",
-          transformOrigin:'left center',
-          zIndex:activeIndex===i?'10':i
-        }}
-        ></ImageAvatar>)}
-      )}
+    <div ref={ref} className='product-photos-slider'  >
+   <Swiper
+         modules={[EffectCoverflow]}
+
+         ref={ref}
+         className='avatar-slider'
+         onSlideChange={(swiper)=>{
+            setActive(swiper.activeIndex);
+            setActiveColor(images[swiper.activeIndex])
+            }}
+            slideToClickedSlide={true}
+         effect="coverflow"
+         coverflowEffect={{
+             depth:0,
+             modifier:1,
+             rotate:false,
+             stretch:2,
+             slideShadows:false
+         }}
+         observer={true}
+         slidesPerView={'auto'}
+         centeredSlides={true}
+        
+         initialSlide={3}
+         loop={false}
+        >
+        {images.map((img,i)=>(
+            <SwiperSlide
+            onClick={(swiper)=>{
+             setActive(i)
+             setActiveColor(images[i])
+            }}
+            className={`image-avatar w-${getSize(i)}`} style={{width:`${getSize(i)-(((i+1)-1)*5)}px` ,height:`${getSize(i)-(((i+1)-1)*5)}px`,zIndex:activeIndex===i?'10':(i+1),translate:`-${((i+1)-1)*5}px, 0px`,           overflow:"visible",
+            position: 'relative'}}
+
+          >
+
+               {({ isActive }) => (
+
+  <ImageAvatar 
+  className={`w-${getSize(i)}`}
+  alt={'alt'}
+  width={getSize(i)}
+  height={getSize(i)}
+  isActive={isActive}
+  image={img.photos[0]}
+  name={img.name}
+  index={i}
+  onClick={()=>{}}
+  zIndex={i+1}
+  key={i}
+  style={{
+    backgroundImage:
+      `url(${img.photos[0]})`,
+    maxWidth: "35px",
+    height: "35px",
+    borderRadius: "50%",
+    backgroundPosition: "cover",
+    backgroundSize: "cover",
+    transformOrigin:'left center',
+    zIndex:activeIndex===i?'10':i
+  }}
+  ></ImageAvatar>
+               )}
+          </SwiperSlide>
+            
+        ))}
+        </Swiper>
     </div>
   );
 

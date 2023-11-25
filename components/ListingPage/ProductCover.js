@@ -117,8 +117,6 @@ function ProductCover({product}) {
     centeredSlides={true}
     initialSlide={3}
     loop={false}
-    
-    onActiveIndexChange={(swiper)=>swiper.loopCreate()}
   >
   {activeColor.photos.map((img)=>(
      <SwiperSlide

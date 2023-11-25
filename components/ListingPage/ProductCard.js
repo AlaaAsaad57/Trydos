@@ -2,6 +2,7 @@
 import React, { useRef,useEffect, useState } from 'react';
 import Product from './Product'
 import ProductCover from './ProductCover'
+import Testavatar from './Testavatar'
 // Import Swiper styles
 import 'swiper/css';
 import "swiper/css/bundle";
@@ -54,7 +55,7 @@ function ProductCard() {
       ))}
 
 
-        
+        <Testavatar/>
     </div>
     </>
   )

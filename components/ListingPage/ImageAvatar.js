@@ -5,7 +5,7 @@ import Skeleton from 'react-loading-skeleton'
 function ImageAvatar({image,width,height,alt,zIndex,isActive,onClick,index,swiperRef,name}) {
     
   return (
-    <div className={`image-avatar w-${width}`} style={{width:`${width}px` ,height:`${height}px`,zIndex:isActive?'10':zIndex,transform:`translateX(-${(zIndex-1)*5}px)`}} onClick={()=>{onClick()}}>
+    <div className='image-avatar' onClick={()=>{onClick()}}>
        <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'50%',zIndex:'2'}}/>
 
         {isActive?

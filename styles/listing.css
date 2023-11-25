@@ -84,11 +84,16 @@ opacity: 1;
     justify-content: center;
     transform: translateX(10px) translateY(-13px);
     z-index: 10;
+    max-width: 175px;
+    position: absolute;
+    top:284px;
+    left: 0px;
+    right: 0px;
+    margin: none;
 }
 .product-photos-slider{
     transition: 0.3s;
     width: auto;
-    transform: translateX(10px) translateY(-13px);
     height: 35px;
     display: flex;
     z-index: 10;
@@ -100,12 +105,16 @@ opacity: 1;
     filter: drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.1));
     transition: 0.3s;
     width: 35px;
-    height: 35px;
+    max-height: 100%;
     border-radius: 50%;
     cursor: pointer;
     position: relative;
     display: flex;
 
+}
+.product-photos-slider .swiper-wrapper{
+    align-items: center;
+    display: flex;
 }
 .w-35{
     min-width: 20px !important;
@@ -138,7 +147,9 @@ opacity: 1;
     max-height: 8px !important;
 }
 .product-photos:hover .product-photos-slider{
-    transform: translateX(10px) translateY(15px);
+    transform: translateX(0px) translateY(0px);
+    top:260px;
+    margin: 0 auto;
     
 }
 .product-photos:hover .w-35{
@@ -391,3 +402,47 @@ transform-origin: left center !important;
     align-items: center;
     justify-content: flex-start;
   }
+  .slider-test{
+    width: 175px;
+    height: 35px;
+    position: fixed;
+    bottom: 40px;
+    left: 30px;
+    display: flex;
+    align-items: center;
+  }
+  .slider-test .w-35{
+    min-width: 35px !important;
+    min-height: 35px !important;
+    max-width: 35px !important;
+    max-height: 35px !important;
+}
+.slider-test .w-30{
+    min-width: 30px !important;
+    min-height: 30px !important;
+    max-width: 30px !important;
+    max-height: 30px !important;
+}
+.slider-test .w-25{
+    min-width: 25px !important;
+    min-height: 25px !important;
+    max-width: 25px !important;
+    max-height: 25px !important;
+}
+.slider-test .w-20{
+    min-width: 20px !important;
+    min-height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+}
+.slider-test .w-15{
+    min-width: 15px !important;
+    min-height: 15px !important;
+    max-width: 15px !important;
+    max-height: 15px !important;
+}
+.avatar-slider .swiper-slide{
+    width: auto;
+    opacity: 1;
+    height: auto;
+}
