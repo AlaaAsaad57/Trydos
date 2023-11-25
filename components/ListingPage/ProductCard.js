@@ -1,6 +1,7 @@
 "use client"
 import React, { useRef,useEffect, useState } from 'react';
 import Product from './Product'
+import ProductCover from './ProductCover'
 // Import Swiper styles
 import 'swiper/css';
 import "swiper/css/bundle";
@@ -47,6 +48,9 @@ function ProductCard() {
     <div className='site-container'>
       {products.map((product)=>(
         <Product product={product}/>
+      ))}
+ {products.map((product)=>(
+        <ProductCover product={product}/>
       ))}
 
 

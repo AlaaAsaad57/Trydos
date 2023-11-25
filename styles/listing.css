@@ -20,13 +20,15 @@
 }
 .swiper-slide.swiper-slide-prev, .swiper-slide.swiper-slide-next{
 opacity: 1;
-height: 82%;
 }
 .swiper-wrapper{
     align-items: center;
 }
+.swiper-coverflow{
+        overflow: visible !important;}
 .product-container{
     margin-top: 20px;
+    background-size: cover;
     width: 200px;
     height: 369px;
     overflow: hidden;

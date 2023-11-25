@@ -955,13 +955,13 @@ width: 100%;
     left: 0px;
     top: 0px;
     width: 100%;
-    opacity: 0.6;
+    opacity: 0.75;
     background-color: #FAFAFA;
     height: 100%;
     border-radius: 15px;
   }
   .offer-blured{
-    backdrop-filter: blur(15px) brightness(1.2);
+    backdrop-filter: blur(15px) brightness(117%);
     position: absolute;
     left: 0px;
     top: 0px;
