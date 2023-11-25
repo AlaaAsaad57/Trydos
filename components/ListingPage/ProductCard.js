@@ -53,9 +53,6 @@ function ProductCard() {
  {products.map((product)=>(
         <ProductCover product={product}/>
       ))}
-
-
-        <Testavatar/>
     </div>
     </>
   )
