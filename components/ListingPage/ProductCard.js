@@ -8,7 +8,7 @@ import 'swiper/css';
 import "swiper/css/bundle";
 import { useSelector } from 'react-redux';
 function ProductCard() {
-  
+  const [isClicked,setIsClicked]=useState(false)
   const products=useSelector((state)=>state.listing.products)  
   
     const slideTo=(i,bool)=>{

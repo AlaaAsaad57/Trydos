@@ -44,7 +44,6 @@ opacity: 1;
 .product-container-slider{
     width: 200px;
     min-height: 290px;
-    transition: 0.4s;
     position: relative;
 }
 .top-slider-enable{
@@ -92,7 +91,6 @@ opacity: 1;
     margin: none;
 }
 .product-photos-slider{
-    transition: 0.3s;
     width: auto;
     height: 35px;
     display: flex;
@@ -103,7 +101,6 @@ opacity: 1;
 .image-avatar{
     overflow: visible;
     filter: drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.1));
-    transition: 0.3s;
     width: 35px;
     max-height: 100%;
     border-radius: 50%;

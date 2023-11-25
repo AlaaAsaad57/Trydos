@@ -10,7 +10,7 @@ import Image from 'next/image';
 import Skeleton from 'react-loading-skeleton';
 import '../../styles/skeleton.css'
 function Product({product}) {
- 
+  
     const [isActiveTopSlide,setActiveTopSlide]=useState(false)
     const ref=useRef()
     const [activeColor,setActiveColor]=useState(product.colors[Math.round(product.colors.length/2)-1])
