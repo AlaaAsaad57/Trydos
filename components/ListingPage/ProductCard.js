@@ -47,9 +47,9 @@ function ProductCard() {
     }
   return (<>
     <div className='site-container'>
-      {products.map((product)=>(
+      {/* {products.map((product)=>(
         <Product product={product}/>
-      ))}
+      ))} */}
  {products.map((product)=>(
         <ProductCover product={product}/>
       ))}

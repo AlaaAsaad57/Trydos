@@ -1,8 +1,14 @@
 import Image from 'next/image'
-import React from 'react'
+import React,{useEffect} from 'react'
 import Skeleton from 'react-loading-skeleton'
 
 function ImageAvatar({image,width,height,alt,zIndex,isActive,onClick,index,swiperRef,name}) {
+    useEffect(() => {
+      if(isActive){
+        console.log(swiperRef.current)
+      swiperRef?.current?.slideTo(index)}
+     
+    }, [isActive])
     
   return (
     <div className='image-avatar' onClick={()=>{onClick()}}>

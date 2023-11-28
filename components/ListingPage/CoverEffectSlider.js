@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import ImageAvatar from './ImageAvatar'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { EffectCoverflow } from "swiper";
-function CoverEffectSlider({images,swiperRef,onClick,activeColor,setActiveColor}) {
+import { EffectCoverflow } from "swiper/modules";
+function CoverEffectSlider({images,swiperRef,onClick,activeColor,setActiveColor,setColor,isColorSelected}) {
   const [activeIndex,setActive]=useState(images.findIndex((element)=>element.name===activeColor.name))
   var [isDown,setDown]=useState(false)
   const handleMove=(e)=>{
@@ -39,14 +39,9 @@ function CoverEffectSlider({images,swiperRef,onClick,activeColor,setActiveColor}
   }
 
 const ref=useRef()
-  //  const getSize=(i)=>{
-  //   if(i===Math.round(images.length/2)) return (35)
-  //   if(i===Math.round(images.length/2)-4||i===Math.round(images.length/2)+4) return (15)
-  //   if(i===Math.round(images.length/2)-3||i===Math.round(images.length/2)+3) return (20)
-  //   if(i===Math.round(images.length/2)-2||i===Math.round(images.length/2)+2) return (25)
-  //   if(i===Math.round(images.length/2)-1||i===Math.round(images.length/2)+1) return (30)
-    
-  //  }
+const changeView=()=>{
+
+}
 const getSize=(i)=>{
 if((i===activeIndex)||(i===activeIndex&&i===0)) return 35
 else if(i===activeIndex-1||i===activeIndex+1) return 30
@@ -57,18 +52,20 @@ else  return 15
 
 }
   return (
-    <div ref={ref} className='product-photos-slider'  >
+    <div  className='product-photos-slider' onMouseEnter={()=>setColor(true)} onClick={()=>setColor(!isColorSelected)}>
    <Swiper
+   
          modules={[EffectCoverflow]}
-
-         ref={ref}
+         onInit={(swiper)=>ref.current=swiper}
          className='avatar-slider'
          onSlideChange={(swiper)=>{
             setActive(swiper.activeIndex);
-            setActiveColor(images[swiper.activeIndex])
+            setActiveColor(images[swiper.activeIndex]);
             }}
-            slideToClickedSlide={true}
+        slideToClickedSlide={true}
          effect="coverflow"
+         threshold={10}
+
          coverflowEffect={{
              depth:0,
              modifier:1,
@@ -76,12 +73,11 @@ else  return 15
              stretch:2,
              slideShadows:false
          }}
-         observer={true}
          slidesPerView={'auto'}
          centeredSlides={true}
-        
          initialSlide={3}
-         loop={false}
+         resistance={true}
+         virtualTranslate={false}
         >
         {images.map((img,i)=>(
             <SwiperSlide
@@ -94,15 +90,17 @@ else  return 15
 
           >
 
-               {({ isActive }) => (
+               {({ isActive}) => (
 
   <ImageAvatar 
   className={`w-${getSize(i)}`}
   alt={'alt'}
   width={getSize(i)}
   height={getSize(i)}
-  isActive={isActive}
+  swiperRef={ref}
+  isActive={activeColor.name===img.name}
   image={img.photos[0]}
+  
   name={img.name}
   index={i}
   onClick={()=>{}}

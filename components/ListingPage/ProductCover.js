@@ -1,9 +1,10 @@
-import React, { useRef, useState } from 'react'
-import { EffectCoverflow } from "swiper";
+import React, { useRef, useState ,useEffect} from 'react'
+import { EffectCoverflow } from "swiper/modules";
 import BorderImage from './BorderImage'
 import PriceLabel from './PriceLabel'
 import BuyButton from './BuyButton'
-import TopSlider from "./TopSlider"
+import TopSlider from "./TopSlider";
+import PointsSlider from "./PointsSlider";
 import CoverEffectSlider from "./CoverEffectSlider"
 import { Swiper, SwiperSlide, useSwiper } from 'swiper/react';
 import Image from 'next/image';
@@ -12,98 +13,35 @@ import '../../styles/skeleton.css'
 function ProductCover({product}) {
  
     const [isActiveTopSlide,setActiveTopSlide]=useState(false)
-    const ref=useRef()
+    const ColorRef=useRef()
+    const ImageRef=useRef()
     const [activeColor,setActiveColor]=useState(product.colors[Math.round(product.colors.length/2)-1])
+    const [isColorSelected,setColor]=useState(false)
+    const getIndex=()=>{
+        let index=0;
+       product.colors.map((co,ind)=>{if(co.name===activeColor.name) index=ind}); 
+       return index
+    }
+  useEffect(() => {
+    if(ColorRef)
+    console.log(ColorRef)
+  }, [ColorRef])
   return (
-    <div className='product-container' onMouseLeave={()=>setActiveTopSlide(false)}>
+    <div className='product-container' onMouseLeave={()=>{setActiveTopSlide(false); setColor(false); ColorRef.current=null}}>
     <div className='offer-blured-background'/>
     <div className='offer-blured'/>
-    {isActiveTopSlide&&<TopSlider images={activeColor.photos} goToSlide={(e)=>ref.current.swiper.slideTo(e)}/>}
+    {isActiveTopSlide&&<TopSlider images={activeColor.photos} goToSlide={(e)=>ImageRef.current.swiper.slideTo(e)}/>}
     <div className='product-photos'>
-    <div className='product-container-slider' >
-{!isActiveTopSlide&&        <div className='top-slider-enable' onClick={()=>setActiveTopSlide(!isActiveTopSlide)}>
-        <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" width="44" height="24" viewBox="0 0 44 24">
-  <defs>
-    <filter id="Ellipse_4" x="24" y="2" width="20" height="20" filterUnits="userSpaceOnUse">
-      <feOffset dy="3" input="SourceAlpha"/>
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feFlood flood-opacity="0.2"/>
-      <feComposite operator="in" in2="blur"/>
-      <feComposite in="SourceGraphic"/>
-    </filter>
-    <filter id="Ellipse_3" x="18" y="1" width="22" height="22" filterUnits="userSpaceOnUse">
-      <feOffset dy="3" input="SourceAlpha"/>
-      <feGaussianBlur stdDeviation="3" result="blur-2"/>
-      <feFlood flood-opacity="0.2"/>
-      <feComposite operator="in" in2="blur-2"/>
-      <feComposite in="SourceGraphic"/>
-    </filter>
-    <linearGradient id="linear-gradient" x1="0.5" x2="0.5" y2="1" gradientUnits="objectBoundingBox">
-      <stop offset="0" stop-color="#f53c3c"/>
-      <stop offset="1" stop-color="#ff9696"/>
-    </linearGradient>
-    <filter id="Path_21435" x="10" y="0" width="24" height="24" filterUnits="userSpaceOnUse">
-      <feOffset dy="3" input="SourceAlpha"/>
-      <feGaussianBlur stdDeviation="3" result="blur-3"/>
-      <feFlood flood-opacity="0.2"/>
-      <feComposite operator="in" in2="blur-3"/>
-      <feComposite in="SourceGraphic"/>
-    </filter>
-    <filter id="Ellipse_4-2" x="4" y="1" width="22" height="22" filterUnits="userSpaceOnUse">
-      <feOffset dy="3" input="SourceAlpha"/>
-      <feGaussianBlur stdDeviation="3" result="blur-4"/>
-      <feFlood flood-opacity="0.2"/>
-      <feComposite operator="in" in2="blur-4"/>
-      <feComposite in="SourceGraphic"/>
-    </filter>
-    <filter id="Ellipse_3-2" x="0" y="2" width="20" height="20" filterUnits="userSpaceOnUse">
-      <feOffset dy="3" input="SourceAlpha"/>
-      <feGaussianBlur stdDeviation="3" result="blur-5"/>
-      <feFlood flood-opacity="0.2"/>
-      <feComposite operator="in" in2="blur-5"/>
-      <feComposite in="SourceGraphic"/>
-    </filter>
-  </defs>
-  <g id="Group_10983" data-name="Group 10983" transform="translate(-88 -449)">
-    <g transform="matrix(1, 0, 0, 1, 88, 449)" filter="url(#Ellipse_4)">
-      <g id="Ellipse_4-3" data-name="Ellipse 4" transform="translate(33 8)" fill="none" stroke="#3c3c3c" stroke-width="0.3">
-        <circle cx="1" cy="1" r="1" stroke="none"/>
-        <circle cx="1" cy="1" r="0.85" fill="none"/>
-      </g>
-    </g>
-    <g transform="matrix(1, 0, 0, 1, 88, 449)" filter="url(#Ellipse_3)">
-      <g id="Ellipse_3-3" data-name="Ellipse 3" transform="translate(27 7)" fill="none" stroke="#3c3c3c" stroke-width="0.3">
-        <circle cx="2" cy="2" r="2" stroke="none"/>
-        <circle cx="2" cy="2" r="1.85" fill="none"/>
-      </g>
-    </g>
-    <g transform="matrix(1, 0, 0, 1, 88, 449)" filter="url(#Path_21435)">
-      <g id="Path_21435-2" data-name="Path 21435" transform="translate(19 6)" fill="url(#linear-gradient)">
-        <path d="M 3 5.849999904632568 C 1.428500056266785 5.849999904632568 0.1500000059604645 4.571499824523926 0.1500000059604645 3 C 0.1500000059604645 1.428500056266785 1.428500056266785 0.1500000059604645 3 0.1500000059604645 C 4.571499824523926 0.1500000059604645 5.849999904632568 1.428500056266785 5.849999904632568 3 C 5.849999904632568 4.571499824523926 4.571499824523926 5.849999904632568 3 5.849999904632568 Z" stroke="none"/>
-        <path d="M 3 0.3000001907348633 C 1.511209964752197 0.3000001907348633 0.3000001907348633 1.511209964752197 0.3000001907348633 3 C 0.3000001907348633 4.488790035247803 1.511209964752197 5.699999809265137 3 5.699999809265137 C 4.488790035247803 5.699999809265137 5.699999809265137 4.488790035247803 5.699999809265137 3 C 5.699999809265137 1.511209964752197 4.488790035247803 0.3000001907348633 3 0.3000001907348633 M 3 0 C 4.65684986114502 0 6 1.34315013885498 6 3 C 6 4.65684986114502 4.65684986114502 6 3 6 C 1.34315013885498 6 0 4.65684986114502 0 3 C 0 1.34315013885498 1.34315013885498 0 3 0 Z" stroke="none" fill="#3c3c3c"/>
-      </g>
-    </g>
-    <g transform="matrix(1, 0, 0, 1, 88, 449)" filter="url(#Ellipse_4-2)">
-      <g id="Ellipse_4-4" data-name="Ellipse 4" transform="translate(13 7)" fill="none" stroke="#3c3c3c" stroke-width="0.3">
-        <circle cx="2" cy="2" r="2" stroke="none"/>
-        <circle cx="2" cy="2" r="1.85" fill="none"/>
-      </g>
-    </g>
-    <g transform="matrix(1, 0, 0, 1, 88, 449)" filter="url(#Ellipse_3-2)">
-      <g id="Ellipse_3-4" data-name="Ellipse 3" transform="translate(9 8)" fill="none" stroke="#3c3c3c" stroke-width="0.3">
-        <circle cx="1" cy="1" r="1" stroke="none"/>
-        <circle cx="1" cy="1" r="0.85" fill="none"/>
-      </g>
-    </g>
-  </g>
-        </svg>
-                </div>}
-    <Swiper ref={ref} 
+    <div className={`product-container-slider ${isColorSelected&& 'selected-color'}`} >
+    <PointsSlider colors={product.colors} activeIndex={getIndex()} isActiveTopSlide={isActiveTopSlide} setActiveTopSlide={()=>{setActiveTopSlide(!isActiveTopSlide); setColor(true)}}/>  
+  <>
+   {(isColorSelected||isActiveTopSlide)&&
+    <Swiper  
     modules={[EffectCoverflow]}
-    // onSlideChange={(swiper)=>{
-    //    slideTo(activeColor.photos[swiper.activeIndex],false);
-    //    }}
+    ref={ImageRef}
+    speed={100}
     effect="coverflow"
+    style={{display:isColorSelected?'flex':'none'}}
     coverflowEffect={{
         depth:100,
         modifier:1,
@@ -114,11 +52,13 @@ function ProductCover({product}) {
     }}
     observer={true}
     slidesPerView={1}
+    threshold={1}
     centeredSlides={true}
-    initialSlide={3}
+    initialSlide={0}
     loop={false}
   >
-  {activeColor.photos.map((img)=>(
+
+{activeColor.photos.map((img)=>(
      <SwiperSlide
      style={{
          overflow:"visible",
@@ -137,10 +77,58 @@ function ProductCover({product}) {
   
    </SwiperSlide>
   ))}
-  </Swiper>
+  </Swiper>}
+ 
+  </>
+  <>
+  {(!isColorSelected&&!isActiveTopSlide)&&<Swiper 
+    effect="coverflow"
+    coverflowEffect={{
+        depth:100,
+        modifier:1,
+        rotate:false,
+        scale:0.78,
+        stretch:135,
+        slideShadows:false
+    }}
+    ref={ColorRef}
+    observer={true}
+    threshold={1}
+    speed={100}
+    style={{display:isColorSelected?'none':'flex'}}
+    slidesPerView={1}
+    centeredSlides={true}
+    onSlideChange={(swiper)=>{setActiveColor(product.colors[swiper.activeIndex])}}
+    initialSlide={getIndex()}
+    loop={false}
+  >
+
+{product.colors.map((img)=>(
+     <SwiperSlide
+     style={{
+         overflow:"visible",
+         position: 'relative'
+     }}
+   >
+       {({ isActive }) => (
+        <>
+       <BorderImage/>
+       <div className='inset-shadow-img'/>
+       <Image style={{borderRadius:'15px',zIndex:'3'}} fill src={img.photos[0]} alt='alt' />
+       <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'15px',zIndex:'2'}}/>
+        </>
   
+       )}
+  
+   </SwiperSlide>
+  ))}
+  </Swiper>}
+  </>
+
     </div>
-   {!isActiveTopSlide&& <CoverEffectSlider activeColor={activeColor} setActiveColor={(e)=>setActiveColor(e)} onClick={(e)=>slideTo(e,true)} swiperRef={ref} images={product.colors}/>}
+   {!isActiveTopSlide&&
+    <CoverEffectSlider  setColor={(e)=>{setColor(e); if(!e) ColorRef.current=null}} isColorSelected={isColorSelected} activeColor={activeColor} setActiveColor={(e)=>setActiveColor(e)} onClick={(e)=>slideTo(e,true)} swiperRef={ColorRef} images={product.colors}/>
+    }
             </div>
             <div className='product-body'>
             <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" width="66.341" height="10" viewBox="0 0 66.341 10">
