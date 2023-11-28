@@ -127,7 +127,9 @@ function ProductCover({product}) {
 
     </div>
    {!isActiveTopSlide&&
+   <>
     <CoverEffectSlider  setColor={(e)=>{setColor(e); if(!e) ColorRef.current=null}} isColorSelected={isColorSelected} activeColor={activeColor} setActiveColor={(e)=>setActiveColor(e)} onClick={(e)=>slideTo(e,true)} swiperRef={ColorRef} images={product.colors}/>
+   </>
     }
             </div>
             <div className='product-body'>

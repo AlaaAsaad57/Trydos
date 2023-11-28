@@ -5,7 +5,7 @@ function BorderImage() {
 <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100% 100%">
   <g id="PNORSSM823IY-BE29_view2" fill="none" stroke="#fff" stroke-width="0.5">
     <rect width="100%" height="100%" rx="15" stroke="none"/>
-    <rect x="0.25" y="0.25" width="calc(100% - 0.5px)" height="100%" rx="14.75" fill="none"/>
+    <rect x="0.25" y="0.25" width="calc(100% - 0.5px)" height="calc(100% - 0.5px)" rx="14.75" fill="none"/>
   </g>
 </svg>
 
