@@ -1,4 +1,4 @@
-import React, { useRef, useState ,useEffect} from 'react'
+import React, { useRef, useState } from 'react'
 import { EffectCoverflow } from "swiper/modules";
 import BorderImage from './BorderImage'
 import PriceLabel from './PriceLabel'
@@ -6,11 +6,11 @@ import BuyButton from './BuyButton'
 import TopSlider from "./TopSlider";
 import PointsSlider from "./PointsSlider";
 import CoverEffectSlider from "./CoverEffectSlider"
-import { Swiper, SwiperSlide, useSwiper } from 'swiper/react';
+import { Swiper, SwiperSlide } from 'swiper/react';
 import Image from 'next/image';
 import Skeleton from 'react-loading-skeleton';
 import '../../styles/skeleton.css'
-function ProductCover({product}) {
+function ProductCover({product,i}) {
  
     const [isActiveTopSlide,setActiveTopSlide]=useState(false)
     const ColorRef=useRef()
@@ -22,14 +22,11 @@ function ProductCover({product}) {
        product.colors.map((co,ind)=>{if(co.name===activeColor.name) index=ind}); 
        return index
     }
-  useEffect(() => {
-    if(ColorRef)
-    console.log(ColorRef)
-  }, [ColorRef])
   return (
-    <div className='product-container' onMouseLeave={()=>{setActiveTopSlide(false); setColor(false); ColorRef.current=null}}>
-    <div className='offer-blured-background'/>
+    <div className='product-container' key={i} onTouch onMouseLeave={()=>{setActiveTopSlide(false); setColor(false); ColorRef.current=null}}>
+    <div className='blured-background'/>
     <div className='offer-blured'/>
+    <div className='offer-blured-background'/>
     {isActiveTopSlide&&<TopSlider images={activeColor.photos} goToSlide={(e)=>ImageRef.current.swiper.slideTo(e)}/>}
     <div className='product-photos'>
     <div className={`product-container-slider ${isColorSelected&& 'selected-color'}`} >
@@ -58,8 +55,9 @@ function ProductCover({product}) {
     loop={false}
   >
 
-{activeColor.photos.map((img)=>(
+{activeColor.photos.map((img,i)=>(
      <SwiperSlide
+     key={i}
      style={{
          overflow:"visible",
          position: 'relative'
@@ -92,33 +90,32 @@ function ProductCover({product}) {
         slideShadows:false
     }}
     ref={ColorRef}
-    observer={true}
     threshold={1}
     speed={100}
     style={{display:isColorSelected?'none':'flex'}}
     slidesPerView={1}
     centeredSlides={true}
-    onSlideChange={(swiper)=>{setActiveColor(product.colors[swiper.activeIndex])}}
+    onSlideChange={(swiper)=>{
+      setActiveColor(product.colors[swiper.activeIndex]);}}
     initialSlide={getIndex()}
     loop={false}
   >
 
-{product.colors.map((img)=>(
+{product.colors.map((img,i)=>(
      <SwiperSlide
+     key={i}
      style={{
          overflow:"visible",
          position: 'relative'
      }}
    >
-       {({ isActive }) => (
         <>
        <BorderImage/>
        <div className='inset-shadow-img'/>
-       <Image style={{borderRadius:'15px',zIndex:'3'}} fill src={img.photos[0]} alt='alt' />
+       <Image priority={i===3} style={{borderRadius:'15px',zIndex:'3'}} fill src={img.photos[0]} alt='alt' />
        <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'15px',zIndex:'2'}}/>
         </>
-  
-       )}
+
   
    </SwiperSlide>
   ))}
@@ -134,7 +131,7 @@ function ProductCover({product}) {
             </div>
             <div className='product-body'>
             <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" width="66.341" height="10" viewBox="0 0 66.341 10">
-            <g id="Mask_Group_330" data-name="Mask Group 330" transform="translate(0 -0.239)" clip-path="url(#clip-path)">
+            <g id="Mask_Group_330" data-name="Mask Group 330" transform="translate(0 -0.239)" clipPath="url(#clipPath)">
               <g id="XMLID_10_" transform="translate(0 0.402)" opacity="0.749">
                 <g id="XMLID_21_" transform="translate(0 0.272)">
                   <path id="XMLID_8_" d="M7.068,5.279l.944,1.463,1.9-2.954v6.542h1.637V.814H9.88Z" transform="translate(-0.817 -0.814)" fill="#1a171b"/>
@@ -161,7 +158,7 @@ function ProductCover({product}) {
             <span className='quantity'>1</span>
             <span className='product-category-icon'>
             <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" width="10" height="10" viewBox="0 0 10 10">
-            <g id="Mask_Group_329" data-name="Mask Group 329" transform="translate(0 -0.239)" clip-path="url(#clip-path)">
+            <g id="Mask_Group_329" data-name="Mask Group 329" transform="translate(0 -0.239)" clipPath="url(#clipPath)">
               <g id="dress" transform="translate(1.307 1.402)">
                 <path id="Path_14636" data-name="Path 14636" d="M87.908,11.8l.684-.429A2.8,2.8,0,0,0,89.674,10.1a.2.2,0,0,1,.386.111l-.278,1.778a2.009,2.009,0,0,1-.923,1.4h-1.9a2.009,2.009,0,0,1-.923-1.4l-.278-1.778a.2.2,0,0,1,.386-.111,2.8,2.8,0,0,0,1.082,1.266l.684.429" transform="translate(-84.216 -9.959)" fill="#5d5d5d"/>
                 <path id="Path_14637" data-name="Path 14637" d="M14.622,177.67l2.744,6.264a1.044,1.044,0,0,0-1.477,0,1.044,1.044,0,0,1-1.477,0,1.044,1.044,0,0,0-1.477,0,1.044,1.044,0,0,1-1.477,0,1.044,1.044,0,0,0-1.477,0l2.746-6.264Zm0,0" transform="translate(-9.979 -174.241)" fill="#5d5d5d"/>

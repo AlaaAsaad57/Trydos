@@ -5,7 +5,7 @@ function BuyButton() {
     <div className='buy-button'>
         <span>Buy</span>
         <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" width="15" height="15" viewBox="0 0 15 15">
-        <g id="Mask_Group_318" data-name="Mask Group 318" transform="translate(0 -0.239)" clip-path="url(#clip-path)">
+        <g id="Mask_Group_318" data-name="Mask Group 318" transform="translate(0 -0.239)" clipPath="url(#clipPath)">
         <g id="Group_4033" data-name="Group 4033" transform="translate(1.146 1.402)">
         <g id="Group_4032" data-name="Group 4032">
         <path id="Path_15859" data-name="Path 15859" d="M-2.838-1.838H6.045L7.723,7.425S6.883,8.712,6.4,8.712a93.731,93.731,0,0,1-9.813-.161c-.8-.1-1.087-1.126-1.087-1.126Z" transform="translate(4.77 6.081)" fill="#505050"/>
@@ -15,7 +15,7 @@ function BuyButton() {
         </g>
         </g>
         </g>
-        <path id="Path_15172" data-name="Path 15172" d="M0,0A5.835,5.835,0,0,0,3.229,1.33,7,7,0,0,0,6.686,0" transform="translate(3.013 9.847)" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="0.599"/>
+        <path id="Path_15172" data-name="Path 15172" d="M0,0A5.835,5.835,0,0,0,3.229,1.33,7,7,0,0,0,6.686,0" transform="translate(3.013 9.847)" fill="none" stroke="#fff" strokeLinecap="round" strokeWidth="0.599"/>
         </g>
         </g>
         </svg>

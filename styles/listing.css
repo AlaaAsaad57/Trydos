@@ -5,7 +5,7 @@
     opacity: 1 !important;
 }
 .swiper-slide{
-    opacity: 0;
+    opacity: 1;
     background-size: 100% auto;
     background-repeat: no-repeat;
     background-position: center;
@@ -28,18 +28,33 @@ opacity: 1;
         overflow: visible !important;}
 .product-container{
     margin-top: 20px;
+   
+    flex-direction: column;
+    align-items: center;
+    border-radius: 15px;
+    position: relative;
+    background-position: center center;
+    background-repeat: no-repeat;
     background-size: cover;
     width: 200px;
     height: 369px;
     overflow: hidden;
     display: flex;
-    flex-direction: column;
-    align-items: center;
+}
+.blured-background{
     border-radius: 15px;
-    position: relative;
+    position: absolute;
+    z-index: 1;
+    top: 0px;
+    left: 0px;
     background-image: url("../public/images/Kids_BannerInteriorHalloween_2609.jpg");
     background-position: center center;
     background-repeat: no-repeat;
+    background-size: cover;
+    width: 200px;
+    height: 369px;
+    overflow: hidden;
+    display: flex;
 }
 .product-container-slider{
     width: 200px;
@@ -468,4 +483,7 @@ transform-origin: left center !important;
 .product-container-slider.selected-color .swiper-wrapper .swiper-slide {
     height: 246px;
 
+}
+.product-photos, .product-body, .product-footer{
+    z-index: 2;
 }

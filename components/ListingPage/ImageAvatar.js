@@ -1,29 +1,22 @@
 import Image from 'next/image'
-import React,{useEffect} from 'react'
+import React from 'react'
 import Skeleton from 'react-loading-skeleton'
 
-function ImageAvatar({image,width,height,alt,zIndex,isActive,onClick,index,swiperRef,name}) {
-    useEffect(() => {
-      if(isActive){
-        console.log(swiperRef.current)
-      swiperRef?.current?.slideTo(index)}
-     
-    }, [isActive])
-    
+function ImageAvatar({image,width,height,alt,isActive,name}) {    
   return (
-    <div className='image-avatar' onClick={()=>{onClick()}}>
+    <div className='image-avatar'>
        <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'50%',zIndex:'2'}}/>
 
         {isActive?
             <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 35 35">
-  <g id="Ellipse_5" data-name="Ellipse 5" fill="none" stroke={name==='blue'?"#0048AC":name} stroke-width="0.5">
+  <g id="Ellipse_5" data-name="Ellipse 5" fill="none" stroke={name==='blue'?"#0048AC":name} strokeWidth="0.5">
     <circle cx="50%" cy="50%" r="50%" stroke="none"/>
     <circle cx="50%" cy="50%" r="50%" fill="none"/>
   </g>
 </svg>
 :
 <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 35 35">
-<g id="Ellipse_5" data-name="Ellipse 5" fill="none" stroke="#FFFFFF" stroke-width="0.5">
+<g id="Ellipse_5" data-name="Ellipse 5" fill="none" stroke="#FFFFFF" strokeWidth="0.5">
   <circle cx="50%" cy="50%" r="50%" stroke="none"/>
   <circle cx="50%" cy="50%" r="50%" fill="none"/>
 </g>
