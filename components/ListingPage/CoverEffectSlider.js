@@ -53,8 +53,8 @@ useEffect(() => {
          slidesPerView={'auto'}
          centeredSlides={true}
          initialSlide={3}
-         resistance={false}
-         touchReleaseOnEdges={true}
+        
+         resistanceRatio={0}
          virtualTranslate={false}
         >
         {images.map((img,i)=>(
