@@ -1,9 +1,9 @@
 import Image from 'next/image';
-import React, { useEffect } from 'react'
+import React, { useEffect,useState } from 'react'
 import Skeleton from 'react-loading-skeleton';
-
-function TopSlider({images,goToSlide}) {
-   
+import ProductSlider from './ProductSlider';
+function TopSlider({images,activeColor,activeImage,setActiveColor}) {
+    const [index,setIndex]=useState(0);
       useEffect(() => {
         if (typeof document !== 'undefined'){
             const slider = document?.querySelector('.top-slider');
@@ -35,11 +35,12 @@ function TopSlider({images,goToSlide}) {
       
         
       }, [])
-      
+
   return (
-    <div className='top-slider'>
+    <>
+     <div className='top-slider'>
         {images.map((img,index)=>(
-            <div className='top-slider-element' onClick={()=>goToSlide(index)}>
+            <div className='top-slider-element' onClick={()=>setIndex(index)}>
        <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'8px',zIndex:'2'}}/>
             <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 30 40" style={{zIndex:'4'}}>
             <g id="Rectangle_4754" data-name="Rectangle 4754" fill="none" stroke="#fefefe" strokeWidth="0.5">
@@ -51,6 +52,13 @@ function TopSlider({images,goToSlide}) {
             </div>
         ))}
     </div>
+    <div className='product-photos'>
+    <div className={`product-container-slider ${'selected-color'}`} >
+    <ProductSlider  index={index} activeImage={activeImage} setActiveTopSlide={(e)=>setActiveTopSlide(e)} setColor={(e)=>setColor(e)}  activeColor={activeColor}   setActiveImage={(i)=>setActiveColor({...activeColor,index:i})}/>
+          </div>
+          </div>
+    </>
+   
   )
 }
 

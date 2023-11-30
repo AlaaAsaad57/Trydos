@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react'
-import { EffectCoverflow } from "swiper/modules";
+import React, { useEffect, useRef, useState } from 'react'
+import ImageSlider from "./ImageSlider"
 import BorderImage from './BorderImage'
 import PriceLabel from './PriceLabel'
 import BuyButton from './BuyButton'
@@ -9,126 +9,62 @@ import CoverEffectSlider from "./CoverEffectSlider"
 import { Swiper, SwiperSlide } from 'swiper/react';
 import Image from 'next/image';
 import Skeleton from 'react-loading-skeleton';
+import ColorSlider from "./ColorSlider"
 import '../../styles/skeleton.css'
+import ProductSlider from './ProductSlider'
 function ProductCover({product,i}) {
  
     const [isActiveTopSlide,setActiveTopSlide]=useState(false)
     const ColorRef=useRef()
     const ImageRef=useRef()
     const [activeColor,setActiveColor]=useState(product.colors[Math.round(product.colors.length/2)-1])
+    const [activeImage,setActiveImage]=useState('')
     const [isColorSelected,setColor]=useState(false)
     const getIndex=()=>{
         let index=0;
        product.colors.map((co,ind)=>{if(co.name===activeColor.name) index=ind}); 
        return index
     }
+    useEffect(()=>{
+      console.log(isActiveTopSlide)
+    },[isActiveTopSlide])
   return (
-    <div className='product-container' key={i} onTouch onMouseLeave={()=>{setActiveTopSlide(false); setColor(false); ColorRef.current=null}}>
+    <div className='product-container' key={i} onTouch onMouseLeave={()=>{setActiveTopSlide(false); setColor(false); ImageRef.current=null}}>
     <div className='blured-background'/>
     <div className='offer-blured'/>
     <div className='offer-blured-background'/>
-    {isActiveTopSlide&&<TopSlider images={activeColor.photos} goToSlide={(e)=>ImageRef.current.swiper.slideTo(e)}/>}
-    <div className='product-photos'>
+    {isActiveTopSlide&&
+    <TopSlider activeColor={activeColor}
+    setActiveTopSlide={(e)=>setActiveTopSlide(e)}
+    setColor={(e)=>setColor(e)}
+     activeImage={activeImage}
+     setActiveColor={(e)=>setActiveColor(e)}
+    setActiveImage={(e)=>setActiveColor({...activeColor,index:i})}
+     images={activeColor.photos}/>}
+  {!isActiveTopSlide&&  <div className='product-photos'>
     <div className={`product-container-slider ${isColorSelected&& 'selected-color'}`} >
-    <PointsSlider colors={product.colors} activeIndex={getIndex()} isActiveTopSlide={isActiveTopSlide} setActiveTopSlide={()=>{setActiveTopSlide(!isActiveTopSlide); setColor(true)}}/>  
-  <>
-   {(isColorSelected||isActiveTopSlide)&&
-    <Swiper  
-    modules={[EffectCoverflow]}
-    ref={ImageRef}
-    speed={100}
-    effect="coverflow"
-    style={{display:isColorSelected?'flex':'none'}}
-    coverflowEffect={{
-        depth:100,
-        modifier:1,
-        rotate:false,
-        scale:0.78,
-        stretch:135,
-        slideShadows:false
-    }}
-    observer={true}
-    slidesPerView={1}
-    threshold={1}
-    centeredSlides={true}
-    initialSlide={0}
-    loop={false}
-  >
-
-{activeColor.photos.map((img,i)=>(
-     <SwiperSlide
-     key={i}
-     style={{
-         overflow:"visible",
-         position: 'relative'
-     }}
-   >
-       {({ isActive }) => (
-        <>
-       <BorderImage/>
-       <div className='inset-shadow-img'/>
-       <Image style={{borderRadius:'15px',zIndex:'3'}} fill src={img} alt='alt' />
-       <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'15px',zIndex:'2'}}/>
-        </>
-  
-       )}
-  
-   </SwiperSlide>
-  ))}
-  </Swiper>}
+   <>
+   {(isColorSelected)&&(!isActiveTopSlide)&&
+ 
+  <ColorSlider activeColor={activeColor} ImageRef={ImageRef} colors={product.colors} getIndex={getIndex()} isColorSelected={isColorSelected} setActiveColor={(e)=>setActiveColor(e)} />
+  }
  
   </>
   <>
-  {(!isColorSelected&&!isActiveTopSlide)&&<Swiper 
-    effect="coverflow"
-    coverflowEffect={{
-        depth:100,
-        modifier:1,
-        rotate:false,
-        scale:0.78,
-        stretch:135,
-        slideShadows:false
-    }}
-    ref={ColorRef}
-    threshold={1}
-    speed={100}
-    style={{display:isColorSelected?'none':'flex'}}
-    slidesPerView={1}
-    centeredSlides={true}
-    onSlideChange={(swiper)=>{
-      setActiveColor(product.colors[swiper.activeIndex]);}}
-    initialSlide={getIndex()}
-    loop={false}
-  >
-
-{product.colors.map((img,i)=>(
-     <SwiperSlide
-     key={i}
-     style={{
-         overflow:"visible",
-         position: 'relative'
-     }}
-   >
-        <>
-       <BorderImage/>
-       <div className='inset-shadow-img'/>
-       <Image priority={i===3} style={{borderRadius:'15px',zIndex:'3'}} fill src={img.photos[0]} alt='alt' />
-       <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'15px',zIndex:'2'}}/>
-        </>
-
+  {(!isColorSelected)&&
+  (!isActiveTopSlide&&
   
-   </SwiperSlide>
-  ))}
-  </Swiper>}
-  </>
+  <ImageSlider activeImage={activeImage} isActiveTopSlide={isActiveTopSlide} setActiveTopSlide={(e)=>setActiveTopSlide(e)} setColor={(e)=>setColor(e)}  activeColor={activeColor} ColorRef={ColorRef} isColorSelected={isColorSelected} setActiveImage={(e)=>setActiveColor({...activeColor,index:i})}/>
+  )}
+  </>   
 
     </div>
    {!isActiveTopSlide&&
    <>
-    <CoverEffectSlider  setColor={(e)=>{setColor(e); if(!e) ColorRef.current=null}} isColorSelected={isColorSelected} activeColor={activeColor} setActiveColor={(e)=>setActiveColor(e)} onClick={(e)=>slideTo(e,true)} swiperRef={ColorRef} images={product.colors}/>
+    <CoverEffectSlider  setColor={(e)=>{setColor(e); if(!e) ImageRef.current=null}} isColorSelected={isColorSelected} activeColor={activeColor} setActiveColor={(e)=>setActiveColor(e)} onClick={(e)=>slideTo(e,true)} swiperRef={ImageRef} images={product.colors}/>
    </>
     }
-            </div>
+            </div>}
             <div className='product-body'>
             <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" width="66.341" height="10" viewBox="0 0 66.341 10">
             <g id="Mask_Group_330" data-name="Mask Group 330" transform="translate(0 -0.239)" clipPath="url(#clipPath)">

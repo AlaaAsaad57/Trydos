@@ -24,7 +24,13 @@ useEffect(() => {
 
  
 }, [isColorSelected])
+useEffect(()=>{
+  if(ref.current){
+    
+    ref.current.slideTo(images.findIndex((element)=>element.name===activeColor.name))
+  }
 
+},[activeColor])
   return (
     <div  className='product-photos-slider'  onMouseEnter={()=>setColor(true)} onClick={()=>setColor(!isColorSelected)}>
    <Swiper
@@ -34,8 +40,6 @@ useEffect(() => {
          onInit={(swiper)=>ref.current=swiper}
          className='avatar-slider'
          onSlideChange={(swiper)=>{
-          if(swiperRef?.current)
-          swiperRef.current?.swiper?.slideTo(swiper.activeIndex)
             setActive(swiper.activeIndex);
             setActiveColor(images[swiper.activeIndex]);
             }}
