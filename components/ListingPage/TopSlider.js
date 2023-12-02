@@ -3,7 +3,6 @@ import React, { useEffect,useState } from 'react'
 import Skeleton from 'react-loading-skeleton';
 import ProductSlider from './ProductSlider';
 function TopSlider({active,images,activeColor,setActiveColor}) {
-    const [index,setIndex]=useState(0);
       useEffect(() => {
         if (typeof document !== 'undefined'){
             const slider = document?.querySelector('.top-slider');
@@ -39,8 +38,8 @@ function TopSlider({active,images,activeColor,setActiveColor}) {
   return (
     <>
      <div className={`top-slider ${active&&'active-sl'}`} style={{position:active?'static':'absolute',opacity:active?'1':'0',zIndex:active?'4':'1'}}>
-        {images.map((img,index)=>(
-            <div className='top-slider-element' key={index} onClick={()=>setIndex(index)}>
+        {images.map((img,i)=>(
+            <div className='top-slider-element' key={i} onClick={()=>setActiveColor({...activeColor,index:i})}>
        <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'8px',zIndex:'2'}}/>
             <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 30 40" style={{zIndex:'4'}}>
             <g id="Rectangle_4754" data-name="Rectangle 4754" fill="none" stroke="#fefefe" strokeWidth="0.5">
@@ -54,7 +53,7 @@ function TopSlider({active,images,activeColor,setActiveColor}) {
     </div>
     <div className='product-photos' style={{position:active?'static':'absolute',opacity:active?'1':'0',zIndex:active?'4':'1'}}>
     <div className={`product-container-slider ${'selected-color'}`} >
-    <ProductSlider  index={index}  setActiveTopSlide={(e)=>setActiveTopSlide(e)} setColor={(e)=>setColor(e)}  activeColor={activeColor}   setActiveImage={(i)=>setActiveColor(i)}/>
+    <ProductSlider  index={activeColor.index} setActiveColor={(e)=>setActiveColor(e)}  setActiveTopSlide={(e)=>setActiveTopSlide(e)} setColor={(e)=>setColor(e)}  activeColor={activeColor}   setActiveImage={(i)=>setActiveColor(i)}/>
           </div>
           </div>
     </>

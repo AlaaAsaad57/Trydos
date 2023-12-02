@@ -8,10 +8,10 @@ import PointsSlider from './PointsSlider';
 function ImageSlider({renderVar,active,isColorSelected,setActiveImage,activeColor,isActiveTopSlide,setActiveTopSlide,setColor}) {
     var ColorRef=useRef()
     useEffect(()=>{
-      console.log(activeColor)
-      if(activeColor.index){
+     
+      if(activeColor.index>=0){
         ColorRef.current.slideTo(activeColor.index)
-        console.log(activeColor.index)
+     
       }
     },[renderVar])
   return (

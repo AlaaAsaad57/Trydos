@@ -18,7 +18,7 @@ function ProductReducer(state,{type,payload}){
   
     return {
       ...state,
-      activeColor: payload.name===state.activeColor.name?{...payload,index:0}:{...payload,index:payload.index||0},
+      activeColor:{...payload,index:payload.index||0},
       renderVar:!state.renderVar
     };
   }

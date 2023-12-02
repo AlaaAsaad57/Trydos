@@ -7,13 +7,13 @@ import { useEffect } from 'react';
 import { useRef } from 'react';
 import PointsSlider from './PointsSlider';
 import { EffectCoverflow } from 'swiper/modules';
-function ProductSlider({index,setActiveImage,activeColor}) {
+function ProductSlider({renderVar,setActiveImage,activeColor,setActiveColor}) {
    const ColorRef=useRef()
     useEffect(()=>{
-        if(index&&ColorRef.current){
-          ColorRef.current.slideTo(index)
+        if(activeColor&&activeColor.index >=0){
+          ColorRef?.current?.slideTo(activeColor.index)
         }
-      },[index])
+      },[renderVar,activeColor])
   return (
     <>
 <>
@@ -36,7 +36,7 @@ function ProductSlider({index,setActiveImage,activeColor}) {
   slidesPerView={1}
   centeredSlides={true}
   onSlideChange={(swiper)=>{
-    setActiveImage({...activeColor,index:swiper.activeIndex})
+    setActiveColor({...activeColor,index:swiper.activeIndex})
   }}
   initialSlide={0}
   loop={false}
