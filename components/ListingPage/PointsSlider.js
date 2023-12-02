@@ -6,7 +6,7 @@ function PointsSlider({isActiveTopSlide,setActiveTopSlide,activeIndex,colors}) {
         else  return 2
         
         }
-        console.log(activeIndex)
+      
   return (
     <>
     {!isActiveTopSlide&&     

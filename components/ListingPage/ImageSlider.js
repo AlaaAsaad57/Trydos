@@ -1,18 +1,22 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react';
 import BorderImage from './BorderImage';
 import Image from 'next/image';
 import Skeleton from 'react-loading-skeleton';
-import { useEffect } from 'react';
 import { useRef } from 'react';
 import PointsSlider from './PointsSlider';
-import { EffectCoverflow } from 'swiper/modules';
-function ImageSlider({isColorSelected,setActiveImage,activeColor,isActiveTopSlide,setActiveTopSlide,setColor}) {
+function ImageSlider({renderVar,active,isColorSelected,setActiveImage,activeColor,isActiveTopSlide,setActiveTopSlide,setColor}) {
     var ColorRef=useRef()
-  
+    useEffect(()=>{
+      console.log(activeColor)
+      if(activeColor.index){
+        ColorRef.current.slideTo(activeColor.index)
+        console.log(activeColor.index)
+      }
+    },[renderVar])
   return (
    <>
-    <>
+    <div className={'active-slider '+(active?'sl-active':'sl-deactive')}>
     {!isColorSelected&&<PointsSlider colors={activeColor.photos} activeIndex={ColorRef.current?.activeIndex||0} isActiveTopSlide={isActiveTopSlide} setActiveTopSlide={()=>{setActiveTopSlide(!isActiveTopSlide); setColor(true)}}/>  }
 
     <Swiper 
@@ -29,13 +33,12 @@ function ImageSlider({isColorSelected,setActiveImage,activeColor,isActiveTopSlid
   threshold={1}
   onInit={(swiper)=>ColorRef.current=swiper}
   speed={100}
-  style={{display:isColorSelected?'none':'flex'}}
   slidesPerView={1}
   centeredSlides={true}
   onSlideChange={(swiper)=>{
     setActiveImage({...activeColor,index:swiper.activeIndex})
   }}
-  initialSlide={0}
+  initialSlide={activeColor.index}
   loop={false}
 >
 {activeColor.photos.map((img,i)=>(
@@ -48,7 +51,7 @@ function ImageSlider({isColorSelected,setActiveImage,activeColor,isActiveTopSlid
  >
      {({ isActive }) => (
       <>
-     <BorderImage/>
+     <BorderImage isBig={true}/>
      <div className='inset-shadow-img'/>
      <Image style={{borderRadius:'15px',zIndex:'3'}} fill src={img} alt='alt' />
      <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'15px',zIndex:'2'}}/>
@@ -60,7 +63,7 @@ function ImageSlider({isColorSelected,setActiveImage,activeColor,isActiveTopSlid
 ))}
 
 </Swiper>
-  </>
+  </div>
   
    </>
   )

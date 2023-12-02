@@ -1,71 +1,101 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, {useReducer, useRef } from 'react'
 import ImageSlider from "./ImageSlider"
-import BorderImage from './BorderImage'
 import PriceLabel from './PriceLabel'
 import BuyButton from './BuyButton'
 import TopSlider from "./TopSlider";
-import PointsSlider from "./PointsSlider";
 import CoverEffectSlider from "./CoverEffectSlider"
-import { Swiper, SwiperSlide } from 'swiper/react';
-import Image from 'next/image';
-import Skeleton from 'react-loading-skeleton';
 import ColorSlider from "./ColorSlider"
 import '../../styles/skeleton.css'
-import ProductSlider from './ProductSlider'
+function ProductReducer(state,{type,payload}){
+  if (type === 'setActiveTopSlide') {
+    return {
+      ...state,
+      isActiveTopSlide: payload
+    };
+  }
+  if (type === 'setActiveColor') {
+    console.log(payload)
+  
+    return {
+      ...state,
+      activeColor: payload.name===state.activeColor.name?{...payload,index:0}:{...payload,index:payload.index||0},
+      renderVar:!state.renderVar
+    };
+  }
+  if (type === 'setActiveImage') {
+    return {
+      ...state,
+      activeColor: payload,
+      renderVar:!state.renderVar
+    };
+  }
+  if (type === 'setColor') {
+    return {
+      ...state,
+      isColorSelected: payload,
+    };
+  }
+
+  throw Error('Unknown action.');
+
+}
 function ProductCover({product,i}) {
- 
-    const [isActiveTopSlide,setActiveTopSlide]=useState(false)
+   
+    const [productState, dispatch] = useReducer(ProductReducer,
+       { isActiveTopSlide:false,
+        activeColor:{...product.colors[Math.round(product.colors.length/2)-1],index:0},
+        activeImage:'',
+        isColorSelected:false,
+        activeImageIndex:0,
+        renderVar:false
+
+      });
+
     const ColorRef=useRef()
     const ImageRef=useRef()
-    const [activeColor,setActiveColor]=useState(product.colors[Math.round(product.colors.length/2)-1])
-    const [activeImage,setActiveImage]=useState('')
-    const [isColorSelected,setColor]=useState(false)
     const getIndex=()=>{
         let index=0;
-       product.colors.map((co,ind)=>{if(co.name===activeColor.name) index=ind}); 
+       product.colors.map((co,ind)=>{if(co.name===productState.activeColor.name) index=ind}); 
        return index
     }
-    useEffect(()=>{
-      console.log(isActiveTopSlide)
-    },[isActiveTopSlide])
+
   return (
-    <div className='product-container' key={i} onTouch onMouseLeave={()=>{setActiveTopSlide(false); setColor(false); ImageRef.current=null}}>
+    <div className='product-container' key={i}  onMouseLeave={()=>{dispatch({type:'setActiveTopSlide',payload:false}); dispatch({type:'setColor',payload:false}); ImageRef.current=null}}>
     <div className='blured-background'/>
     <div className='offer-blured'/>
     <div className='offer-blured-background'/>
-    {isActiveTopSlide&&
-    <TopSlider activeColor={activeColor}
-    setActiveTopSlide={(e)=>setActiveTopSlide(e)}
-    setColor={(e)=>setColor(e)}
-     activeImage={activeImage}
-     setActiveColor={(e)=>setActiveColor(e)}
-    setActiveImage={(e)=>setActiveColor({...activeColor,index:i})}
-     images={activeColor.photos}/>}
-  {!isActiveTopSlide&&  <div className='product-photos'>
-    <div className={`product-container-slider ${isColorSelected&& 'selected-color'}`} >
+    {
+    <TopSlider active={productState.isActiveTopSlide} activeColor={productState.activeColor}
+    setActiveTopSlide={(e)=>dispatch({type:'setActiveTopSlide',payload:e})}
+    setColor={(e)=>dispatch({type:'setColor',payload:e})}
+     setActiveColor={(e)=>dispatch({type:'setActiveColor',payload:e})}
+    setActiveImage={(e)=>dispatch({type:'setActiveImage',payload:e})}
+     images={productState.activeColor.photos}/>}
+  {
+    <div className='product-photos' style={{position:!productState.isActiveTopSlide?'static':'absolute',opacity:!productState.isActiveTopSlide?'1':'0',zIndex:!productState.isActiveTopSlide?'4':'1'}}>
+    <div  className={`product-container-slider ${productState.isColorSelected&& 'selected-color'}`} >
    <>
-   {(isColorSelected)&&(!isActiveTopSlide)&&
+   {
  
-  <ColorSlider activeColor={activeColor} ImageRef={ImageRef} colors={product.colors} getIndex={getIndex()} isColorSelected={isColorSelected} setActiveColor={(e)=>setActiveColor(e)} />
+  <ColorSlider active={(productState.isColorSelected)&&(!productState.isActiveTopSlide)} activeColor={productState.activeColor} ImageRef={ImageRef} colors={product.colors} getIndex={getIndex()} isColorSelected={productState.isColorSelected} setActiveColor={(e)=>dispatch({type:'setActiveImage',payload:e})} />
   }
  
   </>
   <>
-  {(!isColorSelected)&&
-  (!isActiveTopSlide&&
+  {
   
-  <ImageSlider activeImage={activeImage} isActiveTopSlide={isActiveTopSlide} setActiveTopSlide={(e)=>setActiveTopSlide(e)} setColor={(e)=>setColor(e)}  activeColor={activeColor} ColorRef={ColorRef} isColorSelected={isColorSelected} setActiveImage={(e)=>setActiveColor({...activeColor,index:i})}/>
-  )}
+  <ImageSlider renderVar={productState.renderVar} active={(!productState.isColorSelected)&&(!productState.isActiveTopSlide)}  isActiveTopSlide={productState.isActiveTopSlide} setActiveTopSlide={(e)=>dispatch({type:'setActiveTopSlide',payload:e})} setColor={(e)=>dispatch({type:'setColor',payload:e})}  activeColor={productState.activeColor} ColorRef={ColorRef} isColorSelected={productState.isColorSelected} setActiveImage={(e)=>dispatch({type:'setActiveImage',payload:e})}/>
+  }
   </>   
 
     </div>
-   {!isActiveTopSlide&&
+   {
    <>
-    <CoverEffectSlider  setColor={(e)=>{setColor(e); if(!e) ImageRef.current=null}} isColorSelected={isColorSelected} activeColor={activeColor} setActiveColor={(e)=>setActiveColor(e)} onClick={(e)=>slideTo(e,true)} swiperRef={ImageRef} images={product.colors}/>
+    <CoverEffectSlider active={!productState.isActiveTopSlide}  setColor={(e)=>{dispatch({type:'setColor',payload:e}); if(!e) ImageRef.current=null}} isColorSelected={productState.isColorSelected} activeColor={productState.activeColor} setActiveColor={(e)=>dispatch({type:'setActiveColor',payload:e})} onClick={(e)=>slideTo(e,true)} swiperRef={ImageRef} images={product.colors}/>
    </>
     }
             </div>}
-            <div className='product-body'>
+            <div className='product-body' onMouseEnter={()=>dispatch({type:'setColor',payload:false})} onTouchStart={()=>dispatch({type:'setColor',payload:false})}>
             <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" width="66.341" height="10" viewBox="0 0 66.341 10">
             <g id="Mask_Group_330" data-name="Mask Group 330" transform="translate(0 -0.239)" clipPath="url(#clipPath)">
               <g id="XMLID_10_" transform="translate(0 0.402)" opacity="0.749">

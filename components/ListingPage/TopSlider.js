@@ -2,7 +2,7 @@ import Image from 'next/image';
 import React, { useEffect,useState } from 'react'
 import Skeleton from 'react-loading-skeleton';
 import ProductSlider from './ProductSlider';
-function TopSlider({images,activeColor,activeImage,setActiveColor}) {
+function TopSlider({active,images,activeColor,setActiveColor}) {
     const [index,setIndex]=useState(0);
       useEffect(() => {
         if (typeof document !== 'undefined'){
@@ -38,9 +38,9 @@ function TopSlider({images,activeColor,activeImage,setActiveColor}) {
 
   return (
     <>
-     <div className='top-slider'>
+     <div className={`top-slider ${active&&'active-sl'}`} style={{position:active?'static':'absolute',opacity:active?'1':'0',zIndex:active?'4':'1'}}>
         {images.map((img,index)=>(
-            <div className='top-slider-element' onClick={()=>setIndex(index)}>
+            <div className='top-slider-element' key={index} onClick={()=>setIndex(index)}>
        <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'8px',zIndex:'2'}}/>
             <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 30 40" style={{zIndex:'4'}}>
             <g id="Rectangle_4754" data-name="Rectangle 4754" fill="none" stroke="#fefefe" strokeWidth="0.5">
@@ -52,9 +52,9 @@ function TopSlider({images,activeColor,activeImage,setActiveColor}) {
             </div>
         ))}
     </div>
-    <div className='product-photos'>
+    <div className='product-photos' style={{position:active?'static':'absolute',opacity:active?'1':'0',zIndex:active?'4':'1'}}>
     <div className={`product-container-slider ${'selected-color'}`} >
-    <ProductSlider  index={index} activeImage={activeImage} setActiveTopSlide={(e)=>setActiveTopSlide(e)} setColor={(e)=>setColor(e)}  activeColor={activeColor}   setActiveImage={(i)=>setActiveColor({...activeColor,index:i})}/>
+    <ProductSlider  index={index}  setActiveTopSlide={(e)=>setActiveTopSlide(e)} setColor={(e)=>setColor(e)}  activeColor={activeColor}   setActiveImage={(i)=>setActiveColor(i)}/>
           </div>
           </div>
     </>

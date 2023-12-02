@@ -2,7 +2,7 @@ import React, { useRef, useState,useEffect } from 'react'
 import ImageAvatar from './ImageAvatar'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { EffectCoverflow } from "swiper/modules";
-function CoverEffectSlider({images,swiperRef,activeColor,setActiveColor,setColor,isColorSelected}) {
+function CoverEffectSlider({images,active,activeColor,setActiveColor,setColor,isColorSelected}) {
   const [activeIndex,setActive]=useState(images.findIndex((element)=>element.name===activeColor.name))
 const ref=useRef()
 const getSize=(i)=>{
@@ -32,7 +32,7 @@ useEffect(()=>{
 
 },[activeColor])
   return (
-    <div  className='product-photos-slider'  onMouseEnter={()=>setColor(true)} onClick={()=>setColor(!isColorSelected)}>
+    <div  className={'product-photos-slider'} style={{opacity:active?'1':'0',zIndex:active?'10':'1'}}  onMouseEnter={()=>setColor(true)} onClick={()=>setColor(!isColorSelected)}>
    <Swiper
 
          modules={[EffectCoverflow]}
@@ -41,7 +41,7 @@ useEffect(()=>{
          className='avatar-slider'
          onSlideChange={(swiper)=>{
             setActive(swiper.activeIndex);
-            setActiveColor(images[swiper.activeIndex]);
+            setActiveColor({...images[swiper.activeIndex],index:0});
             }}
         slideToClickedSlide={true}
          effect="coverflow"
@@ -64,10 +64,14 @@ useEffect(()=>{
         {images.map((img,i)=>(
             <SwiperSlide
             key={i}
-            onClick={(swiper)=>{
+            onTouchStart={(swiper)=>{
              setActive(i)
              setActiveColor(images[i])
             }}
+            onClick={(swiper)=>{
+              setActive(i)
+              setActiveColor(images[i])
+             }}
             className={`image-avatar w-${getSize(i)}`} style={{width:`${getSize(i)-(((i+1)-1)*5)}px` ,height:`${getSize(i)-(((i+1)-1)*5)}px`,zIndex:activeIndex===i?'10':(i+1),translate:`-${((i+1)-1)*5}px, 0px`,           overflow:"visible",
             position: 'relative'}}
 

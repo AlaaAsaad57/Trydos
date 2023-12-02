@@ -36,7 +36,7 @@ function ProductSlider({index,setActiveImage,activeColor}) {
   slidesPerView={1}
   centeredSlides={true}
   onSlideChange={(swiper)=>{
-    setActiveImage(activeColor.photos.filter((img,i)=>i===swiper.activeIndex)[0])
+    setActiveImage({...activeColor,index:swiper.activeIndex})
   }}
   initialSlide={0}
   loop={false}
