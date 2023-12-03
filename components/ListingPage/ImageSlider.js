@@ -53,7 +53,7 @@ function ImageSlider({renderVar,active,isColorSelected,setActiveImage,activeColo
       <>
      <BorderImage isBig={true}/>
      <div className='inset-shadow-img'/>
-     <Image style={{borderRadius:'15px',zIndex:'3'}} fill src={img} alt='alt' />
+     <Image sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" style={{borderRadius:'15px',zIndex:'3'}} fill src={img} alt='alt' />
      <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'15px',zIndex:'2'}}/>
       </>
 

@@ -47,7 +47,7 @@ function ColorSlider({active,activeColor,isColorSelected,setActiveColor,getIndex
         <>
        <BorderImage/>
        <div className='inset-shadow-img'/>
-       <Image priority={i===3} style={{borderRadius:'15px',zIndex:'3'}} fill src={img.photos[activeColor.index]} alt='alt' />
+       <Image priority={i===3} style={{borderRadius:'15px',zIndex:'3'}} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" src={img.photos[activeColor.index]} alt='alt' />
        <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'15px',zIndex:'2'}}/>
         </>
 
