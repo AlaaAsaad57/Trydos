@@ -41,6 +41,7 @@ function ColorSlider({active,activeColor,isColorSelected,setActiveColor,getIndex
   return (
     <div className={'active-slider '+(active?'sl-active':'sl-deactive')} onWheel={throttle(callback,250)}>
         <Swiper  
+        className='color-swiper'
     modules={[EffectCoverflow]}
     ref={ImageRef}
     onInit={(swiper)=>ImageRef.current=swiper}
@@ -50,8 +51,8 @@ function ColorSlider({active,activeColor,isColorSelected,setActiveColor,getIndex
         depth:100,
         modifier:1,
         rotate:false,
-        scale:0.78,
-        stretch:135,
+        scale:1,
+        stretch:145,
         slideShadows:false
     }}
     slidesPerView={1}

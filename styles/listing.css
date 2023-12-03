@@ -509,3 +509,9 @@ z-index: 5;
     opacity: 0;
     z-index: 3;
 }
+.color-swiper .swiper-slide{
+    opacity: 0 !important;
+}
+.color-swiper .swiper-slide-active, .color-swiper .swiper-slide.swiper-slide-prev, .color-swiper .swiper-slide.swiper-slide-next{
+    opacity: 1 !important;
+}
