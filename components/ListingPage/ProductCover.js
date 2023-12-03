@@ -64,7 +64,7 @@ function ProductCover({product}) {
     <div className='blured-background'/>
     <div className='offer-blured'/>
     <div className='offer-blured-background'/>
-    {!productState.isColorSelected&&
+    {
     <TopSlider 
     active={productState.isActiveTopSlide} 
     activeColor={productState.activeColor}
