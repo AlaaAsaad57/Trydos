@@ -14,7 +14,6 @@ function ProductReducer(state,{type,payload}){
     };
   }
   if (type === 'setActiveColor') {
-    console.log(payload)
   
     return {
       ...state,

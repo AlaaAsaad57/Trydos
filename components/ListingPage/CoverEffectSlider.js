@@ -2,6 +2,7 @@ import React, { useRef, useState,useEffect } from 'react'
 import ImageAvatar from './ImageAvatar'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { EffectCoverflow } from "swiper/modules";
+import { debounce } from 'throttle-debounce';
 function CoverEffectSlider({images,active,activeColor,setActiveColor,setColor,isColorSelected}) {
   const [activeIndex,setActive]=useState(images.findIndex((element)=>element.name===activeColor.name))
 const ref=useRef()
@@ -31,8 +32,36 @@ useEffect(()=>{
   }
 
 },[activeColor])
+const throttleFunc = (e) => {
+  e.preventDefault();
+	if(e.deltaX>5){
+    ref.current.slideNext()
+  
+  }
+  else if(e.deltaX<0 && Math.abs(e.deltaX)>5){
+    
+    ref.current.slidePrev()
+  }
+}
+function throttle(fn, wait) {
+  var time = Date.now();
+
+  return function(event) {
+    // we dismiss every wheel event with deltaY less than 4
+    if (Math.abs(event.deltaX) < 4) return
+
+    if ((time + wait - Date.now()) < 0) {
+      fn(event);
+      time = Date.now();
+    }
+  }
+}
+
+function callback(event) {
+ throttleFunc(event)
+}
   return (
-    <div  className={'product-photos-slider'} style={{opacity:active?'1':'0',zIndex:active?'10':'1'}}  onMouseEnter={()=>setColor(true)} onClick={()=>setColor(!isColorSelected)}>
+    <div  className={'product-photos-slider'} onWheel={throttle(callback,250)} style={{opacity:active?'1':'0',zIndex:active?'10':'1'}}  onMouseEnter={()=>setColor(true)} onClick={()=>setColor(!isColorSelected)}>
    <Swiper
 
          modules={[EffectCoverflow]}

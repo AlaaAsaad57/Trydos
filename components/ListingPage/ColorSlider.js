@@ -12,8 +12,34 @@ function ColorSlider({active,activeColor,isColorSelected,setActiveColor,getIndex
             ImageRef.current.slideTo(getIndex)
         }
     },[activeColor])
+    const throttleFunc = (e) => {
+      e.preventDefault();
+      if(e.deltaX>5){
+        ImageRef.current.slideNext()
+      }
+      else if(e.deltaX<0 && Math.abs(e.deltaX)>5){
+        ImageRef.current.slidePrev()
+      }
+    }
+    function throttle(fn, wait) {
+      var time = Date.now();
+    
+      return function(event) {
+        // we dismiss every wheel event with deltaY less than 4
+        if (Math.abs(event.deltaX) < 4) return
+    
+        if ((time + wait - Date.now()) < 0) {
+          fn(event);
+          time = Date.now();
+        }
+      }
+    }
+    
+    function callback(event) {
+     throttleFunc(event)
+    }
   return (
-    <div className={'active-slider '+(active?'sl-active':'sl-deactive')}>
+    <div className={'active-slider '+(active?'sl-active':'sl-deactive')} onWheel={throttle(callback,250)}>
         <Swiper  
     modules={[EffectCoverflow]}
     ref={ImageRef}
