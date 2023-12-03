@@ -1,4 +1,4 @@
-import React from 'react'
+import React,{memo} from 'react'
 
 function PriceLabel() {
   return (
@@ -19,4 +19,4 @@ function PriceLabel() {
   )
 }
 
-export default PriceLabel
+export default memo(PriceLabel)

@@ -1,19 +1,15 @@
-import React from 'react'
+import React,{useEffect,useRef,memo} from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react';
 import BorderImage from './BorderImage';
 import Image from 'next/image';
-import Skeleton from 'react-loading-skeleton';
-import { useEffect } from 'react';
-import { useRef } from 'react';
-import PointsSlider from './PointsSlider';
 import { EffectCoverflow } from 'swiper/modules';
-function ProductSlider({renderVar,setActiveImage,activeColor,setActiveColor}) {
+function ProductSlider({activeColor,setActiveColor}) {
    const ColorRef=useRef()
     useEffect(()=>{
         if(activeColor&&activeColor.index >=0){
-          ColorRef?.current?.slideTo(activeColor.index)
+          ColorRef?.current?.slideTo(activeColor.index,300,false)
         }
-      },[renderVar,activeColor])
+      },[activeColor])
   return (
     <>
 <>
@@ -30,7 +26,8 @@ function ProductSlider({renderVar,setActiveImage,activeColor,setActiveColor}) {
   }}
   ref={ColorRef}
   threshold={1}
-  onInit={(swiper)=>ColorRef.current=swiper}
+  onInit={(swiper)=>{
+    ColorRef.current=swiper}}
   speed={100}
 
   slidesPerView={1}
@@ -43,7 +40,6 @@ function ProductSlider({renderVar,setActiveImage,activeColor,setActiveColor}) {
 >
 {activeColor.photos.map((img,i)=>(
    <SwiperSlide
-   key={i}
    style={{
        overflow:"visible",
        position: 'relative'
@@ -54,7 +50,6 @@ function ProductSlider({renderVar,setActiveImage,activeColor,setActiveColor}) {
      <BorderImage/>
      <div className='inset-shadow-img'/>
      <Image sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" style={{borderRadius:'15px',zIndex:'3'}} fill src={img} alt='alt' />
-     <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'15px',zIndex:'2'}}/>
       </>
 
      )}
@@ -68,4 +63,4 @@ function ProductSlider({renderVar,setActiveImage,activeColor,setActiveColor}) {
   )
 }
 
-export default ProductSlider
+export default memo(ProductSlider)

@@ -1,11 +1,9 @@
 import Image from 'next/image'
-import React from 'react'
-import Skeleton from 'react-loading-skeleton'
+import React, {memo} from 'react'
 
 function ImageAvatar({image,width,height,alt,isActive,name}) {    
   return (
     <div className='image-avatar'>
-       <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'50%',zIndex:'2'}}/>
 
         {isActive?
             <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 35 35">
@@ -33,4 +31,4 @@ function ImageAvatar({image,width,height,alt,isActive,name}) {
   )
 }
 
-export default ImageAvatar
+export default memo(ImageAvatar)

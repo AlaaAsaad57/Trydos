@@ -1,4 +1,4 @@
-import React from 'react'
+import React,{memo} from 'react'
 function PointsSlider({isActiveTopSlide,setActiveTopSlide,activeIndex,colors}) {
     const getSize=(i)=>{
         if((i===activeIndex)||(i===activeIndex&&i===0)) return 6
@@ -47,5 +47,5 @@ function PointsSlider({isActiveTopSlide,setActiveTopSlide,activeIndex,colors}) {
   )
 }
 
-export default PointsSlider
+export default memo(PointsSlider)
 

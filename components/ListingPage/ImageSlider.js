@@ -1,8 +1,7 @@
-import React, { useEffect } from 'react'
+import React, { useEffect,memo } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react';
 import BorderImage from './BorderImage';
 import Image from 'next/image';
-import Skeleton from 'react-loading-skeleton';
 import { useRef } from 'react';
 import PointsSlider from './PointsSlider';
 function ImageSlider({renderVar,active,isColorSelected,setActiveImage,activeColor,isActiveTopSlide,setActiveTopSlide,setColor}) {
@@ -10,14 +9,20 @@ function ImageSlider({renderVar,active,isColorSelected,setActiveImage,activeColo
     useEffect(()=>{
      
       if(activeColor.index>=0){
-        ColorRef.current.slideTo(activeColor.index)
+        ColorRef.current.slideTo(activeColor.index,300,false)
      
       }
-    },[renderVar])
+    },[activeColor])
   return (
    <>
     <div className={'active-slider '+(active?'sl-active':'sl-deactive')}>
-    {!isColorSelected&&<PointsSlider colors={activeColor.photos} activeIndex={ColorRef.current?.activeIndex||0} isActiveTopSlide={isActiveTopSlide} setActiveTopSlide={()=>{setActiveTopSlide(!isActiveTopSlide); setColor(true)}}/>  }
+    {!isColorSelected&&
+    <PointsSlider 
+    colors={activeColor.photos} 
+    activeIndex={ColorRef.current?.activeIndex||0} 
+    isActiveTopSlide={isActiveTopSlide} 
+    setActiveTopSlide={()=>{setActiveTopSlide(!isActiveTopSlide); 
+    setColor(true)}}/>  }
 
     <Swiper 
   effect="coverflow"
@@ -31,7 +36,8 @@ function ImageSlider({renderVar,active,isColorSelected,setActiveImage,activeColo
   }}
   ref={ColorRef}
   threshold={1}
-  onInit={(swiper)=>ColorRef.current=swiper}
+  onInit={(swiper)=>{
+    ColorRef.current=swiper}}
   speed={100}
   slidesPerView={1}
   centeredSlides={true}
@@ -43,7 +49,6 @@ function ImageSlider({renderVar,active,isColorSelected,setActiveImage,activeColo
 >
 {activeColor.photos.map((img,i)=>(
    <SwiperSlide
-   key={i}
    style={{
        overflow:"visible",
        position: 'relative'
@@ -54,7 +59,6 @@ function ImageSlider({renderVar,active,isColorSelected,setActiveImage,activeColo
      <BorderImage isBig={true}/>
      <div className='inset-shadow-img'/>
      <Image sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" style={{borderRadius:'15px',zIndex:'3'}} fill src={img} alt='alt' />
-     <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'15px',zIndex:'2'}}/>
       </>
 
      )}
@@ -69,4 +73,4 @@ function ImageSlider({renderVar,active,isColorSelected,setActiveImage,activeColo
   )
 }
 
-export default ImageSlider
+export default memo(ImageSlider)

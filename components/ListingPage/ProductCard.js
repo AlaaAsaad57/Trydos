@@ -1,5 +1,5 @@
 "use client"
-import React from 'react';
+import React,{memo} from 'react';
 import ProductCover from './ProductCover'
 // Import Swiper styles
 import 'swiper/css';
@@ -9,9 +9,9 @@ function ProductCard() {
   const products=useSelector((state)=>state.listing.products)  
 
   return (<>
-    <div className='site-container'>
- {products.map((product,i)=>(
-        <ProductCover key={i} index={i} product={product}/>
+    <div className='site-container listing-container'>
+ {new Array(1).fill(products[0]).map((product,i)=>(
+        <ProductCover  product={product}/>
       ))}
     </div>
     </>
@@ -19,4 +19,4 @@ function ProductCard() {
 }
 
 
-export default ProductCard
+export default memo(ProductCard)

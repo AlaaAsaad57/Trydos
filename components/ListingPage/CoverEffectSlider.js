@@ -1,8 +1,7 @@
-import React, { useRef, useState,useEffect } from 'react'
+import React, { useRef, useState,useEffect,memo } from 'react'
 import ImageAvatar from './ImageAvatar'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { EffectCoverflow } from "swiper/modules";
-import { debounce } from 'throttle-debounce';
 function CoverEffectSlider({images,active,activeColor,setActiveColor,setColor,isColorSelected}) {
   const [activeIndex,setActive]=useState(images.findIndex((element)=>element.name===activeColor.name))
 const ref=useRef()
@@ -28,7 +27,7 @@ useEffect(() => {
 useEffect(()=>{
   if(ref.current){
     
-    ref.current.slideTo(images.findIndex((element)=>element.name===activeColor.name))
+    ref.current.slideTo(images.findIndex((element)=>element.name===activeColor.name),300,false)
   }
 
 },[activeColor])
@@ -66,7 +65,8 @@ function callback(event) {
 
          modules={[EffectCoverflow]}
          enabled={false}
-         onInit={(swiper)=>ref.current=swiper}
+         onInit={(swiper)=>{
+          ref.current=swiper}}
          className='avatar-slider'
          onSlideChange={(swiper)=>{
             setActive(swiper.activeIndex);
@@ -91,8 +91,7 @@ function callback(event) {
          virtualTranslate={false}
         >
         {images.map((img,i)=>(
-            <SwiperSlide
-            key={i}
+            <SwiperSlide 
             onTouchStart={(swiper)=>{
              setActive(i)
              setActiveColor(images[i])
@@ -109,29 +108,11 @@ function callback(event) {
                {({ isActive}) => (
 
   <ImageAvatar 
-  className={`w-${getSize(i)}`}
-  alt={'alt'}
   width={getSize(i)}
   height={getSize(i)}
-  swiperRef={ref}
   isActive={activeColor.name===img.name}
   image={img.photos[0]}
-  
   name={img.name}
-  index={i}
-  zIndex={i+1}
-  key={i}
-  style={{
-    backgroundImage:
-      `url(${img.photos[0]})`,
-    maxWidth: "35px",
-    height: "35px",
-    borderRadius: "50%",
-    backgroundPosition: "cover",
-    backgroundSize: "cover",
-    transformOrigin:'left center',
-    zIndex:activeIndex===i?'10':i
-  }}
   ></ImageAvatar>
                )}
           </SwiperSlide>
@@ -143,4 +124,4 @@ function callback(event) {
 
 }
 
-export default CoverEffectSlider
+export default memo(CoverEffectSlider)

@@ -1,6 +1,5 @@
 import Image from 'next/image';
-import React, { useEffect,useState } from 'react'
-import Skeleton from 'react-loading-skeleton';
+import React, { useEffect,memo } from 'react'
 import ProductSlider from './ProductSlider';
 function TopSlider({active,images,activeColor,setActiveColor}) {
       useEffect(() => {
@@ -40,7 +39,6 @@ function TopSlider({active,images,activeColor,setActiveColor}) {
      <div className={`top-slider ${active&&'active-sl'}`} style={{position:active?'static':'absolute',opacity:active?'1':'0',zIndex:active?'4':'1'}}>
         {images.map((img,i)=>(
             <div className='top-slider-element' key={i} onClick={()=>setActiveColor({...activeColor,index:i})}>
-       <Skeleton style={{width:"100%",height:"100%",position:"absolute",top:'0px',left:'0px',borderRadius:'8px',zIndex:'2'}}/>
             <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 30 40" style={{zIndex:'4'}}>
             <g id="Rectangle_4754" data-name="Rectangle 4754" fill="none" stroke="#fefefe" strokeWidth="0.5">
                 <rect width="30" height="40" rx="8" stroke="none"/>
@@ -53,7 +51,9 @@ function TopSlider({active,images,activeColor,setActiveColor}) {
     </div>
     <div className='product-photos' style={{position:active?'static':'absolute',opacity:active?'1':'0',zIndex:active?'4':'1'}}>
     <div className={`product-container-slider ${'selected-color'}`} >
-    <ProductSlider  index={activeColor.index} setActiveColor={(e)=>setActiveColor(e)}  setActiveTopSlide={(e)=>setActiveTopSlide(e)} setColor={(e)=>setColor(e)}  activeColor={activeColor}   setActiveImage={(i)=>setActiveColor(i)}/>
+    <ProductSlider  
+    setActiveColor={(e)=>setActiveColor(e)}  
+    activeColor={activeColor}/>
           </div>
           </div>
     </>
@@ -61,4 +61,4 @@ function TopSlider({active,images,activeColor,setActiveColor}) {
   )
 }
 
-export default TopSlider
+export default memo(TopSlider)

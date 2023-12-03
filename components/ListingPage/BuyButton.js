@@ -1,4 +1,4 @@
-import React from 'react'
+import React,{memo} from 'react'
 
 function BuyButton() {
   return (
@@ -23,4 +23,4 @@ function BuyButton() {
   )
 }
 
-export default BuyButton
+export default memo(BuyButton)
