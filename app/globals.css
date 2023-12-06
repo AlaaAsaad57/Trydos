@@ -27,3 +27,11 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+#videos{
+  display: flex;
+  padding: 10px;
+  height: 400px;
+}
+#videos video{
+  object-fit: contain !important;
+}
