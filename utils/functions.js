@@ -3,8 +3,6 @@ import { myCld } from "./constants";
 import { quality } from "@cloudinary/url-gen/actions/delivery";
 import { auto } from "@cloudinary/url-gen/qualifiers/quality";
 import { Resize } from "@cloudinary/url-gen/actions";
-import axios from "axios";
-import { STORIES_URL, UPLOAD_STORY_URL } from "./endpointConfig";
 import profilePicture from "../public/images/profileNo.png"
 export const SSRDetect=()=>{
     return (typeof window !== 'undefined' )

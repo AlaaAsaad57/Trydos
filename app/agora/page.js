@@ -5,7 +5,7 @@ import { SSRDetect } from '../../utils/functions'
 function AgoraTest() {
   return (
     <div>
-     {SSRDetect()&&   <App/>}
+     {   <App/>}
     </div>
   )
 }

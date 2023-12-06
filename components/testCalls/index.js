@@ -9,6 +9,7 @@ import {
   ICameraVideoTrack,
   IMicrophoneAudioTrack,
 } from "agora-rtc-react";
+import { SSRDetect } from "../../utils/functions";
 
 const config = { 
   mode: "rtc", codec: "vp8",
@@ -21,14 +22,18 @@ const App = () => {
   const [inCall, setInCall] = useState(false);
   const [channelName, setChannelName] = useState("");
   return (
-    <div>
-      <h1 className="heading">Agora RTC NG SDK React Wrapper</h1>
-      {inCall ? (
-        <VideoCall setInCall={setInCall} channelName={channelName} />
-      ) : (
-        <ChannelForm setInCall={setInCall} setChannelName={setChannelName} />
-      )}
-    </div>
+   <>
+   { 
+   SSRDetect()&&
+   <div>
+   <h1 className="heading">Agora RTC NG SDK React Wrapper</h1>
+   {inCall ? (
+     <VideoCall setInCall={setInCall} channelName={channelName} />
+   ) : (
+     <ChannelForm setInCall={setInCall} setChannelName={setChannelName} />
+   )}
+ </div>}
+   </>
   );
 };
 
