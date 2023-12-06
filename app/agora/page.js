@@ -1,7 +1,6 @@
 import React from 'react'
-import App from '../../components/testCalls'
-import { SSRDetect } from '../../utils/functions'
-
+import dynamic from 'next/dynamic'
+const App = dynamic(() => import('../../components/testCalls'), { ssr: false });
 function AgoraTest() {
   return (
     <div>
