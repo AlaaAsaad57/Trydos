@@ -60,13 +60,15 @@ function VideoCall(props) {
   useEffect(() => {
     // function to initialise the SDK
     let init = async (name) => {
-    
+      client.on('user-joined',(user)=>{
+        start()
+      })
       client.on("user-published", async (user, mediaType) => {
 
         await client.subscribe(user, mediaType);
         console.log("subscribe success");
         if (mediaType === "audio") {
-          start()
+    
           setUsers((prevUsers) => {
             return [...prevUsers, user];
           });
