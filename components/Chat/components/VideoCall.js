@@ -96,6 +96,7 @@ function VideoCall(props) {
         setUsers((prevUsers) => {
           return prevUsers.filter((User) => User.uid !== user.uid);
         });
+        userEndCall()
       });
       let token=await getToken(name)
       console.log(token)
@@ -118,7 +119,7 @@ console.log(error,ready,tracks)
     tracks[0].close();
     tracks[1].close();
     setStart(false);
-    dispatch({ type: "USER_END_CALL" })
+    RefuseCall(activeChat.id)
 
     pause()
   }

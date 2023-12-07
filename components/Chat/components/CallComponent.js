@@ -4,6 +4,7 @@ import { RefuseCall } from '../../../redux/chat/actions'
 import profilePng from "../../../public/images/profileNo.png"
 import { getTwoLetters } from '../chatsFunctions'
 import { translate } from '../../../utils/functions'
+import './index.css'
 function CallComponent(props) {
     const caller = useSelector(state => state.chat.caller)
     const language=useSelector((state)=>state.homepage.language)

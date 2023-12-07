@@ -54,7 +54,7 @@ export const GetChats=async (payload) =>{
               channel.bind("VoiceCallEvent",(data)=>{
                 let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0].channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]
                 if(data.payload.user_id!==getUserChat().id)
-                store.dispatch({ type: "INCOMING_VIDEO_CALL",payload:{...data,callerChannel: store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0],caller:caller} })
+                store.dispatch({ type: "INCOMING_VOICE_CALL",payload:{...data,callerChannel: store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0],caller:caller} })
 
               })
           }
@@ -470,7 +470,7 @@ export const makeVoiceCall=async(channelId,callerName,)=>{
   try{
     store.dispatch({type:"CALL-LOADING",payload:'voice'})
     await axios.post(CHAT_URL+`/api/v1/channels/${channelId}/voice_call`,
-    {channel_name:'ch-'+channelId,user_id:getUserChat().id,type:"audio",channelId:channelId},{
+    {payload:{channel_name:'ch-'+channelId,user_id:getUserChat().id,type:"audio",channelId:channelId}},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
@@ -502,7 +502,8 @@ export const AnswerCall=async(channelId)=>{
 }
 export const RefuseCall=async(channelId)=>{
   try{
-    await axios.get(CHAT_URL+`/api/v1/channels/${channelId}/refuse_call`,{
+    store.dispatch({ type: "USER_END_CALL" })
+    await axios.post(CHAT_URL+`/api/v1/channels/${channelId}/refuse_call`,{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }

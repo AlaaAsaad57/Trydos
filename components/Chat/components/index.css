@@ -203,8 +203,8 @@
 .hgg {
     position: absolute;
     border: #388CFF 1px solid;
-    height: 200px;
-    width: 200px;
+    height: 200px !important;
+    width: 200px !important;
     top: 140px;
     left: 115px;
     border-radius: 12px;

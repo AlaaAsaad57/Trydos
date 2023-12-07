@@ -1,6 +1,6 @@
 import {  getUser, getUserChat, translate } from "../../utils/functions"
 import { pusher } from "../../utils/constants";
-import { MuteChat, PinnChat, Recive, deleteChat, watchChannel } from "./actions";
+import { MuteChat, PinnChat, Recive, RefuseCall, deleteChat, watchChannel } from "./actions";
 import { store } from "../store";
 
 // const sortChats = (arr) => {
@@ -117,6 +117,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
             return initialState
           }
         case "USER_END_CALL": {
+            RefuseCall(payload)
             return ({
                 ...state,
                 call: null,
@@ -125,14 +126,6 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
             })
         }
         case "ME_END_CALL": {
-            const userId = getUserChat().id
-            let chs = pusher.subscribe(`presence-video-call-${state.activeChat?.pusher_channel_name}`)
-            chs.trigger(`client-end-call-${userId}`, {
-                type: 'signal',
-                data: {
-                    userId
-                }
-            })
             return ({
                 ...state,
                 call: null,
