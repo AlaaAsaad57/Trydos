@@ -101,8 +101,8 @@ function VideoCall(props) {
         });
         userEndCall()
       });
-      let token=await getToken(name)
-      console.log(token)
+      let token=props.token
+      
       await client.join(appId, name, token, getUserChat().id);
       if (tracks) await client.publish([tracks[0], tracks[1]]);
       setStart(true);

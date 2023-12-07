@@ -448,12 +448,13 @@ export const makeVideoCall=async(channelId)=>{
   try{
     store.dispatch({type:"CALL-LOADING",payload:'video'})
     await axios.post(CHAT_URL+`/api/v1/channels/${channelId}/video_call`,
-    {payload:{channel_name:'ch-'+channelId,user_id:getUserChat().id,type:"video",channelId:channelId}},{
+    {channel_name:'ch-'+channelId,payload:{channel_name:'ch-'+channelId,user_id:getUserChat().id,type:"video",channelId:channelId}},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
   }).then((data)=>{
-    store.dispatch({type:"VIDEO_CALL"})
+    console.log(data)
+    store.dispatch({type:"VIDEO_CALL",payload:data.data.token})
     store.dispatch({type:"CALL-LOADING",payload:null})
   })
   
@@ -468,12 +469,12 @@ export const makeVoiceCall=async(channelId,callerName,)=>{
   try{
     store.dispatch({type:"CALL-LOADING",payload:'voice'})
     await axios.post(CHAT_URL+`/api/v1/channels/${channelId}/voice_call`,
-    {payload:{channel_name:'ch-'+channelId,user_id:getUserChat().id,type:"audio",channelId:channelId}},{
+    {channel_name:'ch-'+channelId,payload:{channel_name:'ch-'+channelId,user_id:getUserChat().id,type:"audio",channelId:channelId}},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
   }).then((data)=>{
-    store.dispatch({ type: "AUDIO_CALL" })
+    store.dispatch({ type: "AUDIO_CALL",payload:data.data.token })
     store.dispatch({type:"CALL-LOADING",payload:null})
   })
   
@@ -502,6 +503,8 @@ export const RefuseCall=async(channelId)=>{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
+  }).then(()=>{
+    store.dispatch({ type: "USER_END_CALL" })
   })
 
   }

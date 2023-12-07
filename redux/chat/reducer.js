@@ -58,7 +58,8 @@ const initialState = {
     calls:[{from:{name:"Grant Marshall",avatar:null},created_at:new Date(),type:"incoming"},{from:{name:"Grant Marshall",avatar:null},created_at:new Date(),type:"missed"},{from:{name:"Grant Marshall",avatar:null},created_at:new Date(),type:"outgoing"}],
     searchResults:[],
     lastNotification:null,
-    callLoading:null
+    callLoading:null,
+    AgoraToken:null
 }
 const showDate = (d) => {
     const language=store.getState().homepage.language;
@@ -137,14 +138,16 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
             return ({
                 ...state,
                 call: "vid",
-                callInProgress: true
+                callInProgress: true,
+                AgoraToken:payload
             })
         }
         case "AUDIO_CALL": {
             return ({
                 ...state,
                 call: "aud",
-                callInProgress: true
+                callInProgress: true,
+                AgoraToken:payload
             })
         }
         case "REFUSE_CALL": {

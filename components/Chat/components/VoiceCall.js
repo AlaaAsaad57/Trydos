@@ -45,18 +45,6 @@ function VideoCall(props) {
   const client = useClient(config);
   // ready is a state variable, which returns true when the local tracks are initialized, untill then tracks variable is null
   const { ready, tracks,error } = useMicrophoneAndCameraTracks();
-  const getToken=async (channelName)=>{
-    let token
-  let data=await axios.post(CHAT_URL+'/api/v1/agora/token',{
-    channel_name:channelName
-  },{headers:{
-    Authorization:'Bearer '+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
-  }}).then((datas)=>{
-    token=datas.data.data
-  })
-  
-  return token
-  }
   useEffect(() => {
     // function to initialise the SDK
     let init = async (name) => {
@@ -92,8 +80,8 @@ function VideoCall(props) {
         });
         userEndCall()
       });
-      let token=await getToken(name)
-      console.log(token)
+      let token=props.token
+     
       await client.join(appId, name, token, getUserChat().id);
       if (tracks) await client.publish([tracks[0]]);
       setStart(true);
