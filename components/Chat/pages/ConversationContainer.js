@@ -17,14 +17,14 @@ import { toast } from 'react-toastify';
 import { getUser } from '../chatsFunctions';
 import ReplyMessage from '../components/ReplyMessage';
 import ChatInfo from '../components/ChatInfo';
-import VideoCall from '../components/VideoCall'
-import VoiceCall from '../components/VoiceCall'
-import { FILE_SERVER } from '../chatsFunctions';
 import { useCallback } from 'react';
 import Observable from '../components/ChatHistoryElement';
 import Image from 'next/image';
 import { InitPusherChannel, SendMessage, getMessagesBetweenMessage, getPage } from '../../../redux/chat/actions';
 import { SSRDetect, translate } from '../../../utils/functions';
+import dynamic from "next/dynamic"
+const VideoCall =dynamic(()=>import('../components/VideoCall', { ssr: false }))
+const VoiceCall =dynamic(()=>import('../components/VoiceCall', { ssr: false }))
 function ConversationContainer({ViewedScreen,active,loading,first}) {
 
   const [vid, setVid] = useState(null);

@@ -84,8 +84,8 @@ function ChatHeader({chats,activeChat,openDetails}) {
     <div className="chat-top-contact">
     {/* <VideoIcon onClick={()=>dispatch({ type: "VIDEO_CALL" })} className="vcall" ></VideoIcon>
       <CallIcon onClick={()=> dispatch({ type: "AUDIO_CALL" })} className="call" ></CallIcon>EstablishChannel */}
-      <VideoIcon className={`${(callLoading==='video') && 'loading-svg'} vcall`} onClick={()=>{!callLoading&&makeVideoCall(activeChat.id); EstablishChannel(activeChat)}} ></VideoIcon>
-      <CallIcon className={`${(callLoading==='voice') && 'loading-svg'} call`} onClick={()=> {!callLoading&&makeVoiceCall(activeChat.id); EstablishChannel(activeChat)}} ></CallIcon>
+      <VideoIcon className={`${(callLoading==='video') && 'loading-svg'} vcall`} onClick={()=>{!callLoading&&makeVideoCall(activeChat.id); }} ></VideoIcon>
+      <CallIcon className={`${(callLoading==='voice') && 'loading-svg'} call`} onClick={()=> {!callLoading&&makeVoiceCall(activeChat.id);}} ></CallIcon>
     </div>
   </div>
   )

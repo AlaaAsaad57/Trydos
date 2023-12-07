@@ -46,3 +46,10 @@
     height: -webkit-fill-available;
     z-index: 2000;
 }
+.local-stream{
+    width: 100px;
+    height: 170px;
+    position: absolute;
+    top:20px ;
+    right: 20px;
+}

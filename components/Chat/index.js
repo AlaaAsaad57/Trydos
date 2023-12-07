@@ -2,10 +2,11 @@ import React, { useEffect } from 'react'
 import "./index.css"
 import ChatWindow from './pages/ChatWindow'
 import { useDispatch, useSelector } from 'react-redux'
-import ConversationContainer from './pages/ConversationContainer'
+const ConversationContainer =dynamic(()=>import('./pages/ConversationContainer', { ssr: false }))
 import NewChatsSide from './components/NewChatsSide'
 import { useState } from 'react'
 import { SSRDetect } from '../../utils/functions'
+import dynamic from 'next/dynamic'
 function ChatContainer(props) {
   const dispatch=useDispatch()
   const ViewedScreen=useSelector((state)=>state.chat.main)

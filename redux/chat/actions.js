@@ -43,50 +43,20 @@ export const GetChats=async (payload) =>{
                 store.dispatch({ type: "REC_CHANNEL_RED", payload: data.channel_id });
       
               });
-              channel.bind("VideoCallEvent",(data)=>{
-                EstablishChannel(store.getState().chat.data.filter((cg)=>parseInt(cg.id)===parseInt(data.channel_id))[0])
-              })
-              channel.bind("VoiceCallEvent",(data)=>{
-                EstablishChannel(store.getState().chat.data.filter((cg)=>parseInt(cg.id)===parseInt(data.channel_id))[0])
-              })
-              channel.bind("AnswerCallEvent",(data)=>{
-                
-              })
               channel.bind("RefuseCallEvent",(data)=>{
                 store.dispatch({ type: "USER_END_CALL" })
               })
-            //  chats.map( (cg) => {
-            //   store.dispatch({
-            //     type: "REC_CHA",
-            //     payload: cg.id,
-            //   });
-           
-            //   let ch = pusher.subscribe(`presence-typing-${cg.id?.toString(16)}`);
-            //   ch.bind("client-TypingEvent", (data) => {
-              
-            //     if (
-            //       parseInt(JSON.parse(JSON.stringify(data)).uid) !== getUserChat().id
-            //     )
-            //     {
-            //       store.dispatch({ type: "IS_TYPING_TRUE", payload: JSON.parse(JSON.stringify(data)) });}
-            //   });
-              
-            //   channels.push({ id: cg.id, channel: ch });
-              
-            //    ch.bind("pusher:subscription_succeeded", (data) => {
-            //     store.dispatch({ type: "PUSHER_CHANNEL", payload: { id: cg.id, channel: ch } })
-            //   });
-            //   // await ch.bind("pusher:subscription_error", (data) => {
-            //   //   // console.log(
-            //   //   //   "pusher:subscription_error" +
-            //   //   //   " on " +
-            //   //   //   `presence-typing-${cg.id?.toString(16)}`
-            //   //   // );
-            //   // });
-      
-            // });
-           
-            //  store.dispatch({ type: "PUSHER_RED", payload: channels });
+              channel.bind("VideoCallEvent",(data)=>{
+                let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0].channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]
+                if(data.payload.user_id!==getUserChat().id)
+                store.dispatch({ type: "INCOMING_CALL",payload:{...data,callerChannel: store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0],caller:caller} })
+              })
+              channel.bind("VoiceCallEvent",(data)=>{
+                let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0].channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]
+                if(data.payload.user_id!==getUserChat().id)
+                store.dispatch({ type: "INCOMING_VIDEO_CALL",payload:{...data,callerChannel: store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0],caller:caller} })
+
+              })
           }
           store.dispatch({ type: "GET_CHAT_RED", payload: resp.data.data.channels,param:resp.data.data.pinned_channels })
           store.dispatch({type:"SET_LAST_NOTIFICATION_DATE",payload:(new Date()).toLocaleString()})
@@ -477,7 +447,8 @@ export const InitPusherChannel=(channelId)=>{
 export const makeVideoCall=async(channelId)=>{
   try{
     store.dispatch({type:"CALL-LOADING",payload:'video'})
-    await axios.get(CHAT_URL+`/api/v1/channels/${channelId}/video_call`,{
+    await axios.post(CHAT_URL+`/api/v1/channels/${channelId}/video_call`,
+    {payload:{channel_name:'ch-'+channelId,user_id:getUserChat().id,type:"video",channelId:channelId}},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
@@ -495,10 +466,11 @@ export const makeVideoCall=async(channelId)=>{
 
   }
 }
-export const makeVoiceCall=async(channelId)=>{
+export const makeVoiceCall=async(channelId,callerName,)=>{
   try{
     store.dispatch({type:"CALL-LOADING",payload:'voice'})
-    await axios.get(CHAT_URL+`/api/v1/channels/${channelId}/voice_call`,{
+    await axios.post(CHAT_URL+`/api/v1/channels/${channelId}/voice_call`,
+    {channel_name:'ch-'+channelId,user_id:getUserChat().id,type:"audio",channelId:channelId},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
