@@ -37,12 +37,12 @@ function VideoCall(props) {
 
   const user = JSON.parse(localStorage.getItem("USER-CHAT"))
   const [render, setRender] = useState(false)
-  // React.useEffect(() => {
-  //   const timeout = setTimeout(() => {
-  //     setRender(!render)
-  //   }, 2000)
-  //   return () => clearTimeout(timeout)
-  // }, [render])
+  React.useEffect(() => {
+    const timeout = setTimeout(() => {
+      setRender(!render)
+    }, 2000)
+    return () => clearTimeout(timeout)
+  }, [render])
 
   
   const [users, setUsers] = useState([]);
@@ -178,7 +178,7 @@ console.log(error,ready,tracks)
         
         {ready&&<div className='call-status'>
          {users.length>0?<CallIcon></CallIcon>: <CallingIcon></CallingIcon>}
-         {users.length>0?<span>{minutes}:{seconds}</span>:<span>Calling ...</span>}
+         {users.length>0?<span>{minutes>9?minutes:'0'+minutes}:{seconds>9?seconds:'0'+seconds}</span>:<span>Calling ...</span>}
         </div>}
       </div>}
     </>

@@ -199,7 +199,7 @@ console.log(error,ready,tracks)
         <div className={'toggle-vid '+ (trackState.video&&"active-mic-svg")} onClick={()=>mute("video")}><VideoIcon></VideoIcon></div>
         {!ready&&<div className='call-status'>
          {users.length>0?<CallIcon></CallIcon>: <CallingIcon></CallingIcon>}
-         {users.length>0?<span>{minutes}:{seconds}</span>:<span>Calling ...</span>}
+         {users.length>0?<span>{minutes>9?minutes:'0'+minutes}:{seconds>9?seconds:'0'+seconds}</span>:<span>Calling ...</span>}
         </div>}
       </div>}
     </>

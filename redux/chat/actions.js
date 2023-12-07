@@ -453,13 +453,11 @@ export const makeVideoCall=async(channelId)=>{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
   }).then((data)=>{
-   
-  })
-  
-  setTimeout(() => {
     store.dispatch({type:"VIDEO_CALL"})
     store.dispatch({type:"CALL-LOADING",payload:null})
-  }, 3000);
+  })
+  
+
     
   }
   catch(e){
@@ -475,12 +473,9 @@ export const makeVoiceCall=async(channelId,callerName,)=>{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
   }).then((data)=>{
-    
-  })
-  setTimeout(() => {
     store.dispatch({ type: "AUDIO_CALL" })
     store.dispatch({type:"CALL-LOADING",payload:null})
-  }, 3000);
+  })
   
   }
   catch(e){

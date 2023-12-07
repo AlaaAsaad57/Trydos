@@ -33,12 +33,6 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
   const mid=useSelector((state)=>state.chat.mid)
   const openChat=useSelector((state)=>state.chat.openChat)
   const qouted=useSelector((state)=>state.chat.qouted)
-  function throttle(fn, delay) {
-    clearTimeout(fn._tId);
-      fn._tId= setTimeout(function(){
-          fn();
-      }, delay);
-  }
   const call = useSelector(state => state.chat.call)
   const replyMessage=useSelector((state)=>state.chat.replyMessage);
   const refs=useSelector((state)=>state.chat.refs)
