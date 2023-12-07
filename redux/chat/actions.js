@@ -46,16 +46,18 @@ export const GetChats=async (payload) =>{
               channel.bind("RefuseCallEvent",(data)=>{
                 store.dispatch({ type: "USER_END_CALL" })
               })
-              channel.bind("VideoCallEvent",(data)=>{
+              channel.bind("VideoCallEvent",async(data)=>{
                 let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0].channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]
-                if(data.payload.user_id!==getUserChat().id)
-                store.dispatch({ type: "INCOMING_CALL",payload:{...data,callerChannel: store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0],caller:caller} })
+                if(data.payload.user_id!==getUserChat().id&&!store.getState().chat.callInProgress){
+                 await makeVideoCall(data.channel_id)
+                store.dispatch({ type: "INCOMING_CALL",payload:{...data,callerChannel: store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0],caller:caller} })}
               })
-              channel.bind("VoiceCallEvent",(data)=>{
+              channel.bind("VoiceCallEvent",async(data)=>{
                 let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0].channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]
-                if(data.payload.user_id!==getUserChat().id)
-                store.dispatch({ type: "INCOMING_VOICE_CALL",payload:{...data,callerChannel: store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0],caller:caller} })
-
+                if(data.payload.user_id!==getUserChat().id&&!store.getState().chat.callInProgress){
+                 await makeVideoCall(data.channel_id)
+                  store.dispatch({ type: "INCOMING_VOICE_CALL",payload:{...data,callerChannel: store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0],caller:caller} })
+                }
               })
           }
           store.dispatch({ type: "GET_CHAT_RED", payload: resp.data.data.channels,param:resp.data.data.pinned_channels })
