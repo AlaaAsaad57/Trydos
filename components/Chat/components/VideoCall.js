@@ -145,10 +145,7 @@ console.log(error,ready,tracks)
       {<div
         className='video-call'
       >
-        { startIndicator&&tracks&&tracks[1]&&ready&&
-        <div className='local-stream'>
-                  <AgoraVideoPlayer style={{height: '95%', width: '95%'}} className='vid' videoTrack={tracks[1]} />
-        </div>}
+        
         {
        
         
@@ -183,7 +180,7 @@ console.log(error,ready,tracks)
               return (
                 <AgoraVideoPlayer className='my-screen'   id="remote-stream" style={{height: '95%', width: '95%'}} videoTrack={user.videoTrack} key={user.uid} />
               );
-            } else return null;
+            } else return <></>;
           })}
         <div
           style={tracks &&tracks[1] && { zIndex: 3 }}
@@ -200,9 +197,9 @@ console.log(error,ready,tracks)
         </div>
         <div className={'toggle-mic ' +( trackState.audio&&"active-mic-svg")} onClick={()=>mute("audio")}><MicIcon></MicIcon></div>
         <div className={'toggle-vid '+ (trackState.video&&"active-mic-svg")} onClick={()=>mute("video")}><VideoIcon></VideoIcon></div>
-        {ready&&<div className='call-status'>
-         {users.length>0?<CallIcon></CallIcon>: <CallingIcon></CallingIcon>}
-         {users.length>0?<span>{minutes>9?minutes:'0'+minutes}:{seconds>9?seconds:'0'+seconds}</span>:<span>Calling ...</span>}
+        {ready&&!tracks[1]&&<div className='call-status'>
+         {isRunning?<CallIcon></CallIcon>: <CallingIcon></CallingIcon>}
+         {isRunning?<span>{minutes>9?minutes:'0'+minutes}:{seconds>9?seconds:'0'+seconds}</span>:<span>Calling ...</span>}
         </div>}
       </div>}
     </>
