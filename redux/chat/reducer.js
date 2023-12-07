@@ -183,11 +183,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
 
         }
         case "INCOMING_VOICE_CALL": {
-            if (state.callInProgress) {
-                return ({
-                    ...state
-                })
-            } else {
+             {
                 return ({
                     ...state,
                     isCallIncoming: true,
@@ -199,11 +195,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
             }
         }
         case "INCOMING_CALL": {
-            if (state.callInProgress) {
-                return ({
-                    ...state
-                })
-            } else {
+             {
                 return ({
                     ...state,
                     isCallIncoming: true,
