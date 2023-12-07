@@ -37,12 +37,7 @@ function VideoCall(props) {
 
   const user = JSON.parse(localStorage.getItem("USER-CHAT"))
   const [render, setRender] = useState(false)
-  React.useEffect(() => {
-    const timeout = setTimeout(() => {
-      setRender(!render)
-    }, 2000)
-    return () => clearTimeout(timeout)
-  }, [render])
+
 
   
   const [users, setUsers] = useState([]);
@@ -67,9 +62,11 @@ function VideoCall(props) {
     let init = async (name) => {
     
       client.on("user-published", async (user, mediaType) => {
+
         await client.subscribe(user, mediaType);
         console.log("subscribe success");
         if (mediaType === "audio") {
+          start()
           setUsers((prevUsers) => {
             return [...prevUsers, user];
           });
@@ -80,9 +77,7 @@ function VideoCall(props) {
       client.on("user-unpublished", (user, type) => {
         console.log("unpublished", user, type);
         if (type === "audio") {
-          setUsers((prevUsers) => {
-            return prevUsers.filter((User) => User.uid !== user.uid);
-          });
+         
           user.audioTrack?.stop();
         }
        
