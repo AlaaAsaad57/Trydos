@@ -498,7 +498,7 @@ export const AnswerCall=async(channelId)=>{
 export const RefuseCall=async(channelId)=>{
   try{
     store.dispatch({ type: "USER_END_CALL" })
-    await axios.post(CHAT_URL+`/api/v1/channels/${channelId}/refuse_call`,{
+    await axios.post(CHAT_URL+`/api/v1/channels/${channelId}/refuse_call`,{},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
