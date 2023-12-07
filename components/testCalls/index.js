@@ -9,16 +9,30 @@ import {
   ICameraVideoTrack,
   IMicrophoneAudioTrack,
 } from "agora-rtc-react";
-import { SSRDetect } from "../../utils/functions";
+import { SSRDetect, getUserChat } from "../../utils/functions";
+import axios from "axios";
+import { CHAT_URL } from "../../utils/endpointConfig";
 
 const config = { 
   mode: "rtc", codec: "vp8",
 };
 
 const appId = "0af959943ff542df8f2cb1b925ec0cc1"; //ENTER APP ID HERE
-const token = '007eJxTYNA7KOF40qB40y6O+iCWX4IbSpvOehap3IjQU3E8veBn/BEFBoPENEtTS0sT47Q0UxOjlDSLNKPkJMMkSyPT1GSD5GTDdf8KUhsCGRlO7lnHyMgAgSA+M0NSZSoDAwD9Mx+s';
+const getToken=async (channelName)=>{
+  let token
+let data=await axios.post(CHAT_URL+'/api/v1/agora/token',{
+  channel_name:channelName
+},{headers:{
+  Authorization:'Bearer '+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
+}}).then((datas)=>{
+  token=datas.data.data
+  console.log(datas)
+})
 
+return token
+}
 const App = () => {
+  const [token,setToken] = useState('')
   const [inCall, setInCall] = useState(false);
   const [channelName, setChannelName] = useState("");
   return (
@@ -28,7 +42,7 @@ const App = () => {
    <div>
    <h1 className="heading">Agora RTC NG SDK React Wrapper</h1>
    {inCall ? (
-     <VideoCall setInCall={setInCall} channelName={channelName} />
+     <VideoCall token={token} setInCall={setInCall} channelName={channelName} />
    ) : (
      <ChannelForm setInCall={setInCall} setChannelName={setChannelName} />
    )}
@@ -55,6 +69,7 @@ const VideoCall = (props) => {
   useEffect(() => {
     // function to initialise the SDK
     let init = async (name) => {
+    
       client.on("user-published", async (user, mediaType) => {
         await client.subscribe(user, mediaType);
         console.log("subscribe success");
@@ -86,8 +101,9 @@ const VideoCall = (props) => {
           return prevUsers.filter((User) => User.uid !== user.uid);
         });
       });
-
-      await client.join(appId, name, token, null);
+      let token=await getToken(name)
+      console.log(token)
+      await client.join(appId, name, token, getUserChat().id);
       if (tracks) await client.publish([tracks[0], tracks[1]]);
       setStart(true);
 
@@ -103,7 +119,7 @@ const VideoCall = (props) => {
 
   return (
     <div className="App">
-      {ready && tracks && (
+      {ready && tracks &&(
         <Controls tracks={tracks} setStart={setStart} setInCall={setInCall} />
       )}
       {start && tracks && <Videos users={users} tracks={tracks} />}
