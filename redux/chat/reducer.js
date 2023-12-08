@@ -125,6 +125,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
             })
             else{
                 return({
+                    ...state,
                     call: null,
                     callInProgress: false,
                     isCallIncoming: false
@@ -139,6 +140,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
             })
             else{
                 return({
+                    ...state,
                     call: null,
                     callInProgress: false,
                     isCallIncoming: false
