@@ -168,7 +168,8 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
                     activeChat: { ...state.callerChannel },
                     main: 'chat',
                     isCallIncoming: false,
-                    callInProgress: true
+                    callInProgress: true,
+                    AgoraToken:payload
                 })
             } else {
                 return ({
@@ -177,7 +178,8 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
                     activeChat: { ...state.callerChannel },
                     main: 'chat',
                     isCallIncoming: false,
-                    callInProgress: true
+                    callInProgress: true,
+                    AgoraToken:payload
                 })
             }
 
