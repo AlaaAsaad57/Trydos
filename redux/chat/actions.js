@@ -485,7 +485,7 @@ export const makeVoiceCall=async(channelId,callerName,)=>{
 }
 export const AnswerCall=async(channelId)=>{
   try{
-    await axios.get(CHAT_URL+`/api/v1/channels/${channelId}/agora_token`,{
+    await axios.post(CHAT_URL+`/api/v1/channels/${channelId}/agora_token`,{},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
