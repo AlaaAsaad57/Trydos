@@ -450,7 +450,7 @@ export const makeVideoCall=async(channelId)=>{
   try{
     store.dispatch({type:"CALL-LOADING",payload:'video'})
     await axios.post(CHAT_URL+`/api/v1/channels/${channelId}/video_call`,
-    {channel_name:'ch-'+channelId,payload:{channel_name:'ch-'+channelId,user_id:getUserChat().id,type:"video",channelId:channelId}},{
+    {payload:{channel_name:'ch-'+channelId,user_id:getUserChat().id,type:"video",channelId:channelId}},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
@@ -471,7 +471,7 @@ export const makeVoiceCall=async(channelId,callerName,)=>{
   try{
     store.dispatch({type:"CALL-LOADING",payload:'voice'})
     await axios.post(CHAT_URL+`/api/v1/channels/${channelId}/voice_call`,
-    {channel_name:'ch-'+channelId,payload:{channel_name:'ch-'+channelId,user_id:getUserChat().id,type:"audio",channelId:channelId}},{
+    {payload:{channel_name:'ch-'+channelId,user_id:getUserChat().id,type:"audio",channelId:channelId}},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }

@@ -111,7 +111,7 @@ function VideoCall(props) {
 
     if (ready && tracks) {
       console.log("init ready");
-      init('ch-'+activeChat.id);
+      init(activeChat.id);
     }
 console.log(error,ready,tracks)
   }, [ client, ready, tracks,error]);

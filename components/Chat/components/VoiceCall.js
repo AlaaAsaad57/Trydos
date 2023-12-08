@@ -74,7 +74,7 @@ function VideoCall(props) {
       });
 
       client.on("user-left", (user) => {
-        console.log("leaving", user);
+        
         setUsers((prevUsers) => {
           return prevUsers.filter((User) => User.uid !== user.uid);
         });
@@ -90,7 +90,7 @@ function VideoCall(props) {
 
     if (ready && tracks) {
       console.log("init ready");
-      init('ch-'+activeChat.id);
+      init(activeChat.id);
     }
 console.log(error,ready,tracks)
   }, [ client, ready, tracks,error]);
