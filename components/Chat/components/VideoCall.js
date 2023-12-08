@@ -125,6 +125,7 @@ console.log(error,ready,tracks)
     RefuseCall(activeChat.id)
 
     pause()
+    dispatch({type:"END-CALL"})
   }
   const [trackState, setTrackState] = useState({ video: true, audio: true });
   const mute = async (type) => {
@@ -144,7 +145,7 @@ console.log(error,ready,tracks)
   useEffect(()=>{
     if(callInProgress===2){
       userEndCall()
-      dispatch({type:"END-CALL"})
+      
     }
   },[callInProgress])
   return (
