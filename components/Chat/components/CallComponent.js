@@ -47,7 +47,7 @@ function CallComponent(props) {
                 </div>
                 <div className='call-dec'
                     onClick={() => {
-                        RefuseCall()
+                        RefuseCall(callerChannel.id)
                         ref.current.pause();
                         ref.current.currentTime = 0;
                         dispatch({ type: "REFUSE_CALL" })
