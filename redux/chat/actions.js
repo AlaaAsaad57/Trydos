@@ -44,7 +44,12 @@ export const GetChats=async (payload) =>{
       
               });
               channel.bind("RefuseCallEvent",(data)=>{
-                store.dispatch({ type: "USER_END_CALL" })
+                if(store.getState().chat.callInProgress){
+                  store.dispatch({ type: "USER_END_CALL" })
+                }
+                else{
+                  store.dispatch({ type: "END-CALL" })
+                }
               })
               channel.bind("VideoCallEvent",async(data)=>{
                 let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0].channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]
