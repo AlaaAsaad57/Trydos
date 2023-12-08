@@ -61,17 +61,11 @@ export default function Home({stories,res,HomeData}) {
     }
   },[selectedStory])
   const dispatch=useDispatch() 
-  useEffect(()=>{
-    let not = new Audio('/wa.mp3');
-    not.volume = 0.0
-    not.play()
-    let not2 = new Audio('/default.mp3');
-    not2.volume = 0.0
-    not2.play()
-  },[])
   return (
      <div aria-details={language}className='site-container'>
-      <span style={{position:'absolute',fontFamily:"icon-font",opacity:0}}>loading fonts</span>
+      <audio style={{position:'absolute',fontFamily:"icon-font",opacity:0}} muted autoPlay src="/default.mp3">
+        <source src="/default.mp3"/>
+      </audio>
       <ToastContainer/>
         <div aria-details={language}className='home-page-container'>
            <TranslationsMenu/>
