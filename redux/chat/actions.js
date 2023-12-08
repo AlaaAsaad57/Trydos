@@ -506,7 +506,7 @@ export const RefuseCall=async(channelId)=>{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
   }).then(()=>{
-    store.dispatch({ type: "USER_END_CALL" })
+    
   })
 
   }

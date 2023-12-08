@@ -140,6 +140,13 @@ console.log(error,ready,tracks)
       });
     }
   };
+  const callInProgress=useSelector((state)=>state.chat.callInProgress);
+  useEffect(()=>{
+    if(callInProgress===2){
+      userEndCall()
+      dispatch({type:"END-CALL"})
+    }
+  },[callInProgress])
   return (
     <>
       {<div

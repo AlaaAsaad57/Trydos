@@ -118,21 +118,24 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
             return initialState
           }
         case "USER_END_CALL": {
-            RefuseCall(payload)
             return ({
                 ...state,
-                call: null,
-                callInProgress: false,
-                isCallIncoming: false
+                callInProgress: 2,
             })
         }
         case "ME_END_CALL": {
             return ({
                 ...state,
+                callInProgress: 2,
+            })
+        }
+        case 'END-CALL':{
+            return{
+                ...state,
                 call: null,
                 callInProgress: false,
                 isCallIncoming: false
-            })
+            }
         }
         case "VIDEO_CALL": {
             return ({

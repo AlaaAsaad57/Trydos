@@ -32,14 +32,9 @@ function VideoCall(props) {
 
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
   useStopwatch({ autoStart: false });
-  const dispatch = useDispatch()
   const activeChat = useSelector(state => state.chat.activeChat)
 
   const user = JSON.parse(localStorage.getItem("USER-CHAT"))
-  const [render, setRender] = useState(false)
-
-
-  
   const [users, setUsers] = useState([]);
   const [startIndicator, setStart] = useState(false);
   const client = useClient(config);
@@ -113,6 +108,13 @@ console.log(error,ready,tracks)
       });
     } 
   };
+  const callInProgress=useSelector((state)=>state.chat.callInProgress);
+  useEffect(()=>{
+    if(callInProgress===2){
+      userEndCall()
+      dispatch({type:"END-CALL"})
+    }
+  },[callInProgress])
   return (
     <>
       {<div
