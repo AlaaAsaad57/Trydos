@@ -502,11 +502,16 @@ color: #388CFF;
     position: fixed;
     top: 100px;
     right: 474px;
+    left: initial;
     display: flex;
     flex-direction: column;
     z-index: 9999;
     align-items: center;
     justify-content: flex-start;
+}
+.new-chats[aria-label='ar']{
+    left: 474px;
+    right: initial;
 }
 .new-chat{
     display: flex;

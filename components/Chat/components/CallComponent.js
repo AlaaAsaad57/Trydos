@@ -36,7 +36,7 @@ function CallComponent(props) {
                         ref.current.pause();
                         ref.current.currentTime = 0; 
                         setTimeout(() => {
-                        AnswerCall(callerChannel)
+                        AnswerCall(callerChannel.id)
                         props.reply()
                         }, 200);
                     }}>

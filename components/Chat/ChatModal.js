@@ -4,7 +4,6 @@ import Chat from "./index"
 import { useDispatch, useSelector } from 'react-redux'
 import { ChatConroller } from '../../redux/chat/actions'
 import { requestFirebaseNotificationPermission } from '../../utils/firebaseInitv1'
-import { store } from '../../redux/store'
 import { SSRDetect, getUserChat } from '../../utils/functions'
 import { StoreToken } from '../../redux/auth/actions'
 function ChatModal() {
