@@ -33,7 +33,7 @@ function VideoCall(props) {
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
   useStopwatch({ autoStart: false });
   const activeChat = useSelector(state => state.chat.activeChat)
-
+  const dispatch=useDispatch()
   const user = JSON.parse(localStorage.getItem("USER-CHAT"))
   const [users, setUsers] = useState([]);
   const [startIndicator, setStart] = useState(false);
