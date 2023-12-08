@@ -8,6 +8,10 @@
 * {
     box-sizing: border-box;
 }
+@font-face {
+    font-family:'icon-font' ;
+    src: url("/fonts/NotoColorEmoji-Regular.ttf");
+}
 body{
     background: none !important;
 }

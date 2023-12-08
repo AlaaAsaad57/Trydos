@@ -15,10 +15,6 @@
     src: url("/fonts/FontsFree-Net-SF-Pro-Rounded-Semibold.ttf");
 }
 @font-face {
-    font-family:'icon-font' ;
-    src: url("/fonts/NotoColorEmoji-Regular.ttf");
-}
-@font-face {
     font-family:'quicksand' ;
     src: url("/fonts/Quicksand-Regular.ttf");
 }
