@@ -459,7 +459,7 @@ export const makeVideoCall=async(channelId)=>{
       }
   }).then((data)=>{
     console.log(data)
-    store.dispatch({type:"VIDEO_CALL",payload:data.data.data})
+    store.dispatch({type:"VIDEO_CALL",payload:data.data.data,source:'outcoming'})
     store.dispatch({type:"CALL-LOADING",payload:null})
   })
   
@@ -479,7 +479,7 @@ export const makeVoiceCall=async(channelId,callerName,)=>{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
   }).then((data)=>{
-    store.dispatch({ type: "AUDIO_CALL",payload:data.data.data })
+    store.dispatch({ type: "AUDIO_CALL",payload:data.data.data,source:'outcoming' })
     store.dispatch({type:"CALL-LOADING",payload:null})
   })
   

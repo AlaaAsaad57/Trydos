@@ -69,11 +69,11 @@ function VideoCall(props) {
       });
 
       client.on("user-left", (user) => {
-        
+        userEndCall()
         setUsers((prevUsers) => {
           return prevUsers.filter((User) => User.uid !== user.uid);
         });
-        userEndCall()
+       
       });
       let token=props.token
      
@@ -121,7 +121,10 @@ console.log(error,ready,tracks)
       {<div
         className='video-call'
       >
-        
+         {props.audio&&!users.length>0&&
+         <audio onLoadStart={(e)=>{e.target.volume=0.2}}   loop autoPlay src={'/default.mp3'}>
+         <source src={'/default.mp3'}></source>
+     </audio>}
         {
        
         

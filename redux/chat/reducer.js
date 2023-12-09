@@ -79,7 +79,7 @@ const showDate = (d) => {
     else
     return (language==='ar'?d.toLocaleString('ar-EG'):d)
 }
-export const ChatReducer = (state = initialState, { type, payload ,param}) => {
+export const ChatReducer = (state = initialState, { type, payload ,param,source}) => {
     switch (type) {
         case "CALL-LOADING":{
             return({
@@ -158,7 +158,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
         case "VIDEO_CALL": {
             return ({
                 ...state,
-                call: "vid",
+                call: "vid-outgoing",
                 callInProgress: true,
                 AgoraToken:payload
             })
@@ -166,7 +166,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
         case "AUDIO_CALL": {
             return ({
                 ...state,
-                call: "aud",
+                call: "aud-outgoing",
                 callInProgress: true,
                 AgoraToken:payload
             })
@@ -185,7 +185,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
             if (state.incomeCallType === "audio") {
                 return ({
                     ...state,
-                    call: "aud",
+                    call: "aud-incoming",
                     activeChat: { ...state.callerChannel },
                     main: 'chat',
                     isCallIncoming: false,
@@ -195,7 +195,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param}) => {
             } else {
                 return ({
                     ...state,
-                    call: "vid",
+                    call: "vid-incoming",
                     activeChat: { ...state.callerChannel },
                     main: 'chat',
                     isCallIncoming: false,

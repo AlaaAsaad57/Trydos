@@ -28,8 +28,6 @@ const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
 
 const appId = "0af959943ff542df8f2cb1b925ec0cc1"; 
 function VideoCall(props) {
-
-
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
   useStopwatch({ autoStart: false });
   const dispatch = useDispatch()
@@ -67,15 +65,16 @@ function VideoCall(props) {
     let init = async (name) => {
       client.on('user-joined',(user)=>{
         start()
+        setUsers((prevUsers) => {
+          return [...prevUsers, user];
+        });
       })
       client.on("user-published", async (user, mediaType) => {
         await client.subscribe(user, mediaType);
         console.log("subscribe success");
         if (mediaType === "video") {
           start()
-          setUsers((prevUsers) => {
-            return [...prevUsers, user];
-          });
+          
         }
         if (mediaType === "audio") {
           user.audioTrack?.play();
@@ -88,18 +87,17 @@ function VideoCall(props) {
           user.audioTrack?.stop();
         }
         if (type === "video") {
-          setUsers((prevUsers) => {
-            return prevUsers.filter((User) => User.uid !== user.uid);
-          });
+          
         }
       });
 
       client.on("user-left", (user) => {
+        userEndCall()
         console.log("leaving", user);
         setUsers((prevUsers) => {
           return prevUsers.filter((User) => User.uid !== user.uid);
         });
-        userEndCall()
+        
       });
       let token=props.token
       
@@ -153,6 +151,10 @@ console.log(error,ready,tracks)
       {<div
         className='video-call'
       >
+        {props.audio&&!users.length>0&&
+         <audio onLoadStart={(e)=>{e.target.volume=0.2}}   loop autoPlay src={'/default.mp3'}>
+         <source src={'/default.mp3'}></source>
+     </audio>}
         
         {
        
@@ -201,7 +203,7 @@ console.log(error,ready,tracks)
           <LeftArrowIcon></LeftArrowIcon>
         </div>
         <div className='add-caller-icon'>
-          <AddUserIcon></AddUserIcon>
+      {tracks&&tracks.length>1&&tracks[1]&&  <AgoraVideoPlayer className='local-video-stream'  videoTrack={tracks[1]} />}
         </div>
         <div className={'toggle-mic ' +( trackState.audio&&"active-mic-svg")} onClick={()=>mute("audio")}><MicIcon></MicIcon></div>
         <div className={'toggle-vid '+ (trackState.video&&"active-mic-svg")} onClick={()=>mute("video")}><VideoIcon></VideoIcon></div>
