@@ -122,7 +122,7 @@ console.log(error,ready,tracks)
         className='video-call'
       >
          {props.audio&&!users.length>0&&
-         <audio onLoadStart={(e)=>{e.target.volume=0.2}}   loop autoPlay src={'/default.mp3'}>
+         <audio onLoad={(e)=>{e.target.volume=0.2}} onPlay={(e)=>{e.target.volume=0.2}} onLoadStart={(e)=>{e.target.volume=0.2}}   loop autoPlay src={'/default.mp3'}>
          <source src={'/default.mp3'}></source>
      </audio>}
         {
