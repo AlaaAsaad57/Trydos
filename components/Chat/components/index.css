@@ -230,8 +230,8 @@
 .add-caller-icon{
     position: absolute;
     z-index: 9;
-    right: 20px;
-    top: 13px;
+    right: 10px;
+    top: 15px;
     display: flex;
 }
 .cancel-call-icon{
