@@ -20,6 +20,7 @@
     "external-svg-loader": "^1.6.9",
     "file-loader": "^6.2.0",
     "firebase": "^10.5.2",
+    "js-cookie": "^3.0.5",
     "next": "13.4.12",
     "next-svgr": "^0.0.2",
     "postcss": "8.4.27",

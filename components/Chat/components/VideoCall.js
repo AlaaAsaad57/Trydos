@@ -18,7 +18,7 @@ import { RefuseCall } from '../../../redux/chat/actions';
 import { getTwoLetters } from '../chatsFunctions';
 import axios from 'axios';
 import { CHAT_URL } from '../../../utils/endpointConfig';
-import { getUserChat } from '../../../utils/functions';
+import { getUserChat, translate } from '../../../utils/functions';
 const config = { 
   mode: "rtc", codec: "vp8",
 };
@@ -30,19 +30,26 @@ const appId = "0af959943ff542df8f2cb1b925ec0cc1";
 function VideoCall(props) {
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
   useStopwatch({ autoStart: false });
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
+  const [callStatus,setCallStatus]=useState(null)
   const activeChat = useSelector(state => state.chat.activeChat)
-
-  const user = JSON.parse(localStorage.getItem("USER-CHAT"))
-  const [render, setRender] = useState(false)
   // React.useEffect(() => {
   //   const timeout = setTimeout(() => {
   //     setRender(!render)
   //   }, 2000)
   //   return () => clearTimeout(timeout)
   // }, [render])
-
-  
+  const language=useSelector((state)=>state.homepage.language)
+  useEffect(()=>{
+    setTimeout(()=>{
+      if(users.length===0){
+        setCallStatus(translate('No Answer',language))
+        setTimeout(() => {
+          userEndCall()
+        }, 2000);
+      }
+    },30000)
+  },[])
   const [users, setUsers] = useState([]);
   const [startIndicator, setStart] = useState(false);
   const client = useClient(config);
@@ -117,8 +124,9 @@ console.log(error,ready,tracks)
     await client.leave();
     client.removeAllListeners();
     // we close the tracks to perform cleanup
+    if(tracks){
     tracks[0].close();
-    tracks[1].close();
+    tracks[1].close();}
     setStart(false);
     RefuseCall(activeChat.id)
 
@@ -142,7 +150,11 @@ console.log(error,ready,tracks)
   const callInProgress=useSelector((state)=>state.chat.callInProgress);
   useEffect(()=>{
     if(callInProgress===2){
-      userEndCall()
+      setCallStatus(translate('User declined',language))
+      setTimeout(() => {
+        userEndCall()
+      }, 2000);
+   
       
     }
   },[callInProgress])
@@ -151,7 +163,7 @@ console.log(error,ready,tracks)
       {<div
         className='video-call'
       >
-        {props.audio&&!users.length>0&&
+        {props.audio&&!users.length>0&&!callStatus&&
          <audio onLoad={(e)=>{e.target.volume=0.2}} onPlay={(e)=>{e.target.volume=0.2}} onLoadStart={(e)=>{e.target.volume=0.2}}   loop autoPlay src={'/default.mp3'}>
          <source src={'/default.mp3'}></source>
      </audio>}
@@ -197,7 +209,7 @@ console.log(error,ready,tracks)
           className="end-icon"
           onClick={() => {userEndCall(); RefuseCall(activeChat.id)}}>
           <EndCallIcon ></EndCallIcon>
-          <span>End Call</span>
+          <span>{translate("End Call",language)}</span>
         </div>
         <div className='cancel-call-icon' onClick={() => {userEndCall(); RefuseCall(activeChat.id)}}>
           <LeftArrowIcon></LeftArrowIcon>
@@ -207,9 +219,9 @@ console.log(error,ready,tracks)
         </div>
         <div className={'toggle-mic ' +( trackState.audio&&"active-mic-svg")} onClick={()=>mute("audio")}><MicIcon></MicIcon></div>
         <div className={'toggle-vid '+ (trackState.video&&"active-mic-svg")} onClick={()=>mute("video")}><VideoIcon></VideoIcon></div>
-        {ready&&!tracks[1]&&<div className='call-status'>
+        {ready&&users.length===0&&<div className='call-status'>
          {isRunning?<CallIcon></CallIcon>: <CallingIcon></CallingIcon>}
-         {isRunning?<span>{minutes>9?minutes:'0'+minutes}:{seconds>9?seconds:'0'+seconds}</span>:<span>Calling ...</span>}
+         {callStatus?<span>{callStatus}</span>:isRunning?<span>{minutes>9?minutes:'0'+minutes}:{seconds>9?seconds:'0'+seconds}</span>:<span>{translate("Calling ...",language)}</span>}
         </div>}
       </div>}
     </>

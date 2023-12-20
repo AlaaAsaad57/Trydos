@@ -2,10 +2,11 @@
 
 import { GET_USERS_STORIES, HOME_DATA_URL, OTP_URL, STORIES_URL } from "../../utils/endpointConfig"
 import { GeneralCahcedHeader, getStoriesHeaders } from "../../utils/functions"
+import Cookies from "js-cookie"
 
 export const getStories=async()=>{
     try{
-      const res = await fetch(STORIES_URL+GET_USERS_STORIES,{next:{revalidate:1}})
+      const res = await fetch(STORIES_URL+GET_USERS_STORIES,{next:{revalidate:1},headers:DataApiHeaders()},)
       const repo = await res.json()
     
       return repo.data.data
@@ -19,11 +20,16 @@ export const getStories=async()=>{
     try{
       // const resSetting = await fetch(OTP_URL+STARTER_SETTINGS,GeneralCahcedHeader('starter-setting'))
       // const repoSetting = await resSetting.json()
-      const res = await fetch(OTP_URL+HOME_DATA_URL, {next:{revalidate:1}})
-      const repo = await res.json()
+      const res = await fetch(OTP_URL+HOME_DATA_URL,{next:{revalidate:1},
+         headers: DataApiHeaders()})
+     
+      const repo = await res.json();
       return  repo.data||{}
     }catch(e){
       console.log(e)
   return {}
     }
+  }
+  export const DataApiHeaders=()=>{
+    return { language:Cookies.get('language'),country:Cookies.get('country') }
   }

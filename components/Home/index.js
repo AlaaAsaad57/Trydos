@@ -4,7 +4,7 @@ import Navbar from '../../components/Home/Navbar'
 import { useDispatch, useSelector } from "react-redux";
 import TranslationsMenu from "../../components/global/TranslationsMenu";
 import { useEffect } from "react";
-import { GetMainData, GetStoryData, RegisterDevice } from "../../redux/homepage/actions";
+import { GetMainData, GetStoryData, RegisterDevice, changeAppLanguage } from "../../redux/homepage/actions";
 import Stories from "./Stories/index"
 import CategoriesBar from "./CategoriesBar";
 import BrandsBar from "./Bars/BrandsBar"
@@ -20,11 +20,15 @@ import  "react-toastify/dist/ReactToastify.min.css";
 import "react-toastify/dist/ReactToastify.css"
 import { onMessageListener, requestFirebaseNotificationPermission } from "../../utils/firebaseInitv1";
 import { getUserChat } from "../../utils/functions";
+import Cookies from "js-cookie"
 export default function Home({stories,res,HomeData}) {
   
   const language=useSelector((state)=>state.homepage.language)
   const fbtoken=useSelector((state)=>state.homepage.fbtokfbTokenen)
   useEffect(()=>{ 
+    let languageCookies=Cookies.get("language");
+    
+    dispatch(changeAppLanguage(languageCookies||language||'en'))
     dispatch(GetStoryData(stories))
     dispatch(GetMainData(HomeData))
     setTimeout(()=>{

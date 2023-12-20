@@ -1,6 +1,8 @@
 export const translations={
     "en":{
         "Brands":"Brands",
+        "No Answer":"No Answer",
+        "Calling ...":"Calling ...",
         "Best Offers From Brands":"Best Offers From Brands",
         'Man':"Man",
         "failed to send otp code please try again":"Failed to send otp code please try again",
@@ -82,13 +84,17 @@ export const translations={
         "Audio":"Audio",
         "Incoming Voice Call..":"Incoming Voice Call..",
         "Incoming Video Call..":"Incoming Video Call..",
-        "Calling":"Calling ..."
-
-
+        "Calling":"Calling ...",
+        "End Call":"End Call",
+        "User declined":"User declined"
     },
 
     "ar":{
         'Man':"رجال",
+        "No Answer":"لا استجابة",
+        "User declined":"تم انهاء المكالمة",
+        "Calling ...":"جاري الاتصال...",
+        "End Call":"انهاء المكالمة",
         "Contacts List":"جهات الاتصال",
         "Search, Chat, Contact, Start New Chat":"ابحث عن دردشة ,جهة اتصال,أو ابدأ محادثة جديدة",
         "Sale":"تخفيض",
