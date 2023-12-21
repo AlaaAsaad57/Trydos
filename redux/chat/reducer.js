@@ -159,10 +159,12 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
         case "VIDEO_CALL": {
             return ({
                 ...state,
-                activeChat:{...state.activeChat,id:source.id},
+                activeChat:{...state.activeChat,id:source.channel.id},
                 call: "vid-outgoing",
                 callInProgress: true,
-                AgoraToken:payload
+                AgoraToken:payload,
+                MessageActiveCall:source.id,
+                MessageActiveCall:null
             })
         }
         case "AUDIO_CALL": {
@@ -170,8 +172,9 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
                 ...state,
                 call: "aud-outgoing",
                 callInProgress: true,
-                activeChat:{...state.activeChat,id:source.id},
-                AgoraToken:payload
+                activeChat:{...state.activeChat,id:source.channel.id},
+                AgoraToken:payload,
+                MessageActiveCall:source.id
             })
         }
         case "REFUSE_CALL": {
@@ -181,7 +184,8 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
                 isCallIncoming: false,
                 incomeCallData: null,
                 caller: null,
-                callerChannel: null
+                callerChannel: null,
+                MessageActiveCall:null
             })
         }
         case "ANSWER_CALL": {
