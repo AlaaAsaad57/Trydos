@@ -464,7 +464,7 @@ export const makeVideoCall=async(channelId,callerName,callerPhoto)=>{
   })  
   }
   catch(e){
-
+    console.error(e)
   }
 }
 export const makeVoiceCall=async(channelId,callerName,callerPhoto)=>{
@@ -483,7 +483,7 @@ export const makeVoiceCall=async(channelId,callerName,callerPhoto)=>{
   
   }
   catch(e){
-
+    console.error(e)
   }
 }
 export const AnswerCall=async(channelId,messageId)=>{
