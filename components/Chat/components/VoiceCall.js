@@ -87,9 +87,8 @@ function VideoCall(props) {
         });
        
       });
-      let token=props.token
-     
-      await client.join(appId, name, token, getUserChat().id);
+      let token=props.token;
+      await client.join(appId, name.toString(), token, getUserChat().id);
       if (tracks) await client.publish([tracks[0]]);
       setStart(true);
 

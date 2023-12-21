@@ -736,7 +736,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
        {DetailsVar&& <ChatInfo cancel={()=>openDetails(false)} activeChat={activeChat}/>}
         <ChatHeader openDetails={()=>openDetails(true)} chats={chats} activeChat={activeChat}/>
         <div className="chat-message-container">
-         {!(active?.id?.includes('ch'))&& <Observable loading={loading} getNext={()=>{
+         {!(typeof active?.id ==='string'&&active?.id?.includes('ch'))&& <Observable loading={loading} getNext={()=>{
             if(loading&&active?.id&&active.messages[0])
             getPage(active.id,active.messages[0].id)
             dispatch({type:"GET_CHAT_PAGE",channel:active.id,mid:active.messages[0].id,payload:active.messages[0]?.id})
