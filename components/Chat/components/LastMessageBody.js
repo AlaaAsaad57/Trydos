@@ -44,6 +44,20 @@ function LastMessageBody({message,status}) {
                  {translate('File',language)}
                 </>) 
         }
+        if(message.message_type.name==="VoiceCall"){
+            return(
+                <>
+               
+                 {translate('Voice Call',language)}
+                </>) 
+        }
+        if(message.message_type.name==="VideoCall"){
+            return(
+                <>
+               
+                 {translate('Video Call',language)}
+                </>) 
+        }
     }
   return (
     <div className={`last-message-body ${message.message_type.name!=="TextMessage"&&'inline-flex'}`} style={{maxHeight:status?"15px":"40px"}}>

@@ -84,6 +84,8 @@ export const translations={
         "Audio":"Audio",
         "Incoming Voice Call..":"Incoming Voice Call..",
         "Incoming Video Call..":"Incoming Video Call..",
+        "Voice Call":"Voice Call",
+        "Video Call":"Video Call",
         "Calling":"Calling ...",
         "End Call":"End Call",
         "User declined":"User declined"
@@ -92,6 +94,8 @@ export const translations={
     "ar":{
         'Man':"رجال",
         "No Answer":"لا استجابة",
+        "Voice Call":"مكالمة صوتية",
+        "Video Call":"مكالمة فيديو",
         "User declined":"تم انهاء المكالمة",
         "Calling ...":"جاري الاتصال...",
         "End Call":"انهاء المكالمة",
