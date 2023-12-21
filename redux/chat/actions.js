@@ -472,7 +472,7 @@ export const makeVoiceCall=async(channelId,callerName,callerPhoto)=>{
     let obj=channelId.includes('ch')?{reciver_user_id:channelId.split('ch-')[0]}:{channel_id:channelId}
     store.dispatch({type:"CALL-LOADING",payload:'voice'})
     await axios.post(CHAT_URL+`/api/v1/messages/voice_call`,
-    {...obj,payload:{channel_name:'ch-'+channelId,user_id:getUserChat().id,type:"audio",channelId:channelId,callerName,callerPhoto}},{
+    {...obj,payload:{channel_name:'ch-'+channelId,user_id:getUserChat().id,type:"audio",channelId:channelId,name:callerName,photo:callerPhoto}},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
@@ -504,7 +504,7 @@ export const AnswerCall=async(channelId,messageId)=>{
 }
 export const RefuseCall=async(channelId,messageId)=>{
   try{
-    let obj=channelId.includes('ch')?{reciver_user_id:channelId.split('ch-')[0]}:{channel_id:channelId}
+    let obj=typeof channelId ==="string"&& channelId.includes('ch')?{reciver_user_id:channelId.split('ch-')[0]}:{channel_id:channelId}
 
     store.dispatch({ type: "USER_END_CALL" })
     await axios.post(CHAT_URL+`/api/v1/messages/refuse_call/${messageId}`,{...obj},{
@@ -517,12 +517,12 @@ export const RefuseCall=async(channelId,messageId)=>{
 
   }
   catch(e){
-
+console.error(e)
   }
 }
 export const Answer=async(channelId,messageId)=>{
   try{
-    let obj=channelId.includes('ch')?{reciver_user_id:channelId.split('ch-')[0]}:{channel_id:channelId}
+    let obj=typeof channelId ==="string"&&channelId.includes('ch')?{reciver_user_id:channelId.split('ch-')[0]}:{channel_id:channelId}
     store.dispatch({ type: "USER_END_CALL" })
     await axios.post(CHAT_URL+`/api/v1/messages/answer_call/${messageId}`,{...obj},{
       headers:{
