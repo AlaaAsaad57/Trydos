@@ -9,6 +9,7 @@ import RecordIcon from "../svg/record.svg";
 import RedRecord from "../svg/recordme.svg";
 import ForwardIcon from "../svg/forwarded.svg";
 import MissedIcon from "../svg/misscall.svg";
+import VideoIconMissed from "../svg/VideoMissed.svg";
 import profile from "../../../public/images/profileNo.png"
 import { useDispatch, useSelector } from "react-redux";
 import OptionsMenu from "./OptionsMenu";
@@ -19,13 +20,14 @@ import DownIcon from '../svg/down.svg'
 import fil from '../svg/output.png'
 
 import Spinner from "../../global/Spinner";
-import { SSRDetect, getUserChat } from "../../../utils/functions";
+import { SSRDetect, getUserChat, translate } from "../../../utils/functions";
 import Image from "next/image";
 function ChatMessage(props) {
   const {setImg,setVid}=props
   const message_ref=useRef()
   const [width, setWidth] = useState(0);
   const [opens, setOpen] = React.useState(false);
+  const language=useSelector((state)=>state.homepage.language)
   const refmessage = useRef()
   const AudioRef = useRef()
   const activeChat = useSelector((state) => state.chat.activeChat)
@@ -489,6 +491,50 @@ const copyText=()=>{
                 </div>
                 )
       }
+      if (props.message.message_type.name=== "VideoCall"||props.message.message_type.name===("VoiceCall")) {
+        return (
+          <div className="call-body">
+            {(props.type === "first-chat" || props.type === "lonely") && (
+                <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name&& 'text-avatar'}`}>
+                {activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.photo_path?.includes('eu') ?
+                activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name?
+                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                 :
+                 <Image  alt="user-img" src={profile} width={30} height={30}/>
+                 :
+                 activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.name?
+                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                 :
+                 activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.photo_path?
+                    <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path))} />
+                  : <Image alt="user-img" src={profile} width={30} height={30}/>
+                  }
+
+              </div>
+            )}
+           {props.message.message_type.name===("VoiceCall")? <MissedIcon ></MissedIcon>:<VideoIconMissed/> }
+            <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name&& 'text-avatar'}`}>
+                  {activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.photo_path?.includes('eu') ?
+                  activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name?
+                   <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                   :
+                   <Image alt="user-img" src={profile} width={30} height={30}/>
+                   :
+                   activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.name?
+                   <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                   :
+                   activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.photo_path?
+                      <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path))} />
+                    : <Image alt="user-img" src={profile} width={30} height={30}/>
+                    }
+
+                </div>
+            <div className="missed-body">
+              {translate('Missed  Call At',language)} {getMessageTime(props.message.created_at,true)}
+            </div>
+          </div>
+        );
+      }
     }
     else {
       if (props.message.message_type.name === "ImageMessage") {
@@ -754,46 +800,46 @@ const copyText=()=>{
           </div>
         );
       }
-      if (props.message.message_type.name === "call") {
+      if (props.message.message_type.name===("VideoCall")||props.message.message_type.name===("VoiceCall")) {
         return (
           <div className="call-body">
             {(props.type === "first-chat" || props.type === "lonely") && (
-                <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name&& 'text-avatar'}`}>
-                {activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.photo_path?.includes('eu') ?
-                activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name?
-                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name&& 'text-avatar'}`}>
+                {activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.photo_path?.includes('eu') ?
+                activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name?
+                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.user_name)}</>
                  :
                  <Image  alt="user-img" src={profile} width={30} height={30}/>
                  :
-                 activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.name?
-                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                 activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.name?
+                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id)!== parseInt(getUserChat().id))[0]?.user?.user_name)}</>
                  :
-                 activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.photo_path?
-                    <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path))} />
+                 activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.photo_path?
+                    <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.photo_path))} />
                   : <Image alt="user-img" src={profile} width={30} height={30}/>
                   }
 
               </div>
             )}
-            <MissedIcon ></MissedIcon> 
-            <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name&& 'text-avatar'}`}>
-                  {activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.photo_path?.includes('eu') ?
-                  activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name?
-                   <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+            {props.message.message_type.name===("VoiceCall")? <MissedIcon ></MissedIcon>:<VideoIconMissed/> }
+            <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name&& 'text-avatar'}`}>
+                  {activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.photo_path?.includes('eu') ?
+                  activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name?
+                   <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.user_name)}</>
                    :
                    <Image alt="user-img" src={profile} width={30} height={30}/>
                    :
-                   activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.name?
-                   <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                   activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.name?
+                   <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id)!== parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.user_name)}</>
                    :
-                   activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.photo_path?
-                      <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path))} />
+                   activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.photo_path?
+                      <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.photo_path))} />
                     : <Image alt="user-img" src={profile} width={30} height={30}/>
                     }
 
                 </div>
             <div className="missed-body">
-              Missed Call At {props.message.sent}
+            {translate('Missed  Call At',language)} {getMessageTime(props.message.created_at,true)}
             </div>
           </div>
         );
@@ -910,13 +956,13 @@ useEffect(() => {
     })
 }, [])
   return (<>
-    {props.message.message_content && <div id={`main-container-${props.message.id}`} style={{marginTop:message_ref.current&&`${message_ref.current.clientHeight*0.84}px`}}
+    {props.message && <div id={`main-container-${props.message.id}`} style={{marginTop:message_ref.current&&`${message_ref.current.clientHeight*0.84}px`}}
       className={
         "message-container message-element" +
         ` ${props.marg &&!props.message.parent_message&& "mt25"} ${parseInt(props.message.sender_user_id) ===
         parseInt(getUserChat().id) &&
         "self-align"
-        } ${props.message.message_type.name === "call" && "center-align"}`
+        } ${(props.message.message_type.name === "VideoCall" ||props.message.message_type.name===("VoiceCall")) && "center-align"}`
       }
     >
       {showMessage()}

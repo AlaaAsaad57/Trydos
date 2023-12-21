@@ -109,7 +109,7 @@ export const forwardMessage = (m, activeChat) => {
         message_type: "TextMessage",
         mid: i,
         cid: activeChat?.id,
-      },false)
+      },activeChat?.id?i:false)
       store.dispatch({
         type: "SEND-MESSAGE",
         payload: {
@@ -143,6 +143,7 @@ export const forwardMessage = (m, activeChat) => {
             is_forward: 1,
             cid: activeChat?.id,
           },
+          isNew:activeChat?.id?i:false
         },
       });
       store.dispatch({ type: "FORWARD-MESSAGEs", payload: null })
@@ -166,7 +167,7 @@ export const forwardMessage = (m, activeChat) => {
         content: [{ file_path: m.message_content[0].file_path, caption: "" }],
         parent_message_id: null,
         message_type: "ImageMessage",
-      },false)
+      },activeChat?.id?i:false)
       store.dispatch({
         type: "SEND-MESSAGE",
         payload: {
@@ -200,6 +201,7 @@ export const forwardMessage = (m, activeChat) => {
             message_content: [{ file_path: m.message_content[0].file_path, caption: "" }],
             cid: activeChat?.id,
           },
+          isNew:activeChat?.id?i:false
         },
       });
       store.dispatch({ type: "FORWARD-MESSAGEs", payload: null })
@@ -223,7 +225,7 @@ export const forwardMessage = (m, activeChat) => {
       content: [{ file_path: m.message_content[0].file_path, caption: "" }],
       parent_message_id: null,
       message_type: "VoiceMessage",
-    },false)
+    },activeChat?.id?i:false)
       store.dispatch({
         type: "SEND-MESSAGE",
         payload: {
@@ -259,6 +261,7 @@ export const forwardMessage = (m, activeChat) => {
             message_content: [{ file_path: m.message_content[0].file_path, caption: "" }],
             cid: activeChat?.id,
           },
+          isNew:activeChat?.id?i:false
         },
       });
       store.dispatch({ type: "FORWARD-MESSAGEs", payload: null })
@@ -282,7 +285,7 @@ export const forwardMessage = (m, activeChat) => {
       content: [{ file_path: m.message_content[0].file_path, caption: "" }],
       parent_message_id: null,
       message_type: "VideoMessage",
-    },false)
+    },activeChat?.id?i:false)
       store.dispatch({
         type: "SEND-MESSAGE",
         payload: {
@@ -317,6 +320,7 @@ export const forwardMessage = (m, activeChat) => {
             message_content: [{ file_path: m.message_content[0].file_path, caption: "" }],
             cid: activeChat?.id,
           },
+          isNew:activeChat?.id?i:false
         },
       });
       store.dispatch({ type: "FORWARD-MESSAGEs", payload: null })
@@ -340,7 +344,7 @@ export const forwardMessage = (m, activeChat) => {
         content: [{ file_path: m.message_content[0].file_path, caption: "" }],
         parent_message_id: null,
         message_type: "FileMessage",
-      },false)
+      },activeChat?.id?i:false)
       store.dispatch({
         type: "SEND-MESSAGE",
         payload: {
@@ -374,6 +378,7 @@ export const forwardMessage = (m, activeChat) => {
             message_content: [{ file_path: m.message_content[0].file_path, caption: "" }],
             cid: activeChat?.id,
           },
+          isNew:activeChat?.id?i:false
         },
       });
       store.dispatch({ type: "FORWARD-MESSAGEs", payload: null })

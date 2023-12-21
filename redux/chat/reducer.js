@@ -23,6 +23,7 @@ import { store } from "../store";
 const initialState = {
     chatVar:false,
     data: [],
+    MessageActiveCall:null,
     activeChat: null,
     main: "main",
     loading: true,
@@ -158,6 +159,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
         case "VIDEO_CALL": {
             return ({
                 ...state,
+                activeChat:{...state.activeChat,id:source.id},
                 call: "vid-outgoing",
                 callInProgress: true,
                 AgoraToken:payload
@@ -168,6 +170,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
                 ...state,
                 call: "aud-outgoing",
                 callInProgress: true,
+                activeChat:{...state.activeChat,id:source.id},
                 AgoraToken:payload
             })
         }
@@ -210,6 +213,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
                 return ({
                     ...state,
                     isCallIncoming: true,
+                    MessageActiveCall:payload.message_id,
                     incomeCallData: payload,
                     caller: payload.caller,
                     callerChannel: payload.callerChannel,
@@ -223,6 +227,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
                     ...state,
                     isCallIncoming: true,
                     incomeCallData: payload,
+                    MessageActiveCall:payload.message_id,
                     caller: payload.caller,
                     callerChannel: payload.callerChannel,
                     incomeCallType: "video"
@@ -273,8 +278,8 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
         case "SEND_MES_RED_NEW": {
             return ({
                 ...state,
-                activeChat: payload.channel,
-                data: [payload.channel, ...state.data],
+                activeChat: state.activeChat.id===payload.channel.mid?{...state.activeChat,...payload.channel}:state.activeChat,
+                data: [{...state.data.filter((c)=>c.id===payload.channel.mid)[0],...payload.channel}, ...state.data.filter((c)=>c.id!==payload.channel.mid)],
                 main: "chat",
                 ref: !state.ref
             })
@@ -479,7 +484,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
             })
         }
         case "OPEN-CHAT": {
-            if (payload && payload.id) {
+            if (payload && payload.id&&!payload.id?.includes('ch')) {
                 let s = state.newChats.filter((a) => a.id !== payload.id)
                 return ({
                     ...state,
@@ -503,28 +508,40 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
             let ac = payload.act;
             
             let chat = state.data
+            let arr = []
+            if(payload.isNew){
+                console.log('new')
+                    arr.push({...payload.act,messages:[...ac.messages,payload.message]})
+                   arr=[...arr,...chat];
+                return ({
+                    ...state,
+                    data: arr,
+                    activeChat:state.activeChat&& (state.activeChat?.id) === (ac.id)
+                    ? arr.filter((t) => (t.id === state.activeChat?.id))[0]
+                     : state.activeChat,
+                    ref: !state.ref,
+                    refs: !state.refs,
+                    replyMessage:null
+    
+                })
+            }
+            else{
             chat.map((a) => {
                 if (parseInt(a.id) === parseInt(ac.id) && a.messages.filter((m)=>m.id&&(parseInt(m?.id)===parseInt(payload.message?.id))).length===0) {
                     a.messages.push(payload.message)
                 }
             })
-            let arr = []
+          
             chat.map((a) => {
                 if (parseInt(a.id) === parseInt(ac.id)) {
                     arr.push(a)
                 }
             })
-            if(!ac.id){
-                arr.push({...payload.act,messages:[...payload.act.messages.filter((m)=>parseInt(m?.id)!==parseInt(payload.message?.id)),payload.message]})
-            }
             chat.map((a) => {
                 if (parseInt(a.id) !== parseInt(ac.id)) {
                     arr.push(a)
                 }
             })
-            (parseInt(state.activeChat?.id) === parseInt(ac.id)
-            ? arr.filter((t) => (parseInt(t.id) === parseInt(state.activeChat?.id)) || (t.mid === state.activeChat?.mid))[0]
-             : state.activeChat,arr,parseInt(state.activeChat?.id),ac.id);
             return ({
                 ...state,
                 data: arr,
@@ -535,7 +552,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
                 refs: !state.refs,
                 replyMessage:null
 
-            })
+            })}
         }
         case "SEND_MES_RED": {
             let ac = payload.cid;

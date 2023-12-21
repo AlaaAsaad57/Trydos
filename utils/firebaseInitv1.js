@@ -36,6 +36,8 @@ export const requestFirebaseNotificationPermission = async () => {
 export const onMessageListener = () =>
   new Promise((resolve) => {
     onMessage(messaging, (payload) => {
+      console.log(payload)
+     
       InitPusherChannel(JSON.parse(payload.data.message).channel.id);
       if(store?.getState()?.chat?.data.filter((chat)=>parseInt(chat.id)===parseInt(JSON.parse(payload?.data.message)?.channel?.id))[0]?.messages.filter((message)=>parseInt(message.id)===parseInt(payload.data.prev_message_id)).length>0){
          store.dispatch({type:"SET_LAST_NOTIFICATION_DATE",payload:(new Date()).toLocaleString()})

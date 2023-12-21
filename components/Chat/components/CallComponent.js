@@ -8,6 +8,7 @@ import './index.css'
 function CallComponent(props) {
     const caller = useSelector(state => state.chat.caller)
     const callerChannel = useSelector(state => state.chat.callerChannel)
+    const MessageActiveCall = useSelector(state => state.chat.MessageActiveCall)
     const language=useSelector((state)=>state.homepage.language)
     const incomeCallType = useSelector(state => state.chat.incomeCallType)
     const dispatch = useDispatch()
@@ -36,7 +37,7 @@ function CallComponent(props) {
                         ref.current.pause();
                         ref.current.currentTime = 0; 
                         setTimeout(() => {
-                        AnswerCall(callerChannel.id)
+                        AnswerCall(callerChannel.id,MessageActiveCall)
                         props.reply()
                         }, 200);
                     }}>
@@ -47,7 +48,7 @@ function CallComponent(props) {
                 </div>
                 <div className='call-dec'
                     onClick={() => {
-                        RefuseCall(callerChannel.id)
+                        RefuseCall(callerChannel.id,MessageActiveCall)
                         ref.current.pause();
                         ref.current.currentTime = 0;
                         dispatch({ type: "REFUSE_CALL" })

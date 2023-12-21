@@ -10,7 +10,7 @@ function SearchResult({key,photo,SenderName,isUser,handleClickChat,item}) {
       if(isUser){
             
             setTimeout(() => {
-                   handleClickChat({channel_members:[{user_id:item.id,user:item},{user_id:getUser().id,user:getUser()}],messages:[],id:null,mid:parseInt(Math.random()*1000)})
+                   handleClickChat({channel_members:[{user_id:item.contact_user_id,user:item,mute:0,pin:0,archived:0},{mute:0,pin:0,archived:0,user_id:getUser().id,user:getUser()}],messages:[],id:"ch-"+item.contact_user_id,mid:"ch-"+item.contact_user_id})
                     dispatch({ type: "MAIN", payload: "chat" })        
             }, 500);}
             else{
