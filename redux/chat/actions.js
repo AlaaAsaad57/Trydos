@@ -504,6 +504,7 @@ export const AnswerCall=async(channelId,messageId)=>{
 }
 export const RefuseCall=async(channelId,messageId)=>{
   try{
+    if(messageId){
     let obj=typeof channelId ==="string"&& channelId.includes('ch')?{reciver_user_id:channelId.split('ch-')[0]}:{channel_id:channelId}
 
     store.dispatch({ type: "USER_END_CALL" })
@@ -514,7 +515,7 @@ export const RefuseCall=async(channelId,messageId)=>{
   }).then(()=>{
     
   })
-
+}
   }
   catch(e){
 console.error(e)

@@ -52,6 +52,26 @@ export const onMessageListener = () =>
       if(data.user_id!==getUserChat().id&&(!store.getState().chat.callInProgress||store.getState().chat.callInProgress===2)){
         store.dispatch({ type: "INCOMING_VOICE_CALL",payload:{...data,callerChannel: channel,caller:caller,message_id:JSON.parse(payload.data.data).message.id} })
       }
+      store.dispatch({type:"SET_LAST_NOTIFICATION_DATE",payload:(new Date()).toLocaleString()})
+      store.dispatch({ type: "REC_CHA", payload: parseInt(JSON.parse(payload.data.data).message.channel.id)})
+      if(parseInt(store?.getState()?.chat?.activeChat?.id)===parseInt(JSON.parse(payload?.data.message)?.channel?.id)){
+        store.dispatch({type:"WATCH_CHANNEL",payload:parseInt(JSON.parse(payload.data.data).message?.channel?.id)})
+      }else{
+        let active=store?.getState()?.chat?.activeChat
+        if(active?.id &&active?.channel_members.filter((mem)=>mem.user_id===getUserChat().id && mem.user.mute===1).length>0){
+          ;
+        }
+        else{
+        
+          let not = new Audio('/wa.mp3');
+          not.volume = 0.5
+          not.play()
+        }
+      
+      }
+      store.dispatch({type:"SEND-MESSAGE",payload:{act:JSON.parse(payload.data.data).message.channel,message:{...JSON.parse(payload.data.data).message,channel:null}}})
+        
+      resolve(payload);
      }
      else if(payload.data.type==="VideoCallEvent"){
       let data=JSON.parse(payload.data.data).payload
@@ -59,6 +79,26 @@ export const onMessageListener = () =>
       let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id)).length>0?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0].channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]:{user:{name:data.name,photo_path:data.photo}}
       if(data.user_id!==getUserChat().id&&(!store.getState().chat.callInProgress||store.getState().chat.callInProgress===2)){
       store.dispatch({ type: "INCOMING_CALL",payload:{...data,callerChannel: channel,caller:caller,message_id:JSON.parse(payload.data.data).message.id} })}
+        store.dispatch({type:"SET_LAST_NOTIFICATION_DATE",payload:(new Date()).toLocaleString()})
+     store.dispatch({ type: "REC_CHA", payload: parseInt(JSON.parse(payload.data.data).message.channel.id)})
+     if(parseInt(store?.getState()?.chat?.activeChat?.id)===parseInt(JSON.parse(payload?.data.message)?.channel?.id)){
+       store.dispatch({type:"WATCH_CHANNEL",payload:parseInt(JSON.parse(payload.data.data).message?.channel?.id)})
+     }else{
+       let active=store?.getState()?.chat?.activeChat
+       if(active?.id &&active?.channel_members.filter((mem)=>mem.user_id===getUserChat().id && mem.user.mute===1).length>0){
+         ;
+       }
+       else{
+       
+         let not = new Audio('/wa.mp3');
+         not.volume = 0.5
+         not.play()
+       }
+     
+     }
+     store.dispatch({type:"SEND-MESSAGE",payload:{act:JSON.parse(payload.data.data).message.channel,message:{...JSON.parse(payload.data.data).message,channel:null}}})
+       
+     resolve(payload);
     
      }
      else if(payload.data.type==="message"){
