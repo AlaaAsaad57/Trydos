@@ -407,7 +407,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
                         a.messages.map((mes) => {
                             let newst = []
                             let st = mes.message_status
-                            if(mes.sender_user_id)
+                            if(mes.sender_user_id&&!mes.message_type.name.includes('Call'))
                             st.map((sta) => {
                                 let newdate = new Date(new Date().getTime()-(3*60*60*1000)).toLocaleString().toString()
                                 if (sta.user_id !== getUserChat()?.id) {
@@ -421,7 +421,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
     
                                 }
                             })
-                            if(mes.sender_user_id===getUserChat()?.id) newst=mes.message_status
+                            if(mes.sender_user_id===getUserChat()?.id&&!mes.message_type.name.includes('Call')) newst=mes.message_status
                             m.push({ ...mes, message_status: newst })
                         })
                         newChats.push({ ...a, messages: m })
