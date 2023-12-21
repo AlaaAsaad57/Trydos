@@ -120,6 +120,7 @@ function VideoCall(props) {
     }
 console.log(error,ready,tracks)
   }, [ client, ready, tracks,error]);
+  const MessageActiveCall = useSelector(state => state.chat.MessageActiveCall)
   const userEndCall =async () => {
     await client.leave();
     client.removeAllListeners();
@@ -128,7 +129,7 @@ console.log(error,ready,tracks)
     tracks[0].close();
     tracks[1].close();}
     setStart(false);
-    RefuseCall(activeChat.id)
+    RefuseCall(activeChat.id,MessageActiveCall)
 
     pause()
     dispatch({type:"END-CALL"})
@@ -207,11 +208,11 @@ console.log(error,ready,tracks)
         <div
           style={tracks &&tracks[1] && { zIndex: 3 }}
           className="end-icon"
-          onClick={() => {userEndCall(); RefuseCall(activeChat.id)}}>
+          onClick={() => {userEndCall(); RefuseCall(activeChat.id,MessageActiveCall)}}>
           <EndCallIcon ></EndCallIcon>
           <span>{translate("End Call",language)}</span>
         </div>
-        <div className='cancel-call-icon' onClick={() => {userEndCall(); RefuseCall(activeChat.id)}}>
+        <div className='cancel-call-icon' onClick={() => {userEndCall(); RefuseCall(activeChat.id,MessageActiveCall)}}>
           <LeftArrowIcon></LeftArrowIcon>
         </div>
         <div className='add-caller-icon'>

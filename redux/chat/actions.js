@@ -43,14 +43,14 @@ export const GetChats=async (payload) =>{
                 store.dispatch({ type: "REC_CHANNEL_RED", payload: data.channel_id });
       
               });
-              channel.bind("RefuseCallEvent",(data)=>{
-                if(store.getState().chat.callInProgress){
-                  store.dispatch({ type: "USER_END_CALL" })
-                }
-                else{
-                  store.dispatch({ type: "END-CALL" })
-                }
-              })
+              // channel.bind("RefuseCallEvent",(data)=>{
+              //   if(store.getState().chat.callInProgress){
+              //     store.dispatch({ type: "USER_END_CALL" })
+              //   }
+              //   else{
+              //     store.dispatch({ type: "END-CALL" })
+              //   }
+              // })
               // channel.bind("VideoCallEvent",async(data)=>{
               //   let channel=store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]:{id:data.channel_id,messages:[{message_type:{name:'VoiceCall'}}],channel_members:[{user_id:data.user_id,user:store.getState().chat.contacts.filter((s)=>s.contact_user_id===data.user_id)[0],mute:0,pin:0,archived:0},{mute:0,pin:0,archived:0,user_id:getUserChat().id,user:getUserChat()}]}
               //   let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id)).length>0?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0].channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]:{user:{name:"ud",photo_path:null}}
