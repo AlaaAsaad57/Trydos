@@ -54,7 +54,7 @@ export const onMessageListener = () =>
       }
       store.dispatch({type:"SET_LAST_NOTIFICATION_DATE",payload:(new Date()).toLocaleString()})
       store.dispatch({ type: "REC_CHA", payload: parseInt(JSON.parse(payload.data.data).message.channel.id)})
-      if(parseInt(store?.getState()?.chat?.activeChat?.id)===parseInt(JSON.parse(payload?.data.message)?.channel?.id)){
+      if(parseInt(store?.getState()?.chat?.activeChat?.id)===parseInt(JSON.parse(payload.data.data)?.message.channel?.id)){
         store.dispatch({type:"WATCH_CHANNEL",payload:parseInt(JSON.parse(payload.data.data).message?.channel?.id)})
       }else{
         let active=store?.getState()?.chat?.activeChat
@@ -81,7 +81,7 @@ export const onMessageListener = () =>
       store.dispatch({ type: "INCOMING_CALL",payload:{...data,callerChannel: channel,caller:caller,message_id:JSON.parse(payload.data.data).message.id} })}
         store.dispatch({type:"SET_LAST_NOTIFICATION_DATE",payload:(new Date()).toLocaleString()})
      store.dispatch({ type: "REC_CHA", payload: parseInt(JSON.parse(payload.data.data).message.channel.id)})
-     if(parseInt(store?.getState()?.chat?.activeChat?.id)===parseInt(JSON.parse(payload?.data.message)?.channel?.id)){
+     if(parseInt(store?.getState()?.chat?.activeChat?.id)===parseInt(JSON.parse(payload.data.data)?.message?.channel?.id)){
        store.dispatch({type:"WATCH_CHANNEL",payload:parseInt(JSON.parse(payload.data.data).message?.channel?.id)})
      }else{
        let active=store?.getState()?.chat?.activeChat
