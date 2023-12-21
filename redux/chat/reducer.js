@@ -158,7 +158,11 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
                 callInProgress: false,
                 isCallIncoming: false,
                 callLoading:payload,
-                MessageActiveCall:null
+                MessageActiveCall:null,
+                incomeCallData:null,
+                incomeCallType:null,
+                caller:null,
+                callerChannel:null
             }
         }
         case "VIDEO_CALL": {
