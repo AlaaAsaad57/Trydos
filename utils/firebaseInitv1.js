@@ -37,6 +37,14 @@ export const onMessageListener = () =>
   new Promise((resolve) => {
     onMessage(messaging, (payload) => {
       console.log(payload)
+      if(payload.data.type==="RefuseCallEvent"){
+        if(store.getState().chat.callInProgress){
+          store.dispatch({ type: "USER_END_CALL" })
+        }
+        else{
+          store.dispatch({ type: "END-CALL" })
+        }
+      }
      if(payload.data.type==="VoiceCallEvent"){
       let data=JSON.parse(payload.data.data).payload
       let channel=store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]:{id:data.channel_id,messages:[{message_type:{name:'VoiceCall'}}],channel_members:[{user_id:data.user_id,user:store.getState().chat.contacts.filter((s)=>s.contact_user_id===data.user_id)[0],mute:0,pin:0,archived:0},{mute:0,pin:0,archived:0,user_id:getUserChat().id,user:getUserChat()}]}
@@ -53,7 +61,7 @@ export const onMessageListener = () =>
       store.dispatch({ type: "INCOMING_CALL",payload:{...data,callerChannel: channel,caller:caller} })}
     
      }
-     else{
+     else if(payload.data.type==="message"){
       InitPusherChannel(JSON.parse(payload.data.message).channel.id);
       if(store?.getState()?.chat?.data.filter((chat)=>parseInt(chat.id)===parseInt(JSON.parse(payload?.data.message)?.channel?.id))[0]?.messages.filter((message)=>parseInt(message.id)===parseInt(payload.data.prev_message_id)).length>0){
          store.dispatch({type:"SET_LAST_NOTIFICATION_DATE",payload:(new Date()).toLocaleString()})
