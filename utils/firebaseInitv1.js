@@ -69,7 +69,7 @@ export const onMessageListener = () =>
         }
       
       }
-      store.dispatch({type:"SEND-MESSAGE",payload:{act:JSON.parse(payload.data.data).message.channel,message:{...JSON.parse(payload.data.data).message,channel:null}}})
+      store.dispatch({type:"SEND-MESSAGE",payload:{act:JSON.parse(payload.data.data).message.channel,message:{...JSON.parse(payload.data.data).message,channel:null,message_type:{name:'VoiceCall'}}}})
         
       resolve(payload);
      }
@@ -96,7 +96,7 @@ export const onMessageListener = () =>
        }
      
      }
-     store.dispatch({type:"SEND-MESSAGE",payload:{act:JSON.parse(payload.data.data).message.channel,message:{...JSON.parse(payload.data.data).message,channel:null}}})
+     store.dispatch({type:"SEND-MESSAGE",payload:{act:JSON.parse(payload.data.data).message.channel,message:{...JSON.parse(payload.data.data).message,channel:null,message_type:{name:'VideoCall'}}}})
        
      resolve(payload);
     
