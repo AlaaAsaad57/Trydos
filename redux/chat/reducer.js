@@ -203,7 +203,9 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
                     ...state,
                     call: "aud-incoming",
                     activeChat: { ...state.callerChannel },
+                    data:state.data.filter((s)=>parseInt(s.id)===parseInt(state.callerChannel.id)).length===0?[state.callerChannel,...state.data]:state.data,
                     main: 'chat',
+                    data:[state.callerChannel,...state.data],
                     isCallIncoming: false,
                     callInProgress: true,
                     AgoraToken:payload
@@ -213,6 +215,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
                     ...state,
                     call: "vid-incoming",
                     activeChat: { ...state.callerChannel },
+                    data:state.data.filter((s)=>parseInt(s.id)===parseInt(state.callerChannel.id)).length===0?[state.callerChannel,...state.data]:state.data,
                     main: 'chat',
                     isCallIncoming: false,
                     callInProgress: true,
@@ -715,6 +718,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
         case "GRP": {
             let arr = []
             let active = state.activeChat
+           
             state.data.map((ch) => {
                 if (ch.id === payload.ch) {
                     let mrr = []
