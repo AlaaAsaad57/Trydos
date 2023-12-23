@@ -27,7 +27,8 @@ export default function Home({stories,HomeData_res,stories_res,HomeData}) {
   const fbtoken=useSelector((state)=>state.homepage.fbtokfbTokenen)
   useEffect(()=>{ 
     let languageCookies=Cookies.get("language");
-    if(true){
+    if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true'){
+      
       console.log(stories_res,HomeData_res)
     }
     dispatch(changeAppLanguage(languageCookies||language||'en'))
