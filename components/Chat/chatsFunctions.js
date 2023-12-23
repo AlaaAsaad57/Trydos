@@ -21,7 +21,7 @@ export const getMessageStatusIcon=(status_array)=>{
         <>
         <ReadIcon className="status-icon" ></ReadIcon>
         </>)
-    else if(status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.is_received === 1||status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0].received_at)
+    else if(status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.is_received === 1||status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.received_at)
     return(
         <ReceiveIcon className="status-icon" ></ReceiveIcon>
     )
@@ -96,12 +96,12 @@ export const forwardMessage = (m, activeChat) => {
           (a) =>
             parseInt(a.user_id) !==
             parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-        )[0].user_id,
+        )[0]?.user_id,
         receiver_role_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
             parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-        )[0].role_id,
+        )[0]?.role_id,
         sender_role_id: JSON.parse(localStorage.getItem("USER-CHAT")).role_id,
         content: m.message_content?.content,
         parent_message_id: null,
@@ -119,12 +119,12 @@ export const forwardMessage = (m, activeChat) => {
               (a) =>
                 parseInt(a.user_id) !==
                 parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-            )[0].user_id,
+            )[0]?.user_id,
             receiver_role_id: activeChat.channel_members.filter(
               (a) =>
                 parseInt(a.user_id) !==
                 parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-            )[0].role_id,
+            )[0]?.role_id,
             sender_role_id: JSON.parse(localStorage.getItem("USER-CHAT")).role_id,
             sender_user_id: JSON.parse(localStorage.getItem("USER-CHAT")).id,
             message_type: { name: "TextMessage" },
@@ -137,7 +137,7 @@ export const forwardMessage = (m, activeChat) => {
                 (a) =>
                   parseInt(a.user_id) !==
                   parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-              )[0].user_id
+              )[0]?.user_id
             }],
             type: "pending",
             is_forward: 1,
@@ -157,14 +157,14 @@ export const forwardMessage = (m, activeChat) => {
           (a) =>
             parseInt(a.user_id) !==
             parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-        )[0].user_id,
+        )[0]?.user_id,
         receiver_role_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
             parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-        )[0].role_id,
+        )[0]?.role_id,
         sender_role_id: JSON.parse(localStorage.getItem("USER-CHAT")).role_id,
-        content: [{ file_path: m.message_content[0].file_path, caption: "" }],
+        content: [{ file_path: m.message_content[0]?.file_path, caption: "" }],
         parent_message_id: null,
         message_type: "ImageMessage",
       },activeChat?.id?i:false)
@@ -178,12 +178,12 @@ export const forwardMessage = (m, activeChat) => {
               (a) =>
                 parseInt(a.user_id) !==
                 parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-            )[0].user_id,
+            )[0]?.user_id,
             receiver_role_id: activeChat.channel_members.filter(
               (a) =>
                 parseInt(a.user_id) !==
                 parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-            )[0].role_id,
+            )[0]?.role_id,
             sender_role_id: JSON.parse(localStorage.getItem("USER-CHAT")).role_id,
             sender_user_id: JSON.parse(localStorage.getItem("USER-CHAT")).id,
             message_type: { name: "ImageMessage" },
@@ -196,9 +196,9 @@ export const forwardMessage = (m, activeChat) => {
                 (a) =>
                   parseInt(a.user_id) !==
                   parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-              )[0].user_id
+              )[0]?.user_id
             }],
-            message_content: [{ file_path: m.message_content[0].file_path, caption: "" }],
+            message_content: [{ file_path: m.message_content[0]?.file_path, caption: "" }],
             cid: activeChat?.id,
           },
           isNew:activeChat?.id?i:false
@@ -215,14 +215,14 @@ export const forwardMessage = (m, activeChat) => {
         (a) =>
           parseInt(a.user_id) !==
           parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-      )[0].user_id,
+      )[0]?.user_id,
       receiver_role_id: activeChat.channel_members.filter(
         (a) =>
           parseInt(a.user_id) !==
           parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-      )[0].role_id,
+      )[0]?.role_id,
       sender_role_id: JSON.parse(localStorage.getItem("USER-CHAT")).role_id,
-      content: [{ file_path: m.message_content[0].file_path, caption: "" }],
+      content: [{ file_path: m.message_content[0]?.file_path, caption: "" }],
       parent_message_id: null,
       message_type: "VoiceMessage",
     },activeChat?.id?i:false)
@@ -238,12 +238,12 @@ export const forwardMessage = (m, activeChat) => {
               (a) =>
                 parseInt(a.user_id) !==
                 parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-            )[0].user_id,
+            )[0]?.user_id,
             receiver_role_id: activeChat.channel_members.filter(
               (a) =>
                 parseInt(a.user_id) !==
                 parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-            )[0].role_id,
+            )[0]?.role_id,
             sender_role_id: JSON.parse(localStorage.getItem("USER-CHAT")).role_id,
             sender_user_id: JSON.parse(localStorage.getItem("USER-CHAT")).id,
             message_type: { name: "VoiceMessage" },
@@ -256,9 +256,9 @@ export const forwardMessage = (m, activeChat) => {
                 (a) =>
                   parseInt(a.user_id) !==
                   parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-              )[0].user_id
+              )[0]?.user_id
             }],
-            message_content: [{ file_path: m.message_content[0].file_path, caption: "" }],
+            message_content: [{ file_path: m.message_content[0]?.file_path, caption: "" }],
             cid: activeChat?.id,
           },
           isNew:activeChat?.id?i:false
@@ -275,14 +275,14 @@ export const forwardMessage = (m, activeChat) => {
         (a) =>
           parseInt(a.user_id) !==
           parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-      )[0].user_id,
+      )[0]?.user_id,
       receiver_role_id: activeChat.channel_members.filter(
         (a) =>
           parseInt(a.user_id) !==
           parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-      )[0].role_id,
+      )[0]?.role_id,
       sender_role_id: JSON.parse(localStorage.getItem("USER-CHAT")).role_id,
-      content: [{ file_path: m.message_content[0].file_path, caption: "" }],
+      content: [{ file_path: m.message_content[0]?.file_path, caption: "" }],
       parent_message_id: null,
       message_type: "VideoMessage",
     },activeChat?.id?i:false)
@@ -297,12 +297,12 @@ export const forwardMessage = (m, activeChat) => {
               (a) =>
                 parseInt(a.user_id) !==
                 parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-            )[0].user_id,
+            )[0]?.user_id,
             receiver_role_id: activeChat.channel_members.filter(
               (a) =>
                 parseInt(a.user_id) !==
                 parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-            )[0].role_id,
+            )[0]?.role_id,
             sender_role_id: JSON.parse(localStorage.getItem("USER-CHAT")).role_id,
             sender_user_id: JSON.parse(localStorage.getItem("USER-CHAT")).id,
             message_type: { name: "VoiceMessage" },
@@ -315,9 +315,9 @@ export const forwardMessage = (m, activeChat) => {
                 (a) =>
                   parseInt(a.user_id) !==
                   parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-              )[0].user_id
+              )[0]?.user_id
             }],
-            message_content: [{ file_path: m.message_content[0].file_path, caption: "" }],
+            message_content: [{ file_path: m.message_content[0]?.file_path, caption: "" }],
             cid: activeChat?.id,
           },
           isNew:activeChat?.id?i:false
@@ -334,14 +334,14 @@ export const forwardMessage = (m, activeChat) => {
           (a) =>
             parseInt(a.user_id) !==
             parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-        )[0].user_id,
+        )[0]?.user_id,
         receiver_role_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
             parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-        )[0].role_id,
+        )[0]?.role_id,
         sender_role_id: JSON.parse(localStorage.getItem("USER-CHAT")).role_id,
-        content: [{ file_path: m.message_content[0].file_path, caption: "" }],
+        content: [{ file_path: m.message_content[0]?.file_path, caption: "" }],
         parent_message_id: null,
         message_type: "FileMessage",
       },activeChat?.id?i:false)
@@ -355,12 +355,12 @@ export const forwardMessage = (m, activeChat) => {
               (a) =>
                 parseInt(a.user_id) !==
                 parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-            )[0].user_id,
+            )[0]?.user_id,
             receiver_role_id: activeChat.channel_members.filter(
               (a) =>
                 parseInt(a.user_id) !==
                 parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-            )[0].role_id,
+            )[0]?.role_id,
             sender_role_id: JSON.parse(localStorage.getItem("USER-CHAT")).role_id,
             sender_user_id: JSON.parse(localStorage.getItem("USER-CHAT")).id,
             message_type: { name: "FileMessage" },
@@ -373,9 +373,9 @@ export const forwardMessage = (m, activeChat) => {
                 (a) =>
                   parseInt(a.user_id) !==
                   parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
-              )[0].user_id
+              )[0]?.user_id
             }],
-            message_content: [{ file_path: m.message_content[0].file_path, caption: "" }],
+            message_content: [{ file_path: m.message_content[0]?.file_path, caption: "" }],
             cid: activeChat?.id,
           },
           isNew:activeChat?.id?i:false
@@ -413,7 +413,7 @@ export const upload = async (file) => {
 };
 export function dataURLtoFile(dataurl, filename) {
   var arr = dataurl.split(','),
-      mime = arr[0].match(/:(.*?);/)[1],
+      mime = arr[0]?.match(/:(.*?);/)[1],
       bstr = atob(arr[arr.length - 1]), 
       n = bstr.length, 
       u8arr = new Uint8Array(n);

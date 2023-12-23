@@ -756,7 +756,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
             let arr=[]
             state.data.map((chat)=>{
                 if(chat.id===payload.id){
-                    arr.push({...state.data.filter((s)=>s.id===payload.id)[0],channel_members:[state.data.filter((s)=>s.id===payload.id)[0].channel_members.filter((mem)=>mem.user_id!==getUserChat().id)[0],{...state.data.filter((s)=>s.id===payload.id)[0].channel_members.filter((mem)=>mem.user_id===getUserChat().id)[0],mute:payload.value?1:0}]})
+                    arr.push({...state.data.filter((s)=>s.id===payload.id)[0],channel_members:[state.data.filter((s)=>s.id===payload.id)[0]?.channel_members.filter((mem)=>mem.user_id!==getUserChat().id)[0],{...state.data.filter((s)=>s.id===payload.id)[0]?.channel_members.filter((mem)=>mem.user_id===getUserChat().id)[0],mute:payload.value?1:0}]})
                 }
                 else{
                     arr.push(chat)
@@ -772,7 +772,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
         case "PIN_CHAT_REDUCER":{
             PinnChat(payload)
             let arr=[]
-                arr=[...state.data.filter((s)=>s.id!==payload.id), {...state.data.filter((s)=>s.id===payload.id)[0],channel_members:[state.data.filter((s)=>s.id===payload.id)[0].channel_members.filter((mem)=>mem.user_id!==getUserChat().id)[0],{...state.data.filter((s)=>s.id===payload.id)[0].channel_members.filter((mem)=>mem.user_id===getUserChat().id)[0],pin:payload.value?1:0}]}]
+                arr=[...state.data.filter((s)=>s.id!==payload.id), {...state.data.filter((s)=>s.id===payload.id)[0],channel_members:[state.data.filter((s)=>s.id===payload.id)[0]?.channel_members.filter((mem)=>mem.user_id!==getUserChat().id)[0],{...state.data.filter((s)=>s.id===payload.id)[0]?.channel_members.filter((mem)=>mem.user_id===getUserChat().id)[0],pin:payload.value?1:0}]}]
             return({
                 ...state,
                 data:arr

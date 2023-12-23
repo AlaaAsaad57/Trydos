@@ -15,7 +15,7 @@ function AddStory() {
     const [file,setFile]=useState(null)
     const dispatch=useDispatch()
 const handleChange=async(e)=>{
-if(e.target.files[0].type.includes("video")){
+if(e.target.files[0]?.type.includes("video")){
     new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(e.target.files[0]);
@@ -37,7 +37,7 @@ if(e.target.files[0].type.includes("video")){
       revalidateStories()
       
 }
-else if(e.target.files[0].type.includes("image")){
+else if(e.target.files[0]?.type.includes("image")){
     new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(e.target.files[0]);

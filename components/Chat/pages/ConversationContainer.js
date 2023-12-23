@@ -62,7 +62,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
     blobs.current = blo;
   };
   const showRoute = (mes, prev, next) => {
-    if(prev&&prev.message_content&&prev.message_content.length>0&&prev.message_content[0].file_path==="false"){
+    if(prev&&prev.message_content&&prev.message_content.length>0&&prev.message_content[0]?.file_path==="false"){
       return "lonely"
     }
     let type = "lonely";
@@ -142,12 +142,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
                 (a) =>
                   parseInt(a.user_id) !==
                   parseInt(getUser().id)
-              )[0].user_id,
+              )[0]?.user_id,
               receiver_role_id: activeChat.channel_members.filter(
                 (a) =>
                   parseInt(a.user_id) !==
                   parseInt(getUser().id)
-              )[0].role_id,
+              )[0]?.role_id,
               sender_role_id: getUser().role_id,
               sender_user_id: getUser().id,
               message_type: { name: "VoiceMessage" },
@@ -160,7 +160,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
     (a) =>
       parseInt(a.user_id) !==
       parseInt(getUser().id)
-  )[0].user_id}],
+  )[0]?.user_id}],
               cid: activeChat.id,
             },
           },
@@ -174,12 +174,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
           (a) =>
             parseInt(a.user_id) !==
             parseInt(getUser().id)
-        )[0].user_id,
+        )[0]?.user_id,
         receiver_role_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
             parseInt(getUser().id)
-        )[0].role_id,
+        )[0]?.role_id,
         sender_role_id: getUser().role_id,
         content: [{ file_path: pat.path,file_name:pat.name }],
         parent_message_id: replyMessage?.id,
@@ -203,12 +203,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
           (a) =>
             parseInt(a.user_id) !==
             parseInt(getUser().id)
-        )[0].user_id,
+        )[0]?.user_id,
         receiver_role_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
             parseInt(getUser().id)
-        )[0].role_id,
+        )[0]?.role_id,
         sender_role_id: getUser().role_id,
         content: data,
        parent_message_id: replyMessage?.id,
@@ -226,12 +226,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
               (a) =>
                 parseInt(a.user_id) !==
                 parseInt(getUser().id)
-            )[0].user_id,
+            )[0]?.user_id,
             receiver_role_id: activeChat.channel_members.filter(
               (a) =>
                 parseInt(a.user_id) !==
                 parseInt(getUser().id)
-            )[0].role_id,
+            )[0]?.role_id,
             sender_role_id: getUser().role_id,
             sender_user_id: getUser().id,
             message_type: { name: "TextMessage" },
@@ -243,7 +243,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
     (a) =>
       parseInt(a.user_id) !==
       parseInt(getUser().id)
-  )[0].user_id}],
+  )[0]?.user_id}],
             type: "pending",
             cid: activeChat.id,
           },
@@ -257,12 +257,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
           (a) =>
             parseInt(a.user_id) !==
             parseInt(JSON.parse(localStorage.getItem("USER-CHAT").id))
-        )[0].user_id,
+        )[0]?.user_id,
         receiver_role_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
             parseInt(JSON.parse(localStorage.getItem("USER-CHAT").id))
-        )[0].role_id,
+        )[0]?.role_id,
         sender_role_id: getUser().role_id,
         content: [{ file_path: data }],
         parent_message_id: replyMessage?.id,
@@ -278,12 +278,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
               (a) =>
                 parseInt(a.user_id) !==
                 parseInt(getUser().id)
-            )[0].user_id,
+            )[0]?.user_id,
             receiver_role_id: activeChat.channel_members.filter(
               (a) =>
                 parseInt(a.user_id) !==
                 parseInt(getUser().id)
-            )[0].role_id,
+            )[0]?.role_id,
             sender_role_id: getUser().role_id,
             message_type: { name: "ImageMessage" },
             type: "pending",
@@ -293,7 +293,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
     (a) =>
       parseInt(a.user_id) !==
       parseInt(getUser().id)
-  )[0].user_id}],
+  )[0]?.user_id}],
             message_content: [{ file_path: data }],
             cid: activeChat.id,
           },
@@ -306,12 +306,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
           (a) =>
             parseInt(a.user_id) !==
             parseInt(JSON.parse(localStorage.getItem("USER-CHAT").id))
-        )[0].user_id,
+        )[0]?.user_id,
         receiver_role_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
             parseInt(JSON.parse(localStorage.getItem("USER-CHAT").id))
-        )[0].role_id,
+        )[0]?.role_id,
         sender_role_id: getUser().role_id,
         content: [{ file_path: data }],
       parent_message_id: replyMessage?.id,
@@ -327,12 +327,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
               (a) =>
                 parseInt(a.user_id) !==
                 parseInt(getUser().id)
-            )[0].user_id,
+            )[0]?.user_id,
             receiver_role_id: activeChat.channel_members.filter(
               (a) =>
                 parseInt(a.user_id) !==
                 parseInt(getUser().id)
-            )[0].role_id,
+            )[0]?.role_id,
             sender_role_id: getUser().role_id,
             message_type: { name: "VoiceMessage" },
             type: "pending",
@@ -342,7 +342,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
     (a) =>
       parseInt(a.user_id) !==
       parseInt(getUser().id)
-  )[0].user_id}],
+  )[0]?.user_id}],
             message_content: [{ file_path: data }],
             cid: activeChat.id,
           },
@@ -369,12 +369,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
                 (a) =>
                   parseInt(a.user_id) !==
                   parseInt(getUser().id)
-              )[0].user_id,
+              )[0]?.user_id,
               receiver_role_id: activeChat.channel_members.filter(
                 (a) =>
                   parseInt(a.user_id) !==
                   parseInt(getUser().id)
-              )[0].role_id,
+              )[0]?.role_id,
               sender_role_id: getUser().role_id,
               sender_user_id: getUser().id,
               message_type: { name: type },
@@ -386,7 +386,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
     (a) =>
       parseInt(a.user_id) !==
       parseInt(getUser().id)
-  )[0].user_id}],
+  )[0]?.user_id}],
               mid: i,
               cid: activeChat.id,
             },
@@ -406,7 +406,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
     }
     Image.onchange = async (e) => {
       let i = Math.random();
-      if(e.target.files[0].type.includes("image"))
+      if(e.target.files[0]?.type.includes("image"))
      { sendPhoto(e.target.files[0], i,"ImageMessage");
      
       let pat = await upload(e.target.files[0]);
@@ -417,12 +417,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
           (a) =>
             parseInt(a.user_id) !==
             parseInt(getUser().id)
-        )[0].user_id,
+        )[0]?.user_id,
         receiver_role_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
             parseInt(getUser().id)
-        )[0].role_id,
+        )[0]?.role_id,
         sender_role_id: getUser().role_id,
         content: [{ file_path: pat.path,file_name:pat.name }],
       parent_message_id: replyMessage?.id,
@@ -431,10 +431,10 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         cid: activeChat.id,
       },activeChat?.id?.includes('ch')?activeChat.id:false,)
     }
-      else if(e.target.files[0].type.includes("audio")){
+      else if(e.target.files[0]?.type.includes("audio")){
         sendVid(e.target.files[0],i,"VoiceMessage")
       }
-      else if(e.target.files[0].type.includes("video")){
+      else if(e.target.files[0]?.type.includes("video")){
         sendVid(e.target.files[0],i,"VideoMessage")
       }
       else{
@@ -460,7 +460,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
     }
     Image.onchange = async (e) => {
       let i = Math.random();
-      if(e.target.files[0].type.includes("image"))
+      if(e.target.files[0]?.type.includes("image"))
      { sendPhoto(e.target.files[0], i,"ImageMessage");
     
       let pat = await upload(e.target.files[0]);
@@ -471,12 +471,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
           (a) =>
             parseInt(a.user_id) !==
             parseInt(getUser().id)
-        )[0].user_id,
+        )[0]?.user_id,
         receiver_role_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
             parseInt(getUser().id)
-        )[0].role_id,
+        )[0]?.role_id,
         sender_role_id: getUser().role_id,
         content: [{ file_path: pat.path,file_name:pat.name }],
       parent_message_id: replyMessage?.id,
@@ -511,12 +511,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
                 (a) =>
                   parseInt(a.user_id) !==
                   parseInt(getUser().id)
-              )[0].user_id,
+              )[0]?.user_id,
               receiver_role_id: activeChat.channel_members.filter(
                 (a) =>
                   parseInt(a.user_id) !==
                   parseInt(getUser().id)
-              )[0].role_id,
+              )[0]?.role_id,
               sender_role_id: getUser().role_id,
               sender_user_id: getUser().id,
               message_type: { name: "ImageMessage" },
@@ -528,7 +528,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
     (a) =>
       parseInt(a.user_id) !==
       parseInt(getUser().id)
-    )[0].user_id}],
+    )[0]?.user_id}],
               mid: i,
               cid: activeChat.id,
             },
@@ -544,12 +544,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
           (a) =>
             parseInt(a.user_id) !==
             parseInt(getUser().id)
-        )[0].user_id,
+        )[0]?.user_id,
         receiver_role_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
             parseInt(getUser().id)
-        )[0].role_id,
+        )[0]?.role_id,
         sender_role_id: getUser().role_id,
         content: [{ file_path: pat.path,file_name:pat.name }],
       parent_message_id: replyMessage?.id,
@@ -654,12 +654,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
           (a) =>
             parseInt(a.user_id) !==
             parseInt(getUser().id)
-        )[0].user_id,
+        )[0]?.user_id,
         receiver_role_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
             parseInt(getUser().id)
-        )[0].role_id,
+        )[0]?.role_id,
         sender_role_id: getUser().role_id,
         content: [{ file_path: pat.path,file_name:pat.name }],
         extra_fileds:{name:e.name,type:e.type},
@@ -687,8 +687,8 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
   }
   return (
     <>
-       {activeChat?.id && call&&call.includes("vid") &&AgoraToken&& <VideoCall audio={call.includes("outgoing")} token={AgoraToken} name={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.name||activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.username} active={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.photo_path ?  (activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.photo_path) : null} channel={activeChat?.pusher_channel_name} user_id={activeChat.channel_members.filter((u) => u.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user_id} />}
-      {activeChat?.id && call&&call.includes("aud") &&AgoraToken&& <VoiceCall audio={call.includes("outgoing")} token={AgoraToken} name={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.name||activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.username} active={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.photo_path ? (activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user?.photo_path) : null} channel={activeChat?.pusher_channel_name} user_id={activeChat.channel_members.filter((u) => u.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0].user_id} />}
+       {activeChat?.id && call&&call.includes("vid") &&AgoraToken&& <VideoCall audio={call.includes("outgoing")} token={AgoraToken} name={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]?.user?.name||activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]?.user?.username} active={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]?.user?.photo_path ?  (activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]?.user?.photo_path) : null} channel={activeChat?.pusher_channel_name} user_id={activeChat.channel_members.filter((u) => u.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]?.user_id} />}
+      {activeChat?.id && call&&call.includes("aud") &&AgoraToken&& <VoiceCall audio={call.includes("outgoing")} token={AgoraToken} name={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]?.user?.name||activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]?.user?.username} active={activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]?.user?.photo_path ? (activeChat?.channel_members.filter((ada) => ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]?.user?.photo_path) : null} channel={activeChat?.pusher_channel_name} user_id={activeChat.channel_members.filter((u) => u.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]?.user_id} />}
       {cameraEnabled&&window.innerWidth>800&&<div className='fixed-img-prev' >
       <div className="bac-drop" onClick={()=>enableCamera(false)}></div>
       {window.innerWidth>800?<WebcamCapture
@@ -738,8 +738,8 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         <div className="chat-message-container">
          {!(typeof active?.id ==='string'&&active?.id?.includes('ch'))&& <Observable loading={loading} getNext={()=>{
             if(loading&&active?.id&&active.messages[0])
-            getPage(active.id,active.messages[0].id)
-            dispatch({type:"GET_CHAT_PAGE",channel:active.id,mid:active.messages[0].id,payload:active.messages[0]?.id})
+            getPage(active.id,active.messages[0]?.id)
+            dispatch({type:"GET_CHAT_PAGE",channel:active.id,mid:active.messages[0]?.id,payload:active.messages[0]?.id})
           }}/>}
           {activeChat &&
             activeChat.messages &&

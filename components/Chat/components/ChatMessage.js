@@ -221,9 +221,9 @@ const copyText=()=>{
                     }
 
                 </div>}
-              <img  onClick={() => setImg((props.message.type || props.message.message_content[0].file_path.includes("https")) ? (
-                props.message.message_content[0].file_path) : (
-                props.message.message_content[0].file_path))} className='message-img' src={props.message.message_content ? (
+              <img  onClick={() => setImg((props.message.type || props.message.message_content[0]?.file_path.includes("https")) ? (
+                props.message.message_content[0]?.file_path) : (
+                props.message.message_content[0]?.file_path))} className='message-img' src={props.message.message_content ? (
                 props.message.type ? (
                   props.message.message_content[0]?.file_path) : (
                     props.message.message_content[0]?.file_path)) : "null"} />
@@ -276,9 +276,9 @@ const copyText=()=>{
                  </div>}
                 <PlayIcon
                   onClick={() => {
-                    setVid((props.message.type || props.message.message_content[0].file_path.includes("https") || props.message.message_content[0].file_path.includes("http")) ? (
-                      props.message.message_content[0].file_path) : (
-                      props.message.message_content[0].file_path))
+                    setVid((props.message.type || props.message.message_content[0]?.file_path.includes("https") || props.message.message_content[0]?.file_path.includes("http")) ? (
+                      props.message.message_content[0]?.file_path) : (
+                      props.message.message_content[0]?.file_path))
                   }}
                   className="play-vid-icon"
                   
@@ -456,7 +456,7 @@ const copyText=()=>{
                 {props.message?.message_content && props.message?.message_content[0]?.file_path && (
                 <a
                   target="_blank"
-                  href={(props.message.message_content[0].file_path.includes("https") || props.message.message_content[0].file_path.includes("http") || props.message.type) ? props.message.message_content[0].file_path :  props.message.message_content[0].file_path}
+                  href={(props.message.message_content[0]?.file_path.includes("https") || props.message.message_content[0]?.file_path.includes("http") || props.message.type) ? props.message.message_content[0]?.file_path :  props.message.message_content[0]?.file_path}
                   download
                   className="replay-msg file-msg"
                 >
@@ -569,9 +569,9 @@ const copyText=()=>{
                   }
 
               </div>}
-              <img onClick={() => setImg((props.message.type || props.message.message_content[0].file_path.includes("https") || props.message.message_content[0].file_path.includes("http")) ? (
-                props.message.message_content[0].file_path) : (
-               props.message.message_content[0].file_path))} className='message-img' src={( props.message.message_content[0]?.file_path)} />
+              <img onClick={() => setImg((props.message.type || props.message.message_content[0]?.file_path.includes("https") || props.message.message_content[0]?.file_path.includes("http")) ? (
+                props.message.message_content[0]?.file_path) : (
+               props.message.message_content[0]?.file_path))} className='message-img' src={( props.message.message_content[0]?.file_path)} />
               <div className='other-date'>
                 {getMessageTime(props.message.created_at,true)}
               </div>
@@ -614,9 +614,9 @@ const copyText=()=>{
                   </div>}
                 <PlayIcon
                   onClick={() => {
-                    setVid((props.message.type || props.message.message_content[0].file_path.includes("https") || props.message.message_content[0].file_path.includes("http")) ? (
-                      props.message.message_content[0].file_path) : (
-                     props.message.message_content[0].file_path))
+                    setVid((props.message.type || props.message.message_content[0]?.file_path.includes("https") || props.message.message_content[0]?.file_path.includes("http")) ? (
+                      props.message.message_content[0]?.file_path) : (
+                     props.message.message_content[0]?.file_path))
                   }}
                   className="play-vid-icon"
                   
@@ -772,7 +772,7 @@ const copyText=()=>{
                 {props.message?.message_content && props.message?.message_content[0]?.file_path && (
                 <a
                   target="_blank"
-                  href={(props.message.message_content[0].file_path.includes("https") || props.message.message_content[0].file_path.includes("http") || props.message.type) ? props.message.message_content[0].file_path :  props.message.message_content[0].file_path}
+                  href={(props.message.message_content[0]?.file_path.includes("https") || props.message.message_content[0]?.file_path.includes("http") || props.message.type) ? props.message.message_content[0]?.file_path :  props.message.message_content[0]?.file_path}
                   download
                   className="replay-msg file-msg"
                 >

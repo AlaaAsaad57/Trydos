@@ -20,7 +20,7 @@ function ReplyMessage({message,cancel}) {
         if(message.message_type.name==="ImageMessage"){
           return(
               <>
-            <img src={message.type?message.message_content[0].file_path: message.message_content[0].file_path}/> Image
+            <img src={message.type?message.message_content[0]?.file_path: message.message_content[0]?.file_path}/> Image
               </>)
         }
         if(message.message_type.name==="VideoMessage"){

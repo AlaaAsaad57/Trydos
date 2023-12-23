@@ -11,7 +11,7 @@ function OfferAvatars() {
   const handleMove=(e)=>{
     let elementWidth=ref.current.clientWidth
     let elemnts= Array.from(ref.current.children)
-   let clientX=e.clientX || e.touches[0].clientX
+   let clientX=e.clientX || e.touches[0]?.clientX
     let Xmove=Math.abs(((clientX-ref.current.getBoundingClientRect().left)*100)/ref.current.clientWidth+5)
     elemnts.forEach(element => {
       element.classList.remove('active-hover')

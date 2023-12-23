@@ -70,8 +70,8 @@ function handleTouchMove(evt, a, indexx) {
     isMove = true
     var yUp, xUp
     if (evt.touches) {
-        xUp = evt.touches[0].clientX;
-        yUp = evt.touches[0].clientY;
+        xUp = evt.touches[0]?.clientX;
+        yUp = evt.touches[0]?.clientY;
     }
     else {
         xUp = evt.clientX;

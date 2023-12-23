@@ -126,7 +126,7 @@ console.log(error,ready,tracks)
     client.removeAllListeners();
     // we close the tracks to perform cleanup
     if(tracks){
-    tracks[0].close();
+    tracks[0]?.close();
     tracks[1].close();}
     setStart(false);
     RefuseCall(activeChat.id,MessageActiveCall)
@@ -137,7 +137,7 @@ console.log(error,ready,tracks)
   const [trackState, setTrackState] = useState({ video: true, audio: true });
   const mute = async (type) => {
     if (type === "audio") {
-      await tracks[0].setEnabled(!trackState.audio);
+      await tracks[0]?.setEnabled(!trackState.audio);
       setTrackState((ps) => {
         return { ...ps, audio: !ps.audio };
       });

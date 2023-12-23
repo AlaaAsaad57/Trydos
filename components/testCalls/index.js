@@ -156,7 +156,7 @@ export const Controls = (props) => {
 
   const mute = async (type) => {
     if (type === "audio") {
-      await tracks[0].setEnabled(!trackState.audio);
+      await tracks[0]?.setEnabled(!trackState.audio);
       setTrackState((ps) => {
         return { ...ps, audio: !ps.audio };
       });
@@ -172,7 +172,7 @@ export const Controls = (props) => {
     await client.leave();
     client.removeAllListeners();
     // we close the tracks to perform cleanup
-    tracks[0].close();
+    tracks[0]?.close();
     tracks[1].close();
     setStart(false);
     setInCall(false);
