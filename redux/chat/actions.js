@@ -449,6 +449,7 @@ export const InitPusherChannel=(channelId)=>{
    store.dispatch({ type: "PUSHER_RED", payload: { id: channelId, channel: ch } });}
 }
 export const makeVideoCall=async(channelId,callerName,callerPhoto,mobilePhone)=>{
+  console.log(channelId,callerName,callerPhoto,mobilePhone)
   try{
     store.dispatch({type:"CALL-LOADING",payload:'video'})
     let obj=channelId.includes('ch')?{receiver_user_id:parseInt(channelId.split('ch-')[1])}:{channel_id:channelId}
