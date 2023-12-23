@@ -520,7 +520,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
             })
         }
         case "OPEN-CHAT": {
-            if (payload && payload.id&&!payload.id?.includes('ch')) {
+            if (payload && payload.id&&!(typeof payload.id === 'string'&&payload.id?.includes('ch'))) {
                 let s = state.newChats.filter((a) => a.id !== payload.id)
                 return ({
                     ...state,

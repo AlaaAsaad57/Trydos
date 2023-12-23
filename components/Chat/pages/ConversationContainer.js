@@ -134,7 +134,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         dispatch({
           type: "SEND-MESSAGE",
           payload: {
-            isNew:activeChat?.id?.includes('ch')?activeChat.id:false,
+            isNew:typeof activeChat?.id ==="string"&&activeChat?.id?.includes('ch')?activeChat.id:false,
             act: {...activeChat,id:activeChat.id||'ch-'},
             message: {
               parent_message: replyMessage,
@@ -186,7 +186,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         message_type: "VoiceMessage",
         mid: i,
         cid: activeChat.id,
-      },activeChat?.id?.includes('ch')?activeChat.id:false,)
+      },typeof activeChat?.id ==="string"&&activeChat?.id?.includes('ch')?activeChat.id:false,)
     }
   };
   const sendPhoto = (m, i,type) => {
@@ -215,10 +215,10 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         message_type: "TextMessage",
         mid: i,
         cid: activeChat.id,
-      },activeChat?.id?.includes('ch')?activeChat.id:false,)
+      },typeof activeChat?.id ==="string"&&activeChat?.id?.includes('ch')?activeChat.id:false,)
       dispatch({
         type: "SEND-MESSAGE",
-        payload: { isNew:activeChat?.id?.includes('ch')?activeChat.id:false,
+        payload: { isNew:typeof activeChat?.id ==="string"&&activeChat?.id?.includes('ch')?activeChat.id:false,
           act: activeChat,
           message: {
             parent_message: replyMessage,
@@ -267,10 +267,10 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         content: [{ file_path: data }],
         parent_message_id: replyMessage?.id,
         message_type: "ImageMessage",
-      },activeChat?.id?.includes('ch')?activeChat.id:false,)
+      },typeof activeChat?.id ==="string"&&activeChat?.id?.includes('ch')?activeChat.id:false,)
       dispatch({
         type: "SEND-MESSAGE",
-        payload: { isNew:activeChat?.id?.includes('ch')?activeChat.id:false,
+        payload: { isNew:typeof activeChat?.id ==="string"&&activeChat?.id?.includes('ch')?activeChat.id:false,
           act: activeChat,
           message: {
             parent_message: replyMessage,
@@ -316,10 +316,10 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         content: [{ file_path: data }],
       parent_message_id: replyMessage?.id,
         message_type: "VoiceMessage",
-      },activeChat?.id?.includes('ch')?activeChat.id:false,)
+      },typeof activeChat?.id ==="string"&&activeChat?.id?.includes('ch')?activeChat.id:false,)
       dispatch({
         type: "SEND-MESSAGE",
-        payload: { isNew:activeChat?.id?.includes('ch')?activeChat.id:false,
+        payload: { isNew:typeof activeChat?.id ==="string"&&activeChat?.id?.includes('ch')?activeChat.id:false,
           act: activeChat,
           message: {
             parent_message: replyMessage,
@@ -361,7 +361,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         // dispatch({type:"SEND-MESSAGE",payload:{act:activeChat,message:{sender:"me",sent:"19:12",recived:"",read:"",content:base64data,type:"audio"}}})
         dispatch({
           type: "SEND-MESSAGE",
-          payload: { isNew:activeChat?.id?.includes('ch')?activeChat.id:false,
+          payload: { isNew:typeof activeChat?.id ==="string"&&activeChat?.id?.includes('ch')?activeChat.id:false,
             act: activeChat,
             message: {
               parent_message: replyMessage,
@@ -429,7 +429,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         message_type: "ImageMessage",
         mid: i,
         cid: activeChat.id,
-      },activeChat?.id?.includes('ch')?activeChat.id:false,)
+      },typeof activeChat?.id ==="string"&&activeChat?.id?.includes('ch')?activeChat.id:false,)
     }
       else if(e.target.files[0]?.type.includes("audio")){
         sendVid(e.target.files[0],i,"VoiceMessage")
@@ -483,7 +483,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         message_type: "ImageMessage",
         mid: i,
         cid: activeChat.id,
-      },activeChat?.id?.includes('ch')?activeChat.id:false,)
+      },typeof activeChat?.id ==="string"&&activeChat?.id?.includes('ch')?activeChat.id:false,)
     }
      
     };
@@ -503,7 +503,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
     dispatch({
       type: "SEND-MESSAGE",
       payload: {
-         isNew:activeChat?.id?.includes('ch')?activeChat.id:false,
+         isNew:typeof activeChat?.id ==="string"&&activeChat?.id?.includes('ch')?activeChat.id:false,
             act: activeChat,
             message: {
               parent_message: replyMessage,
@@ -556,7 +556,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         message_type: "ImageMessage",
         mid: i,
         cid: activeChat.id,
-      },activeChat?.id?.includes('ch')?activeChat.id:false,)
+      },typeof activeChat?.id ==="string"&&activeChat?.id?.includes('ch')?activeChat.id:false,)
   }
   useEffect(() => {
    
@@ -667,7 +667,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         message_type: type,
         mid: i,
         cid: activeChat.id,
-      },activeChat?.id?.includes('ch')?activeChat.id:false,)
+      },typeof activeChat?.id ==="string"&&activeChat?.id?.includes('ch')?activeChat.id:false,)
 
 
   };
