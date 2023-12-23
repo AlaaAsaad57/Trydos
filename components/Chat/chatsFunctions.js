@@ -16,12 +16,12 @@ export const getUser=()=>{
         )
 }
 export const getMessageStatusIcon=(status_array)=>{
-    if(status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.is_watched === true||status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.watched_at)
+    if(status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.is_watched === true||status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.watched_at)
         return(
         <>
         <ReadIcon className="status-icon" ></ReadIcon>
         </>)
-    else if(status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.is_received === 1||status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.received_at)
+    else if(status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.is_received === 1||status_array.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.received_at)
     return(
         <ReceiveIcon className="status-icon" ></ReceiveIcon>
     )

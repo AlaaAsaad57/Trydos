@@ -359,7 +359,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
             let active = null
             let chs = []
             
-            if (parseInt(uid) !== parseInt(localStorage.getItem("USER-CHAT") && getUserChat().id)) {
+            if (parseInt(uid) !== parseInt(localStorage.getItem("USER-CHAT") && getUserChat()?.id)) {
                 state.data.map((ch) => {
                     if (parseInt(ch.id) === parseInt(id))
                         chs.push({ ...ch, status: payload.desc })
@@ -487,7 +487,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
                         let st = mes.message_status
                         st.map((sta) => {
                             let newdate =new Date(new Date().getTime()-(3*60*60*1000))
-                            if (sta.user_id !== getUserChat().id) {
+                            if (sta.user_id !== getUserChat()?.id) {
                                 newst.push({ ...sta, is_received: 1, received_at: sta.received_at ? sta.received_at : newdate.toLocaleString().toString() })
                             }
                             else {
@@ -610,7 +610,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
                             mar.push(m)
                         }
                     })
-                    if (payload.recive && payload.sender_user_id !== getUserChat().id&&mar.filter((S)=>S.id===payload.id).length===0) {
+                    if (payload.recive && payload.sender_user_id !== getUserChat()?.id&&mar.filter((S)=>S.id===payload.id).length===0) {
                         mar.push({...payload,mid:null})
                     }
                     chatData.push({ ...a, messages: [...mar] })
@@ -682,7 +682,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
             let users = []
             let prr=[]
             payload.map((a) => {
-                let unique = a.channel_members.filter((df) => df.user_id !== (getUserChat().id))[0]
+                let unique = a.channel_members.filter((df) => df.user_id !== (getUserChat()?.id))[0]
                 users.push(unique.user_id)
                 chatData.push({ ...a, messages: a.messages.reverse() })
             })
@@ -694,7 +694,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
 
                 payload.map((adsd) => {
                     if (state.data.filter((ch) => ch.id === adsd.id).length === 0) {
-                        if (adsd.messages.filter((mes) => mes.message_status.filter((st) => st.user_id === getUserChat().id)[0]?.is_watched === false).length > 0)
+                        if (adsd.messages.filter((mes) => mes.message_status.filter((st) => st.user_id === getUserChat()?.id)[0]?.is_watched === false).length > 0)
                             arr.push(adsd)
                     }
                 })
@@ -780,7 +780,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
             let arr=[]
             state.data.map((chat)=>{
                 if(chat.id===payload.id){
-                    arr.push({...state.data.filter((s)=>s.id===payload.id)[0],channel_members:[state.data.filter((s)=>s.id===payload.id)[0]?.channel_members.filter((mem)=>mem.user_id!==getUserChat().id)[0],{...state.data.filter((s)=>s.id===payload.id)[0]?.channel_members.filter((mem)=>mem.user_id===getUserChat().id)[0],mute:payload.value?1:0}]})
+                    arr.push({...state.data.filter((s)=>s.id===payload.id)[0],channel_members:[state.data.filter((s)=>s.id===payload.id)[0]?.channel_members.filter((mem)=>mem.user_id!==getUserChat()?.id)[0],{...state.data.filter((s)=>s.id===payload.id)[0]?.channel_members.filter((mem)=>mem.user_id===getUserChat()?.id)[0],mute:payload.value?1:0}]})
                 }
                 else{
                     arr.push(chat)
@@ -796,7 +796,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
         case "PIN_CHAT_REDUCER":{
             PinnChat(payload)
             let arr=[]
-                arr=[...state.data.filter((s)=>s.id!==payload.id), {...state.data.filter((s)=>s.id===payload.id)[0],channel_members:[state.data.filter((s)=>s.id===payload.id)[0]?.channel_members.filter((mem)=>mem.user_id!==getUserChat().id)[0],{...state.data.filter((s)=>s.id===payload.id)[0]?.channel_members.filter((mem)=>mem.user_id===getUserChat().id)[0],pin:payload.value?1:0}]}]
+                arr=[...state.data.filter((s)=>s.id!==payload.id), {...state.data.filter((s)=>s.id===payload.id)[0],channel_members:[state.data.filter((s)=>s.id===payload.id)[0]?.channel_members.filter((mem)=>mem.user_id!==getUserChat()?.id)[0],{...state.data.filter((s)=>s.id===payload.id)[0]?.channel_members.filter((mem)=>mem.user_id===getUserChat()?.id)[0],pin:payload.value?1:0}]}]
             return({
                 ...state,
                 data:arr

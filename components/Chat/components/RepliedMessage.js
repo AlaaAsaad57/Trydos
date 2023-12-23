@@ -17,22 +17,22 @@ function RepliedMessage({moving,message,parent_message,message_ref,onClick}) {
         else return false
     }
     const getMessageReplyType=()=>{
-        if(message.sender_user_id===parent_message.sender_user_id&&message.sender_user_id===getUserChat().id){
+        if(message.sender_user_id===parent_message.sender_user_id&&message.sender_user_id===getUserChat()?.id){
             return('me-to-me')
         }
-        else if((message.sender_user_id===parent_message.sender_user_id&&message.sender_user_id!==getUserChat().id)||(message.sender_user_id!==parent_message.sender_user_id&&message.sender_user_id!==getUserChat().id&&parent_message.sender_user_id!==getUserChat().id)){
+        else if((message.sender_user_id===parent_message.sender_user_id&&message.sender_user_id!==getUserChat()?.id)||(message.sender_user_id!==parent_message.sender_user_id&&message.sender_user_id!==getUserChat()?.id&&parent_message.sender_user_id!==getUserChat()?.id)){
             return('him-to-him')
         }
-        else if(message.sender_user_id!==parent_message.sender_user_id&&message.sender_user_id===getUserChat().id){
+        else if(message.sender_user_id!==parent_message.sender_user_id&&message.sender_user_id===getUserChat()?.id){
             return('me-to-him')
         }
-        else if(message.sender_user_id!==parent_message.sender_user_id&&message.sender_user_id!==getUserChat().id&&parent_message.sender_user_id===getUserChat().id){
+        else if(message.sender_user_id!==parent_message.sender_user_id&&message.sender_user_id!==getUserChat()?.id&&parent_message.sender_user_id===getUserChat()?.id){
             return('him-to-me self-align')
         }
     }
     
     const showMessage=()=>{
-        if (parseInt(parent_message.sender_user_id) === parseInt(getUserChat().id)) {
+        if (parseInt(parent_message.sender_user_id) === parseInt(getUserChat()?.id)) {
             if (parent_message.message_type.name === "ImageMessage") {
               return (
                 <div  className={"message-hold"} onClick={()=>onClick()}>
@@ -41,17 +41,17 @@ function RepliedMessage({moving,message,parent_message,message_ref,onClick}) {
                     {sameSource() && <div className='bordse'></div>}
       
                     {
-                <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name&& 'text-avatar'}`}>
-                {activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.photo_path?.includes('eu') ?
-                activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name?
-                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name&& 'text-avatar'}`}>
+                {activeChat.channel_members.filter((user)=>user.user_id===getUserChat()?.id)[0]?.user?.photo_path?.includes('eu') ?
+                activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name?
+                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                  :
                  <Image alt="user-img" src={profile} width={30} height={30}/>
                  :
-                 activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.name?
-                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                 activeChat.channel_members.filter((user)=>user.user_id===getUserChat()?.id)[0]?.user?.name?
+                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                  :
-                  <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path))} />}
+                  <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path))} />}
 
               </div>
                 } 
@@ -69,17 +69,17 @@ function RepliedMessage({moving,message,parent_message,message_ref,onClick}) {
                     {sameSource() && <div className='bordse'></div>}
       
                     {
-                    <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name&& 'text-avatar'}`}>
-                    {activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.photo_path?.includes('eu') ?
-                    activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name?
-                     <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                    <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name&& 'text-avatar'}`}>
+                    {activeChat.channel_members.filter((user)=>user.user_id===getUserChat()?.id)[0]?.user?.photo_path?.includes('eu') ?
+                    activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name?
+                     <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                      :
                      <Image alt="user-img" src={profile} width={30} height={30}/>
                      :
-                     activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.name?
-                     <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                     activeChat.channel_members.filter((user)=>user.user_id===getUserChat()?.id)[0]?.user?.name?
+                     <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                      :
-                      <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path))} />}
+                      <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path))} />}
     
                   </div>
                 } 
@@ -94,17 +94,17 @@ function RepliedMessage({moving,message,parent_message,message_ref,onClick}) {
                 <div  className={"message-hold"} onClick={()=>onClick()}>
                     <div ref={message_ref} className={'message-body audio-body ' + 'first-chat'}>
                     {
-                    <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name&& 'text-avatar'}`}>
-                    {activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.photo_path?.includes('eu') ?
-                    activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name?
-                     <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                    <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name&& 'text-avatar'}`}>
+                    {activeChat.channel_members.filter((user)=>user.user_id===getUserChat()?.id)[0]?.user?.photo_path?.includes('eu') ?
+                    activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name?
+                     <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                      :
                      <Image alt="user-img" src={profile} width={30} height={30}/>
                      :
-                     activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.name?
-                     <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                     activeChat.channel_members.filter((user)=>user.user_id===getUserChat()?.id)[0]?.user?.name?
+                     <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                      :
-                      <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path))} />}
+                      <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path))} />}
     
                   </div>}
                         <AudioIcon className='message-type-icon'></AudioIcon> Audio                     
@@ -117,17 +117,17 @@ function RepliedMessage({moving,message,parent_message,message_ref,onClick}) {
                 <div  className={"message-hold"} onClick={()=>onClick()}>  
                   <div ref={message_ref} className={'message-body text-message text-body ' + 'first-chat'}>
                   {
-                   <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name&& 'text-avatar'}`}>
-                   {activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.photo_path?.includes('eu') ?
-                   activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name?
-                    <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                   <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name&& 'text-avatar'}`}>
+                   {activeChat.channel_members.filter((user)=>user.user_id===getUserChat()?.id)[0]?.user?.photo_path?.includes('eu') ?
+                   activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name?
+                    <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                     :
                     <Image alt="user-img" src={profile} width={30} height={30}/>
                     :
-                    activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.name?
-                    <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                    activeChat.channel_members.filter((user)=>user.user_id===getUserChat()?.id)[0]?.user?.name?
+                    <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                     :
-                     <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path))} />}
+                     <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path))} />}
    
                  </div>
                 }
@@ -143,17 +143,17 @@ function RepliedMessage({moving,message,parent_message,message_ref,onClick}) {
                     {sameSource() && <div className='bordse'></div>}
       
                     {
-                    <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name&& 'text-avatar'}`}>
-                    {activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.photo_path?.includes('eu') ?
-                    activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name?
-                     <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                    <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name&& 'text-avatar'}`}>
+                    {activeChat.channel_members.filter((user)=>user.user_id===getUserChat()?.id)[0]?.user?.photo_path?.includes('eu') ?
+                    activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name?
+                     <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                      :
                      <Image alt="user-img" src={profile} width={30} height={30}/>
                      :
-                     activeChat.channel_members.filter((user)=>user.user_id===getUserChat().id)[0]?.user?.name?
-                     <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                     activeChat.channel_members.filter((user)=>user.user_id===getUserChat()?.id)[0]?.user?.name?
+                     <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                      :
-                      <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.photo_path))} />}
+                      <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path))} />}
     
                   </div>} 
                       <Image alt="user-img" className='message-type-icon' height={20} src={out.src}/>File              
@@ -172,17 +172,17 @@ function RepliedMessage({moving,message,parent_message,message_ref,onClick}) {
                     {sameSource() && <div className='bordse'></div>}
       
                       {
-                <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id)!== parseInt(getUserChat().id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name&& 'text-avatar'}`}>
-                {activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.photo_path?.includes('eu') ?
-                activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name?
-                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id)!== parseInt(getUserChat()?.id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name&& 'text-avatar'}`}>
+                {activeChat.channel_members.filter((user)=>user.user_id!==getUserChat()?.id)[0]?.user?.photo_path?.includes('eu') ?
+                activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name?
+                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                  :
                  <Image alt="user-img" src={profile} width={30} height={30}/>
                  :
-                 activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.name?
-                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                 activeChat.channel_members.filter((user)=>user.user_id!==getUserChat()?.id)[0]?.user?.name?
+                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                  :
-                  <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.photo_path))} />}
+                  <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.photo_path))} />}
  
               </div>}
                       <ImageIcon className='message-type-icon'></ImageIcon> Image 
@@ -199,17 +199,17 @@ function RepliedMessage({moving,message,parent_message,message_ref,onClick}) {
                     {sameSource() && <div className='bordse'></div>}
       
                       {
-                <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id)!== parseInt(getUserChat().id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name&& 'text-avatar'}`}>
-                {activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.photo_path?.includes('eu') ?
-                activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name?
-                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id)!== parseInt(getUserChat()?.id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name&& 'text-avatar'}`}>
+                {activeChat.channel_members.filter((user)=>user.user_id!==getUserChat()?.id)[0]?.user?.photo_path?.includes('eu') ?
+                activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name?
+                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                  :
                  <Image alt="user-img" src={profile} width={30} height={30}/>
                  :
-                 activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.name?
-                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                 activeChat.channel_members.filter((user)=>user.user_id!==getUserChat()?.id)[0]?.user?.name?
+                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                  :
-                  <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.photo_path))} />}
+                  <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.photo_path))} />}
  
               </div>}
                       <VideoIcon className='message-type-icon'></VideoIcon> Video 
@@ -228,17 +228,17 @@ function RepliedMessage({moving,message,parent_message,message_ref,onClick}) {
                        
                       
                        {
-                <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id)!== parseInt(getUserChat().id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name&& 'text-avatar'}`}>
-                {activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.photo_path?.includes('eu') ?
-                activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name?
-                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id)!== parseInt(getUserChat()?.id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name&& 'text-avatar'}`}>
+                {activeChat.channel_members.filter((user)=>user.user_id!==getUserChat()?.id)[0]?.user?.photo_path?.includes('eu') ?
+                activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name?
+                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                  :
                  <Image alt="user-img" src={profile} width={30} height={30}/>
                  :
-                 activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.name?
-                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                 activeChat.channel_members.filter((user)=>user.user_id!==getUserChat()?.id)[0]?.user?.name?
+                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                  :
-                  <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.photo_path))} />}
+                  <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.photo_path))} />}
  
               </div>}
                         <AudioIcon className='message-type-icon'></AudioIcon> Audio 
@@ -251,17 +251,17 @@ function RepliedMessage({moving,message,parent_message,message_ref,onClick}) {
                 <div  className={"message-hold"} onClick={()=>onClick()}>              
                   <div ref={message_ref} className={'message-body text-message text-body first-chat'}>
                   {
-                <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id)!== parseInt(getUserChat().id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name&& 'text-avatar'}`}>
-                {activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.photo_path?.includes('eu') ?
-                activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name?
-                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id)!== parseInt(getUserChat()?.id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name&& 'text-avatar'}`}>
+                {activeChat.channel_members.filter((user)=>user.user_id!==getUserChat()?.id)[0]?.user?.photo_path?.includes('eu') ?
+                activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name?
+                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                  :
                  <Image alt="user-img" src={profile} width={30} height={30}/>
                  :
-                 activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.name?
-                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                 activeChat.channel_members.filter((user)=>user.user_id!==getUserChat()?.id)[0]?.user?.name?
+                 <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                  :
-                  <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.photo_path))} />}
+                  <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.photo_path))} />}
  
               </div>}
                     {parent_message.message_content && parent_message.message_content?.content}
@@ -278,17 +278,17 @@ function RepliedMessage({moving,message,parent_message,message_ref,onClick}) {
                     {sameSource() && <div className='bordse'></div>}
       
                       {
-               <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id)!== parseInt(getUserChat().id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name&& 'text-avatar'}`}>
-               {activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.photo_path?.includes('eu') ?
-               activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name?
-                <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+               <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id)!== parseInt(getUserChat()?.id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name&& 'text-avatar'}`}>
+               {activeChat.channel_members.filter((user)=>user.user_id!==getUserChat()?.id)[0]?.user?.photo_path?.includes('eu') ?
+               activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name?
+                <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                 :
                 <Image alt="user-img" src={profile} width={30} height={30}/>
                 :
-                activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.name?
-                <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat().id))[0]?.user?.user_name)}</>
+                activeChat.channel_members.filter((user)=>user.user_id!==getUserChat()?.id)[0]?.user?.name?
+                <>{getTwoLetters(activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.user_name)}</>
                 :
-                 <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat().id))[0]?.user?.photo_path))} />}
+                 <Image alt="user-img" className='abs-avva' src={ (activeChat && activeChat.channel_members && (activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.photo_path))} />}
 
              </div>}
                       <Image alt="user-img" width={26} className='message-type-icon' height={20} src={out.src}/> File 

@@ -29,7 +29,7 @@ export const GetChats=async (payload) =>{
               });
                channel.bind("TextMessageEvent", (data) => {
       
-                if (data.message.sender_user_id !== getUserChat().id) {
+                if (data.message.sender_user_id !== getUserChat()?.id) {
                   let not = new Audio(WA);
                   not.volume = 0.5
                   if(!store.getState().chat.main==="chat")
@@ -37,7 +37,7 @@ export const GetChats=async (payload) =>{
                 }
                 store.dispatch({ type: "REFS" })
                 store.dispatch({ type: "REC_CHA", payload: data.message.channel.id })
-                if (data.message.sender_user_id !== getUserChat().id) store.dispatch({ type: "SEND_MES_RED", payload: { ...data.message, cid: data.message.channel.id, recive: true } })
+                if (data.message.sender_user_id !== getUserChat()?.id) store.dispatch({ type: "SEND_MES_RED", payload: { ...data.message, cid: data.message.channel.id, recive: true } })
               })
                channel.bind("ChannelReceivedEvent", (data) => {
                 store.dispatch({ type: "REC_CHANNEL_RED", payload: data.channel_id });
@@ -52,15 +52,15 @@ export const GetChats=async (payload) =>{
               //   }
               // })
               // channel.bind("VideoCallEvent",async(data)=>{
-              //   let channel=store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]:{id:data.channel_id,messages:[{message_type:{name:'VoiceCall'}}],channel_members:[{user_id:data.user_id,user:store.getState().chat.contacts.filter((s)=>s.contact_user_id===data.user_id)[0],mute:0,pin:0,archived:0},{mute:0,pin:0,archived:0,user_id:getUserChat().id,user:getUserChat()}]}
+              //   let channel=store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]:{id:data.channel_id,messages:[{message_type:{name:'VoiceCall'}}],channel_members:[{user_id:data.user_id,user:store.getState().chat.contacts.filter((s)=>s.contact_user_id===data.user_id)[0],mute:0,pin:0,archived:0},{mute:0,pin:0,archived:0,user_id:getUserChat()?.id,user:getUserChat()}]}
               //   let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id)).length>0?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]?.channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]:{user:{name:"ud",photo_path:null}}
-              //   if(data.payload.user_id!==getUserChat().id&&(!store.getState().chat.callInProgress||store.getState().chat.callInProgress===2)){
+              //   if(data.payload.user_id!==getUserChat()?.id&&(!store.getState().chat.callInProgress||store.getState().chat.callInProgress===2)){
               //   store.dispatch({ type: "INCOMING_CALL",payload:{...data,callerChannel: channel,caller:caller} })}
               // })
               // channel.bind("VoiceCallEvent",async(data)=>{
-              //   let channel=store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]:{id:data.channel_id,messages:[{message_type:{name:'VoiceCall'}}],channel_members:[{user_id:data.user_id,user:store.getState().chat.contacts.filter((s)=>s.contact_user_id===data.user_id)[0],mute:0,pin:0,archived:0},{mute:0,pin:0,archived:0,user_id:getUserChat().id,user:getUserChat()}]}
+              //   let channel=store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]:{id:data.channel_id,messages:[{message_type:{name:'VoiceCall'}}],channel_members:[{user_id:data.user_id,user:store.getState().chat.contacts.filter((s)=>s.contact_user_id===data.user_id)[0],mute:0,pin:0,archived:0},{mute:0,pin:0,archived:0,user_id:getUserChat()?.id,user:getUserChat()}]}
               //   let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id)).length>0?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]?.channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]:{user:{name:"ud",photo_path:null}}
-              //   if(data.payload.user_id!==getUserChat().id&&(!store.getState().chat.callInProgress||store.getState().chat.callInProgress===2)){
+              //   if(data.payload.user_id!==getUserChat()?.id&&(!store.getState().chat.callInProgress||store.getState().chat.callInProgress===2)){
               //     store.dispatch({ type: "INCOMING_VOICE_CALL",payload:{...data,callerChannel: channel,caller:caller} })
               //   }
               // })
@@ -139,7 +139,7 @@ export const SendMessage=async (payload,isNew) =>{
             ch.bind("client-TypingEvent", (data) => {
               
               if (
-                parseInt(JSON.parse(JSON.stringify(data)).uid) !== getUserChat().id
+                parseInt(JSON.parse(JSON.stringify(data)).uid) !== getUserChat()?.id
               )
              {
                 store.dispatch({ type: "IS_TYPING_TRUE", payload: JSON.parse(JSON.stringify(data)) });}
@@ -441,7 +441,7 @@ export const InitPusherChannel=(channelId)=>{
   ch.bind("client-TypingEvent", (data) => {
   
     if (
-      parseInt(JSON.parse(JSON.stringify(data)).uid) !== getUserChat().id
+      parseInt(JSON.parse(JSON.stringify(data)).uid) !== getUserChat()?.id
     )
     {
       store.dispatch({ type: "IS_TYPING_TRUE", payload: JSON.parse(JSON.stringify(data)) });}
@@ -454,7 +454,7 @@ export const makeVideoCall=async(channelId,callerName,callerPhoto,mobilePhone)=>
     store.dispatch({type:"CALL-LOADING",payload:'video'})
     let obj=typeof channelId ==="string"&&channelId.includes('ch')?{receiver_user_id:parseInt(channelId.split('ch-')[1])}:{channel_id:channelId}
     await axios.post(CHAT_URL+`/api/v1/messages/video_call`,
-    {...obj,payload:{user_id:getUserChat().id,type:"video",channelId:channelId,callerName:callerName,callerPhoto:callerPhoto,mobilePhone:mobilePhone}},{
+    {...obj,payload:{user_id:getUserChat()?.id,type:"video",channelId:channelId,callerName:callerName,callerPhoto:callerPhoto,mobilePhone:mobilePhone}},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
@@ -473,7 +473,7 @@ export const makeVoiceCall=async(channelId,callerName,callerPhoto,mobilePhone)=>
     let obj=typeof channelId ==="string"&&channelId.includes('ch')?{receiver_user_id:parseInt(channelId.split('ch-')[1])}:{channel_id:channelId}
     store.dispatch({type:"CALL-LOADING",payload:'voice'})
     await axios.post(CHAT_URL+`/api/v1/messages/voice_call`,
-    {...obj,payload:{user_id:getUserChat().id,type:"audio",channelId:channelId,callerName:callerName,callerPhoto:callerPhoto,mobilePhone:mobilePhone}},{
+    {...obj,payload:{user_id:getUserChat()?.id,type:"audio",channelId:channelId,callerName:callerName,callerPhoto:callerPhoto,mobilePhone:mobilePhone}},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
@@ -541,8 +541,8 @@ export const Answer=async(channelId,messageId)=>{
 }
 export const EstablishChannel=(cg)=>{
    let chs =  pusher.subscribe(`presence-video-call-${cg.pusher_channel_name}`)
-               chs.bind(`client-signal-${getUserChat().id}`, (signal) => {
-                let caller = cg.channel_members.filter(one => one.user_id !== getUserChat().id)[0]
+               chs.bind(`client-signal-${getUserChat()?.id}`, (signal) => {
+                let caller = cg.channel_members.filter(one => one.user_id !== getUserChat()?.id)[0]
                 let callerChannel = cg
                 store.dispatch({
                   type: "INCOMING_CALL", payload: {
@@ -552,8 +552,8 @@ export const EstablishChannel=(cg)=>{
                   }
                 })
               })
-               chs.bind(`client-signal-voice-${getUserChat().id}`, (signal) => {
-                let caller = cg.channel_members.filter(one => one.user_id !== getUserChat().id)[0]
+               chs.bind(`client-signal-voice-${getUserChat()?.id}`, (signal) => {
+                let caller = cg.channel_members.filter(one => one.user_id !== getUserChat()?.id)[0]
                 let callerChannel = cg
                 store.dispatch({
                   type: "INCOMING_VOICE_CALL", payload: {

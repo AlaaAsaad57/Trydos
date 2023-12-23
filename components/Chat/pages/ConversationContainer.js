@@ -39,7 +39,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
   const refs=useSelector((state)=>state.chat.refs)
   const channels=useSelector((state)=>state.chat.channels)
   const sendStatues=(desc)=>{
-    let obj={id:activeChat.id,uid:getUser().id,desc:desc}
+    let obj={id:activeChat.id,uid:getUser()?.id,desc:desc}
     let a=channels.filter((cv)=>cv.id===activeChat.id)[0]
     if(a&&a.channel){
  
@@ -141,25 +141,25 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
               receiver_user_id: activeChat.channel_members.filter(
                 (a) =>
                   parseInt(a.user_id) !==
-                  parseInt(getUser().id)
+                  parseInt(getUser()?.id)
               )[0]?.user_id,
               receiver_role_id: activeChat.channel_members.filter(
                 (a) =>
                   parseInt(a.user_id) !==
-                  parseInt(getUser().id)
+                  parseInt(getUser()?.id)
               )[0]?.role_id,
               sender_role_id: getUser().role_id,
-              sender_user_id: getUser().id,
+              sender_user_id: getUser()?.id,
               message_type: { name: "VoiceMessage" },
               message_content: [{ file_path: base64data }],
               created_at:new Date(),
               type: "pending",
               mid: i,
-              message_status:   [{ is_watched: false, is_received: 0,user_id:(localStorage.getItem("USER-CHAT")&&getUser().id) }
+              message_status:   [{ is_watched: false, is_received: 0,user_id:(localStorage.getItem("USER-CHAT")&&getUser()?.id) }
               ,{is_received:0,is_watched:false,user_id:activeChat.channel_members.filter(
     (a) =>
       parseInt(a.user_id) !==
-      parseInt(getUser().id)
+      parseInt(getUser()?.id)
   )[0]?.user_id}],
               cid: activeChat.id,
             },
@@ -173,12 +173,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         receiver_user_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
-            parseInt(getUser().id)
+            parseInt(getUser()?.id)
         )[0]?.user_id,
         receiver_role_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
-            parseInt(getUser().id)
+            parseInt(getUser()?.id)
         )[0]?.role_id,
         sender_role_id: getUser().role_id,
         content: [{ file_path: pat.path,file_name:pat.name }],
@@ -202,12 +202,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         receiver_user_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
-            parseInt(getUser().id)
+            parseInt(getUser()?.id)
         )[0]?.user_id,
         receiver_role_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
-            parseInt(getUser().id)
+            parseInt(getUser()?.id)
         )[0]?.role_id,
         sender_role_id: getUser().role_id,
         content: data,
@@ -225,24 +225,24 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
             receiver_user_id: activeChat.channel_members.filter(
               (a) =>
                 parseInt(a.user_id) !==
-                parseInt(getUser().id)
+                parseInt(getUser()?.id)
             )[0]?.user_id,
             receiver_role_id: activeChat.channel_members.filter(
               (a) =>
                 parseInt(a.user_id) !==
-                parseInt(getUser().id)
+                parseInt(getUser()?.id)
             )[0]?.role_id,
             sender_role_id: getUser().role_id,
-            sender_user_id: getUser().id,
+            sender_user_id: getUser()?.id,
             message_type: { name: "TextMessage" },
             message_content: { content: data },
             created_at:new Date(),
             mid: i,
-            message_status:   [{ is_watched: false, is_received: 0,user_id:(localStorage.getItem("USER-CHAT")&&getUser().id) }
+            message_status:   [{ is_watched: false, is_received: 0,user_id:(localStorage.getItem("USER-CHAT")&&getUser()?.id) }
   ,{is_received:0,is_watched:false,user_id:activeChat.channel_members.filter(
     (a) =>
       parseInt(a.user_id) !==
-      parseInt(getUser().id)
+      parseInt(getUser()?.id)
   )[0]?.user_id}],
             type: "pending",
             cid: activeChat.id,
@@ -277,22 +277,22 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
             receiver_user_id: activeChat.channel_members.filter(
               (a) =>
                 parseInt(a.user_id) !==
-                parseInt(getUser().id)
+                parseInt(getUser()?.id)
             )[0]?.user_id,
             receiver_role_id: activeChat.channel_members.filter(
               (a) =>
                 parseInt(a.user_id) !==
-                parseInt(getUser().id)
+                parseInt(getUser()?.id)
             )[0]?.role_id,
             sender_role_id: getUser().role_id,
             message_type: { name: "ImageMessage" },
             type: "pending",
             created_at:new Date(),
-            message_status:  [{ is_watched: false, is_received: 0,user_id:(localStorage.getItem("USER-CHAT")&&getUser().id) }
+            message_status:  [{ is_watched: false, is_received: 0,user_id:(localStorage.getItem("USER-CHAT")&&getUser()?.id) }
   ,{is_received:0,is_watched:false,user_id:activeChat.channel_members.filter(
     (a) =>
       parseInt(a.user_id) !==
-      parseInt(getUser().id)
+      parseInt(getUser()?.id)
   )[0]?.user_id}],
             message_content: [{ file_path: data }],
             cid: activeChat.id,
@@ -326,22 +326,22 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
             receiver_user_id: activeChat.channel_members.filter(
               (a) =>
                 parseInt(a.user_id) !==
-                parseInt(getUser().id)
+                parseInt(getUser()?.id)
             )[0]?.user_id,
             receiver_role_id: activeChat.channel_members.filter(
               (a) =>
                 parseInt(a.user_id) !==
-                parseInt(getUser().id)
+                parseInt(getUser()?.id)
             )[0]?.role_id,
             sender_role_id: getUser().role_id,
             message_type: { name: "VoiceMessage" },
             type: "pending",
             created_at:new Date(),
-            message_status:   [{ is_watched: false, is_received: 0,user_id:(localStorage.getItem("USER-CHAT")&&getUser().id) }
+            message_status:   [{ is_watched: false, is_received: 0,user_id:(localStorage.getItem("USER-CHAT")&&getUser()?.id) }
   ,{is_received:0,is_watched:false,user_id:activeChat.channel_members.filter(
     (a) =>
       parseInt(a.user_id) !==
-      parseInt(getUser().id)
+      parseInt(getUser()?.id)
   )[0]?.user_id}],
             message_content: [{ file_path: data }],
             cid: activeChat.id,
@@ -368,24 +368,24 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
               receiver_user_id: activeChat.channel_members.filter(
                 (a) =>
                   parseInt(a.user_id) !==
-                  parseInt(getUser().id)
+                  parseInt(getUser()?.id)
               )[0]?.user_id,
               receiver_role_id: activeChat.channel_members.filter(
                 (a) =>
                   parseInt(a.user_id) !==
-                  parseInt(getUser().id)
+                  parseInt(getUser()?.id)
               )[0]?.role_id,
               sender_role_id: getUser().role_id,
-              sender_user_id: getUser().id,
+              sender_user_id: getUser()?.id,
               message_type: { name: type },
               message_content: [{ file_path: reader.result }],
               type: "pending",
               created_at:new Date(),
-              message_status:  [{ is_watched: false, is_received: 0,user_id:(localStorage.getItem("USER-CHAT")&&getUser().id) }
+              message_status:  [{ is_watched: false, is_received: 0,user_id:(localStorage.getItem("USER-CHAT")&&getUser()?.id) }
   ,{is_received:0,is_watched:false,user_id:activeChat.channel_members.filter(
     (a) =>
       parseInt(a.user_id) !==
-      parseInt(getUser().id)
+      parseInt(getUser()?.id)
   )[0]?.user_id}],
               mid: i,
               cid: activeChat.id,
@@ -416,12 +416,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         receiver_user_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
-            parseInt(getUser().id)
+            parseInt(getUser()?.id)
         )[0]?.user_id,
         receiver_role_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
-            parseInt(getUser().id)
+            parseInt(getUser()?.id)
         )[0]?.role_id,
         sender_role_id: getUser().role_id,
         content: [{ file_path: pat.path,file_name:pat.name }],
@@ -470,12 +470,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         receiver_user_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
-            parseInt(getUser().id)
+            parseInt(getUser()?.id)
         )[0]?.user_id,
         receiver_role_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
-            parseInt(getUser().id)
+            parseInt(getUser()?.id)
         )[0]?.role_id,
         sender_role_id: getUser().role_id,
         content: [{ file_path: pat.path,file_name:pat.name }],
@@ -510,24 +510,24 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
               receiver_user_id: activeChat.channel_members.filter(
                 (a) =>
                   parseInt(a.user_id) !==
-                  parseInt(getUser().id)
+                  parseInt(getUser()?.id)
               )[0]?.user_id,
               receiver_role_id: activeChat.channel_members.filter(
                 (a) =>
                   parseInt(a.user_id) !==
-                  parseInt(getUser().id)
+                  parseInt(getUser()?.id)
               )[0]?.role_id,
               sender_role_id: getUser().role_id,
-              sender_user_id: getUser().id,
+              sender_user_id: getUser()?.id,
               message_type: { name: "ImageMessage" },
               message_content: [{ file_path: imageFile }],
               type: "pending",
               created_at:new Date(),
-              message_status:  [{ is_watched: false, is_received: 0,user_id:(localStorage.getItem("USER-CHAT")&&getUser().id) }
+              message_status:  [{ is_watched: false, is_received: 0,user_id:(localStorage.getItem("USER-CHAT")&&getUser()?.id) }
     ,{is_received:0,is_watched:false,user_id:activeChat.channel_members.filter(
     (a) =>
       parseInt(a.user_id) !==
-      parseInt(getUser().id)
+      parseInt(getUser()?.id)
     )[0]?.user_id}],
               mid: i,
               cid: activeChat.id,
@@ -543,12 +543,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         receiver_user_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
-            parseInt(getUser().id)
+            parseInt(getUser()?.id)
         )[0]?.user_id,
         receiver_role_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
-            parseInt(getUser().id)
+            parseInt(getUser()?.id)
         )[0]?.role_id,
         sender_role_id: getUser().role_id,
         content: [{ file_path: pat.path,file_name:pat.name }],
@@ -653,12 +653,12 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
         receiver_user_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
-            parseInt(getUser().id)
+            parseInt(getUser()?.id)
         )[0]?.user_id,
         receiver_role_id: activeChat.channel_members.filter(
           (a) =>
             parseInt(a.user_id) !==
-            parseInt(getUser().id)
+            parseInt(getUser()?.id)
         )[0]?.role_id,
         sender_role_id: getUser().role_id,
         content: [{ file_path: pat.path,file_name:pat.name }],

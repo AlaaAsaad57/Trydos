@@ -24,7 +24,7 @@ function ChatHeader({chats,activeChat,openDetails}) {
     <div className="user-top-chat">
       {activeChat && activeChat.channel_members && (
         <div className="img-uer" onClick={()=>openDetails()}>
-          {(!activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.photo_path?.includes('eu')&&activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.photo_path)?
+          {(!activeChat.channel_members.filter((user)=>user.user_id!==getUserChat()?.id)[0]?.user?.photo_path?.includes('eu')&&activeChat.channel_members.filter((user)=>user.user_id!==getUserChat()?.id)[0]?.user?.photo_path)?
          <Image
          alt="user"
          width={40}
@@ -35,11 +35,11 @@ function ChatHeader({chats,activeChat,openDetails}) {
              activeChat.channel_members.filter(
                (a) =>
                  parseInt(a.user_id) !==
-                 parseInt(getUserChat().id) 
+                 parseInt(getUserChat()?.id) 
              )[0]?.user?.photo_path)
            }
          />:
-          activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user.name?
+          activeChat.channel_members.filter((user)=>user.user_id!==getUserChat()?.id)[0]?.user.name?
           <div className='text-avatar' style={{width:"40px",height:"40px",}}>
           {getTwoLetters(activeChat.channel_members.filter(
               (a) =>
@@ -48,7 +48,7 @@ function ChatHeader({chats,activeChat,openDetails}) {
             )[0]?.user?.name||activeChat?.channel_members.filter(
                 (a) =>
                   parseInt(a.user_id) !==
-                  parseInt(getUserChat().id)
+                  parseInt(getUserChat()?.id)
               )[0]?.user?.username)}
              </div>
              :
@@ -64,17 +64,17 @@ function ChatHeader({chats,activeChat,openDetails}) {
             activeChat.channel_members.filter(
               (a) =>
                 parseInt(a.user_id) !==
-                parseInt(getUserChat().id)
+                parseInt(getUserChat()?.id)
             )[0] &&
             activeChat.channel_members.filter(
               (a) =>
                 parseInt(a.user_id) !==
-                parseInt(getUserChat().id)
+                parseInt(getUserChat()?.id)
             )[0]?.user &&
             activeChat.channel_members.filter(
               (a) =>
                 parseInt(a.user_id) !==
-                parseInt(getUserChat().id)
+                parseInt(getUserChat()?.id)
             )[0]?.user.name||'User-'+activeChat.id
           
           }

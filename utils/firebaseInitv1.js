@@ -47,10 +47,10 @@ export const onMessageListener = () =>
       }
      if(payload.data.type==="VoiceCallEvent"){
       let data=JSON.parse(payload.data.data).payload
-      let channel=store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0]?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0]:  {id:JSON.parse(payload.data.data).message.channel.id,messages:[{...JSON.parse(payload.data.data).message,message_type:{name:'VoiceCall'}}],channel_members:[{user_id:data.user_id,user:{id:data.user_id,name:data.callerName,photo_path:data.callerPhoto},mute:0,pin:0,archived:0},{mute:0,pin:0,archived:0,user_id:getUserChat().id,user:getUserChat()}]}
+      let channel=store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0]?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0]:  {id:JSON.parse(payload.data.data).message.channel.id,messages:[{...JSON.parse(payload.data.data).message,message_type:{name:'VoiceCall'}}],channel_members:[{user_id:data.user_id,user:{id:data.user_id,name:data.callerName,photo_path:data.callerPhoto},mute:0,pin:0,archived:0},{mute:0,pin:0,archived:0,user_id:getUserChat()?.id,user:getUserChat()}]}
       let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId)).length>0?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0]?.channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]:{user:{name:data.callerName,photo_path:data.callerPhoto}}
      
-      if(data.user_id!==getUserChat().id&&(!store.getState().chat.callInProgress||store.getState().chat.callInProgress===2)){
+      if(data.user_id!==getUserChat()?.id&&(!store.getState().chat.callInProgress||store.getState().chat.callInProgress===2)){
         console.log(data,channel,caller);
         store.dispatch({ type: "INCOMING_VOICE_CALL",payload:{...data,channelId:JSON.parse(payload.data.data).message.channel.id,callerChannel: channel,caller:caller,message_id:JSON.parse(payload.data.data).message.id} })
       }
@@ -60,7 +60,7 @@ export const onMessageListener = () =>
         store.dispatch({type:"WATCH_CHANNEL",payload:parseInt(JSON.parse(payload.data.data).message?.channel?.id)})
       }else{
         let active=store?.getState()?.chat?.activeChat
-        if(active?.id &&active?.channel_members.filter((mem)=>mem.user_id===getUserChat().id && mem.user.mute===1).length>0){
+        if(active?.id &&active?.channel_members.filter((mem)=>mem.user_id===getUserChat()?.id && mem.user.mute===1).length>0){
           ;
         }
         else{
@@ -78,9 +78,9 @@ export const onMessageListener = () =>
      else if(payload.data.type==="VideoCallEvent"){
 
       let data=JSON.parse(payload.data.data).payload
-      let channel=store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0]?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0]:{id:JSON.parse(payload.data.data).message.channel.id,messages:[{...JSON.parse(payload.data.data).message,message_type:{name:'VideoCall'}}],channel_members:[{user_id:data.user_id,user:{id:data.user_id,name:data.callerName,photo_path:data.callerPhoto},mute:0,pin:0,archived:0},{mute:0,pin:0,archived:0,user_id:getUserChat().id,user:getUserChat()}]}
+      let channel=store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0]?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0]:{id:JSON.parse(payload.data.data).message.channel.id,messages:[{...JSON.parse(payload.data.data).message,message_type:{name:'VideoCall'}}],channel_members:[{user_id:data.user_id,user:{id:data.user_id,name:data.callerName,photo_path:data.callerPhoto},mute:0,pin:0,archived:0},{mute:0,pin:0,archived:0,user_id:getUserChat()?.id,user:getUserChat()}]}
       let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId)).length>0?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0]?.channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]:{user:{name:data.callerName,photo_path:data.callerPhoto}}
-      if(data.user_id!==getUserChat().id&&(!store.getState().chat.callInProgress||store.getState().chat.callInProgress===2)){
+      if(data.user_id!==getUserChat()?.id&&(!store.getState().chat.callInProgress||store.getState().chat.callInProgress===2)){
       store.dispatch({ type: "INCOMING_CALL",payload:{...data,channelId:JSON.parse(payload.data.data).message.channel.id,callerChannel: channel,caller:caller,message_id:JSON.parse(payload.data.data).message.id} })}
         store.dispatch({type:"SET_LAST_NOTIFICATION_DATE",payload:(new Date()).toLocaleString()})
      store.dispatch({ type: "REC_CHA", payload: parseInt(JSON.parse(payload.data.data).message.channel.id)})
@@ -88,7 +88,7 @@ export const onMessageListener = () =>
        store.dispatch({type:"WATCH_CHANNEL",payload:parseInt(JSON.parse(payload.data.data).message?.channel?.id)})
      }else{
        let active=store?.getState()?.chat?.activeChat
-       if(active?.id &&active?.channel_members.filter((mem)=>mem.user_id===getUserChat().id && mem.user.mute===1).length>0){
+       if(active?.id &&active?.channel_members.filter((mem)=>mem.user_id===getUserChat()?.id && mem.user.mute===1).length>0){
          ;
        }
        else{
@@ -113,7 +113,7 @@ export const onMessageListener = () =>
         store.dispatch({type:"WATCH_CHANNEL",payload:parseInt(JSON.parse(payload.data.message)?.channel?.id)})
       }else{
         let active=store?.getState()?.chat?.activeChat
-        if(active?.id &&active?.channel_members.filter((mem)=>mem.user_id===getUserChat().id && mem.user.mute===1).length>0){
+        if(active?.id &&active?.channel_members.filter((mem)=>mem.user_id===getUserChat()?.id && mem.user.mute===1).length>0){
           ;
         }
         else{

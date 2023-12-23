@@ -103,7 +103,7 @@ const VideoCall = (props) => {
       });
       let token=await getToken(name)
       console.log(token)
-      await client.join(appId, name, token, getUserChat().id);
+      await client.join(appId, name, token, getUserChat()?.id);
       if (tracks) await client.publish([tracks[0], tracks[1]]);
       setStart(true);
 

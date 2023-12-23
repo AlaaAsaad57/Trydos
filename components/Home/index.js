@@ -45,7 +45,7 @@ export default function Home({stories,HomeData_res,stories_res,HomeData}) {
     requestFirebaseNotificationPermission().then((fbtoken)=>{
       if(fbtoken){
        fbtoken&& StoreToken({
-          id:getUserChat().id,
+          id:getUserChat()?.id,
           token:fbtoken,
           user:getUserChat()
         })

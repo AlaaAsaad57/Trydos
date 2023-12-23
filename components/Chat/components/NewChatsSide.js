@@ -15,10 +15,10 @@ function NewChatsSide({activeChat,chats}) {
           <PointIcon></PointIcon>
 
            <div className='img-cont'>
-           {a.channel_members.filter((ada) => parseInt(ada.user_id) !== parseInt(getUser().id))[0]?.user?.photo_path&&!a.channel_members.filter((ada) => parseInt(ada.user_id) !== parseInt(getUser().id))[0]?.user?.photo_path?.includes(a.channel_members.filter((ada) => parseInt(ada.user_id) !== parseInt(getUser().id))[0]?.user?.name)?
-            <Image width={30} height={30}  alt='new-user' src={ a.channel_members.filter((ada) => parseInt(ada.user_id) !== parseInt(getUser().id))[0]?.user?.photo_path }/>:
-            a.channel_members.filter((ada) => parseInt(ada.user_id) !== parseInt(getUser().id))[0]?.user?.name?  <div className='min-text-avatar'>
-          {getTwoLetters(a.channel_members.filter((ada) => parseInt(ada.user_id) !== parseInt(getUser().id))[0]?.user?.name||a.channel_members.filter((ada) => parseInt(ada.user_id) !== parseInt(getUser().id))[0]?.user?.username)}
+           {a.channel_members.filter((ada) => parseInt(ada.user_id) !== parseInt(getUser()?.id))[0]?.user?.photo_path&&!a.channel_members.filter((ada) => parseInt(ada.user_id) !== parseInt(getUser()?.id))[0]?.user?.photo_path?.includes(a.channel_members.filter((ada) => parseInt(ada.user_id) !== parseInt(getUser()?.id))[0]?.user?.name)?
+            <Image width={30} height={30}  alt='new-user' src={ a.channel_members.filter((ada) => parseInt(ada.user_id) !== parseInt(getUser()?.id))[0]?.user?.photo_path }/>:
+            a.channel_members.filter((ada) => parseInt(ada.user_id) !== parseInt(getUser()?.id))[0]?.user?.name?  <div className='min-text-avatar'>
+          {getTwoLetters(a.channel_members.filter((ada) => parseInt(ada.user_id) !== parseInt(getUser()?.id))[0]?.user?.name||a.channel_members.filter((ada) => parseInt(ada.user_id) !== parseInt(getUser()?.id))[0]?.user?.username)}
           </div>
           :
           <Image width={30} height={30}  alt='new-user'src={profilePicture}/>
