@@ -32,7 +32,7 @@ export const getStories=async()=>{
   }
   export const DataApiHeaders=()=>{
     const cookieStore = cookies()
-    return new Headers({ language:cookieStore.get('language').value,country:cookieStore.get('country')&&cookieStore.get('country').value })
+    return new Headers({ language:cookieStore.get('language').value||'en',country:cookieStore.get('country')&&cookieStore.get('country').value })
   }
   export const changeAppLanguageServer=(language)=>{
 const cookieStore = cookies()
