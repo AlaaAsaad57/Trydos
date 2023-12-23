@@ -4,14 +4,14 @@ import { getHomeData, getStories } from '../redux/homepage/cachedActions';
 import React from 'react'
 
 async function page() {
-  const stories = await getStories(); 
-  const HomeData=await getHomeData();
+  const [stories,stories_res] = await getStories(); 
+  const [HomeData,HomeData_res]=await getHomeData();
 
 
 
   return (
     <>
-      <Home stories={stories} HomeData={HomeData}/>
+      <Home HomeData_res={HomeData_res} stories_res={stories_res} stories={stories} HomeData={HomeData}/>
     </>
   )
 }

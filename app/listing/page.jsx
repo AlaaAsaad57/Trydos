@@ -1,12 +1,15 @@
-"use client"
+"use server"
 import React from 'react'
 import ProductCard from '../../components/ListingPage/ProductCard'
- function Listing() {
+import { getHomeData, getStories } from '../../redux/homepage/cachedActions';
+ async function page() {
+  const [stories,stories_res] = await getStories(); 
+  const [HomeData,HomeData_res]=await getHomeData();
   return (
     <>
-      {<ProductCard />}
+      {<ProductCard HomeData_res={HomeData_res} stories_res={stories_res} stories={stories} HomeData={HomeData}/>}
     </>
   )
 }
 
-export default Listing
+export default page

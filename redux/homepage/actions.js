@@ -2,6 +2,7 @@ import axios from "axios"
 import { GET_USERS_STORIES, OTP_URL, STORIES_URL,REGISTER_DEVICE_URL, STARTER_SETTINGS, UPLOAD_STORY_URL } from "../../utils/endpointConfig"
 import { SSRDetect } from "../../utils/functions"
 import Cookies from 'js-cookie';
+import { changeAppLanguageServer } from "./cachedActions";
 /*General Actions */
 export const RegisterDevice=async ()=>{
     try{
@@ -17,6 +18,7 @@ export const RegisterDevice=async ()=>{
 } 
 export const changeAppLanguage=(language)=>{
     Cookies.set('language', language);
+    changeAppLanguageServer(language)
     return({type:"APP-LANGUAGE",payload:language})
 }
 export const GetMainData=(data)=>{

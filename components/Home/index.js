@@ -21,13 +21,15 @@ import "react-toastify/dist/ReactToastify.css"
 import { onMessageListener, requestFirebaseNotificationPermission } from "../../utils/firebaseInitv1";
 import { getUserChat } from "../../utils/functions";
 import Cookies from "js-cookie"
-export default function Home({stories,res,HomeData}) {
+export default function Home({stories,HomeData_res,stories_res,HomeData}) {
   
   const language=useSelector((state)=>state.homepage.language)
   const fbtoken=useSelector((state)=>state.homepage.fbtokfbTokenen)
   useEffect(()=>{ 
     let languageCookies=Cookies.get("language");
-    
+    if(true){
+      console.log(stories_res,HomeData_res)
+    }
     dispatch(changeAppLanguage(languageCookies||language||'en'))
     dispatch(GetStoryData(stories))
     dispatch(GetMainData(HomeData))

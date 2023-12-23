@@ -8,11 +8,11 @@ import OfferSlideItem from './OfferSlideItem'
 import { useSelector } from 'react-redux'
 import { translate } from '../../../utils/functions'
 import OfferAvatars from './OfferAvatars'
-const NormalWidget=({offer,myKey})=> {
+const NormalWidget=({offer,myKey,onClick})=> {
   const language=useSelector((state)=>state.homepage.language)
 
   return (
-    <div className='offer-widget' key={myKey} >
+    <div className='offer-widget' key={myKey} onClick={()=>onClick()}>
         <div className='offer-blured-background'/>
         <div className='offer-blured'/>
         <div className='offer-container' aria-details={language}>

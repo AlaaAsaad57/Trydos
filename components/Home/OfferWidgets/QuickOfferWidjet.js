@@ -7,11 +7,11 @@ import KidsIcon from "../../../public/svg/KidsIcon.svg"
 import QuickEventBar from "./QuickEventBar"
 import { useSelector } from 'react-redux'
 import { translate } from '../../../utils/functions'
-function QuickOfferWidjet({offer}) {
+function QuickOfferWidjet({offer,onClick}) {
   const language=useSelector((state)=>state.homepage.language)
 
     return (
-        <div className='offer-widget quick-widget'>
+        <div className='offer-widget quick-widget' onClick={()=>onClick()}>
         <div className='offer-blured-background'/>
         <div className='offer-blured'/>
         <div className='offer-container' aria-details={language}>
