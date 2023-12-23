@@ -174,11 +174,11 @@ console.log(error,ready,tracks)
         <div
           style={tracks &&tracks[0] && { zIndex: 3 }}
           className="end-icon"
-          onClick={() => {userEndCall(); RefuseCall(activeChat.id,MessageActiveCall)}}>
+          onClick={() => {RefuseCall(activeChat.id,MessageActiveCall); userEndCall();}}>
           <EndCallIcon ></EndCallIcon>
           <span>{translate("End Call",language)}</span>
         </div>
-        <div className='cancel-call-icon' onClick={() => {userEndCall(); RefuseCall(activeChat.id,MessageActiveCall)}}>
+        <div className='cancel-call-icon' onClick={() => {RefuseCall(activeChat.id,MessageActiveCall); userEndCall();}}>
           <LeftArrowIcon></LeftArrowIcon>
         </div>
         <div className='add-caller-icon'>

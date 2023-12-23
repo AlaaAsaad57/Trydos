@@ -129,6 +129,9 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
                     ...state,
                     call: null,
                     callInProgress: false,
+                    incomeCallType:null,
+                    incomeCallData:null,
+                    callLoading:null,
                     isCallIncoming: false,
                     MessageActiveCall:null
                 })
@@ -147,7 +150,10 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
                     call: null,
                     callInProgress: false,
                     isCallIncoming: false,
-                    MessageActiveCall:null
+                    incomeCallType:null,
+                    incomeCallData:null,
+                    callLoading:null,
+                    
                 })
             }
         }
@@ -158,7 +164,6 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
                 callInProgress: false,
                 isCallIncoming: false,
                 callLoading:payload,
-                MessageActiveCall:null,
                 incomeCallData:null,
                 incomeCallType:null,
                 caller:null,
@@ -166,22 +171,36 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
             }
         }
         case "VIDEO_CALL": {
+            let newActive={...state.activeChat,messages:[...state.activeChat.messages,{...source,message_type:{name:'VideoCall'}}],id:source.channel.id}
+            let arr=[];
+            if( state.data.filter((m)=>parseInt(m.id)===parseInt(source.channel.id)).length===0){
+                arr.push(newActive)
+            }
+            state.data.map((m)=>{if(parseInt(m.id)===parseInt(source.channel.id)){arr.push(newActive)}else{arr.push(m)}})
             return ({
                 ...state,
-                activeChat:{...state.activeChat,id:source.channel.id},
+                activeChat:newActive,
                 call: "vid-outgoing",
                 callInProgress: true,
+                data:arr,
                 AgoraToken:payload,
                 MessageActiveCall:source.id,
-                MessageActiveCall:null
+                
             })
         }
         case "AUDIO_CALL": {
+            let newActive={...state.activeChat,messages:[...state.activeChat.messages,{...source,message_type:{name:'VideoCall'}}],id:source.channel.id}
+            let arr=[];
+            if( state.data.filter((m)=>parseInt(m.id)===parseInt(source.channel.id)).length===0){
+                arr.push(newActive)
+            }
+            state.data.map((m)=>{if(parseInt(m.id)===parseInt(source.channel.id)){arr.push(newActive)}else{arr.push(m)}})
             return ({
                 ...state,
                 call: "aud-outgoing",
+                data:arr,
                 callInProgress: true,
-                activeChat:{...state.activeChat,id:source.channel.id},
+                activeChat:newActive,
                 AgoraToken:payload,
                 MessageActiveCall:source.id
             })
@@ -191,10 +210,11 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
                 ...state,
                 call: false,
                 isCallIncoming: false,
+                incomeCallType:null,
                 incomeCallData: null,
                 caller: null,
                 callerChannel: null,
-                MessageActiveCall:null
+                
             })
         }
         case "ANSWER_CALL": {
