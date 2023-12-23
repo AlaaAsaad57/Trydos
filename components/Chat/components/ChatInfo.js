@@ -34,7 +34,7 @@ function ChatInfo({activeChat,cancel}) {
           }, 300);
           }} className='arrow-icon'><ArrowIcon></ArrowIcon></div>
         <div className='chat-info-user-avatar'>
-         { activeChat.channel_members.filter((user)=>user.user_id!==getUser()?.id)[0]?.user?.photo_path?  <img src={process.env.REACT_APP_BASE_FILE_URL+activeChat.channel_members.filter((user)=>user.user_id!==getUser()?.id)[0].user.photo_path}/>:<div className='text-avatar'>{getTwoLetters(activeChat?.channel_members.filter((user)=>user.user_id!==getUser()?.id)[0].user.name||activeChat.channel_members.filter((user)=>user.user_id!==getUser()?.id)[0].user.username)}</div> }
+         { activeChat.channel_members.filter((user)=>user.user_id!==getUser()?.id)[0]?.user?.photo_path?  <img src={process.env.REACT_APP_BASE_FILE_URL+activeChat.channel_members.filter((user)=>user.user_id!==getUser()?.id)[0].user?.photo_path}/>:<div className='text-avatar'>{getTwoLetters(activeChat?.channel_members.filter((user)=>user.user_id!==getUser()?.id)[0].user.name||activeChat.channel_members.filter((user)=>user.user_id!==getUser()?.id)[0].user.username)}</div> }
         </div>
         <div className='chat-user-info'> 
             <div className='chat-info-user-name'>{activeChat.channel_members.filter((user)=>user.user_id!==getUser()?.id)[0]?.user?.name||activeChat.channel_members.filter((user)=>user.user_id!==getUser()?.id)[0]?.user?.username}</div>

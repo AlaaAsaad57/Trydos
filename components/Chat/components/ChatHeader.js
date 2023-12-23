@@ -24,7 +24,7 @@ function ChatHeader({chats,activeChat,openDetails}) {
     <div className="user-top-chat">
       {activeChat && activeChat.channel_members && (
         <div className="img-uer" onClick={()=>openDetails()}>
-          {(!activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user.photo_path?.includes('eu')&&activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user.photo_path)?
+          {(!activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.photo_path?.includes('eu')&&activeChat.channel_members.filter((user)=>user.user_id!==getUserChat().id)[0]?.user?.photo_path)?
          <Image
          alt="user"
          width={40}
@@ -84,8 +84,8 @@ function ChatHeader({chats,activeChat,openDetails}) {
     <div className="chat-top-contact">
     {/* <VideoIcon onClick={()=>dispatch({ type: "VIDEO_CALL" })} className="vcall" ></VideoIcon>
       <CallIcon onClick={()=> dispatch({ type: "AUDIO_CALL" })} className="call" ></CallIcon>EstablishChannel */}
-      <VideoIcon className={`${(callLoading==='video') && 'loading-svg'} vcall`} onClick={()=>{!callLoading&&makeVideoCall(activeChat.id,activeChat.channel_members.filter((s)=>parseInt(s.user_id)!==parseInt(getUserChat()?.id))[0].user.name,activeChat.channel_members.filter((s)=>parseInt(s.user_id)!==parseInt(getUserChat()?.id))[0].user.photo_path,activeChat.channel_members.filter((s)=>parseInt(s.user_id)!==parseInt(getUserChat()?.id))[0].user.mobile_phone); }} ></VideoIcon>
-      <CallIcon className={`${(callLoading==='voice') && 'loading-svg'} call`} onClick={()=> {!callLoading&&makeVoiceCall(activeChat.id,activeChat.channel_members.filter((s)=>parseInt(s.user_id)!==parseInt(getUserChat()?.id))[0].user.name,activeChat.channel_members.filter((s)=>parseInt(s.user_id)!==parseInt(getUserChat()?.id))[0].user.photo_path,activeChat.channel_members.filter((s)=>parseInt(s.user_id)!==parseInt(getUserChat()?.id))[0].user.mobile_phone);}} ></CallIcon>
+      <VideoIcon className={`${(callLoading==='video') && 'loading-svg'} vcall`} onClick={()=>{!callLoading&&makeVideoCall(activeChat.id,activeChat.channel_members.filter((s)=>parseInt(s.user_id)!==parseInt(getUserChat()?.id))[0].user.name,activeChat.channel_members.filter((s)=>parseInt(s.user_id)!==parseInt(getUserChat()?.id))[0].user?.photo_path,activeChat.channel_members.filter((s)=>parseInt(s.user_id)!==parseInt(getUserChat()?.id))[0].user.mobile_phone); }} ></VideoIcon>
+      <CallIcon className={`${(callLoading==='voice') && 'loading-svg'} call`} onClick={()=> {!callLoading&&makeVoiceCall(activeChat.id,activeChat.channel_members.filter((s)=>parseInt(s.user_id)!==parseInt(getUserChat()?.id))[0].user.name,activeChat.channel_members.filter((s)=>parseInt(s.user_id)!==parseInt(getUserChat()?.id))[0].user?.photo_path,activeChat.channel_members.filter((s)=>parseInt(s.user_id)!==parseInt(getUserChat()?.id))[0].user.mobile_phone);}} ></CallIcon>
     </div>
   </div>
   )

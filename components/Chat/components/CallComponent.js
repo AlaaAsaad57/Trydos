@@ -18,7 +18,7 @@ function CallComponent(props) {
             <audio  ref={ref} loop autoPlay src={'/default.mp3'}>
                 <source src={'/default.mp3'}></source>
             </audio>
-           {caller.user.photo_path? <img src={caller.user.photo_path} />:caller.user.name?
+           {caller.user?.photo_path? <img src={caller.user?.photo_path} />:caller.user.name?
            <>
             <div className='text-avatar' style={{width:"40px",height:"40px",}}>
           {getTwoLetters(caller.user.name)}
