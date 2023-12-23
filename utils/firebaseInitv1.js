@@ -48,7 +48,7 @@ export const onMessageListener = () =>
      if(payload.data.type==="VoiceCallEvent"){
       let data=JSON.parse(payload.data.data).payload
       let channel=store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0]?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0]:{id:data.channelId,messages:[{message_type:{name:'VoiceCall'}}],channel_members:[{user_id:data.user_id,user:store.getState().chat.contacts.filter((s)=>s.contact_user_id===data.user_id)[0],mute:0,pin:0,archived:0},{mute:0,pin:0,archived:0,user_id:getUserChat().id,user:getUserChat()}]}
-      let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId)).length>0?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0].channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]:{user:{name:data.name,photo_path:data.photo}}
+      let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId)).length>0?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0].channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]:{user:{name:data.callerName,photo_path:data.callerPhoto}}
      
       if(data.user_id!==getUserChat().id&&(!store.getState().chat.callInProgress||store.getState().chat.callInProgress===2)){
         console.log(data,channel,caller);
@@ -79,7 +79,7 @@ export const onMessageListener = () =>
 
       let data=JSON.parse(payload.data.data).payload
       let channel=store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0]?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0]:{id:data.channelId,messages:[{message_type:{name:'VoiceCall'}}],channel_members:[{user_id:data.user_id,user:store.getState().chat.contacts.filter((s)=>s.contact_user_id===data.user_id)[0],mute:0,pin:0,archived:0},{mute:0,pin:0,archived:0,user_id:getUserChat().id,user:getUserChat()}]}
-      let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId)).length>0?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0].channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]:{user:{name:data.name,photo_path:data.photo}}
+      let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId)).length>0?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0].channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]:{user:{name:data.callerName,photo_path:data.callerPhoto}}
       if(data.user_id!==getUserChat().id&&(!store.getState().chat.callInProgress||store.getState().chat.callInProgress===2)){
       store.dispatch({ type: "INCOMING_CALL",payload:{...data,callerChannel: channel,caller:caller,message_id:JSON.parse(payload.data.data).message.id} })}
         store.dispatch({type:"SET_LAST_NOTIFICATION_DATE",payload:(new Date()).toLocaleString()})

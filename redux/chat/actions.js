@@ -448,12 +448,12 @@ export const InitPusherChannel=(channelId)=>{
   });  
    store.dispatch({ type: "PUSHER_RED", payload: { id: channelId, channel: ch } });}
 }
-export const makeVideoCall=async(channelId,callerName,callerPhoto)=>{
+export const makeVideoCall=async(channelId,callerName,callerPhoto,mobilePhone)=>{
   try{
     store.dispatch({type:"CALL-LOADING",payload:'video'})
     let obj=channelId.includes('ch')?{reciver_user_id:channelId.split('ch-')[0]}:{channel_id:channelId}
     await axios.post(CHAT_URL+`/api/v1/messages/video_call`,
-    {...obj,payload:{channel_name:'ch-'+channelId,user_id:getUserChat().id,type:"video",channelId:channelId,name:callerName,photo:callerPhoto}},{
+    {...obj,payload:{user_id:getUserChat().id,type:"video",channelId:channelId,callerName:callerName,callerPhoto:callerPhoto,mobilePhone:mobilePhone}},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
@@ -467,12 +467,12 @@ export const makeVideoCall=async(channelId,callerName,callerPhoto)=>{
     console.error(e)
   }
 }
-export const makeVoiceCall=async(channelId,callerName,callerPhoto)=>{
+export const makeVoiceCall=async(channelId,callerName,callerPhoto,mobilePhone)=>{
   try{
     let obj=channelId.includes('ch')?{reciver_user_id:channelId.split('ch-')[0]}:{channel_id:channelId}
     store.dispatch({type:"CALL-LOADING",payload:'voice'})
     await axios.post(CHAT_URL+`/api/v1/messages/voice_call`,
-    {...obj,payload:{channel_name:'ch-'+channelId,user_id:getUserChat().id,type:"audio",channelId:channelId,name:callerName,photo:callerPhoto}},{
+    {...obj,payload:{user_id:getUserChat().id,type:"audio",channelId:channelId,callerName:callerName,callerPhoto:callerPhoto,mobilePhone:mobilePhone}},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
