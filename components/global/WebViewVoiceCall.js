@@ -23,14 +23,7 @@ function WebViewVoiceCall(props) {
     useStopwatch({ autoStart: false });
     const [callStatus,setCallStatus]=useState(null)
     useEffect(()=>{
-      setTimeout(()=>{
-        if(users.length===0){
-          setCallStatus('No Answer')
-          setTimeout(() => {
-            userEndCall()
-          }, 2000);
-        }
-      },30000)
+    
     },[])
     const [users, setUsers] = useState([]);
     const [startIndicator, setStart] = useState(false);
@@ -70,6 +63,7 @@ function WebViewVoiceCall(props) {
   
         client.on("user-left", (user) => {
           userEndCall()
+          setCallStatus('')
           console.log("leaving", user);
           setUsers((prevUsers) => {
             return prevUsers.filter((User) => User.uid !== user.uid);

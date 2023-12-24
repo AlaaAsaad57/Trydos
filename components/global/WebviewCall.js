@@ -7,7 +7,7 @@ const WebViewVoiceCall =dynamic(()=>import('./WebViewVoiceCall', { ssr: false })
 function WebviewCall() {
   const searchParams = useSearchParams()
   const [data,setData]=useState({
-    token:searchParams.get('token'),
+    token:searchParams.get('token').replaceAll(' ','+'),
     sender_user_id:searchParams.get('uid'),
     receiver_user_id:searchParams.get('ruid'),
     channel_id:searchParams.get('ch_id'),

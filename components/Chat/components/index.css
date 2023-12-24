@@ -233,6 +233,12 @@
     right: 10px;
     top: 15px;
     display: flex;
+    width: 100px;
+    height: 150px;
+}
+.add-caller-icon video{
+    width: 100px;
+    height: 150px;
 }
 .cancel-call-icon{
 display: flex;
