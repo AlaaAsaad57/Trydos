@@ -79,8 +79,8 @@ function WebViewVideoCall(props) {
           
         });
         let token=props.data.token
-        
-        await client.join(appId, name.toString(), token, props.data.sender_user_id);
+        console.log(appId, name.toString(), token, parseInt(props.data.sender_user_id))
+        await client.join(appId, name.toString(), token, parseInt(props.data.sender_user_id));
         if (tracks) await client.publish([tracks[0], tracks[1]]);
         setStart(true);
   
