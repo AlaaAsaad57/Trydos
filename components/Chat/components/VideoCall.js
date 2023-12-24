@@ -4,7 +4,6 @@ import MicIcon from '../svg/micIcon.svg';
 import VideoIcon from '../svg/vidIcon.svg';
 import CallIcon from '../svg/CallInProg.svg';
 import CallingIcon from '../svg/calling.svg';
-import AddUserIcon from '../svg/addUser.svg';
 import LeftArrowIcon from '../svg/leftArrow.svg';
 import "./index.css"
 import {
