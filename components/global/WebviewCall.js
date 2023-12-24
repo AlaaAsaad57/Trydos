@@ -9,7 +9,7 @@ function WebviewCall() {
   const [data,setData]=useState({
     token:searchParams.get('token'),
     sender_user_id:searchParams.get('uid'),
-    receiver_user_id:searchParams.get('rid'),
+    receiver_user_id:searchParams.get('ruid'),
     channel_id:searchParams.get('ch_id'),
     type:searchParams.get('type')
   })
