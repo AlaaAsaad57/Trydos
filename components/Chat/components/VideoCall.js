@@ -41,7 +41,7 @@ function VideoCall(props) {
   const language=useSelector((state)=>state.homepage.language)
   useEffect(()=>{
     setTimeout(()=>{
-      if(users.length===0){
+      if(users.length===0&&!isRunning){
         setCallStatus(translate('No Answer',language))
         setTimeout(() => {
           userEndCall()

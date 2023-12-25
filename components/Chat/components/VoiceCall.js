@@ -44,7 +44,7 @@ function VideoCall(props) {
   const language=useSelector((state)=>state.homepage.language)
   useEffect(()=>{
     setTimeout(()=>{
-      if(users.length===0){
+      if(users.length===0&&!isRunning&&seconds===0){
         setCallStatus(translate('No Answer',language))
         setTimeout(() => {
           userEndCall()
@@ -56,6 +56,7 @@ function VideoCall(props) {
     // function to initialise the SDK
     let init = async (name) => {
       client.on('user-joined',(user)=>{
+        console.log('user-joined',user)
         start()
       })
       client.on("user-published", async (user, mediaType) => {
