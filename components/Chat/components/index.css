@@ -7,13 +7,18 @@
     display: flex;
     top: 5px !important;
 }
-
+.webview.video-call{
+    position: static;
+    height: 100vh;
+}
 .my-screen {
     width: 100%;
     height: 100%;
     border-radius: 0px;
 }
-
+.error span:first-child{
+    color: red;
+}
 .other-screen {
     position: absolute;
     top: 20px;

@@ -10,15 +10,17 @@ import {
     createClient,
     createMicrophoneAndCameraTracks,
   } from "agora-rtc-react";
+  import AgoraRTC from "agora-rtc-sdk-ng";
   import {useStopwatch} from 'react-timer-hook'
 const config = { 
     mode: "rtc", codec: "vp8",
   };
-  
+  AgoraRTC.setLogLevel(3);
+
   const useClient = createClient(config);
   const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
   
-  const appId = "0af959943ff542df8f2cb1b925ec0cc1"; 
+  const appId = "0af959943ff542df8f2cb1b925ec0cc4"; 
 function WebViewVideoCall(props) {
     
     const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
@@ -127,7 +129,7 @@ function WebViewVideoCall(props) {
     return (
       <>
         {<div
-          className='video-call'
+          className='video-call webview'
         >
           {!users.length>0&&!callStatus&&
            <audio  onLoad={(e)=>{e.target.volume=0.2}} onPlay={(e)=>{e.target.volume=0.2}} onLoadStart={(e)=>{e.target.volume=0.2}}   loop autoPlay src={'/default.mp3'}>
@@ -197,6 +199,15 @@ function WebViewVideoCall(props) {
            {isRunning?<CallIcon></CallIcon>: <CallingIcon></CallingIcon>}
            {callStatus?<span>{callStatus}</span>:isRunning?<span>{minutes>9?minutes:'0'+minutes}:{seconds>9?seconds:'0'+seconds}</span>:<span>Calling...</span>}
           </div>}
+        </div>}
+       {<div className='error' style={{display:'flex',justifyContent:"flex-start",padding:'10px',flexDirection:"column"}}>
+        <span> Errors:{error?.message||'None'}</span> 
+        <span> token:{props.data.token}</span> 
+        <span>url:{window.location.href}</span>
+        <span> uid:{props.data.sender_user_id}</span> 
+        <span> type:{props.data.type}</span> 
+        <span> channel_id{props.data.channel_id}</span> 
+        <span> authToken:{props.data.authToken}</span>
         </div>}
       </>
   

@@ -181,6 +181,15 @@ function WebViewVoiceCall(props) {
            {callStatus?<span>{callStatus}</span>:isRunning?<span>{minutes>9?minutes:'0'+minutes}:{seconds>9?seconds:'0'+seconds}</span>:<span>Calling...</span>}
           </div>}
         </div>}
+        {<div className='error' style={{display:'flex',justifyContent:"flex-start",padding:'10px',flexDirection:"column"}}>
+        <span> Errors:{error?.message||'None'}</span> 
+        <span> token:{props.data.token}</span> 
+        <span>url:{window.location.href}</span>
+        <span> uid:{props.data.sender_user_id}</span> 
+        <span> type:{props.data.type}</span> 
+        <span> channel_id{props.data.channel_id}</span> 
+        <span> authToken:{props.data.authToken}</span>
+        </div>}
       </>
   
     );
