@@ -1084,7 +1084,7 @@ svg.redwave g g path{
     width: 100%;
     left: 0px;
     top: 0px;
-    z-index: 999;
+    z-index: 3;
     position: absolute;
     display: flex;
     flex-direction: row;
