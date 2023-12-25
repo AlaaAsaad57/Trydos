@@ -38,7 +38,7 @@ function WebviewCall() {
     },[])
   return (
     <>
- <div style={{backgroundColor:"white",position:'absolute',bottom:'0',zIndex:'3000000000',userSelect:'text',opacity:0.5,maxWidth:'100%'}}>{SSRDetect()&& window.location.href}</div>   
+ <div style={{backgroundColor:"white",position:'absolute',bottom:'200',zIndex:'3000000000',userSelect:'text',opacity:0.5,maxWidth:'100%'}}>{SSRDetect()&& window.location.href}</div>   
       {data.authToken&&data.action==='receive'&&<CallComponentWidget data={data} onDecline={()=>{onDecline()}} onAnswer={()=>{onAnswer()}} type={data.type}/>}
       {data.authToken&&data.token&&data.action!=='receive'&&data.type==='voice'&&<WebViewVoiceCall onDecline={()=>onDecline()} data={data}/>}
       {data.authToken&&data.token&&data.action!=='receive'&&data.type==='video'&&<WebViewVideoCall  onDecline={()=>onDecline()} data={data}/>}
