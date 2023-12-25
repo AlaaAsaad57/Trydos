@@ -95,7 +95,8 @@ function WebViewVideoCall(props) {
       setStart(false);
     //   RefuseCall(activeChat.id,MessageActiveCall)
   
-      pause()
+      pause();
+      window.location.href ='https://youtube.com'
     //   dispatch({type:"END-CALL"})
     }
     const [trackState, setTrackState] = useState({ video: true, audio: true });
