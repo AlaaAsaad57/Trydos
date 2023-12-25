@@ -6,6 +6,7 @@ const WebViewVideoCall =dynamic(()=>import('./WebViewVideoCall', { ssr: false })
 const WebViewVoiceCall =dynamic(()=>import('./WebViewVoiceCall', { ssr: false }))
 const CallComponentWidget =dynamic(()=>import('./CallComponentWidget', { ssr: false }))
 import {getAgoraToken,Decline} from './WebViewActions'
+import { SSRDetect } from '../../utils/functions'
 function WebviewCall() {
   const router=useRouter()
   const searchParams = useSearchParams()
@@ -24,8 +25,7 @@ function WebviewCall() {
     const onAnswer=async()=>{
       let token=await getAgoraToken(data.channel_id,data.authToken)
       console.log(token)
-      setData({...data,token:token})
-      window.location.href=(`/call_direct?action=sent&type=${data.type}&uid=${data.sender_user_id}&token=${token}&ch_id=${data.channel_id}&authToken=${data.authToken}`)
+      setData({...data,token:token,action:'sent'})
     }
     const onDecline=async ()=>{
       await Decline(data.authToken,data.msgId)
@@ -38,6 +38,7 @@ function WebviewCall() {
     },[])
   return (
     <>
+ <div style={{backgroundColor:"white",position:'absolute',zIndex:'3000',userSelect:'text',opacity:0.5,maxWidth:'100%'}}>{SSRDetect()&& window.location.href}</div>   
       {data.authToken&&data.action==='receive'&&<CallComponentWidget data={data} onDecline={()=>{onDecline()}} onAnswer={()=>{onAnswer()}} type={data.type}/>}
       {data.authToken&&data.token&&data.action!=='receive'&&data.type==='voice'&&<WebViewVoiceCall onDecline={()=>onDecline()} data={data}/>}
       {data.authToken&&data.token&&data.action!=='receive'&&data.type==='video'&&<WebViewVideoCall  onDecline={()=>onDecline()} data={data}/>}
