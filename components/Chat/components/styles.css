@@ -155,7 +155,7 @@ color: #388CFF;
     display: flex;
     transition: all 0.3s ease;
     padding-left: 20px;
-    z-index: 4;
+    z-index: 3000;
     padding-top: 10px;
     padding-bottom: 10px;
     border-radius: 10px;
