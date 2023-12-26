@@ -41,7 +41,7 @@ function handleTouchEnd(e, a, index) {
 useEffect(() => {
   
     document.querySelectorAll(".chat-conversation-item").forEach((a, index) => {
-        a.addEventListener('touchstart', (e) => handleTouchStart(e, a, index), false);
+        a.addEventListener('touchstart', (e) => handleTouchStart(e, a, index), {passive: true});
         a.addEventListener('touchend', (e) => handleTouchEnd(e, a, index), false);
         a.addEventListener('mousedown', (e) => handleTouchStart(e, a, index), false);
         a.addEventListener('mouseup', (e) => handleTouchEnd(e, a, index), false);
