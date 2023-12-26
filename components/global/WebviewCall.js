@@ -29,7 +29,7 @@ function WebviewCall() {
     }
     const onDecline=async ()=>{
       await Decline(data.authToken,data.msgId)
-      window.location.href ='https://youtube.com'
+      window.location.href ='http://localhost:3000/endCall'
     }
     useEffect(()=>{
       if(!data.token&&data.action==='sent'){
