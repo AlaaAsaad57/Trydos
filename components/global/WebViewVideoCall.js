@@ -208,9 +208,9 @@ function WebViewVideoCall(props) {
           </div>}
         </div>}
        {<div  className='error' style={{display:'flex',justifyContent:"flex-start",padding:'10px',flexDirection:"column"}}>
-        {users[0]?.audioTrack&&<button onClick={()=>{
+        {users.length>0&&users[0]?.audioTrack&&<button onClick={()=>{
           try{
-            user?.audioTrack?.play();
+            users[0]?.audioTrack?.play();
           }
           catch(e){
 
