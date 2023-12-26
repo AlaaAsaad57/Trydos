@@ -771,6 +771,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
                   (i !== 0 && activeChat.messages[i - 1].message_type.name.includes("call"))
                 }
                 message={mes}
+                key={i}
               />
               </>
               

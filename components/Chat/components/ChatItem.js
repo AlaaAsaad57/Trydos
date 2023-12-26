@@ -18,7 +18,7 @@ function ChatItem({myKey,key,isActive,unread,handleClickChat,SenderName,photo,la
     
     isMove = null
     a.style.transform = `translateX(-${Math.abs(0)}px)`
-    a.addEventListener('touchmove', (e) => handleTouchMove(e, a, index), { once: true });
+    a.addEventListener('touchmove', (e) => handleTouchMove(e, a, index), { once: true,passive:true });
     a.addEventListener('mousemove', (e) => handleTouchMove(e, a, index), { once: true });
     setMoving(null)
     const firstTouch = getTouches(evt)[0];

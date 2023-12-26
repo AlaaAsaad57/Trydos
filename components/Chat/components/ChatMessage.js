@@ -852,8 +852,8 @@ const copyText=()=>{
                     a.nextElementSibling.style.opacity='0'
                     a.nextElementSibling.style.right=`${a.offsetWidth-40}px`
                     setOpen(false)
-    a.addEventListener('touchmove', (e) => handleTouchMove(e, a, index), { once: true });
-    a.addEventListener('mousemove', (e) => handleTouchMove(e, a, index), { once: true });
+    a.addEventListener('touchmove', (e) => handleTouchMove(e, a, index), { passive: true});
+    a.addEventListener('mousemove', (e) => handleTouchMove(e, a, index), {passive: true});
 
     const firstTouch = getTouches(evt)[0];
     xDown = firstTouch.clientX;
@@ -874,7 +874,7 @@ function handleTouchEnd(e, a, index) {
 }
 useEffect(() => {
     document.querySelectorAll(".message-element.self-align .message-element-body.message-body").forEach((a, index) => {
-        a.addEventListener('touchstart', (e) => handleTouchStart(e, a, index), false);
+        a.addEventListener('touchstart', (e) => handleTouchStart(e, a, index), {passive: true});
         a.addEventListener('touchend', (e) => handleTouchEnd(e, a, index), false);
         a.addEventListener('mousedown', (e) => handleTouchStart(e, a, index), false);
         a.addEventListener('mouseup', (e) => handleTouchEnd(e, a, index), false);
