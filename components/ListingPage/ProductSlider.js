@@ -49,7 +49,7 @@ function ProductSlider({activeColor,setActiveColor,product_name}) {
       <>
      <BorderImage/>
      <div className='inset-shadow-img'/>
-     <Image sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" style={{borderRadius:'15px',zIndex:'3'}} fill src={img} alt={product_name} />
+     <Image sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" style={{borderRadius:'15px',zIndex:'3'}} fill src={img} alt={product_name||'alt'} />
       </>
 
      )}

@@ -14,7 +14,7 @@ function ProductReducer(state,{type,payload}){
     };
   }
   if (type === 'setActiveColor') {
-  
+  console.log('sssssssss',payload)
     return {
       ...state,
       activeColor:{...payload,index:payload.index||0},
@@ -51,13 +51,9 @@ function ProductCover({product}) {
       });
     const getIndex=()=>{
         let index=0;
-       product.sync_color_images.filter((color)=>color.images.length>0).map((co,ind)=>{if(co.name===productState.activeColor.name) index=ind}); 
+       product.sync_color_images.filter((color)=>color.images.length>0).map((co,ind)=>{if(co.color_name===productState.activeColor.color_name) index=ind}); 
        return index
     }
-useEffect(()=>{
-  console.log(product,productState);
-  
-},[productState])
   return (
     <div className='product-container'   onMouseLeave={()=>{
       if(productState.isActiveTopSlide||productState.isColorSelected){

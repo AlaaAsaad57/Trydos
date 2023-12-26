@@ -45,7 +45,7 @@ function TopSlider({active,images,activeColor,setActiveColor,product_name}) {
                 <rect x="0.25" y="0.25" width="29.5" height="39.5" rx="7.75" fill="none"/>
             </g>
             </svg>
-            <Image src={img} width={30} height={40} alt={name} loading='lazy' style={{objectPosition:'center top',objectFit:'cover',zIndex:'3'}}/>
+            <Image  src={img} width={30} height={40} alt={product_name||'alt'} loading='lazy' style={{objectPosition:'center top',objectFit:'cover',zIndex:'3'}}/>
             </div>
         ))}
     </div>

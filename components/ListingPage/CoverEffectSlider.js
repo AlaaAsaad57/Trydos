@@ -2,8 +2,8 @@ import React, { useRef, useState,useEffect,memo } from 'react'
 import ImageAvatar from './ImageAvatar'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { EffectCoverflow } from "swiper/modules";
-function CoverEffectSlider({images,active,activeColor,setActiveColor,setColor,isColorSelected}) {
-  const [activeIndex,setActive]=useState(images.findIndex((element)=>element.name===activeColor.name))
+function CoverEffectSlider({images,active,activeColor,setActiveColor,setColor,isColorSelected,product_name}) {
+  const [activeIndex,setActive]=useState(images.findIndex((element)=>element.color_name===activeColor.color_name))
 const ref=useRef()
 const getSize=(i)=>{
 if((i===activeIndex)||(i===activeIndex&&i===0)) return 35
@@ -27,7 +27,7 @@ useEffect(() => {
 useEffect(()=>{
   if(ref.current){
     
-    ref.current.slideTo(images.findIndex((element)=>element.name===activeColor.name),300,false)
+    ref.current.slideTo(images.findIndex((element)=>element.color_name===activeColor.color_name),300,false)
   }
 
 },[activeColor])
@@ -86,7 +86,7 @@ function callback(event) {
          slidesPerView={'auto'}
          centeredSlides={true}
          initialSlide={3}
-        
+         
          resistanceRatio={0}
          virtualTranslate={false}
         >
@@ -110,10 +110,10 @@ function callback(event) {
   <ImageAvatar 
   width={getSize(i)}
   height={getSize(i)}
-  isActive={activeColor.name===img.name}
+  isActive={activeColor.color_name===img.color_name}
   image={img.images[0]}
-  name={img.name}
-  
+  name={img.color_name}
+  alt={product_name}
   ></ImageAvatar>
                )}
           </SwiperSlide>

@@ -70,7 +70,6 @@ export const UserEndStory=()=>{
 
 }
 export const LogData=(data)=>{
-    console.log(data)
     if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true'){
       
       console.log(data)

@@ -20,11 +20,11 @@ function WebviewCall() {
     msgId:searchParams.get('message_id')
   })
     useEffect(()=>{
-        console.log(data)
+      
     },[])
     const onAnswer=async()=>{
       let token=await getAgoraToken(data.channel_id,data.authToken)
-      console.log(token)
+      
       setData({...data,token:token,action:'sent'})
     }
     const onDecline=async ()=>{
