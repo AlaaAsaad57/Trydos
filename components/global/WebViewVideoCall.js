@@ -213,7 +213,8 @@ function WebViewVideoCall(props) {
             users[0]?.audioTrack?.play();
           }
           catch(e){
-
+            console.log(e)
+            alert(e.message)
           }
           users[0].audioTrack?.play()}}>Click me</button>}
         <span> Errors:{error?.message||'None'}</span> 
