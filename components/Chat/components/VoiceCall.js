@@ -7,7 +7,7 @@ import CallingIcon from '../svg/calling.svg';
 import AddUserIcon from '../svg/addUser.svg';
 import LeftArrowIcon from '../svg/leftArrow.svg';
 import "./index.css"
-import {
+import AgoraRTC, {
   AgoraVideoPlayer,
   createClient,
   createMicrophoneAndCameraTracks,
@@ -22,7 +22,7 @@ import { getUserChat, translate } from '../../../utils/functions';
 const config = { 
   mode: "rtc", codec: "vp8",
 };
-
+AgoraRTC.setLogLevel(3);
 const useClient = createClient(config);
 const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
 

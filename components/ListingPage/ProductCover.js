@@ -1,4 +1,4 @@
-import React, {useReducer,memo } from 'react'
+import React, {useReducer,memo, useEffect } from 'react'
 import ImageSlider from "./ImageSlider"
 import PriceLabel from './PriceLabel'
 import BuyButton from './BuyButton'
@@ -42,7 +42,7 @@ function ProductCover({product}) {
    
     const [productState, dispatch] = useReducer(ProductReducer,
        { isActiveTopSlide:false,
-        activeColor:{...product.colors[Math.round(product.colors.length/2)-1],index:0},
+        activeColor:{...product.sync_color_images.filter((color)=>color.images.length>0)[Math.round(product.sync_color_images.filter((color)=>color.images.length>0).length/2)-1],index:0},
         activeImage:'',
         isColorSelected:false,
         activeImageIndex:0,
@@ -51,10 +51,13 @@ function ProductCover({product}) {
       });
     const getIndex=()=>{
         let index=0;
-       product.colors.map((co,ind)=>{if(co.name===productState.activeColor.name) index=ind}); 
+       product.sync_color_images.filter((color)=>color.images.length>0).map((co,ind)=>{if(co.name===productState.activeColor.name) index=ind}); 
        return index
     }
-
+useEffect(()=>{
+  console.log(product,productState);
+  
+},[productState])
   return (
     <div className='product-container'   onMouseLeave={()=>{
       if(productState.isActiveTopSlide||productState.isColorSelected){
@@ -66,10 +69,11 @@ function ProductCover({product}) {
     <div className='offer-blured-background'/>
     {
     <TopSlider 
+    name={product.name}
     active={productState.isActiveTopSlide} 
     activeColor={productState.activeColor}
     setActiveColor={(e)=>dispatch({type:'setActiveColor',payload:e})}
-    images={productState.activeColor.photos}/>}
+    images={productState.activeColor.images}/>}
   {
     <div className='product-photos' style={{position:!productState.isActiveTopSlide?'static':'absolute',opacity:!productState.isActiveTopSlide?'1':'0',zIndex:!productState.isActiveTopSlide?'4':'1'}}>
     <div  className={`product-container-slider ${productState.isColorSelected&& 'selected-color'}`} >
@@ -77,9 +81,10 @@ function ProductCover({product}) {
    {
  
   <ColorSlider 
+  product_name={product.name}
   active={(productState.isColorSelected)&&(!productState.isActiveTopSlide)} 
   activeColor={productState.activeColor} 
-  colors={product.colors} 
+  colors={product.sync_color_images.filter((color)=>color.images.length>0)} 
   getIndex={getIndex()}  
   setActiveColor={(e)=>dispatch({type:'setActiveImage',payload:e})} />
   }
@@ -89,6 +94,7 @@ function ProductCover({product}) {
   {
   
   <ImageSlider 
+  product_name={product.name}
   renderVar={productState.renderVar} 
   active={(!productState.isColorSelected)&&(!productState.isActiveTopSlide)}  
   isActiveTopSlide={productState.isActiveTopSlide} 
@@ -104,12 +110,13 @@ function ProductCover({product}) {
    {
    <>
     <CoverEffectSlider
+    product_name={product.name}
      active={!productState.isActiveTopSlide}
      setColor={(e)=>{dispatch({type:'setColor',payload:e});}}
      isColorSelected={productState.isColorSelected} 
      activeColor={productState.activeColor} 
      setActiveColor={(e)=>dispatch({type:'setActiveColor',payload:e})}  
-     images={product.colors}/>
+     images={product.sync_color_images.filter((color)=>color.images.length>0)}/>
    </>
     }
             </div>}
@@ -151,13 +158,13 @@ function ProductCover({product}) {
           </svg>
             </span>
             <span className='product-details-text'>
-            Amazing blue night dress long with 4 buckets
+            {product.name}
             </span>
           </div>
             </div>
             <div className='product-footer'>
-              <PriceLabel/>
-              <BuyButton/>
+            <PriceLabel offer_price={product.offer_price} price_formatted={product.price_formatted}/>
+               <BuyButton/>
             </div>
             </div>
   )

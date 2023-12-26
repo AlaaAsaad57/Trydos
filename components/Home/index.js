@@ -4,7 +4,7 @@ import Navbar from '../../components/Home/Navbar'
 import { useDispatch, useSelector } from "react-redux";
 import TranslationsMenu from "../../components/global/TranslationsMenu";
 import { useEffect } from "react";
-import { GetMainData, GetStoryData, RegisterDevice, changeAppLanguage } from "../../redux/homepage/actions";
+import { GetMainData, GetStoryData, LogData, RegisterDevice, changeAppLanguage } from "../../redux/homepage/actions";
 import Stories from "./Stories/index"
 import CategoriesBar from "./CategoriesBar";
 import BrandsBar from "./Bars/BrandsBar"
@@ -27,11 +27,8 @@ export default function Home({stories,HomeData_res,stories_res,HomeData}) {
   const fbtoken=useSelector((state)=>state.homepage.fbtokfbTokenen)
   useEffect(()=>{ 
     let languageCookies=Cookies.get("language");
-    if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true'){
-      
-      console.log(stories_res,HomeData_res)
-    }
-    dispatch(changeAppLanguage(languageCookies||language||'en'))
+    LogData({stories_req_data:stories_res,HomeData_req_data:HomeData_res})
+    dispatch(changeAppLanguage(languageCookies==='ae'?'ar':languageCookies||language||'en'))
     dispatch(GetStoryData(stories))
     dispatch(GetMainData(HomeData))
     setTimeout(()=>{

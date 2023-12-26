@@ -21,12 +21,12 @@ function ImageAvatar({image,width,height,alt,isActive,name}) {
 </svg>      
     }
     {isActive&&
-    <div className='avatar-text-element' style={{color:name==='blue'?'#0048AC':name}}>
+    <div className='avatar-text-element' style={{color:name}}>
         {name}
     </div>
     }
     <div className='shadow-inset-avatar'/>
-        <Image quality={80} src={image} width={width} height={height} alt={alt} style={{borderRadius:"50%",zIndex:'3',objectPosition:'center top',objectFit:'cover'}}/>
+        <Image  quality={80} src={image} width={width} height={height} alt={alt||'alt'} style={{borderRadius:"50%",zIndex:'3',objectPosition:'center top',objectFit:'cover'}}/>
     </div>
   )
 }

@@ -176,7 +176,7 @@ function WebViewVideoCall(props) {
             users.map((user) => {
               if (user.videoTrack) {
                 return (
-                  <AgoraVideoPlayer className='my-screen'   id="remote-stream" style={{height: '95%', width: '95%'}} videoTrack={user.videoTrack} key={user.uid} />
+                  <AgoraVideoPlayer  className='my-screen'   id="remote-stream" style={{height: '95%', width: '95%'}} videoTrack={user.videoTrack} key={user.uid} />
                 );
               } else return <></>;
             })}
@@ -201,7 +201,11 @@ function WebViewVideoCall(props) {
           </div>}
         </div>}
        {<div className='error' style={{display:'flex',justifyContent:"flex-start",padding:'10px',flexDirection:"column"}}>
+       <audio controls loop autoPlay src={'/default.mp3'}>
+           <source src={'/default.mp3'}></source>
+       </audio>
         <span> Errors:{error?.message||'None'}</span> 
+        <span>Tracks:{console.log(users)}</span>
         <span> token:{props.data.token}</span> 
         <span>url:{window.location.href}</span>
         <span> uid:{props.data.sender_user_id}</span> 

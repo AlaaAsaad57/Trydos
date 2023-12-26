@@ -607,7 +607,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
   useEffect(() => {
     if(first)
     setTimeout(() => {
-      document.querySelector("#scroled").scrollIntoView({block:"center",inline:"center"});
+      document.querySelector("#scroled")?.scrollIntoView({block:"center",inline:"center"});
     }, 1000);
   
    if(mid){

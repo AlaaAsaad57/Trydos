@@ -15,7 +15,7 @@ function ChatLists(props) {
   const dispatch=useDispatch()
 const handleClick=(e)=>{
             dispatch({ type: "OPEN-CHAT", payload: e })
-           if(e?.id&&!e.id.includes('ch')) dispatch({ type: "WATCH_CHANNEL", payload: e?.id })
+           if(e?.id&&!(typeof e?.id ==="string"&&e.id.includes('ch'))) dispatch({ type: "WATCH_CHANNEL", payload: e?.id })
             if(forwarded_message){
               forwardMessage(forwarded_message,e)
             }

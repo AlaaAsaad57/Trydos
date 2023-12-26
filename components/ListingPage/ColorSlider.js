@@ -3,7 +3,7 @@ import { EffectCoverflow } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import BorderImage from './BorderImage';
 import Image from 'next/image';
-function ColorSlider({active,activeColor,setActiveColor,getIndex,colors}) {
+function ColorSlider({active,activeColor,setActiveColor,getIndex,colors,product_name}) {
    const ImageRef=useRef()
     useEffect(()=>{
         if(activeColor&&ImageRef){
@@ -63,7 +63,7 @@ function ColorSlider({active,activeColor,setActiveColor,getIndex,colors}) {
     initialSlide={getIndex}
     loop={false}
   >
-    {colors.map((img,i)=>(
+    {colors.map((img,i)=>(img.images.length>0&&
      <SwiperSlide
      style={{
          overflow:"visible",
@@ -73,7 +73,7 @@ function ColorSlider({active,activeColor,setActiveColor,getIndex,colors}) {
         <>
        <BorderImage/>
        <div className='inset-shadow-img'/>
-       <Image  priority={i===3} style={{borderRadius:'15px',zIndex:'3'}} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" src={img.photos[activeColor.index]} alt='alt' />
+       <Image  priority={i===3} style={{borderRadius:'15px',zIndex:'3'}} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" src={img.images[activeColor.index]} alt={product_name}/>
         </>
 
   

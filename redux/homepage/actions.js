@@ -17,7 +17,7 @@ export const RegisterDevice=async ()=>{
     }
 } 
 export const changeAppLanguage=(language)=>{
-    Cookies.set('language', language);
+    Cookies.set('language', language==='ar'?'ae':language);
     changeAppLanguageServer(language)
     return({type:"APP-LANGUAGE",payload:language})
 }
@@ -69,3 +69,10 @@ export const UserStartStory=()=>{
 export const UserEndStory=()=>{
 
 }
+export const LogData=(data)=>{
+    console.log(data)
+    if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true'){
+      
+      console.log(data)
+    }
+  }

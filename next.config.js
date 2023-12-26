@@ -3,7 +3,7 @@ const withSvgr = require("next-svgr");
  
 module.exports = withSvgr({
   images:{
-    domains:['res.cloudinary.com','eu.ui-avatars.com','trydos.s3.ap-south-1.amazonaws.com']
+    domains:['res.cloudinary.com','eu.ui-avatars.com','trydos.s3.ap-south-1.amazonaws.com','market_staging.trydos.tech','s3.ap-south-1.amazonaws.com']
   },
   experimental: { externalDir: true,
     serverActions: true,

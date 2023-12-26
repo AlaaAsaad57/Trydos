@@ -6,7 +6,7 @@ import CallIcon from '../svg/CallInProg.svg';
 import CallingIcon from '../svg/calling.svg';
 import LeftArrowIcon from '../svg/leftArrow.svg';
 import "./index.css"
-import {
+import AgoraRTC, {
   AgoraVideoPlayer,
   createClient,
   createMicrophoneAndCameraTracks,
@@ -21,7 +21,7 @@ import { getUserChat, translate } from '../../../utils/functions';
 const config = { 
   mode: "rtc", codec: "vp8",
 };
-
+AgoraRTC.setLogLevel(3);
 const useClient = createClient(config);
 const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
 
@@ -40,14 +40,14 @@ function VideoCall(props) {
   // }, [render])
   const language=useSelector((state)=>state.homepage.language)
   useEffect(()=>{
-    setTimeout(()=>{
-      if(users.length===0&&!isRunning){
-        setCallStatus(translate('No Answer',language))
-        setTimeout(() => {
-          userEndCall()
-        }, 2000);
-      }
-    },30000)
+    // setTimeout(()=>{
+    //   if(users.length===0&&!isRunning){
+    //     setCallStatus(translate('No Answer',language))
+    //     setTimeout(() => {
+    //       userEndCall()
+    //     }, 2000);
+    //   }
+    // },30000)
   },[])
   const [users, setUsers] = useState([]);
   const [startIndicator, setStart] = useState(false);

@@ -268,7 +268,7 @@ display: flex;
 .old-price svg{
     right: -1px;
     width: 100%;
-    bottom: 7px;
+    bottom: 9px;
     position: absolute;
 }
 .new-price{
@@ -344,6 +344,7 @@ display: flex;
     font-family: 'quicksand';
     font-size: 10px;
 }
+
 .inset-shadow-img{
     position: absolute;
     top: 0px;

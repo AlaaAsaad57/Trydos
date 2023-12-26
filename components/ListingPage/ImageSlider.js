@@ -4,7 +4,7 @@ import BorderImage from './BorderImage';
 import Image from 'next/image';
 import { useRef } from 'react';
 import PointsSlider from './PointsSlider';
-function ImageSlider({renderVar,active,isColorSelected,setActiveImage,activeColor,isActiveTopSlide,setActiveTopSlide,setColor}) {
+function ImageSlider({renderVar,product_name,active,isColorSelected,setActiveImage,activeColor,isActiveTopSlide,setActiveTopSlide,setColor}) {
     var ColorRef=useRef()
     useEffect(()=>{
      
@@ -18,7 +18,7 @@ function ImageSlider({renderVar,active,isColorSelected,setActiveImage,activeColo
     <div className={'active-slider '+(active?'sl-active':'sl-deactive')}>
     {!isColorSelected&&
     <PointsSlider 
-    colors={activeColor.photos} 
+    colors={activeColor.images} 
     activeIndex={ColorRef.current?.activeIndex||0} 
     isActiveTopSlide={isActiveTopSlide} 
     setActiveTopSlide={()=>{setActiveTopSlide(!isActiveTopSlide); 
@@ -47,7 +47,7 @@ function ImageSlider({renderVar,active,isColorSelected,setActiveImage,activeColo
   initialSlide={activeColor.index}
   loop={false}
 >
-{activeColor.photos.map((img,i)=>(
+{activeColor.images.map((img,i)=>(
    <SwiperSlide
    style={{
        overflow:"visible",
@@ -58,7 +58,7 @@ function ImageSlider({renderVar,active,isColorSelected,setActiveImage,activeColo
       <>
      <BorderImage isBig={true}/>
      <div className='inset-shadow-img'/>
-     <Image sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" style={{borderRadius:'15px',zIndex:'3'}} fill src={img} alt='alt' />
+     <Image sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" style={{borderRadius:'15px',zIndex:'3'}} fill src={img} alt={product_name} />
       </>
 
      )}

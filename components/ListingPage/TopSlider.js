@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import React, { useEffect,memo } from 'react'
 import ProductSlider from './ProductSlider';
-function TopSlider({active,images,activeColor,setActiveColor}) {
+function TopSlider({active,images,activeColor,setActiveColor,product_name}) {
       useEffect(() => {
         if (typeof document !== 'undefined'){
             const slider = document?.querySelector('.top-slider');
@@ -45,13 +45,14 @@ function TopSlider({active,images,activeColor,setActiveColor}) {
                 <rect x="0.25" y="0.25" width="29.5" height="39.5" rx="7.75" fill="none"/>
             </g>
             </svg>
-            <Image src={img} width={30} height={40} alt='alt' loading='lazy' style={{objectPosition:'center top',objectFit:'cover',zIndex:'3'}}/>
+            <Image src={img} width={30} height={40} alt={name} loading='lazy' style={{objectPosition:'center top',objectFit:'cover',zIndex:'3'}}/>
             </div>
         ))}
     </div>
     <div className='product-photos' style={{position:active?'static':'absolute',opacity:active?'1':'0',zIndex:active?'4':'1'}}>
     <div className={`product-container-slider ${'selected-color'}`} >
-    <ProductSlider  
+    <ProductSlider
+    product_name={product_name}  
     setActiveColor={(e)=>setActiveColor(e)}  
     activeColor={activeColor}/>
           </div>

@@ -13,10 +13,10 @@ function TranslationsMenu() {
        <div className='translation-icon'>
             <TranslationsIcon/>
         </div>
-        <div className={`translation-icon en-icon ${(language==='en'&&'selected-language')}`} onClick={()=>dispatch(changeAppLanguage('en'))}>
+        <div className={`translation-icon en-icon ${(language==='en'&&'selected-language')}`} onClick={()=>{dispatch(changeAppLanguage('en')); window.location.reload()}}>
             <UKIcon width={30} height={20} />
         </div>
-        <div className={`translation-icon ar-icon ${(language==='ar'&&'selected-language')}`} onClick={()=>dispatch(changeAppLanguage('ar'))}>
+        <div className={`translation-icon ar-icon ${(language==='ar'&&'selected-language')}`} onClick={()=>{dispatch(changeAppLanguage('ar')); window.location.reload()}}>
         <UAEIcon />
         </div>
        </div>

@@ -111,8 +111,9 @@ function callback(event) {
   width={getSize(i)}
   height={getSize(i)}
   isActive={activeColor.name===img.name}
-  image={img.photos[0]}
+  image={img.images[0]}
   name={img.name}
+  
   ></ImageAvatar>
                )}
           </SwiperSlide>
