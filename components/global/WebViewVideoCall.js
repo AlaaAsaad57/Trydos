@@ -46,7 +46,13 @@ function WebViewVideoCall(props) {
         client.on("user-published", async (user, mediaType) => {
           await client.subscribe(user, mediaType);
           console.log("subscribe success");
-          user?.audioTrack?.play();
+          try{
+            user?.audioTrack?.play();
+          }
+          catch(e){
+            alert(e.message)
+          }
+          
           if (mediaType === "video") {
             start()
             
@@ -201,7 +207,15 @@ function WebViewVideoCall(props) {
            {callStatus?<span>{callStatus}</span>:isRunning?<span>{minutes>9?minutes:'0'+minutes}:{seconds>9?seconds:'0'+seconds}</span>:<span>Calling...</span>}
           </div>}
         </div>}
-       {<div className='error' style={{display:'flex',justifyContent:"flex-start",padding:'10px',flexDirection:"column"}}>
+       {<div  className='error' style={{display:'flex',justifyContent:"flex-start",padding:'10px',flexDirection:"column"}}>
+        {users[0]?.audioTrack&&<button onClick={()=>{
+          try{
+            user?.audioTrack?.play();
+          }
+          catch(e){
+
+          }
+          users[0].audioTrack?.play()}}>Click me</button>}
         <span> Errors:{error?.message||'None'}</span> 
         <span>Tracks:{}</span>
         <span> token:{props.data.token}</span> 
