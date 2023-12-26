@@ -13,7 +13,7 @@ import {
   import AgoraRTC from "agora-rtc-sdk-ng";
   import {useStopwatch} from 'react-timer-hook'
 const config = { 
-    mode: "rtc", codec: "vp8",
+    mode: "rtc", codec: "h264",
   };
   AgoraRTC.setLogLevel(3);
 
@@ -46,6 +46,7 @@ function WebViewVideoCall(props) {
         client.on("user-published", async (user, mediaType) => {
           await client.subscribe(user, mediaType);
           console.log("subscribe success");
+          user?.audioTrack?.play();
           if (mediaType === "video") {
             start()
             
@@ -201,11 +202,8 @@ function WebViewVideoCall(props) {
           </div>}
         </div>}
        {<div className='error' style={{display:'flex',justifyContent:"flex-start",padding:'10px',flexDirection:"column"}}>
-       <audio controls loop autoPlay src={'/default.mp3'}>
-           <source src={'/default.mp3'}></source>
-       </audio>
         <span> Errors:{error?.message||'None'}</span> 
-        <span>Tracks:{console.log(users)}</span>
+        <span>Tracks:{}</span>
         <span> token:{props.data.token}</span> 
         <span>url:{window.location.href}</span>
         <span> uid:{props.data.sender_user_id}</span> 

@@ -740,7 +740,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
             let active = state.activeChat
            
             state.data.map((ch) => {
-                if (ch.id === payload.ch) {
+                if (parseInt(ch.id) === parseInt(payload.ch)) {
                     let mrr = []
                     payload.mes.map((m) => {
                         if (mrr.filter((s) => s.id === m.id).length === 0) {
@@ -761,7 +761,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
             return ({
                 ...state,
                 data: arr,
-                activeChat: arr.filter((s) => s.id === state.activeChat.id)[0],
+                activeChat: arr.filter((s) => parseInt(s.id) === parseInt(state.activeChat.id))[0],
                 fetch: true,
                 first:false,
                 mid:payload.mes.length===0?null:state.mid

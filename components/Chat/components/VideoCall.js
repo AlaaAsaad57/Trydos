@@ -19,7 +19,7 @@ import axios from 'axios';
 import { CHAT_URL } from '../../../utils/endpointConfig';
 import { getUserChat, translate } from '../../../utils/functions';
 const config = { 
-  mode: "rtc", codec: "vp8",
+  mode: "rtc", codec: "h264",
 };
 AgoraRTC.setLogLevel(3);
 const useClient = createClient(config);
@@ -76,6 +76,7 @@ function VideoCall(props) {
         });
       })
       client.on("user-published", async (user, mediaType) => {
+        console
         await client.subscribe(user, mediaType);
         console.log("subscribe success");
         if (mediaType === "video") {
