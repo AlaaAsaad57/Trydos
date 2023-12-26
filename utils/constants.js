@@ -8,7 +8,9 @@ import { Cloudinary } from '@cloudinary/url-gen';
 import SearchIcon from "../public/svg/SearchIcon.svg"
 import Pusher from "pusher-js"
 import { CHAT_URL } from "./endpointConfig"
-import { store } from "../redux/store"
+import Smartlook from 'smartlook-client'
+import { SSRDetect } from "./functions"
+
 export const categories=[
     {
         name:"Man",
@@ -61,4 +63,8 @@ export const pusher = new Pusher(`cd403c68a9fbb7ce7da6`, {
         }
     },
 });
+export const SmartLookInit=()=>{
+       SSRDetect()&& Smartlook.init('a6a7a0d4340db1ff8980b363cdb11185343486e4');
+       
+    }
 Pusher.logToConsole = true

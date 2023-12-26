@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { forwardMessage } from '../chatsFunctions'
 import SearchResult from '../components/SearchResult'
 import { getUserChat } from '../../../utils/functions'
+import { EventTrack } from '../../../redux/homepage/actions'
 
 function ChatLists(props) {
   const chats=useSelector((state)=>state.chat.data)
@@ -14,6 +15,7 @@ function ChatLists(props) {
   const forwarded_message=useSelector((state)=>state.chat.forwarded_message)
   const dispatch=useDispatch()
 const handleClick=(e)=>{
+  EventTrack('chat-opened',{chat_id:e.id})
             dispatch({ type: "OPEN-CHAT", payload: e })
            if(e?.id&&!(typeof e?.id ==="string"&&e.id.includes('ch'))) dispatch({ type: "WATCH_CHANNEL", payload: e?.id })
             if(forwarded_message){

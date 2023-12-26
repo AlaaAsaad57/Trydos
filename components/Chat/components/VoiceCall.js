@@ -104,14 +104,14 @@ console.log(error,ready,tracks)
   const MessageActiveCall = useSelector(state => state.chat.MessageActiveCall)
 
   const userEndCall =async () => {
-
+if(ready){
     if(tracks&&tracks[0])
     tracks[0]?.close();
     await client.leave();
     client.removeAllListeners();
     // we close the tracks to perform cleanup
     if(tracks&&tracks[0])
-    tracks[0]?.close();
+    tracks[0]?.close();}
     setStart(false);
     RefuseCall(activeChat.id,MessageActiveCall)
     pause()

@@ -23,6 +23,7 @@ import Image from 'next/image';
 import { InitPusherChannel, SendMessage, getMessagesBetweenMessage, getPage } from '../../../redux/chat/actions';
 import { SSRDetect, translate } from '../../../utils/functions';
 import dynamic from "next/dynamic"
+import { EventTrack } from '../../../redux/homepage/actions';
 const VideoCall =dynamic(()=>import('../components/VideoCall', { ssr: false }))
 const VoiceCall =dynamic(()=>import('../components/VoiceCall', { ssr: false }))
 function ConversationContainer({ViewedScreen,active,loading,first}) {
@@ -195,7 +196,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
   };
   const send_mes = (data, type) => {
     document.querySelector("#scroled")?.scrollIntoView({block:"center",inline:"center"})
-   
+   EventTrack('send-message',{type:type});
     if (type === "TextMessage") {
       let i = Math.random();
       SendMessage( {
@@ -646,6 +647,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
   const [DetailsVar,openDetails]=useState(false)
   useEffect(() => {}, []);
   const sendVid = async (e,i,type) => {
+    EventTrack('send-message',{type:'videoMessage'});
      sendPhoto(e, i,type);
       let pat = await upload(e);
       sendStatues(null)
@@ -752,7 +754,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
               <>
               {(showDate(mes.created_at)!==showDate( activeChat.messages[i - 1]?.created_at)||!activeChat.messages[i - 1])
                 &&
-                <div className="last-date-value">{showDate(mes.created_at)}</div>
+                <div className="last-date-value" >{showDate(mes.created_at)}</div>
                 }
               <ChatMessage
               AudioRef={AudioRef}

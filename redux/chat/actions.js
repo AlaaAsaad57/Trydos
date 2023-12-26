@@ -3,6 +3,7 @@ import { CHAT_URL, DELETE_CHAT_URL, GET_CHATS_URL, GET_CONTATCS_URL, SEARCH_CONT
 import { store } from "../store"
 import { getUserChat } from "../../utils/functions"
 import { pusher } from "../../utils/constants"
+import { EventTrack } from "../homepage/actions"
 
 
 export const ChatConroller =(payload)=>{
@@ -449,6 +450,7 @@ export const InitPusherChannel=(channelId)=>{
    store.dispatch({ type: "PUSHER_RED", payload: { id: channelId, channel: ch } });}
 }
 export const makeVideoCall=async(channelId,callerName,callerPhoto,mobilePhone)=>{
+  EventTrack('video-call',{channelId:channelId,user_id:getUserChat().id});
   console.log(channelId,callerName,callerPhoto,mobilePhone)
   try{
     store.dispatch({type:"CALL-LOADING",payload:'video'})
@@ -470,6 +472,7 @@ export const makeVideoCall=async(channelId,callerName,callerPhoto,mobilePhone)=>
 }
 export const makeVoiceCall=async(channelId,callerName,callerPhoto,mobilePhone)=>{
   try{
+    EventTrack('voice-call',{channelId:channelId,user_id:getUserChat().id});
     let obj=typeof channelId ==="string"&&channelId.includes('ch')?{receiver_user_id:parseInt(channelId.split('ch-')[1])}:{channel_id:channelId}
     store.dispatch({type:"CALL-LOADING",payload:'voice'})
     await axios.post(CHAT_URL+`/api/v1/messages/voice_call`,
@@ -489,6 +492,7 @@ export const makeVoiceCall=async(channelId,callerName,callerPhoto,mobilePhone)=>
 }
 export const AnswerCall=async(channelId,messageId)=>{
   try{
+    EventTrack('answer-call',{channelId:channelId,user_id:getUserChat().id});
     await axios.post(CHAT_URL+`/api/v1/channels/${channelId}/agora_token`,{},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
@@ -505,7 +509,9 @@ export const AnswerCall=async(channelId,messageId)=>{
 }
 export const RefuseCall=async(channelId,messageId)=>{
   try{
+
     if(messageId){
+      EventTrack('refuse-call',{channelId:channelId,user_id:getUserChat().id});
     let obj=typeof channelId ==="string"&& channelId.includes('ch')?{receiver_user_id:parseInt(channelId.split('ch-')[1])}:{channel_id:channelId}
 
     store.dispatch({ type: "USER_END_CALL" })

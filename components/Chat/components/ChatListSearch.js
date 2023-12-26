@@ -7,6 +7,7 @@ function ChatListSearch(props) {
   let filterTimeout;
 let dispatch=useDispatch()
 const SearchContacts = query => {
+  EventTrack('chat-search',{chat_id:query})
   props.setSearch(query)
   clearTimeout(filterTimeout)
   filterTimeout = setTimeout(() => {

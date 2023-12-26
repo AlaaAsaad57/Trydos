@@ -5,6 +5,8 @@ import CartIcon from "../../public/svg/CartIcon.svg"
 import { translate } from '../../utils/functions'
 import UserAvatar from './UserAvatar'
 import {ChatConroller} from "../../redux/chat/actions"
+import Smartlook from 'smartlook-client'
+import { EventTrack } from '../../redux/homepage/actions'
 function AuthNavSection() {
     const language=useSelector((state)=>state.homepage.language)
     const loading=useSelector((state)=>state.chat.loading)
@@ -12,10 +14,10 @@ function AuthNavSection() {
     const dispatch = useDispatch()
   return (
     <>     
-     {!loading&&<div aria-details={language} className='nav-question-item'style={{marginRight:"30px",marginLeft:"0px"}} onClick={()=>dispatch(ChatConroller(true))}>
+     {!loading&&<div aria-details={language} className='nav-question-item'style={{marginRight:"30px",marginLeft:"0px"}} onClick={()=>{dispatch(ChatConroller(true)); EventTrack('chat-opened',null)}}>
             <ChatIcon/>
      </div>}
-     <div aria-details={language}className='nav-question-item' style={{marginRight:"20px",marginLeft:"0px"}}>
+     <div aria-details={language}className='nav-question-item' style={{marginRight:"20px",marginLeft:"0px"}} onClick={()=>{dispatch(ChatConroller(true)); EventTrack('cart-opened',null)}}>
             <CartIcon/>
      </div>
      <div aria-details={language}className='welcome-user'  aria-labelledby={language+'-medium'} style={{marginRight:"12px",marginLeft:"0px"}}>

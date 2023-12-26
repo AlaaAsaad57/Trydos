@@ -198,8 +198,8 @@ const copyText=()=>{
             <div onClick={() => setOpen(true)} ref={refmessage} className={'message-element-body message-body message-img-body ' + props.type + ' ' + ` ${opens && "ac"}`}>
             {(props.message.is_forward===true||props.message.is_forward===1)&&<div className="forwarded-message-icon"><ForwardIcon></ForwardIcon></div>}
               <div className='border-element'>
-                {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad) => (
-                  <div className='border-child'></div>
+                {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad,i) => (
+                  <div className='border-child' key={i}></div>
                 ))}
               </div>
               {props.type === "first-chat" && <div className='bordse'></div>}
@@ -251,8 +251,8 @@ const copyText=()=>{
        <div onClick={() => setOpen(true)} ref={refmessage} className={'message-element-body message-body message-img-body ' + props.type + ' ' + ` ${opens && "ac"}`}>
        {(props.message.is_forward===true||props.message.is_forward===1)&&<div className="forwarded-message-icon"><ForwardIcon></ForwardIcon></div>}
          <div className='border-element'>
-           {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad) => (
-             <div className='border-child'></div>
+           {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad,i) => (
+             <div className='border-child' key={i}></div>
            ))}
          </div>
          {props.type === "first-chat" && <div className='bordse'></div>}
@@ -314,9 +314,9 @@ const copyText=()=>{
               <div onClick={() => setOpen(true)} ref={refmessage} className={'message-element-body message-body audio-body ' + props.type}>
                  {(props.message.is_forward===true||props.message.is_forward===1)&&<div className="forwarded-message-icon"><ForwardIcon></ForwardIcon></div>}
                 <div className='border-element'>
-                  {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad) => (
-                    <div className='border-child'></div>
-                  ))}
+                  {refmessage.current &&showBord(props.type, refmessage.current.clientHeight).map((ad,i) => (
+             <div className='border-child' key={i}></div>
+           ))}
                 </div>
                 <audio  onTimeUpdate={(e) => {
                   animate()
@@ -387,9 +387,9 @@ const copyText=()=>{
             <div onClick={() => setOpen(true)} ref={refmessage} className={'message-element-body message-body text-body ' + props.type } >
             {(props.message.is_forward===true||props.message.is_forward===1)&&<div className="forwarded-message-icon"><ForwardIcon></ForwardIcon></div>}
               <div className='border-element'>
-                {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad) => (
-                  <div className='border-child'></div>
-                ))}
+                {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad,i) => (
+             <div className='border-child' key={i}></div>
+           ))}
               </div>
               {(props.type === "first-chat" || props.type === "lonely") &&
                   <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name&& 'text-avatar'}`}>
@@ -432,9 +432,9 @@ const copyText=()=>{
              <div onClick={() => setOpen(true)} ref={refmessage} className={'message-element-body message-body text-body ' + props.type } >
             {(props.message.is_forward===true||props.message.is_forward===1)&&<div className="forwarded-message-icon"><ForwardIcon></ForwardIcon></div>}
               <div className='border-element'>
-                {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad) => (
-                  <div className='border-child'></div>
-                ))}
+                {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad,i) => (
+             <div className='border-child' key={i}></div>
+           ))}
               </div>
               {(props.type === "first-chat" || props.type === "lonely") &&
                 <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) === parseInt(getUserChat()?.id))[0]?.user?.name&& 'text-avatar'}`}>
@@ -546,9 +546,9 @@ const copyText=()=>{
             <div onClick={() => setOpen(true)} ref={refmessage} className={'message-element-body message-body message-img-body ' + props.type}>
             {(props.message.is_forward===true||props.message.is_forward===1)&&<div className="forwarded-message-icon"><ForwardIcon></ForwardIcon></div>}
               <div className='border-element'>
-                {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad) => (
-                  <div className='border-child'></div>
-                ))}
+                {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad,i) => (
+             <div className='border-child' key={i}></div>
+           ))}
               </div>
               {props.type === "first-chat" && <div className='bordse'></div>}
 
@@ -589,9 +589,9 @@ const copyText=()=>{
             <div onClick={() => setOpen(true)} ref={refmessage} className={'message-element-body message-body message-img-body ' + props.type}>
             {(props.message.is_forward===true||props.message.is_forward===1)&&<div className="forwarded-message-icon"><ForwardIcon></ForwardIcon></div>}
               <div className='border-element'>
-                {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad) => (
-                  <div className='border-child'></div>
-                ))}
+                {refmessage.current &&showBord(props.type, refmessage.current.clientHeight).map((ad,i) => (
+             <div className='border-child' key={i}></div>
+           ))}
               </div>
               {props.type === "first-chat" && <div className='bordse'></div>}
 
@@ -643,9 +643,9 @@ const copyText=()=>{
               <div ref={refmessage} onClick={() => setOpen(true)} className={'message-element-body message-body audio-body him ' + props.type}>
                  {(props.message.is_forward===true||props.message.is_forward===1)&&<div className="forwarded-message-icon"><ForwardIcon></ForwardIcon></div>}
                 <div className='border-element'>
-                  {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad) => (
-                    <div className='border-child'></div>
-                  ))}
+                  {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad,i) => (
+             <div className='border-child' key={i}></div>
+           ))}
                 </div>
                 {(props.type === "first-chat" || props.type === "lonely") &&
               <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name&& 'text-avatar'}`}>
@@ -710,9 +710,9 @@ const copyText=()=>{
            <div onClick={() => setOpen(true)} ref={refmessage} className={'message-element-body message-body text-body ' + props.type}>
             {(props.message.is_forward===true||props.message.is_forward===1)&&<div className="forwarded-message-icon"><ForwardIcon></ForwardIcon></div>}
               <div className='border-element'>
-                {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad) => (
-                  <div className='border-child'></div>
-                ))}
+                {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad,i) => (
+             <div className='border-child' key={i}></div>
+           ))}
               </div>
               {(props.type === "first-chat" || props.type === "lonely") &&
                  <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name&& 'text-avatar'}`}>
@@ -748,9 +748,9 @@ const copyText=()=>{
             <div onClick={() => setOpen(true)} ref={refmessage} className={'message-element-body message-body text-body ' + props.type}>
             {(props.message.is_forward===true||props.message.is_forward===1)&&<div className="forwarded-message-icon"><ForwardIcon></ForwardIcon></div>}
               <div className='border-element'>
-                {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad) => (
-                  <div className='border-child'></div>
-                ))}
+                {refmessage.current && showBord(props.type, refmessage.current.clientHeight).map((ad,i) => (
+             <div className='border-child' key={i}></div>
+           ))}
               </div>
               {(props.type === "first-chat" || props.type === "lonely") &&
                 <div className={'absolute-avatar ' + `${(!activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.photo_path||activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.photo_path?.includes('eu'))&&activeChat.channel_members.filter((a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id))[0]?.user?.name&& 'text-avatar'}`}>

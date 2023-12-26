@@ -8,6 +8,7 @@ import { SSRDetect, getUserChat } from '../../utils/functions'
 import { StoreToken } from '../../redux/auth/actions'
 function ChatModal() {
     const isCallIncoming = useSelector(state => state.chat.isCallIncoming)
+    const callInProgress=useSelector((state)=>state.chat.callInProgress);
     const chatVar = useSelector(state => state.chat.chatVar)
     const dispatch = useDispatch()
   return (
@@ -35,7 +36,7 @@ function ChatModal() {
                 }
               
             })
-            dispatch(ChatConroller(false));}} callIn />} 
+            dispatch(ChatConroller(false));}} callInProgress={callInProgress} />} 
     </>
   )
 }

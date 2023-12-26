@@ -70,13 +70,14 @@ function VideoCall(props) {
     // function to initialise the SDK
     let init = async (name) => {
       client.on('user-joined',(user)=>{
+        console.log('user-joined')
         start()
         setUsers((prevUsers) => {
           return [...prevUsers, user];
         });
       })
       client.on("user-published", async (user, mediaType) => {
-        console
+        console.log('user-published')
         await client.subscribe(user, mediaType);
         console.log("subscribe success");
         if (mediaType === "video") {
@@ -122,12 +123,12 @@ console.log(error,ready,tracks)
   }, [ client, ready, tracks,error]);
   const MessageActiveCall = useSelector(state => state.chat.MessageActiveCall)
   const userEndCall =async () => {
-    await client.leave();
+    if(ready){await client.leave();
     client.removeAllListeners();
     // we close the tracks to perform cleanup
     if(tracks){
     tracks[0]?.close();
-    tracks[1].close();}
+    tracks[1].close();}}
     setStart(false);
     RefuseCall(activeChat.id,MessageActiveCall)
 
