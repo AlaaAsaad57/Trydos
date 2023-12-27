@@ -70,7 +70,7 @@ function ProductNoColors({product}) {
    
    <ImageSlider 
    renderVar={productState.renderVar} 
-   active={(!productState.isColorSelected)&&(!productState.isActiveTopSlide)}  
+   active={(!productState.isActiveTopSlide)}  
    isActiveTopSlide={productState.isActiveTopSlide} 
    setActiveTopSlide={(e)=>dispatch({type:'setActiveTopSlide',payload:e})} 
    setColor={(e)=>dispatch({type:'setColor',payload:e})}  
