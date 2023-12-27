@@ -22,6 +22,7 @@ function ProductReducer(state,{type,payload}){
     };
   }
   if (type === 'setActiveImage') {
+    console.log('sssssssss',payload)
     return {
       ...state,
       activeColor: payload,

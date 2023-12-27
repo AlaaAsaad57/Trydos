@@ -20,8 +20,7 @@ import "react-toastify/dist/ReactToastify.css"
 import { onMessageListener, requestFirebaseNotificationPermission } from "../../utils/firebaseInitv1";
 import { SSRDetect, getUserChat } from "../../utils/functions";
 import Cookies from "js-cookie";
-import Smartlook from 'smartlook-client'
-import { SmartLookInit } from "../../utils/constants";
+
 import dynamic from "next/dynamic";
 const ChatModal =dynamic(()=>import('../Chat/ChatModal', { ssr: false }))
 
@@ -29,16 +28,7 @@ export default function Home({stories,HomeData_res,stories_res,HomeData}) {
   
   const language=useSelector((state)=>state.homepage.language)
   useEffect(()=>{ 
-    if(SSRDetect()) 
-    window.onbeforeunload=function(){
-      StopTracking()
-    }
-    SmartLookInit()
-
-    if(SSRDetect()&&getUserChat())
-    Smartlook.identify(getUserChat().id,getUserChat())
-  else
-  SSRDetect()&&Smartlook.identify(parseInt(1000*Math.random()),{agent:window.navigator.userAgent})
+ 
   
     Smartlook.navigation('/')
     let languageCookies=Cookies.get("language");
@@ -46,12 +36,6 @@ export default function Home({stories,HomeData_res,stories_res,HomeData}) {
     dispatch(changeAppLanguage(languageCookies==='ae'?'ar':languageCookies||language||'en'))
     dispatch(GetStoryData(stories))
     dispatch(GetMainData(HomeData))
-    setTimeout(()=>{
-      RegisterDevice()
-      CheckLogin()
-    },2000)
-
-
   },[])
   try {
     requestFirebaseNotificationPermission().then((fbtoken)=>{

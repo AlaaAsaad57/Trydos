@@ -73,7 +73,7 @@ function ColorSlider({active,activeColor,setActiveColor,getIndex,colors,product_
         <>
        <BorderImage/>
        <div className='inset-shadow-img'/>
-       <Image  priority={i===3} style={{borderRadius:'15px',zIndex:'3'}} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" src={img.images[activeColor.index]} alt={product_name||'alt'}/>
+       <Image  priority={i===3} style={{borderRadius:'15px',zIndex:'3'}} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" src={img.images[0]} alt={product_name||'alt'}/>
         </>
 
   

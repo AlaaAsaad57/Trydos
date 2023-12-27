@@ -2,6 +2,7 @@ import React, {useReducer,memo, useEffect } from 'react'
 import ImageSlider from "./ImageSlider"
 import PriceLabel from './PriceLabel'
 import BuyButton from './BuyButton'
+import TopSlider from './TopSlider';
 function ProductReducer(state,{type,payload}){
     if (type === 'setActiveTopSlide') {
       return {
@@ -37,7 +38,7 @@ function ProductReducer(state,{type,payload}){
 function ProductNoColors({product}) {
     const [productState, dispatch] = useReducer(ProductReducer,
         { isActiveTopSlide:false,
-         activeColor:null,
+         activeColor:{images:product.images},
          activeImage:product.images[0],
          isColorSelected:false,
          activeImageIndex:0,
@@ -50,7 +51,13 @@ function ProductNoColors({product}) {
      <div className='blured-background'/>
      <div className='offer-blured'/>
      <div className='offer-blured-background'/>
-
+     {
+    <TopSlider 
+    name={product.name}
+    active={productState.isActiveTopSlide} 
+    activeColor={productState.activeColor}
+    setActiveColor={(e)=>dispatch({type:'setActiveColor',payload:e})}
+    images={product.images}/>}
    {
      <div className='product-photos' style={{position:!productState.isActiveTopSlide?'static':'absolute',opacity:!productState.isActiveTopSlide?'1':'0',zIndex:!productState.isActiveTopSlide?'4':'1'}}>
      <div  className={`product-container-slider ${productState.isColorSelected&& 'selected-color'}`} >
