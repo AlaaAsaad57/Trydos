@@ -6,7 +6,7 @@ const WebViewVideoCall =dynamic(()=>import('./WebViewVideoCall', { ssr: false })
 const WebViewVoiceCall =dynamic(()=>import('./WebViewVoiceCall', { ssr: false }))
 const CallComponentWidget =dynamic(()=>import('./CallComponentWidget', { ssr: false }))
 import {getAgoraToken,Decline} from './WebViewActions'
-import { SSRDetect } from '../../utils/functions'
+import CallingIcon from "../Chat/svg/CallInProg.svg"
 function WebviewCall() {
   const router=useRouter()
   const searchParams = useSearchParams()
@@ -29,7 +29,7 @@ function WebviewCall() {
     }
     const onDecline=async ()=>{
       await Decline(data.authToken,data.msgId)
-      window.location.href ='http://localhost:3000/endCall'
+      window.location.href ='/endCall'
     }
     useEffect(()=>{
       if(!data.token&&data.action==='sent'){
@@ -38,6 +38,9 @@ function WebviewCall() {
     },[])
   return (
     <>
+    {!data.token&&<div style={{width:'100vw',height:'100vh',display:"flex",alignItems:"center",justifyContent:"center",fontSize:"20px",backgroundColor:'#000',color:'#FFF',flexDirection:'column'}}>
+      <CallingIcon style={{marginBottom:'10px',transform:'scale(1.5)'}}></CallingIcon>
+      Loading Call Information...</div>}
       {data.authToken&&data.action==='receive'&&<CallComponentWidget data={data} onDecline={()=>{onDecline()}} onAnswer={()=>{onAnswer()}} type={data.type}/>}
       {data.authToken&&data.token&&data.action!=='receive'&&data.type==='voice'&&<WebViewVoiceCall onDecline={()=>onDecline()} data={data}/>}
       {data.authToken&&data.token&&data.action!=='receive'&&data.type==='video'&&<WebViewVideoCall  onDecline={()=>onDecline()} data={data}/>}

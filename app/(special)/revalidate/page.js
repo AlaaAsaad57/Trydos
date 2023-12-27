@@ -1,5 +1,5 @@
 "use client"
-import Revalidate from "../revalidate"
+import Revalidate from "../../revalidate"
 import React, { useEffect } from 'react'
 
 function page() {

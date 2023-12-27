@@ -1,3 +1,4 @@
+"use client"
 import { categories } from "../../utils/constants"
 import CategoryNavItem from "./CategoryNavItem"
 import { useState } from "react"

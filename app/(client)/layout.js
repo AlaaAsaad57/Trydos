@@ -1,7 +1,9 @@
-import './globals.css'
-import {Providers} from "../redux/provider"
-
-import GAComponent from '../components/global/GAComponent';
+import '../globals.css'
+import dynamic from 'next/dynamic'
+const Providers = dynamic(() => import("../../redux/provider"), {
+ssr: false,
+});
+import GAComponent from '../../components/global/GAComponent';
 
 export const metadata = {
   title: 'TryDos-Home',

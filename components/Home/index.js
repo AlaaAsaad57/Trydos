@@ -81,16 +81,10 @@ export default function Home({stories,HomeData_res,stories_res,HomeData}) {
   },[selectedStory])
   const dispatch=useDispatch() 
   return (
-     <div aria-details={language}className='site-container'>
-      <audio style={{position:'absolute',fontFamily:"icon-font",opacity:0}} muted autoPlay src="/default.mp3">
-        <source src="/default.mp3"/>
-      </audio>
+     <>
       <ToastContainer/>
-        <div aria-details={language}className='home-page-container'>
-           <TranslationsMenu/>
-           <StoriesComponent/>
-            <Navbar/>
-            <ChatModal/>
+        
+           
             <Stories/>
             <CategoriesBar forMobile={true} />
             <BrandsBar/>
@@ -99,8 +93,8 @@ export default function Home({stories,HomeData_res,stories_res,HomeData}) {
             <OfferBar/>
             <QuickOffer/>
             <OffersList quick={true} offers={[1]}/>
-        </div>
-    </div>
+ 
+    </>
   )
 }
 

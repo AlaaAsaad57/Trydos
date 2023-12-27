@@ -17,7 +17,7 @@ useEffect(()=>{
   LogData({stories_req_data:stories_res,HomeData_req_data:HomeData_res,listing_req_data:Listing_Data_res})
 },[])
   return (<>
-    <div className='site-container listing-container'>
+    <div className='listing-container'>
  {products.map((product,i)=>(
     <>
        {   !product.sync_color_images&&  <ProductNoColors  product={product}/>}

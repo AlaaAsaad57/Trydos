@@ -1,10 +1,10 @@
 "use server"
 import React from 'react'
-import ProductCard from '../../components/ListingPage/ProductCard'
-import { getHomeData, getListingData, getStories } from '../../redux/homepage/cachedActions';
- async function page() {
-  const [stories,stories_res] = await getStories(); 
-  const [HomeData,HomeData_res]=await getHomeData();
+import ProductCard from '../../../components/ListingPage/ProductCard'
+import {  getHomeData, getListingData, getStories } from '../../../redux/homepage/cachedActions';
+ async function page({categories}) {
+    const [stories,stories_res] = await getStories(); 
+    const [HomeData,HomeData_res]=await getHomeData();
   const [Listing_data,Listing_Data_res]=await getListingData()
   
   return (
