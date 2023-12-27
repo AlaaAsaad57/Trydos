@@ -20,7 +20,7 @@ import "react-toastify/dist/ReactToastify.css"
 import { onMessageListener, requestFirebaseNotificationPermission } from "../../utils/firebaseInitv1";
 import { SSRDetect, getUserChat } from "../../utils/functions";
 import Cookies from "js-cookie";
-
+import Smartlook from 'smartlook-client'
 import dynamic from "next/dynamic";
 const ChatModal =dynamic(()=>import('../Chat/ChatModal', { ssr: false }))
 
