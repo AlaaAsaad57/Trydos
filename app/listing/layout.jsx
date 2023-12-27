@@ -1,6 +1,7 @@
 import '../../styles/listing.css'
 require( "external-svg-loader");
 import {Providers} from "../../redux/provider"
+import Script from 'next/script';
 
 export const metadata = {
   title: 'TryDos',
@@ -8,8 +9,21 @@ export const metadata = {
 }
 
 export default function RootLayout({ children }) {
+ let GA_MEASUREMENT_ID='G-EK7TKN11PV'
   return (
     <html lang="en">
+      <Script
+  src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+  strategy="afterInteractive"
+/>
+<Script id="google-analytics" strategy="afterInteractive">
+  {`
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){window.dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '${GA_MEASUREMENT_ID}');
+  `}
+</Script>
      <link rel="icon" href="/favicon.ico" sizes="any" />
       <body>
         <Providers>
