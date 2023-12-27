@@ -47,7 +47,11 @@ function ProductNoColors({product}) {
        });
 
    return (
-     <div className='product-container'>
+     <div className='product-container' onMouseLeave={()=>{
+      if(productState.isActiveTopSlide){
+      dispatch({type:'setActiveTopSlide',payload:false});
+       }
+       }}>
      <div className='blured-background'/>
      <div className='offer-blured'/>
      <div className='offer-blured-background'/>
@@ -83,7 +87,7 @@ function ProductNoColors({product}) {
     </>
      }
              </div>}
-             <div className='product-body' onMouseEnter={()=>dispatch({type:'setColor',payload:false})} onTouchStart={()=>dispatch({type:'setColor',payload:false})}>
+             <div className='product-body' onMouseEnter={()=>dispatch({type:'setColor',payload:false})} onTouchStart={()=>{dispatch({type:'setColor',payload:false});  dispatch({type:"setActiveTopSlide",payload:false});}}>
              <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" width="66.341" height="10" viewBox="0 0 66.341 10">
              <g id="Mask_Group_330" data-name="Mask Group 330" transform="translate(0 -0.239)" clipPath="url(#clipPath)">
                <g id="XMLID_10_" transform="translate(0 0.402)" opacity="0.749">
