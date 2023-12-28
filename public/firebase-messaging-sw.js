@@ -60,9 +60,9 @@ messaging.onBackgroundMessage(async function (payload) {
    }
    else {
      notificationOptions = {
-       body: JSON.parse(payload?.data.message).body,
-       icon: JSON.parse(payload?.data.message).icon,
-       image: JSON.parse(payload?.data.message).image
+       body: "Missed Call",
+       icon: JSON.parse(payload?.data.message)?.icon,
+       image: JSON.parse(payload?.data.message)?.image
      };
    }
    if(notificationOptions.body)
