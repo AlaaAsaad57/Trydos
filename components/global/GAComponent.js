@@ -22,6 +22,7 @@ function GAComponent() {
     function gtag(){window.dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', '${GA_MEASUREMENT_ID}',{is_logged_in:${Boolean(getUserChat())},preferred_language:${Cookies.get('language')}});
+    gtag("event", "user_data",{is_logged_in:${Boolean(getUserChat())},preferred_language:${Cookies.get('language')}});
   `}
 </Script>
 
