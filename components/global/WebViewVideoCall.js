@@ -218,13 +218,6 @@ function WebViewVideoCall(props) {
           }
           users[0].audioTrack?.play()}}>Click me</button>}
         <span> Errors:{error?.message||'None'}</span> 
-        <span>Tracks:{}</span>
-        <span> token:{props.data.token}</span> 
-        <span>url:{window.location.href}</span>
-        <span> uid:{props.data.sender_user_id}</span> 
-        <span> type:{props.data.type}</span> 
-        <span> channel_id{props.data.channel_id}</span> 
-        <span> authToken:{props.data.authToken}</span>
         </div>}
       </>
   
