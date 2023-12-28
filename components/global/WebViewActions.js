@@ -1,22 +1,26 @@
 import axios from "axios"
 import { CHAT_URL } from "../../utils/endpointConfig"
+import { Answer } from "../../redux/chat/actions"
 
-export const AnswerCall=async (token,mid)=>{
+export const AnswerCall=async (token,mid,chid)=>{
 let req= await axios.post(CHAT_URL+`/api/v1/messages/answer_call/${messageId}`,{},{
     headers:{
         Authorization:'Bearer '+token
     }
 }).then((data)=>{
-  
+    
 })
 }
-export const getAgoraToken =async (channel_id,token)=>{
+export const getAgoraToken =async (channel_id,token,mid,bool)=>{
     let tok
     let req= await axios.post(CHAT_URL+`/api/v1/channels/${channel_id}/agora_token`,{},{
         headers:{
             Authorization:'Bearer '+token
         }
     }).then((data)=>{
+        if(bool)
+        Answer(channel_id,mid)
+
         tok= data.data.data
     })
     return tok

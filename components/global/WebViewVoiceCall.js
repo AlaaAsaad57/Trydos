@@ -123,10 +123,7 @@ function WebViewVoiceCall(props) {
         {<div
           className='video-call'
         >
-          {!users.length>0&&!callStatus&&
-           <audio  onLoad={(e)=>{e.target.volume=0.2}} onPlay={(e)=>{e.target.volume=0.2}} onLoadStart={(e)=>{e.target.volume=0.2}}   loop autoPlay src={'/default.mp3'}>
-           <source src={'/default.mp3'}></source>
-       </audio>}
+       
           
           {
          
@@ -165,12 +162,12 @@ function WebViewVoiceCall(props) {
         </span>
           <div
             style={{ zIndex: 3 }}
-            className="end-icon"
+            className={"end-icon "+`${props.data.loading&&'disabled-label'}`}
             onClick={() => { userEndCall(); }}>
             <EndCallIcon ></EndCallIcon>
             <span>End Call</span>
           </div>
-          <div className='cancel-call-icon' onClick={() => {userEndCall();}}>
+          <div className={'cancel-call-icon'+`${props.data.loading&&'disabled-label'}` }onClick={() => {userEndCall();}}>
             <LeftArrowIcon></LeftArrowIcon>
           </div>
           <div className='add-caller-icon'>
@@ -178,10 +175,10 @@ function WebViewVoiceCall(props) {
           <div className={'toggle-mic ' +( trackState.audio&&"active-mic-svg")} onClick={()=>mute("audio")}><MicIcon></MicIcon></div>
           {ready&&users.length===0&&<div className='call-status'>
            {isRunning?<CallIcon></CallIcon>: <CallingIcon></CallingIcon>}
-           {callStatus?<span>{callStatus}</span>:isRunning?<span>{minutes>9?minutes:'0'+minutes}:{seconds>9?seconds:'0'+seconds}</span>:<span>Calling...</span>}
+           {callStatus?<span>{callStatus}</span>:isRunning?<span>{minutes>9?minutes:'0'+minutes}:{seconds>9?seconds:'0'+seconds}</span>:<span>{props.data.actionInit==='sent'?'Calling...':'Establish Connection..'}</span>}
           </div>}
         </div>}
-        {<div className='error' style={{display:'flex',justifyContent:"flex-start",padding:'10px',flexDirection:"column"}}>
+        {error&&<div className='error' style={{display:'flex',justifyContent:"flex-start",padding:'10px',flexDirection:"column"}}>
         <span> Errors:{error?.message||'None'}</span> 
         </div>}
       </>

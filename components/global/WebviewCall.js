@@ -16,20 +16,26 @@ function WebviewCall() {
     channel_id:searchParams.get('ch_id'),
     type:searchParams.get('type'),
     action:searchParams.get('action'),
+    actionInit:searchParams.get('action'),
     authToken:searchParams.get('authToken'),
-    msgId:searchParams.get('message_id')
+    msgId:searchParams.get('message_id'),
+    loading:false
   })
     useEffect(()=>{
       
     },[])
     const onAnswer=async()=>{
-      let token=await getAgoraToken(data.channel_id,data.authToken)
+      if(!data.loading){
+      setData({...data,loading:true})
+      let token=await getAgoraToken(data.channel_id,data.authToken,data.msgId,data.action==='receive')
       
-      setData({...data,token:token,action:'sent'})
+      setData({...data,token:token,action:'sent'})}
     }
     const onDecline=async ()=>{
+      if(!data.loading){
+      setData({...data,loading:true})
       await Decline(data.authToken,data.msgId)
-      window.location.href ='/endCall'
+      window.location.href ='/endCall'}
     }
     useEffect(()=>{
       if(!data.token&&data.action==='sent'){

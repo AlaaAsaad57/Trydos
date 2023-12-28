@@ -1136,3 +1136,6 @@ height: 47px;
     overflow: hidden;
     border-radius: 15px;
 }
+.disabled-label{
+    opacity: 0.6;
+}
