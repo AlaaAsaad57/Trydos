@@ -2,6 +2,8 @@
 import Script from 'next/script'
 import React, { useEffect } from 'react'
 import { SmartLookInit } from '../../utils/constants'
+import { getUserChat } from '../../utils/functions'
+import Cookies from 'js-cookie'
 
 function GAComponent() {
     useEffect(()=>{
@@ -19,7 +21,7 @@ function GAComponent() {
     window.dataLayer = window.dataLayer || [];
     function gtag(){window.dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', '${GA_MEASUREMENT_ID}');
+    gtag('config', '${GA_MEASUREMENT_ID}',{is_logged_in:${Boolean(getUserChat())},preferred_language:${Cookies.get('language')}});
   `}
 </Script>
 
