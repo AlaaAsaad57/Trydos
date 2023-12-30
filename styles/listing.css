@@ -529,3 +529,9 @@ g#PNORSSM823IY-BE29_view2 rect {
     width: calc(100% - 0.5px);
     height: calc(100% - 0.5px);
 }
+.get-next-product {
+    color: #3C3C3C;
+    font-family: 'quicksand';
+    font-size: 17px;
+    padding: 15px;
+}

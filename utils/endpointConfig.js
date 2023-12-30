@@ -24,4 +24,4 @@ export const SEARCH_CONTACTS_URL="/api/v1/users/search/";
 export const DELETE_CHAT_URL="/api/v1/channels/destroy";
 export const SET_CHANNEL_OPT_UTL="/api/v1/channel_members/set";
 //Listing
-export const LISTING_INFO_URL="/products/with_colors"
+export const LISTING_INFO_URL="/products/with_colors_without_filter"
