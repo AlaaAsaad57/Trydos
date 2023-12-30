@@ -245,7 +245,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
 
         }
         case "INCOMING_VOICE_CALL": {
-             {console.log('sds')
+             {if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log('sds')
                 return ({
                     ...state,
                     isCallIncoming: true,
@@ -548,7 +548,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
             let chat = state.data
             let arr = []
             if(payload.isNew){
-                console.log('new')
+                if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log('new')
                     arr.push({...payload.act,messages:[...ac.messages,payload.message]})
                    arr=[...arr,...chat];
                 return ({

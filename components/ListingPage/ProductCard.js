@@ -37,10 +37,10 @@ useEffect(()=>{
   return (<>
     <div className='listing-container'>
  {products.map((product,i)=>(
-    <>
-       {   !product.sync_color_images&&  <ProductNoColors  product={product}/>}
-      {product.sync_color_images&&  <ProductCover  product={product}/>}
-    </>
+    <div key={i}>
+       {   !product.sync_color_images&&  <ProductNoColors   product={product}/>}
+      {product.sync_color_images&&  <ProductCover   product={product}/>}
+    </div>
 
       ))}
 

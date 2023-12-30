@@ -65,6 +65,7 @@ function ColorSlider({active,activeColor,setActiveColor,getIndex,colors,product_
   >
     {colors.map((img,i)=>(img.images.length>0&&
      <SwiperSlide
+     key={i}
      style={{
          overflow:"visible",
          position: 'relative'

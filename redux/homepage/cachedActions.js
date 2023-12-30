@@ -12,7 +12,7 @@ export const getStories=async()=>{
       let returned_res={type:res.type,headers:[...res.headers,...DataApiHeaders()],url:res.url,time:time+'ms',body:repo}   
       return [repo.data.data,returned_res]
     }catch(e){
-      console.log(e)
+      if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(e)
       return ['stories-error',e]
     }
    
@@ -30,7 +30,7 @@ export const getStories=async()=>{
          let returned_res={type:res.type,headers:[...res.headers,...DataApiHeaders()],url:res.url,time:time+'ms',body:repo}
       return  [repo.data,returned_res]||[]
     }catch(e){
-      console.log(e)
+      if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(e)
       return ['homedata-error',e]
     }
   }
@@ -54,7 +54,7 @@ cookieStore.set('language',language)
          let returned_res={type:res.type,headers:[...res.headers,...DataApiHeaders()],url:res.url,time:time+'ms',body:repo}
       return  [repo.data,returned_res]||[]
     }catch(e){
-      console.log(e)
+      if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(e)
       return ['listing-error',e]
     }
   }

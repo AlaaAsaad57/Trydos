@@ -36,7 +36,7 @@ export const requestFirebaseNotificationPermission = async () => {
 export const onMessageListener = () =>
   new Promise((resolve) => {
     onMessage(messaging, (payload) => {
-      console.log(payload)
+      if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(payload)
       if(payload.data.type==="RefuseCallEvent"){
         if(store.getState().chat.callInProgress){
           store.dispatch({ type: "USER_END_CALL" })
@@ -51,7 +51,7 @@ export const onMessageListener = () =>
       let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId)).length>0?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channelId))[0]?.channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]:{user:{name:data.callerName,photo_path:data.callerPhoto}}
      
       if(data.user_id!==getUserChat()?.id&&(!store.getState().chat.callInProgress||store.getState().chat.callInProgress===2)){
-        console.log(data,channel,caller);
+        if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(data,channel,caller);
         store.dispatch({ type: "INCOMING_VOICE_CALL",payload:{...data,channelId:JSON.parse(payload.data.data).message.channel.id,callerChannel: channel,caller:caller,message_id:JSON.parse(payload.data.data).message.id} })
       }
       store.dispatch({type:"SET_LAST_NOTIFICATION_DATE",payload:(new Date()).toLocaleString()})

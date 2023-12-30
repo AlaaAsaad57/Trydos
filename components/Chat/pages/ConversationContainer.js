@@ -682,7 +682,7 @@ function ConversationContainer({ViewedScreen,active,loading,first}) {
       navigator.mediaDevices.getUserMedia({video: true}).then((s)=>{
         setCameraEnabled(bool)
       }).catch((e)=>{
-        console.log(e,"camera-error")
+        if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(e,"camera-error")
         toast.error('check camera premmissions and refresh')
       })
     }

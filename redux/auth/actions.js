@@ -59,7 +59,7 @@ export const VerifyOtp=async (code,verficationID)=>{
         loginChat()
     }
     catch(e){
-        console.log(e)
+        if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(e)
         if(e.response.data.message==="user not found"){
             store.dispatch({type:"WRONG-NUMBER",payload:'user not found'})
         }
@@ -94,14 +94,14 @@ export const loginChat=async ()=>{
         localStorage.setItem('CHAT-TOKEN',response.data.data.access_token)
         if(response.data.data?.id){
             typeof window !=='undefined'&& 'serviceWorker' in navigator&&    requestFirebaseNotificationPermission().then((firebaseToken) => {
-                console.log(firebaseToken)
+                if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(firebaseToken)
                 localStorage.setItem("firebase_token",firebaseToken)
                 if (response.data.data) {
                   try {
                     if(!firebaseToken) {
                    }
                     else{
-                        console.log(firebaseToken)
+                        if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(firebaseToken)
                         localStorage.setItem("firebase_token",firebaseToken)
                     StoreToken({
                         id: response.data.data.id,
@@ -148,7 +148,7 @@ export async  function StoreToken(payload) {
       localStorage.setItem("firebase_id", res.data.data.id)
   
     } catch (e) {
-      console.log(e);
+      if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(e);
     }
   }
 export const CheckLogin=async()=>{

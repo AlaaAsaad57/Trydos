@@ -67,4 +67,4 @@ export const SmartLookInit=()=>{
        SSRDetect()&& Smartlook.init('a6a7a0d4340db1ff8980b363cdb11185343486e4');
        
     }
-Pusher.logToConsole = true
+Pusher.logToConsole = process.env.NEXT_PUBLIC_ENABLE_LOG==='true';

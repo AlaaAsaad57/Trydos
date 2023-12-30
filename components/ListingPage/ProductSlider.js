@@ -40,6 +40,7 @@ function ProductSlider({activeColor,setActiveColor,product_name}) {
 >
 {activeColor.images.map((img,i)=>(
    <SwiperSlide
+   key={i}
    style={{
        overflow:"visible",
        position: 'relative'

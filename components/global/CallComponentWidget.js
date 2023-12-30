@@ -10,7 +10,7 @@ function CallComponentWidget({data,type,onAnswer,onDecline}) {
         //     volume: 0.1,
         //     html5:true,
         //     onend: function() {
-        //       console.log('Finished!');
+        //       if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log('Finished!');
         //     },
         //     onplayerror: function() {
                 

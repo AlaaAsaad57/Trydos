@@ -48,10 +48,10 @@ export default function Home({stories,HomeData_res,stories_res,HomeData}) {
       }
     })
     typeof window !=='undefined'&& 'serviceWorker' in navigator&& onMessageListener().then(payload => {
-      console.log(payload)
-   }).catch(err => console.log('failed: ', err));
+      if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(payload)
+   }).catch(err => if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log('failed: ', err));
   }catch(e){
-    console.log(e)
+    if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(e)
   } 
 
   const selectedStory=useSelector(state => state.homepage.selectedStory)

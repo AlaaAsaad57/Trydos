@@ -17,7 +17,7 @@ function Animated({stories}) {
        try{
          fetch(STORIES_URL+GET_USERS_STORIES,getStoriesHeaders()).then((res) => res.json()).then((data)=>{
       
-        }).catch(e=>{console.log("stories endpoints error")})}
+        }).catch(e=>{if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log("stories endpoints error")})}
         catch(e){
           
         }

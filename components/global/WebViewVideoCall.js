@@ -45,7 +45,7 @@ function WebViewVideoCall(props) {
         })
         client.on("user-published", async (user, mediaType) => {
           await client.subscribe(user, mediaType);
-          console.log("subscribe success");
+          if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log("subscribe success");
           try{
             user?.audioTrack?.play();
           }
@@ -63,7 +63,7 @@ function WebViewVideoCall(props) {
         });
   
         client.on("user-unpublished", (user, type) => {
-          console.log("unpublished", user, type);
+          if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log("unpublished", user, type);
           if (type === "audio") {
             user.audioTrack?.stop();
           }
@@ -75,14 +75,14 @@ function WebViewVideoCall(props) {
         client.on("user-left", (user) => {
           userEndCall()
           setCallStatus('')
-          console.log("leaving", user);
+          if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log("leaving", user);
           setUsers((prevUsers) => {
             return prevUsers.filter((User) => User.uid !== user.uid);
           });
           
         });
         let token=props.data.token
-        console.log(appId, name.toString(), token, parseInt(props.data.sender_user_id))
+        if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(appId, name.toString(), token, parseInt(props.data.sender_user_id))
         await client.join(appId, name.toString(), token, parseInt(props.data.sender_user_id));
         if (tracks) await client.publish([tracks[0], tracks[1]]);
         setStart(true);
@@ -90,7 +90,7 @@ function WebViewVideoCall(props) {
       };
   
       if (ready && tracks) {
-        console.log("init ready");
+        if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log("init ready");
         init(props.data.channel_id);
       }
     }, [ client, ready, tracks,error]);

@@ -49,6 +49,7 @@ function ImageSlider({renderVar,product_name,active,isColorSelected,setActiveIma
 >
 {activeColor.images.map((img,i)=>(
    <SwiperSlide
+   key={i}
    style={{
        overflow:"visible",
        position: 'relative'

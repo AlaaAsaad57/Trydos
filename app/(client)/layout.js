@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic'
 const Providers = dynamic(() => import("../../redux/provider"), {
 ssr: false,
 });
-import GAComponent from '../../components/global/GAComponent';
+import GAComponent from "../../components/global/GAComponent"
 
 export const metadata = {
   title: 'TryDos',
@@ -19,7 +19,7 @@ export default function RootLayout({ children }) {
      <link rel="icon" href="/favicon.ico" sizes="any" />
       <body>
       <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K8QKJJLK"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+height="0" width="0" style={{"display":"none",visibility:"hidden"}}></iframe></noscript>
         <Providers>
            {children}
         </Providers>

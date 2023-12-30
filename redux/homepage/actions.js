@@ -77,7 +77,7 @@ export const UserEndStory=()=>{
 export const LogData=(data)=>{
     if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true'){
       
-      console.log(data)
+      if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(data)
     }
   }
  export const EventTrack= (name,data)=>{

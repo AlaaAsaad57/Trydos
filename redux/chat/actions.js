@@ -451,7 +451,7 @@ export const InitPusherChannel=(channelId)=>{
 }
 export const makeVideoCall=async(channelId,callerName,callerPhoto,mobilePhone)=>{
   EventTrack('video-call',{channelId:channelId,user_id:getUserChat().id});
-  console.log(channelId,callerName,callerPhoto,mobilePhone)
+  if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(channelId,callerName,callerPhoto,mobilePhone)
   try{
     store.dispatch({type:"CALL-LOADING",payload:'video'})
     let obj=typeof channelId ==="string"&&channelId.includes('ch')?{receiver_user_id:parseInt(channelId.split('ch-')[1])}:{channel_id:channelId}
@@ -461,7 +461,7 @@ export const makeVideoCall=async(channelId,callerName,callerPhoto,mobilePhone)=>
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
   }).then((data)=>{
-    console.log(data)
+    if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(data)
     store.dispatch({type:"VIDEO_CALL",payload:data.data.data.token,source:data.data.data.message})
     store.dispatch({type:"CALL-LOADING",payload:null})
   })  

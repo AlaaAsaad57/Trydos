@@ -26,7 +26,7 @@ let data=await axios.post(CHAT_URL+'/api/v1/agora/token',{
   Authorization:'Bearer '+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
 }}).then((datas)=>{
   token=datas.data.data
-  console.log(datas)
+  if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(datas)
 })
 
 return token
@@ -72,7 +72,7 @@ const VideoCall = (props) => {
     
       client.on("user-published", async (user, mediaType) => {
         await client.subscribe(user, mediaType);
-        console.log("subscribe success");
+        if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log("subscribe success");
         if (mediaType === "video") {
           setUsers((prevUsers) => {
             return [...prevUsers, user];
@@ -84,7 +84,7 @@ const VideoCall = (props) => {
       });
 
       client.on("user-unpublished", (user, type) => {
-        console.log("unpublished", user, type);
+        if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log("unpublished", user, type);
         if (type === "audio") {
           user.audioTrack?.stop();
         }
@@ -96,13 +96,13 @@ const VideoCall = (props) => {
       });
 
       client.on("user-left", (user) => {
-        console.log("leaving", user);
+        if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log("leaving", user);
         setUsers((prevUsers) => {
           return prevUsers.filter((User) => User.uid !== user.uid);
         });
       });
       let token=await getToken(name)
-      console.log(token)
+      if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(token)
       await client.join(appId, name, token, getUserChat()?.id);
       if (tracks) await client.publish([tracks[0], tracks[1]]);
       setStart(true);
@@ -110,7 +110,7 @@ const VideoCall = (props) => {
     };
 
     if (ready && tracks) {
-      console.log("init ready");
+      if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log("init ready");
       init(channelName);
     }
 

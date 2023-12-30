@@ -92,6 +92,7 @@ function callback(event) {
         >
         {images.map((img,i)=>(
             <SwiperSlide 
+            key={i}
             onTouchStart={(swiper)=>{
              setActive(i)
              setActiveColor(images[i])

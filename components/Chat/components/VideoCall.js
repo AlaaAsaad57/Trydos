@@ -70,16 +70,16 @@ function VideoCall(props) {
     // function to initialise the SDK
     let init = async (name) => {
       client.on('user-joined',(user)=>{
-        console.log('user-joined')
+        if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log('user-joined')
         start()
         setUsers((prevUsers) => {
           return [...prevUsers, user];
         });
       })
       client.on("user-published", async (user, mediaType) => {
-        console.log('user-published')
+        if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log('user-published')
         await client.subscribe(user, mediaType);
-        console.log("subscribe success");
+        if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log("subscribe success");
         if (mediaType === "video") {
           start()
           
@@ -90,7 +90,7 @@ function VideoCall(props) {
       });
 
       client.on("user-unpublished", (user, type) => {
-        console.log("unpublished", user, type);
+        if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log("unpublished", user, type);
         if (type === "audio") {
           user.audioTrack?.stop();
         }
@@ -101,7 +101,7 @@ function VideoCall(props) {
 
       client.on("user-left", (user) => {
         userEndCall()
-        console.log("leaving", user);
+        if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log("leaving", user);
         setUsers((prevUsers) => {
           return prevUsers.filter((User) => User.uid !== user.uid);
         });
@@ -116,10 +116,10 @@ function VideoCall(props) {
     };
 
     if (ready && tracks) {
-      console.log("init ready");
+      if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log("init ready");
       init(activeChat.id);
     }
-console.log(error,ready,tracks)
+if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(error,ready,tracks)
   }, [ client, ready, tracks,error]);
   const MessageActiveCall = useSelector(state => state.chat.MessageActiveCall)
   const userEndCall =async () => {
