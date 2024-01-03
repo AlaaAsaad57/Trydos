@@ -179,7 +179,7 @@ function WebViewVideoCall(props) {
             users.map((user) => {
               if (user.videoTrack) {
                 return (
-                  <AgoraVideoPlayer  className='my-screen'   id="remote-stream" style={{height: '95%', width: '95%'}} videoTrack={user.videoTrack} key={user.uid} />
+                  <AgoraVideoPlayer  className='my-screen'   id="remote-stream" style={{height: '100%', width: '100%'}} videoTrack={user.videoTrack} key={user.uid} />
                 );
               } else return <></>;
             })}
