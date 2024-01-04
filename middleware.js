@@ -7,7 +7,7 @@ const languagesString = process.env.NEXT_PUBLIC_LANGUAGES || '[]';
 const languages = JSON.parse(languagesString);
 
 // Get the preferred locale, similar to the above or using a library
-async function getLocale(request) {
+ function getLocale(request) {
     const cookieStore =  cookies()
     const localization = {language:cookieStore.get('language')?.value,country:cookieStore.get('country')}
     console.log(localization)
@@ -22,7 +22,7 @@ function getDefaultLocale(request) {
     return localeENV
 }
 
-export async  function middleware(request) {
+export  function middleware(request) {
     const { pathname } = request.nextUrl;
     const pathName = pathname.split('/')[1];
     const pathN = pathname.replace(pathName, '');
