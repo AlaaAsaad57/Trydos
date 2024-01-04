@@ -14,7 +14,7 @@ function ProductReducer(state,{type,payload}){
     };
   }
   if (type === 'setActiveColor') {
-  if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log('sssssssss',payload)
+  if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true')
     return {
       ...state,
       activeColor:{...payload,index:payload.index||0},
@@ -22,7 +22,7 @@ function ProductReducer(state,{type,payload}){
     };
   }
   if (type === 'setActiveImage') {
-    if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log('sssssssss',payload)
+    if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true')
     return {
       ...state,
       activeColor: payload,

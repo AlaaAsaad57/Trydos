@@ -1,16 +1,33 @@
 "use client";
-import { Provider } from "react-redux";
+import { Provider, useDispatch } from "react-redux";
 import { store } from "./store";
 import TranslationsMenu from '../components/global/TranslationsMenu'
 import Navbar from '../components/Home/Navbar'
 import ChatModal from '../components/Chat/ChatModal'
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { SSRDetect, getUserChat } from "../utils/functions";
 import { SmartLookInit } from "../utils/constants";
 import Smartlook from 'smartlook-client'
-import { RegisterDevice, StopTracking } from "./homepage/actions";
+import { RegisterDevice, StopTracking, changeAppLanguage } from "./homepage/actions";
 import { CheckLogin } from "./auth/actions";
-export default function Providers({ children }) {
+import Cookies from "js-cookie"
+export default function Providers({lang, children }) {
+  const [country, language] = lang.split("-")
+  const localeProps = {language, country}
+  const [localization, setLocalization] = useState(localeProps);
+  useEffect(() => {
+      if (localization) {
+          if (typeof window !== "undefined") {
+              localStorage.setItem(
+                  "localization",
+                  JSON.stringify(localization)
+              );
+          }
+          Cookies.set("language",localization.language);
+          Cookies.set("country",localization.country);
+         
+      }
+  }, [localization]);
   useEffect(()=>{
     if(SSRDetect()) 
     window.onbeforeunload=function(){
@@ -30,8 +47,8 @@ export default function Providers({ children }) {
   return <Provider store={store}>
     <div className='site-container'>
     <div className='home-page-container'>
-    <TranslationsMenu/>
-           <Navbar/>
+    <TranslationsMenu init={lang} />
+           <Navbar init={lang} />
            <ChatModal/>
       {children}
     </div>

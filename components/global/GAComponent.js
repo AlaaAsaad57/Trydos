@@ -2,8 +2,6 @@
 import Script from 'next/script'
 import React, { useEffect } from 'react'
 import { SmartLookInit } from '../../utils/constants'
-import { getUserChat } from '../../utils/functions'
-import Cookies from 'js-cookie'
 
 function GAComponent() {
     useEffect(()=>{

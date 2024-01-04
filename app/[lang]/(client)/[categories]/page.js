@@ -1,7 +1,7 @@
 "use server"
 import React from 'react'
-import ProductCard from '../../../components/ListingPage/ProductCard'
-import {  getHomeData, getListingData, getStories } from '../../../redux/homepage/cachedActions';
+import ProductCard from '../../../../components/ListingPage/ProductCard'
+import {  getHomeData, getListingData, getStories } from '../../../../redux/homepage/cachedActions';
 export async function generateMetadata({ params, searchParams }) {
     // read route params
     const categories = params.categories

@@ -1,8 +1,6 @@
 "use client";
 import "styles/home.css"
-import Navbar from '../../components/Home/Navbar'
 import { useDispatch, useSelector } from "react-redux";
-import TranslationsMenu from "../../components/global/TranslationsMenu";
 import { useEffect } from "react";
 import { GetMainData, GetStoryData, LogData, RegisterDevice, StopTracking, changeAppLanguage } from "../../redux/homepage/actions";
 import Stories from "./Stories/index"
@@ -18,10 +16,10 @@ import { ToastContainer } from "react-toastify";
 import  "react-toastify/dist/ReactToastify.min.css";
 import "react-toastify/dist/ReactToastify.css"
 import { onMessageListener, requestFirebaseNotificationPermission } from "../../utils/firebaseInitv1";
-import { SSRDetect, getUserChat } from "../../utils/functions";
-import Cookies from "js-cookie";
+import {  getUserChat } from "../../utils/functions";
 import Smartlook from 'smartlook-client'
 import dynamic from "next/dynamic";
+import Cookies from "js-cookie";
 const ChatModal =dynamic(()=>import('../Chat/ChatModal', { ssr: false }))
 
 export default function Home({stories,HomeData_res,stories_res,HomeData}) {
@@ -31,9 +29,9 @@ export default function Home({stories,HomeData_res,stories_res,HomeData}) {
  
   
     Smartlook.navigation('/')
-    let languageCookies=Cookies.get("language");
+  
     LogData({stories_req_data:stories_res,HomeData_req_data:HomeData_res})
-    dispatch(changeAppLanguage(languageCookies==='ae'?'ar':languageCookies||language||'en'))
+
     dispatch(GetStoryData(stories))
     dispatch(GetMainData(HomeData))
   },[])
