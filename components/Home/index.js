@@ -1,5 +1,5 @@
 "use client";
-import "styles/home.css"
+import "../../styles/home.css"
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { GetMainData, GetStoryData, LogData, RegisterDevice, StopTracking, changeAppLanguage } from "../../redux/homepage/actions";
