@@ -8,7 +8,7 @@ const languages = JSON.parse(languagesString);
 
 // Get the preferred locale, similar to the above or using a library
 async function getLocale(request) {
-    const cookieStore = await cookies()
+    const cookieStore =  cookies()
     const localization = {language:cookieStore.get('language')?.value,country:cookieStore.get('country')}
     console.log(localization)
     // console.log("localization", localization)
@@ -30,8 +30,8 @@ export async  function middleware(request) {
     const hasLanguage = hasSeparator && languages.some((lang) => pathName.endsWith(`-${lang}`));
     const hasCountry = hasSeparator && countries.some((country) => pathName.startsWith(`${country}-`));
     if (!hasSeparator) {
-        const lang = await getLocale()?.language;
-        const country =await getLocale()?.country;
+        const lang =  getLocale()?.language;
+        const country = getLocale()?.country;
         const preferredLang = languages.includes(lang) ? lang : getDefaultLocale().language;
         const preferredCountry = countries.includes(country) ? country : getDefaultLocale().country;
 
@@ -40,8 +40,8 @@ export async  function middleware(request) {
     }
 
     if (!hasLanguage || !hasCountry) {
-        const lang =await getLocale()?.language;
-        const country =await getLocale()?.country;
+        const lang = getLocale()?.language;
+        const country = getLocale()?.country;
         const preferredLang = languages.includes(lang) ? lang : getDefaultLocale().language;
         const preferredCountry = countries.includes(country) ? country : getDefaultLocale().country;
 
