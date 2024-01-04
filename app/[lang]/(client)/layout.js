@@ -1,7 +1,7 @@
 import '../../globals.css'
 import dynamic from 'next/dynamic'
 const Providers = dynamic(() => import("../../../redux/provider"), {
-ssr: false,
+ssr: false, 
 });
 import GAComponent from "../../../components/global/GAComponent"
 
