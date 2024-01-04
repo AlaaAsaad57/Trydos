@@ -9,7 +9,7 @@ const languages = JSON.parse(languagesString);
 async function getLocale(request) {
     const cookieStore =  await cookies()
     const localization = {language:cookieStore.get('language')?.value,country:cookieStore.get('country')}
-     return localization && JSON.parse(localization)
+     return localization
 }
 
 function getDefaultLocale(request) {
