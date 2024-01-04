@@ -1,4 +1,3 @@
-'use server'
 import {cookies} from "next/headers";
 
 const countriesString = process.env.NEXT_PUBLIC_COUNTRIES || '[]';
