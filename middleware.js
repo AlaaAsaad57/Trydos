@@ -8,7 +8,7 @@ const languages = JSON.parse(languagesString);
 // Get the preferred locale, similar to the above or using a library
  function getLocale(request) {
     const cookieStore = cookies()
-    const localization = {language:cookieStore.get('language')?.value,country:cookieStore.get('country')}
+    const localization = {language:cookieStore.get('language')?.value,country:cookieStore.get('country')?.value}
       return localization
 }
 
