@@ -26,10 +26,7 @@ export async function middleware(request) {
     const hasSeparator = pathName.includes('-');
     const hasLanguage = hasSeparator && languages.some((lang) => pathName.endsWith(`-${lang}`));
     const hasCountry = hasSeparator && countries.some((country) => pathName.startsWith(`${country}-`));
-    if(request.nextUrl.pathname.startsWith('/call_direct')||request.nextUrl.pathname.startsWith('/endCall')||request.nextUrl.pathname.startsWith('/revalidate'))
-    {
-        return Response.redirect(request.nextUrl) ;
-    }
+    
     if (!hasSeparator) {
         const lang =  getLocale()?.language;
         const country = getLocale()?.country;
