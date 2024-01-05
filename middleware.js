@@ -20,7 +20,7 @@ function getDefaultLocale(request) {
 }
 
 export async function middleware(request) {
-   try{ const { pathname } = request.nextUrl;
+    const { pathname } = request.nextUrl;
     const pathName = pathname.split('/')[1];
     const pathN = pathname.replace(pathName, '');
     const hasSeparator = pathName.includes('-');
@@ -33,7 +33,6 @@ export async function middleware(request) {
     if (!hasSeparator) {
         const lang =  getLocale()?.language;
         const country = getLocale()?.country;
-        console.log(getLocale()?.language, getLocale(), lang, country, "0")
         const preferredLang = languages.includes(lang) ? lang : getDefaultLocale().language;
         const preferredCountry = countries.includes(country) ? country : getDefaultLocale().country;
 
@@ -56,9 +55,6 @@ export async function middleware(request) {
         setLocaleCookies(request, preferredLang, preferredCountry);
 
         return Response.redirect(request.nextUrl);
-    }}
-    catch(e){
-        console.log(e)
     }
 }
 function setLocaleCookies(request, lang, country) {
