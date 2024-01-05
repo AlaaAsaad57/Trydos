@@ -24,7 +24,7 @@ function ChatModal() {
                   else{    
                     localStorage.setItem("firebase_token",firebaseToken)
                     
-                    firebaseToken && StoreToken( {
+                    firebaseToken &&getUserChat()?.id&& StoreToken( {
                       id: getUserChat()?.id,
                       token: firebaseToken,
                       user:getUserChat()
