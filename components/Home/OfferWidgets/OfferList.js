@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 function OfferList({offers,quick}) {
   const router = useRouter()
   const goToListing=()=>{
-    router.push('/listing')
+    // router.push('/listing')
   }
   return (
     <div className='offers-list'>

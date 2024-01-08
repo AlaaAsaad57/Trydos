@@ -81,6 +81,7 @@ function WebViewVideoCall(props) {
           });
           
         });
+       
         let token=props.data.token
         if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(appId, name.toString(), token, parseInt(props.data.sender_user_id))
         await client.join(appId, name.toString(), token, parseInt(props.data.sender_user_id));
@@ -111,11 +112,13 @@ function WebViewVideoCall(props) {
     const [trackState, setTrackState] = useState({ video: true, audio: true });
     const mute = async (type) => {
       if (type === "audio") {
+        await tracks[0]?.setMuted(false)
         await tracks[0]?.setEnabled(!trackState.audio);
         setTrackState((ps) => {
           return { ...ps, audio: !ps.audio };
         });
       } else if (type === "video") {
+        await tracks[0]?.setMuted(false)
         await tracks[1].setEnabled(!trackState.video);
         setTrackState((ps) => {
           return { ...ps, video: !ps.video };

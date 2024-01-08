@@ -9,11 +9,12 @@ import DiscountIcon from "../../../public/svg/discountIcon.svg"
 import GiftIcon from "../../../public/svg/giftIcon.svg"
 import { useSelector } from 'react-redux'
 import { translate } from '../../../utils/functions'
+import Link from 'next/link'
 function ExtendedOfferWidget({offer,myKey,onClick}) {
   const language=useSelector((state)=>state.homepage.language)
 
   return (
-    <div className='offer-widget extended-widget' key={myKey} onClick={()=>onClick()}>
+    <Link href={'/listing'} className='offer-widget extended-widget' key={myKey} onClick={()=>onClick()}>
     <div className='offer-blured-background'/>
     <div className='offer-blured'/>
     <div className='offer-container' aria-details={language}>
@@ -57,7 +58,7 @@ function ExtendedOfferWidget({offer,myKey,onClick}) {
      </div>
      <OfferPhotosSlider extended={true} OfferPhotos={offer.photos}/>
     </div>
-</div>
+</Link>
   )
 }
 
