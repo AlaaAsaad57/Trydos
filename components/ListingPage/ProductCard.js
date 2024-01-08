@@ -15,13 +15,14 @@ function ProductCard({Listing_Data_res,HomeData_res,stories_res,HomeData}) {
 
   const dispatch=useDispatch()
   const products=useSelector((state)=>state.listing.products); 
+  const offset=useSelector((state)=>state.listing.offset); 
   const loading=useSelector((state)=>state.listing.loading); 
   const isReachEnd=useSelector((state)=>state.listing.isReachEnd);
   const GetNextPage=async()=>{
  
     if(!loading)
     {dispatch({type:"PRODUCT_LOADING"})
-    await axios.get(OTP_URL+LISTING_INFO_URL+`?offset=${products.length}&limit=${20}`).then((data)=>{
+    await axios.get(OTP_URL+LISTING_INFO_URL+`?offset=${offset}&limit=${20}`).then((data)=>{
       dispatch({type:"GET_NEXT_PRODUCT",payload:data.data.data})
     })
   }
