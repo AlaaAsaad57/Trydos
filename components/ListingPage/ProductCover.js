@@ -40,7 +40,11 @@ function ProductReducer(state,{type,payload}){
 
 }
 function ProductCover({product}) {
-   
+   useEffect(()=>{
+    if(product.brand||product.categories){
+      console.log(product)
+    }
+   },[])
     const [productState, dispatch] = useReducer(ProductReducer,
        { isActiveTopSlide:false,
         activeColor:{...product.sync_color_images.filter((color)=>color.images.length>0)[Math.round(product.sync_color_images.filter((color)=>color.images.length>0).length/2)-1],index:0},

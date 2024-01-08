@@ -51,7 +51,7 @@ useEffect(()=>{
     if(inView&&!loading){
    GetNextPage()
   }}}>
-s
+
   </InView>:
       <h2>{loading&&<Spinner/>}</h2>}</>:<>Reach End</>}
     </div>
