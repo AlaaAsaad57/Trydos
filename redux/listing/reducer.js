@@ -21,7 +21,7 @@ const ListingReducer=(state = initialState, { type, payload }) => {
       return({
         ...state,
         products:[...state.products,...payload.products],
-        offset:20,
+        offset:state.offset+1,
         isReachEnd:payload.products.length===0,
         loading:false
       })

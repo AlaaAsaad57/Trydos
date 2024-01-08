@@ -46,10 +46,12 @@ useEffect(()=>{
 
     </div>
     <div className='get-next-product'>
-   {!isReachEnd?<> {!loading? <InView className='spinner-container' as="div" onChange={(inView, entry) => {if(inView&&!loading){
+   {!isReachEnd?<> {!loading? <InView className='spinner-container' as="div" onChange={(inView, entry) => {
+    console.log('jkj')
+    if(inView&&!loading){
    GetNextPage()
   }}}>
-
+s
   </InView>:
       <h2>{loading&&<Spinner/>}</h2>}</>:<>Reach End</>}
     </div>
