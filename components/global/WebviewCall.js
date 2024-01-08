@@ -28,10 +28,23 @@ function WebviewCall() {
     const onAnswer=async(bool)=>{
       if(!data.loading){
       setData({...data,loading:true})
-      let token=await getAgoraToken(data.channel_id,data.authToken,data.msgId,data.action==='receive')
+
+    if(bool)   {
+      let [token,status]=await getAgoraToken(data.channel_id,data.authToken,data.msgId,data.action==='receive',true)
       
       setData({...data,token:token,action:'sent'})
-    if(bool)    window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`
+      if(status){
+        window.location.href=`/endCall`
+      }
+      else ;
+      // window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`
+    }
+    else{
+      let [token,status]=await getAgoraToken(data.channel_id,data.authToken,data.msgId,data.action==='receive',false)
+      
+      setData({...data,token:token,action:'sent'})
+      window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`
+    }
     }
     }
     const onDecline=async ()=>{
