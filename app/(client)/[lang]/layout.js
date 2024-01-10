@@ -15,7 +15,7 @@ export default function RootLayout({params:{lang} ,children }) {
 
   return (
     <html lang="en">
-       {SSRDetect()&&<GAComponent/>}
+       {<GAComponent/>}
 
      <link rel="icon" href="/favicon.ico" sizes="any" />
       <body>
