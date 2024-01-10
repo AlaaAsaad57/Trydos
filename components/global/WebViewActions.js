@@ -23,6 +23,7 @@ export const getAgoraToken =async (channel_id,token,mid,bool,answered)=>{
         if(bool)
         tok= data.data.data
     })
+    if(answered)
     await axios.get(CHAT_URL+`/api/v1/messages/${mid}/users`,{
          headers:{
         Authorization:'Bearer '+token
