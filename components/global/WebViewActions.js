@@ -12,10 +12,9 @@ let req= await axios.post(CHAT_URL+`/api/v1/messages/answer_call/${messageId}`,{
 })
 }
 export const getAgoraToken =async (channel_id,token,mid,bool,answered)=>{
-    let tok, status,error
+    let tok, status,error,req
     if(answered)
-    await Answer(channel_id,mid)
-    let req= await axios.post(CHAT_URL+`/api/v1/channels/${channel_id}/agora_token`,{},{
+     req= await axios.post(CHAT_URL+`/api/v1/channels/${channel_id}/agora_token`,{},{
         headers:{
             Authorization:'Bearer '+token
         }
@@ -28,8 +27,12 @@ export const getAgoraToken =async (channel_id,token,mid,bool,answered)=>{
          headers:{
         Authorization:'Bearer '+token
     }}).then((data)=>{
+        if(data.data.data.length>0)
         status=data.data.data[0].status==='active'
+    else
+    status=false
     })
+    await Answer(channel_id,mid);
     return [tok,status]
 }
 
