@@ -11,8 +11,9 @@ let req= await axios.post(CHAT_URL+`/api/v1/messages/answer_call/${messageId}`,{
     
 })
 }
-export const getAgoraToken =async (channel_id,token,mid,bool)=>{
+export const getAgoraToken =async (channel_id,token,mid,bool,answered)=>{
     let tok, status
+    if(answered)
     await Answer(channel_id,mid)
     let req= await axios.post(CHAT_URL+`/api/v1/channels/${channel_id}/agora_token`,{},{
         headers:{
@@ -20,8 +21,6 @@ export const getAgoraToken =async (channel_id,token,mid,bool)=>{
         }
     }).then((data)=>{
         if(bool)
-
-
         tok= data.data.data
     })
     await axios.get(CHAT_URL+`/api/v1/messages/${mid}/users`,{
