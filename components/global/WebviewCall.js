@@ -60,7 +60,7 @@ function WebviewCall() {
       window.location.href ='/endCall'}
     }
     useEffect(()=>{
-      if(!data.token&&data.action==='sent'){
+      if(!data.token&&data.token!=='undefined'&&data.action==='sent'){
         onAnswer()
       }
     },[])

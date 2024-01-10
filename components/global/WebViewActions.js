@@ -13,13 +13,11 @@ let req= await axios.post(CHAT_URL+`/api/v1/messages/answer_call/${messageId}`,{
 }
 export const getAgoraToken =async (channel_id,token,mid,bool,answered)=>{
     let tok, status,error,req
-    if(answered)
      req= await axios.post(CHAT_URL+`/api/v1/channels/${channel_id}/agora_token`,{},{
         headers:{
             Authorization:'Bearer '+token
         }
     }).then((data)=>{
-        if(bool)
         tok= data.data.data
     })
     if(answered)
