@@ -66,11 +66,11 @@ function WebviewCall() {
     },[])
   return (
     <>
-        <div className='error' style={{display:'flex',justifyContent:"flex-start",padding:'10px',flexDirection:"column",maxWidth:'100%',zIndex:'99999',position:"absolute",backgroundColor:'white',opacity:'0.6'}}>  
+        {/* <div className='error' style={{display:'flex',justifyContent:"flex-start",padding:'10px',flexDirection:"column",maxWidth:'100%',zIndex:'99999',position:"absolute",backgroundColor:'white',opacity:'0.6'}}>  
      <span>url:{window.location.href}</span>
      <span>error:{data.error}</span>
      <span>mesgID:{data.msgId}</span>
-      </div> 
+      </div>  */}
     {!data.token&&
     <div style={{width:'100vw',height:'100vh',display:"flex",alignItems:"center",justifyContent:"center",fontSize:"20px",backgroundColor:'#000',color:'#FFF',flexDirection:'column'}}>
 
