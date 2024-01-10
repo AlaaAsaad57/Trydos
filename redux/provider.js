@@ -27,6 +27,8 @@ export default function Providers({lang, children }) {
           Cookies.set("country",localization.country);
          
       }
+      
+      window.gtag('set','user_properties',{is_logged_in:Boolean(getUserChat()),prefered_language:Cookies.get('language')})
   }, [localization]);
   useEffect(()=>{
     if(SSRDetect()) 
