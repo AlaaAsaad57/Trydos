@@ -27,10 +27,13 @@ export default function Providers({lang, children }) {
           Cookies.set("country",localization.country);
          
       }
-      
-      window.gtag('set','user_properties',{is_logged_in:Boolean(getUserChat()),prefered_language:Cookies.get('language')})
+
   }, [localization]);
   useEffect(()=>{
+    setTimeout(() => {
+      window.gtag('set','user_properties',{is_logged_in:Boolean(getUserChat()),prefered_language:Cookies.get('language')})
+        
+      }, 2000);
     if(SSRDetect()) 
     window.onbeforeunload=function(){
       StopTracking()
