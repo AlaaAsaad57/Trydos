@@ -70,7 +70,6 @@ function WebviewCall() {
      <span>url:{window.location.href}</span>
      <span>error:{data.error}</span>
      <span>mesgID:{data.msgId}</span>
-     <span>mesgID:{data.msgId}</span>
       </div> 
       <CallingIcon style={{marginBottom:'10px',transform:'scale(1.5)'}}></CallingIcon>
       Loading Call Information...</div>}
