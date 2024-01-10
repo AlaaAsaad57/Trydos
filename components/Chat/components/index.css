@@ -18,6 +18,7 @@
 }
 .error span:first-child{
     color: red;
+    user-select: text;
 }
 .other-screen {
     position: absolute;

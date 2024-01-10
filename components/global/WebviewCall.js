@@ -20,13 +20,15 @@ function WebviewCall() {
     authToken:searchParams.get('authToken'),
     msgId:searchParams.get('message_id'),
     ring:searchParams.get('ring'),
-    loading:false
+    loading:false,
+    status:null
   })
     useEffect(()=>{
       
     },[])
     const onAnswer=async(bool)=>{
-      if(!data.loading){
+   try {
+    if(!data.loading){
       setData({...data,loading:true})
 
     if(bool)   {
@@ -46,6 +48,9 @@ function WebviewCall() {
       window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`
     }
     }
+   } catch (error) {
+    setData({...data,error:error.message})
+   }
     }
     const onDecline=async ()=>{
       if(!data.loading){
@@ -61,11 +66,18 @@ function WebviewCall() {
   return (
     <>
     {!data.token&&<div style={{width:'100vw',height:'100vh',display:"flex",alignItems:"center",justifyContent:"center",fontSize:"20px",backgroundColor:'#000',color:'#FFF',flexDirection:'column'}}>
+    <div className='error' style={{display:'flex',justifyContent:"flex-start",padding:'10px',flexDirection:"column"}}>  
+     <span>url:{window.location.href}</span>
+     <span>error:{data.error}</span>
+     <span>mesgID:{data.msgId}</span>
+     <span>mesgID:{data.msgId}</span>
+      </div> 
       <CallingIcon style={{marginBottom:'10px',transform:'scale(1.5)'}}></CallingIcon>
       Loading Call Information...</div>}
       {data.authToken&&data.action==='receive'&&<CallComponentWidget data={data} onDecline={()=>{onDecline()}} onAnswer={()=>{onAnswer(true)}} type={data.type}/>}
       {data.authToken&&data.token&&data.action!=='receive'&&data.type==='voice'&&<WebViewVoiceCall onDecline={()=>onDecline()} data={data} urlparam={`/call_direct?authToken=${data.authToken}&token=${data.token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`}/>}
       {data.authToken&&data.token&&data.action!=='receive'&&data.type==='video'&&<WebViewVideoCall  onDecline={()=>onDecline()} data={data} urlparam={`/call_direct?authToken=${data.authToken}&token=${data.token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`}/>}
+
     </>
   )
 }
