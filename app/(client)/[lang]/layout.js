@@ -3,8 +3,9 @@ import dynamic from 'next/dynamic'
 const Providers = dynamic(() => import("../../../redux/provider"), {
 ssr: false, 
 });
-import GAComponent from "../../../components/global/GAComponent"
-import { SSRDetect } from '../../../utils/functions';
+const GAComponent = dynamic(() => import("../../../components/global/GAComponent"), {
+  ssr: false, 
+  });
 import NextTopLoader from 'nextjs-toploader';
 export const metadata = {
   title: 'TryDos',

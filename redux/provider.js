@@ -1,5 +1,5 @@
 "use client";
-import { Provider, useDispatch } from "react-redux";
+import { Provider } from "react-redux";
 import { store } from "./store";
 import TranslationsMenu from '../components/global/TranslationsMenu'
 import Navbar from '../components/Home/Navbar'
