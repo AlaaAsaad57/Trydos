@@ -7,51 +7,63 @@ const languages = JSON.parse(languagesString);
 
 // Get the preferred locale, similar to the above or using a library
  function getLocale(request) {
-    const cookieStore = cookies()
-    const localization = {language:cookieStore.get('language')?.value,country:cookieStore.get('country')?.value}
-      return localization
+    try {
+        const cookieStore = cookies()
+        const localization = {language:cookieStore.get('language')?.value,country:cookieStore.get('country')?.value}
+          return localization   
+    } catch (error) {
+        console.error(error.message)
+    }
 }
 
 function getDefaultLocale(request) {
-    const localeENV =
+    try {
+        const localeENV =
         {country: process.env.NEXT_PUBLIC_DEFAULT_COUNTRY, language
             : process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE}
     return localeENV
+    } catch (error) {
+        console.error(error.message)
+    }
 }
 
 export async function middleware(request) {
-    const { pathname } = request.nextUrl;
-    const pathName = pathname.split('/')[1];
-    const pathN = pathname.replace(pathName, '');
-    const hasSeparator = pathName.includes('-');
-    const hasLanguage = hasSeparator && languages.some((lang) => pathName.endsWith(`-${lang}`));
-    const hasCountry = hasSeparator && countries.some((country) => pathName.startsWith(`${country}-`));
+    try {
+        const { pathname } = request.nextUrl;
+        const pathName = pathname.split('/')[1];
+        const pathN = pathname.replace(pathName, '');
+        const hasSeparator = pathName.includes('-');
+        const hasLanguage = hasSeparator && languages.some((lang) => pathName.endsWith(`-${lang}`));
+        const hasCountry = hasSeparator && countries.some((country) => pathName.startsWith(`${country}-`));
+        
+        if (!hasSeparator) {
+            const lang =  getLocale()?.language;
+            const country = getLocale()?.country;
+            const preferredLang = languages.includes(lang) ? lang : getDefaultLocale().language;
+            const preferredCountry = countries.includes(country) ? country : getDefaultLocale().country;
     
-    if (!hasSeparator) {
-        const lang =  getLocale()?.language;
-        const country = getLocale()?.country;
-        const preferredLang = languages.includes(lang) ? lang : getDefaultLocale().language;
-        const preferredCountry = countries.includes(country) ? country : getDefaultLocale().country;
-
-        request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathname}`;
-        return Response.redirect(request.nextUrl);
-    }
-    if (!hasLanguage || !hasCountry) {
-        const lang = getLocale()?.language;
-        const country = getLocale()?.country;
-        const preferredLang = languages.includes(lang) ? lang : getDefaultLocale().language;
-        const preferredCountry = countries.includes(country) ? country : getDefaultLocale().country;
-
-        if (!hasLanguage && !hasCountry) {
-            request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathN}`;
-        } else if (!hasLanguage && hasCountry) {
-            request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathN}`;
-        } else if (!hasCountry && hasLanguage) {
-            request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathN}`;
+            request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathname}`;
+            return Response.redirect(request.nextUrl);
         }
-        setLocaleCookies(request, preferredLang, preferredCountry);
-
-        return Response.redirect(request.nextUrl);
+        if (!hasLanguage || !hasCountry) {
+            const lang = getLocale()?.language;
+            const country = getLocale()?.country;
+            const preferredLang = languages.includes(lang) ? lang : getDefaultLocale().language;
+            const preferredCountry = countries.includes(country) ? country : getDefaultLocale().country;
+    
+            if (!hasLanguage && !hasCountry) {
+                request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathN}`;
+            } else if (!hasLanguage && hasCountry) {
+                request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathN}`;
+            } else if (!hasCountry && hasLanguage) {
+                request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathN}`;
+            }
+            setLocaleCookies(request, preferredLang, preferredCountry);
+    
+            return Response.redirect(request.nextUrl);
+        } 
+    } catch (error) {
+        console.error(error.message)
     }
 }
 function setLocaleCookies(request, lang, country) {

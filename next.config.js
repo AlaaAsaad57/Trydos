@@ -6,7 +6,6 @@ module.exports = withSvgr({
     domains:['res.cloudinary.com','eu.ui-avatars.com','trydos.s3.ap-south-1.amazonaws.com','market_staging.trydos.tech','s3.ap-south-1.amazonaws.com']
   },
   experimental: { externalDir: true,
-    serverActions: true,
   },
   webpack(config, options) {
     config.module.rules.push({

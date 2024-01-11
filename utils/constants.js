@@ -64,7 +64,7 @@ export const pusher = new Pusher(`cd403c68a9fbb7ce7da6`, {
     },
 });
 export const SmartLookInit=()=>{
-       SSRDetect()&&!Smartlook.initialized&& Smartlook.init('a6a7a0d4340db1ff8980b363cdb11185343486e4');
+       SSRDetect()&&!Smartlook.initialized()&& Smartlook.init('a6a7a0d4340db1ff8980b363cdb11185343486e4');
        
     }
 Pusher.logToConsole = process.env.NEXT_PUBLIC_ENABLE_LOG==='true';

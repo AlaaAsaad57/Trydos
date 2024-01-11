@@ -11,6 +11,7 @@ import Smartlook from 'smartlook-client'
 import { RegisterDevice, StopTracking, changeAppLanguage } from "./homepage/actions";
 import { CheckLogin } from "./auth/actions";
 import Cookies from "js-cookie"
+import GAComponent from "../components/global/GAComponent";
 export default function Providers({lang, children }) {
   const [country, language] = lang.split("-")
   const localeProps = {language, country}
@@ -49,7 +50,10 @@ export default function Providers({lang, children }) {
       CheckLogin()
     },2000)
   },[])
-  return <Provider store={store}>
+  return(
+  <>
+  {SSRDetect()&&<GAComponent/>}
+  <Provider store={store}>
     <div className='site-container'>
     <div className='home-page-container'>
     <TranslationsMenu init={lang} />
@@ -58,5 +62,5 @@ export default function Providers({lang, children }) {
       {children}
     </div>
     </div>
-    </Provider>;
+    </Provider></>) ;
 }

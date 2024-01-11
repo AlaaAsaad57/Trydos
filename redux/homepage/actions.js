@@ -23,7 +23,6 @@ export const changeAppLanguage=(language)=>{
         language: language
     })
     Cookies.set('language',language);
-    console.log(language)
     changeAppLanguageServer(language);
     return({type:"APP-LANGUAGE",payload:language})
 }
