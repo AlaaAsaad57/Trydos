@@ -27,6 +27,7 @@ export const getAgoraToken =async (channel_id,token,mid)=>{
        status=data.data.data.length>0
        alert(data.data.data?.length>0)
     })
+    if(!status)
     await AnswerWebView(token,mid);
     return [tok,status]
 }
