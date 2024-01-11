@@ -62,8 +62,9 @@ function WebViewVoiceCall(props) {
         });
   
         client.on("user-left", (user) => {
-          userEndCall()
-          setCallStatus('')
+          userEndCall();
+          alert('user left');
+          setCallStatus('');
           if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log("leaving", user);
           setUsers((prevUsers) => {
             return prevUsers.filter((User) => User.uid !== user.uid);

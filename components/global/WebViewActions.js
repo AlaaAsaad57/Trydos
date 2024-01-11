@@ -11,8 +11,8 @@ let req= await axios.post(CHAT_URL+`/api/v1/messages/answer_call/${messageId}`,{
     
 })
 }
-export const getAgoraToken =async (channel_id,token,mid,bool,answered)=>{
-    let tok, status,error,req
+export const getAgoraToken =async (channel_id,token,mid)=>{
+    let tok, status,req
      req= await axios.post(CHAT_URL+`/api/v1/channels/${channel_id}/agora_token`,{},{
         headers:{
             Authorization:'Bearer '+token
@@ -20,20 +20,27 @@ export const getAgoraToken =async (channel_id,token,mid,bool,answered)=>{
     }).then((data)=>{
         tok= data.data.data
     })
-    if(answered)
     await axios.get(CHAT_URL+`/api/v1/messages/${mid}/users`,{
          headers:{
         Authorization:'Bearer '+token
     }}).then((data)=>{
-        if(data.data.data.length>0)
-        status=data.data.data[0].status==='active'
-    else
-    status=false
+       status=data.data.data.length>0
+       alert(data.data.data?.length>0)
     })
-    await Answer(channel_id,mid);
+    await AnswerWebView(token,mid);
     return [tok,status]
 }
-
+export const getAgoraTokenForInit=async(channel_id,token,mid)=>{
+    let tok,req
+    req= await axios.post(CHAT_URL+`/api/v1/channels/${channel_id}/agora_token`,{},{
+       headers:{
+           Authorization:'Bearer '+token
+       }
+   }).then((data)=>{
+       tok= data.data.data
+   })
+   return tok
+}
 export const Decline=async (token,mid)=>{
     let req= await axios.post(CHAT_URL+`/api/v1/messages/refuse_call/${mid}`,{},{
         headers:{
@@ -43,3 +50,18 @@ export const Decline=async (token,mid)=>{
         
     })
 }
+export const AnswerWebView=async(token,messageId)=>{
+    try{
+      await axios.post(CHAT_URL+`/api/v1/messages/answer_call/${messageId}`,{},{
+        headers:{
+            Authorization:`Bearer `+token
+        }
+    }).then(()=>{
+      
+    })
+  
+    }
+    catch(e){
+  
+    }
+  }

@@ -30,27 +30,30 @@ function WebviewCall() {
    try {
     if(!data.loading){
       setData({...data,loading:true})
-
-    if(bool)   {
-      let [token,status]=await getAgoraToken(data.channel_id,data.authToken,data.msgId,data.action==='receive',true)
+      let [token,status]=await getAgoraToken(data.channel_id,data.authToken,data.msgId)
       
-      setData({...data,token:token,action:'sent'})
+
       if(status){
         window.location.href=`/callInProg`;
       }
-      else ;
-      // window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`
-    }
-    else{
-      let [token,status]=await getAgoraToken(data.channel_id,data.authToken,data.msgId,data.action==='receive',false)
-      
+      else {
       setData({...data,token:token,action:'sent'})
       window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`
     }
+
     }
    } catch (error) {
     setData({...data,error:error.message})
    }
+    }
+    const initCall=async()=>{
+      if(!data.loading){
+      setData({...data,loading:true})
+      let token=await getAgoraTokenForInit(data.channel_id,data.authToken,data.msgId)
+      
+      setData({...data,token:token,action:'sent'})
+      window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`
+      }
     }
     const onDecline=async ()=>{
       if(!data.loading){
@@ -60,7 +63,7 @@ function WebviewCall() {
     }
     useEffect(()=>{
       if(!data.token&&data.token!=='undefined'&&data.action==='sent'){
-        onAnswer()
+        initCall()
       }
     },[])
   return (
