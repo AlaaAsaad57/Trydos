@@ -1,6 +1,6 @@
 import {  getUser, getUserChat, translate } from "../../utils/functions"
 import { pusher } from "../../utils/constants";
-import { MuteChat, PinnChat, Recive, RefuseCall, deleteChat, watchChannel } from "./actions";
+import { DisablePusher, EnablePusher, MuteChat, PinnChat, Recive, RefuseCall, deleteChat, watchChannel } from "./actions";
 import { store } from "../store";
 
 // const sortChats = (arr) => {
@@ -89,6 +89,8 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
             })
         }
         case "CHAT-OPEN":{
+            if(payload){EnablePusher()}
+            else {DisablePusher()}
             return({
                 ...state,
                 chatVar:payload
@@ -667,6 +669,7 @@ export const ChatReducer = (state = initialState, { type, payload ,param,source}
             })
         }
         case "MAIN": {
+            
             return ({
                 ...state,
                 main: payload

@@ -25,7 +25,7 @@ export const getAgoraToken =async (channel_id,token,mid)=>{
         Authorization:'Bearer '+token
     }}).then((data)=>{
        status=data.data.data.length>0
-       alert(JSON.stringify(data.data.data))
+    //    alert(JSON.stringify(data.data.data))
     })
     if(!status)
     await AnswerWebView(token,mid);

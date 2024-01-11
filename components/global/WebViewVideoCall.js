@@ -50,7 +50,7 @@ function WebViewVideoCall(props) {
             user?.audioTrack?.play();
           }
           catch(e){
-            alert(e.message)
+            // alert(e.message)
           }
           
           if (mediaType === "video") {

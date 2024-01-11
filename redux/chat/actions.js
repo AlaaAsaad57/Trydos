@@ -21,51 +21,7 @@ export const GetChats=async (payload) =>{
             }
         })
         if (!payload) {
-            let channel = pusher.subscribe(`user-${getUserChat()?.id}-messages`);
-              channel.bind("ChannelWatchedEvent", (data) => {
-                store.dispatch({
-                  type: "WATCH_CHANNEL_RED",
-                  payload: data.channel_id,
-                });
-      
-              });
-               channel.bind("TextMessageEvent", (data) => {
-      
-                if (data.message.sender_user_id !== getUserChat()?.id) {
-                  let not = new Audio(WA);
-                  not.volume = 0.5
-                  if(!store.getState().chat.main==="chat")
-                  not.play()
-                }
-                store.dispatch({ type: "REFS" })
-                store.dispatch({ type: "REC_CHA", payload: data.message.channel.id })
-                if (data.message.sender_user_id !== getUserChat()?.id) store.dispatch({ type: "SEND_MES_RED", payload: { ...data.message, cid: data.message.channel.id, recive: true } })
-              })
-               channel.bind("ChannelReceivedEvent", (data) => {
-                store.dispatch({ type: "REC_CHANNEL_RED", payload: data.channel_id });
-      
-              });
-              // channel.bind("RefuseCallEvent",(data)=>{
-              //   if(store.getState().chat.callInProgress){
-              //     store.dispatch({ type: "USER_END_CALL" })
-              //   }
-              //   else{
-              //     store.dispatch({ type: "END-CALL" })
-              //   }
-              // })
-              // channel.bind("VideoCallEvent",async(data)=>{
-              //   let channel=store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]:{id:data.channel_id,messages:[{message_type:{name:'VoiceCall'}}],channel_members:[{user_id:data.user_id,user:store.getState().chat.contacts.filter((s)=>s.contact_user_id===data.user_id)[0],mute:0,pin:0,archived:0},{mute:0,pin:0,archived:0,user_id:getUserChat()?.id,user:getUserChat()}]}
-              //   let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id)).length>0?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]?.channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]:{user:{name:"ud",photo_path:null}}
-              //   if(data.payload.user_id!==getUserChat()?.id&&(!store.getState().chat.callInProgress||store.getState().chat.callInProgress===2)){
-              //   store.dispatch({ type: "INCOMING_CALL",payload:{...data,callerChannel: channel,caller:caller} })}
-              // })
-              // channel.bind("VoiceCallEvent",async(data)=>{
-              //   let channel=store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]:{id:data.channel_id,messages:[{message_type:{name:'VoiceCall'}}],channel_members:[{user_id:data.user_id,user:store.getState().chat.contacts.filter((s)=>s.contact_user_id===data.user_id)[0],mute:0,pin:0,archived:0},{mute:0,pin:0,archived:0,user_id:getUserChat()?.id,user:getUserChat()}]}
-              //   let caller = store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id)).length>0?store.getState().chat.data.filter((ch)=>parseInt(ch.id)===parseInt(data.channel_id))[0]?.channel_members.filter(one => one.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id)[0]:{user:{name:"ud",photo_path:null}}
-              //   if(data.payload.user_id!==getUserChat()?.id&&(!store.getState().chat.callInProgress||store.getState().chat.callInProgress===2)){
-              //     store.dispatch({ type: "INCOMING_VOICE_CALL",payload:{...data,callerChannel: channel,caller:caller} })
-              //   }
-              // })
+            
           }
           store.dispatch({ type: "GET_CHAT_RED", payload: resp.data.data.channels,param:resp.data.data.pinned_channels })
           store.dispatch({type:"SET_LAST_NOTIFICATION_DATE",payload:(new Date()).toLocaleString()})
@@ -80,6 +36,35 @@ export const GetChats=async (payload) =>{
     catch(e){
 
     }
+}
+export const EnablePusher=()=>{
+  let channel = pusher.subscribe(`user-${getUserChat()?.id}-messages`);
+  channel.bind("ChannelWatchedEvent", (data) => {
+    store.dispatch({
+      type: "WATCH_CHANNEL_RED",
+      payload: data.channel_id,
+    });
+
+  });
+   channel.bind("TextMessageEvent", (data) => {
+
+    if (data.message.sender_user_id !== getUserChat()?.id) {
+      let not = new Audio(WA);
+      not.volume = 0.5
+      if(!store.getState().chat.main==="chat")
+      not.play()
+    }
+    store.dispatch({ type: "REFS" })
+    store.dispatch({ type: "REC_CHA", payload: data.message.channel.id })
+    if (data.message.sender_user_id !== getUserChat()?.id) store.dispatch({ type: "SEND_MES_RED", payload: { ...data.message, cid: data.message.channel.id, recive: true } })
+  })
+   channel.bind("ChannelReceivedEvent", (data) => {
+    store.dispatch({ type: "REC_CHANNEL_RED", payload: data.channel_id });
+
+  });
+}
+export const DisablePusher=()=>{
+  pusher.unsubscribe(`user-${getUserChat()?.id}-messages`)
 }
 export const SendMessage=async (payload,isNew) =>{
     const AxiosInstance = axios.create({
