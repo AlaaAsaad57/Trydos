@@ -1,4 +1,4 @@
-const initialState = {products:[],loading:true,isReachEnd:false,offset:1}
+const initialState = {products:[],loading:true,isReachEnd:false,offset:2}
 
 const ListingReducer=(state = initialState, { type, payload }) => {
   switch (type) {
