@@ -19,7 +19,7 @@ function ProductReducer(state,{type,payload}){
     };
   }
   if (type === 'setActiveColor') {
-  if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true')
+
     return {
       ...state,
       activeColor:{...payload,index:payload.index||0},
@@ -27,7 +27,7 @@ function ProductReducer(state,{type,payload}){
     };
   }
   if (type === 'setActiveImage') {
-    if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true')
+  
     return {
       ...state,
       activeColor: payload,
@@ -40,8 +40,6 @@ function ProductReducer(state,{type,payload}){
       isColorSelected: payload,
     };
   }
-
-  throw Error('Unknown action.');
 
 }
 function ProductCover({product}) {

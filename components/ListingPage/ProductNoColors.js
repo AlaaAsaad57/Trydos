@@ -37,7 +37,7 @@ function ProductReducer(state,{type,payload}){
       };
     }
   
-    throw Error('Unknown action.');
+  
   
   }
 function ProductNoColors({product}) {
