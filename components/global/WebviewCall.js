@@ -5,7 +5,7 @@ import dynamic from "next/dynamic"
 const WebViewVideoCall =dynamic(()=>import('./WebViewVideoCall', { ssr: false }))
 const WebViewVoiceCall =dynamic(()=>import('./WebViewVoiceCall', { ssr: false }))
 const CallComponentWidget =dynamic(()=>import('./CallComponentWidget', { ssr: false }))
-import {getAgoraToken,Decline} from './WebViewActions'
+import {getAgoraToken,Decline, getAgoraTokenForInit} from './WebViewActions'
 import CallingIcon from "../Chat/svg/CallInProg.svg"
 function WebviewCall() {
   const router=useRouter()
