@@ -61,6 +61,10 @@
     max-width: 15px;
     max-height: 15px;
   }
-  #infoIcon{
+  .product-category-icon svg{
     cursor: pointer;
+  }
+  .product-body svg{
+    cursor: pointer;
+
   }
