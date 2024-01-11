@@ -54,4 +54,8 @@
       --pseudo-element-display: none; /* Disable animation */
     }
   }
-  
+  .product-category-icon span{
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+  }

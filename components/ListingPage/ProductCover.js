@@ -6,7 +6,9 @@ import TopSlider from "./TopSlider";
 import CoverEffectSlider from "./CoverEffectSlider"
 import ColorSlider from "./ColorSlider"
 import '../../styles/skeleton.css'
+import Spinner from '../global/Spinner'
 import Image from 'next/image';
+import { Img } from 'react-image';
 function ProductReducer(state,{type,payload}){
   if (type === 'setActiveTopSlide') {
     return {
@@ -118,12 +120,21 @@ function ProductCover({product}) {
     }
             </div>}
             <div className='product-body' onMouseEnter={()=>dispatch({type:'setColor',payload:false})} onTouchStart={()=>{dispatch({type:'setColor',payload:false}); dispatch({type:"setActiveTopSlide",payload:false})}}>
-         {product.brand?.image && <Image alt={product.brand.name} width="66" height="10" src={product.brand.image}/>}
+         {product.brand?.image && <Img
+             loader={<Spinner/>}
+             alt={product.brand.name} width="66" height="10" src={[product.brand.image]} objectFit='cover' objectPosition='center' 
+             style={{borderRadius:'50%'}}
+           />}
           <div className='prouct-details'>
             <span className='quantity'>1</span>
           {product.categories.map((cat)=>(
               <span className='product-category-icon'>
-                <Image width={10} height={10} objectFit='cover' objectPosition='center' alt={cat.name} src={cat.icon}/>
+               <Img
+              src={[cat.icon]}
+              loader={<Spinner/>}
+              width={10} height={10} objectFit='cover' objectPosition='center' alt={cat.name}
+              style={{borderRadius:'50%'}}
+            />
               </span>
           ))}
             <span className='product-details-text'>
