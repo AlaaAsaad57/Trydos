@@ -4,10 +4,10 @@ import OfferAvatars from "./OfferAvatars"
 import BorderImage from "./BorderImage"
 import Image from 'next/image'
 import { getId } from '../../../utils/functions'
-function OfferSlideItem({isSingle,key}) {
+function OfferSlideItem({isSingle}) {
   let id=getId()
   return (
-    <div className='offer-slide-item' key={key}>
+    <div className='offer-slide-item' >
 
     <div className='image-offer'>
         <div className='image-inner-shadow' style={{height:"100%"}}/>

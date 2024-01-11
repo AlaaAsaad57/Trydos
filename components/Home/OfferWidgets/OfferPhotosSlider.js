@@ -20,10 +20,10 @@ function OfferPhotosSlider({OfferPhotos,extended}) {
     <Slider {...settings} >
 
     {OfferPhotos.map((offerPhoto,key)=>(
-        <>
+       
         <OfferSlideItem key={key}/>
 
-        </> 
+     
     ))}
 
     </Slider>
