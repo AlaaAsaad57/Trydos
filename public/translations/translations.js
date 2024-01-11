@@ -2,6 +2,8 @@ export const translations={
     "en":{
         "Brands":"Brands",
         "No Answer":"No Answer",
+        "Initialize Call please wait..":"Initialize Call please wait..",
+        "Call Answered from another account":"Call Answered from another account",
         "Calling ...":"Calling ...",
         "Best Offers From Brands":"Best Offers From Brands",
         'Man':"Man",
@@ -102,6 +104,8 @@ export const translations={
         "Contacts List":"جهات الاتصال",
         "Search, Chat, Contact, Start New Chat":"ابحث عن دردشة ,جهة اتصال,أو ابدأ محادثة جديدة",
         "Sale":"تخفيض",
+        "Initialize Call please wait..":"تهيئة الاتصال الرجاء الانتظار",
+        "Call Answered from another account":"تم الرد من حساب اخر",
         "This Offer Is For Only":"هذا العرض فقط لـ",
         "Hours":"ساعات",
         "user not found":"لم يتم العثور على حساب مرتبط بهذا الرقم",

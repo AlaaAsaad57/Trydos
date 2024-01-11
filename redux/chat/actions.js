@@ -1,9 +1,10 @@
 import axios from "axios"
 import { CHAT_URL, DELETE_CHAT_URL, GET_CHATS_URL, GET_CONTATCS_URL, SEARCH_CONTACTS_URL, SEARCH_USERS_URL, SEND_MESSAGE_URL, SET_CHANNEL_OPT_UTL } from "../../utils/endpointConfig"
 import { store } from "../store"
-import { getUserChat } from "../../utils/functions"
+import { getUserChat, translate } from "../../utils/functions"
 import { pusher } from "../../utils/constants"
 import { EventTrack } from "../homepage/actions"
+import { toast } from "react-toastify"
 
 
 export const ChatConroller =(payload)=>{
@@ -492,7 +493,16 @@ export const makeVoiceCall=async(channelId,callerName,callerPhoto,mobilePhone)=>
 }
 export const AnswerCall=async(channelId,messageId)=>{
   try{
-    EventTrack('answer-call',{channelId:channelId,user_id:getUserChat().id});
+    let status=null
+    toast.info(translate('Initialize Call please wait..',store.getState().homepage.language))
+    await axios.get(CHAT_URL+`/api/v1/messages/${messageId}/users`,{
+      headers:{
+     Authorization:'Bearer '+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
+  }}).then((data)=>{
+    status=data.data.data.length>0
+ });
+ 
+   if(!status){
     await axios.post(CHAT_URL+`/api/v1/channels/${channelId}/agora_token`,{},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
@@ -501,6 +511,11 @@ export const AnswerCall=async(channelId,messageId)=>{
     Answer(channelId,messageId)
     store.dispatch({type:"ANSWER_CALL",payload:data.data.data})
   })
+   }
+   else{
+    toast.info(translate('Call Answered from another account',store.getState().homepage.language));
+    store.dispatch({ type: "USER_END_CALL" });
+   }
   }
   catch(e){
 
