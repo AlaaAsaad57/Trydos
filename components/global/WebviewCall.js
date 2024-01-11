@@ -36,7 +36,7 @@ function WebviewCall() {
       
       setData({...data,token:token,action:'sent'})
       if(status){
-        window.location.href=`/endCall`;
+        window.location.href=`/callInProg`;
       }
       else ;
       // window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`

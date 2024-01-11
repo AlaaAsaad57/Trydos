@@ -5,6 +5,7 @@ import BuyButton from './BuyButton'
 import TopSlider from './TopSlider';
 import Image from 'next/image';
 import Spinner from '../global/Spinner';
+import ErrorIcon from "../../public/svg/ErrorIcon.svg"
 import { Img } from 'react-image';
 function ProductReducer(state,{type,payload}){
     if (type === 'setActiveTopSlide') {
@@ -94,6 +95,7 @@ function ProductNoColors({product}) {
              {product.brand?.image && 
              <Img
              loader={<Spinner/>}
+             unloader={<ErrorIcon/>}
              alt={product.brand.name} width="66" height="10" src={[product.brand.image]} objectFit='cover' objectPosition='center' 
              style={{borderRadius:'50%'}}
            />
@@ -105,6 +107,7 @@ function ProductNoColors({product}) {
               <Img
               src={[cat.icon]}
               loader={<Spinner/>}
+              unloader={<ErrorIcon/>}
               width={10} height={10} objectFit='cover' objectPosition='center' alt={cat.name}
               style={{borderRadius:'50%'}}
             />
