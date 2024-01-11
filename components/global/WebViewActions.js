@@ -28,7 +28,7 @@ export const getAgoraToken =async (channel_id,token,mid)=>{
        alert(JSON.stringify(data.data.data))
     })
     if(!status)
-    // await AnswerWebView(token,mid);
+    await AnswerWebView(token,mid);
     return [tok,status]
 }
 export const getAgoraTokenForInit=async(channel_id,token,mid)=>{
