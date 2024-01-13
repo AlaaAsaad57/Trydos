@@ -224,7 +224,7 @@
 }
 .image-avatar .avatar-text-element {
   position: absolute;
-  top: -16px;
+  top: -26px;
   left: 0;
   right: 0;
   margin: 0 auto;
@@ -379,7 +379,11 @@ svg {
 }
 .image-avatar,
 .image-avatar * {
+  position: relative;
+  -webkit-user-select: none;
+  -moz-user-select: none;
   user-select: none;
+  height: 100%;
 }
 .top-slider {
   display: flex;
