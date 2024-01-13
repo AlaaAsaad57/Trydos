@@ -1,13 +1,13 @@
 "use client"
-import { upload } from '../../redux/homepage/actions';
+import { upload } from 'store/homepage/actions';
 import React, { useState } from 'react'
 import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
-import PlusIcon from "../../public/svg/chatplus.svg"
+import PlusIcon from "public/svg/chatplus.svg"
 import { useDispatch } from 'react-redux';
-import { AddStoryAction } from '../../redux/homepage/actions';
+import { AddStoryAction } from 'store/homepage/actions';
 import { revalidatePath } from 'next/cache';
-import { revalidateStories } from '../../utils/serverActions';
+import { revalidateStories } from 'utils/serverActions';
 
 function AddStory() {
     const [uploaded,setUpload]=useState(0)

@@ -1,5 +1,5 @@
-import '../../../components/Chat/components/index.css'
-import '../../../components/Chat/components/styles.css'
+import 'components/Chat/components/index.css'
+import 'components/Chat/components/styles.css'
 import '../../globals.css'
 
 

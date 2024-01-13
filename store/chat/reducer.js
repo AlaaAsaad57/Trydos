@@ -1,7 +1,7 @@
-import {  getUser, getUserChat, translate } from "../../utils/functions"
-import { pusher } from "../../utils/constants";
+import {  getUser, getUserChat, translate } from "utils/functions"
+import { pusher } from "utils/constants";
 import { DisablePusher, EnablePusher, MuteChat, PinnChat, Recive, RefuseCall, deleteChat, watchChannel } from "./actions";
-import { store } from "../store";
+import { index } from "../index";
 
 // const sortChats = (arr) => {
 //     let l = arr.sort((a, b) => compares(a, b))
@@ -63,7 +63,7 @@ const initialState = {
     AgoraToken:null
 }
 const showDate = (d) => {
-    const language=store.getState().homepage.language;
+    const language=index.getState().homepage.language;
     var days = [translate('Sunday',language), translate('Monday',language), translate('Tuesday',language), translate('Wednesday',language), translate('Thursday',language), translate('Friday',language), translate('Saturday',language)];
     let now = new Date();
     let nowString = `${now.getFullYear()}-${(now.getMonth() + 1) > 9 ? (now.getMonth() + 1).toString() : ("0" + (now.getMonth() + 1).toString())}-${(now.getDate()) > 9 ? now.getDate() : "0" + parseInt(now.getDate()).toString()}`

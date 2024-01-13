@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
 import { getMessageTime } from '../chatsFunctions'
-import CallItem from '../components/CallItem'
+import CallItem from 'components/Chat/components/CallItem'
 
 function CallList() {
   const calls=useSelector((state)=>state.chat.calls)

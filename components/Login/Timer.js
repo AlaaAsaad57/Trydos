@@ -1,4 +1,4 @@
-import { translate } from '../../utils/functions';
+import { translate } from 'utils/functions';
 import React, { useEffect } from 'react'
 import { useSelector } from 'react-redux';
 import { useTimer } from "react-timer-and-stopwatch";

@@ -1,31 +1,31 @@
 import React,{useState,useEffect,useRef} from 'react'
-import Recorder from '../components/Recorder';
-import ChatHeader from '../components/ChatHeader';
-import ChatMessage from '../components/ChatMessage';
+import Recorder from 'components/Chat/components/Recorder';
+import ChatHeader from 'components/Chat/components/ChatHeader';
+import ChatMessage from 'components/Chat/components/ChatMessage';
 import {useStopwatch} from 'react-timer-hook'
 import { useSelector,useDispatch } from 'react-redux';
 import MicIcon from "../svg/mic.svg"
 import RedMicIcon from "../svg/redmic.svg"
 import WaveIcon from "../svg/wave.svg"
 import ShareIcon from "../svg/sharechat.svg"
-import WebcamCapture from "../components/CameraComponent"
+import WebcamCapture from "components/Chat/components/CameraComponent"
 import PlusIcon from "../svg/chatplus.svg"
 import CameraIcon from "../svg/camera.svg"
 import SendIcon from "../svg/sendbutton.svg"
 import { dataURLtoFile, upload } from '../chatsFunctions';
 import { toast } from 'react-toastify';
 import { getUser } from '../chatsFunctions';
-import ReplyMessage from '../components/ReplyMessage';
-import ChatInfo from '../components/ChatInfo';
+import ReplyMessage from 'components/Chat/components/ReplyMessage';
+import ChatInfo from 'components/Chat/components/ChatInfo';
 import { useCallback } from 'react';
-import Observable from '../components/ChatHistoryElement';
+import Observable from 'components/Chat/components/ChatHistoryElement';
 import Image from 'next/image';
-import { InitPusherChannel, SendMessage, getMessagesBetweenMessage, getPage } from '../../../redux/chat/actions';
-import { SSRDetect, translate } from '../../../utils/functions';
+import { InitPusherChannel, SendMessage, getMessagesBetweenMessage, getPage } from 'store/chat/actions';
+import { SSRDetect, translate } from 'utils/functions';
 import dynamic from "next/dynamic"
-import { EventTrack } from '../../../redux/homepage/actions';
-const VideoCall =dynamic(()=>import('../components/VideoCall', { ssr: false }))
-const VoiceCall =dynamic(()=>import('../components/VoiceCall', { ssr: false }))
+import { EventTrack } from 'store/homepage/actions';
+const VideoCall =dynamic(()=>import('components/Chat/components/VideoCall', { ssr: false }))
+const VoiceCall =dynamic(()=>import('components/Chat/components/VoiceCall', { ssr: false }))
 function ConversationContainer({ViewedScreen,active,loading,first}) {
 
   const [vid, setVid] = useState(null);

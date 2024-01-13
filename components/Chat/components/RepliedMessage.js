@@ -6,7 +6,7 @@ import VideoIcon from "../svg/video.svg"
 import AudioIcon from "../svg/audio.svg"
 import out from "../svg/output.png"
 import Image from 'next/image'
-import { getUserChat } from '../../../utils/functions'
+import { getUserChat } from 'utils/functions'
 function RepliedMessage({moving,message,parent_message,message_ref,onClick}) {
     
     const activeChat=useSelector((state)=>state.chat.activeChat)

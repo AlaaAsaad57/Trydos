@@ -1,8 +1,8 @@
 import React from 'react'
 import './ChatWindow.css'
 import { useState } from 'react'
-import ChatWindowHeader from '../components/ChatWindowHeader'
-import ChatWindowTabs from '../components/ChatWindowTabs'
+import ChatWindowHeader from 'components/Chat/components/ChatWindowHeader'
+import ChatWindowTabs from 'components/Chat/components/ChatWindowTabs'
 import ChatLists from './ChatLists'
 import CallList from './CallList'
 import ArrowIcon from "../svg/arrow.svg"
@@ -11,7 +11,7 @@ import StoriesList from './StoriesList'
 
 import { useDispatch, useSelector } from 'react-redux'
 import ContactLists from './ContactLists'
-import { translate } from '../../../utils/functions'
+import { translate } from 'utils/functions'
 function ChatWindow(props) {
   const Tabs=["Chats","Calls","Stories"]
   const language=useSelector((state)=>state.homepage.language)

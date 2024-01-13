@@ -1,6 +1,6 @@
 "use server"
 import React from 'react'
-import MissedIcon from "../../../components/Chat/svg/missedCall.svg"
+import MissedIcon from "components/Chat/svg/missedCall.svg"
 function page() {
     
   return (

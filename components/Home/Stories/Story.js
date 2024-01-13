@@ -2,7 +2,7 @@ import React from 'react'
 import Image from 'next/image'
 import Skeleton from 'react-loading-skeleton'
 import { AdvancedImage } from '@cloudinary/react'
-import { getThumb } from '../../../utils/functions'
+import { getThumb } from 'utils/functions'
 function Story({onClick,media,Name}) {
   return (
     <div className='story-element-item' onClick={()=>onClick()}>

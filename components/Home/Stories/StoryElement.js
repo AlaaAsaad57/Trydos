@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import StoryAvatar from "./StoryAvatar"
 import Story from "./Story"
-import profilePicture from "../../../public/images/profileNo.png"
+import profilePicture from "public/images/profileNo.png"
 import { useDispatch, useSelector } from 'react-redux'
-import { configureStory } from '../../../utils/functions'
+import { configureStory } from 'utils/functions'
 
 function StoryElement({story,viewedStory,select}) {
   

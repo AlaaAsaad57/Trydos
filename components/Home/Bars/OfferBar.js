@@ -1,8 +1,8 @@
 import React from 'react'
-import OfferIcon from "../../../public/svg/offerIcon.svg";
+import OfferIcon from "public/svg/offerIcon.svg";
 import BarDescribtion from "./BarDescribtion";
 import { useSelector } from 'react-redux';
-import { translate } from '../../../utils/functions';
+import { translate } from 'utils/functions';
 function OfferBar() {
   const language=useSelector((state)=>state.homepage.language)
 

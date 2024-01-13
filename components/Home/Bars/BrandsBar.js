@@ -1,8 +1,8 @@
 import React from 'react'
-import StarIcon from "../../../public/svg/starIcon.svg"
+import StarIcon from "public/svg/starIcon.svg"
 import BarDescribtion from "./BarDescribtion"
 import { useSelector } from 'react-redux'
-import { translate } from '../../../utils/functions'
+import { translate } from 'utils/functions'
 function BrandsBar() {
   const language=useSelector((state)=>state.homepage.language)
 

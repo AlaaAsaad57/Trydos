@@ -1,11 +1,11 @@
 import React from 'react'
-import CallComponent from "./components/CallComponent"
+import CallComponent from "components/Chat/components/CallComponent"
 import Chat from "./index"
 import { useDispatch, useSelector } from 'react-redux'
-import { ChatConroller } from '../../redux/chat/actions'
-import { requestFirebaseNotificationPermission } from '../../utils/firebaseInitv1'
-import { SSRDetect, getUserChat } from '../../utils/functions'
-import { StoreToken } from '../../redux/auth/actions'
+import { ChatConroller } from 'store/chat/actions'
+import { requestFirebaseNotificationPermission } from 'utils/firebaseInitv1'
+import { SSRDetect, getUserChat } from 'utils/functions'
+import { StoreToken } from 'store/auth/actions'
 function ChatModal() {
     const isCallIncoming = useSelector(state => state.chat.isCallIncoming)
     const callInProgress=useSelector((state)=>state.chat.callInProgress);

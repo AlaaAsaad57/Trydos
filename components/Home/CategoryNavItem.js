@@ -1,6 +1,6 @@
-import { translate } from "../../utils/functions"
+import { translate } from "utils/functions"
 import { useSelector } from "react-redux"
-import NavIcon from "../../public/svg/navIcon.svg"
+import NavIcon from "public/svg/navIcon.svg"
 import SearchComponent from "./SearchComponent"
 import { useRouter } from "next/navigation"
 import Link from "next/link"

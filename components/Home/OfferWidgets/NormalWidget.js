@@ -1,12 +1,12 @@
 import React from 'react'
-import LogoOffer from "../../../public/svg/offerlogo.svg"
-import ManIcon from "../../../public/svg/manIcon.svg"
-import WomanIcon from "../../../public/svg/WomanIcon.svg"
+import LogoOffer from "public/svg/offerlogo.svg"
+import ManIcon from "public/svg/manIcon.svg"
+import WomanIcon from "public/svg/WomanIcon.svg"
 import OfferPhotosSlider from "./OfferPhotosSlider"
-import KidsIcon from "../../../public/svg/KidsIcon.svg"
+import KidsIcon from "public/svg/KidsIcon.svg"
 import OfferSlideItem from './OfferSlideItem'
 import { useSelector } from 'react-redux'
-import { translate } from '../../../utils/functions'
+import { translate } from 'utils/functions'
 import OfferAvatars from './OfferAvatars'
 import Link from 'next/link'
 const NormalWidget=({offer,myKey,onClick})=> {

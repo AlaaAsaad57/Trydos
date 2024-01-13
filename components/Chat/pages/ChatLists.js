@@ -1,11 +1,11 @@
 import React from 'react'
-import ChatItem from '../components/ChatItem'
-import { isNew } from '../chatsFunctions'
+import ChatItem from 'components/Chat/components/ChatItem'
+import { isNew } from 'components/Chat/chatsFunctions'
 import { useDispatch, useSelector } from 'react-redux'
 import { forwardMessage } from '../chatsFunctions'
-import SearchResult from '../components/SearchResult'
-import { getUserChat } from '../../../utils/functions'
-import { EventTrack } from '../../../redux/homepage/actions'
+import SearchResult from 'components/Chat/components/SearchResult'
+import { getUserChat } from 'utils/functions'
+import { EventTrack } from 'store/homepage/actions'
 
 function ChatLists(props) {
   const chats=useSelector((state)=>state.chat.data)

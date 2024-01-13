@@ -1,6 +1,6 @@
 import axios from "axios"
-import { CHAT_URL } from "../../utils/endpointConfig"
-import { Answer } from "../../redux/chat/actions"
+import { CHAT_URL } from "utils/endpointConfig"
+import { Answer } from "store/chat/actions"
 
 export const AnswerCall=async (token,mid,chid)=>{
 let req= await axios.post(CHAT_URL+`/api/v1/messages/answer_call/${messageId}`,{},{

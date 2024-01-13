@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { SelectStory, setNextStory, setPreviousStory } from '../../../redux/homepage/actions'
+import { SelectStory, setNextStory, setPreviousStory } from 'store/homepage/actions'
 import CloseIcon from './CloseIcon';
 import Stories from 'react-insta-stories';
 function StoriesComponent() {

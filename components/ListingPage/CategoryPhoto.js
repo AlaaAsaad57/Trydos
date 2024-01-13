@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import ErrorIcon  from '../../public/svg/ErrorIcon.svg'
+import ErrorIcon  from 'public/svg/ErrorIcon.svg'
 import { Img } from 'react-image';
 import Spinner from '../global/Spinner';
 function CategoryPhoto(props) {

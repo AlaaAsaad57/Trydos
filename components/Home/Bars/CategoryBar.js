@@ -1,8 +1,8 @@
 import React from 'react'
-import CategoryIcon from "../../../public/svg/categoryIcon.svg";
+import CategoryIcon from "public/svg/categoryIcon.svg";
 import BarDescribtion from "./BarDescribtion";
 import { useSelector } from 'react-redux';
-import { translate } from '../../../utils/functions';
+import { translate } from 'utils/functions';
 function CategoryBar() {
   const language=useSelector((state)=>state.homepage.language)
 

@@ -1,8 +1,8 @@
 import React from 'react'
-import QuickIcon from "../../../public/svg/quickIcon.svg"
+import QuickIcon from "public/svg/quickIcon.svg"
 import BarDescribtion from '../Bars/BarDescribtion'
 import StopWatch from "./StopWatch"
-import { translate } from '../../../utils/functions'
+import { translate } from 'utils/functions'
 import { useSelector } from 'react-redux'
 function QuickEventBar() {
   const language=useSelector((state)=>state.homepage.language)

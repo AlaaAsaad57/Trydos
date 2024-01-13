@@ -1,17 +1,17 @@
 "use client";
 import { Provider } from "react-redux";
-import { store } from "./store";
-import TranslationsMenu from '../components/global/TranslationsMenu'
-import Navbar from '../components/Home/Navbar'
-import ChatModal from '../components/Chat/ChatModal'
+import { index } from "./index";
+import TranslationsMenu from 'components/global/TranslationsMenu'
+import Navbar from 'components/Home/Navbar'
+import ChatModal from 'components/Chat/ChatModal'
 import { useEffect, useState } from "react";
-import { SSRDetect, getUserChat } from "../utils/functions";
-import { SmartLookInit } from "../utils/constants";
+import { SSRDetect, getUserChat } from "utils/functions";
+import { SmartLookInit } from "utils/constants";
 import Smartlook from 'smartlook-client'
 import { RegisterDevice, StopTracking, changeAppLanguage } from "./homepage/actions";
 import { CheckLogin } from "./auth/actions";
 import Cookies from "js-cookie"
-import GAComponent from "../components/global/GAComponent";
+import GAComponent from "components/global/GAComponent";
 export default function Providers({lang, children }) {
   const [country, language] = lang.split("-")
   const localeProps = {language, country}
@@ -53,7 +53,7 @@ export default function Providers({lang, children }) {
   return(
   <>
   {SSRDetect()&&<GAComponent/>}
-  <Provider store={store}>
+  <Provider store={index}>
     <div className='site-container'>
     <div className='home-page-container'>
     <TranslationsMenu init={lang} />

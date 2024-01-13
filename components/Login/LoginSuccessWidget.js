@@ -1,8 +1,8 @@
-import { translate } from '../../utils/functions'
+import { translate } from 'utils/functions'
 import React, { useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import Border from '../global/Border'
-import LoginSuccessIcon from "../../public/svg/LoginSuccessIcon.svg"
+import LoginSuccessIcon from "public/svg/LoginSuccessIcon.svg"
 function LoginSuccessWidget({close}) {
     const user=useSelector((state)=>state.auth.user)
     const language=useSelector((state)=>state.homepage.language)

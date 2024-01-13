@@ -3,7 +3,7 @@ import React, { useEffect } from 'react'
 import StoryElement from "./StoryElement"
 import AddStory from "../AddStory"
 import { useDispatch, useSelector } from 'react-redux'
-import { SelectStory } from '../../../redux/homepage/actions'
+import { SelectStory } from 'store/homepage/actions'
 import Skeleton from 'react-loading-skeleton'
 function index() {
   const storiesData=useSelector((state)=>state.homepage.storiesData)

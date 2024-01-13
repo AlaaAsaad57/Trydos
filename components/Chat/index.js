@@ -3,9 +3,9 @@ import "./index.css"
 import ChatWindow from './pages/ChatWindow'
 import { useDispatch, useSelector } from 'react-redux'
 const ConversationContainer =dynamic(()=>import('./pages/ConversationContainer', { ssr: false }))
-import NewChatsSide from './components/NewChatsSide'
+import NewChatsSide from 'components/Chat/components/NewChatsSide'
 import { useState } from 'react'
-import { SSRDetect } from '../../utils/functions'
+import { SSRDetect } from 'utils/functions'
 import dynamic from 'next/dynamic'
 function ChatContainer(props) {
   const dispatch=useDispatch()

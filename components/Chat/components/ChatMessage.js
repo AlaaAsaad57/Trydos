@@ -10,7 +10,7 @@ import RedRecord from "../svg/recordme.svg";
 import ForwardIcon from "../svg/forwarded.svg";
 import MissedIcon from "../svg/misscall.svg";
 import VideoIconMissed from "../svg/VideoMissed.svg";
-import profile from "../../../public/images/profileNo.png"
+import profile from "public/images/profileNo.png"
 import { useDispatch, useSelector } from "react-redux";
 import OptionsMenu from "./OptionsMenu";
 import { getTwoLetters, getUser } from "../chatsFunctions";
@@ -20,7 +20,7 @@ import DownIcon from '../svg/down.svg'
 import fil from '../svg/output.png'
 
 import Spinner from "../../global/Spinner";
-import { SSRDetect, getUserChat, translate } from "../../../utils/functions";
+import { SSRDetect, getUserChat, translate } from "utils/functions";
 import Image from "next/image";
 function ChatMessage(props) {
   const {setImg,setVid}=props
