@@ -16,13 +16,10 @@
     "axios": "^1.5.0",
     "country-emoji": "^1.5.6",
     "country-telephone-data": "^0.6.3",
-    "elastic-svg": "^0.1.2",
     "eslint-config-next": "^14.0.4",
     "external-svg-loader": "^1.6.9",
     "file-loader": "^6.2.0",
     "firebase": "^10.5.2",
-    "howl": "^0.2.0",
-    "howler": "^2.2.4",
     "js-cookie": "^3.0.5",
     "next": "^14.0.4",
     "next-svgr": "^0.0.2",
@@ -32,8 +29,6 @@
     "react": "^18",
     "react-circular-progressbar": "^2.1.0",
     "react-dom": "^18",
-    "react-ga": "^3.3.1",
-    "react-ga4": "^2.1.0",
     "react-ga4-gtag": "^1.0.2",
     "react-image": "^4.1.0",
     "react-insta-stories": "^2.6.2",
@@ -50,7 +45,6 @@
     "react-webcam": "^7.2.0",
     "redux": "^4.2.1",
     "replace-string": "^4.0.0",
-    "simple-peer": "^9.11.1",
     "slick-carousel": "^1.8.1",
     "smartlook-client": "^8.2.0",
     "swiper": "11.0.0",
@@ -60,7 +54,7 @@
   "devDependencies": {
     "eslint": "^8.56.0"
   },
-   "eslintConfig": {
+  "eslintConfig": {
     "extends": "next"
-}
+  }
 }
