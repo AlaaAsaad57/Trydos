@@ -68,13 +68,6 @@ export default function RootLayout({ params: { lang }, children }) {
       lang={lang}
     >
       <link rel="icon" href="/favicon.ico" sizes="any" />
-      {/*
-
-       usage fonts
-
-       <div className={ ' font-sf_pro_rounded_medium  ' } ></div>
-
-       */}
       <body>
         <NextTopLoader
           color="#2299DD"
