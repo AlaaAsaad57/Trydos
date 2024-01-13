@@ -22,6 +22,7 @@
   * {
     transition: 0 !important;
     animation-duration: 0s !important;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   }
 }
 body {
