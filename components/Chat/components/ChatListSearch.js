@@ -1,8 +1,8 @@
 import React from 'react'
 import Mignifier from "../svg/Mignifier.svg"
 import { useDispatch, useSelector } from 'react-redux'
-import { SearchContact } from '../../../redux/chat/actions';
-import { translate } from '../../../utils/functions';
+import { SearchContact } from 'store/chat/actions';
+import { translate } from 'utils/functions';
 function ChatListSearch(props) {
   let filterTimeout;
 let dispatch=useDispatch()

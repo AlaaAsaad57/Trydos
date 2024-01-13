@@ -1,11 +1,11 @@
-import ManIcon from "../public/svg/manIcon.svg"
-import WomanIcon from "../public/svg/WomanIcon.svg"
-import KidsIcon from "../public/svg/KidsIcon.svg"
-import HomeIcon from "../public/svg/HomeIcon.svg"
-import ElectricalIcon from "../public/svg/ElectricalIcon.svg"
-import StoreIcon from "../public/svg/ShopIcon.svg"
+import ManIcon from "public/svg/manIcon.svg"
+import WomanIcon from "public/svg/WomanIcon.svg"
+import KidsIcon from "public/svg/KidsIcon.svg"
+import HomeIcon from "public/svg/HomeIcon.svg"
+import ElectricalIcon from "public/svg/ElectricalIcon.svg"
+import StoreIcon from "public/svg/ShopIcon.svg"
 import { Cloudinary } from '@cloudinary/url-gen';
-import SearchIcon from "../public/svg/SearchIcon.svg"
+import SearchIcon from "public/svg/SearchIcon.svg"
 import Pusher from "pusher-js"
 import { CHAT_URL } from "./endpointConfig"
 import Smartlook from 'smartlook-client'

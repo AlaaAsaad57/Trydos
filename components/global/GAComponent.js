@@ -1,7 +1,7 @@
 "use client"
 import Script from 'next/script'
 import React, { useEffect } from 'react'
-import { SmartLookInit } from '../../utils/constants'
+import { SmartLookInit } from 'utils/constants'
 
 function GAComponent() {
     useEffect(()=>{

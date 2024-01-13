@@ -13,11 +13,11 @@ import AgoraRTC, {
 } from "agora-rtc-react";
 import { useDispatch, useSelector } from 'react-redux';
 import {useStopwatch} from 'react-timer-hook'
-import { RefuseCall } from '../../../redux/chat/actions';
+import { RefuseCall } from 'store/chat/actions';
 import { getTwoLetters } from '../chatsFunctions';
 import axios from 'axios';
-import { CHAT_URL } from '../../../utils/endpointConfig';
-import { getUserChat, translate } from '../../../utils/functions';
+import { CHAT_URL } from 'utils/endpointConfig';
+import { getUserChat, translate } from 'utils/functions';
 const config = { 
   mode: "rtc", codec: "h264",
 };

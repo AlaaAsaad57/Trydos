@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
-import TranslationsIcon from "../../public/svg/translations.svg";
-import UKIcon from "../../public/svg/uk.svg";
-import UAEIcon from "../../public/svg/uae.svg";
-import TRSvg from "../../public/svg/tr.svg";
+import TranslationsIcon from "public/svg/translations.svg";
+import UKIcon from "public/svg/uk.svg";
+import UAEIcon from "public/svg/uae.svg";
+import TRSvg from "public/svg/tr.svg";
 import { useDispatch, useSelector } from "react-redux";
-import { changeAppLanguage } from "../../redux/homepage/actions";
+import { changeAppLanguage } from "store/homepage/actions";
 function TranslationsMenu(init) {
   const language = useSelector((state) => state.homepage.language);
   const dispatch = useDispatch();

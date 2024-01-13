@@ -4,11 +4,11 @@ import ReceiveIcon from "./svg/recieved.svg"
 import MissedCall from "./svg/missedCall.svg"
 import IncomingCall from "./svg/IncomingCall.svg"
 import OutgoingCall from "./svg/outgoingCall.svg"
-import {store} from "../../redux/store"
+import {index} from "store"
 import axios from "axios"
-import { CHAT_URL } from "../../utils/endpointConfig"
-import { SendMessage } from "../../redux/chat/actions"
-import { getUserChat } from "../../utils/functions"
+import { CHAT_URL } from "utils/endpointConfig"
+import { SendMessage } from "store/chat/actions"
+import { getUserChat } from "utils/functions"
 export const FILE_SERVER=CHAT_URL
 export const getUser=()=>{
     return(
@@ -110,7 +110,7 @@ export const forwardMessage = (m, activeChat) => {
         mid: i,
         cid: activeChat?.id,
       },activeChat?.id?i:false)
-      store.dispatch({
+      index.dispatch({
         type: "SEND-MESSAGE",
         payload: {
           act: activeChat,
@@ -146,7 +146,7 @@ export const forwardMessage = (m, activeChat) => {
           isNew:activeChat?.id?i:false
         },
       });
-      store.dispatch({ type: "FORWARD-MESSAGEs", payload: null })
+      index.dispatch({ type: "FORWARD-MESSAGEs", payload: null })
     }
     if (m.message_type.name === "ImageMessage" || m.message_type === "ImageMessage") {
       SendMessage( {
@@ -168,7 +168,7 @@ export const forwardMessage = (m, activeChat) => {
         parent_message_id: null,
         message_type: "ImageMessage",
       },activeChat?.id?i:false)
-      store.dispatch({
+      index.dispatch({
         type: "SEND-MESSAGE",
         payload: {
           act: activeChat,
@@ -204,7 +204,7 @@ export const forwardMessage = (m, activeChat) => {
           isNew:activeChat?.id?i:false
         },
       });
-      store.dispatch({ type: "FORWARD-MESSAGEs", payload: null })
+      index.dispatch({ type: "FORWARD-MESSAGEs", payload: null })
     }
     if (m.message_type.name === "VoiceMessage" || m.message_type === "VoiceMessage") {
      SendMessage({
@@ -226,7 +226,7 @@ export const forwardMessage = (m, activeChat) => {
       parent_message_id: null,
       message_type: "VoiceMessage",
     },activeChat?.id?i:false)
-      store.dispatch({
+      index.dispatch({
         type: "SEND-MESSAGE",
         payload: {
           act: activeChat,
@@ -264,7 +264,7 @@ export const forwardMessage = (m, activeChat) => {
           isNew:activeChat?.id?i:false
         },
       });
-      store.dispatch({ type: "FORWARD-MESSAGEs", payload: null })
+      index.dispatch({ type: "FORWARD-MESSAGEs", payload: null })
     }
     if (m.message_type.name === "VideoMessage" || m.message_type === "VideoMessage") {
      SendMessage({
@@ -286,7 +286,7 @@ export const forwardMessage = (m, activeChat) => {
       parent_message_id: null,
       message_type: "VideoMessage",
     },activeChat?.id?i:false)
-      store.dispatch({
+      index.dispatch({
         type: "SEND-MESSAGE",
         payload: {
           act: activeChat,
@@ -323,7 +323,7 @@ export const forwardMessage = (m, activeChat) => {
           isNew:activeChat?.id?i:false
         },
       });
-      store.dispatch({ type: "FORWARD-MESSAGEs", payload: null })
+      index.dispatch({ type: "FORWARD-MESSAGEs", payload: null })
     }
     if (m.message_type.name === "FileMessage" || m.message_type === "FileMessage") {
       SendMessage({
@@ -345,7 +345,7 @@ export const forwardMessage = (m, activeChat) => {
         parent_message_id: null,
         message_type: "FileMessage",
       },activeChat?.id?i:false)
-      store.dispatch({
+      index.dispatch({
         type: "SEND-MESSAGE",
         payload: {
           act: activeChat,
@@ -381,7 +381,7 @@ export const forwardMessage = (m, activeChat) => {
           isNew:activeChat?.id?i:false
         },
       });
-      store.dispatch({ type: "FORWARD-MESSAGEs", payload: null })
+      index.dispatch({ type: "FORWARD-MESSAGEs", payload: null })
     }
   
 }

@@ -1,8 +1,8 @@
 import axios from "axios"
-import { CHAT_URL, DELETE_CHAT_URL, GET_CHATS_URL, GET_CONTATCS_URL, SEARCH_CONTACTS_URL, SEARCH_USERS_URL, SEND_MESSAGE_URL, SET_CHANNEL_OPT_UTL } from "../../utils/endpointConfig"
-import { store } from "../store"
-import { getUserChat, translate } from "../../utils/functions"
-import { pusher } from "../../utils/constants"
+import { CHAT_URL, DELETE_CHAT_URL, GET_CHATS_URL, GET_CONTATCS_URL, SEARCH_CONTACTS_URL, SEARCH_USERS_URL, SEND_MESSAGE_URL, SET_CHANNEL_OPT_UTL } from "utils/endpointConfig"
+import { index } from "../index"
+import { getUserChat, translate } from "utils/functions"
+import { pusher } from "utils/constants"
 import { EventTrack } from "../homepage/actions"
 import { toast } from "react-toastify"
 
@@ -13,7 +13,7 @@ export const ChatConroller =(payload)=>{
 export const GetChats=async (payload) =>{
     try{
       if (!payload){
-        store.dispatch({type:"CHAT_LOADING"})
+        index.dispatch({type:"CHAT_LOADING"})
       }
         let resp= await axios.post(CHAT_URL+GET_CHATS_URL,{role_id:116},{
             headers:{
@@ -23,15 +23,15 @@ export const GetChats=async (payload) =>{
         if (!payload) {
             
           }
-          store.dispatch({ type: "GET_CHAT_RED", payload: resp.data.data.channels,param:resp.data.data.pinned_channels })
-          store.dispatch({type:"SET_LAST_NOTIFICATION_DATE",payload:(new Date()).toLocaleString()})
-          store.dispatch({ type: "CHAT_DONE" }); 
+          index.dispatch({ type: "GET_CHAT_RED", payload: resp.data.data.channels,param:resp.data.data.pinned_channels })
+          index.dispatch({type:"SET_LAST_NOTIFICATION_DATE",payload:(new Date()).toLocaleString()})
+          index.dispatch({ type: "CHAT_DONE" });
           let response= await axios.get(CHAT_URL+GET_CONTATCS_URL,{
             headers:{
                 Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
             }
         })
-       store.dispatch({type:"GET_CONTACTS_RED",payload:response.data.data})
+       index.dispatch({type:"GET_CONTACTS_RED",payload:response.data.data})
     }
     catch(e){
 
@@ -40,7 +40,7 @@ export const GetChats=async (payload) =>{
 export const EnablePusher=()=>{
   let channel = pusher.subscribe(`user-${getUserChat()?.id}-messages`);
   channel.bind("ChannelWatchedEvent", (data) => {
-    store.dispatch({
+    index.dispatch({
       type: "WATCH_CHANNEL_RED",
       payload: data.channel_id,
     });
@@ -51,15 +51,15 @@ export const EnablePusher=()=>{
     if (data.message.sender_user_id !== getUserChat()?.id) {
       let not = new Audio(WA);
       not.volume = 0.5
-      if(!store.getState().chat.main==="chat")
+      if(!index.getState().chat.main==="chat")
       not.play()
     }
-    store.dispatch({ type: "REFS" })
-    store.dispatch({ type: "REC_CHA", payload: data.message.channel.id })
-    if (data.message.sender_user_id !== getUserChat()?.id) store.dispatch({ type: "SEND_MES_RED", payload: { ...data.message, cid: data.message.channel.id, recive: true } })
+    index.dispatch({ type: "REFS" })
+    index.dispatch({ type: "REC_CHA", payload: data.message.channel.id })
+    if (data.message.sender_user_id !== getUserChat()?.id) index.dispatch({ type: "SEND_MES_RED", payload: { ...data.message, cid: data.message.channel.id, recive: true } })
   })
    channel.bind("ChannelReceivedEvent", (data) => {
-    store.dispatch({ type: "REC_CHANNEL_RED", payload: data.channel_id });
+    index.dispatch({ type: "REC_CHANNEL_RED", payload: data.channel_id });
 
   });
 }
@@ -93,7 +93,7 @@ export const SendMessage=async (payload,isNew) =>{
         );
         if (a.data.data) {
           if (isNew) {
-            store.dispatch({
+            index.dispatch({
               type: "SEND_MES_RED_NEW",
               payload: {
                 channel: {
@@ -108,19 +108,19 @@ export const SendMessage=async (payload,isNew) =>{
             );
             let channel = pusher.subscribe(a.data.data.channel.id?.toString(16));
     
-            store.dispatch({
+            index.dispatch({
               type: "PUSHER_CH",
               payload: { id: a.data.data.channel.id, channel: ch },
             });
             channel.bind("ChannelWatchedEvent", (data) => {
-              store.dispatch({
+              index.dispatch({
                 type: "WATCH_CHANNEL_RED",
                 payload: data.channel_id,
               });
     
             });
             channel.bind("ChannelReceivedEvent", (data) => {
-              store.dispatch({ type: "REC_CHANNEL_RED", payload: data.channel_id });
+              index.dispatch({ type: "REC_CHANNEL_RED", payload: data.channel_id });
     
             });
             ch.bind("client-TypingEvent", (data) => {
@@ -129,12 +129,12 @@ export const SendMessage=async (payload,isNew) =>{
                 parseInt(JSON.parse(JSON.stringify(data)).uid) !== getUserChat()?.id
               )
              {
-                store.dispatch({ type: "IS_TYPING_TRUE", payload: JSON.parse(JSON.stringify(data)) });}
+                index.dispatch({ type: "IS_TYPING_TRUE", payload: JSON.parse(JSON.stringify(data)) });}
             });
-            store.dispatch({ type: "PUSHER_RED", payload: { id: a.data.data.channel.id, channel: ch } });
+            index.dispatch({ type: "PUSHER_RED", payload: { id: a.data.data.channel.id, channel: ch } });
     
           } else{
-            store.dispatch({
+            index.dispatch({
               type: "SEND_MES_RED",
               payload: {
                 ...a.data.data,
@@ -197,17 +197,17 @@ export async function StartChat(payload) {
         "Content-Type": "application/json",
       },
     });
-    store.dispatch({ type: "CHAT_LOADING_USER" });
+    index.dispatch({ type: "CHAT_LOADING_USER" });
     const base =CHAT_URL;
     let resp = await AxiosInstance.get(
       base +
       SEARCH_USERS_URL+
       payload
     );
-    store.dispatch({ type: "SEARCH_USER_RED", payload: resp.data.data });
-    store.dispatch({ type: "CHAT_DONE_USER" });
+    index.dispatch({ type: "SEARCH_USER_RED", payload: resp.data.data });
+    index.dispatch({ type: "CHAT_DONE_USER" });
   } catch (e) {
-    store.dispatch({ type: "SEARCH_USER_RED", payload: [] });
+    index.dispatch({ type: "SEARCH_USER_RED", payload: [] });
   }
 }
 export async function deleteChat(payload) {
@@ -283,7 +283,7 @@ export async function getPage(channel,mid) {
     });
     let channel_id = channel
     let res = await AxiosInstance.post(`api/v1/messages/messages_of_channel/${channel_id}?message_id=${mid}&limit=10`)
-    store.dispatch({ type: "GRP", payload: { mes: res.data.data, ch: channel_id } })
+    index.dispatch({ type: "GRP", payload: { mes: res.data.data, ch: channel_id } })
   }
   catch (e) {
 
@@ -312,7 +312,7 @@ export async function SearchContact(payload){
     });
     if(payload?.length>0){
     let res=await AxiosInstance.get(SEARCH_CONTACTS_URL+payload);
-    store.dispatch({type:"SEARCH_REDUCER",payload:res.data.data})
+    index.dispatch({type:"SEARCH_REDUCER",payload:res.data.data})
   }
   }
   catch(e){
@@ -386,7 +386,7 @@ export async function getMessagesBetweenMessage(payload){
     },
   });
  let res= await AxiosInstance.post(`/api/v1/messages/messages_of_channel/${payload.first}`,JSON.stringify({limit:payload.second+1}))
- store.dispatch({ type: "GRP", payload: { mes: res.data.data, ch: action.payload.first } })
+ index.dispatch({ type: "GRP", payload: { mes: res.data.data, ch: action.payload.first } })
 }
 
 export async function getContacts (){
@@ -409,12 +409,12 @@ export async function getContacts (){
     },
   });
  let res= await AxiosInstance.get("/api/v1/users/my_contacts")
- store.dispatch({type:"GET_CONTACTS_RED",payload:res.data.data})
+ index.dispatch({type:"GET_CONTACTS_RED",payload:res.data.data})
 }
 
 export async function checkForUpdate(){
   try{
-    let last_date=store.getState().chat.lastNotification
+    let last_date=index.getState().chat.lastNotification
     if(last_date && ((new Date()).getTime() - (new Date(last_date)).getTime() ) > 120000  ){
       GetChats(true)
   }
@@ -423,7 +423,7 @@ export async function checkForUpdate(){
   }
 }
 export const InitPusherChannel=(channelId)=>{
-  if(store.getState().chat.channels.filter((ch)=>ch.id===channelId).length===0){
+  if(index.getState().chat.channels.filter((ch)=>ch.id===channelId).length===0){
   let ch = pusher.subscribe(`presence-typing-${channelId?.toString(16)}`);
   ch.bind("client-TypingEvent", (data) => {
   
@@ -431,15 +431,15 @@ export const InitPusherChannel=(channelId)=>{
       parseInt(JSON.parse(JSON.stringify(data)).uid) !== getUserChat()?.id
     )
     {
-      store.dispatch({ type: "IS_TYPING_TRUE", payload: JSON.parse(JSON.stringify(data)) });}
+      index.dispatch({ type: "IS_TYPING_TRUE", payload: JSON.parse(JSON.stringify(data)) });}
   });  
-   store.dispatch({ type: "PUSHER_RED", payload: { id: channelId, channel: ch } });}
+   index.dispatch({ type: "PUSHER_RED", payload: { id: channelId, channel: ch } });}
 }
 export const makeVideoCall=async(channelId,callerName,callerPhoto,mobilePhone)=>{
   EventTrack('video-call',{channelId:channelId,user_id:getUserChat().id});
   if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(channelId,callerName,callerPhoto,mobilePhone)
   try{
-    store.dispatch({type:"CALL-LOADING",payload:'video'})
+    index.dispatch({type:"CALL-LOADING",payload:'video'})
     let obj=typeof channelId ==="string"&&channelId.includes('ch')?{receiver_user_id:parseInt(channelId.split('ch-')[1])}:{channel_id:channelId}
     await axios.post(CHAT_URL+`/api/v1/messages/video_call`,
     {...obj,payload:{user_id:getUserChat()?.id,type:"video",channelId:channelId,callerName:callerName,callerPhoto:callerPhoto,mobilePhone:mobilePhone}},{
@@ -448,8 +448,8 @@ export const makeVideoCall=async(channelId,callerName,callerPhoto,mobilePhone)=>
       }
   }).then((data)=>{
     if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(data)
-    store.dispatch({type:"VIDEO_CALL",payload:data.data.data.token,source:data.data.data.message})
-    store.dispatch({type:"CALL-LOADING",payload:null})
+    index.dispatch({type:"VIDEO_CALL",payload:data.data.data.token,source:data.data.data.message})
+    index.dispatch({type:"CALL-LOADING",payload:null})
   })  
   }
   catch(e){
@@ -460,15 +460,15 @@ export const makeVoiceCall=async(channelId,callerName,callerPhoto,mobilePhone)=>
   try{
     EventTrack('voice-call',{channelId:channelId,user_id:getUserChat().id});
     let obj=typeof channelId ==="string"&&channelId.includes('ch')?{receiver_user_id:parseInt(channelId.split('ch-')[1])}:{channel_id:channelId}
-    store.dispatch({type:"CALL-LOADING",payload:'voice'})
+    index.dispatch({type:"CALL-LOADING",payload:'voice'})
     await axios.post(CHAT_URL+`/api/v1/messages/voice_call`,
     {...obj,payload:{user_id:getUserChat()?.id,type:"audio",channelId:channelId,callerName:callerName,callerPhoto:callerPhoto,mobilePhone:mobilePhone}},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
       }
   }).then((data)=>{
-    store.dispatch({ type: "AUDIO_CALL",payload:data.data.data.token,source:data.data.data.message })
-    store.dispatch({type:"CALL-LOADING",payload:null})
+    index.dispatch({ type: "AUDIO_CALL",payload:data.data.data.token,source:data.data.data.message })
+    index.dispatch({type:"CALL-LOADING",payload:null})
   })
   
   }
@@ -479,7 +479,7 @@ export const makeVoiceCall=async(channelId,callerName,callerPhoto,mobilePhone)=>
 export const AnswerCall=async(channelId,messageId)=>{
   try{
     let status=null
-    toast.info(translate('Initialize Call please wait..',store.getState().homepage.language))
+    toast.info(translate('Initialize Call please wait..',index.getState().homepage.language))
     await axios.get(CHAT_URL+`/api/v1/messages/${messageId}/users`,{
       headers:{
      Authorization:'Bearer '+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
@@ -494,12 +494,12 @@ export const AnswerCall=async(channelId,messageId)=>{
       }
   }).then((data)=>{
     Answer(channelId,messageId)
-    store.dispatch({type:"ANSWER_CALL",payload:data.data.data})
+    index.dispatch({type:"ANSWER_CALL",payload:data.data.data})
   })
    }
    else{
-    toast.info(translate('Call Answered from another account',store.getState().homepage.language));
-    store.dispatch({ type: "USER_END_CALL" });
+    toast.info(translate('Call Answered from another account',index.getState().homepage.language));
+    index.dispatch({ type: "USER_END_CALL" });
    }
   }
   catch(e){
@@ -514,7 +514,7 @@ export const RefuseCall=async(channelId,messageId)=>{
       EventTrack('refuse-call',{channelId:channelId,user_id:getUserChat().id});
     let obj=typeof channelId ==="string"&& channelId.includes('ch')?{receiver_user_id:parseInt(channelId.split('ch-')[1])}:{channel_id:channelId}
 
-    store.dispatch({ type: "USER_END_CALL" })
+    index.dispatch({ type: "USER_END_CALL" })
     await axios.post(CHAT_URL+`/api/v1/messages/refuse_call/${messageId}`,{...obj},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
@@ -531,7 +531,7 @@ console.error(e)
 export const Answer=async(channelId,messageId)=>{
   try{
     let obj=typeof channelId ==="string"&&channelId.includes('ch')?{receiver_user_id:parseInt(channelId.split('ch-')[1])}:{channel_id:channelId}
-    store.dispatch({ type: "USER_END_CALL" })
+    index.dispatch({ type: "USER_END_CALL" })
     await axios.post(CHAT_URL+`/api/v1/messages/answer_call/${messageId}`,{...obj},{
       headers:{
           Authorization:`Bearer `+JSON.parse(localStorage.getItem('USER-CHAT')).access_token
@@ -550,7 +550,7 @@ export const EstablishChannel=(cg)=>{
                chs.bind(`client-signal-${getUserChat()?.id}`, (signal) => {
                 let caller = cg.channel_members.filter(one => one.user_id !== getUserChat()?.id)[0]
                 let callerChannel = cg
-                store.dispatch({
+                index.dispatch({
                   type: "INCOMING_CALL", payload: {
                     signal,
                     caller,
@@ -561,7 +561,7 @@ export const EstablishChannel=(cg)=>{
                chs.bind(`client-signal-voice-${getUserChat()?.id}`, (signal) => {
                 let caller = cg.channel_members.filter(one => one.user_id !== getUserChat()?.id)[0]
                 let callerChannel = cg
-                store.dispatch({
+                index.dispatch({
                   type: "INCOMING_VOICE_CALL", payload: {
                     signal,
                     caller,

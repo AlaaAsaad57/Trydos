@@ -6,7 +6,7 @@ import UnmuteIcon from '../svg/UnmuteIcon.svg'
 import DeleteIcon from '../svg/DeleteIcon.svg'
 import ArchiveIcon from '../svg/ArchiveIcon.svg'
 import { useDispatch, useSelector } from 'react-redux'
-import { translate } from '../../../utils/functions'
+import { translate } from 'utils/functions'
 function ChatOptions({id,unread,pinned,muted}) {
     const dispatch=useDispatch()
     const language=useSelector((state)=>state.homepage.language)

@@ -1,7 +1,7 @@
 import { useEffect,useRef, useState } from "react";
-import SearchIcon from "../../public/svg/SearchIcon.svg"
-import Divider from "../../public/svg/DividerIcon.svg"
-import CloseIcon from "../../public/svg/CloseIcon.svg"
+import SearchIcon from "public/svg/SearchIcon.svg"
+import Divider from "public/svg/DividerIcon.svg"
+import CloseIcon from "public/svg/CloseIcon.svg"
 import { useSelector } from "react-redux";
 function SearchComponent({searchEnabled,close}) {
   const language=useSelector((state)=>state.homepage.language)

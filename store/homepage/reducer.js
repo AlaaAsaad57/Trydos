@@ -1,4 +1,4 @@
-import { configureStory } from "../../utils/functions"
+import { configureStory } from "utils/functions"
 const initialState = {language:"en",loading:true,selectedStory:null,storiesData:[],categories:[],settings:null}
 
 const HomeReducer=(state = initialState, { type, payload }) => {

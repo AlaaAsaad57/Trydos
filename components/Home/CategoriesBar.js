@@ -1,11 +1,11 @@
 "use client"
-import { categories } from "../../utils/constants"
+import { categories } from "utils/constants"
 import CategoryNavItem from "./CategoryNavItem"
 import { useState } from "react"
 import { useSelector } from "react-redux"
 import Skeleton from 'react-loading-skeleton'
-import '../../styles/skeleton.css'
-import { EventTrack } from "../../redux/homepage/actions"
+import 'styles/skeleton.css'
+import { EventTrack } from "store/homepage/actions"
 function CategoriesBar({forMobile,key}) {
   const language=useSelector((state)=>state.homepage.language)
   const loading=useSelector((state)=>state.homepage.loading)

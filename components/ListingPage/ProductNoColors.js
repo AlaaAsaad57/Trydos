@@ -5,7 +5,7 @@ import BuyButton from './BuyButton'
 import TopSlider from './TopSlider';
 import Image from 'next/image';
 import Spinner from '../global/Spinner';
-import ErrorIcon from "../../public/svg/ErrorIcon.svg"
+import ErrorIcon from "public/svg/ErrorIcon.svg"
 import { Img } from 'react-image';
 import CategoryPhoto from './CategoryPhoto'
 function ProductReducer(state,{type,payload}){

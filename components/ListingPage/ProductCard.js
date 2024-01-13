@@ -6,11 +6,11 @@ import ProductCover from './ProductCover'
 import 'swiper/css';
 import "swiper/css/bundle";
 import { useDispatch, useSelector } from 'react-redux';
-import {EventTrack, GetMainData, LogData} from "../../redux/homepage/actions"
+import {EventTrack, GetMainData, LogData} from "store/homepage/actions"
 import { InView } from 'react-intersection-observer';
 import Spinner from '../global/Spinner';
 import axios from 'axios';
-import { LISTING_INFO_URL, OTP_URL } from '../../utils/endpointConfig';
+import { LISTING_INFO_URL, OTP_URL } from 'utils/endpointConfig';
 function ProductCard({Listing_Data_res,HomeData_res,stories_res,HomeData}) {
 
   const dispatch=useDispatch()

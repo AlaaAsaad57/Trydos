@@ -5,7 +5,7 @@ import VideoIcon from "../svg/video.svg"
 import AudioIcon from "../svg/audio.svg"
 import out from "../svg/output.png"
 import { useSelector } from 'react-redux'
-import ProfilePicture from "../../../public/images/profileNo.png"
+import ProfilePicture from "public/images/profileNo.png"
 import Image from 'next/image'
 function ReplyMessage({message,cancel}) {
     const activeChat=useSelector((state)=>state.chat.activeChat)

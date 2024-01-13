@@ -1,13 +1,13 @@
 
 import Image from 'next/image'
 import React, { useState } from 'react'
-import { configureStory, getThumb } from '../../utils/functions';
+import { configureStory, getThumb } from 'utils/functions';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import Stories from 'react-insta-stories';
 import { useDispatch, useSelector } from 'react-redux';
-import { setNextStory, setPreviousStory } from '../../redux/homepage/actions';
+import { setNextStory, setPreviousStory } from 'store/homepage/actions';
 import { AdvancedImage } from '@cloudinary/react';
-import '../../styles/skeleton.css'
+import 'styles/skeleton.css'
 function StoryComponent({story,viewedStory,select}) {
     const [currentStoryId,setCurrentStoryId]=useState(0)
     const selectedStory=useSelector(state => state.homepage.selectedStory)

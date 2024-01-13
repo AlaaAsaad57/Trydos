@@ -1,9 +1,9 @@
 import React from 'react'
-import ChatItem from '../components/ChatItem'
+import ChatItem from 'components/Chat/components/ChatItem'
 import { useDispatch, useSelector } from 'react-redux'
 import { forwardMessage } from '../chatsFunctions'
-import SearchResult from '../components/SearchResult'
-import { getUserChat } from '../../../utils/functions'
+import SearchResult from 'components/Chat/components/SearchResult'
+import { getUserChat } from 'utils/functions'
 
 function ContactLists(props) {
   const chats=useSelector((state)=>state.chat.data)

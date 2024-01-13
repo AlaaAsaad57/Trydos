@@ -9,9 +9,9 @@ import {
   ICameraVideoTrack,
   IMicrophoneAudioTrack,
 } from "agora-rtc-react";
-import { SSRDetect, getUserChat } from "../../utils/functions";
+import { SSRDetect, getUserChat } from "utils/functions";
 import axios from "axios";
-import { CHAT_URL } from "../../utils/endpointConfig";
+import { CHAT_URL } from "utils/endpointConfig";
 
 const config = { 
   mode: "rtc", codec: "vp8",

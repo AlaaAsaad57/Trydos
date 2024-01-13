@@ -1,6 +1,6 @@
 "use server"
 
-import { GET_USERS_STORIES, HOME_DATA_URL, LISTING_INFO_URL, OTP_URL, STORIES_URL } from "../../utils/endpointConfig"
+import { GET_USERS_STORIES, HOME_DATA_URL, LISTING_INFO_URL, OTP_URL, STORIES_URL } from "utils/endpointConfig"
 import { cookies } from 'next/headers'
 
 export const getStories=async()=>{

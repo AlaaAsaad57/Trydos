@@ -1,6 +1,6 @@
 import React from 'react'
 import { getTwoLetters, getUser } from '../chatsFunctions';
-import ProfilePicture from "../../../public/images/profileNo.png"
+import ProfilePicture from "public/images/profileNo.png"
 import { useDispatch, useSelector } from 'react-redux';
 
 function SearchResult({key,photo,SenderName,isUser,handleClickChat,item}) {

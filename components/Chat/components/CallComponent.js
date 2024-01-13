@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { AnswerCall, RefuseCall } from '../../../redux/chat/actions'
-import profilePng from "../../../public/images/profileNo.png"
+import { AnswerCall, RefuseCall } from 'store/chat/actions'
+import profilePng from "public/images/profileNo.png"
 import { getTwoLetters } from '../chatsFunctions'
-import { translate } from '../../../utils/functions'
+import { translate } from 'utils/functions'
 import './index.css'
 function CallComponent(props) {
     const caller = useSelector(state => state.chat.caller)

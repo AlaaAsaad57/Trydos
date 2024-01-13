@@ -1,11 +1,11 @@
 import React, { useRef } from 'react'
 import OfferAvatar from "./OfferAvatar"
 import MoreOfferAvatar from "./MoreOfferAvatar"
-import user1 from "../../../public/images/r2.jpg"
-import user2 from "../../../public/images/r1.jpg"
-import user3 from "../../../public/images/bl3.jpg"
-import user4 from "../../../public/images/bl2.jpg"
-import user5 from "../../../public/images/bl1.jpg"
+import user1 from "public/images/r2.jpg"
+import user2 from "public/images/r1.jpg"
+import user3 from "public/images/bl3.jpg"
+import user4 from "public/images/bl2.jpg"
+import user5 from "public/images/bl1.jpg"
 function OfferAvatars() {
   const ref=useRef()
   const handleMove=(e)=>{

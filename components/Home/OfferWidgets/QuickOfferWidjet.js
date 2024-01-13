@@ -1,12 +1,12 @@
 import React from 'react'
-import LogoOffer from "../../../public/svg/offerlogo.svg"
-import ManIcon from "../../../public/svg/manIcon.svg"
-import WomanIcon from "../../../public/svg/WomanIcon.svg"
+import LogoOffer from "public/svg/offerlogo.svg"
+import ManIcon from "public/svg/manIcon.svg"
+import WomanIcon from "public/svg/WomanIcon.svg"
 import OfferPhotosSlider from "./OfferPhotosSlider"
-import KidsIcon from "../../../public/svg/KidsIcon.svg"
+import KidsIcon from "public/svg/KidsIcon.svg"
 import QuickEventBar from "./QuickEventBar"
 import { useSelector } from 'react-redux'
-import { translate } from '../../../utils/functions'
+import { translate } from 'utils/functions'
 import Link from 'next/link'
 function QuickOfferWidjet({offer,onClick}) {
   const language=useSelector((state)=>state.homepage.language)

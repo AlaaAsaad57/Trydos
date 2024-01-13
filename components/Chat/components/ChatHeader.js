@@ -2,12 +2,12 @@ import React from 'react'
 import ArrowIcon from "../svg/arrow.svg"
 import VideoIcon from "../svg/vcall.svg"
 import CallIcon from "../svg/call.svg"
-import profile from "../../../public/images/profileNo.png"
+import profile from "public/images/profileNo.png"
 import { useDispatch, useSelector } from 'react-redux';
 import { getNew, getTwoLetters } from '../chatsFunctions';
 import Image from 'next/image';
-import { getUserChat } from '../../../utils/functions'
-import { EstablishChannel, makeVideoCall, makeVoiceCall } from '../../../redux/chat/actions'
+import { getUserChat } from 'utils/functions'
+import { EstablishChannel, makeVideoCall, makeVoiceCall } from 'store/chat/actions'
 function ChatHeader({chats,activeChat,openDetails}) {
     const dispatch=useDispatch()
     const callLoading=useSelector((state)=>state.chat.callLoading)

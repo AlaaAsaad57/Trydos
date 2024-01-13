@@ -6,7 +6,7 @@ import DeleteIcon from "../svg/delt.svg"
 import EditIcon from "../svg/edit.svg"
 import ForwardIcon from "../svg/forward.svg"
 import RemindIcon from "../svg/remind.svg"
-import { translate } from '../../../utils/functions'
+import { translate } from 'utils/functions'
 import { useSelector } from 'react-redux'
 function OptionsMenu(props) {
   const language=useSelector((state)=>state.homepage.language)

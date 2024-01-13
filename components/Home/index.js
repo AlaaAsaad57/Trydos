@@ -1,8 +1,8 @@
 "use client";
-import "../../styles/home.css"
+import "styles/home.css"
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
-import { GetMainData, GetStoryData, LogData, RegisterDevice, StopTracking, changeAppLanguage } from "../../redux/homepage/actions";
+import { GetMainData, GetStoryData, LogData, RegisterDevice, StopTracking, changeAppLanguage } from "store/homepage/actions";
 import Stories from "./Stories/index"
 import CategoriesBar from "./CategoriesBar";
 import BrandsBar from "./Bars/BrandsBar"
@@ -11,12 +11,12 @@ import OfferBar from "./Bars/OfferBar"
 import CategoryBar from "./Bars/CategoryBar"
 import OffersList from "./OfferWidgets/OfferList"
 import StoriesComponent from "./Stories/StoriesComponent"
-import { CheckLogin, StoreToken } from "../../redux/auth/actions";
+import { CheckLogin, StoreToken } from "store/auth/actions";
 import { ToastContainer } from "react-toastify";
 import  "react-toastify/dist/ReactToastify.min.css";
 import "react-toastify/dist/ReactToastify.css"
-import { onMessageListener, requestFirebaseNotificationPermission } from "../../utils/firebaseInitv1";
-import {  getUserChat } from "../../utils/functions";
+import { onMessageListener, requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
+import {  getUserChat } from "utils/functions";
 import Smartlook from 'smartlook-client'
 import dynamic from "next/dynamic";
 import Cookies from "js-cookie";

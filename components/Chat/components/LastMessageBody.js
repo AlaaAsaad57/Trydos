@@ -3,7 +3,7 @@ import { getMessageStatusIcon, getUser } from '../chatsFunctions'
 import ImageIcon from "../svg/image.svg"
 import VideoIcon from "../svg/video.svg"
 import AudioIcon from "../svg/audio.svg"
-import { translate } from '../../../utils/functions'
+import { translate } from 'utils/functions'
 import { useSelector } from 'react-redux'
 function LastMessageBody({message,status}) {
     const language=useSelector((state)=>state.homepage.language)

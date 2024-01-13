@@ -1,14 +1,14 @@
 import React from 'react'
-import LogoOffer from "../../../public/svg/offerlogo.svg"
-import ManIcon from "../../../public/svg/manIcon.svg"
-import WomanIcon from "../../../public/svg/WomanIcon.svg"
+import LogoOffer from "public/svg/offerlogo.svg"
+import ManIcon from "public/svg/manIcon.svg"
+import WomanIcon from "public/svg/WomanIcon.svg"
 import OfferPhotosSlider from "./OfferPhotosSlider"
-import KidsIcon from "../../../public/svg/KidsIcon.svg"
-import SaleIcon from "../../../public/svg/saleIcon.svg"
-import DiscountIcon from "../../../public/svg/discountIcon.svg"
-import GiftIcon from "../../../public/svg/giftIcon.svg"
+import KidsIcon from "public/svg/KidsIcon.svg"
+import SaleIcon from "public/svg/saleIcon.svg"
+import DiscountIcon from "public/svg/discountIcon.svg"
+import GiftIcon from "public/svg/giftIcon.svg"
 import { useSelector } from 'react-redux'
-import { translate } from '../../../utils/functions'
+import { translate } from 'utils/functions'
 import Link from 'next/link'
 function ExtendedOfferWidget({offer,myKey,onClick}) {
   const language=useSelector((state)=>state.homepage.language)

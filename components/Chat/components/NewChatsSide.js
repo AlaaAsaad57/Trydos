@@ -3,7 +3,7 @@ import { getNew, getTwoLetters, getUser } from '../chatsFunctions';
 import { useDispatch, useSelector } from 'react-redux';
 import PointIcon from "../svg/point.svg"
 import Image from 'next/image';
-import profilePicture from "../../../public/images/profileNo.png"
+import profilePicture from "public/images/profileNo.png"
 function NewChatsSide({activeChat,chats}) {
     const dispatch=useDispatch()
     const language = useSelector((state)=>state.homepage.language)

@@ -1,7 +1,7 @@
 import React from 'react'
-import ProfilePicture from "../../../public/images/profileNo.png"
+import ProfilePicture from "public/images/profileNo.png"
 import { getTwoLetters, getUser } from '../chatsFunctions'
-import { getUserChat } from '../../../utils/functions'
+import { getUserChat } from 'utils/functions'
 import Image from 'next/image'
 function UserInfoHeader() {
     

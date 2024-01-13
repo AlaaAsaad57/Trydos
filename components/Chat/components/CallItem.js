@@ -1,5 +1,5 @@
 import React from 'react'
-import ProfilePicture from "../../../public/images/profileNo.png"
+import ProfilePicture from "public/images/profileNo.png"
 import { getCallType } from '../chatsFunctions'
 function CallItem({photo,name,date,type}) {
   return (

@@ -3,7 +3,7 @@ import OfferImage from "../../../public/images/Kids_BannerInteriorHalloween_2609
 import OfferAvatars from "./OfferAvatars"
 import BorderImage from "./BorderImage"
 import Image from 'next/image'
-import { getId } from '../../../utils/functions'
+import { getId } from 'utils/functions'
 function OfferSlideItem({isSingle}) {
   let id=getId()
   return (

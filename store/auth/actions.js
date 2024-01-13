@@ -1,10 +1,10 @@
 import axios from 'axios'
-import userImage from '../../public/images/profileNo.png'
-import { CHAT_URL, CUSTOMER_INFO_URL, LOG_IN_CHAT, LOG_IN_STORIES, OTP_URL, SEND_OTP, STARTER_SETTINGS, STORIES_URL, VERFIY_OTP } from '../../utils/endpointConfig'
-import { store } from '../store'
-import { SSRDetect } from '../../utils/functions'
+import userImage from 'public/images/profileNo.png'
+import { CHAT_URL, CUSTOMER_INFO_URL, LOG_IN_CHAT, LOG_IN_STORIES, OTP_URL, SEND_OTP, STARTER_SETTINGS, STORIES_URL, VERFIY_OTP } from 'utils/endpointConfig'
+import { index } from '../index'
+import { SSRDetect } from 'utils/functions'
 import { GetChats } from '../chat/actions'
-import {requestFirebaseNotificationPermission} from "../../utils/firebaseInitv1"
+import {requestFirebaseNotificationPermission} from "utils/firebaseInitv1"
 
 export const ReInitialise=()=>{
     return {type:"RE-INITILIASE"}
@@ -17,7 +17,7 @@ export const CheckPhone=async (value,step)=>{
     // }
     // else{
         step(277)
-        store.dispatch( ReInitialise())
+        index.dispatch( ReInitialise())
     
 }
 export const lodaingOTP=(val)=>{
@@ -31,14 +31,14 @@ export const SendOtp=async (mobilePhone,is_via_whatsapp,step)=>{
         
         let response=await axios.get(OTP_URL+SEND_OTP+`?phone=+${mobilePhone}&is_via_whatsapp=${is_via_whatsapp}`)
         if(response.data.data.verificationId){
-            store.dispatch({type:"SET-VERFICATION-ID",payload:response.data.data.verificationId})
+            index.dispatch({type:"SET-VERFICATION-ID",payload:response.data.data.verificationId})
         }
         
     }
     catch(e){
         
         step(282);
-        store.dispatch({type:"WRONG-NUMBER",payload:'failed to send otp code please try again'})
+        index.dispatch({type:"WRONG-NUMBER",payload:'failed to send otp code please try again'})
     }
 
 }
@@ -54,17 +54,17 @@ export const VerifyOtp=async (code,verficationID)=>{
         localStorage.setItem("ID-TOKEN",response.data.data.id_token)
         localStorage.setItem("MARKET-TOKEN",response.data.data.token)
         localStorage.setItem("USER",JSON.stringify(response.data.data.user))
-        store.dispatch({type:"LOGIN_SUCCESS",payload:{id:response.data.data.user.id,idToken:response.data.data.id_token,name:response.data.data.user.name,avatar:userImage}})
+        index.dispatch({type:"LOGIN_SUCCESS",payload:{id:response.data.data.user.id,idToken:response.data.data.id_token,name:response.data.data.user.name,avatar:userImage}})
         loginStories()
         loginChat()
     }
     catch(e){
         if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log(e)
         if(e.response.data.message==="user not found"){
-            store.dispatch({type:"WRONG-NUMBER",payload:'user not found'})
+            index.dispatch({type:"WRONG-NUMBER",payload:'user not found'})
         }
        else{
-        store.dispatch({type:"LOGIN_FAILED"})
+        index.dispatch({type:"LOGIN_FAILED"})
        }
         
     }
@@ -144,7 +144,7 @@ export async  function StoreToken(payload) {
           token: payload.token
         })
       );
-     store.dispatch({type:"STORE_TOKEN_RED",payload:payload.token})
+     index.dispatch({type:"STORE_TOKEN_RED",payload:payload.token})
       localStorage.setItem("firebase_id", res.data.data.id)
   
     } catch (e) {
@@ -154,7 +154,7 @@ export async  function StoreToken(payload) {
 export const CheckLogin=async()=>{
     const fbtokens=localStorage.getItem('firebase_id')
     if(SSRDetect()&&localStorage.getItem("USER")&&localStorage.getItem("ID-TOKEN")&&localStorage.getItem("MARKET-TOKEN")){
-        store.dispatch({type:"LOGIN_SUCCESS",payload:{id:JSON.parse(localStorage.getItem("USER")).id,idToken:localStorage.getItem("ID-TOKEN"),name:JSON.parse(localStorage.getItem("USER")).name,avatar:JSON.parse(localStorage.getItem("USER")).avatar||userImage}})
+        index.dispatch({type:"LOGIN_SUCCESS",payload:{id:JSON.parse(localStorage.getItem("USER")).id,idToken:localStorage.getItem("ID-TOKEN"),name:JSON.parse(localStorage.getItem("USER")).name,avatar:JSON.parse(localStorage.getItem("USER")).avatar||userImage}})
     //    SSRDetect()&& requestFirebaseNotificationPermission().then((fb)=>{
     //     localStorage.setItem("firebase_token",fb)   
     //    fb&& StoreToken({
@@ -173,7 +173,7 @@ export const getClientData=async()=>{
     if(!localStorage.getItem('customer-info'))
     await getCustomerInfo()
     let res= await axios.get(OTP_URL+STARTER_SETTINGS);
-    store.dispatch({type:"GET_SETTINGS",payload:res.data})
+    index.dispatch({type:"GET_SETTINGS",payload:res.data})
     sessionStorage.setItem('starttingSetting',JSON.stringify(res.data.data))
 setTimeout(()=>{
     GetChats(false)
@@ -184,7 +184,7 @@ export const getCustomerInfo=async ()=>{
         let res=await axios.get(OTP_URL+CUSTOMER_INFO_URL,{headers:{
             Authorization:`Bearer ${localStorage.getItem('MARKET-TOKEN')}`
         }})
-        store.dispatch({type:"UPDATE_USER_INFO",payload:res.data.data.customer_info})
+        index.dispatch({type:"UPDATE_USER_INFO",payload:res.data.data.customer_info})
         localStorage.setItem('customer-info',JSON.stringify(res.data.data.customer_info))
     }
     catch(e){

@@ -1,5 +1,5 @@
 import React from 'react'
-import UserImg from "../../../public/images/user.png"
+import UserImg from "public/images/user.png"
 import Image from 'next/image'
 function StoryAvatar({avatar}) {
   return (
