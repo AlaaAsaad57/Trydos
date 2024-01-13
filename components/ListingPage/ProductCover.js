@@ -1,4 +1,4 @@
-import React, { useReducer, memo, useEffect } from "react";
+import React, { useReducer, memo } from "react";
 import ImageSlider from "./ImageSlider";
 import PriceLabel from "./PriceLabel";
 import BuyButton from "./BuyButton";
@@ -7,9 +7,6 @@ import CoverEffectSlider from "./CoverEffectSlider";
 import ColorSlider from "./ColorSlider";
 import "styles/skeleton.css";
 import Spinner from "../global/Spinner";
-import Image from "next/image";
-import { Img } from "react-image";
-import ErrorIcon from "public/svg/ErrorIcon.svg";
 import CategoryPhoto from "./CategoryPhoto";
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {

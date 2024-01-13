@@ -1,10 +1,14 @@
 "use client";
 import React, { useEffect } from "react";
-import StoryElement from "./StoryElement";
+import dynamic from "next/dynamic";
+const StoryElement = dynamic(() => import("./StoryElement"), { ssr: false });
 import AddStory from "../AddStory";
 import { useDispatch, useSelector } from "react-redux";
 import { SelectStory } from "store/homepage/actions";
-import Skeleton from "react-loading-skeleton";
+const Skeleton = dynamic(() => import("react-loading-skeleton"), {
+  ssr: false,
+});
+
 function Index() {
   const storiesData = useSelector((state) => state.homepage.storiesData);
   const loading = useSelector((state) => state.homepage.loading);
