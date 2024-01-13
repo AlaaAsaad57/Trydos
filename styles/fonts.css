@@ -1,44 +1,12 @@
-@font-face {
-    font-family: "SF-Pro-Rounded";
-    src: url('/fonts/SF-Pro-Rounded.ttf');
+* [aria-labelledby="en-regular"] {
+  font-family: var(--SF-Pro-Rounded-Regular);
 }
-@font-face {
-    font-family: 'SF-Pro-Rounded-Light';
-    src: url('/fonts/FontsFree-Net-SF-Pro-Rounded-Light.ttf');
+* [aria-labelledby="en-light"] {
+  font-family: var(--SF-Pro-Rounded-Light);
 }
-@font-face {
-    font-family:'SF-Pro-Rounded-Medium' ;
-    src: url('/fonts/FontsFree-Net-SF-Pro-Rounded-Medium.ttf');
+* [aria-labelledby="en-medium"] {
+  font-family: var(--SF-Pro-Rounded-Medium);
 }
-@font-face {
-    font-family:'SF-Pro-Rounded-semibold' ;
-    src: url("/fonts/FontsFree-Net-SF-Pro-Rounded-Semibold.ttf");
-}
-@font-face {
-    font-family:'quicksand' ;
-    src: url("/fonts/Quicksand-Regular.ttf");
-}
-@font-face {
-    font-family:'quicksand-light' ;
-    src: url("/fonts/Quicksand-Light.ttf");
-}
-@font-face {
-    font-family:'quicksand-med' ;
-    src: url("/fonts/Quicksand-Medium.ttf");
-}
-@font-face {
-    font-family:'quicksand-bold' ;
-    src: url("/fonts/Quicksand-Bold.ttf");
-}
-* [aria-labelledby='en-regular']{
-    font-family: 'SF-Pro-Rounded';
-}
-* [aria-labelledby='en-light']{
-    font-family: 'SF-Pro-Rounded-Light';
-}
-* [aria-labelledby='en-medium']{
-    font-family: 'SF-Pro-Rounded-Medium';
-}
-* [aria-labelledby='en-semibold']{
-    font-family: 'SF-Pro-Rounded-semibold';
+* [aria-labelledby="en-semibold"] {
+  font-family: var(--SF-Pro-Rounded-semibold);
 }

@@ -8,10 +8,6 @@
 * {
   box-sizing: border-box;
 }
-@font-face {
-  font-family: "icon-font";
-  src: url("/fonts/NotoColorEmoji-Regular.ttf");
-}
 body {
   background: none !important;
 }
@@ -371,6 +367,7 @@ body {
 .flag-icon {
   min-width: 22px;
   height: 15px;
+  font-family: var(--icon-font);
   align-items: center;
   display: flex;
   margin-left: 20px;
@@ -383,7 +380,7 @@ body {
   margin-left: 4px;
   color: #707070;
   font-size: 14px;
-  font-family: "SF-Pro-Rounded";
+  font-family: var(--SF-Pro-Rounded-Regular);
 }
 .phone-input-element {
   display: flex;
@@ -398,7 +395,7 @@ body {
   color: #8e8e8e;
   margin-left: 7px;
   display: flex;
-  font-family: "SF-Pro-Rounded";
+  font-family: var(--SF-Pro-Rounded-Regular);
 }
 .phone-arrow {
   position: absolute;
@@ -870,7 +867,7 @@ body {
   text-align: center;
   justify-content: center;
   font-size: 12px;
-  font-family: "SF-Pro-Rounded";
+  font-family: var(--SF-Pro-Rounded-Regular);
   color: #ffffff;
   z-index: 12;
   letter-spacing: 0.003;
@@ -901,13 +898,13 @@ body {
 .bar-name {
   display: flex;
   font-size: 14px;
-  font-family: "quicksand-med";
+  font-family: var(--Quicksand-Medium);
   color: #3c3c3c;
 }
 .bar-desc {
   display: flex;
   font-size: 10px;
-  font-family: "quicksand";
+  font-family: var(--Quicksand-Regular);
   color: #505050;
 }
 .offers-list {
@@ -1003,7 +1000,7 @@ body {
 .offer-desc {
   display: flex;
   align-items: center;
-  font-family: "quicksand";
+  font-family: var(--Quicksand-Regular);
   color: #505050;
   font-size: 12px;
   margin-left: 25px;
@@ -1096,7 +1093,7 @@ body {
   padding-top: 4px;
   position: absolute;
   left: 0;
-  font-family: "quicksand";
+  font-family: var(--Quicksand-Regular);
   right: 0;
   margin-left: auto;
   margin-right: auto;
@@ -1112,7 +1109,7 @@ body {
   height: auto !important;
 }
 .offer-avatar > span {
-  font-family: "quicksand";
+  font-family: var(--Quicksand-Regular);
   width: 100%;
   height: 100%;
   font-size: 10px;
@@ -1202,7 +1199,7 @@ body {
   display: flex;
   align-items: center;
   color: #505050;
-  font-family: "quicksand";
+  font-family: var(--Quicksand-Regular);
   font-size: 14px;
 }
 .offer-details-text span {
@@ -1210,7 +1207,7 @@ body {
   margin-left: 5px;
 }
 span.bold-text {
-  font-family: "quicksand-bold";
+  font-family: var(--Quicksand-Bold);
 }
 .quick-widget {
   height: 64vw !important;
@@ -1249,7 +1246,7 @@ span.bold-text {
   margin-left: 5px;
 }
 .stopwatch-container span {
-  font-family: "SF-Pro-Rounded-Medium";
+  font-family: var(--SF-Pro-Rounded-Medium);
   font-size: 16px;
   color: #3c3c3c;
   margin-left: 2px;
@@ -1265,7 +1262,7 @@ span.bold-text {
   color: #ffffcc;
   letter-spacing: 0.025em;
   font-size: 14px;
-  font-family: "SF-Pro-Rounded-Medium";
+  font-family: var(--SF-Pro-Rounded-Medium);
   display: flex;
 }
 .number-holder:first-child {
