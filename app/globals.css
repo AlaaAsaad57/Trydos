@@ -18,7 +18,12 @@
     --background-end-rgb: 0, 0, 0;
   }
 }
-
+@media only screen and (max-width: 700px) {
+  * {
+    transition: 0 !important;
+    animation-duration: 0s !important;
+  }
+}
 body {
   margin: 0px;
   color: rgb(var(--foreground-rgb));
