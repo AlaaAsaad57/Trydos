@@ -97,19 +97,19 @@ function ProductNoColors({product}) {
              <CategoryPhoto
              loader={<Spinner/>}
              unloader={<ErrorIcon/>}
-             alt={product.brand.name} width="66" height="10" src={product.brand.image} objectFit='cover' objectPosition='center' 
+             alt={product.brand.name} width="66" height="10" src={product.brand.image}  
              style={{borderRadius:'50%'}}
            />
              }
            <div className='prouct-details'>
              <span className='quantity'>1</span>
-             {product?.categories?.map((cat)=>(
-              <span className='product-category-icon'>
+             {product?.categories?.map((cat,index)=>(
+              <span className='product-category-icon' key={index}>
               <CategoryPhoto 
               src={cat.icon}
              loader={<Spinner/>}
              unloader={<ErrorIcon/>}
-            width={10} height={10} objectFit='cover' objectPosition='center' alt={cat.name}
+            width={10} height={10}  alt={cat.name}
             style={{borderRadius:'50%'}}/>
               </span>
           ))}

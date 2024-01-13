@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import "./index.css"
 import ChatWindow from './pages/ChatWindow'
 import { useDispatch, useSelector } from 'react-redux'
