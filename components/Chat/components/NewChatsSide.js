@@ -46,6 +46,7 @@ function NewChatsSide({ activeChat, chats }) {
                       )[0]?.user?.name
                     ) ? (
                     <Image
+                      loading="eager"
                       width={30}
                       height={30}
                       alt="new-user"
@@ -73,6 +74,7 @@ function NewChatsSide({ activeChat, chats }) {
                     </div>
                   ) : (
                     <Image
+                      loading="eager"
                       width={30}
                       height={30}
                       alt="new-user"

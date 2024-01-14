@@ -42,6 +42,7 @@ function ChatInfo({ activeChat, cancel }) {
           (user) => user.user_id !== getUser()?.id
         )[0]?.user?.photo_path ? (
           <Image
+            loading="eager"
             width={150}
             height={150}
             alt="user-photo"

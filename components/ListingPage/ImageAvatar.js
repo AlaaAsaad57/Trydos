@@ -48,6 +48,7 @@ function ImageAvatar({ image, width, height, alt, isActive, name }) {
       )}
       <div className="shadow-inset-avatar" />
       <Image
+        loading="eager"
         quality={80}
         src={image}
         fill

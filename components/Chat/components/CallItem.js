@@ -9,6 +9,7 @@ function CallItem({ photo, name, date, type }) {
       style={{ height: "75px", padding: "10px" }}
     >
       <Image
+        loading="eager"
         width={55}
         height={55}
         alt="user-photo"

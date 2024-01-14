@@ -26,6 +26,7 @@ function CallComponent(props) {
           width={40}
           height={40}
           alt="user-photo"
+          loading="eager"
           src={caller.user?.photo_path}
         />
       ) : caller.user.name ? (
@@ -38,7 +39,13 @@ function CallComponent(props) {
           </div>
         </>
       ) : (
-        <Image width={40} height={40} alt="user-photo" src={profilePng} />
+        <Image
+          loading="eager"
+          width={40}
+          height={40}
+          alt="user-photo"
+          src={profilePng}
+        />
       )}
       <div className="call-s">
         <span className="incomin">

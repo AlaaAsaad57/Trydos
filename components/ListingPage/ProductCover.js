@@ -122,6 +122,7 @@ function ProductCover({ product }) {
             <>
               {
                 <ImageSlider
+                  loading="eager"
                   product_name={product.name}
                   renderVar={productState.renderVar}
                   active={
