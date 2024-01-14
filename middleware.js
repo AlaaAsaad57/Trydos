@@ -1,4 +1,5 @@
 import { cookies, headers } from "next/headers";
+import { NextResponse } from "next/server";
 const countriesString = process.env.NEXT_PUBLIC_COUNTRIES || "[]";
 const countries = JSON.parse(countriesString);
 const languagesString = process.env.NEXT_PUBLIC_LANGUAGES || "[]";
@@ -42,8 +43,21 @@ function getDefaultLocale(countryByIp) {
   };
   return localeENV;
 }
+async function _getCountryNameByIp(Ip) {
+  try {
+    const response = await fetch(`http://ip-api.com/json/${Ip}`);
+    const data = await response.json();
 
-export function middleware(request) {
+    console.log(Ip, data, "_getCountryNameByIp");
+
+    return data?.country;
+  } catch (error) {
+    console.error("Error fetching country name by IP:", error);
+    return null;
+  }
+}
+
+export async function middleware(request) {
   const { pathname, href } = request.nextUrl;
   let Ip = request.headers?.get("X-Forwarded-For");
   let countryByIp = request?.geo?.country?.toLowerCase();
@@ -53,10 +67,25 @@ export function middleware(request) {
   const curUrl = `${headersList.get("x-forwarded-proto")}://${headersList.get(
     "host"
   )}${pathname}`;
-  console.log(referer, curUrl, "request");
-  //   if (referer == curUrl) {
-  //     return Response.redirect(request.nextUrl);
-  //   }
+
+  const response = NextResponse.next();
+  const cookieStore = cookies();
+  const localization = cookieStore.get("country")?.value;
+  if (!localization && countryByIp) {
+    const countryByIpp = "jp";
+    const countryName = await _getCountryNameByIp(Ip);
+    const originCountryJSON = {
+      countryName,
+      country: countryByIp,
+      isSupported: countries.some(
+        (country) => countryByIp?.toLowerCase() === `${country.toLowerCase()}`
+      ),
+    };
+    response.cookies.set({
+      name: "origin-country",
+      value: JSON.stringify(originCountryJSON),
+    });
+  }
   console.log(Ip, countryByIp, "geo");
   const routePath = pathname.split("/")[1];
   const pathN = pathname.replace(routePath, "");
@@ -82,7 +111,7 @@ export function middleware(request) {
       ? country
       : getDefaultLocale(countryByIp).country;
     request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathname}`;
-    return Response.redirect(request.nextUrl);
+    return NextResponse.redirect(request.nextUrl);
   } else if (!hasLanguage || !hasCountry) {
     const lang = getLocale()?.language ?? "";
     const country = getLocale()?.country ?? "";
@@ -92,7 +121,6 @@ export function middleware(request) {
     const preferredCountry = countries.includes(country.toLowerCase())
       ? country
       : getDefaultLocale(countryByIp).country;
-    console.log(countries, routePath);
     if (!hasLanguage && !hasCountry) {
       request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}/${routePath}`;
     } else if (!hasLanguage && hasCountry) {
@@ -104,8 +132,9 @@ export function middleware(request) {
     }
     setLocaleCookies(request, preferredLang, preferredCountry);
 
-    return Response.redirect(request.nextUrl);
+    return NextResponse.redirect(request.nextUrl);
   }
+  return response;
 }
 function setLocaleCookies(request, lang, country) {
   request.cookies.set("language", lang);
