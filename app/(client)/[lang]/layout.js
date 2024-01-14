@@ -35,11 +35,11 @@ const sf_pro_rounded_medium = localFont({
   variable: "--SF-Pro-Rounded-Medium",
   display: "swap",
 });
-const icon_font = localFont({
-  src: "../../../public/fonts/NotoColorEmoji-Regular.ttf",
-  variable: "--icon-font",
-  display: "swap",
-});
+// const icon_font = localFont({
+//   src: "../../../public/fonts/NotoColorEmoji-Regular.ttf",
+//   variable: "--icon-font",
+//   display: "swap",
+// });
 const quicksand_regular = localFont({
   src: "../../../public/fonts/Quicksand-Regular.ttf",
   variable: "--Quicksand-Regular",
@@ -69,7 +69,6 @@ export default function RootLayout({ params: { lang }, children }) {
       ${sf_pro_rounded_regular.variable} 
       ${sf_pro_rounded_medium.variable}
       ${sf_pro_rounded_bold.variable}
-      ${icon_font.variable}
       ${quicksand_regular.variable}
       ${quicksand_light.variable}
       ${quicksand_medium.variable}
