@@ -33,7 +33,7 @@ function getDefaultLocale(countryByIp) {
     country:
       countryByIp &&
       countries.some(
-        (country) => countryByIp.toLowerCase() == `${country.toLowerCase()}-`
+        (country) => countryByIp.toLowerCase() == `${country.toLowerCase()}`
       )
         ? countryByIp
         : process.env.NEXT_PUBLIC_DEFAULT_COUNTRY,
@@ -75,7 +75,6 @@ export async function middleware(request) {
     const countryByIpp = "jp";
     const countryName = await _getCountryNameByIp(Ip);
     const originCountryJSON = {
-      countryName,
       country: countryByIp,
       isSupported: countries.some(
         (country) => countryByIp?.toLowerCase() === `${country.toLowerCase()}`
