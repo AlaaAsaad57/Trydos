@@ -46,91 +46,93 @@ html[lang="ar"] .login-label-text {
   margin-left: 0px !important;
   margin-right: 10px;
 }
-html[lang="ar"] .login-label.login-extend[aria-details="ar"],
-.login-qr-section[aria-details="ar"] {
+html[lang="ar"] .login-label.login-extend,
+.login-qr-section {
   align-items: flex-end !important;
 }
-html[lang="ar"] .login-qr-info-text[aria-details="ar"] {
+html[lang="ar"] .login-qr-info-text {
   margin-left: 0px;
   margin-right: 5px;
 }
-html[lang="ar"] .login-blue-question[aria-details="ar"] {
+html[lang="ar"] .login-blue-question {
   padding-left: 140px;
 }
-html[lang="ar"] .create-account-button .login-label[aria-details="ar"] {
+html[lang="ar"] .create-account-button .login-label {
   padding-right: 132px;
   justify-content: space-between;
   flex-direction: row-reverse;
   padding-left: 0px !important;
 }
-html[lang="ar"] .duartion-login-label[aria-details="ar"] {
+html[lang="ar"] .duartion-login-label {
   flex-direction: row-reverse;
 }
-html[lang="ar"] .duartion-login-label[aria-details="ar"] .blue-text {
+html[lang="ar"] .duartion-login-label .blue-text {
   margin-left: 0px;
   margin-right: 3px;
 }
-html[lang="ar"] .login-success-label[aria-details="ar"] {
+html[lang="ar"] .login-success-label {
   direction: rtl;
 }
-html[lang="ar"] .stories-bars[aria-details="ar"] {
+html[lang="ar"] .stories-bars {
   flex-direction: row-reverse !important;
   padding-right: 15px;
 }
-html[lang="ar"] .story-element-container[aria-details="ar"] {
+html[lang="ar"] .story-element-container {
   margin-left: 0px;
   margin-right: 5px;
 }
-html[lang="ar"] .story-element-container[aria-details="ar"]:first-child {
+html[lang="ar"] .story-element-container:first-child {
   margin-left: 0px;
   margin-right: 0px;
 }
-html[lang="ar"] .home-bar[aria-details="ar"] {
+html[lang="ar"] .home-bar {
   flex-direction: row-reverse;
   padding-right: 10px;
 }
-html[lang="ar"] .home-bar[aria-details="ar"] .bar-desc-column {
+html[lang="ar"] .home-bar .bar-desc-column {
   margin-left: 0px;
   margin-right: 5px;
   align-items: flex-end;
 }
-html[lang="ar"] .offer-container[aria-details="ar"] {
+html[lang="ar"] .offer-container {
   align-items: flex-end;
 }
-html[lang="ar"] .offer-container[aria-details="ar"] .offer-logo {
+html[lang="ar"] .offer-container .offer-logo {
   margin-left: 0px;
   margin-right: 25px;
 }
-html[lang="ar"] .offer-container[aria-details="ar"] .offer-category {
+html[lang="ar"] .offer-container .offer-category {
   left: 15px;
   right: initial;
 }
-html[lang="ar"] .offer-container[aria-details="ar"] .offer-desc {
+html[lang="ar"] .offer-desc {
   margin-left: 0px;
   margin-right: 25px;
   direction: rtl;
 }
-html[lang="ar"] .offer-container[aria-details="ar"] .offer-details {
+html[lang="ar"] .offer-container .offer-details {
   flex-direction: row-reverse;
 }
-html[lang="ar"]
-  .offer-container[aria-details="ar"]
-  .offer-details
-  .offer-details-item {
+html[lang="ar"] .offer-container .offer-details .offer-details-item {
   margin-left: 0px;
   margin-right: 25px;
 }
-html[lang="ar"] .quick-event-bar[aria-details="ar"] {
+html[lang="ar"] .quick-event-bar {
   flex-direction: row-reverse;
 }
-html[lang="ar"] .quick-event-bar[aria-details="ar"] .stopwatch-container {
+html[lang="ar"] .quick-event-bar .stopwatch-container {
   flex-direction: row-reverse;
   right: initial;
   left: 10px;
 }
-html[lang="ar"] .quick-event-bar[aria-details="ar"] .bar-desc-column {
+html[lang="ar"] .quick-event-bar .bar-desc-column {
   align-items: flex-end;
 }
-html[lang="ar"] .quick-event-bar[aria-details="ar"] .bar-desc {
+html[lang="ar"] .quick-event-bar .bar-desc {
   direction: rtl;
+}
+html[lang="ar"] .categories-bar-item:not(:first-child),
+html[lang="ar"] .categories-bar-container a:not(:first-child) {
+  margin-right: 30px;
+  margin-left: 0px;
 }

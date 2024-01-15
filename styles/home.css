@@ -100,10 +100,13 @@ body {
 }
 .hide-bar {
   max-width: 0px;
-  left: 411px;
+  left: 800px;
   height: 0px;
   z-index: -1;
   position: absolute;
+}
+.active-search {
+  margin: 0px !important;
 }
 .search-component-container input {
   outline: none;

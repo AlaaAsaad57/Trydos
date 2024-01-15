@@ -51,7 +51,7 @@ const CategoryNavItem = ({
     </Link>
   ) : (
     <div
-      className="categories-bar-item"
+      className={`categories-bar-item  ${searchEnabled && "active-search"}`}
       onClick={() => clickItem()}
       key={myKey}
     >
