@@ -56,9 +56,12 @@ const PopupCountry = ({ originCountry, setLocalization, localization }) => {
                 fixed flex-col gap-y-5 rounded-[20px] top-[10%]
                 flex text-center items-center justify-center px-4 py-8 bg-gray-100`}
       >
-        <span className="capitalize text-center font-bold text-dark text-base px-10">
+        <span
+          className="capitalize text-center font-bold text-dark text-base px-10"
+          style={{ color: "#000000ff" }}
+        >
           {countryName || "Your Country"}
-          <div className="font-medium text-red-500">
+          <div className="font-medium" style={{ color: "#f85555ff" }}>
             Is Not Supported In Our System
           </div>
         </span>

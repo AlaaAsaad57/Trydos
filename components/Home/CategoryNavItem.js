@@ -23,23 +23,16 @@ const CategoryNavItem = ({
   return (!searchEnabled || name === "Search") && name !== "Search" ? (
     <Link prefetch={false} href={`/${name}`}>
       <div
-        aria-details={language}
         className="categories-bar-item"
         onClick={() => clickItem()}
         key={myKey}
       >
         {!searchEnabled && (
-          <div aria-details={language} className="categories-bar-item-icon">
-            {icon}
-          </div>
+          <div className="categories-bar-item-icon">{icon}</div>
         )}
         {!searchEnabled && (
-          <div
-            aria-details={language}
-            className="categories-bar-item-description"
-          >
+          <div className="categories-bar-item-description">
             <div
-              aria-details={language}
               className="categories-bar-item-name"
               aria-labelledby={language + "-regular"}
             >
@@ -58,23 +51,14 @@ const CategoryNavItem = ({
     </Link>
   ) : (
     <div
-      aria-details={language}
       className="categories-bar-item"
       onClick={() => clickItem()}
       key={myKey}
     >
+      {!searchEnabled && <div className="categories-bar-item-icon">{icon}</div>}
       {!searchEnabled && (
-        <div aria-details={language} className="categories-bar-item-icon">
-          {icon}
-        </div>
-      )}
-      {!searchEnabled && (
-        <div
-          aria-details={language}
-          className="categories-bar-item-description"
-        >
+        <div className="categories-bar-item-description">
           <div
-            aria-details={language}
             className="categories-bar-item-name"
             aria-labelledby={language + "-regular"}
           >

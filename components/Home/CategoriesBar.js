@@ -17,18 +17,13 @@ function CategoriesBar({ forMobile, key }) {
 
   return (
     <div
-      aria-details={language}
       className={`categories-bar-container ${forMobile && "mobile-bar"}`}
       style={{ marginLeft: searchEnabled ? "13px" : "50px" }}
     >
       {categories.map((category, key) =>
         loading ? (
-          <div
-            className="categories-bar-item"
-            aria-details={language}
-            key={key}
-          >
-            <div className="categories-bar-item-icon" aria-details={language}>
+          <div className="categories-bar-item" key={key}>
+            <div className="categories-bar-item-icon">
               <Skeleton
                 duration={0.5}
                 count={1}

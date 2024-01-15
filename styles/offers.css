@@ -1,0 +1,259 @@
+.offers-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin-top: 25px;
+}
+.offer-widget {
+  width: 100%;
+  height: 54vw;
+  max-height: 766px;
+  max-height: 476px;
+  flex-direction: column;
+  min-height: 235px;
+  display: flex;
+  position: relative;
+  background-image: url("../public/images/Kids_BannerInteriorHalloween_2609.jpg");
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 169% 56vw;
+
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 3px 10px;
+  border-radius: 15px;
+  margin-top: 20px;
+}
+.offer-widget:first-child {
+  margin-top: 0px;
+}
+.offer-blured-background {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  background-color: rgba(250, 250, 250, 0.29);
+  height: 100%;
+  border-radius: 15px;
+  z-index: 1;
+}
+.offer-blured {
+  backdrop-filter: blur(19px) brightness(239%);
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  border-radius: 15px;
+  z-index: 1;
+  height: 100%;
+}
+.offer-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  overflow: hidden !important;
+  justify-content: flex-start;
+  z-index: 20;
+  padding-top: 15px;
+  flex-direction: column;
+}
+.offer-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 25px;
+}
+.offer-category {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  right: 15px;
+  top: 15px;
+}
+.offer-category svg {
+  margin-right: 4px;
+  transform: scale(0.6);
+}
+.offer-category svg:last-child {
+  margin-left: 0px;
+}
+.offer-desc {
+  display: flex;
+  align-items: center;
+  font-family: var(--Quicksand-Regular);
+  color: #505050;
+  font-size: 12px;
+  margin-left: 25px;
+  margin-top: 4px;
+}
+.offer-slider-container {
+  display: flex;
+  align-items: center;
+  margin-top: 9px;
+  justify-content: center;
+  margin-left: 3px;
+  height: 31.4vw;
+  width: 100%;
+  max-height: 342px;
+}
+.offer-slide-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+  width: 95%;
+  max-height: 342px;
+  height: 100%;
+}
+.offer-slide-item img {
+  width: 100%;
+  height: 100%;
+  border-radius: 15px;
+  object-fit: cover;
+  object-position: center;
+}
+.offer-avatars-container {
+  display: flex;
+  z-index: 9999;
+  align-items: flex-end;
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  bottom: 10%;
+  width: fit-content;
+}
+.offer-avatar {
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  transition: 0.3s;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  transform: translateX(-5px);
+  filter: drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.16));
+}
+.offer-avatr-inner-s {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  box-shadow: inset rgba(255, 255, 255, 0.5) 0px 4px 6px;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  z-index: 15;
+}
+.offer-more-s {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  box-shadow: inset rgba(255, 255, 255, 0.5) 0px 4px 6px;
+  position: absolute;
+  background-color: hsla(0, 0%, 0%, 0.6);
+  top: 0px;
+  z-index: 15;
+  left: 0px;
+}
+.offer-avatar div {
+  width: 100%;
+  height: 100%;
+}
+
+.offer-avatar-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 24px !important;
+  opacity: 0;
+  transition: 0.3s;
+  top: 39px;
+  padding-top: 4px;
+  position: absolute;
+  left: 0;
+  font-family: var(--Quicksand-Regular);
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+}
+.offer-avatar-info span:first-child {
+  color: rgba(146, 145, 145, 1);
+  font-size: 12px;
+  height: auto !important;
+}
+.offer-avatar-info span:not(:first-child) {
+  color: rgb(184, 184, 184);
+  font-size: 10px;
+  height: auto !important;
+}
+.offer-avatar > span {
+  font-family: var(--Quicksand-Regular);
+  width: 100%;
+  height: 100%;
+  font-size: 10px;
+  color: #ffffff;
+  position: absolute;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 0;
+  margin-bottom: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+.offer-avatar img {
+  object-position: center top;
+  object-fit: cover;
+  width: 100%;
+  height: 100% !important;
+}
+.offer-details {
+  display: flex;
+  width: 98%;
+  align-items: center;
+  justify-content: space-between;
+}
+.offer-details-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-left: 25px;
+}
+.offer-details-icon {
+  display: flex;
+}
+.offer-details-text {
+  display: flex;
+  align-items: center;
+  color: #505050;
+  font-family: var(--Quicksand-Regular);
+  font-size: 14px;
+}
+.offer-details-text span {
+  color: #505050;
+  margin-left: 5px;
+}
+.extended-widget .offer-slider-container {
+  max-height: 340px;
+}
+.extended-widget .offer-slider-container .offer-avatars-container {
+  bottom: 7% !important;
+}
+
+.offer-avatar:not(.hasMore).active-hover {
+  z-index: 999 !important;
+  margin-bottom: 15px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+.offer-avatar:not(.hasMore).active-hover .offer-avatar-info {
+  opacity: 1;
+}

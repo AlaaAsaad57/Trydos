@@ -89,7 +89,6 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
   }, [wrongNumber]);
   return (
     <div
-      aria-details={language}
       className="login-label-container"
       onClick={() => selectMethod()}
       style={{
@@ -102,7 +101,6 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
     >
       <Border height={stepHeight} />
       <div
-        aria-details={language}
         className="login-label login-extend"
         style={{
           height: `${stepHeight}px`,
@@ -111,23 +109,21 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
           justifyContent: "flex-start",
         }}
       >
-        <div aria-details={language} className="login-label-title">
+        <div className="login-label-title">
           <PhoneIcon className={selectedMethod && "active-login-icon"} />
           <div
-            aria-details={language}
             className="login-label-text"
             aria-labelledby={language + "-regular"}
           >
             {translate("By Mobile Phone Number", language)}
           </div>
         </div>
-        <div aria-details={language} className="login-qr-section">
+        <div className="login-qr-section">
           {selectedMethod && (
             <>
-              <div aria-details={language} className="login-qr-info">
+              <div className="login-qr-info">
                 <QuestionIcon style={{ transform: "scale(0.6666666)" }} />
                 <div
-                  aria-details={language}
                   className="login-qr-info-text"
                   aria-labelledby={language + "-light"}
                 >
@@ -138,7 +134,6 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                 </div>
               </div>
               <div
-                aria-details={language}
                 className="login-phone-element"
                 style={{
                   backgroundColor:
@@ -154,7 +149,7 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                     color={validNumber && "#4D84FF"}
                   />
                 )}
-                <div aria-details={language} className="phone-input-element">
+                <div className="phone-input-element">
                   <SolidPhoneIcon />
                   <span className="flag-icon">
                     {getCountry() &&
@@ -195,16 +190,14 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
           )}
         </div>
         {selectMethod && stepHeight === 282 && wrongNumber.length > 0 && (
-          <div aria-details={language} className="login-qr-section">
+          <div className="login-qr-section">
             <div
-              aria-details={language}
               className="signup-text"
               aria-labelledby={language + "-regular"}
             >
               {translate(wrongNumber, language)}
             </div>
             <div
-              aria-details={language}
               className="login-blue-text"
               aria-labelledby={language + "-light"}
             >
@@ -214,14 +207,9 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
         )}
         {stepHeight === 277 && (
           <>
-            <div
-              aria-details={language}
-              className="login-label-title"
-              style={{ marginTop: "28px" }}
-            >
+            <div className="login-label-title" style={{ marginTop: "28px" }}>
               <CheckedIcon style={{ marginTop: "2px" }} />
               <div
-                aria-details={language}
                 className="login-label-text"
                 aria-labelledby={language + "-regular"}
                 style={{ fontSize: "12px" }}
@@ -229,25 +217,20 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                 {translate("Choose The Verification Method", language)}
               </div>
             </div>
-            <div aria-details={language} className="login-qr-section">
+            <div className="login-qr-section">
               {selectedMethod && (
                 <>
-                  <div aria-details={language} className="login-qr-info">
+                  <div className="login-qr-info">
                     <QuestionIcon style={{ transform: "scale(0.6666666)" }} />
                     <div
-                      aria-details={language}
                       className="login-qr-info-text"
                       aria-labelledby={language + "-light"}
                     >
                       {translate("Send Verification Code To", language)}
                     </div>
                   </div>
-                  <div
-                    aria-details={language}
-                    className="login-qr-section message-recieve-options"
-                  >
+                  <div className="login-qr-section message-recieve-options">
                     <div
-                      aria-details={language}
                       className="message-recieve-option"
                       onClick={() => {
                         setMessageMethod("WA");
@@ -257,7 +240,7 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                         });
                       }}
                     >
-                      <div aria-details={language} className="border-option">
+                      <div className="border-option">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="170"
@@ -293,7 +276,6 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                       </div>
                       <WAIcon style={{ left: "34px", top: "17px" }} />
                       <div
-                        aria-details={language}
                         className="message-recieve-option-text"
                         aria-labelledby={language + "-regular"}
                       >
@@ -301,7 +283,6 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                       </div>
                     </div>
                     <div
-                      aria-details={language}
                       className="message-recieve-option"
                       onClick={() => {
                         setMessageMethod("SMS");
@@ -311,7 +292,7 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                         });
                       }}
                     >
-                      <div aria-details={language} className="border-option">
+                      <div className="border-option">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="170"
@@ -347,7 +328,6 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                       </div>
                       <MessageIcon style={{ left: "48px", top: "17px" }} />
                       <div
-                        aria-details={language}
                         className="message-recieve-option-text"
                         aria-labelledby={language + "-regular"}
                       >
@@ -362,18 +342,13 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
         )}
         {stepHeight >= 287 && (
           <>
-            <div
-              aria-details={language}
-              className="login-label-title"
-              style={{ marginTop: "28px" }}
-            >
+            <div className="login-label-title" style={{ marginTop: "28px" }}>
               {MessageMethod === "SMS" ? (
                 <MessageIcon style={{ marginTop: "2px" }} />
               ) : (
                 <WAIcon style={{ marginTop: "2px" }} />
               )}
               <div
-                aria-details={language}
                 className="login-label-text"
                 aria-labelledby={language + "-regular"}
                 style={{ fontSize: "12px" }}
@@ -384,13 +359,12 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                 )}
               </div>
             </div>
-            <div aria-details={language} className="login-qr-section">
+            <div className="login-qr-section">
               {selectedMethod && (
                 <>
-                  <div aria-details={language} className="login-qr-info">
+                  <div className="login-qr-info">
                     <QuestionIcon style={{ transform: "scale(0.6666666)" }} />
                     <div
-                      aria-details={language}
                       className="login-qr-info-text duartion-login-label"
                       aria-labelledby={language + "-light"}
                     >
@@ -411,7 +385,7 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                 </>
               )}
             </div>
-            <div aria-details={language} className="login-qr-section">
+            <div className="login-qr-section">
               <PinInputs
                 onFailedLogin={() => setStepHeight(416)}
                 rerender={rerender}
@@ -427,12 +401,10 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
         )}
         {stepHeight === 416 && (
           <div
-            aria-details={language}
             className="login-qr-section"
             style={{ marginTop: "18px", alignItems: "center" }}
           >
             <div
-              aria-details={language}
               className="login-light-label"
               aria-labelledby={language + "-light"}
             >
@@ -442,23 +414,20 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
               )}
             </div>
             <div
-              aria-details={language}
               className="login-attempt"
               aria-labelledby={language + "-medium"}
             >
               {translate("You Have", language)} {attempts}{" "}
               {translate("Attempts", language)}
             </div>
-            <div aria-details={language} className="login-change-method">
+            <div className="login-change-method">
               <div
-                aria-details={language}
                 className="method-change-label"
                 aria-labelledby={language + "-light"}
               >
                 {translate("Didn`t You Receive A Code?", language)}
               </div>
               <div
-                aria-details={language}
                 className="method-change-anchor"
                 aria-labelledby={language + "-regular"}
                 onClick={() => {

@@ -91,7 +91,7 @@ function Index() {
             strokeDasharray="3 3"
           />
         </svg>
-        <div className="stories-bars" aria-details={language}>
+        <div className="stories-bars">
           <AddStory />
           {loading &&
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1].map(

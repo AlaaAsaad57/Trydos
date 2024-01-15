@@ -74,7 +74,7 @@ export default function RootLayout({ params: { lang }, children }) {
       ${quicksand_medium.variable}
       ${quicksand_bold.variable}
       font-sans`}
-      lang={lang}
+      lang={lang.split("-")[1]}
     >
       <link rel="icon" href="/favicon.ico" sizes="any" />
       <body>

@@ -55,7 +55,7 @@
     position: absolute;
     opacity: 0;
     display: flex;
-    color: rgb(248, 85, 85);
+    color: rgb(248, 85, 85, 1);
     font-size: 14px;
     margin-left: 5px;
     cursor: pointer;
@@ -128,7 +128,5 @@
   align-items: center;
   width: 100%;
 }
-.home-navbar[aria-details="ar"] {
-  flex-direction: row-reverse;
-}
+
 /* purgecss end ignore */

@@ -74,18 +74,13 @@ function PinInputs({
     }
   }, [user, failedLogin]);
   return (
-    <div aria-details={language} className="pin-inputs-container">
-      <div
-        aria-details={language}
-        className="pin-border-container"
-        style={{ zIndex: "1" }}
-      >
+    <div className="pin-inputs-container">
+      <div className="pin-border-container" style={{ zIndex: "1" }}>
         {Array(6)
           .fill(1)
           .map((e, index) => (
             <div
               key={index}
-              aria-details={language}
               className={
                 "pin-border-element" +
                 " " +

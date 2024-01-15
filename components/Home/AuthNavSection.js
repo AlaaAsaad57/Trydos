@@ -14,7 +14,6 @@ function AuthNavSection() {
     <>
       {!loading && (
         <div
-          aria-details={language}
           className="nav-question-item"
           style={{ marginRight: "30px", marginLeft: "0px" }}
           onClick={() => {
@@ -25,7 +24,6 @@ function AuthNavSection() {
         </div>
       )}
       <div
-        aria-details={language}
         className="nav-question-item"
         style={{ marginRight: "20px", marginLeft: "0px" }}
         onClick={() => {
@@ -35,7 +33,6 @@ function AuthNavSection() {
         <CartIcon />
       </div>
       <div
-        aria-details={language}
         className="welcome-user"
         aria-labelledby={language + "-medium"}
         style={{ marginRight: "12px", marginLeft: "0px" }}

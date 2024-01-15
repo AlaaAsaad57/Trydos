@@ -22,7 +22,7 @@ const NormalWidget = ({ offer, myKey, onClick }) => {
     >
       <div className="offer-blured-background" />
       <div className="offer-blured" />
-      <div className="offer-container" aria-details={language}>
+      <div className="offer-container">
         <div className="offer-logo">
           <LogoOffer />
         </div>
