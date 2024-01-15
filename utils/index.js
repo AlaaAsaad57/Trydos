@@ -32,10 +32,10 @@ export function LocalizationProvider({ lang, children }) {
       if (typeof window !== "undefined") {
         localStorage.setItem("localization", JSON.stringify(localization));
       }
-      Cookies.set("language", JSON.stringify(localization.language), {
+      Cookies.set("language", localization.language, {
         expires: new Date(2147483647 * 1000),
       });
-      Cookies.set("country", JSON.stringify(localization.country), {
+      Cookies.set("country", localization.country, {
         expires: new Date(2147483647 * 1000),
       });
     }
