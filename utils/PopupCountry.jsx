@@ -65,7 +65,11 @@ const PopupCountry = ({ originCountry, setLocalization, localization }) => {
             Is Not Supported In Our System
           </div>
         </span>
+        <label htmlFor="country" className="no-label">
+          country
+        </label>
         <select
+          id="country"
           value={selectedCountry}
           onChange={(e) => {
             setSelectedCountry(e.target.value);

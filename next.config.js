@@ -21,6 +21,7 @@ const nextConfig = withSvgr({
     });
     return config;
   },
+  minify: true,
   // your config for other plugins or the general next.js here...
 });
 const sentryWebpackPluginOptions = {

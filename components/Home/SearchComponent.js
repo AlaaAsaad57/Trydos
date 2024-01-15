@@ -43,7 +43,7 @@ function SearchComponent({ searchEnabled, close }) {
       <SearchIcon />
       <Divider style={{ marginLeft: "10px" }} />
       <label htmlFor="searchChat" className="no-label">
-        Search
+        Search Chat
       </label>
       <input
         id="searchChat"
