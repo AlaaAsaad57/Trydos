@@ -24,9 +24,6 @@ export const RegisterDevice = async () => {
   } catch (e) {}
 };
 export const changeAppLanguage = (language) => {
-  EventTrack("change-language", {
-    language: language,
-  });
   Cookies.set("language", language);
   changeAppLanguageServer(language);
   return { type: "APP-LANGUAGE", payload: language };

@@ -5,7 +5,6 @@ import CartIcon from "public/svg/CartIcon.svg";
 import { translate } from "utils/functions";
 import UserAvatar from "./UserAvatar";
 import { ChatConroller } from "store/chat/actions";
-import { EventTrack } from "store/homepage/actions";
 function AuthNavSection() {
   const language = useSelector((state) => state.homepage.language);
   const loading = useSelector((state) => state.chat.loading);
@@ -20,7 +19,6 @@ function AuthNavSection() {
           style={{ marginRight: "30px", marginLeft: "0px" }}
           onClick={() => {
             dispatch(ChatConroller(true));
-            EventTrack("chat-opened", null);
           }}
         >
           <ChatIcon />
@@ -32,7 +30,6 @@ function AuthNavSection() {
         style={{ marginRight: "20px", marginLeft: "0px" }}
         onClick={() => {
           dispatch(ChatConroller(true));
-          EventTrack("cart-opened", null);
         }}
       >
         <CartIcon />

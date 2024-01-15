@@ -1,6 +1,6 @@
 "use client";
 import { Provider } from "react-redux";
-import { index } from "./index";
+import { store } from "./index";
 import TranslationsMenu from "components/global/TranslationsMenu";
 import Navbar from "components/Home/Navbar";
 const ChatModal = dynamic(() => import("components/Chat/ChatModal"), {
@@ -45,7 +45,7 @@ export default function Providers({ lang, children }) {
   return (
     <>
       {SSRDetect() && <GAComponent />}
-      <Provider store={index}>
+      <Provider store={store}>
         <div className="site-container">
           <div className="home-page-container">
             <TranslationsMenu init={lang} />
