@@ -33,8 +33,7 @@ const CategoryNavItem = ({
         {!searchEnabled && (
           <div className="categories-bar-item-description">
             <div
-              className="categories-bar-item-name"
-              aria-labelledby={language + "-regular"}
+              className={`categories-bar-item-name ${language + "-regular"}`}
             >
               {translate(name, language)}
             </div>
@@ -58,10 +57,7 @@ const CategoryNavItem = ({
       {!searchEnabled && <div className="categories-bar-item-icon">{icon}</div>}
       {!searchEnabled && (
         <div className="categories-bar-item-description">
-          <div
-            className="categories-bar-item-name"
-            aria-labelledby={language + "-regular"}
-          >
+          <div className={`categories-bar-item-name ${language + "-regular"}`}>
             {translate(name, language)}
           </div>
           <NavIcon />

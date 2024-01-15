@@ -1,12 +1,12 @@
-* [aria-labelledby="en-regular"] {
+.en-regular {
   font-family: var(--SF-Pro-Rounded-Regular);
 }
-* [aria-labelledby="en-light"] {
+.en-light {
   font-family: var(--SF-Pro-Rounded-Light);
 }
-* [aria-labelledby="en-medium"] {
+.en-medium {
   font-family: var(--SF-Pro-Rounded-Medium);
 }
-* [aria-labelledby="en-semibold"] {
+.en-semibold {
   font-family: var(--SF-Pro-Rounded-semibold);
 }

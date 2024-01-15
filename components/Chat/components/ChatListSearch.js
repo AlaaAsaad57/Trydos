@@ -16,8 +16,13 @@ function ChatListSearch(props) {
   const language = useSelector((state) => state.homepage.language);
 
   return (
-    <div className="chat-window-search-holder" aria-label={language}>
+    <div className="chat-window-search-holder">
+      <label htmlFor="search" className="no-label">
+        Search
+      </label>
       <input
+        aria-label="Search"
+        id="search"
         onChange={(e) => SearchContacts(e.target.value)}
         placeholder={translate(
           "Search, Chat, Contact, Start New Chat",

@@ -31,10 +31,7 @@ function LoginQR({ selectedMethod, selectMethod }) {
       >
         <div className="login-label-title">
           <ScanIcon className={selectedMethod && "active-login-icon"} />
-          <div
-            className="login-label-text"
-            aria-labelledby={language + "-regular"}
-          >
+          <div className={`${language + "-regular"}  login-label-text`}>
             {translate("By Scan Qr From Trydos App", language)}
           </div>
         </div>
@@ -43,10 +40,7 @@ function LoginQR({ selectedMethod, selectMethod }) {
             <>
               <div className="login-qr-info">
                 <QuestionIcon style={{ transform: "scale(0.6666666)" }} />
-                <div
-                  className="login-qr-info-text"
-                  aria-labelledby={language + "-light"}
-                >
+                <div className={`${language + "-light"}  login-qr-info-text`}>
                   {translate(
                     "Scan This Qr Code From You Trydos App In Your Phone",
                     language

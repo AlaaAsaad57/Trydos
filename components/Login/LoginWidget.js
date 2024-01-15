@@ -26,10 +26,7 @@ function LoginWidget({ close, loginSuccessVar, setLoginSucces }) {
             <div className="login-label">
               <div className="login-label-title">
                 <LoginIcon />
-                <div
-                  className="login-label-text"
-                  aria-labelledby={language + "-medium"}
-                >
+                <div className={`${language + "-medium"}  login-label-text`}>
                   {translate("Login", language)}
                 </div>
               </div>
@@ -60,10 +57,7 @@ function LoginWidget({ close, loginSuccessVar, setLoginSucces }) {
               setLoginMethod("phone");
             }}
           />
-          <div
-            className="login-blue-question"
-            aria-labelledby={language + "-light"}
-          >
+          <div className={`${language + "-regular"}  login-blue-question`}>
             {translate("Don’t Have Account?", language)}
           </div>
           <div
@@ -75,10 +69,7 @@ function LoginWidget({ close, loginSuccessVar, setLoginSucces }) {
             <div className="login-label">
               <div className="login-label-title">
                 <AccountIcon />
-                <div
-                  className="login-label-text"
-                  aria-labelledby={language + "-regular"}
-                >
+                <div className={`${language + "-regular"}  login-label-text`}>
                   {translate("Create New Account", language)}
                 </div>
               </div>

@@ -33,12 +33,11 @@ function AuthNavSection() {
         <CartIcon />
       </div>
       <div
-        className="welcome-user"
-        aria-labelledby={language + "-medium"}
+        className={`welcome-user ${language + "-medium"}`}
         style={{ marginRight: "12px", marginLeft: "0px" }}
       >
         {translate("Hello", language)} <span>,</span>{" "}
-        <span aria-labelledby={language + "-light"}>{user?.name}</span>
+        <span className={`${language + "-light"}`}>{user?.name}</span>
       </div>
       <UserAvatar avatar={user?.avatar} />
     </>

@@ -1117,7 +1117,11 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
                 height={"40"}
               ></PlusIcon>
               <div className="input-chat-container">
+                <label htmlFor="type" className="no-label">
+                  Type
+                </label>
                 <input
+                  id="type"
                   onFocus={() => {
                     sendStatues("Typing...");
                   }}

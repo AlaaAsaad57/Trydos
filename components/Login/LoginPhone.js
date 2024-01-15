@@ -111,10 +111,7 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
       >
         <div className="login-label-title">
           <PhoneIcon className={selectedMethod && "active-login-icon"} />
-          <div
-            className="login-label-text"
-            aria-labelledby={language + "-regular"}
-          >
+          <div className={`${language + "-regular"} login-label-text`}>
             {translate("By Mobile Phone Number", language)}
           </div>
         </div>
@@ -123,10 +120,7 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
             <>
               <div className="login-qr-info">
                 <QuestionIcon style={{ transform: "scale(0.6666666)" }} />
-                <div
-                  className="login-qr-info-text"
-                  aria-labelledby={language + "-light"}
-                >
+                <div className={`${language + "-light"} login-qr-info-text`}>
                   {translate(
                     "Enter Your Phone Number Registered With Us",
                     language
@@ -159,7 +153,11 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                   <span className="plus-icon-phone" ar>
                     +
                   </span>
+                  <label htmlFor="phone" className="no-label">
+                    Search
+                  </label>
                   <input
+                    id="phone"
                     disabled={stepHeight > 152}
                     onChange={(e) => handleInput(e)}
                     className="login-phone-input"
@@ -191,16 +189,10 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
         </div>
         {selectMethod && stepHeight === 282 && wrongNumber.length > 0 && (
           <div className="login-qr-section">
-            <div
-              className="signup-text"
-              aria-labelledby={language + "-regular"}
-            >
+            <div className={`${language + "-regular"} signup-text`}>
               {translate(wrongNumber, language)}
             </div>
-            <div
-              className="login-blue-text"
-              aria-labelledby={language + "-light"}
-            >
+            <div className={`${language + "-light"}  login-blue-text`}>
               {translate("Register With Us In A Few Simple Steps", language)}
             </div>
           </div>
@@ -210,8 +202,7 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
             <div className="login-label-title" style={{ marginTop: "28px" }}>
               <CheckedIcon style={{ marginTop: "2px" }} />
               <div
-                className="login-label-text"
-                aria-labelledby={language + "-regular"}
+                className={`${language + "-regular"}  login-label-text`}
                 style={{ fontSize: "12px" }}
               >
                 {translate("Choose The Verification Method", language)}
@@ -223,8 +214,7 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                   <div className="login-qr-info">
                     <QuestionIcon style={{ transform: "scale(0.6666666)" }} />
                     <div
-                      className="login-qr-info-text"
-                      aria-labelledby={language + "-light"}
+                      className={`${language + "-light"}  login-qr-info-text`}
                     >
                       {translate("Send Verification Code To", language)}
                     </div>
@@ -276,8 +266,9 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                       </div>
                       <WAIcon style={{ left: "34px", top: "17px" }} />
                       <div
-                        className="message-recieve-option-text"
-                        aria-labelledby={language + "-regular"}
+                        className={`message-recieve-option-text ${
+                          language + "-regular"
+                        } `}
                       >
                         {translate("WhatsApp", language)}
                       </div>
@@ -328,8 +319,9 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                       </div>
                       <MessageIcon style={{ left: "48px", top: "17px" }} />
                       <div
-                        className="message-recieve-option-text"
-                        aria-labelledby={language + "-regular"}
+                        className={`${
+                          language + "-regular"
+                        }  message-recieve-option-text`}
                       >
                         {translate("SMS", language)}
                       </div>
@@ -349,8 +341,7 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                 <WAIcon style={{ marginTop: "2px" }} />
               )}
               <div
-                className="login-label-text"
-                aria-labelledby={language + "-regular"}
+                className={`${language + "-regular"}  login-label-text`}
                 style={{ fontSize: "12px" }}
               >
                 {translate(
@@ -365,14 +356,12 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                   <div className="login-qr-info">
                     <QuestionIcon style={{ transform: "scale(0.6666666)" }} />
                     <div
-                      className="login-qr-info-text duartion-login-label"
-                      aria-labelledby={language + "-light"}
+                      className={`${
+                        language + "-light"
+                      }  login-qr-info-text duartion-login-label`}
                     >
                       {translate("You Can Resend The Code After", language)}
-                      <span
-                        className="blue-text"
-                        aria-labelledby={language + "-semibold"}
-                      >
+                      <span className={`${language + "-semibold"}  blue-text`}>
                         <Timer
                           onResume={() => setDisabled(false)}
                           onFinish={() => {
@@ -404,32 +393,22 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
             className="login-qr-section"
             style={{ marginTop: "18px", alignItems: "center" }}
           >
-            <div
-              className="login-light-label"
-              aria-labelledby={language + "-light"}
-            >
+            <div className={`login-light-label ${language + "-light"} `}>
               {translate(
                 "Please Enter The Correct Code Sent To Your Phone",
                 language
               )}
             </div>
-            <div
-              className="login-attempt"
-              aria-labelledby={language + "-medium"}
-            >
+            <div className={`${language + "-medium"}  login-attempt`}>
               {translate("You Have", language)} {attempts}{" "}
               {translate("Attempts", language)}
             </div>
             <div className="login-change-method">
-              <div
-                className="method-change-label"
-                aria-labelledby={language + "-light"}
-              >
+              <div className={` ${language + "-light"} method-change-label`}>
                 {translate("Didn`t You Receive A Code?", language)}
               </div>
               <div
-                className="method-change-anchor"
-                aria-labelledby={language + "-regular"}
+                className={`${language + "-regular"}  method-change-anchor`}
                 onClick={() => {
                   setStepHeight(277);
                 }}

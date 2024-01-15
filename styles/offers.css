@@ -257,3 +257,6 @@
 .offer-avatar:not(.hasMore).active-hover .offer-avatar-info {
   opacity: 1;
 }
+.no-label {
+  display: none !important;
+}

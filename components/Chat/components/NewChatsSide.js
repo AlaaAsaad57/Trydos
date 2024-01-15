@@ -8,7 +8,7 @@ function NewChatsSide({ activeChat, chats }) {
   const dispatch = useDispatch();
   const language = useSelector((state) => state.homepage.language);
   return (
-    <div className="new-chats" aria-label={language}>
+    <div className="new-chats">
       {activeChat &&
         activeChat?.id &&
         getNew(chats, activeChat)

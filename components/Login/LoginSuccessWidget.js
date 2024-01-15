@@ -20,10 +20,7 @@ function LoginSuccessWidget({ close }) {
         <Border height={287} width={390} />
         <div className="login-label login-success-container">
           <LoginSuccessIcon />
-          <div
-            className="login-success-label"
-            aria-labelledby={language + "-regular"}
-          >
+          <div className={`${language + "-regular"}  login-success-label`}>
             {translate("Welcome", language)} {user?.name}
           </div>
         </div>

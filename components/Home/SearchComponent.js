@@ -42,8 +42,12 @@ function SearchComponent({ searchEnabled, close }) {
     >
       <SearchIcon />
       <Divider style={{ marginLeft: "10px" }} />
+      <label htmlFor="searchChat" className="no-label">
+        Search
+      </label>
       <input
-        aria-labelledby={language + "-light"}
+        id="searchChat"
+        className={`${language + "-light"}`}
         ref={inputRef}
         value={searchValue || ""}
         onChange={(e) => setSearchValue(e.target.value)}

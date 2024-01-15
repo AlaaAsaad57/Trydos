@@ -29,20 +29,20 @@ function UserNavTopSection({ loginOpen, openLogin }) {
       )}
       {!user && (
         <>
-          <div className="welcome-user" aria-labelledby={language + "-medium"}>
-            <span aria-labelledby={language + "-medium"}>
+          <div className={`welcome-user ${language + "-medium"}`}>
+            <span className={`${language + "-medium"}`}>
               {" "}
               {translate("Hello", language)}{" "}
             </span>
-            <span aria-labelledby={language + "-medium"}>,</span>{" "}
-            <span aria-labelledby={language + "-light"}>
+            <span className={`${language + "-medium"}`}>,</span>{" "}
+            <span className={`${language + "-light"}`}>
               {translate("Welcome", language)}
             </span>
           </div>
           <div className="nav-question-item">
             <QuestionIcon />
             <span
-              aria-labelledby={language + "-light"}
+              className={`${language + "-light"}`}
               style={{
                 display: "flex",
                 color: "#f85555ff",
@@ -60,7 +60,7 @@ function UserNavTopSection({ loginOpen, openLogin }) {
           <div className="nav-question-item" onClick={() => openLogin(true)}>
             <LoginIcon />
             <span
-              aria-labelledby={language + "-regular"}
+              className={`${language + "-regular"}`}
               style={{
                 display: "flex",
                 color: "#707070",
