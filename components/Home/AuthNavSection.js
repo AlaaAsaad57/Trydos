@@ -5,7 +5,6 @@ import CartIcon from "public/svg/CartIcon.svg";
 import { translate } from "utils/functions";
 import UserAvatar from "./UserAvatar";
 import { ChatConroller } from "store/chat/actions";
-import Smartlook from "smartlook-client";
 import { EventTrack } from "store/homepage/actions";
 function AuthNavSection() {
   const language = useSelector((state) => state.homepage.language);

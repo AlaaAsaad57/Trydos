@@ -1,12 +1,9 @@
 "use client";
 import Script from "next/script";
 import React, { useEffect } from "react";
-import { SmartLookInit } from "utils/constants";
 
 function GAComponent() {
-  useEffect(() => {
-    SmartLookInit();
-  }, []);
+  useEffect(() => {}, []);
   let GA_MEASUREMENT_ID = "G-EK7TKN11PV";
   return (
     <>

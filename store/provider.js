@@ -8,8 +8,6 @@ const ChatModal = dynamic(() => import("components/Chat/ChatModal"), {
 });
 import { useEffect, useState } from "react";
 import { SSRDetect, getUserChat } from "utils/functions";
-import { SmartLookInit } from "utils/constants";
-import Smartlook from "smartlook-client";
 import {
   RegisterDevice,
   StopTracking,
@@ -39,19 +37,6 @@ export default function Providers({ lang, children }) {
         prefered_language: Cookies.get("language"),
       });
     }, 2000);
-    if (SSRDetect())
-      window.onbeforeunload = function () {
-        StopTracking();
-      };
-    SmartLookInit();
-
-    if (SSRDetect() && getUserChat())
-      Smartlook.identify(getUserChat().id, getUserChat());
-    else
-      SSRDetect() &&
-        Smartlook.identify(parseInt(1000 * Math.random()), {
-          agent: window.navigator.userAgent,
-        });
     setTimeout(() => {
       RegisterDevice();
       CheckLogin();
