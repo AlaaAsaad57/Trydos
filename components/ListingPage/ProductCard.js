@@ -10,6 +10,7 @@ import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";
 import axios from "axios";
 import { LISTING_INFO_URL, OTP_URL } from "utils/endpointConfig";
+import { GetMainData, LogData } from "store/homepage/actions";
 function ProductCard({
   Listing_Data_res,
   HomeData_res,
