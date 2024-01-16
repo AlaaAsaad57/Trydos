@@ -33,7 +33,7 @@ export const requestFirebaseNotificationPermission = async () => {
       }
     })
     .catch((err) => {
-      console.error(err);
+      // console.error(err);
       // catch error while creating client token
     });
 };
