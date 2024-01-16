@@ -18,6 +18,7 @@ function OfferAvatar({ images, zIndex }) {
       <Image
         loading="eager"
         src={images}
+        priority={true}
         alt="avatar"
         width={40}
         height={40}

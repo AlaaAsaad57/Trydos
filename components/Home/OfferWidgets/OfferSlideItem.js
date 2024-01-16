@@ -13,6 +13,7 @@ function OfferSlideItem({ isSingle }) {
         <Image
           loading="eager"
           id={id}
+          priority={true}
           className="OfferImage"
           src={OfferImage}
           width={360}
