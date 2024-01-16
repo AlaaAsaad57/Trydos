@@ -186,6 +186,9 @@ function VideoCall(props) {
     <>
       {
         <div className="video-call">
+          {minutes >= 25 && (
+            <div className="call-warn">Call End in {30 - minutes}</div>
+          )}
           {props.audio && !users.length > 0 && !callStatus && (
             <audio
               onLoad={(e) => {
