@@ -14,26 +14,31 @@ const sf_pro_rounded_bold = localFont({
   src: "../../../public/fonts/FontsFree-Net-SF-Pro-Rounded-Bold.ttf",
   variable: "--SF-Pro-Rounded-Bold",
   display: "swap",
+  preload: false,
 });
 const sf_pro_rounded_light = localFont({
   src: "../../../public/fonts/FontsFree-Net-SF-Pro-Rounded-Light.ttf",
   variable: "--SF-Pro-Rounded-Light",
   display: "swap",
+  preload: false,
 });
 const sf_pro_rounded_semibold = localFont({
   src: "../../../public/fonts/FontsFree-Net-SF-Pro-Rounded-Semibold.ttf",
   variable: "--SF-Pro-Rounded-semibold",
   display: "swap",
+  preload: false,
 });
 const sf_pro_rounded_regular = localFont({
   src: "../../../public/fonts/SF-Pro-Rounded.ttf",
   variable: "--SF-Pro-Rounded-Regular",
   display: "swap",
+  preload: false,
 });
 const sf_pro_rounded_medium = localFont({
   src: "../../../public/fonts/FontsFree-Net-SF-Pro-Rounded-Medium.ttf",
   variable: "--SF-Pro-Rounded-Medium",
   display: "swap",
+  preload: false,
 });
 // const icon_font = localFont({
 //   src: "../../../public/fonts/NotoColorEmoji-Regular.ttf",
@@ -44,21 +49,25 @@ const quicksand_regular = localFont({
   src: "../../../public/fonts/Quicksand-Regular.ttf",
   variable: "--Quicksand-Regular",
   display: "swap",
+  preload: false,
 });
 const quicksand_light = localFont({
   src: "../../../public/fonts/Quicksand-Light.ttf",
   variable: "--Quicksand-Light",
   display: "swap",
+  preload: false,
 });
 const quicksand_bold = localFont({
   src: "../../../public/fonts/Quicksand-Bold.ttf",
   variable: "--Quicksand-Bold",
   display: "swap",
+  preload: false,
 });
 const quicksand_medium = localFont({
   src: "../../../public/fonts/Quicksand-Medium.ttf",
   variable: "--Quicksand-Medium",
   display: "swap",
+  preload: false,
 });
 export default function RootLayout({ params: { lang }, children }) {
   return (

@@ -19,7 +19,7 @@ function TypingIndicator() {
           transform="translate(1012 313)"
           fill="#007cff"
           font-size="10"
-          font-family="var(--SF-Pro-Rounded-Regular)"
+          font-family="var(--SF-Pro-Rounded-Regular) sans-serif"
           letter-spacing="0.01em"
         >
           <tspan x="0" y="0">

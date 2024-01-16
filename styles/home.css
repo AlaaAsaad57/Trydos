@@ -283,7 +283,7 @@ body {
 .flag-icon {
   min-width: 22px;
   height: 15px;
-  font-family: var(--icon-font);
+  font-family: var(--icon-font) sans-serif;
   align-items: center;
   display: flex;
   margin-left: 20px;
@@ -296,7 +296,7 @@ body {
   margin-left: 4px;
   color: #707070;
   font-size: 14px;
-  font-family: var(--SF-Pro-Rounded-Regular);
+  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
 }
 .phone-input-element {
   display: flex;
@@ -311,7 +311,7 @@ body {
   color: #8e8e8e;
   margin-left: 7px;
   display: flex;
-  font-family: var(--SF-Pro-Rounded-Regular);
+  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
 }
 .phone-arrow {
   position: absolute;
@@ -783,7 +783,7 @@ body {
   text-align: center;
   justify-content: center;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular);
+  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
   color: #ffffff;
   z-index: 12;
   letter-spacing: 0.003;
@@ -812,13 +812,13 @@ body {
 .bar-name {
   display: flex;
   font-size: 14px;
-  font-family: var(--Quicksand-Medium);
+  font-family: var(--Quicksand-Medium) sans-serif;
   color: #3c3c3c;
 }
 .bar-desc {
   display: flex;
   font-size: 10px;
-  font-family: var(--Quicksand-Regular);
+  font-family: var(--Quicksand-Regular) sans-serif;
   color: #505050;
 }
 
@@ -880,7 +880,7 @@ body {
   border-radius: 15px;
 }
 span.bold-text {
-  font-family: var(--Quicksand-Bold);
+  font-family: var(--Quicksand-Bold) sans-serif;
 }
 .quick-widget {
   height: 64vw !important;
@@ -919,7 +919,7 @@ span.bold-text {
   margin-left: 5px;
 }
 .stopwatch-container span {
-  font-family: var(--SF-Pro-Rounded-Medium);
+  font-family: var(--SF-Pro-Rounded-Medium) sans-serif;
   font-size: 16px;
   color: #3c3c3c;
   margin-left: 2px;
@@ -935,7 +935,7 @@ span.bold-text {
   color: #ffffcc;
   letter-spacing: 0.025em;
   font-size: 14px;
-  font-family: var(--SF-Pro-Rounded-Medium);
+  font-family: var(--SF-Pro-Rounded-Medium) sans-serif;
   display: flex;
 }
 .number-holder:first-child {
