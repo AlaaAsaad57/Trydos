@@ -1,6 +1,5 @@
 import React from "react";
 import OfferImage from "../../../public/images/Kids_BannerInteriorHalloween_2609.WEBP";
-import OfferAvatars from "./OfferAvatars";
 import BorderImage from "./BorderImage";
 import Image from "next/image";
 import { getId } from "utils/functions";

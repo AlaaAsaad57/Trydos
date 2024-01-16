@@ -404,6 +404,7 @@ function ChatMessage(props) {
                 </div>
               )}
               <img
+                alt="user"
                 onClick={() =>
                   setImg(
                     props.message.type ||
@@ -1704,6 +1705,7 @@ function ChatMessage(props) {
                 </div>
               )}
               <img
+                alt="user"
                 onClick={() =>
                   setImg(
                     props.message.type ||

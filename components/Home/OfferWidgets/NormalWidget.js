@@ -3,6 +3,7 @@ import LogoOffer from "public/svg/offerlogo.svg";
 import ManIcon from "public/svg/manIcon.svg";
 import WomanIcon from "public/svg/WomanIcon.svg";
 import OfferPhotosSlider from "./OfferPhotosSlider";
+import OfferImage from "../../../public/images/Kids_BannerInteriorHalloween_2609.WEBP";
 import KidsIcon from "public/svg/KidsIcon.svg";
 import OfferSlideItem from "./OfferSlideItem";
 import { useSelector } from "react-redux";
@@ -10,6 +11,7 @@ import { translate } from "utils/functions";
 import OfferAvatars from "./OfferAvatars";
 import Link from "next/link";
 import { useInView } from "react-intersection-observer";
+import Image from "next/image";
 const NormalWidget = ({ offer, myKey, onClick }) => {
   const language = useSelector((state) => state.homepage.language);
   const { ref, inView, entry } = useInView({
@@ -28,6 +30,19 @@ const NormalWidget = ({ offer, myKey, onClick }) => {
     >
       {inView && (
         <>
+          <Image
+            fill
+            style={{
+              position: "absolute",
+              top: "0px",
+              left: "0px",
+              borderRadius: "15px",
+              zIndex: "1",
+            }}
+            objectFit="cover"
+            objectPosition="center"
+            src={OfferImage}
+          />
           <div className="offer-blured-background" />
           <div className="offer-blured" />
           <div className="offer-container">
