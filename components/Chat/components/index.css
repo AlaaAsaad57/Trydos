@@ -132,6 +132,7 @@
   justify-content: flex-start;
   flex-direction: column;
   font-size: 14px;
+  z-index: 10000002;
   top: 400px;
   font-family: var(--SF-Pro-Rounded-Light);
   color: #8d8d8d;

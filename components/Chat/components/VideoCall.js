@@ -95,7 +95,6 @@ function VideoCall(props) {
         if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
           console.log("subscribe success");
         if (mediaType === "video") {
-          start();
         }
         if (mediaType === "audio") {
           user.audioTrack?.play();
@@ -177,6 +176,12 @@ function VideoCall(props) {
       }, 2000);
     }
   }, [callInProgress]);
+  useEffect(() => {
+    if (minutes === 25) alert("call end in 5 minutes");
+    if (minutes === 30) {
+      userEndCall();
+    }
+  }, [minutes]);
   return (
     <>
       {
@@ -279,16 +284,18 @@ function VideoCall(props) {
           >
             <VideoIcon></VideoIcon>
           </div>
-          {ready && users.length === 0 && (
+          {ready && (
             <div className="call-status">
-              {isRunning ? <CallIcon></CallIcon> : <CallingIcon></CallingIcon>}
-              {callStatus ? (
+              {users.length > 0 ? (
+                <>
+                  <CallingIcon></CallingIcon>
+                  <span>
+                    {minutes > 9 ? minutes : "0" + minutes}:
+                    {seconds > 9 ? seconds : "0" + seconds}
+                  </span>
+                </>
+              ) : callStatus ? (
                 <span>{callStatus}</span>
-              ) : isRunning ? (
-                <span>
-                  {minutes > 9 ? minutes : "0" + minutes}:
-                  {seconds > 9 ? seconds : "0" + seconds}
-                </span>
               ) : (
                 <span>{translate("Calling ...", language)}</span>
               )}
