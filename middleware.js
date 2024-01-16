@@ -71,13 +71,13 @@ export async function middleware(request) {
   const response = NextResponse.next();
   const cookieStore = cookies();
   const localization = cookieStore.get("country")?.value;
-  if (!localization) {
+  if (!localization && countryByIp) {
     const countryByIpp = countryByIp || "jp";
     // const countryName = await _getCountryNameByIp(Ip);
     const originCountryJSON = {
       country: countryByIpp,
       isSupported: countries.some(
-        (country) => countryByIpp?.toLowerCase() === `${country.toLowerCase()}`
+        (country) => countryByIp?.toLowerCase() === `${country.toLowerCase()}`
       ),
     };
     response.cookies.set({
