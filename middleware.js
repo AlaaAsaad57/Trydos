@@ -73,7 +73,7 @@ export async function middleware(request) {
   const localization = cookieStore.get("country")?.value;
   if (!localization) {
     const countryByIpp = "jp";
-    const countryName = await _getCountryNameByIp(Ip);
+    // const countryName = await _getCountryNameByIp(Ip);
     const originCountryJSON = {
       country: countryByIpp,
       isSupported: countries.some(
