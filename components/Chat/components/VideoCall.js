@@ -177,8 +177,8 @@ function VideoCall(props) {
     }
   }, [callInProgress]);
   useEffect(() => {
-    if (minutes === 25) alert("call end in 5 minutes");
     if (minutes === 30) {
+      alert("call ended");
       userEndCall();
     }
   }, [minutes]);

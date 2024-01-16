@@ -251,6 +251,16 @@
   left: 20px;
   top: 15px;
 }
+.call-warn {
+  position: absolute;
+  top: 50px;
+  left: 20px;
+  border-radius: 10px;
+  padding: 10px;
+  background-color: aliceblue;
+  color: #404040;
+  z-index: 100;
+}
 .active-mic-svg svg g g .vidIcon_svg__line-path,
 .active-mic-svg svg g path[data-name="Line 903"] {
   display: none;

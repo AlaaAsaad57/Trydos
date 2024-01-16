@@ -135,16 +135,17 @@ function VideoCall(props) {
     }
   }, [callInProgress]);
   useEffect(() => {
-    if (seconds === 25) alert("call end in 5 minutes");
-    if (seconds === 30) {
-      alert("call ended");
+    if (minutes === 30) {
       userEndCall();
     }
-  }, [seconds]);
+  }, [minutes]);
   return (
     <>
       {
         <div className="video-call">
+          {minutes >= 25 && (
+            <div className="call-warn">Call End in {30 - minutes}</div>
+          )}
           {props.audio && !users.length > 0 && !callStatus && (
             <audio
               onLoad={(e) => {
