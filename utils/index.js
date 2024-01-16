@@ -9,6 +9,7 @@ export function LocalizationProvider({ lang, children }) {
   const [originCountry, setOriginCountry] = useState(
     Cookies.get("origin-country") && JSON.parse(Cookies.get("origin-country"))
   );
+  console.log(originCountry);
   const [showPopup, setShowPopup] = useState(false);
   const countriesString = process.env.NEXT_PUBLIC_COUNTRIES || "[]";
   const countries = JSON.parse(countriesString);

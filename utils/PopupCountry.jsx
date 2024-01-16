@@ -26,7 +26,7 @@ const options = countries.map((country) => {
 const PopupCountry = ({ originCountry, setLocalization, localization }) => {
   const pathname = usePathname();
   const { isSupported, country, countryName } = originCountry;
-  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedCountry, setSelectedCountry] = useState("");
 
   useEffect(() => {
     if (selectedCountry) {
