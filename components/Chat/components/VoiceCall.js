@@ -140,7 +140,7 @@ function VideoCall(props) {
       alert("call ended");
       userEndCall();
     }
-  }, [minutes]);
+  }, [seconds]);
   return (
     <>
       {
