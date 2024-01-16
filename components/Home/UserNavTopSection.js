@@ -45,7 +45,7 @@ function UserNavTopSection({ loginOpen, openLogin }) {
               className={`${language + "-light"}`}
               style={{
                 display: "flex",
-                color: "#f85555ff",
+                color: "rgba(248, 85, 85, 1)",
                 fontSize: "14px",
                 marginLeft: "5px",
                 cursor: "pointer",

@@ -10,7 +10,7 @@ function GAComponent() {
       <Script
         id="ga-script"
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-        strategy="afterInteractive"
+        strategy="lazyOnload"
       />
       <Script id="google-analytics" strategy="afterInteractive">
         {`

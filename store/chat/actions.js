@@ -471,6 +471,8 @@ export const makeVideoCall = async (
         store.dispatch({ type: "CALL-LOADING", payload: null });
       });
   } catch (e) {
+    toast.info("User in Another Call");
+    store.dispatch({ type: "END-CALL" });
     console.error(e);
   }
 };

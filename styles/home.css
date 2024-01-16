@@ -1,7 +1,7 @@
 @import url("./arabic.css");
 @import url("./offers.css");
 .site-container {
-  background-color: #f4f4f4;
+  background-color: rgba(244, 244, 244, 1);
   display: flex;
   justify-content: space-around;
   min-width: 100vw;

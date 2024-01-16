@@ -21,6 +21,7 @@ function QuickOfferWidjet({ offer, onClick }) {
       prefetch={false}
       href={"/listing"}
       className="offer-widget quick-widget"
+      aria-label={`Go To listing Page`}
       onClick={() => onClick()}
     >
       {inView && (

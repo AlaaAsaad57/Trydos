@@ -21,6 +21,7 @@ const NormalWidget = ({ offer, myKey, onClick }) => {
       ref={ref}
       href={"/listing"}
       prefetch={false}
+      aria-label={`Go To listing Page`}
       className="offer-widget"
       key={myKey}
       onClick={() => onClick()}

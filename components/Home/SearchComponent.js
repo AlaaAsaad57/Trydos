@@ -42,11 +42,11 @@ function SearchComponent({ searchEnabled, close }) {
     >
       <SearchIcon />
       <Divider style={{ marginLeft: "10px" }} />
-      <label htmlFor="searchChats" className="no-label">
+      <label htmlFor="chats" className="no-label">
         Search Chat
       </label>
       <input
-        id="searchChats"
+        id="chats"
         className={`${language + "-light"}`}
         ref={inputRef}
         value={searchValue || ""}

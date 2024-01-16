@@ -21,7 +21,11 @@ const CategoryNavItem = ({
     }
   };
   return (!searchEnabled || name === "Search") && name !== "Search" ? (
-    <Link prefetch={false} href={`/${name}`}>
+    <Link
+      prefetch={false}
+      href={`/${name}`}
+      aria-label={`Go To ${name} Category Page`}
+    >
       <div
         className="categories-bar-item"
         onClick={() => clickItem()}

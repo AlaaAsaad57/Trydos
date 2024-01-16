@@ -22,6 +22,7 @@ function ExtendedOfferWidget({ offer, myKey, onClick }) {
       ref={ref}
       prefetch={false}
       href={"/listing"}
+      aria-label={`Go To listing Page`}
       className="offer-widget extended-widget"
       key={myKey}
       onClick={() => onClick()}
