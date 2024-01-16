@@ -190,7 +190,7 @@ iframe {
   font-size: 14px;
   color: #5d5d5d;
   letter-spacing: 0.01em;
-  font-family: var(--SF-Pro-Rounded-Medium) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Medium);
 }
 div.search {
   position: absolute;
@@ -217,13 +217,13 @@ div.search {
   padding: 6px 50px;
   background-color: #eaeaea;
   border-radius: 10px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   font-size: 14px;
   color: #5d5d5d;
 }
 .search input::placeholder {
   color: #8e8e8e;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   font-size: 14px;
   text-transform: capitalize !important;
 }
@@ -239,7 +239,7 @@ div.search {
   font-size: 12px !important;
   color: #5d5d5d;
   letter-spacing: 0px;
-  font-family: var(--SF-Pro-Rounded-Light) sans-serif !important;
+  font-family: var(--SF-Pro-Rounded-Light) !important;
   text-transform: capitalize !important;
 }
 #Group_8318 {
@@ -292,7 +292,7 @@ div.search {
 }
 .chat-name {
   font-size: 14px;
-  font-family: var(--SF-Pro-Rounded-Medium) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Medium);
   letter-spacing: 0.01em;
   color: #5d5d5d;
   text-transform: capitalize;
@@ -374,7 +374,7 @@ div.search {
   align-items: flex-start;
   color: #8e8e8e;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   letter-spacing: 0.01em;
 }
 .him .message-content {
@@ -394,7 +394,7 @@ div.search {
   align-items: flex-start;
   color: #8e8e8e;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   letter-spacing: 0.01em;
 }
 .message-type {
@@ -409,7 +409,7 @@ div.search {
   align-items: flex-start;
   color: #8e8e8e;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   letter-spacing: 0.01em;
 }
 .chat-new {
@@ -431,7 +431,7 @@ div.search {
 .new-mes {
   color: #007cff;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Medium) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Medium);
   margin-left: 6px;
 }
 .chat-date {
@@ -445,7 +445,7 @@ div.search {
   justify-content: space-between;
   color: #8e8d92;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
 }
 .arrow-r {
   display: flex;
@@ -454,7 +454,7 @@ div.search {
 .date-clock {
   color: #8e8d92;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   letter-spacing: 0.1em;
 }
 .active-chat {
@@ -540,7 +540,7 @@ div.search {
   letter-spacing: 0.026em;
   color: #007cff;
   display: flex;
-  font-family: var(--SF-Pro-Rounded-Light) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Light);
   margin-top: 5px;
 }
 .chat-top-contact {
@@ -609,7 +609,7 @@ img {
   height: 40px;
   border: #c7c7c741 0.4px solid;
   padding: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   font-size: 12px;
   transition: 0.3s all ease-in;
 }
@@ -661,7 +661,7 @@ img {
   margin-top: 7px;
   position: relative;
   background-color: #b4ffd9;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
 }
 .self-align .message-body {
   background-color: #fff9b4;
@@ -681,7 +681,7 @@ img {
   right: 15px;
   bottom: 5px;
   width: auto;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   font-size: 10px;
   color: #404040;
 }
@@ -693,7 +693,7 @@ img {
   z-index: 999999999;
   justify-content: space-between;
   width: 45px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   font-size: 10px;
   color: #404040;
 }
@@ -708,7 +708,7 @@ img {
   align-items: center;
   justify-content: space-between;
   width: 45px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   font-size: 10px;
 }
 .self-align .message-body:hover {
@@ -751,7 +751,7 @@ img {
   padding: 3px 9px;
   color: #ffffff;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
 }
 .message-img {
   width: 315px;
@@ -777,7 +777,7 @@ img {
 }
 .time-mic {
   font-size: 18px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   color: #404040;
 }
 .bac40 {
@@ -794,7 +794,7 @@ img {
 .cancel-button {
   margin-left: 19px;
   font-size: 14px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   color: #404040;
   cursor: pointer;
 }
@@ -861,7 +861,7 @@ svg.redwave g g path {
   font-size: 10px;
   padding: 3px 11.5px;
   width: fit-content;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   color: #404040;
   border: #9d9d9d79 0.4px solid;
   border-radius: 15px;
@@ -869,7 +869,7 @@ svg.redwave g g path {
 .player-timee {
   font-size: 10px;
   width: fit-content;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   color: #b3b3b3;
   border-radius: 15px;
 }
@@ -901,7 +901,7 @@ svg.redwave g g path {
   padding-left: 41px;
 }
 .missed-body {
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   font-size: 12px;
   color: #404040;
   display: flex;
@@ -1091,7 +1091,7 @@ svg.redwave g g path {
 }
 .chat-option div {
   font-size: 14px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   color: #8e8d92;
 }
 .chat-1 {
@@ -1228,7 +1228,7 @@ svg.redwave g g path {
 }
 
 .forwarded-label[aria-label="ar"] .forward-text {
-  font-family: var(--SF-Pro-Rounded-Light) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Light);
   margin-left: initial;
   margin-right: 20px;
   direction: rtl;
@@ -1237,7 +1237,7 @@ svg.redwave g g path {
   display: flex;
 }
 .forward-text {
-  font-family: var(--SF-Pro-Rounded-Light) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Light);
   margin-left: 20px;
 }
 #text-copy {

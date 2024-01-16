@@ -1,12 +1,12 @@
 .en-regular {
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
 }
 .en-light {
-  font-family: var(--SF-Pro-Rounded-Light) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Light);
 }
 .en-medium {
-  font-family: var(--SF-Pro-Rounded-Medium) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Medium);
 }
 .en-semibold {
-  font-family: var(--SF-Pro-Rounded-semibold) sans-serif;
+  font-family: var(--SF-Pro-Rounded-semibold);
 }

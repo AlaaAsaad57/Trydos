@@ -42,7 +42,7 @@
   box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 6px;
 }
 .chat-window-header-user span {
-  font-family: var(--SF-Pro-Rounded-Medium) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Medium);
   margin-left: 10px;
   color: #5d5d5d;
   font-size: 14px;
@@ -72,7 +72,7 @@
   border: none;
   outline: none;
   font-size: 16px;
-  font-family: var(--SF-Pro-Rounded-Light) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Light);
   color: #5d5d5d;
 }
 .chat-window-search-holder input::placeholder {
@@ -135,7 +135,7 @@
 }
 .number-of-new-item span {
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   color: #388cff;
 }
 .chat-list-items {
@@ -236,7 +236,7 @@
 .chat-name {
   font-size: 14px;
   user-select: none;
-  font-family: var(--SF-Pro-Rounded-Medium) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Medium);
   color: #5d5d5d;
   letter-spacing: 0.01em;
 }
@@ -246,7 +246,7 @@
   color: #8e8e8e;
   min-height: 40px;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
 }
 .message-type-icon {
   margin-right: 8.6px;
@@ -264,7 +264,7 @@
   justify-content: space-between;
   color: #8e8d92;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
 }
 .arrow-right {
   display: flex;
@@ -286,7 +286,7 @@
 .new-mes {
   color: #007cff;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   margin-left: 8px;
 }
 .chat-info svg:not(:first-child) {
@@ -352,7 +352,7 @@
 }
 .chat-option div {
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   color: #8e8d92;
 }
 .chat-1 {
@@ -384,7 +384,7 @@
   align-items: center;
   color: #8e8e8e;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   letter-spacing: 0.01em;
   display: flex;
 }
@@ -396,7 +396,7 @@
   align-items: center;
   color: #8e8e8e;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   letter-spacing: 0.01em;
 }
 .chat-conversation-item.typing .last-message-body {
@@ -443,7 +443,7 @@
   justify-content: flex-start;
   margin-top: 9px;
   font-size: 14px;
-  font-family: var(--SF-Pro-Rounded-Light) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Light);
   color: #505050;
 }
 .call-type svg {
@@ -477,7 +477,7 @@
   align-items: center;
   justify-content: center;
   font-size: 18px;
-  font-family: var(--SF-Pro-Rounded-Bold) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Bold);
   background: linear-gradient(to bottom right, #acffe9 0%, #80baff 100%);
   color: #6638ff;
   border-radius: 12px;
@@ -491,7 +491,7 @@
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  font-family: var(--SF-Pro-Rounded-Bold) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Bold);
   background: linear-gradient(to bottom right, #acffe9 0%, #80baff 100%);
   color: #6638ff;
   border-radius: 8px;
@@ -608,7 +608,7 @@
   object-fit: cover;
 }
 .user-top-chat .user-name-top-chat {
-  font-family: var(--SF-Pro-Rounded-Medium) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Medium);
   margin-left: 20px;
   color: #5d5c5d;
   flex-direction: column-reverse;
@@ -621,7 +621,7 @@
   letter-spacing: 0.026em;
   color: #007cff;
   display: flex;
-  font-family: var(--SF-Pro-Rounded-Light) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Light);
   margin-top: 5px;
 }
 .chat-top-contact {
@@ -677,7 +677,7 @@
   border-radius: 5px;
   background-color: #404040;
   padding: 4px 10px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   font-size: 10px;
   color: #ffffff;
 }
@@ -878,7 +878,7 @@
   max-width: 280px;
   max-height: 38px;
   margin-left: 20px;
-  font-family: var(--SF-Pro-Rounded-Light) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Light);
   font-size: 12px;
   color: #8d8d8d;
   overflow: hidden;
@@ -958,7 +958,7 @@
   font-size: 20px;
   display: flex;
   color: #5d5c5d;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   letter-spacing: 0.01em;
 }
 .chat-info-user-phone {
@@ -966,7 +966,7 @@
   margin-top: 8px;
   display: flex;
   color: #636263;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   letter-spacing: 0.01em;
 }
 .chat-user-info-options {
@@ -989,7 +989,7 @@
 .chat-user-info-option span {
   display: flex;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   color: #5d5c5d;
   margin-top: 8px;
 }
@@ -1023,7 +1023,7 @@
 .chat-user-files-info-text {
   display: flex;
   font-size: 16px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   color: #5d5c5d;
   letter-spacing: 0.01em;
 }
@@ -1041,7 +1041,7 @@
   justify-content: flex-start;
   color: #8d8d8d;
   cursor: pointer;
-  font-family: var(--SF-Pro-Rounded-Light) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Light);
   font-size: 12px;
 }
 .chat-user-files-info-content-item svg {
@@ -1061,7 +1061,7 @@
   color: #5d5c5d;
   margin-right: 36px;
   font-size: 16px;
-  font-family: var(--SF-Pro-Rounded-Light) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Light);
 }
 
 .chat-user-gallery-container {
@@ -1097,18 +1097,18 @@
   align-items: center;
   color: #5d5c5d;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
 }
 .chat-user-option span {
   color: #5d5c5d;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   margin-top: 8px;
 }
 .chat-user-option:not(.delete-option) span {
   color: #ff5f61;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   margin-top: 8px;
 }
 .chat-user-option:not(.delete-option) {

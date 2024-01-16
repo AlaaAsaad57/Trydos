@@ -52,7 +52,7 @@
 }
 .end-icon span {
   color: #ff5f61;
-  font-family: var(--SF-Pro-Rounded-Light) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Light);
   font-size: 14px;
   margin-top: 8px;
 }
@@ -117,12 +117,12 @@
   color: #404040;
   letter-spacing: 0.05em;
   width: 63%;
-  font-family: var(--SF-Pro-Rounded-Light) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Light);
 }
 
 .incomin {
   font-size: 10px;
-  font-family: var(--SF-Pro-Rounded-Light) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Light);
   color: #6b6b6b;
 }
 .call-status {
@@ -133,12 +133,12 @@
   flex-direction: column;
   font-size: 14px;
   top: 400px;
-  font-family: var(--SF-Pro-Rounded-Light) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Light);
   color: #8d8d8d;
 }
 .call-status span {
   font-size: 14px;
-  font-family: var(--SF-Pro-Rounded-Light) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Light);
   color: #8d8d8d;
   display: flex;
   margin-top: 8px;
@@ -149,7 +149,7 @@
   justify-content: flex-start;
   color: #404040;
   font-size: 14px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
 }
 
 .call-options {
@@ -221,7 +221,7 @@
   position: absolute;
   left: 0px;
   right: 0px;
-  font-family: var(--SF-Pro-Rounded-Regular) sans-serif;
+  font-family: var(--SF-Pro-Rounded-Regular);
   font-size: 20px;
   margin: 0 auto;
   top: 355px;
