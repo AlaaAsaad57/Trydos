@@ -42,14 +42,14 @@ function VideoCall(props) {
   const { ready, tracks, error } = useMicrophoneAndCameraTracks();
   const language = useSelector((state) => state.homepage.language);
   useEffect(() => {
-    setTimeout(() => {
-      if (users.length === 0 && !isRunning && seconds === 0) {
-        setCallStatus(translate("No Answer", language));
-        setTimeout(() => {
-          userEndCall();
-        }, 2000);
-      }
-    }, 30000);
+    // setTimeout(() => {
+    //   if (users.length === 0 && !isRunning && seconds === 0) {
+    //     setCallStatus(translate("No Answer", language));
+    //     setTimeout(() => {
+    //       userEndCall();
+    //     }, 2000);
+    //   }
+    // }, 30000);
   }, []);
   useEffect(() => {
     // function to initialise the SDK
