@@ -1,10 +1,11 @@
 import { useSelector } from "react-redux";
 
-function Logo({ animated }) {
+function Logo({ animated, style }) {
   const language = useSelector((state) => state.homepage.language);
   return (
     <div className="logo-container">
       <svg
+        style={{ transform: style ? "scale(2)" : "none" }}
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
         width="136.362"

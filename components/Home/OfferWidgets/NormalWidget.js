@@ -32,6 +32,9 @@ const NormalWidget = ({ offer, myKey, onClick }) => {
         <>
           <Image
             fill
+            alt="imageAlt"
+            loading="eager"
+            priority={true}
             style={{
               position: "absolute",
               top: "0px",
