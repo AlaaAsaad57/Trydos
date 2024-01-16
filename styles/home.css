@@ -24,6 +24,7 @@ body {
   justify-content: flex-start;
   align-items: flex-start;
   padding-top: 7px;
+  z-index: 90;
   max-width: 42%;
   margin-left: 50px;
 }
