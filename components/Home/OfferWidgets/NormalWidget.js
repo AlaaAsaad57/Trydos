@@ -9,40 +9,49 @@ import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import OfferAvatars from "./OfferAvatars";
 import Link from "next/link";
+import { useInView } from "react-intersection-observer";
 const NormalWidget = ({ offer, myKey, onClick }) => {
   const language = useSelector((state) => state.homepage.language);
-
+  const { ref, inView, entry } = useInView({
+    /* Optional options */
+    threshold: 0,
+  });
   return (
     <Link
+      ref={ref}
       href={"/listing"}
       prefetch={false}
       className="offer-widget"
       key={myKey}
       onClick={() => onClick()}
     >
-      <div className="offer-blured-background" />
-      <div className="offer-blured" />
-      <div className="offer-container">
-        <div className="offer-logo">
-          <LogoOffer />
-        </div>
-        <div className="offer-category">
-          <ManIcon />
-          <WomanIcon />
-          <KidsIcon />
-        </div>
-        <div className="offer-desc">
-          {translate("Mango Famous Turkish Brand Best Discounts", language)}
-        </div>
-        {offer.photos.length > 1 ? (
-          <OfferPhotosSlider OfferPhotos={offer.photos} />
-        ) : (
-          <div className="offer-slider-container">
-            <OfferSlideItem isSingle={true} />
-            <OfferAvatars />
+      {inView && (
+        <>
+          <div className="offer-blured-background" />
+          <div className="offer-blured" />
+          <div className="offer-container">
+            <div className="offer-logo">
+              <LogoOffer />
+            </div>
+            <div className="offer-category">
+              <ManIcon />
+              <WomanIcon />
+              <KidsIcon />
+            </div>
+            <div className="offer-desc">
+              {translate("Mango Famous Turkish Brand Best Discounts", language)}
+            </div>
+            {offer.photos.length > 1 ? (
+              <OfferPhotosSlider OfferPhotos={offer.photos} />
+            ) : (
+              <div className="offer-slider-container">
+                <OfferSlideItem isSingle={true} />
+                <OfferAvatars />
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      )}
     </Link>
   );
 };

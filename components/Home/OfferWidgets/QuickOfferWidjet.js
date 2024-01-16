@@ -8,33 +8,42 @@ import QuickEventBar from "./QuickEventBar";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import Link from "next/link";
+import { useInView } from "react-intersection-observer";
 function QuickOfferWidjet({ offer, onClick }) {
   const language = useSelector((state) => state.homepage.language);
-
+  const { ref, inView, entry } = useInView({
+    /* Optional options */
+    threshold: 0,
+  });
   return (
     <Link
+      ref={ref}
       prefetch={false}
       href={"/listing"}
       className="offer-widget quick-widget"
       onClick={() => onClick()}
     >
-      <div className="offer-blured-background" />
-      <div className="offer-blured" />
-      <div className="offer-container">
-        <div className="offer-logo">
-          <LogoOffer />
-        </div>
-        <div className="offer-category">
-          <ManIcon />
-          <WomanIcon />
-          <KidsIcon />
-        </div>
-        <div className="offer-desc">
-          {translate("Mango Famous Turkish Brand Best Offers", language)}
-        </div>
-        <OfferPhotosSlider OfferPhotos={offer.photos} />
-      </div>
-      <QuickEventBar />
+      {inView && (
+        <>
+          <div className="offer-blured-background" />
+          <div className="offer-blured" />
+          <div className="offer-container">
+            <div className="offer-logo">
+              <LogoOffer />
+            </div>
+            <div className="offer-category">
+              <ManIcon />
+              <WomanIcon />
+              <KidsIcon />
+            </div>
+            <div className="offer-desc">
+              {translate("Mango Famous Turkish Brand Best Offers", language)}
+            </div>
+            <OfferPhotosSlider OfferPhotos={offer.photos} />
+          </div>
+          <QuickEventBar />
+        </>
+      )}
     </Link>
   );
 }
