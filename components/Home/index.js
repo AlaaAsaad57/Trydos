@@ -21,6 +21,7 @@ import { StoreToken } from "store/auth/actions";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.min.css";
 import "react-toastify/dist/ReactToastify.css";
+import "react-toastify/dist/ReactToastify.css";
 import {
   onMessageListener,
   requestFirebaseNotificationPermission,
