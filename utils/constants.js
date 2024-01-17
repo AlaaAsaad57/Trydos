@@ -6,9 +6,8 @@ import ElectricalIcon from "public/svg/ElectricalIcon.svg";
 import StoreIcon from "public/svg/ShopIcon.svg";
 import { Cloudinary } from "@cloudinary/url-gen";
 import SearchIcon from "public/svg/SearchIcon.svg";
-import Pusher from "pusher-js";
+
 import { CHAT_URL } from "./endpointConfig";
-import { SSRDetect } from "./functions";
 
 export const categories = [
   {
@@ -41,22 +40,27 @@ export const categories = [
   },
 ];
 
-export const myCld = new Cloudinary({
-  cloud: {
-    cloudName: "djooohujg",
-  },
-});
-export const pusher = new Pusher(`cd403c68a9fbb7ce7da6`, {
-  cluster: "ap2",
-  encrypted: true,
-  channelAuthorization: {
-    endpoint: CHAT_URL + "/broadcasting/auth",
-
-    headersProvider: () => {
-      return {
-        Authorization: "Bearer " + localStorage.getItem("CHAT-TOKEN"),
-      };
+export const myCld = () => {
+  return new Cloudinary({
+    cloud: {
+      cloudName: "djooohujg",
     },
-  },
-});
-Pusher.logToConsole = process.env.NEXT_PUBLIC_ENABLE_LOG === "true";
+  });
+};
+export const pusher = async () => {
+  let Pusher = (await import("pusher-js")).default;
+  Pusher.logToConsole = process.env.NEXT_PUBLIC_ENABLE_LOG === "true";
+  return new Pusher(`cd403c68a9fbb7ce7da6`, {
+    cluster: "ap2",
+    encrypted: true,
+    channelAuthorization: {
+      endpoint: CHAT_URL + "/broadcasting/auth",
+
+      headersProvider: () => {
+        return {
+          Authorization: "Bearer " + localStorage.getItem("CHAT-TOKEN"),
+        };
+      },
+    },
+  });
+};

@@ -1,5 +1,4 @@
 import { getUser, getUserChat, translate } from "utils/functions";
-import { pusher } from "utils/constants";
 import {
   DisablePusher,
   EnablePusher,
