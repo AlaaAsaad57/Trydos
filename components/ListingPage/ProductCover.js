@@ -6,7 +6,7 @@ import TopSlider from "./TopSlider";
 import CoverEffectSlider from "./CoverEffectSlider";
 import ColorSlider from "./ColorSlider";
 import "styles/skeleton.css";
-import Spinner from "../global/Spinner";
+import Loadding from "public/svg/loading.svg";
 import CategoryPhoto from "./CategoryPhoto";
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
@@ -174,7 +174,7 @@ function ProductCover({ product }) {
       >
         {product.brand?.image && (
           <CategoryPhoto
-            loader={<Spinner />}
+            loader={<Loadding />}
             alt={product.brand.name}
             width="66"
             height="10"
@@ -188,7 +188,7 @@ function ProductCover({ product }) {
             <span className="product-category-icon" key={id}>
               <CategoryPhoto
                 src={cat.icon}
-                loader={<Spinner />}
+                loader={<Loadding />}
                 width={10}
                 height={10}
                 alt={cat.name}

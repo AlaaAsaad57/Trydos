@@ -32,6 +32,8 @@
 }
 
 .end-icon {
+  width: auto;
+  height: auto;
   width: 60px;
   height: 52px;
   display: flex;

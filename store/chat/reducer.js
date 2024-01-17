@@ -5,7 +5,6 @@ import {
   MuteChat,
   PinnChat,
   Recive,
-  RefuseCall,
   deleteChat,
   watchChannel,
 } from "./actions";

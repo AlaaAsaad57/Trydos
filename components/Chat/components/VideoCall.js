@@ -82,7 +82,8 @@ function VideoCall(props) {
     let init = async (name) => {
       client.on("user-joined", (user) => {
         if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-          console.log("user-joined");
+          console.log("user-joined", user);
+        reset();
         start();
         setUsers((prevUsers) => {
           return [...prevUsers, user];
@@ -134,6 +135,9 @@ function VideoCall(props) {
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
       console.log(error, ready, tracks);
   }, [client, ready, tracks, error]);
+  useEffect(() => {
+    start();
+  }, []);
   const MessageActiveCall = useSelector(
     (state) => state.chat.MessageActiveCall
   );
@@ -177,10 +181,13 @@ function VideoCall(props) {
     }
   }, [callInProgress]);
   useEffect(() => {
+    if (seconds === 30 && users.length === 0) {
+      userEndCall();
+    }
     if (minutes === 30) {
       userEndCall();
     }
-  }, [minutes]);
+  }, [minutes, seconds]);
   return (
     <>
       {
