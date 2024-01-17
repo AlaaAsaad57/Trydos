@@ -55,8 +55,10 @@ export const GetChats = async (payload) => {
     store.dispatch({ type: "GET_CONTACTS_RED", payload: response.data.data });
   } catch (e) {}
 };
-export const EnablePusher = () => {
-  let channel = pusher.subscribe(`user-${getUserChat()?.id}-messages`);
+let pusherVar;
+export const EnablePusher = async () => {
+  pusherVar = await pusher();
+  let channel = pusherVar.subscribe(`user-${getUserChat()?.id}-messages`);
   channel.bind("ChannelWatchedEvent", (data) => {
     store.dispatch({
       type: "WATCH_CHANNEL_RED",
@@ -86,7 +88,7 @@ export const EnablePusher = () => {
   });
 };
 export const DisablePusher = () => {
-  pusher.unsubscribe(`user-${getUserChat()?.id}-messages`);
+  pusherVar.unsubscribe(`user-${getUserChat()?.id}-messages`);
 };
 export const SendMessage = async (payload, isNew) => {
   const AxiosInstance = axios.create({
@@ -121,10 +123,10 @@ export const SendMessage = async (payload, isNew) => {
             },
           },
         });
-        let ch = pusher.subscribe(
+        let ch = pusherVar.subscribe(
           `presence-typing-${a.data.data.channel.id?.toString(16)}`
         );
-        let channel = pusher.subscribe(a.data.data.channel.id?.toString(16));
+        let channel = pusherVar.subscribe(a.data.data.channel.id?.toString(16));
 
         store.dispatch({
           type: "PUSHER_CH",
@@ -408,7 +410,7 @@ export const InitPusherChannel = (channelId) => {
     store.getState().chat.channels.filter((ch) => ch.id === channelId)
       .length === 0
   ) {
-    let ch = pusher.subscribe(`presence-typing-${channelId?.toString(16)}`);
+    let ch = pusherVar.subscribe(`presence-typing-${channelId?.toString(16)}`);
     ch.bind("client-TypingEvent", (data) => {
       if (
         parseInt(JSON.parse(JSON.stringify(data)).uid) !== getUserChat()?.id
@@ -646,7 +648,9 @@ export const Answer = async (channelId, messageId) => {
   } catch (e) {}
 };
 export const EstablishChannel = (cg) => {
-  let chs = pusher.subscribe(`presence-video-call-${cg.pusher_channel_name}`);
+  let chs = pusherVar.subscribe(
+    `presence-video-call-${cg.pusher_channel_name}`
+  );
   chs.bind(`client-signal-${getUserChat()?.id}`, (signal) => {
     let caller = cg.channel_members.filter(
       (one) => one.user_id !== getUserChat()?.id
