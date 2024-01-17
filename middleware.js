@@ -98,7 +98,7 @@ export async function middleware(request) {
       : getDefaultLocale(countryByIp).country;
     endDate = new Date().getTime();
     request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathname}`;
-    request.nextUrl.searchParams.set("date", `${endDate - startDate}ms`);
+
     console.log("redirect4");
     return NextResponse.redirect(request.nextUrl);
   } else if (!hasLanguage || !hasCountry) {
@@ -113,19 +113,19 @@ export async function middleware(request) {
     if (!hasLanguage && !hasCountry) {
       console.log("redirect1");
       endDate = new Date().getTime();
-      request.nextUrl.searchParams.set("date", `${endDate - startDate}ms`);
+
       request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}/${routePath}`;
     } else if (!hasLanguage && hasCountry) {
       console.log("redirect2");
       const countryRoute = routePath?.split("-")[0];
       endDate = new Date().getTime();
-      request.nextUrl.searchParams.set("date", `${endDate - startDate}ms`);
+
       request.nextUrl.pathname = `/${countryRoute}-${preferredLang}/${pathN}`;
     } else if (!hasCountry && hasLanguage) {
       console.log("redirect3");
       const langRoute = routePath?.split("-")[1];
       endDate = new Date().getTime();
-      request.nextUrl.searchParams.set("date", `${endDate - startDate}ms`);
+
       request.nextUrl.pathname = `/${preferredCountry}-${langRoute}/${pathN}`;
     }
     setLocaleCookies(request, preferredLang, preferredCountry);
