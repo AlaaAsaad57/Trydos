@@ -152,8 +152,6 @@ function VideoCall(props) {
       }
     }
     setStart(false);
-    RefuseCall(activeChat.id, MessageActiveCall);
-
     pause();
     dispatch({ type: "END-CALL" });
   };
