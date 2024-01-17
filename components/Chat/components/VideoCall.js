@@ -172,6 +172,7 @@ function VideoCall(props) {
     }
   };
   const callInProgress = useSelector((state) => state.chat.callInProgress);
+  const call = useSelector((state) => state.chat.call);
   useEffect(() => {
     if (callInProgress === 2) {
       setCallStatus(translate("User declined", language));
@@ -181,7 +182,7 @@ function VideoCall(props) {
     }
   }, [callInProgress]);
   useEffect(() => {
-    if (seconds === 30 && users.length === 0) {
+    if (seconds === 30 && users.length === 0 && call !== "vid-outgoing") {
       userEndCall();
     }
     if (minutes === 30) {
