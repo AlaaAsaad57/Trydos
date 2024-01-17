@@ -27,36 +27,37 @@ import {
 } from "utils/firebaseInitv1";
 import { getUserChat } from "utils/functions";
 export default function Home({ stories, HomeData_res, stories_res, HomeData }) {
+  var bool = true;
   useEffect(() => {
     LogData({ stories_req_data: stories_res, HomeData_req_data: HomeData_res });
     dispatch(GetStoryData(stories));
     dispatch(GetMainData(HomeData));
-  }, []);
-  try {
-    requestFirebaseNotificationPermission().then((fbtoken) => {
-      if (fbtoken) {
-        fbtoken &&
-          StoreToken({
-            id: getUserChat()?.id,
-            token: fbtoken,
-            user: getUserChat(),
+    try {
+      requestFirebaseNotificationPermission().then((fbtoken) => {
+        if (fbtoken) {
+          fbtoken &&
+            StoreToken({
+              id: getUserChat()?.id,
+              token: fbtoken,
+              user: getUserChat(),
+            });
+        }
+      });
+      typeof window !== "undefined" &&
+        "serviceWorker" in navigator &&
+        onMessageListener()
+          .then((payload) => {
+            if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
+              console.log(payload);
+          })
+          .catch((err) => {
+            if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
+              console.log("failed: ", err);
           });
-      }
-    });
-    typeof window !== "undefined" &&
-      "serviceWorker" in navigator &&
-      onMessageListener()
-        .then((payload) => {
-          if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-            console.log(payload);
-        })
-        .catch((err) => {
-          if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-            console.log("failed: ", err);
-        });
-  } catch (e) {
-    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
-  }
+    } catch (e) {
+      if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
+    }
+  }, []);
 
   const selectedStory = useSelector((state) => state.homepage.selectedStory);
   useEffect(() => {
