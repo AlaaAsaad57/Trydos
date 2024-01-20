@@ -149,6 +149,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    "/((?!api|static|.*\\..*|_next|endCall|call_direct|revalidate|callInProg).*)",
+    "/((?!api|static|.*\\..*|_next|endCall|call_direct|revalidate|callInProg|select-language).*)",
   ],
 };

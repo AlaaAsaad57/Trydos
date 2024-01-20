@@ -8,7 +8,9 @@ export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
 export function translate(key, language) {
-  return translations[language][key] || key;
+  if (translations[language] && translations[language][key]) {
+    return translations[language][key] || key;
+  } else return key;
 }
 export const getId = () => {
   return "img" + parseInt(Math.random() * 10000);

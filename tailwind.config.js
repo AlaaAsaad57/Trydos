@@ -8,6 +8,7 @@ module.exports = {
     "./helpers/**/*.{js,ts,jsx,tsx,mdx}",
     "./core/**/*.{js,ts,jsx,tsx,mdx}",
     "./utils/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app",
   ],
   theme: {
     maxWidth: {

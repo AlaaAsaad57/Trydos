@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import EndCallIcon from "../Chat/svg/endCall.svg";
 import MicIcon from "../Chat/svg/micIcon.svg";
-import CallIcon from "../Chat/svg/CallInProg.svg";
 import CallingIcon from "../Chat/svg/calling.svg";
-import LeftArrowIcon from "../Chat/svg/leftArrow.svg";
 import { createClient, createMicrophoneAndCameraTracks } from "agora-rtc-react";
 import { useStopwatch } from "react-timer-hook";
+import { StartTalking } from "./WebViewActions";
 const config = {
   mode: "rtc",
   codec: "vp8",
@@ -42,6 +41,8 @@ function WebViewVoiceCall(props) {
           start();
         }
         if (mediaType === "audio") {
+          StartTalking(props.data.authToken, props.data.msgId);
+          start();
           user.audioTrack?.play();
         }
       });
@@ -180,16 +181,6 @@ function WebViewVoiceCall(props) {
           >
             <EndCallIcon></EndCallIcon>
             <span>End Call</span>
-          </div>
-          <div
-            className={
-              "cancel-call-icon" + `${props.data.loading && "disabled-label"}`
-            }
-            onClick={() => {
-              userEndCall();
-            }}
-          >
-            <LeftArrowIcon></LeftArrowIcon>
           </div>
           <div className="add-caller-icon"></div>
           <div

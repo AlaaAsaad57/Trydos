@@ -10,6 +10,7 @@ import AgoraRTC, {
   createMicrophoneAndCameraTracks,
 } from "agora-rtc-react";
 import { useStopwatch } from "react-timer-hook";
+import { StartTalking } from "./WebViewActions";
 const config = {
   mode: "rtc",
   codec: "h264",
@@ -33,7 +34,7 @@ function WebViewVideoCall(props) {
   useEffect(() => {
     // function to initialise the SDK
     let init = async (name) => {
-      client.on("user-joined", (user) => {
+      client.on("user-joined", async (user) => {
         start();
         setUsers((prevUsers) => {
           return [...prevUsers, user];
@@ -50,6 +51,7 @@ function WebViewVideoCall(props) {
         }
 
         if (mediaType === "video") {
+          StartTalking(props.data.authToken, props.data.msgId);
           start();
         }
         if (mediaType === "audio") {

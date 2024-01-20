@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 const Providers = dynamic(() => import("store/provider"), {
   ssr: false,
 });
-import { LocalizationProvider } from "../../../utils/index";
 import NextTopLoader from "nextjs-toploader";
 export const metadata = {
   title: "TryDos",

@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { usePathname } from "next/navigation";
@@ -23,18 +24,25 @@ const options = countries.map((country) => {
     value: country,
   };
 });
-const PopupCountry = ({ originCountry, setLocalization, localization }) => {
+
+const PopupCountry = () => {
+  const [localization, setLocalization] = useState({
+    country: null,
+    language: "en",
+  });
   const pathname = usePathname();
-  const { isSupported, country, countryName } = originCountry;
   const [selectedCountry, setSelectedCountry] = useState("");
 
   useEffect(() => {
     if (selectedCountry) {
       setLocalization({ ...localization, country: selectedCountry });
-      // const originCountryJSON = {
-      //     countryName, country, isSupported: true
-      // }
-      Cookies.remove("origin-country");
+      console.log(selectedCountry);
+      Cookies.set("language", localization.language, {
+        expires: new Date(2147483647 * 1000),
+      });
+      Cookies.set("country", selectedCountry, {
+        expires: new Date(2147483647 * 1000),
+      });
       const aa = setTimeout(() => {
         const urlWithoutLang = `${window.location.href}`.replace(
           `${pathname}`,
@@ -46,12 +54,10 @@ const PopupCountry = ({ originCountry, setLocalization, localization }) => {
   }, [selectedCountry]);
   return (
     <div
-      className={`${
-        !isSupported ? "flex" : "hidden"
-      } fixed items-center justify-center z-[99999] inset-0 bg-slate-700 bg-opacity-50`}
+      className={`${"flex"} fixed items-center justify-center z-[99999] inset-0 bg-slate-700 bg-opacity-50`}
     >
       <div
-        className={`${!isSupported ? "translate-y-0" : "translate-y-full"}
+        className={`${"translate-y-full"}
                 transform-cpu duration-1000 delay-1000 w-max
                 fixed flex-col gap-y-5 rounded-[20px] top-[10%]
                 flex text-center items-center justify-center px-4 py-8 bg-gray-100`}
@@ -60,7 +66,7 @@ const PopupCountry = ({ originCountry, setLocalization, localization }) => {
           className="capitalize text-center font-bold text-dark text-base px-10"
           style={{ color: "#000000ff" }}
         >
-          {countryName || "Your Country"}
+          {"Your Country"}
           <div className="font-medium" style={{ color: "#f85555ff" }}>
             Is Not Supported In Our System
           </div>
