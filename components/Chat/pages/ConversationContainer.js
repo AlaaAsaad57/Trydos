@@ -21,7 +21,6 @@ import { useCallback } from "react";
 import Observable from "components/Chat/components/ChatHistoryElement";
 import Image from "next/image";
 import {
-  InitPusherChannel,
   SendMessage,
   getMessagesBetweenMessage,
   getPage,
@@ -50,7 +49,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
     let obj = { id: activeChat.id, uid: getUser()?.id, desc: desc };
     let a = channels.filter((cv) => cv.id === activeChat.id)[0];
     if (a && a.channel) {
-      a.channel.trigger("client-TypingEvent", obj);
+      // a.channel.trigger("client-TypingEvent", obj);
     }
   };
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
@@ -732,7 +731,6 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
     document
       .querySelector("#scroled")
       .scrollIntoView({ block: "center", inline: "center" });
-    if (activeChat?.id) InitPusherChannel(activeChat.id);
   }, [openChat]);
 
   useEffect(() => {
@@ -816,7 +814,6 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
                 )[0]?.user?.photo_path
               : null
           }
-          channel={activeChat?.pusher_channel_name}
           user_id={
             activeChat.channel_members.filter(
               (u) =>
@@ -851,7 +848,6 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
                 )[0]?.user?.photo_path
               : null
           }
-          channel={activeChat?.pusher_channel_name}
           user_id={
             activeChat.channel_members.filter(
               (u) =>

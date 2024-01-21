@@ -2,7 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { store } from "../store/index";
 import { getUserChat } from "./functions";
-import { GetChats, InitPusherChannel } from "store/chat/actions";
+import { GetChats } from "store/chat/actions";
 import { toast } from "react-toastify";
 import { InCall } from "../store/chat/actions";
 
@@ -315,7 +315,6 @@ export const onMessageListener = () =>
           resolve(payload);
         }
       } else if (payload.data.type === "message") {
-        InitPusherChannel(JSON.parse(payload.data.message).channel.id);
         if (
           store
             ?.getState()
@@ -372,6 +371,18 @@ export const onMessageListener = () =>
         } else {
           GetChats(true);
         }
+      }
+      if (payload.data.type === "ChannelWatchedEvent") {
+        store.dispatch({
+          type: "WATCH_CHANNEL_RED",
+          payload: payload.data.channel_id,
+        });
+      }
+      if (payload.data.type === "ChannelReceivedEvent") {
+        store.dispatch({
+          type: "REC_CHANNEL_RED",
+          payload: payload.data.channel_id,
+        });
       }
     });
   });

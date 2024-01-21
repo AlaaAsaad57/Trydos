@@ -7,11 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getNew, getTwoLetters } from "../chatsFunctions";
 import Image from "next/image";
 import { getUserChat } from "utils/functions";
-import {
-  EstablishChannel,
-  makeVideoCall,
-  makeVoiceCall,
-} from "store/chat/actions";
+import { makeVideoCall, makeVoiceCall } from "store/chat/actions";
 function ChatHeader({ chats, activeChat, openDetails }) {
   const dispatch = useDispatch();
   const callLoading = useSelector((state) => state.chat.callLoading);
@@ -101,8 +97,6 @@ function ChatHeader({ chats, activeChat, openDetails }) {
         )}
       </div>
       <div className="chat-top-contact">
-        {/* <VideoIcon onClick={()=>dispatch({ type: "VIDEO_CALL" })} className="vcall" ></VideoIcon>
-      <CallIcon onClick={()=> dispatch({ type: "AUDIO_CALL" })} className="call" ></CallIcon>EstablishChannel */}
         <VideoIcon
           className={`${callLoading === "video" && "loading-svg"} vcall`}
           onClick={() => {

@@ -1,7 +1,5 @@
-import { getUser, getUserChat, translate } from "utils/functions";
+import { getUserChat, translate } from "utils/functions";
 import {
-  DisablePusher,
-  EnablePusher,
   MuteChat,
   PinnChat,
   Recive,
@@ -125,11 +123,6 @@ export const ChatReducer = (
       };
     }
     case "CHAT-OPEN": {
-      if (payload) {
-        EnablePusher();
-      } else {
-        DisablePusher();
-      }
       return {
         ...state,
         chatVar: payload,
@@ -361,24 +354,6 @@ export const ChatReducer = (
         call: pa,
       };
     }
-    case "PUSHER_CHANNEL": {
-      let arr = state.pusher_channels;
-      if (
-        state.pusher_channels.filter((s) => s.id === payload.id).length === 0
-      ) {
-        arr.push(payload);
-      }
-      return {
-        ...state,
-        pusher_channels: arr,
-      };
-    }
-    case "PUSHER_CH": {
-      return {
-        ...state,
-        channels: [...state.channels, payload],
-      };
-    }
     case "SEARCH_CHAT": {
       return {
         ...state,
@@ -435,12 +410,6 @@ export const ChatReducer = (
       return {
         ...state,
         users: payload,
-      };
-    }
-    case "PUSHER_RED": {
-      return {
-        ...state,
-        channels: [...state.channels, payload],
       };
     }
     case "REFS": {
