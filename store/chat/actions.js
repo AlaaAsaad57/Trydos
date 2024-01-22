@@ -50,11 +50,23 @@ export const GetChats = async (payload) => {
       const dbRef = ref(db, `Transaction/${friendID}/${MyId}`);
       onValue(dbRef, (snapshot) => {
         const desc = snapshot.val();
+
         if (!!desc) {
-          store.dispatch({
-            type: "IS_TYPING_TRUE",
-            payload: { id: chat.id, desc: desc },
-          });
+          if (typeof desc === "string") {
+            store.dispatch({
+              type: "IS_TYPING_TRUE",
+              payload: { id: chat.id, desc: desc },
+            });
+          } else {
+            store.dispatch({
+              type: "IS_TYPING_TRUE",
+              payload: {
+                id: chat.id,
+                desc:
+                  Object.keys(obj).length > 0 ? obj[Object.keys(obj)[0]] : null,
+              },
+            });
+          }
           console.log(desc);
         } else {
           store.dispatch({
