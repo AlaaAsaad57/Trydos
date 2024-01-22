@@ -63,7 +63,9 @@ export const GetChats = async (payload) => {
               payload: {
                 id: chat.id,
                 desc:
-                  Object.keys(obj).length > 0 ? obj[Object.keys(obj)[0]] : null,
+                  Object.keys(desc).length > 0
+                    ? desc[Object.keys(desc)[0]]
+                    : null,
               },
             });
           }
