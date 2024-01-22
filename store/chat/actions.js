@@ -57,7 +57,10 @@ export const GetChats = async (payload) => {
           });
           console.log(desc);
         } else {
-          console.log("Data not found");
+          store.dispatch({
+            type: "IS_TYPING_TRUE",
+            payload: { id: chat.id, desc: null },
+          });
         }
       });
     });

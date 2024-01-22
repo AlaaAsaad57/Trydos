@@ -199,7 +199,7 @@ function ChatItem({
           {lastMessage && (!status || status === "null") && (
             <LastMessageBody status={status} message={lastMessage} />
           )}
-          {status && status !== "null" && <TypingIndicator />}
+          {status && status !== "null" && <TypingIndicator status={status} />}
         </div>
         {lastMessage && (
           <div className="chat-date">

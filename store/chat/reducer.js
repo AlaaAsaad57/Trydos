@@ -421,7 +421,6 @@ export const ChatReducer = (
     }
     case "IS_TYPING_TRUE": {
       let id = payload.id;
-      let uid = payload.uid;
       let active = null;
       let chs = [];
 
@@ -430,7 +429,7 @@ export const ChatReducer = (
           chs.push({ ...ch, status: payload.desc });
         else chs.push(ch);
       });
-      if (state.activeChat && state.activeChat.id === id) {
+      if (state.activeChat && parseInt(state.activeChat.id) === parseInt(id)) {
         active = { ...state.activeChat, status: payload.desc };
       }
       return {

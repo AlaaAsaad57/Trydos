@@ -1,6 +1,6 @@
 import React from "react";
 
-function TypingIndicator() {
+function TypingIndicator({ status }) {
   return (
     <svg
       style={{ marginLeft: "0px", marginTop: "12px" }}
@@ -18,12 +18,12 @@ function TypingIndicator() {
           id="Typing"
           transform="translate(1012 313)"
           fill="#007cff"
-          font-size="10"
-          font-family="var(--SF-Pro-Rounded-Regular) "
-          letter-spacing="0.01em"
+          fontSize="10"
+          fontFamily="var(--SF-Pro-Rounded-Regular) "
+          letterSpacing="0.01em"
         >
           <tspan x="0" y="0">
-            Typing
+            {status}
           </tspan>
         </text>
         <g
