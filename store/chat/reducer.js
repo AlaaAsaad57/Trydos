@@ -425,27 +425,19 @@ export const ChatReducer = (
       let active = null;
       let chs = [];
 
-      if (
-        parseInt(uid) !==
-        parseInt(localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-      ) {
-        state.data.map((ch) => {
-          if (parseInt(ch.id) === parseInt(id))
-            chs.push({ ...ch, status: payload.desc });
-          else chs.push(ch);
-        });
-        if (state.activeChat && state.activeChat.id) {
-          active = { ...state.activeChat, status: payload.desc };
-        }
-        return {
-          ...state,
-          data: [...chs],
-          activeChat: active,
-        };
-      } else
-        return {
-          ...state,
-        };
+      state.data.map((ch) => {
+        if (parseInt(id) === parseInt(ch.id))
+          chs.push({ ...ch, status: payload.desc });
+        else chs.push(ch);
+      });
+      if (state.activeChat && state.activeChat.id === id) {
+        active = { ...state.activeChat, status: payload.desc };
+      }
+      return {
+        ...state,
+        data: [...chs],
+        activeChat: active,
+      };
     }
     case "WATCH_CHANNEL_RED": {
       let id = parseInt(payload);

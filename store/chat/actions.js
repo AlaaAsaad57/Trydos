@@ -12,7 +12,8 @@ import {
 import { store } from "../index";
 import { getUserChat, translate } from "utils/functions";
 import { toast } from "react-toastify";
-
+import { db } from "../../utils/firebaseInitv1";
+import { onValue, ref } from "firebase/database";
 export const ChatConroller = (payload) => {
   return { type: "CHAT-OPEN", payload: payload };
 };
@@ -39,6 +40,26 @@ export const GetChats = async (payload) => {
       payload: resp.data.data.channels,
       param: resp.data.data.pinned_channels,
     });
+    let chats = [...resp.data.data.channels, ...resp.data.data.pinned_channels];
+    chats.map((chat) => {
+      let friendID = chat.channel_members.filter(
+        (member) => parseInt(member.user_id) !== parseInt(getUserChat().id)
+      )[0]?.user_id;
+      let MyId = getUserChat().id;
+      const dbRef = ref(db, `Transaction/${friendID}/${MyId}`);
+      onValue(dbRef, (snapshot) => {
+        const desc = snapshot.val();
+        if (!!desc) {
+          store.dispatch({
+            type: "IS_TYPING_TRUE",
+            payload: { id: chat.id, desc: desc },
+          });
+          console.log(desc);
+        } else {
+          console.log("Data not found");
+        }
+      });
+    });
     store.dispatch({
       type: "SET_LAST_NOTIFICATION_DATE",
       payload: new Date().toLocaleString(),
@@ -52,7 +73,9 @@ export const GetChats = async (payload) => {
       },
     });
     store.dispatch({ type: "GET_CONTACTS_RED", payload: response.data.data });
-  } catch (e) {}
+  } catch (e) {
+    console.error(e);
+  }
 };
 
 export const SendMessage = async (payload, isNew) => {

@@ -1,4 +1,5 @@
 import { initializeApp } from "firebase/app";
+import { getDatabase } from "firebase/database";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { store } from "../store/index";
 import { getUserChat } from "./functions";
@@ -9,13 +10,15 @@ import { InCall } from "../store/chat/actions";
 const firebaseConfig = {
   apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
   authDomain: "trydos-ce234.firebaseapp.com",
+  databaseURL: "https://trydos-ce234-default-rtdb.firebaseio.com",
   projectId: "trydos-ce234",
   storageBucket: "trydos-ce234.appspot.com",
   messagingSenderId: "912302743695",
   appId: "1:912302743695:web:17d05f7385b792bf4110fa",
   measurementId: "G-N8LNVEWJSJ",
 };
-const firebaseApp = initializeApp(firebaseConfig);
+export const firebaseApp = initializeApp(firebaseConfig);
+export const db = getDatabase(firebaseApp);
 export const messaging =
   typeof window !== "undefined" &&
   "serviceWorker" in navigator &&
@@ -375,13 +378,13 @@ export const onMessageListener = () =>
       if (payload.data.type === "ChannelWatchedEvent") {
         store.dispatch({
           type: "WATCH_CHANNEL_RED",
-          payload: payload.data.channel_id,
+          payload: JSON.parse(payload.data.data).channel_id,
         });
       }
       if (payload.data.type === "ChannelReceivedEvent") {
         store.dispatch({
           type: "REC_CHANNEL_RED",
-          payload: payload.data.channel_id,
+          payload: JSON.parse(payload.data.data).channel_id,
         });
       }
     });

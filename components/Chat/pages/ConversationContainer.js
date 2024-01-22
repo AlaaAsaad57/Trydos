@@ -25,8 +25,10 @@ import {
   getMessagesBetweenMessage,
   getPage,
 } from "store/chat/actions";
-import { SSRDetect, translate } from "utils/functions";
+import { SSRDetect, getUserChat, translate } from "utils/functions";
 import dynamic from "next/dynamic";
+import { ref, set } from "firebase/database";
+import { db } from "utils/firebaseInitv1";
 const VideoCall = dynamic(() =>
   import("components/Chat/components/VideoCall", { ssr: false })
 );
@@ -47,9 +49,17 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
   const channels = useSelector((state) => state.chat.channels);
   const sendStatues = (desc) => {
     let obj = { id: activeChat.id, uid: getUser()?.id, desc: desc };
-    let a = channels.filter((cv) => cv.id === activeChat.id)[0];
-    if (a && a.channel) {
-      // a.channel.trigger("client-TypingEvent", obj);
+    if (activeChat.id) {
+      let friendID = activeChat.channel_members.filter(
+        (member) => parseInt(member.user_id) !== parseInt(getUserChat().id)
+      )[0]?.user_id;
+      set(ref(db, `Transaction/${getUserChat().id}/${friendID}`), desc)
+        .then(() => {
+          // Success.
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     }
   };
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
