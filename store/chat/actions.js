@@ -46,6 +46,7 @@ export const GetChats = async (payload) => {
         (member) => parseInt(member.user_id) !== parseInt(getUserChat().id)
       )[0]?.user_id;
       let MyId = getUserChat().id;
+      //wew
       const dbRef = ref(db, `Transaction/${friendID}/${MyId}`);
       onValue(dbRef, (snapshot) => {
         const desc = snapshot.val();
