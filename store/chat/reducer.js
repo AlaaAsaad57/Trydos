@@ -423,14 +423,22 @@ export const ChatReducer = (
       let id = payload.id;
       let active = null;
       let chs = [];
-
-      state.data.map((ch) => {
-        if (parseInt(id) === parseInt(ch.id))
-          chs.push({ ...ch, status: payload.desc });
-        else chs.push(ch);
-      });
-      if (state.activeChat && parseInt(state.activeChat.id) === parseInt(id)) {
-        active = { ...state.activeChat, status: payload.desc };
+      if (!id) {
+        state.data.map((ch) => {
+          chs.push({ ...ch, status: null });
+        });
+      } else {
+        state.data.map((ch) => {
+          if (parseInt(id) === parseInt(ch.id))
+            chs.push({ ...ch, status: payload.desc });
+          else chs.push(ch);
+        });
+        if (
+          state.activeChat &&
+          parseInt(state.activeChat.id) === parseInt(id)
+        ) {
+          active = { ...state.activeChat, status: payload.desc };
+        }
       }
       return {
         ...state,

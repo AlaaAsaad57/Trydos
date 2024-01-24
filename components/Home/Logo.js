@@ -1,7 +1,6 @@
 import { useSelector } from "react-redux";
 
 function Logo({ animated, style }) {
-  const language = useSelector((state) => state.homepage.language);
   return (
     <div className="logo-container">
       <svg

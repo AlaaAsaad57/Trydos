@@ -53,7 +53,12 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
       let friendID = activeChat.channel_members.filter(
         (member) => parseInt(member.user_id) !== parseInt(getUserChat().id)
       )[0]?.user_id;
-      set(ref(db, `Transaction/${getUserChat().id}/${friendID}`), desc)
+      set(ref(db, `Transaction`), {
+        description: desc,
+        myChatId: getUserChat().id,
+        friendId: friendID,
+        channelId: activeChat.id,
+      })
         .then(() => {
           // Success.
         })

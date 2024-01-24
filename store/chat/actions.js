@@ -40,43 +40,27 @@ export const GetChats = async (payload) => {
       payload: resp.data.data.channels,
       param: resp.data.data.pinned_channels,
     });
-    let chats = [...resp.data.data.channels, ...resp.data.data.pinned_channels];
-    chats.map((chat) => {
-      let friendID = chat.channel_members.filter(
-        (member) => parseInt(member.user_id) !== parseInt(getUserChat().id)
-      )[0]?.user_id;
-      let MyId = getUserChat().id;
-      //wew
-      const dbRef = ref(db, `Transaction/${friendID}/${MyId}`);
-      onValue(dbRef, (snapshot) => {
-        const desc = snapshot.val();
-
-        if (!!desc) {
-          if (typeof desc === "string") {
-            store.dispatch({
-              type: "IS_TYPING_TRUE",
-              payload: { id: chat.id, desc: desc },
-            });
-          } else {
-            store.dispatch({
-              type: "IS_TYPING_TRUE",
-              payload: {
-                id: chat.id,
-                desc:
-                  Object.keys(desc).length > 0
-                    ? desc[Object.keys(desc)[0]]
-                    : null,
-              },
-            });
-          }
-          console.log(desc);
-        } else {
+    //wew
+    const dbRef = ref(db, `Transaction`);
+    onValue(dbRef, (snapshot) => {
+      const desc = snapshot.val();
+      console.log(desc);
+      if (!!desc) {
+        if (parseInt(desc.myChatId) !== getUserChat().id)
           store.dispatch({
             type: "IS_TYPING_TRUE",
-            payload: { id: chat.id, desc: null },
+            payload: {
+              id: desc.channelId,
+              desc: desc.description,
+            },
           });
-        }
-      });
+        console.log(desc);
+      } else {
+        store.dispatch({
+          type: "IS_TYPING_TRUE",
+          payload: { id: null, desc: null },
+        });
+      }
     });
     store.dispatch({
       type: "SET_LAST_NOTIFICATION_DATE",
