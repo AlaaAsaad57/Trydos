@@ -27,7 +27,7 @@ import {
 } from "store/chat/actions";
 import { SSRDetect, getUserChat, translate } from "utils/functions";
 import dynamic from "next/dynamic";
-import { ref, set } from "firebase/database";
+import { push, ref, set } from "firebase/database";
 import { db } from "utils/firebaseInitv1";
 const VideoCall = dynamic(() =>
   import("components/Chat/components/VideoCall", { ssr: false })
@@ -68,7 +68,8 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
     let friendID = activeChat.channel_members.filter(
       (member) => parseInt(member.user_id) !== parseInt(getUserChat().id)
     )[0]?.user_id;
-    set(ref(db, `Transaction/${getUserChat().id}/${friendID}`), "Typing...")
+
+    push(ref(db, `Transaction/${getUserChat().id}/${friendID}`), "Typing...")
       .then(() => {
         // Success.
       })
