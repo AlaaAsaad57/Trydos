@@ -64,18 +64,13 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
   };
   var timerChat;
   const onChange = () => {
-    if (timerChat) clearTimeout(timerChat);
+    if (timerChat) {
+      clearTimeout(timerChat);
+      timerChat = null;
+    }
     let friendID = activeChat.channel_members.filter(
       (member) => parseInt(member.user_id) !== parseInt(getUserChat().id)
     )[0]?.user_id;
-
-    push(ref(db, `Transaction/${getUserChat().id}/${friendID}`), "Typing...")
-      .then(() => {
-        // Success.
-      })
-      .catch((error) => {
-        console.log(error);
-      });
     timerChat = setTimeout(() => {
       set(ref(db, `Transaction/${getUserChat().id}/${friendID}`), null)
         .then(() => {
@@ -85,6 +80,13 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
           console.log(error);
         });
     }, 2000);
+    push(ref(db, `Transaction/${getUserChat().id}/${friendID}`), "Typing...")
+      .then(() => {
+        // Success.
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: true });
