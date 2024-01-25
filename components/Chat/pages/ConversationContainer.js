@@ -53,12 +53,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
       let friendID = activeChat.channel_members.filter(
         (member) => parseInt(member.user_id) !== parseInt(getUserChat().id)
       )[0]?.user_id;
-      set(ref(db, `Transaction`), {
-        description: desc,
-        myChatId: getUserChat().id,
-        friendId: friendID,
-        channelId: activeChat.id,
-      })
+      set(ref(db, `Transaction/${getUserChat().id}/${friendID}`), desc)
         .then(() => {
           // Success.
         })
@@ -66,6 +61,29 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
           console.log(error);
         });
     }
+  };
+  var timerChat;
+  const onChange = () => {
+    if (timerChat) clearTimeout(timerChat);
+    let friendID = activeChat.channel_members.filter(
+      (member) => parseInt(member.user_id) !== parseInt(getUserChat().id)
+    )[0]?.user_id;
+    set(ref(db, `Transaction/${getUserChat().id}/${friendID}`), "Typing...")
+      .then(() => {
+        // Success.
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    timerChat = setTimeout(() => {
+      set(ref(db, `Transaction/${getUserChat().id}/${friendID}`), null)
+        .then(() => {
+          // Success.
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }, 2000);
   };
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: true });
@@ -1133,9 +1151,6 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
                 </label>
                 <input
                   id="type"
-                  onFocus={() => {
-                    sendStatues("Typing...");
-                  }}
                   onKeyDown={(e) => {
                     if (e.keyCode === "13" || e.key === "Enter") {
                       document
@@ -1150,7 +1165,10 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
                   }}
                   className={` input-chat ${message.length > 0 && "wid31"}`}
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  onChange={(e) => {
+                    setMessage(e.target.value);
+                    onChange();
+                  }}
                 />
               </div>
               {message.length > 0 ? (

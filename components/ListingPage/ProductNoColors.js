@@ -116,8 +116,6 @@ function ProductNoColors({ product }) {
       >
         {product.brand?.image && (
           <CategoryPhoto
-            loader={<Loadding />}
-            unloader={<ErrorIcon />}
             alt={product.brand.name}
             width="66"
             height="10"
@@ -131,8 +129,6 @@ function ProductNoColors({ product }) {
             <span className="product-category-icon" key={index}>
               <CategoryPhoto
                 src={cat.icon}
-                loader={<Loadding />}
-                unloader={<ErrorIcon />}
                 width={10}
                 height={10}
                 alt={cat.name}

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import ErrorIcon from "public/svg/ErrorIcon.svg";
 import Loadding from "public/svg/loading.svg";
 import { Img } from "react-image";
 function CategoryPhoto(props) {
@@ -14,15 +13,13 @@ function CategoryPhoto(props) {
   };
   return (
     <>
-      {reload ? (
+      {
         <Img
           {...props}
           src={[src]}
-          unloader={<ErrorIcon onClick={() => onClick()} />}
+          unloader={<Loadding onClick={() => onClick()} />}
         />
-      ) : (
-        <Loadding />
-      )}
+      }
     </>
   );
 }

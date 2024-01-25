@@ -174,7 +174,6 @@ function ProductCover({ product }) {
       >
         {product.brand?.image && (
           <CategoryPhoto
-            loader={<Loadding />}
             alt={product.brand.name}
             width="66"
             height="10"
@@ -188,7 +187,6 @@ function ProductCover({ product }) {
             <span className="product-category-icon" key={id}>
               <CategoryPhoto
                 src={cat.icon}
-                loader={<Loadding />}
                 width={10}
                 height={10}
                 alt={cat.name}
