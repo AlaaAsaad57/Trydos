@@ -53,7 +53,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
       let friendID = activeChat.channel_members.filter(
         (member) => parseInt(member.user_id) !== parseInt(getUserChat().id)
       )[0]?.user_id;
-      set(ref(db, `Transaction/${getUserChat().id}/${friendID}`), desc)
+      push(ref(db, `Transaction/${getUserChat().id}/${friendID}`), desc)
         .then(() => {
           // Success.
         })
@@ -507,7 +507,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
       reader.onerror = (error) => reject(error);
     });
   const uploadPhoto = () => {
-    sendStatues("Sending Photo...");
+    sendStatues("Sending file...");
     let Image = document.createElement("input");
     Image.onblur = () => {};
     Image.onchange = async (e) => {
@@ -556,7 +556,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
     i.click();
   };
   const openCameraMobile = () => {
-    sendStatues("Sending Photo...");
+    sendStatues("Sending file...");
     let Image = document.createElement("input");
     Image.onblur = () => {};
     Image.onchange = async (e) => {
