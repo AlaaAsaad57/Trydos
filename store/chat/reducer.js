@@ -158,10 +158,12 @@ export const ChatReducer = (
           ...state,
           call: null,
           callInProgress: false,
-          incomeCallType: null,
-          incomeCallData: null,
-          callLoading: null,
           isCallIncoming: false,
+          callLoading: payload,
+          incomeCallData: null,
+          incomeCallType: null,
+          caller: null,
+          callerChannel: null,
           MessageActiveCall: null,
         };
       } else {
@@ -180,6 +182,7 @@ export const ChatReducer = (
           incomeCallType: null,
           caller: null,
           callerChannel: null,
+          MessageActiveCall: null,
         };
       } else return { ...state };
     }
