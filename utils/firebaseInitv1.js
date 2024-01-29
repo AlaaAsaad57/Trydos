@@ -49,10 +49,14 @@ export const onMessageListener = () =>
         toast.info("User In Another Call");
       }
       if (payload.data.type === "RefuseCallEvent") {
+        let messageID = JSON.parse(payload.data.data).message_id;
         if (store.getState().chat.callInProgress) {
-          store.dispatch({ type: "USER_END_CALL" });
+          store.dispatch({
+            type: "USER_END_CALL",
+            payload: parseInt(messageID),
+          });
         } else {
-          store.dispatch({ type: "END-CALL" });
+          store.dispatch({ type: "END-CALL", payload: parseInt(messageID) });
         }
       }
       if (payload.data.type === "VoiceCallEvent") {

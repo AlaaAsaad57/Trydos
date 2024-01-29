@@ -114,7 +114,7 @@ function VideoCall(props) {
     setStart(false);
     RefuseCall(activeChat.id, MessageActiveCall);
     pause();
-    dispatch({ type: "END-CALL" });
+    dispatch({ type: "END-CALL", payload: MessageActiveCall });
   };
   const [trackState, setTrackState] = useState({ video: true, audio: true });
   const mute = async (type) => {

@@ -153,12 +153,7 @@ export const ChatReducer = (
       return initialState;
     }
     case "USER_END_CALL": {
-      if (state.activeChat)
-        return {
-          ...state,
-          callInProgress: 2,
-        };
-      else {
+      if (state.MessageActiveCall === payload || payload === -1) {
         return {
           ...state,
           call: null,
@@ -169,38 +164,24 @@ export const ChatReducer = (
           isCallIncoming: false,
           MessageActiveCall: null,
         };
+      } else {
+        return { ...state };
       }
     }
-    case "ME_END_CALL": {
-      if (state.activeChat)
-        return {
-          ...state,
-          callInProgress: 2,
-        };
-      else {
+    case "END-CALL": {
+      if (state.MessageActiveCall === payload || payload === -1) {
         return {
           ...state,
           call: null,
           callInProgress: false,
           isCallIncoming: false,
-          incomeCallType: null,
+          callLoading: payload,
           incomeCallData: null,
-          callLoading: null,
+          incomeCallType: null,
+          caller: null,
+          callerChannel: null,
         };
-      }
-    }
-    case "END-CALL": {
-      return {
-        ...state,
-        call: null,
-        callInProgress: false,
-        isCallIncoming: false,
-        callLoading: payload,
-        incomeCallData: null,
-        incomeCallType: null,
-        caller: null,
-        callerChannel: null,
-      };
+      } else return { ...state };
     }
     case "VIDEO_CALL": {
       let newActive = {
@@ -269,15 +250,17 @@ export const ChatReducer = (
       };
     }
     case "REFUSE_CALL": {
-      return {
-        ...state,
-        call: false,
-        isCallIncoming: false,
-        incomeCallType: null,
-        incomeCallData: null,
-        caller: null,
-        callerChannel: null,
-      };
+      if (payload === state.MessageActiveCall) {
+        return {
+          ...state,
+          call: false,
+          isCallIncoming: false,
+          incomeCallType: null,
+          incomeCallData: null,
+          caller: null,
+          callerChannel: null,
+        };
+      } else return { ...state };
     }
     case "ANSWER_CALL": {
       if (state.incomeCallType === "audio") {
@@ -317,7 +300,6 @@ export const ChatReducer = (
     }
     case "INCOMING_VOICE_CALL": {
       {
-        if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log("sds");
         return {
           ...state,
           isCallIncoming: true,

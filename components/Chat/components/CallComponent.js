@@ -8,6 +8,7 @@ import "./index.css";
 import Image from "next/image";
 function CallComponent(props) {
   const caller = useSelector((state) => state.chat.caller);
+  const message_id = useSelector((state) => state.chat.message_id);
   const incomeCallData = useSelector((state) => state.chat.incomeCallData);
   const MessageActiveCall = useSelector(
     (state) => state.chat.MessageActiveCall
@@ -88,7 +89,7 @@ function CallComponent(props) {
             RefuseCall(incomeCallData.channelId, MessageActiveCall);
             ref.current.pause();
             ref.current.currentTime = 0;
-            dispatch({ type: "REFUSE_CALL" });
+            dispatch({ type: "REFUSE_CALL", payload: MessageActiveCall });
           }}
         >
           <svg
