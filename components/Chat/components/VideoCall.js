@@ -84,6 +84,17 @@ function VideoCall(props) {
         if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
           console.log("user-joined", user);
         reset();
+        axios
+          .post(
+            CHAT_URL + `/api/v1/messages/start_talking/${MessageActiveCall}`,
+            {},
+            {
+              headers: {
+                Authorization: "Bearer " + getUserChat().access_token,
+              },
+            }
+          )
+          .then((data) => {});
         start();
         setUsers((prevUsers) => {
           return [...prevUsers, user];
@@ -96,6 +107,7 @@ function VideoCall(props) {
         if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
           console.log("subscribe success");
         if (mediaType === "video") {
+          user.audioTrack?.play();
         }
         if (mediaType === "audio") {
           user.audioTrack?.play();
@@ -273,7 +285,7 @@ function VideoCall(props) {
             <LeftArrowIcon></LeftArrowIcon>
           </div>
           <div className="add-caller-icon">
-            {tracks && tracks.length > 1 && tracks[1] && (
+            {tracks && tracks.length > 1 && (
               <AgoraVideoPlayer
                 className="local-video-stream"
                 videoTrack={tracks[1]}

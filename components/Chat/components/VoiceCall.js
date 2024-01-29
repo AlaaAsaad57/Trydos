@@ -8,7 +8,6 @@ import AddUserIcon from "../svg/addUser.svg";
 import LeftArrowIcon from "../svg/leftArrow.svg";
 import "./index.css";
 import AgoraRTC, {
-  AgoraVideoPlayer,
   createClient,
   createMicrophoneAndCameraTracks,
 } from "agora-rtc-react";
@@ -56,6 +55,17 @@ function VideoCall(props) {
         if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
           console.log("user-joined", user);
         start();
+        axios
+          .post(
+            CHAT_URL + `/api/v1/messages/start_talking/${MessageActiveCall}`,
+            {},
+            {
+              headers: {
+                Authorization: "Bearer " + getUserChat().access_token,
+              },
+            }
+          )
+          .then((data) => {});
       });
       client.on("user-published", async (user, mediaType) => {
         await client.subscribe(user, mediaType);
