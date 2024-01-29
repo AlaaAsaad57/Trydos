@@ -637,7 +637,6 @@ export const Answer = async (channelId, messageId) => {
       typeof channelId === "string" && channelId.includes("ch")
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
         : { channel_id: channelId };
-    store.dispatch({ type: "USER_END_CALL", payload: messageId });
     await axios
       .post(
         CHAT_URL + `/api/v1/messages/answer_call/${messageId}`,
