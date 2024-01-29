@@ -180,7 +180,7 @@ function VideoCall(props) {
     }
   }, [callInProgress]);
   useEffect(() => {
-    if (seconds === 30 && users.length === 0 && call === "vid-outgoing") {
+    if (seconds === 90 && users.length === 0 && call === "vid-outgoing") {
       console.log(users);
       userEndCall();
     }
