@@ -45,7 +45,7 @@ export const onMessageListener = () =>
     onMessage(messaging, (payload) => {
       if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(payload);
       if (payload.data.type === "InAnotherCallEvent") {
-        store.dispatch({ type: "USER_END_CALL" });
+        // store.dispatch({ type: "USER_END_CALL" });
         toast.info("User In Another Call");
       }
       if (payload.data.type === "RefuseCallEvent") {

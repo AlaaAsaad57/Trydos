@@ -75,15 +75,11 @@ export const Decline = async (token, mid) => {
 };
 export const StartTalking = async (token, mid) => {
   let req = await axios
-    .post(
-      CHAT_URL + `/api/v1/messages/start_talking/${mid}`,
-      {},
-      {
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      }
-    )
+    .post(CHAT_URL + `/api/v1/messages/start_talking/${mid}`, {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    })
     .then((data) => {});
 };
 export const AnswerWebView = async (token, messageId) => {

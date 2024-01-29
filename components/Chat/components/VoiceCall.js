@@ -56,9 +56,8 @@ function VideoCall(props) {
           console.log("user-joined", user);
         start();
         axios
-          .post(
+          .get(
             CHAT_URL + `/api/v1/messages/start_talking/${MessageActiveCall}`,
-            {},
             {
               headers: {
                 Authorization: "Bearer " + getUserChat().access_token,
