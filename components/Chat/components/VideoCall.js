@@ -24,7 +24,6 @@ const config = {
 AgoraRTC.setLogLevel(3);
 const useClient = createClient(config);
 const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
-
 const appId = "0af959943ff542df8f2cb1b925ec0cc1";
 function VideoCall(props) {
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =

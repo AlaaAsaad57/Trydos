@@ -69,7 +69,7 @@ export default function Home({ stories, HomeData_res, stories_res, HomeData }) {
   const dispatch = useDispatch();
   return (
     <>
-      <ToastContainer />
+      <ToastContainer position="bottom-right" />
 
       <Stories />
       <StoriesComponent />
