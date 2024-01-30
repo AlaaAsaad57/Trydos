@@ -53,13 +53,22 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
       let friendID = activeChat.channel_members.filter(
         (member) => parseInt(member.user_id) !== parseInt(getUserChat().id)
       )[0]?.user_id;
-      push(ref(db, `Transaction/${getUserChat().id}/${friendID}`), desc)
-        .then(() => {
-          // Success.
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      if (desc)
+        push(ref(db, `Transaction/${getUserChat().id}/${friendID}`), desc)
+          .then(() => {
+            // Success.
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      else
+        set(ref(db, `Transaction/${getUserChat().id}/${friendID}`), null)
+          .then(() => {
+            // Success.
+          })
+          .catch((error) => {
+            console.log(error);
+          });
     }
   };
   var timerChat;
