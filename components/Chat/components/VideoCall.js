@@ -284,7 +284,7 @@ function VideoCall(props) {
           </div>
           <div className="add-caller-icon">
             {tracks && tracks.length > 1 && (
-              <LocalVideoTrack
+              <AgoraVideoPlayer
                 className="local-video-stream"
                 videoTrack={tracks[1]}
               />
