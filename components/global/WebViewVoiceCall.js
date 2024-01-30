@@ -7,7 +7,7 @@ import { useStopwatch } from "react-timer-hook";
 import { StartTalking } from "./WebViewActions";
 const config = {
   mode: "rtc",
-  codec: "vp8",
+  codec: "h264",
 };
 
 const useClient = createClient(config);

@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import EndCallIcon from "../svg/endCall.svg";
 import MicIcon from "../svg/micIcon.svg";
 import VideoIcon from "../svg/vidIcon.svg";
-import CallIcon from "../svg/CallInProg.svg";
 import CallingIcon from "../svg/calling.svg";
 import LeftArrowIcon from "../svg/leftArrow.svg";
 import "./index.css";
@@ -285,7 +284,7 @@ function VideoCall(props) {
           </div>
           <div className="add-caller-icon">
             {tracks && tracks.length > 1 && (
-              <AgoraVideoPlayer
+              <LocalVideoTrack
                 className="local-video-stream"
                 videoTrack={tracks[1]}
               />

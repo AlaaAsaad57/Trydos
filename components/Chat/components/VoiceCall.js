@@ -20,7 +20,7 @@ import { CHAT_URL } from "utils/endpointConfig";
 import { getUserChat, translate } from "utils/functions";
 const config = {
   mode: "rtc",
-  codec: "vp8",
+  codec: "h264",
 };
 AgoraRTC.setLogLevel(3);
 const useClient = createClient(config);
