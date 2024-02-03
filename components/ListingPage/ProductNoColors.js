@@ -125,17 +125,17 @@ function ProductNoColors({ product }) {
         )}
         <div className="prouct-details">
           <span className="quantity">1</span>
-          {product?.categories?.map((cat, index) => (
-            <span className="product-category-icon" key={index}>
+          {
+            <span className="product-category-icon" key={id}>
               <CategoryPhoto
-                src={cat.icon}
+                src={product.category.icon}
                 width={10}
                 height={10}
-                alt={cat.name}
+                alt={product.category}
                 style={{ borderRadius: "50%" }}
               />
             </span>
-          ))}
+          }
           <p id={"prod-" + product.id} className="product-details-text">
             {product.name}
           </p>

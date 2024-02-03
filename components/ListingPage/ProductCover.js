@@ -189,7 +189,7 @@ function ProductCover({ product }) {
                 src={product.category.icon}
                 width={10}
                 height={10}
-                alt={cat.name}
+                alt={product.category}
                 style={{ borderRadius: "50%" }}
               />
             </span>
