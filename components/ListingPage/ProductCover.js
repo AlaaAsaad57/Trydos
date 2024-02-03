@@ -183,17 +183,17 @@ function ProductCover({ product }) {
         )}
         <div className="prouct-details">
           <span className="quantity">1</span>
-          {product?.categories?.map((cat, id) => (
+          {
             <span className="product-category-icon" key={id}>
               <CategoryPhoto
-                src={cat.icon}
+                src={product.category.icon}
                 width={10}
                 height={10}
                 alt={cat.name}
                 style={{ borderRadius: "50%" }}
               />
             </span>
-          ))}
+          }
           <span className="product-details-text">{product.name}</span>
         </div>
       </div>
