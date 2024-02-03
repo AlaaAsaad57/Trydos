@@ -54,7 +54,13 @@
     --pseudo-element-display: none; /* Disable animation */
   }
 }
-.product-category-icon img,
+.product-category-icon img {
+  min-width: 15px;
+  min-height: 15px;
+  max-width: 15px;
+  max-height: 15px;
+  border-radius: 0px !important;
+}
 .product-body img {
   border-radius: 50%;
   min-width: 15px;
