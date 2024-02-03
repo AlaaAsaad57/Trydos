@@ -49,7 +49,7 @@ function VideoCall(props) {
     // },30000)
   }, []);
   const [users, setUsers] = useState([]);
-  const [startIndicator, setStart] = useState(false);
+  const [displayMethod, setDisplayMethod] = useState(false);
   const client = useClient(config);
   // ready is a state variable, which returns true when the local tracks are initialized, untill then tracks variable is null
   const { ready, tracks, error } = useMicrophoneAndCameraTracks();
@@ -133,7 +133,6 @@ function VideoCall(props) {
 
       await client.join(appId, name.toString(), token, getUserChat()?.id);
       if (tracks) await client.publish([tracks[0], tracks[1]]);
-      setStart(true);
     };
 
     if (ready && tracks) {
@@ -160,7 +159,6 @@ function VideoCall(props) {
         tracks[1].close();
       }
     }
-    setStart(false);
     pause();
     dispatch({ type: "END-CALL", payload: MessageActiveCall });
   };
@@ -253,9 +251,14 @@ function VideoCall(props) {
                 return (
                   <AgoraVideoPlayer
                     key={index}
-                    className="my-screen"
+                    onClick={() => {
+                      if (displayMethod) setDisplayMethod(!displayMethod);
+                    }}
+                    className={displayMethod ? "add-caller-icon" : "my-screen"}
                     id="remote-stream"
-                    style={{ height: "100%", width: "100%" }}
+                    style={
+                      !displayMethod ? { height: "100%", width: "100%" } : {}
+                    }
                     videoTrack={user.videoTrack}
                   />
                 );
@@ -281,7 +284,13 @@ function VideoCall(props) {
           >
             <LeftArrowIcon></LeftArrowIcon>
           </div>
-          <div className="add-caller-icon">
+          <div
+            style={{ cursor: "pointer" }}
+            onClick={() => {
+              if (!displayMethod) setDisplayMethod(!displayMethod);
+            }}
+            className={!displayMethod ? "add-caller-icon" : "my-screen"}
+          >
             {tracks && tracks.length > 1 && (
               <AgoraVideoPlayer
                 className="local-video-stream"

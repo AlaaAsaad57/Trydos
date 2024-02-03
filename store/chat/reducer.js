@@ -485,12 +485,18 @@ export const ChatReducer = (
       };
     }
     case "WATCH_CHANNEL": {
-      watchChannel(payload);
       let id = parseInt(payload);
-      let newChats = [];
-      let active = null;
+      console.log(payload);
       if (
-        state.data.filter((s) => parseInt(s.id) === parseInt(id)).length > 0
+        (typeof payload === "string" && !payload.includes("ch")) ||
+        typeof payload === "number"
+      )
+        watchChannel(payload);
+      let newChats = [];
+      let active = state.activeChat;
+      if (
+        state.data.filter((s) => parseInt(s.id) === parseInt(id)).length > 0 ||
+        (typeof payload === "string" && payload.includes("ch"))
       ) {
         state.data.map((a) => {
           if (parseInt(a.id) === id) {
@@ -547,21 +553,30 @@ export const ChatReducer = (
             newChats.push(a);
           }
         });
+        console.log(active, state.activeChat);
         return {
           ...state,
           data: newChats,
-          activeChat: active,
+          activeChat: active?.id ? active : state.activeChat,
           newChats: state.newChats.filter(
             (a) => parseInt(a.id) !== parseInt(payload)
           ),
         };
+      } else {
+        return {
+          ...state,
+        };
       }
     }
     case "REC_CHANNEL_RED": {
-      Recive(payload);
       let id = parseInt(payload);
+      if (
+        (typeof payload === "string" && !payload.includes("ch")) ||
+        typeof payload === "number"
+      )
+        Recive(payload);
       let newChats = [];
-      let active = null;
+      let active = state.activeChat;
       state.data.map((a) => {
         if (parseInt(a.id) === id) {
           let m = [];

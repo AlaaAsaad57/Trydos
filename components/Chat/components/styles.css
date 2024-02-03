@@ -1126,6 +1126,11 @@
   overflow: hidden;
   border-radius: 15px;
 }
+.my-screen .local-video-stream {
+  width: 100%;
+  height: 100%;
+  border-radius: 0px;
+}
 .disabled-label {
   opacity: 0.6;
 }

@@ -241,12 +241,14 @@
   right: 10px;
   top: 15px;
   display: flex;
+  border-radius: 15px;
   width: 100px;
+  overflow: hidden;
   height: 150px;
 }
 .add-caller-icon video {
   width: 100px;
-  height: 150px;
+  height: 100px;
 }
 .cancel-call-icon {
   display: flex;
