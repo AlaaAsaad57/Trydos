@@ -406,7 +406,7 @@ export const ChatReducer = (
     }
     case "IS_TYPING_TRUE": {
       let id = payload.id;
-      let active = null;
+      let active = state.activeChat;
       let chs = [];
 
       state.data.map((ch) => {
