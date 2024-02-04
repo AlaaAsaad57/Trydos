@@ -9,6 +9,7 @@ function StoriesBar({ stories }) {
   const setSelectStory = (e) => {
     dispatch(SelectStory(e));
   };
+  console.log("hi");
   return (
     <>
       <div className="stories-container">

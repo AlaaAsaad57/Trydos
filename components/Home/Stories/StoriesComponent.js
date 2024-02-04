@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   SelectStory,
@@ -7,6 +7,7 @@ import {
 } from "store/homepage/actions";
 import CloseIcon from "./CloseIcon";
 import dynamic from "next/dynamic";
+import { WatchStory } from "store/auth/actions";
 const Stories = dynamic(() => import("react-insta-stories"), { ssr: false });
 function StoriesComponent() {
   const [currentStoryId, setCurrentStoryId] = useState(0);
@@ -16,6 +17,9 @@ function StoriesComponent() {
   const setSelectStory = (e) => {
     dispatch(SelectStory(e));
   };
+  useEffect(() => {
+    if (selectedStory) WatchStory(selectedStory.stories[currentStoryId].id);
+  }, [currentStoryId]);
   return (
     <>
       {storiesData.map(

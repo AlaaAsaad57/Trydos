@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { configureStory, getThumb } from "utils/functions";
 import dynamic from "next/dynamic";
 import Skeleton from "react-loading-skeleton";
@@ -11,6 +11,10 @@ function StoryComponent({ story, viewedStory, select }) {
   const [currentStoryId, setCurrentStoryId] = useState(0);
   const selectedStory = useSelector((state) => state.homepage.selectedStory);
   const dispatch = useDispatch();
+  useEffect(() => {
+    console.log(currentStoryId);
+  }, [currentStoryId]);
+  console.log(currentStoryId);
   return (
     <div
       className="story-component"
@@ -26,11 +30,11 @@ function StoryComponent({ story, viewedStory, select }) {
             key={story.id.id}
             preloadCount={3}
             currentIndex={currentStoryId}
-            onPrevious={() =>
+            onPrevious={() => {
               currentStoryId > 0
                 ? setCurrentStoryId(currentStoryId - 1)
-                : dispatch(setPreviousStory(story.id))
-            }
+                : dispatch(setPreviousStory(story.id));
+            }}
             onNext={() =>
               currentStoryId < story.stories.length - 1
                 ? setCurrentStoryId(currentStoryId + 1)
@@ -53,6 +57,9 @@ function StoryComponent({ story, viewedStory, select }) {
             }}
             width={"100vw"}
             height={"100vh"}
+            onStoryStart={(e) => {
+              console.log(e);
+            }}
             onAllStoriesEnd={() => {
               setTimeout(() => {
                 setCurrentStoryId(0);

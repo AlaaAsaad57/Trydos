@@ -10,6 +10,7 @@ import {
 import { SSRDetect } from "utils/functions";
 import { changeAppLanguageServer } from "./cachedActions";
 import Cookies from "js-cookie";
+import { WatchStory } from "store/auth/actions";
 /*General Actions */
 export const RegisterDevice = async () => {
   try {
@@ -33,6 +34,7 @@ export const GetMainData = (data) => {
 };
 /*Stories Actions */
 export const SelectStory = (e) => {
+  WatchStory(e.stories[0].id);
   return { type: "STORY-SELECTED", payload: e };
 };
 export const GetStoryData = (data) => {

@@ -44,7 +44,7 @@ export const configureStory = (story) => {
         FixedUrl: vid,
         url: storyItem.full_video_path,
         FixedUrl: storyItem.full_video_path,
-
+        id: storyItem.id,
         header: {
           heading: story.name ?? story.mobile_phone ?? "Unknown",
           subheading: "Posted 30m ago",
@@ -62,6 +62,7 @@ export const configureStory = (story) => {
         url: img.toURL(),
         FixedUrl: img,
         duration: 20000,
+        id: storyItem.id,
         header: {
           heading: story.name ?? story.mobile_phone ?? "Unknown",
           subheading: "Posted 30m ago",

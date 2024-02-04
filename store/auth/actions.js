@@ -220,3 +220,10 @@ export const getCustomerInfo = async () => {
     );
   } catch (e) {}
 };
+export const WatchStory = (id) => {
+  axios.get(STORIES_URL + "/api/v1/stories/increase_viewers/" + id, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("STORIES-TOKEN")}`,
+    },
+  });
+};
