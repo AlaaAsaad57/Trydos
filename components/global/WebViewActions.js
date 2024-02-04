@@ -60,11 +60,11 @@ export const getAgoraTokenForInit = async (channel_id, token, mid) => {
     });
   return tok;
 };
-export const Decline = async (token, mid) => {
+export const Decline = async (token, mid, duration) => {
   let req = await axios
     .post(
       CHAT_URL + `/api/v1/messages/refuse_call/${mid}`,
-      {},
+      { duration_in_seconds: duration || 0 },
       {
         headers: {
           Authorization: "Bearer " + token,

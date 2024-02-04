@@ -604,13 +604,16 @@ export const InCall = async (channelId, messageId) => {
     console.log(error);
   }
 };
-export const RefuseCall = async (channelId, messageId) => {
+export const RefuseCall = async (channelId, messageId, duration) => {
   try {
     if (messageId) {
       let obj =
         typeof channelId === "string" && channelId.includes("ch")
-          ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
-          : { channel_id: channelId };
+          ? {
+              receiver_user_id: parseInt(channelId.split("ch-")[1]),
+              duration_in_seconds: duration || 0,
+            }
+          : { channel_id: channelId, duration_in_seconds: duration || 0 };
 
       store.dispatch({ type: "USER_END_CALL", payload: messageId });
       await axios

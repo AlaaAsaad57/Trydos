@@ -76,10 +76,10 @@ function WebviewCall() {
       window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}&ring=true`;
     }
   };
-  const onDecline = async () => {
+  const onDecline = async (duration) => {
     if (!data.loading) {
       setData({ ...data, loading: true });
-      await Decline(data.authToken, data.msgId);
+      await Decline(data.authToken, data.msgId, duration);
       window.location.href = "/endCall";
     }
   };
@@ -118,8 +118,8 @@ function WebviewCall() {
       {data.authToken && data.action === "receive" && (
         <CallComponentWidget
           data={data}
-          onDecline={() => {
-            onDecline();
+          onDecline={(e) => {
+            onDecline(e);
           }}
           onAnswer={() => {
             onAnswer(true);
@@ -132,7 +132,7 @@ function WebviewCall() {
         data.action !== "receive" &&
         data.type === "voice" && (
           <WebViewVoiceCall
-            onDecline={() => onDecline()}
+            onDecline={(d) => onDecline(d)}
             data={data}
             urlparam={`/call_direct?authToken=${data.authToken}&token=${data.token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`}
           />
@@ -142,7 +142,7 @@ function WebviewCall() {
         data.action !== "receive" &&
         data.type === "video" && (
           <WebViewVideoCall
-            onDecline={() => onDecline()}
+            onDecline={(e) => onDecline(e)}
             data={data}
             urlparam={`/call_direct?authToken=${data.authToken}&token=${data.token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`}
           />

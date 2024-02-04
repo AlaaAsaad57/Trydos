@@ -103,7 +103,8 @@ function WebViewVoiceCall(props) {
     //   RefuseCall(activeChat.id,MessageActiveCall)
 
     pause();
-    props.onDecline();
+    let duration = minutes * 60 + seconds;
+    props.onDecline(duration > 3 && users.length > 0 && duration);
     //   dispatch({type:"END-CALL"})
   };
   const [trackState, setTrackState] = useState({ video: true, audio: true });

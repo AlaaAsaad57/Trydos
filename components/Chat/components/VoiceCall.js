@@ -119,9 +119,15 @@ function VideoCall(props) {
       if (tracks && tracks[0]) tracks[0]?.close();
     }
     setStart(false);
-    RefuseCall(activeChat.id, MessageActiveCall);
+    EndCall();
     pause();
     dispatch({ type: "END-CALL", payload: MessageActiveCall });
+  };
+  const EndCall = () => {
+    let duration = minutes * 60 + seconds;
+    if (duration > 3 && users.length > 0)
+      RefuseCall(activeChat.id, MessageActiveCall, duration);
+    else RefuseCall(activeChat.id, MessageActiveCall);
   };
   const [trackState, setTrackState] = useState({ video: true, audio: true });
   const mute = async (type) => {
@@ -199,7 +205,7 @@ function VideoCall(props) {
             style={tracks && tracks[0] && { zIndex: 3 }}
             className="end-icon"
             onClick={() => {
-              RefuseCall(activeChat.id, MessageActiveCall);
+              EndCall();
               userEndCall();
             }}
           >
@@ -209,7 +215,7 @@ function VideoCall(props) {
           <div
             className="cancel-call-icon"
             onClick={() => {
-              RefuseCall(activeChat.id, MessageActiveCall);
+              EndCall();
               userEndCall();
             }}
           >

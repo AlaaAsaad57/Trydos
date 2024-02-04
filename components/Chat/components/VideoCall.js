@@ -153,7 +153,6 @@ function VideoCall(props) {
     if (ready) {
       await client.leave();
       client.removeAllListeners();
-      // we close the tracks to perform cleanup
       if (tracks) {
         tracks[0]?.close();
         tracks[1].close();
@@ -192,8 +191,15 @@ function VideoCall(props) {
     }
     if (minutes === 30) {
       userEndCall();
+      RefuseCall(activeChat.id, MessageActiveCall, minutes * 60);
     }
   }, [minutes, seconds]);
+  const EndCall = () => {
+    let duration = minutes * 60 + seconds;
+    if (duration > 3 && users.length > 0)
+      RefuseCall(activeChat.id, MessageActiveCall, duration);
+    else RefuseCall(activeChat.id, MessageActiveCall);
+  };
   return (
     <>
       {
@@ -268,7 +274,7 @@ function VideoCall(props) {
             style={tracks && tracks[1] && { zIndex: 3 }}
             className="end-icon"
             onClick={() => {
-              RefuseCall(activeChat.id, MessageActiveCall);
+              EndCall();
               userEndCall();
             }}
           >
@@ -278,7 +284,7 @@ function VideoCall(props) {
           <div
             className="cancel-call-icon"
             onClick={() => {
-              RefuseCall(activeChat.id, MessageActiveCall);
+              EndCall();
               userEndCall();
             }}
           >
