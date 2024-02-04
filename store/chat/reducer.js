@@ -420,7 +420,7 @@ export const ChatReducer = (
       return {
         ...state,
         data: [...chs],
-        activeChat: active,
+        activeChat: active || state.activeChat,
       };
     }
     case "WATCH_CHANNEL_RED": {
