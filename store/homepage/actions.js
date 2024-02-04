@@ -34,7 +34,7 @@ export const GetMainData = (data) => {
 };
 /*Stories Actions */
 export const SelectStory = (e) => {
-  WatchStory(e.stories[0].id);
+  if (e) WatchStory(e.stories[0].id);
   return { type: "STORY-SELECTED", payload: e };
 };
 export const GetStoryData = (data) => {
