@@ -56,7 +56,7 @@
   justify-content: center;
   position: relative;
 }
-.chat-window-search-holder[aria-label="ar"] input {
+html[lang="ar"] .chat-window-search-holder input {
   padding-left: 0px;
   padding-right: 50px;
   direction: rtl;
@@ -86,7 +86,7 @@
   width: 20px;
   height: 20px;
 }
-.chat-window-search-holder[aria-label="ar"] svg {
+html[lang="ar"] .chat-window-search-holder svg {
   top: 10px;
   z-index: 6;
   position: absolute;
@@ -507,7 +507,7 @@
   align-items: center;
   justify-content: flex-start;
 }
-.new-chats[aria-label="ar"] {
+html[lang="ar"] .new-chats {
   left: 474px;
   right: initial;
 }

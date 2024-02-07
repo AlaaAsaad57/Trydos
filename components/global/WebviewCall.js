@@ -14,6 +14,7 @@ const CallComponentWidget = dynamic(() =>
 import { getAgoraToken, Decline, getAgoraTokenForInit } from "./WebViewActions";
 import CallingIcon from "../Chat/svg/CallInProg.svg";
 function WebviewCall() {
+  const [error, setError] = useState(null);
   const router = useRouter();
   const getToken = (tok) => {
     let str = "";
@@ -71,9 +72,15 @@ function WebviewCall() {
         data.authToken,
         data.msgId
       );
-
-      setData({ ...data, token: token, action: "sent" });
-      window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}&ring=true`;
+      if (token) {
+        setData({ ...data, token: token, action: "sent" });
+        window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}&ring=true`;
+      } else {
+        setError("failed to initialize call ..Try again");
+        setTimeout(() => {
+          window.location.href = "/endCall";
+        }, 3000);
+      }
     }
   };
   const onDecline = async (duration) => {
@@ -112,7 +119,7 @@ function WebviewCall() {
           <CallingIcon
             style={{ marginBottom: "10px", transform: "scale(1.5)" }}
           ></CallingIcon>
-          Loading Call Information...
+          {error ? error : "  Loading Call Information..."}
         </div>
       )}
       {data.authToken && data.action === "receive" && (

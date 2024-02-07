@@ -57,6 +57,9 @@ export const getAgoraTokenForInit = async (channel_id, token, mid) => {
     )
     .then((data) => {
       tok = data.data.data;
+    })
+    .catch((e) => {
+      alert(e.message);
     });
   return tok;
 };

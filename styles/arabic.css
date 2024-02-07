@@ -25,8 +25,8 @@ html[lang="ar"] .search-component-container input {
   text-align: right;
 }
 html[lang="ar"] .user-nav-container,
-.welcome-user,
-.nav-question-item {
+html[lang="ar"] .welcome-user,
+html[lang="ar"] .nav-question-item {
   flex-direction: row-reverse;
 }
 html[lang="ar"] .nav-question-item {
@@ -38,8 +38,8 @@ html[lang="ar"] .nav-question-item span {
   margin-right: 5px !important;
 }
 html[lang="ar"] .login-label,
-.login-label-title,
-.login-qr-info {
+html[lang="ar"] .login-label-title,
+html[lang="ar"] .login-qr-info {
   flex-direction: row-reverse;
 }
 html[lang="ar"] .login-label-text {
@@ -47,7 +47,7 @@ html[lang="ar"] .login-label-text {
   margin-right: 10px;
 }
 html[lang="ar"] .login-label.login-extend,
-.login-qr-section {
+html[lang="ar"] .login-qr-section {
   align-items: flex-end !important;
 }
 html[lang="ar"] .login-qr-info-text {
