@@ -139,6 +139,12 @@
   font-family: var(--SF-Pro-Rounded-Light);
   color: #8d8d8d;
 }
+.switch-camera {
+  position: absolute;
+  left: 20px;
+  transform: scale(1.5);
+  top: 100px;
+}
 .call-status span {
   font-size: 14px;
   font-family: var(--SF-Pro-Rounded-Light);

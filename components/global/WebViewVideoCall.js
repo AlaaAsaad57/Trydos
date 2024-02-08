@@ -4,6 +4,7 @@ import MicIcon from "../Chat/svg/micIcon.svg";
 import VideoIcon from "../Chat/svg/vidIcon.svg";
 import CallingIcon from "../Chat/svg/calling.svg";
 import LeftArrowIcon from "../Chat/svg/leftArrow.svg";
+import SwitchCameraIcon from "../Chat/svg/SwitchCameraIcon.svg";
 import AgoraRTC, {
   AgoraVideoPlayer,
   createClient,
@@ -19,9 +20,22 @@ AgoraRTC.setLogLevel(3);
 
 const useClient = createClient(config);
 const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
+let cameras = await AgoraRTC.getCameras();
 
 const appId = "0af959943ff542df8f2cb1b925ec0cc4";
 function WebViewVideoCall(props) {
+  const [cameraSelected, setCamera] = useState("user");
+  const switchCamera = () => {
+    if (tracks[1]) {
+      if (tracks[1].getMediaStreamTrack().label === cameras[0].label) {
+        setCamera("environment");
+        tracks[1].setDevice(cameras[1].deviceId);
+      } else {
+        setCamera("user");
+        tracks[1].setDevice(cameras[0].deviceId);
+      }
+    }
+  };
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
   const [callStatus, setCallStatus] = useState(null);
@@ -31,6 +45,7 @@ function WebViewVideoCall(props) {
   const client = useClient(config);
   // ready is a state variable, which returns true when the local tracks are initialized, untill then tracks variable is null
   const { ready, tracks, error } = useMicrophoneAndCameraTracks();
+
   useEffect(() => {
     // function to initialise the SDK
     let init = async (name) => {
@@ -85,7 +100,8 @@ function WebViewVideoCall(props) {
           appId,
           name.toString(),
           token,
-          parseInt(props.data.sender_user_id)
+          tracks[1].getMediaStreamTrack(),
+          cameras
         );
       await client.join(
         appId,
@@ -178,6 +194,16 @@ function WebViewVideoCall(props) {
               )}
             </>
           }
+          {cameras.length > 1 && tracks && ready && tracks[1] && (
+            <div
+              className="switch-camera"
+              onClick={() => {
+                // switchCamera();
+              }}
+            >
+              <SwitchCameraIcon />
+            </div>
+          )}
           <span className="caller-name">{props.data.receiver_user_id}</span>
 
           {users.length > 0 &&
