@@ -11,12 +11,11 @@ import AgoraRTC, {
   createMicrophoneAndCameraTracks,
 } from "agora-rtc-react";
 import { useStopwatch } from "react-timer-hook";
-import { StartTalking } from "./WebViewActions";
 const config = {
   mode: "rtc",
   codec: "h264",
 };
-AgoraRTC.setLogLevel(3);
+AgoraRTC.setLogLevel(4);
 
 const useClient = createClient(config);
 const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
@@ -24,18 +23,32 @@ let cameras = await AgoraRTC.getCameras();
 
 const appId = "0af959943ff542df8f2cb1b925ec0cc4";
 function WebViewVideoCall(props) {
+  const [loading, setLoading] = useState(false);
   const [cameraSelected, setCamera] = useState("user");
-  const switchCamera = () => {
-    if (tracks[1]) {
-      if (tracks[1].getMediaStreamTrack().label === cameras[0].label) {
-        setCamera("environment");
-        tracks[1].setDevice(cameras[1].deviceId);
-      } else {
-        setCamera("user");
-        tracks[1].setDevice(cameras[0].deviceId);
-      }
-    }
-  };
+  // const switchCamera = async () => {
+  //   await tracks[1].stop()
+  //   await tracks[1].close()
+  //   if (tracks[1]) {
+  //     if (tracks[1].getMediaStreamTrack().label === cameras[0].label) {
+  //       let newTrack =await AgoraRTC.createCameraVideoTrack({facingMode:'environment'})
+  //       await tracks[1].replaceTrack(newTrack, true);
+  //       await client.publish(tracks[1])
+  //     } else {
+  //       setCamera("user");
+  //       alert("user");
+  //       let newTrack = await navigator.mediaDevices
+  //         .getUserMedia({ audio: false, video: { facingMode: "user" } })
+  //         .then((stream) => {
+  //           return stream.getVideoTracks()[0];
+  //         });
+  //       setCamera("user");
+  //       alert("user");
+  //       await tracks[1].replaceTrack(newTrack, true);
+  //     }
+  //   }
+  //   await tracks[1].setEnabled(true);
+  // };
+
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
   const [callStatus, setCallStatus] = useState(null);
@@ -66,7 +79,7 @@ function WebViewVideoCall(props) {
         }
 
         if (mediaType === "video") {
-          StartTalking(props.data.authToken, props.data.msgId);
+          // StartTalking(props.data.authToken, props.data.msgId);
           start();
         }
         if (mediaType === "audio") {
@@ -194,16 +207,16 @@ function WebViewVideoCall(props) {
               )}
             </>
           }
-          {cameras.length > 1 && tracks && ready && tracks[1] && (
+          {/* {cameras.length > 0 && tracks && ready && tracks[1] && (
             <div
               className="switch-camera"
               onClick={() => {
-                // switchCamera();
+                switchCamera();
               }}
             >
               <SwitchCameraIcon />
             </div>
-          )}
+          )} */}
           <span className="caller-name">{props.data.receiver_user_id}</span>
 
           {users.length > 0 &&
@@ -238,10 +251,9 @@ function WebViewVideoCall(props) {
             <span>End Call</span>
           </div>
           <div
-            className={
-              "cancel-call-icon " + `${props.data.loading && "disabled-label"}`
-            }
+            className={"cancel-call-icon " + `${loading && "disabled-label"}`}
             onClick={() => {
+              setLoading(true);
               userEndCall();
             }}
           >
@@ -254,12 +266,15 @@ function WebViewVideoCall(props) {
             }}
             className={!displayMethod ? "add-caller-icon" : "my-screen"}
           >
-            {tracks && tracks.length > 1 && tracks[1] && (
-              <AgoraVideoPlayer
-                className="local-video-stream"
-                videoTrack={tracks[1]}
-              />
-            )}
+            {cameraSelected === "environment" &&
+              tracks &&
+              tracks.length > 1 &&
+              tracks[1] && (
+                <AgoraVideoPlayer
+                  className="local-video-stream"
+                  videoTrack={tracks[1]}
+                />
+              )}
           </div>
           <div
             className={"toggle-mic " + (trackState.audio && "active-mic-svg")}

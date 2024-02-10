@@ -15,6 +15,7 @@ const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
 
 const appId = "0af959943ff542df8f2cb1b925ec0cc1";
 function WebViewVoiceCall(props) {
+  const [loading, setLoading] = useState(false);
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
   const [callStatus, setCallStatus] = useState(null);
@@ -173,10 +174,9 @@ function WebViewVoiceCall(props) {
           <span className="caller-name">{props.data.receiver_user_id}</span>
           <div
             style={{ zIndex: 3 }}
-            className={
-              "end-icon " + `${props.data.loading && "disabled-label"}`
-            }
+            className={"end-icon " + `${loading && "disabled-label"}`}
             onClick={() => {
+              setLoading(true);
               userEndCall();
             }}
           >
