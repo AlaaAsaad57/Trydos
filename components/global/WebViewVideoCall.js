@@ -266,15 +266,12 @@ function WebViewVideoCall(props) {
             }}
             className={!displayMethod ? "add-caller-icon" : "my-screen"}
           >
-            {cameraSelected === "environment" &&
-              tracks &&
-              tracks.length > 1 &&
-              tracks[1] && (
-                <AgoraVideoPlayer
-                  className="local-video-stream"
-                  videoTrack={tracks[1]}
-                />
-              )}
+            {tracks && tracks.length > 1 && tracks[1] && (
+              <AgoraVideoPlayer
+                className="local-video-stream"
+                videoTrack={tracks[1]}
+              />
+            )}
           </div>
           <div
             className={"toggle-mic " + (trackState.audio && "active-mic-svg")}
