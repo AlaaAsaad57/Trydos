@@ -253,8 +253,10 @@ function WebViewVideoCall(props) {
           <div
             className={"cancel-call-icon " + `${loading && "disabled-label"}`}
             onClick={() => {
-              setLoading(true);
-              userEndCall();
+              if (!loading) {
+                setLoading(true);
+                userEndCall();
+              }
             }}
           >
             <LeftArrowIcon></LeftArrowIcon>
