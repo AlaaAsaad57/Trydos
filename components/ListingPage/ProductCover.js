@@ -183,16 +183,16 @@ function ProductCover({ product }) {
         )}
         <div className="prouct-details">
           <span className="quantity">1</span>
-          {
+          {product.category && (
             <span className="product-category-icon">
               <CategoryPhoto
-                src={product.category.icon}
+                src={product?.category?.icon}
                 width={10}
                 height={10}
                 alt={product.category}
               />
             </span>
-          }
+          )}
           <span className="product-details-text">{product.name}</span>
         </div>
       </div>

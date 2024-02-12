@@ -43,7 +43,7 @@ function CategoriesBar({ forMobile, key }) {
                 name={category.name}
                 key={key}
                 myKey={key}
-                icon={category.icon}
+                icon={category?.icon}
               />
             )
           )}
