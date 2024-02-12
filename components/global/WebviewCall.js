@@ -86,7 +86,10 @@ function WebviewCall() {
   const onDecline = async (duration) => {
     if (!data.loading) {
       setData({ ...data, loading: true });
-      await Decline(data.authToken, data.msgId, duration);
+      await Decline(data.authToken, data.msgId, duration).catch((e) => {
+        console.log(e);
+        setError(e.message);
+      });
       window.location.href = "/endCall";
     }
   };
@@ -97,11 +100,26 @@ function WebviewCall() {
   }, []);
   return (
     <>
-      {/* <div className='error' style={{display:'flex',justifyContent:"flex-start",padding:'10px',flexDirection:"column",maxWidth:'100%',zIndex:'99999',position:"absolute",backgroundColor:'white',opacity:'0.6'}}>  
-     <span>url:{window.location.href}</span>
-     <span>error:{data.error}</span>
-     <span>mesgID:{data.msgId}</span>
-      </div>  */}
+      {error && (
+        <div
+          className="error"
+          style={{
+            display: "flex",
+            justifyContent: "flex-start",
+            padding: "10px",
+            flexDirection: "column",
+            maxWidth: "100%",
+            zIndex: "99999",
+            position: "absolute",
+            backgroundColor: "white",
+            opacity: "0.6",
+          }}
+        >
+          <span>url:{window.location.href}</span>
+          <span>error:{data.error}</span>
+          <span>mesgID:{data.msgId}</span>
+        </div>
+      )}
       {!data.token && (
         <div
           style={{
