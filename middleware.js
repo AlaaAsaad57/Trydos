@@ -126,8 +126,12 @@ export async function middleware(request) {
       console.log("check for country cookie true");
       return NextResponse.redirect(request.nextUrl);
     } else {
-      console.log("check for country cookie false");
-      request.nextUrl.pathname = `/selectCountry`;
+      if (countries.includes(countryByIp)) {
+        request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathname}`;
+      } else {
+        console.log("check for country cookie false");
+        request.nextUrl.pathname = `/selectCountry`;
+      }
       if (pathN.length > 1) request.nextUrl.searchParams.set("path", pathN);
       return NextResponse.redirect(request.nextUrl);
     }
