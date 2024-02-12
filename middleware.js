@@ -82,7 +82,7 @@ export async function middleware(request) {
     };
     response.cookies.set({
       name: "origin-country",
-      value: JSON.stringify(originCountryJSON),
+      value: originCountryJSON,
     });
   }
   const routePath = pathname.split("/")[1];
