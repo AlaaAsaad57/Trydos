@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "./index.css";
 import ChatWindow from "./pages/ChatWindow";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,11 +17,17 @@ function ChatContainer(props) {
   const loading = useSelector((state) => state.chat.fetch);
   const activeChat = useSelector((state) => state.chat.activeChat);
   const language = useSelector((state) => state.homepage.language);
-  const forwarded_message = useSelector(
-    (state) => state.chat.forwarded_message
+  const NotificationPremission = useSelector(
+    (state) => state.chat.NotificationPremission
   );
   const [search, setSearch] = useState("");
   const [contactOpen, setOpenContacts] = useState(false);
+  useEffect(() => {
+    dispatch({
+      type: "Notification",
+      payload: Notification.permission === "granted",
+    });
+  }, []);
   return (
     <>
       <div
@@ -45,7 +51,7 @@ function ChatContainer(props) {
         }}
       >
         <textarea id="text-copy"></textarea>
-        {Notification.permission === "granted" ? (
+        {Notification.permission === "granted" && NotificationPremission ? (
           <>
             <ChatWindow
               open={contactOpen}

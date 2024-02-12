@@ -37,6 +37,7 @@ const initialState = {
   channels: [],
   users: [],
   qouted: null,
+  NotificationPremission: false,
   pusher_channels: [],
   SearchEnable: false,
   user_loading: false,
@@ -188,6 +189,12 @@ export const ChatReducer = (
           MessageActiveCall: null,
         };
       } else return { ...state };
+    }
+    case "Notification": {
+      return {
+        ...state,
+        NotificationPremission: payload,
+      };
     }
     case "VIDEO_CALL": {
       let newActive = {

@@ -28,6 +28,7 @@ export const requestFirebaseNotificationPermission = async () => {
   return getToken(messaging)
     .then((currentToken) => {
       if (currentToken) {
+        store.dispatch({ type: "Notification", payload: true });
         return currentToken;
         // Track the token -> client mapping, by sending to backend server
         // show on the UI that permission is secured
@@ -36,8 +37,8 @@ export const requestFirebaseNotificationPermission = async () => {
       }
     })
     .catch((err) => {
-      // console.error(err);
-      // catch error while creating client token
+      store.dispatch({ type: "Notification", payload: false });
+      console.error(err);
     });
 };
 export const onMessageListener = () =>
