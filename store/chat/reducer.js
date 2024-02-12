@@ -171,7 +171,10 @@ export const ChatReducer = (
       }
     }
     case "END-CALL": {
-      if (state.MessageActiveCall === payload || payload === -1) {
+      if (
+        parseInt(state.MessageActiveCall) === parseInt(payload) ||
+        payload === -1
+      ) {
         return {
           ...state,
           call: null,

@@ -268,7 +268,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
   const send_mes = (data, type) => {
     document
       .querySelector("#scroled")
-      ?.scrollIntoView({ block: "center", inline: "center" });
+      ?.scrollIntoView({ block: "end", inline: "end" });
     if (type === "TextMessage") {
       let i = Math.random();
       SendMessage(
@@ -745,10 +745,11 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
   useEffect(() => {
     if (first)
       setTimeout(() => {
+        console.log("scrole");
         document
           .querySelector("#scroled")
-          ?.scrollIntoView({ block: "center", inline: "center" });
-      }, 1000);
+          ?.scrollIntoView({ block: "end", inline: "end" });
+      }, 1500);
 
     if (mid) {
       setTimeout(() => {
@@ -775,7 +776,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
   useEffect(() => {
     document
       .querySelector("#scroled")
-      .scrollIntoView({ block: "center", inline: "center" });
+      .scrollIntoView({ block: "end", inline: "end" });
   }, [openChat]);
 
   useEffect(() => {
@@ -1101,7 +1102,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
                   </>
                 );
               })}
-          <div id="scroled"></div>
+          <div id="scroled" style={{ minHeight: "20px" }}></div>
         </div>
         {mics ? (
           <>
@@ -1165,11 +1166,14 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
                   id="type"
                   onKeyDown={(e) => {
                     if (e.keyCode === "13" || e.key === "Enter") {
-                      document
-                        .querySelector("#scroled")
-                        ?.scrollIntoView({ block: "center", inline: "center" });
                       send_mes(message, "TextMessage");
                       setMessage("");
+                      setTimeout(() => {
+                        document.querySelector("#scroled")?.scrollIntoView({
+                          block: "center",
+                          inline: "center",
+                        });
+                      }, 500);
                     }
                   }}
                   onBlur={() => {
@@ -1177,6 +1181,11 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
                   }}
                   className={` input-chat ${message.length > 0 && "wid31"}`}
                   value={message}
+                  onFocus={() => {
+                    document
+                      .querySelector("#scroled")
+                      .scrollIntoView({ block: "center", inline: "center" });
+                  }}
                   onChange={(e) => {
                     setMessage(e.target.value);
                     onChange();

@@ -1403,3 +1403,16 @@ svg.redwave g g path {
 .button-bases button:disabled svg path {
   fill: #8e8d92;
 }
+.notification-enable {
+  position: absolute;
+  width: 100%;
+  background-color: #fafafa;
+  border-radius: 15px;
+  height: 100%;
+  padding: 20px;
+  display: flex;
+  text-align: center;
+  align-items: center;
+  z-index: 99999999;
+  justify-content: center;
+}
