@@ -2,14 +2,13 @@ import React from "react";
 import UserIcon from "public/svg/userIcon.svg";
 import Image from "next/image";
 import { useSelector } from "react-redux";
-function UserAvatar({ avatar }) {
-  const language = useSelector((state) => state.homepage.language);
-
+function UserAvatar({ avatar, onClick }) {
   return (
     <>
       {avatar ? (
         <>
           <div
+            onClick={() => onClick()}
             className="nav-question-item nav-img-item"
             style={{
               marginLeft: "0px",
@@ -34,7 +33,11 @@ function UserAvatar({ avatar }) {
           </div>
         </>
       ) : (
-        <div className="nav-question-item" style={{ marginLeft: "0px" }}>
+        <div
+          onClick={() => onClick()}
+          className="nav-question-item"
+          style={{ marginLeft: "0px" }}
+        >
           <UserIcon style={{ transform: "scale(1)" }} />
         </div>
       )}

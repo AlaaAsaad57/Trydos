@@ -23,12 +23,6 @@ export function LocalizationProvider({ lang, children }) {
   };
   useEffect(() => {
     if (localization) {
-      if (!originCountry?.isSupported) {
-        const aa = setTimeout(() => {
-          setShowPopup(true);
-        }, 4000);
-      }
-
       console.log(localization, "localization");
       if (typeof window !== "undefined") {
         localStorage.setItem("localization", JSON.stringify(localization));

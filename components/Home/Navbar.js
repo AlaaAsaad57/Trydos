@@ -11,7 +11,7 @@ function Navbar({ init }) {
   const dispatch = useDispatch();
   useEffect(() => {
     let languageCookies = Cookies.get("language");
-
+    Cookies.set("country", init.split("-")[0]);
     dispatch(
       changeAppLanguage(
         init.split("-")[1] ||

@@ -5,14 +5,12 @@ import LoginIcon from "public/svg/login.svg";
 import CloseIcon from "public/svg/CloseIcon.svg";
 import AccountIcon from "public/svg/AccountIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
-import LoginQR from "./LoginQR";
 import LoginPhone from "./LoginPhone";
 import LoginSuccessWidget from "./LoginSuccessWidget";
 import { ReInitialise } from "store/auth/actions";
 function LoginWidget({ close, loginSuccessVar, setLoginSucces }) {
   const dispatch = useDispatch();
   const wrongNumber = useSelector((state) => state.auth.wrongNumber);
-  const LoginSuccess = () => {};
   const language = useSelector((state) => state.homepage.language);
   const [loginMethod, setLoginMethod] = useState(null);
   return (
@@ -41,14 +39,14 @@ function LoginWidget({ close, loginSuccessVar, setLoginSucces }) {
               </div>
             </div>
           </div>
-          <LoginQR
+          {/* <LoginQR
             setLoginSucces={() => setLoginSucces(true)}
             selectedMethod={loginMethod === "qr"}
             selectMethod={() => {
               if (loginMethod !== "qr") dispatch(ReInitialise());
               setLoginMethod("qr");
             }}
-          />
+          /> */}
           <LoginPhone
             LoginSuccess={() => setLoginSucces(true)}
             selectedMethod={loginMethod === "phone"}

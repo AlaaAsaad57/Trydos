@@ -48,8 +48,6 @@ async function _getCountryNameByIp(Ip) {
     const response = await fetch(`http://ip-api.com/json/${Ip}`);
     const data = await response.json();
 
-    console.log(Ip, data, "_getCountryNameByIp");
-
     return data?.country;
   } catch (error) {
     console.error("Error fetching country name by IP:", error);
@@ -71,7 +69,9 @@ export async function middleware(request) {
   const response = NextResponse.next();
   const cookieStore = cookies();
   const localization = cookieStore.get("country")?.value;
+  //without country cookies
   if (!localization && countryByIp) {
+    console.log("without country cookies");
     const countryByIpp = countryByIp || "jp";
     // const countryName = await _getCountryNameByIp(Ip);
     const originCountryJSON = {
@@ -85,7 +85,6 @@ export async function middleware(request) {
       value: JSON.stringify(originCountryJSON),
     });
   }
-  console.log(Ip, countryByIp, "geo");
   const routePath = pathname.split("/")[1];
   const pathN = pathname.replace(routePath, "");
   const hasSeparator = routePath.includes("-");
@@ -100,39 +99,60 @@ export async function middleware(request) {
     countries.some((country) =>
       routePath.toLowerCase().startsWith(`${country.toLowerCase()}-`)
     );
+  const lang = getLocale()?.language ?? "";
+  const country = getLocale()?.country ?? "";
+  const preferredLang = languages.includes(lang.toLowerCase())
+    ? lang
+    : getDefaultLocale(countryByIp).language;
+  const preferredCountry = countries.includes(country.toLowerCase())
+    ? country
+    : getDefaultLocale(countryByIp).country;
+  console.log(preferredLang, preferredCountry);
   if (!hasSeparator) {
+    console.log("url dosent includes language-country", routePath);
+    //url dosen't includes language-country
     const lang = getLocale()?.language;
     const country = getLocale()?.country;
-    const preferredLang = languages.includes(lang)
-      ? lang
-      : getDefaultLocale(countryByIp).language;
-    const preferredCountry = countries.includes(country)
-      ? country
-      : getDefaultLocale(countryByIp).country;
-    request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathname}`;
-    return NextResponse.redirect(request.nextUrl);
+    //check for country cookie
+    if (country) {
+      const preferredLang = languages.includes(lang)
+        ? lang
+        : getDefaultLocale(countryByIp).language;
+      const preferredCountry = countries.includes(country)
+        ? country
+        : getDefaultLocale(countryByIp).country;
+
+      request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathname}`;
+      console.log("check for country cookie true");
+      return NextResponse.redirect(request.nextUrl);
+    } else {
+      console.log("check for country cookie false");
+      request.nextUrl.pathname = `/selectCountry`;
+      if (pathN.length > 1) request.nextUrl.searchParams.set("path", pathN);
+      return NextResponse.redirect(request.nextUrl);
+    }
   } else if (!hasLanguage || !hasCountry) {
-    const lang = getLocale()?.language ?? "";
-    const country = getLocale()?.country ?? "";
-    const preferredLang = languages.includes(lang.toLowerCase())
-      ? lang
-      : getDefaultLocale(countryByIp).language;
-    const preferredCountry = countries.includes(country.toLowerCase())
-      ? country
-      : getDefaultLocale(countryByIp).country;
     if (!hasLanguage && !hasCountry) {
-      request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}/${routePath}`;
+      console.log("separtor found and not country and language supported");
+      // request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}/${pathN}`;
+      request.nextUrl.pathname = `/selectCountry`;
+      if (pathN.length > 1) request.nextUrl.searchParams.set("path", pathN);
+      //
     } else if (!hasLanguage && hasCountry) {
+      console.log("separtor found and no language supported");
       const countryRoute = routePath?.split("-")[0];
       request.nextUrl.pathname = `/${countryRoute}-${preferredLang}/${pathN}`;
     } else if (!hasCountry && hasLanguage) {
-      const langRoute = routePath?.split("-")[1];
-      request.nextUrl.pathname = `/${preferredCountry}-${langRoute}/${pathN}`;
+      console.log("separtor found and no country supported");
+      //  request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}/${pathN}`;
+      request.nextUrl.pathname = `/selectCountry`;
+      if (pathN.length > 1) request.nextUrl.searchParams.set("path", pathN);
+      //
     }
-    setLocaleCookies(request, preferredLang, preferredCountry);
 
     return NextResponse.redirect(request.nextUrl);
   }
+  setLocaleCookies(request, preferredLang, preferredCountry);
   return response;
 }
 function setLocaleCookies(request, lang, country) {
@@ -149,6 +169,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    "/((?!api|static|.*\\..*|_next|endCall|call_direct|revalidate|callInProg|select-language).*)",
+    "/((?!api|static|.*\\..*|_next|endCall|call_direct|revalidate|callInProg|selectCountry).*)",
   ],
 };

@@ -3,9 +3,9 @@ import { useDispatch, useSelector } from "react-redux";
 import ChatIcon from "public/svg/ChatIcon.svg";
 import CartIcon from "public/svg/CartIcon.svg";
 import { translate } from "utils/functions";
+import Cookies from "js-cookie";
 import UserAvatar from "./UserAvatar";
 import { ChatConroller } from "store/chat/actions";
-import { toast } from "react-toastify";
 function AuthNavSection() {
   const language = useSelector((state) => state.homepage.language);
   const loading = useSelector((state) => state.chat.loading);
@@ -37,10 +37,16 @@ function AuthNavSection() {
         className={`welcome-user ${language + "-medium"}`}
         style={{ marginRight: "12px", marginLeft: "0px" }}
       >
-        {translate("Hello", language)} <span>,</span>{" "}
+        {translate("Hello", language)} {user?.name && <span>,</span>}{" "}
         <span className={`${language + "-light"}`}>{user?.name}</span>
       </div>
-      <UserAvatar avatar={user?.avatar} />
+      <UserAvatar
+        onClick={() => {
+          localStorage.clear();
+          window.location.reload();
+        }}
+        avatar={user?.avatar}
+      />
     </>
   );
 }

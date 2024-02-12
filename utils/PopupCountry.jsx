@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import { usePathname } from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 
 const countriesString = process.env.NEXT_PUBLIC_COUNTRIES || "[]";
 const countries = JSON.parse(countriesString);
@@ -31,6 +31,7 @@ const PopupCountry = () => {
     language: "en",
   });
   const pathname = usePathname();
+  const params = useSearchParams();
   const [selectedCountry, setSelectedCountry] = useState("");
 
   useEffect(() => {
@@ -43,13 +44,9 @@ const PopupCountry = () => {
       Cookies.set("country", selectedCountry, {
         expires: new Date(2147483647 * 1000),
       });
-      const aa = setTimeout(() => {
-        const urlWithoutLang = `${window.location.href}`.replace(
-          `${pathname}`,
-          ""
-        );
-        window.location.replace(urlWithoutLang);
-      }, 1000);
+      if (params.get("path")) {
+        window.location.href = "/" + params.get("path");
+      } else window.location.href = "/";
     }
   }, [selectedCountry]);
   return (
