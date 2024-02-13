@@ -3,7 +3,7 @@ import { getDatabase } from "firebase/database";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { store } from "../store/index";
 import { getUserChat } from "./functions";
-import { GetChats, getCalls } from "store/chat/actions";
+import { GetChats, Recive, getCalls } from "store/chat/actions";
 import { toast } from "react-toastify";
 import { InCall } from "../store/chat/actions";
 
@@ -323,6 +323,7 @@ export const onMessageListener = () =>
           resolve(payload);
         }
       } else if (payload.data.type === "message") {
+        Recive(parseInt(JSON.parse(payload.data.message).channel.id));
         if (
           store
             ?.getState()
