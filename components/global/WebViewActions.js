@@ -63,6 +63,23 @@ export const getAgoraTokenForInit = async (channel_id, token, mid) => {
     });
   return tok;
 };
+export const getUserInfo = async (token, channel) => {
+  let datas = [];
+  await axios
+    .get(CHAT_URL + "/api/v1/channels/" + channel, {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    })
+    .then((data) => {
+      datas = [
+        data.data.data.channel_name,
+        data.data.data.mobile_phone,
+        data.data.data.photo_path,
+      ];
+    });
+  return datas;
+};
 export const Decline = async (token, mid, duration) => {
   let req = await axios
     .post(

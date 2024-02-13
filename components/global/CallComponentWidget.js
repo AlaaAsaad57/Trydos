@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect } from "react";
-function CallComponentWidget({ data, type, onAnswer, onDecline }) {
+function CallComponentWidget({ data, type, onAnswer, onDecline, userData }) {
   useEffect(() => {
     // var sound = new Howl({
     //     src: ['/default.mp3'],
@@ -24,13 +24,18 @@ function CallComponentWidget({ data, type, onAnswer, onDecline }) {
       <div
         className="hgg"
         style={{
-          backgroundImage: `url(${"/images/profileNo.png"})`,
+          backgroundImage: data.photo
+            ? `url(${userData.photo})`
+            : `url(${"/images/profileNo.png"})`,
           left: 0,
           right: 0,
           margin: "0 auto",
         }}
       ></div>
       <span className="caller-name">Incoming {type} Call</span>
+      <span className="caller-name" style={{ top: "400px" }}>
+        {userData.name || userData.phone}
+      </span>
       <div
         className={`toggle-mic call-rec ${data.loading && "disabled-label"}`}
         onClick={() => onAnswer()}

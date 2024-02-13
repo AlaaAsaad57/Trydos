@@ -182,7 +182,9 @@ function WebViewVoiceCall(props) {
               )}
             </>
           }
-          <span className="caller-name">{props.data.receiver_user_id}</span>
+          <span className="caller-name">
+            {props.userData.name || props.userData.phone}
+          </span>
           <div
             style={{ zIndex: 3 }}
             className={"end-icon " + `${loading && "disabled-label"}`}

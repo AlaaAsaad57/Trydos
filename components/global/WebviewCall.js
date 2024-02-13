@@ -11,8 +11,14 @@ const WebViewVoiceCall = dynamic(() =>
 const CallComponentWidget = dynamic(() =>
   import("./CallComponentWidget", { ssr: false })
 );
-import { getAgoraToken, Decline, getAgoraTokenForInit } from "./WebViewActions";
+import {
+  getAgoraToken,
+  Decline,
+  getAgoraTokenForInit,
+  getUserInfo,
+} from "./WebViewActions";
 import CallingIcon from "../Chat/svg/CallInProg.svg";
+import axios from "axios";
 function WebviewCall() {
   const [error, setError] = useState(null);
   const router = useRouter();
@@ -42,6 +48,7 @@ function WebviewCall() {
     loading: false,
     status: null,
   });
+  const [userData, setUserData] = useState({ name: "", phone: "", photo: "" });
   useEffect(() => {}, []);
   const onAnswer = async (bool) => {
     try {
@@ -66,7 +73,10 @@ function WebviewCall() {
   };
   const initCall = async () => {
     if (!data.loading) {
-      setData({ ...data, loading: true });
+      setData({
+        ...data,
+        loading: true,
+      });
       let token = await getAgoraTokenForInit(
         data.channel_id,
         data.authToken,
@@ -96,6 +106,28 @@ function WebviewCall() {
   useEffect(() => {
     if (!data.token && data.token !== "undefined" && data.action === "sent") {
       initCall();
+    }
+  }, []);
+  useEffect(() => {
+    if (data.action === "receive") {
+      getUserInfo(data.authToken, data.channel_id).then((data) => {
+        setUserData({
+          ...userData,
+          name: data[0],
+          phone: data[1],
+          photo: data[2],
+        });
+      });
+    }
+    if (data.action === "sent" && data.token) {
+      getUserInfo(data.authToken, data.channel_id).then((data) => {
+        setUserData({
+          ...userData,
+          name: data[0],
+          phone: data[1],
+          photo: data[2],
+        });
+      });
     }
   }, []);
   return (
@@ -143,6 +175,7 @@ function WebviewCall() {
       {data.authToken && data.action === "receive" && (
         <CallComponentWidget
           data={data}
+          userData={userData}
           onDecline={(e) => {
             onDecline(e);
           }}
@@ -159,6 +192,7 @@ function WebviewCall() {
           <WebViewVoiceCall
             onDecline={(d) => onDecline(d)}
             data={data}
+            userData={userData}
             urlparam={`/call_direct?authToken=${data.authToken}&token=${data.token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`}
           />
         )}
@@ -169,6 +203,7 @@ function WebviewCall() {
           <WebViewVideoCall
             onDecline={(e) => onDecline(e)}
             data={data}
+            userData={userData}
             urlparam={`/call_direct?authToken=${data.authToken}&token=${data.token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`}
           />
         )}

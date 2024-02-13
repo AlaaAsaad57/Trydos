@@ -228,7 +228,9 @@ function WebViewVideoCall(props) {
               <SwitchCameraIcon />
             </div>
           )} */}
-          <span className="caller-name">{props.data.receiver_user_id}</span>
+          <span className="caller-name">
+            {props.userData.name || props.userData.phone}
+          </span>
 
           {users.length > 0 &&
             users.map((user) => {
