@@ -574,8 +574,9 @@ export const AnswerCall = async (channelId, messageId) => {
       })
       .then((data) => {
         if (
-          data.data.data.filter((user) => user.auth_token === token)[0]
-            .status === "active"
+          data.data.data.filter(
+            (user) => user.auth_token === getUserChat().access_token
+          )[0].status === "active"
         )
           status = true;
         else {
