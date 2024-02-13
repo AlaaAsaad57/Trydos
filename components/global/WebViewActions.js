@@ -15,7 +15,7 @@ export const AnswerCall = async (token, mid, chid) => {
     )
     .then((data) => {});
 };
-export const getAgoraToken = async (channel_id, token, mid) => {
+export const getAgoraToken = async (channel_id, token, mid, uid) => {
   let tok, status, req;
   req = await axios
     .post(
