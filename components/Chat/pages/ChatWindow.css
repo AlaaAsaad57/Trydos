@@ -437,12 +437,12 @@ div.search {
 .chat-date {
   position: absolute;
   height: 16px;
-  width: 47px;
+  width: 75px;
   right: 18px;
   top: 13px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   color: #8e8d92;
   font-size: 12px;
   font-family: var(--SF-Pro-Rounded-Regular);

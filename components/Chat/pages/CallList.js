@@ -1,6 +1,6 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import { getMessageTime } from "../chatsFunctions";
+import { getMessageTime, showDate } from "../chatsFunctions";
 import CallItem from "components/Chat/components/CallItem";
 
 function CallList() {
@@ -17,7 +17,7 @@ function CallList() {
             sender: call.sender_user_id,
             duration: call.duration_in_seconds,
           }}
-          date={getMessageTime(call)}
+          date={showDate(call.created_at)}
         />
       ))}
     </div>

@@ -8,7 +8,7 @@ import { store } from "store";
 import axios from "axios";
 import { CHAT_URL } from "utils/endpointConfig";
 import { SendMessage } from "store/chat/actions";
-import { getUserChat } from "utils/functions";
+import { getUserChat, translate } from "utils/functions";
 export const FILE_SERVER = CHAT_URL;
 export const getUser = () => {
   return (
@@ -554,3 +554,40 @@ export function dataURLtoFile(dataurl, filename) {
   }
   return new File([u8arr], filename, { type: mime });
 }
+export const showDate = (d) => {
+  const language = store.getState().homepage.language;
+  var days = [
+    translate("Sunday", language),
+    translate("Monday", language),
+    translate("Tuesday", language),
+    translate("Wednesday", language),
+    translate("Thursday", language),
+    translate("Friday", language),
+    translate("Saturday", language),
+  ];
+  let now = new Date();
+  let nowString = `${now.getFullYear()}-${
+    now.getMonth() + 1 > 9
+      ? (now.getMonth() + 1).toString()
+      : "0" + (now.getMonth() + 1).toString()
+  }-${
+    now.getDate() > 9 ? now.getDate() : "0" + parseInt(now.getDate()).toString()
+  }`;
+  d = new Date(d);
+  d = `${d.getFullYear()}-${
+    d.getMonth() + 1 > 9
+      ? (d.getMonth() + 1).toString()
+      : "0" + (d.getMonth() + 1).toString()
+  }-${d.getDate() > 9 ? d.getDate() : "0" + parseInt(d.getDate()).toString()}`;
+
+  let day = new Date(d);
+  day = days[day.getDay()];
+  if (d === nowString)
+    return `${now.getHours() > 9 ? now.getHours() : "0" + now.getHours()}:${
+      now.getMinutes() > 9 ? now.getMinutes() : "0" + now.getMinutes()
+    }`;
+  else if (new Date(nowString) - new Date(d) === 86400000) {
+    return translate("Yesterday", language);
+  } else if (new Date(nowString) - new Date(d) < 86400000 * 6) return day;
+  else return language === "ar" ? d.toLocaleString("ar-EG") : d;
+};
