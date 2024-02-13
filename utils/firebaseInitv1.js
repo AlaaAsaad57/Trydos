@@ -3,7 +3,7 @@ import { getDatabase } from "firebase/database";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { store } from "../store/index";
 import { getUserChat } from "./functions";
-import { GetChats } from "store/chat/actions";
+import { GetChats, getCalls } from "store/chat/actions";
 import { toast } from "react-toastify";
 import { InCall } from "../store/chat/actions";
 
@@ -50,6 +50,7 @@ export const onMessageListener = () =>
         toast.info("User In Another Call");
       }
       if (payload.data.type === "RefuseCallEvent") {
+        getCalls();
         let messageID = JSON.parse(payload.data.data).message_id;
         if (store.getState().chat.callInProgress) {
           store.dispatch({

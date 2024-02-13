@@ -219,6 +219,26 @@ export const ChatReducer = (
         MessageActiveCall: source.id,
       };
     }
+    case "edit-call": {
+      var tempCalls = [];
+      if (
+        state.calls.some((call) => parseInt(call.id) === parseInt(payload.id))
+      ) {
+        state.calls.map((call) => {
+          if (parseInt(call.id) === parseInt(payload.id)) {
+            tempCalls.push(payload);
+          } else {
+            tempCalls.push(call);
+          }
+        });
+      } else {
+        tempCalls = [payload, ...state.calls];
+      }
+      return {
+        ...state,
+        calls: tempCalls,
+      };
+    }
     case "AUDIO_CALL": {
       let newActive = {
         ...state.activeChat,

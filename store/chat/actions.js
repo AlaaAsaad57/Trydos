@@ -498,6 +498,7 @@ export const makeVideoCall = async (
           payload: data.data.data.token,
           source: data.data.data.message,
         });
+        store.dispatch({ type: "edit-call", payload: data.data.data.message });
         store.dispatch({ type: "CALL-LOADING", payload: null });
       });
   } catch (e) {
@@ -546,10 +547,12 @@ export const makeVoiceCall = async (
           payload: data.data.data.token,
           source: data.data.data.message,
         });
+        store.dispatch({ type: "edit-call", payload: data.data.data.message });
         store.dispatch({ type: "CALL-LOADING", payload: null });
       });
   } catch (e) {
     console.error(e);
+    store.dispatch({ type: "CALL-LOADING", payload: null });
   }
 };
 export const AnswerCall = async (channelId, messageId) => {
