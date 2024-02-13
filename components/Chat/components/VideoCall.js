@@ -267,7 +267,7 @@ function VideoCall(props) {
                     videoTrack={user.videoTrack}
                   />
                 );
-              } else return <></>;
+              }
             })}
           <div
             style={tracks && tracks[1] && { zIndex: 3 }}
