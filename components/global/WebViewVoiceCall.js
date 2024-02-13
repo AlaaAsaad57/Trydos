@@ -142,7 +142,7 @@ function WebViewVoiceCall(props) {
     if (minutes === 30) {
       userEndCall();
     }
-  }, [minutes]);
+  }, [minutes, seconds]);
   return (
     <>
       {
