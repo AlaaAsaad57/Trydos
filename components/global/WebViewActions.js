@@ -37,7 +37,14 @@ export const getAgoraToken = async (channel_id, token, mid) => {
       },
     })
     .then((data) => {
-      status = data.data.data.length > 0;
+      if (
+        data.data.data.filter((user) => user.auth_token === token)[0].status ===
+        "active"
+      )
+        status = true;
+      else {
+        status = false;
+      }
       //    alert(JSON.stringify(data.data.data))
     });
   if (!status) await AnswerWebView(token, mid);

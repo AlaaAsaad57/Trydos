@@ -573,10 +573,17 @@ export const AnswerCall = async (channelId, messageId) => {
         },
       })
       .then((data) => {
-        status = data.data.data.length;
+        if (
+          data.data.data.filter((user) => user.auth_token === token)[0]
+            .status === "active"
+        )
+          status = true;
+        else {
+          status = false;
+        }
       });
 
-    if (status === 0) {
+    if (status === false) {
       await axios
         .post(
           CHAT_URL + `/api/v1/channels/${channelId}/agora_token`,

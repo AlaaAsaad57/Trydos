@@ -28,21 +28,21 @@ function CallComponent(props) {
       <audio ref={ref} loop autoPlay src={"/default.mp3"}>
         <source src={"/default.mp3"}></source>
       </audio>
-      {caller.user?.photo_path ? (
+      {caller?.photo_path ? (
         <Image
           width={40}
           height={40}
           alt="user-photo"
           loading="eager"
-          src={caller.user?.photo_path}
+          src={caller?.photo_path}
         />
-      ) : caller.user.name ? (
+      ) : caller.channel_name ? (
         <>
           <div
             className="text-avatar"
             style={{ width: "40px", height: "40px" }}
           >
-            {getTwoLetters(caller.user.name)}
+            {getTwoLetters(caller.channel_name || caller.mobile_phone)}
           </div>
         </>
       ) : (
@@ -61,7 +61,7 @@ function CallComponent(props) {
             ? translate("Incoming Voice Call..", language)
             : translate("Incoming Video Call..", language)}{" "}
         </span>
-        <span className="call-ss">{caller.user.name}</span>
+        <span className="call-ss">{caller.channel_name}</span>
       </div>
       <div className="call-options">
         <div

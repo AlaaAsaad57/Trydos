@@ -108,25 +108,7 @@ export const onMessageListener = () =>
                   },
                 ],
               };
-          let caller =
-            store
-              .getState()
-              .chat.data.filter(
-                (ch) => parseInt(ch.id) === parseInt(data.channelId)
-              ).length > 0
-              ? store
-                  .getState()
-                  .chat.data.filter(
-                    (ch) => parseInt(ch.id) === parseInt(data.channelId)
-                  )[0]
-                  ?.channel_members.filter(
-                    (one) =>
-                      one.user_id !==
-                      JSON.parse(localStorage.getItem("USER-CHAT")).id
-                  )[0]
-              : {
-                  user: { name: data.callerName, photo_path: data.callerPhoto },
-                };
+          let caller = { ...JSON.parse(payload.data.data).message.channel };
 
           if (
             data.user_id !== getUserChat()?.id &&
@@ -239,25 +221,7 @@ export const onMessageListener = () =>
                   },
                 ],
               };
-          let caller =
-            store
-              .getState()
-              .chat.data.filter(
-                (ch) => parseInt(ch.id) === parseInt(data.channelId)
-              ).length > 0
-              ? store
-                  .getState()
-                  .chat.data.filter(
-                    (ch) => parseInt(ch.id) === parseInt(data.channelId)
-                  )[0]
-                  ?.channel_members.filter(
-                    (one) =>
-                      one.user_id !==
-                      JSON.parse(localStorage.getItem("USER-CHAT")).id
-                  )[0]
-              : {
-                  user: { name: data.callerName, photo_path: data.callerPhoto },
-                };
+          let caller = { ...JSON.parse(payload.data.data).message.channel };
           if (
             data.user_id !== getUserChat()?.id &&
             (!store.getState().chat.callInProgress ||
