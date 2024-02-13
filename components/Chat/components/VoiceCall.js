@@ -36,16 +36,21 @@ function VideoCall(props) {
   const [startIndicator, setStart] = useState(false);
   const client = useClient(config);
   const [callStatus, setCallStatus] = useState(null);
-
+  useEffect(() => {
+    start();
+  }, []);
   // ready is a state variable, which returns true when the local tracks are initialized, untill then tracks variable is null
   const { ready, tracks, error } = useMicrophoneAndCameraTracks();
   const language = useSelector((state) => state.homepage.language);
+  const call = useSelector((state) => state.chat.call);
   useEffect(() => {
-    if (seconds === 90 && users.length === 0 && call === "aud-outgoing") {
-      userEndCall();
+    if (seconds === 30 && users.length === 0 && call === "aud-outgoing") {
+      userEndCall(true);
+      RefuseCall(activeChat.id, MessageActiveCall, -1);
     }
     if (minutes === 30) {
       userEndCall();
+      RefuseCall(activeChat.id, MessageActiveCall, minutes * 60 + seconds);
     }
   }, [minutes, seconds]);
   useEffect(() => {
@@ -54,7 +59,9 @@ function VideoCall(props) {
       client.on("user-joined", (user) => {
         if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
           console.log("user-joined", user);
+        reset();
         start();
+
         axios
           .get(
             CHAT_URL + `/api/v1/messages/start_talking/${MessageActiveCall}`,
@@ -110,7 +117,7 @@ function VideoCall(props) {
     (state) => state.chat.MessageActiveCall
   );
 
-  const userEndCall = async () => {
+  const userEndCall = async (bool) => {
     if (ready) {
       if (tracks && tracks[0]) tracks[0]?.close();
       await client.leave();
@@ -119,7 +126,7 @@ function VideoCall(props) {
       if (tracks && tracks[0]) tracks[0]?.close();
     }
     setStart(false);
-    EndCall();
+    if (!bool) EndCall();
     pause();
     dispatch({ type: "END-CALL", payload: MessageActiveCall });
   };

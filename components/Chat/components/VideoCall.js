@@ -79,9 +79,7 @@ function VideoCall(props) {
     // function to initialise the SDK
     let init = async (name) => {
       client.on("user-joined", (user) => {
-        if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-          console.log("user-joined", user);
-        reset();
+        if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") reset();
         axios
           .get(
             CHAT_URL + `/api/v1/messages/start_talking/${MessageActiveCall}`,
@@ -186,8 +184,9 @@ function VideoCall(props) {
     }
   }, [callInProgress]);
   useEffect(() => {
-    if (seconds === 90 && users.length === 0 && call === "vid-outgoing") {
+    if (seconds === 30 && users.length === 0 && call === "vid-outgoing") {
       userEndCall();
+      RefuseCall(activeChat.id, MessageActiveCall, -1);
     }
     if (minutes === 30) {
       userEndCall();

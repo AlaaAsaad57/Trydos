@@ -10,9 +10,13 @@ function CallList() {
       {calls.map((call, index) => (
         <CallItem
           key={index}
-          photo={call.from.photo_path}
-          name={call.from.name}
-          type={call.type}
+          photo={call.channel.photo_path}
+          name={call.channel.channel_name}
+          type={{
+            type: call.message_type.name,
+            sender: call.sender_user_id,
+            duration: call.duration_in_seconds,
+          }}
           date={getMessageTime(call)}
         />
       ))}

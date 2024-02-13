@@ -83,6 +83,7 @@ export const GetChats = async (payload) => {
       payload: new Date().toLocaleString(),
     });
     store.dispatch({ type: "CHAT_DONE" });
+    getCalls();
     let response = await axios.get(CHAT_URL + GET_CONTATCS_URL, {
       headers: {
         Authorization:
@@ -95,7 +96,28 @@ export const GetChats = async (payload) => {
     console.error(e);
   }
 };
-
+export const getCalls = async () => {
+  try {
+    await axios
+      .post(
+        CHAT_URL + "/api/v1/channels/my_calls",
+        {},
+        {
+          headers: {
+            Authorization:
+              `Bearer ` +
+              JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+          },
+        }
+      )
+      .then((data) => {
+        console.log(data);
+        store.dispatch({ type: "GET_CALLS", payload: data.data.data });
+      });
+  } catch (e) {
+    console.error(e);
+  }
+};
 export const SendMessage = async (payload, isNew) => {
   const AxiosInstance = axios.create({
     baseURL: CHAT_URL,

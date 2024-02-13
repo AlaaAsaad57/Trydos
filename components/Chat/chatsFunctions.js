@@ -88,19 +88,26 @@ export const isNew = (ch) => {
   return a;
 };
 export const getCallType = (type) => {
-  if (type === "missed") {
+  console.log(type);
+  if (
+    parseInt(type.sender) !== parseInt(getUserChat().id) &&
+    type.duration === -1
+  ) {
     return (
       <>
         <MissedCall></MissedCall> Missed Call
       </>
     );
-  } else if (type === "incoming") {
+  } else if (
+    parseInt(type.sender) !== parseInt(getUserChat().id) &&
+    type.duration >= 0
+  ) {
     return (
       <>
         <IncomingCall></IncomingCall> Incoming Call
       </>
     );
-  } else {
+  } else if (parseInt(type.sender) === parseInt(getUserChat().id)) {
     return (
       <>
         <OutgoingCall></OutgoingCall> Outgoing Call

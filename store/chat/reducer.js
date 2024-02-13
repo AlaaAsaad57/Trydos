@@ -62,23 +62,7 @@ const initialState = {
   isReachTheFinalMes: false,
   replyMessage: null,
   forwarded_message: null,
-  calls: [
-    {
-      from: { name: "Grant Marshall", avatar: null },
-      created_at: new Date(),
-      type: "incoming",
-    },
-    {
-      from: { name: "Grant Marshall", avatar: null },
-      created_at: new Date(),
-      type: "missed",
-    },
-    {
-      from: { name: "Grant Marshall", avatar: null },
-      created_at: new Date(),
-      type: "outgoing",
-    },
-  ],
+  calls: [],
   searchResults: [],
   lastNotification: null,
   callLoading: null,
@@ -152,6 +136,12 @@ export const ChatReducer = (
     }
     case "log_out": {
       return initialState;
+    }
+    case "GET_CALLS": {
+      return {
+        ...state,
+        calls: payload,
+      };
     }
     case "USER_END_CALL": {
       if (state.MessageActiveCall === payload || payload === -1) {

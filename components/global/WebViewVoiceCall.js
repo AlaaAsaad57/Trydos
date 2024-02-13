@@ -19,7 +19,9 @@ function WebViewVoiceCall(props) {
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
   const [callStatus, setCallStatus] = useState(null);
-  useEffect(() => {}, []);
+  useEffect(() => {
+    start();
+  }, []);
   const [users, setUsers] = useState([]);
   const [startIndicator, setStart] = useState(false);
   const client = useClient(config);
@@ -29,6 +31,7 @@ function WebViewVoiceCall(props) {
     // function to initialise the SDK
     let init = async (name) => {
       client.on("user-joined", (user) => {
+        reset();
         start();
         setUsers((prevUsers) => {
           return [...prevUsers, user];
@@ -42,7 +45,7 @@ function WebViewVoiceCall(props) {
           start();
         }
         if (mediaType === "audio") {
-          StartTalking(props.data.authToken, props.data.msgId);
+          // StartTalking(props.data.authToken, props.data.msgId);
           start();
           user.audioTrack?.play();
         }
@@ -93,7 +96,7 @@ function WebViewVoiceCall(props) {
       init(props.data.channel_id);
     }
   }, [client, ready, tracks, error]);
-  const userEndCall = async () => {
+  const userEndCall = async (bool) => {
     await client.leave();
     client.removeAllListeners();
     // we close the tracks to perform cleanup
@@ -105,7 +108,11 @@ function WebViewVoiceCall(props) {
 
     pause();
     let duration = minutes * 60 + seconds;
-    props.onDecline(duration > 3 && users.length > 0 && duration);
+    if (!bool) {
+      props.onDecline(duration > 3 && users.length > 0 && duration);
+    } else {
+      window.location.href = "/endCall";
+    }
     //   dispatch({type:"END-CALL"})
   };
   const [trackState, setTrackState] = useState({ video: true, audio: true });
@@ -128,6 +135,10 @@ function WebViewVoiceCall(props) {
   //   }
   // },[callInProgress])
   useEffect(() => {
+    if (seconds === 30 && users.length === 0) {
+      props.onDecline(-1);
+      userEndCall(true);
+    }
     if (minutes === 30) {
       userEndCall();
     }

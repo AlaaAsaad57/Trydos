@@ -58,11 +58,14 @@ function WebViewVideoCall(props) {
   const client = useClient(config);
   // ready is a state variable, which returns true when the local tracks are initialized, untill then tracks variable is null
   const { ready, tracks, error } = useMicrophoneAndCameraTracks();
-
+  useEffect(() => {
+    start();
+  }, []);
   useEffect(() => {
     // function to initialise the SDK
     let init = async (name) => {
       client.on("user-joined", async (user) => {
+        reset();
         start();
         setUsers((prevUsers) => {
           return [...prevUsers, user];
@@ -131,7 +134,7 @@ function WebViewVideoCall(props) {
       init(props.data.channel_id);
     }
   }, [client, ready, tracks, error]);
-  const userEndCall = async () => {
+  const userEndCall = async (bool) => {
     await client.leave();
     client.removeAllListeners();
     // we close the tracks to perform cleanup
@@ -143,7 +146,11 @@ function WebViewVideoCall(props) {
 
     pause();
     let duration = minutes * 60 + seconds;
-    props.onDecline(duration > 3 && users.length > 0 && duration);
+    if (!bool) {
+      props.onDecline(duration > 3 && users.length > 0 && duration);
+    } else {
+      window.location.href = "/endCall";
+    }
     //   dispatch({type:"END-CALL"})
   };
   const [trackState, setTrackState] = useState({ video: true, audio: true });
@@ -164,10 +171,14 @@ function WebViewVideoCall(props) {
   };
 
   useEffect(() => {
+    if (seconds === 30 && users.length === 0) {
+      props.onDecline(-1);
+      userEndCall(true);
+    }
     if (minutes === 30) {
       userEndCall();
     }
-  }, [minutes]);
+  }, [minutes, seconds]);
   return (
     <>
       {
