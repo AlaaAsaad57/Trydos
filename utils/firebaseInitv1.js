@@ -134,17 +134,16 @@ export const onMessageListener = () =>
               store.getState().chat.callInProgress === 2)
           ) {
             if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-              console.log(data, channel, caller);
-            store.dispatch({
-              type: "INCOMING_VOICE_CALL",
-              payload: {
-                ...data,
-                channelId: JSON.parse(payload.data.data).message.channel.id,
-                callerChannel: channel,
-                caller: caller,
-                message_id: JSON.parse(payload.data.data).message.id,
-              },
-            });
+              store.dispatch({
+                type: "INCOMING_VOICE_CALL",
+                payload: {
+                  ...data,
+                  channelId: JSON.parse(payload.data.data).message.channel.id,
+                  callerChannel: channel,
+                  caller: caller,
+                  message_id: JSON.parse(payload.data.data).message.id,
+                },
+              });
           }
           store.dispatch({
             type: "SET_LAST_NOTIFICATION_DATE",

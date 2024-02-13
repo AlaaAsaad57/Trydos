@@ -88,7 +88,6 @@ export const isNew = (ch) => {
   return a;
 };
 export const getCallType = (type) => {
-  console.log(type);
   if (
     parseInt(type.sender) !== parseInt(getUserChat().id) &&
     type.duration === -1

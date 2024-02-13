@@ -745,7 +745,6 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
   useEffect(() => {
     if (first)
       setTimeout(() => {
-        console.log("scrole");
         document
           .querySelector("#scroled")
           ?.scrollIntoView({ block: "end", inline: "end" });

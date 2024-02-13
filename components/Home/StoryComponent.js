@@ -14,7 +14,6 @@ function StoryComponent({ story, viewedStory, select }) {
   useEffect(() => {
     console.log(currentStoryId);
   }, [currentStoryId]);
-  console.log(currentStoryId);
   return (
     <div
       className="story-component"

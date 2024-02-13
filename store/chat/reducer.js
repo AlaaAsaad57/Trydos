@@ -144,7 +144,10 @@ export const ChatReducer = (
       };
     }
     case "USER_END_CALL": {
-      if (state.MessageActiveCall === payload || payload === -1) {
+      if (
+        parseInt(state.MessageActiveCall) === parseInt(payload) ||
+        payload === -1
+      ) {
         return {
           ...state,
           call: null,
@@ -273,7 +276,7 @@ export const ChatReducer = (
       };
     }
     case "REFUSE_CALL": {
-      if (payload === state.MessageActiveCall) {
+      if (parseInt(payload) === parseInt(state.MessageActiveCall)) {
         return {
           ...state,
           call: false,
@@ -506,7 +509,6 @@ export const ChatReducer = (
     }
     case "WATCH_CHANNEL": {
       let id = parseInt(payload);
-      console.log(payload);
       if (
         (typeof payload === "string" && !payload.includes("ch")) ||
         typeof payload === "number"
