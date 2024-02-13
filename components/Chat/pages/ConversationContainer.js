@@ -837,28 +837,8 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
         <VideoCall
           audio={call.includes("outgoing")}
           token={AgoraToken}
-          name={
-            activeChat?.channel_members.filter(
-              (ada) =>
-                ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id
-            )[0]?.user?.name ||
-            activeChat?.channel_members.filter(
-              (ada) =>
-                ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id
-            )[0]?.user?.username
-          }
-          active={
-            activeChat?.channel_members.filter(
-              (ada) =>
-                ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id
-            )[0]?.user?.photo_path
-              ? activeChat?.channel_members.filter(
-                  (ada) =>
-                    ada.user_id !==
-                    JSON.parse(localStorage.getItem("USER-CHAT")).id
-                )[0]?.user?.photo_path
-              : null
-          }
+          name={activeChat?.channel_name || activeChat.mobile_phone}
+          active={activeChat.photo_path ?? null}
           user_id={
             activeChat.channel_members.filter(
               (u) =>
@@ -871,28 +851,8 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
         <VoiceCall
           audio={call.includes("outgoing")}
           token={AgoraToken}
-          name={
-            activeChat?.channel_members.filter(
-              (ada) =>
-                ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id
-            )[0]?.user?.name ||
-            activeChat?.channel_members.filter(
-              (ada) =>
-                ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id
-            )[0]?.user?.username
-          }
-          active={
-            activeChat?.channel_members.filter(
-              (ada) =>
-                ada.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id
-            )[0]?.user?.photo_path
-              ? activeChat?.channel_members.filter(
-                  (ada) =>
-                    ada.user_id !==
-                    JSON.parse(localStorage.getItem("USER-CHAT")).id
-                )[0]?.user?.photo_path
-              : null
-          }
+          name={activeChat?.channel_name || activeChat.mobile_phone}
+          active={activeChat.photo_path ?? null}
           user_id={
             activeChat.channel_members.filter(
               (u) =>
