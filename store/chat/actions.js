@@ -214,7 +214,7 @@ export async function watchChannel(payload) {
         "Content-Type": "application/json",
       },
     });
-    await AxiosInstance.get(`/api/v1/channels/${payload}/received`);
+    // await AxiosInstance.get(`/api/v1/channels/${payload}/received`);
     let resp = await AxiosInstance.get(
       CHAT_URL + `/api/v1/channels/${payload}/watched`
     );
