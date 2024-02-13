@@ -50,7 +50,7 @@ export const onMessageListener = () =>
         toast.info("User In Another Call");
       }
       if (payload.data.type === "RefuseCallEvent") {
-        getCalls();
+        // getCalls();
         let messageID = JSON.parse(payload.data.data).message_id;
         if (store.getState().chat.callInProgress) {
           store.dispatch({
