@@ -293,7 +293,11 @@ export const ChatReducer = (
         return {
           ...state,
           call: "aud-incoming",
-          activeChat: { ...state.callerChannel },
+          activeChat: {
+            ...(state.data.filter(
+              (s) => parseInt(s.id) === parseInt(state.callerChannel.id)
+            )[0] || state.callerChannel),
+          },
           data:
             state.data.filter(
               (s) => parseInt(s.id) === parseInt(state.callerChannel.id)
@@ -301,7 +305,6 @@ export const ChatReducer = (
               ? [state.callerChannel, ...state.data]
               : state.data,
           main: "chat",
-          data: [state.callerChannel, ...state.data],
           isCallIncoming: false,
           callInProgress: true,
           AgoraToken: payload,
