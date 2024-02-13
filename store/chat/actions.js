@@ -609,7 +609,9 @@ export const AnswerCall = async (channelId, messageId) => {
       );
       store.dispatch({ type: "USER_END_CALL", payload: messageId });
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error(e);
+  }
 };
 export const InCall = async (channelId, messageId) => {
   try {
