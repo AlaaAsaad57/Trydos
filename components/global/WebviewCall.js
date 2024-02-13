@@ -57,7 +57,8 @@ function WebviewCall() {
         let [token, status] = await getAgoraToken(
           data.channel_id,
           data.authToken,
-          data.msgId
+          data.msgId,
+          data.sender_user_id
         );
 
         if (status) {

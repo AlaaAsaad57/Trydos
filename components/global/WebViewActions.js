@@ -38,8 +38,9 @@ export const getAgoraToken = async (channel_id, token, mid) => {
     })
     .then((data) => {
       if (
-        data.data.data.filter((user) => user.auth_token === token)[0].status ===
-        "active"
+        data.data.data.filter(
+          (user) => parseInt(user.user.id) === parseInt(uid)
+        )[0].status === "active"
       )
         status = true;
       else {
