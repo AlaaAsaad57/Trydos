@@ -327,6 +327,18 @@ export const ChatReducer = (
         };
       }
     }
+    case "USER_ANSWER_CALL": {
+      if (payload === parseInt(state.MessageActiveCall))
+        return {
+          ...state,
+          isCallIncoming: false,
+          MessageActiveCall: null,
+          incomeCallData: null,
+          caller: null,
+          callerChannel: null,
+          incomeCallType: null,
+        };
+    }
     case "INCOMING_VOICE_CALL": {
       {
         return {

@@ -61,6 +61,13 @@ export const onMessageListener = () =>
           store.dispatch({ type: "END-CALL", payload: parseInt(messageID) });
         }
       }
+      if (payload.data.type === "AnswerCallEvent") {
+        let messageID = JSON.parse(payload.data.data).message_id;
+        store.dispatch({
+          type: "USER_ANSWER_CALL",
+          payload: parseInt(messageID),
+        });
+      }
       if (payload.data.type === "VoiceCallEvent") {
         if (store.getState().chat.call) {
           InCall(
