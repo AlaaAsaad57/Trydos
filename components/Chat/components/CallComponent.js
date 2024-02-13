@@ -17,6 +17,12 @@ function CallComponent(props) {
   const incomeCallType = useSelector((state) => state.chat.incomeCallType);
   const dispatch = useDispatch();
   const ref = useRef();
+  useEffect(() => {
+    return () => {
+      ref.current?.pause();
+    };
+  }, [ref]);
+
   return (
     <div className="call-element">
       <audio ref={ref} loop autoPlay src={"/default.mp3"}>

@@ -199,6 +199,12 @@ function VideoCall(props) {
       RefuseCall(activeChat.id, MessageActiveCall, duration);
     else RefuseCall(activeChat.id, MessageActiveCall);
   };
+  const ref = useRef();
+  useEffect(() => {
+    return () => {
+      ref.current?.pause();
+    };
+  }, [ref]);
   return (
     <>
       {
@@ -208,6 +214,7 @@ function VideoCall(props) {
           )}
           {props.audio && !users.length > 0 && !callStatus && (
             <audio
+              ref={ref}
               onLoad={(e) => {
                 e.target.volume = 0.2;
               }}
