@@ -152,6 +152,8 @@ function VideoCall(props) {
       await client.leave();
       client.removeAllListeners();
       if (tracks) {
+        tracks[0]?.getMediaStreamTrack().stop();
+        tracks[1]?.getMediaStreamTrack().stop();
         tracks[0]?.close();
         tracks[1].close();
       }

@@ -119,7 +119,12 @@ function VideoCall(props) {
 
   const userEndCall = async (bool) => {
     if (ready) {
-      if (tracks && tracks[0]) tracks[0]?.close();
+      if (tracks && tracks[0]) {
+        tracks[0]?.getMediaStreamTrack().stop();
+        tracks[1]?.getMediaStreamTrack().stop();
+        tracks[0]?.close();
+        tracks[1]?.close();
+      }
       await client.leave();
       client.removeAllListeners();
       // we close the tracks to perform cleanup
