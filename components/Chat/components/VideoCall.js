@@ -129,7 +129,11 @@ function VideoCall(props) {
       });
       let token = props.token;
 
-      await client.join(appId, name.toString(), token, getUserChat()?.id);
+      await client
+        .join(appId, name.toString(), token, getUserChat()?.id)
+        .then(() => {
+          setJoined(true);
+        });
       if (tracks) await client.publish([tracks[0], tracks[1]]);
     };
 
@@ -147,9 +151,10 @@ function VideoCall(props) {
   const MessageActiveCall = useSelector(
     (state) => state.chat.MessageActiveCall
   );
+  const [joined, setJoined] = useState(false);
   const userEndCall = async () => {
     if (ready) {
-      await client.leave();
+      if (joined && ready) await client.leave();
       client.removeAllListeners();
       if (tracks) {
         tracks[0]?.getMediaStreamTrack().stop();
