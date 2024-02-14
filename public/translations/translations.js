@@ -103,6 +103,11 @@ export const translations = {
     Calling: "Calling ...",
     "End Call": "End Call",
     "User declined": "User declined",
+    "Missed Call": "Missed Call",
+    "Incoming Call": "Incoming Call",
+    "Outgoing Call": "Outgoing Call",
+    "Please Enable Notification to use Chat":
+      "Please Enable Notification to use Chat",
   },
 
   ar: {
@@ -208,6 +213,11 @@ export const translations = {
     "Incoming Voice Call..": "مكالمة صوتية واردة..",
     "Incoming Video Call..": "مكالمة فيديو واردة ..",
     Calling: "جاري الاتصال ...",
+    "Missed Call": "مكالمة فائتة",
+    "Incoming Call": "مكالمة واردة",
+    "Outgoing Call": "مكالمة صادرة",
+    "Please Enable Notification to use Chat":
+      "الرجاء السماح للاشعارات لاستخدام الدردشة",
   },
   tr: {
     Brands: "Markalar",

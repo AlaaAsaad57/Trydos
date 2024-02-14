@@ -94,7 +94,8 @@ export const getCallType = (type) => {
   ) {
     return (
       <>
-        <MissedCall></MissedCall> Missed Call
+        <MissedCall></MissedCall>{" "}
+        {translate("Missed Call", store.getState().homepage.language)}
       </>
     );
   } else if (
@@ -103,13 +104,15 @@ export const getCallType = (type) => {
   ) {
     return (
       <>
-        <IncomingCall></IncomingCall> Incoming Call
+        <IncomingCall></IncomingCall>{" "}
+        {translate("Incoming Call", store.getState().homepage.language)}
       </>
     );
   } else if (parseInt(type.sender) === parseInt(getUserChat().id)) {
     return (
       <>
-        <OutgoingCall></OutgoingCall> Outgoing Call
+        <OutgoingCall></OutgoingCall>{" "}
+        {translate("Outgoing Call", store.getState().homepage.language)}
       </>
     );
   }
