@@ -99,8 +99,10 @@ export const onMessageListener = () =>
                     user_id: data.user_id,
                     user: {
                       id: data.user_id,
-                      name: data.callerName,
-                      photo_path: data.callerPhoto,
+                      name: JSON.parse(payload.data.data).message.channel
+                        .channel_name,
+                      photo_path: JSON.parse(payload.data.data).message.channel
+                        .photo_path,
                     },
                     mute: 0,
                     pin: 0,
@@ -212,8 +214,10 @@ export const onMessageListener = () =>
                     user_id: data.user_id,
                     user: {
                       id: data.user_id,
-                      name: data.callerName,
-                      photo_path: data.callerPhoto,
+                      name: JSON.parse(payload.data.data).message.channel
+                        .channel_name,
+                      photo_path: JSON.parse(payload.data.data).message.channel
+                        .photo_path,
                     },
                     mute: 0,
                     pin: 0,

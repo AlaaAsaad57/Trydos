@@ -296,13 +296,26 @@ export const ChatReducer = (
           activeChat: {
             ...(state.data.filter(
               (s) => parseInt(s.id) === parseInt(state.callerChannel.id)
-            )[0] || state.callerChannel),
+            )[0] || {
+              ...state.callerChannel,
+              channel_name: state.caller.channel_name,
+              mobile_phone: state.caller.mobile_phone,
+              photo_path: state.caller.photo_path,
+            }),
           },
           data:
             state.data.filter(
               (s) => parseInt(s.id) === parseInt(state.callerChannel.id)
             ).length === 0
-              ? [state.callerChannel, ...state.data]
+              ? [
+                  {
+                    ...state.callerChannel,
+                    channel_name: state.caller.channel_name,
+                    mobile_phone: state.caller.mobile_phone,
+                    photo_path: state.caller.photo_path,
+                  },
+                  ...state.data,
+                ]
               : state.data,
           main: "chat",
           isCallIncoming: false,
@@ -313,12 +326,26 @@ export const ChatReducer = (
         return {
           ...state,
           call: "vid-incoming",
-          activeChat: { ...state.callerChannel },
+          activeChat: {
+            ...state.callerChannel,
+            channel_name: state.caller.channel_name,
+            mobile_phone: state.caller.mobile_phone,
+            photo_path: state.caller.photo_path,
+          },
           data:
             state.data.filter(
               (s) => parseInt(s.id) === parseInt(state.callerChannel.id)
             ).length === 0
-              ? [state.callerChannel, ...state.data]
+              ? [
+                  {
+                    ...state.callerChannel,
+                    channel_name: state.caller.channel_name,
+                    mobile_phone: state.caller.mobile_phone,
+                    photo_path: state.caller.photo_path,
+                  },
+                  ,
+                  ...state.data,
+                ]
               : state.data,
           main: "chat",
           isCallIncoming: false,
