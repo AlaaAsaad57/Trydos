@@ -328,11 +328,10 @@ export const ChatReducer = (
       }
     }
     case "USER_ANSWER_CALL": {
-      if (payload === parseInt(state.MessageActiveCall))
-        return {
-          ...state,
-          isCallIncoming: false,
-        };
+      return {
+        ...state,
+        isCallIncoming: false,
+      };
     }
     case "INCOMING_VOICE_CALL": {
       {
