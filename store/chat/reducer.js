@@ -332,11 +332,6 @@ export const ChatReducer = (
         return {
           ...state,
           isCallIncoming: false,
-          MessageActiveCall: null,
-          incomeCallData: null,
-          caller: null,
-          callerChannel: null,
-          incomeCallType: null,
         };
     }
     case "INCOMING_VOICE_CALL": {
