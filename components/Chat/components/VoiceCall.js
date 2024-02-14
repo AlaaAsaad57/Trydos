@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import EndCallIcon from "../svg/endCall.svg";
 import MicIcon from "../svg/micIcon.svg";
-import VideoIcon from "../svg/vidIcon.svg";
-import CallIcon from "../svg/CallInProg.svg";
 import CallingIcon from "../svg/calling.svg";
 import AddUserIcon from "../svg/addUser.svg";
 import LeftArrowIcon from "../svg/leftArrow.svg";
@@ -121,8 +119,9 @@ function VideoCall(props) {
     (state) => state.chat.MessageActiveCall
   );
   const [joined, setJoined] = useState(false);
-  const userEndCall = async (bool) => {
+  const userEndCall = async (durationVal) => {
     if (ready && joined) {
+      await client.unpublish(tracks);
       await client.leave();
       if (tracks && tracks[0]) {
         tracks[0]?.getMediaStreamTrack().stop();
@@ -133,16 +132,18 @@ function VideoCall(props) {
       // we close the tracks to perform cleanup
     }
     setStart(false);
-    if (!bool) EndCall();
-    pause();
-    dispatch({ type: "END-CALL", payload: MessageActiveCall });
-  };
-  const EndCall = () => {
-    let duration = minutes * 60 + seconds;
+    let duration = durationVal !== null ? durationVal : minutes * 60 + seconds;
     if (duration > 3 && users.length > 0)
-      RefuseCall(activeChat.id, MessageActiveCall, duration);
-    else RefuseCall(activeChat.id, MessageActiveCall);
+      await RefuseCall(activeChat.id, MessageActiveCall, duration).then(() => {
+        dispatch({ type: "END-CALL", payload: MessageActiveCall });
+      });
+    else
+      await RefuseCall(activeChat.id, MessageActiveCall).then(() => {
+        dispatch({ type: "END-CALL", payload: MessageActiveCall });
+      });
+    pause();
   };
+
   const [trackState, setTrackState] = useState({ video: true, audio: true });
   const mute = async (type) => {
     if (type === "audio") {
@@ -152,15 +153,7 @@ function VideoCall(props) {
       });
     }
   };
-  const callInProgress = useSelector((state) => state.chat.callInProgress);
-  useEffect(() => {
-    if (callInProgress === 2) {
-      setCallStatus(translate("User declined", language));
-      setTimeout(() => {
-        userEndCall();
-      }, 2000);
-    }
-  }, [callInProgress]);
+
   useEffect(() => {
     if (minutes === 30) {
       userEndCall();
@@ -226,7 +219,6 @@ function VideoCall(props) {
             style={tracks && tracks[0] && { zIndex: 3 }}
             className="end-icon"
             onClick={() => {
-              EndCall();
               userEndCall();
             }}
           >
@@ -236,7 +228,6 @@ function VideoCall(props) {
           <div
             className="cancel-call-icon"
             onClick={() => {
-              EndCall();
               userEndCall();
             }}
           >

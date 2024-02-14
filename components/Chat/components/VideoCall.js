@@ -152,8 +152,9 @@ function VideoCall(props) {
     (state) => state.chat.MessageActiveCall
   );
   const [joined, setJoined] = useState(false);
-  const userEndCall = async () => {
+  const userEndCall = async (durationVal) => {
     if (ready) {
+      await client.unpublish(tracks);
       if (joined && ready) await client.leave();
       client.removeAllListeners();
       if (tracks) {
@@ -164,7 +165,15 @@ function VideoCall(props) {
       }
     }
     pause();
-    dispatch({ type: "END-CALL", payload: MessageActiveCall });
+    let duration = durationVal !== null ? durationVal : minutes * 60 + seconds;
+    if (duration > 3 && users.length > 0)
+      await RefuseCall(activeChat.id, MessageActiveCall, duration).then(() => {
+        dispatch({ type: "END-CALL", payload: MessageActiveCall });
+      });
+    else
+      await RefuseCall(activeChat.id, MessageActiveCall).then(() => {
+        dispatch({ type: "END-CALL", payload: MessageActiveCall });
+      });
   };
   const [trackState, setTrackState] = useState({ video: true, audio: true });
   const mute = async (type) => {
@@ -183,29 +192,14 @@ function VideoCall(props) {
   const callInProgress = useSelector((state) => state.chat.callInProgress);
   const call = useSelector((state) => state.chat.call);
   useEffect(() => {
-    if (callInProgress === 2) {
-      setCallStatus(translate("User declined", language));
-      setTimeout(() => {
-        userEndCall();
-      }, 2000);
-    }
-  }, [callInProgress]);
-  useEffect(() => {
     if (seconds === 30 && users.length === 0 && call === "vid-outgoing") {
-      userEndCall();
-      RefuseCall(activeChat.id, MessageActiveCall, -1);
+      userEndCall(-1);
     }
     if (minutes === 30) {
-      userEndCall();
-      RefuseCall(activeChat.id, MessageActiveCall, minutes * 60);
+      userEndCall(minutes * 60);
     }
   }, [minutes, seconds]);
-  const EndCall = () => {
-    let duration = minutes * 60 + seconds;
-    if (duration > 3 && users.length > 0)
-      RefuseCall(activeChat.id, MessageActiveCall, duration);
-    else RefuseCall(activeChat.id, MessageActiveCall);
-  };
+  const EndCall = async () => {};
   const ref = useRef();
   useEffect(() => {
     return () => {
@@ -287,7 +281,6 @@ function VideoCall(props) {
             style={tracks && tracks[1] && { zIndex: 3 }}
             className="end-icon"
             onClick={() => {
-              EndCall();
               userEndCall();
             }}
           >
@@ -297,7 +290,6 @@ function VideoCall(props) {
           <div
             className="cancel-call-icon"
             onClick={() => {
-              EndCall();
               userEndCall();
             }}
           >

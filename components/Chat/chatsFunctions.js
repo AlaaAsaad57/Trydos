@@ -136,7 +136,10 @@ export const getNew = (chatData, activeChat) => {
   });
   return a;
 };
-
+export const getNewCalls = (calls) => {
+  let a = 0;
+  return isNew(calls);
+};
 export const forwardMessage = (m, activeChat) => {
   let i = Math.random();
 

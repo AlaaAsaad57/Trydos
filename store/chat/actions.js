@@ -552,11 +552,13 @@ export const makeVoiceCall = async (
       });
   } catch (e) {
     console.error(e);
+    toast.info("User in Another Call");
     store.dispatch({ type: "CALL-LOADING", payload: null });
   }
 };
 export const AnswerCall = async (channelId, messageId) => {
   try {
+    store.dispatch({ type: "CALL-LOADING", payload: "call" });
     let status = null;
     toast.info(
       translate(
@@ -610,7 +612,9 @@ export const AnswerCall = async (channelId, messageId) => {
       );
       store.dispatch({ type: "USER_END_CALL", payload: messageId });
     }
+    store.dispatch({ type: "CALL-LOADING", payload: null });
   } catch (e) {
+    store.dispatch({ type: "CALL-LOADING", payload: null });
     console.error(e);
   }
 };

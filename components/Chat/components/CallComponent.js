@@ -8,7 +8,7 @@ import "./index.css";
 import Image from "next/image";
 function CallComponent(props) {
   const caller = useSelector((state) => state.chat.caller);
-  const message_id = useSelector((state) => state.chat.message_id);
+  const callLoading = useSelector((state) => state.chat.callLoading);
   const incomeCallData = useSelector((state) => state.chat.incomeCallData);
   const MessageActiveCall = useSelector(
     (state) => state.chat.MessageActiveCall
@@ -65,7 +65,7 @@ function CallComponent(props) {
       </div>
       <div className="call-options">
         <div
-          className="call-rec"
+          className={"call-rec " + (callLoading && "disabled-label")}
           onClick={() => {
             ref.current.pause();
             ref.current.currentTime = 0;
@@ -90,7 +90,7 @@ function CallComponent(props) {
           </svg>
         </div>
         <div
-          className="call-dec"
+          className={"call-dec " + (callLoading && "disabled-label")}
           onClick={() => {
             RefuseCall(incomeCallData.channelId, MessageActiveCall);
             ref.current.pause();
