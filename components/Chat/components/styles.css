@@ -1131,3 +1131,72 @@ html[lang="ar"] .new-chats {
   height: 100%;
   border-radius: 0px;
 }
+.call-rec {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  color: white;
+  background-color: #64ff5f;
+  animation: hoverWave linear 1s infinite;
+}
+
+@keyframes hoverWave {
+  0% {
+    box-shadow: 0 8px 10px rgba(56, 253, 148, 0.3),
+      0 0 0 0 rgba(56, 253, 128, 0.2), 0 0 0 0 rgba(56, 253, 128, 0.2);
+  }
+
+  40% {
+    box-shadow: 0 8px 10px rgba(56, 253, 79, 0.3),
+      0 0 0 15px rgba(56, 253, 105, 0.2), 0 0 0 0 rgba(56, 253, 125, 0.2);
+  }
+
+  80% {
+    box-shadow: 0 8px 10px rgba(56, 253, 85, 0.3),
+      0 0 0 30px rgba(85, 253, 56, 0), 0 0 0 26.7px rgba(66, 253, 56, 0.067);
+  }
+
+  100% {
+    box-shadow: 0 8px 10px rgba(56, 253, 66, 0.3),
+      0 0 0 30px rgba(66, 253, 56, 0), 0 0 0 40px rgba(56, 253, 92, 0);
+  }
+}
+
+.call-dec {
+  margin-left: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  animation: hoverWaveDec linear 1s infinite;
+  border-radius: 50%;
+  color: white;
+  background-color: #ff5f61;
+}
+@keyframes hoverWaveDec {
+  0% {
+    box-shadow: 0 8px 10px rgba(253, 56, 56, 0.3),
+      0 0 0 0 rgba(253, 56, 59, 0.2), 0 0 0 0 rgba(253, 56, 56, 0.2);
+  }
+
+  40% {
+    box-shadow: 0 8px 10px rgba(253, 56, 85, 0.3),
+      0 0 0 15px rgba(253, 56, 66, 0.2), 0 0 0 0 rgba(253, 56, 69, 0.2);
+  }
+
+  80% {
+    box-shadow: 0 8px 10px rgba(253, 56, 66, 0.3),
+      0 0 0 30px rgba(253, 56, 56, 0), 0 0 0 26.7px rgba(253, 56, 69, 0.067);
+  }
+
+  100% {
+    box-shadow: 0 8px 10px rgba(253, 56, 56, 0.3),
+      0 0 0 60px rgba(253, 56, 62, 0), 0 0 0 80px rgba(253, 56, 69, 0);
+  }
+}
