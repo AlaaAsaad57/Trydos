@@ -29,14 +29,13 @@ import { SSRDetect, getUserChat, translate } from "utils/functions";
 import dynamic from "next/dynamic";
 import { push, ref, set } from "firebase/database";
 import { db } from "utils/firebaseInitv1";
-import AgoraRTC, { AgoraRTCProvider } from "agora-rtc-react";
-const VideoCallPro = dynamic(() =>
-  import("components/Chat/components/VideoCallPro", { ssr: false })
+const VideoCall = dynamic(() =>
+  import("components/Chat/components/VideoCall", { ssr: false })
 );
-const VoiceCallPro = dynamic(() =>
-  import("components/Chat/components/VoiceCallPro", { ssr: false })
+const VoiceCall = dynamic(() =>
+  import("components/Chat/components/VoiceCall", { ssr: false })
 );
-AgoraRTC.setLogLevel(4);
+
 function ConversationContainer({ ViewedScreen, active, loading, first }) {
   const [vid, setVid] = useState(null);
   const imageFile = useRef(null);
@@ -839,38 +838,36 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
   };
   return (
     <>
-      <AgoraRTCProvider client={client}>
-        {activeChat?.id && call && call.includes("vid") && AgoraToken && (
-          <VideoCallPro
-            client={client}
-            audio={call.includes("outgoing")}
-            token={AgoraToken}
-            name={activeChat?.channel_name || activeChat.mobile_phone}
-            active={activeChat.photo_path ?? null}
-            user_id={
-              activeChat.channel_members.filter(
-                (u) =>
-                  u.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id
-              )[0]?.user_id
-            }
-          />
-        )}
-        {activeChat?.id && call && call.includes("aud") && AgoraToken && (
-          <VoiceCallPro
-            client={client}
-            audio={call.includes("outgoing")}
-            token={AgoraToken}
-            name={activeChat?.channel_name || activeChat.mobile_phone}
-            active={activeChat.photo_path ?? null}
-            user_id={
-              activeChat.channel_members.filter(
-                (u) =>
-                  u.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id
-              )[0]?.user_id
-            }
-          />
-        )}
-      </AgoraRTCProvider>
+      {activeChat?.id && call && call.includes("vid") && AgoraToken && (
+        <VideoCall
+          client={client}
+          audio={call.includes("outgoing")}
+          token={AgoraToken}
+          name={activeChat?.channel_name || activeChat.mobile_phone}
+          active={activeChat.photo_path ?? null}
+          user_id={
+            activeChat.channel_members.filter(
+              (u) =>
+                u.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id
+            )[0]?.user_id
+          }
+        />
+      )}
+      {activeChat?.id && call && call.includes("aud") && AgoraToken && (
+        <VoiceCall
+          client={client}
+          audio={call.includes("outgoing")}
+          token={AgoraToken}
+          name={activeChat?.channel_name || activeChat.mobile_phone}
+          active={activeChat.photo_path ?? null}
+          user_id={
+            activeChat.channel_members.filter(
+              (u) =>
+                u.user_id !== JSON.parse(localStorage.getItem("USER-CHAT")).id
+            )[0]?.user_id
+          }
+        />
+      )}
       {cameraEnabled && window.innerWidth > 800 && (
         <div className="fixed-img-prev">
           <div className="bac-drop" onClick={() => enableCamera(false)}></div>
