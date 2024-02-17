@@ -92,7 +92,7 @@ export const Decline = async (token, mid, duration) => {
   let req = await axios
     .post(
       CHAT_URL + `/api/v1/messages/refuse_call/${mid}`,
-      { duration_in_seconds: duration || 0 },
+      { duration_in_seconds: duration || 0, payload: { target: "webview" } },
       {
         headers: {
           Authorization: "Bearer " + token,

@@ -657,7 +657,7 @@ export const RefuseCall = async (channelId, messageId, duration) => {
       await axios
         .post(
           CHAT_URL + `/api/v1/messages/refuse_call/${messageId}`,
-          { ...obj },
+          { ...obj, payload: { target: "web" } },
           {
             headers: {
               Authorization:
