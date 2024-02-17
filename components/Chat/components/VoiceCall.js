@@ -43,7 +43,7 @@ function VideoCall(props) {
   const language = useSelector((state) => state.homepage.language);
   const call = useSelector((state) => state.chat.call);
   useEffect(() => {
-    if (seconds === 30 && users.length === 0 && call === "aud-outgoing") {
+    if (seconds === 60 && users.length === 0 && call === "aud-outgoing") {
       userEndCall(true);
       RefuseCall(activeChat.id, MessageActiveCall, -1);
     }

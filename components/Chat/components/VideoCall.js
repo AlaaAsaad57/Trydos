@@ -193,7 +193,7 @@ function VideoCall(props) {
   };
   const call = useSelector((state) => state.chat.call);
   useEffect(() => {
-    if (seconds === 30 && users.length === 0 && call === "vid-outgoing") {
+    if (seconds === 60 && users.length === 0 && call === "vid-outgoing") {
       userEndCall(-1);
     }
     if (minutes === 30) {

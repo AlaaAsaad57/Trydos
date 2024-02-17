@@ -135,7 +135,7 @@ function WebViewVoiceCall(props) {
   //   }
   // },[callInProgress])
   useEffect(() => {
-    if (seconds === 30 && users.length === 0) {
+    if (seconds === 60 && users.length === 0) {
       props.onDecline(-1);
       userEndCall(true);
     }
