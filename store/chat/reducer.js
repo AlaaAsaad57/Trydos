@@ -151,14 +151,14 @@ export const ChatReducer = (
       };
     }
     case "USER_END_CALL": {
-      if (state.client) {
-        state.client?.leave();
-        client?.removeAllListeners();
-      }
       if (
         parseInt(state.MessageActiveCall) === parseInt(payload) ||
         payload === -1
       ) {
+        if (state.client) {
+          state.client?.leave();
+          state.client?.removeAllListeners();
+        }
         return {
           ...state,
           call: null,
@@ -178,7 +178,7 @@ export const ChatReducer = (
     case "END-CALL": {
       if (state.client) {
         state.client?.leave();
-        client?.removeAllListeners();
+        state.client?.removeAllListeners();
       }
       if (
         parseInt(state.MessageActiveCall) === parseInt(payload) ||
