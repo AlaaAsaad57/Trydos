@@ -164,7 +164,7 @@ html[lang="ar"] .chat-window-search-holder svg {
   background-color: #fcfcfc;
 }
 .call-conversation-item {
-  width: 420px;
+  width: auto;
   height: 75px;
   display: flex;
   transition: all 0.3s ease;
