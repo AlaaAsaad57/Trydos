@@ -101,7 +101,7 @@ export const getCalls = async () => {
     await axios
       .post(
         CHAT_URL + "/api/v1/channels/my_calls",
-        {},
+        { limit: "20" },
         {
           headers: {
             Authorization:
