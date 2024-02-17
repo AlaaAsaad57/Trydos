@@ -17,7 +17,6 @@ import { getTwoLetters } from "../chatsFunctions";
 import axios from "axios";
 import { CHAT_URL } from "utils/endpointConfig";
 import { getUserChat, translate } from "utils/functions";
-import { AgoraRTCProvider } from "agora-rtc-react";
 const config = {
   mode: "rtc",
   codec: "h264",
@@ -134,7 +133,8 @@ function VideoCall(props) {
         .join(appId, name.toString(), token, getUserChat()?.id)
         .then(() => {
           setJoined(true);
-        });
+        })
+        .catch((e) => console.log(e));
       if (tracks) await client.publish([tracks[0], tracks[1]]);
     };
 
@@ -190,7 +190,6 @@ function VideoCall(props) {
       });
     }
   };
-  const callInProgress = useSelector((state) => state.chat.callInProgress);
   const call = useSelector((state) => state.chat.call);
   useEffect(() => {
     if (seconds === 30 && users.length === 0 && call === "vid-outgoing") {
