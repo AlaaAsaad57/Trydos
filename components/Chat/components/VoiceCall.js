@@ -33,6 +33,7 @@ function VideoCall(props) {
   const [users, setUsers] = useState([]);
   const [startIndicator, setStart] = useState(false);
   const client = useClient(config);
+  dispatch({ type: "STORE-CLIENT", payload: client });
   const [callStatus, setCallStatus] = useState(null);
   useEffect(() => {
     start();

@@ -67,6 +67,7 @@ const initialState = {
   lastNotification: null,
   callLoading: null,
   AgoraToken: null,
+  client: null,
 };
 const showDate = (d) => {
   const language = store.getState().homepage.language;
@@ -101,6 +102,12 @@ export const ChatReducer = (
   { type, payload, param, source }
 ) => {
   switch (type) {
+    case "STORE-CLIENT": {
+      return {
+        ...state,
+        client: payload,
+      };
+    }
     case "CALL-LOADING": {
       return {
         ...state,
@@ -144,6 +151,10 @@ export const ChatReducer = (
       };
     }
     case "USER_END_CALL": {
+      if (state.client) {
+        state.client?.leave();
+        client?.removeAllListeners();
+      }
       if (
         parseInt(state.MessageActiveCall) === parseInt(payload) ||
         payload === -1
@@ -165,6 +176,10 @@ export const ChatReducer = (
       }
     }
     case "END-CALL": {
+      if (state.client) {
+        state.client?.leave();
+        client?.removeAllListeners();
+      }
       if (
         parseInt(state.MessageActiveCall) === parseInt(payload) ||
         payload === -1

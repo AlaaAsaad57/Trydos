@@ -51,6 +51,7 @@ function VideoCall(props) {
   const [users, setUsers] = useState([]);
   const [displayMethod, setDisplayMethod] = useState(false);
   const client = useClient(config);
+  dispatch({ type: "STORE-CLIENT", payload: client });
   // ready is a state variable, which returns true when the local tracks are initialized, untill then tracks variable is null
   const { ready, tracks, error } = useMicrophoneAndCameraTracks();
   const getToken = async (channelName) => {
