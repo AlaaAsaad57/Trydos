@@ -773,9 +773,6 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
       }, 300);
     }
   }, [first, active]);
-  const [client] = useState(() =>
-    AgoraRTC.createClient({ mode: "rtc", codec: "vp8" })
-  );
 
   useEffect(() => {
     document
@@ -840,7 +837,6 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
     <>
       {activeChat?.id && call && call.includes("vid") && AgoraToken && (
         <VideoCall
-          client={client}
           audio={call.includes("outgoing")}
           token={AgoraToken}
           name={activeChat?.channel_name || activeChat.mobile_phone}
@@ -855,7 +851,6 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
       )}
       {activeChat?.id && call && call.includes("aud") && AgoraToken && (
         <VoiceCall
-          client={client}
           audio={call.includes("outgoing")}
           token={AgoraToken}
           name={activeChat?.channel_name || activeChat.mobile_phone}
