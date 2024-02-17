@@ -580,6 +580,7 @@ export const showDate = (d) => {
     now.getDate() > 9 ? now.getDate() : "0" + parseInt(now.getDate()).toString()
   }`;
   d = new Date(d);
+  let date_mes = new Date(d);
   d = `${d.getFullYear()}-${
     d.getMonth() + 1 > 9
       ? (d.getMonth() + 1).toString()
@@ -589,8 +590,12 @@ export const showDate = (d) => {
   let day = new Date(d);
   day = days[day.getDay()];
   if (d === nowString)
-    return `${now.getHours() > 9 ? now.getHours() : "0" + now.getHours()}:${
-      now.getMinutes() > 9 ? now.getMinutes() : "0" + now.getMinutes()
+    return `${
+      date_mes.getHours() > 9 ? date_mes.getHours() : "0" + date_mes.getHours()
+    }:${
+      date_mes.getMinutes() > 9
+        ? date_mes.getMinutes()
+        : "0" + date_mes.getMinutes()
     }`;
   else if (new Date(nowString) - new Date(d) === 86400000) {
     return translate("Yesterday", language);
