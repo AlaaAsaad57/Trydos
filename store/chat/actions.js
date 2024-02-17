@@ -654,7 +654,6 @@ export const RefuseCall = async (channelId, messageId, duration) => {
             }
           : { channel_id: channelId, duration_in_seconds: duration || 0 };
 
-      store.dispatch({ type: "USER_END_CALL", payload: messageId });
       await axios
         .post(
           CHAT_URL + `/api/v1/messages/refuse_call/${messageId}`,
@@ -667,7 +666,9 @@ export const RefuseCall = async (channelId, messageId, duration) => {
             },
           }
         )
-        .then(() => {});
+        .then(() => {
+          store.dispatch({ type: "USER_END_CALL", payload: messageId });
+        });
     }
   } catch (e) {
     console.error(e);

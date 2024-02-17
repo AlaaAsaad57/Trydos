@@ -101,6 +101,7 @@ function VideoCall(props) {
       await client
         .join(appId, name.toString(), token, getUserChat()?.id)
         .then(() => {
+          console.log("join");
           setJoined(true);
         });
       if (tracks) await client.publish([tracks[0]]);
@@ -120,28 +121,40 @@ function VideoCall(props) {
   );
   const [joined, setJoined] = useState(false);
   const userEndCall = async (durationVal) => {
-    if (ready && joined) {
-      await client.unpublish(tracks);
-      await client.leave();
-      if (tracks && tracks[0]) {
-        tracks[0]?.getMediaStreamTrack().stop();
-        tracks[1]?.getMediaStreamTrack().stop();
-        tracks[0]?.close();
-        tracks[1]?.close();
+    try {
+      if (ready) {
+        if (joined) {
+          console.log("unpublish");
+          await client.unpublish(tracks);
+          console.log("leave");
+          await client.leave();
+        }
+        if (tracks && tracks[0]) {
+          console.log("close tracks");
+          client.removeAllListeners();
+          tracks[0].close();
+          tracks[1].close();
+        }
+
+        // we close the tracks to perform cleanup
       }
-      // we close the tracks to perform cleanup
+      setStart(false);
+      let duration =
+        durationVal !== null ? durationVal : minutes * 60 + seconds;
+      if (duration > 3 && users.length > 0)
+        await RefuseCall(activeChat.id, MessageActiveCall, duration).then(
+          () => {
+            dispatch({ type: "END-CALL", payload: MessageActiveCall });
+          }
+        );
+      else
+        await RefuseCall(activeChat.id, MessageActiveCall).then(() => {
+          dispatch({ type: "END-CALL", payload: MessageActiveCall });
+        });
+      pause();
+    } catch (e) {
+      console.log(error);
     }
-    setStart(false);
-    let duration = durationVal !== null ? durationVal : minutes * 60 + seconds;
-    if (duration > 3 && users.length > 0)
-      await RefuseCall(activeChat.id, MessageActiveCall, duration).then(() => {
-        dispatch({ type: "END-CALL", payload: MessageActiveCall });
-      });
-    else
-      await RefuseCall(activeChat.id, MessageActiveCall).then(() => {
-        dispatch({ type: "END-CALL", payload: MessageActiveCall });
-      });
-    pause();
   };
 
   const [trackState, setTrackState] = useState({ video: true, audio: true });

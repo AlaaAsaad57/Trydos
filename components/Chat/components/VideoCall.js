@@ -17,6 +17,7 @@ import { getTwoLetters } from "../chatsFunctions";
 import axios from "axios";
 import { CHAT_URL } from "utils/endpointConfig";
 import { getUserChat, translate } from "utils/functions";
+import { AgoraRTCProvider } from "agora-rtc-react";
 const config = {
   mode: "rtc",
   codec: "h264",
@@ -207,140 +208,132 @@ function VideoCall(props) {
     };
   }, [ref]);
   return (
-    <>
+    <div className="video-call">
+      {minutes >= 25 && (
+        <div className="call-warn">Call End in {30 - minutes}</div>
+      )}
+      {props.audio && !users.length > 0 && !callStatus && (
+        <audio
+          ref={ref}
+          onLoad={(e) => {
+            e.target.volume = 0.2;
+          }}
+          onPlay={(e) => {
+            e.target.volume = 0.2;
+          }}
+          onLoadStart={(e) => {
+            e.target.volume = 0.2;
+          }}
+          loop
+          autoPlay
+          src={"/default.mp3"}
+        >
+          <source src={"/default.mp3"}></source>
+        </audio>
+      )}
+
       {
-        <div className="video-call">
-          {minutes >= 25 && (
-            <div className="call-warn">Call End in {30 - minutes}</div>
+        <>
+          {props.active ? (
+            <div
+              className="hgg"
+              style={{
+                backgroundImage: `url(${props.active})`,
+              }}
+            ></div>
+          ) : props.name ? (
+            <div className="hgg text-avatar">{getTwoLetters(props.name)}</div>
+          ) : (
+            <div
+              className="hgg"
+              style={{
+                backgroundImage: `url(${"/images/profileNo.png"})`,
+              }}
+            ></div>
           )}
-          {props.audio && !users.length > 0 && !callStatus && (
-            <audio
-              ref={ref}
-              onLoad={(e) => {
-                e.target.volume = 0.2;
-              }}
-              onPlay={(e) => {
-                e.target.volume = 0.2;
-              }}
-              onLoadStart={(e) => {
-                e.target.volume = 0.2;
-              }}
-              loop
-              autoPlay
-              src={"/default.mp3"}
-            >
-              <source src={"/default.mp3"}></source>
-            </audio>
-          )}
+        </>
+      }
+      <span className="caller-name">{props.name}</span>
 
-          {
-            <>
-              {props.active ? (
-                <div
-                  className="hgg"
-                  style={{
-                    backgroundImage: `url(${props.active})`,
-                  }}
-                ></div>
-              ) : props.name ? (
-                <div className="hgg text-avatar">
-                  {getTwoLetters(props.name)}
-                </div>
-              ) : (
-                <div
-                  className="hgg"
-                  style={{
-                    backgroundImage: `url(${"/images/profileNo.png"})`,
-                  }}
-                ></div>
-              )}
-            </>
-          }
-          <span className="caller-name">{props.name}</span>
-
-          {users.length > 0 &&
-            users.map((user, index) => {
-              if (user.videoTrack) {
-                return (
-                  <AgoraVideoPlayer
-                    key={index}
-                    onClick={() => {
-                      if (displayMethod) setDisplayMethod(!displayMethod);
-                    }}
-                    className={displayMethod ? "add-caller-icon" : "my-screen"}
-                    id="remote-stream"
-                    style={
-                      !displayMethod ? { height: "100%", width: "100%" } : {}
-                    }
-                    videoTrack={user.videoTrack}
-                  />
-                );
-              }
-            })}
-          <div
-            style={tracks && tracks[1] && { zIndex: 3 }}
-            className="end-icon"
-            onClick={() => {
-              userEndCall();
-            }}
-          >
-            <EndCallIcon></EndCallIcon>
-            <span>{translate("End Call", language)}</span>
-          </div>
-          <div
-            className="cancel-call-icon"
-            onClick={() => {
-              userEndCall();
-            }}
-          >
-            <LeftArrowIcon></LeftArrowIcon>
-          </div>
-          <div
-            style={{ cursor: "pointer" }}
-            onClick={() => {
-              if (!displayMethod) setDisplayMethod(!displayMethod);
-            }}
-            className={!displayMethod ? "add-caller-icon" : "my-screen"}
-          >
-            {tracks && tracks.length > 1 && (
+      {users.length > 0 &&
+        users.map((user, index) => {
+          if (user.videoTrack) {
+            return (
               <AgoraVideoPlayer
-                className="local-video-stream"
-                videoTrack={tracks[1]}
+                key={index}
+                onClick={() => {
+                  if (displayMethod) setDisplayMethod(!displayMethod);
+                }}
+                className={displayMethod ? "add-caller-icon" : "my-screen"}
+                id="remote-stream"
+                style={!displayMethod ? { height: "100%", width: "100%" } : {}}
+                videoTrack={user.videoTrack}
               />
-            )}
-          </div>
-          <div
-            className={"toggle-mic " + (trackState.audio && "active-mic-svg")}
-            onClick={() => mute("audio")}
-          >
-            <MicIcon></MicIcon>
-          </div>
-          <div
-            className={"toggle-vid " + (trackState.video && "active-mic-svg")}
-            onClick={() => mute("video")}
-          >
-            <VideoIcon></VideoIcon>
-          </div>
-          {ready && (
-            <div className="call-status">
-              {users.length > 0 ? (
-                <>
-                  <CallingIcon></CallingIcon>
-                  <span>
-                    {minutes > 9 ? minutes : "0" + minutes}:
-                    {seconds > 9 ? seconds : "0" + seconds}
-                  </span>
-                </>
-              ) : callStatus ? (
-                <span>{callStatus}</span>
-              ) : (
-                <span>{translate("Calling ...", language)}</span>
-              )}
-            </div>
+            );
+          }
+        })}
+      <div
+        style={tracks && tracks[1] && { zIndex: 3 }}
+        className="end-icon"
+        onClick={() => {
+          userEndCall();
+        }}
+      >
+        <EndCallIcon></EndCallIcon>
+        <span>{translate("End Call", language)}</span>
+      </div>
+      <div
+        className="cancel-call-icon"
+        onClick={() => {
+          userEndCall();
+        }}
+      >
+        <LeftArrowIcon></LeftArrowIcon>
+      </div>
+      <div
+        style={{ cursor: "pointer" }}
+        onClick={() => {
+          if (!displayMethod) setDisplayMethod(!displayMethod);
+        }}
+        className={!displayMethod ? "add-caller-icon" : "my-screen"}
+      >
+        {tracks && tracks.length > 1 && (
+          <AgoraVideoPlayer
+            className="local-video-stream"
+            videoTrack={tracks[1]}
+          />
+        )}
+      </div>
+      <div
+        className={"toggle-mic " + (trackState.audio && "active-mic-svg")}
+        onClick={() => mute("audio")}
+      >
+        <MicIcon></MicIcon>
+      </div>
+      <div
+        className={"toggle-vid " + (trackState.video && "active-mic-svg")}
+        onClick={() => mute("video")}
+      >
+        <VideoIcon></VideoIcon>
+      </div>
+      {ready && (
+        <div className="call-status">
+          {users.length > 0 ? (
+            <>
+              <CallingIcon></CallingIcon>
+              <span>
+                {minutes > 9 ? minutes : "0" + minutes}:
+                {seconds > 9 ? seconds : "0" + seconds}
+              </span>
+            </>
+          ) : callStatus ? (
+            <span>{callStatus}</span>
+          ) : (
+            <span>{translate("Calling ...", language)}</span>
           )}
         </div>
-      }
-    </>
+      )}
+    </div>
   );
 }
 
