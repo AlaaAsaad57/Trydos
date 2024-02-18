@@ -113,11 +113,11 @@ function VideoCall(props) {
       client.on("user-unpublished", (user, type) => {
         if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
           console.log("unpublished", user, type);
-        if (type === "audio") {
-          user.audioTrack?.stop();
-        }
-        if (type === "video") {
-        }
+        // if (type === "audio") {
+        //   user.audioTrack?.stop();
+        // }
+        // if (type === "video") {
+        // }
       });
 
       client.on("user-left", (user) => {
@@ -194,6 +194,7 @@ function VideoCall(props) {
   const call = useSelector((state) => state.chat.call);
   useEffect(() => {
     if (seconds === 60 && users.length === 0 && call === "vid-outgoing") {
+      console.log("timeout");
       userEndCall(-1);
     }
     if (minutes === 30) {

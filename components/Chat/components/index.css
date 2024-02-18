@@ -34,6 +34,7 @@
 .end-icon {
   width: auto;
   height: auto;
+  max-width: 100px;
   min-width: 60px;
   min-height: 52px;
   width: auto;

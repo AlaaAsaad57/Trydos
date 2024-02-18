@@ -155,7 +155,7 @@ export const ChatReducer = (
       let call_temp = state.calls;
       payload.map((call) => {
         if (!state.calls.some((c) => c.id === call.id)) {
-          call_temp.push(c);
+          call_temp.push(call);
         }
       });
       return {
