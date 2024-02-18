@@ -14,7 +14,13 @@ import BlockInfoIcon from "../svg/BlockInfo.svg";
 
 import { getTwoLetters, getUser } from "../chatsFunctions";
 import Image from "next/image";
-function ChatInfo({ activeChat, cancel }) {
+function ChatInfo({
+  activeChat,
+  cancel,
+  callLoading,
+  makeAudioCall,
+  makeVideoCall,
+}) {
   const ref = useRef();
   useEffect(() => {
     ref.current.style.display = "flex";
@@ -84,11 +90,30 @@ function ChatInfo({ activeChat, cancel }) {
         </div>
       </div>
       <div className="chat-user-info-options">
-        <div className="chat-user-info-option">
-          <InfoCallIcon></InfoCallIcon> <span>Call</span>
+        <div
+          className="chat-user-info-option"
+          onClick={() => {
+            makeAudioCall();
+            cancel();
+          }}
+        >
+          <InfoCallIcon
+            className={`${callLoading === "voice" && "loading-svg"}`}
+          ></InfoCallIcon>{" "}
+          <span>Call</span>
         </div>
-        <div className="chat-user-info-option" style={{ marginLeft: "106px" }}>
-          <InfoVideoIcon></InfoVideoIcon> <span>Video</span>
+        <div
+          className="chat-user-info-option"
+          onClick={() => {
+            makeVideoCall();
+            cancel();
+          }}
+          style={{ marginLeft: "106px" }}
+        >
+          <InfoVideoIcon
+            className={`${callLoading === "video" && "loading-svg"}`}
+          ></InfoVideoIcon>{" "}
+          <span>Video</span>
         </div>
         <div className="chat-user-info-option" style={{ marginLeft: "98px" }}>
           <InfoSearchIcon></InfoSearchIcon> <span>Search</span>

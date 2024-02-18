@@ -32,7 +32,6 @@ function CallList() {
           className="inview-calls"
           as="div"
           onChange={(inView, entry) => {
-            console.log("view");
             if (inView && !call_loading) {
               getCalls(calls[calls.length - 1].id);
             }

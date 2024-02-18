@@ -112,7 +112,6 @@ export const getCalls = async (id) => {
         }
       )
       .then((data) => {
-        console.log(data);
         store.dispatch({
           type: "GET_CALLS",
           payload: data.data.data,

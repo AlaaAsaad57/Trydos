@@ -24,6 +24,8 @@ import {
   SendMessage,
   getMessagesBetweenMessage,
   getPage,
+  makeVideoCall,
+  makeVoiceCall,
 } from "store/chat/actions";
 import { SSRDetect, getUserChat, translate } from "utils/functions";
 import dynamic from "next/dynamic";
@@ -38,6 +40,7 @@ const VoiceCall = dynamic(() =>
 
 function ConversationContainer({ ViewedScreen, active, loading, first }) {
   const [vid, setVid] = useState(null);
+  const callLoading = useSelector((state) => state.chat.callLoading);
   const imageFile = useRef(null);
   const [imgs, setImgs] = useState(null);
   const mid = useSelector((state) => state.chat.mid);
@@ -994,7 +997,41 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
         style={{ right: ViewedScreen ? "0px" : "431px" }}
       >
         {DetailsVar && (
-          <ChatInfo cancel={() => openDetails(false)} activeChat={activeChat} />
+          <ChatInfo
+            callLoading={callLoading}
+            makeAudioCall={() => {
+              !callLoading &&
+                makeVoiceCall(
+                  activeChat.id,
+                  activeChat.channel_members.filter(
+                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+                  )[0]?.user.name,
+                  activeChat.channel_members.filter(
+                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+                  )[0]?.user?.photo_path,
+                  activeChat.channel_members.filter(
+                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+                  )[0]?.user.mobile_phone
+                );
+            }}
+            makeVideoCall={() => {
+              !callLoading &&
+                makeVideoCall(
+                  activeChat.id,
+                  activeChat.channel_members.filter(
+                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+                  )[0]?.user.name,
+                  activeChat.channel_members.filter(
+                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+                  )[0]?.user?.photo_path,
+                  activeChat.channel_members.filter(
+                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+                  )[0]?.user.mobile_phone
+                );
+            }}
+            cancel={() => openDetails(false)}
+            activeChat={activeChat}
+          />
         )}
         <ChatHeader
           openDetails={() => openDetails(true)}

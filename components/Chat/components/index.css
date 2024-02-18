@@ -299,10 +299,16 @@
   justify-content: center;
   width: 50px;
   height: 50px;
-  animation: hoverWaveDec linear 1s infinite;
+
   border-radius: 50%;
   color: white;
   background-color: #ff5f61;
+}
+.disabled-label.call-dec {
+  animation: hoverWaveDec linear 1s infinite;
+}
+.call-rec.disabled-label {
+  animation: hoverWave linear 1s infinite;
 }
 @keyframes hoverWaveDec {
   0% {

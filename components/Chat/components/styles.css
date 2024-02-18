@@ -919,11 +919,11 @@ html[lang="ar"] .new-chats {
   align-items: center;
   justify-content: flex-start;
   padding-left: 10px;
+  z-index: 999999;
   padding-right: 10px;
   padding-top: 15px;
   transition: 0.3s all ease-in;
   background-color: #f7f7f7;
-  z-index: 12;
 }
 .arrow-icon {
   position: absolute;
@@ -950,7 +950,8 @@ html[lang="ar"] .new-chats {
 .chat-user-info {
   display: flex;
   align-items: flex-start;
-  justify-content: flex-start;
+  justify-content: center;
+  flex-direction: column;
   margin-top: 17px;
   min-width: 137px;
 }
@@ -1141,7 +1142,6 @@ html[lang="ar"] .new-chats {
   border-radius: 50%;
   color: white;
   background-color: #64ff5f;
-  animation: hoverWave linear 1s infinite;
 }
 
 @keyframes hoverWave {
@@ -1174,10 +1174,16 @@ html[lang="ar"] .new-chats {
   justify-content: center;
   width: 50px;
   height: 50px;
-  animation: hoverWaveDec linear 1s infinite;
+
   border-radius: 50%;
   color: white;
   background-color: #ff5f61;
+}
+.disabled-label.call-dec {
+  animation: hoverWaveDec linear 1s infinite;
+}
+.call-rec.disabled-label {
+  animation: hoverWave linear 1s infinite;
 }
 @keyframes hoverWaveDec {
   0% {
