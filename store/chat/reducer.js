@@ -46,6 +46,7 @@ const initialState = {
   openChat: null,
   pinnedChats: [],
   date: "Today",
+  call_loading: false,
   chatUsers: [],
   call: null,
   fetch: true,
@@ -114,6 +115,12 @@ export const ChatReducer = (
         callLoading: payload,
       };
     }
+    case "CALL_LOADING": {
+      return {
+        ...state,
+        call_loading: payload,
+      };
+    }
     case "CHAT-OPEN": {
       return {
         ...state,
@@ -148,6 +155,7 @@ export const ChatReducer = (
       return {
         ...state,
         calls: payload,
+        call_loading: false,
       };
     }
     case "USER_END_CALL": {

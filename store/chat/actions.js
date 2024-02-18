@@ -96,12 +96,13 @@ export const GetChats = async (payload) => {
     console.error(e);
   }
 };
-export const getCalls = async () => {
+export const getCalls = async (id) => {
   try {
+    store.dispatch({ type: "CALL_LOADING", payload: true });
     await axios
       .post(
         CHAT_URL + "/api/v1/channels/my_calls",
-        { limit: "20" },
+        { limit: "20", last_message_id: id },
         {
           headers: {
             Authorization:
