@@ -152,9 +152,15 @@ export const ChatReducer = (
       return initialState;
     }
     case "GET_CALLS": {
+      let call_temp = state.calls;
+      payload.map((call) => {
+        if (!state.calls.some((c) => c.id === call.id)) {
+          call_temp.push(c);
+        }
+      });
       return {
         ...state,
-        calls: payload,
+        calls: call_temp,
         call_loading: false,
       };
     }
