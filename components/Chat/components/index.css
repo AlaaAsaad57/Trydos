@@ -266,7 +266,6 @@
   border-radius: 50%;
   color: white;
   background-color: #64ff5f;
-  animation: hoverWave linear 1s infinite;
 }
 
 @keyframes hoverWave {

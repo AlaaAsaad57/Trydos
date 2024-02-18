@@ -65,8 +65,9 @@ function CallComponent(props) {
       </div>
       <div className="call-options">
         <div
-          className={"call-rec " + (callLoading && "disabled-label")}
-          onClick={() => {
+          className={"call-rec"}
+          onClick={(e) => {
+            e.target.classList.add("disabled-label");
             ref.current.pause();
             ref.current.currentTime = 0;
             setTimeout(() => {
@@ -90,8 +91,9 @@ function CallComponent(props) {
           </svg>
         </div>
         <div
-          className={"call-dec " + (callLoading && "disabled-label")}
-          onClick={() => {
+          className={"call-dec "}
+          onClick={(e) => {
+            e.target.classList.add("disabled-label");
             RefuseCall(incomeCallData.channelId, MessageActiveCall);
             ref.current.pause();
             ref.current.currentTime = 0;

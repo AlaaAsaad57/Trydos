@@ -37,8 +37,11 @@ function CallComponentWidget({ data, type, onAnswer, onDecline, userData }) {
         {userData.name || userData.phone}
       </span>
       <div
-        className={`toggle-mic call-rec ${data.loading && "disabled-label"}`}
-        onClick={() => onAnswer()}
+        className={`toggle-mic call-rec `}
+        onClick={(e) => {
+          e.target.classList.add("disabled-label");
+          onAnswer();
+        }}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -55,8 +58,11 @@ function CallComponentWidget({ data, type, onAnswer, onDecline, userData }) {
         </svg>
       </div>
       <div
-        className={`toggle-vid call-dec ${data.loading && "disabled-label"}`}
-        onClick={() => onDecline()}
+        className={`toggle-vid call-dec`}
+        onClick={(e) => {
+          e.target.classList.add("disabled-label");
+          onDecline();
+        }}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
