@@ -65,8 +65,12 @@ function CallComponent(props) {
       </div>
       <div className="call-options">
         <div
+          id="call-rec-id"
           className={"call-rec"}
           onClick={(e) => {
+            document
+              .querySelector("#call-rec-id")
+              .classList.add("disabled-label");
             e.target.classList.add("disabled-label");
             ref.current.pause();
             ref.current.currentTime = 0;
@@ -92,8 +96,11 @@ function CallComponent(props) {
         </div>
         <div
           className={"call-dec "}
+          id="call-dec-id"
           onClick={(e) => {
-            e.target.classList.add("disabled-label");
+            document
+              .querySelector("#call-dec-id")
+              .classList.add("disabled-label");
             RefuseCall(incomeCallData.channelId, MessageActiveCall);
             ref.current.pause();
             ref.current.currentTime = 0;

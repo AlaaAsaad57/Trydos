@@ -38,8 +38,11 @@ function CallComponentWidget({ data, type, onAnswer, onDecline, userData }) {
       </span>
       <div
         className={`toggle-mic call-rec `}
+        id="call-rec-id"
         onClick={(e) => {
-          e.target.classList.add("disabled-label");
+          document
+            .querySelector("#call-rec-id")
+            .classList.add("disabled-label");
           onAnswer();
         }}
       >
@@ -59,8 +62,11 @@ function CallComponentWidget({ data, type, onAnswer, onDecline, userData }) {
       </div>
       <div
         className={`toggle-vid call-dec`}
+        id="call-dec-id"
         onClick={(e) => {
-          e.target.classList.add("disabled-label");
+          document
+            .querySelector("#call-dec-id")
+            .classList.add("disabled-label");
           onDecline();
         }}
       >

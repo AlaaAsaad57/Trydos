@@ -305,9 +305,11 @@
 }
 .disabled-label.call-dec {
   animation: hoverWaveDec linear 1s infinite;
+  opacity: 0.6;
 }
 .call-rec.disabled-label {
   animation: hoverWave linear 1s infinite;
+  opacity: 0.6;
 }
 @keyframes hoverWaveDec {
   0% {

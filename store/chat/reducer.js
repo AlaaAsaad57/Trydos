@@ -190,14 +190,14 @@ export const ChatReducer = (
       }
     }
     case "END-CALL": {
-      if (state.client) {
-        state.client?.leave();
-        state.client?.removeAllListeners();
-      }
       if (
         parseInt(state.MessageActiveCall) === parseInt(payload) ||
         payload === -1
       ) {
+        if (state.client) {
+          state.client?.leave();
+          state.client?.removeAllListeners();
+        }
         return {
           ...state,
           call: null,
