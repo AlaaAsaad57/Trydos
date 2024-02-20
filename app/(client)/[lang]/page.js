@@ -2,7 +2,7 @@
 import Home from "components/Home";
 import { getHomeData, getStories } from "store/homepage/cachedActions";
 import React from "react";
-
+export const config = { amp: "hybrid" };
 async function page() {
   const [stories, stories_res] = await getStories();
   const [HomeData, HomeData_res] = await getHomeData();
