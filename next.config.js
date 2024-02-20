@@ -2,6 +2,28 @@
 const withSvgr = require("next-svgr");
 const { withSentryConfig } = require("@sentry/nextjs");
 const nextConfig = withSvgr({
+  async headers() {
+    return [
+      {
+        source: "/:lang*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+    ];
+  },
   images: {
     domains: [
       "res.cloudinary.com",
