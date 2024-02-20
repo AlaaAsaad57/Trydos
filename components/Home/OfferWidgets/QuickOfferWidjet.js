@@ -31,7 +31,7 @@ function QuickOfferWidjet({ offer, onClick }) {
           <Image
             fill
             alt="imageAlt"
-            loading="eager"
+            loading="lazy"
             priority={true}
             style={{
               position: "absolute",

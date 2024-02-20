@@ -34,8 +34,7 @@ function ExtendedOfferWidget({ offer, myKey, onClick }) {
           <Image
             fill
             alt="imageAlt"
-            loading="eager"
-            priority={true}
+            loading="lazy"
             style={{
               position: "absolute",
               top: "0px",

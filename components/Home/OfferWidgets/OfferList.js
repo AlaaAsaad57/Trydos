@@ -1,8 +1,13 @@
 import React from "react";
 import NormalWidget from "./NormalWidget";
-import ExtendedOfferWidget from "./ExtendedOfferWidget";
-import QuickOfferWidjet from "./QuickOfferWidjet";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+const ExtendedOfferWidget = dynamic(() => import("./ExtendedOfferWidget"), {
+  ssr: false,
+});
+const QuickOfferWidjet = dynamic(() => import("./QuickOfferWidjet"), {
+  ssr: false,
+});
 function OfferList({ offers, quick }) {
   const router = useRouter();
   const goToListing = () => {
