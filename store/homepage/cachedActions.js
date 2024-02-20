@@ -13,7 +13,7 @@ export const getStories = async () => {
   try {
     let time = new Date().getTime();
     const res = await fetch(STORIES_URL + GET_USERS_STORIES, {
-      next: { revalidate: 0 },
+      next: { revalidate: 10000 },
       headers: DataApiHeaders(),
     });
     const repo = await res.json();
@@ -76,7 +76,7 @@ export const getListingData = async () => {
     // const repoSetting = await resSetting.json()
     let time = new Date().getTime();
     const res = await fetch(OTP_URL + LISTING_INFO_URL, {
-      next: { revalidate: 1 },
+      next: { revalidate: 10000 },
       headers: DataApiHeaders(),
     });
     const repo = await res.json();
