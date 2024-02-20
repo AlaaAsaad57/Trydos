@@ -1,9 +1,1 @@
-{
-  "routes": [
-    {
-      "src": "/(.*)",
-      "headers": { "cache-control": "s-maxage=604800" },
-      "dest": "/$1"
-    }
-  ]
-}
+{}
