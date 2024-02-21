@@ -104,3 +104,9 @@ export const getUserChat = () => {
     JSON.parse(localStorage.getItem("USER-CHAT"))
   );
 };
+export const getUserStories = () => {
+  return (
+    localStorage.getItem("USER-STORIES") &&
+    JSON.parse(localStorage.getItem("USER-STORIES"))
+  );
+};

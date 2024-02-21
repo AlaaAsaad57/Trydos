@@ -13,7 +13,7 @@ export const getStories = async () => {
   try {
     let time = new Date().getTime();
     const res = await fetch(STORIES_URL + GET_USERS_STORIES, {
-      next: { revalidate: 10000 },
+      next: { revalidate: 0 },
       headers: DataApiHeaders(),
     });
     const repo = await res.json();
