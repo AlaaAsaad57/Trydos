@@ -57,6 +57,7 @@ export const configureStory = (story) => {
     } else if (storyItem.photo_path) {
       let img = myCld()
         .image(storyItem.photo_path?.split("/").pop().split(".")[0])
+        .format("webp")
         .delivery(quality(auto()));
       returnedData.push({
         url: img.toURL(),
@@ -81,12 +82,13 @@ export const getThumb = (url, isVideo) => {
       return myCld()
         .video(url?.split("/").pop().split(".")[0])
         .resize(Resize.thumbnail("145", "255"))
-        .format("jpg")
+        .format("webp")
         .delivery(quality(auto()));
     } else
       return myCld()
         .image(url?.split("/").pop().split(".")[0])
         .resize(Resize.thumbnail("145", "255"))
+        .format("webp")
         .delivery(quality(auto()));
   }
 };

@@ -50,7 +50,7 @@ function OfferAvatars() {
       />
       <OfferAvatar
         images={
-          "https://res.cloudinary.com/djooohujg/image/upload/q_auto/1707907006?_a=DATC1RAAZAA0"
+          "https://res.cloudinary.com/djooohujg/image/upload/q_auto/1707907006.webp?_a=DATC1RAAZAA0"
         }
         zIndex={3}
       />
