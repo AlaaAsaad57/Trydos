@@ -12,7 +12,7 @@ import { cookies } from "next/headers";
 export const getStories = async () => {
   try {
     let time = new Date().getTime();
-    const res = await fetch(STORIES_URL + GET_USERS_STORIES, {
+    const res = await fetch(STORIES_URL + GET_USERS_STORIES + "?page=2", {
       next: { revalidate: 0 },
       headers: DataApiHeaders(),
     });
