@@ -5,13 +5,13 @@ import { useDispatch, useSelector } from "react-redux";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import { GetMainData, GetStoryData, LogData } from "store/homepage/actions";
-import Stories from("./Stories/index");
+import Stories from "./Stories/index";
 import CategoriesBar from("./CategoriesBar");
 const BrandsBar = dynamic(() => import("./Bars/BrandsBar"), { ssr: false });
 const QuickOffer = dynamic(() => import("./Bars/QuickOffer"), { ssr: false });
 const OfferBar = dynamic(() => import("./Bars/OfferBar"), { ssr: false });
 const CategoryBar = dynamic(() => import("./Bars/CategoryBar"), { ssr: false });
-import OffersList from("./OfferWidgets/OfferList")
+import OffersList from "./OfferWidgets/OfferList";
 const StoriesComponent = dynamic(() => import("./Stories/StoriesComponent"), {
   ssr: false,
 });

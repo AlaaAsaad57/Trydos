@@ -7,7 +7,7 @@ const ChatModal = dynamic(() => import("components/Chat/ChatModal"), {
   ssr: false,
 });
 import { useEffect } from "react";
-import { SSRDetect, getUserChat } from "utils/functions";
+import { getUserChat } from "utils/functions";
 import { RegisterDevice } from "./homepage/actions";
 import { CheckLogin } from "./auth/actions";
 import Cookies from "js-cookie";
