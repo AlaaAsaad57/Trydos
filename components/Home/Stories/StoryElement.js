@@ -12,7 +12,7 @@ function StoryElement({ story, viewedStory, select }) {
     <div className="story-element-container">
       <StoryAvatar avatar={story.photo_path ?? profilePicture} />
       <Story
-        media={story.stories[0]}
+        media={story.stories[story.stories.length - 1]}
         Name={story.name ?? story.mobile_phone ?? "Unknown"}
         onClick={() => select(configureStory(story))}
       />

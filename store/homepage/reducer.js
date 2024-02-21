@@ -52,7 +52,7 @@ const HomeReducer = (state = initialState, { type, payload }) => {
       let arr = [];
       state.storiesData.map((storyItem) => {
         if (storyItem.id === payload.user_id) {
-          arr.push({ ...storyItem, stories: [payload, ...storyItem.stories] });
+          arr.push({ ...storyItem, stories: [...storyItem.stories, payload] });
         } else {
           arr.push(storyItem);
         }

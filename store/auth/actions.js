@@ -15,6 +15,7 @@ import { store } from "../index";
 import { SSRDetect } from "utils/functions";
 import { GetChats } from "../chat/actions";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
+import Cookies from "js-cookie";
 
 export const ReInitialise = () => {
   return { type: "RE-INITILIASE" };
@@ -94,6 +95,7 @@ export const loginStories = async () => {
       otp_id_token: localStorage.getItem("ID-TOKEN"),
       mobile_phone: "+" + JSON.parse(localStorage.getItem("USER")).phone,
     });
+    Cookies.set("token", response.data.data.access_token);
     localStorage.setItem("USER-STORIES", JSON.stringify(response.data.data));
     localStorage.setItem("STORIES-TOKEN", response.data.data.access_token);
   } catch (e) {

@@ -12,7 +12,7 @@ import { cookies } from "next/headers";
 export const getStories = async () => {
   try {
     let time = new Date().getTime();
-    const res = await fetch(STORIES_URL + GET_USERS_STORIES + "?page=2", {
+    const res = await fetch(STORIES_URL + GET_USERS_STORIES, {
       next: { revalidate: 0 },
       headers: DataApiHeaders(),
     });
@@ -65,6 +65,7 @@ export const DataApiHeaders = () => {
         ? "ae"
         : cookieStore.get("language")?.value || "en",
     country: cookieStore.get("country") && cookieStore.get("country").value,
+    Authorization: "Bearer " + cookieStore.get("token")?.value,
   });
 };
 export const changeAppLanguageServer = (language) => {
