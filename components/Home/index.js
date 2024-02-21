@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import { GetMainData, GetStoryData, LogData } from "store/homepage/actions";
 import Stories from "./Stories/index";
-import CategoriesBar from("./CategoriesBar");
+import CategoriesBar from "./CategoriesBar";
 const BrandsBar = dynamic(() => import("./Bars/BrandsBar"), { ssr: false });
 const QuickOffer = dynamic(() => import("./Bars/QuickOffer"), { ssr: false });
 const OfferBar = dynamic(() => import("./Bars/OfferBar"), { ssr: false });
