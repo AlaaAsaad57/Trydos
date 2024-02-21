@@ -33,14 +33,12 @@ function AddStory() {
           setFile(null);
         }
       ).then((data) => {
-        console.log(data);
+        dispatch(AddStoryAction(data));
       });
-
-      console.log(path);
       setIsSelected(path);
 
       setFile(e.target.files[0]);
-      dispatch(AddStoryAction(path));
+
       setIsSelected(null);
       setFile(null);
       revalidateStories();
@@ -56,12 +54,12 @@ function AddStory() {
             0,
             () => {}
           ).then((data) => {
-            console.log(data);
+            dispatch(AddStoryAction(data));
           });
           console.log(path);
           setIsSelected(path);
           setFile(e.target.files[0]);
-          dispatch(AddStoryAction(path));
+
           setIsSelected(null);
           setFile(null);
           revalidateStories();
