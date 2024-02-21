@@ -19,7 +19,7 @@ export default function Providers({ lang, children }) {
     if (bool) {
       bool = false;
       setTimeout(() => {
-        window.gtag("set", "user_properties", {
+        window?.gtag("set", "user_properties", {
           is_logged_in: Boolean(getUserChat()),
           prefered_language: Cookies.get("language"),
         });
