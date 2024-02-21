@@ -45,8 +45,6 @@ function QuickOfferWidjet({ offer, onClick }) {
             src={
               "https://res.cloudinary.com/djooohujg/image/upload/q_auto/1708506792?_a=DATC1RAAZAA0"
             }
-            placeholder="blur"
-            blurDataURL="https://res.cloudinary.com/djooohujg/image/upload/e_blur:1500/1708506792?_a=DATC1RAAZAA0s"
           />
           <div className="offer-blured-background" />
           <div className="offer-blured" />
