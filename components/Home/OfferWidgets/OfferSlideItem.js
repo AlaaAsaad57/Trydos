@@ -1,5 +1,5 @@
 import React from "react";
-import OfferImage from "../../../public/images/Kids_BannerInteriorHalloween_2609.WEBP";
+// import OfferImage from "../../../public/images/Kids_BannerInteriorHalloween_2609.WEBP";
 import BorderImage from "./BorderImage";
 import Image from "next/image";
 import { getId } from "utils/functions";
@@ -14,7 +14,9 @@ function OfferSlideItem({ isSingle }) {
           id={id}
           priority={true}
           className="OfferImage"
-          src={OfferImage}
+          src={
+            "https://res.cloudinary.com/djooohujg/image/upload/q_auto/1708506792?_a=DATC1RAAZAA0"
+          }
           width={360}
           height={155}
           alt="offer"

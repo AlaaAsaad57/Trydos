@@ -3,7 +3,7 @@ import LogoOffer from "public/svg/offerlogo.svg";
 import ManIcon from "public/svg/manIcon.svg";
 import WomanIcon from "public/svg/WomanIcon.svg";
 import OfferPhotosSlider from "./OfferPhotosSlider";
-import OfferImage from "../../../public/images/Kids_BannerInteriorHalloween_2609.WEBP";
+// import OfferImage from "../../../public/images/Kids_BannerInteriorHalloween_2609.WEBP";
 import KidsIcon from "public/svg/KidsIcon.svg";
 import OfferSlideItem from "./OfferSlideItem";
 import { useSelector } from "react-redux";
@@ -44,7 +44,9 @@ const NormalWidget = ({ offer, myKey, onClick }) => {
             }}
             objectFit="cover"
             objectPosition="center"
-            src={OfferImage}
+            src={
+              "https://res.cloudinary.com/djooohujg/image/upload/q_auto/1708506792?_a=DATC1RAAZAA0"
+            }
           />
           <div className="offer-blured-background" />
           <div className="offer-blured" />
