@@ -11,7 +11,7 @@ import { SSRDetect, getUserChat } from "utils/functions";
 import { RegisterDevice } from "./homepage/actions";
 import { CheckLogin } from "./auth/actions";
 import Cookies from "js-cookie";
-import GAComponent from "components/global/GAComponent";
+// import GAComponent from "components/global/GAComponent";
 import dynamic from "next/dynamic";
 export default function Providers({ lang, children }) {
   var bool = true;
@@ -32,7 +32,7 @@ export default function Providers({ lang, children }) {
   }, []);
   return (
     <>
-      {SSRDetect() && <GAComponent />}
+      {/* {SSRDetect() && <GAComponent />} */}
       <Provider store={store}>
         <div className="site-container">
           <div className="home-page-container">
