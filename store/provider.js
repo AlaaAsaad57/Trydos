@@ -18,12 +18,12 @@ export default function Providers({ lang, children }) {
   useEffect(() => {
     if (bool) {
       bool = false;
-      setTimeout(() => {
-        window?.gtag("set", "user_properties", {
-          is_logged_in: Boolean(getUserChat()),
-          prefered_language: Cookies.get("language"),
-        });
-      }, 2000);
+      // setTimeout(() => {
+      //   window?.gtag("set", "user_properties", {
+      //     is_logged_in: Boolean(getUserChat()),
+      //     prefered_language: Cookies.get("language"),
+      //   });
+      // }, 2000);
       setTimeout(() => {
         RegisterDevice();
         CheckLogin();
