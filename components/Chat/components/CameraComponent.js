@@ -109,7 +109,7 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
             audio={false}
             height={800}
             ref={webcamRef}
-            screenshotFormat="image/jpeg"
+            screenshotFormat="image/webp"
             width={430}
             videoConstraints={webcamTypeRef.current}
           />
