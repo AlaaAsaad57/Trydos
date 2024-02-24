@@ -8,18 +8,27 @@ import {
 import CloseIcon from "./CloseIcon";
 import dynamic from "next/dynamic";
 import { WatchStory } from "store/auth/actions";
+import { GetUnviewedStory } from "../../../store/homepage/actions";
 const Stories = dynamic(() => import("react-insta-stories"), { ssr: false });
 function StoriesComponent() {
   const [currentStoryId, setCurrentStoryId] = useState(0);
   const selectedStory = useSelector((state) => state.homepage.selectedStory);
+  const renderStories = useSelector((state) => state.homepage.renderStories);
   const storiesData = useSelector((state) => state.homepage.storiesData);
   const dispatch = useDispatch();
   const setSelectStory = (e) => {
     dispatch(SelectStory(e));
   };
   useEffect(() => {
-    if (selectedStory) WatchStory(selectedStory.stories[currentStoryId].id);
+    if (selectedStory)
+      WatchStory(selectedStory.stories[currentStoryId].id, selectedStory.id);
   }, [currentStoryId]);
+  useEffect(() => {
+    if (selectedStory?.id) {
+      setCurrentStoryId(GetUnviewedStory(selectedStory));
+      console.log(GetUnviewedStory(selectedStory), selectedStory);
+    }
+  }, [renderStories, selectedStory]);
   return (
     <>
       {storiesData.map(
@@ -44,7 +53,7 @@ function StoriesComponent() {
               <Stories
                 key={story.id.id}
                 preloadCount={3}
-                currentIndex={currentStoryId}
+                currentIndex={GetUnviewedStory(selectedStory)}
                 onPrevious={() =>
                   currentStoryId > 0
                     ? setCurrentStoryId(currentStoryId - 1)

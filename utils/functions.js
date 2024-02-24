@@ -42,6 +42,7 @@ export const configureStory = (story) => {
       returnedData.push({
         url: vid.toURL(),
         FixedUrl: vid,
+        is_seen: storyItem.is_seen,
         url: storyItem.full_video_path,
         FixedUrl: storyItem.full_video_path,
         id: storyItem.id,
@@ -62,6 +63,7 @@ export const configureStory = (story) => {
       returnedData.push({
         url: img.toURL(),
         FixedUrl: img,
+        is_seen: storyItem.is_seen,
         duration: 20000,
         id: storyItem.id,
         header: {

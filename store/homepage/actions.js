@@ -34,7 +34,7 @@ export const GetMainData = (data) => {
 };
 /*Stories Actions */
 export const SelectStory = (e) => {
-  if (e) WatchStory(e.stories[0].id);
+  if (e) WatchStory(e.stories[0].id, e.id);
   return { type: "STORY-SELECTED", payload: e };
 };
 export const GetStoryData = (data) => {
@@ -73,6 +73,23 @@ export const upload = async (file, callback, is_video, endUpload) => {
     callback(null);
     endUpload();
   }
+};
+export const GetUnviewedStory = (story) => {
+  let index = 0;
+  let unseen = [];
+  story.stories.map((s, id) => {
+    if (s.is_seen === false) {
+      unseen.push(s);
+    }
+  });
+  if (unseen.length > 0)
+    story.stories.map((s, id) => {
+      if (s.id === unseen[0].id) {
+        index = id;
+      }
+    });
+
+  return index;
 };
 export const UserStartStory = () => {};
 export const UserEndStory = () => {};

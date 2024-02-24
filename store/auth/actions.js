@@ -222,7 +222,8 @@ export const getCustomerInfo = async () => {
     );
   } catch (e) {}
 };
-export const WatchStory = (id) => {
+export const WatchStory = (id, pid) => {
+  store.dispatch({ type: "WATCH-STORY", payload: { pid: pid, id: id } });
   axios.get(STORIES_URL + "/api/v1/stories/increase_viewers/" + id, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("STORIES-TOKEN")}`,

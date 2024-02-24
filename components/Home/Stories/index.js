@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 const StoryElement = dynamic(() => import("./StoryElement"), { ssr: false });
 import AddStory from "../AddStory";
 import { useDispatch, useSelector } from "react-redux";
-import { SelectStory } from "store/homepage/actions";
+import { GetUnviewedStory, SelectStory } from "store/homepage/actions";
 const Skeleton = dynamic(() => import("react-loading-skeleton"), {
   ssr: false,
 });
@@ -119,7 +119,7 @@ function Index() {
               key={index}
               story={story}
               stories={story}
-              viewedStory={story.stories[0]}
+              viewedStory={story.stories[GetUnviewedStory(story)]}
               select={(e) => setSelectStory(e)}
             />
           ))}

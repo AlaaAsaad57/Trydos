@@ -4,6 +4,7 @@ const initialState = {
   language: "en",
   loading: true,
   selectedStory: null,
+  renderStories: false,
   storiesData: [],
   categories: [],
   settings: null,
@@ -11,11 +12,37 @@ const initialState = {
 
 const HomeReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "WATCH-STORY": {
+      let arr = [];
+      state.storiesData.map((story) => {
+        if (story.id === payload.pid) {
+          let arrStories = [];
+          story.stories.map((storyItem) => {
+            if (storyItem.id === payload.id) {
+              arrStories.push({ ...storyItem, is_seen: true });
+            } else {
+              arrStories.push(storyItem);
+            }
+          });
+          arr.push({ ...story, stories: arrStories });
+        } else {
+          arr.push(story);
+        }
+      });
+      return {
+        ...state,
+        storiesData: arr,
+      };
+    }
     case "APP-LANGUAGE": {
       return { ...state, language: payload };
     }
     case "STORY-SELECTED": {
-      return { ...state, selectedStory: payload };
+      return {
+        ...state,
+        selectedStory: payload,
+        renderStories: !state.renderStories,
+      };
     }
     case "STORY-DATA": {
       return { ...state, storiesData: payload };
@@ -31,6 +58,7 @@ const HomeReducer = (state = initialState, { type, payload }) => {
           selectedStory: configureStory(
             state.storiesData.filter((story, i) => i === index + 1)[0]
           ),
+          renderStories: !state.renderStories,
         };
       else return { ...state, selectedStory: null };
     }
@@ -45,6 +73,7 @@ const HomeReducer = (state = initialState, { type, payload }) => {
           selectedStory: configureStory(
             state.storiesData.filter((story, i) => i === index - 1)[0]
           ),
+          renderStories: !state.renderStories,
         };
       else return { ...state, selectedStory: null };
     }

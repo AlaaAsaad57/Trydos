@@ -23,6 +23,8 @@ import {
   requestFirebaseNotificationPermission,
 } from "utils/firebaseInitv1";
 import { getUserChat } from "utils/functions";
+import Cookies from "js-cookie";
+import { getUserStories } from "../../utils/functions";
 export default function Home({ stories, HomeData_res, stories_res, HomeData }) {
   var bool = true;
   useEffect(() => {
@@ -55,7 +57,9 @@ export default function Home({ stories, HomeData_res, stories_res, HomeData }) {
       if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
     }
   }, []);
-
+  useEffect(() => {
+    Cookies.set("token", getUserStories().access_token);
+  }, []);
   const selectedStory = useSelector((state) => state.homepage.selectedStory);
   useEffect(() => {
     if (selectedStory) {
@@ -70,7 +74,7 @@ export default function Home({ stories, HomeData_res, stories_res, HomeData }) {
       <ToastContainer position="bottom-right" />
 
       <Stories />
-      <StoriesComponent />
+      {<StoriesComponent />}
       <CategoriesBar forMobile={true} />
       <BrandsBar />
       <OffersList offers={[1, 1, 1]} />
