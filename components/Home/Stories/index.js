@@ -5,6 +5,7 @@ const StoryElement = dynamic(() => import("./StoryElement"), { ssr: false });
 import AddStory from "../AddStory";
 import { useDispatch, useSelector } from "react-redux";
 import { GetUnviewedStory, SelectStory } from "store/homepage/actions";
+import { getUserStories } from "../../../utils/functions";
 const Skeleton = dynamic(() => import("react-loading-skeleton"), {
   ssr: false,
 });
@@ -92,7 +93,7 @@ function Index() {
           />
         </svg>
         <div className="stories-bars">
-          <AddStory />
+          {getUserStories()?.id && <AddStory />}
           {loading &&
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1].map(
               (elen, key) => (

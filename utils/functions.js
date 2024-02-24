@@ -38,6 +38,7 @@ export const configureStory = (story) => {
     if (storyItem.full_video_path) {
       let vid = myCld()
         .video(storyItem.full_video_path?.split("/").pop().split(".")[0])
+        .format("webm")
         .delivery(quality(auto()));
       returnedData.push({
         url: vid.toURL(),

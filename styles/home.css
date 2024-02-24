@@ -707,6 +707,7 @@ body {
   display: flex;
   width: 100vw;
   height: 200px;
+  z-index: 99999999;
   max-width: 1365px;
   align-items: center;
   justify-content: flex-start;
