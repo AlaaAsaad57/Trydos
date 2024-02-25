@@ -45,6 +45,7 @@ function ChatContainer(props) {
         className="app"
         style={{
           position: "fixed",
+          zIndex: "999999999",
           top: "105px",
           right: language === "en" ? "30px" : "initial",
           left: language === "en" ? "initial" : "30px",

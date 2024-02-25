@@ -40,7 +40,7 @@ function StoriesComponent() {
                 position: "fixed",
                 left: "0px",
                 top: "0px",
-                zIndex: "1400",
+                zIndex: "99999999",
               }}
               key={key}
             >

@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AddStoryAction } from "store/homepage/actions";
 import { revalidateStories } from "utils/serverActions";
 import NewStoryModal from "./Stories/CameraStory";
+import { dataURLtoFile } from "components/Chat/chatsFunctions";
 function AddStory() {
   const [uploaded, setUpload] = useState(0);
   const language = useSelector((state) => state.homepage.language);
@@ -69,9 +70,23 @@ function AddStory() {
       });
     }
   };
+  const sendStory = async (imageFile) => {
+    let a = dataURLtoFile(
+      imageFile,
+      "image-story" + parseInt(Math.random() * 1000)
+    );
+    handleChange({ target: { files: [a] } });
+  };
   return (
     <>
-      {OpenCamera && <NewStoryModal close={() => setOpenCamera(false)} />}
+      {OpenCamera && (
+        <NewStoryModal
+          send={(e) => {
+            sendStory(e);
+          }}
+          close={() => setOpenCamera(false)}
+        />
+      )}
       {openMenu && (
         <div
           className={`lang-modalDisable ${openMenu && "open"}`}
@@ -79,6 +94,7 @@ function AddStory() {
           style={{
             width: "100vw",
             height: "100vh",
+            maxWidth: "1365px",
             top: "-113px",
             display: "flex",
             alignItems: "center",

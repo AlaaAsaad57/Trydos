@@ -36,3 +36,9 @@ body {
 #videos video {
   object-fit: contain !important;
 }
+.fixed-img-prev img.image-story-camera {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: 100vh !important;
+  position: absolute !important;
+}
