@@ -135,9 +135,7 @@ function NewStoryModal({ close, send }) {
           />
         )
       ) : (
-        <>
-          <UploadVideo />
-        </>
+        <>{/* {fi} */}</>
       )}
       {!imageFile && (
         <div className="button-bases" style={{ position: "static" }}>
