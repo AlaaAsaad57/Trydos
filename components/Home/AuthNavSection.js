@@ -6,7 +6,7 @@ import { translate } from "utils/functions";
 import Cookies from "js-cookie";
 import UserAvatar from "./UserAvatar";
 import { ChatConroller } from "store/chat/actions";
-import { getStories } from "../../store/homepage/cachedActions";
+import { getStories } from "../../utils/functions";
 function AuthNavSection() {
   const language = useSelector((state) => state.homepage.language);
   const loading = useSelector((state) => state.chat.loading);
@@ -15,7 +15,7 @@ function AuthNavSection() {
   useEffect(() => {
     if (user) {
       getStories().then((d) => {
-        dispatch({ type: "STORY-DATA", payload: d[0] });
+        dispatch({ type: "STORY-DATA", payload: d });
       });
     }
   }, [user]);

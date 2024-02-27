@@ -4,8 +4,28 @@ import { quality } from "@cloudinary/url-gen/actions/delivery";
 import { auto } from "@cloudinary/url-gen/qualifiers/quality";
 import { Resize } from "@cloudinary/url-gen/actions";
 import profilePicture from "public/images/profileNo.png";
+import axios from "axios";
+import { DataApiHeaders } from "store/homepage/cachedActions";
+import { GET_USERS_STORIES, STORIES_URL } from "./endpointConfig";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
+};
+export const getStories = async () => {
+  try {
+    const res = await axios.get(STORIES_URL + GET_USERS_STORIES, {
+      headers: {
+        Authorization:
+          "Bearer " +
+          JSON.parse(localStorage.getItem("USER-STORIES")).access_token,
+      },
+    });
+    // hi
+    const repo = res;
+    return repo.data.data.data;
+  } catch (e) {
+    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
+    return ["stories-error", e];
+  }
 };
 export function translate(key, language) {
   if (translations[language] && translations[language][key]) {
