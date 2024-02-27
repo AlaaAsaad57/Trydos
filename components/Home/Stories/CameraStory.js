@@ -1,29 +1,37 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import CameraIcon from "../../Chat/svg/image.svg";
 import SendIcon from "../../Chat/svg/sharechat.svg";
 import Webcam from "react-webcam";
 import Image from "next/image";
 function NewStoryModal({ close, send }) {
   const [imageFile, setImageFile] = useState(null);
+  const [SwitchCamera, setSwitch] = useState(null);
   const capture = () => {
     setImageFile(webcamRef.current?.getScreenshot());
   };
   const hasTwoCameras = async () => {
     const devices = await navigator?.mediaDevices?.enumerateDevices();
-
-    return devices?.filter((dev) => dev?.kind === "videoinput").length < 1;
+    setSwitch(devices?.filter((dev) => dev?.kind === "videoinput").length <= 1);
+    return null;
   };
-  const webcamTypeRef = React.useRef({
+  const [webcamTypeRef, setRef] = React.useState({
     width: 430,
     height: 400,
     facingMode: { exact: "user" },
   });
   const webcamRef = React.useRef(null);
   const [active, setActive] = useState(true);
+  useEffect(() => {
+    hasTwoCameras();
+  }, []);
   return (
     <div
       className="fixed-img-prev"
-      style={{ top: "-113px", justifyContent: "flex-end" }}
+      style={{
+        top: "-113px",
+        justifyContent: "flex-end",
+        paddingBottom: "60px",
+      }}
     >
       <div className="options-camera">
         <div
@@ -131,7 +139,7 @@ function NewStoryModal({ close, send }) {
             ref={webcamRef}
             screenshotFormat="image/webp"
             width={430}
-            videoConstraints={webcamTypeRef.current}
+            videoConstraints={webcamTypeRef}
           />
         )
       ) : (
@@ -140,13 +148,18 @@ function NewStoryModal({ close, send }) {
       {!imageFile && (
         <div className="button-bases" style={{ position: "static" }}>
           <button
-            disabled={hasTwoCameras()}
+            disabled={SwitchCamera}
             onClick={() => {
-              webcamTypeRef.current = {
+              setRef({
                 width: 430,
                 height: 400,
-                facingMode: { exact: "environment" },
-              };
+                facingMode: {
+                  exact:
+                    webcamTypeRef.facingMode.exact === "user"
+                      ? "environment"
+                      : "user",
+                },
+              });
             }}
           >
             <svg

@@ -84,7 +84,10 @@ function AddStory() {
           send={(e) => {
             sendStory(e);
           }}
-          close={() => setOpenCamera(false)}
+          close={() => {
+            setOpenCamera(false);
+            document.body.style.overflow = "scroll";
+          }}
         />
       )}
       {openMenu && (
@@ -127,7 +130,10 @@ function AddStory() {
                 textAlign: "center",
                 border: "#00000029 1px solid",
               }}
-              onClick={(e) => setOpenCamera(true)}
+              onClick={(e) => {
+                setOpenCamera(true);
+                document.body.style.overflow = "hidden";
+              }}
             >
               From Camera
             </div>
