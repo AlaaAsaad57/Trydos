@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ChatIcon from "public/svg/ChatIcon.svg";
 import CartIcon from "public/svg/CartIcon.svg";
@@ -6,11 +6,19 @@ import { translate } from "utils/functions";
 import Cookies from "js-cookie";
 import UserAvatar from "./UserAvatar";
 import { ChatConroller } from "store/chat/actions";
+import { getStories } from "../../store/homepage/cachedActions";
 function AuthNavSection() {
   const language = useSelector((state) => state.homepage.language);
   const loading = useSelector((state) => state.chat.loading);
   const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
+  useEffect(() => {
+    if (user) {
+      getStories().then((d) => {
+        dispatch({ type: "STORY-DATA", payload: d[0] });
+      });
+    }
+  }, [user]);
   return (
     <>
       {!loading && (

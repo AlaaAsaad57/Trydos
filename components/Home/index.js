@@ -25,6 +25,7 @@ import {
 import { getUserChat } from "utils/functions";
 import Cookies from "js-cookie";
 import { getUserStories } from "../../utils/functions";
+import { getStories } from "../../store/homepage/cachedActions";
 export default function Home({ stories, HomeData_res, stories_res, HomeData }) {
   var bool = true;
   useEffect(() => {
