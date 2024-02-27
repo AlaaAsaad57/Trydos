@@ -53,6 +53,7 @@ function Index() {
       slider.scrollLeft = scrollLeft - walk;
     });
   }
+  const user = useSelector((state) => state.auth.user);
   return (
     <div className="stories-bar-container">
       <div id="stories-bar" className="stories-bar">
@@ -93,7 +94,7 @@ function Index() {
           />
         </svg>
         <div className="stories-bars">
-          {getUserStories()?.id && <AddStory />}
+          {user?.id && <AddStory />}
           {loading &&
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1].map(
               (elen, key) => (
