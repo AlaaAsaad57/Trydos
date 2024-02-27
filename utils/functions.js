@@ -24,7 +24,7 @@ export const getStories = async () => {
     return repo.data.data.data;
   } catch (e) {
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
-    return ["stories-error", e];
+    return [];
   }
 };
 export function translate(key, language) {
