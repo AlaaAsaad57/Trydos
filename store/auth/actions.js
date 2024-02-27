@@ -150,18 +150,20 @@ export async function StoreToken(payload) {
       baseURL: CHAT_URL,
       timeout: 0,
       headers: {
-        Authorization: "Bearer " + payload.user.access_token,
+        Authorization: "Bearer " + payload?.user?.access_token,
         "Content-Type": "application/json",
       },
     });
-    let res = await AxiosInstance.post(
-      "/api/v1/firebase_tokens",
-      JSON.stringify({
-        token: payload.token,
-      })
-    );
-    store.dispatch({ type: "STORE_TOKEN_RED", payload: payload.token });
-    localStorage.setItem("firebase_id", res.data.data.id);
+    if (payload?.user?.access_token) {
+      let res = await AxiosInstance.post(
+        "/api/v1/firebase_tokens",
+        JSON.stringify({
+          token: payload.token,
+        })
+      );
+      store.dispatch({ type: "STORE_TOKEN_RED", payload: payload.token });
+      localStorage.setItem("firebase_id", res.data.data.id);
+    }
   } catch (e) {
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
   }

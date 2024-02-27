@@ -4,6 +4,7 @@ import StoryComponent from "./StoryComponent";
 import { useDispatch, useSelector } from "react-redux";
 import { SelectStory } from "store/homepage/actions";
 import AddStory from "./AddStory";
+import { getUserStories } from "../../utils/functions";
 function StoriesBar({ stories }) {
   const dispatch = useDispatch();
   const setSelectStory = (e) => {
@@ -21,7 +22,7 @@ function StoriesBar({ stories }) {
             select={(e) => setSelectStory(e)}
           />
         ))}
-        <AddStory />
+        {getUserStories()?.id && <AddStory />}
       </div>
     </>
   );
