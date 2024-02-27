@@ -16,7 +16,7 @@ export const getStories = async () => {
       headers: {
         Authorization:
           "Bearer " +
-          JSON.parse(localStorage.getItem("USER-STORIES")).access_token,
+          JSON.parse(localStorage.getItem("USER-STORIES"))?.access_token,
       },
     });
     // hi
