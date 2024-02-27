@@ -58,7 +58,7 @@ export default function Home({ stories, HomeData_res, stories_res, HomeData }) {
     }
   }, []);
   useEffect(() => {
-    Cookies.set("token", getUserStories().access_token);
+    Cookies.set("token", getUserStories()?.access_token);
   }, []);
   const selectedStory = useSelector((state) => state.homepage.selectedStory);
   useEffect(() => {
