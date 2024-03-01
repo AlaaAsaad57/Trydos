@@ -550,6 +550,7 @@ export const upload = async (file) => {
   return { path: a, name: b };
 };
 export function dataURLtoFile(dataurl, filename) {
+  console.log(dataurl, filename);
   var arr = dataurl.split(","),
     mime = arr[0]?.match(/:(.*?);/)[1],
     bstr = atob(arr[arr.length - 1]),
@@ -559,6 +560,13 @@ export function dataURLtoFile(dataurl, filename) {
     u8arr[n] = bstr.charCodeAt(n);
   }
   return new File([u8arr], filename, { type: mime });
+}
+export function blobToDataURL(blob, callback) {
+  var a = new FileReader();
+  a.onload = function (e) {
+    callback(e.target.result);
+  };
+  a.readAsDataURL(blob);
 }
 export const showDate = (d) => {
   const language = store.getState().homepage.language;

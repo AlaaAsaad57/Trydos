@@ -957,3 +957,15 @@ span.bold-text {
   fill: #969696;
   stroke: #969696;
 }
+.capturing-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: rgb(141, 6, 6);
+}
+.stop-icon {
+  width: 20px;
+  height: 20px;
+  background-color: rgb(141, 6, 6);
+  border-radius: 1px;
+}
