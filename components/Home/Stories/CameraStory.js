@@ -55,7 +55,7 @@ function NewStoryModal({ close, send }) {
     const handleDataAvailable = React.useCallback(
       ({ data }) => {
         if (data.size > 0) {
-          setRecordedChunks((prev) => prev.concat(data));
+          setRecordedChunks([data]);
           const blob = new Blob([data], {
             type: "video/webm",
           });
@@ -82,7 +82,7 @@ function NewStoryModal({ close, send }) {
     ]);
 
     const handleDownload = React.useCallback(() => {
-      if (recordedChunks.length) {
+      if (recordedChunks.length || vidUrl) {
         const blob = new Blob(recordedChunks, {
           type: "video/webm",
         });
@@ -93,10 +93,8 @@ function NewStoryModal({ close, send }) {
         a.href = url;
         setVideo(url);
         a.download = "react-webcam-stream-capture.webm";
-        blobToDataURL(blob, function (e) {
-          send(e);
-          close();
-        });
+        send(vidUrl);
+        close();
         window.URL.revokeObjectURL(url);
         setRecordedChunks([]);
       }
