@@ -1,6 +1,6 @@
-import { translate } from "utils/functions";
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { getStories, translate } from "utils/functions";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import QuestionIcon from "public/svg/questionIcon.svg";
 import LoginIcon from "public/svg/login.svg";
 import UserIcon from "public/svg/userIcon.svg";
@@ -15,6 +15,16 @@ function UserNavTopSection({ loginOpen, openLogin }) {
   const language = useSelector((state) => state.homepage.language);
   const user = useSelector((state) => state.auth.user);
   const [loginSuccessVar, setLoginSucces] = useState(false);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    setTimeout(() => {
+      if (true) {
+        getStories().then((d) => {
+          dispatch({ type: "STORY-DATA", payload: d });
+        });
+      }
+    }, 1000);
+  }, [user]);
   return (
     <div className="user-nav-container">
       {loginOpen && (
