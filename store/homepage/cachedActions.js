@@ -55,7 +55,7 @@ export const getHomeData = async () => {
     return [repo.data, returned_res];
   } catch (e) {
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
-    return ["homedata-error", e];
+    return ["homedata-error", e.toString()];
   }
 };
 export const DataApiHeaders = () => {
