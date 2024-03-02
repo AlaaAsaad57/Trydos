@@ -23,7 +23,6 @@ export const getStories = async () => {
     const repo = res;
     return repo.data.data.data;
   } catch (e) {
-    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
     return [];
   }
 };

@@ -9,7 +9,6 @@ export function LocalizationProvider({ lang, children }) {
   const [originCountry, setOriginCountry] = useState(
     Cookies.get("origin-country") && JSON.parse(Cookies.get("origin-country"))
   );
-  console.log(originCountry);
   const [showPopup, setShowPopup] = useState(false);
   const countriesString = process.env.NEXT_PUBLIC_COUNTRIES || "[]";
   const countries = JSON.parse(countriesString);
@@ -23,7 +22,6 @@ export function LocalizationProvider({ lang, children }) {
   };
   useEffect(() => {
     if (localization) {
-      console.log(localization, "localization");
       if (typeof window !== "undefined") {
         localStorage.setItem("localization", JSON.stringify(localization));
       }

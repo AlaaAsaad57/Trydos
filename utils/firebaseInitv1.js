@@ -368,5 +368,14 @@ export const onMessageListener = () =>
           payload: JSON.parse(payload.data.data).channel_id,
         });
       }
+      if (payload.data.type === "UpdatingMessageEvent") {
+        store.dispatch({
+          type: "DELETE_MESSAGE",
+          payload: {
+            ch_id: JSON.parse(payload.data.data).message.channel_id,
+            msg_id: JSON.parse(payload.data.data).message.id,
+          },
+        });
+      }
     });
   });

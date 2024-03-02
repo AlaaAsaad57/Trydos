@@ -550,7 +550,6 @@ export const upload = async (file) => {
   return { path: a, name: b };
 };
 export function dataURLtoFile(dataurl, filename) {
-  console.log(dataurl, filename);
   var arr = dataurl.split(","),
     mime = arr[0]?.match(/:(.*?);/)[1],
     bstr = atob(arr[arr.length - 1]),

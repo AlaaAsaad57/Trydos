@@ -98,21 +98,17 @@ function VideoCall(props) {
       });
       client.on("user-published", async (user, mediaType) => {
         if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-          console.log("user-published");
-        await client.subscribe(user, mediaType);
+          await client.subscribe(user, mediaType);
         if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-          console.log("subscribe success");
-        if (mediaType === "video") {
-          user.audioTrack?.play();
-        }
+          if (mediaType === "video") {
+            user.audioTrack?.play();
+          }
         if (mediaType === "audio") {
           user.audioTrack?.play();
         }
       });
 
       client.on("user-unpublished", (user, type) => {
-        if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-          console.log("unpublished", user, type);
         // if (type === "audio") {
         //   user.audioTrack?.stop();
         // }
@@ -122,8 +118,6 @@ function VideoCall(props) {
 
       client.on("user-left", (user) => {
         userEndCall();
-        if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-          console.log("leaving", user);
         setUsers((prevUsers) => {
           return prevUsers.filter((User) => User.uid !== user.uid);
         });
@@ -140,8 +134,6 @@ function VideoCall(props) {
     };
 
     if (ready && tracks) {
-      if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-        console.log("init ready");
       init(activeChat.id);
     }
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
@@ -194,7 +186,6 @@ function VideoCall(props) {
   const call = useSelector((state) => state.chat.call);
   useEffect(() => {
     if (seconds === 60 && users.length === 0 && call === "vid-outgoing") {
-      console.log("timeout");
       userEndCall(-1);
     }
     if (minutes === 30) {

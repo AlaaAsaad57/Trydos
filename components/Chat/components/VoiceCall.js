@@ -45,7 +45,6 @@ function VideoCall(props) {
   useEffect(() => {
     if (seconds === 60 && users.length === 0 && call === "aud-outgoing") {
       userEndCall(-1);
-      console.log("timeout");
       RefuseCall(activeChat.id, MessageActiveCall, -1);
     }
     if (minutes === 30) {
@@ -57,8 +56,6 @@ function VideoCall(props) {
     // function to initialise the SDK
     let init = async (name) => {
       client.on("user-joined", (user) => {
-        if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-          console.log("user-joined", user);
         reset();
         start();
 
@@ -75,8 +72,6 @@ function VideoCall(props) {
       });
       client.on("user-published", async (user, mediaType) => {
         await client.subscribe(user, mediaType);
-        if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-          console.log("subscribe success");
         if (mediaType === "audio") {
           setUsers((prevUsers) => {
             return [...prevUsers, user];
@@ -86,8 +81,6 @@ function VideoCall(props) {
       });
 
       client.on("user-unpublished", (user, type) => {
-        if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-          console.log("unpublished", user, type);
         // if (type === "audio") {
         //   user.audioTrack?.stop();
         // }
@@ -103,7 +96,6 @@ function VideoCall(props) {
       await client
         .join(appId, name.toString(), token, getUserChat()?.id)
         .then(() => {
-          console.log("join");
           setJoined(true);
         });
       if (tracks) await client.publish([tracks[0]]);
@@ -111,12 +103,8 @@ function VideoCall(props) {
     };
 
     if (ready && tracks) {
-      if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-        console.log("init ready");
       init(activeChat.id);
     }
-    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-      console.log(error, ready, tracks);
   }, [client, ready, tracks, error]);
   const MessageActiveCall = useSelector(
     (state) => state.chat.MessageActiveCall
@@ -126,13 +114,10 @@ function VideoCall(props) {
     try {
       if (ready) {
         if (joined) {
-          console.log("unpublish");
           await client.unpublish(tracks);
-          console.log("leave");
           await client.leave();
         }
         if (tracks && tracks[0]) {
-          console.log("close tracks");
           client.removeAllListeners();
           tracks[0].close();
           tracks[1].close();

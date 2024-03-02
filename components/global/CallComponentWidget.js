@@ -1,24 +1,7 @@
 "use client";
 import React, { useEffect } from "react";
 function CallComponentWidget({ data, type, onAnswer, onDecline, userData }) {
-  useEffect(() => {
-    // var sound = new Howl({
-    //     src: ['/default.mp3'],
-    //     autoplay: true,
-    //     loop: true,
-    //     volume: 0.1,
-    //     html5:true,
-    //     onend: function() {
-    //       if(process.env.NEXT_PUBLIC_ENABLE_LOG==='true') console.log('Finished!');
-    //     },
-    //     onplayerror: function() {
-    //         sound.once('unlock', function() {
-    //           sound.play();
-    //         });
-    //       }
-    //   });
-    //   sound.play()
-  }, []);
+  useEffect(() => {}, []);
   return (
     <div className="video-call">
       <div

@@ -13,8 +13,6 @@ export async function generateMetadata({ params, searchParams }) {
 async function page({ params, searchParams }) {
   const [HomeData, HomeData_res] = await getHomeData();
   const [Listing_data, Listing_Data_res] = await getListingData();
-  console.log([HomeData, HomeData_res]);
-  console.log([Listing_data, Listing_Data_res]);
   return (
     <>
       {

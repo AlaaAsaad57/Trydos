@@ -71,7 +71,6 @@ export async function middleware(request) {
   const localization = cookieStore.get("country")?.value;
   //without country cookies
   if (!localization && countryByIp) {
-    console.log("without country cookies");
     const countryByIpp = countryByIp || "jp";
     // const countryName = await _getCountryNameByIp(Ip);
     const originCountryJSON = {
@@ -107,9 +106,8 @@ export async function middleware(request) {
   const preferredCountry = countries.includes(country.toLowerCase())
     ? country
     : getDefaultLocale(countryByIp).country;
-  console.log(preferredLang, preferredCountry);
+
   if (!hasSeparator) {
-    console.log("url dosent includes language-country", routePath);
     //url dosen't includes language-country
     const lang = getLocale()?.language;
     const country = getLocale()?.country;
@@ -123,13 +121,12 @@ export async function middleware(request) {
         : getDefaultLocale(countryByIp).country;
 
       request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathname}`;
-      console.log("check for country cookie true");
+
       return NextResponse.redirect(request.nextUrl);
     } else {
       if (countries.includes(countryByIp)) {
         request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathname}`;
       } else {
-        console.log("check for country cookie false");
         request.nextUrl.pathname = `/selectCountry`;
       }
       if (pathN.length > 1) request.nextUrl.searchParams.set("path", pathN);
@@ -137,17 +134,14 @@ export async function middleware(request) {
     }
   } else if (!hasLanguage || !hasCountry) {
     if (!hasLanguage && !hasCountry) {
-      console.log("separtor found and not country and language supported");
       // request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}/${pathN}`;
       request.nextUrl.pathname = `/selectCountry`;
       if (pathN.length > 1) request.nextUrl.searchParams.set("path", pathN);
       //
     } else if (!hasLanguage && hasCountry) {
-      console.log("separtor found and no language supported");
       const countryRoute = routePath?.split("-")[0];
       request.nextUrl.pathname = `/${countryRoute}-${preferredLang}/${pathN}`;
     } else if (!hasCountry && hasLanguage) {
-      console.log("separtor found and no country supported");
       //  request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}/${pathN}`;
       request.nextUrl.pathname = `/selectCountry`;
       if (pathN.length > 1) request.nextUrl.searchParams.set("path", pathN);

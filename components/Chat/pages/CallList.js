@@ -1,22 +1,30 @@
 import React, { useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { getMessageTime, showDate } from "../chatsFunctions";
 import CallItem from "components/Chat/components/CallItem";
 import { InView } from "react-intersection-observer";
 import Spinner from "components/global/Spinner";
-import { getCalls } from "store/chat/actions";
+import { DeleteMessageApi, getCalls } from "store/chat/actions";
 
 function CallList() {
   const calls = useSelector((state) => state.chat.calls);
   const call_loading = useSelector((state) => state.chat.call_loading);
+  const dispatch = useDispatch();
   useEffect(() => {
     getCalls();
   }, []);
+  const DeleteCall = (id, ch_id) => {
+    dispatch({ type: "DELETE_MESSAGE", payload: { ch_id: ch_id, msg_id: id } });
+    DeleteMessageApi(id, false);
+  };
   return (
     <div className="chat-list-items">
       {calls.map((call, index) => (
         <CallItem
           key={index}
+          Delete={() => {
+            DeleteCall(call.id, call.channel_id);
+          }}
           photo={call.channel.photo_path}
           name={call.channel.channel_name}
           type={{

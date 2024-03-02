@@ -37,7 +37,6 @@ const PopupCountry = () => {
   useEffect(() => {
     if (selectedCountry) {
       setLocalization({ ...localization, country: selectedCountry });
-      console.log(selectedCountry);
       Cookies.set("language", localization.language, {
         expires: new Date(2147483647 * 1000),
       });

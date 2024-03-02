@@ -31,7 +31,6 @@ function WebviewCall() {
         str += ch;
       }
     });
-    console.log(str);
     return str;
   };
   const searchParams = useSearchParams();
