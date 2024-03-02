@@ -19,7 +19,7 @@ function AuthNavSection() {
           dispatch({ type: "STORY-DATA", payload: d });
         });
       }
-    }, 2000);
+    }, 1000);
   }, [user]);
   return (
     <>
