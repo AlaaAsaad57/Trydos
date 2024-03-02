@@ -35,14 +35,14 @@ export const getStories = async () => {
 
 export const getHomeData = async () => {
   try {
-    // const resSetting = await fetch(OTP_URL+STARTER_SETTINGS,GeneralCahcedHeader('starter-setting'))
-    // const repoSetting = await resSetting.json()
     let time = new Date().getTime();
     const res = await fetch(OTP_URL + HOME_DATA_URL, {
       next: { revalidate: 10000 },
       headers: DataApiHeaders(),
     });
+    console.log(res, "res");
     const repo = await res.json();
+    console.log(repo, "repo");
     time = new Date().getTime() - time;
     let returned_res = {
       type: res.type,
@@ -51,7 +51,7 @@ export const getHomeData = async () => {
       time: time + "ms",
       body: repo,
     };
-
+    console.log(returned_res, "returned_res");
     return [repo.data, returned_res];
   } catch (e) {
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
