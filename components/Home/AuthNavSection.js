@@ -13,11 +13,13 @@ function AuthNavSection() {
   const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
   useEffect(() => {
-    if (user) {
-      getStories().then((d) => {
-        dispatch({ type: "STORY-DATA", payload: d });
-      });
-    }
+    setTimeout(() => {
+      if (user) {
+        getStories().then((d) => {
+          dispatch({ type: "STORY-DATA", payload: d });
+        });
+      }
+    }, 2000);
   }, [user]);
   return (
     <>
