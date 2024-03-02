@@ -21,7 +21,7 @@ export const getStories = async () => {
     time = new Date().getTime() - time;
     let returned_res = {
       type: res.type,
-      headers: [...res.headers, ...DataApiHeaders()],
+      headers: [...res.headers, ...DataApiHeaders().values],
       url: res.url,
       time: time + "ms",
       body: repo,
@@ -46,7 +46,7 @@ export const getHomeData = async () => {
     time = new Date().getTime() - time;
     let returned_res = {
       type: res.type,
-      headers: [...res.headers, ...DataApiHeaders()],
+      headers: [...res.headers, ...DataApiHeaders().values],
       url: res.url,
       time: time + "ms",
       body: repo,
@@ -86,7 +86,7 @@ export const getListingData = async () => {
     time = new Date().getTime() - time;
     let returned_res = {
       type: res.type,
-      headers: [...res.headers, ...DataApiHeaders()],
+      headers: [...res.headers, ...DataApiHeaders().values],
       url: res.url,
       time: time + "ms",
       body: repo,
