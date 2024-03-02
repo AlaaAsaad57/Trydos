@@ -29,7 +29,7 @@ export const getStories = async () => {
     return [repo.data.data, returned_res];
   } catch (e) {
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
-    return ["stories-error", e];
+    return ["stories-error", e.toString()];
   }
 };
 
@@ -94,6 +94,6 @@ export const getListingData = async () => {
     return [repo.data, returned_res];
   } catch (e) {
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
-    return ["listing-error", e];
+    return ["listing-error", e.toString()];
   }
 };
