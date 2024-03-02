@@ -51,6 +51,7 @@ export const getHomeData = async () => {
       time: time + "ms",
       body: repo,
     };
+
     return [repo.data, returned_res];
   } catch (e) {
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
