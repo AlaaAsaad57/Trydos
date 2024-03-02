@@ -4,8 +4,9 @@ import CameraIcon from "../../Chat/svg/image.svg";
 import SendIcon from "../../Chat/svg/sharechat.svg";
 import Webcam from "react-webcam";
 import Image from "next/image";
-import { useSelector } from "react-redux";
+import UploadVideo from "../UploadVideo";
 import { blobToDataURL } from "components/Chat/chatsFunctions";
+import { useStopwatch } from "react-timer-hook";
 function NewStoryModal({ close, send }) {
   const [imageFile, setImageFile] = useState(null);
   const [vidUrl, setVideo] = useState(null);
@@ -31,12 +32,15 @@ function NewStoryModal({ close, send }) {
     hasTwoCameras();
   }, []);
   const WebcamStreamCapture = () => {
+    const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
+      useStopwatch({ autoStart: false });
     const webcamRef = React.useRef(null);
     const mediaRecorderRef = React.useRef(null);
     const [capturing, setCapturing] = React.useState(false);
     const [recordedChunks, setRecordedChunks] = React.useState([]);
 
     const handleStartCaptureClick = React.useCallback(() => {
+      start();
       setCapturing(true);
       mediaRecorderRef.current = new MediaRecorder(webcamRef.current.stream, {
         mimeType: "video/webm",
@@ -46,12 +50,19 @@ function NewStoryModal({ close, send }) {
         handleDataAvailable
       );
       mediaRecorderRef.current.start();
-    }, [webcamRef, setCapturing, mediaRecorderRef]);
+    }, [webcamRef, setCapturing, mediaRecorderRef, start]);
 
     const handleDataAvailable = React.useCallback(
       ({ data }) => {
         if (data.size > 0) {
           setRecordedChunks((prev) => prev.concat(data));
+          const blob = new Blob([data], {
+            type: "video/webm",
+          });
+          const url = URL.createObjectURL(blob);
+          blobToDataURL(blob, function (e) {
+            setVideo(e);
+          });
         }
       },
       [setRecordedChunks]
@@ -59,14 +70,16 @@ function NewStoryModal({ close, send }) {
 
     const handleStopCaptureClick = React.useCallback(() => {
       mediaRecorderRef.current.stop();
+      stop();
       setCapturing(false);
-      const blob = new Blob(recordedChunks, {
-        type: "video/webm",
-      });
-      const url = URL.createObjectURL(blob);
-      setVideo(url);
-      console.log(vidUrl);
-    }, [mediaRecorderRef, webcamRef, setCapturing, recordedChunks, setVideo]);
+    }, [
+      mediaRecorderRef,
+      webcamRef,
+      setCapturing,
+      recordedChunks,
+      setVideo,
+      stop,
+    ]);
 
     const handleDownload = React.useCallback(() => {
       if (recordedChunks.length) {
@@ -88,11 +101,15 @@ function NewStoryModal({ close, send }) {
         setRecordedChunks([]);
       }
     }, [recordedChunks, setVideo]);
-
+    useEffect(() => {
+      if (seconds > 30 && capturing) {
+        handleStopCaptureClick();
+      }
+    }, [seconds]);
     return (
       <>
         {vidUrl ? (
-          <video src={vidUrl}></video>
+          <UploadVideo vidUrl={vidUrl}></UploadVideo>
         ) : (
           <Webcam
             className="cameraInput"
@@ -103,7 +120,7 @@ function NewStoryModal({ close, send }) {
           />
         )}
         <div className="button-bases" style={{ position: "static" }}>
-          {!capturing && recordedChunks.length === 0 && (
+          {!capturing && !vidUrl && !vidUrl && (
             <button
               disabled={SwitchCamera}
               onClick={() => {
@@ -143,9 +160,16 @@ function NewStoryModal({ close, send }) {
               </svg>
             </button>
           )}
-          {recordedChunks.length === 0 &&
+          {!vidUrl &&
+            !vidUrl &&
             (capturing ? (
-              <button onClick={handleStopCaptureClick}>
+              <button
+                onClick={handleStopCaptureClick}
+                style={{ position: "relative" }}
+              >
+                <span
+                  style={{ position: "absolute", color: "red", top: "-25px" }}
+                >{`00:${seconds > 9 ? seconds : "0" + seconds}`}</span>
                 <span className="stop-icon" />
               </button>
             ) : (
@@ -153,15 +177,13 @@ function NewStoryModal({ close, send }) {
                 <span className="capturing-icon" />
               </button>
             ))}
-          {recordedChunks.length > 0 && (
+          {vidUrl && (
             <button onClick={handleDownload}>
               <SendIcon />
             </button>
           )}
           <button
-            onClick={() =>
-              recordedChunks.length === 0 ? close() : setRecordedChunks([])
-            }
+            onClick={() => (!vidUrl && !vidUrl ? close() : setVideo(null))}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
