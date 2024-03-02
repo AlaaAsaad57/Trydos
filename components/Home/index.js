@@ -30,7 +30,6 @@ export default function Home({ HomeData_res, HomeData }) {
   var bool = true;
   useEffect(() => {
     LogData({ HomeData_req_data: HomeData_res });
-    dispatch(GetStoryData(stories));
     dispatch(GetMainData(HomeData));
     try {
       requestFirebaseNotificationPermission().then((fbtoken) => {
