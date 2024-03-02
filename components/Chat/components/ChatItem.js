@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import ProfilePicture from "public/images/profileNo.png";
 import LastMessageBody from "./LastMessageBody";
 import TypingIndicator from "./TypingIndicator";
-import { getMessageTime, getTwoLetters } from "../chatsFunctions";
+import { getMessageTime, getTwoLetters, showDate } from "../chatsFunctions";
 import MessageIcon from "../svg/messageIcon.svg";
 import ArrowRightIcon from "../svg/arrowRight.svg";
 import MutedChatIcon from "../svg/MutedChat.svg";
@@ -203,7 +203,7 @@ function ChatItem({
         </div>
         {lastMessage && (
           <div className="chat-date">
-            <div className="date-clock">{getMessageTime(lastMessage)}</div>
+            <div className="date-clock">{showDate(lastMessage.created_at)}</div>
             {/* <div className='date-clock'>{props.chat.messages[props.chat.messages.length-1].sent}</div> */}
           </div>
         )}

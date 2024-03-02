@@ -1107,6 +1107,42 @@ export const ChatReducer = (
         data: state.data.filter((chat) => chat.id !== payload.id),
       };
     }
+    case "DELETE_MESSAGE": {
+      let arr = [];
+      let msg_arr = [];
+      let active = state.activeChat;
+      state.data.map((chat) => {
+        if (parseInt(chat.id) === parseInt(payload.ch_id)) {
+          if (parseInt(state.activeChat.id) === parseInt(payload.ch_id)) {
+            active = {
+              ...state.activeChat,
+              messages: active.messages.filter(
+                (msg) => parseInt(msg.id) !== parseInt(payload.msg_id)
+              ),
+            };
+          }
+          arr.push({
+            ...chat,
+            messages: active.messages.filter(
+              (msg) => parseInt(msg.id) !== parseInt(payload.msg_id)
+            ),
+          });
+          chat.messages.map((msg) => {
+            if (parseInt(msg.id) === parseInt(payload.msg_id)) {
+            } else {
+              msg_arr.push(msg);
+            }
+          });
+        } else {
+          arr.push(chat);
+        }
+      });
+      return {
+        ...state,
+        data: arr,
+        activeChat: active,
+      };
+    }
     case "REPLY-MESSAGE": {
       return {
         ...state,

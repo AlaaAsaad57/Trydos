@@ -22,6 +22,7 @@ import fil from "../svg/output.png";
 import Spinner from "../../global/Spinner";
 import { SSRDetect, getUserChat, translate } from "utils/functions";
 import Image from "next/image";
+import { DeleteMessageApi } from "store/chat/actions";
 function ChatMessage(props) {
   const { setImg, setVid } = props;
   const message_ref = useRef();
@@ -191,10 +192,11 @@ function ChatMessage(props) {
       );
     }
   };
-  useEffect(() => {
-    if (props.message.id === 915) {
-    }
-  }, []);
+  const DeleteMessage = (ch_id, msg_id, bool) => {
+    dispatch({ type: "DELETE_MESSAGE", payload: { ch_id, msg_id } });
+    DeleteMessageApi(msg_id, bool);
+  };
+
   const getMessageTime = (ti, zone) => {
     let d;
     if (ti) {
@@ -260,585 +262,88 @@ function ChatMessage(props) {
   };
   const showMessage = () => {
     if (
-      parseInt(props.message.sender_user_id) === parseInt(getUserChat()?.id)
+      !props.message?.auth_message_status ||
+      props.message?.auth_message_status.is_deleted !== 1
     ) {
-      if (props.message.message_type.name === "ImageMessage") {
-        return (
-          <div
-            onMouseLeave={() => setOpen(false)}
-            className={"message-hold" + " " + `${opens && "ac"}`}
-          >
-            {props.message.parent_message && (
-              <RepliedMessage
-                onClick={() =>
-                  props.GetMessage(
-                    props.message.id,
-                    props.message.parent_message_id
-                  )
-                }
-                message_ref={message_ref}
-                message={props.message}
-                parent_message={props.message.parent_message}
-                moving={moving}
-              />
-            )}
-
+      if (
+        parseInt(props.message.sender_user_id) === parseInt(getUserChat()?.id)
+      ) {
+        if (props.message.message_type.name === "ImageMessage") {
+          return (
             <div
-              onClick={() => setOpen(true)}
-              ref={refmessage}
-              className={
-                "message-element-body message-body message-img-body " +
-                props.type +
-                " " +
-                ` ${opens && "ac"}`
-              }
+              onMouseLeave={() => setOpen(false)}
+              className={"message-hold" + " " + `${opens && "ac"}`}
             >
-              {(props.message.is_forward === true ||
-                props.message.is_forward === 1) && (
-                <div className="forwarded-message-icon">
-                  <ForwardIcon></ForwardIcon>
-                </div>
-              )}
-              <div className="border-element">
-                {refmessage.current &&
-                  showBord(props.type, refmessage.current.clientHeight).map(
-                    (ad, i) => <div className="border-child" key={i}></div>
-                  )}
-              </div>
-              {props.type === "first-chat" && <div className="bordse"></div>}
-
-              {(props.type === "first-chat" || props.type === "lonely") && (
-                <div
-                  className={
-                    "absolute-avatar " +
-                    `${
-                      (!activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.photo_path ||
-                        activeChat.channel_members
-                          .filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]
-                          ?.user?.photo_path?.includes("eu")) &&
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.name &&
-                      "text-avatar"
-                    }`
-                  }
-                >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id === getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) ===
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        loading="eager"
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
+              {props.message.parent_message && (
+                <RepliedMessage
+                  onClick={() =>
+                    props.GetMessage(
+                      props.message.id,
+                      props.message.parent_message_id
                     )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.name ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      loading="eager"
-                      alt="user-img"
-                      className="abs-avva"
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      loading="eager"
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
-                </div>
-              )}
-              <img
-                alt="user"
-                onClick={() =>
-                  setImg(
-                    props.message.type ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "https"
-                      )
-                      ? props.message.message_content[0]?.file_path
-                      : props.message.message_content[0]?.file_path
-                  )
-                }
-                className="message-img"
-                src={
-                  props.message.message_content
-                    ? props.message.type
-                      ? props.message.message_content[0]?.file_path
-                      : props.message.message_content[0]?.file_path
-                    : "null"
-                }
-              />
-
-              <div className="message-date">{getMessageStatus()}</div>
-            </div>
-            <div className="message-date hovers">
-              {
-                <div className="sent-date">
-                  {
-                    <>
-                      <SendIcon></SendIcon>
-                      {getMessageTime(props.message.created_at, true)}
-                    </>
                   }
-                </div>
-              }
-              {getStatues().is_received === 1 && (
-                <div className="recieve-date">
-                  <ReceiveIcon></ReceiveIcon>
-                  {getMessageTime(
-                    props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-                    )[0]?.received_at,
-                    false
-                  )}
-                </div>
+                  message_ref={message_ref}
+                  message={props.message}
+                  parent_message={props.message.parent_message}
+                  moving={moving}
+                />
               )}
-              {getStatues().is_watched === true && (
-                <div className="recieve-date">
-                  <ReadIcon></ReadIcon>
-                  {getMessageTime(
-                    props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-                    )[0]?.watched_at,
-                    false
-                  )}
-                </div>
-              )}
-            </div>
 
-            <OptionsMenu
-              copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
-            />
-          </div>
-        );
-      }
-      if (props.message.message_type.name === "VideoMessage") {
-        return (
-          <div
-            onMouseLeave={() => setOpen(false)}
-            className={"message-hold" + " " + `${opens && "ac"}`}
-          >
-            {props.message.parent_message && (
-              <RepliedMessage
-                onClick={() =>
-                  props.GetMessage(
-                    props.message.id,
-                    props.message.parent_message_id
-                  )
-                }
-                message_ref={message_ref}
-                message={props.message}
-                parent_message={props.message.parent_message}
-                moving={moving}
-              />
-            )}
-
-            <div
-              onClick={() => setOpen(true)}
-              ref={refmessage}
-              className={
-                "message-element-body message-body message-img-body " +
-                props.type +
-                " " +
-                ` ${opens && "ac"}`
-              }
-            >
-              {(props.message.is_forward === true ||
-                props.message.is_forward === 1) && (
-                <div className="forwarded-message-icon">
-                  <ForwardIcon></ForwardIcon>
-                </div>
-              )}
-              <div className="border-element">
-                {refmessage.current &&
-                  showBord(props.type, refmessage.current.clientHeight).map(
-                    (ad, i) => <div className="border-child" key={i}></div>
-                  )}
-              </div>
-              {props.type === "first-chat" && <div className="bordse"></div>}
-
-              {(props.type === "first-chat" || props.type === "lonely") && (
-                <div
-                  className={
-                    "absolute-avatar " +
-                    `${
-                      (!activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.photo_path ||
-                        activeChat.channel_members
-                          .filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]
-                          ?.user?.photo_path?.includes("eu")) &&
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.name &&
-                      "text-avatar"
-                    }`
-                  }
-                >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id === getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) ===
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
-                    )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.name ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      alt="user-img"
-                      className="abs-avva"
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
-                </div>
-              )}
-              <PlayIcon
-                onClick={() => {
-                  setVid(
-                    props.message.type ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "https"
-                      ) ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "http"
-                      )
-                      ? props.message.message_content[0]?.file_path
-                      : props.message.message_content[0]?.file_path
-                  );
-                }}
-                className="play-vid-icon"
-              ></PlayIcon>
-              <video
-                className="message-img"
-                src={
-                  props.message.message_content
-                    ? props.message.type
-                      ? props.message.message_content[0]?.file_path
-                      : props.message.message_content[0]?.file_path
-                    : "null"
+              <div
+                onClick={() => setOpen(true)}
+                ref={refmessage}
+                className={
+                  "message-element-body message-body message-img-body " +
+                  props.type +
+                  " " +
+                  ` ${opens && "ac"}`
                 }
               >
-                <source
-                  src={
-                    props.message.message_content
-                      ? props.message.type
-                        ? props.message.message_content[0]?.file_path
-                        : props.message.message_content[0]?.file_path
-                      : "null"
-                  }
-                ></source>
-              </video>
-
-              <div className="message-date">{getMessageStatus()}</div>
-            </div>
-            <div className="message-date hovers">
-              {
-                <div className="sent-date">
-                  {
-                    <>
-                      <SendIcon></SendIcon>
-                      {getMessageTime(props.message.created_at, true)}
-                    </>
-                  }
-                </div>
-              }
-              {getStatues().is_received === 1 && (
-                <div className="recieve-date">
-                  <ReceiveIcon></ReceiveIcon>
-                  {getMessageTime(
-                    props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-                    )[0]?.received_at,
-                    false
-                  )}
-                </div>
-              )}
-              {getStatues().is_watched === true && (
-                <div className="recieve-date">
-                  <ReadIcon></ReadIcon>
-                  {getMessageTime(
-                    props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-                    )[0]?.watched_at,
-                    false
-                  )}
-                </div>
-              )}
-            </div>
-
-            <OptionsMenu
-              copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
-            />
-          </div>
-        );
-      }
-      if (props.message.message_type.name === "VoiceMessage") {
-        return (
-          <div
-            onMouseLeave={() => setOpen(false)}
-            className={"message-hold" + " " + `${opens && "ac"}`}
-          >
-            {props.message.parent_message && (
-              <RepliedMessage
-                onClick={() =>
-                  props.GetMessage(
-                    props.message.id,
-                    props.message.parent_message_id
-                  )
-                }
-                message_ref={message_ref}
-                message={props.message}
-                parent_message={props.message.parent_message}
-                moving={moving}
-              />
-            )}
-            {props.message.message_content &&
-              props.message.message_content[0]?.file_path &&
-              props.message.message_content[0]?.file_path !== "false" && (
-                <div
-                  onClick={() => setOpen(true)}
-                  ref={refmessage}
-                  className={
-                    "message-element-body message-body audio-body " + props.type
-                  }
-                >
-                  {(props.message.is_forward === true ||
-                    props.message.is_forward === 1) && (
-                    <div className="forwarded-message-icon">
-                      <ForwardIcon></ForwardIcon>
-                    </div>
-                  )}
-                  <div className="border-element">
-                    {refmessage.current &&
-                      showBord(props.type, refmessage.current.clientHeight).map(
-                        (ad, i) => <div className="border-child" key={i}></div>
-                      )}
+                {(props.message.is_forward === true ||
+                  props.message.is_forward === 1) && (
+                  <div className="forwarded-message-icon">
+                    <ForwardIcon></ForwardIcon>
                   </div>
-                  <audio
-                    onTimeUpdate={(e) => {
-                      animate();
-                      setWidth(
-                        ((parseFloat(e.target.currentTime) * 100) /
-                          parseFloat(AudioRef.current?.duration)) *
-                          1.8
-                      );
-                    }}
-                    onEnded={() => {
-                      setPlay(false);
-                      setWidth(0);
-                      AudioRef.current.currentTime = 0;
-                      setWidth(0);
-                    }}
-                    controls={false}
-                    ref={AudioRef}
-                    src={
-                      props.message.type
-                        ? props.message.message_content &&
-                          props.message.message_content[0]?.file_path
-                        : props.message.message_content[0]?.file_path
-                    }
-                  >
-                    <source
-                      src={
-                        props.message.type
-                          ? props.message.message_content[0]?.file_path
-                          : props.message.message_content &&
-                            props.message.message_content[0]?.file_path
-                      }
-                    />
-                  </audio>
-                  {(props.type === "first-chat" || props.type === "lonely") && (
-                    <div
-                      className={
-                        "absolute-avatar " +
-                        `${
-                          (!activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.photo_path ||
-                            activeChat.channel_members
-                              .filter(
-                                (a) =>
-                                  parseInt(a.user_id) ===
-                                  parseInt(getUserChat()?.id)
-                              )[0]
-                              ?.user?.photo_path?.includes("eu")) &&
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name &&
-                          "text-avatar"
-                        }`
-                      }
-                    >
-                      {activeChat.channel_members
-                        .filter((user) => user.user_id === getUserChat()?.id)[0]
-                        ?.user?.photo_path?.includes("eu") ? (
+                )}
+                <div className="border-element">
+                  {refmessage.current &&
+                    showBord(props.type, refmessage.current.clientHeight).map(
+                      (ad, i) => <div className="border-child" key={i}></div>
+                    )}
+                </div>
+                {props.type === "first-chat" && <div className="bordse"></div>}
+
+                {(props.type === "first-chat" || props.type === "lonely") && (
+                  <div
+                    className={
+                      "absolute-avatar " +
+                      `${
+                        (!activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                        )[0]?.user?.photo_path ||
+                          activeChat.channel_members
+                            .filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]
+                            ?.user?.photo_path?.includes("eu")) &&
                         activeChat.channel_members.filter(
                           (a) =>
                             parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ? (
-                          <>
-                            {getTwoLetters(
-                              activeChat.channel_members.filter(
-                                (a) =>
-                                  parseInt(a.user_id) ===
-                                  parseInt(getUserChat()?.id)
-                              )[0]?.user?.name ||
-                                activeChat.channel_members.filter(
-                                  (a) =>
-                                    parseInt(a.user_id) ===
-                                    parseInt(getUserChat()?.id)
-                                )[0]?.user?.user_name
-                            )}
-                          </>
-                        ) : (
-                          <Image
-                            alt="user-img"
-                            src={profile}
-                            width={30}
-                            height={30}
-                          />
-                        )
-                      ) : activeChat.channel_members.filter(
-                          (user) => user.user_id === getUserChat()?.id
-                        )[0]?.user?.name ? (
+                        )[0]?.user?.name &&
+                        "text-avatar"
+                      }`
+                    }
+                  >
+                    {activeChat.channel_members
+                      .filter((user) => user.user_id === getUserChat()?.id)[0]
+                      ?.user?.photo_path?.includes("eu") ? (
+                      activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                      )[0]?.user?.name ? (
                         <>
                           {getTwoLetters(
                             activeChat.channel_members.filter(
@@ -853,22 +358,230 @@ function ChatMessage(props) {
                               )[0]?.user?.user_name
                           )}
                         </>
-                      ) : activeChat.channel_members.filter(
-                          (user) => user.user_id === getUserChat()?.id
-                        )[0]?.user?.photo_path ? (
+                      ) : (
                         <Image
+                          loading="eager"
                           alt="user-img"
-                          className="abs-avva"
-                          src={
-                            activeChat &&
-                            activeChat.channel_members &&
+                          src={profile}
+                          width={30}
+                          height={30}
+                        />
+                      )
+                    ) : activeChat.channel_members.filter(
+                        (user) => user.user_id === getUserChat()?.id
+                      )[0]?.user?.name ? (
+                      <>
+                        {getTwoLetters(
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.name ||
                             activeChat.channel_members.filter(
                               (a) =>
                                 parseInt(a.user_id) ===
                                 parseInt(getUserChat()?.id)
-                            )[0]?.user?.photo_path
-                          }
-                        />
+                            )[0]?.user?.user_name
+                        )}
+                      </>
+                    ) : activeChat.channel_members.filter(
+                        (user) => user.user_id === getUserChat()?.id
+                      )[0]?.user?.photo_path ? (
+                      <Image
+                        loading="eager"
+                        alt="user-img"
+                        className="abs-avva"
+                        src={
+                          activeChat &&
+                          activeChat.channel_members &&
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.photo_path
+                        }
+                      />
+                    ) : (
+                      <Image
+                        loading="eager"
+                        alt="user-img"
+                        src={profile}
+                        width={30}
+                        height={30}
+                      />
+                    )}
+                  </div>
+                )}
+                <img
+                  alt="user"
+                  onClick={() =>
+                    setImg(
+                      props.message.type ||
+                        props.message.message_content[0]?.file_path.includes(
+                          "https"
+                        )
+                        ? props.message.message_content[0]?.file_path
+                        : props.message.message_content[0]?.file_path
+                    )
+                  }
+                  className="message-img"
+                  src={
+                    props.message.message_content
+                      ? props.message.type
+                        ? props.message.message_content[0]?.file_path
+                        : props.message.message_content[0]?.file_path
+                      : "null"
+                  }
+                />
+
+                <div className="message-date">{getMessageStatus()}</div>
+              </div>
+              <div className="message-date hovers">
+                {
+                  <div className="sent-date">
+                    {
+                      <>
+                        <SendIcon></SendIcon>
+                        {getMessageTime(props.message.created_at, true)}
+                      </>
+                    }
+                  </div>
+                }
+                {getStatues().is_received === 1 && (
+                  <div className="recieve-date">
+                    <ReceiveIcon></ReceiveIcon>
+                    {getMessageTime(
+                      props.message.message_status.filter(
+                        (a) =>
+                          a.user_id !==
+                          (localStorage.getItem("USER-CHAT") &&
+                            getUserChat()?.id)
+                      )[0]?.received_at,
+                      false
+                    )}
+                  </div>
+                )}
+                {getStatues().is_watched === true && (
+                  <div className="recieve-date">
+                    <ReadIcon></ReadIcon>
+                    {getMessageTime(
+                      props.message.message_status.filter(
+                        (a) =>
+                          a.user_id !==
+                          (localStorage.getItem("USER-CHAT") &&
+                            getUserChat()?.id)
+                      )[0]?.watched_at,
+                      false
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <OptionsMenu
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() =>
+                  dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
+                }
+                click={() =>
+                  dispatch({ type: "REPLY-MESSAGE", payload: props.message })
+                }
+              />
+            </div>
+          );
+        }
+        if (props.message.message_type.name === "VideoMessage") {
+          return (
+            <div
+              onMouseLeave={() => setOpen(false)}
+              className={"message-hold" + " " + `${opens && "ac"}`}
+            >
+              {props.message.parent_message && (
+                <RepliedMessage
+                  onClick={() =>
+                    props.GetMessage(
+                      props.message.id,
+                      props.message.parent_message_id
+                    )
+                  }
+                  message_ref={message_ref}
+                  message={props.message}
+                  parent_message={props.message.parent_message}
+                  moving={moving}
+                />
+              )}
+
+              <div
+                onClick={() => setOpen(true)}
+                ref={refmessage}
+                className={
+                  "message-element-body message-body message-img-body " +
+                  props.type +
+                  " " +
+                  ` ${opens && "ac"}`
+                }
+              >
+                {(props.message.is_forward === true ||
+                  props.message.is_forward === 1) && (
+                  <div className="forwarded-message-icon">
+                    <ForwardIcon></ForwardIcon>
+                  </div>
+                )}
+                <div className="border-element">
+                  {refmessage.current &&
+                    showBord(props.type, refmessage.current.clientHeight).map(
+                      (ad, i) => <div className="border-child" key={i}></div>
+                    )}
+                </div>
+                {props.type === "first-chat" && <div className="bordse"></div>}
+
+                {(props.type === "first-chat" || props.type === "lonely") && (
+                  <div
+                    className={
+                      "absolute-avatar " +
+                      `${
+                        (!activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                        )[0]?.user?.photo_path ||
+                          activeChat.channel_members
+                            .filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]
+                            ?.user?.photo_path?.includes("eu")) &&
+                        activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                        )[0]?.user?.name &&
+                        "text-avatar"
+                      }`
+                    }
+                  >
+                    {activeChat.channel_members
+                      .filter((user) => user.user_id === getUserChat()?.id)[0]
+                      ?.user?.photo_path?.includes("eu") ? (
+                      activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                      )[0]?.user?.name ? (
+                        <>
+                          {getTwoLetters(
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.name ||
+                              activeChat.channel_members.filter(
+                                (a) =>
+                                  parseInt(a.user_id) ===
+                                  parseInt(getUserChat()?.id)
+                              )[0]?.user?.user_name
+                          )}
+                        </>
                       ) : (
                         <Image
                           alt="user-img"
@@ -876,468 +589,378 @@ function ChatMessage(props) {
                           width={30}
                           height={30}
                         />
-                      )}
-                    </div>
-                  )}
-                  <div className="audio-message">
-                    {AudioRef.current?.duration ? (
-                      !AudioRef.current.paused ? (
-                        <PauseIcon
-                          className="play-icon"
-                          onClick={() => {
-                            setPlay(!playing);
-                            if (playing) AudioRef.current.pause();
-                            else AudioRef.current.play();
-                          }}
-                        ></PauseIcon>
-                      ) : (
-                        <PlayIcon
-                          className="play-icon"
-                          onClick={() => {
-                            setPlay(!playing);
-                            if (playing) AudioRef.current.pause();
-                            else AudioRef.current.play();
-                          }}
-                        ></PlayIcon>
                       )
+                    ) : activeChat.channel_members.filter(
+                        (user) => user.user_id === getUserChat()?.id
+                      )[0]?.user?.name ? (
+                      <>
+                        {getTwoLetters(
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.name ||
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.user_name
+                        )}
+                      </>
+                    ) : activeChat.channel_members.filter(
+                        (user) => user.user_id === getUserChat()?.id
+                      )[0]?.user?.photo_path ? (
+                      <Image
+                        alt="user-img"
+                        className="abs-avva"
+                        src={
+                          activeChat &&
+                          activeChat.channel_members &&
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.photo_path
+                        }
+                      />
                     ) : (
-                      <Spinner className="play-icon" />
-                    )}{" "}
-                    <div className="player-cont">
-                      <div className="wave-absolute">
-                        {AudioRef.current?.duration !== Infinity &&
-                          AudioRef.current?.duration !== undefined &&
-                          AudioRef.current?.duration !== NaN &&
-                          showTime(AudioRef.current?.duration) !== null &&
-                          showTime(AudioRef.current?.duration) !== NaN &&
-                          showTime(AudioRef.current?.duration) !== "NaN" && (
-                            <div className="player-time">
-                              {AudioRef.current &&
-                                AudioRef.current?.duration &&
-                                showTime(AudioRef.current?.duration)}
-                            </div>
-                          )}
-                        <div
-                          className="wave"
-                          id={`wav${props.message.id || props.message.mid}`}
-                        >
-                          <WaveIcon></WaveIcon>
-                        </div>
-                      </div>
-                      <div className="player-line"></div>
-                    </div>
-                    <RedRecord className="play-icon-me"></RedRecord>
+                      <Image
+                        alt="user-img"
+                        src={profile}
+                        width={30}
+                        height={30}
+                      />
+                    )}
                   </div>
-
-                  <div className="message-date">{getMessageStatus()}</div>
-                </div>
-              )}
-            <div className="message-date hovers">
-              {
-                <div className="sent-date">
-                  {
-                    <>
-                      <SendIcon></SendIcon>
-                      {getMessageTime(props.message.created_at, true)}
-                    </>
-                  }
-                </div>
-              }
-              {getStatues().is_received === 1 && (
-                <div className="recieve-date">
-                  <ReceiveIcon></ReceiveIcon>
-                  {getMessageTime(
-                    props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-                    )[0]?.received_at,
-                    false
-                  )}
-                </div>
-              )}
-              {getStatues().is_watched === true && (
-                <div className="recieve-date">
-                  <ReadIcon></ReadIcon>
-                  {getMessageTime(
-                    props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-                    )[0]?.watched_at,
-                    false
-                  )}
-                </div>
-              )}
-            </div>
-            <OptionsMenu
-              copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
-            />
-          </div>
-        );
-      }
-      if (props.message.message_type.name === "TextMessage") {
-        return (
-          <div
-            onMouseLeave={() => setOpen(false)}
-            className={"message-hold" + " " + `${opens && "ac"}`}
-          >
-            {props.message.parent_message && (
-              <RepliedMessage
-                onClick={() =>
-                  props.GetMessage(
-                    props.message.id,
-                    props.message.parent_message_id
-                  )
-                }
-                message_ref={message_ref}
-                message={props.message}
-                parent_message={props.message.parent_message}
-                moving={moving}
-              />
-            )}
-
-            <div
-              onClick={() => setOpen(true)}
-              ref={refmessage}
-              className={
-                "message-element-body message-body text-body " + props.type
-              }
-            >
-              {(props.message.is_forward === true ||
-                props.message.is_forward === 1) && (
-                <div className="forwarded-message-icon">
-                  <ForwardIcon></ForwardIcon>
-                </div>
-              )}
-              <div className="border-element">
-                {refmessage.current &&
-                  showBord(props.type, refmessage.current.clientHeight).map(
-                    (ad, i) => <div className="border-child" key={i}></div>
-                  )}
-              </div>
-              {(props.type === "first-chat" || props.type === "lonely") && (
-                <div
-                  className={
-                    "absolute-avatar " +
-                    `${
-                      (!activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.photo_path ||
-                        activeChat.channel_members
-                          .filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]
-                          ?.user?.photo_path?.includes("eu")) &&
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.name &&
-                      "text-avatar"
-                    }`
-                  }
-                >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id === getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) ===
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
-                    )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.name ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      alt="user-img"
-                      className="abs-avva"
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
-                </div>
-              )}
-              {props.message.message_content &&
-                props.message.message_content?.content}
-
-              <div className="message-date">{getMessageStatus()}</div>
-            </div>
-            <div className="message-date hovers">
-              {
-                <div className="sent-date">
-                  {
-                    <>
-                      <SendIcon></SendIcon>
-                      {getMessageTime(props.message.created_at, true)}
-                    </>
-                  }
-                </div>
-              }
-              {getStatues().is_received === 1 && (
-                <div className="recieve-date">
-                  <ReceiveIcon></ReceiveIcon>
-                  {getMessageTime(
-                    props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-                    )[0]?.received_at,
-                    false
-                  )}
-                </div>
-              )}
-              {getStatues().is_watched === true && (
-                <div className="recieve-date">
-                  <ReadIcon></ReadIcon>
-                  {getMessageTime(
-                    props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-                    )[0]?.watched_at,
-                    false
-                  )}
-                </div>
-              )}
-            </div>
-            <OptionsMenu
-              copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
-            />
-          </div>
-        );
-      }
-      if (props.message.message_type.name === "FileMessage") {
-        return (
-          <div
-            onMouseLeave={() => setOpen(false)}
-            className={"message-hold" + " " + `${opens && "ac"}`}
-          >
-            {props.message.parent_message && (
-              <RepliedMessage
-                onClick={() =>
-                  props.GetMessage(
-                    props.message.id,
-                    props.message.parent_message_id
-                  )
-                }
-                message_ref={message_ref}
-                message={props.message}
-                parent_message={props.message.parent_message}
-                moving={moving}
-              />
-            )}
-
-            <div
-              onClick={() => setOpen(true)}
-              ref={refmessage}
-              className={
-                "message-element-body message-body text-body " + props.type
-              }
-            >
-              {(props.message.is_forward === true ||
-                props.message.is_forward === 1) && (
-                <div className="forwarded-message-icon">
-                  <ForwardIcon></ForwardIcon>
-                </div>
-              )}
-              <div className="border-element">
-                {refmessage.current &&
-                  showBord(props.type, refmessage.current.clientHeight).map(
-                    (ad, i) => <div className="border-child" key={i}></div>
-                  )}
-              </div>
-              {(props.type === "first-chat" || props.type === "lonely") && (
-                <div
-                  className={
-                    "absolute-avatar " +
-                    `${
-                      (!activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.photo_path ||
-                        activeChat.channel_members
-                          .filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]
-                          ?.user?.photo_path?.includes("eu")) &&
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.name &&
-                      "text-avatar"
-                    }`
-                  }
-                >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id === getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) ===
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
-                    )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.name ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      alt="user-img"
-                      className="abs-avva"
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
-                </div>
-              )}
-              {props.message?.message_content &&
-                props.message?.message_content[0]?.file_path && (
-                  <a
-                    target="_blank"
-                    href={
-                      props.message.message_content[0]?.file_path.includes(
-                        "https"
-                      ) ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "http"
-                      ) ||
-                      props.message.type
+                )}
+                <PlayIcon
+                  onClick={() => {
+                    setVid(
+                      props.message.type ||
+                        props.message.message_content[0]?.file_path.includes(
+                          "https"
+                        ) ||
+                        props.message.message_content[0]?.file_path.includes(
+                          "http"
+                        )
                         ? props.message.message_content[0]?.file_path
                         : props.message.message_content[0]?.file_path
+                    );
+                  }}
+                  className="play-vid-icon"
+                ></PlayIcon>
+                <video
+                  className="message-img"
+                  src={
+                    props.message.message_content
+                      ? props.message.type
+                        ? props.message.message_content[0]?.file_path
+                        : props.message.message_content[0]?.file_path
+                      : "null"
+                  }
+                >
+                  <source
+                    src={
+                      props.message.message_content
+                        ? props.message.type
+                          ? props.message.message_content[0]?.file_path
+                          : props.message.message_content[0]?.file_path
+                        : "null"
                     }
-                    download
-                    className="replay-msg file-msg"
-                  >
-                    <Image
-                      alt="user-img"
-                      src={fil.src}
-                      width={26}
-                      height={20}
-                      style={{ width: "26px" }}
-                    />
-                    <div className="file-desc">
-                      <div className="file-name">{"FILE"}</div>
-                      <div className="file-type"></div>
-                    </div>
-                    {props.message?.type ? (
-                      <SpinIcon></SpinIcon>
-                    ) : (
-                      <DownIcon style={{ minWidth: "34px" }}></DownIcon>
+                  ></source>
+                </video>
+
+                <div className="message-date">{getMessageStatus()}</div>
+              </div>
+              <div className="message-date hovers">
+                {
+                  <div className="sent-date">
+                    {
+                      <>
+                        <SendIcon></SendIcon>
+                        {getMessageTime(props.message.created_at, true)}
+                      </>
+                    }
+                  </div>
+                }
+                {getStatues().is_received === 1 && (
+                  <div className="recieve-date">
+                    <ReceiveIcon></ReceiveIcon>
+                    {getMessageTime(
+                      props.message.message_status.filter(
+                        (a) =>
+                          a.user_id !==
+                          (localStorage.getItem("USER-CHAT") &&
+                            getUserChat()?.id)
+                      )[0]?.received_at,
+                      false
                     )}
-                  </a>
+                  </div>
+                )}
+                {getStatues().is_watched === true && (
+                  <div className="recieve-date">
+                    <ReadIcon></ReadIcon>
+                    {getMessageTime(
+                      props.message.message_status.filter(
+                        (a) =>
+                          a.user_id !==
+                          (localStorage.getItem("USER-CHAT") &&
+                            getUserChat()?.id)
+                      )[0]?.watched_at,
+                      false
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <OptionsMenu
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() =>
+                  dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
+                }
+                click={() =>
+                  dispatch({ type: "REPLY-MESSAGE", payload: props.message })
+                }
+              />
+            </div>
+          );
+        }
+        if (props.message.message_type.name === "VoiceMessage") {
+          return (
+            <div
+              onMouseLeave={() => setOpen(false)}
+              className={"message-hold" + " " + `${opens && "ac"}`}
+            >
+              {props.message.parent_message && (
+                <RepliedMessage
+                  onClick={() =>
+                    props.GetMessage(
+                      props.message.id,
+                      props.message.parent_message_id
+                    )
+                  }
+                  message_ref={message_ref}
+                  message={props.message}
+                  parent_message={props.message.parent_message}
+                  moving={moving}
+                />
+              )}
+              {props.message.message_content &&
+                props.message.message_content[0]?.file_path &&
+                props.message.message_content[0]?.file_path !== "false" && (
+                  <div
+                    onClick={() => setOpen(true)}
+                    ref={refmessage}
+                    className={
+                      "message-element-body message-body audio-body " +
+                      props.type
+                    }
+                  >
+                    {(props.message.is_forward === true ||
+                      props.message.is_forward === 1) && (
+                      <div className="forwarded-message-icon">
+                        <ForwardIcon></ForwardIcon>
+                      </div>
+                    )}
+                    <div className="border-element">
+                      {refmessage.current &&
+                        showBord(
+                          props.type,
+                          refmessage.current.clientHeight
+                        ).map((ad, i) => (
+                          <div className="border-child" key={i}></div>
+                        ))}
+                    </div>
+                    <audio
+                      onTimeUpdate={(e) => {
+                        animate();
+                        setWidth(
+                          ((parseFloat(e.target.currentTime) * 100) /
+                            parseFloat(AudioRef.current?.duration)) *
+                            1.8
+                        );
+                      }}
+                      onEnded={() => {
+                        setPlay(false);
+                        setWidth(0);
+                        AudioRef.current.currentTime = 0;
+                        setWidth(0);
+                      }}
+                      controls={false}
+                      ref={AudioRef}
+                      src={
+                        props.message.type
+                          ? props.message.message_content &&
+                            props.message.message_content[0]?.file_path
+                          : props.message.message_content[0]?.file_path
+                      }
+                    >
+                      <source
+                        src={
+                          props.message.type
+                            ? props.message.message_content[0]?.file_path
+                            : props.message.message_content &&
+                              props.message.message_content[0]?.file_path
+                        }
+                      />
+                    </audio>
+                    {(props.type === "first-chat" ||
+                      props.type === "lonely") && (
+                      <div
+                        className={
+                          "absolute-avatar " +
+                          `${
+                            (!activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.photo_path ||
+                              activeChat.channel_members
+                                .filter(
+                                  (a) =>
+                                    parseInt(a.user_id) ===
+                                    parseInt(getUserChat()?.id)
+                                )[0]
+                                ?.user?.photo_path?.includes("eu")) &&
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.name &&
+                            "text-avatar"
+                          }`
+                        }
+                      >
+                        {activeChat.channel_members
+                          .filter(
+                            (user) => user.user_id === getUserChat()?.id
+                          )[0]
+                          ?.user?.photo_path?.includes("eu") ? (
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.name ? (
+                            <>
+                              {getTwoLetters(
+                                activeChat.channel_members.filter(
+                                  (a) =>
+                                    parseInt(a.user_id) ===
+                                    parseInt(getUserChat()?.id)
+                                )[0]?.user?.name ||
+                                  activeChat.channel_members.filter(
+                                    (a) =>
+                                      parseInt(a.user_id) ===
+                                      parseInt(getUserChat()?.id)
+                                  )[0]?.user?.user_name
+                              )}
+                            </>
+                          ) : (
+                            <Image
+                              alt="user-img"
+                              src={profile}
+                              width={30}
+                              height={30}
+                            />
+                          )
+                        ) : activeChat.channel_members.filter(
+                            (user) => user.user_id === getUserChat()?.id
+                          )[0]?.user?.name ? (
+                          <>
+                            {getTwoLetters(
+                              activeChat.channel_members.filter(
+                                (a) =>
+                                  parseInt(a.user_id) ===
+                                  parseInt(getUserChat()?.id)
+                              )[0]?.user?.name ||
+                                activeChat.channel_members.filter(
+                                  (a) =>
+                                    parseInt(a.user_id) ===
+                                    parseInt(getUserChat()?.id)
+                                )[0]?.user?.user_name
+                            )}
+                          </>
+                        ) : activeChat.channel_members.filter(
+                            (user) => user.user_id === getUserChat()?.id
+                          )[0]?.user?.photo_path ? (
+                          <Image
+                            alt="user-img"
+                            className="abs-avva"
+                            src={
+                              activeChat &&
+                              activeChat.channel_members &&
+                              activeChat.channel_members.filter(
+                                (a) =>
+                                  parseInt(a.user_id) ===
+                                  parseInt(getUserChat()?.id)
+                              )[0]?.user?.photo_path
+                            }
+                          />
+                        ) : (
+                          <Image
+                            alt="user-img"
+                            src={profile}
+                            width={30}
+                            height={30}
+                          />
+                        )}
+                      </div>
+                    )}
+                    <div className="audio-message">
+                      {AudioRef.current?.duration ? (
+                        !AudioRef.current.paused ? (
+                          <PauseIcon
+                            className="play-icon"
+                            onClick={() => {
+                              setPlay(!playing);
+                              if (playing) AudioRef.current.pause();
+                              else AudioRef.current.play();
+                            }}
+                          ></PauseIcon>
+                        ) : (
+                          <PlayIcon
+                            className="play-icon"
+                            onClick={() => {
+                              setPlay(!playing);
+                              if (playing) AudioRef.current.pause();
+                              else AudioRef.current.play();
+                            }}
+                          ></PlayIcon>
+                        )
+                      ) : (
+                        <Spinner className="play-icon" />
+                      )}{" "}
+                      <div className="player-cont">
+                        <div className="wave-absolute">
+                          {AudioRef.current?.duration !== Infinity &&
+                            AudioRef.current?.duration !== undefined &&
+                            AudioRef.current?.duration !== NaN &&
+                            showTime(AudioRef.current?.duration) !== null &&
+                            showTime(AudioRef.current?.duration) !== NaN &&
+                            showTime(AudioRef.current?.duration) !== "NaN" && (
+                              <div className="player-time">
+                                {AudioRef.current &&
+                                  AudioRef.current?.duration &&
+                                  showTime(AudioRef.current?.duration)}
+                              </div>
+                            )}
+                          <div
+                            className="wave"
+                            id={`wav${props.message.id || props.message.mid}`}
+                          >
+                            <WaveIcon></WaveIcon>
+                          </div>
+                        </div>
+                        <div className="player-line"></div>
+                      </div>
+                      <RedRecord className="play-icon-me"></RedRecord>
+                    </div>
+
+                    <div className="message-date">{getMessageStatus()}</div>
+                  </div>
                 )}
               <div className="message-date hovers">
                 {
@@ -1379,27 +1002,550 @@ function ChatMessage(props) {
                   </div>
                 )}
               </div>
-              <div className="message-date">{getMessageStatus()}</div>
+              <OptionsMenu
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() =>
+                  dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
+                }
+                click={() =>
+                  dispatch({ type: "REPLY-MESSAGE", payload: props.message })
+                }
+              />
             </div>
-            <OptionsMenu
-              copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
-            />
-          </div>
-        );
-      }
-      if (
-        props.message.message_type.name === "VideoCall" ||
-        props.message.message_type.name === "VoiceCall"
-      ) {
-        return (
-          <div className="call-body">
-            {(props.type === "first-chat" || props.type === "lonely") && (
+          );
+        }
+        if (props.message.message_type.name === "TextMessage") {
+          return (
+            <div
+              onMouseLeave={() => setOpen(false)}
+              className={"message-hold" + " " + `${opens && "ac"}`}
+            >
+              {props.message.parent_message && (
+                <RepliedMessage
+                  onClick={() =>
+                    props.GetMessage(
+                      props.message.id,
+                      props.message.parent_message_id
+                    )
+                  }
+                  message_ref={message_ref}
+                  message={props.message}
+                  parent_message={props.message.parent_message}
+                  moving={moving}
+                />
+              )}
+
+              <div
+                onClick={() => setOpen(true)}
+                ref={refmessage}
+                className={
+                  "message-element-body message-body text-body " + props.type
+                }
+              >
+                {(props.message.is_forward === true ||
+                  props.message.is_forward === 1) && (
+                  <div className="forwarded-message-icon">
+                    <ForwardIcon></ForwardIcon>
+                  </div>
+                )}
+                <div className="border-element">
+                  {refmessage.current &&
+                    showBord(props.type, refmessage.current.clientHeight).map(
+                      (ad, i) => <div className="border-child" key={i}></div>
+                    )}
+                </div>
+                {(props.type === "first-chat" || props.type === "lonely") && (
+                  <div
+                    className={
+                      "absolute-avatar " +
+                      `${
+                        (!activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                        )[0]?.user?.photo_path ||
+                          activeChat.channel_members
+                            .filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]
+                            ?.user?.photo_path?.includes("eu")) &&
+                        activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                        )[0]?.user?.name &&
+                        "text-avatar"
+                      }`
+                    }
+                  >
+                    {activeChat.channel_members
+                      .filter((user) => user.user_id === getUserChat()?.id)[0]
+                      ?.user?.photo_path?.includes("eu") ? (
+                      activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                      )[0]?.user?.name ? (
+                        <>
+                          {getTwoLetters(
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.name ||
+                              activeChat.channel_members.filter(
+                                (a) =>
+                                  parseInt(a.user_id) ===
+                                  parseInt(getUserChat()?.id)
+                              )[0]?.user?.user_name
+                          )}
+                        </>
+                      ) : (
+                        <Image
+                          alt="user-img"
+                          src={profile}
+                          width={30}
+                          height={30}
+                        />
+                      )
+                    ) : activeChat.channel_members.filter(
+                        (user) => user.user_id === getUserChat()?.id
+                      )[0]?.user?.name ? (
+                      <>
+                        {getTwoLetters(
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.name ||
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.user_name
+                        )}
+                      </>
+                    ) : activeChat.channel_members.filter(
+                        (user) => user.user_id === getUserChat()?.id
+                      )[0]?.user?.photo_path ? (
+                      <Image
+                        alt="user-img"
+                        className="abs-avva"
+                        src={
+                          activeChat &&
+                          activeChat.channel_members &&
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.photo_path
+                        }
+                      />
+                    ) : (
+                      <Image
+                        alt="user-img"
+                        src={profile}
+                        width={30}
+                        height={30}
+                      />
+                    )}
+                  </div>
+                )}
+                {props.message.message_content &&
+                  props.message.message_content?.content}
+
+                <div className="message-date">{getMessageStatus()}</div>
+              </div>
+              <div className="message-date hovers">
+                {
+                  <div className="sent-date">
+                    {
+                      <>
+                        <SendIcon></SendIcon>
+                        {getMessageTime(props.message.created_at, true)}
+                      </>
+                    }
+                  </div>
+                }
+                {getStatues().is_received === 1 && (
+                  <div className="recieve-date">
+                    <ReceiveIcon></ReceiveIcon>
+                    {getMessageTime(
+                      props.message.message_status.filter(
+                        (a) =>
+                          a.user_id !==
+                          (localStorage.getItem("USER-CHAT") &&
+                            getUserChat()?.id)
+                      )[0]?.received_at,
+                      false
+                    )}
+                  </div>
+                )}
+                {getStatues().is_watched === true && (
+                  <div className="recieve-date">
+                    <ReadIcon></ReadIcon>
+                    {getMessageTime(
+                      props.message.message_status.filter(
+                        (a) =>
+                          a.user_id !==
+                          (localStorage.getItem("USER-CHAT") &&
+                            getUserChat()?.id)
+                      )[0]?.watched_at,
+                      false
+                    )}
+                  </div>
+                )}
+              </div>
+              <OptionsMenu
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() =>
+                  dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
+                }
+                click={() =>
+                  dispatch({ type: "REPLY-MESSAGE", payload: props.message })
+                }
+              />
+            </div>
+          );
+        }
+        if (props.message.message_type.name === "FileMessage") {
+          return (
+            <div
+              onMouseLeave={() => setOpen(false)}
+              className={"message-hold" + " " + `${opens && "ac"}`}
+            >
+              {props.message.parent_message && (
+                <RepliedMessage
+                  onClick={() =>
+                    props.GetMessage(
+                      props.message.id,
+                      props.message.parent_message_id
+                    )
+                  }
+                  message_ref={message_ref}
+                  message={props.message}
+                  parent_message={props.message.parent_message}
+                  moving={moving}
+                />
+              )}
+
+              <div
+                onClick={() => setOpen(true)}
+                ref={refmessage}
+                className={
+                  "message-element-body message-body text-body " + props.type
+                }
+              >
+                {(props.message.is_forward === true ||
+                  props.message.is_forward === 1) && (
+                  <div className="forwarded-message-icon">
+                    <ForwardIcon></ForwardIcon>
+                  </div>
+                )}
+                <div className="border-element">
+                  {refmessage.current &&
+                    showBord(props.type, refmessage.current.clientHeight).map(
+                      (ad, i) => <div className="border-child" key={i}></div>
+                    )}
+                </div>
+                {(props.type === "first-chat" || props.type === "lonely") && (
+                  <div
+                    className={
+                      "absolute-avatar " +
+                      `${
+                        (!activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                        )[0]?.user?.photo_path ||
+                          activeChat.channel_members
+                            .filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]
+                            ?.user?.photo_path?.includes("eu")) &&
+                        activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                        )[0]?.user?.name &&
+                        "text-avatar"
+                      }`
+                    }
+                  >
+                    {activeChat.channel_members
+                      .filter((user) => user.user_id === getUserChat()?.id)[0]
+                      ?.user?.photo_path?.includes("eu") ? (
+                      activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                      )[0]?.user?.name ? (
+                        <>
+                          {getTwoLetters(
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.name ||
+                              activeChat.channel_members.filter(
+                                (a) =>
+                                  parseInt(a.user_id) ===
+                                  parseInt(getUserChat()?.id)
+                              )[0]?.user?.user_name
+                          )}
+                        </>
+                      ) : (
+                        <Image
+                          alt="user-img"
+                          src={profile}
+                          width={30}
+                          height={30}
+                        />
+                      )
+                    ) : activeChat.channel_members.filter(
+                        (user) => user.user_id === getUserChat()?.id
+                      )[0]?.user?.name ? (
+                      <>
+                        {getTwoLetters(
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.name ||
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.user_name
+                        )}
+                      </>
+                    ) : activeChat.channel_members.filter(
+                        (user) => user.user_id === getUserChat()?.id
+                      )[0]?.user?.photo_path ? (
+                      <Image
+                        alt="user-img"
+                        className="abs-avva"
+                        src={
+                          activeChat &&
+                          activeChat.channel_members &&
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.photo_path
+                        }
+                      />
+                    ) : (
+                      <Image
+                        alt="user-img"
+                        src={profile}
+                        width={30}
+                        height={30}
+                      />
+                    )}
+                  </div>
+                )}
+                {props.message?.message_content &&
+                  props.message?.message_content[0]?.file_path && (
+                    <a
+                      target="_blank"
+                      href={
+                        props.message.message_content[0]?.file_path.includes(
+                          "https"
+                        ) ||
+                        props.message.message_content[0]?.file_path.includes(
+                          "http"
+                        ) ||
+                        props.message.type
+                          ? props.message.message_content[0]?.file_path
+                          : props.message.message_content[0]?.file_path
+                      }
+                      download
+                      className="replay-msg file-msg"
+                    >
+                      <Image
+                        alt="user-img"
+                        src={fil.src}
+                        width={26}
+                        height={20}
+                        style={{ width: "26px" }}
+                      />
+                      <div className="file-desc">
+                        <div className="file-name">{"FILE"}</div>
+                        <div className="file-type"></div>
+                      </div>
+                      {props.message?.type ? (
+                        <SpinIcon></SpinIcon>
+                      ) : (
+                        <DownIcon style={{ minWidth: "34px" }}></DownIcon>
+                      )}
+                    </a>
+                  )}
+                <div className="message-date hovers">
+                  {
+                    <div className="sent-date">
+                      {
+                        <>
+                          <SendIcon></SendIcon>
+                          {getMessageTime(props.message.created_at, true)}
+                        </>
+                      }
+                    </div>
+                  }
+                  {getStatues().is_received === 1 && (
+                    <div className="recieve-date">
+                      <ReceiveIcon></ReceiveIcon>
+                      {getMessageTime(
+                        props.message.message_status.filter(
+                          (a) =>
+                            a.user_id !==
+                            (localStorage.getItem("USER-CHAT") &&
+                              getUserChat()?.id)
+                        )[0]?.received_at,
+                        false
+                      )}
+                    </div>
+                  )}
+                  {getStatues().is_watched === true && (
+                    <div className="recieve-date">
+                      <ReadIcon></ReadIcon>
+                      {getMessageTime(
+                        props.message.message_status.filter(
+                          (a) =>
+                            a.user_id !==
+                            (localStorage.getItem("USER-CHAT") &&
+                              getUserChat()?.id)
+                        )[0]?.watched_at,
+                        false
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="message-date">{getMessageStatus()}</div>
+              </div>
+              <OptionsMenu
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() =>
+                  dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
+                }
+                click={() =>
+                  dispatch({ type: "REPLY-MESSAGE", payload: props.message })
+                }
+              />
+            </div>
+          );
+        }
+        if (
+          props.message.message_type.name === "VideoCall" ||
+          props.message.message_type.name === "VoiceCall"
+        ) {
+          return (
+            <div className="call-body">
+              {(props.type === "first-chat" || props.type === "lonely") && (
+                <div
+                  className={
+                    "absolute-avatar " +
+                    `${
+                      (!activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                      )[0]?.user?.photo_path ||
+                        activeChat.channel_members
+                          .filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]
+                          ?.user?.photo_path?.includes("eu")) &&
+                      activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                      )[0]?.user?.name &&
+                      "text-avatar"
+                    }`
+                  }
+                >
+                  {activeChat.channel_members
+                    .filter((user) => user.user_id === getUserChat()?.id)[0]
+                    ?.user?.photo_path?.includes("eu") ? (
+                    activeChat.channel_members.filter(
+                      (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                    )[0]?.user?.name ? (
+                      <>
+                        {getTwoLetters(
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.name ||
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.user_name
+                        )}
+                      </>
+                    ) : (
+                      <Image
+                        alt="user-img"
+                        src={profile}
+                        width={30}
+                        height={30}
+                      />
+                    )
+                  ) : activeChat.channel_members.filter(
+                      (user) => user.user_id === getUserChat()?.id
+                    )[0]?.user?.name ? (
+                    <>
+                      {getTwoLetters(
+                        activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                        )[0]?.user?.name ||
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.user_name
+                      )}
+                    </>
+                  ) : activeChat.channel_members.filter(
+                      (user) => user.user_id === getUserChat()?.id
+                    )[0]?.user?.photo_path ? (
+                    <Image
+                      alt="user-img"
+                      className="abs-avva"
+                      src={
+                        activeChat &&
+                        activeChat.channel_members &&
+                        activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                        )[0]?.user?.photo_path
+                      }
+                    />
+                  ) : (
+                    <Image
+                      alt="user-img"
+                      src={profile}
+                      width={30}
+                      height={30}
+                    />
+                  )}
+                </div>
+              )}
+              {props.message.message_type.name === "VoiceCall" ? (
+                <MissedIcon></MissedIcon>
+              ) : (
+                <VideoIconMissed />
+              )}
               <div
                 className={
                   "absolute-avatar " +
@@ -1481,541 +1627,88 @@ function ChatMessage(props) {
                   <Image alt="user-img" src={profile} width={30} height={30} />
                 )}
               </div>
-            )}
-            {props.message.message_type.name === "VoiceCall" ? (
-              <MissedIcon></MissedIcon>
-            ) : (
-              <VideoIconMissed />
-            )}
+              <div className="missed-body">
+                {translate("Missed  Call At", language)}{" "}
+                {getMessageTime(props.message.created_at, true)}
+              </div>
+            </div>
+          );
+        }
+      } else {
+        if (props.message.message_type.name === "ImageMessage") {
+          return (
             <div
-              className={
-                "absolute-avatar " +
-                `${
-                  (!activeChat.channel_members.filter(
-                    (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                  )[0]?.user?.photo_path ||
-                    activeChat.channel_members
-                      .filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]
-                      ?.user?.photo_path?.includes("eu")) &&
-                  activeChat.channel_members.filter(
-                    (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                  )[0]?.user?.name &&
-                  "text-avatar"
-                }`
-              }
+              onMouseLeave={() => setOpen(false)}
+              className={"message-hold" + " " + `${opens && "ac"}`}
             >
-              {activeChat.channel_members
-                .filter((user) => user.user_id === getUserChat()?.id)[0]
-                ?.user?.photo_path?.includes("eu") ? (
-                activeChat.channel_members.filter(
-                  (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                )[0]?.user?.name ? (
-                  <>
-                    {getTwoLetters(
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.name ||
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.user_name
-                    )}
-                  </>
-                ) : (
-                  <Image alt="user-img" src={profile} width={30} height={30} />
-                )
-              ) : activeChat.channel_members.filter(
-                  (user) => user.user_id === getUserChat()?.id
-                )[0]?.user?.name ? (
-                <>
-                  {getTwoLetters(
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ||
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.user_name
-                  )}
-                </>
-              ) : activeChat.channel_members.filter(
-                  (user) => user.user_id === getUserChat()?.id
-                )[0]?.user?.photo_path ? (
-                <Image
-                  alt="user-img"
-                  className="abs-avva"
-                  src={
-                    activeChat &&
-                    activeChat.channel_members &&
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.photo_path
+              {props.message.parent_message && (
+                <RepliedMessage
+                  onClick={() =>
+                    props.GetMessage(
+                      props.message.id,
+                      props.message.parent_message_id
+                    )
                   }
+                  message_ref={message_ref}
+                  message={props.message}
+                  parent_message={props.message.parent_message}
+                  moving={moving}
                 />
-              ) : (
-                <Image alt="user-img" src={profile} width={30} height={30} />
               )}
-            </div>
-            <div className="missed-body">
-              {translate("Missed  Call At", language)}{" "}
-              {getMessageTime(props.message.created_at, true)}
-            </div>
-          </div>
-        );
-      }
-    } else {
-      if (props.message.message_type.name === "ImageMessage") {
-        return (
-          <div
-            onMouseLeave={() => setOpen(false)}
-            className={"message-hold" + " " + `${opens && "ac"}`}
-          >
-            {props.message.parent_message && (
-              <RepliedMessage
-                onClick={() =>
-                  props.GetMessage(
-                    props.message.id,
-                    props.message.parent_message_id
-                  )
+
+              <div
+                onClick={() => setOpen(true)}
+                ref={refmessage}
+                className={
+                  "message-element-body message-body message-img-body " +
+                  props.type
                 }
-                message_ref={message_ref}
-                message={props.message}
-                parent_message={props.message.parent_message}
-                moving={moving}
-              />
-            )}
-
-            <div
-              onClick={() => setOpen(true)}
-              ref={refmessage}
-              className={
-                "message-element-body message-body message-img-body " +
-                props.type
-              }
-            >
-              {(props.message.is_forward === true ||
-                props.message.is_forward === 1) && (
-                <div className="forwarded-message-icon">
-                  <ForwardIcon></ForwardIcon>
-                </div>
-              )}
-              <div className="border-element">
-                {refmessage.current &&
-                  showBord(props.type, refmessage.current.clientHeight).map(
-                    (ad, i) => <div className="border-child" key={i}></div>
-                  )}
-              </div>
-              {props.type === "first-chat" && <div className="bordse"></div>}
-
-              {(props.type === "first-chat" || props.type === "lonely") && (
-                <div
-                  className={
-                    "absolute-avatar " +
-                    `${
-                      (!activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]?.user?.photo_path ||
-                        activeChat.channel_members
-                          .filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]
-                          ?.user?.photo_path?.includes("eu")) &&
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]?.user?.name &&
-                      "text-avatar"
-                    }`
-                  }
-                >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id !== getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) !==
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
-                    )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.name ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      alt="user-img"
-                      className="abs-avva"
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
-                </div>
-              )}
-              <img
-                alt="user"
-                onClick={() =>
-                  setImg(
-                    props.message.type ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "https"
-                      ) ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "http"
-                      )
-                      ? props.message.message_content[0]?.file_path
-                      : props.message.message_content[0]?.file_path
-                  )
-                }
-                className="message-img"
-                src={props.message.message_content[0]?.file_path}
-              />
-              <div className="other-date">
-                {getMessageTime(props.message.created_at, true)}
-              </div>
-            </div>
-            <OptionsMenu
-              copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
-            />
-          </div>
-        );
-      }
-      if (props.message.message_type.name === "VideoMessage") {
-        return (
-          <div
-            onMouseLeave={() => setOpen(false)}
-            className={"message-hold" + " " + `${opens && "ac"}`}
-          >
-            {props.message.parent_message && (
-              <RepliedMessage
-                onClick={() =>
-                  props.GetMessage(
-                    props.message.id,
-                    props.message.parent_message_id
-                  )
-                }
-                message_ref={message_ref}
-                message={props.message}
-                parent_message={props.message.parent_message}
-                moving={moving}
-              />
-            )}
-
-            <div
-              onClick={() => setOpen(true)}
-              ref={refmessage}
-              className={
-                "message-element-body message-body message-img-body " +
-                props.type
-              }
-            >
-              {(props.message.is_forward === true ||
-                props.message.is_forward === 1) && (
-                <div className="forwarded-message-icon">
-                  <ForwardIcon></ForwardIcon>
-                </div>
-              )}
-              <div className="border-element">
-                {refmessage.current &&
-                  showBord(props.type, refmessage.current.clientHeight).map(
-                    (ad, i) => <div className="border-child" key={i}></div>
-                  )}
-              </div>
-              {props.type === "first-chat" && <div className="bordse"></div>}
-
-              {(props.type === "first-chat" || props.type === "lonely") && (
-                <div
-                  className={
-                    "absolute-avatar " +
-                    `${
-                      (!activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]?.user?.photo_path ||
-                        activeChat.channel_members
-                          .filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]
-                          ?.user?.photo_path?.includes("eu")) &&
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]?.user?.name &&
-                      "text-avatar"
-                    }`
-                  }
-                >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id !== getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) !==
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
-                    )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.name ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      alt="user-img"
-                      className="abs-avva"
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
-                </div>
-              )}
-              <PlayIcon
-                onClick={() => {
-                  setVid(
-                    props.message.type ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "https"
-                      ) ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "http"
-                      )
-                      ? props.message.message_content[0]?.file_path
-                      : props.message.message_content[0]?.file_path
-                  );
-                }}
-                className="play-vid-icon"
-              ></PlayIcon>
-              <video
-                className="message-img"
-                src={props.message.message_content[0]?.file_path}
               >
-                <source
-                  src={props.message.message_content[0]?.file_path}
-                ></source>
-              </video>
-              <div className="other-date">
-                {getMessageTime(props.message.created_at, true)}
-              </div>
-            </div>
-            <OptionsMenu
-              copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
-            />
-          </div>
-        );
-      }
-      if (props.message.message_type.name === "VoiceMessage") {
-        return (
-          <div
-            onMouseLeave={() => setOpen(false)}
-            className={"message-hold" + " " + `${opens && "ac"}`}
-          >
-            {props.message.parent_message && (
-              <RepliedMessage
-                onClick={() =>
-                  props.GetMessage(
-                    props.message.id,
-                    props.message.parent_message_id
-                  )
-                }
-                message_ref={message_ref}
-                message={props.message}
-                parent_message={props.message.parent_message}
-                moving={moving}
-              />
-            )}
-
-            {props.message.message_content &&
-              props.message.message_content[0]?.file_path &&
-              props.message.message_content[0]?.file_path !== "false" && (
-                <div
-                  ref={refmessage}
-                  onClick={() => setOpen(true)}
-                  className={
-                    "message-element-body message-body audio-body him " +
-                    props.type
-                  }
-                >
-                  {(props.message.is_forward === true ||
-                    props.message.is_forward === 1) && (
-                    <div className="forwarded-message-icon">
-                      <ForwardIcon></ForwardIcon>
-                    </div>
-                  )}
-                  <div className="border-element">
-                    {refmessage.current &&
-                      showBord(props.type, refmessage.current.clientHeight).map(
-                        (ad, i) => <div className="border-child" key={i}></div>
-                      )}
+                {(props.message.is_forward === true ||
+                  props.message.is_forward === 1) && (
+                  <div className="forwarded-message-icon">
+                    <ForwardIcon></ForwardIcon>
                   </div>
-                  {(props.type === "first-chat" || props.type === "lonely") && (
-                    <div
-                      className={
-                        "absolute-avatar " +
-                        `${
-                          (!activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.photo_path ||
-                            activeChat.channel_members
-                              .filter(
-                                (a) =>
-                                  parseInt(a.user_id) !==
-                                  parseInt(getUserChat()?.id)
-                              )[0]
-                              ?.user?.photo_path?.includes("eu")) &&
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name &&
-                          "text-avatar"
-                        }`
-                      }
-                    >
-                      {activeChat.channel_members
-                        .filter((user) => user.user_id !== getUserChat()?.id)[0]
-                        ?.user?.photo_path?.includes("eu") ? (
+                )}
+                <div className="border-element">
+                  {refmessage.current &&
+                    showBord(props.type, refmessage.current.clientHeight).map(
+                      (ad, i) => <div className="border-child" key={i}></div>
+                    )}
+                </div>
+                {props.type === "first-chat" && <div className="bordse"></div>}
+
+                {(props.type === "first-chat" || props.type === "lonely") && (
+                  <div
+                    className={
+                      "absolute-avatar " +
+                      `${
+                        (!activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                        )[0]?.user?.photo_path ||
+                          activeChat.channel_members
+                            .filter(
+                              (a) =>
+                                parseInt(a.user_id) !==
+                                parseInt(getUserChat()?.id)
+                            )[0]
+                            ?.user?.photo_path?.includes("eu")) &&
                         activeChat.channel_members.filter(
                           (a) =>
                             parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ? (
-                          <>
-                            {getTwoLetters(
-                              activeChat.channel_members.filter(
-                                (a) =>
-                                  parseInt(a.user_id) !==
-                                  parseInt(getUserChat()?.id)
-                              )[0]?.user?.name ||
-                                activeChat.channel_members.filter(
-                                  (a) =>
-                                    parseInt(a.user_id) !==
-                                    parseInt(getUserChat()?.id)
-                                )[0]?.user?.user_name
-                            )}
-                          </>
-                        ) : (
-                          <Image
-                            alt="user-img"
-                            src={profile}
-                            width={30}
-                            height={30}
-                          />
-                        )
-                      ) : activeChat.channel_members.filter(
-                          (user) => user.user_id !== getUserChat()?.id
-                        )[0]?.user?.name ? (
+                        )[0]?.user?.name &&
+                        "text-avatar"
+                      }`
+                    }
+                  >
+                    {activeChat.channel_members
+                      .filter((user) => user.user_id !== getUserChat()?.id)[0]
+                      ?.user?.photo_path?.includes("eu") ? (
+                      activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                      )[0]?.user?.name ? (
                         <>
                           {getTwoLetters(
                             activeChat.channel_members.filter(
@@ -2030,22 +1723,6 @@ function ChatMessage(props) {
                               )[0]?.user?.user_name
                           )}
                         </>
-                      ) : activeChat.channel_members.filter(
-                          (user) => user.user_id !== getUserChat()?.id
-                        )[0]?.user?.photo_path ? (
-                        <Image
-                          alt="user-img"
-                          className="abs-avva"
-                          src={
-                            activeChat &&
-                            activeChat.channel_members &&
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) !==
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.photo_path
-                          }
-                        />
                       ) : (
                         <Image
                           alt="user-img"
@@ -2053,451 +1730,972 @@ function ChatMessage(props) {
                           width={30}
                           height={30}
                         />
-                      )}
+                      )
+                    ) : activeChat.channel_members.filter(
+                        (user) => user.user_id !== getUserChat()?.id
+                      )[0]?.user?.name ? (
+                      <>
+                        {getTwoLetters(
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) !==
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.name ||
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) !==
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.user_name
+                        )}
+                      </>
+                    ) : activeChat.channel_members.filter(
+                        (user) => user.user_id !== getUserChat()?.id
+                      )[0]?.user?.photo_path ? (
+                      <Image
+                        alt="user-img"
+                        className="abs-avva"
+                        src={
+                          activeChat &&
+                          activeChat.channel_members &&
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) !==
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.photo_path
+                        }
+                      />
+                    ) : (
+                      <Image
+                        alt="user-img"
+                        src={profile}
+                        width={30}
+                        height={30}
+                      />
+                    )}
+                  </div>
+                )}
+                <img
+                  alt="user"
+                  onClick={() =>
+                    setImg(
+                      props.message.type ||
+                        props.message.message_content[0]?.file_path.includes(
+                          "https"
+                        ) ||
+                        props.message.message_content[0]?.file_path.includes(
+                          "http"
+                        )
+                        ? props.message.message_content[0]?.file_path
+                        : props.message.message_content[0]?.file_path
+                    )
+                  }
+                  className="message-img"
+                  src={props.message.message_content[0]?.file_path}
+                />
+                <div className="other-date">
+                  {getMessageTime(props.message.created_at, true)}
+                </div>
+              </div>
+              <OptionsMenu
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() =>
+                  dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
+                }
+                click={() =>
+                  dispatch({ type: "REPLY-MESSAGE", payload: props.message })
+                }
+              />
+            </div>
+          );
+        }
+        if (props.message.message_type.name === "VideoMessage") {
+          return (
+            <div
+              onMouseLeave={() => setOpen(false)}
+              className={"message-hold" + " " + `${opens && "ac"}`}
+            >
+              {props.message.parent_message && (
+                <RepliedMessage
+                  onClick={() =>
+                    props.GetMessage(
+                      props.message.id,
+                      props.message.parent_message_id
+                    )
+                  }
+                  message_ref={message_ref}
+                  message={props.message}
+                  parent_message={props.message.parent_message}
+                  moving={moving}
+                />
+              )}
+
+              <div
+                onClick={() => setOpen(true)}
+                ref={refmessage}
+                className={
+                  "message-element-body message-body message-img-body " +
+                  props.type
+                }
+              >
+                {(props.message.is_forward === true ||
+                  props.message.is_forward === 1) && (
+                  <div className="forwarded-message-icon">
+                    <ForwardIcon></ForwardIcon>
+                  </div>
+                )}
+                <div className="border-element">
+                  {refmessage.current &&
+                    showBord(props.type, refmessage.current.clientHeight).map(
+                      (ad, i) => <div className="border-child" key={i}></div>
+                    )}
+                </div>
+                {props.type === "first-chat" && <div className="bordse"></div>}
+
+                {(props.type === "first-chat" || props.type === "lonely") && (
+                  <div
+                    className={
+                      "absolute-avatar " +
+                      `${
+                        (!activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                        )[0]?.user?.photo_path ||
+                          activeChat.channel_members
+                            .filter(
+                              (a) =>
+                                parseInt(a.user_id) !==
+                                parseInt(getUserChat()?.id)
+                            )[0]
+                            ?.user?.photo_path?.includes("eu")) &&
+                        activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                        )[0]?.user?.name &&
+                        "text-avatar"
+                      }`
+                    }
+                  >
+                    {activeChat.channel_members
+                      .filter((user) => user.user_id !== getUserChat()?.id)[0]
+                      ?.user?.photo_path?.includes("eu") ? (
+                      activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                      )[0]?.user?.name ? (
+                        <>
+                          {getTwoLetters(
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) !==
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.name ||
+                              activeChat.channel_members.filter(
+                                (a) =>
+                                  parseInt(a.user_id) !==
+                                  parseInt(getUserChat()?.id)
+                              )[0]?.user?.user_name
+                          )}
+                        </>
+                      ) : (
+                        <Image
+                          alt="user-img"
+                          src={profile}
+                          width={30}
+                          height={30}
+                        />
+                      )
+                    ) : activeChat.channel_members.filter(
+                        (user) => user.user_id !== getUserChat()?.id
+                      )[0]?.user?.name ? (
+                      <>
+                        {getTwoLetters(
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) !==
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.name ||
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) !==
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.user_name
+                        )}
+                      </>
+                    ) : activeChat.channel_members.filter(
+                        (user) => user.user_id !== getUserChat()?.id
+                      )[0]?.user?.photo_path ? (
+                      <Image
+                        alt="user-img"
+                        className="abs-avva"
+                        src={
+                          activeChat &&
+                          activeChat.channel_members &&
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) !==
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.photo_path
+                        }
+                      />
+                    ) : (
+                      <Image
+                        alt="user-img"
+                        src={profile}
+                        width={30}
+                        height={30}
+                      />
+                    )}
+                  </div>
+                )}
+                <PlayIcon
+                  onClick={() => {
+                    setVid(
+                      props.message.type ||
+                        props.message.message_content[0]?.file_path.includes(
+                          "https"
+                        ) ||
+                        props.message.message_content[0]?.file_path.includes(
+                          "http"
+                        )
+                        ? props.message.message_content[0]?.file_path
+                        : props.message.message_content[0]?.file_path
+                    );
+                  }}
+                  className="play-vid-icon"
+                ></PlayIcon>
+                <video
+                  className="message-img"
+                  src={props.message.message_content[0]?.file_path}
+                >
+                  <source
+                    src={props.message.message_content[0]?.file_path}
+                  ></source>
+                </video>
+                <div className="other-date">
+                  {getMessageTime(props.message.created_at, true)}
+                </div>
+              </div>
+              <OptionsMenu
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() =>
+                  dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
+                }
+                click={() =>
+                  dispatch({ type: "REPLY-MESSAGE", payload: props.message })
+                }
+              />
+            </div>
+          );
+        }
+        if (props.message.message_type.name === "VoiceMessage") {
+          return (
+            <div
+              onMouseLeave={() => setOpen(false)}
+              className={"message-hold" + " " + `${opens && "ac"}`}
+            >
+              {props.message.parent_message && (
+                <RepliedMessage
+                  onClick={() =>
+                    props.GetMessage(
+                      props.message.id,
+                      props.message.parent_message_id
+                    )
+                  }
+                  message_ref={message_ref}
+                  message={props.message}
+                  parent_message={props.message.parent_message}
+                  moving={moving}
+                />
+              )}
+
+              {props.message.message_content &&
+                props.message.message_content[0]?.file_path &&
+                props.message.message_content[0]?.file_path !== "false" && (
+                  <div
+                    ref={refmessage}
+                    onClick={() => setOpen(true)}
+                    className={
+                      "message-element-body message-body audio-body him " +
+                      props.type
+                    }
+                  >
+                    {(props.message.is_forward === true ||
+                      props.message.is_forward === 1) && (
+                      <div className="forwarded-message-icon">
+                        <ForwardIcon></ForwardIcon>
+                      </div>
+                    )}
+                    <div className="border-element">
+                      {refmessage.current &&
+                        showBord(
+                          props.type,
+                          refmessage.current.clientHeight
+                        ).map((ad, i) => (
+                          <div className="border-child" key={i}></div>
+                        ))}
                     </div>
-                  )}
-                  <div className="audio-message ">
-                    <audio
-                      onTimeUpdate={(e) => {
-                        animate();
-                        setWidth(
-                          ((parseFloat(e.target.currentTime) * 100) /
-                            parseFloat(AudioRef.current?.duration)) *
-                            1.8
-                        );
-                      }}
-                      onEnded={() => {
-                        setPlay(false);
-                        AudioRef.current.currentTime = 0;
-                        setWidth(0);
-                      }}
-                      controls={false}
-                      ref={AudioRef}
-                      src={
-                        props.message.message_content &&
-                        props.message.message_content[0]?.file_path
-                      }
-                    >
-                      <source
+                    {(props.type === "first-chat" ||
+                      props.type === "lonely") && (
+                      <div
+                        className={
+                          "absolute-avatar " +
+                          `${
+                            (!activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) !==
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.photo_path ||
+                              activeChat.channel_members
+                                .filter(
+                                  (a) =>
+                                    parseInt(a.user_id) !==
+                                    parseInt(getUserChat()?.id)
+                                )[0]
+                                ?.user?.photo_path?.includes("eu")) &&
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) !==
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.name &&
+                            "text-avatar"
+                          }`
+                        }
+                      >
+                        {activeChat.channel_members
+                          .filter(
+                            (user) => user.user_id !== getUserChat()?.id
+                          )[0]
+                          ?.user?.photo_path?.includes("eu") ? (
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) !==
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.name ? (
+                            <>
+                              {getTwoLetters(
+                                activeChat.channel_members.filter(
+                                  (a) =>
+                                    parseInt(a.user_id) !==
+                                    parseInt(getUserChat()?.id)
+                                )[0]?.user?.name ||
+                                  activeChat.channel_members.filter(
+                                    (a) =>
+                                      parseInt(a.user_id) !==
+                                      parseInt(getUserChat()?.id)
+                                  )[0]?.user?.user_name
+                              )}
+                            </>
+                          ) : (
+                            <Image
+                              alt="user-img"
+                              src={profile}
+                              width={30}
+                              height={30}
+                            />
+                          )
+                        ) : activeChat.channel_members.filter(
+                            (user) => user.user_id !== getUserChat()?.id
+                          )[0]?.user?.name ? (
+                          <>
+                            {getTwoLetters(
+                              activeChat.channel_members.filter(
+                                (a) =>
+                                  parseInt(a.user_id) !==
+                                  parseInt(getUserChat()?.id)
+                              )[0]?.user?.name ||
+                                activeChat.channel_members.filter(
+                                  (a) =>
+                                    parseInt(a.user_id) !==
+                                    parseInt(getUserChat()?.id)
+                                )[0]?.user?.user_name
+                            )}
+                          </>
+                        ) : activeChat.channel_members.filter(
+                            (user) => user.user_id !== getUserChat()?.id
+                          )[0]?.user?.photo_path ? (
+                          <Image
+                            alt="user-img"
+                            className="abs-avva"
+                            src={
+                              activeChat &&
+                              activeChat.channel_members &&
+                              activeChat.channel_members.filter(
+                                (a) =>
+                                  parseInt(a.user_id) !==
+                                  parseInt(getUserChat()?.id)
+                              )[0]?.user?.photo_path
+                            }
+                          />
+                        ) : (
+                          <Image
+                            alt="user-img"
+                            src={profile}
+                            width={30}
+                            height={30}
+                          />
+                        )}
+                      </div>
+                    )}
+                    <div className="audio-message ">
+                      <audio
+                        onTimeUpdate={(e) => {
+                          animate();
+                          setWidth(
+                            ((parseFloat(e.target.currentTime) * 100) /
+                              parseFloat(AudioRef.current?.duration)) *
+                              1.8
+                          );
+                        }}
+                        onEnded={() => {
+                          setPlay(false);
+                          AudioRef.current.currentTime = 0;
+                          setWidth(0);
+                        }}
+                        controls={false}
+                        ref={AudioRef}
                         src={
                           props.message.message_content &&
                           props.message.message_content[0]?.file_path
                         }
-                      />
-                    </audio>
-                    <RecordIcon></RecordIcon>
-                    {AudioRef.current?.duration ? (
-                      !AudioRef.current.paused ? (
-                        <PauseIcon
-                          className="play-icon"
-                          onClick={() => {
-                            setPlay(!playing);
-                            if (playing) AudioRef.current.pause();
-                            else AudioRef.current.play();
-                          }}
-                        ></PauseIcon>
-                      ) : (
-                        <PlayIcon
-                          className="play-icon"
-                          onClick={() => {
-                            setPlay(!playing);
-                            if (playing) AudioRef.current.pause();
-                            else AudioRef.current.play();
-                          }}
-                        ></PlayIcon>
-                      )
-                    ) : (
-                      <Spinner className="play-icon" />
-                    )}
-
-                    <div className="player-cont">
-                      <div className="wave-absolute">
-                        {AudioRef.current?.duration !== Infinity &&
-                        AudioRef.current?.duration !== undefined &&
-                        AudioRef.current?.duration !== NaN &&
-                        showTime(AudioRef.current?.duration) !== null &&
-                        showTime(AudioRef.current?.duration) !== NaN &&
-                        showTime(AudioRef.current?.duration) !== "NaN" ? (
-                          <div className="player-time">
-                            {AudioRef.current &&
-                              AudioRef.current?.duration &&
-                              showTime(AudioRef.current?.duration)}
-                          </div>
+                      >
+                        <source
+                          src={
+                            props.message.message_content &&
+                            props.message.message_content[0]?.file_path
+                          }
+                        />
+                      </audio>
+                      <RecordIcon></RecordIcon>
+                      {AudioRef.current?.duration ? (
+                        !AudioRef.current.paused ? (
+                          <PauseIcon
+                            className="play-icon"
+                            onClick={() => {
+                              setPlay(!playing);
+                              if (playing) AudioRef.current.pause();
+                              else AudioRef.current.play();
+                            }}
+                          ></PauseIcon>
                         ) : (
-                          <div className="player-time">00:00</div>
-                        )}
-                        <div
-                          className="wave"
-                          id={`wav${props.message.id || props.message.mid}`}
-                        >
-                          <WaveIcon></WaveIcon>
+                          <PlayIcon
+                            className="play-icon"
+                            onClick={() => {
+                              setPlay(!playing);
+                              if (playing) AudioRef.current.pause();
+                              else AudioRef.current.play();
+                            }}
+                          ></PlayIcon>
+                        )
+                      ) : (
+                        <Spinner className="play-icon" />
+                      )}
+
+                      <div className="player-cont">
+                        <div className="wave-absolute">
+                          {AudioRef.current?.duration !== Infinity &&
+                          AudioRef.current?.duration !== undefined &&
+                          AudioRef.current?.duration !== NaN &&
+                          showTime(AudioRef.current?.duration) !== null &&
+                          showTime(AudioRef.current?.duration) !== NaN &&
+                          showTime(AudioRef.current?.duration) !== "NaN" ? (
+                            <div className="player-time">
+                              {AudioRef.current &&
+                                AudioRef.current?.duration &&
+                                showTime(AudioRef.current?.duration)}
+                            </div>
+                          ) : (
+                            <div className="player-time">00:00</div>
+                          )}
+                          <div
+                            className="wave"
+                            id={`wav${props.message.id || props.message.mid}`}
+                          >
+                            <WaveIcon></WaveIcon>
+                          </div>
                         </div>
+                        <div className="player-line"></div>
                       </div>
-                      <div className="player-line"></div>
+                    </div>
+                    <div className="other-date">
+                      {getMessageTime(props.message.created_at, true)}
                     </div>
                   </div>
-                  <div className="other-date">
-                    {getMessageTime(props.message.created_at, true)}
-                  </div>
-                </div>
-              )}
-            <OptionsMenu
-              copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
-            />
-          </div>
-        );
-      }
-      if (props.message.message_type.name === "TextMessage") {
-        return (
-          <div
-            onMouseLeave={() => setOpen(false)}
-            className={"message-hold" + " " + `${opens && "ac"}`}
-          >
-            {props.message.parent_message && (
-              <RepliedMessage
-                onClick={() =>
-                  props.GetMessage(
-                    props.message.id,
-                    props.message.parent_message_id
-                  )
-                }
-                message_ref={message_ref}
-                message={props.message}
-                parent_message={props.message.parent_message}
-                moving={moving}
-              />
-            )}
-
-            <div
-              onClick={() => setOpen(true)}
-              ref={refmessage}
-              className={
-                "message-element-body message-body text-body " + props.type
-              }
-            >
-              {(props.message.is_forward === true ||
-                props.message.is_forward === 1) && (
-                <div className="forwarded-message-icon">
-                  <ForwardIcon></ForwardIcon>
-                </div>
-              )}
-              <div className="border-element">
-                {refmessage.current &&
-                  showBord(props.type, refmessage.current.clientHeight).map(
-                    (ad, i) => <div className="border-child" key={i}></div>
-                  )}
-              </div>
-              {(props.type === "first-chat" || props.type === "lonely") && (
-                <div
-                  className={
-                    "absolute-avatar " +
-                    `${
-                      (!activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]?.user?.photo_path ||
-                        activeChat.channel_members
-                          .filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]
-                          ?.user?.photo_path?.includes("eu")) &&
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]?.user?.name &&
-                      "text-avatar"
-                    }`
-                  }
-                >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id !== getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) !==
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
-                    )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.name ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      alt="user-img"
-                      className="abs-avva"
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
-                </div>
-              )}
-              {props.message.message_content &&
-                props.message.message_content?.content}
-
-              <div className="other-date">
-                {getMessageTime(props.message.created_at, true)}
-              </div>
-            </div>
-            <OptionsMenu
-              copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
-            />
-          </div>
-        );
-      }
-      if (props.message.message_type.name === "FileMessage") {
-        return (
-          <div
-            onMouseLeave={() => setOpen(false)}
-            className={"message-hold" + " " + `${opens && "ac"}`}
-          >
-            {props.message.parent_message && (
-              <RepliedMessage
-                onClick={() =>
-                  props.GetMessage(
-                    props.message.id,
-                    props.message.parent_message_id
-                  )
-                }
-                message_ref={message_ref}
-                message={props.message}
-                parent_message={props.message.parent_message}
-                moving={moving}
-              />
-            )}
-
-            <div
-              onClick={() => setOpen(true)}
-              ref={refmessage}
-              className={
-                "message-element-body message-body text-body " + props.type
-              }
-            >
-              {(props.message.is_forward === true ||
-                props.message.is_forward === 1) && (
-                <div className="forwarded-message-icon">
-                  <ForwardIcon></ForwardIcon>
-                </div>
-              )}
-              <div className="border-element">
-                {refmessage.current &&
-                  showBord(props.type, refmessage.current.clientHeight).map(
-                    (ad, i) => <div className="border-child" key={i}></div>
-                  )}
-              </div>
-              {(props.type === "first-chat" || props.type === "lonely") && (
-                <div
-                  className={
-                    "absolute-avatar " +
-                    `${
-                      (!activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]?.user?.photo_path ||
-                        activeChat.channel_members
-                          .filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]
-                          ?.user?.photo_path?.includes("eu")) &&
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]?.user?.name &&
-                      "text-avatar"
-                    }`
-                  }
-                >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id !== getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) !==
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
-                    )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.name ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      alt="user-img"
-                      className="abs-avva"
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
-                </div>
-              )}
-              {props.message?.message_content &&
-                props.message?.message_content[0]?.file_path && (
-                  <a
-                    target="_blank"
-                    href={
-                      props.message.message_content[0]?.file_path.includes(
-                        "https"
-                      ) ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "http"
-                      ) ||
-                      props.message.type
-                        ? props.message.message_content[0]?.file_path
-                        : props.message.message_content[0]?.file_path
-                    }
-                    download
-                    className="replay-msg file-msg"
-                  >
-                    <Image
-                      alt="user-img"
-                      width={26}
-                      src={fil.src}
-                      height={20}
-                      style={{ width: "26px" }}
-                    />
-                    <div className="file-desc">
-                      <div className="file-name">{"FILE"}</div>
-                      <div className="file-type"></div>
-                    </div>
-                    {props.message?.type ? (
-                      <SpinIcon></SpinIcon>
-                    ) : (
-                      <DownIcon style={{ minWidth: "34px" }}></DownIcon>
-                    )}
-                  </a>
                 )}
-
-              <div className="other-date">
-                {getMessageTime(props.message.created_at, true)}
-              </div>
+              <OptionsMenu
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() =>
+                  dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
+                }
+                click={() =>
+                  dispatch({ type: "REPLY-MESSAGE", payload: props.message })
+                }
+              />
             </div>
-            <OptionsMenu
-              copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
-            />
-          </div>
-        );
-      }
-      if (
-        props.message.message_type.name === "VideoCall" ||
-        props.message.message_type.name === "VoiceCall"
-      ) {
-        return (
-          <div className="call-body">
-            {(props.type === "first-chat" || props.type === "lonely") && (
+          );
+        }
+        if (props.message.message_type.name === "TextMessage") {
+          return (
+            <div
+              onMouseLeave={() => setOpen(false)}
+              className={"message-hold" + " " + `${opens && "ac"}`}
+            >
+              {props.message.parent_message && (
+                <RepliedMessage
+                  onClick={() =>
+                    props.GetMessage(
+                      props.message.id,
+                      props.message.parent_message_id
+                    )
+                  }
+                  message_ref={message_ref}
+                  message={props.message}
+                  parent_message={props.message.parent_message}
+                  moving={moving}
+                />
+              )}
+
+              <div
+                onClick={() => setOpen(true)}
+                ref={refmessage}
+                className={
+                  "message-element-body message-body text-body " + props.type
+                }
+              >
+                {(props.message.is_forward === true ||
+                  props.message.is_forward === 1) && (
+                  <div className="forwarded-message-icon">
+                    <ForwardIcon></ForwardIcon>
+                  </div>
+                )}
+                <div className="border-element">
+                  {refmessage.current &&
+                    showBord(props.type, refmessage.current.clientHeight).map(
+                      (ad, i) => <div className="border-child" key={i}></div>
+                    )}
+                </div>
+                {(props.type === "first-chat" || props.type === "lonely") && (
+                  <div
+                    className={
+                      "absolute-avatar " +
+                      `${
+                        (!activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                        )[0]?.user?.photo_path ||
+                          activeChat.channel_members
+                            .filter(
+                              (a) =>
+                                parseInt(a.user_id) !==
+                                parseInt(getUserChat()?.id)
+                            )[0]
+                            ?.user?.photo_path?.includes("eu")) &&
+                        activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                        )[0]?.user?.name &&
+                        "text-avatar"
+                      }`
+                    }
+                  >
+                    {activeChat.channel_members
+                      .filter((user) => user.user_id !== getUserChat()?.id)[0]
+                      ?.user?.photo_path?.includes("eu") ? (
+                      activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                      )[0]?.user?.name ? (
+                        <>
+                          {getTwoLetters(
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) !==
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.name ||
+                              activeChat.channel_members.filter(
+                                (a) =>
+                                  parseInt(a.user_id) !==
+                                  parseInt(getUserChat()?.id)
+                              )[0]?.user?.user_name
+                          )}
+                        </>
+                      ) : (
+                        <Image
+                          alt="user-img"
+                          src={profile}
+                          width={30}
+                          height={30}
+                        />
+                      )
+                    ) : activeChat.channel_members.filter(
+                        (user) => user.user_id !== getUserChat()?.id
+                      )[0]?.user?.name ? (
+                      <>
+                        {getTwoLetters(
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) !==
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.name ||
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) !==
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.user_name
+                        )}
+                      </>
+                    ) : activeChat.channel_members.filter(
+                        (user) => user.user_id !== getUserChat()?.id
+                      )[0]?.user?.photo_path ? (
+                      <Image
+                        alt="user-img"
+                        className="abs-avva"
+                        src={
+                          activeChat &&
+                          activeChat.channel_members &&
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) !==
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.photo_path
+                        }
+                      />
+                    ) : (
+                      <Image
+                        alt="user-img"
+                        src={profile}
+                        width={30}
+                        height={30}
+                      />
+                    )}
+                  </div>
+                )}
+                {props.message.message_content &&
+                  props.message.message_content?.content}
+
+                <div className="other-date">
+                  {getMessageTime(props.message.created_at, true)}
+                </div>
+              </div>
+              <OptionsMenu
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() =>
+                  dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
+                }
+                click={() =>
+                  dispatch({ type: "REPLY-MESSAGE", payload: props.message })
+                }
+              />
+            </div>
+          );
+        }
+        if (props.message.message_type.name === "FileMessage") {
+          return (
+            <div
+              onMouseLeave={() => setOpen(false)}
+              className={"message-hold" + " " + `${opens && "ac"}`}
+            >
+              {props.message.parent_message && (
+                <RepliedMessage
+                  onClick={() =>
+                    props.GetMessage(
+                      props.message.id,
+                      props.message.parent_message_id
+                    )
+                  }
+                  message_ref={message_ref}
+                  message={props.message}
+                  parent_message={props.message.parent_message}
+                  moving={moving}
+                />
+              )}
+
+              <div
+                onClick={() => setOpen(true)}
+                ref={refmessage}
+                className={
+                  "message-element-body message-body text-body " + props.type
+                }
+              >
+                {(props.message.is_forward === true ||
+                  props.message.is_forward === 1) && (
+                  <div className="forwarded-message-icon">
+                    <ForwardIcon></ForwardIcon>
+                  </div>
+                )}
+                <div className="border-element">
+                  {refmessage.current &&
+                    showBord(props.type, refmessage.current.clientHeight).map(
+                      (ad, i) => <div className="border-child" key={i}></div>
+                    )}
+                </div>
+                {(props.type === "first-chat" || props.type === "lonely") && (
+                  <div
+                    className={
+                      "absolute-avatar " +
+                      `${
+                        (!activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                        )[0]?.user?.photo_path ||
+                          activeChat.channel_members
+                            .filter(
+                              (a) =>
+                                parseInt(a.user_id) !==
+                                parseInt(getUserChat()?.id)
+                            )[0]
+                            ?.user?.photo_path?.includes("eu")) &&
+                        activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                        )[0]?.user?.name &&
+                        "text-avatar"
+                      }`
+                    }
+                  >
+                    {activeChat.channel_members
+                      .filter((user) => user.user_id !== getUserChat()?.id)[0]
+                      ?.user?.photo_path?.includes("eu") ? (
+                      activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                      )[0]?.user?.name ? (
+                        <>
+                          {getTwoLetters(
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) !==
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.name ||
+                              activeChat.channel_members.filter(
+                                (a) =>
+                                  parseInt(a.user_id) !==
+                                  parseInt(getUserChat()?.id)
+                              )[0]?.user?.user_name
+                          )}
+                        </>
+                      ) : (
+                        <Image
+                          alt="user-img"
+                          src={profile}
+                          width={30}
+                          height={30}
+                        />
+                      )
+                    ) : activeChat.channel_members.filter(
+                        (user) => user.user_id !== getUserChat()?.id
+                      )[0]?.user?.name ? (
+                      <>
+                        {getTwoLetters(
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) !==
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.name ||
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) !==
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.user_name
+                        )}
+                      </>
+                    ) : activeChat.channel_members.filter(
+                        (user) => user.user_id !== getUserChat()?.id
+                      )[0]?.user?.photo_path ? (
+                      <Image
+                        alt="user-img"
+                        className="abs-avva"
+                        src={
+                          activeChat &&
+                          activeChat.channel_members &&
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) !==
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.photo_path
+                        }
+                      />
+                    ) : (
+                      <Image
+                        alt="user-img"
+                        src={profile}
+                        width={30}
+                        height={30}
+                      />
+                    )}
+                  </div>
+                )}
+                {props.message?.message_content &&
+                  props.message?.message_content[0]?.file_path && (
+                    <a
+                      target="_blank"
+                      href={
+                        props.message.message_content[0]?.file_path.includes(
+                          "https"
+                        ) ||
+                        props.message.message_content[0]?.file_path.includes(
+                          "http"
+                        ) ||
+                        props.message.type
+                          ? props.message.message_content[0]?.file_path
+                          : props.message.message_content[0]?.file_path
+                      }
+                      download
+                      className="replay-msg file-msg"
+                    >
+                      <Image
+                        alt="user-img"
+                        width={26}
+                        src={fil.src}
+                        height={20}
+                        style={{ width: "26px" }}
+                      />
+                      <div className="file-desc">
+                        <div className="file-name">{"FILE"}</div>
+                        <div className="file-type"></div>
+                      </div>
+                      {props.message?.type ? (
+                        <SpinIcon></SpinIcon>
+                      ) : (
+                        <DownIcon style={{ minWidth: "34px" }}></DownIcon>
+                      )}
+                    </a>
+                  )}
+
+                <div className="other-date">
+                  {getMessageTime(props.message.created_at, true)}
+                </div>
+              </div>
+              <OptionsMenu
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() =>
+                  dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
+                }
+                click={() =>
+                  dispatch({ type: "REPLY-MESSAGE", payload: props.message })
+                }
+              />
+            </div>
+          );
+        }
+        if (
+          props.message.message_type.name === "VideoCall" ||
+          props.message.message_type.name === "VoiceCall"
+        ) {
+          return (
+            <div className="call-body">
+              {(props.type === "first-chat" || props.type === "lonely") && (
+                <div
+                  className={
+                    "absolute-avatar " +
+                    `${
+                      (!activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                      )[0]?.user?.photo_path ||
+                        activeChat.channel_members
+                          .filter(
+                            (a) =>
+                              parseInt(a.user_id) !==
+                              parseInt(getUserChat()?.id)
+                          )[0]
+                          ?.user?.photo_path?.includes("eu")) &&
+                      activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                      )[0]?.user?.name &&
+                      "text-avatar"
+                    }`
+                  }
+                >
+                  {activeChat.channel_members
+                    .filter((user) => user.user_id !== getUserChat()?.id)[0]
+                    ?.user?.photo_path?.includes("eu") ? (
+                    activeChat.channel_members.filter(
+                      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                    )[0]?.user?.name ? (
+                      <>
+                        {getTwoLetters(
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) !==
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.name ||
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) !==
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.user_name
+                        )}
+                      </>
+                    ) : (
+                      <Image
+                        alt="user-img"
+                        src={profile}
+                        width={30}
+                        height={30}
+                      />
+                    )
+                  ) : activeChat.channel_members.filter(
+                      (user) => user.user_id !== getUserChat()?.id
+                    )[0]?.user?.name ? (
+                    <>
+                      {getTwoLetters(
+                        activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                        )[0]?.user?.name ||
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) !==
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.user_name
+                      )}
+                    </>
+                  ) : activeChat.channel_members.filter(
+                      (user) => user.user_id !== getUserChat()?.id
+                    )[0]?.user?.photo_path ? (
+                    <Image
+                      alt="user-img"
+                      className="abs-avva"
+                      src={
+                        activeChat &&
+                        activeChat.channel_members &&
+                        activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                        )[0]?.user?.photo_path
+                      }
+                    />
+                  ) : (
+                    <Image
+                      alt="user-img"
+                      src={profile}
+                      width={30}
+                      height={30}
+                    />
+                  )}
+                </div>
+              )}
+              {props.message.message_type.name === "VoiceCall" ? (
+                <MissedIcon></MissedIcon>
+              ) : (
+                <VideoIconMissed />
+              )}
               <div
                 className={
                   "absolute-avatar " +
@@ -2579,91 +2777,13 @@ function ChatMessage(props) {
                   <Image alt="user-img" src={profile} width={30} height={30} />
                 )}
               </div>
-            )}
-            {props.message.message_type.name === "VoiceCall" ? (
-              <MissedIcon></MissedIcon>
-            ) : (
-              <VideoIconMissed />
-            )}
-            <div
-              className={
-                "absolute-avatar " +
-                `${
-                  (!activeChat.channel_members.filter(
-                    (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                  )[0]?.user?.photo_path ||
-                    activeChat.channel_members
-                      .filter(
-                        (a) =>
-                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]
-                      ?.user?.photo_path?.includes("eu")) &&
-                  activeChat.channel_members.filter(
-                    (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                  )[0]?.user?.name &&
-                  "text-avatar"
-                }`
-              }
-            >
-              {activeChat.channel_members
-                .filter((user) => user.user_id !== getUserChat()?.id)[0]
-                ?.user?.photo_path?.includes("eu") ? (
-                activeChat.channel_members.filter(
-                  (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                )[0]?.user?.name ? (
-                  <>
-                    {getTwoLetters(
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]?.user?.name ||
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.user_name
-                    )}
-                  </>
-                ) : (
-                  <Image alt="user-img" src={profile} width={30} height={30} />
-                )
-              ) : activeChat.channel_members.filter(
-                  (user) => user.user_id !== getUserChat()?.id
-                )[0]?.user?.name ? (
-                <>
-                  {getTwoLetters(
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ||
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]?.user?.user_name
-                  )}
-                </>
-              ) : activeChat.channel_members.filter(
-                  (user) => user.user_id !== getUserChat()?.id
-                )[0]?.user?.photo_path ? (
-                <Image
-                  alt="user-img"
-                  className="abs-avva"
-                  src={
-                    activeChat &&
-                    activeChat.channel_members &&
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.photo_path
-                  }
-                />
-              ) : (
-                <Image alt="user-img" src={profile} width={30} height={30} />
-              )}
+              <div className="missed-body">
+                {translate("Missed  Call At", language)}{" "}
+                {getMessageTime(props.message.created_at, true)}
+              </div>
             </div>
-            <div className="missed-body">
-              {translate("Missed  Call At", language)}{" "}
-              {getMessageTime(props.message.created_at, true)}
-            </div>
-          </div>
-        );
+          );
+        }
       }
     }
   };
@@ -2729,7 +2849,6 @@ function ChatMessage(props) {
     ); // jQuery
   }
   function handleTouchMove(evt, a, indexx) {
-    evt.preventDefault();
     if (!xDown || !yDown) {
       return;
     }
