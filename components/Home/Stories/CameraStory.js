@@ -60,7 +60,13 @@ function NewStoryModal({ close, send }) {
     const handleStopCaptureClick = React.useCallback(() => {
       mediaRecorderRef.current.stop();
       setCapturing(false);
-    }, [mediaRecorderRef, webcamRef, setCapturing]);
+      const blob = new Blob(recordedChunks, {
+        type: "video/webm",
+      });
+      const url = URL.createObjectURL(blob);
+      setVideo(url);
+      console.log(vidUrl);
+    }, [mediaRecorderRef, webcamRef, setCapturing, recordedChunks, setVideo]);
 
     const handleDownload = React.useCallback(() => {
       if (recordedChunks.length) {
@@ -85,7 +91,17 @@ function NewStoryModal({ close, send }) {
 
     return (
       <>
-        <Webcam className="cameraInput" audio={true} muted ref={webcamRef} />
+        {vidUrl ? (
+          <video src={vidUrl}></video>
+        ) : (
+          <Webcam
+            className="cameraInput"
+            audio={true}
+            muted
+            ref={webcamRef}
+            videoConstraints={webcamTypeRef}
+          />
+        )}
         <div className="button-bases" style={{ position: "static" }}>
           {!capturing && recordedChunks.length === 0 && (
             <button
