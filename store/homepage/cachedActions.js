@@ -75,8 +75,6 @@ export const changeAppLanguageServer = (language) => {
 };
 export const getListingData = async () => {
   try {
-    // const resSetting = await fetch(OTP_URL+STARTER_SETTINGS,GeneralCahcedHeader('starter-setting'))
-    // const repoSetting = await resSetting.json()
     let time = new Date().getTime();
     const res = await fetch(OTP_URL + LISTING_INFO_URL, {
       next: { revalidate: 1000000000000 },

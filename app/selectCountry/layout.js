@@ -1,6 +1,6 @@
-import "components/Chat/components/index.css";
-import "components/Chat/components/styles.css";
-import "../globals.css";
+import "styles/chatstyles.css";
+import "styles/chatcomponent.css";
+import "styles/globals.css";
 
 export default function RootLayout({ children }) {
   return (

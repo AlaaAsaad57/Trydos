@@ -1,5 +1,3 @@
-import { useSelector } from "react-redux";
-
 function Logo({ animated, style }) {
   return (
     <div className="logo-container">

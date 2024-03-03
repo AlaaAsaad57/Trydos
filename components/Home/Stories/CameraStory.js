@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import CameraIcon from "../../Chat/svg/image.svg";
 
 import SendIcon from "../../Chat/svg/sharechat.svg";

@@ -74,25 +74,14 @@
   right: 41px;
 }
 .call-element {
-  position: fixed;
-  top: 30px;
   animation-name: call;
   animation-duration: 0.5s;
   animation-timing-function: ease-in-out;
   animation-iteration-count: 1;
-  right: 0;
-  left: 0;
   border-radius: 12px;
   z-index: 9999;
-  margin: 0 auto;
   width: 400px;
-  display: flex;
-  align-items: flex-start;
-  padding: 10px;
-  justify-content: flex-start;
-  flex-direction: row;
   box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px;
-  background-color: #f7f7f7;
 }
 
 @keyframes call {

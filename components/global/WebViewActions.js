@@ -1,6 +1,5 @@
 import axios from "axios";
 import { CHAT_URL } from "utils/endpointConfig";
-import { Answer } from "store/chat/actions";
 
 export const AnswerCall = async (token, mid, chid) => {
   let req = await axios

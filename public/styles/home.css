@@ -1,5 +1,5 @@
-@import url("./arabic.css");
-@import url("./offers.css");
+@import url("../styles/arabic.css");
+@import url("../styles/offers.css");
 .site-container {
   background-color: rgba(244, 244, 244, 1);
   display: flex;

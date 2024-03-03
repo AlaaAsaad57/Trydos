@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import "./index.css";
+import "styles/chat.css";
 import ChatWindow from "./pages/ChatWindow";
 import { useDispatch, useSelector } from "react-redux";
 const ConversationContainer = dynamic(() =>

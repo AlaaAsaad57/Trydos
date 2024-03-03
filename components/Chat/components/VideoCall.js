@@ -4,7 +4,7 @@ import MicIcon from "../svg/micIcon.svg";
 import VideoIcon from "../svg/vidIcon.svg";
 import CallingIcon from "../svg/calling.svg";
 import LeftArrowIcon from "../svg/leftArrow.svg";
-import "./index.css";
+import "styles/chat.css";
 import AgoraRTC, {
   AgoraVideoPlayer,
   createClient,

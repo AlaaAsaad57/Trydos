@@ -1,6 +1,5 @@
 import React from "react";
 import NormalWidget from "./NormalWidget";
-import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 const ExtendedOfferWidget = dynamic(() => import("./ExtendedOfferWidget"), {
   ssr: false,
@@ -9,22 +8,14 @@ const QuickOfferWidjet = dynamic(() => import("./QuickOfferWidjet"), {
   ssr: false,
 });
 function OfferList({ offers, quick }) {
-  const router = useRouter();
-  const goToListing = () => {
-    // router.push('/listing')
-  };
   return (
     <div className="offers-list">
       {quick ? (
-        <QuickOfferWidjet
-          onClick={() => goToListing()}
-          offer={{ photos: [1] }}
-        />
+        <QuickOfferWidjet offer={{ photos: [1] }} />
       ) : (
         offers.map((offer, Index) =>
           Index !== 2 ? (
             <NormalWidget
-              onClick={() => goToListing()}
               myKey={Index}
               key={Index}
               offer={{
@@ -33,7 +24,6 @@ function OfferList({ offers, quick }) {
             />
           ) : (
             <ExtendedOfferWidget
-              onClick={() => goToListing()}
               myKey={Index}
               key={Index}
               offer={{

@@ -1,6 +1,5 @@
 import React from "react";
 import LogoOffer from "public/svg/offerlogo.svg";
-// import OfferImage from "../../../public/images/Kids_BannerInteriorHalloween_2609.WEBP";
 import ManIcon from "public/svg/manIcon.svg";
 import WomanIcon from "public/svg/WomanIcon.svg";
 import OfferPhotosSlider from "./OfferPhotosSlider";

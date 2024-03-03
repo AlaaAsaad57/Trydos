@@ -1,5 +1,5 @@
 import React from "react";
-import "./ChatWindow.css";
+import "styles/ChatWindow.css";
 import { useState } from "react";
 import ChatWindowHeader from "components/Chat/components/ChatWindowHeader";
 import ChatWindowTabs from "components/Chat/components/ChatWindowTabs";

@@ -1,11 +1,10 @@
 "use client";
-import React, { useEffect } from "react";
+import React from "react";
 import dynamic from "next/dynamic";
 const StoryElement = dynamic(() => import("./StoryElement"), { ssr: false });
 import AddStory from "../AddStory";
 import { useDispatch, useSelector } from "react-redux";
 import { GetUnviewedStory, SelectStory } from "store/homepage/actions";
-import { getUserStories } from "../../../utils/functions";
 const Skeleton = dynamic(() => import("react-loading-skeleton"), {
   ssr: false,
 });

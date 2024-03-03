@@ -1,10 +1,8 @@
 import axios from "axios";
 import {
-  GET_USERS_STORIES,
   OTP_URL,
   STORIES_URL,
   REGISTER_DEVICE_URL,
-  STARTER_SETTINGS,
   UPLOAD_STORY_URL,
 } from "utils/endpointConfig";
 import { SSRDetect } from "utils/functions";

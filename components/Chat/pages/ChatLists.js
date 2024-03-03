@@ -61,19 +61,7 @@ function ChatLists(props) {
                       (member) => member?.user_id !== getUserChat()?.id
                     )[0]?.user?.photo_path
                   }
-                  lastMessage={
-                    chat.messages.filter(
-                      (mes) =>
-                        !mes?.auth_message_status ||
-                        mes?.auth_message_status.is_deleted !== 1
-                    )[
-                      chat.messages.filter(
-                        (mes) =>
-                          !mes?.auth_message_status ||
-                          mes?.auth_message_status.is_deleted !== 1
-                      ).length - 1
-                    ]
-                  }
+                  lastMessage={chat.messages[chat.messages.length - 1]}
                   id={chat.id}
                   chat={chat}
                 />
@@ -121,19 +109,7 @@ function ChatLists(props) {
                       (member) => member?.user_id !== getUserChat()?.id
                     )[0]?.user?.photo_path
                   }
-                  lastMessage={
-                    chat.messages.filter(
-                      (mes) =>
-                        !mes?.auth_message_status ||
-                        mes?.auth_message_status.is_deleted !== 1
-                    )[
-                      chat.messages.filter(
-                        (mes) =>
-                          !mes?.auth_message_status ||
-                          mes?.auth_message_status.is_deleted !== 1
-                      ).length - 1
-                    ]
-                  }
+                  lastMessage={chat.messages[chat.messages.length - 1]}
                   id={chat.id}
                   chat={chat}
                 />
@@ -187,19 +163,7 @@ function ChatLists(props) {
                       (member) => member?.user_id !== getUserChat()?.id
                     )[0]?.user?.photo_path
                   }
-                  lastMessage={
-                    chat.messages.filter(
-                      (mes) =>
-                        !mes?.auth_message_status ||
-                        mes?.auth_message_status.is_deleted !== 1
-                    )[
-                      chat.messages.filter(
-                        (mes) =>
-                          !mes?.auth_message_status ||
-                          mes?.auth_message_status.is_deleted !== 1
-                      ).length - 1
-                    ]
-                  }
+                  lastMessage={chat.messages[chat.messages.length - 1]}
                   id={chat.id}
                   chat={chat}
                 />

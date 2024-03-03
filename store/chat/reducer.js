@@ -7,24 +7,6 @@ import {
   watchChannel,
 } from "./actions";
 import { store } from "../index";
-
-// const sortChats = (arr) => {
-//     let l = arr.sort((a, b) => compares(a, b))
-//     return l
-//   }
-//   const compares = (a, b) => {
-//     if (parseInt(new Date(a?.messages[0]?.created_at).getTime()) < parseInt(new Date(b?.messages[0]?.created_at).getTime())) {
-//       return -1
-//     }
-//     else {
-//       if (a.messages.length === 0 || b.messages.length === 0) {
-//         return -1
-//       }
-//       else {
-//         return 1
-//       }
-//     }
-//   }
 const initialState = {
   chatVar: false,
   data: [],

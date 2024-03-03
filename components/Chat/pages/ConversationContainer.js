@@ -1062,11 +1062,6 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
                 if (a.id < b.id) return -1;
                 else return 1;
               })
-              .filter(
-                (mes) =>
-                  !mes?.auth_message_status ||
-                  mes?.auth_message_status.is_deleted !== 1
-              )
               .map((mes, i) => {
                 return (
                   <>

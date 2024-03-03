@@ -4,7 +4,6 @@ import MicIcon from "../Chat/svg/micIcon.svg";
 import CallingIcon from "../Chat/svg/calling.svg";
 import { createClient, createMicrophoneAndCameraTracks } from "agora-rtc-react";
 import { useStopwatch } from "react-timer-hook";
-import { StartTalking } from "./WebViewActions";
 const config = {
   mode: "rtc",
   codec: "h264",

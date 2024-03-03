@@ -4,11 +4,10 @@ import { AnswerCall, RefuseCall } from "store/chat/actions";
 import profilePng from "public/images/profileNo.png";
 import { getTwoLetters } from "../chatsFunctions";
 import { translate } from "utils/functions";
-import "./index.css";
+import "styles/chat.css";
 import Image from "next/image";
 function CallComponent(props) {
   const caller = useSelector((state) => state.chat.caller);
-  const callLoading = useSelector((state) => state.chat.callLoading);
   const incomeCallData = useSelector((state) => state.chat.incomeCallData);
   const MessageActiveCall = useSelector(
     (state) => state.chat.MessageActiveCall
@@ -17,14 +16,16 @@ function CallComponent(props) {
   const incomeCallType = useSelector((state) => state.chat.incomeCallType);
   const dispatch = useDispatch();
   const ref = useRef();
+  var RefAudio;
   useEffect(() => {
+    RefAudio = ref;
     return () => {
-      ref.current?.pause();
+      RefAudio?.current?.pause();
     };
   }, [ref]);
 
   return (
-    <div className="call-element">
+    <div className="call-element fixed top-7 right-0 left-0 mr-auto ml-auto mt-0 mb-0 flex flex-row items-start p-3 justify-start bg-slate-100">
       <audio ref={ref} loop autoPlay src={"/default.mp3"}>
         <source src={"/default.mp3"}></source>
       </audio>

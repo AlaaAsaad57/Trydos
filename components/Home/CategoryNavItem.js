@@ -2,7 +2,6 @@ import { translate } from "utils/functions";
 import { useSelector } from "react-redux";
 import NavIcon from "public/svg/navIcon.svg";
 import SearchComponent from "./SearchComponent";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 const CategoryNavItem = ({
   name,
@@ -13,7 +12,6 @@ const CategoryNavItem = ({
   myKey,
 }) => {
   const language = useSelector((state) => state.homepage.language);
-  const router = useRouter();
   const clickItem = () => {
     if (name === "Search") {
       openSearch();

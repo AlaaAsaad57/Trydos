@@ -18,10 +18,8 @@ import {
   getUserInfo,
 } from "./WebViewActions";
 import CallingIcon from "../Chat/svg/CallInProg.svg";
-import axios from "axios";
 function WebviewCall() {
   const [error, setError] = useState(null);
-  const router = useRouter();
   const getToken = (tok) => {
     let str = "";
     tok.split("").map((ch) => {
