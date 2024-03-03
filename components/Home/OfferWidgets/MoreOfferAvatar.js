@@ -3,7 +3,7 @@ import React from "react";
 import { translate } from "utils/functions";
 import { useSelector } from "react-redux";
 
-function MoreOfferAvatar({ images, zIndex, viewed }) {
+function MoreOfferAvatar({ images, zIndex, viewed, priority }) {
   const language = useSelector((state) => state.homepage.language);
 
   return (
@@ -16,6 +16,8 @@ function MoreOfferAvatar({ images, zIndex, viewed }) {
       <Image
         loading="eager"
         src={images}
+        priority={priority}
+        fetchPriority={priority ? "high" : "low"}
         alt="avatar"
         width={40}
         height={40}
