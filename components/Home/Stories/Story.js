@@ -8,7 +8,7 @@ function Story({ onClick, media, Name }) {
     <div className="story-element-item" onClick={() => onClick()}>
       <div className="linear-g-image" />
       <div className="story-text">{Name}</div>
-      {!load && (
+      {/* {!load && (
         <Skeleton
           duration={0.5}
           count={1}
@@ -21,7 +21,7 @@ function Story({ onClick, media, Name }) {
             height: "100%",
           }}
         />
-      )}
+      )} */}
       <AdvancedImage
         className="thumb-img"
         alt="story"
