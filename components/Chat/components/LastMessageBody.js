@@ -8,12 +8,21 @@ import { useSelector } from "react-redux";
 function LastMessageBody({ message, status }) {
   const language = useSelector((state) => state.homepage.language);
   const getMessage = () => {
+    if (message?.auth_message_status?.is_deleted === 1) {
+      return (
+        <>
+          {message.sender_user_id === getUser()?.id &&
+            getMessageStatusIcon(message.message_status, message.mid)}
+          <p>{translate("this message was deleted", language)}</p>
+        </>
+      );
+    }
     if (message.message_type.name === "TextMessage") {
       return (
         <>
           {message.sender_user_id === getUser()?.id &&
             getMessageStatusIcon(message.message_status, message.mid)}
-          <p>{message.message_content.content}</p>
+          <p>{message.message_content && message.message_content.content}</p>
         </>
       );
     }

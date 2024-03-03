@@ -1,6 +1,7 @@
 export const translations = {
   en: {
     Brands: "Brands",
+    "this message was deleted": "this message was deleted",
     "No Answer": "No Answer",
     "Initialize Call please wait..": "Initialize Call please wait..",
     "Call Answered from another account": "Call Answered from another account",
@@ -147,6 +148,7 @@ export const translations = {
     Brands: "العلامات التجارية",
     Offer: "عرض",
     "Best Offers From Brands": "أفضل العروض من العلامات التجارية",
+    "this message was deleted": "تم حذف هذه الرسالة",
     Woman: "نساء",
     Kids: "أطفال",
     Home: "منزلي",

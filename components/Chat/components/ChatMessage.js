@@ -262,6 +262,7 @@ function ChatMessage(props) {
         <div className={"message-hold" + " " + `${opens && "ac"}`}>
           <div
             ref={refmessage}
+            style={{ backgroundColor: "#cecece" }}
             className={
               "message-element-body message-body text-body " + props.type
             }
@@ -361,8 +362,7 @@ function ChatMessage(props) {
                 )}
               </div>
             )}
-            {props.message.message_content ||
-              props.message.message_content?.content}
+            {translate("this message was deleted", language)}
           </div>
         </div>
       );
