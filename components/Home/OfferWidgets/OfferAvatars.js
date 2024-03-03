@@ -38,37 +38,37 @@ function OfferAvatars() {
     >
       <OfferAvatar
         images={
-          "https://res.cloudinary.com/djooohujg/image/upload/q_auto/1707907006?_a=DATC1RAAZAA0"
+          "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_auto/1707907006?_a=DATC1RAAZAA0"
         }
         zIndex={1}
       />
       <OfferAvatar
         images={
-          "https://res.cloudinary.com/djooohujg/image/upload/q_auto/1707907006?_a=DATC1RAAZAA0"
+          "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_auto/1707907006?_a=DATC1RAAZAA0"
         }
         zIndex={2}
       />
       <OfferAvatar
         images={
-          "https://res.cloudinary.com/djooohujg/image/upload/q_auto/1707907006.webp?_a=DATC1RAAZAA0"
+          "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_auto/1707907006.webp?_a=DATC1RAAZAA0"
         }
         zIndex={3}
       />
       <OfferAvatar
         images={
-          "https://res.cloudinary.com/djooohujg/image/upload/q_auto/1707907006?_a=DATC1RAAZAA0"
+          "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_auto/1707907006?_a=DATC1RAAZAA0"
         }
         zIndex={4}
       />
       <OfferAvatar
         images={
-          "https://res.cloudinary.com/djooohujg/image/upload/q_auto/1707907006?_a=DATC1RAAZAA0"
+          "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_auto/1707907006?_a=DATC1RAAZAA0"
         }
         zIndex={5}
       />
       <MoreOfferAvatar
         images={
-          "https://res.cloudinary.com/djooohujg/image/upload/q_auto/1707907006?_a=DATC1RAAZAA0"
+          "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_auto/1707907006?_a=DATC1RAAZAA0"
         }
         zIndex={100}
         viewed={5}

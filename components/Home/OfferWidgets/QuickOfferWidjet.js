@@ -43,7 +43,7 @@ function QuickOfferWidjet({ offer, onClick }) {
             objectFit="cover"
             objectPosition="center"
             src={
-              "https://res.cloudinary.com/djooohujg/image/upload/q_auto/1708506792?_a=DATC1RAAZAA0"
+              "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_auto/1708506792?_a=DATC1RAAZAA0"
             }
           />
           <div className="offer-blured-background" />
