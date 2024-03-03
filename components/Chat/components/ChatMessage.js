@@ -33,16 +33,8 @@ function ChatMessage(props) {
   const AudioRef = useRef();
   const activeChat = useSelector((state) => state.chat.activeChat);
   const [playing, setPlay] = useState(false);
-  const getTimeInlocalTimeZone = (d) => {
-    let m = new Date();
-    if (d.getHours() === m.getHours()) {
-      return d;
-    } else {
-      const myDate = new Date();
-      let a = new Date(d.getTime() - myDate.getTimezoneOffset() * 60 * 1000);
-      return a;
-    }
-  };
+  const [DeleteModal, setDelete] = useState(false);
+
   const dispatch = useDispatch();
   const getStatues = () => {
     let a = props.message.message_status.filter(
@@ -271,7 +263,10 @@ function ChatMessage(props) {
         if (props.message.message_type.name === "ImageMessage") {
           return (
             <div
-              onMouseLeave={() => setOpen(false)}
+              onMouseLeave={() => {
+                setOpen(false);
+                setDelete(false);
+              }}
               className={"message-hold" + " " + `${opens && "ac"}`}
             >
               {props.message.parent_message && (
@@ -478,6 +473,8 @@ function ChatMessage(props) {
               </div>
 
               <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
                   DeleteMessage(activeChat.id, props.message.id, e)
                 }
@@ -495,7 +492,10 @@ function ChatMessage(props) {
         if (props.message.message_type.name === "VideoMessage") {
           return (
             <div
-              onMouseLeave={() => setOpen(false)}
+              onMouseLeave={() => {
+                setOpen(false);
+                setDelete(false);
+              }}
               className={"message-hold" + " " + `${opens && "ac"}`}
             >
               {props.message.parent_message && (
@@ -714,6 +714,8 @@ function ChatMessage(props) {
               </div>
 
               <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
                   DeleteMessage(activeChat.id, props.message.id, e)
                 }
@@ -731,7 +733,10 @@ function ChatMessage(props) {
         if (props.message.message_type.name === "VoiceMessage") {
           return (
             <div
-              onMouseLeave={() => setOpen(false)}
+              onMouseLeave={() => {
+                setOpen(false);
+                setDelete(false);
+              }}
               className={"message-hold" + " " + `${opens && "ac"}`}
             >
               {props.message.parent_message && (
@@ -1003,6 +1008,8 @@ function ChatMessage(props) {
                 )}
               </div>
               <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
                   DeleteMessage(activeChat.id, props.message.id, e)
                 }
@@ -1020,7 +1027,10 @@ function ChatMessage(props) {
         if (props.message.message_type.name === "TextMessage") {
           return (
             <div
-              onMouseLeave={() => setOpen(false)}
+              onMouseLeave={() => {
+                setOpen(false);
+                setDelete(false);
+              }}
               className={"message-hold" + " " + `${opens && "ac"}`}
             >
               {props.message.parent_message && (
@@ -1199,6 +1209,8 @@ function ChatMessage(props) {
                 )}
               </div>
               <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
                   DeleteMessage(activeChat.id, props.message.id, e)
                 }
@@ -1216,7 +1228,10 @@ function ChatMessage(props) {
         if (props.message.message_type.name === "FileMessage") {
           return (
             <div
-              onMouseLeave={() => setOpen(false)}
+              onMouseLeave={() => {
+                setOpen(false);
+                setDelete(false);
+              }}
               className={"message-hold" + " " + `${opens && "ac"}`}
             >
               {props.message.parent_message && (
@@ -1428,6 +1443,8 @@ function ChatMessage(props) {
                 <div className="message-date">{getMessageStatus()}</div>
               </div>
               <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
                   DeleteMessage(activeChat.id, props.message.id, e)
                 }
@@ -1638,7 +1655,10 @@ function ChatMessage(props) {
         if (props.message.message_type.name === "ImageMessage") {
           return (
             <div
-              onMouseLeave={() => setOpen(false)}
+              onMouseLeave={() => {
+                setOpen(false);
+                setDelete(false);
+              }}
               className={"message-hold" + " " + `${opens && "ac"}`}
             >
               {props.message.parent_message && (
@@ -1797,6 +1817,8 @@ function ChatMessage(props) {
                 </div>
               </div>
               <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
                   DeleteMessage(activeChat.id, props.message.id, e)
                 }
@@ -1814,7 +1836,10 @@ function ChatMessage(props) {
         if (props.message.message_type.name === "VideoMessage") {
           return (
             <div
-              onMouseLeave={() => setOpen(false)}
+              onMouseLeave={() => {
+                setOpen(false);
+                setDelete(false);
+              }}
               className={"message-hold" + " " + `${opens && "ac"}`}
             >
               {props.message.parent_message && (
@@ -1979,6 +2004,8 @@ function ChatMessage(props) {
                 </div>
               </div>
               <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
                   DeleteMessage(activeChat.id, props.message.id, e)
                 }
@@ -1996,7 +2023,10 @@ function ChatMessage(props) {
         if (props.message.message_type.name === "VoiceMessage") {
           return (
             <div
-              onMouseLeave={() => setOpen(false)}
+              onMouseLeave={() => {
+                setOpen(false);
+                setDelete(false);
+              }}
               className={"message-hold" + " " + `${opens && "ac"}`}
             >
               {props.message.parent_message && (
@@ -2228,6 +2258,8 @@ function ChatMessage(props) {
                   </div>
                 )}
               <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
                   DeleteMessage(activeChat.id, props.message.id, e)
                 }
@@ -2245,7 +2277,10 @@ function ChatMessage(props) {
         if (props.message.message_type.name === "TextMessage") {
           return (
             <div
-              onMouseLeave={() => setOpen(false)}
+              onMouseLeave={() => {
+                setOpen(false);
+                setDelete(false);
+              }}
               className={"message-hold" + " " + `${opens && "ac"}`}
             >
               {props.message.parent_message && (
@@ -2386,6 +2421,8 @@ function ChatMessage(props) {
                 </div>
               </div>
               <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
                   DeleteMessage(activeChat.id, props.message.id, e)
                 }
@@ -2403,7 +2440,10 @@ function ChatMessage(props) {
         if (props.message.message_type.name === "FileMessage") {
           return (
             <div
-              onMouseLeave={() => setOpen(false)}
+              onMouseLeave={() => {
+                setOpen(false);
+                setDelete(false);
+              }}
               className={"message-hold" + " " + `${opens && "ac"}`}
             >
               {props.message.parent_message && (
@@ -2578,6 +2618,8 @@ function ChatMessage(props) {
                 </div>
               </div>
               <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
                   DeleteMessage(activeChat.id, props.message.id, e)
                 }

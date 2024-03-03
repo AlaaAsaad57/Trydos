@@ -14,7 +14,11 @@ function CallList() {
     getCalls();
   }, []);
   const DeleteCall = (id, ch_id) => {
-    dispatch({ type: "DELETE_MESSAGE", payload: { ch_id: ch_id, msg_id: id } });
+    dispatch({
+      type: "DELETE_MESSAGE",
+      payload: { ch_id: ch_id, msg_id: id },
+    });
+    dispatch({ type: "DELETE_CALL", payload: id });
     DeleteMessageApi(id, false);
   };
   return (

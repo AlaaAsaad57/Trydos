@@ -1108,39 +1108,56 @@ export const ChatReducer = (
       };
     }
     case "DELETE_MESSAGE": {
-      let arr = [];
-      let msg_arr = [];
-      let active = state.activeChat;
-      state.data.map((chat) => {
-        if (parseInt(chat.id) === parseInt(payload.ch_id)) {
-          if (parseInt(state.activeChat.id) === parseInt(payload.ch_id)) {
-            active = {
-              ...state.activeChat,
-              messages: active.messages.filter(
+      if (
+        state.data.filter(
+          (chat) => parseInt(chat.id) === parseInt(payload.ch_id)
+        ).length > 0
+      ) {
+        let arr = [];
+        let msg_arr = [];
+        let active = state.activeChat;
+        state.data.map((chat) => {
+          if (parseInt(chat.id) === parseInt(payload.ch_id)) {
+            if (
+              state.activeChat?.id &&
+              parseInt(state.activeChat.id) === parseInt(payload.ch_id)
+            ) {
+              active = {
+                ...state.activeChat,
+                messages: active.messages.filter(
+                  (msg) => parseInt(msg.id) !== parseInt(payload.msg_id)
+                ),
+              };
+            }
+            arr.push({
+              ...chat,
+              messages: chat.messages.filter(
                 (msg) => parseInt(msg.id) !== parseInt(payload.msg_id)
               ),
-            };
+            });
+            chat.messages.map((msg) => {
+              if (parseInt(msg.id) === parseInt(payload.msg_id)) {
+              } else {
+                msg_arr.push(msg);
+              }
+            });
+          } else {
+            arr.push(chat);
           }
-          arr.push({
-            ...chat,
-            messages: active.messages.filter(
-              (msg) => parseInt(msg.id) !== parseInt(payload.msg_id)
-            ),
-          });
-          chat.messages.map((msg) => {
-            if (parseInt(msg.id) === parseInt(payload.msg_id)) {
-            } else {
-              msg_arr.push(msg);
-            }
-          });
-        } else {
-          arr.push(chat);
-        }
-      });
+        });
+        return {
+          ...state,
+          data: arr,
+          activeChat: active,
+        };
+      }
+    }
+    case "DELETE_CALL": {
       return {
         ...state,
-        data: arr,
-        activeChat: active,
+        calls: state.calls.filter(
+          (call) => parseInt(call.id) !== parseInt(payload)
+        ),
       };
     }
     case "REPLY-MESSAGE": {

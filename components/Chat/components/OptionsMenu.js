@@ -10,7 +10,7 @@ import { translate } from "utils/functions";
 import { useSelector } from "react-redux";
 function OptionsMenu(props) {
   const language = useSelector((state) => state.homepage.language);
-  const [DeleteModal, setDelete] = useState(false);
+  const { DeleteModal, setDelete } = props;
   return (
     <div className="abs-menu">
       {DeleteModal ? (
@@ -18,21 +18,35 @@ function OptionsMenu(props) {
           <div className="message-ops">
             <div
               className="message-opt"
-              style={{ width: "90px" }}
+              style={{ width: "90px", height: "35px" }}
               onClick={() => props.deleteMessage(false)}
             >
               For Me
             </div>
+            <span
+              style={{
+                minHeight: "30px",
+                borderRight: "1px solid #5d5d5da2",
+                marginLeft: "5px",
+              }}
+            />
             <div
               className="message-opt"
-              style={{ width: "90px" }}
+              style={{ width: "90px", height: "35px" }}
               onClick={() => props.deleteMessage(true)}
             >
               For All
             </div>
+            <span
+              style={{
+                minHeight: "30px",
+                borderRight: "1px solid #5d5d5da2",
+                marginLeft: "3px",
+              }}
+            />
             <div
               className="message-opt"
-              style={{ width: "90px" }}
+              style={{ width: "90px", height: "35px", marginLeft: "3px" }}
               onClick={() => setDelete(false)}
             >
               Cancel

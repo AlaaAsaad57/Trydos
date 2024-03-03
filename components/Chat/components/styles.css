@@ -179,7 +179,16 @@ html[lang="ar"] .chat-window-search-holder svg {
   position: relative;
   background-color: #fcfcfc;
 }
-
+.options-icon {
+  display: none;
+  position: absolute;
+  top: 15px;
+  right: 10px;
+  cursor: pointer;
+}
+.call-conversation-item:hover .options-icon {
+  display: flex;
+}
 .call-conversation-item img {
   width: 55px;
   height: 55px;
@@ -709,7 +718,9 @@ html[lang="ar"] .new-chats {
   position: relative;
   cursor: pointer;
 }
-
+.message-opt:hover {
+  background-color: #d7d7d7;
+}
 .message-opt:hover .rep-descs {
   display: flex;
 }

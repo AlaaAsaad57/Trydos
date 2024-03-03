@@ -1,13 +1,17 @@
 import React from "react";
 import ProfilePicture from "public/images/profileNo.png";
 import { getCallType } from "../chatsFunctions";
+import DeleteIcon from "../svg/delt.svg";
 import Image from "next/image";
-function CallItem({ photo, name, date, type }) {
+function CallItem({ photo, name, date, type, Delete }) {
   return (
     <div
       className={`call-conversation-item ${type}`}
       style={{ height: "75px", padding: "10px" }}
     >
+      <span className="options-icon" onClick={() => Delete()}>
+        <DeleteIcon />
+      </span>
       <Image
         loading="eager"
         width={55}
