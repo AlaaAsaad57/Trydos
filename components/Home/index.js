@@ -4,7 +4,7 @@ import "styles/unused-onload.css";
 import { useDispatch, useSelector } from "react-redux";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
-import { GetMainData, GetStoryData, LogData } from "store/homepage/actions";
+import { GetMainData, LogData } from "store/homepage/actions";
 import Stories from "./Stories/index";
 const CategoriesBar = dynamic(() => import("./CategoriesBar"), { ssr: false });
 import BrandsBar from "./Bars/BrandsBar";
@@ -26,7 +26,6 @@ import { getUserChat } from "utils/functions";
 import Cookies from "js-cookie";
 import { getUserStories } from "../../utils/functions";
 export default function Home({ HomeData_res, HomeData }) {
-  var bool = true;
   useEffect(() => {
     LogData({ HomeData_req_data: HomeData_res });
     dispatch(GetMainData(HomeData));

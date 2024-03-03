@@ -27,51 +27,110 @@ const NormalWidget = ({ offer, myKey, onClick }) => {
       key={myKey}
       onClick={() => onClick()}
     >
-      {inView && (
+      {myKey === 0 ? (
         <>
-          <Image
-            fill
-            alt="imageAlt"
-            loading="eager"
-            priority={true}
-            style={{
-              position: "absolute",
-              top: "0px",
-              left: "0px",
-              borderRadius: "15px",
-              zIndex: "1",
-            }}
-            objectFit="cover"
-            objectPosition="center"
-            src={
-              "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_auto/1708506792?_a=DATC1RAAZAsA0"
-            }
-          />
-          <div className="offer-blured-background" />
-          <div className="offer-blured" />
-          <div className="offer-container">
-            <div className="offer-logo">
-              <LogoOffer />
-            </div>
-            <div className="offer-category">
-              <ManIcon />
-              <WomanIcon />
-              <KidsIcon />
-            </div>
-            <div className="offer-desc">
-              {translate("Mango Famous Turkish Brand Best Discounts", language)}
-            </div>
-            {offer.photos.length > 1 ? (
-              <OfferPhotosSlider OfferPhotos={offer.photos} />
-            ) : (
-              <div className="offer-slider-container">
-                <OfferSlideItem isSingle={true} />
-                <OfferAvatars />
+          <>
+            <Image
+              fill
+              alt="imageAlt"
+              loading="eager"
+              fetchpriority="high"
+              priority={true}
+              style={{
+                position: "absolute",
+                top: "0px",
+                left: "0px",
+                borderRadius: "15px",
+                zIndex: "1",
+              }}
+              objectFit="cover"
+              objectPosition="center"
+              src={
+                "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_auto/1708506792?_a=DATC1RAAZAsA0"
+              }
+            />
+            <div className="offer-blured-background" />
+            <div className="offer-blured" />
+            <div className="offer-container">
+              <div className="offer-logo">
+                <LogoOffer />
               </div>
-            )}
-          </div>
+              <div className="offer-category">
+                <ManIcon />
+                <WomanIcon />
+                <KidsIcon />
+              </div>
+              <div className="offer-desc">
+                {translate(
+                  "Mango Famous Turkish Brand Best Discounts",
+                  language
+                )}
+              </div>
+              {offer.photos.length > 1 ? (
+                <OfferPhotosSlider priority={true} OfferPhotos={offer.photos} />
+              ) : (
+                <div className="offer-slider-container">
+                  <OfferSlideItem priority={true} isSingle={true} />
+                  <OfferAvatars priority={true} />
+                </div>
+              )}
+            </div>
+          </>
+        </>
+      ) : (
+        <>
+          {inView && (
+            <>
+              <Image
+                fill
+                alt="imageAlt"
+                loading="eager"
+                fetchpriority="high"
+                priority={true}
+                style={{
+                  position: "absolute",
+                  top: "0px",
+                  left: "0px",
+                  borderRadius: "15px",
+                  zIndex: "1",
+                }}
+                objectFit="cover"
+                objectPosition="center"
+                src={
+                  "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_auto/1708506792?_a=DATC1RAAZAsA0"
+                }
+              />
+              <div className="offer-blured-background" />
+              <div className="offer-blured" />
+              <div className="offer-container">
+                <div className="offer-logo">
+                  <LogoOffer />
+                </div>
+                <div className="offer-category">
+                  <ManIcon />
+                  <WomanIcon />
+                  <KidsIcon />
+                </div>
+                <div className="offer-desc">
+                  {translate(
+                    "Mango Famous Turkish Brand Best Discounts",
+                    language
+                  )}
+                </div>
+                {offer.photos.length > 1 ? (
+                  <OfferPhotosSlider OfferPhotos={offer.photos} />
+                ) : (
+                  <div className="offer-slider-container">
+                    <OfferSlideItem isSingle={true} />
+                    <OfferAvatars />
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </>
       )}
+      {}
     </Link>
   );
 };

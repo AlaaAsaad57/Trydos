@@ -2,7 +2,7 @@ import React from "react";
 import BorderImage from "./BorderImage";
 import Image from "next/image";
 import { getId } from "utils/functions";
-function OfferSlideItem({ isSingle }) {
+function OfferSlideItem({ isSingle, priority }) {
   let id = getId();
   return (
     <div className="offer-slide-item">
@@ -11,7 +11,8 @@ function OfferSlideItem({ isSingle }) {
         <Image
           loading="eager"
           id={id}
-          priority={true}
+          priority={priority}
+          fetchPriority={priority ? "high" : "low"}
           className="OfferImage"
           src={
             "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_auto/1708506792?_a=DATC1RAAZAA0"
