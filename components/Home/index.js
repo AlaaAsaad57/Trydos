@@ -9,7 +9,7 @@ import Stories from "./Stories/index";
 const CategoriesBar = dynamic(() => import("./CategoriesBar"), { ssr: false });
 const BrandsBar = dynamic(() => import("./Bars/BrandsBar"), { ssr: false });
 const QuickOffer = dynamic(() => import("./Bars/QuickOffer"), { ssr: false });
-const OfferBar = dynamic(() => import("./Bars/OfferBar"), { ssr: false });
+import OfferBar from "./Bars/OfferBar";
 const CategoryBar = dynamic(() => import("./Bars/CategoryBar"), { ssr: false });
 import OffersList from "./OfferWidgets/OfferList";
 const StoriesComponent = dynamic(() => import("./Stories/StoriesComponent"), {
