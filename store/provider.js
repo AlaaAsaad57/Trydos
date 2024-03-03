@@ -17,6 +17,7 @@ import { RegisterDevice } from "./homepage/actions";
 import { CheckLogin } from "./auth/actions";
 // import GAComponent from "components/global/GAComponent";
 import dynamic from "next/dynamic";
+import { getUserChat } from "utils/functions";
 export default function Providers({ lang, children }) {
   var bool = true;
   useEffect(() => {
@@ -42,7 +43,7 @@ export default function Providers({ lang, children }) {
           <div className="home-page-container">
             <TranslationsMenu init={lang} />
             <Navbar init={lang} />
-            <ChatModal />
+            {getUserChat()?.id && <ChatModal />}
             {children}
           </div>
         </div>
