@@ -145,7 +145,11 @@ function AddStory() {
             sendStory(e);
           }}
           HandleUploadedVideo={(e) => {
-            HandleUploadedVideo(e);
+            let a = dataURLtoFile(
+              e,
+              "image-story" + parseInt(Math.random() * 1000)
+            );
+            HandleUploadedVideo({ target: { files: [a] } });
           }}
           close={() => {
             setOpenCamera(false);
