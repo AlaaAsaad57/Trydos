@@ -44,43 +44,44 @@ export const metadata = {
 //   variable: "--icon-font",
 //   display: "swap",
 // });
-const quicksand_regular = localFont({
-  src: "../../../public/fonts/Quicksand-Regular.woff2",
-  variable: "--Quicksand-Regular",
-  display: "swap",
-  preload: false,
-});
-const quicksand_light = localFont({
-  src: "../../../public/fonts/Quicksand-Light.woff2",
-  variable: "--Quicksand-Light",
-  display: "swap",
-  preload: false,
-});
-const quicksand_bold = localFont({
-  src: "../../../public/fonts/Quicksand-Bold.woff2",
-  variable: "--Quicksand-Bold",
-  display: "swap",
-  preload: false,
-});
-const quicksand_medium = localFont({
-  src: "../../../public/fonts/Quicksand-Medium.woff2",
-  variable: "--Quicksand-Medium",
-  display: "swap",
-  preload: false,
-});
+// const quicksand_regular = localFont({
+//   src: "../../../public/fonts/Quicksand-Regular.woff2",
+//   variable: "--Quicksand-Regular",
+//   display: "swap",
+//   preload: false,
+// });
+// const quicksand_light = localFont({
+//   src: "../../../public/fonts/Quicksand-Light.woff2",
+//   variable: "--Quicksand-Light",
+//   display: "swap",
+//   preload: false,
+// });
+// const quicksand_bold = localFont({
+//   src: "../../../public/fonts/Quicksand-Bold.woff2",
+//   variable: "--Quicksand-Bold",
+//   display: "swap",
+//   preload: false,
+// });
+// const quicksand_medium = localFont({
+//   src: "../../../public/fonts/Quicksand-Medium.woff2",
+//   variable: "--Quicksand-Medium",
+//   display: "swap",
+//   preload: false,
+// });
 export default function RootLayout({ params: { lang }, children }) {
   // ${sf_pro_rounded_light.variable}
   // ${sf_pro_rounded_semibold.variable}
   // ${sf_pro_rounded_regular.variable}
   // ${sf_pro_rounded_medium.variable}
   // ${sf_pro_rounded_bold.variable}
+  // ${quicksand_regular.variable}
+  // ${quicksand_light.variable}
+  // ${quicksand_medium.variable}
+  // ${quicksand_bold.variable}
   return (
     <html
       className={`
-      ${quicksand_regular.variable}
-      ${quicksand_light.variable}
-      ${quicksand_medium.variable}
-      ${quicksand_bold.variable}
+
       font-sans`}
       lang={lang.split("-")[1]}
     >
