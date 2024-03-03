@@ -7,12 +7,10 @@ import Image from "next/image";
 import UploadVideo from "../UploadVideo";
 import { blobToDataURL } from "components/Chat/chatsFunctions";
 import { useStopwatch } from "react-timer-hook";
-function NewStoryModal({ close, send }) {
+function NewStoryModal({ close, send, HandleUploadedVideo }) {
   const [imageFile, setImageFile] = useState(null);
   const [vidUrl, setVideo] = useState(null);
   const [SwitchCamera, setSwitch] = useState(null);
-  const [render, setRender] = useState(false);
-
   const capture = () => {
     setImageFile(webcamRef.current?.getScreenshot());
   };
@@ -93,7 +91,7 @@ function NewStoryModal({ close, send }) {
         a.href = url;
         setVideo(url);
         a.download = "react-webcam-stream-capture.webm";
-        send(vidUrl);
+        HandleUploadedVideo(vidUrl);
         close();
         window.URL.revokeObjectURL(url);
         setRecordedChunks([]);

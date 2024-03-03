@@ -95,6 +95,41 @@ function AddStory() {
       });
     }
   };
+  const HandleUploadedVideo = async (e) => {
+    if (e.target.files[0]?.type.includes("video")) {
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(e.target.files[0]);
+        reader.onload = async () => {
+          setFile(e.target.files[0]);
+          setIsSelected(reader.result);
+          let path = await upload(
+            e.target.files[0],
+            (e) => setUpload(e),
+            1,
+            () => {
+              setIsSelected(null);
+              setFile(null);
+            }
+          )
+            .then((data) => {
+              dispatch(AddStoryAction(data));
+            })
+            .catch((e) => {
+              setFile(null);
+              setIsSelected(null);
+              toast.error("Upload Failed Try Again");
+            });
+          setIsSelected(path);
+          setFile(e.target.files[0]);
+
+          setIsSelected(null);
+          setFile(null);
+          revalidateStories();
+        };
+      });
+    }
+  };
   const sendStory = async (imageFile) => {
     let a = dataURLtoFile(
       imageFile,
@@ -108,6 +143,9 @@ function AddStory() {
         <NewStoryModal
           send={(e) => {
             sendStory(e);
+          }}
+          HandleUploadedVideo={(e) => {
+            HandleUploadedVideo(e);
           }}
           close={() => {
             setOpenCamera(false);
