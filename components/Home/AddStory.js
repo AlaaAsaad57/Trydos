@@ -9,6 +9,7 @@ import { AddStoryAction } from "store/homepage/actions";
 import { revalidateStories } from "utils/serverActions";
 import NewStoryModal from "./Stories/CameraStory";
 import { dataURLtoFile } from "components/Chat/chatsFunctions";
+import { toast } from "react-toastify";
 function AddStory() {
   const [uploaded, setUpload] = useState(0);
   const language = useSelector((state) => state.homepage.language);
@@ -25,26 +26,50 @@ function AddStory() {
         reader.onload = async () => {
           setFile(e.target.files[0]);
           setIsSelected(reader.result);
+          var videoElement = document.createElement("video");
+          videoElement.src = reader.result;
+          var timer = setInterval(async function () {
+            if (videoElement.readyState === 4) {
+              let getTime = videoElement.duration;
+              if (getTime > 59) {
+                toast.error("1 minutes video only");
+                setFile(null);
+                setIsSelected(null);
+                clearInterval(timer);
+                return;
+              } else {
+                clearInterval(timer);
+                let path = await upload(
+                  e.target.files[0],
+                  (e) => setUpload(e),
+                  1,
+                  () => {
+                    setIsSelected(null);
+                    setFile(null);
+                  }
+                )
+                  .then((data) => {
+                    dispatch(AddStoryAction(data));
+                  })
+                  .catch((e) => {
+                    setFile(null);
+                    setIsSelected(null);
+                    toast.error("Upload Failed Try Again");
+                  });
+                setIsSelected(path);
+
+                setFile(e.target.files[0]);
+
+                setIsSelected(null);
+                setFile(null);
+                revalidateStories();
+              }
+
+              clearInterval(timer);
+            }
+          }, 500);
         };
       });
-      let path = await upload(
-        e.target.files[0],
-        (e) => setUpload(e),
-        1,
-        () => {
-          setIsSelected(null);
-          setFile(null);
-        }
-      ).then((data) => {
-        dispatch(AddStoryAction(data));
-      });
-      setIsSelected(path);
-
-      setFile(e.target.files[0]);
-
-      setIsSelected(null);
-      setFile(null);
-      revalidateStories();
     } else if (e.target.files[0]?.type.includes("image")) {
       new Promise((resolve, reject) => {
         const reader = new FileReader();

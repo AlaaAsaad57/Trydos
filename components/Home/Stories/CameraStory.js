@@ -100,7 +100,7 @@ function NewStoryModal({ close, send }) {
       }
     }, [recordedChunks, setVideo]);
     useEffect(() => {
-      if (seconds > 30 && capturing) {
+      if (seconds > 59 && capturing) {
         handleStopCaptureClick();
       }
     }, [seconds]);
