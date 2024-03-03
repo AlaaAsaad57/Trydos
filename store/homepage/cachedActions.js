@@ -37,7 +37,7 @@ export const getHomeData = async () => {
   try {
     let time = new Date().getTime();
     const res = await fetch(OTP_URL + HOME_DATA_URL, {
-      next: { revalidate: 10000 },
+      next: { revalidate: 10000000000000 },
       headers: DataApiHeaders(),
     });
     console.log(res, "res");
@@ -79,7 +79,7 @@ export const getListingData = async () => {
     // const repoSetting = await resSetting.json()
     let time = new Date().getTime();
     const res = await fetch(OTP_URL + LISTING_INFO_URL, {
-      next: { revalidate: 10000 },
+      next: { revalidate: 1000000000000 },
       headers: DataApiHeaders(),
     });
     const repo = await res.json();
