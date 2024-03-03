@@ -12,7 +12,7 @@ import {
   VERFIY_OTP,
 } from "utils/endpointConfig";
 import { store } from "../index";
-import { SSRDetect } from "utils/functions";
+import { SSRDetect, getUserStories } from "utils/functions";
 import { GetChats } from "../chat/actions";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 import Cookies from "js-cookie";
@@ -225,10 +225,12 @@ export const getCustomerInfo = async () => {
   } catch (e) {}
 };
 export const WatchStory = (id, pid) => {
-  store.dispatch({ type: "WATCH-STORY", payload: { pid: pid, id: id } });
-  axios.get(STORIES_URL + "/api/v1/stories/increase_viewers/" + id, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("STORIES-TOKEN")}`,
-    },
-  });
+  if (getUserStories()?.id) {
+    store.dispatch({ type: "WATCH-STORY", payload: { pid: pid, id: id } });
+    axios.get(STORIES_URL + "/api/v1/stories/increase_viewers/" + id, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("STORIES-TOKEN")}`,
+      },
+    });
+  }
 };
