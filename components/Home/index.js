@@ -7,9 +7,9 @@ import { useEffect } from "react";
 import { GetMainData, GetStoryData, LogData } from "store/homepage/actions";
 import Stories from "./Stories/index";
 const CategoriesBar = dynamic(() => import("./CategoriesBar"), { ssr: false });
-const BrandsBar = dynamic(() => import("./Bars/BrandsBar"), { ssr: false });
+import BrandsBar from "./Bars/BrandsBar";
 const QuickOffer = dynamic(() => import("./Bars/QuickOffer"), { ssr: false });
-import OfferBar from "./Bars/OfferBar";
+const OfferBar = dynamic(() => import("./Bars/OfferBar"), { ssr: false });
 const CategoryBar = dynamic(() => import("./Bars/CategoryBar"), { ssr: false });
 import OffersList from "./OfferWidgets/OfferList";
 const StoriesComponent = dynamic(() => import("./Stories/StoriesComponent"), {
