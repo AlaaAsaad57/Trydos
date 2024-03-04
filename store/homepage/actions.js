@@ -1,4 +1,3 @@
-import axios from "axios";
 import {
   OTP_URL,
   STORIES_URL,
@@ -17,6 +16,7 @@ export const RegisterDevice = async () => {
       !localStorage.getItem("DEVICE-TOKEN") &&
       !localStorage.getItem("USER")
     ) {
+      let axios = (await import("axios")).default;
       let response = await axios.post(OTP_URL + REGISTER_DEVICE_URL);
       localStorage.setItem("DEVICE-TOKEN", response.data.data.token);
     }
@@ -53,6 +53,7 @@ export const upload = async (file, callback, is_video, endUpload) => {
   formData.append("file", file);
   formData.append("is_video", is_video);
   try {
+    let axios = (await import("axios")).default;
     let response = await axios.post(STORIES_URL + UPLOAD_STORY_URL, formData, {
       headers: {
         "Content-Type": "multipart/form-data",

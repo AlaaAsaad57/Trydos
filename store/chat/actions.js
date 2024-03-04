@@ -1,4 +1,3 @@
-import axios from "axios";
 import {
   CHAT_URL,
   DELETE_CHAT_URL,
@@ -13,12 +12,14 @@ import { store } from "../index";
 import { getUserChat, translate } from "utils/functions";
 import { toast } from "react-toastify";
 import { db } from "../../utils/firebaseInitv1";
-import { onValue, ref } from "firebase/database";
+
 export const ChatConroller = (payload) => {
   return { type: "CHAT-OPEN", payload: payload };
 };
 export const GetChats = async (payload) => {
+  const { onValue, ref } = await import("firebase/database");
   try {
+    let axios = (await import("axios")).default;
     if (!payload) {
       store.dispatch({ type: "CHAT_LOADING" });
     }
@@ -98,6 +99,7 @@ export const GetChats = async (payload) => {
 };
 export const getCalls = async (id) => {
   try {
+    let axios = (await import("axios")).default;
     store.dispatch({ type: "CALL_LOADING", payload: true });
     await axios
       .post(
@@ -123,6 +125,7 @@ export const getCalls = async (id) => {
   }
 };
 export const SendMessage = async (payload, isNew) => {
+  let axios = (await import("axios")).default;
   const AxiosInstance = axios.create({
     baseURL: CHAT_URL,
     timeout: 0,
@@ -203,6 +206,7 @@ export const SendMessage = async (payload, isNew) => {
   }
 };
 export async function watchChannel(payload) {
+  let axios = (await import("axios")).default;
   try {
     const AxiosInstance = axios.create({
       baseURL: CHAT_URL,
@@ -225,6 +229,7 @@ export async function watchChannel(payload) {
   } catch (e) {}
 }
 export async function StartChat(payload) {
+  let axios = (await import("axios")).default;
   try {
     const AxiosInstance = axios.create({
       baseURL: CHAT_URL,
@@ -250,6 +255,7 @@ export async function StartChat(payload) {
   }
 }
 export async function DeleteMessageApi(msg_id, bool) {
+  let axios = (await import("axios")).default;
   const AxiosInstance = axios.create({
     baseURL: CHAT_URL,
     timeout: 0,
@@ -270,6 +276,7 @@ export async function DeleteMessageApi(msg_id, bool) {
   );
 }
 export async function deleteChat(payload) {
+  let axios = (await import("axios")).default;
   try {
     const AxiosInstance = axios.create({
       baseURL: CHAT_URL,
@@ -291,6 +298,7 @@ export async function deleteChat(payload) {
   }
 }
 export async function Recive(payload) {
+  let axios = (await import("axios")).default;
   const AxiosInstance = axios.create({
     baseURL: CHAT_URL,
     timeout: 0,
@@ -310,6 +318,7 @@ export async function Recive(payload) {
   } catch (e) {}
 }
 export async function getPage(channel, mid) {
+  let axios = (await import("axios")).default;
   try {
     const AxiosInstance = axios.create({
       baseURL: CHAT_URL,
@@ -336,6 +345,7 @@ export async function getPage(channel, mid) {
   } catch (e) {}
 }
 export async function SearchContact(payload) {
+  let axios = (await import("axios")).default;
   try {
     const AxiosInstance = axios.create({
       baseURL: CHAT_URL,
@@ -358,6 +368,7 @@ export async function SearchContact(payload) {
   } catch (e) {}
 }
 export async function PinnChat(payload) {
+  let axios = (await import("axios")).default;
   try {
     const AxiosInstance = axios.create({
       baseURL: CHAT_URL,
@@ -381,6 +392,7 @@ export async function PinnChat(payload) {
   } catch (e) {}
 }
 export async function MuteChat(payload) {
+  let axios = (await import("axios")).default;
   try {
     const AxiosInstance = axios.create({
       baseURL: CHAT_URL,
@@ -403,6 +415,7 @@ export async function MuteChat(payload) {
   } catch (e) {}
 }
 export async function getMessagesBetweenMessage(payload) {
+  let axios = (await import("axios")).default;
   const AxiosInstance = axios.create({
     baseURL: CHAT_URL,
     timeout: 0,
@@ -428,6 +441,7 @@ export async function getMessagesBetweenMessage(payload) {
 }
 
 export async function getContacts() {
+  let axios = (await import("axios")).default;
   const AxiosInstance = axios.create({
     baseURL: CHAT_URL,
     timeout: 0,
@@ -447,6 +461,7 @@ export async function getContacts() {
 }
 
 export async function checkForUpdate() {
+  let axios = (await import("axios")).default;
   try {
     let last_date = store.getState().chat.lastNotification;
     if (
@@ -457,7 +472,6 @@ export async function checkForUpdate() {
     }
   } catch (e) {}
 }
-// export const InitPusherChannel = (channelId) => {
 //   if (
 //     store.getState().chat.channels.filter((ch) => ch.id === channelId)
 //       .length === 0
@@ -485,6 +499,7 @@ export const makeVideoCall = async (
   callerPhoto,
   mobilePhone
 ) => {
+  let axios = (await import("axios")).default;
   if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
     console.log(channelId, callerName, callerPhoto, mobilePhone);
   try {
@@ -539,6 +554,7 @@ export const makeVoiceCall = async (
   mobilePhone
 ) => {
   try {
+    let axios = (await import("axios")).default;
     let obj =
       typeof channelId === "string" && channelId.includes("ch")
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
@@ -584,6 +600,7 @@ export const makeVoiceCall = async (
 };
 export const AnswerCall = async (channelId, messageId) => {
   try {
+    let axios = (await import("axios")).default;
     store.dispatch({ type: "CALL-LOADING", payload: "call" });
     let status = null;
     store.dispatch({ type: "enableNotifications" });
@@ -648,6 +665,7 @@ export const AnswerCall = async (channelId, messageId) => {
 };
 export const InCall = async (channelId, messageId) => {
   try {
+    let axios = (await import("axios")).default;
     if (messageId) {
       let obj =
         typeof channelId === "string" && channelId.includes("ch")
@@ -673,6 +691,7 @@ export const InCall = async (channelId, messageId) => {
 };
 export const RefuseCall = async (channelId, messageId, duration) => {
   try {
+    let axios = (await import("axios")).default;
     if (messageId) {
       let obj =
         typeof channelId === "string" && channelId.includes("ch")
@@ -704,6 +723,7 @@ export const RefuseCall = async (channelId, messageId, duration) => {
 };
 export const Answer = async (channelId, messageId) => {
   try {
+    let axios = (await import("axios")).default;
     let obj =
       typeof channelId === "string" && channelId.includes("ch")
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }

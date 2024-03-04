@@ -1,4 +1,3 @@
-import axios from "axios";
 import userImage from "public/images/profileNo.png";
 import {
   CHAT_URL,
@@ -14,7 +13,6 @@ import {
 import { store } from "../index";
 import { SSRDetect, getUserStories } from "utils/functions";
 import { GetChats } from "../chat/actions";
-import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 import Cookies from "js-cookie";
 
 export const ReInitialise = () => {
@@ -37,6 +35,7 @@ export const RegisterGuest = () => {
 };
 export const SendOtp = async (mobilePhone, is_via_whatsapp, step) => {
   try {
+    let axios = (await import("axios")).default;
     let response = await axios.get(
       OTP_URL +
         SEND_OTP +
@@ -58,6 +57,7 @@ export const SendOtp = async (mobilePhone, is_via_whatsapp, step) => {
 };
 export const VerifyOtp = async (code, verficationID) => {
   try {
+    let axios = (await import("axios")).default;
     let response = await axios.get(
       OTP_URL + VERFIY_OTP + `?verificationId=${verficationID}&otp=${code}`
     );
@@ -91,6 +91,7 @@ export const VerifyOtp = async (code, verficationID) => {
 };
 export const loginStories = async () => {
   try {
+    let axios = (await import("axios")).default;
     let response = await axios.post(STORIES_URL + LOG_IN_STORIES, {
       otp_id_token: localStorage.getItem("ID-TOKEN"),
       mobile_phone: "+" + JSON.parse(localStorage.getItem("USER")).phone,
@@ -104,6 +105,7 @@ export const loginStories = async () => {
 };
 export const loginChat = async () => {
   try {
+    let axios = (await import("axios")).default;
     let response = await axios.post(CHAT_URL + LOG_IN_CHAT, {
       otp_id_token: localStorage.getItem("ID-TOKEN"),
       mobile_phone: JSON.parse(localStorage.getItem("USER")).phone,
@@ -113,6 +115,9 @@ export const loginChat = async () => {
     localStorage.setItem("USER-CHAT", JSON.stringify(response.data.data));
     localStorage.setItem("CHAT-TOKEN", response.data.data.access_token);
     if (response.data.data?.id) {
+      const { requestFirebaseNotificationPermission } = await import(
+        "utils/firebaseInitv1"
+      );
       typeof window !== "undefined" &&
         "serviceWorker" in navigator &&
         requestFirebaseNotificationPermission().then((firebaseToken) => {
@@ -146,6 +151,7 @@ export const loginChat = async () => {
 };
 export async function StoreToken(payload) {
   try {
+    let axios = (await import("axios")).default;
     const AxiosInstance = axios.create({
       baseURL: CHAT_URL,
       timeout: 0,
@@ -199,6 +205,7 @@ export const CheckLogin = async () => {
   }
 };
 export const getClientData = async () => {
+  let axios = (await import("axios")).default;
   if (!localStorage.getItem("customer-info")) await getCustomerInfo();
   let res = await axios.get(OTP_URL + STARTER_SETTINGS);
   store.dispatch({ type: "GET_SETTINGS", payload: res.data });
@@ -209,6 +216,7 @@ export const getClientData = async () => {
 };
 export const getCustomerInfo = async () => {
   try {
+    let axios = (await import("axios")).default;
     let res = await axios.get(OTP_URL + CUSTOMER_INFO_URL, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("MARKET-TOKEN")}`,
@@ -224,7 +232,8 @@ export const getCustomerInfo = async () => {
     );
   } catch (e) {}
 };
-export const WatchStory = (id, pid) => {
+export const WatchStory = async (id, pid) => {
+  let axios = (await import("axios")).default;
   if (getUserStories()?.id) {
     store.dispatch({ type: "WATCH-STORY", payload: { pid: pid, id: id } });
     axios.get(STORIES_URL + "/api/v1/stories/increase_viewers/" + id, {

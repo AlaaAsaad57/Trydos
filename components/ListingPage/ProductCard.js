@@ -8,7 +8,6 @@ import "swiper/css/bundle";
 import { useDispatch, useSelector } from "react-redux";
 import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";
-import axios from "axios";
 import { LISTING_INFO_URL, OTP_URL } from "utils/endpointConfig";
 import { GetMainData, LogData } from "store/homepage/actions";
 function ProductCard({
@@ -25,6 +24,7 @@ function ProductCard({
   const GetNextPage = async () => {
     if (!loading) {
       dispatch({ type: "PRODUCT_LOADING" });
+      let axios = (await import("axios")).default;
       await axios
         .get(OTP_URL + LISTING_INFO_URL + `?offset=${offset}&limit=${20}`)
         .then((data) => {

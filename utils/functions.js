@@ -4,14 +4,13 @@ import { quality } from "@cloudinary/url-gen/actions/delivery";
 import { auto } from "@cloudinary/url-gen/qualifiers/quality";
 import { Resize } from "@cloudinary/url-gen/actions";
 import profilePicture from "public/images/profileNo.png";
-import axios from "axios";
-import { DataApiHeaders } from "store/homepage/cachedActions";
 import { GET_USERS_STORIES, STORIES_URL } from "./endpointConfig";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
 export const getStories = async () => {
   try {
+    let axios = (await import("axios")).default;
     const res = await axios.get(STORIES_URL + GET_USERS_STORIES, {
       headers: {
         Authorization:

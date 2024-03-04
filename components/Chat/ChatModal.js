@@ -6,7 +6,7 @@ const CallComponent = dynamic(
 const Chat = dynamic(() => import("./index"), { ssr: false });
 import { useDispatch, useSelector } from "react-redux";
 import { ChatConroller } from "store/chat/actions";
-import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
+
 import { SSRDetect, getUserChat } from "utils/functions";
 import { StoreToken } from "store/auth/actions";
 import dynamic from "next/dynamic";
@@ -23,7 +23,10 @@ function ChatModal() {
       {chatVar && SSRDetect() && (
         <Chat
           open={chatVar}
-          close={() => {
+          close={async () => {
+            const { requestFirebaseNotificationPermission } = await import(
+              "utils/firebaseInitv1"
+            );
             typeof window !== "undefined" &&
               "serviceWorker" in navigator &&
               requestFirebaseNotificationPermission().then((firebaseToken) => {

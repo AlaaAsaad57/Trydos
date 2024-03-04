@@ -12,7 +12,7 @@ function GAComponent() {
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
         strategy="lazyOnload"
       />
-      <Script id="google-analytics" strategy="afterInteractive">
+      <Script id="google-analytics" strategy="worker">
         {`
     window.dataLayer = window.dataLayer || [];
     function gtag(){window.dataLayer.push(arguments);}
@@ -21,7 +21,7 @@ function GAComponent() {
   `}
       </Script>
 
-      <Script id="ga=tm-script">
+      <Script strategy="worker" id="ga=tm-script">
         {(function (w, d, s, l, i) {
           w[l] = w[l] || [];
           w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });

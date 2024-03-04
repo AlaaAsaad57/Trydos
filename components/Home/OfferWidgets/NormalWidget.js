@@ -34,7 +34,7 @@ const NormalWidget = ({ offer, myKey, onClick }) => {
               fill
               alt="imageAlt"
               loading="eager"
-              fetchpriority="high"
+              fetchPriority="high"
               priority={true}
               style={{
                 position: "absolute",
@@ -85,7 +85,7 @@ const NormalWidget = ({ offer, myKey, onClick }) => {
                 fill
                 alt="imageAlt"
                 loading="eager"
-                fetchpriority="high"
+                fetchPriority="high"
                 priority={true}
                 style={{
                   position: "absolute",

@@ -19,18 +19,27 @@ import { StoreToken } from "store/auth/actions";
 const NotificationContainer = dynamic(() => import("./Notifications"), {
   ssr: false,
 });
-import {
-  onMessageListener,
-  requestFirebaseNotificationPermission,
-} from "utils/firebaseInitv1";
 import { getUserChat } from "utils/functions";
-import Cookies from "js-cookie";
 import { getUserStories } from "../../utils/functions";
 export default function Home({ HomeData_res, HomeData }) {
   useEffect(() => {
     LogData({ HomeData_req_data: HomeData_res });
     dispatch(GetMainData(HomeData));
     try {
+      initFB();
+    } catch (e) {
+      if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
+    }
+  }, []);
+  const initFB = async () => {
+    if (getUserStories()?.id) {
+      const Cookies = (await import("js-cookie")).default;
+      Cookies.set("token", getUserStories()?.access_token);
+    }
+
+    if (getUserChat()?.id) {
+      const { requestFirebaseNotificationPermission, onMessageListener } =
+        await import("utils/firebaseInitv1");
       requestFirebaseNotificationPermission().then((fbtoken) => {
         if (fbtoken) {
           fbtoken &&
@@ -52,13 +61,8 @@ export default function Home({ HomeData_res, HomeData }) {
             if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
               console.log("failed: ", err);
           });
-    } catch (e) {
-      if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
     }
-  }, []);
-  useEffect(() => {
-    Cookies.set("token", getUserStories()?.access_token);
-  }, []);
+  };
   const selectedStory = useSelector((state) => state.homepage.selectedStory);
   const enableNotifications = useSelector(
     (state) => state.homepage.enableNotifications

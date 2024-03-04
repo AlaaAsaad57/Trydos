@@ -5,7 +5,6 @@ import MissedCall from "./svg/missedCall.svg";
 import IncomingCall from "./svg/IncomingCall.svg";
 import OutgoingCall from "./svg/outgoingCall.svg";
 import { store } from "store";
-import axios from "axios";
 import { CHAT_URL } from "utils/endpointConfig";
 import { SendMessage } from "store/chat/actions";
 import { getUserChat, translate } from "utils/functions";
@@ -530,7 +529,7 @@ const uploadFile = async (file_name, file, onUploadProgress) => {
   let formData = new FormData();
   formData.append("file", file);
   formData.append("file_name", file_name);
-
+  let axios = (await import("axios")).default;
   return axios.post(CHAT_URL + "/api/v1/upload_file", formData);
 };
 
