@@ -2,9 +2,6 @@
 const withSvgr = require("next-svgr");
 const { withSentryConfig } = require("@sentry/nextjs");
 const nextConfig = withSvgr({
-  env: {
-    NODE_ENV: "production",
-  },
   swcMinify: true,
   compiler: {
     removeConsole: {
