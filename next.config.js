@@ -2,6 +2,12 @@
 const withSvgr = require("next-svgr");
 const { withSentryConfig } = require("@sentry/nextjs");
 const nextConfig = withSvgr({
+  swcMinify: true,
+  compiler: {
+    removeConsole: {
+      exclude: ["error"],
+    },
+  },
   images: {
     domains: [
       "res.cloudinary.com",
