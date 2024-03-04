@@ -2,6 +2,9 @@
 const withSvgr = require("next-svgr");
 const { withSentryConfig } = require("@sentry/nextjs");
 const nextConfig = withSvgr({
+  env: {
+    NODE_ENV: "production",
+  },
   swcMinify: true,
   compiler: {
     removeConsole: {
@@ -16,8 +19,12 @@ const nextConfig = withSvgr({
       "market_staging.trydos.tech",
       "s3.ap-south-1.amazonaws.com",
     ],
+    minimumCacheTTL: 60000,
   },
-  experimental: { externalDir: true },
+  experimental: {
+    externalDir: true,
+    webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
+  },
   webpack(config, options) {
     config.module.rules.push({
       test: /\.mp3$/,
