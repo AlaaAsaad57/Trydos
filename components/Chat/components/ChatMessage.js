@@ -185,7 +185,7 @@ function ChatMessage(props) {
     }
   };
   const DeleteMessage = (ch_id, msg_id, bool) => {
-    dispatch({ type: "DELETE_MESSAGE", payload: { ch_id, msg_id } });
+    dispatch({ type: "DELETE_MESSAGE", payload: { ch_id, msg_id, bool } });
     DeleteMessageApi(msg_id, bool);
   };
 

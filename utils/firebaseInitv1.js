@@ -374,6 +374,7 @@ export const onMessageListener = () =>
           payload: {
             ch_id: JSON.parse(payload.data.data).message.channel_id,
             msg_id: JSON.parse(payload.data.data).message.id,
+            bool: true,
           },
         });
       }

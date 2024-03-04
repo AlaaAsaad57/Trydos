@@ -1096,7 +1096,7 @@ export const ChatReducer = (
         ).length > 0
       ) {
         let arr = [];
-        let msg_arr = [];
+        let bool = payload.bool;
         let active = state.activeChat;
         state.data.map((chat) => {
           if (parseInt(chat.id) === parseInt(payload.ch_id)) {
@@ -1104,24 +1104,45 @@ export const ChatReducer = (
               state.activeChat?.id &&
               parseInt(state.activeChat.id) === parseInt(payload.ch_id)
             ) {
-              active = {
-                ...state.activeChat,
-                messages: active.messages.filter(
-                  (msg) => parseInt(msg.id) !== parseInt(payload.msg_id)
-                ),
-              };
+              active = bool
+                ? {
+                    ...state.activeChat,
+                    messages: active.messages.map((msg) => {
+                      if (parseInt(msg.id) !== parseInt(payload.msg_id)) {
+                        return msg;
+                      } else {
+                        return {
+                          ...msg,
+                          auth_message_status: {
+                            ...(msg?.auth_message_status || {}),
+                            is_deleted: 1,
+                          },
+                        };
+                      }
+                    }),
+                  }
+                : {
+                    ...state.activeChat,
+                    messages: active.messages.filter(
+                      (msg) => parseInt(msg.id) !== parseInt(payload.msg_id)
+                    ),
+                  };
             }
             arr.push({
               ...chat,
-              messages: chat.messages.filter(
-                (msg) => parseInt(msg.id) !== parseInt(payload.msg_id)
-              ),
-            });
-            chat.messages.map((msg) => {
-              if (parseInt(msg.id) === parseInt(payload.msg_id)) {
-              } else {
-                msg_arr.push(msg);
-              }
+              messages: chat.messages.map((msg) => {
+                if (parseInt(msg.id) !== parseInt(payload.msg_id)) {
+                  return msg;
+                } else {
+                  return {
+                    ...msg,
+                    auth_message_status: {
+                      ...(msg?.auth_message_status || {}),
+                      is_deleted: 1,
+                    },
+                  };
+                }
+              }),
             });
           } else {
             arr.push(chat);
