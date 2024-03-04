@@ -526,6 +526,7 @@ export const makeVideoCall = async (
         store.dispatch({ type: "CALL-LOADING", payload: null });
       });
   } catch (e) {
+    store.dispatch({ type: "enableNotifications" });
     toast.info("User in Another Call");
     store.dispatch({ type: "END-CALL", payload: -1 });
     console.error(e);
@@ -576,6 +577,7 @@ export const makeVoiceCall = async (
       });
   } catch (e) {
     console.error(e);
+    store.dispatch({ type: "enableNotifications" });
     toast.info("User in Another Call");
     store.dispatch({ type: "CALL-LOADING", payload: null });
   }
@@ -584,6 +586,7 @@ export const AnswerCall = async (channelId, messageId) => {
   try {
     store.dispatch({ type: "CALL-LOADING", payload: "call" });
     let status = null;
+    store.dispatch({ type: "enableNotifications" });
     toast.info(
       translate(
         "Initialize Call please wait..",
@@ -628,6 +631,7 @@ export const AnswerCall = async (channelId, messageId) => {
           store.dispatch({ type: "ANSWER_CALL", payload: data.data.data });
         });
     } else {
+      store.dispatch({ type: "enableNotifications" });
       toast.info(
         translate(
           "Call Answered from another account",

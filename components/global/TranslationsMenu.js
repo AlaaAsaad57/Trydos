@@ -4,12 +4,20 @@ import UAEIcon from "public/svg/uae.svg";
 import TRSvg from "public/svg/tr.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { changeAppLanguage } from "store/homepage/actions";
+import dynamic from "next/dynamic";
+const ArabicCss = dynamic(
+  () => {
+    import("./ArabicCss");
+  },
+  { ssr: false }
+);
 function TranslationsMenu(init) {
   const language = useSelector((state) => state.homepage.language);
   const dispatch = useDispatch();
 
   return (
     <div className="translations-container">
+      {language === "ar" && <ArabicCss />}
       <div className="translations-container-inner">
         <div className="translation-icon">
           <TranslationsIcon />

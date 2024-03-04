@@ -9,7 +9,7 @@ import NewChatsSide from "components/Chat/components/NewChatsSide";
 import { useState } from "react";
 import { SSRDetect, translate } from "utils/functions";
 import dynamic from "next/dynamic";
-function ChatContainer(props) {
+function Chat(props) {
   const dispatch = useDispatch();
   const ViewedScreen = useSelector((state) => state.chat.main);
   const first = useSelector((state) => state.chat.first);
@@ -82,4 +82,4 @@ function ChatContainer(props) {
   );
 }
 
-export default ChatContainer;
+export default Chat;

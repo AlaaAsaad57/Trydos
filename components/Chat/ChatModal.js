@@ -1,11 +1,15 @@
 import React from "react";
-import CallComponent from "components/Chat/components/CallComponent";
-import Chat from "./index";
+const CallComponent = dynamic(
+  () => import("components/Chat/components/CallComponent"),
+  { ssr: false }
+);
+const Chat = dynamic(() => import("./index"), { ssr: false });
 import { useDispatch, useSelector } from "react-redux";
 import { ChatConroller } from "store/chat/actions";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 import { SSRDetect, getUserChat } from "utils/functions";
 import { StoreToken } from "store/auth/actions";
+import dynamic from "next/dynamic";
 function ChatModal() {
   const isCallIncoming = useSelector((state) => state.chat.isCallIncoming);
   const callInProgress = useSelector((state) => state.chat.callInProgress);
@@ -25,6 +29,7 @@ function ChatModal() {
               requestFirebaseNotificationPermission().then((firebaseToken) => {
                 try {
                   if (!firebaseToken) {
+                    dispatch({ type: "enableNotifications" });
                     toast.error("Please Check Notifications Premissions");
                   } else {
                     localStorage.setItem("firebase_token", firebaseToken);

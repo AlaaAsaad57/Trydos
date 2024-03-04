@@ -7,11 +7,18 @@ const initialState = {
   renderStories: false,
   storiesData: [],
   categories: [],
+  enableNotifications: false,
   settings: null,
 };
 
 const HomeReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "enableNotifications": {
+      return {
+        ...state,
+        enableNotifications: true,
+      };
+    }
     case "WATCH-STORY": {
       let arr = [];
       state.storiesData.map((story) => {

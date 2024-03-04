@@ -16,8 +16,9 @@ const StoriesComponent = dynamic(() => import("./Stories/StoriesComponent"), {
   ssr: false,
 });
 import { StoreToken } from "store/auth/actions";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+const NotificationContainer = dynamic(() => import("./Notifications"), {
+  ssr: false,
+});
 import {
   onMessageListener,
   requestFirebaseNotificationPermission,
@@ -59,6 +60,9 @@ export default function Home({ HomeData_res, HomeData }) {
     Cookies.set("token", getUserStories()?.access_token);
   }, []);
   const selectedStory = useSelector((state) => state.homepage.selectedStory);
+  const enableNotifications = useSelector(
+    (state) => state.homepage.enableNotifications
+  );
   useEffect(() => {
     if (selectedStory) {
       document.body.style.overflowY = "hidden";
@@ -69,8 +73,7 @@ export default function Home({ HomeData_res, HomeData }) {
   const dispatch = useDispatch();
   return (
     <>
-      <ToastContainer position="bottom-right" />
-
+      {enableNotifications && <NotificationContainer />}
       <Stories />
       {<StoriesComponent />}
       <CategoriesBar forMobile={true} />

@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import { useParams, usePathname, useSearchParams } from "next/navigation";
-
+import { usePathname, useSearchParams } from "next/navigation";
+import "styles/popup.css";
 const countriesString = process.env.NEXT_PUBLIC_COUNTRIES || "[]";
 const countries = JSON.parse(countriesString);
 

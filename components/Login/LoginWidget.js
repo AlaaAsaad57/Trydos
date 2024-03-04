@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import LoginPhone from "./LoginPhone";
 import LoginSuccessWidget from "./LoginSuccessWidget";
 import { ReInitialise } from "store/auth/actions";
+import "styles/login.css";
 function LoginWidget({ close, loginSuccessVar, setLoginSucces }) {
   const dispatch = useDispatch();
   const wrongNumber = useSelector((state) => state.auth.wrongNumber);
