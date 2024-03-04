@@ -7,7 +7,9 @@ import dynamic from "next/dynamic";
 const Skeleton = dynamic(() => import("react-loading-skeleton"), {
   ssr: false,
 });
-import CategoryNavItem from "./CategoryNavItem";
+const CategoryNavItem = dynamic(() => import("./CategoryNavItem"), {
+  ssr: false,
+});
 function CategoriesBar({ forMobile, key }) {
   const loading = useSelector((state) => state.homepage.loading);
   const [searchEnabled, setSearchEnabled] = useState(false);
@@ -20,17 +22,31 @@ function CategoriesBar({ forMobile, key }) {
           className={`categories-bar-container ${forMobile && "mobile-bar"}`}
           style={{ marginLeft: searchEnabled ? "13px" : "50px" }}
         >
-          {categories.map((category, key) => (
-            <CategoryNavItem
-              searchEnabled={searchEnabled}
-              close={() => setSearchEnabled(false)}
-              openSearch={() => setSearchEnabled(true)}
-              name={category.name}
-              key={key}
-              myKey={key}
-              icon={category?.icon}
-            />
-          ))}
+          {categories.map((category, key) =>
+            loading ? (
+              <div className="categories-bar-item" key={key}>
+                <div className="categories-bar-item-icon">
+                  <Skeleton
+                    duration={0.5}
+                    count={1}
+                    circle={true}
+                    width={"100%"}
+                    height={"100%"}
+                  />
+                </div>
+              </div>
+            ) : (
+              <CategoryNavItem
+                searchEnabled={searchEnabled}
+                close={() => setSearchEnabled(false)}
+                openSearch={() => setSearchEnabled(true)}
+                name={category.name}
+                key={key}
+                myKey={key}
+                icon={category?.icon}
+              />
+            )
+          )}
         </div>
       )}
     </>
