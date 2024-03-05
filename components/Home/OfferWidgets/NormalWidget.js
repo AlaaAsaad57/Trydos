@@ -28,7 +28,7 @@ const NormalWidget = ({ offer, myKey, onClick }) => {
       key={myKey}
       onClick={() => onClick()}
     >
-      {myKey === 0 ? (
+      {myKey === 0 || myKey === 1 ? (
         <>
           <>
             <Image

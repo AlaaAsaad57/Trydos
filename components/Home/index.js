@@ -82,7 +82,7 @@ export default function Home({ HomeData_res, HomeData }) {
       {<StoriesComponent />}
       <CategoriesBar forMobile={true} />
       <BrandsBar />
-      <OffersList offers={[1, 1, 1]} />
+      <OffersList offers={[1, 1, 1, 1]} />
       <CategoryBar />
       <OfferBar />
       <QuickOffer />
