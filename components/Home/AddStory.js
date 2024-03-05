@@ -9,7 +9,7 @@ import { AddStoryAction } from "store/homepage/actions";
 import { revalidateStories } from "utils/serverActions";
 import NewStoryModal from "./Stories/CameraStory";
 import { dataURLtoFile } from "components/Chat/chatsFunctions";
-import { toast } from "react-toastify";
+
 function AddStory() {
   const [uploaded, setUpload] = useState(0);
   const language = useSelector((state) => state.homepage.language);
@@ -19,6 +19,7 @@ function AddStory() {
   const [file, setFile] = useState(null);
   const dispatch = useDispatch();
   const handleChange = async (e) => {
+    const { toast } = await import("react-toastify");
     if (e.target.files[0]?.type.includes("video")) {
       new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -33,6 +34,7 @@ function AddStory() {
               let getTime = videoElement.duration;
               if (getTime > 59) {
                 dispatch({ type: "enableNotifications" });
+
                 toast.error("1 minutes video only");
                 setFile(null);
                 setIsSelected(null);
@@ -56,6 +58,7 @@ function AddStory() {
                     setFile(null);
                     setIsSelected(null);
                     dispatch({ type: "enableNotifications" });
+
                     toast.error("Upload Failed Try Again");
                   });
                 setIsSelected(path);

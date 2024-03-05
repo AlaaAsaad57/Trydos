@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Cookies from "js-cookie";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import "styles/popup.css";
 const countriesString = process.env.NEXT_PUBLIC_COUNTRIES || "[]";
 const countries = JSON.parse(countriesString);
@@ -30,12 +29,15 @@ const PopupCountry = () => {
     country: null,
     language: "en",
   });
-  const pathname = usePathname();
   const params = useSearchParams();
   const [selectedCountry, setSelectedCountry] = useState("");
 
   useEffect(() => {
+    init();
+  }, [selectedCountry]);
+  const init = async () => {
     if (selectedCountry) {
+      const Cookies = (await import("js-cookie")).default;
       setLocalization({ ...localization, country: selectedCountry });
       Cookies.set("language", localization.language, {
         expires: new Date(2147483647 * 1000),
@@ -47,7 +49,7 @@ const PopupCountry = () => {
         window.location.href = "/" + params.get("path");
       } else window.location.href = "/";
     }
-  }, [selectedCountry]);
+  };
   return (
     <div
       className={`${"flex"} fixed items-center justify-center z-[99999] inset-0 bg-slate-700 bg-opacity-50`}

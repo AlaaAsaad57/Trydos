@@ -13,7 +13,6 @@ import {
 import { store } from "../index";
 import { SSRDetect, getUserStories } from "utils/functions";
 import { GetChats } from "../chat/actions";
-import Cookies from "js-cookie";
 
 export const ReInitialise = () => {
   return { type: "RE-INITILIASE" };
@@ -91,6 +90,7 @@ export const VerifyOtp = async (code, verficationID) => {
 };
 export const loginStories = async () => {
   try {
+    const Cookies = (await import("js-cookie")).default;
     let axios = (await import("axios")).default;
     let response = await axios.post(STORIES_URL + LOG_IN_STORIES, {
       otp_id_token: localStorage.getItem("ID-TOKEN"),

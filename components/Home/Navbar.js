@@ -9,7 +9,8 @@ function Navbar({ init }) {
   const [loginOpen, setLoginOpen] = useState(false);
   const language = useSelector((state) => state.homepage.language);
   const dispatch = useDispatch();
-  useEffect(() => {
+  const initFunc = async () => {
+    const Cookies = (await import("js-cookie")).default;
     let languageCookies = Cookies.get("language");
     Cookies.set("country", init.split("-")[0]);
     dispatch(
@@ -20,6 +21,9 @@ function Navbar({ init }) {
           process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE
       )
     );
+  };
+  useEffect(() => {
+    initFunc();
   }, []);
   return (
     <div className="home-navbar">

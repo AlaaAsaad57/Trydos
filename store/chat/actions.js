@@ -10,9 +10,6 @@ import {
 } from "utils/endpointConfig";
 import { store } from "../index";
 import { getUserChat, translate } from "utils/functions";
-import { toast } from "react-toastify";
-import { db } from "../../utils/firebaseInitv1";
-
 export const ChatConroller = (payload) => {
   return { type: "CHAT-OPEN", payload: payload };
 };
@@ -41,6 +38,7 @@ export const GetChats = async (payload) => {
       payload: resp.data.data.channels,
       param: resp.data.data.pinned_channels,
     });
+    const { db } = await import("../../utils/firebaseInitv1");
     let chats = [...resp.data.data.channels, ...resp.data.data.pinned_channels];
     chats.map((chat) => {
       let friendID = chat.channel_members.filter(
@@ -48,6 +46,7 @@ export const GetChats = async (payload) => {
       )[0]?.user_id;
       let MyId = getUserChat().id;
       //wew
+
       const dbRef = ref(db, `Transaction/${friendID}/${MyId}`);
       onValue(dbRef, (snapshot) => {
         const desc = snapshot.val();
@@ -158,38 +157,6 @@ export const SendMessage = async (payload, isNew) => {
             },
           },
         });
-        // let ch = pusherVar.subscribe(
-        //   `presence-typing-${a.data.data.channel.id?.toString(16)}`
-        // );
-        // let channel = pusherVar.subscribe(a.data.data.channel.id?.toString(16));
-
-        // store.dispatch({
-        //   type: "PUSHER_CH",
-        //   payload: { id: a.data.data.channel.id, channel: ch },
-        // });
-        // channel.bind("ChannelWatchedEvent", (data) => {
-        //   store.dispatch({
-        //     type: "WATCH_CHANNEL_RED",
-        //     payload: data.channel_id,
-        //   });
-        // });
-        // channel.bind("ChannelReceivedEvent", (data) => {
-        //   store.dispatch({ type: "REC_CHANNEL_RED", payload: data.channel_id });
-        // });
-        // ch.bind("client-TypingEvent", (data) => {
-        //   if (
-        //     parseInt(JSON.parse(JSON.stringify(data)).uid) !== getUserChat()?.id
-        //   ) {
-        //     store.dispatch({
-        //       type: "IS_TYPING_TRUE",
-        //       payload: JSON.parse(JSON.stringify(data)),
-        //     });
-        //   }
-        // });
-        // store.dispatch({
-        //   type: "PUSHER_RED",
-        //   payload: { id: a.data.data.channel.id, channel: ch },
-        // });
       } else {
         store.dispatch({
           type: "SEND_MES_RED",
@@ -541,6 +508,7 @@ export const makeVideoCall = async (
         store.dispatch({ type: "CALL-LOADING", payload: null });
       });
   } catch (e) {
+    const { toast } = await import("react-toastify");
     store.dispatch({ type: "enableNotifications" });
     toast.info("User in Another Call");
     store.dispatch({ type: "END-CALL", payload: -1 });
@@ -594,6 +562,7 @@ export const makeVoiceCall = async (
   } catch (e) {
     console.error(e);
     store.dispatch({ type: "enableNotifications" });
+    const { toast } = await import("react-toastify");
     toast.info("User in Another Call");
     store.dispatch({ type: "CALL-LOADING", payload: null });
   }
@@ -604,6 +573,7 @@ export const AnswerCall = async (channelId, messageId) => {
     store.dispatch({ type: "CALL-LOADING", payload: "call" });
     let status = null;
     store.dispatch({ type: "enableNotifications" });
+    const { toast } = await import("react-toastify");
     toast.info(
       translate(
         "Initialize Call please wait..",
@@ -649,6 +619,7 @@ export const AnswerCall = async (channelId, messageId) => {
         });
     } else {
       store.dispatch({ type: "enableNotifications" });
+      const { toast } = await import("react-toastify");
       toast.info(
         translate(
           "Call Answered from another account",

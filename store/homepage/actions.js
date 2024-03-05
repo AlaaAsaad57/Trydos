@@ -6,7 +6,6 @@ import {
 } from "utils/endpointConfig";
 import { SSRDetect } from "utils/functions";
 import { changeAppLanguageServer } from "./cachedActions";
-import Cookies from "js-cookie";
 import { WatchStory } from "store/auth/actions";
 /*General Actions */
 export const RegisterDevice = async () => {
@@ -22,7 +21,8 @@ export const RegisterDevice = async () => {
     }
   } catch (e) {}
 };
-export const changeAppLanguage = (language) => {
+export const changeAppLanguage = async (language) => {
+  const Cookies = (await import("js-cookie")).default;
   Cookies.set("language", language);
   changeAppLanguageServer(language);
   return { type: "APP-LANGUAGE", payload: language };

@@ -3,8 +3,7 @@ import { getDatabase } from "firebase/database";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { store } from "../store/index";
 import { getUserChat } from "./functions";
-import { GetChats, Recive, getCalls } from "store/chat/actions";
-import { toast } from "react-toastify";
+import { GetChats, Recive } from "store/chat/actions";
 import { InCall } from "../store/chat/actions";
 
 const firebaseConfig = {
@@ -41,8 +40,9 @@ export const requestFirebaseNotificationPermission = async () => {
       console.error(err);
     });
 };
-export const onMessageListener = () =>
-  new Promise((resolve) => {
+export const onMessageListener = async () => {
+  const { toast } = await import("react-toastify");
+  return new Promise((resolve) => {
     onMessage(messaging, (payload) => {
       if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(payload);
       if (payload.data.type === "InAnotherCallEvent") {
@@ -381,3 +381,4 @@ export const onMessageListener = () =>
       }
     });
   });
+};
