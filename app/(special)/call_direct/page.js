@@ -5,7 +5,7 @@ const WebviewCall = dynamic(() =>
   import("components/global/WebviewCall", { ssr: false })
 );
 
-function page() {
+async function page() {
   return (
     <div>
       <WebviewCall />

@@ -55,7 +55,7 @@ export const getHomeData = async () => {
     return ["homedata-error", e.toString()];
   }
 };
-export const DataApiHeaders = () => {
+export const DataApiHeaders = async () => {
   const cookieStore = cookies();
   return new Headers({
     language:
@@ -66,7 +66,7 @@ export const DataApiHeaders = () => {
     Authorization: "Bearer " + cookieStore.get("token")?.value,
   });
 };
-export const changeAppLanguageServer = (language) => {
+export const changeAppLanguageServer = async (language) => {
   const cookieStore = cookies();
   cookieStore.set("language", language);
 };

@@ -1,7 +1,7 @@
 "use server";
 import React from "react";
 import MissedIcon from "components/Chat/svg/missedCall.svg";
-function page() {
+async function page() {
   return (
     <div
       className="call-ended-screen"
