@@ -19,7 +19,7 @@ function OfferList({ offers, quick }) {
               myKey={Index}
               key={Index}
               offer={{
-                photos: [1, 1, 1].filter((item, index) => index <= Index),
+                photos: Index === 0 || Index === 1 ? [1] : [1, 1],
               }}
             />
           ) : (
