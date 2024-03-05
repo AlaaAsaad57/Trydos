@@ -94,6 +94,13 @@ export default function RootLayout({ params: { lang }, children }) {
         }
         as="image"
       />
+      <link
+        rel="preload"
+        href={
+          "https://res.cloudinary.com/djooohujg/image/upload/q_50/w_800/f_auto/1708506792?_a=DATC1RAAZAA0&w=800&q=60"
+        }
+        as="image"
+      />
       <body>
         <NextTopLoader
           color="#2299DD"
