@@ -7,9 +7,7 @@ import dynamic from "next/dynamic";
 const Skeleton = dynamic(() => import("react-loading-skeleton"), {
   ssr: false,
 });
-const CategoryNavItem = dynamic(() => import("./CategoryNavItem"), {
-  ssr: false,
-});
+import CategoryNavItem from "./CategoryNavItem";
 function CategoriesBar({ forMobile, key }) {
   const loading = useSelector((state) => state.homepage.loading);
   const [searchEnabled, setSearchEnabled] = useState(false);
