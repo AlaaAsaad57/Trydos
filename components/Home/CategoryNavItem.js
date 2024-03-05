@@ -1,8 +1,11 @@
 import { translate } from "utils/functions";
 import { useSelector } from "react-redux";
 import NavIcon from "public/svg/navIcon.svg";
-import SearchComponent from "./SearchComponent";
+const SearchComponent = dynamic(() => import("./SearchComponent"), {
+  ssr: false,
+});
 import Link from "next/link";
+import dynamic from "next/dynamic";
 const CategoryNavItem = ({
   name,
   icon,

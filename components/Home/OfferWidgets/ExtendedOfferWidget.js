@@ -2,7 +2,7 @@ import React from "react";
 import LogoOffer from "public/svg/offerlogo.svg";
 import ManIcon from "public/svg/manIcon.svg";
 import WomanIcon from "public/svg/WomanIcon.svg";
-import OfferPhotosSlider from "./OfferPhotosSlider";
+const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"));
 import KidsIcon from "public/svg/KidsIcon.svg";
 import SaleIcon from "public/svg/saleIcon.svg";
 import DiscountIcon from "public/svg/discountIcon.svg";
@@ -12,6 +12,7 @@ import { translate } from "utils/functions";
 import Link from "next/link";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 function ExtendedOfferWidget({ offer, myKey, onClick }) {
   const language = useSelector((state) => state.homepage.language);
   const { ref, inView, entry } = useInView({

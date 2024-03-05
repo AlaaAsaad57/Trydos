@@ -1,14 +1,18 @@
 "use client";
 import { upload } from "store/homepage/actions";
 import React, { useState } from "react";
-import { CircularProgressbar } from "react-circular-progressbar";
-import "react-circular-progressbar/dist/styles.css";
+const CircularProgressbarComponent = dynamic(() => import("./Progress.js"), {
+  ssr: false,
+});
 import PlusIcon from "public/svg/chatplus.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { AddStoryAction } from "store/homepage/actions";
 import { revalidateStories } from "utils/serverActions";
-import NewStoryModal from "./Stories/CameraStory";
+const NewStoryModal = dynamic(() => import("./Stories/CameraStory"), {
+  ssr: false,
+});
 import { dataURLtoFile } from "components/Chat/chatsFunctions";
+import dynamic from "next/dynamic";
 
 function AddStory() {
   const [uploaded, setUpload] = useState(0);
@@ -275,7 +279,7 @@ function AddStory() {
                   justifyContent: "center",
                 }}
               >
-                <CircularProgressbar
+                <CircularProgressbarComponent
                   strokeWidth={2}
                   value={uploaded}
                   text={`${uploaded} %`}

@@ -4,7 +4,6 @@ import MoreOfferAvatar from "./MoreOfferAvatar";
 function OfferAvatars({ priority }) {
   const ref = useRef();
   const handleMove = (e) => {
-    let elementWidth = ref.current.clientWidth;
     let elemnts = Array.from(ref.current.children);
     let clientX = e.clientX || e.touches[0]?.clientX;
     let Xmove = Math.abs(

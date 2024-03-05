@@ -2,7 +2,7 @@ import React from "react";
 import LogoOffer from "public/svg/offerlogo.svg";
 import ManIcon from "public/svg/manIcon.svg";
 import WomanIcon from "public/svg/WomanIcon.svg";
-import OfferPhotosSlider from "./OfferPhotosSlider";
+const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"));
 import KidsIcon from "public/svg/KidsIcon.svg";
 import OfferSlideItem from "./OfferSlideItem";
 import { useSelector } from "react-redux";

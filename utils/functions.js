@@ -104,13 +104,13 @@ export const getThumb = (url, isVideo) => {
         .video(url?.split("/").pop().split(".")[0])
         .resize(Resize.thumbnail("145", "255"))
         .format("webp")
-        .delivery(quality(auto()));
+        .delivery(quality(50));
     } else
       return myCld()
         .image(url?.split("/").pop().split(".")[0])
         .resize(Resize.thumbnail("145", "255"))
         .format("webp")
-        .delivery(quality(auto()));
+        .delivery(quality(50));
   }
 };
 export const getUser = () => {

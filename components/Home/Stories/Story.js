@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import Skeleton from "react-loading-skeleton";
 import { AdvancedImage } from "@cloudinary/react";
 import { getThumb } from "utils/functions";
 function Story({ onClick, media, Name }) {

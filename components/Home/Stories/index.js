@@ -2,7 +2,7 @@
 import React from "react";
 import dynamic from "next/dynamic";
 const StoryElement = dynamic(() => import("./StoryElement"), { ssr: false });
-import AddStory from "../AddStory";
+const AddStory = dynamic(() => import("../AddStory"), { ssr: false });
 import { useDispatch, useSelector } from "react-redux";
 import { GetUnviewedStory, SelectStory } from "store/homepage/actions";
 const Skeleton = dynamic(() => import("react-loading-skeleton"), {

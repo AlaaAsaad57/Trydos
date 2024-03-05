@@ -2,9 +2,10 @@ import React from "react";
 import LogoOffer from "public/svg/offerlogo.svg";
 import ManIcon from "public/svg/manIcon.svg";
 import WomanIcon from "public/svg/WomanIcon.svg";
-import OfferPhotosSlider from "./OfferPhotosSlider";
+const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"));
 import KidsIcon from "public/svg/KidsIcon.svg";
-import QuickEventBar from "./QuickEventBar";
+const QuickEventBar = dynamic(() => import("./QuickEventBar"));
+
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import Link from "next/link";
