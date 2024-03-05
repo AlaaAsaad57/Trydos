@@ -4,7 +4,6 @@ import Logo from "./Logo";
 import UserNavTopSection from "./UserNavTopSection";
 import { useDispatch, useSelector } from "react-redux";
 import { changeAppLanguage } from "store/homepage/actions";
-import Cookies from "js-cookie";
 function Navbar({ init }) {
   const [loginOpen, setLoginOpen] = useState(false);
   const language = useSelector((state) => state.homepage.language);

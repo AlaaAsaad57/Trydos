@@ -66,7 +66,7 @@ export const DataApiHeaders = async () => {
     Authorization: "Bearer " + cookieStore.get("token")?.value,
   });
 };
-export const changeAppLanguageServer = async (language) => {
+export const changeAppLanguageServer = (language) => {
   const cookieStore = cookies();
   cookieStore.set("language", language);
 };

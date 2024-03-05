@@ -46,7 +46,7 @@ const NormalWidget = ({ offer, myKey, onClick }) => {
               objectFit="cover"
               objectPosition="center"
               src={
-                "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_auto/1708506792?_a=DATC1RAAZAsA0"
+                "https://res.cloudinary.com/djooohujg/image/upload/f_webp/1708506792?_a=DATC1RAAZAsA0&w=800&q=60"
               }
             />
             <div className="offer-blured-background" />
@@ -97,7 +97,7 @@ const NormalWidget = ({ offer, myKey, onClick }) => {
                 objectFit="cover"
                 objectPosition="center"
                 src={
-                  "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_auto/1708506792?_a=DATC1RAAZAsA0"
+                  "https://res.cloudinary.com/djooohujg/image/upload/f_webp/1708506792?_a=DATC1RAAZAsA0&w=800&q=60"
                 }
               />
               <div className="offer-blured-background" />

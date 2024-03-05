@@ -15,7 +15,7 @@ function OfferSlideItem({ isSingle, priority }) {
           fetchPriority={priority ? "high" : "low"}
           className="OfferImage"
           src={
-            "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_auto/1708506792?_a=DATC1RAAZAA0"
+            "https://res.cloudinary.com/djooohujg/image/upload/f_webp/1708506792?_a=DATC1RAAZAA0&w=800&q=60"
           }
           width={360}
           height={155}

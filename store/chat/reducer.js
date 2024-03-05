@@ -684,7 +684,7 @@ export const ChatReducer = (
           newChats.push({ ...a, messages: m });
           if (state.activeChat && state.activeChat.id) {
             active = state.activeChat;
-            if (active.id === payload) {
+            if (parseInt(active.id) === parseInt(payload)) {
               active = { ...a, messages: m };
             }
           }
