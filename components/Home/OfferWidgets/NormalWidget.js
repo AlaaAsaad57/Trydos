@@ -11,6 +11,7 @@ import OfferAvatars from "./OfferAvatars";
 import Link from "next/link";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 const NormalWidget = ({ offer, myKey, onClick }) => {
   const language = useSelector((state) => state.homepage.language);
   const { ref, inView, entry } = useInView({
