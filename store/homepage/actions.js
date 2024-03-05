@@ -8,6 +8,7 @@ import { SSRDetect } from "utils/functions";
 import { changeAppLanguageServer } from "./cachedActions";
 import { WatchStory } from "store/auth/actions";
 /*General Actions */
+import Cookies from "js-cookie";
 export const RegisterDevice = async () => {
   try {
     if (
@@ -21,8 +22,7 @@ export const RegisterDevice = async () => {
     }
   } catch (e) {}
 };
-export const changeAppLanguage = async (language) => {
-  const Cookies = (await import("js-cookie")).default;
+export const changeAppLanguage = (language) => {
   Cookies.set("language", language);
   changeAppLanguageServer(language);
   return { type: "APP-LANGUAGE", payload: language };

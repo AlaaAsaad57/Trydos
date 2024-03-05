@@ -2858,8 +2858,8 @@ function ChatMessage(props) {
   function handleTouchStart(evt, a, index) {
     isMove = null;
     a.style.transform = `translateX(-${Math.abs(0)}px)`;
-    a.nextElementSibling.style.opacity = "0";
-    a.nextElementSibling.style.right = `${a.offsetWidth - 40}px`;
+    a.nextElementSibling?.style.opacity = "0";
+    a.nextElementSibling?.style.right = `${a.offsetWidth - 40}px`;
     setOpen(false);
     a.addEventListener("touchmove", (e) => handleTouchMove(e, a, index), {
       passive: true,
