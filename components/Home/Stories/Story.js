@@ -29,7 +29,6 @@ function Story({ onClick, media, Name }) {
         }}
         width={145}
         height={255}
-        priority={"true"}
         onError={() => {
           onLoad("error");
         }}
