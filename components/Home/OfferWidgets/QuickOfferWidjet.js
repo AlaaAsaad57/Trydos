@@ -11,6 +11,7 @@ import { translate } from "utils/functions";
 import Link from "next/link";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 function QuickOfferWidjet({ offer, onClick }) {
   const language = useSelector((state) => state.homepage.language);
   const { ref, inView, entry } = useInView({
