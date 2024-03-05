@@ -17,7 +17,7 @@ function ExtendedOfferWidget({ offer, myKey, onClick }) {
   const language = useSelector((state) => state.homepage.language);
   const { ref, inView, entry } = useInView({
     /* Optional options */
-    threshold: 0,
+    threshold: 0.3,
   });
   return (
     <Link
