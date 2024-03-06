@@ -118,6 +118,7 @@ function Index() {
           {storiesData.map((story, index) => (
             <StoryElement
               key={index}
+              index={index}
               story={story}
               stories={story}
               viewedStory={story.stories[GetUnviewedStory(story)]}

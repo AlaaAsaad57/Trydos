@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { AdvancedImage } from "@cloudinary/react";
 import { getThumb } from "utils/functions";
-function Story({ onClick, media, Name }) {
+function Story({ onClick, media, Name, index }) {
   const [load, onLoad] = useState(null);
   return (
     <div className="story-element-item" onClick={() => onClick()}>
@@ -29,6 +29,7 @@ function Story({ onClick, media, Name }) {
         }}
         width={145}
         height={255}
+        loading={window.innerWidth < 500 && index >= 4 ? "lazy" : "eager"}
         onError={() => {
           onLoad("error");
         }}
