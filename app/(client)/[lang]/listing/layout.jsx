@@ -1,6 +1,5 @@
 import CategoriesBar from "components/Home/CategoriesBar";
 import "styles/listing.css";
-import dynamic from "next/dynamic";
 export const metadata = {
   title: "TryDos-Listing",
   description: "Trydos Listing page",

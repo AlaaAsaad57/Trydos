@@ -12,7 +12,6 @@ const TranslationsMenu = dynamic(
   }
 );
 import { useEffect } from "react";
-
 import { RegisterDevice } from "./homepage/actions";
 import { CheckLogin } from "./auth/actions";
 // import GAComponent from "components/global/GAComponent";
