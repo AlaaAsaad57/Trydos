@@ -1,9 +1,9 @@
-import * as Sentry from "@sentry/nextjs";
+import { init, Replay } from "@sentry/nextjs";
 
-Sentry.init({
+init({
   dsn: process.env.NEXT_PUBLIC_DSN_SENTRY,
   // Replay may only be enabled for the client-side
-  integrations: [new Sentry.Replay()],
+  integrations: [new Replay()],
 
   // Set tracesSampleRate to 1.0 to capture 100%
   // of transactions for performance monitoring.

@@ -1,6 +1,6 @@
-import * as Sentry from "@sentry/nextjs";
+import { init } from "@sentry/nextjs";
 
-Sentry.init({
+init({
   dsn: process.env.NEXT_PUBLIC_DSN_SENTRY,
   // Set tracesSampleRate to 1.0 to capture 100%
   // of transactions for performance monitoring.
