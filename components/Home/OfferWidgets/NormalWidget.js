@@ -97,7 +97,7 @@ const NormalWidget = ({ offer, myKey, onClick }) => {
                 objectFit="cover"
                 objectPosition="center"
                 src={
-                  "https://res.cloudinary.com/djooohujg/image/upload/q_50/w_800/f_auto/1708506792?_a=DATC1RAAZAsA0&"
+                  "https://res.cloudinary.com/djooohujg/image/upload/q_50/w_800/f_webp/1708506792?_a=DATC1RAAZAsA0&"
                 }
               />
               <div className="offer-blured-background" />
