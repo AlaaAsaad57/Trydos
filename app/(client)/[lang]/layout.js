@@ -87,13 +87,6 @@ export default function RootLayout({ params: { lang }, children }) {
       lang={lang.split("-")[1]}
     >
       <link rel="icon" href="/favicon.ico" sizes="any" />
-      <link
-        rel="preload"
-        href={
-          "https://res.cloudinary.com/djooohujg/image/upload/f_auto/1708506792?_a=DATC1RAAZAA0"
-        }
-        as="image"
-      />
       <body>
         <NextTopLoader
           color="#2299DD"
