@@ -87,6 +87,13 @@ export default function RootLayout({ params: { lang }, children }) {
       lang={lang.split("-")[1]}
     >
       <link rel="icon" href="/favicon.ico" sizes="any" />
+      <link
+        rel="preload"
+        href={
+          "https://webdev.trydos.com/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdjooohujg%2Fimage%2Fupload%2Ff_auto%2Fq_auto%2F1708506792%3F_a%3DDATC1RAAZAA0&w=384&q=75"
+        }
+        as="image"
+      />
       <body>
         <NextTopLoader
           color="#2299DD"
