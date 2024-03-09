@@ -36,42 +36,42 @@ function OfferAvatars({ priority }) {
       onMouseMove={(e) => handleMove(e)}
     >
       <OfferAvatar
-        priority={priority}
+        priority={false}
         images={
           "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_50/1707907006?_a=DATC1RAAZAA0"
         }
         zIndex={1}
       />
       <OfferAvatar
-        priority={priority}
+        priority={false}
         images={
           "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_50/1707907006?_a=DATC1RAAZAA0"
         }
         zIndex={2}
       />
       <OfferAvatar
-        priority={priority}
+        priority={false}
         images={
           "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_50/1707907006?_a=DATC1RAAZAA0"
         }
         zIndex={3}
       />
       <OfferAvatar
-        priority={priority}
+        priority={false}
         images={
           "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_50/1707907006?_a=DATC1RAAZAA0"
         }
         zIndex={4}
       />
       <OfferAvatar
-        priority={priority}
+        priority={false}
         images={
           "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_50/1707907006?_a=DATC1RAAZAA0"
         }
         zIndex={5}
       />
       <MoreOfferAvatar
-        priority={priority}
+        priority={false}
         images={
           "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_auto/1707907006?_a=DATC1RAAZAA0"
         }
