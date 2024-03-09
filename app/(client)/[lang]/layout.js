@@ -90,14 +90,7 @@ export default function RootLayout({ params: { lang }, children }) {
       <link
         rel="preload"
         href={
-          "https://res.cloudinary.com/djooohujg/image/upload/q_50/w_800/f_auto/1708506792?_a=DATC1RAAZAA0&w=800&q=60"
-        }
-        as="image"
-      />
-      <link
-        rel="preload"
-        href={
-          "https://res.cloudinary.com/djooohujg/image/upload/q_50/w_800/f_auto/1708506792?_a=DATC1RAAZAA0&w=800&q=60"
+          "https://res.cloudinary.com/djooohujg/image/upload/f_auto/1708506792?_a=DATC1RAAZAA0"
         }
         as="image"
       />
