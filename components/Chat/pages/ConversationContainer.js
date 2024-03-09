@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Recorder from "components/Chat/components/Recorder";
 import ChatHeader from "components/Chat/components/ChatHeader";
 import ChatMessage from "components/Chat/components/ChatMessage";

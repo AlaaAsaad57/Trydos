@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Loadding from "public/svg/loading.svg";
 import { Img } from "react-image";
 function CategoryPhoto(props) {

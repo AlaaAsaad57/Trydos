@@ -1,4 +1,3 @@
-import React from "react";
 import "styles/spinner.css";
 function Spinner(props) {
   return (

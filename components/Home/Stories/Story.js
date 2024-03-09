@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { AdvancedImage } from "@cloudinary/react";
 import { getThumb } from "utils/functions";
 function Story({ onClick, media, Name, index }) {

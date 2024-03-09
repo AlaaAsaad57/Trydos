@@ -1,5 +1,3 @@
-import React from "react";
-
 function BorderImage() {
   const getWidth = () => {
     return "100%";

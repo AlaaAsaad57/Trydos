@@ -1,4 +1,3 @@
-import React from "react";
 import UserIcon from "public/svg/userIcon.svg";
 import Image from "next/image";
 function UserAvatar({ avatar, onClick }) {

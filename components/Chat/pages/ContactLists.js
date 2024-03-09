@@ -1,4 +1,3 @@
-import React from "react";
 import ChatItem from "components/Chat/components/ChatItem";
 import { useDispatch, useSelector } from "react-redux";
 import { forwardMessage } from "../chatsFunctions";

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import EndCallIcon from "../Chat/svg/endCall.svg";
 import MicIcon from "../Chat/svg/micIcon.svg";
 import CallingIcon from "../Chat/svg/calling.svg";

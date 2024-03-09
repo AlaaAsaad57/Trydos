@@ -1,5 +1,5 @@
 import { translate } from "utils/functions";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import Border from "../global/Border";
 import LoginSuccessIcon from "public/svg/LoginSuccessIcon.svg";

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import "styles/popup.css";
 const countriesString = process.env.NEXT_PUBLIC_COUNTRIES || "[]";

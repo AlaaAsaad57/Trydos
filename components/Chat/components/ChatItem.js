@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import ProfilePicture from "public/images/profileNo.png";
 import LastMessageBody from "./LastMessageBody";
 import TypingIndicator from "./TypingIndicator";

@@ -1,4 +1,3 @@
-import React from "react";
 import Border from "../global/Border";
 import ScanIcon from "public/svg/ScanIcon.svg";
 import QuestionIcon from "public/svg/questionIcon.svg";

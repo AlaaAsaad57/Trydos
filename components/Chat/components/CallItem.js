@@ -1,4 +1,3 @@
-import React from "react";
 import ProfilePicture from "public/images/profileNo.png";
 import { getCallType } from "../chatsFunctions";
 import DeleteIcon from "../svg/delt.svg";

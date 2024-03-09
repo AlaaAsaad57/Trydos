@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import ReplyIcon from "../svg/rep.svg";
 import CopyIcon from "../svg/copy.svg";
 import CategoryIcon from "../svg/categ.svg";

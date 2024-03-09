@@ -1,4 +1,4 @@
-import React, { useReducer, memo, useEffect } from "react";
+import { useReducer, memo, useEffect } from "react";
 import ImageSlider from "./ImageSlider";
 import PriceLabel from "./PriceLabel";
 import BuyButton from "./BuyButton";

@@ -1,4 +1,3 @@
-import React from "react";
 import Mignifier from "../svg/Mignifier.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { SearchContact } from "store/chat/actions";

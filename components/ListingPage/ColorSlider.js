@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, memo } from "react";
+import { useRef, useEffect, memo } from "react";
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import BorderImage from "./BorderImage";

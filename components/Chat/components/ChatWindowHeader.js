@@ -1,4 +1,3 @@
-import React from "react";
 import "styles/chat.css";
 import UserInfoHeader from "./UserInfoHeader";
 import ChatListSearch from "./ChatListSearch";

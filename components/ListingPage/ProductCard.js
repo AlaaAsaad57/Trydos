@@ -1,5 +1,5 @@
 "use client";
-import React, { memo, useEffect } from "react";
+import { memo, useEffect } from "react";
 import ProductNoColors from "./ProductNoColors";
 import ProductCover from "./ProductCover";
 // Import Swiper styles

@@ -7,6 +7,7 @@ import {
   watchChannel,
 } from "./actions";
 import { store } from "../index";
+import { toast } from "react-toastify";
 const initialState = {
   chatVar: false,
   data: [],
@@ -1009,7 +1010,9 @@ export const ChatReducer = (
       };
     }
     case "MUTE_CHAT_REDUCER": {
-      MuteChat(payload);
+      if (!payload.event) {
+        MuteChat(payload);
+      }
       let arr = [];
       state.data.map((chat) => {
         if (chat.id === payload.id) {
@@ -1042,33 +1045,42 @@ export const ChatReducer = (
       };
     }
     case "PIN_CHAT_REDUCER": {
-      PinnChat(payload);
-      let arr = [];
-      arr = [
-        ...state.data.filter((s) => s.id !== payload.id),
-        {
-          ...state.data.filter((s) => s.id === payload.id)[0],
-          channel_members: [
-            state.data
-              .filter((s) => s.id === payload.id)[0]
-              ?.channel_members.filter(
-                (mem) => mem.user_id !== getUserChat()?.id
-              )[0],
-            {
-              ...state.data
+      if (state.pinnedChats.length < 3) {
+        if (!payload.event) {
+          PinnChat(payload);
+        }
+        let arr = [];
+        arr = [
+          ...state.data.filter((s) => s.id !== payload.id),
+          {
+            ...state.data.filter((s) => s.id === payload.id)[0],
+            channel_members: [
+              state.data
                 .filter((s) => s.id === payload.id)[0]
                 ?.channel_members.filter(
-                  (mem) => mem.user_id === getUserChat()?.id
+                  (mem) => mem.user_id !== getUserChat()?.id
                 )[0],
-              pin: payload.value ? 1 : 0,
-            },
-          ],
-        },
-      ];
-      return {
-        ...state,
-        data: arr,
-      };
+              {
+                ...state.data
+                  .filter((s) => s.id === payload.id)[0]
+                  ?.channel_members.filter(
+                    (mem) => mem.user_id === getUserChat()?.id
+                  )[0],
+                pin: payload.value ? 1 : 0,
+              },
+            ],
+          },
+        ];
+        return {
+          ...state,
+          data: arr,
+        };
+      } else {
+        toast.error("only 3 pinned chats allowed");
+        return {
+          ...state,
+        };
+      }
     }
     case "UNREAD_CHAT_REDUCER": {
       let arr = [];

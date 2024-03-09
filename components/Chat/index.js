@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "styles/chat.css";
 import ChatWindow from "./pages/ChatWindow";
 import { useDispatch, useSelector } from "react-redux";
@@ -6,7 +6,6 @@ const ConversationContainer = dynamic(() =>
   import("./pages/ConversationContainer", { ssr: false })
 );
 import NewChatsSide from "components/Chat/components/NewChatsSide";
-import { useState } from "react";
 import { SSRDetect, translate } from "utils/functions";
 import dynamic from "next/dynamic";
 function Chat(props) {

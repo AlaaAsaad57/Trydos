@@ -1,4 +1,3 @@
-import React from "react";
 const CallComponent = dynamic(
   () => import("components/Chat/components/CallComponent"),
   { ssr: false }

@@ -1,16 +1,16 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import Webcam from "react-webcam";
 import CameraIcon from "../svg/image.svg";
 import SendIcon from "../svg/sharechat.svg";
 import Image from "next/image";
 
 const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
-  const webcamTypeRef = React.useRef({
+  const webcamTypeRef = useRef({
     width: 430,
     height: 400,
     facingMode: { exact: "user" },
   });
-  const webcamRef = React.useRef(null);
+  const webcamRef = useRef(null);
   const capture = () => {
     imageFile.current = webcamRef.current?.getScreenshot();
   };

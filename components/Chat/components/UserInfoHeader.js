@@ -1,4 +1,3 @@
-import React from "react";
 import ProfilePicture from "public/images/profileNo.png";
 import { getTwoLetters, getUser } from "../chatsFunctions";
 import { getUserChat } from "utils/functions";

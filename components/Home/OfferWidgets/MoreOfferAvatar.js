@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React from "react";
+
 import { translate } from "utils/functions";
 import { useSelector } from "react-redux";
 

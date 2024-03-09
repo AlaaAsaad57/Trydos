@@ -1,4 +1,3 @@
-import React from "react";
 import QuickIcon from "public/svg/quickIcon.svg";
 import BarDescribtion from "./BarDescribtion";
 import { useSelector } from "react-redux";

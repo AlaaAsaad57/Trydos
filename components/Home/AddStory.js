@@ -1,6 +1,6 @@
 "use client";
 import { upload } from "store/homepage/actions";
-import React, { useState } from "react";
+import { useState } from "react";
 const CircularProgressbarComponent = dynamic(() => import("./Progress.js"), {
   ssr: false,
 });

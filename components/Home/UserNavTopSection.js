@@ -1,5 +1,5 @@
 import { getStories, translate } from "utils/functions";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import QuestionIcon from "public/svg/questionIcon.svg";
 import LoginIcon from "public/svg/login.svg";

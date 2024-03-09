@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { useEffect, memo } from "react";
+import { useEffect, memo } from "react";
 import ProductSlider from "./ProductSlider";
 function TopSlider({
   active,

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { memo } from "react";
+import { memo } from "react";
 
 function ImageAvatar({ image, width, height, alt, isActive, name }) {
   return (

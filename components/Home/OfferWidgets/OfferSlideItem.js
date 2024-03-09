@@ -1,4 +1,3 @@
-import React from "react";
 import BorderImage from "./BorderImage";
 import Image from "next/image";
 import { getId } from "utils/functions";

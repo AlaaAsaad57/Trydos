@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import EndCallIcon from "../svg/endCall.svg";
 import MicIcon from "../svg/micIcon.svg";
 import VideoIcon from "../svg/vidIcon.svg";

@@ -1,4 +1,3 @@
-import React from "react";
 import OfferIcon from "public/svg/offerIcon.svg";
 import BarDescribtion from "./BarDescribtion";
 import { useSelector } from "react-redux";

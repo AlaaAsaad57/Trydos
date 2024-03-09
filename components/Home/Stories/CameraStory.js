@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CameraIcon from "../../Chat/svg/image.svg";
 
 import SendIcon from "../../Chat/svg/sharechat.svg";
@@ -19,12 +19,12 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
     setSwitch(devices?.filter((dev) => dev?.kind === "videoinput").length <= 1);
     return null;
   };
-  const [webcamTypeRef, setRef] = React.useState({
+  const [webcamTypeRef, setRef] = useState({
     width: 430,
     height: 400,
     facingMode: { exact: "user" },
   });
-  const webcamRef = React.useRef(null);
+  const webcamRef = useRef(null);
   const [active, setActive] = useState(true);
   useEffect(() => {
     hasTwoCameras();
@@ -32,12 +32,12 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
   const WebcamStreamCapture = () => {
     const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
       useStopwatch({ autoStart: false });
-    const webcamRef = React.useRef(null);
-    const mediaRecorderRef = React.useRef(null);
-    const [capturing, setCapturing] = React.useState(false);
-    const [recordedChunks, setRecordedChunks] = React.useState([]);
+    const webcamRef = useRef(null);
+    const mediaRecorderRef = useRef(null);
+    const [capturing, setCapturing] = useState(false);
+    const [recordedChunks, setRecordedChunks] = useState([]);
 
-    const handleStartCaptureClick = React.useCallback(() => {
+    const handleStartCaptureClick = useCallback(() => {
       start();
       setCapturing(true);
       mediaRecorderRef.current = new MediaRecorder(webcamRef.current.stream, {
@@ -50,7 +50,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
       mediaRecorderRef.current.start();
     }, [webcamRef, setCapturing, mediaRecorderRef, start]);
 
-    const handleDataAvailable = React.useCallback(
+    const handleDataAvailable = useCallback(
       ({ data }) => {
         if (data.size > 0) {
           setRecordedChunks([data]);
@@ -66,7 +66,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
       [setRecordedChunks]
     );
 
-    const handleStopCaptureClick = React.useCallback(() => {
+    const handleStopCaptureClick = useCallback(() => {
       mediaRecorderRef.current.stop();
       stop();
       setCapturing(false);
@@ -79,7 +79,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
       stop,
     ]);
 
-    const handleDownload = React.useCallback(() => {
+    const handleDownload = useCallback(() => {
       if (recordedChunks.length || vidUrl) {
         const blob = new Blob(recordedChunks, {
           type: "video/webm",

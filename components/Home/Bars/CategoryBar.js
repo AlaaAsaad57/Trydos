@@ -1,4 +1,3 @@
-import React from "react";
 import CategoryIcon from "public/svg/categoryIcon.svg";
 import BarDescribtion from "./BarDescribtion";
 import { useSelector } from "react-redux";

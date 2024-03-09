@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SendIcon from "../svg/sent.svg";
 import ReadIcon from "../svg/read.svg";
 import ReceiveIcon from "../svg/recieved.svg";
@@ -27,7 +27,7 @@ function ChatMessage(props) {
   const { setImg, setVid } = props;
   const message_ref = useRef();
   const [width, setWidth] = useState(0);
-  const [opens, setOpen] = React.useState(false);
+  const [opens, setOpen] = useState(false);
   const language = useSelector((state) => state.homepage.language);
   const refmessage = useRef();
   const AudioRef = useRef();

@@ -1,4 +1,3 @@
-import React from "react";
 import NormalWidget from "./NormalWidget";
 import dynamic from "next/dynamic";
 const ExtendedOfferWidget = dynamic(() => import("./ExtendedOfferWidget"), {

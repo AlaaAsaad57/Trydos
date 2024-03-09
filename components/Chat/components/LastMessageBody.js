@@ -1,4 +1,3 @@
-import React from "react";
 import { getMessageStatusIcon, getUser } from "../chatsFunctions";
 import ImageIcon from "../svg/image.svg";
 import VideoIcon from "../svg/video.svg";

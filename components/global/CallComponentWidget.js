@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 function CallComponentWidget({ data, type, onAnswer, onDecline, userData }) {
   useEffect(() => {}, []);
   return (

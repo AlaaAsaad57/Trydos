@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Border from "../global/Border";
 import { translate } from "utils/functions";
 import LoginIcon from "public/svg/login.svg";

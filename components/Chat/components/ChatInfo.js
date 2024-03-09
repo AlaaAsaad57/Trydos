@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import ArrowIcon from "../svg/arrow.svg";
 import InfoCallIcon from "../svg/InfoCall.svg";
 import InfoVideoIcon from "../svg/InfoVideo.svg";

@@ -1,4 +1,3 @@
-import React from "react";
 import { getTwoLetters, getUser } from "../chatsFunctions";
 import ProfilePicture from "public/images/profileNo.png";
 import { useDispatch, useSelector } from "react-redux";

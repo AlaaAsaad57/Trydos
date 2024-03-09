@@ -1,4 +1,3 @@
-import React from "react";
 import ChatTabIcon from "./ChatTabIcon";
 import ChatIcon from "../svg/Tabs/ChatIcon.svg";
 import ActiveChatIcon from "../svg/Tabs/ActiveChatIcon.svg";

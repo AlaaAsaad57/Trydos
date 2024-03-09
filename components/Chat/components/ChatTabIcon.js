@@ -1,4 +1,3 @@
-import React from "react";
 import BellIcon from "../svg/bell.svg";
 function ChatTabIcon({
   index,

@@ -1,4 +1,3 @@
-import React from "react";
 import { getNew, getTwoLetters, getUser } from "../chatsFunctions";
 import { useDispatch, useSelector } from "react-redux";
 import PointIcon from "../svg/point.svg";

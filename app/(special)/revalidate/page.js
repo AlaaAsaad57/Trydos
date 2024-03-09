@@ -1,6 +1,6 @@
 "use client";
 import Revalidate from "../../revalidate";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
 function Page() {
   useEffect(() => {

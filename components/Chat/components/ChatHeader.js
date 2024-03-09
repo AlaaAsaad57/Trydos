@@ -1,4 +1,3 @@
-import React from "react";
 import ArrowIcon from "../svg/arrow.svg";
 import VideoIcon from "../svg/vcall.svg";
 import CallIcon from "../svg/call.svg";

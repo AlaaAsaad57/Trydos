@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import PhoneIcon from "public/svg/PhoneIcon.svg";
 import SolidPhoneIcon from "public/svg/SolidPhoneIcon.svg";
 import QuestionIcon from "public/svg/questionIcon.svg";

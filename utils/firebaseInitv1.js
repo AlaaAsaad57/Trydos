@@ -379,6 +379,24 @@ export const onMessageListener = async () => {
           },
         });
       }
+      if (payload.data.type === "ChannelUpdatedEvent") {
+        // store.dispatch({
+        //   type: "PIN_CHAT_REDUCER",
+        //   payload: {
+        //     event: true,
+        //     id: parseInt(JSON.parse(payload.data.data).channel.id),
+        //     value: parseInt(JSON.parse(payload.data.data).channel.is_mute),
+        //   },
+        // });
+        store.dispatch({
+          type: "MUTE_CHAT_REDUCER",
+          payload: {
+            event: true,
+            id: JSON.parse(payload.data.data).channel.id,
+            value: parseInt(JSON.parse(payload.data.data).channel.is_mute),
+          },
+        });
+      }
     });
   });
 };

@@ -1,4 +1,3 @@
-import React from "react";
 function BarDescribtion({ name, desc }) {
   return (
     <div className="bar-desc-column">

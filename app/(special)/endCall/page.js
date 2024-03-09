@@ -1,5 +1,4 @@
 "use server";
-import React from "react";
 import MissedIcon from "components/Chat/svg/missedCall.svg";
 async function page() {
   return (

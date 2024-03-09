@@ -1,5 +1,4 @@
 "use server";
-import React from "react";
 import ProductCard from "components/ListingPage/ProductCard";
 import { getHomeData, getListingData } from "store/homepage/cachedActions";
 export async function generateMetadata({ params, searchParams }) {
