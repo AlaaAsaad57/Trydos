@@ -44,7 +44,7 @@ function ExtendedOfferWidget({ offer, myKey, onClick }) {
             objectFit="cover"
             objectPosition="center"
             src={
-              "https://res.cloudinary.com/djooohujg/image/upload/q_50/w_800/f_auto/1708506792?_a=DdATC1RAAZAA0&w=800&q=60"
+              "https://res.cloudinary.com/djooohujg/image/upload/q_50/w_800/f_webp/1708506792?_a=DdATC1RAAZAA0&w=800&q=60"
             }
           />{" "}
           <div className="offer-blured-background" />

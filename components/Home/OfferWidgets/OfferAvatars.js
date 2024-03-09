@@ -73,7 +73,7 @@ function OfferAvatars({ priority }) {
       <MoreOfferAvatar
         priority={priority}
         images={
-          "https://res.cloudinary.com/djooohujg/image/upload/f_auto/q_auto/1707907006?_a=DATC1RAAZAA0"
+          "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_auto/1707907006?_a=DATC1RAAZAA0"
         }
         zIndex={100}
         viewed={5}
