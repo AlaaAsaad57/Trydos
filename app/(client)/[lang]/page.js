@@ -1,11 +1,12 @@
 "use server";
 import Home from "components/Home";
-// import { getHomeData } from "store/homepage/cachedActions";
+import { getHomeData } from "store/homepage/cachedActions";
 
 async function page() {
+  const [HomeData, HomeData_res] = await getHomeData();
   return (
     <>
-      <Home HomeData_res={[]} HomeData={[]} />
+      <Home HomeData_res={HomeData_res} HomeData={HomeData} />
     </>
   );
 }
