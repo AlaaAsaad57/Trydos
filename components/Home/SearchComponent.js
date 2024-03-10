@@ -42,7 +42,7 @@ function SearchComponent({ searchEnabled, close }) {
     >
       <SearchIcon />
       <Divider style={{ marginLeft: "10px" }} />
-      <label htmlFor="chats" className="no-label">
+      <label htmlFor="chats" style={{ opacity: 0, position: "absolute" }}>
         Search Chat
       </label>
       <input
