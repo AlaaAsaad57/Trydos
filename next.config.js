@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const withSvgr = require("next-svgr");
-// const { withSentryConfig } = require("@sentry/nextjs");
 const nextConfig = withSvgr({
   swcMinify: true,
   compress: true,
@@ -44,5 +43,10 @@ const sentryWebpackPluginOptions = {
 };
 
 // Make sure adding Sentry options is the last code to run before exporting
-// module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);
-module.exports = nextConfig;
+// module.exports = ;
+if (process.env.ENABLE_SENTRY === "false") {
+  module.exports = nextConfig;
+} else {
+  const { withSentryConfig } = require("@sentry/nextjs");
+  module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);
+}
