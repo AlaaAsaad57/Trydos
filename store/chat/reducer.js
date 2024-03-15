@@ -8,6 +8,7 @@ import {
 } from "./actions";
 import { store } from "../index";
 import { toast } from "react-toastify";
+import { getMediaReducer } from "./actions";
 const initialState = {
   chatVar: false,
   data: [],
@@ -1106,6 +1107,33 @@ export const ChatReducer = (
       });
       if (active && parseInt(active?.id) === parseInt(payload.id)) {
         active = { ...active, message_counts: payload.data };
+      }
+      return { ...state, data: arr, activeChat: active };
+    }
+    case "EDIT_CHAT_INFO_MEDIA": {
+      let arr = [];
+      let active = state.activeChat;
+      state.data.map((s) => {
+        if (parseInt(s.id) === parseInt(payload.id)) {
+          arr.push({
+            ...s,
+            message_counts: {
+              ...s.message_counts,
+              ...getMediaReducer(media, payload.data),
+            },
+          });
+        } else {
+          arr.push(s);
+        }
+      });
+      if (active && parseInt(active?.id) === parseInt(payload.id)) {
+        active = {
+          ...active,
+          message_counts: {
+            ...s.message_counts,
+            ...getMediaReducer(media, payload.data),
+          },
+        };
       }
       return { ...state, data: arr, activeChat: active };
     }

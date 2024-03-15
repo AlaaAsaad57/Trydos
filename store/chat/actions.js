@@ -434,7 +434,38 @@ export async function getContacts() {
   let res = await AxiosInstance.get("/api/v1/users/my_contacts");
   store.dispatch({ type: "GET_CONTACTS_RED", payload: res.data.data });
 }
-
+export const getMedia = async (id, media) => {
+  try {
+    let axios = (await import("axios")).default;
+    let resp = await axios.post(
+      CHAT_URL +
+        `/api/v1/messages/messages_of_channel/${id}?limit=10&message_type=${media}`,
+      {},
+      {
+        headers: {
+          Authorization:
+            `Bearer ` +
+            JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+        },
+      }
+    );
+    store.dispatch({
+      type: "EDIT_CHAT_INFO_MEDIA",
+      payload: { id: id, data: resp.data.data, media: media },
+    });
+  } catch (e) {}
+};
+export const getMediaReducer = (media, data) => {
+  if (media === "ImageMessage") {
+    return { image_messages: data };
+  }
+  if (media === "VideoMessage") {
+    return { video_messages: data };
+  }
+  if (media === "FileMessage") {
+    return { file_messages: data };
+  }
+};
 export async function checkForUpdate() {
   let axios = (await import("axios")).default;
   try {
@@ -725,16 +756,13 @@ export const Answer = async (channelId, messageId) => {
 export const GetChatDetails = async (id) => {
   try {
     let axios = (await import("axios")).default;
-    let resp = await axios.get(
-      CHAT_URL + `/api/v1/channels/${id}/media_counts`,
-      {
-        headers: {
-          Authorization:
-            `Bearer ` +
-            JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
-        },
-      }
-    );
+    let resp = await axios.get(CHAT_URL + `/api/v2/channels/${id}/media`, {
+      headers: {
+        Authorization:
+          `Bearer ` +
+          JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+      },
+    });
     store.dispatch({
       type: "EDIT_CHAT_INFO",
       payload: { id: id, data: resp.data.data },

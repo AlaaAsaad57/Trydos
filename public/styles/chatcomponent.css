@@ -242,6 +242,80 @@ html[lang="ar"] .chat-window-search-holder svg {
   height: 59px;
   transform: translate(0px, 1px);
 }
+.slider-gallery {
+  cursor: pointer;
+  padding-right: 5px;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  white-space: nowrap;
+  width: 100%;
+  height: 200px;
+  align-items: center;
+  display: flex;
+  justify-content: flex-start;
+  padding-left: 15px;
+}
+.slider-gallery::-webkit-scrollbar {
+  display: none;
+}
+.media-container {
+  display: flex;
+  width: 100%;
+  height: auto;
+  position: relative;
+  flex-direction: column;
+  max-height: 91%;
+  margin-top: 50px;
+  align-items: center;
+  justify-content: center;
+}
+.media-tabs {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.media-tab-container {
+  width: 100%;
+  height: auto;
+  margin-top: 10px;
+  overflow: auto;
+  max-height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+}
+.media-tab {
+  width: 33.3%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: 1px sold #5d5d5d43;
+}
+.active-tab-media {
+  background-color: #5d5d5d43;
+}
+.slider-gallery-item,
+.media-tab-container a {
+  min-width: 110px;
+  height: 140px;
+  border-radius: 5px;
+  margin-left: 4px;
+  padding: 3px;
+  display: flex;
+  width: 30.3%;
+  align-items: center;
+  justify-content: center;
+  background-color: #b4ffd9;
+}
+.media-tab-container a img {
+  width: 100%;
+}
+.slider-gallery-item img {
+  border-radius: 5px;
+}
 .chat-name {
   font-size: 14px;
   user-select: none;
