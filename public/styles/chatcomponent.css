@@ -310,8 +310,10 @@ html[lang="ar"] .chat-window-search-holder svg {
   justify-content: center;
   background-color: #b4ffd9;
 }
-.media-tab-container a img {
+.media-tab-container a img,
+.media-tab-container a video {
   width: 100%;
+  object-fit: cover;
 }
 .slider-gallery-item img {
   border-radius: 5px;
