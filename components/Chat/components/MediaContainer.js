@@ -37,7 +37,7 @@ function MediaContainer({ id, mediaFiles }) {
       </div>
       <div className="media-tab-container">
         {media === "ImageMessage" &&
-          mediaFiles.image_messages.map((image) => (
+          mediaFiles?.image_messages.map((image) => (
             <a href={image.message_files[0]?.file_path} target="_blank">
               <Image
                 src={image.message_files[0]?.file_path}
@@ -47,7 +47,7 @@ function MediaContainer({ id, mediaFiles }) {
             </a>
           ))}
         {media === "VideoMessage" &&
-          mediaFiles.video_messages.map((image) => (
+          mediaFiles?.video_messages.map((image) => (
             <a href={image.message_files[0]?.file_path} target="_blank">
               <video
                 autoPlay={false}
@@ -58,7 +58,7 @@ function MediaContainer({ id, mediaFiles }) {
             </a>
           ))}
         {media === "FileMessage" &&
-          mediaFiles.file_messages.map((image) => (
+          mediaFiles?.file_messages.map((image) => (
             <a href={image.message_files[0]?.file_path} target="_blank">
               <Image src={filePng} width={100} height={130} />
             </a>
