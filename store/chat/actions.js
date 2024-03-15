@@ -353,7 +353,11 @@ export async function PinnChat(payload) {
     });
     await AxiosInstance.post(
       SET_CHANNEL_OPT_UTL,
-      JSON.stringify({ channel_id: payload.id, pin: payload.value ? 1 : 0 })
+      JSON.stringify({
+        channel_id: payload.id,
+        id: getUserChat().id,
+        pin: payload.value ? 1 : 0,
+      })
     );
     GetChats(true);
   } catch (e) {}
@@ -377,7 +381,11 @@ export async function MuteChat(payload) {
     });
     await AxiosInstance.post(
       SET_CHANNEL_OPT_UTL,
-      JSON.stringify({ channel_id: payload.id, mute: payload.value ? 1 : 0 })
+      JSON.stringify({
+        channel_id: payload.id,
+        id: getUserChat().id,
+        mute: payload.value ? 1 : 0,
+      })
     );
   } catch (e) {}
 }
