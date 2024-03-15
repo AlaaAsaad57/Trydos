@@ -21,6 +21,7 @@ import { useCallback } from "react";
 import Observable from "components/Chat/components/ChatHistoryElement";
 import Image from "next/image";
 import {
+  GetChatDetails,
   SendMessage,
   getMessagesBetweenMessage,
   getPage,
@@ -1035,7 +1036,10 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
           />
         )}
         <ChatHeader
-          openDetails={() => openDetails(true)}
+          openDetails={() => {
+            openDetails(true);
+            GetChatDetails(activeChat?.id);
+          }}
           chats={chats}
           activeChat={activeChat}
         />

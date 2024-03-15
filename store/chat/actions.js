@@ -714,3 +714,22 @@ export const Answer = async (channelId, messageId) => {
       .then(() => {});
   } catch (e) {}
 };
+export const GetChatDetails = async (id) => {
+  try {
+    let axios = (await import("axios")).default;
+    let resp = await axios.get(
+      CHAT_URL + `/api/v1/channels/${id}/media_counts`,
+      {
+        headers: {
+          Authorization:
+            `Bearer ` +
+            JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+        },
+      }
+    );
+    store.dispatch({
+      type: "EDIT_CHAT_INFO",
+      payload: { id: id, data: resp.data.data },
+    });
+  } catch (e) {}
+};

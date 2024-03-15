@@ -8,12 +8,14 @@ import ImageInfoIcon from "../svg/imageInfo.svg";
 import VideoInfoIcon from "../svg/VideoInfo.svg";
 import FileInfoIcon from "../svg/FileInfo.svg";
 import InfoArrowIcon from "../svg/arrowRight.svg";
-import SaveToGalleryIcon from "../svg/SaveToGallery.svg";
+// import SaveToGalleryIcon from "../svg/SaveToGallery.svg";
 import DeleteInfoIcon from "../svg/deleteInfo.svg";
 import BlockInfoIcon from "../svg/BlockInfo.svg";
 
 import { getTwoLetters, getUser } from "../chatsFunctions";
 import Image from "next/image";
+import Spinner from "components/global/Spinner";
+import { useDispatch } from "react-redux";
 function ChatInfo({
   activeChat,
   cancel,
@@ -22,6 +24,7 @@ function ChatInfo({
   makeVideoCall,
 }) {
   const ref = useRef();
+  const dispatch = useDispatch();
   useEffect(() => {
     ref.current.style.display = "flex";
     setTimeout(() => {
@@ -127,13 +130,28 @@ function ChatInfo({
           <div className=".chat-user-files-info-text">Media & Files</div>
           <div className="chat-user-files-info-content">
             <div className="chat-user-files-info-content-item">
-              <ImageInfoIcon></ImageInfoIcon> 322
+              <ImageInfoIcon></ImageInfoIcon>{" "}
+              {activeChat?.message_counts ? (
+                activeChat?.message_counts?.image_messages_count
+              ) : (
+                <Spinner />
+              )}
             </div>
             <div className="chat-user-files-info-content-item">
-              <VideoInfoIcon></VideoInfoIcon> 322
+              <VideoInfoIcon></VideoInfoIcon>{" "}
+              {activeChat?.message_counts ? (
+                activeChat?.message_counts?.video_messages_count
+              ) : (
+                <Spinner />
+              )}
             </div>
             <div className="chat-user-files-info-content-item">
-              <FileInfoIcon></FileInfoIcon> 322
+              <FileInfoIcon></FileInfoIcon>{" "}
+              {activeChat?.message_counts ? (
+                activeChat?.message_counts?.file_messages_count
+              ) : (
+                <Spinner />
+              )}
             </div>
           </div>
           <div className="chat-user-info-arrow">
@@ -153,7 +171,16 @@ function ChatInfo({
         </div>
       </div>
       <div className="chat-user-options">
-        <div className="chat-user-option delete-option">
+        <div
+          className="chat-user-option delete-option"
+          onClick={() => {
+            dispatch({
+              type: "DELETE_CHAT_REDUCER",
+              payload: { id: activeChat.id },
+            });
+            cancel();
+          }}
+        >
           <DeleteInfoIcon /> <span>Delete Chat</span>
         </div>
         <div className="chat-user-option">

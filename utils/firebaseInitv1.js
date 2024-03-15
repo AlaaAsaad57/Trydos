@@ -397,6 +397,10 @@ export const onMessageListener = async () => {
           },
         });
       }
+      if (payload.data.type === "ChannelDeletedEvent") {
+        let id = JSON.parse(payload.data.data).channel_id;
+        store.dispatch({ type: "DELETE_CHAT_REDUCER", payload: { id: id } });
+      }
     });
   });
 };

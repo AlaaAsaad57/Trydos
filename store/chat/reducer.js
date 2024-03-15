@@ -1094,11 +1094,30 @@ export const ChatReducer = (
         data: arr,
       };
     }
+    case "EDIT_CHAT_INFO": {
+      let arr = [];
+      let active = state.activeChat;
+      state.data.map((s) => {
+        if (parseInt(s.id) === parseInt(payload.id)) {
+          arr.push({ ...s, message_counts: payload.data });
+        } else {
+          arr.push(s);
+        }
+      });
+      if (active && parseInt(active?.id) === parseInt(payload.id)) {
+        active = { ...active, message_counts: payload.data };
+      }
+      return { ...state, data: arr, activeChat: active };
+    }
     case "DELETE_CHAT_REDUCER": {
       deleteChat(payload.id);
       return {
         ...state,
-        data: state.data.filter((chat) => chat.id !== payload.id),
+        data: state.data.filter(
+          (chat) => parseInt(chat.id) !== parseInt(payload.id)
+        ),
+        activeChat: null,
+        main: "main",
       };
     }
     case "DELETE_MESSAGE": {
