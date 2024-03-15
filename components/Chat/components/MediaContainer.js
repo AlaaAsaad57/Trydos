@@ -37,8 +37,12 @@ function MediaContainer({ id, mediaFiles }) {
       </div>
       <div className="media-tab-container">
         {media === "ImageMessage" &&
-          mediaFiles?.image_messages.map((image) => (
-            <a href={image.message_files[0]?.file_path} target="_blank">
+          mediaFiles?.image_messages.map((image, index) => (
+            <a
+              href={image.message_files[0]?.file_path}
+              target="_blank"
+              key={index}
+            >
               <Image
                 src={image.message_files[0]?.file_path}
                 width={100}
@@ -47,8 +51,12 @@ function MediaContainer({ id, mediaFiles }) {
             </a>
           ))}
         {media === "VideoMessage" &&
-          mediaFiles?.video_messages.map((image) => (
-            <a href={image.message_files[0]?.file_path} target="_blank">
+          mediaFiles?.video_messages.map((image, index) => (
+            <a
+              key={index}
+              href={image.message_files[0]?.file_path}
+              target="_blank"
+            >
               <video
                 autoPlay={false}
                 src={image.message_files[0]?.file_path}
@@ -58,8 +66,12 @@ function MediaContainer({ id, mediaFiles }) {
             </a>
           ))}
         {media === "FileMessage" &&
-          mediaFiles?.file_messages.map((image) => (
-            <a href={image.message_files[0]?.file_path} target="_blank">
+          mediaFiles?.file_messages.map((image, index) => (
+            <a
+              key={index}
+              href={image.message_files[0]?.file_path}
+              target="_blank"
+            >
               <Image src={filePng} width={100} height={130} />
             </a>
           ))}

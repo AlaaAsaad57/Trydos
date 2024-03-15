@@ -200,17 +200,19 @@ function ChatInfo({
           </div>
           {
             <div className="slider-gallery">
-              {activeChat?.message_counts?.image_messages?.map((image) => (
-                <div className="slider-gallery-item">
-                  <Image
-                    width={100}
-                    src={image.message_files[0]?.file_path}
-                    height={130}
-                    objectFit="cover"
-                    objectPosition="center"
-                  />
-                </div>
-              ))}
+              {activeChat?.message_counts?.image_messages?.map(
+                (image, index) => (
+                  <div className="slider-gallery-item" key={index}>
+                    <Image
+                      width={100}
+                      src={image.message_files[0]?.file_path}
+                      height={130}
+                      objectFit="cover"
+                      objectPosition="center"
+                    />
+                  </div>
+                )
+              )}
             </div>
           }
           <div className="chat-user-gallery-container">
