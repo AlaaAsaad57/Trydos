@@ -1,0 +1,40 @@
+import { AdvancedImage } from "@cloudinary/react";
+import React from "react";
+import { configureStory, getThumb } from "../../../utils/functions";
+import { errorPNG } from "utils/constants";
+function StoryChatRow({ story, index, viewedStory, stories, select }) {
+  return (
+    <div
+      className="call-conversation-item"
+      style={{ cursor: "pointer" }}
+      onClick={() => select(configureStory(story))}
+    >
+      <AdvancedImage
+        className="thumb-img"
+        alt="story"
+        width={30}
+        height={30}
+        style={{
+          borderRadius: "50%",
+          border:
+            story.stories.filter((s) => s.is_seen === false).length > 0
+              ? "3px solid #42f742"
+              : "3px solid #bfbfbf",
+        }}
+        onError={(e) => {
+          e.currentTarget.src = errorPNG;
+          e.currentTarget.onerror = null;
+        }}
+        cldImg={getThumb(
+          viewedStory.full_video_path || viewedStory.photo_path,
+          viewedStory.full_video_path
+        )}
+      />
+      <div className="story-name" style={{ marginLeft: "5px" }}>
+        {story.name ?? story.mobile_phone ?? "Unknown"}
+      </div>
+    </div>
+  );
+}
+
+export default StoryChatRow;

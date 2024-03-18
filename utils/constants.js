@@ -6,6 +6,7 @@ import ElectricalIcon from "public/svg/ElectricalIcon.svg";
 import StoreIcon from "public/svg/ShopIcon.svg";
 import { Cloudinary } from "@cloudinary/url-gen";
 import SearchIcon from "public/svg/SearchIcon.svg";
+import pngErr from "public/images/error.png";
 export const categories = [
   {
     name: "Man",
@@ -44,3 +45,4 @@ export const myCld = () => {
     },
   });
 };
+export const errorPNG = pngErr.src;

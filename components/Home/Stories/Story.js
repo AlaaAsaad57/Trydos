@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AdvancedImage } from "@cloudinary/react";
 import { getThumb } from "utils/functions";
+import { errorPNG } from "utils/constants";
 function Story({ onClick, media, Name, index }) {
   const [load, onLoad] = useState(null);
   return (
@@ -30,8 +31,9 @@ function Story({ onClick, media, Name, index }) {
         width={145}
         height={255}
         loading={window.innerWidth < 500 && index >= 4 ? "lazy" : "eager"}
-        onError={() => {
-          onLoad("error");
+        onError={(e) => {
+          e.currentTarget.src = errorPNG;
+          e.currentTarget.onerror = null;
         }}
         cldImg={getThumb(
           media.full_video_path || media.photo_path,

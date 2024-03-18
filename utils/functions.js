@@ -58,11 +58,13 @@ export const configureStory = (story) => {
         .video(storyItem.full_video_path?.split("/").pop().split(".")[0])
         .format("webm")
         .delivery(quality(auto()));
+      console.log(vid.toURL());
       returnedData.push({
-        url: vid.toURL(),
+        url: vid.toURL().includes("?")
+          ? vid.toURL() + "&asa=" + parseInt(Math.random() * 1000).toString()
+          : vid.toURL() + "?asa=" + parseInt(Math.random() * 1000).toString(),
         FixedUrl: vid,
         is_seen: storyItem.is_seen,
-        url: storyItem.full_video_path,
         FixedUrl: storyItem.full_video_path,
         id: storyItem.id,
         header: {
@@ -80,10 +82,12 @@ export const configureStory = (story) => {
         .format("webp")
         .delivery(quality(auto()));
       returnedData.push({
-        url: img.toURL(),
+        url: img.toURL().includes("?")
+          ? img.toURL() + "&asa=" + parseInt(Math.random() * 1000).toString()
+          : img.toURL() + "?asa=" + parseInt(Math.random() * 1000).toString(),
         FixedUrl: img,
         is_seen: storyItem.is_seen,
-        duration: 20000,
+        duration: 5000,
         id: storyItem.id,
         header: {
           heading: story.name ?? story.mobile_phone ?? "Unknown",
