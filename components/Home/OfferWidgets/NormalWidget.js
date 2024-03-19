@@ -30,7 +30,7 @@ const NormalWidget = ({ offer, myKey, onClick }) => {
       {myKey === 0 || myKey === 1 ? (
         <>
           <>
-            {/* <Image
+            <Image
               fill
               alt="imageAlt"
               loading="eager"
@@ -48,7 +48,7 @@ const NormalWidget = ({ offer, myKey, onClick }) => {
               src={
                 "https://res.cloudinary.com/djooohujg/image/upload/q_50/w_800/f_webp/1708506792?_a=DATC1RAAZAsA0&w=800&q=60"
               }
-            /> */}
+            />
             <div className="offer-blured-background" />
             <div className="offer-blured" />
             <div className="offer-container">
