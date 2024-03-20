@@ -292,13 +292,16 @@
   color: white;
   background-color: #ff5f61;
 }
+.disabled-label {
+  opacity: 0.4;
+}
 .disabled-label.call-dec {
   animation: hoverWaveDec linear 1s infinite;
-  opacity: 0.6;
+  opacity: 0.4;
 }
 .call-rec.disabled-label {
   animation: hoverWave linear 1s infinite;
-  opacity: 0.6;
+  opacity: 0.4;
 }
 @keyframes hoverWaveDec {
   0% {
