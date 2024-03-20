@@ -1,7 +1,7 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 function CallComponentWidget({ data, type, onAnswer, onDecline, userData }) {
-  useEffect(() => {}, []);
+  const [actionType, setAction] = useState(null);
   return (
     <div className="video-call">
       <div
@@ -20,12 +20,12 @@ function CallComponentWidget({ data, type, onAnswer, onDecline, userData }) {
         {userData.name || userData.phone}
       </span>
       <div
-        className={`toggle-mic call-rec `}
+        className={`toggle-mic call-rec ${
+          actionType === "REC" && "disabled-label"
+        }`}
         id="call-rec-id"
         onClick={(e) => {
-          document
-            .querySelector("#call-rec-id")
-            .classList.add("disabled-label");
+          setAction("REC");
           onAnswer();
         }}
       >
@@ -44,12 +44,12 @@ function CallComponentWidget({ data, type, onAnswer, onDecline, userData }) {
         </svg>
       </div>
       <div
-        className={`toggle-vid call-dec`}
+        className={`toggle-vid call-dec ${
+          actionType === "DEC" && "disabled-label"
+        }`}
         id="call-dec-id"
         onClick={(e) => {
-          document
-            .querySelector("#call-dec-id")
-            .classList.add("disabled-label");
+          setAction("DEC");
           onDecline();
         }}
       >
