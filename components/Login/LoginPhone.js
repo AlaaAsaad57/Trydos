@@ -15,6 +15,7 @@ import replaceString from "replace-string";
 import MessageIcon from "public/svg/MessageIcon.svg";
 import Timer from "./Timer";
 import PinInputs from "./PinInput";
+import ManIcon from "public/svg/manIcon.svg";
 import {
   CheckPhone,
   ReInitialise,
@@ -22,9 +23,15 @@ import {
   VerifyOtp,
 } from "store/auth/actions";
 const { flag } = require("country-emoji");
-function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
+function LoginPhone({
+  selectedMethod,
+  selectMethod,
+  LoginSuccess,
+  newAccount,
+}) {
   const dispatch = useDispatch();
   const [rerender, setRender] = useState(true);
+  const [Username, setName] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [disabled, setDisabled] = useState(false);
 
@@ -44,7 +51,8 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
   const handleInput = (e) => {
     let pattern = null;
     let country = getCountry();
-    setStepHeight(152);
+    if (newAccount) setStepHeight(200);
+    else setStepHeight(152);
     if (country) {
       pattern = replaceString(country.format || "", ".", "x");
       pattern = replaceString(pattern, "-", "  ");
@@ -74,8 +82,10 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
   const verficationID = useSelector((state) => state.auth.verficationID);
   const wrongNumber = useSelector((state) => state.auth.wrongNumber);
   useEffect(() => {
-    if (selectedMethod) setStepHeight(152);
-    else setStepHeight(50);
+    if (selectedMethod) {
+      if (newAccount) setStepHeight(200);
+      else setStepHeight(152);
+    } else setStepHeight(50);
   }, [selectedMethod]);
   useEffect(() => {
     if (attempts === 0) {
@@ -87,6 +97,10 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
       setStepHeight(282);
     }
   }, [wrongNumber]);
+  useEffect(() => {
+    if (newAccount) {
+    }
+  }, [newAccount]);
   return (
     <div
       className="login-label-container"
@@ -127,62 +141,109 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                   )}
                 </div>
               </div>
+              {newAccount && stepHeight === 200 && (
+                <>
+                  <div className="login-phone-element">
+                    {stepHeight <= 200 && (
+                      <Border
+                        height={50}
+                        width={350}
+                        color={validNumber && "#4D84FF"}
+                      />
+                    )}
+                    <div className="phone-input-element">
+                      <ManIcon style={{ minWidth: "20px" }} />
+                      <label htmlFor="phone" className="no-label">
+                        Name
+                      </label>
+                      <input
+                        id="Name"
+                        disabled={stepHeight > 200}
+                        onChange={(e) => setName(e.target.value)}
+                        className="login-phone-input"
+                      />
+                    </div>
+                  </div>
+                  {Username.length > 0 &&
+                    Username.length < 5 &&
+                    !Username.includes(" ") && (
+                      <span style={{ color: "red", fontSize: "10px" }}>
+                        Name Must Be Minimum 5 Characters and should includes
+                        first and last name eg:Jhon Stones
+                      </span>
+                    )}
+                </>
+              )}
               <div
                 className="login-phone-element"
                 style={{
                   backgroundColor:
                     wrongNumber.length > 0
                       ? "#FFF5F5"
-                      : stepHeight > 152 && "#F5F5F5",
+                      : stepHeight > 200 && "#F5F5F5",
                 }}
               >
-                {stepHeight === 152 && (
-                  <Border
-                    height={50}
-                    width={350}
-                    color={validNumber && "#4D84FF"}
-                  />
+                {(!newAccount ||
+                  (newAccount &&
+                    Username.length > 5 &&
+                    Username.includes(" "))) && (
+                  <>
+                    {stepHeight <= 200 && (
+                      <Border
+                        height={50}
+                        width={350}
+                        color={validNumber && "#4D84FF"}
+                      />
+                    )}
+                    <div className="phone-input-element">
+                      <SolidPhoneIcon />
+                      <span className="flag-icon">
+                        {getCountry() &&
+                          getCountry()?.iso2 &&
+                          flag(getCountry()?.iso2)}
+                      </span>
+                      <span className="plus-icon-phone" ar>
+                        +
+                      </span>
+                      <label htmlFor="phone" className="no-label">
+                        Search
+                      </label>
+                      <input
+                        id="phone"
+                        disabled={stepHeight > 200}
+                        onChange={(e) => handleInput(e)}
+                        className="login-phone-input"
+                      />
+                      {validNumber && stepHeight <= 200 && (
+                        <LeftArrowIcon
+                          onClick={() => {
+                            CheckPhone(
+                              inputValue,
+                              (e) => setStepHeight(e),
+                              newAccount
+                            );
+                          }}
+                          className="phone-arrow"
+                        />
+                      )}
+                      {stepHeight > 200 && (
+                        <PenIcon
+                          className="phone-arrow"
+                          onClick={() => {
+                            if (newAccount) setStepHeight(200);
+                            else setStepHeight(152);
+                            dispatch(ReInitialise());
+                            setTimeout(() => {
+                              document
+                                .querySelector(".login-phone-input")
+                                .focus();
+                            }, 400);
+                          }}
+                        />
+                      )}
+                    </div>
+                  </>
                 )}
-                <div className="phone-input-element">
-                  <SolidPhoneIcon />
-                  <span className="flag-icon">
-                    {getCountry() &&
-                      getCountry()?.iso2 &&
-                      flag(getCountry()?.iso2)}
-                  </span>
-                  <span className="plus-icon-phone" ar>
-                    +
-                  </span>
-                  <label htmlFor="phone" className="no-label">
-                    Search
-                  </label>
-                  <input
-                    id="phone"
-                    disabled={stepHeight > 152}
-                    onChange={(e) => handleInput(e)}
-                    className="login-phone-input"
-                  />
-                  {validNumber && stepHeight === 152 && (
-                    <LeftArrowIcon
-                      onClick={() => {
-                        CheckPhone(inputValue, (e) => setStepHeight(e));
-                      }}
-                      className="phone-arrow"
-                    />
-                  )}
-                  {stepHeight > 152 && (
-                    <PenIcon
-                      className="phone-arrow"
-                      onClick={() => {
-                        setStepHeight(152);
-                        dispatch(ReInitialise());
-                        setTimeout(() => {
-                          document.querySelector(".login-phone-input").focus();
-                        }, 400);
-                      }}
-                    />
-                  )}
-                </div>
               </div>
             </>
           )}
@@ -382,7 +443,7 @@ function LoginPhone({ selectedMethod, selectMethod, LoginSuccess }) {
                 LoginSuccess={() => {
                   LoginSuccess();
                 }}
-                Login={(value) => VerifyOtp(value, verficationID)}
+                Login={(value) => VerifyOtp(value, verficationID, Username)}
                 disabled={disabled}
               />
             </div>

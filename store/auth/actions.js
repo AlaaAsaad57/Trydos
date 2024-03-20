@@ -9,6 +9,7 @@ import {
   STARTER_SETTINGS,
   STORIES_URL,
   VERFIY_OTP,
+  VERFIY_OTP_SIGNUP,
 } from "utils/endpointConfig";
 import { store } from "../index";
 import { SSRDetect, getUserStories } from "utils/functions";
@@ -17,14 +18,25 @@ import { GetChats } from "../chat/actions";
 export const ReInitialise = () => {
   return { type: "RE-INITILIASE" };
 };
-export const CheckPhone = async (value, step) => {
+export const CheckPhone = async (value, step, newAccount) => {
+  let axios = (await import("axios")).default;
+  try {
+    if (newAccount) {
+      let response = await axios.get(
+        OTP_URL + "/phone/check-existence/" + `${value}`
+      );
+    }
+    step(277);
+    store.dispatch(ReInitialise());
+  } catch (e) {
+    step(282);
+    store.dispatch({ type: "WRONG-NUMBER", payload: "phone already exists" });
+  }
+
   // if(value.includes('1')){
-  //     step(282);
-  //     return({type:"WRONG-NUMBER"})
+
   // }
   // else{
-  step(277);
-  store.dispatch(ReInitialise());
 };
 export const lodaingOTP = (val) => {
   return { type: "LOADING-OTP", payload: val };
@@ -54,15 +66,22 @@ export const SendOtp = async (mobilePhone, is_via_whatsapp, step) => {
     });
   }
 };
-export const VerifyOtp = async (code, verficationID) => {
+export const VerifyOtp = async (
+  code,
+  verficationID,
+  Username,
+  EditPhoneFunc
+) => {
   try {
     let axios = (await import("axios")).default;
     let response = await axios.get(
-      OTP_URL + VERFIY_OTP + `?verificationId=${verficationID}&otp=${code}`
+      OTP_URL +
+        (Username.length > 0 ? VERFIY_OTP_SIGNUP : VERFIY_OTP) +
+        `?verificationId=${verficationID}&otp=${code}${
+          Username.length > 0 ? `&name=${Username}` : ""
+        }`
     );
     if (response.data?.isSuccessful === false) {
-      if (response.data.message === "please verify your number again") {
-      }
       throw new Error("Wrong Code");
     }
     localStorage.setItem("ID-TOKEN", response.data.data.id_token);

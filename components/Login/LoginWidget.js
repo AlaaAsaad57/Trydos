@@ -11,6 +11,7 @@ import { ReInitialise } from "store/auth/actions";
 import "styles/login.css";
 function LoginWidget({ close, loginSuccessVar, setLoginSucces }) {
   const dispatch = useDispatch();
+  const [step, setStep] = useState();
   const wrongNumber = useSelector((state) => state.auth.wrongNumber);
   const language = useSelector((state) => state.homepage.language);
   const [loginMethod, setLoginMethod] = useState(null);
@@ -49,6 +50,7 @@ function LoginWidget({ close, loginSuccessVar, setLoginSucces }) {
             }}
           /> */}
           <LoginPhone
+            newAccount={step === "SignUp"}
             LoginSuccess={() => setLoginSucces(true)}
             selectedMethod={loginMethod === "phone"}
             selectMethod={() => {
@@ -59,21 +61,30 @@ function LoginWidget({ close, loginSuccessVar, setLoginSucces }) {
           <div className={`${language + "-regular"}  login-blue-question`}>
             {translate("Don’t Have Account?", language)}
           </div>
-          <div
-            className={`${
-              wrongNumber && "absolute-create-button"
-            } login-label-container create-account-button`}
-          >
-            <Border height={50} />
-            <div className="login-label">
-              <div className="login-label-title">
-                <AccountIcon />
-                <div className={`${language + "-regular"}  login-label-text`}>
-                  {translate("Create New Account", language)}
+          {step !== "SignUp" && (
+            <div
+              className={`${
+                wrongNumber && "absolute-create-button"
+              } login-label-container create-account-button`}
+            >
+              <Border height={50} />
+              <div
+                className="login-label"
+                onClick={() => {
+                  ReInitialise();
+                  setStep("SignUp");
+                  setLoginMethod("phone");
+                }}
+              >
+                <div className="login-label-title">
+                  <AccountIcon />
+                  <div className={`${language + "-regular"}  login-label-text`}>
+                    {translate("Create New Account", language)}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </>
