@@ -71,6 +71,7 @@ export const translations = {
       "Search, Chat, Contact, Start New Chat",
     "Contacts List": "Contatcs List",
     Copy: "Copy",
+    OK: "OK",
     Reply: "Reply",
     Forward: "Forward",
     CategoryMessage: "Category",
@@ -220,6 +221,7 @@ export const translations = {
     "Outgoing Call": "مكالمة صادرة",
     "Please Enable Notification to use Chat":
       "الرجاء السماح للاشعارات لاستخدام الدردشة",
+    OK: "موافق",
   },
   tr: {
     Brands: "Markalar",

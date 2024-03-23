@@ -223,6 +223,16 @@ export const CheckLogin = async () => {
     }, 6000);
   }
 };
+export const UpdateName = async (name) => {
+  try {
+    let axios = (await import("axios")).default;
+    axios.post(OTP_URL + "/customer/update-name" + { name: name }, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("MARKET-TOKEN")}`,
+      },
+    });
+  } catch (e) {}
+};
 export const getClientData = async () => {
   let axios = (await import("axios")).default;
   if (!localStorage.getItem("customer-info")) await getCustomerInfo();

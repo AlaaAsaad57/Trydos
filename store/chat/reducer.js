@@ -53,6 +53,7 @@ const initialState = {
   callLoading: null,
   AgoraToken: null,
   client: null,
+  nameModal: false,
 };
 const showDate = (d) => {
   const language = store.getState().homepage.language;
@@ -887,9 +888,19 @@ export const ChatReducer = (
       };
     }
     case "MAIN": {
+      if (JSON.parse(localStorage.getItem("USER")).name)
+        return {
+          ...state,
+          main: payload,
+        };
+      else {
+        return { ...state, nameModal: true };
+      }
+    }
+    case "SHOW-MODAL": {
       return {
         ...state,
-        main: payload,
+        nameModal: payload,
       };
     }
     case "STORE_TOKEN_RED": {
