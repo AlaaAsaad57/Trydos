@@ -259,7 +259,7 @@ function AddStory() {
         }}
         onClick={() => {
           if (JSON.parse(localStorage.getItem("USER")).name) setOpenMenu(true);
-          dispatch({ type: "SHOW-MODAL", payload: true });
+          else dispatch({ type: "SHOW-MODAL", payload: true });
         }}
       >
         {isSelected ? (

@@ -107,10 +107,14 @@ export const ChatReducer = (
       };
     }
     case "CHAT-OPEN": {
-      return {
-        ...state,
-        chatVar: payload,
-      };
+      if (JSON.parse(localStorage.getItem("USER")).name?.length > 2)
+        return {
+          ...state,
+          chatVar: payload,
+        };
+      else {
+        return { ...state, nameModal: true };
+      }
     }
     case "SET_LAST_NOTIFICATION_DATE": {
       return {
@@ -888,14 +892,10 @@ export const ChatReducer = (
       };
     }
     case "MAIN": {
-      if (JSON.parse(localStorage.getItem("USER")).name)
-        return {
-          ...state,
-          main: payload,
-        };
-      else {
-        return { ...state, nameModal: true };
-      }
+      return {
+        ...state,
+        main: payload,
+      };
     }
     case "SHOW-MODAL": {
       return {

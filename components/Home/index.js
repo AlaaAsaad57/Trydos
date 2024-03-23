@@ -20,6 +20,7 @@ const NotificationContainer = dynamic(() => import("./Notifications"), {
   ssr: false,
 });
 import { getUserChat } from "utils/functions";
+import NameModal from "components/global/NameModal";
 import { getUserStories } from "../../utils/functions";
 export default function Home({ HomeData_res, HomeData }) {
   useEffect(() => {
@@ -67,6 +68,8 @@ export default function Home({ HomeData_res, HomeData }) {
   const enableNotifications = useSelector(
     (state) => state.homepage.enableNotifications
   );
+  const nameModal = useSelector((state) => state.chat.nameModal);
+
   useEffect(() => {
     if (selectedStory) {
       document.body.style.overflowY = "hidden";
@@ -79,6 +82,7 @@ export default function Home({ HomeData_res, HomeData }) {
     <>
       {enableNotifications && <NotificationContainer />}
       <Stories />
+      {nameModal && <NameModal />}
       {<StoriesComponent />}
       <CategoriesBar forMobile={true} />
       <BrandsBar />

@@ -42,7 +42,7 @@ export default function Providers({ lang, children }) {
           <div className="home-page-container">
             <TranslationsMenu init={lang} />
             <Navbar init={lang} />
-            {getUserChat()?.id && <ChatModal />}
+            {<ChatModal />}
             {children}
           </div>
         </div>

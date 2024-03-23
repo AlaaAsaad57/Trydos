@@ -12,6 +12,33 @@
 body {
   background: none !important;
 }
+.lang-modalDisable {
+  content: "";
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: -webkit-fill-available;
+  height: -webkit-fill-available;
+  z-index: 2000;
+}
+.phone-input-element {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+.login-phone-input {
+  height: 20px;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  margin-left: 4px;
+  color: #707070;
+  font-size: 14px;
+  font-family: var(--SF-Pro-Rounded-Regular);
+}
 .categories-bar-item-icon > span:first-child {
   width: 24px;
 }
