@@ -258,7 +258,8 @@ function AddStory() {
           justifyContent: "center",
         }}
         onClick={() => {
-          if (JSON.parse(localStorage.getItem("USER")).name) setOpenMenu(true);
+          if (JSON.parse(localStorage.getItem("USER")).name.length > 1)
+            setOpenMenu(true);
           else dispatch({ type: "SHOW-MODAL", payload: true });
         }}
       >
