@@ -305,3 +305,86 @@ span.bold-text {
   background-color: rgb(141, 6, 6);
   border-radius: 1px;
 }
+.button-bases {
+  position: fixed;
+  bottom: 20px;
+  left: 10px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 99999999999;
+}
+.button-bases button {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #dddddd;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: #0000002a 0px 3px 6px;
+}
+.button-bases button svg path {
+  fill: #555;
+}
+.button-bases button:disabled svg path {
+  fill: #8e8d92;
+}
+.fixed-img-prev {
+  width: 100vw;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  background-color: transparent;
+  height: 100vh;
+  display: flex;
+  z-index: 9999999999;
+  align-items: center;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 20px;
+}
+
+.fixed-img-prev .svv {
+  position: absolute;
+  top: 29px;
+  right: 30px;
+  cursor: pointer;
+  z-index: 9999999999999;
+}
+.fixed-img-prev video.cameraInput {
+  height: 100%;
+  width: 100% !important;
+  inset: 0px !important;
+  max-height: 100vh;
+  color: transparent;
+  -o-object-fit: fill;
+  object-fit: fill;
+  position: absolute !important;
+  z-index: 99999999;
+}
+
+.fixed-img-prev .bac-drop {
+  background-color: #585751;
+  opacity: 0.6;
+  z-index: 9999;
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+}
+
+.fixed-img-prev img,
+.fixed-img-prev video {
+  height: auto;
+  width: 100% !important;
+  inset: 0px !important;
+  max-height: 90vh;
+  color: transparent;
+  object-fit: fill;
+  position: static !important;
+  z-index: 99999999;
+}
