@@ -317,6 +317,7 @@ span.bold-text {
 }
 .button-bases button {
   width: 50px;
+  cursor: pointer;
   height: 50px;
   border-radius: 50%;
   background-color: #dddddd;
