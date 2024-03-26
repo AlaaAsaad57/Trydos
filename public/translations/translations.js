@@ -110,6 +110,9 @@ export const translations = {
     "Outgoing Call": "Outgoing Call",
     "Please Enable Notification to use Chat":
       "Please Enable Notification to use Chat",
+    "No Contacts": "No Contacts",
+    "Log in Through our App to access contacts":
+      "Log in Through our App to access contacts",
   },
 
   ar: {
@@ -222,6 +225,9 @@ export const translations = {
     "Please Enable Notification to use Chat":
       "الرجاء السماح للاشعارات لاستخدام الدردشة",
     OK: "موافق",
+    "No Contacts": "لا يوجد جهات اتصال",
+    "Log in Through our App to access contacts":
+      "قم بالدخول من خلال التطبيق للوصول الى جهات الاتصال",
   },
   tr: {
     Brands: "Markalar",
