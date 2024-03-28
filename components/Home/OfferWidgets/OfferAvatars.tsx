@@ -1,8 +1,15 @@
-import { MouseEvent, Touch, TouchEvent, useRef } from "react";
+import {
+  MouseEvent,
+  MutableRefObject,
+  Ref,
+  Touch,
+  TouchEvent,
+  useRef,
+} from "react";
 import OfferAvatar from "./OfferAvatar";
 import MoreOfferAvatar from "./MoreOfferAvatar";
 function OfferAvatars({ priority }: { priority: Boolean }) {
-  const ref: any = useRef();
+  const ref = useRef<HTMLDivElement>();
   const handleMove = (e: any) => {
     let elemnts: Element[] = Array.from(ref.current.children);
     let clientX = e.clientX || e.touches[0]?.clientX;
@@ -11,7 +18,7 @@ function OfferAvatars({ priority }: { priority: Boolean }) {
         ref.current.clientWidth +
         5
     );
-    elemnts.forEach((element) => {
+    elemnts.forEach((element: Element) => {
       element.classList.remove("active-hover");
     });
     let index: number = Math.abs(Xmove / (100 / elemnts.length));

@@ -15,12 +15,17 @@ function ProductCard({
   HomeData_res,
   stories_res,
   HomeData,
+}: {
+  Listing_Data_res: any;
+  HomeData_res: any;
+  stories_res: any;
+  HomeData: any;
 }) {
   const dispatch = useDispatch();
-  const products = useSelector((state) => state.listing.products);
-  const offset = useSelector((state) => state.listing.offset);
-  const loading = useSelector((state) => state.listing.loading);
-  const isReachEnd = useSelector((state) => state.listing.isReachEnd);
+  const products = useSelector((state: any) => state.listing.products);
+  const offset = useSelector((state: any) => state.listing.offset);
+  const loading = useSelector((state: any) => state.listing.loading);
+  const isReachEnd = useSelector((state: any) => state.listing.isReachEnd);
   const GetNextPage = async () => {
     if (!loading) {
       dispatch({ type: "PRODUCT_LOADING" });
@@ -68,7 +73,7 @@ function ProductCard({
                 }}
               ></InView>
             ) : (
-              <h2>{loading && <Spinner />}</h2>
+              <h2>{loading && <Spinner no={false} className="" />}</h2>
             )}
           </>
         ) : (

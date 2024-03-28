@@ -2,8 +2,9 @@ import StarIcon from "public/svg/starIcon.svg";
 import BarDescribtion from "./BarDescribtion";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
-function BrandsBar() {
-  const language = useSelector((state: any) => state.homepage.language);
+import { ReactElement } from "react";
+function BrandsBar(): ReactElement {
+  const language: string = useSelector((state: any) => state.homepage.language);
 
   return (
     <div className="home-bar">

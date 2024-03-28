@@ -1,7 +1,13 @@
 import { useState } from "react";
 import Loadding from "public/svg/loading.svg";
 import { Img } from "react-image";
-function CategoryPhoto(props) {
+function CategoryPhoto(props: {
+  alt: string;
+  width: string | number;
+  src: string;
+  height: string | number;
+  style: object;
+}) {
   const [reload, setReload] = useState(true);
   const [src, setSrc] = useState(props.src);
   const onClick = () => {

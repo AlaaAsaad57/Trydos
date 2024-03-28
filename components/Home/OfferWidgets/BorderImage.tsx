@@ -1,4 +1,6 @@
-function BorderImage() {
+import { ReactElement } from "react";
+
+function BorderImage(): ReactElement {
   const getWidth = (): string => {
     return "100%";
   };

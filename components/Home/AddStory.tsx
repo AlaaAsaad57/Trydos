@@ -17,13 +17,13 @@ import { toast } from "react-toastify";
 
 function AddStory() {
   const [uploaded, setUpload] = useState(0);
-  const language = useSelector((state: any) => state.homepage.language);
+  const language: string = useSelector((state: any) => state.homepage.language);
   const [openMenu, setOpenMenu] = useState(false);
   const [OpenCamera, setOpenCamera] = useState(false);
   const [isSelected, setIsSelected] = useState(null);
   const [file, setFile] = useState(null);
   const dispatch = useDispatch();
-  const handleChange = async (e) => {
+  const handleChange = async (e: any) => {
     const { toast } = await import("react-toastify");
     if (e.target.files[0]?.type.includes("video")) {
       new Promise((resolve, reject) => {
@@ -32,8 +32,8 @@ function AddStory() {
         reader.onload = async () => {
           setFile(e.target.files[0]);
           setIsSelected(reader.result);
-          var videoElement: any = document.createElement("video");
-          videoElement.src = reader.result;
+          var videoElement: HTMLVideoElement = document.createElement("video");
+          videoElement.src = reader.result.toString();
           var timer = setInterval(async function () {
             if (videoElement.readyState === 4) {
               let getTime = videoElement.duration;

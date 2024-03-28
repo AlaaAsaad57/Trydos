@@ -3,8 +3,16 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import BorderImage from "./BorderImage";
 import Image from "next/image";
 import { EffectCoverflow } from "swiper/modules";
-function ProductSlider({ activeColor, setActiveColor, product_name }) {
-  const ColorRef = useRef();
+function ProductSlider({
+  activeColor,
+  setActiveColor,
+  product_name,
+}: {
+  activeColor: { index: number; images: string[] };
+  setActiveColor: Function;
+  product_name: string;
+}) {
+  const ColorRef = useRef<any>();
   useEffect(() => {
     if (activeColor && activeColor.index >= 0) {
       ColorRef?.current?.slideTo(activeColor.index, 300, false);
@@ -19,7 +27,6 @@ function ProductSlider({ activeColor, setActiveColor, product_name }) {
           coverflowEffect={{
             depth: 100,
             modifier: 1,
-            rotate: false,
             scale: 0.78,
             stretch: 135,
             slideShadows: false,
@@ -33,6 +40,7 @@ function ProductSlider({ activeColor, setActiveColor, product_name }) {
           slidesPerView={1}
           centeredSlides={true}
           onSlideChange={(swiper) => {
+            console.log(activeColor, "sdsd");
             setActiveColor({ ...activeColor, index: swiper.activeIndex });
           }}
           initialSlide={0}
@@ -48,7 +56,7 @@ function ProductSlider({ activeColor, setActiveColor, product_name }) {
             >
               {({ isActive }) => (
                 <>
-                  <BorderImage />
+                  <BorderImage isBig={false} />
                   <div className="inset-shadow-img" />
                   <Image
                     loading="eager"

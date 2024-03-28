@@ -2,15 +2,15 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
-const WebViewVideoCall = dynamic(() =>
-  import("./WebViewVideoCall", { ssr: false })
-);
-const WebViewVoiceCall = dynamic(() =>
-  import("./WebViewVoiceCall", { ssr: false })
-);
-const CallComponentWidget = dynamic(() =>
-  import("./CallComponentWidget", { ssr: false })
-);
+const WebViewVideoCall = dynamic(() => import("./WebViewVideoCall"), {
+  ssr: false,
+});
+const WebViewVoiceCall = dynamic(() => import("./WebViewVoiceCall"), {
+  ssr: false,
+});
+const CallComponentWidget = dynamic(() => import("./CallComponentWidget"), {
+  ssr: false,
+});
 import {
   getAgoraToken,
   Decline,
@@ -42,6 +42,7 @@ function WebviewCall() {
     authToken: searchParams.get("authToken"),
     msgId: searchParams.get("message_id"),
     ring: searchParams.get("ring"),
+    error: null,
     loading: false,
     status: null,
   });

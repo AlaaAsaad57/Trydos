@@ -31,7 +31,7 @@ export function translate(key, language) {
   } else return key;
 }
 export const getId = () => {
-  return "img" + parseInt(Math.random() * 10000);
+  return "img" + parseInt((Math.random() * 10000).toString());
 };
 
 const token = SSRDetect() && localStorage.getItem("STORIES-TOKEN");
@@ -61,11 +61,15 @@ export const configureStory = (story) => {
       console.log(vid.toURL());
       returnedData.push({
         url: vid.toURL().includes("?")
-          ? vid.toURL() + "&asa=" + parseInt(Math.random() * 1000).toString()
-          : vid.toURL() + "?asa=" + parseInt(Math.random() * 1000).toString(),
+          ? vid.toURL() +
+            "&asa=" +
+            parseInt((Math.random() * 1000).toString()).toString()
+          : vid.toURL() +
+            "?asa=" +
+            parseInt((Math.random() * 1000).toString()).toString(),
         FixedUrl: vid,
         is_seen: storyItem.is_seen,
-        FixedUrl: storyItem.full_video_path,
+
         id: storyItem.id,
         header: {
           heading: story.name ?? story.mobile_phone ?? "Unknown",
@@ -83,8 +87,12 @@ export const configureStory = (story) => {
         .delivery(quality(auto()));
       returnedData.push({
         url: img.toURL().includes("?")
-          ? img.toURL() + "&asa=" + parseInt(Math.random() * 1000).toString()
-          : img.toURL() + "?asa=" + parseInt(Math.random() * 1000).toString(),
+          ? img.toURL() +
+            "&asa=" +
+            parseInt((Math.random() * 1000).toString()).toString()
+          : img.toURL() +
+            "?asa=" +
+            parseInt((Math.random() * 1000).toString()).toString(),
         FixedUrl: img,
         is_seen: storyItem.is_seen,
         duration: 5000,

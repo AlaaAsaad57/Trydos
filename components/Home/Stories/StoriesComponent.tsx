@@ -9,6 +9,7 @@ import CloseIcon from "./CloseIcon";
 import dynamic from "next/dynamic";
 import { WatchStory } from "store/auth/actions";
 import { GetUnviewedStory } from "../../../store/homepage/actions";
+import { Story } from "utils/Types";
 const Stories = dynamic(() => import("react-insta-stories"), { ssr: false });
 function StoriesComponent() {
   const [currentStoryId, setCurrentStoryId] = useState(0);
@@ -20,7 +21,7 @@ function StoriesComponent() {
   );
   const storiesData = useSelector((state: any) => state.homepage.storiesData);
   const dispatch = useDispatch();
-  const setSelectStory = (e: any) => {
+  const setSelectStory = (e: Story) => {
     dispatch(SelectStory(e));
   };
   useEffect(() => {

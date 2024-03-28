@@ -5,7 +5,7 @@ import "styles/popup.css";
 const countriesString = process.env.NEXT_PUBLIC_COUNTRIES || "[]";
 const countries = JSON.parse(countriesString);
 
-const _getCountryName = (code) => {
+const _getCountryName = (code: string) => {
   switch (code) {
     case "tr":
       return "Turkey";
@@ -17,7 +17,7 @@ const _getCountryName = (code) => {
       return "United Arab Emirates";
   }
 };
-const options = countries.map((country) => {
+const options = countries.map((country: string) => {
   return {
     label: _getCountryName(country),
     value: country,
@@ -89,20 +89,22 @@ const PopupCountry = () => {
           >
             Please Select a Supported Country
           </option>
-          {options?.map((country, index) => {
-            return (
-              <option
-                key={index}
-                style={{
-                  marginBottom: 100,
-                }}
-                className="!p-10 inline-block"
-                value={country.value}
-              >
-                {country.label}
-              </option>
-            );
-          })}
+          {options?.map(
+            (country: { value: string; label: string }, index: number) => {
+              return (
+                <option
+                  key={index}
+                  style={{
+                    marginBottom: 100,
+                  }}
+                  className="!p-10 inline-block"
+                  value={country.value}
+                >
+                  {country.label}
+                </option>
+              );
+            }
+          )}
         </select>
       </div>
     </div>

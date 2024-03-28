@@ -1,5 +1,5 @@
-import Image from "next/image";
-function StoryAvatar({ avatar }: { avatar: string }) {
+import Image, { StaticImageData } from "next/image";
+function StoryAvatar({ avatar }: { avatar: string | StaticImageData }) {
   return (
     <div className="story-avatar">
       {avatar && (

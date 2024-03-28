@@ -1,9 +1,11 @@
-import { useReducer, memo, useEffect } from "react";
+import { useReducer, memo } from "react";
 import ImageSlider from "./ImageSlider";
 import PriceLabel from "./PriceLabel";
 import BuyButton from "./BuyButton";
 import TopSlider from "./TopSlider";
-import ErrorIcon from "public/svg/ErrorIcon.svg";
+import CoverEffectSlider from "./CoverEffectSlider";
+import ColorSlider from "./ColorSlider";
+import "styles/skeleton.css";
 import Loadding from "public/svg/loading.svg";
 import CategoryPhoto from "./CategoryPhoto";
 function ProductReducer(state, { type, payload }) {
@@ -34,22 +36,39 @@ function ProductReducer(state, { type, payload }) {
     };
   }
 }
-function ProductNoColors({ product }) {
+function ProductCover({ product }) {
   const [productState, dispatch] = useReducer(ProductReducer, {
     isActiveTopSlide: false,
-    activeColor: { images: product.images },
-    activeImage: product.images[0],
+    activeColor: {
+      ...product.sync_color_images.filter((color) => color.images.length > 0)[
+        Math.round(
+          product.sync_color_images.filter((color) => color.images.length > 0)
+            .length / 2
+        ) - 1
+      ],
+      index: 0,
+    },
+    activeImage: "",
     isColorSelected: false,
     activeImageIndex: 0,
     renderVar: false,
   });
-
+  const getIndex = () => {
+    let index = 0;
+    product.sync_color_images
+      .filter((color) => color.images.length > 0)
+      .map((co, ind) => {
+        if (co.color_name === productState.activeColor.color_name) index = ind;
+      });
+    return index;
+  };
   return (
     <div
       className="product-container"
       onMouseLeave={() => {
-        if (productState.isActiveTopSlide) {
+        if (productState.isActiveTopSlide || productState.isColorSelected) {
           dispatch({ type: "setActiveTopSlide", payload: false });
+          dispatch({ type: "setColor", payload: false });
         }
       }}
     >
@@ -58,13 +77,13 @@ function ProductNoColors({ product }) {
       <div className="offer-blured-background" />
       {
         <TopSlider
-          name={product.name}
+          product_name={product.name}
           active={productState.isActiveTopSlide}
           activeColor={productState.activeColor}
           setActiveColor={(e) =>
             dispatch({ type: "setActiveColor", payload: e })
           }
-          images={product.images}
+          images={productState.activeColor.images}
         />
       }
       {
@@ -83,18 +102,38 @@ function ProductNoColors({ product }) {
           >
             <>
               {
+                <ColorSlider
+                  product_name={product.name}
+                  active={
+                    productState.isColorSelected &&
+                    !productState.isActiveTopSlide
+                  }
+                  activeColor={productState.activeColor}
+                  colors={product.sync_color_images.filter(
+                    (color) => color.images.length > 0
+                  )}
+                  getIndex={getIndex()}
+                  setActiveColor={(e) =>
+                    dispatch({ type: "setActiveImage", payload: e })
+                  }
+                />
+              }
+            </>
+            <>
+              {
                 <ImageSlider
+                  product_name={product.name}
                   renderVar={productState.renderVar}
-                  active={!productState.isActiveTopSlide}
+                  active={
+                    !productState.isColorSelected &&
+                    !productState.isActiveTopSlide
+                  }
                   isActiveTopSlide={productState.isActiveTopSlide}
                   setActiveTopSlide={(e) =>
                     dispatch({ type: "setActiveTopSlide", payload: e })
                   }
                   setColor={(e) => dispatch({ type: "setColor", payload: e })}
-                  activeColor={{
-                    images: product.images,
-                    index: productState.activeColor?.index || 0,
-                  }}
+                  activeColor={productState.activeColor}
                   isColorSelected={productState.isColorSelected}
                   setActiveImage={(e) =>
                     dispatch({ type: "setActiveImage", payload: e })
@@ -103,7 +142,25 @@ function ProductNoColors({ product }) {
               }
             </>
           </div>
-          {<></>}
+          {
+            <>
+              <CoverEffectSlider
+                product_name={product.name}
+                active={!productState.isActiveTopSlide}
+                setColor={(e) => {
+                  dispatch({ type: "setColor", payload: e });
+                }}
+                isColorSelected={productState.isColorSelected}
+                activeColor={productState.activeColor}
+                setActiveColor={(e) =>
+                  dispatch({ type: "setActiveColor", payload: e })
+                }
+                images={product.sync_color_images.filter(
+                  (color) => color.images.length > 0
+                )}
+              />
+            </>
+          }
         </div>
       }
       <div
@@ -131,13 +188,12 @@ function ProductNoColors({ product }) {
                 src={product?.category?.icon}
                 width={10}
                 height={10}
+                style={{}}
                 alt={product.category}
               />
             </span>
           )}
-          <p id={"prod-" + product.id} className="product-details-text">
-            {product.name}
-          </p>
+          <span className="product-details-text">{product.name}</span>
         </div>
       </div>
       <div className="product-footer">
@@ -151,4 +207,4 @@ function ProductNoColors({ product }) {
   );
 }
 
-export default ProductNoColors;
+export default memo(ProductCover);

@@ -5,6 +5,7 @@ const StoryElement = dynamic(() => import("./StoryElement"), { ssr: false });
 const AddStory = dynamic(() => import("../AddStory"), { ssr: false });
 import { useDispatch, useSelector } from "react-redux";
 import { GetUnviewedStory, SelectStory } from "store/homepage/actions";
+import { Story } from "utils/Types";
 const Skeleton = dynamic(() => import("react-loading-skeleton"), {
   ssr: false,
 });
@@ -13,7 +14,7 @@ function Index() {
   const storiesData = useSelector((state: any) => state.homepage.storiesData);
   const loading = useSelector((state: any) => state.homepage.loading);
   const dispatch = useDispatch();
-  const setSelectStory = (e: any) => {
+  const setSelectStory = (e: Story) => {
     dispatch(SelectStory(e));
   };
   const getBorderWidth = (): number => {
@@ -24,10 +25,10 @@ function Index() {
     else return 1433;
   };
   if (typeof document !== "undefined") {
-    const slider: any = document?.querySelector(".stories-bars");
+    const slider: HTMLDivElement = document?.querySelector(".stories-bars");
     let isDown = false;
-    let startX: any;
-    let scrollLeft: any;
+    let startX: number;
+    let scrollLeft: number;
 
     slider?.addEventListener("mousedown", (e: MouseEvent) => {
       isDown = true;
@@ -119,8 +120,9 @@ function Index() {
               key={index}
               index={index}
               story={story}
-              viewedStory={story.stories[GetUnviewedStory(story)]}
-              select={(e) => setSelectStory(e)}
+              select={(e) => {
+                setSelectStory(e);
+              }}
             />
           ))}
         </div>

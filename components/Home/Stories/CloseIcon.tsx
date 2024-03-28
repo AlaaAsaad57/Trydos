@@ -1,6 +1,6 @@
 import React from "react";
 
-function CloseIcon({ close }: { close: any }) {
+function CloseIcon({ close }: { close: Function }) {
   return (
     <div
       className="close-stories-icon"

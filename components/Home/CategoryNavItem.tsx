@@ -18,9 +18,9 @@ const CategoryNavItem = ({
   name: string;
   icon: ReactElement;
   searchEnabled: boolean;
-  close: any;
+  close: Function;
   openSearch: Function;
-  myKey: any;
+  myKey: number;
 }) => {
   const language = useSelector((state: any) => state.homepage.language);
   const clickItem = () => {

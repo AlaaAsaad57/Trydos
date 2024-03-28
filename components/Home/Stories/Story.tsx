@@ -8,8 +8,8 @@ function Story({
   Name,
   index,
 }: {
-  onClick: any;
-  media: any;
+  onClick: Function;
+  media: { photo_path: string; full_video_path: string; id: number };
   Name: string;
   index: number;
 }) {

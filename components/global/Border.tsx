@@ -5,9 +5,9 @@ function Border({
   width,
   color,
 }: {
-  height: any;
-  width: any;
-  color: any;
+  height: number;
+  width: number;
+  color: string;
 }) {
   return (
     <svg

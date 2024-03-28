@@ -1,6 +1,6 @@
-import { useRef, useState, useEffect, memo } from "react";
+import { useRef, useState, useEffect, memo, Ref } from "react";
 import ImageAvatar from "./ImageAvatar";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { Swiper, SwiperRef, SwiperSlide } from "swiper/react";
 import { EffectCoverflow } from "swiper/modules";
 function CoverEffectSlider({
   images,
@@ -14,7 +14,7 @@ function CoverEffectSlider({
   const [activeIndex, setActive] = useState(
     images.findIndex((element) => element.color_name === activeColor.color_name)
   );
-  const ref = useRef();
+  const ref = useRef<any>();
   const getSize = (i) => {
     if (i === activeIndex || (i === activeIndex && i === 0)) return 35;
     else if (i === activeIndex - 1 || i === activeIndex + 1) return 30;
@@ -91,7 +91,6 @@ function CoverEffectSlider({
         coverflowEffect={{
           depth: 0,
           modifier: 1,
-          rotate: false,
           stretch: 2,
           slideShadows: false,
         }}

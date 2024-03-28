@@ -6,13 +6,13 @@ const ExtendedOfferWidget = dynamic(() => import("./ExtendedOfferWidget"), {
 const QuickOfferWidjet = dynamic(() => import("./QuickOfferWidjet"), {
   ssr: false,
 });
-function OfferList({ offers, quick }) {
+function OfferList({ offers, quick }: { offers: number[]; quick: boolean }) {
   return (
     <div className="offers-list">
       {quick ? (
         <QuickOfferWidjet onClick={() => {}} offer={{ photos: [1] }} />
       ) : (
-        offers.map((offer, Index) =>
+        offers.map((offer: number, Index) =>
           Index !== 2 ? (
             <NormalWidget
               onClick={() => {}}

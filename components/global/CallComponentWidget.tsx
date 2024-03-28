@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 function CallComponentWidget({ data, type, onAnswer, onDecline, userData }) {
   const [actionType, setAction] = useState(null);
   return (

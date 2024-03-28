@@ -1,6 +1,12 @@
 import { memo } from "react";
 
-function PriceLabel({ price_formatted, offer_price }) {
+function PriceLabel({
+  price_formatted,
+  offer_price,
+}: {
+  price_formatted: string;
+  offer_price: number;
+}) {
   return (
     <div className="price-label">
       {offer_price > 0 && (

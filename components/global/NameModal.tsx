@@ -7,8 +7,8 @@ import Border from "./Border";
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
 
 function NameModal() {
-  const Open = useSelector((state) => state.chat.nameModal);
-  const language = useSelector((state) => state.homepage.language);
+  const Open = useSelector((state: any) => state.chat.nameModal);
+  const language = useSelector((state: any) => state.homepage.language);
   const [value, setValue] = useState("");
   const dispatch = useDispatch();
   const close = () => {
@@ -49,7 +49,7 @@ function NameModal() {
           className="phone-input-element"
           style={{ height: "50px", padding: "12px" }}
         >
-          <Border height={50} width={250} />
+          <Border color={null} height={50} width={250} />
           <ManIcon style={{ width: "20px" }} />
           <label htmlFor="phone" className="no-label">
             Name

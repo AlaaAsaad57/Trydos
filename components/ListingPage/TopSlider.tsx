@@ -7,18 +7,24 @@ function TopSlider({
   activeColor,
   setActiveColor,
   product_name,
+}: {
+  active: boolean;
+  images: string[];
+  activeColor: { index: number; images: string[] };
+  setActiveColor: Function;
+  product_name: string;
 }) {
   useEffect(() => {
     if (typeof document !== "undefined") {
-      const slider = document?.querySelector(".top-slider");
+      const slider: HTMLDivElement = document?.querySelector(".top-slider");
       let isDown = false;
       let startX;
       let scrollLeft;
 
-      slider?.addEventListener("mousedown", (e) => {
+      slider?.addEventListener("mousedown", (e: MouseEvent) => {
         isDown = true;
         slider.classList.add("active");
-        startX = e.pageX - slider.offsetLeft;
+        startX = e.pageX - slider?.offsetLeft;
         scrollLeft = slider.scrollLeft;
       });
       slider?.addEventListener("mouseleave", () => {

@@ -1,6 +1,6 @@
-import { useRef, useEffect, memo } from "react";
+import { useRef, useEffect, memo, MutableRefObject, Ref } from "react";
 import { EffectCoverflow } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { Swiper, SwiperRef, SwiperSlide } from "swiper/react";
 import BorderImage from "./BorderImage";
 import Image from "next/image";
 function ColorSlider({
@@ -11,10 +11,10 @@ function ColorSlider({
   colors,
   product_name,
 }) {
-  const ImageRef = useRef();
+  const ImageRef = useRef<any>();
   useEffect(() => {
     if (activeColor && ImageRef) {
-      ImageRef.current.slideTo(getIndex, 300, false);
+      ImageRef.current?.slideTo(getIndex, 300, false);
     }
   }, [activeColor]);
   const throttleFunc = (e) => {
@@ -59,7 +59,6 @@ function ColorSlider({
         coverflowEffect={{
           depth: 100,
           modifier: 1,
-          rotate: false,
           scale: 1,
           stretch: 145,
           slideShadows: false,
@@ -84,7 +83,7 @@ function ColorSlider({
                 }}
               >
                 <>
-                  <BorderImage />
+                  <BorderImage isBig={false} />
                   <div className="inset-shadow-img" />
                   <Image
                     loading="eager"

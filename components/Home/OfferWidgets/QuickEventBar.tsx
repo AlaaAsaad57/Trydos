@@ -4,7 +4,7 @@ import StopWatch from "./StopWatch";
 import { translate } from "utils/functions";
 import { useSelector } from "react-redux";
 function QuickEventBar() {
-  const language = useSelector((state: any) => state.homepage.language);
+  const language: string = useSelector((state: any) => state.homepage.language);
   return (
     <div className="quick-event-bar">
       <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">

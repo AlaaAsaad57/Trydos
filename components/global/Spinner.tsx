@@ -1,5 +1,5 @@
 import "styles/spinner.css";
-function Spinner(props) {
+function Spinner(props: { no: boolean; className: string }) {
   return (
     <div className={"spin-cont " + (props.no && " no-tran ") + props.className}>
       <svg

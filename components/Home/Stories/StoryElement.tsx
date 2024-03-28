@@ -3,17 +3,16 @@ import Story from "./Story";
 import profilePicture from "public/images/profileNo.png";
 import { configureStory } from "utils/functions";
 import { GetUnviewedStory } from "store/homepage/actions";
+import { StoryType } from "utils/Types";
 
 function StoryElement({
   index,
   story,
-  viewedStory,
   select,
 }: {
   index: number;
-  story: any;
-  viewedStory: any;
-  select: any;
+  story: StoryType;
+  select: Function;
 }) {
   return (
     <div className="story-element-container">

@@ -1,4 +1,4 @@
-function Logo({ animated, style }: { animated: boolean; style: any }) {
+function Logo({ animated, style }: { animated: boolean; style: boolean }) {
   return (
     <div className="logo-container">
       <svg

@@ -3,8 +3,18 @@ import Image from "next/image";
 import { translate } from "utils/functions";
 import { useSelector } from "react-redux";
 
-function MoreOfferAvatar({ images, zIndex, viewed, priority }) {
-  const language = useSelector((state: any) => state.homepage.language);
+function MoreOfferAvatar({
+  images,
+  zIndex,
+  viewed,
+  priority,
+}: {
+  images: string;
+  zIndex: number;
+  viewed: number;
+  priority: boolean;
+}) {
+  const language: string = useSelector((state: any) => state.homepage.language);
 
   return (
     <div

@@ -14,8 +14,18 @@ function ImageSlider({
   isActiveTopSlide,
   setActiveTopSlide,
   setColor,
+}: {
+  renderVar: boolean;
+  product_name: string;
+  active: boolean;
+  isColorSelected: boolean;
+  setActiveImage: Function;
+  activeColor: any;
+  isActiveTopSlide: boolean;
+  setActiveTopSlide: Function;
+  setColor: Function;
 }) {
-  var ColorRef = useRef();
+  var ColorRef = useRef<any>();
   useEffect(() => {
     if (activeColor.index >= 0) {
       ColorRef.current.slideTo(activeColor.index, 300, false);
@@ -43,7 +53,6 @@ function ImageSlider({
           coverflowEffect={{
             depth: 100,
             modifier: 1,
-            rotate: false,
             scale: 0.78,
             stretch: 135,
             slideShadows: false,

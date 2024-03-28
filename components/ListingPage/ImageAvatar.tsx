@@ -1,7 +1,21 @@
 import Image from "next/image";
 import { memo } from "react";
 
-function ImageAvatar({ image, width, height, alt, isActive, name }) {
+function ImageAvatar({
+  image,
+  width,
+  height,
+  alt,
+  isActive,
+  name,
+}: {
+  image: string;
+  width: number;
+  height: number;
+  alt: string;
+  isActive: boolean;
+  name: string;
+}) {
   return (
     <div className="image-avatar">
       {isActive ? (

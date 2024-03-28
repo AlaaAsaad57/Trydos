@@ -8,7 +8,7 @@ function OfferPhotosSlider({
   extended,
   priority,
 }: {
-  OfferPhotos: Object[];
+  OfferPhotos: number[];
   extended: boolean;
   priority: boolean;
 }) {

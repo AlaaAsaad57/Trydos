@@ -4,6 +4,11 @@ function PointsSlider({
   setActiveTopSlide,
   activeIndex,
   colors,
+}: {
+  isActiveTopSlide: boolean;
+  setActiveTopSlide: Function;
+  activeIndex: number;
+  colors: any[];
 }) {
   const getSize = (i) => {
     if (i === activeIndex || (i === activeIndex && i === 0)) return 6;

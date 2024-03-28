@@ -4,7 +4,7 @@ import { CHAT_URL } from "utils/endpointConfig";
 export const AnswerCall = async (token, mid, chid) => {
   let req = await axios
     .post(
-      CHAT_URL + `/api/v1/messages/answer_call/${messageId}`,
+      CHAT_URL + `/api/v1/messages/answer_call/${mid}`,
       {},
       {
         headers: {

@@ -13,7 +13,7 @@ import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 function ExtendedOfferWidget({ offer, myKey, onClick }) {
-  const language = useSelector((state: any) => state.homepage.language);
+  const language: string = useSelector((state: any) => state.homepage.language);
   const { ref, inView, entry } = useInView({
     /* Optional options */
     threshold: 0.3,

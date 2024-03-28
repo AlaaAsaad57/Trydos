@@ -11,8 +11,14 @@ import Link from "next/link";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-function QuickOfferWidjet({ offer, onClick }: { offer: any; onClick: any }) {
-  const language = useSelector((state: any) => state.homepage.language);
+function QuickOfferWidjet({
+  offer,
+  onClick,
+}: {
+  offer: { photos: number[] };
+  onClick: Function;
+}) {
+  const language: string = useSelector((state: any) => state.homepage.language);
   const { ref, inView, entry } = useInView({
     /* Optional options */
     threshold: 0.3,
