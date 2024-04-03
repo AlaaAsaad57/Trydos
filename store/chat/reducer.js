@@ -47,6 +47,7 @@ const initialState = {
   isReachTheFinalMes: false,
   replyMessage: null,
   forwarded_message: null,
+  Server_time: null,
   calls: [],
   searchResults: [],
   lastNotification: null,
@@ -88,6 +89,12 @@ export const ChatReducer = (
   { type, payload, param, source }
 ) => {
   switch (type) {
+    case "SET_SERVER_TIME": {
+      return {
+        ...state,
+        Server_time: payload,
+      };
+    }
     case "STORE-CLIENT": {
       return {
         ...state,
@@ -488,11 +495,15 @@ export const ChatReducer = (
 
       state.data.map((ch) => {
         if (parseInt(id) === parseInt(ch.id))
-          chs.push({ ...ch, status: payload.desc });
+          chs.push({ ...ch, status: payload.desc, activeDate: payload?.date });
         else chs.push(ch);
       });
       if (state.activeChat && parseInt(state.activeChat.id) === parseInt(id)) {
-        active = { ...state.activeChat, status: payload.desc };
+        active = {
+          ...state.activeChat,
+          status: payload.desc,
+          activeDate: payload?.date,
+        };
       }
       return {
         ...state,
