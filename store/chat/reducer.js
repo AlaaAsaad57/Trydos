@@ -495,14 +495,18 @@ export const ChatReducer = (
 
       state.data.map((ch) => {
         if (parseInt(id) === parseInt(ch.id))
-          chs.push({ ...ch, status: payload.desc, activeDate: payload?.date });
+          chs.push({
+            ...ch,
+            status: payload.desc,
+            activeDate: payload?.date || ch.activeDate,
+          });
         else chs.push(ch);
       });
       if (state.activeChat && parseInt(state.activeChat.id) === parseInt(id)) {
         active = {
           ...state.activeChat,
           status: payload.desc,
-          activeDate: payload?.date,
+          activeDate: payload?.date || state.activeChat.activeDate,
         };
       }
       return {

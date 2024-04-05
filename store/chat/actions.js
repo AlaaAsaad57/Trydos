@@ -115,7 +115,7 @@ export const GetLastSeen = async (chatId, friendID) => {
         server_time = data.data.data;
         store.dispatch({ type: "SET_SERVER_TIME", payload: data.data.data });
       });
-    const dbRef = ref(db, `ConnectState/${friendID.toString()}`);
+    const dbRef = ref(db, `ConnectStatus/${friendID.toString()}`);
     onValue(dbRef, (snapshot) => {
       const desc = snapshot.val();
       console.log(desc);
@@ -167,8 +167,8 @@ export const setLastSeen = async (MyId) => {
         store.dispatch({ type: "SET_SERVER_TIME", payload: data.data.data });
       });
     const { db } = await import("../../utils/firebaseInitv1");
-    push(ref(db, `ConnectState/${MyId.toString()}`));
-    set(ref(db, `ConnectState/${MyId.toString()}`), server_time)
+    push(ref(db, `ConnectStatus/${MyId.toString()}`));
+    set(ref(db, `ConnectStatus/${MyId.toString()}`), server_time)
       .then(() => {
         // Success.
       })
