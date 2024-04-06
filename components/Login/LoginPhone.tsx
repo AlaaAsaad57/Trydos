@@ -23,12 +23,18 @@ import {
   VerifyOtp,
 } from "store/auth/actions";
 const { flag } = require("country-emoji");
+interface LoginPhoneProps {
+  selectedMethod: boolean;
+  selectMethod: Function;
+  LoginSuccess: Function;
+  newAccount: boolean;
+}
 function LoginPhone({
   selectedMethod,
   selectMethod,
   LoginSuccess,
   newAccount,
-}) {
+}: LoginPhoneProps) {
   const dispatch = useDispatch();
   const [rerender, setRender] = useState(true);
   const [Username, setName] = useState("");

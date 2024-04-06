@@ -1,13 +1,11 @@
 import BorderImage from "./BorderImage";
 import Image from "next/image";
 import { getId } from "utils/functions";
-function OfferSlideItem({
-  isSingle,
-  priority,
-}: {
+interface OfferSlideItemProps {
   isSingle: boolean;
   priority: boolean;
-}) {
+}
+function OfferSlideItem({ isSingle, priority }: OfferSlideItemProps) {
   let id = getId();
   return (
     <div className="offer-slide-item">

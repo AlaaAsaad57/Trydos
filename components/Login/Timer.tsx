@@ -2,7 +2,11 @@ import { translate } from "utils/functions";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useTimer } from "react-timer-and-stopwatch";
-function Timer({ onFinish, onResume }) {
+interface TimerProps {
+  onFinish: Function;
+  onResume: Function;
+}
+function Timer({ onFinish, onResume }: TimerProps) {
   const language = useSelector((state: any) => state.homepage.language);
   const timer = useTimer({
     create: {

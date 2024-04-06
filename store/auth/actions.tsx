@@ -14,7 +14,6 @@ import {
 import { store } from "../index";
 import { SSRDetect, getStories, getUserStories } from "utils/functions";
 import { GetChats } from "../chat/actions";
-
 export const ReInitialise = () => {
   return { type: "RE-INITILIASE" };
 };
@@ -118,6 +117,7 @@ export const loginStories = async () => {
     });
     Cookies.set("token", response.data.data.access_token);
     localStorage.setItem("USER-STORIES", JSON.stringify(response.data.data));
+    Cookies.set("stories-token", response.data.data.access_token);
     localStorage.setItem("STORIES-TOKEN", response.data.data.access_token);
   } catch (e) {
     return { type: "WRONG-NUMBER", payload: "failed  please try again" };
@@ -196,7 +196,7 @@ export async function StoreToken(payload) {
   }
 }
 export const CheckLogin = async () => {
-  const fbtokens = localStorage.getItem("firebase_id");
+  const fbtokens = SSRDetect() && localStorage.getItem("firebase_id");
   if (
     SSRDetect() &&
     localStorage.getItem("USER") &&

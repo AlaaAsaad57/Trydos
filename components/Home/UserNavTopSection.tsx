@@ -11,7 +11,11 @@ const LoginWidget = dynamic(() => import("../Login/LoginWidget"), {
 const AuthNavSection = dynamic(() => import("./AuthNavSection"), {
   ssr: false,
 });
-function UserNavTopSection({ loginOpen, openLogin }) {
+interface UserNavTopSectionProps {
+  loginOpen: boolean;
+  openLogin: Function;
+}
+function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
   const language = useSelector((state: any) => state.homepage.language);
   const user = useSelector((state: any) => state.auth.user);
   const [loginSuccessVar, setLoginSucces] = useState(false);
@@ -19,9 +23,9 @@ function UserNavTopSection({ loginOpen, openLogin }) {
   useEffect(() => {
     setTimeout(() => {
       if (true) {
-        getStories().then((d) => {
-          dispatch({ type: "STORY-DATA", payload: d });
-        });
+        // getStories().then((d) => {
+        //   dispatch({ type: "STORY-DATA", payload: d });
+        // });
       }
     }, 1000);
   }, [user]);

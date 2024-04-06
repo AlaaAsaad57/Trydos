@@ -1,14 +1,10 @@
 import React from "react";
-
-function Border({
-  height,
-  width,
-  color,
-}: {
+interface BorderProps {
   height: number;
   width: number;
   color: string;
-}) {
+}
+function Border({ height, width, color }: BorderProps) {
   return (
     <svg
       style={{ position: "absolute", left: "0px", top: "0px", zIndex: "1" }}

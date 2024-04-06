@@ -25,12 +25,15 @@ import { getUserStories } from "../../utils/functions";
 export default function Home({
   HomeData_res,
   HomeData,
+  storiesData,
 }: {
   HomeData_res: Object;
   HomeData: Object;
+  storiesData: any[];
 }) {
   useEffect(() => {
-    LogData({ HomeData_req_data: HomeData_res });
+    dispatch({ type: "STORY-DATA", payload: storiesData[0] });
+    LogData({ HomeData_req_data: HomeData_res, stories: storiesData });
     dispatch(GetMainData(HomeData));
     try {
       initFB();

@@ -11,13 +11,11 @@ import Link from "next/link";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-function QuickOfferWidjet({
-  offer,
-  onClick,
-}: {
+interface QuickOfferWidjetProps {
   offer: { photos: number[] };
   onClick: Function;
-}) {
+}
+function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
   const language: string = useSelector((state: any) => state.homepage.language);
   const { ref, inView, entry } = useInView({
     /* Optional options */

@@ -7,6 +7,14 @@ const SearchComponent = dynamic(() => import("./SearchComponent"), {
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ReactElement } from "react";
+interface CategoryNavItemProps {
+  name: string;
+  icon: ReactElement;
+  searchEnabled: boolean;
+  close: Function;
+  openSearch: Function;
+  myKey: number;
+}
 const CategoryNavItem = ({
   name,
   icon,
@@ -14,14 +22,7 @@ const CategoryNavItem = ({
   close,
   openSearch,
   myKey,
-}: {
-  name: string;
-  icon: ReactElement;
-  searchEnabled: boolean;
-  close: Function;
-  openSearch: Function;
-  myKey: number;
-}) => {
+}: CategoryNavItemProps) => {
   const language = useSelector((state: any) => state.homepage.language);
   const clickItem = () => {
     if (name === "Search") {

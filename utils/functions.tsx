@@ -22,6 +22,7 @@ export const getStories = async () => {
     const repo = res;
     return repo.data.data.data;
   } catch (e) {
+    console.log(e);
     return [];
   }
 };

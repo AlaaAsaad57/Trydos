@@ -2,6 +2,14 @@ import { ReInitialise } from "store/auth/actions";
 import { useEffect, useState } from "react";
 import PinInput from "react-pin-input";
 import { useDispatch, useSelector } from "react-redux";
+interface PinInputsProps {
+  disabled: boolean;
+  LoginSuccess: Function;
+  Login: Function;
+  rerender: boolean;
+  setRender: Function;
+  onFailedLogin: Function;
+}
 function PinInputs({
   disabled,
   LoginSuccess,
@@ -9,7 +17,7 @@ function PinInputs({
   rerender,
   setRender,
   onFailedLogin,
-}) {
+}: PinInputsProps) {
   const dispatch = useDispatch();
   const [pin, setPin] = useState("");
 

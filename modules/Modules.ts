@@ -1,7 +1,9 @@
 import { CloudinaryImage } from "@cloudinary/url-gen";
 
-export type Product = { id: number };
-export type Story = {
+export interface Product {
+  id: number;
+}
+export interface Story {
   id: number;
   name: string | null;
   photo_path: string | null;
@@ -15,8 +17,8 @@ export type Story = {
     is_seen: boolean;
     preloadResource: boolean;
   }[];
-};
-export type StoryType = {
+}
+export interface StoryType {
   id: number;
   mobile_phone: string;
   photo_path: string | null;
@@ -29,6 +31,10 @@ export type StoryType = {
     is_video: boolean;
     is_seen: boolean;
   }[];
-};
-export type ConfiguredStory = { id: number };
-export type Offer = { photos: number[] };
+}
+export interface ConfiguredStory {
+  id: number;
+}
+export interface Offer {
+  photos: number[];
+}

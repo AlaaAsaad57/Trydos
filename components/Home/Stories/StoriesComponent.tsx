@@ -9,7 +9,7 @@ import CloseIcon from "./CloseIcon";
 import dynamic from "next/dynamic";
 import { WatchStory } from "store/auth/actions";
 import { GetUnviewedStory } from "../../../store/homepage/actions";
-import { Story } from "utils/Types";
+import { Story } from "modules/Modules";
 const Stories = dynamic(() => import("react-insta-stories"), { ssr: false });
 function StoriesComponent() {
   const [currentStoryId, setCurrentStoryId] = useState(0);

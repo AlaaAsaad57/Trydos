@@ -3,7 +3,10 @@ import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import Border from "../global/Border";
 import LoginSuccessIcon from "public/svg/LoginSuccessIcon.svg";
-function LoginSuccessWidget({ close }) {
+interface LoginSuccessWidgetProps {
+  close: Function;
+}
+function LoginSuccessWidget({ close }: LoginSuccessWidgetProps) {
   const user = useSelector((state: any) => state.auth.user);
   const language = useSelector((state: any) => state.homepage.language);
   useEffect(() => {

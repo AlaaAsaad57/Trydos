@@ -6,7 +6,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { changeAppLanguage } from "store/homepage/actions";
 import dynamic from "next/dynamic";
 const ArabicCss = dynamic(() => import("./ArabicCss"), { ssr: false });
-function TranslationsMenu(init) {
+interface TranslationsMenuProps {
+  init: { init: string };
+}
+function TranslationsMenu({ init }: TranslationsMenuProps) {
   const language = useSelector((state: any) => state.homepage.language);
   const dispatch = useDispatch();
 

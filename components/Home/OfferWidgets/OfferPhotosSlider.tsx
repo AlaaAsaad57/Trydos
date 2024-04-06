@@ -3,15 +3,16 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import OfferAvatars from "./OfferAvatars";
+interface OfferPhotosSliderProps {
+  OfferPhotos: number[];
+  extended: boolean;
+  priority: boolean;
+}
 function OfferPhotosSlider({
   OfferPhotos,
   extended,
   priority,
-}: {
-  OfferPhotos: number[];
-  extended: boolean;
-  priority: boolean;
-}) {
+}: OfferPhotosSliderProps) {
   var settings = {
     dots: false,
     arrows: false,

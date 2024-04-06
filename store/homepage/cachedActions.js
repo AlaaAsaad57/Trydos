@@ -8,27 +8,28 @@ import {
   STORIES_URL,
 } from "utils/endpointConfig";
 import { cookies } from "next/headers";
-
 export const getStories = async () => {
   try {
     let time = new Date().getTime();
+    let headers = await DataApiHeaders(true);
     const res = await fetch(STORIES_URL + GET_USERS_STORIES, {
       next: { revalidate: 0 },
-      headers: DataApiHeaders(),
+      headers: headers,
     });
     // hi
     const repo = await res.json();
     time = new Date().getTime() - time;
+
     let returned_res = {
       type: res.type,
-      headers: [...res.headers, DataApiHeaders()],
+      headers: [...res.headers, ...headers],
       url: res.url,
       time: time + "ms",
       body: repo,
     };
     return [repo.data.data, returned_res];
   } catch (e) {
-    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
+    console.log(e);
     return ["stories-error", e.toString()];
   }
 };
@@ -55,7 +56,7 @@ export const getHomeData = async () => {
     return ["homedata-error", e.toString()];
   }
 };
-export const DataApiHeaders = async () => {
+export const DataApiHeaders = async (forStories) => {
   const cookieStore = cookies();
   return new Headers({
     language:
@@ -63,7 +64,10 @@ export const DataApiHeaders = async () => {
         ? "ae"
         : cookieStore.get("language")?.value || "en",
     country: cookieStore.get("country") && cookieStore.get("country").value,
-    Authorization: "Bearer " + cookieStore.get("token")?.value,
+    Authorization:
+      "Bearer " + forStories
+        ? cookieStore.get("stories-token")?.value
+        : cookieStore.get("token")?.value,
   });
 };
 export const changeAppLanguageServer = (language) => {

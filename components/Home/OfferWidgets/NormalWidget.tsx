@@ -11,16 +11,13 @@ import Link from "next/link";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import { Offer } from "utils/Types";
-const NormalWidget = ({
-  offer,
-  myKey,
-  onClick,
-}: {
+import { Offer } from "modules/Modules";
+interface NormalWidgetProps {
   offer: Offer;
   myKey: number;
   onClick: Function;
-}) => {
+}
+const NormalWidget = ({ offer, myKey, onClick }: NormalWidgetProps) => {
   const language = useSelector((state: any) => state.homepage.language);
   const { ref, inView, entry } = useInView({
     /* Optional options */

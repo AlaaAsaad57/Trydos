@@ -8,7 +8,10 @@ import {
 } from "react";
 import OfferAvatar from "./OfferAvatar";
 import MoreOfferAvatar from "./MoreOfferAvatar";
-function OfferAvatars({ priority }: { priority: Boolean }) {
+interface OfferAvatarsProps {
+  priority: Boolean;
+}
+function OfferAvatars({ priority }: OfferAvatarsProps) {
   const ref = useRef<HTMLDivElement>();
   const handleMove = (e: any) => {
     let elemnts: Element[] = Array.from(ref.current.children);

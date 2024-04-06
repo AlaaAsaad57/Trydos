@@ -3,7 +3,11 @@ import SearchIcon from "public/svg/SearchIcon.svg";
 import Divider from "public/svg/DividerIcon.svg";
 import CloseIcon from "public/svg/CloseIcon.svg";
 import { useSelector } from "react-redux";
-function SearchComponent({ searchEnabled, close }) {
+interface SearchComponentProps {
+  searchEnabled: boolean;
+  close: Function;
+}
+function SearchComponent({ searchEnabled, close }: SearchComponentProps) {
   const language = useSelector((state: any) => state.homepage.language);
   const [searchValue, setSearchValue] = useState(null);
   function useOutsideAlerter(ref: any) {

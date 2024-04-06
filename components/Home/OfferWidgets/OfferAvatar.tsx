@@ -1,6 +1,9 @@
 import Image from "next/image";
-
-function OfferAvatar({ images, zIndex }: { images: string; zIndex: number }) {
+interface OfferAvatarProps {
+  images: string;
+  zIndex: number;
+}
+function OfferAvatar({ images, zIndex }: OfferAvatarProps) {
   return (
     <div
       className="offer-avatar"

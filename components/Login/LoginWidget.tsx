@@ -12,8 +12,16 @@ import "styles/login.css";
 import { UpdateName } from "../../store/auth/actions";
 import ManIcon from "public/svg/manIcon.svg";
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
-
-function LoginWidget({ close, loginSuccessVar, setLoginSucces }) {
+interface LoginWidgetProps {
+  close: Function;
+  loginSuccessVar: boolean;
+  setLoginSucces: Function;
+}
+function LoginWidget({
+  close,
+  loginSuccessVar,
+  setLoginSucces,
+}: LoginWidgetProps) {
   const dispatch = useDispatch();
   const [step, setStep] = useState("");
   const [value, setValue] = useState("");
@@ -116,7 +124,9 @@ function LoginWidget({ close, loginSuccessVar, setLoginSucces }) {
             LoginSuccess={() => setLoginSucces(true)}
             selectedMethod={loginMethod === "phone"}
             selectMethod={() => {
-              if (loginMethod !== "phone") dispatch(ReInitialise());
+              if (loginMethod !== "phone") {
+                dispatch({ type: "RE-INITILIASE" });
+              }
               setLoginMethod("phone");
             }}
           />

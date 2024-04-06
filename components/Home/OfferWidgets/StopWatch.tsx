@@ -1,5 +1,8 @@
 import { useTimer } from "react-timer-hook";
-function StopWatch({ stopHour }: { stopHour: number }) {
+interface StopWatchProps {
+  stopHour: number;
+}
+function StopWatch({ stopHour }: StopWatchProps) {
   const {
     totalSeconds,
     seconds,
