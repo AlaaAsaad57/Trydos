@@ -10,6 +10,9 @@ import {
 } from "utils/endpointConfig";
 import { store } from "../index";
 import { getUserChat, translate } from "utils/functions";
+import { onValue, push, ref, set } from "firebase/database";
+import axios from "axios";
+import { showDate } from "components/Chat/chatsFunctions";
 export const ChatConroller = (payload) => {
   return { type: "CHAT-OPEN", payload: payload };
 };
@@ -96,7 +99,87 @@ export const GetChats = async (payload) => {
     console.error(e);
   }
 };
-export const getCalls = async (id: string | null) => {
+export const GetLastSeen = async (chatId, friendID) => {
+  try {
+    const { db } = await import("../../utils/firebaseInitv1");
+    let server_time;
+    await axios
+      .get(CHAT_URL + "/api/v1/channels/get_date_time", {
+        headers: {
+          Authorization:
+            `Bearer ` +
+            JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+        },
+      })
+      .then((data) => {
+        server_time = data.data.data;
+        store.dispatch({ type: "SET_SERVER_TIME", payload: data.data.data });
+      });
+    const dbRef = ref(db, `ConnectStatus/${friendID.toString()}`);
+    onValue(dbRef, (snapshot) => {
+      const desc = snapshot.val();
+      console.log(desc);
+      if (!!desc) {
+        if (typeof desc === "string") {
+          let date = desc;
+
+          store.dispatch({
+            type: "IS_TYPING_TRUE",
+            payload: { id: chatId.toString(), date: date },
+          });
+        } else {
+          let date =
+            Object.keys(desc).length > 0 &&
+            showDate(desc[Object.keys(desc)[0]]);
+          store.dispatch({
+            type: "IS_TYPING_TRUE",
+            payload: {
+              id: chatId.toString(),
+              desc: Object.keys(desc).length > 0 ? date : null,
+            },
+          });
+        }
+        console.log(desc);
+      } else {
+        store.dispatch({
+          type: "IS_TYPING_TRUE",
+          payload: { id: chatId.toString(), desc: null, date: null },
+        });
+      }
+    });
+  } catch (e) {
+    console.error(e);
+  }
+};
+export const setLastSeen = async (MyId) => {
+  try {
+    let server_time;
+    await axios
+      .get(CHAT_URL + "/api/v1/channels/get_date_time", {
+        headers: {
+          Authorization:
+            `Bearer ` +
+            JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+        },
+      })
+      .then((data) => {
+        server_time = data.data.data;
+        store.dispatch({ type: "SET_SERVER_TIME", payload: data.data.data });
+      });
+    const { db } = await import("../../utils/firebaseInitv1");
+    push(ref(db, `ConnectStatus/${MyId.toString()}`));
+    set(ref(db, `ConnectStatus/${MyId.toString()}`), server_time)
+      .then(() => {
+        // Success.
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  } catch (e) {
+    console.error(e);
+  }
+};
+export const getCalls = async (id) => {
   try {
     let axios = (await import("axios")).default;
     store.dispatch({ type: "CALL_LOADING", payload: true });
