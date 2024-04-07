@@ -3,13 +3,37 @@ import VideoIcon from "../svg/vcall.svg";
 import CallIcon from "../svg/call.svg";
 import profile from "public/images/profileNo.png";
 import { useDispatch, useSelector } from "react-redux";
-import { getNew, getTwoLetters } from "../chatsFunctions";
+import { getNew, getTwoLetters, showDate } from "../chatsFunctions";
 import Image from "next/image";
 import { getUserChat } from "utils/functions";
 import { makeVideoCall, makeVoiceCall } from "store/chat/actions";
+import { translate } from "../../../utils/functions";
 function ChatHeader({ chats, activeChat, openDetails }) {
   const dispatch = useDispatch();
   const callLoading = useSelector((state) => state.chat.callLoading);
+  const Server_time = useSelector((state) => state.chat.Server_time);
+  const language = useSelector((state) => state.homepage.language);
+  const time_differenc = (date) => {
+    let value = (new Date(Server_time) - new Date(date)) / 1000 / 60;
+    return value;
+  };
+  const getStatues = () => {
+    if (activeChat?.status && activeChat?.status !== "null") {
+      return activeChat.status;
+    } else {
+      if (activeChat?.activeDate) {
+        if (time_differenc(activeChat.activeDate) > 5) {
+          return `${translate("last Seen ", language)} ${showDate(
+            activeChat.activeDate
+          )}`;
+        } else {
+          return translate("Active Now", language);
+        }
+      } else {
+        return <a></a>;
+      }
+    }
+  };
   return (
     <div className="chat-screen-top">
       <ArrowIcon
@@ -76,10 +100,8 @@ function ChatHeader({ chats, activeChat, openDetails }) {
         )}
         {activeChat && activeChat.channel_members && (
           <div className="user-name-top-chat">
-            {activeChat.status && (
-              <div className="user-status">
-                {activeChat.status !== "null" && activeChat.status}
-              </div>
+            {(activeChat.status || activeChat.activeDate) && (
+              <div className="user-status">{getStatues()}</div>
             )}
             {(activeChat.channel_members &&
               activeChat.channel_members.filter(

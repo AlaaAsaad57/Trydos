@@ -1430,6 +1430,7 @@ svg.redwave g g path {
 .notification-enable {
   position: absolute;
   width: 100%;
+  flex-direction: column;
   background-color: #fafafa;
   border-radius: 15px;
   height: 100%;

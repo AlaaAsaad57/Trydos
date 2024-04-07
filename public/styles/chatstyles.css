@@ -54,6 +54,7 @@
 .end-icon svg {
   width: 25px;
   height: 25px;
+  transition: 0.3s;
 }
 .end-icon span {
   color: #ff5f61;
@@ -302,6 +303,26 @@
 .call-rec.disabled-label {
   animation: hoverWave linear 1s infinite;
   opacity: 0.4;
+}
+.disabled-label.end-icon svg {
+  transform: rotateZ(-45deg);
+}
+.disabled-label.end-icon svg #Group_10702 {
+  opacity: 0;
+}
+.disabled-label.end-icon {
+  animation: scale 0.7s infinite;
+}
+@keyframes scale {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 @keyframes hoverWaveDec {
   0% {

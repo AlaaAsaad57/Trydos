@@ -22,6 +22,7 @@ import Observable from "components/Chat/components/ChatHistoryElement";
 import Image from "next/image";
 import {
   GetChatDetails,
+  GetLastSeen,
   SendMessage,
   getMessagesBetweenMessage,
   getPage,
@@ -115,6 +116,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
     setblobUrl(blo);
     blobs.current = blo;
   };
+
   const showRoute = (mes, prev, next) => {
     if (
       prev &&
@@ -177,6 +179,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
   };
   const [mics, setMic] = useState(false);
   const activeChat = useSelector((state) => state.chat.activeChat);
+
   const [message, setMessage] = useState("");
   const dispatch = useDispatch();
   var a = 0;

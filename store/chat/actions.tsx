@@ -96,7 +96,7 @@ export const GetChats = async (payload) => {
     console.error(e);
   }
 };
-export const getCalls = async (id: any) => {
+export const getCalls = async (id: string | null) => {
   try {
     let axios = (await import("axios")).default;
     store.dispatch({ type: "CALL_LOADING", payload: true });

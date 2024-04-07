@@ -1,5 +1,5 @@
 import "styles/ChatWindow.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ChatWindowHeader from "components/Chat/components/ChatWindowHeader";
 import ChatWindowTabs from "components/Chat/components/ChatWindowTabs";
 import ChatLists from "./ChatLists";
@@ -10,13 +10,24 @@ import StoriesList from "./StoriesList";
 
 import { useDispatch, useSelector } from "react-redux";
 import ContactLists from "./ContactLists";
-import { translate } from "utils/functions";
+import { getUserChat, translate } from "utils/functions";
+import { GetLastSeen, setLastSeen } from "store/chat/actions";
 function ChatWindow(props) {
   const Tabs = ["Chats", "Calls", "Stories"];
   const language = useSelector((state) => state.homepage.language);
   let forwarded_message = useSelector((state) => state.chat.forwarded_message);
+  let activeChat = useSelector((state) => state.chat.activeChat);
   const [SelectedTab, setSelectedTab] = useState("Chats");
   const dispatch = useDispatch();
+  useEffect(() => {
+    setLastSeen(getUserChat()?.id?.toString());
+    let interval = setInterval(() => {
+      console.log("interval");
+      setLastSeen(getUserChat()?.id?.toString());
+    }, 300000);
+
+    return () => clearInterval(interval);
+  }, []);
   return (
     <div className="chat-window">
       <ContactIcon
