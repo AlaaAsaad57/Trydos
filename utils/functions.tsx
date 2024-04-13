@@ -5,22 +5,16 @@ import { auto } from "@cloudinary/url-gen/qualifiers/quality";
 import { Resize } from "@cloudinary/url-gen/actions";
 import profilePicture from "public/images/profileNo.png";
 import { GET_USERS_STORIES, STORIES_URL } from "./endpointConfig";
+import StoryServiceClass from "services/stories";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
 export const getStories = async () => {
   try {
-    let axios = (await import("axios")).default;
-    const res = await axios.get(STORIES_URL + GET_USERS_STORIES, {
-      headers: {
-        Authorization:
-          "Bearer " +
-          JSON.parse(localStorage.getItem("USER-STORIES"))?.access_token,
-      },
-    });
     // hi
+    const res = await StoryServiceClass.getStories();
     const repo = res;
-    return repo.data.data.data;
+    return repo;
   } catch (e) {
     return [];
   }
