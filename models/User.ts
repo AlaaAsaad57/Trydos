@@ -1,5 +1,6 @@
 export interface UserInterface {
-  readonly id: number;
-  name?: string;
-  email?: string;
+  readonly id?: number;
+  auth_token?: string;
+  username?: string;
+  passowrd?: string;
 }
