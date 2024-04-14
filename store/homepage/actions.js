@@ -1,27 +1,7 @@
-import {
-  OTP_URL,
-  STORIES_URL,
-  REGISTER_DEVICE_URL,
-  UPLOAD_STORY_URL,
-} from "utils/endpointConfig";
-import { SSRDetect } from "utils/functions";
 import { changeAppLanguageServer } from "./cachedActions";
-import { WatchStory } from "store/auth/actions";
+import StoryService from "services/story";
 /*General Actions */
 import Cookies from "js-cookie";
-export const RegisterDevice = async () => {
-  try {
-    if (
-      SSRDetect() &&
-      !localStorage.getItem("DEVICE-TOKEN") &&
-      !localStorage.getItem("USER")
-    ) {
-      let axios = (await import("axios")).default;
-      let response = await axios.post(OTP_URL + REGISTER_DEVICE_URL);
-      localStorage.setItem("DEVICE-TOKEN", response.data.data.token);
-    }
-  } catch (e) {}
-};
 export const changeAppLanguage = (language) => {
   Cookies.set("language", language);
   changeAppLanguageServer(language);
@@ -32,7 +12,7 @@ export const GetMainData = (data) => {
 };
 /*Stories Actions */
 export const SelectStory = (e) => {
-  if (e) WatchStory(e.stories[0].id, e.id);
+  if (e) StoryService.WatchStory(e.stories[0].id, e.id);
   return { type: "STORY-SELECTED", payload: e };
 };
 export const GetStoryData = (data) => {
@@ -46,32 +26,6 @@ export const setPreviousStory = (storyId) => {
 };
 export const AddStoryAction = (story) => {
   return { type: "ADD-STORY", payload: story };
-};
-export const upload = async (file, callback, is_video, endUpload) => {
-  const upload_token = SSRDetect() && localStorage.getItem("STORIES-TOKEN");
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("is_video", is_video);
-  try {
-    let axios = (await import("axios")).default;
-    let response = await axios.post(STORIES_URL + UPLOAD_STORY_URL, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authentication: `Bearer ${upload_token}`,
-        Authorization: `Bearer ${upload_token}`,
-      },
-      onUploadProgress: (progressEvent) => {
-        callback(
-          Math.round((progressEvent.loaded * 100) / progressEvent.total)
-        );
-      },
-    });
-    endUpload();
-    return response.data.data;
-  } catch (e) {
-    callback(null);
-    endUpload();
-  }
 };
 export const GetUnviewedStory = (story) => {
   let index = 0;

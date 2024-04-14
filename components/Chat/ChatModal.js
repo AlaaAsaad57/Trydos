@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { ChatConroller } from "store/chat/actions";
 
 import { SSRDetect, getUserChat } from "utils/functions";
-import { StoreToken } from "store/auth/actions";
+import ChatService from "services/chat";
 import dynamic from "next/dynamic";
 function ChatModal() {
   const isCallIncoming = useSelector((state) => state.chat.isCallIncoming);
@@ -38,7 +38,7 @@ function ChatModal() {
 
                     firebaseToken &&
                       getUserChat()?.id &&
-                      StoreToken({
+                      ChatService.StoreToken({
                         id: getUserChat()?.id,
                         token: firebaseToken,
                         user: getUserChat(),

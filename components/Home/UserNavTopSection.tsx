@@ -1,10 +1,11 @@
-import { getStories, translate } from "utils/functions";
+import { translate } from "utils/functions";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import QuestionIcon from "public/svg/questionIcon.svg";
 import LoginIcon from "public/svg/login.svg";
 import UserIcon from "public/svg/userIcon.svg";
 import dynamic from "next/dynamic";
+import NewLoginWidget from "components/Login/NewLoginWidget";
 const LoginWidget = dynamic(() => import("../Login/LoginWidget"), {
   ssr: false,
 });
@@ -35,7 +36,12 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
         <div onClick={() => openLogin(false)} className="backdrop-login" />
       )}
       {loginOpen && (
-        <LoginWidget
+        // <LoginWidget
+        //   loginSuccessVar={loginSuccessVar}
+        //   setLoginSucces={(e) => setLoginSucces(e)}
+        //   close={() => openLogin(false)}
+        // />
+        <NewLoginWidget
           loginSuccessVar={loginSuccessVar}
           setLoginSucces={(e) => setLoginSucces(e)}
           close={() => openLogin(false)}

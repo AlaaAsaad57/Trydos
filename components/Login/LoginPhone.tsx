@@ -16,12 +16,8 @@ import MessageIcon from "public/svg/MessageIcon.svg";
 import Timer from "./Timer";
 import PinInputs from "./PinInput";
 import ManIcon from "public/svg/manIcon.svg";
-import {
-  CheckPhone,
-  ReInitialise,
-  SendOtp,
-  VerifyOtp,
-} from "store/auth/actions";
+import { ReInitialise } from "store/auth/actions";
+import AuthService from "services/auth";
 const { flag } = require("country-emoji");
 interface LoginPhoneProps {
   selectedMethod: boolean;
@@ -221,7 +217,7 @@ function LoginPhone({
                       {validNumber && stepHeight <= 200 && (
                         <LeftArrowIcon
                           onClick={() => {
-                            CheckPhone(
+                            AuthService.CheckPhone(
                               inputValue,
                               (e) => setStepHeight(e),
                               newAccount
@@ -292,7 +288,7 @@ function LoginPhone({
                       onClick={() => {
                         setMessageMethod("WA");
                         setStepHeight(287);
-                        SendOtp(inputValue, 1, (e) => {
+                        AuthService.SendOtp(inputValue, 1, (e) => {
                           setStepHeight(e);
                         });
                       }}
@@ -345,7 +341,7 @@ function LoginPhone({
                       onClick={() => {
                         setMessageMethod("SMS");
                         setStepHeight(287);
-                        SendOtp(inputValue, 0, (e) => {
+                        AuthService.SendOtp(inputValue, 0, (e) => {
                           setStepHeight(e);
                         });
                       }}
@@ -450,7 +446,12 @@ function LoginPhone({
                   LoginSuccess();
                 }}
                 Login={(value: any) =>
-                  VerifyOtp(value, verficationID, Username, () => {})
+                  AuthService.VerifyOtp(
+                    value,
+                    verficationID,
+                    Username,
+                    () => {}
+                  )
                 }
                 disabled={disabled}
               />

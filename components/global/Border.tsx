@@ -1,7 +1,7 @@
 import React from "react";
 interface BorderProps {
   height: number;
-  width: number;
+  width: number | string;
   color: string;
 }
 function Border({ height, width, color }: BorderProps) {
@@ -31,7 +31,7 @@ function Border({ height, width, color }: BorderProps) {
           id="secondRect"
           x="0.25"
           y="0.25"
-          width={width ? width - 0.5 : "389.5"}
+          width={width ? `calc(${width} - 0.5px)` : "389.5"}
           height={height - 0.5}
           rx="19.75"
           fill="none"

@@ -15,7 +15,7 @@ import OffersList from "./OfferWidgets/OfferList";
 const StoriesComponent = dynamic(() => import("./Stories/StoriesComponent"), {
   ssr: false,
 });
-import { StoreToken } from "store/auth/actions";
+import ChatService from "services/chat";
 const NotificationContainer = dynamic(() => import("./Notifications"), {
   ssr: false,
 });
@@ -53,7 +53,7 @@ export default function Home({
       requestFirebaseNotificationPermission().then((fbtoken) => {
         if (fbtoken) {
           fbtoken &&
-            StoreToken({
+            ChatService.StoreToken({
               id: getUserChat()?.id,
               token: fbtoken,
               user: getUserChat(),
