@@ -9,10 +9,11 @@ import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
 import CheckedIcon from "public/svg/CheckedIcon.svg";
 import PenIcon from "public/svg/PenIcon.svg";
 import WAIcon from "public/svg/WAIcon.svg";
+import MessageIcon from "public/svg/MessageIcon.svg";
 import { textMarshal } from "text-marshal";
 import { allCountries } from "country-telephone-data";
 import replaceString from "replace-string";
-import MessageIcon from "public/svg/MessageIcon.svg";
+
 import Timer from "./Timer";
 import PinInputs from "./PinInput";
 import ManIcon from "public/svg/manIcon.svg";
