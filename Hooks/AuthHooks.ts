@@ -46,10 +46,15 @@ export function useAuthHooks() {
   } = useMutation({
     mutationFn: async (VerifyOtpInput: VerifyOtpInputInterface) => {
       try {
-        const { code, verficationID, Username, EditPhoneFunc } = VerifyOtpInput;
+        const {
+          code,
+          verificationID: verificationID,
+          Username,
+          EditPhoneFunc,
+        } = VerifyOtpInput;
         await AuthService.VerifyOtp(
           code,
-          verficationID,
+          verificationID,
           Username,
           EditPhoneFunc
         );

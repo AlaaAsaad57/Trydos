@@ -19,7 +19,7 @@ export interface SendOtpInputInterface {
 
 export interface VerifyOtpInputInterface {
   code: string;
-  verficationID: string;
+  verificationID: string;
   Username: string;
   EditPhoneFunc: Function;
 }
