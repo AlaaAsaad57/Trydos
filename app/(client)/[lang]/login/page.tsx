@@ -2,14 +2,26 @@
 
 import React, { useState } from "react";
 import { useAuth } from "Hooks/UserHooks";
+import { useAuthHooks } from "Hooks/AuthHooks";
 
 const SignupPage: React.FC = () => {
-  const { signinHook, signinLoading, signupLoading, signupHook, isLoading } = useAuth();
+  const { signinHook, signinLoading, signupLoading, signupHook, isLoading } =
+    useAuth();
+  const { CheckPhoneHook, CheckPhoneLoading } = useAuthHooks();
   const [userData, setUserData] = useState({
     username: "",
     password: "",
   });
 
+  const test = () => {
+    const data = {
+      number: 9999,
+      step: () => {},
+      account: true,
+    };
+    const aa = CheckPhoneHook(data);
+    console.log(aa);
+  };
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setUserData((prevUserData) => ({
@@ -49,7 +61,10 @@ const SignupPage: React.FC = () => {
     }
   };
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div
+      onClick={test}
+      className="min-h-screen hover:bg-red-200 flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"
+    >
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
