@@ -9,21 +9,25 @@ import AuthService from "services/auth";
 
 export function useAuthHooks() {
   // CheckInputHook
-  const { isPending: isPendingCheckPhone, mutateAsync: mutateAsyncCheckPhone } =
-    useMutation({
-      mutationFn: async (CheckPhoneInput: CheckPhoneInputInterface) => {
-        try {
-          const { value, step, newAccount } = CheckPhoneInput;
-          await AuthService.CheckPhone(value, step, newAccount);
-          console.log("CheckPhone");
-        } catch (error) {
-          console.error("CheckPhone failed:", error);
-        }
-      },
-    });
+  const {
+    data: dataCheckPhoneHook,
+    isPending: isPendingCheckPhone,
+    mutateAsync: mutateAsyncCheckPhone,
+  } = useMutation({
+    mutationFn: async (CheckPhoneInput: CheckPhoneInputInterface) => {
+      try {
+        const { value, step, newAccount } = CheckPhoneInput;
+        await AuthService.CheckPhone(value, step, newAccount);
+        console.log("CheckPhone");
+      } catch (error) {
+        console.error("CheckPhone failed:", error);
+      }
+    },
+  });
 
   // SendOtpHook
   const {
+    data: dataSendOtpHook,
     isPending: isPendingSendOtpHook,
     mutateAsync: mutateAsyncSendOtpHook,
   } = useMutation({
@@ -41,6 +45,7 @@ export function useAuthHooks() {
   // VerifyOtp
 
   const {
+    data: dataVerifyOtpHook,
     isPending: isPendingVerifyOtpHook,
     mutateAsync: mutateAsyncVerifyOtpHook,
   } = useMutation({
@@ -66,12 +71,15 @@ export function useAuthHooks() {
   });
 
   return {
+    CheckPhoneData: dataCheckPhoneHook,
     CheckPhoneLoading: isPendingCheckPhone,
     CheckPhoneHook: mutateAsyncCheckPhone,
 
+    SendOtpData: dataSendOtpHook,
     SendOtpLoading: isPendingSendOtpHook,
     SendOtpHook: mutateAsyncSendOtpHook,
 
+    VerifyOtpData: dataVerifyOtpHook,
     VerifyOtpLoading: isPendingVerifyOtpHook,
     VerifyOtpHook: mutateAsyncVerifyOtpHook,
   };
