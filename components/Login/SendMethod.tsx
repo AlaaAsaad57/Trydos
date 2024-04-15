@@ -84,7 +84,11 @@ function SendMethod({
               language
             )}
           </div>
-          <div className="icon-detail">
+          <div
+            className="icon-detail"
+            style={{ cursor: "pointer" }}
+            onClick={() => setStepIndcator(3)}
+          >
             <svg
               id="Group_10806"
               data-name="Group 10806"
@@ -123,6 +127,22 @@ function SendMethod({
               />
             </svg>
             <span style={{ color: "#5d5d5d" }}>+{inputValue}</span>
+            <span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="10.001"
+                height="10.001"
+                viewBox="0 0 10.001 10.001"
+              >
+                <path
+                  id="Icon_material-create"
+                  data-name="Icon material-create"
+                  d="M3.125,11.04v2.083H5.208l6.144-6.144L9.269,4.9Zm9.839-5.672a.553.553,0,0,0,0-.783l-1.3-1.3a.553.553,0,0,0-.783,0L9.864,4.3l2.083,2.083Z"
+                  transform="translate(-3.125 -3.122)"
+                  fill="#388cff"
+                />
+              </svg>
+            </span>
           </div>
           <div className="icon-detail">
             <svg

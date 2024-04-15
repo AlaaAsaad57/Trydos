@@ -6,8 +6,12 @@
   font-family: "Adobe Clean Regular";
   src: url("../fonts/AdobeCleanRegular.otf");
 }
-.login-w2-container {
-  background-color: white !important;
+@font-face {
+  font-family: "Adobe Clean Bold";
+  src: url("../fonts/AdobeCleanBold.otf");
+}
+.login-w2-container.login-widget-container {
+  background-color: white;
   border-radius: 15px;
   width: min(100%, 430px) !important;
   max-width: min(100%, 430px) !important;
@@ -17,6 +21,9 @@
   justify-content: flex-end;
   align-items: center;
   padding-bottom: 40px;
+}
+.jus-center {
+  justify-content: center !important;
 }
 .login-privacy-text {
   padding-inline: 43px;
@@ -75,7 +82,7 @@
   font-family: "Adobe Clean Regular";
 }
 @media only screen and (max-width: 500px) {
-  .login-w2-container {
+  .login-w2-container.login-widget-container {
     left: 0px !important;
     top: 0px !important;
     height: 100vh !important;
@@ -154,7 +161,7 @@
   margin-inline: 2px;
 }
 .message-recieve-option-text {
-  font-family: "AdobeCleanRegular";
+  font-family: "Adobe Clean Regular";
   font-size: 14px;
   display: flex;
 
@@ -189,4 +196,74 @@
   top: 0px;
   left: 0px;
   position: absolute;
+}
+.input-failed {
+  background-color: #fff5f5 !important;
+}
+.pin-border-element {
+  height: 60px;
+}
+.input-failed svg g {
+  stroke: #ff5f61;
+}
+.input-success svg g {
+  stroke: #35ce3f;
+}
+.input-expired svg g {
+  stroke: #ffbc26;
+}
+
+.lgiht-text {
+  display: flex;
+  font-size: 12px;
+  font-family: "Adobe Clean Regular";
+  color: #5d5c5d;
+  margin-top: 12px;
+}
+.welcoming-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin-top: 28px;
+  width: 100%;
+  max-width: 215px;
+}
+.welcoming-label {
+  display: flex;
+  font-size: 30px;
+  color: #5d5c5d;
+  font-family: "Adobe Clean Bold";
+}
+.welcoming-user {
+  display: flex;
+  font-family: "Adobe Clean Light";
+  font-size: 30px;
+  color: #5d5c5d;
+  margin-top: 17px;
+  align-items: flex-start;
+}
+.welcoming-enjoy {
+  display: flex;
+
+  font-family: "Adobe Clean Light";
+  font-size: 18px;
+  margin-top: 18px;
+  color: #5d5c5d;
+}
+.signup-detail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 30px;
+  font-family: "Adobe Clean Light";
+  font-size: 14px;
+  text-align: center;
+  letter-spacing: 0.01rem;
+}
+.skip-text {
+  display: flex;
+  font-family: "Adobe Clean Regular";
+  margin-bottom: 2vh;
+  font-size: 14px;
 }

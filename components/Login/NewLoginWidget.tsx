@@ -8,6 +8,8 @@ import PrivacyConfirm from "./PrivacyConfirm";
 import PhoneInput from "./PhoneInput";
 import SendMethod from "./SendMethod";
 import LogInPins from "./LogInPins";
+import SignSteps from "./SignSteps";
+import InputName from "./InputName";
 interface LoginWidgetProps {
   close: Function;
   loginSuccessVar: boolean;
@@ -20,14 +22,74 @@ function NewLoginWidget({
 }: LoginWidgetProps) {
   const [stepIndicator, setStepIndcator] = useState(0);
   const [operation, setOperation] = useState("login");
+  const [Name, setName] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+  const [expired, setExpired] = useState(false);
+  const [rendere, setRender] = useState(true);
   const [pins, setPins] = useState("");
   const [inputValue, setInputValue] = useState("login");
   const [MessageMethod, setMessageMethod] = useState("");
-  const failedLogin = useSelector((state: any) => state.auth.failedLogin);
-  const wrongNumber = useSelector((state: any) => state.auth.wrongNumber);
+  const [failedLogin, setFailed] = useState(false);
+  const [wrongNumber, setWrongNumber] = useState(false);
   const language = useSelector((state: any) => state.homepage.language);
+  const loginFunc = () => {
+    if (pins === "11111") {
+      setWrongNumber(true);
+      setTimeout(() => {
+        setRender(false);
+        setDisabled(true);
+        setPins("");
+        setWrongNumber(false);
+      }, 1200);
+      setTimeout(() => {
+        setRender(true);
+        setDisabled(false);
+      }, 2200);
+      setTimeout(() => {
+        document
+          .querySelector<HTMLInputElement>(".pincode-input-text")
+          ?.focus();
+      }, 2400);
+    } else {
+      let elements = document.querySelectorAll(".pin-border-element");
+      elements.forEach((element) => {
+        element.classList.add("input-success");
+      });
+      setSuccess(true);
+      setTimeout(() => {
+        setDisabled(false);
+        setWrongNumber(false);
+        if (inputValue.includes("5")) {
+          setStepIndcator(6);
+        } else {
+          setStepIndcator(7);
+        }
+      }, 1200);
+    }
+  };
+  const getPageColor = () => {
+    if (stepIndicator === 6 && operation === "signup") {
+      return "#E0FFEE";
+    }
+    if (stepIndicator === 7) {
+      return "#F4FFF4";
+    }
+    if (stepIndicator === 8) {
+      return "#BCFFDF";
+    }
+    if (inputValue.includes("1")) {
+      return "#F4F8FF";
+    } else if (inputValue.includes("2")) {
+      return "#FFF9F0";
+    } else if (inputValue.includes("3")) return "#E0FFEE";
+    else return "#F4FFF4";
+  };
   return (
-    <div className="login-widget-container login-w2-container">
+    <div
+      className={`login-widget-container login-w2-container `}
+      style={{ backgroundColor: stepIndicator >= 6 && getPageColor() }}
+    >
       <LogoAuth
         style={
           stepIndicator > 0
@@ -143,15 +205,38 @@ function NewLoginWidget({
       )}
       {stepIndicator === 5 && (
         <LogInPins
+          expired={expired}
+          setDisabled={(e) => {
+            setDisabled(e);
+            setExpired(e);
+          }}
+          setStepIndactor={(e) => setStepIndcator(e)}
+          rendere={rendere}
           inputValue={inputValue}
-          disabled={false}
-          Submit={() => setStepIndcator(6)}
-          successLogin={false}
+          disabled={disabled}
+          Submit={() => loginFunc()}
+          successLogin={success}
           wrongNumber={wrongNumber}
           failedLogin={failedLogin}
-          setPin={(e) => setPins(e)}
+          setPin={(e: string) => setPins(e)}
           pin={pins}
           MessageMethod={MessageMethod}
+        />
+      )}
+      {stepIndicator === 6 && (
+        <SignSteps
+          Name={Name}
+          operation={operation}
+          close={() => close()}
+          setStepIndactor={(e) => setStepIndcator(e)}
+          inputValue={inputValue}
+        />
+      )}
+      {stepIndicator === 7 && (
+        <InputName
+          setStepIndcator={(e) => setStepIndcator(e)}
+          value={Name}
+          setName={(e) => setName(e)}
         />
       )}
     </div>

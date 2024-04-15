@@ -1,13 +1,18 @@
-import React from "react";
+import React, { useEffect } from "react";
 import PinInput from "react-pin-input";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
+import Timer from "./Timer";
 
 function LogInPins({
   setPin,
+  rendere,
+  expired,
   pin,
   MessageMethod,
   disabled,
+  setStepIndactor,
+  setDisabled,
   Submit,
   wrongNumber,
   failedLogin,
@@ -15,7 +20,11 @@ function LogInPins({
   inputValue,
 }: {
   inputValue: string;
+  rendere: boolean;
+  setStepIndactor: Function;
+  expired: boolean;
   setPin: Function;
+  setDisabled: Function;
   Submit: Function;
   pin: string;
   MessageMethod: string;
@@ -25,7 +34,9 @@ function LogInPins({
   disabled: boolean;
 }) {
   const language = useSelector((state: any) => state.homepage.language);
-
+  useEffect(() => {
+    document.querySelector<HTMLInputElement>(".pincode-input-text")?.focus();
+  }, []);
   return (
     <>
       <div className="phone-input-desc">
@@ -276,9 +287,41 @@ function LogInPins({
               </g>
             </svg>
 
-            <span>
-              {translate("You Can Resend The Code After 01:58", language)}
+            <span style={{ textWrap: "nowrap" }}>
+              {translate(
+                expired
+                  ? "Didn’t You Receive A Code?"
+                  : "You Can Resend The Code After ",
+                language
+              )}
             </span>
+            {!expired ? (
+              <span className={`blue-text`} style={{ textWrap: "nowrap" }}>
+                <Timer
+                  onResume={() => setDisabled(false)}
+                  onFinish={() => {
+                    setDisabled(true);
+                  }}
+                />
+              </span>
+            ) : (
+              <div
+                className="blue-text"
+                style={{ textWrap: "nowrap", cursor: "pointer" }}
+                onClick={() => {
+                  setDisabled(false);
+                }}
+              >
+                <span>{translate("Resend Code", language)}</span>
+                <span style={{ color: "#5d5d5d" }}>OR</span>
+                <span
+                  style={{ textWrap: "nowrap", cursor: "pointer" }}
+                  onClick={() => setStepIndactor(4)}
+                >
+                  {translate("Change the Method Of Receiving", language)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -292,15 +335,19 @@ function LogInPins({
                 className={
                   "pin-border-element" +
                   " " +
-                  (successLogin && "input-success") +
+                  (expired && "input-expired ") +
+                  (successLogin && " input-success ") +
                   " " +
                   ((wrongNumber || failedLogin) &&
                     !successLogin &&
                     "input-failed")
                 }
                 style={{
-                  backgroundColor:
-                    pin[index] || disabled ? "#f5f5f5" : "#fafafa",
+                  backgroundColor: wrongNumber
+                    ? "#fff5f5"
+                    : pin[index] || disabled
+                    ? "#f5f5f5"
+                    : "#fafafa",
                   borderRadius: "15px",
                 }}
               >
@@ -309,12 +356,19 @@ function LogInPins({
                   width="50"
                   height="60"
                   viewBox="0 0 50 60"
-                  style={{ opacity: pin[index] || disabled ? "0" : "1" }}
+                  style={{
+                    opacity:
+                      successLogin || wrongNumber || expired
+                        ? "1"
+                        : pin[index] || disabled
+                        ? "0"
+                        : "1",
+                  }}
                 >
                   <g
                     id="Rectangle_4722"
                     data-name="Rectangle 4722"
-                    fill={successLogin ? "none" : "#fafafa"}
+                    fill={wrongNumber ? "#fff5f5" : "none"}
                     stroke="#4d84ff"
                     strokeLinecap="round"
                     stroke-linejoin="round"
@@ -336,7 +390,7 @@ function LogInPins({
             ))}
         </div>
 
-        {
+        {rendere && (
           <PinInput
             length={6}
             initialValue={pin}
@@ -366,8 +420,21 @@ function LogInPins({
 
             // disabled={disablePin}
           />
-        }
+        )}
       </div>
+      {wrongNumber && (
+        <span className="lgiht-text">
+          {translate(
+            "Please Enter The Correct Code Sent To Your Phone",
+            language
+          )}
+        </span>
+      )}
+      {expired && (
+        <span className="lgiht-text">
+          {translate("The Code Sent Has Expired", language)}
+        </span>
+      )}
     </>
   );
 }

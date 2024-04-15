@@ -1,5 +1,5 @@
 import Border from "components/global/Border";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import SolidPhoneIcon from "public/svg/SolidPhoneIcon.svg";
 import { allCountries } from "country-telephone-data";
 import replaceString from "replace-string";
@@ -18,6 +18,9 @@ function PhoneInput({
   inputValue,
   setInputValue,
 }) {
+  useEffect(() => {
+    document.querySelector<HTMLInputElement>(".login-phone-input")?.focus();
+  }, []);
   const handleInput = (e) => {
     let pattern = null;
     let country = getCountry();

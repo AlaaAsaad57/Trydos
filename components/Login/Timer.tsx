@@ -13,8 +13,8 @@ function Timer({ onFinish, onResume }: TimerProps) {
       timerWithDuration: {
         time: {
           // Set a duration of 1 minute and 30 seconds
-          minutes: 1,
-          seconds: 59,
+          minutes: 0,
+          seconds: 5,
         },
       },
     },
@@ -26,20 +26,9 @@ function Timer({ onFinish, onResume }: TimerProps) {
   }, [timer]);
   return (
     <>
-      {!timer.timerIsFinished ? (
-        timer.timerDisplayStrings.minutes +
+      {timer.timerDisplayStrings.minutes +
         ":" +
-        timer.timerDisplayStrings.seconds
-      ) : (
-        <span
-          onClick={() => {
-            timer.resetTimer();
-            onResume();
-          }}
-        >
-          {translate("Resend Code", language)}
-        </span>
-      )}
+        timer.timerDisplayStrings.seconds}
     </>
   );
 }
