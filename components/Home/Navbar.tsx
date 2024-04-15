@@ -4,7 +4,10 @@ import Logo from "./Logo";
 import UserNavTopSection from "./UserNavTopSection";
 import { useDispatch, useSelector } from "react-redux";
 import { changeAppLanguage } from "store/homepage/actions";
-function Navbar({ init }) {
+interface NavbarProps {
+  init: string;
+}
+function Navbar({ init }: NavbarProps) {
   const [loginOpen, setLoginOpen] = useState(false);
   const language = useSelector((state: any) => state.homepage.language);
   const dispatch = useDispatch();

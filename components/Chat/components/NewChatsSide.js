@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import PointIcon from "../svg/point.svg";
 import Image from "next/image";
 import profilePicture from "public/images/profileNo.png";
+import { GetLastSeen } from "store/chat/actions";
+import { getUserChat } from "utils/functions";
 function NewChatsSide({ activeChat, chats }) {
   const dispatch = useDispatch();
   const language = useSelector((state) => state.homepage.language);
@@ -24,6 +26,13 @@ function NewChatsSide({ activeChat, chats }) {
                 key={index}
                 className="new-chat"
                 onClick={() => {
+                  if (true) {
+                    let friendId = a.channel_members.filter(
+                      (member) =>
+                        parseInt(member.user_id) !== parseInt(getUserChat().id)
+                    )[0]?.user_id;
+                    GetLastSeen(a.id, friendId);
+                  }
                   dispatch({ type: "OPEN-CHAT", payload: a });
                   dispatch({ type: "WATCH_CHANNEL", payload: a.id });
                 }}

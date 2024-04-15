@@ -6,7 +6,11 @@ const ExtendedOfferWidget = dynamic(() => import("./ExtendedOfferWidget"), {
 const QuickOfferWidjet = dynamic(() => import("./QuickOfferWidjet"), {
   ssr: false,
 });
-function OfferList({ offers, quick }: { offers: number[]; quick: boolean }) {
+interface OfferListProps {
+  offers: number[];
+  quick: boolean;
+}
+function OfferList({ offers, quick }: OfferListProps) {
   return (
     <div className="offers-list">
       {quick ? (

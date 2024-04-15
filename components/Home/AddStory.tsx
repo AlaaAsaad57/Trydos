@@ -1,5 +1,5 @@
 "use client";
-import { upload } from "store/homepage/actions";
+import StoryService from "services/story";
 import { useState } from "react";
 const CircularProgressbarComponent = dynamic(() => import("./Progress"), {
   ssr: false,
@@ -47,7 +47,7 @@ function AddStory() {
                 return;
               } else {
                 clearInterval(timer);
-                let path = await upload(
+                let path = await StoryService.upload(
                   e.target.files[0],
                   (e) => setUpload(e),
                   1,
@@ -86,7 +86,7 @@ function AddStory() {
         reader.readAsDataURL(e.target.files[0]);
         reader.onload = async () => {
           setIsSelected(reader.result);
-          let path = await upload(
+          let path = await StoryService.upload(
             e.target.files[0],
             (e) => setUpload(e),
             0,
@@ -113,7 +113,7 @@ function AddStory() {
         reader.onload = async () => {
           setFile(e.target.files[0]);
           setIsSelected(reader.result);
-          let path = await upload(
+          let path = await StoryService.upload(
             e.target.files[0],
             (e: any) => setUpload(e),
             1,

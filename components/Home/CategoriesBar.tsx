@@ -10,7 +10,10 @@ const Skeleton = dynamic(() => import("react-loading-skeleton"), {
 const CategoryNavItem = dynamic(() => import("./CategoryNavItem"), {
   ssr: false,
 });
-function CategoriesBar({ forMobile, key }) {
+interface CategoriesBarProps {
+  forMobile: boolean;
+}
+function CategoriesBar({ forMobile }: CategoriesBarProps) {
   const loading = useSelector((state: any) => state.homepage.loading);
   const [searchEnabled, setSearchEnabled] = useState(false);
 

@@ -81,21 +81,22 @@ export default function RootLayout({ params: { lang }, children }) {
   // ${quicksand_medium.variable}
 
   return (
-    <html
-      className={`
+    <ReactQueryClientProvider>
+      <html
+        className={`
 
       font-sans`}
-      lang={lang.split("-")[1]}
-    >
-      <link rel="icon" href="/favicon.ico" sizes="any" />
-      <link
-        rel="preload"
-        href={
-          "https://webdev.trydos.com/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdjooohujg%2Fimage%2Fupload%2Ff_webp%2Fq_auto%2F1708506792%3F_a%3DDATC1RAAZAA0&w=384&q=75"
-        }
-        as="image"
-      />
-      <ReactQueryClientProvider>
+        lang={lang.split("-")[1]}
+      >
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link
+          rel="preload"
+          href={
+            "https://webdev.trydos.com/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdjooohujg%2Fimage%2Fupload%2Ff_webp%2Fq_auto%2F1708506792%3F_a%3DDATC1RAAZAA0&w=384&q=75"
+          }
+          as="image"
+        />
+
         <body>
           <NextTopLoader
             color="#2299DD"
@@ -122,7 +123,7 @@ export default function RootLayout({ params: { lang }, children }) {
           </noscript>
           <Providers lang={lang}>{children}</Providers>
         </body>
-      </ReactQueryClientProvider>
-    </html>
+      </html>
+    </ReactQueryClientProvider>
   );
 }

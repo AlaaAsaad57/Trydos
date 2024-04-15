@@ -15,7 +15,7 @@ import OffersList from "./OfferWidgets/OfferList";
 const StoriesComponent = dynamic(() => import("./Stories/StoriesComponent"), {
   ssr: false,
 });
-import { StoreToken } from "store/auth/actions";
+import ChatService from "services/chat";
 const NotificationContainer = dynamic(() => import("./Notifications"), {
   ssr: false,
 });
@@ -25,12 +25,15 @@ import { getUserStories } from "../../utils/functions";
 export default function Home({
   HomeData_res,
   HomeData,
+  storiesData,
 }: {
   HomeData_res: Object;
   HomeData: Object;
+  storiesData: any[];
 }) {
   useEffect(() => {
-    LogData({ HomeData_req_data: HomeData_res });
+    dispatch({ type: "STORY-DATA", payload: storiesData[0] });
+    LogData({ HomeData_req_data: HomeData_res, stories: storiesData });
     dispatch(GetMainData(HomeData));
     try {
       initFB();
@@ -50,7 +53,7 @@ export default function Home({
       requestFirebaseNotificationPermission().then((fbtoken) => {
         if (fbtoken) {
           fbtoken &&
-            StoreToken({
+            ChatService.StoreToken({
               id: getUserChat()?.id,
               token: fbtoken,
               user: getUserChat(),

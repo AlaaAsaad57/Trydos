@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { forwardMessage } from "../chatsFunctions";
 import SearchResult from "components/Chat/components/SearchResult";
 import { getUserChat } from "utils/functions";
+import { GetLastSeen } from "store/chat/actions";
 function ChatLists(props) {
   const chats = useSelector((state) => state.chat.data);
   const pinned = useSelector((state) => state.chat.pinnedChats);
@@ -14,6 +15,12 @@ function ChatLists(props) {
   );
   const dispatch = useDispatch();
   const handleClick = (e) => {
+    if (true) {
+      let friendId = e.channel_members.filter(
+        (member) => parseInt(member.user_id) !== parseInt(getUserChat().id)
+      )[0]?.user_id;
+      GetLastSeen(e.id, friendId);
+    }
     dispatch({ type: "OPEN-CHAT", payload: e });
     if (e?.id && !(typeof e?.id === "string" && e.id.includes("ch")))
       dispatch({ type: "WATCH_CHANNEL", payload: e?.id });

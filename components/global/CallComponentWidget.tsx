@@ -1,6 +1,23 @@
 "use client";
 import { useState } from "react";
-function CallComponentWidget({ data, type, onAnswer, onDecline, userData }) {
+interface CallComponentWidgetProps {
+  data: { photo: string };
+  type: string;
+  onAnswer: Function;
+  onDecline: Function;
+  userData: {
+    photo: string;
+    name: string;
+    phone: string;
+  };
+}
+function CallComponentWidget({
+  data,
+  type,
+  onAnswer,
+  onDecline,
+  userData,
+}: CallComponentWidgetProps) {
   const [actionType, setAction] = useState(null);
   return (
     <div className="video-call">

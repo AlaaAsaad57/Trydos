@@ -1,0 +1,269 @@
+@font-face {
+  font-family: "Adobe Clean Light";
+  src: url("../fonts/AdobeCleanLight.otf");
+}
+@font-face {
+  font-family: "Adobe Clean Regular";
+  src: url("../fonts/AdobeCleanRegular.otf");
+}
+@font-face {
+  font-family: "Adobe Clean Bold";
+  src: url("../fonts/AdobeCleanBold.otf");
+}
+.login-w2-container.login-widget-container {
+  background-color: white;
+  border-radius: 15px;
+  width: min(100%, 430px) !important;
+  max-width: min(100%, 430px) !important;
+  padding-block: 15px;
+  min-height: min(80vh, 786px) !important;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: 40px;
+}
+.jus-center {
+  justify-content: center !important;
+}
+.login-privacy-text {
+  padding-inline: 43px;
+  font-family: "Adobe Clean Light";
+  font-size: 14px;
+  color: #5d5c5d;
+  margin-top: min(11vh, 96px);
+  text-align: center;
+  letter-spacing: 0.01rem;
+  display: flex;
+}
+.login-privacy-text-2 {
+  color: #f85555;
+  letter-spacing: 0;
+  font-family: "Adobe Clean Light";
+  text-align: center;
+  padding-inline: 167px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.login-button-group {
+  display: flex;
+  margin-top: 10px;
+  flex-direction: column;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  padding-inline: 20px;
+}
+.login-button {
+  width: 100%;
+  height: 60px;
+  background-color: #fafafa;
+  border-radius: 20px;
+  cursor: pointer;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 16px;
+  color: #5d5c5d;
+  letter-spacing: 0.01rem;
+  font-family: "Adobe Clean Regular";
+}
+.take-look-text {
+  color: #4d84ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  text-align: center;
+  margin-top: 25px;
+  padding-inline: 111px;
+  cursor: pointer;
+  font-family: "Adobe Clean Regular";
+}
+@media only screen and (max-width: 500px) {
+  .login-w2-container.login-widget-container {
+    left: 0px !important;
+    top: 0px !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    right: initial !important;
+    position: fixed !important;
+    border-radius: 0px !important;
+  }
+}
+.privacy-bold {
+  font-family: "Adobe Clean Regular";
+  display: flex;
+}
+.login-privacy-text b {
+  text-wrap: nowrap;
+}
+.login-privacy-text span {
+  text-wrap: nowrap;
+}
+.privacy-text {
+  margin-top: 10px;
+  display: flex;
+  font-family: "Adobe Clean Regular";
+  font-size: 14px;
+  color: #388cff;
+}
+.login-button svg {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+}
+.phone-input-element {
+  width: 100% !important;
+  max-width: 390px !important;
+  height: 60px !important;
+  position: relative !important;
+}
+.phone-input-desc {
+  display: flex;
+  max-width: 350px;
+  width: 100%;
+  margin-bottom: 44px;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+.text-login-desc {
+  display: flex;
+  flex-direction: column;
+  margin-left: 10px;
+}
+.text-login-item {
+  font-family: "Adobe Clean Regular";
+  font-size: 14px;
+  color: #5d5c5d;
+  display: flex;
+}
+.icon-detail {
+  display: flex;
+  font-family: "Adobe Clean Regular";
+  font-size: 12px;
+  flex-direction: row;
+  align-items: baseline;
+  color: #c4c2c2;
+}
+.icon-detail span {
+  margin-left: 5px;
+}
+.phone-send-options {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 370px;
+}
+.message-recieve-option {
+  margin-inline: 2px;
+}
+.message-recieve-option-text {
+  font-family: "Adobe Clean Regular";
+  font-size: 14px;
+  display: flex;
+
+  margin-left: 10px;
+
+  color: #707070;
+}
+.message-recieve-option {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
+  width: 193px;
+  position: relative;
+}
+
+.pin-inputs-container {
+  display: flex;
+  width: 100%;
+  height: 60px;
+  margin-top: 20px;
+  position: relative;
+  max-width: 390px;
+}
+.pin-border-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  top: 0px;
+  left: 0px;
+  position: absolute;
+}
+.input-failed {
+  background-color: #fff5f5 !important;
+}
+.pin-border-element {
+  height: 60px;
+}
+.input-failed svg g {
+  stroke: #ff5f61;
+}
+.input-success svg g {
+  stroke: #35ce3f;
+}
+.input-expired svg g {
+  stroke: #ffbc26;
+}
+
+.lgiht-text {
+  display: flex;
+  font-size: 12px;
+  font-family: "Adobe Clean Regular";
+  color: #5d5c5d;
+  margin-top: 12px;
+}
+.welcoming-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin-top: 28px;
+  width: 100%;
+  max-width: 215px;
+}
+.welcoming-label {
+  display: flex;
+  font-size: 30px;
+  color: #5d5c5d;
+  font-family: "Adobe Clean Bold";
+}
+.welcoming-user {
+  display: flex;
+  font-family: "Adobe Clean Light";
+  font-size: 30px;
+  color: #5d5c5d;
+  margin-top: 17px;
+  align-items: flex-start;
+}
+.welcoming-enjoy {
+  display: flex;
+
+  font-family: "Adobe Clean Light";
+  font-size: 18px;
+  margin-top: 18px;
+  color: #5d5c5d;
+}
+.signup-detail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 30px;
+  font-family: "Adobe Clean Light";
+  font-size: 14px;
+  text-align: center;
+  letter-spacing: 0.01rem;
+}
+.skip-text {
+  display: flex;
+  font-family: "Adobe Clean Regular";
+  margin-bottom: 2vh;
+  font-size: 14px;
+}

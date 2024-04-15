@@ -7,9 +7,9 @@ import {
 } from "store/homepage/actions";
 import CloseIcon from "./CloseIcon";
 import dynamic from "next/dynamic";
-import { WatchStory } from "store/auth/actions";
+import StoryService from "services/story";
 import { GetUnviewedStory } from "../../../store/homepage/actions";
-import { Story } from "utils/Types";
+import { Story } from "modelsstory";
 const Stories = dynamic(() => import("react-insta-stories"), { ssr: false });
 function StoriesComponent() {
   const [currentStoryId, setCurrentStoryId] = useState(0);
@@ -26,7 +26,10 @@ function StoriesComponent() {
   };
   useEffect(() => {
     if (selectedStory)
-      WatchStory(selectedStory.stories[currentStoryId].id, selectedStory.id);
+      StoryService.WatchStory(
+        selectedStory.stories[currentStoryId].id,
+        selectedStory.id
+      );
   }, [currentStoryId]);
   useEffect(() => {
     if (selectedStory?.id) {

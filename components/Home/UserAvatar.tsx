@@ -1,12 +1,10 @@
 import UserIcon from "public/svg/userIcon.svg";
 import Image from "next/image";
-function UserAvatar({
-  avatar,
-  onClick,
-}: {
+interface UserAvatarProps {
   avatar: string;
   onClick: Function;
-}) {
+}
+function UserAvatar({ avatar, onClick }: UserAvatarProps) {
   return (
     <>
       {avatar ? (

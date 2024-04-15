@@ -1,0 +1,101 @@
+import axios from "axios";
+import { store } from "store";
+import { ReInitialise } from "store/auth/actions";
+import userImage from "public/images/profileNo.png";
+import {
+  OTP_URL,
+  SEND_OTP,
+  VERFIY_OTP,
+  VERFIY_OTP_SIGNUP,
+} from "utils/endpointConfig";
+import ChatService from "services/chat";
+import StoryService from "services/story";
+class AuthService {
+  http = axios.create({
+    baseURL: OTP_URL,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("MARKET-TOKEN")}`,
+    },
+  });
+
+  async CheckPhone(
+    value: string | number,
+    step: Function,
+    newAccount: boolean
+  ) {
+    try {
+      const response = await this.http.get(
+        "/phone/check-existence/" + `${value}`
+      );
+      step(277);
+      store.dispatch(ReInitialise());
+    } catch (e) {
+      step(282);
+      store.dispatch({ type: "WRONG-NUMBER", payload: "phone already exists" });
+    }
+  }
+  async SendOtp(
+    mobilePhone: string,
+    is_via_whatsapp: number | string,
+    step: Function
+  ) {
+    try {
+      const response = await this.http.get(
+        SEND_OTP + `?phone=+${mobilePhone}&is_via_whatsapp=${is_via_whatsapp}`
+      );
+      if (response.data.data.verificationId) {
+        store.dispatch({
+          type: "SET-VERFICATION-ID",
+          payload: response.data.data.verificationId,
+        });
+      }
+    } catch (e) {
+      step(282);
+      store.dispatch({
+        type: "WRONG-NUMBER",
+        payload: "failed to send otp code please try again",
+      });
+    }
+  }
+  async VerifyOtp(
+    code: string,
+    verficationID: string,
+    Username: string,
+    EditPhoneFunc: Function
+  ) {
+    try {
+      const response = await this.http.get(
+        (Username.length > 0 ? VERFIY_OTP_SIGNUP : VERFIY_OTP) +
+          `?verificationId=${verficationID}&otp=${code}${
+            Username.length > 0 ? `&name=${Username}` : ""
+          }`
+      );
+      if (response.data?.isSuccessful === false) {
+        throw new Error("Wrong Code");
+      }
+      localStorage.setItem("ID-TOKEN", response.data.data.id_token);
+      localStorage.setItem("MARKET-TOKEN", response.data.data.token);
+      localStorage.setItem("USER", JSON.stringify(response.data.data.user));
+      store.dispatch({
+        type: "LOGIN_SUCCESS",
+        payload: {
+          id: response.data.data.user.id,
+          idToken: response.data.data.id_token,
+          name: response.data.data.user.name,
+          avatar: userImage,
+          already_exists: response.data.data.already_exists,
+        },
+      });
+      StoryService.loginStories();
+      ChatService.loginChat();
+    } catch (e) {
+      if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
+      if (e.response.data.message === "user not found") {
+        store.dispatch({ type: "WRONG-NUMBER", payload: "user not found" });
+      } else {
+        store.dispatch({ type: "LOGIN_FAILED" });
+      }
+    }
+  }
+}
+export default new AuthService();

@@ -1,12 +1,9 @@
 import { ReactElement } from "react";
-
-function BarDescribtion({
-  name,
-  desc,
-}: {
+interface BarDescribtionProps {
   name: string;
   desc: string;
-}): ReactElement {
+}
+function BarDescribtion({ name, desc }: BarDescribtionProps): ReactElement {
   return (
     <div className="bar-desc-column">
       <div className="bar-name">{name}</div>

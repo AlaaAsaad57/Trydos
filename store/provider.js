@@ -12,8 +12,7 @@ const TranslationsMenu = dynamic(
   }
 );
 import { useEffect } from "react";
-import { RegisterDevice } from "./homepage/actions";
-import { CheckLogin } from "./auth/actions";
+import HomeService from "services/home";
 // import GAComponent from "components/global/GAComponent";
 import dynamic from "next/dynamic";
 import { getUserChat } from "utils/functions";
@@ -29,8 +28,8 @@ export default function Providers({ lang, children }) {
       //   });
       // }, 2000);
       setTimeout(() => {
-        RegisterDevice();
-        CheckLogin();
+        HomeService.RegisterDevice();
+        HomeService.CheckLogin();
       }, 2000);
     }
   }, []);

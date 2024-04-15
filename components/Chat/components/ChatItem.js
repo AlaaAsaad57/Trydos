@@ -72,6 +72,10 @@ function ChatItem({
       evt.touches || [evt] // browser API
     ); // jQuery
   }
+  const time_differenc = (date) => {
+    let value = (new Date(Server_time) - new Date(date)) / 1000 / 60;
+    return value;
+  };
   function handleTouchMove(evt, a, indexx) {
     evt.preventDefault();
     if (!xDown || !yDown) {
@@ -173,6 +177,7 @@ function ChatItem({
         } ${isActive && "active-chat-effect"}`}
         onMouseUp={() => handleClick()}
       >
+        {}
         {photo && !photo?.includes("eu") ? (
           <Image
             priority={false}

@@ -2,10 +2,11 @@ import ChatItem from "components/Chat/components/ChatItem";
 import { useDispatch, useSelector } from "react-redux";
 import { forwardMessage } from "../chatsFunctions";
 import SearchResult from "components/Chat/components/SearchResult";
-import { getUserChat } from "utils/functions";
+import { getUserChat, translate } from "utils/functions";
 
 function ContactLists(props) {
   const chats = useSelector((state) => state.chat.data);
+  const language = useSelector((state) => state.homepage.language);
   const contacts = useSelector((state) => state.chat.contacts);
   const forwarded_message = useSelector(
     (state) => state.chat.forwarded_message
@@ -20,7 +21,14 @@ function ContactLists(props) {
   };
   return (
     <div className="chat-list-items">
-      {
+      {contacts.length === 0 ? (
+        <div className="notification-enable">
+          <div>{translate("No Contacts", language)}</div>
+          <div>
+            {translate("Log in Through our App to access contacts", language)}
+          </div>
+        </div>
+      ) : (
         <>
           {contacts
             .filter((contact) => {
@@ -171,7 +179,7 @@ function ContactLists(props) {
               }
             })}
         </>
-      }
+      )}
       {/* {props.search.length===0? <>
     
         {contacts.filter((mem)=>mem?.name?.toLowerCase().includes(props.search.toLowerCase())).map((item)=>{

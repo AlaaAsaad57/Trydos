@@ -12,7 +12,16 @@ import Link from "next/link";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-function ExtendedOfferWidget({ offer, myKey, onClick }) {
+interface ExtendedOfferWidgetProps {
+  offer: { photos: number[] };
+  myKey: number | string;
+  onClick: Function;
+}
+function ExtendedOfferWidget({
+  offer,
+  myKey,
+  onClick,
+}: ExtendedOfferWidgetProps) {
   const language: string = useSelector((state: any) => state.homepage.language);
   const { ref, inView, entry } = useInView({
     /* Optional options */
