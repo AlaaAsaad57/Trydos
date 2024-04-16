@@ -30,7 +30,11 @@ class HomeService {
     }, 2000);
   }
   async getCustomerInfo() {
-    const response = await this.http.get(CUSTOMER_INFO_URL);
+    const response = await this.http.get(CUSTOMER_INFO_URL, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("MARKET-TOKEN")}`,
+      },
+    });
     store.dispatch({
       type: "UPDATE_USER_INFO",
       payload: response.data.data.customer_info,

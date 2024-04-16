@@ -13,8 +13,8 @@ function Timer({ onFinish, onResume }: TimerProps) {
       timerWithDuration: {
         time: {
           // Set a duration of 1 minute and 30 seconds
-          minutes: 0,
-          seconds: 5,
+          minutes: 1,
+          seconds: 59,
         },
       },
     },

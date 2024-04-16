@@ -9,8 +9,11 @@ export const signup = async (user: UserInterface): Promise<UserInterface> => {
 
   const newUser = {
     id: users.length + 1,
-    username: user.username,
+    name: user.name,
     passowrd: user.passowrd,
+    avatar: "",
+    idToken: "",
+    already_exists: false,
   };
 
   users.push(newUser);
@@ -21,7 +24,7 @@ export const signup = async (user: UserInterface): Promise<UserInterface> => {
 export const signin = async (user: UserInterface): Promise<UserInterface> => {
   await delay(1000);
 
-  const existingUser = users.find((u) => u.username === user.username);
+  const existingUser = users.find((u) => u.name === user.name);
 
   return existingUser;
 };

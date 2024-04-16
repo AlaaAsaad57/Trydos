@@ -63,7 +63,14 @@ class ChatService {
       "/api/v1/firebase_tokens",
       JSON.stringify({
         token: payload.token,
-      })
+      }),
+      {
+        headers: {
+          Authorization:
+            "Bearer " +
+            JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
+        },
+      }
     );
     store.dispatch({ type: "STORE_TOKEN_RED", payload: payload.token });
     localStorage.setItem("firebase_id", response.data.data.id);

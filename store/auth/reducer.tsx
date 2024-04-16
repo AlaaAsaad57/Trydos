@@ -45,7 +45,7 @@ const AuthReducer = (state = initialState, { type, payload }) => {
     case "UPDATE-NAME": {
       return {
         ...state,
-        user: { ...state.user, name: payload, already_exists: true },
+        user: { ...state.user, name: payload },
       };
     }
     default:

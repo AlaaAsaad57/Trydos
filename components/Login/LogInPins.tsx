@@ -39,7 +39,7 @@ function LogInPins({
   }, []);
   return (
     <>
-      <div className="phone-input-desc">
+      <div className="phone-input-desc" style={{ marginBottom: "25px" }}>
         <svg
           id="_15x15"
           data-name="15x15"
@@ -325,7 +325,7 @@ function LogInPins({
           </div>
         </div>
       </div>
-      <div className="pin-inputs-container">
+      <div className="pin-inputs-container" style={{ marginTop: "0px" }}>
         <div className="pin-border-container" style={{ zIndex: "1" }}>
           {Array(6)
             .fill(1)

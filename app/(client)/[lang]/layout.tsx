@@ -81,49 +81,49 @@ export default function RootLayout({ params: { lang }, children }) {
   // ${quicksand_medium.variable}
 
   return (
-    <ReactQueryClientProvider>
-      <html
-        className={`
+    <html
+      className={`
 
       font-sans`}
-        lang={lang.split("-")[1]}
-      >
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link
-          rel="preload"
-          href={
-            "https://webdev.trydos.com/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdjooohujg%2Fimage%2Fupload%2Ff_webp%2Fq_auto%2F1708506792%3F_a%3DDATC1RAAZAA0&w=384&q=75"
-          }
-          as="image"
-        />
+      lang={lang.split("-")[1]}
+    >
+      <link rel="icon" href="/favicon.ico" sizes="any" />
+      <link
+        rel="preload"
+        href={
+          "https://webdev.trydos.com/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdjooohujg%2Fimage%2Fupload%2Ff_webp%2Fq_auto%2F1708506792%3F_a%3DDATC1RAAZAA0&w=384&q=75"
+        }
+        as="image"
+      />
 
-        <body>
-          <NextTopLoader
-            color="#2299DD"
-            initialPosition={0.08}
-            crawlSpeed={200}
-            height={3}
-            crawl={true}
-            showSpinner={true}
-            easing="ease"
-            speed={200}
-            shadow="0 0 10px #2299DD,0 0 5px #2299DD"
-            template='<div class="bar" role="bar"><div class="peg"></div></div> 
+      <body>
+        <NextTopLoader
+          color="#2299DD"
+          initialPosition={0.08}
+          crawlSpeed={200}
+          height={3}
+          crawl={true}
+          showSpinner={true}
+          easing="ease"
+          speed={200}
+          shadow="0 0 10px #2299DD,0 0 5px #2299DD"
+          template='<div class="bar" role="bar"><div class="peg"></div></div> 
   <div class="spinner" role="spinner"><div class="spinner-icon"></div></div>'
-            zIndex={1600}
-            showAtBottom={false}
-          />
-          <noscript>
-            <iframe
-              src="https://www.googletagmanager.com/ns.html?id=GTM-K8QKJJLK"
-              height="0"
-              width="0"
-              style={{ display: "none", visibility: "hidden" }}
-            ></iframe>
-          </noscript>
+          zIndex={1600}
+          showAtBottom={false}
+        />
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-K8QKJJLK"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          ></iframe>
+        </noscript>
+        <ReactQueryClientProvider>
           <Providers lang={lang}>{children}</Providers>
-        </body>
-      </html>
-    </ReactQueryClientProvider>
+        </ReactQueryClientProvider>
+      </body>
+    </html>
   );
 }

@@ -50,12 +50,14 @@ class AuthService {
           payload: response.data.data.verificationId,
         });
       }
+      return response.data;
     } catch (e) {
       step(282);
       store.dispatch({
         type: "WRONG-NUMBER",
         payload: "failed to send otp code please try again",
       });
+      throw e;
     }
   }
   async VerifyOtp(
@@ -76,7 +78,13 @@ class AuthService {
       }
       localStorage.setItem("ID-TOKEN", response.data.data.id_token);
       localStorage.setItem("MARKET-TOKEN", response.data.data.token);
-      localStorage.setItem("USER", JSON.stringify(response.data.data.user));
+      localStorage.setItem(
+        "USER",
+        JSON.stringify({
+          ...response.data.data.user,
+          already_exists: response.data.data.already_exists,
+        })
+      );
       store.dispatch({
         type: "LOGIN_SUCCESS",
         payload: {
@@ -89,6 +97,7 @@ class AuthService {
       });
       StoryService.loginStories();
       ChatService.loginChat();
+      return [response.data.data.already_exists, response.data.data.user.name];
     } catch (e) {
       if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
       if (e.response.data.message === "user not found") {
@@ -96,6 +105,7 @@ class AuthService {
       } else {
         store.dispatch({ type: "LOGIN_FAILED" });
       }
+      throw e;
     }
   }
   async UpdateName(name: string) {

@@ -5,11 +5,16 @@ import { translate } from "utils/functions";
 function AlreadyRegistered({
   inputValue,
   setStepIndcator,
+  close,
+  setStepSign,
 }: {
   inputValue: string;
   setStepIndcator: Function;
+  close: Function;
+  setStepSign: Function;
 }) {
   const language = useSelector((state: any) => state.homepage.language);
+  const user = useSelector((state: any) => state.auth.user);
 
   return (
     <>
@@ -113,7 +118,12 @@ function AlreadyRegistered({
       <div className="login-button-group">
         <div
           className="login-button"
-          onClick={() => setStepIndcator(8)}
+          onClick={() => {
+            if (user.name.length > 1) {
+              setStepSign("welcomeLogin");
+              setStepIndcator(6);
+            } else setStepIndcator(7);
+          }}
           style={{
             position: "relative",
             marginTop: "50px",
@@ -123,6 +133,20 @@ function AlreadyRegistered({
         >
           {translate("Login & Continue", language)}
         </div>
+      </div>
+      <div
+        className="blue-text"
+        style={{
+          fontSize: "12px",
+          fontFamily: "Adobe Clean Regular",
+          marginTop: "3vh",
+        }}
+        onClick={() => {
+          // cancelAuth()
+          //close()
+        }}
+      >
+        {translate("Cancel & Take A Look At The App", language)}
       </div>
     </>
   );

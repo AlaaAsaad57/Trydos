@@ -6,17 +6,17 @@ import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
 function InputName({
   value,
   setName,
-  setStepIndcator,
+  submit,
 }: {
   value: string;
+  submit: Function;
   setName: Function;
-  setStepIndcator: Function;
 }) {
   const language = useSelector((state: any) => state.homepage.language);
 
   return (
     <>
-      <div className="phone-input-desc" style={{ marginBottom: "10vh" }}>
+      <div className="phone-input-desc" style={{ marginBottom: "28px" }}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="15.3"
@@ -215,7 +215,7 @@ function InputName({
               //   (e) => setStepIndcator(e),
               //   stepIndicator === 3
               // );
-              setStepIndcator(6);
+              submit();
             }}
             className="phone-arrow"
           />

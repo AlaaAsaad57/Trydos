@@ -65,6 +65,7 @@ function AccountNotFound({
           </div>
           <div className="icon-detail">
             <svg
+              style={{ transform: "translateY(1px)" }}
               id="Group_10806"
               data-name="Group 10806"
               xmlns="http://www.w3.org/2000/svg"
@@ -102,7 +103,7 @@ function AccountNotFound({
               />
             </svg>
 
-            <span style={{ color: "#5d5d5d" }}>+{inputValue}</span>
+            <span style={{ color: "#8D8D8D" }}>+{inputValue}</span>
           </div>
           <div className="icon-detail">
             <span
@@ -129,6 +130,20 @@ function AccountNotFound({
         >
           {translate("Create New Account & Continue", language)}
         </div>
+      </div>
+      <div
+        className="blue-text"
+        style={{
+          fontSize: "12px",
+          fontFamily: "Adobe Clean Regular",
+          marginTop: "3vh",
+        }}
+        onClick={() => {
+          // cancelAuth()
+          //close()
+        }}
+      >
+        {translate("Cancel & Take A Look At The App", language)}
       </div>
     </>
   );

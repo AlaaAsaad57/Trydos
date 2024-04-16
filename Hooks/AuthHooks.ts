@@ -32,11 +32,18 @@ export function useAuthHooks() {
     mutateAsync: mutateAsyncSendOtpHook,
   } = useMutation({
     mutationFn: async (SendOtpInput: SendOtpInputInterface) => {
+      const {
+        mobilePhone,
+        is_via_whatsapp,
+        step,
+        errorCallback,
+        successCallback,
+      } = SendOtpInput;
       try {
-        const { mobilePhone, is_via_whatsapp, step } = SendOtpInput;
         await AuthService.SendOtp(mobilePhone, is_via_whatsapp, step);
-        console.log("SendOtpHook");
+        successCallback();
       } catch (error) {
+        errorCallback();
         console.error("SendOtp failed:", error);
       }
     },
@@ -56,13 +63,16 @@ export function useAuthHooks() {
           verificationID: verificationID,
           Username,
           EditPhoneFunc,
+          successCallback,
+          errorCallback,
         } = VerifyOtpInput;
-        await AuthService.VerifyOtp(
+        let [exists, name] = await AuthService.VerifyOtp(
           code,
           verificationID,
           Username,
           EditPhoneFunc
         );
+        successCallback(exists, name);
         console.log("VerifyOtpHook");
       } catch (error) {
         console.error("VerifyOtp failed:", error);

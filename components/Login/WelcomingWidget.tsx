@@ -16,7 +16,7 @@ function WelcomingWidget({
   const language = useSelector((state: any) => state.homepage.language);
   useEffect(() => {
     setTimeout(() => {
-      //   close();
+      close();
     }, 2000);
   }, []);
   return (
@@ -97,16 +97,6 @@ function WelcomingWidget({
             </svg>
 
             <span style={{ color: "#5d5d5d" }}>+{inputValue}</span>
-          </div>
-          <div className="icon-detail">
-            <span
-              style={{ marginLeft: "20px", color: "#C4C2C2", marginTop: "9px" }}
-            >
-              {translate(
-                "Register & Create New Account With Us In A Few Simple Steps",
-                language
-              )}
-            </span>
           </div>
         </div>
       </div>

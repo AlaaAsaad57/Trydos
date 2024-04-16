@@ -3,17 +3,33 @@ import { useDispatch, useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import WAIcon from "public/svg/WAIcon.svg";
 import MessageIcon from "public/svg/MessageIcon.svg";
+import { useAuthHooks } from "Hooks/AuthHooks";
+
 function SendMethod({
   inputValue,
   setStepIndcator,
+  setWrongNumber,
   setMessageMethod,
 }: {
   setStepIndcator: Function;
   inputValue: string;
+  setWrongNumber: Function;
   setMessageMethod: Function;
 }) {
   const language = useSelector((state: any) => state.homepage.language);
-  const dispatch = useDispatch();
+  const { SendOtpHook, SendOtpData } = useAuthHooks();
+  const SendCodeRequest = (method: string) => {
+    SendOtpHook({
+      mobilePhone: inputValue,
+      is_via_whatsapp: method,
+      step: () => {},
+      successCallback: function () {},
+      errorCallback: function () {
+        setStepIndcator(3);
+        setWrongNumber(true);
+      },
+    });
+  };
   return (
     <>
       <div className="phone-input-desc">
@@ -195,6 +211,7 @@ function SendMethod({
           className="message-recieve-option"
           onClick={() => {
             setMessageMethod("WA");
+            SendCodeRequest("1");
             setStepIndcator(5);
             // AuthService.SendOtp(inputValue, 1, (e) => {
             //   setStepHeight(e);
@@ -242,6 +259,7 @@ function SendMethod({
           onClick={() => {
             setMessageMethod("SMS");
             setStepIndcator(5);
+            SendCodeRequest("0");
             // AuthService.SendOtp(inputValue, 0, (e) => {
             //   setStepHeight(e);
             // });

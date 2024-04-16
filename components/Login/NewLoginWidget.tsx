@@ -10,6 +10,8 @@ import SendMethod from "./SendMethod";
 import LogInPins from "./LogInPins";
 import SignSteps from "./SignSteps";
 import InputName from "./InputName";
+import AuthService from "services/auth";
+import { useAuthHooks } from "Hooks/AuthHooks";
 interface LoginWidgetProps {
   close: Function;
   loginSuccessVar: boolean;
@@ -22,6 +24,7 @@ function NewLoginWidget({
 }: LoginWidgetProps) {
   const [stepIndicator, setStepIndcator] = useState(0);
   const [operation, setOperation] = useState("login");
+  const [signStep, setSignStep] = useState("");
   const [Name, setName] = useState("");
   const [success, setSuccess] = useState(false);
   const [disabled, setDisabled] = useState(false);
@@ -33,57 +36,61 @@ function NewLoginWidget({
   const [failedLogin, setFailed] = useState(false);
   const [wrongNumber, setWrongNumber] = useState(false);
   const language = useSelector((state: any) => state.homepage.language);
-  const loginFunc = () => {
-    if (pins === "11111") {
-      setWrongNumber(true);
-      setTimeout(() => {
-        setRender(false);
-        setDisabled(true);
-        setPins("");
-        setWrongNumber(false);
-      }, 1200);
-      setTimeout(() => {
-        setRender(true);
-        setDisabled(false);
-      }, 2200);
-      setTimeout(() => {
-        document
-          .querySelector<HTMLInputElement>(".pincode-input-text")
-          ?.focus();
-      }, 2400);
-    } else {
-      let elements = document.querySelectorAll(".pin-border-element");
-      elements.forEach((element) => {
-        element.classList.add("input-success");
-      });
-      setSuccess(true);
-      setTimeout(() => {
-        setDisabled(false);
-        setWrongNumber(false);
-        if (inputValue.includes("5")) {
-          setStepIndcator(6);
+  const { VerifyOtpHook, SendOtpHook } = useAuthHooks();
+  const verficationID = useSelector((state: any) => state.auth.verficationID);
+  const user = useSelector((state: any) => state.auth.user);
+  const loginFunc = async (e) => {
+    await VerifyOtpHook({
+      code: e,
+      EditPhoneFunc: () => {},
+      Username: "",
+      verificationID: verficationID,
+      errorCallback: () => {
+        setFailed(true);
+      },
+      successCallback: (exists, name) => {
+        if (operation === "signup") {
+          if (exists && name.length > 1) {
+            setSignStep("alreadyExists");
+            setStepIndcator(6);
+          } else if (exists && !(name.length > 1)) {
+            setStepIndcator(7);
+          }
+          if (!exists) {
+            setSignStep("welcomeSignup");
+            setStepIndcator(7);
+          }
         } else {
-          setStepIndcator(7);
+          if (exists && name.length > 1) {
+            setSignStep("welcomeLogin");
+            setStepIndcator(6);
+          } else if (exists && !(name.length > 1)) {
+            setStepIndcator(7);
+          }
+          if (!exists) {
+            setSignStep("notFound");
+            setStepIndcator(6);
+          }
         }
-      }, 1200);
-    }
+      },
+    });
   };
+
   const getPageColor = () => {
-    if (stepIndicator === 6 && operation === "signup") {
+    if (stepIndicator === 6 && signStep === "welcomeLogin") {
       return "#E0FFEE";
     }
     if (stepIndicator === 7) {
       return "#F4FFF4";
     }
-    if (stepIndicator === 8) {
+    if (stepIndicator === 6 && signStep === "welcomeSignup") {
       return "#BCFFDF";
     }
-    if (inputValue.includes("1")) {
+    if (operation === "signup" && signStep === "alreadyExists") {
       return "#F4F8FF";
-    } else if (inputValue.includes("2")) {
+    } else if (stepIndicator === 6 && signStep === "notFound") {
       return "#FFF9F0";
-    } else if (inputValue.includes("3")) return "#E0FFEE";
-    else return "#F4FFF4";
+    } else return "#F4FFF4";
   };
   return (
     <div
@@ -143,6 +150,8 @@ function NewLoginWidget({
       {stepIndicator <= 3 && stepIndicator > 1 && (
         <PhoneInput
           inputValue={inputValue}
+          wrongNumber={wrongNumber}
+          setWrongNumber={(e) => setWrongNumber(e)}
           setInputValue={(e) => setInputValue(e)}
           stepIndicator={stepIndicator}
           setStepIndcator={(e) => setStepIndcator(e)}
@@ -198,8 +207,9 @@ function NewLoginWidget({
       )}
       {stepIndicator === 4 && (
         <SendMethod
-          setStepIndcator={(e) => setStepIndcator(e)}
-          setMessageMethod={(e) => setMessageMethod(e)}
+          setWrongNumber={(e) => setWrongNumber(e)}
+          setStepIndcator={(e: number) => setStepIndcator(e)}
+          setMessageMethod={(e: string) => setMessageMethod(e)}
           inputValue={inputValue}
         />
       )}
@@ -207,6 +217,16 @@ function NewLoginWidget({
         <LogInPins
           expired={expired}
           setDisabled={(e) => {
+            SendOtpHook({
+              mobilePhone: inputValue,
+              is_via_whatsapp: MessageMethod === "WA" ? "1" : "0",
+              step: () => {},
+              successCallback: function () {},
+              errorCallback: function () {
+                setStepIndcator(3);
+                setWrongNumber(true);
+              },
+            });
             setDisabled(e);
             setExpired(e);
           }}
@@ -214,7 +234,7 @@ function NewLoginWidget({
           rendere={rendere}
           inputValue={inputValue}
           disabled={disabled}
-          Submit={() => loginFunc()}
+          Submit={(e) => loginFunc(e)}
           successLogin={success}
           wrongNumber={wrongNumber}
           failedLogin={failedLogin}
@@ -225,7 +245,12 @@ function NewLoginWidget({
       )}
       {stepIndicator === 6 && (
         <SignSteps
+          signStep={signStep}
+          setStepSign={(e) => {
+            setSignStep(e);
+          }}
           Name={Name}
+          user={user}
           operation={operation}
           close={() => close()}
           setStepIndactor={(e) => setStepIndcator(e)}
@@ -234,9 +259,23 @@ function NewLoginWidget({
       )}
       {stepIndicator === 7 && (
         <InputName
-          setStepIndcator={(e) => setStepIndcator(e)}
           value={Name}
           setName={(e) => setName(e)}
+          submit={() => {
+            AuthService.UpdateName(Name);
+            if (operation === "login") {
+              if (user.already_exists) setSignStep("welcomeLogin");
+              else setSignStep("welcomeSignup");
+            }
+            if (operation === "signup") {
+              if (user.already_exists) {
+                setSignStep("welcomeLogin");
+              } else {
+                setSignStep("welcomeSignup");
+              }
+            }
+            setStepIndcator(6);
+          }}
         />
       )}
     </div>

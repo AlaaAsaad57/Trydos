@@ -4,46 +4,55 @@ import AccountNotFound from "./AccountNotFound";
 import WelcomingWidget from "./WelcomingWidget";
 import { translate } from "utils/functions";
 import { useSelector } from "react-redux";
+import { UserInterface } from "models/User";
 
 function SignSteps({
   inputValue,
   setStepIndactor,
   close,
   Name,
+  user,
   operation,
+  signStep,
+  setStepSign,
 }: {
+  signStep: string;
   inputValue: string;
   operation: string;
   setStepIndactor: Function;
   close: Function;
   Name: string;
+  user: UserInterface;
+  setStepSign: Function;
 }) {
   const language = useSelector((state: any) => state.homepage.language);
 
   return (
     <>
-      {Name?.length > 0 && operation === "login" ? (
+      {signStep === "welcomeLogin" ? (
         <WelcomingWidget
-          Name={Name || "Alaa Asaad"}
+          Name={user.name}
           close={() => close()}
           inputValue={inputValue}
-          setStepIndcator={(e) => setStepIndactor(e)}
+          setStepIndcator={(e: number) => setStepIndactor(e)}
         />
       ) : (
         <>
-          {operation === "signup" && inputValue.includes("1") && (
+          {signStep === "alreadyExists" && (
             <AlreadyRegistered
+              setStepSign={(e) => setStepSign(e)}
+              close={() => close()}
               inputValue={inputValue}
               setStepIndcator={(e) => setStepIndactor(e)}
             />
           )}{" "}
-          {operation === "login" && inputValue.includes("2") && (
+          {signStep === "notFound" && (
             <AccountNotFound
               inputValue={inputValue}
               setStepIndcator={(e) => setStepIndactor(e)}
             />
           )}
-          {Name.length > 0 && operation === "signup" && (
+          {signStep === "welcomeSignup" && (
             <>
               <div className="welcoming-container">
                 <div className="welcoming-label">

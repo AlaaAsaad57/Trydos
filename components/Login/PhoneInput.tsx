@@ -14,14 +14,25 @@ import { translate } from "utils/functions";
 function PhoneInput({
   stepIndicator,
   setStepIndcator,
+  wrongNumber,
+  setWrongNumber,
   operation,
   inputValue,
   setInputValue,
+}: {
+  stepIndicator: number;
+  setStepIndcator: Function;
+  wrongNumber: boolean;
+  setWrongNumber: Function;
+  operation: string;
+  inputValue: string;
+  setInputValue: Function;
 }) {
   useEffect(() => {
     document.querySelector<HTMLInputElement>(".login-phone-input")?.focus();
   }, []);
   const handleInput = (e) => {
+    setWrongNumber(false);
     let pattern = null;
     let country = getCountry();
     if (country) {
@@ -274,7 +285,11 @@ function PhoneInput({
         </div>
       )}
       <div className="phone-input-element">
-        <Border height={50} width={"100%"} color={validNumber && "#4D84FF"} />
+        <Border
+          height={50}
+          width={"100%"}
+          color={wrongNumber ? "#ff5f61" : validNumber ? "#4D84FF" : ""}
+        />
         <SolidPhoneIcon
           style={{ position: "absolute", top: "16px", left: "20px" }}
         />
@@ -320,6 +335,14 @@ function PhoneInput({
           />
         )}
       </div>
+      {wrongNumber && (
+        <div
+          className="blue-text"
+          style={{ color: "#ff5f61", fontSize: "12px" }}
+        >
+          {translate("Invalid Phone Number", language)}
+        </div>
+      )}
     </>
   );
 }
