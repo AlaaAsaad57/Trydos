@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { UpdateName } from "store/auth/actions";
+import AuthService from "services/auth";
 import { translate } from "utils/functions";
 import ManIcon from "public/svg/manIcon.svg";
 import Border from "./Border";
@@ -72,7 +72,7 @@ function NameModal() {
                 cursor: "pointer",
               }}
               onClick={() => {
-                UpdateName(value);
+                AuthService.UpdateName(value);
                 close();
               }}
             />

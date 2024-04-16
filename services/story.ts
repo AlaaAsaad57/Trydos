@@ -1,6 +1,9 @@
 import axios from "axios";
+import { StoriesInterface } from "models/Stories";
 import { store } from "store";
+import { DataApiHeaders } from "store/homepage/cachedActions";
 import {
+  GET_USERS_STORIES,
   LOG_IN_STORIES,
   STORIES_URL,
   UPLOAD_STORY_URL,
@@ -17,6 +20,21 @@ class StoryService {
           JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
     },
   });
+
+  /* get stories */
+
+  async getStories() {
+    const res = await fetch(STORIES_URL + GET_USERS_STORIES, {
+      headers: await DataApiHeaders(),
+    });
+    if (res.ok) {
+      const result = await res.json();
+      const data: StoriesInterface[] = result?.data?.data;
+      return data;
+    } else {
+      throw new Error("Failed to fetch stories");
+    }
+  }
   async loginStories() {
     const Cookies = (await import("js-cookie")).default;
     const response = await this.http.post(LOG_IN_STORIES, {
@@ -63,4 +81,6 @@ class StoryService {
     }
   }
 }
-export default new StoryService();
+
+const StoryServiceClass = new StoryService();
+export default StoryServiceClass;

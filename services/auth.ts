@@ -5,6 +5,7 @@ import userImage from "public/images/profileNo.png";
 import {
   OTP_URL,
   SEND_OTP,
+  STORIES_URL,
   VERFIY_OTP,
   VERFIY_OTP_SIGNUP,
 } from "utils/endpointConfig";
@@ -95,6 +96,47 @@ class AuthService {
       } else {
         store.dispatch({ type: "LOGIN_FAILED" });
       }
+    }
+  }
+  async UpdateName(name: string) {
+    try {
+      localStorage.setItem(
+        "USER-STORIES",
+        JSON.stringify({
+          ...JSON.parse(localStorage.getItem("USER-STORIES")),
+          name: name,
+        })
+      );
+      localStorage.setItem(
+        "USER",
+        JSON.stringify({
+          ...JSON.parse(localStorage.getItem("USER")),
+          name: name,
+        })
+      );
+      store.dispatch({ type: "UPDATE-NAME", payload: name });
+      let axios = (await import("axios")).default;
+      axios.post(
+        OTP_URL + "/customer/update-name",
+        { name: name },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("MARKET-TOKEN")}`,
+          },
+        }
+      );
+      axios.post(
+        STORIES_URL + "/api/v1/users/update",
+        { name: name },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("STORIES-TOKEN")}`,
+          },
+        }
+      );
+      StoryService.getStories();
+    } catch (e) {
+      console.error(e);
     }
   }
 }

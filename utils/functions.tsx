@@ -5,7 +5,7 @@ import { auto } from "@cloudinary/url-gen/qualifiers/quality";
 import { Resize } from "@cloudinary/url-gen/actions";
 import profilePicture from "public/images/profileNo.png";
 import { GET_USERS_STORIES, STORIES_URL } from "./endpointConfig";
-import StoryServiceClass from "services/stories";
+import StoryServiceClass from "services/story";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };

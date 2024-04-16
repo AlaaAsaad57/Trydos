@@ -9,7 +9,8 @@ import LoginPhone from "./LoginPhone";
 import LoginSuccessWidget from "./LoginSuccessWidget";
 import { ReInitialise } from "store/auth/actions";
 import "styles/login.css";
-import { UpdateName } from "../../store/auth/actions";
+import AuthService from "services/auth";
+
 import ManIcon from "public/svg/manIcon.svg";
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
 interface LoginWidgetProps {
@@ -78,7 +79,7 @@ function LoginWidget({
                         cursor: "pointer",
                       }}
                       onClick={() => {
-                        UpdateName(value);
+                        AuthService.UpdateName(value);
                       }}
                     />
                   )}
