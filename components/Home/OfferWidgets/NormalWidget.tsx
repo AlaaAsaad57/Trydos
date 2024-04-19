@@ -11,7 +11,7 @@ import Link from "next/link";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import { Offer } from "modelsoffer";
+import { Offer } from "models/offer";
 interface NormalWidgetProps {
   offer: Offer;
   myKey: number;
