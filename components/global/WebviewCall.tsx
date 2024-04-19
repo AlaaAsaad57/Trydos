@@ -44,6 +44,7 @@ function WebviewCall() {
     ring: searchParams.get("ring"),
     error: null,
     loading: false,
+    photo: "",
     status: null,
   });
   const [userData, setUserData] = useState({ name: "", phone: "", photo: "" });
