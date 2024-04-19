@@ -267,3 +267,6 @@
   margin-bottom: 2vh;
   font-size: 14px;
 }
+#text-wrap-element {
+  text-wrap: nowrap;
+}

@@ -287,7 +287,7 @@ function LogInPins({
               </g>
             </svg>
 
-            <span style={{ textWrap: "nowrap" }}>
+            <span id="text-wrap-element">
               {translate(
                 expired
                   ? "Didn’t You Receive A Code?"
@@ -296,7 +296,7 @@ function LogInPins({
               )}
             </span>
             {!expired ? (
-              <span className={`blue-text`} style={{ textWrap: "nowrap" }}>
+              <span className={`blue-text`} id="text-wrap-element">
                 <Timer
                   onResume={() => setDisabled(false)}
                   onFinish={() => {
@@ -307,7 +307,8 @@ function LogInPins({
             ) : (
               <div
                 className="blue-text"
-                style={{ textWrap: "nowrap", cursor: "pointer" }}
+                text-wrap-element
+                style={{ cursor: "pointer" }}
                 onClick={() => {
                   setDisabled(false);
                 }}
@@ -315,7 +316,8 @@ function LogInPins({
                 <span>{translate("Resend Code", language)}</span>
                 <span style={{ color: "#5d5d5d" }}>OR</span>
                 <span
-                  style={{ textWrap: "nowrap", cursor: "pointer" }}
+                  id="text-wrap-element"
+                  style={{ cursor: "pointer" }}
                   onClick={() => setStepIndactor(4)}
                 >
                   {translate("Change the Method Of Receiving", language)}
