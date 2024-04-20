@@ -102,7 +102,7 @@ function SendMethod({
           </div>
           <div
             className="icon-detail"
-            style={{ cursor: "pointer" }}
+            style={{ cursor: "pointer", marginTop: "3px" }}
             onClick={() => setStepIndcator(3)}
           >
             <svg
@@ -160,7 +160,7 @@ function SendMethod({
               </svg>
             </span>
           </div>
-          <div className="icon-detail">
+          <div className="icon-detail" style={{ marginTop: "4px" }}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="10"

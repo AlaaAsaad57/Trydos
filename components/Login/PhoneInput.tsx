@@ -82,7 +82,7 @@ function PhoneInput({
             <div className="text-login-item">
               {translate("Enter Your Phone Number To Login", language)}
             </div>
-            <div className="icon-detail">
+            <div className="icon-detail" style={{ marginTop: "3px" }}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="7.727"
@@ -103,7 +103,7 @@ function PhoneInput({
                 )}
               </span>
             </div>
-            <div className="icon-detail">
+            <div className="icon-detail" style={{ marginTop: "4px" }}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -186,7 +186,9 @@ function PhoneInput({
       )}
       {operation === "signup" && (
         <div className="phone-input-desc">
-          <BlueCall />
+          <BlueCall
+            style={{ minWidth: "12px", transform: "translateY(2px)" }}
+          />
           <div className="text-login-desc">
             <div className="text-login-item">
               {translate(
@@ -194,8 +196,10 @@ function PhoneInput({
                 language
               )}
             </div>
-            <div className="icon-detail">
-              <PrivacyIcon style={{ transform: "translateY(2px)" }} />
+            <div className="icon-detail" style={{ marginTop: "3px" }}>
+              <PrivacyIcon
+                style={{ transform: "translateY(2px)", minWidth: "10px" }}
+              />
               <span>
                 {translate(
                   "Your Privacy Is Completely Safe, We Not Share Your Information With Anyone",
@@ -203,12 +207,13 @@ function PhoneInput({
                 )}
               </span>
             </div>
-            <div className="icon-detail">
+            <div className="icon-detail" style={{ marginTop: "4px" }}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 xmlnsXlink="http://www.w3.org/1999/xlink"
                 width="10"
                 height="10"
+                style={{ minWidth: "10px" }}
                 viewBox="0 0 10 10"
               >
                 <defs>
@@ -284,7 +289,7 @@ function PhoneInput({
           </div>
         </div>
       )}
-      <div className="phone-input-element">
+      <div className="phone-input-element" style={{ marginBottom: "40px" }}>
         <Border
           height={50}
           width={"100%"}
@@ -297,7 +302,7 @@ function PhoneInput({
           className="flag-icon"
           style={{
             position: "absolute",
-            top: "19px",
+            top: "16px",
             left: "54px",
             marginLeft: "0px",
           }}
@@ -316,7 +321,13 @@ function PhoneInput({
         <input
           id="phone"
           autoComplete={"false"}
-          style={{ zIndex: 9, paddingLeft: "88px", paddingBottom: "8px" }}
+          style={{
+            zIndex: "9",
+            paddingLeft: "88px",
+            paddingBottom: "10px",
+            height: "100%",
+            width: "100%",
+          }}
           disabled={false}
           onChange={(e) => handleInput(e)}
           className="login-phone-input"

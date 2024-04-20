@@ -9,7 +9,7 @@ function PrivacyConfirm({ stepIndicator, setStepIndcator }) {
     <>
       <div
         className="login-privacy-text"
-        style={{ paddingInline: "40px", textAlign: "left" }}
+        style={{ paddingInline: "30px", textAlign: "left" }}
       >
         {translate("To ", language)}
         <span className="privacy-bold" style={{ marginInline: "4px" }}>
@@ -20,6 +20,7 @@ function PrivacyConfirm({ stepIndicator, setStepIndcator }) {
       <div
         className="login-privacy-text"
         style={{
+          cursor: "pointer",
           flexDirection: "column",
           alignItems: "center",
           marginTop: "23px",
@@ -40,7 +41,7 @@ function PrivacyConfirm({ stepIndicator, setStepIndcator }) {
           onClick={() => setStepIndcator(2)}
           style={{
             position: "relative",
-            marginTop: "50px",
+            marginTop: "58px",
             marginLeft: "14px",
             marginRight: "24px",
           }}

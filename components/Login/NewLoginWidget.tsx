@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import LogoAuth from "public/svg/LogoAuth.svg";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
@@ -22,7 +22,7 @@ function NewLoginWidget({
   loginSuccessVar,
   setLoginSucces,
 }: LoginWidgetProps) {
-  const [stepIndicator, setStepIndcator] = useState(0);
+  const [stepIndicator, setStepIndcator] = useState(-1);
   const [operation, setOperation] = useState("login");
   const [signStep, setSignStep] = useState("");
   const [Name, setName] = useState("");
@@ -92,10 +92,18 @@ function NewLoginWidget({
       return "#FFF9F0";
     } else return "#F4FFF4";
   };
+  useEffect(() => {
+    setTimeout(() => {
+      setStepIndcator(0);
+    }, 1500);
+  }, []);
   return (
     <div
       className={`login-widget-container login-w2-container `}
-      style={{ backgroundColor: stepIndicator >= 6 && getPageColor() }}
+      style={{
+        backgroundColor: stepIndicator >= 6 && getPageColor(),
+        paddingBottom: stepIndicator === 1 && "55px",
+      }}
     >
       <LogoAuth
         style={
@@ -105,21 +113,36 @@ function NewLoginWidget({
                 top: "50px",
                 left: "40px",
               }
-            : {}
+            : {
+                top: "24%",
+                left: "82px",
+                justifySelf: "end",
+                alignSelf: "flex-start",
+                marginLeft: "82px",
+              }
         }
       />
-      {stepIndicator === 0 && (
+      {(stepIndicator === 0 || stepIndicator === -1) && (
         <>
-          <div className="login-privacy-text">
+          <div
+            className="login-privacy-text"
+            style={{ opacity: stepIndicator === -1 ? "0" : "1" }}
+          >
             {translate(
               "To Take Advantage Of All The Advantages Of The Application, Please Join Us In Quick And Easy Steps And For Just One Time",
               language
             )}
           </div>
-          <div className="login-privacy-text-2">
+          <div
+            className="login-privacy-text-2"
+            style={{ opacity: stepIndicator === -1 ? "0" : "1" }}
+          >
             {translate("Why We Know You ?", language)}
           </div>
-          <div className="login-button-group">
+          <div
+            className="login-button-group"
+            style={{ opacity: stepIndicator === -1 ? "0" : "1" }}
+          >
             <div
               className="login-button"
               onClick={() => {
@@ -159,7 +182,14 @@ function NewLoginWidget({
         />
       )}
       {stepIndicator <= 1 && (
-        <div className="take-look-text" onClick={() => close()}>
+        <div
+          className="take-look-text"
+          onClick={() => close()}
+          style={{
+            opacity: stepIndicator === -1 ? "0" : "1",
+            marginTop: stepIndicator === 1 && "29px",
+          }}
+        >
           {translate("Later, Take A Look At The App", language)}
         </div>
       )}

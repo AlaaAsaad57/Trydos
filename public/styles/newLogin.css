@@ -16,23 +16,28 @@
   width: min(100%, 430px) !important;
   max-width: min(100%, 430px) !important;
   padding-block: 15px;
-  min-height: min(80vh, 786px) !important;
+  height: min(80vh, 932px) !important;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding-bottom: 40px;
+  padding-bottom: 34px;
+}
+.login-phone-input {
+  font-size: 20px !important;
+  font-family: "Adobe Clean Regular" !important;
+  color: #5d5c5d !important;
 }
 .jus-center {
   justify-content: center !important;
 }
 .login-privacy-text {
-  padding-inline: 43px;
+  padding-inline: 30px;
   font-family: "Adobe Clean Light";
   font-size: 14px;
   color: #5d5c5d;
   margin-top: min(11vh, 96px);
   text-align: center;
-  letter-spacing: 0.01rem;
+  letter-spacing: 0.035rem;
   display: flex;
 }
 .login-privacy-text-2 {
@@ -46,7 +51,7 @@
 }
 .login-button-group {
   display: flex;
-  margin-top: 10px;
+  margin-top: 20px;
   flex-direction: column;
   width: 100%;
   justify-content: center;
@@ -59,7 +64,7 @@
   background-color: #fafafa;
   border-radius: 20px;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -76,7 +81,7 @@
   justify-content: center;
   font-size: 14px;
   text-align: center;
-  margin-top: 25px;
+  margin-top: 32px;
   padding-inline: 111px;
   cursor: pointer;
   font-family: "Adobe Clean Regular";
@@ -86,6 +91,7 @@
     left: 0px !important;
     top: 0px !important;
     height: 100vh !important;
+    max-height: 100vh;
     width: 100vw !important;
     max-width: 100vw !important;
     right: initial !important;

@@ -30,7 +30,7 @@ export const getStories = async () => {
     return [repo.data.data, returned_res];
   } catch (e) {
     console.log(e);
-    return ["stories-error", e.toString()];
+    return [[], e.toString()];
   }
 };
 
