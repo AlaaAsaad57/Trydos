@@ -31,7 +31,7 @@ function SignSteps({
     <>
       {signStep === "welcomeLogin" ? (
         <WelcomingWidget
-          Name={user.name}
+          Name={user?.name || "User Test"}
           close={() => close()}
           inputValue={inputValue}
           setStepIndcator={(e: number) => setStepIndactor(e)}
@@ -85,7 +85,10 @@ function SignSteps({
                   {translate("Complete My Profile", language)}
                 </div>
               </div>
-              <div className="blue-text skip-text">
+              <div
+                className="blue-text skip-text"
+                style={{ fontFamily: "Adobe Clean Regular", fontSize: "14px" }}
+              >
                 {translate("Skip For Now", language)}
               </div>
             </>

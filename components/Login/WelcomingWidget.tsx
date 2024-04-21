@@ -23,6 +23,7 @@ function WelcomingWidget({
     <>
       <div className="phone-input-desc" style={{ marginBottom: "0px" }}>
         <svg
+          style={{ transform: "translateY(2px)" }}
           xmlns="http://www.w3.org/2000/svg"
           xmlnsXlink="http://www.w3.org/1999/xlink"
           width="15"
@@ -59,6 +60,7 @@ function WelcomingWidget({
           </div>
           <div className="icon-detail">
             <svg
+              style={{ transform: "translateY(2px)" }}
               id="Group_10806"
               data-name="Group 10806"
               xmlns="http://www.w3.org/2000/svg"

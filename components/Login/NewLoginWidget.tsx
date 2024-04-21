@@ -31,7 +31,7 @@ function NewLoginWidget({
   const [expired, setExpired] = useState(false);
   const [rendere, setRender] = useState(true);
   const [pins, setPins] = useState("");
-  const [inputValue, setInputValue] = useState("login");
+  const [inputValue, setInputValue] = useState("");
   const [MessageMethod, setMessageMethod] = useState("");
   const [failedLogin, setFailed] = useState(false);
   const [wrongNumber, setWrongNumber] = useState(false);
@@ -102,7 +102,6 @@ function NewLoginWidget({
       className={`login-widget-container login-w2-container `}
       style={{
         backgroundColor: stepIndicator >= 6 && getPageColor(),
-        paddingBottom: stepIndicator === 1 && "55px",
       }}
     >
       <LogoAuth
@@ -247,6 +246,10 @@ function NewLoginWidget({
         <LogInPins
           expired={expired}
           setDisabled={(e) => {
+            setDisabled(e);
+            setExpired(e);
+          }}
+          resend={() => {
             SendOtpHook({
               mobilePhone: inputValue,
               is_via_whatsapp: MessageMethod === "WA" ? "1" : "0",
@@ -257,8 +260,8 @@ function NewLoginWidget({
                 setWrongNumber(true);
               },
             });
-            setDisabled(e);
-            setExpired(e);
+            setDisabled(false);
+            setExpired(false);
           }}
           setStepIndactor={(e) => setStepIndcator(e)}
           rendere={rendere}

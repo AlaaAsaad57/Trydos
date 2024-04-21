@@ -20,7 +20,7 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding-bottom: 34px;
+  padding-bottom: 70px;
 }
 .login-phone-input {
   font-size: 20px !important;
@@ -86,7 +86,7 @@
   cursor: pointer;
   font-family: "Adobe Clean Regular";
 }
-@media only screen and (max-width: 500px) {
+@media only screen and (max-width: 600px) {
   .login-w2-container.login-widget-container {
     left: 0px !important;
     top: 0px !important;
@@ -275,4 +275,14 @@
 }
 #text-wrap-element {
   text-wrap: nowrap;
+}
+.message-recieve-option {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  height: 50px;
+  width: 193px;
+  padding-left: 54px;
+  position: relative;
 }

@@ -18,7 +18,10 @@ function AlreadyRegistered({
 
   return (
     <>
-      <div className="phone-input-desc" style={{ marginBottom: "151px" }}>
+      <div
+        className="phone-input-desc"
+        style={{ marginBottom: "min(13vh, 151px)" }}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="15"
@@ -65,7 +68,7 @@ function AlreadyRegistered({
           <div className="text-login-item">
             {translate("This Number Already Registered With Us !", language)}
           </div>
-          <div className="icon-detail">
+          <div className="icon-detail" style={{ marginTop: "1px" }}>
             <svg
               id="Group_10806"
               data-name="Group 10806"
@@ -106,7 +109,7 @@ function AlreadyRegistered({
 
             <span style={{ color: "#5d5d5d" }}>+{inputValue}</span>
           </div>
-          <div className="icon-detail">
+          <div className="icon-detail" style={{ marginTop: "1px" }}>
             <span
               style={{ marginLeft: "20px", color: "#C4C2C2", marginTop: "9px" }}
             >

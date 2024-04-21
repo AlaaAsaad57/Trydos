@@ -61,7 +61,7 @@ function InputName({
           <div className="text-login-item">
             {translate("The Number Verified Successfully !", language)}
           </div>
-          <div className="icon-detail">
+          <div className="icon-detail" style={{ marginTop: "3px" }}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="10"
@@ -104,11 +104,11 @@ function InputName({
               </g>
             </svg>
 
-            <span style={{ color: "#5d5d5d" }}>
+            <span>
               {translate("Last Step And Enjoy Our Services", language)}
             </span>
           </div>
-          <div className="icon-detail">
+          <div className="icon-detail" style={{ marginTop: "4px" }}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -161,6 +161,7 @@ function InputName({
         style={{
           position: "relative",
           backgroundColor: "#fafafa",
+          marginBottom: "40px",
           padding: "0",
           maxWidth: "calc(100% - 40px)",
         }}
@@ -200,6 +201,7 @@ function InputName({
           style={{
             margin: "0",
             border: "none",
+            fontSize: "16px",
             zIndex: "10",
             cursor: "text",
             outline: "none",

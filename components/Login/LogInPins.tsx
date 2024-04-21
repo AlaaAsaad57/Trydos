@@ -13,6 +13,7 @@ function LogInPins({
   disabled,
   setStepIndactor,
   setDisabled,
+  resend,
   Submit,
   wrongNumber,
   failedLogin,
@@ -23,6 +24,7 @@ function LogInPins({
   rendere: boolean;
   setStepIndactor: Function;
   expired: boolean;
+  resend: Function;
   setPin: Function;
   setDisabled: Function;
   Submit: Function;
@@ -39,7 +41,10 @@ function LogInPins({
   }, []);
   return (
     <>
-      <div className="phone-input-desc" style={{ marginBottom: "25px" }}>
+      <div
+        className="phone-input-desc"
+        style={{ marginBottom: expired ? "12px" : "25px" }}
+      >
         <svg
           id="_15x15"
           data-name="15x15"
@@ -107,7 +112,7 @@ function LogInPins({
               language
             )}
           </div>
-          <div className="icon-detail">
+          <div className="icon-detail" style={{ marginTop: "2px" }}>
             <svg
               id="Group_10806"
               data-name="Group 10806"
@@ -147,7 +152,7 @@ function LogInPins({
             </svg>
             <span style={{ color: "#5d5d5d" }}>+{inputValue}</span>
           </div>
-          <div className="icon-detail">
+          <div className="icon-detail" style={{ marginTop: "5px" }}>
             {MessageMethod === "SMS" ? (
               <svg
                 id="_20x20"
@@ -250,7 +255,10 @@ function LogInPins({
               )}
             </span>
           </div>
-          <div className="icon-detail">
+          <div
+            className="icon-detail"
+            style={{ marginTop: "4px", flexWrap: "wrap" }}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="10"
@@ -305,24 +313,30 @@ function LogInPins({
                 />
               </span>
             ) : (
-              <div
-                className="blue-text"
-                text-wrap-element
-                style={{ cursor: "pointer" }}
-                onClick={() => {
-                  setDisabled(false);
-                }}
-              >
-                <span>{translate("Resend Code", language)}</span>
-                <span style={{ color: "#5d5d5d" }}>OR</span>
+              <>
+                <span className="blue-text" onClick={() => resend()}>
+                  {translate("Resend Code", language)}
+                </span>
+                <span className="blue-text" style={{ color: "#5d5d5d" }}>
+                  OR
+                </span>
                 <span
+                  className="blue-text"
                   id="text-wrap-element"
                   style={{ cursor: "pointer" }}
                   onClick={() => setStepIndactor(4)}
                 >
-                  {translate("Change the Method Of Receiving", language)}
+                  {translate("Change ", language)}
                 </span>
-              </div>
+                <span
+                  className="blue-text"
+                  id="text-wrap-element"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setStepIndactor(4)}
+                >
+                  {translate("the Method Of Receiving", language)}
+                </span>
+              </>
             )}
           </div>
         </div>
