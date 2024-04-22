@@ -95,11 +95,17 @@ function NewLoginWidget({
   useEffect(() => {
     setTimeout(() => {
       setStepIndcator(0);
+      calcHeight();
     }, 1500);
   }, []);
+  const calcHeight = () => {
+    let vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty("--vh", `${vh}px`);
+  };
+  window.addEventListener("resize", calcHeight);
   return (
     <div
-      className={`login-widget-container login-w2-container `}
+      className={`login-widget-container login-w2-container pb-${stepIndicator}`}
       style={{
         backgroundColor: stepIndicator >= 6 && getPageColor(),
       }}

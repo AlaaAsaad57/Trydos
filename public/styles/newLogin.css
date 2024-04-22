@@ -10,17 +10,21 @@
   font-family: "Adobe Clean Bold";
   src: url("../fonts/AdobeCleanBold.otf");
 }
+html,
+body {
+  height: 100% !important;
+}
 .login-w2-container.login-widget-container {
   background-color: white;
   border-radius: 15px;
   width: min(100%, 430px) !important;
   max-width: min(100%, 430px) !important;
   padding-block: 15px;
-  height: min(80vh, 932px) !important;
+  height: min(80vh, 932px);
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding-bottom: 70px;
+  padding-bottom: 34px;
 }
 .login-phone-input {
   font-size: 20px !important;
@@ -90,8 +94,9 @@
   .login-w2-container.login-widget-container {
     left: 0px !important;
     top: 0px !important;
-    height: 100vh !important;
-    max-height: 100vh;
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+    max-height: 100%;
     width: 100vw !important;
     max-width: 100vw !important;
     right: initial !important;
@@ -285,4 +290,16 @@
   width: 193px;
   padding-left: 54px;
   position: relative;
+}
+.pb-0,
+.pb-1 {
+  padding-bottom: 54px !important;
+}
+.pb-3,
+.pb-2,
+.pb-4,
+.pb-5,
+.pb-6,
+.pb-7 {
+  padding-bottom: 20px !important;
 }
