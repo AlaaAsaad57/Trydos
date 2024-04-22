@@ -1,6 +1,7 @@
 "use client";
 import Logo from "../components/Home/Logo";
 export default function GlobalError({ error, reset }) {
+  console.log(error, "error global");
   return (
     <html>
       <body>
@@ -38,7 +39,10 @@ export default function GlobalError({ error, reset }) {
               alignItems: "center",
               backgroundColor: "aliceblue",
             }}
-            onClick={() => (window.location.href = "/")}
+            onClick={() => {
+              window.location.href = "/";
+              reset();
+            }}
           >
             Go Back
           </button>
