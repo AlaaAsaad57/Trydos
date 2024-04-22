@@ -55,6 +55,7 @@
     "extends": "next"
   },
   "devDependencies": {
+    "@types/node": "^20.12.7",
     "eslint": "^8.56.0"
   }
 }
