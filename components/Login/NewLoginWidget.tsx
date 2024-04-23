@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import LogoAuth from "public/svg/LogoAuth.svg";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
@@ -38,7 +38,7 @@ function NewLoginWidget({
   const language = useSelector((state: any) => state.homepage.language);
   const { VerifyOtpHook, SendOtpHook } = useAuthHooks();
   const verficationID = useSelector((state: any) => state.auth.verficationID);
-  const user = useSelector((state: any) => state.auth.user);
+  const user = useSelector((state: any) => state.auth.Tempuser);
   const loginFunc = async (e) => {
     await VerifyOtpHook({
       code: e,
@@ -57,11 +57,13 @@ function NewLoginWidget({
             setStepIndcator(7);
           }
           if (!exists) {
+            FinaliseLogin();
             setSignStep("welcomeSignup");
             setStepIndcator(7);
           }
         } else {
           if (exists && name.length > 1) {
+            FinaliseLogin();
             setSignStep("welcomeLogin");
             setStepIndcator(6);
           } else if (exists && !(name.length > 1)) {
@@ -103,14 +105,21 @@ function NewLoginWidget({
     document.documentElement.style.setProperty("--vh", `${vh}px`);
   };
   window.addEventListener("resize", calcHeight);
+  const FinaliseLogin = () => {
+    AuthService.ConfirmSignIn();
+  };
   return (
     <div
       className={`login-widget-container login-w2-container pb-${stepIndicator}`}
+      id="widget-auth"
       style={{
         backgroundColor: stepIndicator >= 6 && getPageColor(),
+        height: "-webkit-fill-available",
+        overflow: "hidden",
       }}
     >
       <LogoAuth
+        className="logo-auth"
         style={
           stepIndicator > 0
             ? {
@@ -291,6 +300,7 @@ function NewLoginWidget({
           Name={Name}
           user={user}
           operation={operation}
+          FinaliseLogin={() => FinaliseLogin()}
           close={() => close()}
           setStepIndactor={(e) => setStepIndcator(e)}
           inputValue={inputValue}

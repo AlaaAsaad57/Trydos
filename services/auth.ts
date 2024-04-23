@@ -11,6 +11,7 @@ import {
 } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
+import { UserInterface } from "models/User";
 class AuthService {
   http = axios.create({
     baseURL: OTP_URL,
@@ -83,20 +84,17 @@ class AuthService {
         JSON.stringify({
           ...response.data.data.user,
           already_exists: response.data.data.already_exists,
+          is_verified: false,
         })
       );
       store.dispatch({
-        type: "LOGIN_SUCCESS",
+        type: "TEMP-USER",
         payload: {
-          id: response.data.data.user.id,
-          idToken: response.data.data.id_token,
-          name: response.data.data.user.name,
-          avatar: userImage,
+          ...response.data.data.user,
           already_exists: response.data.data.already_exists,
+          is_verified: false,
         },
       });
-      StoryService.loginStories();
-      ChatService.loginChat();
       return [response.data.data.already_exists, response.data.data.user.name];
     } catch (e) {
       if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
@@ -148,6 +146,26 @@ class AuthService {
     } catch (e) {
       console.error(e);
     }
+  }
+  async ConfirmSignIn() {
+    let userLocal = JSON.parse(localStorage.getItem("USER"));
+    store.dispatch({
+      type: "LOGIN_SUCCESS",
+      payload: {
+        id: userLocal.id,
+        idToken: userLocal.id_token,
+        name: userLocal.name,
+        avatar: userImage,
+        already_exists: userLocal.already_exists,
+        is_verified: true,
+      },
+    });
+    localStorage.setItem(
+      "USER",
+      JSON.stringify({ ...userLocal, is_verified: true })
+    );
+    StoryService.loginStories();
+    ChatService.loginChat();
   }
 }
 export default new AuthService();

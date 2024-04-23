@@ -7,8 +7,10 @@ function AlreadyRegistered({
   setStepIndcator,
   close,
   setStepSign,
+  FinaliseLogin,
 }: {
   inputValue: string;
+  FinaliseLogin: Function;
   setStepIndcator: Function;
   close: Function;
   setStepSign: Function;
@@ -125,7 +127,10 @@ function AlreadyRegistered({
             if (user.name.length > 1) {
               setStepSign("welcomeLogin");
               setStepIndcator(6);
-            } else setStepIndcator(7);
+              FinaliseLogin();
+            } else {
+              setStepIndcator(7);
+            }
           }}
           style={{
             position: "relative",

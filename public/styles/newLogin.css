@@ -10,6 +10,7 @@
   font-family: "Adobe Clean Bold";
   src: url("../fonts/AdobeCleanBold.otf");
 }
+
 html,
 body {
   height: 100% !important;
@@ -139,6 +140,9 @@ body {
   margin-bottom: 44px;
   align-items: flex-start;
   justify-content: flex-start;
+}
+.mb-4v {
+  margin-bottom: 44px;
 }
 .text-login-desc {
   display: flex;
@@ -302,4 +306,9 @@ body {
 .pb-6,
 .pb-7 {
   padding-bottom: 20px !important;
+}
+@media screen and (max-height: 326px) {
+  .logo-auth {
+    display: none;
+  }
 }

@@ -76,7 +76,7 @@ function PhoneInput({
   return (
     <>
       {operation === "login" && (
-        <div className="phone-input-desc">
+        <div className="phone-input-desc mb-4v">
           <LoginIcon style={{ marginTop: "2px" }} />
           <div className="text-login-desc">
             <div className="text-login-item">
@@ -185,7 +185,7 @@ function PhoneInput({
         </div>
       )}
       {operation === "signup" && (
-        <div className="phone-input-desc">
+        <div className="phone-input-desc mb-4v">
           <BlueCall
             style={{ minWidth: "12px", transform: "translateY(2px)" }}
           />
@@ -289,20 +289,20 @@ function PhoneInput({
           </div>
         </div>
       )}
-      <div className="phone-input-element" style={{ marginBottom: "40px" }}>
+      <div className="phone-input-element">
         <Border
-          height={50}
+          height={60}
           width={"100%"}
           color={wrongNumber ? "#ff5f61" : validNumber ? "#4D84FF" : ""}
         />
         <SolidPhoneIcon
-          style={{ position: "absolute", top: "16px", left: "20px" }}
+          style={{ position: "absolute", top: "22px", left: "20px" }}
         />
         <span
           className="flag-icon"
           style={{
             position: "absolute",
-            top: "16px",
+            top: "22px",
             left: "54px",
             marginLeft: "0px",
           }}
@@ -311,7 +311,7 @@ function PhoneInput({
         </span>
         <span
           className="plus-icon-phone"
-          style={{ position: "absolute", top: "16px", left: "68px" }}
+          style={{ position: "absolute", top: "22px", left: "76px" }}
         >
           +
         </span>
@@ -323,8 +323,8 @@ function PhoneInput({
           autoComplete={"false"}
           style={{
             zIndex: "9",
-            paddingLeft: "88px",
-            paddingBottom: "10px",
+            paddingLeft: "93px",
+            paddingBottom: "0px",
             height: "100%",
             width: "100%",
           }}

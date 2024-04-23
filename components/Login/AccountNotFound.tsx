@@ -5,8 +5,10 @@ import { translate } from "utils/functions";
 function AccountNotFound({
   inputValue,
   setStepIndcator,
+  FinaliseLogin,
 }: {
   inputValue: string;
+  FinaliseLogin: Function;
   setStepIndcator: Function;
 }) {
   const language = useSelector((state: any) => state.homepage.language);

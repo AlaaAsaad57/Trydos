@@ -1,5 +1,6 @@
 const initialState = {
   user: null,
+  Tempuser: null,
   failedLogin: false,
   attempts: 4,
   wrongNumber: "",
@@ -13,6 +14,7 @@ const AuthReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         user: state.user ? { ...state.user, ...payload } : payload,
+        Tempuser: state.user ? { ...state.user, ...payload } : payload,
         failedLogin: false,
       };
     case "LOGIN_FAILED": {
@@ -40,12 +42,20 @@ const AuthReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         user: { ...payload, already_exists: state.user?.already_exists },
+        Tempuser: { ...payload, already_exists: state.user?.already_exists },
+      };
+    }
+    case "TEMP-USER": {
+      return {
+        ...state,
+        Tempuser: payload,
       };
     }
     case "UPDATE-NAME": {
       return {
         ...state,
         user: { ...state.user, name: payload },
+        Tempuser: { ...state.user, name: payload },
       };
     }
     default:

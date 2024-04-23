@@ -48,6 +48,7 @@ class HomeService {
     if (
       SSRDetect() &&
       localStorage.getItem("USER") &&
+      JSON.parse(localStorage.getItem("USER")).is_verified &&
       localStorage.getItem("ID-TOKEN") &&
       localStorage.getItem("MARKET-TOKEN")
     ) {

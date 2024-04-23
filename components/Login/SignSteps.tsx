@@ -12,11 +12,13 @@ function SignSteps({
   close,
   Name,
   user,
+  FinaliseLogin,
   operation,
   signStep,
   setStepSign,
 }: {
   signStep: string;
+  FinaliseLogin: Function;
   inputValue: string;
   operation: string;
   setStepIndactor: Function;
@@ -41,6 +43,7 @@ function SignSteps({
           {signStep === "alreadyExists" && (
             <AlreadyRegistered
               setStepSign={(e) => setStepSign(e)}
+              FinaliseLogin={() => FinaliseLogin()}
               close={() => close()}
               inputValue={inputValue}
               setStepIndcator={(e) => setStepIndactor(e)}
@@ -49,6 +52,7 @@ function SignSteps({
           {signStep === "notFound" && (
             <AccountNotFound
               inputValue={inputValue}
+              FinaliseLogin={() => FinaliseLogin()}
               setStepIndcator={(e) => setStepIndactor(e)}
             />
           )}
