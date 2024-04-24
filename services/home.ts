@@ -2,6 +2,7 @@ import axios from "axios";
 import { store } from "store";
 import { GetChats } from "store/chat/actions";
 import userImage from "public/images/profileNo.png";
+import {_isStoreLastJson} from "utils/functions"
 import {
   CUSTOMER_INFO_URL,
   OTP_URL,
@@ -25,6 +26,11 @@ class HomeService {
       "starttingSetting",
       JSON.stringify(response.data.data)
     );
+    
+      if(typeof window !== "undefined"){
+        console.log(_isStoreLastJson(), "_isStoreLastJson")
+        _isStoreLastJson() && localStorage.setItem("LAST_JSON", JSON.stringify(response));
+      }
     setTimeout(() => {
       GetChats(false);
     }, 2000);
@@ -43,6 +49,10 @@ class HomeService {
       "customer-info",
       JSON.stringify(response.data.data.customer_info)
     );
+    
+      if(typeof window !== "undefined"){
+         _isStoreLastJson() && localStorage.setItem("LAST_JSON", JSON.stringify(response));
+      }
   }
   async CheckLogin() {
     if (
@@ -74,6 +84,11 @@ class HomeService {
     ) {
       let response = await this.http.post(REGISTER_DEVICE_URL);
       localStorage.setItem("DEVICE-TOKEN", response.data.data.token);
+        if (typeof window !== "undefined") {
+          console.log(_isStoreLastJson(), "_isStoreLastJson");
+          _isStoreLastJson() &&
+            localStorage.setItem("LAST_JSON", JSON.stringify(response));
+        }
     }
   }
 }

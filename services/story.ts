@@ -2,6 +2,7 @@ import axios from "axios";
 import { StoriesInterface } from "models/Stories";
 import { store } from "store";
 import { DataApiHeaders } from "store/homepage/cachedActions";
+import { _isStoreLastJson } from "utils/functions";
 import {
   GET_USERS_STORIES,
   LOG_IN_STORIES,
@@ -29,6 +30,11 @@ class StoryService {
     const res = await this.http.get(GET_USERS_STORIES);
     const data: StoriesInterface[] = res.data.data.data;
     store.dispatch({ type: "STORY-DATA", payload: data });
+    if (typeof window !== "undefined") {
+      console.log(_isStoreLastJson(), "_isStoreLastJson");
+      _isStoreLastJson() &&
+        localStorage.setItem("LAST_JSON", JSON.stringify(res));
+    }
     return data;
   }
   async loginStories() {
@@ -41,6 +47,12 @@ class StoryService {
     localStorage.setItem("USER-STORIES", JSON.stringify(response.data.data));
     Cookies.set("stories-token", response.data.data.access_token);
     localStorage.setItem("STORIES-TOKEN", response.data.data.access_token);
+
+    if (typeof window !== "undefined") {
+      console.log(_isStoreLastJson(), "_isStoreLastJson");
+      _isStoreLastJson() &&
+        localStorage.setItem("LAST_JSON", JSON.stringify(response));
+    }
   }
   async WatchStory(pid: number | string, id: number | string) {
     try {
@@ -49,6 +61,12 @@ class StoryService {
         const response = await this.http.get(
           "/api/v1/stories/increase_viewers/" + id
         );
+
+        if (typeof window !== "undefined") {
+          console.log(_isStoreLastJson(), "_isStoreLastJson");
+          _isStoreLastJson() &&
+            localStorage.setItem("LAST_JSON", JSON.stringify(response));
+        }
       }
     } catch (e) {}
   }
@@ -69,6 +87,12 @@ class StoryService {
           );
         },
       });
+
+      if (typeof window !== "undefined") {
+        console.log(_isStoreLastJson(), "_isStoreLastJson");
+        _isStoreLastJson() &&
+          localStorage.setItem("LAST_JSON", JSON.stringify(response));
+      }
       endUpload();
       return response.data.data;
     } catch (e) {
