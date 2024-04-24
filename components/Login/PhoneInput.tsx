@@ -76,7 +76,7 @@ function PhoneInput({
   return (
     <>
       {operation === "login" && (
-        <div className="phone-input-desc mb-4v">
+        <div className="phone-input-desc mb-4v" id="phone-desc">
           <LoginIcon style={{ marginTop: "2px" }} />
           <div className="text-login-desc">
             <div className="text-login-item">
@@ -185,7 +185,7 @@ function PhoneInput({
         </div>
       )}
       {operation === "signup" && (
-        <div className="phone-input-desc mb-4v">
+        <div className="phone-input-desc mb-4v" id="phone-desc">
           <BlueCall
             style={{ minWidth: "12px", transform: "translateY(2px)" }}
           />
@@ -289,7 +289,7 @@ function PhoneInput({
           </div>
         </div>
       )}
-      <div className="phone-input-element">
+      <div className="phone-input-element" id="phone">
         <Border
           height={60}
           width={"100%"}
@@ -315,11 +315,11 @@ function PhoneInput({
         >
           +
         </span>
-        <label htmlFor="phone" className="no-label">
+        <label htmlFor="phoneInput" className="no-label">
           Search
         </label>
         <input
-          id="phone"
+          id="phoneInput"
           autoComplete={"false"}
           style={{
             zIndex: "9",

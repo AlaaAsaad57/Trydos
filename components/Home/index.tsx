@@ -22,18 +22,17 @@ const NotificationContainer = dynamic(() => import("./Notifications"), {
 import { getUserChat } from "utils/functions";
 import NameModal from "components/global/NameModal";
 import { getUserStories } from "../../utils/functions";
+import StoryServiceClass from "services/story";
 export default function Home({
   HomeData_res,
   HomeData,
-  storiesData,
 }: {
   HomeData_res: Object;
   HomeData: Object;
-  storiesData: any[];
 }) {
   useEffect(() => {
-    dispatch({ type: "STORY-DATA", payload: storiesData[0] });
-    LogData({ HomeData_req_data: HomeData_res, stories: storiesData });
+    StoryServiceClass.getStories();
+    LogData({ HomeData_req_data: HomeData_res });
     dispatch(GetMainData(HomeData));
     try {
       initFB();

@@ -9,7 +9,7 @@ import {
   UPLOAD_STORY_URL,
 } from "utils/endpointConfig";
 import { getUserStories } from "utils/functions";
-
+import Cookies from "js-cookie";
 class StoryService {
   http = axios.create({
     baseURL: STORIES_URL,
@@ -18,22 +18,18 @@ class StoryService {
         "Bearer" +
         (localStorage.getItem("USER-STORIES") &&
           JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
+      language: Cookies.get("language"),
+      country: Cookies.get("country"),
     },
   });
 
   /* get stories */
 
   async getStories() {
-    const res = await fetch(STORIES_URL + GET_USERS_STORIES, {
-      headers: await DataApiHeaders(),
-    });
-    if (res.ok) {
-      const result = await res.json();
-      const data: StoriesInterface[] = result?.data?.data;
-      return data;
-    } else {
-      throw new Error("Failed to fetch stories");
-    }
+    const res = await this.http.get(GET_USERS_STORIES);
+    const data: StoriesInterface[] = res.data.data.data;
+    store.dispatch({ type: "STORY-DATA", payload: data });
+    return data;
   }
   async loginStories() {
     const Cookies = (await import("js-cookie")).default;
