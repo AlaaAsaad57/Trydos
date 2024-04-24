@@ -14,6 +14,8 @@ import type { Viewport } from "next";
 
 export const viewport: Viewport = {
   interactiveWidget: "resizes-content",
+  width: "device-width",
+  initialScale: 1.0,
 };
 const aa = process.env.ENABLE_SENTRY;
 // const sf_pro_rounded_bold = localFont({
@@ -95,7 +97,7 @@ export default function RootLayout({ params: { lang }, children }) {
       <head>
         <meta
           name="viewport"
-          content="width=device-width, initial-scale=1.0, virtual-keyboard=resizes-content"
+          content="width=device-width, initial-scale=1.0"
         ></meta>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link
