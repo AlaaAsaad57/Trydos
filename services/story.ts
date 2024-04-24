@@ -34,6 +34,12 @@ class StoryService {
     } else {
       throw new Error("Failed to fetch stories");
     }
+    
+        if (typeof window !== "undefined") {
+          console.log(_isStoreLastJson(), "_isStoreLastJson");
+          _isStoreLastJson() &&
+            localStorage.setItem("LAST_JSON", JSON.stringify(res));
+        }
   }
   async loginStories() {
     const Cookies = (await import("js-cookie")).default;
@@ -45,6 +51,12 @@ class StoryService {
     localStorage.setItem("USER-STORIES", JSON.stringify(response.data.data));
     Cookies.set("stories-token", response.data.data.access_token);
     localStorage.setItem("STORIES-TOKEN", response.data.data.access_token);
+    
+        if (typeof window !== "undefined") {
+          console.log(_isStoreLastJson(), "_isStoreLastJson");
+          _isStoreLastJson() &&
+            localStorage.setItem("LAST_JSON", JSON.stringify(response));
+        }
   }
   async WatchStory(pid: number | string, id: number | string) {
     try {
@@ -53,6 +65,12 @@ class StoryService {
         const response = await this.http.get(
           "/api/v1/stories/increase_viewers/" + id
         );
+        
+        if (typeof window !== "undefined") {
+          console.log(_isStoreLastJson(), "_isStoreLastJson");
+          _isStoreLastJson() &&
+            localStorage.setItem("LAST_JSON", JSON.stringify(response));
+        }
       }
     } catch (e) {}
   }
@@ -73,6 +91,12 @@ class StoryService {
           );
         },
       });
+      
+        if (typeof window !== "undefined") {
+          console.log(_isStoreLastJson(), "_isStoreLastJson");
+          _isStoreLastJson() &&
+            localStorage.setItem("LAST_JSON", JSON.stringify(response));
+        }
       endUpload();
       return response.data.data;
     } catch (e) {

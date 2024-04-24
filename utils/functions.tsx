@@ -138,3 +138,7 @@ export const getUserStories = () => {
     JSON.parse(localStorage.getItem("USER-STORIES"))
   );
 };
+
+export const _isStoreLastJson = () => {
+   return !!process.env.NEXT_PUBLIC_IS_STORE_LAST_JSON
+}

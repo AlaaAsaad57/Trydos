@@ -2,6 +2,7 @@ import axios from "axios";
 import { store } from "store";
 import { ReInitialise } from "store/auth/actions";
 import userImage from "public/images/profileNo.png";
+import {_isStoreLastJson} from "utils/functions"
 import {
   OTP_URL,
   SEND_OTP,
@@ -30,6 +31,9 @@ class AuthService {
       );
       step(277);
       store.dispatch(ReInitialise());
+      if(typeof window !== "undefined"){
+        _isStoreLastJson() && localStorage.setItem("LAST_JSON", JSON.stringify(response));
+      }
     } catch (e) {
       step(282);
       store.dispatch({ type: "WRONG-NUMBER", payload: "phone already exists" });
@@ -49,6 +53,10 @@ class AuthService {
           type: "SET-VERFICATION-ID",
           payload: response.data.data.verificationId,
         });
+        
+      if(typeof window !== "undefined"){
+        _isStoreLastJson() && localStorage.setItem("LAST_JSON", JSON.stringify(response));
+      }
       }
       return response.data;
     } catch (e) {
@@ -97,6 +105,10 @@ class AuthService {
       });
       StoryService.loginStories();
       ChatService.loginChat();
+      
+      if(typeof window !== "undefined"){
+        localStorage.setItem("LAST_JSON", JSON.stringify(response))
+      }
       return [response.data.data.already_exists, response.data.data.user.name];
     } catch (e) {
       if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
@@ -144,6 +156,7 @@ class AuthService {
           },
         }
       );
+      
       StoryService.getStories();
     } catch (e) {
       console.error(e);
