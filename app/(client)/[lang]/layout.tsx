@@ -13,7 +13,7 @@ export const metadata = {
 import type { Viewport } from "next";
 
 export const viewport: Viewport = {
-  interactiveWidget: "overlays-content",
+  interactiveWidget: "resizes-content",
 };
 const aa = process.env.ENABLE_SENTRY;
 // const sf_pro_rounded_bold = localFont({

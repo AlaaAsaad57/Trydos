@@ -91,6 +91,7 @@ body {
   cursor: pointer;
   font-family: "Adobe Clean Regular";
 }
+
 @media only screen and (max-width: 600px) {
   .user-nav-container .backdrop-login {
     display: none;

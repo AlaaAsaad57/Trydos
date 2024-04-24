@@ -108,7 +108,7 @@ function NewLoginWidget({
       id="widget-auth"
       style={{
         backgroundColor: stepIndicator >= 6 && getPageColor(),
-        height: "-webkit-fill-available",
+        height: "100%",
         overflow: "hidden",
       }}
     >
