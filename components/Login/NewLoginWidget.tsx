@@ -97,14 +97,8 @@ function NewLoginWidget({
   useEffect(() => {
     setTimeout(() => {
       setStepIndcator(0);
-      calcHeight();
     }, 1500);
   }, []);
-  const calcHeight = () => {
-    let vh = window.innerHeight * 0.01;
-    document.documentElement.style.setProperty("--vh", `${vh}px`);
-  };
-  window.addEventListener("resize", calcHeight);
   const FinaliseLogin = () => {
     AuthService.ConfirmSignIn();
   };

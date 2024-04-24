@@ -13,7 +13,7 @@
 
 html,
 body {
-  height: 100% !important;
+  height: 100%;
 }
 .login-w2-container.login-widget-container {
   background-color: white;
@@ -92,6 +92,9 @@ body {
   font-family: "Adobe Clean Regular";
 }
 @media only screen and (max-width: 600px) {
+  .user-nav-container .backdrop-login {
+    display: none;
+  }
   .login-w2-container.login-widget-container {
     left: 0px !important;
     top: 0px !important;
@@ -100,6 +103,7 @@ body {
     max-height: 100%;
     width: 100vw !important;
     max-width: 100vw !important;
+
     right: initial !important;
     position: fixed !important;
     border-radius: 0px !important;
