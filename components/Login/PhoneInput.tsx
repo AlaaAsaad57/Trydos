@@ -321,6 +321,20 @@ function PhoneInput({
         <input
           id="phoneInput"
           autoComplete={"false"}
+          onFocus={() => {
+            if (window.screen.width < 500) {
+              document.getElementById("logo-auth").style.position = "static";
+              document.getElementById("logo-auth").style.marginLeft = "40px";
+              document.getElementById("logo-auth").style.marginBottom = "40px";
+              document.getElementById("logo-auth").style.alignSelf =
+                "flex-start";
+            }
+          }}
+          onBlur={() => {
+            document.getElementById("logo-auth").style.position = "absolute";
+            document.getElementById("logo-auth").style.marginLeft = "0px";
+            document.getElementById("logo-auth").style.alignSelf = "initial";
+          }}
           style={{
             zIndex: "9",
             paddingLeft: "93px",

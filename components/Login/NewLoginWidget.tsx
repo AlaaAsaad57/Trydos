@@ -114,6 +114,7 @@ function NewLoginWidget({
     >
       <LogoAuth
         className="logo-auth"
+        id="logo-auth"
         style={
           stepIndicator > 0
             ? {
