@@ -1,3 +1,6 @@
-export interface Product {
+export interface ProductInterface {
   id: number;
+  name?: string;
+  price?: number;
+  details?: string[];
 }
