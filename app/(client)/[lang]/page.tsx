@@ -5,14 +5,9 @@ import { getStories } from "store/homepage/cachedActions";
 
 async function page(): Promise<any> {
   const [HomeData, HomeData_res] = await getHomeData();
-  const storiesData = await getStories();
   return (
     <>
-      <Home
-        storiesData={storiesData}
-        HomeData_res={HomeData_res}
-        HomeData={HomeData}
-      />
+      <Home HomeData_res={HomeData_res} HomeData={HomeData} />
     </>
   );
 }
