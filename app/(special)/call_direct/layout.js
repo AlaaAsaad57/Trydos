@@ -6,7 +6,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <link rel="icon" href="/favicon.ico" sizes="any" />
-      <body style={{ backgroundColor: "black" }}>{children}</body>
+      <body className="background-bl">{children}</body>
     </html>
   );
 }

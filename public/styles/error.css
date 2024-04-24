@@ -1,0 +1,28 @@
+.error-page {
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: column;
+  align-items: center;
+  padding: 50px;
+}
+.error-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.error-line {
+  color: red;
+}
+.error-padding-2 {
+  padding: 20px;
+}
+.error-button {
+  padding: 20px;
+  border-radius: 15px;
+  width: 300px;
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  background-color: aliceblue;
+}

@@ -179,6 +179,9 @@ html[lang="ar"] .chat-window-search-holder svg {
   position: relative;
   background-color: #fcfcfc;
 }
+.call-item-row.call-conversation-item {
+  padding: 10px;
+}
 .options-icon {
   display: none;
   position: absolute;
@@ -642,6 +645,10 @@ html[lang="ar"] .new-chats {
   position: absolute;
   left: initial;
 }
+.opacity-hidden {
+  opacity: 0;
+}
+
 .chat-screen {
   position: absolute;
   top: 0px;

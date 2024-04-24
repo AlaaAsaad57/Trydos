@@ -15,6 +15,12 @@
     --background-end-rgb: 0, 0, 0;
   }
 }
+.scale-w-2 {
+  transform: scale(2);
+}
+.background-bl {
+  background-color: black;
+}
 body {
   margin: 0px;
   color: rgb(var(--foreground-rgb));

@@ -25,7 +25,7 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
       {imageFile.current && imageFile.current !== "null" ? (
         <>
           <div className="button-bases">
-            <button style={{ opacity: "0" }}>
+            <button className="opacity-hidden">
               <svg
                 version="1.1"
                 id="Layer_1"
@@ -149,7 +149,7 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
             </button>
 
             <button onClick={capture}>
-              <CameraIcon style={{ transform: "scale(1.5)" }} />
+              <CameraIcon className="scale-150" />
             </button>
             <button
               onClick={() => {

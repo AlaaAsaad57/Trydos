@@ -4,10 +4,7 @@ import DeleteIcon from "../svg/delt.svg";
 import Image from "next/image";
 function CallItem({ photo, name, date, type, Delete }) {
   return (
-    <div
-      className={`call-conversation-item ${type}`}
-      style={{ height: "75px", padding: "10px" }}
-    >
+    <div className={`call-conversation-item ${type} call-item-row`}>
       <span className="options-icon" onClick={() => Delete()}>
         <DeleteIcon />
       </span>

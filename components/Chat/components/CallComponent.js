@@ -39,10 +39,7 @@ function CallComponent(props) {
         />
       ) : caller.channel_name ? (
         <>
-          <div
-            className="text-avatar"
-            style={{ width: "40px", height: "40px" }}
-          >
+          <div className="text-avatar caller-avatar-text">
             {getTwoLetters(caller.channel_name || caller.mobile_phone)}
           </div>
         </>

@@ -2,7 +2,7 @@ function Logo({ animated, style }: { animated: boolean; style: boolean }) {
   return (
     <div className="logo-container">
       <svg
-        style={{ transform: style ? "scale(2)" : "none" }}
+        className={`${style && "scale-w-2"}`}
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
         width="136.362"
