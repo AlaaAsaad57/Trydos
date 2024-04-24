@@ -67,7 +67,10 @@ export default function GlobalError({ error, reset }) {
               alignItems: "center",
               backgroundColor: "aliceblue",
             }}
-            onClick={() => (window.location.href = "/")}
+            onClick={() => {
+              window.location.href = "/";
+              reset();
+            }}
           >
             Go Back
           </button>
