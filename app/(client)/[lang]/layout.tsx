@@ -13,7 +13,6 @@ export const metadata = {
 import type { Viewport } from "next";
 
 export const viewport: Viewport = {
-  themeColor: "black",
   interactiveWidget: "resizes-content",
 };
 const aa = process.env.ENABLE_SENTRY;
