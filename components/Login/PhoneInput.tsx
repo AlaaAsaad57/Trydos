@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import LoginIcon from "public/svg/LoginIcon.svg";
 import BlueCall from "public/svg/BlueCall.svg";
 import PrivacyIcon from "public/svg/privacyicon.svg";
+import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { translate } from "utils/functions";
 function PhoneInput({
   stepIndicator,
@@ -31,16 +32,19 @@ function PhoneInput({
   useEffect(() => {
     document.querySelector<HTMLInputElement>(".login-phone-input")?.focus();
   }, []);
+
   const handleInput = (e) => {
     setWrongNumber(false);
     let pattern = null;
     let country = getCountry();
     if (country) {
       pattern = replaceString(country.format || "", ".", "x");
-      pattern = replaceString(pattern, "-", "  ");
+      console.log(country.format);
+      pattern = replaceString(pattern, "-", "");
+      pattern = replaceString(pattern, " ", "");
       pattern = replaceString(pattern, "+", "");
     }
-    pattern = pattern || "xxx xxx xxx xxx xxxxx";
+    pattern = pattern || "xxxxxxxxxxxxxxxxx";
     let data = textMarshal({
       input: e.target.value,
       template: pattern,
@@ -73,6 +77,37 @@ function PhoneInput({
   const language = useSelector((state: any) => state.homepage.language);
   const dispatch = useDispatch();
   console.log(operation);
+  const isKeyboardOpen = useDetectKeyboardOpen(200);
+  useEffect(() => {
+    if (isKeyboardOpen) {
+      if (window.screen.width < 600) {
+        // window.ontouchmove = function (e) {
+        //   document.getElementById("phoneInput").blur();
+        // };
+
+        setTimeout(() => {
+          let a = window.visualViewport.height;
+          let b = window.visualViewport.pageTop;
+          let c = window.innerHeight;
+          document.getElementById("logo-auth").style.position = "absolute";
+          document.getElementById("logo-auth").style.left = "20px";
+          document.getElementById("logo-auth").style.top = `${
+            visualViewport.pageTop + 20
+          }px`;
+          document.getElementById("logo-auth").style.transform = "scale(.75)";
+
+          document.getElementById("logo-auth").style.alignSelf = "flex-start";
+          document.getElementById("login-close-icon").style.top = "initial";
+          document.getElementById("login-close-icon").style.top = `${
+            visualViewport.pageTop + 40
+          }px`;
+          document.body.style.overflow = "hidden";
+          document.body.style.height = `${window.innerHeight}px`;
+        }, 250);
+      }
+    } else {
+    }
+  }, [isKeyboardOpen]);
   return (
     <>
       {operation === "login" && (
@@ -326,37 +361,6 @@ function PhoneInput({
           autoCapitalize="off"
           autoComplete="off"
           autoCorrect="off"
-          onFocus={() => {
-            if (window.screen.width < 600) {
-              window.ontouchmove = function (e) {
-                document.getElementById("phoneInput").blur();
-              };
-
-              setTimeout(() => {
-                let a = window.visualViewport.height;
-                let b = window.visualViewport.pageTop;
-                let c = window.innerHeight;
-                document.getElementById("logo-auth").style.position =
-                  "absolute";
-                document.getElementById("logo-auth").style.left = "20px";
-                document.getElementById("logo-auth").style.top = `${
-                  window.visualViewport.pageTop + 10
-                }px`;
-                document.getElementById("logo-auth").style.transform =
-                  "scale(0.75)";
-
-                document.getElementById("logo-auth").style.alignSelf =
-                  "flex-start";
-                document.getElementById("login-close-icon").style.top =
-                  "initial";
-                document.getElementById("login-close-icon").style.top = `${
-                  window.visualViewport.pageTop + 30
-                }px`;
-                document.body.style.overflow = "hidden";
-                document.body.style.height = `${window.innerHeight}px`;
-              }, 500);
-            }
-          }}
           onBlur={() => {
             window.ontouchmove = function (e) {};
             document.getElementById("logo-auth").style.position = "absolute";
@@ -380,7 +384,6 @@ function PhoneInput({
           disabled={false}
           type="number"
           inputMode="numeric"
-          pattern="[0-9]*"
           onChange={(e) => handleInput(e)}
           className="login-phone-input"
         />
