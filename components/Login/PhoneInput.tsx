@@ -323,6 +323,7 @@ function PhoneInput({
           aria-autocomplete="both"
           aria-haspopup="false"
           autoCapitalize="off"
+          lang="eng"
           autoComplete="off"
           autoCorrect="off"
           autoFocus={true}
