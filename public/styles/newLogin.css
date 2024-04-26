@@ -330,3 +330,11 @@ input[type="number"] {
     display: none;
   }
 }
+.pin-border-container svg {
+  overflow: visible;
+}
+input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}

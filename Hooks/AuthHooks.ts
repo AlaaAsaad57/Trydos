@@ -57,15 +57,15 @@ export function useAuthHooks() {
     mutateAsync: mutateAsyncVerifyOtpHook,
   } = useMutation({
     mutationFn: async (VerifyOtpInput: VerifyOtpInputInterface) => {
+      const {
+        code,
+        verificationID: verificationID,
+        Username,
+        EditPhoneFunc,
+        successCallback,
+        errorCallback,
+      } = VerifyOtpInput;
       try {
-        const {
-          code,
-          verificationID: verificationID,
-          Username,
-          EditPhoneFunc,
-          successCallback,
-          errorCallback,
-        } = VerifyOtpInput;
         let [exists, name] = await AuthService.VerifyOtp(
           code,
           verificationID,
@@ -75,6 +75,7 @@ export function useAuthHooks() {
         successCallback(exists, name);
         console.log("VerifyOtpHook");
       } catch (error) {
+        errorCallback();
         console.error("VerifyOtp failed:", error);
       }
     },

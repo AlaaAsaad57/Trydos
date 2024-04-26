@@ -16,6 +16,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1.0,
   maximumScale: 1.0,
+  userScalable: false,
 };
 const aa = process.env.ENABLE_SENTRY;
 // const sf_pro_rounded_bold = localFont({

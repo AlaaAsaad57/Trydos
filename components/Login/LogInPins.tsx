@@ -39,6 +39,15 @@ function LogInPins({
   useEffect(() => {
     document.querySelector<HTMLInputElement>(".pincode-input-text")?.focus();
   }, []);
+  useEffect(() => {
+    if (rendere) {
+      setTimeout(() => {
+        document
+          .querySelector<HTMLInputElement>(".pincode-input-text")
+          ?.focus();
+      }, 200);
+    }
+  }, [rendere]);
   return (
     <>
       <div
@@ -374,7 +383,7 @@ function LogInPins({
                   viewBox="0 0 50 60"
                   style={{
                     opacity:
-                      successLogin || wrongNumber || expired
+                      successLogin || wrongNumber || expired || failedLogin
                         ? "1"
                         : pin[index] || disabled
                         ? "0"

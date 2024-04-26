@@ -47,6 +47,14 @@ function NewLoginWidget({
       verificationID: verficationID,
       errorCallback: () => {
         setFailed(true);
+        setTimeout(() => {
+          setPins("");
+          setRender(false);
+          setFailed(false);
+          setTimeout(() => {
+            setRender(true);
+          }, 300);
+        }, 1000);
       },
       successCallback: (exists, name) => {
         if (operation === "signup") {
