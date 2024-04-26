@@ -56,7 +56,9 @@
   padding-top: 15px;
   flex-direction: column;
 }
-
+a {
+  text-decoration: none;
+}
 .offer-logo {
   justify-content: center;
   margin-left: 25px;

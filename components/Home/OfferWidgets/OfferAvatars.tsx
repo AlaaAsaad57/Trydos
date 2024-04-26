@@ -25,8 +25,8 @@ function OfferAvatars({ priority }: OfferAvatarsProps) {
       element.classList.remove("active-hover");
     });
     let index: number = Math.abs(Xmove / (100 / elemnts.length));
-    if (elemnts[index]) {
-      elemnts[index].classList.add("active-hover");
+    if (elemnts[Math.round(index)]) {
+      elemnts[Math.floor(index)].classList.add("active-hover");
     }
   };
   const handleEnd = () => {
