@@ -339,11 +339,6 @@ function PhoneInput({
                 "240px";
               document.body.style.overflow = "hidden";
               document.body.style.height = `${window.innerHeight}px`;
-              document.getElementById("phoneInput").style.opacity = "0";
-              setTimeout(
-                () =>
-                  (document.getElementById("phoneInput").style.opacity = "1")
-              );
             }
           }}
           onBlur={() => {
