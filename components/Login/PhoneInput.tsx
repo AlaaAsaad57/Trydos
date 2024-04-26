@@ -324,12 +324,9 @@ function PhoneInput({
           onFocus={() => {
             if (window.screen.width < 600) {
               window.ontouchmove = function (e) {
-                // document.getElementById("phoneInput").blur();
+                document.getElementById("phoneInput").blur();
               };
-              document.getElementById("widget-auth").style.justifyContent =
-                "flex-start";
               document.getElementById("logo-auth").style.position = "static";
-              document.getElementById("logo-auth").style.margin = "20px";
               document.getElementById("logo-auth").style.marginLeft = "20px";
               document.getElementById("logo-auth").style.marginBottom = "10px";
               document.getElementById("logo-auth").style.transform =
@@ -337,23 +334,22 @@ function PhoneInput({
 
               document.getElementById("logo-auth").style.alignSelf =
                 "flex-start";
+              document.getElementById("login-close-icon").style.top = "initial";
+              document.getElementById("login-close-icon").style.bottom =
+                "240px";
               document.body.style.overflow = "hidden";
               document.body.style.height = `${window.innerHeight}px`;
             }
-            setTimeout(() => {
-              document
-                .getElementById("logo-auth")
-                .scrollIntoView({ block: "start" });
-            }, 600);
           }}
           onBlur={() => {
             window.ontouchmove = function (e) {};
-            document.getElementById("widget-auth").style.justifyContent =
-              "flex-end";
             document.getElementById("logo-auth").style.position = "absolute";
             document.getElementById("logo-auth").style.marginLeft = "0px";
             document.getElementById("logo-auth").style.alignSelf = "initial";
             document.getElementById("logo-auth").style.transform = "none";
+            document.getElementById("login-close-icon").style.top = "60px";
+            document.getElementById("login-close-icon").style.bottom =
+              "initial";
             document.body.style.overflow = "auto";
             document.body.style.height = "auto";
           }}
