@@ -323,6 +323,9 @@ function PhoneInput({
           autoComplete={"false"}
           onFocus={() => {
             if (window.screen.width < 600) {
+              window.ontouchmove = function (e) {
+                document.getElementById("phoneInput").blur();
+              };
               document.getElementById("logo-auth").style.position = "static";
               document.getElementById("logo-auth").style.marginLeft = "20px";
               document.getElementById("logo-auth").style.marginBottom = "10px";
@@ -336,9 +339,15 @@ function PhoneInput({
                 "240px";
               document.body.style.overflow = "hidden";
               document.body.style.height = `${window.innerHeight}px`;
+              document.getElementById("phoneInput").style.opacity = "0";
+              setTimeout(
+                () =>
+                  (document.getElementById("phoneInput").style.opacity = "1")
+              );
             }
           }}
           onBlur={() => {
+            window.ontouchmove = function (e) {};
             document.getElementById("logo-auth").style.position = "absolute";
             document.getElementById("logo-auth").style.marginLeft = "0px";
             document.getElementById("logo-auth").style.alignSelf = "initial";
