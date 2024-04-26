@@ -326,19 +326,30 @@ function PhoneInput({
               window.ontouchmove = function (e) {
                 document.getElementById("phoneInput").blur();
               };
-              document.getElementById("logo-auth").style.position = "static";
-              document.getElementById("logo-auth").style.marginLeft = "20px";
-              document.getElementById("logo-auth").style.marginBottom = "10px";
-              document.getElementById("logo-auth").style.transform =
-                "scale(0.75)";
 
-              document.getElementById("logo-auth").style.alignSelf =
-                "flex-start";
-              document.getElementById("login-close-icon").style.top = "initial";
-              document.getElementById("login-close-icon").style.bottom =
-                "240px";
-              document.body.style.overflow = "hidden";
-              document.body.style.height = `${window.innerHeight}px`;
+              setTimeout(() => {
+                let a = window.visualViewport.height;
+                let b = window.visualViewport.pageTop;
+                let c = window.innerHeight;
+                document.getElementById("logo-auth").style.position =
+                  "absolute";
+                document.getElementById("logo-auth").style.left = "20px";
+                document.getElementById("logo-auth").style.top = `${
+                  window.visualViewport.pageTop + 10
+                }px`;
+                document.getElementById("logo-auth").style.transform =
+                  "scale(0.75)";
+
+                document.getElementById("logo-auth").style.alignSelf =
+                  "flex-start";
+                document.getElementById("login-close-icon").style.top =
+                  "initial";
+                document.getElementById("login-close-icon").style.top = `${
+                  window.visualViewport.pageTop + 30
+                }px`;
+                document.body.style.overflow = "hidden";
+                document.body.style.height = `${window.innerHeight}px`;
+              }, 600);
             }
           }}
           onBlur={() => {
@@ -347,6 +358,7 @@ function PhoneInput({
             document.getElementById("logo-auth").style.marginLeft = "0px";
             document.getElementById("logo-auth").style.alignSelf = "initial";
             document.getElementById("logo-auth").style.transform = "none";
+            document.getElementById("logo-auth").style.top = "60px";
             document.getElementById("login-close-icon").style.top = "60px";
             document.getElementById("login-close-icon").style.bottom =
               "initial";
