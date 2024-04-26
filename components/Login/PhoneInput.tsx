@@ -322,18 +322,32 @@ function PhoneInput({
           id="phoneInput"
           autoComplete={"false"}
           onFocus={() => {
-            if (window.screen.width < 500) {
+            if (window.screen.width < 600) {
               document.getElementById("logo-auth").style.position = "static";
-              document.getElementById("logo-auth").style.marginLeft = "40px";
-              document.getElementById("logo-auth").style.marginBottom = "40px";
+              document.getElementById("logo-auth").style.marginLeft = "20px";
+              document.getElementById("logo-auth").style.marginBottom = "10px";
+              document.getElementById("logo-auth").style.transform =
+                "scale(0.75)";
+
               document.getElementById("logo-auth").style.alignSelf =
                 "flex-start";
+              document.getElementById("login-close-icon").style.top = "initial";
+              document.getElementById("login-close-icon").style.bottom =
+                "240px";
+              document.body.style.overflow = "hidden";
+              document.body.style.height = `${window.innerHeight}px`;
             }
           }}
           onBlur={() => {
             document.getElementById("logo-auth").style.position = "absolute";
             document.getElementById("logo-auth").style.marginLeft = "0px";
             document.getElementById("logo-auth").style.alignSelf = "initial";
+            document.getElementById("logo-auth").style.transform = "none";
+            document.getElementById("login-close-icon").style.top = "60px";
+            document.getElementById("login-close-icon").style.bottom =
+              "initial";
+            document.body.style.overflow = "auto";
+            document.body.style.height = "auto";
           }}
           style={{
             zIndex: "9",
@@ -343,6 +357,9 @@ function PhoneInput({
             width: "100%",
           }}
           disabled={false}
+          type="number"
+          inputMode="numeric"
+          pattern="[0-9]*"
           onChange={(e) => handleInput(e)}
           className="login-phone-input"
         />

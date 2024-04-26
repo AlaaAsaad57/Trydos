@@ -1,3 +1,4 @@
+import { useSelector } from "react-redux";
 import NormalWidget from "./NormalWidget";
 import dynamic from "next/dynamic";
 const ExtendedOfferWidget = dynamic(() => import("./ExtendedOfferWidget"), {
@@ -11,8 +12,9 @@ interface OfferListProps {
   quick: boolean;
 }
 function OfferList({ offers, quick }: OfferListProps) {
+  const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
   return (
-    <div className="offers-list">
+    <div className={`offers-list ${loginOpen && "hide-offers"}`}>
       {quick ? (
         <QuickOfferWidjet onClick={() => {}} offer={{ photos: [1] }} />
       ) : (

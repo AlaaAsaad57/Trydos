@@ -8,7 +8,10 @@ interface NavbarProps {
   init: string;
 }
 function Navbar({ init }: NavbarProps) {
-  const [loginOpen, setLoginOpen] = useState(false);
+  const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
+  const setLoginOpen = (e: boolean) => {
+    dispatch({ type: "LOGIN-OPEN", payload: e });
+  };
   const language = useSelector((state: any) => state.homepage.language);
   const dispatch = useDispatch();
   const initFunc = async () => {

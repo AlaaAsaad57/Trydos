@@ -211,6 +211,7 @@ function NewLoginWidget({
             right: "30px",
             cursor: "pointer",
           }}
+          id="login-close-icon"
           xmlns="http://www.w3.org/2000/svg"
           width="16.411"
           height="16.411"

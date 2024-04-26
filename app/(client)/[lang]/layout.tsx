@@ -13,7 +13,7 @@ export const metadata = {
 import type { Viewport } from "next";
 
 export const viewport: Viewport = {
-  interactiveWidget: "resizes-content",
+  interactiveWidget: "resizes-visual",
   width: "device-width",
   initialScale: 1.0,
   maximumScale: 1.0,

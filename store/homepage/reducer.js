@@ -9,6 +9,7 @@ const initialState = {
   categories: [],
   enableNotifications: false,
   settings: null,
+  loginOpen: false,
 };
 
 const HomeReducer = (state = initialState, { type, payload }) => {
@@ -17,6 +18,12 @@ const HomeReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         enableNotifications: true,
+      };
+    }
+    case "LOGIN-OPEN": {
+      return {
+        ...state,
+        loginOpen: payload,
       };
     }
     case "WATCH-STORY": {
