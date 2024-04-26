@@ -81,9 +81,9 @@ function PhoneInput({
   useEffect(() => {
     if (isKeyboardOpen) {
       if (window.screen.width < 600) {
-        // window.ontouchmove = function (e) {
-        //   document.getElementById("phoneInput").blur();
-        // };
+        window.ontouchmove = function (e) {
+          document.getElementById("phoneInput").blur();
+        };
 
         setTimeout(() => {
           let a = window.visualViewport.height;
