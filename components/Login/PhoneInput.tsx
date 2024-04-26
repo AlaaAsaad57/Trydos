@@ -322,45 +322,43 @@ function PhoneInput({
           id="phoneInput"
           aria-autocomplete="both"
           aria-haspopup="false"
+          spellCheck="false"
           autoCapitalize="off"
-          lang="eng"
           autoComplete="off"
           autoCorrect="off"
-          autoFocus={true}
           onFocus={() => {
             if (window.screen.width < 600) {
               window.ontouchmove = function (e) {
-                // document.getElementById("phoneInput").blur();
+                document.getElementById("phoneInput").blur();
               };
-              document.getElementById("logo-auth").style.position = "static";
-              document.getElementById("logo-auth").style.alignSelf =
-                "flex-start";
-              document.getElementById("widget-auth").style.justifyContent =
-                "flex-start";
-              document.getElementById("logo-auth").style.left = "20px";
-              document.getElementById("logo-auth").style.marginTop = `${"0"}px`;
-              document.getElementById("logo-auth").style.transform =
-                "scale(0.75)";
 
-              document.getElementById("login-close-icon").style.top = "initial";
-              document.getElementById("login-close-icon").style.top = `${
-                window.visualViewport.pageTop + 30
-              }px`;
               setTimeout(() => {
                 let a = window.visualViewport.height;
                 let b = window.visualViewport.pageTop;
                 let c = window.innerHeight;
+                document.getElementById("logo-auth").style.position =
+                  "absolute";
+                document.getElementById("logo-auth").style.left = "20px";
+                document.getElementById("logo-auth").style.top = `${
+                  window.visualViewport.pageTop + 10
+                }px`;
+                document.getElementById("logo-auth").style.transform =
+                  "scale(0.75)";
 
+                document.getElementById("logo-auth").style.alignSelf =
+                  "flex-start";
+                document.getElementById("login-close-icon").style.top =
+                  "initial";
+                document.getElementById("login-close-icon").style.top = `${
+                  window.visualViewport.pageTop + 30
+                }px`;
                 document.body.style.overflow = "hidden";
                 document.body.style.height = `${window.innerHeight}px`;
-              }, 600);
+              }, 500);
             }
           }}
           onBlur={() => {
             window.ontouchmove = function (e) {};
-            document.getElementById("widget-auth").style.justifyContent =
-              "flex-end";
-
             document.getElementById("logo-auth").style.position = "absolute";
             document.getElementById("logo-auth").style.marginLeft = "0px";
             document.getElementById("logo-auth").style.alignSelf = "initial";
