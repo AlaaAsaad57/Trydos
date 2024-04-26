@@ -404,7 +404,7 @@ function PhoneInput({
       {wrongNumber && (
         <div
           className="blue-text"
-          style={{ color: "#ff5f61", fontSize: "12px" }}
+          style={{ color: "#ff5f61", fontSize: "12px", marginTop: "10px" }}
         >
           {translate("Invalid Phone Number", language)}
         </div>
