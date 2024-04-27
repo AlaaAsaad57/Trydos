@@ -1,7 +1,13 @@
 import Image, { StaticImageData } from "next/image";
-function StoryAvatar({ avatar }: { avatar: string | StaticImageData }) {
+function StoryAvatar({
+  avatar,
+  isSeen,
+}: {
+  avatar: string | StaticImageData;
+  isSeen: boolean;
+}) {
   return (
-    <div className="story-avatar">
+    <div className={`story-avatar ${isSeen && "is-seen-story"}`}>
       {avatar && (
         <Image loading="eager" src={avatar} alt="user" width={28} height={28} />
       )}

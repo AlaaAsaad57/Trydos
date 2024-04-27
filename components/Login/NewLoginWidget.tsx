@@ -14,14 +14,8 @@ import AuthService from "services/auth";
 import { useAuthHooks } from "Hooks/AuthHooks";
 interface LoginWidgetProps {
   close: Function;
-  loginSuccessVar: boolean;
-  setLoginSucces: Function;
 }
-function NewLoginWidget({
-  close,
-  loginSuccessVar,
-  setLoginSucces,
-}: LoginWidgetProps) {
+function NewLoginWidget({ close }: LoginWidgetProps) {
   const [stepIndicator, setStepIndcator] = useState(-1);
   const [operation, setOperation] = useState("login");
   const [signStep, setSignStep] = useState("");
@@ -57,31 +51,33 @@ function NewLoginWidget({
         }, 1000);
       },
       successCallback: (exists, name) => {
-        if (operation === "signup") {
-          if (exists && name.length > 1) {
-            setSignStep("alreadyExists");
-            setStepIndcator(6);
-          } else if (exists && !(name.length > 1)) {
-            setStepIndcator(7);
+        setTimeout(() => {
+          if (operation === "signup") {
+            if (exists && name.length > 1) {
+              setSignStep("alreadyExists");
+              setStepIndcator(6);
+            } else if (exists && !(name.length > 1)) {
+              setStepIndcator(7);
+            }
+            if (!exists) {
+              FinaliseLogin();
+              setSignStep("welcomeSignup");
+              setStepIndcator(7);
+            }
+          } else {
+            if (exists && name.length > 1) {
+              FinaliseLogin();
+              setSignStep("welcomeLogin");
+              setStepIndcator(6);
+            } else if (exists && !(name.length > 1)) {
+              setStepIndcator(7);
+            }
+            if (!exists) {
+              setSignStep("notFound");
+              setStepIndcator(6);
+            }
           }
-          if (!exists) {
-            FinaliseLogin();
-            setSignStep("welcomeSignup");
-            setStepIndcator(7);
-          }
-        } else {
-          if (exists && name.length > 1) {
-            FinaliseLogin();
-            setSignStep("welcomeLogin");
-            setStepIndcator(6);
-          } else if (exists && !(name.length > 1)) {
-            setStepIndcator(7);
-          }
-          if (!exists) {
-            setSignStep("notFound");
-            setStepIndcator(6);
-          }
-        }
+        }, 2000);
       },
     });
   };

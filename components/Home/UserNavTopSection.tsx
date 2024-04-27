@@ -5,10 +5,6 @@ import QuestionIcon from "public/svg/questionIcon.svg";
 import LoginIcon from "public/svg/login.svg";
 import UserIcon from "public/svg/userIcon.svg";
 import dynamic from "next/dynamic";
-import NewLoginWidget from "components/Login/NewLoginWidget";
-const LoginWidget = dynamic(() => import("../Login/LoginWidget"), {
-  ssr: false,
-});
 const AuthNavSection = dynamic(() => import("./AuthNavSection"), {
   ssr: false,
 });
@@ -19,8 +15,6 @@ interface UserNavTopSectionProps {
 function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
   const language = useSelector((state: any) => state.homepage.language);
   const user = useSelector((state: any) => state.auth.user);
-  const [loginSuccessVar, setLoginSucces] = useState(false);
-  const dispatch = useDispatch();
   useEffect(() => {
     setTimeout(() => {
       if (true) {
@@ -32,21 +26,6 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
   }, [user]);
   return (
     <div className="user-nav-container">
-      {loginOpen && (
-        <div onClick={() => openLogin(false)} className="backdrop-login" />
-      )}
-      {loginOpen && (
-        // <LoginWidget
-        //   loginSuccessVar={loginSuccessVar}
-        //   setLoginSucces={(e) => setLoginSucces(e)}
-        //   close={() => openLogin(false)}
-        // />
-        <NewLoginWidget
-          loginSuccessVar={loginSuccessVar}
-          setLoginSucces={(e) => setLoginSucces(e)}
-          close={() => openLogin(false)}
-        />
-      )}
       {!user && (
         <>
           <div className={`welcome-user ${language + "-medium"}`}>

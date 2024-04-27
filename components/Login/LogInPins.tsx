@@ -36,6 +36,7 @@ function LogInPins({
   successLogin: boolean;
   disabled: boolean;
 }) {
+  const user = useSelector((state: any) => state.auth.Tempuser);
   const language = useSelector((state: any) => state.homepage.language);
   useEffect(() => {
     document.querySelector<HTMLInputElement>(".pincode-input-text")?.focus();
@@ -96,6 +97,7 @@ function LogInPins({
       document.body.style.height = "auto";
     }
   }, [isKeyboardOpen]);
+  useEffect(() => {}, [user, failedLogin]);
   return (
     <>
       <div
@@ -409,15 +411,15 @@ function LogInPins({
                   "pin-border-element" +
                   " " +
                   (expired && "input-expired ") +
-                  (successLogin && " input-success ") +
+                  (user && " input-success ") +
                   " " +
-                  ((wrongNumber || failedLogin) &&
-                    !successLogin &&
-                    "input-failed")
+                  ((wrongNumber || failedLogin) && !user && "input-failed")
                 }
                 style={{
                   backgroundColor: wrongNumber
                     ? "#fff5f5"
+                    : user
+                    ? "#F4FFF4"
                     : pin[index] || disabled
                     ? "#f5f5f5"
                     : "#fafafa",

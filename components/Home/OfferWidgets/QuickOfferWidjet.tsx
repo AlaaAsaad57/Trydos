@@ -11,6 +11,8 @@ import Link from "next/link";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import dynamic from "next/dynamic";
+import OfferSlideItem from "./OfferSlideItem";
+import OfferAvatars from "./OfferAvatars";
 interface QuickOfferWidjetProps {
   offer: { photos: number[] };
   onClick: Function;
@@ -64,13 +66,20 @@ function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
             <div className="offer-desc">
               {translate("Mango Famous Turkish Brand Best Offers", language)}
             </div>
-            <OfferPhotosSlider
-              extended={false}
-              priority={false}
-              OfferPhotos={offer.photos}
-            />
+            <QuickEventBar />
+            {offer.photos.length > 1 ? (
+              <OfferPhotosSlider
+                extended={false}
+                priority={false}
+                OfferPhotos={offer.photos}
+              />
+            ) : (
+              <div className="offer-slider-container">
+                <OfferSlideItem priority={true} isSingle={true} />
+                <OfferAvatars priority={true} />
+              </div>
+            )}
           </div>
-          <QuickEventBar />
         </>
       )}
     </Link>

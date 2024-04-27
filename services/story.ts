@@ -16,7 +16,7 @@ class StoryService {
     baseURL: STORIES_URL,
     headers: {
       Authorization:
-        "Bearer" +
+        "Bearer " +
         (localStorage.getItem("USER-STORIES") &&
           JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
       language: Cookies.get("language"),
@@ -59,7 +59,7 @@ class StoryService {
       if (getUserStories()?.id) {
         store.dispatch({ type: "WATCH-STORY", payload: { pid: pid, id: id } });
         const response = await this.http.get(
-          "/api/v1/stories/increase_viewers/" + id
+          "/api/v1/stories/increase_viewers/" + pid
         );
 
         if (typeof window !== "undefined") {

@@ -97,6 +97,7 @@ a {
 
 .offer-slider-container {
   margin-top: 9px;
+  position: relative;
   justify-content: center;
   margin-left: 3px;
   height: 31.4vw;
@@ -136,7 +137,7 @@ a {
   right: 0;
   margin-left: auto;
   margin-right: auto;
-  bottom: 10%;
+  bottom: -10.3% !important;
   width: -moz-fit-content;
   width: fit-content;
 }
@@ -186,7 +187,7 @@ a {
   height: 24px !important;
   opacity: 0;
   transition: 0.3s;
-  top: 39px;
+  top: 47px;
   padding-top: 4px;
   position: absolute;
   left: 0;
@@ -434,19 +435,6 @@ a {
   justify-content: flex-start;
   padding-left: 15px;
 }
-
-#stories-border1 {
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-
-#stories-border2 {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-}
-
 .stories-bar-container {
   transform: translateX(0);
   display: flex;
@@ -474,13 +462,15 @@ a {
   display: flex;
   position: absolute;
   top: 0;
-  left: 0;
+  left: -5px;
   width: 30px;
   height: 30px;
   background-color: #ffab62;
   z-index: 10;
 }
-
+.story-avatar.is-seen-story {
+  background-color: #ffff;
+}
 .story-avatar,
 .story-avatar img {
   align-items: center;
@@ -572,7 +562,12 @@ a {
   align-items: flex-start;
   justify-content: flex-start;
 }
-
+.quick-event-bar .bar-desc-column {
+  margin: 0px;
+}
+.quick-event-bar .bar-desc-column .bar-name {
+  font-size: 12px;
+}
 .bar-name {
   display: flex;
   font-size: 14px;
@@ -679,13 +674,12 @@ html {
 .extended-widget .offer-slider-container {
   max-height: 340px;
 }
-.extended-widget .offer-slider-container .offer-avatars-container {
-  bottom: 7% !important;
-}
 
 .offer-avatar:not(.hasMore).active-hover {
   z-index: 999 !important;
   margin-bottom: 15px;
+  height: 50px;
+  width: 50px;
   margin-left: 10px;
   margin-right: 10px;
 }

@@ -4,6 +4,7 @@ import Logo from "./Logo";
 import UserNavTopSection from "./UserNavTopSection";
 import { useDispatch, useSelector } from "react-redux";
 import { changeAppLanguage } from "store/homepage/actions";
+import MobileNavigation from "./MobileNavigation";
 interface NavbarProps {
   init: string;
 }
@@ -31,16 +32,19 @@ function Navbar({ init }: NavbarProps) {
     initFunc();
   }, []);
   return (
-    <div className="home-navbar">
-      <Logo animated={false} style={false} key={1} />
-      <CategoriesBar key={2} forMobile={false} />
-      {
-        <UserNavTopSection
-          loginOpen={loginOpen}
-          openLogin={(e) => setLoginOpen(e)}
-        />
-      }
-    </div>
+    <>
+      <div className="home-navbar">
+        <Logo animated={false} style={false} key={1} />
+        <CategoriesBar key={2} forMobile={false} />
+        {
+          <UserNavTopSection
+            loginOpen={loginOpen}
+            openLogin={(e) => setLoginOpen(e)}
+          />
+        }
+      </div>
+      <MobileNavigation />
+    </>
   );
 }
 

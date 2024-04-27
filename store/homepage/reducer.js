@@ -29,10 +29,10 @@ const HomeReducer = (state = initialState, { type, payload }) => {
     case "WATCH-STORY": {
       let arr = [];
       state.storiesData.map((story) => {
-        if (story.id === payload.pid) {
+        if (story.id === payload.id) {
           let arrStories = [];
           story.stories.map((storyItem) => {
-            if (storyItem.id === payload.id) {
+            if (storyItem.id === payload.pid) {
               arrStories.push({ ...storyItem, is_seen: true });
             } else {
               arrStories.push(storyItem);

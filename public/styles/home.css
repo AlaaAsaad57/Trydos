@@ -1,6 +1,6 @@
 @import url("../styles/offers.css");
 .site-container {
-  background-color: rgba(244, 244, 244, 1);
+  background-color: #fafafa;
   display: flex;
   justify-content: space-around;
   min-width: 100vw;
@@ -21,6 +21,18 @@ body {
   width: -webkit-fill-available;
   height: -webkit-fill-available;
   z-index: 2000;
+}
+.add-story-container.story-element-container {
+  border-radius: 20px;
+  animation: auto ease 0s 1 normal none running none;
+  background-color: rgb(240, 240, 240);
+  display: flex;
+  margin-right: 10px;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(1px);
+  min-width: 100px;
+  height: 150px;
 }
 .phone-input-element {
   display: flex;
@@ -235,15 +247,16 @@ span.bold-text {
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  min-height: 50px;
+  min-height: 30px;
   position: relative;
   z-index: 1;
+  margin-top: 8px;
   bottom: 0px;
   left: 0px;
   border-radius: 15px;
-  background-color: #ffffcc;
+  background-color: transparent;
   padding-left: 25px;
-  padding-right: 10px;
+  padding-right: 20px;
 }
 .quick-event-bar svg:first-child {
   position: absolute;
@@ -255,7 +268,7 @@ span.bold-text {
   position: absolute;
   align-items: center;
   justify-content: flex-start;
-  right: 10px;
+  right: 20px;
 }
 .timer-element {
   display: flex;

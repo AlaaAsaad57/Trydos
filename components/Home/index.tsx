@@ -6,7 +6,6 @@ import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import { GetMainData, LogData } from "store/homepage/actions";
 import Stories from "./Stories/index";
-import CategoriesBar from "./CategoriesBar";
 import BrandsBar from "./Bars/BrandsBar";
 const QuickOffer = dynamic(() => import("./Bars/QuickOffer"), { ssr: false });
 const OfferBar = dynamic(() => import("./Bars/OfferBar"), { ssr: false });
@@ -23,6 +22,7 @@ import { getUserChat } from "utils/functions";
 import NameModal from "components/global/NameModal";
 import { getUserStories } from "../../utils/functions";
 import StoryServiceClass from "services/story";
+import NewLoginWidget from "components/Login/NewLoginWidget";
 export default function Home({
   HomeData_res,
   HomeData,
@@ -79,7 +79,10 @@ export default function Home({
     (state: any) => state.homepage.enableNotifications
   );
   const nameModal = useSelector((state: any) => state.chat.nameModal);
-
+  const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
+  const setLoginOpen = (e: boolean) => {
+    dispatch({ type: "LOGIN-OPEN", payload: e });
+  };
   useEffect(() => {
     if (selectedStory) {
       document.body.style.overflowY = "hidden";
@@ -90,11 +93,14 @@ export default function Home({
   const dispatch = useDispatch();
   return (
     <>
+      {loginOpen && (
+        <div onClick={() => setLoginOpen(false)} className="backdrop-login" />
+      )}
+      {loginOpen && <NewLoginWidget close={() => setLoginOpen(false)} />}
       {enableNotifications && <NotificationContainer />}
       <Stories />
       {nameModal && <NameModal />}
       {<StoriesComponent />}
-      <CategoriesBar key={1} forMobile={true} />
       <BrandsBar />
       <OffersList key={2} offers={[1, 1, 1]} quick={false} />
       <CategoryBar />

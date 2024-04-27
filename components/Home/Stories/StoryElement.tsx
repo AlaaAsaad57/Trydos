@@ -16,7 +16,10 @@ function StoryElement({
 }) {
   return (
     <div className="story-element-container">
-      <StoryAvatar avatar={story.photo_path ?? profilePicture} />
+      <StoryAvatar
+        isSeen={story.stories.filter((s) => s.is_seen === false).length === 0}
+        avatar={story.photo_path ?? profilePicture}
+      />
       <Story
         index={1}
         media={story.stories[GetUnviewedStory(story)]}

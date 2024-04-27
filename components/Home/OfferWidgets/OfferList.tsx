@@ -14,7 +14,11 @@ interface OfferListProps {
 function OfferList({ offers, quick }: OfferListProps) {
   const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
   return (
-    <div className={`offers-list ${loginOpen && "hide-offers"}`}>
+    <div
+      className={`offers-list ${
+        (loginOpen && "hide-offers ") + (quick && " mt-5")
+      } `}
+    >
       {quick ? (
         <QuickOfferWidjet onClick={() => {}} offer={{ photos: [1] }} />
       ) : (
