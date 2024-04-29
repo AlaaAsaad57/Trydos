@@ -26,9 +26,9 @@
   margin-top: 0;
 }
 
-.offer-blured-background {
+/* .offer-blured-background {
   background-color: hsla(0, 0%, 98%, 0.29);
-}
+} */
 
 .offer-blured,
 .offer-blured-background {
@@ -42,8 +42,9 @@
 }
 
 .offer-blured {
-  -webkit-backdrop-filter: blur(19px) brightness(239%);
-  backdrop-filter: blur(19px) brightness(239%);
+  background-color: oklch(0.99 0 0 / 50%);
+  backdrop-filter: blur(15px) brightness(203%);
+  color: #faf8f9;
 }
 .offer-container {
   width: 100%;
