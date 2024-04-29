@@ -45,6 +45,7 @@ function ExtendedOfferWidget({
             loading="lazy"
             style={{
               position: "absolute",
+              filter: "brightness(203%)",
               top: "0px",
               left: "0px",
               borderRadius: "15px",

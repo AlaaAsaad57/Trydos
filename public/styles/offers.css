@@ -43,7 +43,7 @@
 
 .offer-blured {
   background-color: oklch(0.99 0 0 / 50%);
-  backdrop-filter: blur(15px) brightness(203%);
+  backdrop-filter: blur(15px);
   color: #faf8f9;
 }
 .offer-container {
@@ -206,8 +206,9 @@ a {
 
 .offer-avatar-info span:not(:first-child) {
   color: #b8b8b8;
-  font-size: 10px;
+  font-size: 8px;
   height: auto !important;
+  font-family: var(--Quicksand-Light);
 }
 
 .offer-avatar > span {
@@ -300,7 +301,8 @@ a {
   display: flex;
   align-items: center;
   color: #505050;
-  font-size: 12px;
+  font-size: 10px;
+  font-family: var(--Quicksand-Regular);
 }
 
 .categories-bar-item-name ~ svg {
@@ -536,7 +538,7 @@ a {
   text-align: center;
   justify-content: center;
   font-size: 12px;
-  font-family: var(--SF-Pro-Rounded-Regular);
+  font-family: var(--Quicksand-Regular);
   color: #fff;
   z-index: 12;
   letter-spacing: 0.003;

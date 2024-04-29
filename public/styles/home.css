@@ -236,6 +236,9 @@ body {
     opacity: 0%;
   }
 }
+.offer-slide-item .image-offer div div {
+  height: calc(100% - 0.5px);
+}
 svg g #Path_213320 {
   animation: opa 1s both infinite;
 }
