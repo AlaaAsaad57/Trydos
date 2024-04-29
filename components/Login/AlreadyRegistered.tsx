@@ -16,7 +16,7 @@ function AlreadyRegistered({
   setStepSign: Function;
 }) {
   const language = useSelector((state: any) => state.homepage.language);
-  const user = useSelector((state: any) => state.auth.user);
+  const user = useSelector((state: any) => state.auth.Tempuser);
 
   return (
     <>
