@@ -1,3 +1,4 @@
+import ImageLoader from "components/global/ImageLoader";
 import BorderImage from "./BorderImage";
 import Image from "next/image";
 import { getId } from "utils/functions";
@@ -11,10 +12,11 @@ function OfferSlideItem({ isSingle, priority }: OfferSlideItemProps) {
     <div className="offer-slide-item">
       <div className="image-offer">
         <div className="image-inner-shadow" style={{ height: "100%" }} />
-        <Image
+        <ImageLoader
           loading="eager"
           id={id}
           priority={priority}
+          style={{ borderRadius: "15px" }}
           fetchPriority={priority ? "high" : "low"}
           className="OfferImage"
           src={

@@ -218,7 +218,36 @@ body {
   display: block;
   width: 100%;
 }
-
+.landing-page {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+@keyframes opa {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 100%;
+  }
+  100% {
+    opacity: 0%;
+  }
+}
+svg g #Path_213320 {
+  animation: opa 1s both infinite;
+}
+.image-loader {
+  width: 100%;
+  height: 100%;
+  background-color: rgb(230, 230, 230);
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .fixed-layout div:nth-child(2) > div:first-child:not(.swiper-wrapper) {
   display: flex;
   align-items: center;

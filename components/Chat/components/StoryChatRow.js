@@ -21,6 +21,9 @@ function StoryChatRow({ story, index, viewedStory, stories, select }) {
               ? "3px solid #42f742"
               : "3px solid #bfbfbf",
         }}
+        onLoad={(e) => {
+          console.log(e);
+        }}
         onError={(e) => {
           e.currentTarget.src = errorPNG;
           e.currentTarget.onerror = null;

@@ -1,15 +1,17 @@
-import React, { useEffect } from "react";
+import React from "react";
 
-function LandingPage() {
-  useEffect(() => {
-    document.documentElement.style.overflow = "hidden";
-    setTimeout(() => {
-      document.documentElement.style.overflow = "initial";
-      document.getElementById("landing").style.display = "none";
-    }, 3000);
-  }, []);
+function Loader({ style }) {
   return (
-    <div className="landing-page" id="landing">
+    <div
+      className="image-loader"
+      style={{
+        width: "100%",
+        height: "100%",
+        backgroundColor: "#E6E6E6",
+        opacity: "0.9",
+        ...style,
+      }}
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -19,7 +21,7 @@ function LandingPage() {
       >
         <defs>
           <linearGradient
-            id="linear-gradient"
+            id="linear-gradient3"
             x1="0.5"
             y1="0.543"
             x2="0.5"
@@ -58,7 +60,7 @@ function LandingPage() {
               data-name="Path 21332"
               d="M8.929,0a8.929,8.929,0,1,0,8.929,8.929A8.929,8.929,0,0,0,8.929,0Z"
               transform="translate(206 422)"
-              fill="url(#linear-gradient)"
+              fill="url(#linear-gradient2)"
             />
             <path
               id="Path_21427"
@@ -74,4 +76,4 @@ function LandingPage() {
   );
 }
 
-export default LandingPage;
+export default Loader;

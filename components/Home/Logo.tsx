@@ -49,7 +49,7 @@ function Logo({ animated, style }: { animated: boolean; style: boolean }) {
             <feComposite operator="in" in2="SourceGraphic" />
           </filter>
           <linearGradient
-            id="linear-gradient"
+            id="linear-gradient2"
             x1="0.5"
             y1="0.543"
             x2="0.5"
@@ -131,7 +131,7 @@ function Logo({ animated, style }: { animated: boolean; style: boolean }) {
                 data-name="Path 21331"
                 d="M13,0A13,13,0,1,0,26,13,13,13,0,0,0,13,0Z"
                 transform="translate(4.5 1.5)"
-                fill="url(#linear-gradient)"
+                fill="url(#linear-gradient2)"
               />
             </g>
           </g>

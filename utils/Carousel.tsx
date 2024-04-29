@@ -7,42 +7,62 @@ import {
 } from "store/homepage/actions";
 import { configureStory } from "./functions";
 import { useDispatch, useSelector } from "react-redux";
-
+import CloseIcon from "components/Home/Stories/CloseIcon";
+import { useSwipeable, UP, DOWN, SwipeEventData } from "react-swipeable";
+import Loader from "../components/global/Loader";
 function StoriesLists({
-  currentStoryInd,
   currentStoryId,
-  index,
   story,
   setCurrentStoryId,
+  setSelectStory,
 }) {
   const selectedStory = useSelector(
     (state: any) => state.homepage.selectedStory
   );
   const dispatch = useDispatch();
-
+  const handlers = useSwipeable({
+    onSwipedLeft: (eventData) => {
+      dispatch(setNextStory(story.id));
+    },
+    onSwipedRight: (eventData) => {
+      dispatch(setPreviousStory(story.id));
+    },
+    trackMouse: true,
+  });
   return (
     <>
-      {currentStoryInd === index && (
+      <div
+        {...handlers}
+        className="fixed-layout"
+        style={{
+          position: "fixed",
+          left: "0px",
+          top: "0px",
+          zIndex: "999999999999999",
+        }}
+      >
+        <CloseIcon
+          close={() => {
+            setSelectStory(null);
+            setCurrentStoryId(0);
+          }}
+        />
         <ReactInstaStories
           key={story.id.id}
-          isPaused={story.id !== selectedStory.id}
-          preventDefault={true}
-          preloadCount={2}
-          currentIndex={GetUnviewedStory(story)}
-          onPrevious={() => {
-            if (currentStoryId > 0) setCurrentStoryId(currentStoryId - 1);
-            else {
-              dispatch(setPreviousStory(story.id));
-            }
-          }}
-          onNext={() => {
-            if (currentStoryId < story.stories.length - 1)
-              setCurrentStoryId(currentStoryId + 1);
-            else {
-              dispatch(setNextStory(story.id));
-            }
-          }}
-          stories={configureStory(story)?.stories}
+          preloadCount={3}
+          loader={<Loader style={{}} />}
+          currentIndex={GetUnviewedStory(selectedStory)}
+          onPrevious={() =>
+            currentStoryId > 0
+              ? setCurrentStoryId(currentStoryId - 1)
+              : dispatch(setPreviousStory(story.id))
+          }
+          onNext={() =>
+            currentStoryId < story.stories.length - 1
+              ? setCurrentStoryId(currentStoryId + 1)
+              : dispatch(setNextStory(story.id))
+          }
+          stories={selectedStory.stories}
           storyContainerStyles={{
             width: "100%",
             height: "100%",
@@ -66,15 +86,13 @@ function StoriesLists({
               dispatch(setNextStory(selectedStory.id));
             }, 10);
           }}
-          onStoryEnd={() => {
-            if (currentStoryId < story.stories.length - 1)
-              setCurrentStoryId(currentStoryId + 1);
-            else {
-              dispatch(setNextStory(story.id));
-            }
-          }}
+          onStoryEnd={() =>
+            currentStoryId < story.stories.length - 1
+              ? setCurrentStoryId(currentStoryId + 1)
+              : dispatch(setNextStory(story.id))
+          }
         />
-      )}
+      </div>
     </>
   );
 }

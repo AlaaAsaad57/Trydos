@@ -16,6 +16,7 @@ import HomeService from "services/home";
 // import GAComponent from "components/global/GAComponent";
 import dynamic from "next/dynamic";
 import { getUserChat } from "utils/functions";
+import LandingPage from "components/Home/LandingPage";
 export default function Providers({ lang, children }) {
   var bool = true;
   useEffect(() => {
@@ -37,6 +38,7 @@ export default function Providers({ lang, children }) {
     <>
       {/* {SSRDetect() && <GAComponent />} */}
       <Provider store={store}>
+        <LandingPage />
         <div className="site-container">
           <div className="home-page-container">
             <TranslationsMenu init={lang} />
