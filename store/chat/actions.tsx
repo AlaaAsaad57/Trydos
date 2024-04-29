@@ -14,6 +14,8 @@ import { onValue, push, ref, set } from "firebase/database";
 import axios from "axios";
 import { showDate } from "components/Chat/chatsFunctions";
 export const ChatConroller = (payload) => {
+  if (payload) document.documentElement.style.overflow = "hidden";
+  else document.documentElement.style.overflow = "initial";
   return { type: "CHAT-OPEN", payload: payload };
 };
 export const GetChats = async (payload) => {

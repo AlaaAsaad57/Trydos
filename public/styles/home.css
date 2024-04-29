@@ -239,6 +239,12 @@ body {
 svg g #Path_213320 {
   animation: opa 1s both infinite;
 }
+.active-nav-item svg g g path:first-child {
+  fill: #3c3c3c;
+}
+.active-nav-item svg g g path:last-child {
+  fill: #505050;
+}
 .image-loader {
   width: 100%;
   height: 100%;
