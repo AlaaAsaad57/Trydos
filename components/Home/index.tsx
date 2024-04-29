@@ -11,9 +11,8 @@ const QuickOffer = dynamic(() => import("./Bars/QuickOffer"), { ssr: false });
 const OfferBar = dynamic(() => import("./Bars/OfferBar"), { ssr: false });
 const CategoryBar = dynamic(() => import("./Bars/CategoryBar"), { ssr: false });
 import OffersList from "./OfferWidgets/OfferList";
-const StoriesComponent = dynamic(() => import("./Stories/StoriesComponent"), {
-  ssr: false,
-});
+import StoriesComponent from "./Stories/StoriesComponent";
+
 import ChatService from "services/chat";
 const NotificationContainer = dynamic(() => import("./Notifications"), {
   ssr: false,
@@ -23,6 +22,7 @@ import NameModal from "components/global/NameModal";
 import { getUserStories } from "../../utils/functions";
 import StoryServiceClass from "services/story";
 import NewLoginWidget from "components/Login/NewLoginWidget";
+import StoreisCompnent from "./Stories/StoreisCompnent";
 export default function Home({
   HomeData_res,
   HomeData,
@@ -100,7 +100,7 @@ export default function Home({
       {enableNotifications && <NotificationContainer />}
       <Stories />
       {nameModal && <NameModal />}
-      {<StoriesComponent />}
+      <StoriesComponent />
       <BrandsBar />
       <OffersList key={2} offers={[1, 1, 1]} quick={false} />
       <CategoryBar />

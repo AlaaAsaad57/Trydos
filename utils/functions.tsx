@@ -6,6 +6,7 @@ import { Resize } from "@cloudinary/url-gen/actions";
 import profilePicture from "public/images/profileNo.png";
 import { GET_USERS_STORIES, STORIES_URL } from "./endpointConfig";
 import StoryServiceClass from "services/story";
+import { useEffect, useState } from "react";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -53,7 +54,6 @@ export const configureStory = (story) => {
         .video(storyItem.full_video_path?.split("/").pop().split(".")[0])
         .format("webm")
         .delivery(quality(auto()));
-      console.log(vid.toURL());
       returnedData.push({
         url: vid.toURL().includes("?")
           ? vid.toURL() +
@@ -140,5 +140,37 @@ export const getUserStories = () => {
 };
 
 export const _isStoreLastJson = () => {
-   return !!process.env.NEXT_PUBLIC_IS_STORE_LAST_JSON
-}
+  return !!process.env.NEXT_PUBLIC_IS_STORE_LAST_JSON;
+};
+export const useTimers = ({ durationValue }) => {
+  const [temp, setTemp] = useState(0);
+  const [duration, setDuration] = useState(durationValue);
+  const [isFinished, Finished] = useState(false);
+  const [isPaused, Paused] = useState(false);
+  useEffect(() => {
+    let interval = setInterval(() => {
+      if (!isPaused) {
+        if (temp !== duration && duration - temp > 200) {
+          setTemp((oldValue) => oldValue + 200);
+        } else {
+          setTemp(duration);
+          Finished(true);
+        }
+      } else {
+        return;
+      }
+    }, 150);
+    return () => clearInterval(interval);
+  }, [temp]);
+  return {
+    isFinished: isFinished,
+    time: (temp * 100) / duration,
+    reset: (b) => {
+      setTemp(0);
+      setDuration(b || duration);
+      Finished(false);
+    },
+    isPaused: isPaused,
+    Paused: (e) => Paused(e),
+  };
+};

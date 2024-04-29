@@ -1,0 +1,69 @@
+img::selection {
+  background: transparent;
+}
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.image-full {
+  width: 100%;
+  height: 100%;
+}
+
+.cover-image {
+  object-fit: cover;
+}
+
+.flex {
+  display: flex;
+}
+
+.w-full {
+  width: 100%;
+}
+
+@media screen and (min-width: 480px) {
+  #container {
+    border-radius: 12px;
+  }
+}
+.next-story-button {
+  width: 50%;
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  height: 100%;
+  z-index: 999;
+}
+.prev-story-button {
+  width: 50%;
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  height: 100vh;
+  z-index: 999;
+}
+.App-stories {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  z-index: 100000000;
+}
+#container {
+  width: 100% !important;
+  height: 100% !important;
+}

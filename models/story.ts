@@ -25,7 +25,7 @@ export interface StoryType {
     id: number;
     full_video_path: string | null;
     photo_path: string | null;
-    is_video: boolean;
+    is_video: number;
     is_seen: boolean;
   }[];
 }
