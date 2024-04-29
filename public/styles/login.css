@@ -191,6 +191,10 @@
 .pincode-input-text {
   color: #707070 !important;
   border: none !important;
+  font-size: 20px;
+}
+.pincode-input-text:hover {
+  font-size: 20px;
 }
 .input-success {
   background-color: #f4fff4 !important;
