@@ -44,17 +44,33 @@ function StoriesComponent() {
   }, [renderStories, selectedStory]);
   return (
     <>
-      {storiesData.map(
-        (story, key) =>
-          selectedStory?.id === story.id && (
-            <StoriesLists
-              currentStoryId={currentStoryId}
-              setCurrentStoryId={(e) => setCurrentStoryId(e)}
-              story={story}
-              key={key}
-              setSelectStory={(e) => setSelectStory(e)}
-            />
-          )
+      {selectedStory?.id && (
+        <div
+          style={{
+            position: "fixed",
+            backgroundColor: "#111111",
+            zIndex: "9999999999999",
+            width: "100vw",
+            height: "100vh",
+          }}
+        >
+          {storiesData.map(
+            (story, key) =>
+              selectedStory?.id && (
+                <StoriesLists
+                  currentStoryId={currentStoryId}
+                  setCurrentStoryId={(e) => setCurrentStoryId(e)}
+                  story={story}
+                  selectedIndex={() =>
+                    storiesData.findIndex((s) => s.id === selectedStory?.id)
+                  }
+                  key={key}
+                  index={key}
+                  setSelectStory={(e) => setSelectStory(e)}
+                />
+              )
+          )}
+        </div>
       )}
     </>
   );

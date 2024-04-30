@@ -492,7 +492,7 @@ function LogInPins({
             // onComplete={(value, index) => setPin(value)}
             autoSelect={true}
             regexCriteria={/^[ A-Za-z0-9_@./#&+-]*$/}
-
+            focus={true}
             // disabled={disablePin}
           />
         )}
