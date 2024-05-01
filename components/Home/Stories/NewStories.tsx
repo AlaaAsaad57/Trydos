@@ -16,11 +16,9 @@ function StoriesContainer({ activeId, selectedStory }) {
   const [index, setIndex] = useState(
     storiesData.findIndex((s) => s.id === selectedStory?.id)
   );
-  const [currentStoryId, setCurrentStoryId] = useState(0);
+
   const dispatch = useDispatch();
-  useEffect(() => {
-    setIndex(storiesData.findIndex((s) => s.id === selectedStory?.id));
-  }, [selectedStory]);
+
   const handlers = useSwipeable({
     onSwipedUp: () => {
       dispatch(SelectStory(null));
@@ -30,16 +28,14 @@ function StoriesContainer({ activeId, selectedStory }) {
   return (
     <div className="fixed-layout" {...handlers}>
       <Cube
-        index={index}
+        index={storiesData.findIndex((s) => s.id === selectedStory?.id)}
         onChange={(i) => {
-          setIndex(i);
-          console.log(i);
           dispatch(SelectStory(storiesData[i]));
         }}
         width={window.innerWidth}
+        lockScrolling
         height={window.innerHeight}
         hasNext={(i) => i < storiesData.length - 1}
-        enableGestures
         renderItem={(i, active) => {
           return (
             <div
@@ -54,8 +50,6 @@ function StoriesContainer({ activeId, selectedStory }) {
                 <StoryHolder
                   active={selectedStory.id === storiesData[i]?.id}
                   isPaused={active}
-                  currentStoryId={currentStoryId}
-                  setCurrentStoryId={(e) => setCurrentStoryId(e)}
                   story={configureStory(storiesData[i])}
                 />
               )}

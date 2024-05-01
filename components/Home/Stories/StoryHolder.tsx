@@ -11,31 +11,22 @@ import { StoryType } from "models/story";
 interface Props {
   story: StoryType;
   active: boolean;
-  currentStoryId: number;
-  setCurrentStoryId: Function;
   isPaused: boolean;
 }
-function StoryHolder({
-  story,
-  active,
-  currentStoryId,
-  setCurrentStoryId,
-  isPaused,
-}: Props) {
+function StoryHolder({ story, active, isPaused }: Props) {
   const dispatch = useDispatch();
-  const selectedStory = useSelector(
-    (state: any) => state.homepage.selectedStory
-  );
+  const [currentStoryId, setCurrentStoryId] = useState(0);
+
   return (
     <>
       <div className="story-holder">
-        {active && (
+        {active && !isPaused && (
           <ReactInstaStories
             key={story.id}
             isPaused={isPaused}
             preloadCount={1}
             loader={<Loader style={{}} />}
-            currentIndex={GetUnviewedStory(selectedStory)}
+            currentIndex={0}
             onPrevious={() => {
               if (active) {
                 currentStoryId > 0
@@ -44,6 +35,7 @@ function StoryHolder({
               }
             }}
             onNext={() => {
+              console.log(active, isPaused, "next-story", story.id);
               if (active) {
                 currentStoryId < story.stories.length
                   ? setCurrentStoryId(currentStoryId + 1)
@@ -72,7 +64,8 @@ function StoryHolder({
               setTimeout(() => {
                 if (active) {
                   setCurrentStoryId(0);
-                  dispatch(setNextStory(selectedStory.id));
+                  console.log(active, isPaused, "next-story", story.id);
+                  dispatch(setNextStory(story.id));
                 }
               }, 10);
             }}

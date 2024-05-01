@@ -100,13 +100,13 @@ export default function Home({
       {enableNotifications && <NotificationContainer />}
       <Stories />
       {nameModal && <NameModal />}
-      {/* <StoriesComponent /> */}
-      {selectedStory?.id && (
+      <StoriesComponent />
+      {/* {selectedStory?.id && (
         <StoriesContainer
           activeId={selectedStory?.id}
           selectedStory={selectedStory}
         />
-      )}
+      )} */}
       <BrandsBar />
       <OffersList key={2} offers={[1, 1, 1]} quick={false} />
       <CategoryBar />

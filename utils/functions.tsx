@@ -55,13 +55,7 @@ export const configureStory = (story) => {
         .format("webm")
         .delivery(quality(auto()));
       returnedData.push({
-        url: vid.toURL().includes("?")
-          ? vid.toURL() +
-            "&asa=" +
-            parseInt((Math.random() * 1000).toString()).toString()
-          : vid.toURL() +
-            "?asa=" +
-            parseInt((Math.random() * 1000).toString()).toString(),
+        url: vid.toURL(),
         FixedUrl: vid,
         is_seen: storyItem.is_seen,
 
@@ -81,13 +75,7 @@ export const configureStory = (story) => {
         .format("webp")
         .delivery(quality(auto()));
       returnedData.push({
-        url: img.toURL().includes("?")
-          ? img.toURL() +
-            "&asa=" +
-            parseInt((Math.random() * 1000).toString()).toString()
-          : img.toURL() +
-            "?asa=" +
-            parseInt((Math.random() * 1000).toString()).toString(),
+        url: img.toURL(),
         FixedUrl: img,
         is_seen: storyItem.is_seen,
         duration: 5000,

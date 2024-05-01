@@ -117,7 +117,6 @@
   .stories-bars {
     padding-left: 20px;
     align-items: flex-end;
-    overflow: hidden !important;
     padding-right: 20px;
     padding-bottom: 20px;
     transform: translateY(23px);
