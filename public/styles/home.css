@@ -198,6 +198,16 @@ body {
 .fixed-layout {
   max-width: 100%;
   max-height: 100%;
+  position: fixed;
+  height: 100vh;
+  width: 100vw;
+  left: 0px;
+  top: 0px;
+  z-index: 999999999999999;
+  background-color: #5e5e5e;
+}
+.Cube__Pane {
+  padding: 0px !important;
 }
 .fixed-stories {
   transform-style: preserve-3d;
@@ -483,3 +493,43 @@ span.bold-text {
   position: static !important;
   z-index: 99999999;
 }
+/*-----------*/
+.story-holder {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.prgress-container {
+  width: calc(100% - 16px);
+  display: flex;
+  justify-content: space-between;
+  position: absolute;
+  top: 0px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  height: 5px;
+}
+.story-progress {
+  display: flex;
+  height: 3px;
+  border-radius: 2px;
+  background-color: #bababa;
+}
+.story-progress-inner {
+  display: flex;
+  height: 3px;
+  border-radius: 2px;
+  background-color: white;
+}
+.story-holder img,
+.story-holder video {
+  width: 100%;
+  height: auto;
+  max-height: 90%;
+  object-fit: contain;
+}
+/*-----------*/

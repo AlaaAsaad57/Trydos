@@ -30,6 +30,9 @@ function StoriesLists({
     onSwipedRight: (eventData) => {
       dispatch(setPreviousStory(story.id));
     },
+    onSwipedUp: () => {
+      dispatch(setPreviousStory(null));
+    },
     trackMouse: true,
   });
   return (

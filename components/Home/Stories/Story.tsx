@@ -26,7 +26,6 @@ function Story({
           alt="story"
           onLoad={(e) => {
             onLoad("loaded");
-            console.log(e);
           }}
           width={145}
           height={255}

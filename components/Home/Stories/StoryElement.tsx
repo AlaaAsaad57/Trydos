@@ -3,7 +3,7 @@ import Story from "./Story";
 import profilePicture from "public/images/profileNo.png";
 import { configureStory } from "utils/functions";
 import { GetUnviewedStory } from "store/homepage/actions";
-import { StoryType } from "models/story";
+import { Story as StoryInterface } from "models/story";
 
 function StoryElement({
   index,
@@ -11,7 +11,7 @@ function StoryElement({
   select,
 }: {
   index: number;
-  story: StoryType;
+  story: StoryInterface;
   select: Function;
 }) {
   return (
