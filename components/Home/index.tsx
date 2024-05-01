@@ -22,7 +22,6 @@ import NameModal from "components/global/NameModal";
 import { getUserStories } from "../../utils/functions";
 import StoryServiceClass from "services/story";
 import NewLoginWidget from "components/Login/NewLoginWidget";
-import StoriesContainer from "./Stories/NewStories";
 export default function Home({
   HomeData_res,
   HomeData,
