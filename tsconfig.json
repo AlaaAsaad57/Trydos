@@ -4,7 +4,8 @@
       "*": ["./*"],
       "@/*": ["./*"],
       "assets/*": ["./public/*"],
-      "styles/*": ["./public/styles/*"]
+      "styles/*": ["./public/styles/*"],
+      "react": ["./node_modules/@types/react"]
     },
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
