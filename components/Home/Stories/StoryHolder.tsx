@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useTimer } from "react-timer-and-stopwatch";
 import ReactInstaStories from "react-insta-stories";
 import Loader from "components/global/Loader";
 import {

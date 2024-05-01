@@ -5,10 +5,9 @@ import {
   setNextStory,
   setPreviousStory,
 } from "store/homepage/actions";
-import { configureStory } from "./functions";
 import { useDispatch, useSelector } from "react-redux";
 import CloseIcon from "components/Home/Stories/CloseIcon";
-import { useSwipeable, UP, DOWN, SwipeEventData } from "react-swipeable";
+import { useSwipeable } from "react-swipeable";
 import Loader from "../components/global/Loader";
 function StoriesLists({
   currentStoryId,
