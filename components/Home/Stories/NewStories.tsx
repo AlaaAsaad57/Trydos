@@ -68,7 +68,7 @@ function StoriesContainer({ activeId, selectedStory }) {
           dispatch(SelectStory(storiesData[i]));
         }}
         width={window.innerWidth}
-        lockScrolling
+        enableGestures
         height={window.visualViewport.height - 100}
         hasNext={(i) => i < storiesData.length - 1}
         renderItem={(i, active) => {

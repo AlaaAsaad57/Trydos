@@ -1,9 +1,15 @@
 import * as React from "react";
 import { Renderer, Tester } from "./../interfaces";
 
-export const renderer: Renderer = ({ story, action }) => {
+export const renderer: Renderer = ({
+  story,
+  action,
+  isPaused,
+  activeId,
+  id,
+}) => {
   React.useEffect(() => {
-    action("play");
+    if (!isPaused && activeId === id) action("play");
   }, [story]);
 
   return (

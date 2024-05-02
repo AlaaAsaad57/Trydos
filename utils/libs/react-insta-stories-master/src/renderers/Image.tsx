@@ -4,7 +4,14 @@ import { Renderer, Tester } from "./../interfaces";
 import WithHeader from "./wrappers/withHeader";
 import WithSeeMore from "./wrappers/withSeeMore";
 
-export const renderer: Renderer = ({ story, action, isPaused, config }) => {
+export const renderer: Renderer = ({
+  story,
+  action,
+  isPaused,
+  config,
+  activeId,
+  id,
+}) => {
   const [loaded, setLoaded] = React.useState(false);
   const { width, height, loader, storyStyles } = config;
   let computedStyles = {
@@ -14,7 +21,7 @@ export const renderer: Renderer = ({ story, action, isPaused, config }) => {
 
   const imageLoaded = () => {
     setLoaded(true);
-    action("play");
+    if (activeId === id) action("play");
   };
   return (
     <WithHeader {...{ story, globalHeader: config.header }}>
