@@ -22,14 +22,14 @@ function StoriesContainer({ activeId, selectedStory }) {
   const handlers = useSwipeable({
     onSwiping: (e) => {
       if (e.dir === "Up") {
-        dir -= 5;
+        dir -= 10;
         document.querySelector<HTMLDivElement>(
           ".fixed-layout"
         ).style.transform = `translateY(${dir}px)`;
       }
       if (e.dir === "Down") {
         if (dir < 0) {
-          dir += 5;
+          dir += 10;
           document.querySelector<HTMLDivElement>(
             ".fixed-layout"
           ).style.transform = `translateY(${dir}px)`;
@@ -54,7 +54,13 @@ function StoriesContainer({ activeId, selectedStory }) {
     delta: 3,
   });
   return (
-    <div className="fixed-layout" {...handlers}>
+    <div
+      className="fixed-layout"
+      {...handlers}
+      style={{
+        height: `${window.visualViewport.height}px`,
+      }}
+    >
       <Cube
         index={storiesData.findIndex((s) => s.id === selectedStory?.id)}
         onChange={(i) => {
@@ -63,7 +69,7 @@ function StoriesContainer({ activeId, selectedStory }) {
         }}
         width={window.innerWidth}
         lockScrolling
-        height={window.innerHeight}
+        height={window.visualViewport.height - 100}
         hasNext={(i) => i < storiesData.length - 1}
         renderItem={(i, active) => {
           return (

@@ -199,12 +199,15 @@ body {
   max-width: 100%;
   max-height: 100%;
   position: fixed;
-  height: 100vh;
+  height: 100%;
   width: 100vw;
   left: 0px;
   top: 0px;
   z-index: 999999999999999;
-  background-color: #5e5e5e;
+  background-color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .Cube__Pane {
   padding: 0px !important;
