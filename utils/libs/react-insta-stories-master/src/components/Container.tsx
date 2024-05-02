@@ -151,10 +151,12 @@ export default function (props) {
     (type: string) => (e: React.MouseEvent | React.TouchEvent) => {
       e.preventDefault();
       mousedownId.current && clearTimeout(mousedownId.current);
-      if (pause) {
+      if (pause && activeId === id) {
         toggleState("play");
       } else {
-        type === "next" ? next({ isSkippedByUser: true }) : previous();
+        if (activeId === id) {
+          type === "next" ? next({ isSkippedByUser: true }) : previous();
+        }
       }
     };
 
