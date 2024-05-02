@@ -78,7 +78,7 @@ export const renderer: Renderer = ({
             playsInline
             onWaiting={onWaiting}
             onPlaying={onPlaying}
-            muted={muted}
+            muted={activeId !== id}
             autoPlay={true}
             webkit-playsinline="true"
           />

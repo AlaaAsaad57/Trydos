@@ -124,20 +124,24 @@ export default function (props) {
   };
 
   const updateNextStoryIdForLoop = () => {
-    setCurrentIdWrapper((prev) => {
-      if (prev >= stories.length - 1) {
-        onAllStoriesEnd && onAllStoriesEnd(currentId, stories);
-      }
-      return (prev + 1) % stories.length;
-    });
+    if (activeId === id) {
+      setCurrentIdWrapper((prev) => {
+        if (prev >= stories.length - 1) {
+          onAllStoriesEnd && onAllStoriesEnd(currentId, stories);
+        }
+        return (prev + 1) % stories.length;
+      });
+    }
   };
 
   const updateNextStoryId = () => {
-    setCurrentIdWrapper((prev) => {
-      if (prev < stories.length - 1) return prev + 1;
-      onAllStoriesEnd && onAllStoriesEnd(currentId, stories);
-      return prev;
-    });
+    if (activeId === id) {
+      setCurrentIdWrapper((prev) => {
+        if (prev < stories.length - 1) return prev + 1;
+        onAllStoriesEnd && onAllStoriesEnd(currentId, stories);
+        return prev;
+      });
+    }
   };
 
   const debouncePause = (e: React.MouseEvent | React.TouchEvent) => {
@@ -181,7 +185,7 @@ export default function (props) {
           next,
         }}
       >
-        <ProgressArray />
+        <ProgressArray activeId={activeId} id={id} />
       </ProgressContext.Provider>
       <Story
         action={toggleState}

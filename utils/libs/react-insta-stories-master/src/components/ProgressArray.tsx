@@ -10,18 +10,15 @@ import GlobalContext from "./../context/Global";
 import StoriesContext from "./../context/Stories";
 import { timestamp } from "../util/time";
 
-export default () => {
+export default (props) => {
   const [count, setCount] = useState<number>(0);
   const lastTime = useRef<number>();
 
   const { currentId, next, videoDuration, pause, bufferAction } =
     useContext<ProgressContext>(ProgressCtx);
-  const {
-    defaultInterval,
-    onStoryEnd,
-    onStoryStart,
-    progressContainerStyles,
-  } = useContext<GlobalCtx>(GlobalContext);
+  const { defaultInterval, onStoryEnd, onStoryStart, progressContainerStyles } =
+    useContext<GlobalCtx>(GlobalContext);
+  const { activeId, id } = props;
   const { stories } = useContext<StoriesContextInterface>(StoriesContext);
 
   useEffect(() => {
@@ -66,7 +63,8 @@ export default () => {
   };
 
   const storyEndCallback = () => {
-    onStoryEnd && onStoryEnd(currentId, stories[currentId]);
+    if (activeId === id)
+      onStoryEnd && onStoryEnd(currentId, stories[currentId]);
   };
 
   const getCurrentInterval = () => {
@@ -81,11 +79,13 @@ export default () => {
   };
 
   return (
-    <div style={{
-      ...styles.progressArr,
-      ...progressContainerStyles,
-      ...opacityStyles
-    }}>
+    <div
+      style={{
+        ...styles.progressArr,
+        ...progressContainerStyles,
+        ...opacityStyles,
+      }}
+    >
       {stories.map((_, i) => (
         <Progress
           key={i}
