@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  SelectStory,
-  setNextStory,
-  setPreviousStory,
-} from "store/homepage/actions";
+import { SelectStory } from "store/homepage/actions";
 import dynamic from "next/dynamic";
 import StoryService from "services/story";
 import { GetUnviewedStory } from "../../../store/homepage/actions";

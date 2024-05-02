@@ -18,18 +18,47 @@ function StoriesContainer({ activeId, selectedStory }) {
   );
 
   const dispatch = useDispatch();
-
+  var dir = 0;
   const handlers = useSwipeable({
-    onSwipedUp: () => {
-      dispatch(SelectStory(null));
+    onSwiping: (e) => {
+      if (e.dir === "Up") {
+        dir -= 5;
+        document.querySelector<HTMLDivElement>(
+          ".fixed-layout"
+        ).style.transform = `translateY(${dir}px)`;
+      }
+      if (e.dir === "Down") {
+        if (dir < 0) {
+          dir += 5;
+          document.querySelector<HTMLDivElement>(
+            ".fixed-layout"
+          ).style.transform = `translateY(${dir}px)`;
+        }
+      }
+    },
+    onTouchEndOrOnMouseUp: () => {
+      if (Math.abs(dir) > 50) {
+        dispatch(SelectStory(null));
+        dir = 0;
+        document.querySelector<HTMLDivElement>(
+          ".fixed-layout"
+        ).style.transform = `translateY(${0}px)`;
+      } else {
+        dir = 0;
+        document.querySelector<HTMLDivElement>(
+          ".fixed-layout"
+        ).style.transform = `translateY(${0}px)`;
+      }
     },
     trackMouse: true,
+    delta: 3,
   });
   return (
     <div className="fixed-layout" {...handlers}>
       <Cube
         index={storiesData.findIndex((s) => s.id === selectedStory?.id)}
         onChange={(i) => {
+          console.log(i);
           dispatch(SelectStory(storiesData[i]));
         }}
         width={window.innerWidth}
