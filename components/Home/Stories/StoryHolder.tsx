@@ -88,20 +88,7 @@ function StoryHolder({ story, active, isPaused }: Props) {
                 }
               }, 10);
             }}
-            onStoryEnd={() => {
-              console.log(
-                "story-end-story-next-image",
-                story.id,
-                currentStoryId
-              );
-              if (active) {
-                if (currentStoryId < story.stories.length - 1) {
-                  setCurrentStoryId(currentStoryId + 1);
-                } else {
-                  dispatch(setNextStory(story.id));
-                }
-              }
-            }}
+            onStoryEnd={() => {}}
           />
         }
       </div>
