@@ -17,37 +17,52 @@ function StoriesContainer({ activeId, selectedStory }) {
   const [isTop, setIsTop] = useState("");
 
   const handlers = useSwipeable({
+    onTouchStartOrOnMouseDown: (e) => {
+      dir = 0;
+      console.log(e, "start");
+      document.querySelector<HTMLDivElement>(".fixed-layout").style.transition =
+        "0s";
+    },
     onSwiping: (e) => {
-      if (e.dir === "Up" || e.dir === "Down") {
-        dir -= 7;
+      if (e.dir === "Down") {
+        dir = (e.deltaY * 100) / window.innerHeight;
+        console.log(dir);
+        document.querySelector<HTMLDivElement>(
+          ".fixed-layout"
+        ).style.transform = `translateY(${dir}%)`;
         if (!isTop) setIsTop(e.dir);
       }
     },
     onTouchEndOrOnMouseUp: (e) => {
       if (Math.abs(dir) > 5) {
         if (isTop) {
-          document.querySelector<HTMLDivElement>(
-            ".fixed-layout"
-          ).style.transition = "0.2s";
-          document.querySelector<HTMLDivElement>(
-            ".fixed-layout"
-          ).style.transform = `translateY(${
-            isTop === "Up" ? "-" : ""
-          }${800}px)`;
-          setTimeout(() => {
-            dispatch(SelectStory(null));
-          }, 150);
+          if (dir > 20) {
+            document.querySelector<HTMLDivElement>(
+              ".fixed-layout"
+            ).style.transition = "0.3s";
+            document.querySelector<HTMLDivElement>(
+              ".fixed-layout"
+            ).style.transform = `translateY(${100}%)`;
+            console.log(e, "end");
+            setTimeout(() => {
+              dispatch(SelectStory(null));
+            }, 150);
+          } else {
+            document.querySelector<HTMLDivElement>(
+              ".fixed-layout"
+            ).style.transition = "0.3s";
+            document.querySelector<HTMLDivElement>(
+              ".fixed-layout"
+            ).style.transform = `translateY(${0}%)`;
+            console.log(e, "end");
+          }
         }
         dir = 0;
-      } else {
-        dir = 0;
-        document.querySelector<HTMLDivElement>(
-          ".fixed-layout"
-        ).style.transform = `translateY(${0}px)`;
       }
       setIsTop("");
     },
-    delta: 0,
+
+    delta: 10,
     trackMouse: true,
     trackTouch: true,
 
@@ -59,6 +74,16 @@ function StoriesContainer({ activeId, selectedStory }) {
     <div
       className="fixed-layout"
       {...handlers}
+      onPointerLeave={() => {
+        document.querySelector<HTMLDivElement>(
+          ".fixed-layout"
+        ).style.transform = `translateY(${0}%)`;
+      }}
+      onMouseLeave={() => {
+        document.querySelector<HTMLDivElement>(
+          ".fixed-layout"
+        ).style.transform = `translateY(${0}%)`;
+      }}
       style={{
         height: `${window.visualViewport.height}px`,
       }}

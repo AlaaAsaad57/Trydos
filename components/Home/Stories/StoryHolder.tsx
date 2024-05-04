@@ -84,7 +84,7 @@ function StoryHolder({ story, active, isPaused }: Props) {
                 if (active) {
                   setCurrentStoryId(0);
                   console.log("allstories-end-story-next", story.id);
-                  // dispatch(setNextStory(story.id));
+                  dispatch(setNextStory(story.id));
                 }
               }, 10);
             }}

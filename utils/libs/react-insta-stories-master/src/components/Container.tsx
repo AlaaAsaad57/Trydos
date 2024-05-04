@@ -145,7 +145,6 @@ export default function (props) {
   };
 
   const debouncePause = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
     if (pause) {
       toggleState("play");
     }
@@ -153,7 +152,6 @@ export default function (props) {
 
   const mouseUp =
     (type: string) => (e: React.MouseEvent | React.TouchEvent) => {
-      e.preventDefault();
       mousedownId.current && clearTimeout(mousedownId.current);
       if (pause && activeId === id) {
         toggleState("play");
