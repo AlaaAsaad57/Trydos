@@ -14,6 +14,7 @@ export const renderer: Renderer = ({
 }) => {
   const [loaded, setLoaded] = React.useState(false);
   const { width, height, loader, storyStyles } = config;
+  const imgRef = React.useRef<HTMLImageElement>(null);
   let computedStyles = {
     ...styles.storyContent,
     ...(storyStyles || {}),
@@ -23,11 +24,21 @@ export const renderer: Renderer = ({
     setLoaded(true);
     if (activeId === id) action("play");
   };
+  React.useEffect(() => {
+    if (imgRef?.current?.complete) {
+      imageLoaded();
+    }
+  }, [isPaused]);
   return (
     <WithHeader {...{ story, globalHeader: config.header }}>
       <WithSeeMore {...{ story, action }}>
         <div>
-          <img style={computedStyles} src={story.url} onLoad={imageLoaded} />
+          <img
+            style={computedStyles}
+            src={story.url + "?a=ssa"}
+            ref={imgRef}
+            onLoad={imageLoaded}
+          />
           {!loaded && (
             <div
               style={{

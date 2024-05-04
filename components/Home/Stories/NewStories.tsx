@@ -20,23 +20,23 @@ function StoriesContainer({ activeId, selectedStory }) {
     onSwiping: (e) => {
       if (e.dir === "Up") {
         dir -= 7;
-        document.querySelector<HTMLDivElement>(
-          ".fixed-layout"
-        ).style.transform = `translateY(${dir}px)`;
-        console.log(dir);
         if (!isTop) setIsTop(true);
       }
     },
     onTouchEndOrOnMouseUp: (e) => {
-      if (Math.abs(dir) > 20) {
+      if (Math.abs(dir) > 5) {
         if (isTop) {
-          console.log("closed");
-          dispatch(SelectStory(null));
+          document.querySelector<HTMLDivElement>(
+            ".fixed-layout"
+          ).style.transition = "0.2s";
+          document.querySelector<HTMLDivElement>(
+            ".fixed-layout"
+          ).style.transform = `translateY(-${800}px)`;
+          setTimeout(() => {
+            dispatch(SelectStory(null));
+          }, 150);
         }
         dir = 0;
-        document.querySelector<HTMLDivElement>(
-          ".fixed-layout"
-        ).style.transform = `translateY(${0}px)`;
       } else {
         dir = 0;
         document.querySelector<HTMLDivElement>(

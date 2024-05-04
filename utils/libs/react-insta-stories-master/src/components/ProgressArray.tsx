@@ -54,7 +54,7 @@ export default (props) => {
     } else {
       storyEndCallback();
       cancelAnimationFrame(animationFrameId.current);
-      next();
+      if (activeId === id) next();
     }
   };
 
