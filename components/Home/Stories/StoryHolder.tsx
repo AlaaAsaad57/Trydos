@@ -52,7 +52,7 @@ function StoryHolder({ story, active, isPaused }: Props) {
             }}
             onNext={() => {
               if (active) {
-                if (currentStoryId < story.stories.length) {
+                if (currentStoryId < story.stories.length - 1) {
                   console.log("story-next-image", story.id, currentStoryId);
                   setCurrentStoryId(currentStoryId + 1);
                 } else {
@@ -84,22 +84,21 @@ function StoryHolder({ story, active, isPaused }: Props) {
                 if (active) {
                   setCurrentStoryId(0);
                   console.log("allstories-end-story-next", story.id);
-                  dispatch(setNextStory(story.id));
+                  // dispatch(setNextStory(story.id));
                 }
               }, 10);
             }}
             onStoryEnd={() => {
+              console.log(
+                "story-end-story-next-image",
+                story.id,
+                currentStoryId
+              );
               if (active) {
                 if (currentStoryId < story.stories.length - 1) {
-                  console.log(
-                    "story-end-story-next-image",
-                    story.id,
-                    currentStoryId
-                  );
-
                   setCurrentStoryId(currentStoryId + 1);
                 } else {
-                  // dispatch(setNextStory(story.id));
+                  dispatch(setNextStory(story.id));
                 }
               }
             }}
