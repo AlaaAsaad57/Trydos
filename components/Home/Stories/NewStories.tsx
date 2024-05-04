@@ -28,7 +28,7 @@ function StoriesContainer({ activeId, selectedStory }) {
       }
     },
     onTouchEndOrOnMouseUp: (e) => {
-      if (Math.abs(dir) > 30) {
+      if (Math.abs(dir) > 20) {
         if (isTop) {
           console.log("closed");
           dispatch(SelectStory(null));
@@ -77,7 +77,8 @@ function StoriesContainer({ activeId, selectedStory }) {
         }}
         width={window.innerWidth}
         lockScrolling
-        height={window.visualViewport.height - 100}
+        scaleRange={[1, 1]}
+        height={window.innerHeight - 100}
         hasNext={(i) => i < storiesData.length - 1}
         renderItem={(i, active) => {
           return (
