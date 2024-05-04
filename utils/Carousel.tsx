@@ -33,6 +33,10 @@ function StoriesLists({
       dispatch(setPreviousStory(null));
     },
     trackMouse: true,
+    trackTouch: true,
+    touchEventOptions: {
+      passive: false,
+    },
   });
   return (
     <>

@@ -89,7 +89,7 @@ const HomeReducer = (state = initialState, { type, payload }) => {
           ),
           renderStories: !state.renderStories,
         };
-      else return { ...state, selectedStory: null };
+      else return { ...state, selectedStory: state.selectedStory };
     }
     case "ADD-STORY": {
       let arr = [];

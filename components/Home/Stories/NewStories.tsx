@@ -1,12 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Cube from "react-cube-navigation";
-import {
-  GetUnviewedStory,
-  SelectStory,
-  setNextStory,
-  setPreviousStory,
-} from "store/homepage/actions";
+import { SelectStory } from "store/homepage/actions";
 import { configureStory } from "utils/functions";
 import StoryHolder from "./StoryHolder";
 import { useSwipeable } from "react-swipeable";
@@ -19,26 +14,25 @@ function StoriesContainer({ activeId, selectedStory }) {
 
   const dispatch = useDispatch();
   var dir = 0;
+  const [isTop, setIsTop] = useState(false);
+
   const handlers = useSwipeable({
     onSwiping: (e) => {
       if (e.dir === "Up") {
-        dir -= 10;
+        dir -= 7;
         document.querySelector<HTMLDivElement>(
           ".fixed-layout"
         ).style.transform = `translateY(${dir}px)`;
-      }
-      if (e.dir === "Down") {
-        if (dir < 0) {
-          dir += 10;
-          document.querySelector<HTMLDivElement>(
-            ".fixed-layout"
-          ).style.transform = `translateY(${dir}px)`;
-        }
+        console.log(dir);
+        if (!isTop) setIsTop(true);
       }
     },
-    onTouchEndOrOnMouseUp: () => {
-      if (Math.abs(dir) > 50) {
-        dispatch(SelectStory(null));
+    onTouchEndOrOnMouseUp: (e) => {
+      if (Math.abs(dir) > 30) {
+        if (isTop) {
+          console.log("closed");
+          dispatch(SelectStory(null));
+        }
         dir = 0;
         document.querySelector<HTMLDivElement>(
           ".fixed-layout"
@@ -49,9 +43,15 @@ function StoriesContainer({ activeId, selectedStory }) {
           ".fixed-layout"
         ).style.transform = `translateY(${0}px)`;
       }
+      setIsTop(false);
     },
+    delta: 0,
     trackMouse: true,
-    delta: 3,
+    trackTouch: true,
+
+    touchEventOptions: {
+      passive: false,
+    },
   });
   return (
     <div
@@ -64,11 +64,19 @@ function StoriesContainer({ activeId, selectedStory }) {
       <Cube
         index={storiesData.findIndex((s) => s.id === selectedStory?.id)}
         onChange={(i) => {
-          console.log(i);
-          dispatch(SelectStory(storiesData[i]));
+          if (
+            Math.abs(
+              storiesData.findIndex((s) => s.id === selectedStory?.id) - i
+            ) === 1 &&
+            i > -1
+          ) {
+            console.log(i);
+            dispatch(SelectStory(storiesData[i]));
+            console.log("cube-changed", i);
+          }
         }}
         width={window.innerWidth}
-        enableGestures
+        lockScrolling
         height={window.visualViewport.height - 100}
         hasNext={(i) => i < storiesData.length - 1}
         renderItem={(i, active) => {

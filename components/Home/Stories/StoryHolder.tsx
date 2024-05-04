@@ -1,11 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "components/global/Loader";
-import {
-  GetUnviewedStory,
-  setNextStory,
-  setPreviousStory,
-} from "store/homepage/actions";
+import { setNextStory, setPreviousStory } from "store/homepage/actions";
 import { StoryType } from "models/story";
 import ReactInstaStories from "utils/libs/react-insta-stories-master/src";
 
@@ -23,11 +19,14 @@ function StoryHolder({ story, active, isPaused }: Props) {
   const [paused, setIsPaused] = useState(true);
   useEffect(() => {
     if (selectedStory.id === story.id) {
+      setCurrentStoryId(0);
       setIsPaused(false);
     } else {
+      setCurrentStoryId(0);
       setIsPaused(true);
     }
   }, [selectedStory]);
+  useEffect(() => {}, []);
   return (
     <>
       <div className="story-holder">
@@ -42,16 +41,24 @@ function StoryHolder({ story, active, isPaused }: Props) {
             currentIndex={0}
             onPrevious={() => {
               if (active) {
-                currentStoryId > 0
-                  ? setCurrentStoryId(currentStoryId - 1)
-                  : dispatch(setPreviousStory(story.id));
+                if (currentStoryId > 0) {
+                  console.log("story-prev-image", story.id, currentStoryId);
+                  setCurrentStoryId(currentStoryId - 1);
+                } else {
+                  console.log("story-prev", story.id);
+                  dispatch(setPreviousStory(story.id));
+                }
               }
             }}
             onNext={() => {
               if (active) {
-                currentStoryId < story.stories.length
-                  ? setCurrentStoryId(currentStoryId + 1)
-                  : dispatch(setNextStory(story.id));
+                if (currentStoryId < story.stories.length) {
+                  console.log("story-next-image", story.id, currentStoryId);
+                  setCurrentStoryId(currentStoryId + 1);
+                } else {
+                  console.log("story-next", story.id);
+                  dispatch(setNextStory(story.id));
+                }
               }
             }}
             stories={story.stories}
@@ -76,16 +83,22 @@ function StoryHolder({ story, active, isPaused }: Props) {
               setTimeout(() => {
                 if (active) {
                   setCurrentStoryId(0);
-
+                  console.log("allstories-end-story-next", story.id);
                   dispatch(setNextStory(story.id));
                 }
               }, 10);
             }}
             onStoryEnd={() => {
               if (active) {
-                if (currentStoryId < story.stories.length - 1)
+                if (currentStoryId < story.stories.length - 1) {
+                  console.log(
+                    "story-end-story-next-image",
+                    story.id,
+                    currentStoryId
+                  );
+
                   setCurrentStoryId(currentStoryId + 1);
-                else {
+                } else {
                   // dispatch(setNextStory(story.id));
                 }
               }

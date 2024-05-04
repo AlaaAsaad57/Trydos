@@ -146,9 +146,9 @@ export default function (props) {
 
   const debouncePause = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
-    mousedownId.current = setTimeout(() => {
-      toggleState("pause");
-    }, 200);
+    if (pause) {
+      toggleState("play");
+    }
   };
 
   const mouseUp =
@@ -202,14 +202,12 @@ export default function (props) {
           <div
             style={{ width: "50%", zIndex: 999 }}
             onTouchStart={debouncePause}
-            onTouchEnd={mouseUp("previous")}
             onMouseDown={debouncePause}
             onMouseUp={mouseUp("previous")}
           />
           <div
             style={{ width: "50%", zIndex: 999 }}
             onTouchStart={debouncePause}
-            onTouchEnd={mouseUp("next")}
             onMouseDown={debouncePause}
             onMouseUp={mouseUp("next")}
           />

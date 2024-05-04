@@ -85,6 +85,9 @@ export default function Home({
   };
   useEffect(() => {
     if (selectedStory) {
+      document.documentElement
+        .getElementsByTagName("meta")[0]
+        .setAttribute("content", "");
       document.body.style.overflowY = "hidden";
     } else {
       document.body.style.overflowY = "initial";
