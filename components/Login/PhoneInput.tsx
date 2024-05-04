@@ -388,7 +388,8 @@ function PhoneInput({
           className="login-phone-input"
         />
         {validNumber && stepIndicator <= 3 && (
-          <LeftArrowIcon
+          <span
+            className="phone-arrow"
             onClick={() => {
               // AuthService.CheckPhone(
               //   inputValue,
@@ -397,8 +398,9 @@ function PhoneInput({
               // );
               setStepIndcator(4);
             }}
-            className="phone-arrow"
-          />
+          >
+            <LeftArrowIcon />
+          </span>
         )}
       </div>
       {wrongNumber && (

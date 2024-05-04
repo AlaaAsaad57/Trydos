@@ -210,7 +210,8 @@ function InputName({
           placeholder={translate("Enter Your Name", language)}
         />
         {value.length > 4 && (
-          <LeftArrowIcon
+          <span
+            className="phone-arrow"
             onClick={() => {
               // AuthService.CheckPhone(
               //   inputValue,
@@ -219,8 +220,9 @@ function InputName({
               // );
               submit();
             }}
-            className="phone-arrow"
-          />
+          >
+            <LeftArrowIcon />
+          </span>
         )}
       </div>
     </>

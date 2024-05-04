@@ -207,47 +207,43 @@ function NewLoginWidget({ close }: LoginWidgetProps) {
         </div>
       )}
       {stepIndicator > 1 && (
-        <svg
-          onClick={() => close()}
-          style={{
-            position: "absolute",
-            top: "60px",
-            right: "30px",
-            cursor: "pointer",
-          }}
-          id="login-close-icon"
-          xmlns="http://www.w3.org/2000/svg"
-          width="16.411"
-          height="16.411"
-          viewBox="0 0 16.411 16.411"
-        >
-          <g
-            id="Group_10735"
-            data-name="Group 10735"
-            transform="translate(-1293.141 -97.641)"
+        <span id="login-close-icon" onClick={() => close()}>
+          {" "}
+          <svg
+            onClick={() => close()}
+            xmlns="http://www.w3.org/2000/svg"
+            width="16.411"
+            height="16.411"
+            viewBox="0 0 16.411 16.411"
           >
-            <line
-              id="Line_792"
-              data-name="Line 792"
-              x2="20.848"
-              transform="matrix(0.695, -0.719, 0.719, 0.695, 1294.105, 113.345)"
-              fill="none"
-              stroke="#ff5f61"
-              stroke-linecap="round"
-              stroke-width="1"
-            />
-            <line
-              id="Line_793"
-              data-name="Line 793"
-              x2="20.848"
-              transform="matrix(0.719, 0.695, -0.695, 0.719, 1293.849, 98.605)"
-              fill="none"
-              stroke="#ff5f61"
-              stroke-linecap="round"
-              stroke-width="1"
-            />
-          </g>
-        </svg>
+            <g
+              id="Group_10735"
+              data-name="Group 10735"
+              transform="translate(-1293.141 -97.641)"
+            >
+              <line
+                id="Line_792"
+                data-name="Line 792"
+                x2="20.848"
+                transform="matrix(0.695, -0.719, 0.719, 0.695, 1294.105, 113.345)"
+                fill="none"
+                stroke="#ff5f61"
+                stroke-linecap="round"
+                stroke-width="1"
+              />
+              <line
+                id="Line_793"
+                data-name="Line 793"
+                x2="20.848"
+                transform="matrix(0.719, 0.695, -0.695, 0.719, 1293.849, 98.605)"
+                fill="none"
+                stroke="#ff5f61"
+                stroke-linecap="round"
+                stroke-width="1"
+              />
+            </g>
+          </svg>
+        </span>
       )}
       {stepIndicator === 4 && (
         <SendMethod

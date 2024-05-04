@@ -257,12 +257,14 @@ a {
 .categories-bar-container a,
 .categories-bar-item {
   display: flex;
+
   flex-direction: column;
   cursor: pointer;
   position: relative;
+  width: 50px;
   max-width: 100%;
   justify-content: flex-start;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .categories-bar-container a:not(:first-child),
