@@ -14,13 +14,13 @@ function StoriesContainer({ activeId, selectedStory }) {
 
   const dispatch = useDispatch();
   var dir = 0;
-  const [isTop, setIsTop] = useState(false);
+  const [isTop, setIsTop] = useState("");
 
   const handlers = useSwipeable({
     onSwiping: (e) => {
-      if (e.dir === "Up") {
+      if (e.dir === "Up" || e.dir === "Down") {
         dir -= 7;
-        if (!isTop) setIsTop(true);
+        if (!isTop) setIsTop(e.dir);
       }
     },
     onTouchEndOrOnMouseUp: (e) => {
@@ -31,7 +31,9 @@ function StoriesContainer({ activeId, selectedStory }) {
           ).style.transition = "0.2s";
           document.querySelector<HTMLDivElement>(
             ".fixed-layout"
-          ).style.transform = `translateY(-${800}px)`;
+          ).style.transform = `translateY(${
+            isTop === "Up" ? "-" : ""
+          }${800}px)`;
           setTimeout(() => {
             dispatch(SelectStory(null));
           }, 150);
@@ -43,7 +45,7 @@ function StoriesContainer({ activeId, selectedStory }) {
           ".fixed-layout"
         ).style.transform = `translateY(${0}px)`;
       }
-      setIsTop(false);
+      setIsTop("");
     },
     delta: 0,
     trackMouse: true,
