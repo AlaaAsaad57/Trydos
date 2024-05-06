@@ -6,10 +6,6 @@ const AddStory = dynamic(() => import("../AddStory"), { ssr: false });
 import { useDispatch, useSelector } from "react-redux";
 import { GetUnviewedStory, SelectStory } from "store/homepage/actions";
 import { Story } from "models/story";
-const Skeleton = dynamic(() => import("react-loading-skeleton"), {
-  ssr: false,
-});
-
 function Index() {
   const storiesData = useSelector((state: any) => state.homepage.storiesData);
   const loading = useSelector((state: any) => state.homepage.loading);
@@ -58,27 +54,7 @@ function Index() {
       <div id="stories-bar" className="stories-bar">
         <div className="stories-bars">
           {user?.id && <AddStory />}
-          {loading &&
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1].map(
-              (elen, key) => (
-                <div className="story-element-container" key={key}>
-                  <div className="story-element-item">
-                    <Skeleton
-                      duration={0.5}
-                      count={1}
-                      style={{
-                        position: "absolute",
-                        top: "0px",
-                        left: "0px",
-                        borderRadius: "10px",
-                        width: "100%",
-                        height: "100%",
-                      }}
-                    />
-                  </div>
-                </div>
-              )
-            )}
+
           {storiesData.map((story, index) => (
             <StoryElement
               key={index}
