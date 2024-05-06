@@ -12,12 +12,15 @@ import SignSteps from "./SignSteps";
 import InputName from "./InputName";
 import AuthService from "services/auth";
 import { useAuthHooks } from "Hooks/AuthHooks";
+import dynamic from "next/dynamic";
+const LoginMethods = dynamic(() => import("./LoginMethods"));
 interface LoginWidgetProps {
   close: Function;
 }
 function NewLoginWidget({ close }: LoginWidgetProps) {
   const [stepIndicator, setStepIndcator] = useState(-1);
   const [operation, setOperation] = useState("login");
+  const [showMethods, setShowMethods] = useState(false);
   const [signStep, setSignStep] = useState("");
   const [Name, setName] = useState("");
   const [success, setSuccess] = useState(false);
@@ -120,7 +123,7 @@ function NewLoginWidget({ close }: LoginWidgetProps) {
         className="logo-auth"
         id="logo-auth"
         style={
-          stepIndicator > 0
+          stepIndicator > 0 && window.innerWidth < 900
             ? {
                 position: "absolute",
                 top: "50px",
@@ -159,12 +162,25 @@ function NewLoginWidget({ close }: LoginWidgetProps) {
             <div
               className="login-button"
               onClick={() => {
-                setStepIndcator(2);
-                setOperation("login");
+                if (window.innerWidth > 912) {
+                  setShowMethods(!showMethods);
+                  setOperation("login");
+                } else {
+                  setStepIndcator(2);
+                  setOperation("login");
+                }
               }}
             >
               {translate("I have Already Account", language)}
             </div>
+            {showMethods && (
+              <LoginMethods
+                confirm={() => {
+                  setStepIndcator(2);
+                  setShowMethods(!showMethods);
+                }}
+              />
+            )}
             <div
               className="login-button"
               onClick={() => {

@@ -338,3 +338,73 @@ input {
   -moz-appearance: none;
   appearance: none;
 }
+
+.login-method-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 390px;
+  justify-content: flex-start;
+}
+.login-method-phone,
+.login-method-qr {
+  height: 50px;
+  position: relative;
+  margin-top: 10px;
+  cursor: pointer;
+  width: 100%;
+  max-width: 390px;
+  background-color: #f5f5f5;
+  border-radius: 20px;
+  width: 100%;
+  padding-inline: 20px;
+  justify-content: flex-start;
+  display: flex;
+  align-items: center;
+}
+.border-button {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+}
+.login-method-qr {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+.login-method-qr .icon-detail {
+  margin-top: 4px;
+  margin-left: 25px;
+}
+.qr-image-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-block: min(10vh, 40px);
+}
+.login-method-qr span,
+.login-method-phone span {
+  margin-left: 10px;
+  color: #707070;
+  font-family: "--Quicksand-Regular";
+  font-size: 14px;
+}
+.qr-extended {
+  height: auto;
+  padding-top: 15px;
+}
+.qr-extended .border-button g rect {
+  height: calc(100% - 0.5px);
+}
+.qr-extended .icon-detail span {
+  font-family: "--Quicksand-Light";
+  font-size: 10px;
+  margin-left: 5px !important;
+  color: #8e8e8e;
+}
+.flex {
+  display: flex;
+  align-items: center;
+}

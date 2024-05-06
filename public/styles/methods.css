@@ -1,0 +1,15 @@
+@media only screen and (max-height: 980px) {
+  .qr-extend-comtainer .login-privacy-text-2 {
+    display: none;
+  }
+}
+@media only screen and (max-height: 940px) {
+  .qr-extend-comtainer .login-privacy-text {
+    display: none;
+  }
+}
+@media only screen and (max-height: 790px) {
+  .qr-extend-comtainer .login-button {
+    display: none;
+  }
+}

@@ -67,6 +67,24 @@ function Index() {
           ))}
         </div>
       </div>
+      <svg
+        id="stories-border2"
+        className="border"
+        xmlns="http://www.w3.org/2000/svg"
+        width={getBorderWidth()}
+        height="0.5"
+      >
+        <line
+          id="Line_1107"
+          data-name="Line 1107"
+          x2={getBorderWidth()}
+          transform="translate(0 0.25)"
+          fill="none"
+          stroke="#3c3c3c"
+          strokeWidth="0.5"
+          strokeDasharray="3 3"
+        />
+      </svg>
     </div>
   );
 }

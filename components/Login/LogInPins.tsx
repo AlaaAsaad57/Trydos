@@ -54,7 +54,7 @@ function LogInPins({
   }, [rendere]);
   useEffect(() => {
     if (isKeyboardOpen) {
-      if (window.screen.width < 600) {
+      if (window.innerWidth < 900) {
         window.ontouchmove = function (e) {
           document
             .querySelector<HTMLInputElement>(".pincode-input-text")
@@ -85,16 +85,18 @@ function LogInPins({
         }, 250);
       }
     } else {
-      window.ontouchmove = function (e) {};
-      document.getElementById("logo-auth").style.position = "absolute";
-      document.getElementById("logo-auth").style.marginLeft = "0px";
-      document.getElementById("logo-auth").style.alignSelf = "initial";
-      document.getElementById("logo-auth").style.transform = "none";
-      document.getElementById("logo-auth").style.top = "60px";
-      document.getElementById("login-close-icon").style.top = "60px";
-      document.getElementById("login-close-icon").style.bottom = "initial";
-      document.body.style.overflow = "auto";
-      document.body.style.height = "auto";
+      if (window.innerWidth < 900) {
+        window.ontouchmove = function (e) {};
+        document.getElementById("logo-auth").style.position = "absolute";
+        document.getElementById("logo-auth").style.marginLeft = "0px";
+        document.getElementById("logo-auth").style.alignSelf = "initial";
+        document.getElementById("logo-auth").style.transform = "none";
+        document.getElementById("logo-auth").style.top = "60px";
+        document.getElementById("login-close-icon").style.top = "60px";
+        document.getElementById("login-close-icon").style.bottom = "initial";
+        document.body.style.overflow = "auto";
+        document.body.style.height = "auto";
+      }
     }
   }, [isKeyboardOpen]);
   useEffect(() => {}, [user, failedLogin]);
