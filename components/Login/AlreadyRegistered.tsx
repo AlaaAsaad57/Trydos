@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import Animated from "react-mount-animation";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 
@@ -8,8 +9,12 @@ function AlreadyRegistered({
   close,
   setStepSign,
   FinaliseLogin,
+  stepIndicator,
+  signStep,
 }: {
   inputValue: string;
+  stepIndicator: number;
+  signStep: string;
   FinaliseLogin: Function;
   setStepIndcator: Function;
   close: Function;
@@ -17,9 +22,37 @@ function AlreadyRegistered({
 }) {
   const language = useSelector((state: any) => state.homepage.language);
   const user = useSelector((state: any) => state.auth.Tempuser);
+  const [active, setActive] = useState(false);
+  const mountAnim = ` 
+  0% {transform:translateX(800px)}
+  100% {transform:translateX(0px)}
+`;
+  const unmountAnim = `
+0% {transform:translateX(0px)}
+100% {transform:translateX(-800px)}
+`;
 
+  useEffect(() => {
+    if (stepIndicator === 6 && signStep === "alreadyExists") {
+      setTimeout(() => {
+        setActive(true);
+      }, 50);
+    } else {
+      setTimeout(() => {
+        setActive(false);
+      }, 50);
+    }
+  }, [stepIndicator, signStep]);
   return (
-    <>
+    <Animated.div
+      className="animated-container"
+      show={active}
+      mountAnim={mountAnim}
+      style={{
+        animationFillMode: "forwards",
+      }}
+      unmountAnim={unmountAnim}
+    >
       <div
         className="phone-input-desc"
         style={{ marginBottom: "min(13vh, 151px)" }}
@@ -156,7 +189,7 @@ function AlreadyRegistered({
       >
         {translate("Cancel & Take A Look At The App", language)}
       </div>
-    </>
+    </Animated.div>
   );
 }
 

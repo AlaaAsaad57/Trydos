@@ -1,14 +1,16 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import PinInput from "react-pin-input";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import Timer from "./Timer";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
+import Animated from "react-mount-animation";
 
 function LogInPins({
   setPin,
   rendere,
   expired,
+  stepIndicator,
   pin,
   MessageMethod,
   disabled,
@@ -24,6 +26,7 @@ function LogInPins({
   inputValue: string;
   rendere: boolean;
   setStepIndactor: Function;
+  stepIndicator: number;
   expired: boolean;
   resend: Function;
   setPin: Function;
@@ -38,70 +41,115 @@ function LogInPins({
 }) {
   const user = useSelector((state: any) => state.auth.Tempuser);
   const language = useSelector((state: any) => state.homepage.language);
-  useEffect(() => {
-    document.querySelector<HTMLInputElement>(".pincode-input-text")?.focus();
-  }, []);
   const isKeyboardOpen = useDetectKeyboardOpen(200);
 
   useEffect(() => {
-    if (rendere) {
-      setTimeout(() => {
-        document
-          .querySelector<HTMLInputElement>(".pincode-input-text")
-          ?.focus();
-      }, 200);
-    }
+    if (stepIndicator === 5)
+      if (rendere) {
+        setTimeout(() => {
+          document
+            .querySelector<HTMLInputElement>(".pincode-input-text")
+            ?.focus();
+        }, 200);
+      }
   }, [rendere]);
   useEffect(() => {
-    if (isKeyboardOpen) {
-      if (window.innerWidth < 900) {
-        window.ontouchmove = function (e) {
-          document
-            .querySelector<HTMLInputElement>(".pincode-input-text")
-            .focus();
-          document
-            .querySelector<HTMLInputElement>(".pincode-input-text")
-            .blur();
-        };
+    if (stepIndicator === 5) {
+      if (isKeyboardOpen) {
+        if (window.innerWidth < 900) {
+          window.ontouchmove = function (e) {
+            document
+              .querySelector<HTMLInputElement>(".pincode-input-text")
+              .focus();
+            document
+              .querySelector<HTMLInputElement>(".pincode-input-text")
+              .blur();
+          };
 
-        setTimeout(() => {
-          let a = window.visualViewport.height;
-          let b = window.visualViewport.pageTop;
-          let c = window.innerHeight;
-          document.getElementById("logo-auth").style.position = "absolute";
-          document.getElementById("logo-auth").style.left = "20px";
-          document.getElementById("logo-auth").style.top = `${
-            visualViewport.pageTop + 10
-          }px`;
-          document.getElementById("logo-auth").style.transform = "scale(.75)";
+          if (
+            document.getElementById("logo-auth") &&
+            document.getElementById("login-close-icon")
+          )
+            setTimeout(() => {
+              let a = window.visualViewport.height;
+              let b = window.visualViewport.pageTop;
+              let c = window.innerHeight;
+              document.getElementById("logo-auth").style.position = "absolute";
+              document.getElementById("logo-auth").style.left = "20px";
+              document.getElementById("logo-auth").style.top = `${
+                visualViewport.pageTop + 10
+              }px`;
+              document.getElementById("logo-auth").style.transform =
+                "scale(.75)";
 
-          document.getElementById("logo-auth").style.alignSelf = "flex-start";
-          document.getElementById("login-close-icon").style.top = "initial";
-          document.getElementById("login-close-icon").style.top = `${
-            visualViewport.pageTop + 30
-          }px`;
-          document.body.style.overflow = "hidden";
-          document.body.style.height = `${window.innerHeight}px`;
-        }, 250);
-      }
-    } else {
-      if (window.innerWidth < 900) {
-        window.ontouchmove = function (e) {};
-        document.getElementById("logo-auth").style.position = "absolute";
-        document.getElementById("logo-auth").style.marginLeft = "0px";
-        document.getElementById("logo-auth").style.alignSelf = "initial";
-        document.getElementById("logo-auth").style.transform = "none";
-        document.getElementById("logo-auth").style.top = "60px";
-        document.getElementById("login-close-icon").style.top = "60px";
-        document.getElementById("login-close-icon").style.bottom = "initial";
-        document.body.style.overflow = "auto";
-        document.body.style.height = "auto";
+              document.getElementById("logo-auth").style.alignSelf =
+                "flex-start";
+              document.getElementById("login-close-icon").style.top = "initial";
+              document.getElementById("login-close-icon").style.top = `${
+                visualViewport.pageTop + 30
+              }px`;
+              document.body.style.overflow = "hidden";
+              document.body.style.height = `${window.innerHeight}px`;
+            }, 250);
+        }
+      } else {
+        if (window.innerWidth < 900) {
+          if (
+            document.getElementById("logo-auth") &&
+            document.getElementById("login-close-icon")
+          ) {
+            window.ontouchmove = function (e) {};
+            document.getElementById("logo-auth").style.position = "absolute";
+            document.getElementById("logo-auth").style.marginLeft = "0px";
+            document.getElementById("logo-auth").style.alignSelf = "initial";
+            document.getElementById("logo-auth").style.transform = "none";
+            document.getElementById("logo-auth").style.top = "60px";
+            document.getElementById("login-close-icon").style.top = "60px";
+            document.getElementById("login-close-icon").style.bottom =
+              "initial";
+            document.body.style.overflow = "auto";
+            document.body.style.height = "auto";
+          }
+        }
       }
     }
   }, [isKeyboardOpen]);
   useEffect(() => {}, [user, failedLogin]);
+  const [active, setActive] = useState(false);
+  const mountAnim = ` 
+  0% {transform:translateX(800px)}
+  100% {transform:translateX(0px)}
+`;
+  const unmountAnim = `
+0% {transform:translateX(0px)}
+100% {transform:translateX(-800px)}
+`;
+  useEffect(() => {
+    if (stepIndicator === 5) {
+      setTimeout(() => {
+        setActive(true);
+      }, 300);
+      setTimeout(() => {
+        document
+          .querySelector<HTMLInputElement>(".pincode-input-text")
+          ?.focus();
+      }, 700);
+    } else {
+      setTimeout(() => {
+        setActive(false);
+      }, 300);
+    }
+  }, [stepIndicator]);
   return (
-    <>
+    <Animated.div
+      className="animated-container"
+      show={active}
+      mountAnim={mountAnim}
+      style={{
+        animationFillMode: "forwards",
+      }}
+      unmountAnim={unmountAnim}
+    >
       <div
         className="phone-input-desc"
         style={{ marginBottom: expired ? "12px" : "25px" }}
@@ -494,7 +542,7 @@ function LogInPins({
             // onComplete={(value, index) => setPin(value)}
             autoSelect={true}
             regexCriteria={/^[ A-Za-z0-9_@./#&+-]*$/}
-            focus={true}
+
             // disabled={disablePin}
           />
         )}
@@ -512,7 +560,7 @@ function LogInPins({
           {translate("The Code Sent Has Expired", language)}
         </span>
       )}
-    </>
+    </Animated.div>
   );
 }
 

@@ -1,7 +1,40 @@
-/* purgecss start ignore */
-@media only screen and (min-width: 912px) {
-  .phone-input-desc {
-    margin-top: 40px;
+.home-page-container .login-w2-container.login-widget-container.step-1 {
+  justify-content: center;
+}
+@media only screen and (min-width: 601px) {
+  .home-page-container .login-w2-container.login-widget-container.step2,
+  .home-page-container .login-w2-container.login-widget-container.step3,
+  .home-page-container .login-w2-container.login-widget-container.step4 {
+    justify-content: flex-start !important;
+  }
+  .home-page-container
+    .login-w2-container.login-widget-container.step2
+    .animated-container:nth-child(2),
+  .home-page-container
+    .login-w2-container.login-widget-container.step3
+    .animated-container:nth-child(2),
+  .home-page-container
+    .login-w2-container.login-widget-container.step4
+    .animated-container:nth-child(3),
+  .home-page-container
+    .login-w2-container.login-widget-container.step5
+    .animated-container:nth-child(3),
+  .home-page-container
+    .login-w2-container.login-widget-container.step6
+    .animated-container:nth-child(3),
+  .home-page-container
+    .login-w2-container.login-widget-container.step7
+    .animated-container:nth-child(3) {
+    margin-top: auto !important;
+  }
+
+  .home-page-container
+    .login-w2-container.login-widget-container.step1
+    .animated-container:nth-child(2) {
+    margin-top: auto !important;
+  }
+  .home-page-container .login-w2-container.login-widget-container.step6 {
+    padding-bottom: 54px !important;
   }
   .home-page-container {
     padding-top: 40px !important;
@@ -59,6 +92,10 @@
     padding-top: 50px;
     top: 82px;
   }
+}
+.animated-container {
+  width: 100%;
+  max-width: 390px;
 }
 svg {
   overflow: visible;

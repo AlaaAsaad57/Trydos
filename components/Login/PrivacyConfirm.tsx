@@ -1,12 +1,40 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import ConditionIcon from "public/svg/ConditionIcon.svg";
+import Animated from "react-mount-animation";
 function PrivacyConfirm({ stepIndicator, setStepIndcator }) {
   const language = useSelector((state: any) => state.homepage.language);
-
+  const [active, setActive] = useState(false);
+  const mountAnim = ` 
+  0% {transform:translateX(800px)}
+  100% {transform:translateX(0px)}
+`;
+  const unmountAnim = `
+0% {transform:translateX(0px)}
+100% {transform:translateX(-800px)}
+`;
+  useEffect(() => {
+    if (stepIndicator === 1) {
+      setTimeout(() => {
+        setActive(true);
+      }, 50);
+    } else {
+      setTimeout(() => {
+        setActive(false);
+      }, 50);
+    }
+  }, [stepIndicator]);
   return (
-    <>
+    <Animated.div
+      className="animated-container"
+      show={active}
+      mountAnim={mountAnim}
+      style={{
+        animationFillMode: "forwards",
+      }}
+      unmountAnim={unmountAnim}
+    >
       <div
         className="login-privacy-text"
         style={{ paddingInline: "30px", textAlign: "left" }}
@@ -76,7 +104,7 @@ function PrivacyConfirm({ stepIndicator, setStepIndcator }) {
           {translate("Agree & Continue", language)}
         </div>
       </div>
-    </>
+    </Animated.div>
   );
 }
 

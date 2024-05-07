@@ -1,17 +1,20 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import WAIcon from "public/svg/WAIcon.svg";
 import MessageIcon from "public/svg/MessageIcon.svg";
 import { useAuthHooks } from "Hooks/AuthHooks";
+import Animated from "react-mount-animation";
 
 function SendMethod({
   inputValue,
   setStepIndcator,
   setWrongNumber,
   setMessageMethod,
+  stepIndicator,
 }: {
   setStepIndcator: Function;
+  stepIndicator: number;
   inputValue: string;
   setWrongNumber: Function;
   setMessageMethod: Function;
@@ -30,8 +33,37 @@ function SendMethod({
       },
     });
   };
+
+  const [active, setActive] = useState(false);
+  const mountAnim = ` 
+  0% {transform:translateX(800px)}
+  100% {transform:translateX(0px)}
+`;
+  const unmountAnim = `
+0% {transform:translateX(0px)}
+100% {transform:translateX(-800px)}
+`;
+  useEffect(() => {
+    if (stepIndicator === 4) {
+      setTimeout(() => {
+        setActive(true);
+      }, 50);
+    } else {
+      setTimeout(() => {
+        setActive(false);
+      }, 50);
+    }
+  }, [stepIndicator]);
   return (
-    <>
+    <Animated.div
+      className="animated-container"
+      show={active}
+      mountAnim={mountAnim}
+      style={{
+        animationFillMode: "forwards",
+      }}
+      unmountAnim={unmountAnim}
+    >
       <div className="phone-input-desc">
         <svg
           id="_15x15"
@@ -302,7 +334,7 @@ function SendMethod({
           </div>
         </div>
       </div>
-    </>
+    </Animated.div>
   );
 }
 

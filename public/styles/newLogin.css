@@ -123,6 +123,7 @@ input[type="number"] {
     border-radius: 0px !important;
   }
 }
+
 .privacy-bold {
   font-family: "Adobe Clean Regular";
   display: flex;
@@ -388,7 +389,7 @@ input {
 .login-method-phone span {
   margin-left: 10px;
   color: #707070;
-  font-family: "--Quicksand-Regular";
+  font-family: var(--Quicksand-Regular);
   font-size: 14px;
 }
 .qr-extended {
@@ -399,7 +400,7 @@ input {
   height: calc(100% - 0.5px);
 }
 .qr-extended .icon-detail span {
-  font-family: "--Quicksand-Light";
+  font-family: var(--Quicksand-Light);
   font-size: 10px;
   margin-left: 5px !important;
   color: #8e8e8e;
@@ -407,4 +408,8 @@ input {
 .flex {
   display: flex;
   align-items: center;
+}
+
+.qr-extended .flex svg g path {
+  fill: #4d84ff;
 }

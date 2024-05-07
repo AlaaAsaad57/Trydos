@@ -12,6 +12,7 @@ import BlueCall from "public/svg/BlueCall.svg";
 import PrivacyIcon from "public/svg/privacyicon.svg";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { translate } from "utils/functions";
+import Animated from "react-mount-animation";
 function PhoneInput({
   stepIndicator,
   setStepIndcator,
@@ -32,7 +33,26 @@ function PhoneInput({
   useEffect(() => {
     document.querySelector<HTMLInputElement>(".login-phone-input")?.focus();
   }, []);
-
+  const [active, setActive] = useState(false);
+  const mountAnim = ` 
+  0% {transform:translateX(800px)}
+  100% {transform:translateX(0px)}
+`;
+  const unmountAnim = `
+0% {transform:translateX(0px)}
+100% {transform:translateX(-800px)}
+`;
+  useEffect(() => {
+    if (stepIndicator === 2 || stepIndicator === 3) {
+      setTimeout(() => {
+        setActive(true);
+      }, 50);
+    } else {
+      setTimeout(() => {
+        setActive(false);
+      }, 50);
+    }
+  }, [stepIndicator]);
   const handleInput = (e) => {
     setWrongNumber(false);
     let pattern = null;
@@ -108,7 +128,15 @@ function PhoneInput({
     }
   }, [isKeyboardOpen]);
   return (
-    <>
+    <Animated.div
+      className="animated-container"
+      show={active}
+      mountAnim={mountAnim}
+      style={{
+        animationFillMode: "forwards",
+      }}
+      unmountAnim={unmountAnim}
+    >
       {operation === "login" && (
         <div className="phone-input-desc mb-4v" id="phone-desc">
           <LoginIcon style={{ marginTop: "2px" }} />
@@ -412,7 +440,7 @@ function PhoneInput({
           {translate("Invalid Phone Number", language)}
         </div>
       )}
-    </>
+    </Animated.div>
   );
 }
 

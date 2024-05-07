@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import Animated from "react-mount-animation";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 
@@ -6,15 +7,47 @@ function AccountNotFound({
   inputValue,
   setStepIndcator,
   FinaliseLogin,
+  stepIndicator,
+  signStep,
 }: {
   inputValue: string;
   FinaliseLogin: Function;
+  stepIndicator: number;
+  signStep: string;
   setStepIndcator: Function;
 }) {
   const language = useSelector((state: any) => state.homepage.language);
+  const [active, setActive] = useState(false);
+  const mountAnim = ` 
+  0% {transform:translateX(800px)}
+  100% {transform:translateX(0px)}
+`;
+  const unmountAnim = `
+0% {transform:translateX(0px)}
+100% {transform:translateX(-800px)}
+`;
 
+  useEffect(() => {
+    if (stepIndicator === 6 && signStep === "notFound") {
+      setTimeout(() => {
+        setActive(true);
+      }, 50);
+    } else {
+      setTimeout(() => {
+        setActive(false);
+      }, 50);
+    }
+  }, [stepIndicator, signStep]);
   return (
-    <>
+    <Animated.div
+      className="animated-container"
+      show={active}
+      mountAnim={mountAnim}
+      style={{
+        animationFillMode: "forwards",
+      }}
+      unmountAnim={unmountAnim}
+    >
       <div className="phone-input-desc" style={{ marginBottom: "151px" }}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -147,7 +180,7 @@ function AccountNotFound({
       >
         {translate("Cancel & Take A Look At The App", language)}
       </div>
-    </>
+    </Animated.div>
   );
 }
 

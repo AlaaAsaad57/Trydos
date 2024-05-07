@@ -274,8 +274,8 @@ a {
 
 .categories-bar-item-description {
   display: flex;
-  bottom: -41.5px;
-  right: -8px;
+  bottom: -33.5px;
+  right: 26px;
   position: absolute;
   opacity: 0;
   height: 40px;

@@ -1,26 +1,61 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import Animated from "react-mount-animation";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 
 function WelcomingWidget({
   inputValue,
   setStepIndcator,
+  stepIndicator,
+  signStep,
   Name,
   close,
 }: {
   inputValue: string;
+  stepIndicator: number;
+  signStep: string;
   setStepIndcator: Function;
   Name: string;
   close: Function;
 }) {
+  const [active, setActive] = useState(false);
+
   const language = useSelector((state: any) => state.homepage.language);
   useEffect(() => {
     setTimeout(() => {
-      close();
-    }, 2000);
-  }, []);
+      if (active) close();
+    }, 5000);
+  }, [active]);
+  const mountAnim = ` 
+  0% {transform:translateX(800px)}
+  100% {transform:translateX(0px)}
+`;
+  const unmountAnim = `
+0% {transform:translateX(0px)}
+100% {transform:translateX(-800px)}
+`;
+
+  useEffect(() => {
+    if (stepIndicator === 6 && signStep === "welcomeLogin") {
+      setTimeout(() => {
+        setActive(true);
+      }, 50);
+    } else {
+      setTimeout(() => {
+        setActive(false);
+      }, 50);
+    }
+  }, [stepIndicator, signStep]);
   return (
-    <>
+    <Animated.div
+      className="animated-container"
+      show={active}
+      mountAnim={mountAnim}
+      style={{
+        animationFillMode: "forwards",
+      }}
+      unmountAnim={unmountAnim}
+    >
       <div className="phone-input-desc" style={{ marginBottom: "0px" }}>
         <svg
           style={{ transform: "translateY(2px)" }}
@@ -109,7 +144,7 @@ function WelcomingWidget({
       <div className="welcoming-enjoy" style={{ marginBottom: "171px" }}>
         {translate("Enjoy With Our Services", language)}
       </div>
-    </>
+    </Animated.div>
   );
 }
 
