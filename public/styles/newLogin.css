@@ -155,7 +155,7 @@ input[type="number"] {
 }
 .phone-input-desc {
   display: flex;
-  max-width: 370px;
+  max-width: 390px;
   width: 100%;
   margin-bottom: 44px;
   align-items: flex-start;
@@ -267,7 +267,7 @@ input[type="number"] {
 .welcoming-label {
   display: flex;
   font-size: 30px;
-  padding-left: 46px;
+
   color: #5d5c5d;
   font-family: var(--Quicksand-Bold);
 }
@@ -275,7 +275,7 @@ input[type="number"] {
   display: flex;
   font-family: var(--Quicksand-Light);
   font-size: 30px;
-  padding-left: 46px;
+
   color: #5d5c5d;
   margin-top: 17px;
   align-items: flex-start;
@@ -286,6 +286,9 @@ input[type="number"] {
   font-family: var(--Quicksand-Light);
   font-size: 18px;
   margin-top: 18px;
+  width: 100%;
+  padding-left: 35px;
+
   color: #5d5c5d;
 }
 .signup-detail {

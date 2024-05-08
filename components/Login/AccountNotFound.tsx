@@ -51,8 +51,8 @@ function AccountNotFound({
       unmountAnim={unmountAnim}
     >
       <div
-        className="phone-input-desc"
-        style={{ marginBottom: "290px", paddingInline: "20px" }}
+        className="phone-input-desc already-registered"
+        style={{ paddingInline: "20px" }}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

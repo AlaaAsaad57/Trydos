@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
+import useDetectKeyboardOpen from "use-detect-keyboard-open";
 
 function InputName({
   value,
@@ -12,6 +13,38 @@ function InputName({
   submit: Function;
   setName: Function;
 }) {
+  const isKeyboardOpen = useDetectKeyboardOpen(200);
+  useEffect(() => {
+    if (isKeyboardOpen) {
+      if (window.innerWidth < 900) {
+        window.ontouchmove = function (e) {
+          document.getElementById("phoneInput").blur();
+        };
+
+        setTimeout(() => {
+          let a = window.visualViewport.height;
+          let b = window.visualViewport.pageTop;
+          let c = window.innerHeight;
+
+          document.getElementById("logo-auth").style.position = "absolute";
+          document.getElementById("logo-auth").style.left = "20px";
+          document.getElementById("logo-auth").style.top = `${
+            visualViewport.height > 311 ? visualViewport.pageTop + 15 : 0
+          }px`;
+          document.getElementById("logo-auth").style.transform = "scale(.75)";
+
+          document.getElementById("logo-auth").style.alignSelf = "flex-start";
+          document.getElementById("login-close-icon").style.top = "initial";
+          document.getElementById("login-close-icon").style.top = `${
+            visualViewport.pageTop + 40
+          }px`;
+          document.body.style.overflow = "hidden";
+          document.body.style.height = `${window.innerHeight}px`;
+        }, 250);
+      }
+    } else {
+    }
+  }, [isKeyboardOpen]);
   const language = useSelector((state: any) => state.homepage.language);
 
   return (
@@ -198,6 +231,8 @@ function InputName({
             setName(e.target.value);
           }}
           value={value}
+          id="phoneInput"
+          onFocus={() => {}}
           style={{
             margin: "0",
             border: "none",
@@ -206,6 +241,21 @@ function InputName({
             cursor: "text",
             outline: "none",
             backgroundColor: "transparent",
+          }}
+          onBlur={() => {
+            window.ontouchmove = function (e) {};
+            if (window.innerWidth < 900) {
+              document.getElementById("logo-auth").style.position = "absolute";
+              document.getElementById("logo-auth").style.marginLeft = "0px";
+              document.getElementById("logo-auth").style.alignSelf = "initial";
+              document.getElementById("logo-auth").style.transform = "none";
+              document.getElementById("logo-auth").style.top = "60px";
+              document.getElementById("login-close-icon").style.top = "60px";
+              document.getElementById("login-close-icon").style.bottom =
+                "initial";
+              document.body.style.overflow = "auto";
+              document.body.style.height = "auto";
+            }
           }}
           placeholder={translate("Enter Your Name", language)}
         />

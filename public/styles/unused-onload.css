@@ -1,7 +1,23 @@
 .home-page-container .login-w2-container.login-widget-container.step-1 {
   justify-content: center;
 }
+.phone-input-desc.already-registered {
+  margin-bottom: min(calc(32vh - 50px), 306px);
+}
 @media only screen and (min-width: 601px) {
+  .home-page-container
+    .login-w2-container.login-widget-container.step-1
+    #logo-auth {
+    margin-block: auto;
+  }
+  .margin-none {
+    margin: 0 !important;
+  }
+  .home-page-container
+    .login-w2-container.login-widget-container:not(.step0):not(.step-1)
+    #logo-auth {
+    margin-left: 40px !important ;
+  }
   .home-page-container .login-w2-container.login-widget-container.step2,
   .home-page-container .login-w2-container.login-widget-container.step3,
   .home-page-container .login-w2-container.login-widget-container.step4 {

@@ -21,11 +21,11 @@ function WelcomingWidget({
   const [active, setActive] = useState(false);
 
   const language = useSelector((state: any) => state.homepage.language);
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     if (active) close();
-  //   }, 5000);
-  // }, [active]);
+  useEffect(() => {
+    setTimeout(() => {
+      if (active) close();
+    }, 5000);
+  }, [active]);
   const mountAnim = ` 
   0% {transform:translateX(800px)}
   100% {transform:translateX(0px)}
