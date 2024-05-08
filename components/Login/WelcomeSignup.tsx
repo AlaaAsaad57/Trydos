@@ -33,6 +33,7 @@ function WelcomeSignup({ stepIndicator, Name, signStep }: Props) {
   }, [stepIndicator, signStep]);
   return (
     <Animated.div
+      unmountTime={0.5}
       className="animated-container"
       show={active}
       mountAnim={mountAnim}
@@ -72,7 +73,7 @@ function WelcomeSignup({ stepIndicator, Name, signStep }: Props) {
       </div>
       <div
         className="blue-text skip-text"
-        style={{ fontFamily: "Adobe Clean Regular", fontSize: "14px" }}
+        style={{ fontFamily: `var(--Quicksand-Regular)`, fontSize: "14px" }}
       >
         {translate("Skip For Now", language)}
       </div>

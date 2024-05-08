@@ -8,30 +8,26 @@
     justify-content: flex-start !important;
   }
   .home-page-container
-    .login-w2-container.login-widget-container.step2
-    .animated-container:nth-child(2),
-  .home-page-container
-    .login-w2-container.login-widget-container.step3
-    .animated-container:nth-child(2),
-  .home-page-container
-    .login-w2-container.login-widget-container.step4
-    .animated-container:nth-child(3),
-  .home-page-container
-    .login-w2-container.login-widget-container.step5
-    .animated-container:nth-child(3),
-  .home-page-container
-    .login-w2-container.login-widget-container.step6
-    .animated-container:nth-child(3),
-  .home-page-container
-    .login-w2-container.login-widget-container.step7
-    .animated-container:nth-child(3) {
+    .login-w2-container.login-widget-container:not(.step6)
+    .animation-row-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
     margin-top: auto !important;
   }
 
-  .home-page-container
-    .login-w2-container.login-widget-container.step1
-    .animated-container:nth-child(2) {
-    margin-top: auto !important;
+  .step6 .animated-container {
+    width: 390px;
+    min-width: 390px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    margin-top: auto;
+  }
+  #secondRect {
+    width: 100%;
   }
   .home-page-container .login-w2-container.login-widget-container.step6 {
     padding-bottom: 54px !important;
@@ -93,12 +89,19 @@
     top: 82px;
   }
 }
-.animated-container {
-  width: 100%;
-  max-width: 390px;
+.step6 {
+  padding-bottom: 54px !important;
+  padding-inline: 20px;
 }
 svg {
   overflow: visible;
+}
+.animated-container {
+  min-width: 100%;
+  max-width: 390px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 @media only screen and (max-width: 912px) {
   .login-w2-container.login-widget-container {

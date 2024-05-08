@@ -21,11 +21,11 @@ function WelcomingWidget({
   const [active, setActive] = useState(false);
 
   const language = useSelector((state: any) => state.homepage.language);
-  useEffect(() => {
-    setTimeout(() => {
-      if (active) close();
-    }, 5000);
-  }, [active]);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     if (active) close();
+  //   }, 5000);
+  // }, [active]);
   const mountAnim = ` 
   0% {transform:translateX(800px)}
   100% {transform:translateX(0px)}
@@ -48,11 +48,15 @@ function WelcomingWidget({
   }, [stepIndicator, signStep]);
   return (
     <Animated.div
+      unmountTime={0.5}
       className="animated-container"
       show={active}
       mountAnim={mountAnim}
       style={{
         animationFillMode: "forwards",
+        paddingInline: "20px",
+        marginTop: "246px",
+        width: "100%",
       }}
       unmountAnim={unmountAnim}
     >
@@ -141,7 +145,10 @@ function WelcomingWidget({
         <div className="welcoming-label">{translate("Hello,", language)}</div>
         <div className="welcoming-user">{Name || "Alaa Asaad"}</div>
       </div>
-      <div className="welcoming-enjoy" style={{ marginBottom: "171px" }}>
+      <div
+        className="welcoming-enjoy"
+        style={{ marginBottom: "171px", justifyContent: "center" }}
+      >
         {translate("Enjoy With Our Services", language)}
       </div>
     </Animated.div>

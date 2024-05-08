@@ -91,6 +91,7 @@ export default function RootLayout({ params: { lang }, children }) {
       ${quicksand_regular.variable}
       ${quicksand_light.variable}
       ${quicksand_medium.variable}
+      ${quicksand_bold.variable}
       font-sans`}
       lang={lang.split("-")[1]}
     >

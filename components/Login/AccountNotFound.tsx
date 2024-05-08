@@ -40,15 +40,20 @@ function AccountNotFound({
   }, [stepIndicator, signStep]);
   return (
     <Animated.div
+      unmountTime={0.5}
       className="animated-container"
       show={active}
       mountAnim={mountAnim}
       style={{
         animationFillMode: "forwards",
+        width: "100%",
       }}
       unmountAnim={unmountAnim}
     >
-      <div className="phone-input-desc" style={{ marginBottom: "151px" }}>
+      <div
+        className="phone-input-desc"
+        style={{ marginBottom: "290px", paddingInline: "20px" }}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="15"
@@ -170,7 +175,7 @@ function AccountNotFound({
         className="blue-text"
         style={{
           fontSize: "12px",
-          fontFamily: "Adobe Clean Regular",
+          fontFamily: `var(--Quicksand-Regular)`,
           marginTop: "3vh",
         }}
         onClick={() => {

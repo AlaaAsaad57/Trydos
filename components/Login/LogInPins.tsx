@@ -142,6 +142,7 @@ function LogInPins({
   }, [stepIndicator]);
   return (
     <Animated.div
+      unmountTime={0.5}
       className="animated-container"
       show={active}
       mountAnim={mountAnim}
