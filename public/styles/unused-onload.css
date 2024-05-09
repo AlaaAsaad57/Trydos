@@ -8,14 +8,12 @@
   .home-page-container
     .login-w2-container.login-widget-container.step-1
     #logo-auth {
-    margin-block: auto;
+    margin-left: 40px !important;
   }
   .margin-none {
     margin: 0 !important;
   }
-  .home-page-container
-    .login-w2-container.login-widget-container:not(.step0):not(.step-1)
-    #logo-auth {
+  .home-page-container .login-w2-container.login-widget-container #logo-auth {
     margin-left: 40px !important ;
   }
   .home-page-container .login-w2-container.login-widget-container.step2,

@@ -135,7 +135,7 @@ function NewLoginWidget({ close }: LoginWidgetProps) {
         className="logo-auth"
         id="logo-auth"
         style={
-          stepIndicator > 0 && window.innerWidth < 900
+          stepIndicator > 0 && window.innerWidth < 601
             ? {
                 position: "absolute",
                 top: "50px",
