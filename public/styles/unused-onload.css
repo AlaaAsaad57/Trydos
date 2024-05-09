@@ -22,7 +22,7 @@
     justify-content: flex-start !important;
   }
   .home-page-container
-    .login-w2-container.login-widget-container:not(.step6)
+    .login-w2-container.login-widget-container
     .animation-row-container {
     display: flex;
     flex-direction: row;
