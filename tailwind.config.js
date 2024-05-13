@@ -9,6 +9,8 @@ module.exports = {
     "./core/**/*.{js,ts,jsx,tsx,mdx}",
     "./utils/**/*.{js,ts,jsx,tsx,mdx}",
     "./app",
+    "./public/styles/*.css",
+    "./store/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     maxWidth: {

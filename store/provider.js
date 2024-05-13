@@ -13,9 +13,9 @@ const TranslationsMenu = dynamic(
 );
 import { useEffect } from "react";
 import HomeService from "services/home";
-// import GAComponent from "components/global/GAComponent";
+import GAComponent from "components/global/GAComponent";
 import dynamic from "next/dynamic";
-import { getUserChat } from "utils/functions";
+import { getUserChat, SSRDetect } from "utils/functions";
 import LandingPage from "components/Home/LandingPage";
 export default function Providers({ lang, children }) {
   var bool = true;
@@ -36,10 +36,10 @@ export default function Providers({ lang, children }) {
   }, []);
   return (
     <>
-      {/* {SSRDetect() && <GAComponent />} */}
+      {SSRDetect() && <GAComponent />}
       <Provider store={store}>
         <LandingPage />
-        <div className="site-container">
+        <div className="site-container bg-neutral-50 flex justify-around min-w-[100vw] min-h-full h-full">
           <div className="home-page-container">
             <TranslationsMenu init={lang} />
             <Navbar init={lang} />

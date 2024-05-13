@@ -4,9 +4,9 @@ import { quality } from "@cloudinary/url-gen/actions/delivery";
 import { auto } from "@cloudinary/url-gen/qualifiers/quality";
 import { Resize } from "@cloudinary/url-gen/actions";
 import profilePicture from "public/images/profileNo.png";
-import { GET_USERS_STORIES, STORIES_URL } from "./endpointConfig";
 import StoryServiceClass from "services/story";
 import { useEffect, useState } from "react";
+import { sendGAEvent } from "@next/third-parties/google";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -161,4 +161,7 @@ export const useTimers = ({ durationValue }) => {
     isPaused: isPaused,
     Paused: (e) => Paused(e),
   };
+};
+export const event = (params: any) => {
+  sendGAEvent({ ...params });
 };

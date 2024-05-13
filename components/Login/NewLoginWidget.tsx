@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import LogoAuth from "public/svg/LogoAuth.svg";
 import { useDispatch, useSelector } from "react-redux";
-import { translate } from "utils/functions";
+import { event, translate } from "utils/functions";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
 import PrivacyConfirm from "./PrivacyConfirm";
@@ -39,6 +39,7 @@ function NewLoginWidget({ close }: LoginWidgetProps) {
   const verficationID = useSelector((state: any) => state.auth.verficationID);
   const user = useSelector((state: any) => state.auth.Tempuser);
   useEffect(() => {
+    event({ event: "login-open", category: "login", value: "login-open" });
     setTimeout(() => {
       setStepIndcator(0);
     }, 1500);
@@ -50,6 +51,11 @@ function NewLoginWidget({ close }: LoginWidgetProps) {
       Username: "",
       verificationID: verficationID,
       errorCallback: () => {
+        event({
+          event: "login-failed",
+          category: "login",
+          value: "login-failed",
+        });
         setFailed(true);
         setTimeout(() => {
           setPins("");
@@ -63,6 +69,11 @@ function NewLoginWidget({ close }: LoginWidgetProps) {
       successCallback: (exists, name) => {
         setTimeout(() => {
           if (operation === "signup") {
+            event({
+              event: "signup-success",
+              category: "login",
+              value: "signup-success",
+            });
             if (exists && name.length > 1) {
               setSignStep("alreadyExists");
               setStepIndcator(6);
@@ -75,6 +86,11 @@ function NewLoginWidget({ close }: LoginWidgetProps) {
               setStepIndcator(7);
             }
           } else {
+            event({
+              event: "login-success",
+              category: "login",
+              value: "login-success",
+            });
             if (exists && name.length > 1) {
               FinaliseLogin();
               setSignStep("welcomeLogin");
