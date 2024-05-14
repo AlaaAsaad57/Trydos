@@ -15,7 +15,7 @@ function OfferSlideItem({ isSingle, priority }: OfferSlideItemProps) {
         <ImageLoader
           loading="eager"
           id={id}
-          priority={priority}
+          priority={false}
           style={{ borderRadius: "15px" }}
           fetchPriority={priority ? "high" : "low"}
           className="OfferImage"

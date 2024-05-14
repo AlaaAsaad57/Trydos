@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Loader from "./Loader";
+import Image from "next/image";
 
 function ImageLoader(props) {
   const [loading, setLoading] = useState(true);
@@ -14,7 +15,7 @@ function ImageLoader(props) {
     >
       <Loader style={{ display: loading ? "flex" : "none" }} />
       <div style={{ display: loading ? "none" : "block" }}>
-        <img {...props} onLoad={() => setLoading(false)} />
+        <Image {...props} onLoad={() => setLoading(false)} />
       </div>
     </div>
   );
