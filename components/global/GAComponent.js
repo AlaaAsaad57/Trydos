@@ -6,7 +6,7 @@ function GAComponent() {
   let GA_MEASUREMENT_ID = "G-EK7TKN11PV";
   return (
     <>
-      <GoogleAnalytics trackPageViews />
+      <GoogleAnalytics strategy="lazyOnload" trackPageViews />
     </>
   );
 }
