@@ -57,25 +57,25 @@ const aa = process.env.ENABLE_SENTRY;
 const quicksand_regular = localFont({
   src: "../../../public/fonts/Quicksand-Regular.woff2",
   variable: "--Quicksand-Regular",
-  display: "swap",
+  display: "auto",
   preload: false,
 });
 const quicksand_light = localFont({
   src: "../../../public/fonts/Quicksand-Light.woff2",
   variable: "--Quicksand-Light",
-  display: "swap",
+  display: "auto",
   preload: false,
 });
 const quicksand_bold = localFont({
   src: "../../../public/fonts/Quicksand-Bold.woff2",
   variable: "--Quicksand-Bold",
-  display: "swap",
+  display: "auto",
   preload: false,
 });
 const quicksand_medium = localFont({
   src: "../../../public/fonts/Quicksand-Medium.woff2",
   variable: "--Quicksand-Medium",
-  display: "swap",
+  display: "auto",
   preload: false,
 });
 export default function RootLayout({ params: { lang }, children }) {
