@@ -6,7 +6,7 @@ import { Resize } from "@cloudinary/url-gen/actions";
 import profilePicture from "public/images/profileNo.png";
 import StoryServiceClass from "services/story";
 import { useEffect, useState } from "react";
-import { sendGAEvent } from "@next/third-parties/google";
+import { event } from "nextjs-google-analytics";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -162,6 +162,11 @@ export const useTimers = ({ durationValue }) => {
     Paused: (e) => Paused(e),
   };
 };
-export const event = (params: any) => {
-  sendGAEvent({ ...params });
+export const Sendevent = (params: any) => {
+  try {
+    console.log(params);
+    event({ ...params });
+  } catch (e) {
+    console.error(e);
+  }
 };
