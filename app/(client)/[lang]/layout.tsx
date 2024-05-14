@@ -1,10 +1,7 @@
 import "styles/globals.css";
-import dynamic from "next/dynamic";
 import NextTopLoader from "nextjs-toploader";
 import { ReactQueryClientProvider } from "components/Providers/ReactQueryClientProvider";
-const Providers = dynamic(() => import("store/provider"), {
-  ssr: false,
-});
+import Providers from "store/provider";
 import localFont from "next/font/local";
 export const metadata = {
   title: "TryDos",
