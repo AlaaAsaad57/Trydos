@@ -21,7 +21,6 @@ import { getUserChat } from "utils/functions";
 import NameModal from "components/global/NameModal";
 import { getUserStories } from "../../utils/functions";
 import StoryServiceClass from "services/story";
-import NewLoginWidget from "components/Login/NewLoginWidget";
 import StoriesContainer from "./Stories/NewStories";
 export default function Home({
   HomeData_res,
@@ -80,9 +79,7 @@ export default function Home({
   );
   const nameModal = useSelector((state: any) => state.chat.nameModal);
   const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
-  const setLoginOpen = (e: boolean) => {
-    dispatch({ type: "LOGIN-OPEN", payload: e });
-  };
+
   useEffect(() => {
     if (selectedStory) {
       document.documentElement
@@ -96,10 +93,6 @@ export default function Home({
   const dispatch = useDispatch();
   return (
     <>
-      {loginOpen && (
-        <div onClick={() => setLoginOpen(false)} className="backdrop-login" />
-      )}
-      {loginOpen && <NewLoginWidget close={() => setLoginOpen(false)} />}
       {enableNotifications && <NotificationContainer />}
       <Stories />
       {nameModal && <NameModal />}

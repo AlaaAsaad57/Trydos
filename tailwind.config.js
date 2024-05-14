@@ -2,13 +2,10 @@
 module.exports = {
   important: true,
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./helpers/**/*.{js,ts,jsx,tsx,mdx}",
-    "./core/**/*.{js,ts,jsx,tsx,mdx}",
     "./utils/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./public/styles/*.css",
     "./store/*.{js,ts,jsx,tsx,mdx}",
   ],

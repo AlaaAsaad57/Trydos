@@ -15,19 +15,14 @@ import { useEffect } from "react";
 import HomeService from "services/home";
 import GAComponent from "components/global/GAComponent";
 import dynamic from "next/dynamic";
-import { getUserChat, SSRDetect } from "utils/functions";
+import { SSRDetect } from "utils/functions";
 import LandingPage from "components/Home/LandingPage";
+import NewLoginWidget from "components/Login/NewLoginWidget";
 export default function Providers({ lang, children }) {
   var bool = true;
   useEffect(() => {
     if (bool) {
       bool = false;
-      // setTimeout(() => {
-      //   window?.gtag("set", "user_properties", {
-      //     is_logged_in: Boolean(getUserChat()),
-      //     prefered_language: Cookies.get("language"),
-      //   });
-      // }, 2000);
       setTimeout(() => {
         HomeService.RegisterDevice();
         HomeService.CheckLogin();
@@ -38,9 +33,10 @@ export default function Providers({ lang, children }) {
     <>
       {SSRDetect() && <GAComponent />}
       <Provider store={store}>
-        <LandingPage />
         <div className="site-container bg-neutral-50 flex justify-around min-w-[100vw] min-h-full h-full">
           <div className="home-page-container">
+            {<NewLoginWidget close={() => setLoginOpen(false)} />}
+            <LandingPage />
             <TranslationsMenu init={lang} />
             <Navbar init={lang} />
             {<ChatModal />}

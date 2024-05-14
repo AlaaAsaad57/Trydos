@@ -38,7 +38,9 @@ function Chat(props) {
             dispatch({ type: "OPEN-CHAT", payload: null });
           }
         }}
-        className={`lang-modalDisable ${props.open && "open"}`}
+        className={`lang-modalDisable content-[""] fixed w-[-webkit-fill-available] h-[-webkit-fill-available] z-[2000] left-0 top-0 ${
+          props.open && "open"
+        }`}
       ></div>
       <div className={`app ${language}-app`}>
         <textarea id="text-copy"></textarea>

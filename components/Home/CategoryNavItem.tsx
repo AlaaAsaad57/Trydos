@@ -30,57 +30,73 @@ const CategoryNavItem = ({
     } else {
     }
   };
-  return (!searchEnabled || name === "Search") && name !== "Search" ? (
-    <Link
-      prefetch={false}
-      href={`/${name}`}
-      aria-label={`Go To ${name} Category Page`}
-    >
-      <div
-        className="categories-bar-item"
-        onClick={() => clickItem()}
-        key={myKey}
-      >
-        {!searchEnabled && (
-          <div className="categories-bar-item-icon">{icon}</div>
-        )}
-        {!searchEnabled && (
-          <div className="categories-bar-item-description">
-            <div
-              className={`categories-bar-item-name ${language + "-regular"}`}
+  return (
+    <>
+      {name === "Search" ? (
+        <>
+          <div
+            className="categories-bar-item search-container"
+            onClick={() => clickItem()}
+            style={{ width: !searchEnabled ? "50px" : "auto" }}
+            key={myKey}
+          >
+            {!searchEnabled && (
+              <div className="categories-bar-item-icon">{icon}</div>
+            )}
+            {!searchEnabled && (
+              <div className="categories-bar-item-description">
+                <div
+                  className={`categories-bar-item-name ${
+                    language + "-regular"
+                  }`}
+                >
+                  {translate(name, language)}
+                </div>
+                <NavIcon />
+              </div>
+            )}
+            {name === "Search" && searchEnabled && (
+              <SearchComponent
+                close={() => close()}
+                searchEnabled={searchEnabled}
+              />
+            )}
+          </div>
+        </>
+      ) : (
+        <>
+          {!searchEnabled && (
+            <Link
+              prefetch={false}
+              href={`/${name}`}
+              aria-label={`Go To ${name} Category Page`}
             >
-              {translate(name, language)}
-            </div>
-            <NavIcon />
-          </div>
-        )}
-        {name === "Search" && (
-          <SearchComponent
-            close={() => close()}
-            searchEnabled={searchEnabled}
-          />
-        )}
-      </div>
-    </Link>
-  ) : (
-    <div
-      className={`categories-bar-item  ${searchEnabled && "active-search"}`}
-      onClick={() => clickItem()}
-      key={myKey}
-    >
-      {!searchEnabled && <div className="categories-bar-item-icon">{icon}</div>}
-      {!searchEnabled && (
-        <div className="categories-bar-item-description">
-          <div className={`categories-bar-item-name ${language + "-regular"}`}>
-            {translate(name, language)}
-          </div>
-          <NavIcon />
-        </div>
+              <div
+                className="categories-bar-item ${}"
+                onClick={() => clickItem()}
+                key={myKey}
+              >
+                {!searchEnabled && (
+                  <div className="categories-bar-item-icon">{icon}</div>
+                )}
+                {!searchEnabled && (
+                  <div className="categories-bar-item-description">
+                    <div
+                      className={`categories-bar-item-name ${
+                        language + "-regular"
+                      }`}
+                    >
+                      {translate(name, language)}
+                    </div>
+                    <NavIcon />
+                  </div>
+                )}
+              </div>
+            </Link>
+          )}
+        </>
       )}
-      {name === "Search" && (
-        <SearchComponent close={() => close()} searchEnabled={searchEnabled} />
-      )}
-    </div>
+    </>
   );
 };
 

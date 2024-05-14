@@ -7,6 +7,7 @@ import profilePicture from "public/images/profileNo.png";
 import StoryServiceClass from "services/story";
 import { useEffect, useState } from "react";
 import { event } from "nextjs-google-analytics";
+import { store } from "store";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -177,4 +178,7 @@ export const Sendevent = (params: any) => {
   } catch (e) {
     console.error(e);
   }
+};
+export const GetAppLanguage = () => {
+  return store.getState().homepage.language;
 };

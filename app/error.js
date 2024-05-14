@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Logo from "../components/Home/Logo";
-import "public/styles/error.css";
+
 import axios from "axios";
 export default function GlobalError({ error, reset }) {
   const baseUrl = "https://market_staging.trydos.tech/api/new_v1";
@@ -34,17 +34,17 @@ export default function GlobalError({ error, reset }) {
   return (
     <html>
       <body>
-        <div className="error-page">
+        <div className="flex justify-start flex-col items-center p-[50px]">
           <div>
             <Logo style={true} />
           </div>
-          <div className="error-row">
-            <h1 className="error-line">Error:</h1>
-            <h2 className="error-padding-2">{error.message}</h2>
+          <div className="flex flex-row items-center;">
+            <h1 className="text-[red]">Error:</h1>
+            <h2 className="p-5">{error.message}</h2>
           </div>
 
           <button
-            className="error-button"
+            className="w-[300px] flex text-center justify-center items-center bg-[aliceblue] p-5 rounded-[15px]"
             onClick={() => (window.location.href = "/")}
           >
             Go Back

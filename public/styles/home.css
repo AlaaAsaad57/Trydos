@@ -1,20 +1,14 @@
 @import url("../styles/offers.css");
-
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 * {
   box-sizing: border-box;
 }
 body {
   background: none !important;
 }
-.lang-modalDisable {
-  content: "";
-  position: fixed;
-  top: 0px;
-  left: 0px;
-  width: -webkit-fill-available;
-  height: -webkit-fill-available;
-  z-index: 2000;
-}
+
 .add-story-container.story-element-container {
   border-radius: 20px;
   animation: auto ease 0s 1 normal none running none;
@@ -61,6 +55,10 @@ body {
 }
 .active-search {
   margin: 0px !important;
+  width: 0px !important;
+}
+.search-component-container {
+  transition: 1s;
 }
 .search-component-container input {
   outline: none;
@@ -299,12 +297,6 @@ svg g #Path_213320 {
 }
 .slick-list {
   overflow: visible !important;
-}
-.image-border {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  z-index: 1;
 }
 img {
   max-width: 100%;

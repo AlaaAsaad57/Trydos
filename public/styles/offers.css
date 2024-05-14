@@ -1,3 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 .offers-list {
   align-items: flex-start;
   justify-content: flex-start;
@@ -559,38 +562,18 @@ a {
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.103);
   margin-top: 30px;
 }
-
-.bar-desc-column {
-  margin-left: 5px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-}
 .quick-event-bar .bar-desc-column {
-  margin: 0px;
+  @apply m-0;
 }
 .quick-event-bar .bar-desc-column .bar-name {
-  font-size: 12px;
+  @apply text-[12px]  !important;
 }
 .bar-name {
-  display: flex;
-  font-size: 14px;
   font-family: var(--Quicksand-Medium);
-  color: #3c3c3c;
 }
 
 .bar-desc {
-  display: flex;
-  font-size: 10px;
   font-family: var(--Quicksand-Regular);
-  color: #505050;
-}
-.image-border {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
 }
 
 img {

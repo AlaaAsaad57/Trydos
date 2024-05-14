@@ -41,17 +41,17 @@ export default function Error({
   return (
     <html>
       <body>
-        <div className="error-page">
+        <div className="flex justify-start flex-col items-center p-[50px]">
           <div>
             <Logo style={true} animated={false} />
           </div>
-          <div className="error-row">
-            <h1 className="error-line">Error:</h1>
-            <h2 className="error-padding-2">{error.message}</h2>
+          <div className="flex flex-row items-center;">
+            <h1 className="text-[red]">Error:</h1>
+            <h2 className="p-5">{error.message}</h2>
           </div>
 
           <button
-            className="error-button"
+            className="w-[300px] flex text-center justify-center items-center bg-[aliceblue] p-5 rounded-[15px]"
             onClick={() => (window.location.href = "/")}
           >
             Go Back

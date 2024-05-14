@@ -1,3 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 @keyframes react-loading-skeleton {
   100% {
     transform: translateX(100%);

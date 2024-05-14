@@ -7,12 +7,12 @@ import { changeAppLanguage } from "store/homepage/actions";
 import dynamic from "next/dynamic";
 const ArabicCss = dynamic(() => import("./ArabicCss"), { ssr: false });
 interface TranslationsMenuProps {
-  init: { init: string };
+  init: string;
 }
 function TranslationsMenu({ init }: TranslationsMenuProps) {
   const language = useSelector((state: any) => state.homepage.language);
   const dispatch = useDispatch();
-
+  console.log(init);
   return (
     <div className="translations-container">
       {language === "ar" && <ArabicCss />}
@@ -28,8 +28,8 @@ function TranslationsMenu({ init }: TranslationsMenuProps) {
           onClick={() => {
             dispatch(changeAppLanguage("tr"));
             window.location.href = window.location.href.replace(
-              init.init,
-              `${init.init.split("-")[0]}-tr`
+              init,
+              `${init.split("-")[0]}-tr`
             );
           }}
         >
@@ -42,8 +42,8 @@ function TranslationsMenu({ init }: TranslationsMenuProps) {
           onClick={() => {
             dispatch(changeAppLanguage("en"));
             window.location.href = window.location.href.replace(
-              init.init,
-              `${init.init.split("-")[0]}-en`
+              init,
+              `${init.split("-")[0]}-en`
             );
           }}
         >
@@ -56,8 +56,8 @@ function TranslationsMenu({ init }: TranslationsMenuProps) {
           onClick={() => {
             dispatch(changeAppLanguage("ar"));
             window.location.href = window.location.href.replace(
-              init.init,
-              `${init.init.split("-")[0]}-ar`
+              init,
+              `${init.split("-")[0]}-ar`
             );
           }}
         >
