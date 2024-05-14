@@ -96,6 +96,7 @@ export default function RootLayout({ params: { lang }, children }) {
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link
           rel="preload"
+          fetchPriority="high"
           href={
             "https://webdev.trydos.com/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdjooohujg%2Fimage%2Fupload%2Fq_10%2Fw_800%2Ff_webp%2F1708506792%3F_a%3DDATC1RAAZAsA0%26w%3D800%26q%3D60&w=3840&q=75"
           }
