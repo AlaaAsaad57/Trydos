@@ -164,8 +164,16 @@ export const useTimers = ({ durationValue }) => {
 };
 export const Sendevent = (params: any) => {
   try {
+    let userId = localStorage.getItem("USER")
+      ? JSON.parse(localStorage.getItem("USER"))?.id
+      : null;
     console.log(params);
-    event({ ...params });
+    event(params.event, {
+      category: params.category,
+      value: params.value,
+      userId: userId,
+      label: params.category,
+    });
   } catch (e) {
     console.error(e);
   }

@@ -39,7 +39,11 @@ function NewLoginWidget({ close }: LoginWidgetProps) {
   const verficationID = useSelector((state: any) => state.auth.verficationID);
   const user = useSelector((state: any) => state.auth.Tempuser);
   useEffect(() => {
-    Sendevent({ event: "loginOpen", category: "login", value: "loginOpen" });
+    Sendevent({
+      event: "Button Click",
+      value: "Open Login",
+      category: "User Interactive",
+    });
     setTimeout(() => {
       setStepIndcator(0);
     }, 1500);
@@ -51,11 +55,18 @@ function NewLoginWidget({ close }: LoginWidgetProps) {
       Username: "",
       verificationID: verficationID,
       errorCallback: () => {
-        Sendevent({
-          event: "login-failed",
-          category: "login",
-          value: "login-failed",
-        });
+        if (operation === "signup")
+          Sendevent({
+            event: "signup",
+            category: "auth",
+            value: "signup-failed",
+          });
+        else
+          Sendevent({
+            event: "login",
+            category: "auth",
+            value: "login-failed",
+          });
         setFailed(true);
         setTimeout(() => {
           setPins("");
@@ -70,8 +81,8 @@ function NewLoginWidget({ close }: LoginWidgetProps) {
         setTimeout(() => {
           if (operation === "signup") {
             Sendevent({
-              event: "signup-success",
-              category: "login",
+              event: "signup",
+              category: "auth",
               value: "signup-success",
             });
             if (exists && name.length > 1) {
@@ -87,8 +98,8 @@ function NewLoginWidget({ close }: LoginWidgetProps) {
             }
           } else {
             Sendevent({
-              event: "login-success",
-              category: "login",
+              event: "login",
+              category: "auth",
               value: "login-success",
             });
             if (exists && name.length > 1) {
