@@ -7,12 +7,10 @@ import { useEffect } from "react";
 import { GetMainData, LogData } from "store/homepage/actions";
 import Stories from "./Stories/index";
 import BrandsBar from "./Bars/BrandsBar";
-const QuickOffer = dynamic(() => import("./Bars/QuickOffer"), { ssr: false });
-const OfferBar = dynamic(() => import("./Bars/OfferBar"), { ssr: false });
-const CategoryBar = dynamic(() => import("./Bars/CategoryBar"), { ssr: false });
+import QuickOffer from "./Bars/QuickOffer";
+import OfferBar from "./Bars/OfferBar";
+import CategoryBar from "./Bars/CategoryBar";
 import OffersList from "./OfferWidgets/OfferList";
-import StoriesComponent from "./Stories/StoriesComponent";
-
 import ChatService from "services/chat";
 const NotificationContainer = dynamic(() => import("./Notifications"), {
   ssr: false,

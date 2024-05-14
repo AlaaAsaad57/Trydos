@@ -1,12 +1,7 @@
 import { useSelector } from "react-redux";
 import NormalWidget from "./NormalWidget";
-import dynamic from "next/dynamic";
-const ExtendedOfferWidget = dynamic(() => import("./ExtendedOfferWidget"), {
-  ssr: false,
-});
-const QuickOfferWidjet = dynamic(() => import("./QuickOfferWidjet"), {
-  ssr: false,
-});
+import ExtendedOfferWidget from "./ExtendedOfferWidget";
+import QuickOfferWidjet from "./QuickOfferWidjet";
 interface OfferListProps {
   offers: number[];
   quick: boolean;
