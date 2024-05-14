@@ -57,25 +57,25 @@ const aa = process.env.ENABLE_SENTRY;
 const quicksand_regular = localFont({
   src: "../../../public/fonts/Quicksand-Regular.woff2",
   variable: "--Quicksand-Regular",
-  display: "auto",
+  display: "swap",
   preload: false,
 });
 const quicksand_light = localFont({
   src: "../../../public/fonts/Quicksand-Light.woff2",
   variable: "--Quicksand-Light",
-  display: "auto",
+  display: "swap",
   preload: false,
 });
 const quicksand_bold = localFont({
   src: "../../../public/fonts/Quicksand-Bold.woff2",
   variable: "--Quicksand-Bold",
-  display: "auto",
+  display: "swap",
   preload: false,
 });
 const quicksand_medium = localFont({
   src: "../../../public/fonts/Quicksand-Medium.woff2",
   variable: "--Quicksand-Medium",
-  display: "auto",
+  display: "swap",
   preload: false,
 });
 export default function RootLayout({ params: { lang }, children }) {
@@ -97,6 +97,13 @@ export default function RootLayout({ params: { lang }, children }) {
     >
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link
+          rel="preload"
+          href={
+            "https://webdev.trydos.com/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdjooohujg%2Fimage%2Fupload%2Fq_10%2Fw_800%2Ff_webp%2F1708506792%3F_a%3DDATC1RAAZAsA0%26w%3D800%26q%3D60&w=3840&q=75"
+          }
+          as="image"
+        />
       </head>
 
       <body>
