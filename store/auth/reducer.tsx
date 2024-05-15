@@ -10,6 +10,18 @@ const initialState = {
 
 const AuthReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "CANCEL-AUTH": {
+      return {
+        ...state,
+        user: null,
+        Tempuser: null,
+        failedLogin: false,
+        attempts: 4,
+        wrongNumber: "",
+        loading: false,
+        verficationID: null,
+      };
+    }
     case "LOGIN_SUCCESS":
       return {
         ...state,

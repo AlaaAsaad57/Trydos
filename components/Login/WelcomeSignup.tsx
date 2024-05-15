@@ -6,8 +6,9 @@ interface Props {
   stepIndicator: number;
   Name: string | null;
   signStep: string;
+  close: Function;
 }
-function WelcomeSignup({ stepIndicator, Name, signStep }: Props) {
+function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
   const language = useSelector((state: any) => state.homepage.language);
 
   const [active, setActive] = useState(false);
@@ -74,6 +75,9 @@ function WelcomeSignup({ stepIndicator, Name, signStep }: Props) {
       <div
         className="blue-text skip-text"
         style={{ fontFamily: `var(--Quicksand-Regular)`, fontSize: "14px" }}
+        onClick={() => {
+          close();
+        }}
       >
         {translate("Skip For Now", language)}
       </div>

@@ -67,6 +67,7 @@ export const translations = {
     Attempts: "Attempts",
     "Didn`t You Receive A Code?": "Didn`t You Receive A Code?",
     "Change The Method Of Receiving": "Change The Method Of Receiving",
+    Change: "Change",
     "Search, Chat, Contact, Start New Chat":
       "Search, Chat, Contact, Start New Chat",
     "Contacts List": "Contatcs List",
@@ -113,11 +114,99 @@ export const translations = {
     "No Contacts": "No Contacts",
     "Log in Through our App to access contacts":
       "Log in Through our App to access contacts",
+    "Cancel & Take A Look At The App": "Cancel & Take A Look At The App",
+    "Create New Account & Continue": "Create New Account & Continue",
+    "Register & Create New Account With Us In A Few Simple Steps":
+      "Register & Create New Account With Us In A Few Simple Steps",
+    "Sorry, This Number Is Not Registered With Us":
+      "Sorry, This Number Is Not Registered With Us",
+    "Login & Continue": "Login & Continue",
+    "You Can Log In Now": "You Can Log In Now",
+    "This Number Already Registered With Us !":
+      "This Number Already Registered With Us !",
+    "Enter Your Name": "Enter Your Name",
+    "The Number Verified Successfully !": "The Number Verified Successfully !",
+    "Last Step And Enjoy Our Services": "Last Step And Enjoy Our Services",
+    "Your Privacy Is Completely Safe, We Not Share Your Information With Anyone":
+      "Your Privacy Is Completely Safe, We Not Share Your Information With Anyone",
+    "We Will Send A Verification Code To The Number":
+      "We Will Send A Verification Code To The Number",
+    "Please Enter The Verification Code Sent To Your Whatsapp":
+      "Please Enter The Verification Code Sent To Your Whatsapp",
+    "Didn’t You Receive A Code?": "Didn’t You Receive A Code?",
+    "the Method Of Receiving": "the Method Of Receiving",
+    "The Code Sent Has Expired": "The Code Sent Has Expired",
+    "Later, Take A Look At The App": "Later, Take A Look At The App",
+    "Invalid Phone Number": "Invalid Phone Number",
+    "Enter Your Phone Number To Login": "Enter Your Phone Number To Login",
+    "To ": "To ",
+    "Create New Account ": "Create New Account ",
+    "Tap “Agree & Continue” To Accept trydos":
+      "Tap “Agree & Continue” To Accept trydos",
+    "Terms Of Services": "Terms Of Services",
+    "Agree & Continue": "Agree & Continue",
+    "Choose The Verification Method, Receive Code Via:":
+      "Choose The Verification Method, Receive Code Via:",
+    "Complete My Profile": "Complete My Profile",
+    "Skip For Now": "Skip For Now",
+    "We Recommend That You Complete Your Profile To Make The Most Of The App’s Features, Such As Shopping, Chatting, Stories, Taking Advantage Of Offers, Interests, And Much More":
+      "We Recommend That You Complete Your Profile To Make The Most Of The App’s Features, Such As Shopping, Chatting, Stories, Taking Advantage Of Offers, Interests, And Much More",
+    "Enjoy With Our Services": "Enjoy With Our Services",
+    "Logged In Successfully !": "Logged In Successfully !",
+    "Hello,": "Hello,",
+    "To Take Advantage Of All The Advantages Of The Application, Please Join Us In Quick And Easy Steps And For Just One Time":
+      "To Take Advantage Of All The Advantages Of The Application, Please Join Us In Quick And Easy Steps And For Just One Time",
+    "I have Already Account": "I have Already Account",
+    "Terms Of Services ": "Terms Of Services",
   },
 
   ar: {
     Man: "رجال",
+    "To Take Advantage Of All The Advantages Of The Application, Please Join Us In Quick And Easy Steps And For Just One Time":
+      "للاستفادة من ميزات التطبيق انضم لنا بخطوات سربعة وبسيطة لمرة واحدة",
+    "Terms Of Services ": "قواعد الاستخدام",
+    "I have Already Account": "لدي حساب بالفعل",
+    "Your Privacy Is Completely Safe, We Not Share Your Information With Anyone":
+      "خصوصيتك امنة تماما,نحن لن نشارك معلوماتك مع اي احد",
+    "To ": "لـ",
+    "Logged In Successfully !": "تم تسجيل الدخول بنجاح",
+    "Hello,": "مرحبا ,",
+    "We Recommend That You Complete Your Profile To Make The Most Of The App’s Features, Such As Shopping, Chatting, Stories, Taking Advantage Of Offers, Interests, And Much More":
+      "ننصح باكمال معلومات الحساب للاستفادة من ميزات التطبيق كـ التسوق ,الدردشة ,القصص, الاهتمامات,الاستفادة من العروض وغيرها الكثير",
+    "Complete My Profile": "اكمال ادخال معلومات الحساب",
+    "Enjoy With Our Services": "استمتع بخدماتنا",
+    "Skip For Now": "تخطي",
+    "Choose The Verification Method, Receive Code Via:":
+      "اختر طريقة للتحقق لارسال الرمز عبر",
+    "Agree & Continue": "موافق ومتابعة",
+    "Tap “Agree & Continue” To Accept trydos":
+      "انقر على موافق لقبول سياسة الخصوصية لترايدوس",
+    "Terms Of Services": "",
+    "Create New Account ": "انشاء حساب ",
     "No Answer": "لا استجابة",
+    "Enter Your Phone Number To Login": "ادخل رقمك لتسجيل الدخول",
+    "the Method Of Receiving": "طريقة الاستلام",
+    "Invalid Phone Number": "رقم خاطئ",
+    "Later, Take A Look At The App": "لاحقا, القي نظرة على التطبيق",
+    "The Code Sent Has Expired": "انتهت فترة استلام الرمز",
+    "Didn’t You Receive A Code?": "لم تستلم رمزا؟",
+    Change: "تغيير",
+    "We Will Send A Verification Code To The Number":
+      "سنرسل رمز تاكيد الى هذا الرقم",
+    "Please Enter The Verification Code Sent To Your Whatsapp":
+      "الرجاء ادخال رمز التاكيد المرسل لك عبر واتساب",
+    "Sorry, This Number Is Not Registered With Us":
+      "عذرا. لا حساب مرتبط بهذا الرقم",
+    "Last Step And Enjoy Our Services": "خطوة اخيرة واستمتع بخدماتنا",
+    "Enter Your Name": "ادخل اسمك",
+    "The Number Verified Successfully !": "تم تاكيد الرقم بنجاح",
+    "Login & Continue": "متابعة وتسجبل الدخول",
+    "This Number Already Registered With Us !": "هذا الرقم مرتبط بحساب اخر",
+    "You Can Log In Now": "يمكنك تسجيل الدخول الان",
+    "Register & Create New Account With Us In A Few Simple Steps":
+      "سجل وانشئ حساب جديد بخطوات بسيطة",
+    "Cancel & Take A Look At The App": "خروج والقاء نظرة على التطبيق",
+    "Create New Account & Continue": "انشاء حساب ومتابعة",
     "Voice Call": "مكالمة صوتية",
     "Video Call": "مكالمة فيديو",
     "User declined": "تم انهاء المكالمة",

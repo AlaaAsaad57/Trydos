@@ -14,12 +14,10 @@ import AuthService from "services/auth";
 import { useAuthHooks } from "Hooks/AuthHooks";
 import dynamic from "next/dynamic";
 const LoginMethods = dynamic(() => import("./LoginMethods"));
-interface LoginWidgetProps {
-  close: Function;
-}
+
 import Animated from "react-mount-animation";
-function NewLoginWidget({ close }: LoginWidgetProps) {
-  const [stepIndicator, setStepIndcator] = useState(-1);
+function NewLoginWidget() {
+  const [stepIndicator, setStepIndcator] = useState(2);
   const [signStep, setSignStep] = useState("");
   const [operation, setOperation] = useState("login");
   const [showMethods, setShowMethods] = useState(false);
@@ -45,10 +43,13 @@ function NewLoginWidget({ close }: LoginWidgetProps) {
       value: "Open Login",
       category: "User Interactive",
     });
-    setTimeout(() => {
-      setStepIndcator(0);
-    }, 1500);
+    // setTimeout(() => {
+    //   setStepIndcator(0);
+    // }, 1500);
   }, [loginOpen]);
+  const setLoginOpen = (e: boolean) => {
+    dispatch({ type: "LOGIN-OPEN", payload: e });
+  };
   const loginFunc = async (e) => {
     await VerifyOtpHook({
       code: e,
@@ -149,9 +150,7 @@ function NewLoginWidget({ close }: LoginWidgetProps) {
 100% {transform:translateX(-800px)}
 `;
   const dispatch = useDispatch();
-  const setLoginOpen = (e: boolean) => {
-    dispatch({ type: "LOGIN-OPEN", payload: e });
-  };
+
   if (!loginOpen) return <></>;
   return (
     <>
@@ -347,7 +346,12 @@ function NewLoginWidget({ close }: LoginWidgetProps) {
                 user={user}
                 operation={operation}
                 FinaliseLogin={() => FinaliseLogin()}
-                close={() => close()}
+                cancelLogin={() => {
+                  AuthService.cancelAuth();
+                }}
+                close={() => {
+                  close();
+                }}
                 setStepIndactor={(e) => setStepIndcator(e)}
                 inputValue={inputValue}
               />
@@ -366,7 +370,10 @@ function NewLoginWidget({ close }: LoginWidgetProps) {
         >
           <div
             className="take-look-text"
-            onClick={() => close()}
+            onClick={() => {
+              AuthService.cancelAuth();
+              close();
+            }}
             style={{
               opacity: stepIndicator === -1 ? "0" : "1",
               marginTop: stepIndicator === 1 && "29px",
@@ -376,10 +383,19 @@ function NewLoginWidget({ close }: LoginWidgetProps) {
           </div>
         </Animated.div>
         {(stepIndicator > 1 || window.innerWidth > 600) && (
-          <span id="login-close-icon" onClick={() => close()}>
+          <span
+            id="login-close-icon"
+            onClick={() => {
+              AuthService.cancelAuth();
+              close();
+            }}
+          >
             {" "}
             <svg
-              onClick={() => close()}
+              onClick={() => {
+                AuthService.cancelAuth();
+                close();
+              }}
               xmlns="http://www.w3.org/2000/svg"
               width="16.411"
               height="16.411"

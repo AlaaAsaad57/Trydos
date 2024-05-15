@@ -2,7 +2,7 @@ import axios from "axios";
 import { StoriesInterface } from "models/Stories";
 import { store } from "store";
 import { DataApiHeaders } from "store/homepage/cachedActions";
-import { _isStoreLastJson } from "utils/functions";
+import { _isStoreLastJson, SSRDetect } from "utils/functions";
 import {
   GET_USERS_STORIES,
   LOG_IN_STORIES,
@@ -17,7 +17,8 @@ class StoryService {
     headers: {
       Authorization:
         "Bearer " +
-        (localStorage.getItem("USER-STORIES") &&
+        (localStorage &&
+          localStorage.getItem("USER-STORIES") &&
           JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
       language: Cookies.get("language"),
       country: Cookies.get("country"),

@@ -61,7 +61,7 @@ function PrivacyConfirm({ stepIndicator, setStepIndcator }) {
           onClick={() => {}}
           style={{ marginTop: "10px" }}
         >
-          {translate("Terms Of Services", language)}
+          {translate("Terms Of Services ", language)}
         </span>
       </div>
       <div className="login-button-group">

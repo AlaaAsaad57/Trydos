@@ -87,7 +87,7 @@
     margin-left: 15px;
   }
   .stories-bar-container {
-    margin-top: 60px !important;
+    margin-top: 35px !important;
     height: auto !important;
     flex-direction: column;
   }
@@ -104,6 +104,11 @@
     justify-content: flex-start !important;
     padding-top: 50px;
     top: 82px;
+  }
+}
+@media only screen and (max-width: 600px) {
+  .stories-bar-container {
+    margin-top: 23px !important;
   }
 }
 .step6 {
@@ -247,7 +252,8 @@ svg {
     align-items: flex-end;
     padding-right: 20px;
     padding-bottom: 20px;
-    transform: translateY(23px);
+    transform: translateY(-3px);
+    height: 180px !important;
   }
   .offers-list.mt-5 {
     margin-top: 20px !important;
@@ -287,6 +293,11 @@ svg {
   .offer-widget {
     height: 54vw;
     max-height: 476px;
+  }
+}
+@media only screen and (min-width: 913px) {
+  .stories-bar-container {
+    margin-top: 60px !important;
   }
 }
 .mobile-bar .search-component-container {

@@ -12,6 +12,7 @@ function SignSteps({
   stepIndicator,
   setStepIndactor,
   close,
+  cancelLogin,
   Name,
   user,
   FinaliseLogin,
@@ -22,6 +23,7 @@ function SignSteps({
   signStep: string;
   stepIndicator: number;
   FinaliseLogin: Function;
+  cancelLogin: Function;
   inputValue: string;
   operation: string;
   setStepIndactor: Function;
@@ -46,12 +48,19 @@ function SignSteps({
         stepIndicator={stepIndicator}
         setStepSign={(e) => setStepSign(e)}
         FinaliseLogin={() => FinaliseLogin()}
-        close={() => close()}
+        close={() => {
+          close();
+          cancelLogin();
+        }}
         inputValue={inputValue}
         setStepIndcator={(e) => setStepIndactor(e)}
       />
       <AccountNotFound
         signStep={signStep}
+        close={() => {
+          close();
+          cancelLogin();
+        }}
         stepIndicator={stepIndicator}
         inputValue={inputValue}
         FinaliseLogin={() => FinaliseLogin()}
@@ -59,6 +68,7 @@ function SignSteps({
       />
       <WelcomeSignup
         Name={Name}
+        close={() => close()}
         signStep={signStep}
         stepIndicator={stepIndicator}
       />

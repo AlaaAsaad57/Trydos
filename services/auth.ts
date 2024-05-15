@@ -184,5 +184,8 @@ class AuthService {
     StoryService.loginStories();
     ChatService.loginChat();
   }
+  async cancelAuth() {
+    store.dispatch({ type: "CANCEL-AUTH" });
+  }
 }
 export default new AuthService();

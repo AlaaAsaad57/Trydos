@@ -2,16 +2,18 @@ import React, { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
-
+import AuthService from "services/auth";
 function AccountNotFound({
   inputValue,
   setStepIndcator,
   FinaliseLogin,
+  close,
   stepIndicator,
   signStep,
 }: {
   inputValue: string;
   FinaliseLogin: Function;
+  close: Function;
   stepIndicator: number;
   signStep: string;
   setStepIndcator: Function;
@@ -179,8 +181,8 @@ function AccountNotFound({
           marginTop: "3vh",
         }}
         onClick={() => {
-          // cancelAuth()
-          //close()
+          AuthService.cancelAuth();
+          close();
         }}
       >
         {translate("Cancel & Take A Look At The App", language)}
