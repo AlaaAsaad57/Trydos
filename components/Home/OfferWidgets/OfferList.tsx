@@ -28,7 +28,7 @@ function OfferList({ offers, quick }: OfferListProps) {
               }}
             />
           ) : (
-            <ExtendedOfferWidget
+            <NormalWidget
               myKey={Index}
               onClick={() => {}}
               key={Index}
