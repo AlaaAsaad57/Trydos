@@ -603,7 +603,7 @@ html {
 .extended-widget {
   height: 67vw !important;
   background-size: 169% 67vw;
-  max-height: 476px;
+  max-height: 500px !important;
 }
 
 .image-inner-shadow {
