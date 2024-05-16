@@ -2,6 +2,9 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 
 export default async function Revalidate() {
-  revalidatePath("/"); // Update cached posts
+  revalidatePath("/");
+  revalidateTag("home-boutiques"); // Update cached posts
+  revalidateTag("stories"); // Update cached posts
+  revalidateTag("listing-data"); // Update cached posts
   revalidatePath("/listing"); // Update cached posts
 }

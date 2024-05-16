@@ -13,7 +13,7 @@ export const getStories = async () => {
     let time = new Date().getTime();
     let headers = await DataApiHeaders(true);
     const res = await fetch(STORIES_URL + GET_USERS_STORIES, {
-      next: { revalidate: 0 },
+      next: { revalidate: 0, tags: "stories" },
       headers: headers,
     });
     // hi
@@ -38,7 +38,7 @@ export const getHomeData = async () => {
   try {
     let time = new Date().getTime();
     const res = await fetch(OTP_URL + HOME_DATA_URL, {
-      next: { revalidate: 10000000000000 },
+      next: { revalidate: 60, tags: "home-boutiques" },
       headers: DataApiHeaders(),
     });
     const repo = await res.json();
@@ -78,7 +78,7 @@ export const getListingData = async () => {
   try {
     let time = new Date().getTime();
     const res = await fetch(OTP_URL + LISTING_INFO_URL, {
-      next: { revalidate: 1000000000000 },
+      next: { revalidate: 60, tags: "listing-data" },
       headers: DataApiHeaders(),
     });
     const repo = await res.json();
