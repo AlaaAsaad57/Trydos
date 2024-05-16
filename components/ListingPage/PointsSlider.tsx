@@ -28,7 +28,7 @@ function PointsSlider({
           {colors.map((img, i) => (
             <div
               key={i}
-              className={`slider-point-item w-${getSize(i)} ${
+              className={`slider-point-item wid-${getSize(i)} ${
                 activeIndex === i && "active-point-item"
               }`}
             >

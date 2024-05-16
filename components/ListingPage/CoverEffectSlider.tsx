@@ -92,6 +92,7 @@ function CoverEffectSlider({
           depth: 0,
           modifier: 1,
           stretch: 2,
+          rotate: 0,
           slideShadows: false,
         }}
         slidesPerView={"auto"}
