@@ -5,7 +5,7 @@ import { getId } from "utils/functions";
 interface OfferSlideItemProps {
   isSingle: boolean;
   priority: boolean;
-  offerPhoto: string;
+  offerPhoto: any;
 }
 function OfferSlideItem({
   isSingle,

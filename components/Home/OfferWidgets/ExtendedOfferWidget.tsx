@@ -13,7 +13,7 @@ import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 interface ExtendedOfferWidgetProps {
-  offer: { photos: number[] };
+  offer: { photos: string[] };
   myKey: number | string;
   onClick: Function;
 }

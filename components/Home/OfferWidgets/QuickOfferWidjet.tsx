@@ -14,7 +14,7 @@ import dynamic from "next/dynamic";
 import OfferSlideItem from "./OfferSlideItem";
 import OfferAvatars from "./OfferAvatars";
 interface QuickOfferWidjetProps {
-  offer: { photos: number[] };
+  offer: { photos: string[] };
   onClick: Function;
 }
 function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
@@ -76,7 +76,11 @@ function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
               />
             ) : (
               <div className="offer-slider-container">
-                <OfferSlideItem priority={true} isSingle={true} />
+                <OfferSlideItem
+                  offerPhoto={null}
+                  priority={true}
+                  isSingle={true}
+                />
                 <OfferAvatars priority={true} />
               </div>
             )}
