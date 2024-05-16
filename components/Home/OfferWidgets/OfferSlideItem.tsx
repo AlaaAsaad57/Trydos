@@ -13,6 +13,7 @@ function OfferSlideItem({
   offerPhoto,
 }: OfferSlideItemProps) {
   let id = getId();
+
   return (
     <div className="offer-slide-item">
       <div className="image-offer">

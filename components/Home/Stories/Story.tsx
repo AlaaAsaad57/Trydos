@@ -27,8 +27,8 @@ function Story({
           onLoad={(e) => {
             onLoad("loaded");
           }}
-          width={145}
-          height={255}
+          width={100}
+          height={160}
           loading={window.innerWidth < 500 && index >= 4 ? "lazy" : "eager"}
           onError={(e) => {
             e.currentTarget.src = errorPNG;

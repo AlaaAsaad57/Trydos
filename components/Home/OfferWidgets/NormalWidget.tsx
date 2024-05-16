@@ -34,6 +34,11 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
       });
     }
   }, [inView]);
+  const getImageCld = (s) => {
+    if (s.includes("cloudinary")) {
+      return s.replace("/upload", "/upload/f_webp/q_auto");
+    } else return s;
+  };
   return (
     <Link
       ref={ref}
@@ -63,7 +68,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                 }}
                 objectFit="cover"
                 objectPosition="center"
-                src={boutique.banners[0]}
+                src={getImageCld(boutique.banners[0])}
               />
               <div className="offer-blured-background" />
               <div className="offer-blured" />
