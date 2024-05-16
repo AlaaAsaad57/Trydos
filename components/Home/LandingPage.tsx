@@ -25,8 +25,8 @@ function LandingPage() {
             x2="0.5"
             gradientUnits="objectBoundingBox"
           >
-            <stop offset="0" stop-color="#f53c3c" />
-            <stop offset="1" stop-color="#ff9696" />
+            <stop offset="0" stopColor="#f53c3c" />
+            <stop offset="1" stopColor="#ff9696" />
           </linearGradient>
         </defs>
         <g

@@ -2,13 +2,17 @@ import axios from "axios";
 import { CHAT_URL, LOG_IN_CHAT } from "utils/endpointConfig";
 import HomeService from "services/home";
 import { store } from "store";
-import {_isStoreLastJson} from "utils/functions"
+import { _isStoreLastJson } from "utils/functions";
 class ChatService {
   http = axios.create({
     baseURL: CHAT_URL,
     headers: {
       Authorization:
-        "Bearer " + JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
+        "Bearer " +
+        JSON.parse(
+          typeof localStorage !== "undefined" &&
+            localStorage.getItem("USER-CHAT")
+        )?.access_token,
     },
   });
   async loginChat() {
@@ -45,10 +49,14 @@ class ChatService {
                       user: response.data.data,
                     });
                   }
-                  
-      if(typeof window !== "undefined"){
-        _isStoreLastJson() && localStorage.setItem("LAST_JSON", JSON.stringify(response));
-      }
+
+                  if (typeof window !== "undefined") {
+                    _isStoreLastJson() &&
+                      localStorage.setItem(
+                        "LAST_JSON",
+                        JSON.stringify(response)
+                      );
+                  }
                 } catch (e) {}
               }
             }
@@ -77,10 +85,11 @@ class ChatService {
         },
       }
     );
-    
-      if(typeof window !== "undefined"){
-        _isStoreLastJson() && localStorage.setItem("LAST_JSON", JSON.stringify(response));
-      }
+
+    if (typeof window !== "undefined") {
+      _isStoreLastJson() &&
+        localStorage.setItem("LAST_JSON", JSON.stringify(response));
+    }
     store.dispatch({ type: "STORE_TOKEN_RED", payload: payload.token });
     localStorage.setItem("firebase_id", response.data.data.id);
   }

@@ -17,7 +17,7 @@ class StoryService {
     headers: {
       Authorization:
         "Bearer " +
-        (localStorage &&
+        (typeof localStorage !== "undefined" &&
           localStorage.getItem("USER-STORIES") &&
           JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
       language: Cookies.get("language"),

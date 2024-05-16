@@ -19,8 +19,7 @@ function CategoriesBar({ forMobile }: CategoriesBarProps) {
 
   return (
     <>
-      {((forMobile && window.innerWidth < 912) ||
-        (!forMobile && window.innerWidth > 912)) && (
+      {!forMobile && (
         <div
           className={`categories-bar-container ${forMobile && "mobile-bar"}`}
           style={{ marginLeft: searchEnabled ? "13px" : "50px" }}

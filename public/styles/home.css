@@ -300,6 +300,9 @@ svg g #Path_213320 {
 }
 img {
   max-width: 100%;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 html,
 body {

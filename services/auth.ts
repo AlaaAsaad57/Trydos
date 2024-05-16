@@ -17,7 +17,10 @@ class AuthService {
   http = axios.create({
     baseURL: OTP_URL,
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("MARKET-TOKEN")}`,
+      Authorization: `Bearer ${
+        typeof localStorage !== "undefined" &&
+        localStorage.getItem("MARKET-TOKEN")
+      }`,
     },
   });
 

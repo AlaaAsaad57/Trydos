@@ -183,6 +183,6 @@ export const GetAppLanguage = () => {
   return store.getState().homepage.language;
 };
 export function encode_utf8(params: { s: string; element: HTMLElement }) {
-  params.element.innerHTML = unescape(encodeURIComponent(params.s));
+  params.element.innerHTML = params.s;
   return "";
 }

@@ -111,7 +111,7 @@ function CoverEffectSlider({
               setActive(i);
               setActiveColor(images[i]);
             }}
-            className={`image-avatar w-${getSize(i)}`}
+            className={`image-avatar wid-${getSize(i)}`}
             style={{
               width: `${getSize(i) - (i + 1 - 1) * 5}px`,
               height: `${getSize(i) - (i + 1 - 1) * 5}px`,

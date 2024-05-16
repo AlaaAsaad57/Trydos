@@ -95,12 +95,14 @@ export default async function RootLayout({ params: { lang }, children }) {
     >
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link
-          rel="preload"
-          fetchPriority="high"
-          href={HomeData[0]?.banners[0]}
-          as="image"
-        />
+        {HomeData[0] && (
+          <link
+            rel="preload"
+            fetchPriority="high"
+            href={HomeData[0]?.banners[0]}
+            as="image"
+          />
+        )}
       </head>
 
       <body>

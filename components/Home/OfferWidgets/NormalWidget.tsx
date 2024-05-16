@@ -14,6 +14,7 @@ import dynamic from "next/dynamic";
 import { Boutique } from "models/offer";
 import RemoteSvg from "components/global/RemoteSvg";
 import { useEffect } from "react";
+import ImageLoader from "components/global/ImageLoader";
 interface NormalWidgetProps {
   boutique: Boutique;
   myKey: number;
@@ -69,7 +70,25 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
               <div className="offer-container">
                 <div className="offer-logo">
                   {boutique.icon ? (
-                    <RemoteSvg url={boutique.icon} />
+                    boutique.icon.includes(".svg") ? (
+                      <RemoteSvg url={boutique.icon} />
+                    ) : (
+                      <ImageLoader
+                        loading="eager"
+                        id={"img-" + boutique.id}
+                        alt={boutique.name}
+                        priority={false}
+                        fetchPriority={"high"}
+                        style={{
+                          maxWidth: "187px",
+                          width: "auto",
+                          height: "30px",
+                        }}
+                        width={30}
+                        height={30}
+                        src={boutique.icon}
+                      />
+                    )
                   ) : (
                     boutique.name
                   )}

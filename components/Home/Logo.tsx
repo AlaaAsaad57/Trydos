@@ -29,7 +29,7 @@ function Logo({ animated, style }: { animated: boolean; style: boolean }) {
           >
             <feOffset dy="2" />
             <feGaussianBlur stdDeviation="1" result="blur" />
-            <feFlood flood-opacity="0.2" />
+            <feFlood floodOpacity="0.2" />
             <feComposite operator="in" in2="blur" />
             <feComposite in="SourceGraphic" />
           </filter>
@@ -43,7 +43,7 @@ function Logo({ animated, style }: { animated: boolean; style: boolean }) {
           >
             <feOffset dy="3" />
             <feGaussianBlur stdDeviation="2" result="blur-2" />
-            <feFlood flood-color="#fff" flood-opacity="0.302" result="color" />
+            <feFlood floodColor="#fff" stopColor="0.302" result="color" />
             <feComposite operator="out" in="SourceGraphic" in2="blur-2" />
             <feComposite operator="in" in="color" />
             <feComposite operator="in" in2="SourceGraphic" />
@@ -55,8 +55,8 @@ function Logo({ animated, style }: { animated: boolean; style: boolean }) {
             x2="0.5"
             gradientUnits="objectBoundingBox"
           >
-            <stop offset="0" stop-color="#f53c3c" />
-            <stop offset="1" stop-color="#ff9696" />
+            <stop offset="0" stopColor="#f53c3c" />
+            <stop offset="1" stopColor="#ff9696" />
           </linearGradient>
           <filter
             id="Path_21331"
@@ -68,7 +68,7 @@ function Logo({ animated, style }: { animated: boolean; style: boolean }) {
           >
             <feOffset dy="3" />
             <feGaussianBlur stdDeviation="1.5" result="blur-3" />
-            <feFlood flood-opacity="0.2" />
+            <feFlood floodOpacity="0.2" />
             <feComposite operator="in" in2="blur-3" />
             <feComposite in="SourceGraphic" />
           </filter>
