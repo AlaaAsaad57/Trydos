@@ -3,13 +3,16 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import OfferAvatars from "./OfferAvatars";
+import { Boutique } from "models/offer";
 interface OfferPhotosSliderProps {
   OfferPhotos: string[];
   extended: boolean;
   priority: boolean;
+  boutique: Boutique;
 }
 function OfferPhotosSlider({
   OfferPhotos,
+  boutique,
   extended,
   priority,
 }: OfferPhotosSliderProps) {
@@ -38,7 +41,7 @@ function OfferPhotosSlider({
           />
         ))}
       </Slider>
-      <OfferAvatars priority={false} />
+      <OfferAvatars boutique={boutique} priority={false} />
     </div>
   );
 }

@@ -208,6 +208,9 @@ a {
   color: #929191;
   font-size: 12px;
   height: auto !important;
+  width: auto;
+  display: flex;
+  text-wrap: nowrap;
 }
 
 .offer-avatar-info span:not(:first-child) {

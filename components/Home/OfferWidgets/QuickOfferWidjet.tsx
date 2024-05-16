@@ -72,6 +72,7 @@ function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
               <OfferPhotosSlider
                 extended={false}
                 priority={false}
+                boutique={}
                 OfferPhotos={offer.photos}
               />
             ) : (
@@ -81,7 +82,7 @@ function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
                   priority={true}
                   isSingle={true}
                 />
-                <OfferAvatars priority={true} />
+                <OfferAvatars boutique={null} priority={true} />
               </div>
             )}
           </div>

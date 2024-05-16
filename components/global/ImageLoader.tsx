@@ -1,8 +1,17 @@
 import React, { useState } from "react";
 import Loader from "./Loader";
 import Image from "next/image";
+import { myCldHome } from "utils/constants";
+import { quality } from "@cloudinary/url-gen/actions/delivery";
+import { auto } from "@cloudinary/url-gen/qualifiers/quality";
 
 function ImageLoader(props) {
+  const getImageCld = () => {
+    if (props.src.includes("cloudinary")) {
+      console.log(props.src.replace("/upload", "/upload/f_webp/q_90/"));
+      return props.src.replace("/upload", "/upload/f_webp/q_90/");
+    } else return props.src;
+  };
   const [loading, setLoading] = useState(true);
   return (
     <div
@@ -15,7 +24,13 @@ function ImageLoader(props) {
     >
       <Loader style={{ display: loading ? "flex" : "none" }} />
       <div style={{ display: loading ? "none" : "block" }}>
-        <Image {...props} onLoad={() => setLoading(false)} />
+        <Image
+          {...props}
+          quality={100}
+          unoptimized
+          onLoad={() => setLoading(false)}
+          src={getImageCld()}
+        />
       </div>
     </div>
   );

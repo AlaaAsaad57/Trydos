@@ -45,4 +45,11 @@ export const myCld = () => {
     },
   });
 };
+export const myCldHome = () => {
+  return new Cloudinary({
+    cloud: {
+      cloudName: "dtcmozf4d",
+    },
+  });
+};
 export const errorPNG = pngErr.src;

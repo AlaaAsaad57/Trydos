@@ -94,9 +94,28 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                   )}
                 </div>
                 <div className="offer-category">
-                  <ManIcon />
-                  <WomanIcon />
-                  <KidsIcon />
+                  {boutique.mainCategoriesForProductIds.map((category) => {
+                    if (category.category_icon.includes(".svg")) {
+                      return <RemoteSvg url={category.category_icon} />;
+                    } else
+                      return (
+                        <ImageLoader
+                          loading="eager"
+                          id={"img-" + boutique.id}
+                          alt={boutique.name}
+                          priority={false}
+                          fetchPriority={"high"}
+                          style={{
+                            maxWidth: "187px",
+                            width: "auto",
+                            height: "20px",
+                          }}
+                          width={20}
+                          height={20}
+                          src={boutique.icon}
+                        />
+                      );
+                  })}
                 </div>
                 <div
                   className="offer-desc"
@@ -106,6 +125,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                   <OfferPhotosSlider
                     extended={false}
                     priority={false}
+                    boutique={boutique}
                     OfferPhotos={boutique.banners}
                   />
                 ) : (
@@ -115,7 +135,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                       priority={false}
                       isSingle={true}
                     />
-                    <OfferAvatars priority={false} />
+                    <OfferAvatars boutique={boutique} priority={false} />
                   </div>
                 )}
               </div>
@@ -123,7 +143,6 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           )}
         </>
       }
-      {}
     </Link>
   );
 };

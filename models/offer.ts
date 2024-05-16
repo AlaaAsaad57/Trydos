@@ -4,11 +4,22 @@ export interface Offer {
 export interface Boutique {
   id: number;
   name: string;
-  icon: any;
+  icon: string;
   slug: string;
   position: number;
   description: string;
-  banners: string[];
-  mainCategoriesForProductIds: any[];
-  childCategoriesForProductIds: any[];
+  banners: Array<string>;
+  mainCategoriesForProductIds: Array<{
+    category_id: number;
+    category_slug: string;
+    category_name: string;
+    category_icon: string;
+  }>;
+  childCategoriesForProductIds: Array<{
+    category_id: string;
+    category_slug: string;
+    category_name: string;
+    product_name: string;
+    product_thumbnail: string;
+  }>;
 }

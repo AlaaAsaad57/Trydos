@@ -8,10 +8,13 @@ import {
 } from "react";
 import OfferAvatar from "./OfferAvatar";
 import MoreOfferAvatar from "./MoreOfferAvatar";
+import { Boutique } from "models/offer";
 interface OfferAvatarsProps {
   priority: Boolean;
+  boutique: Boutique;
 }
-function OfferAvatars({ priority }: OfferAvatarsProps) {
+function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
+  console.log(boutique);
   const ref = useRef<HTMLDivElement>();
   const handleMove = (e: any) => {
     let elemnts: Element[] = Array.from(ref.current.children);
@@ -45,44 +48,26 @@ function OfferAvatars({ priority }: OfferAvatarsProps) {
       onTouchEnd={(e) => handleEnd()}
       onMouseMove={(e) => handleMove(e)}
     >
-      <OfferAvatar
-        images={
-          "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_50/1707907006?_a=DATC1RAAZAA0"
-        }
-        zIndex={1}
-      />
-      <OfferAvatar
-        images={
-          "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_50/1707907006?_a=DATC1RAAZAA0"
-        }
-        zIndex={2}
-      />
-      <OfferAvatar
-        images={
-          "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_50/1707907006?_a=DATC1RAAZAA0"
-        }
-        zIndex={3}
-      />
-      <OfferAvatar
-        images={
-          "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_50/1707907006?_a=DATC1RAAZAA0"
-        }
-        zIndex={4}
-      />
-      <OfferAvatar
-        images={
-          "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_10/1707907006?_a=DATC1RAAZAA0"
-        }
-        zIndex={5}
-      />
-      <MoreOfferAvatar
-        priority={false}
-        images={
-          "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_10/1707907006?_a=DATC1RAAZAA0"
-        }
-        zIndex={100}
-        viewed={5}
-      />
+      {boutique?.childCategoriesForProductIds.map((product, index) => {
+        return (
+          <OfferAvatar
+            name={product.product_name}
+            category={product.category_name}
+            images={product.product_thumbnail}
+            zIndex={index}
+          />
+        );
+      })}
+      {boutique?.childCategoriesForProductIds?.length > 5 && (
+        <MoreOfferAvatar
+          priority={false}
+          images={
+            "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_10/1707907006?_a=DATC1RAAZAA0"
+          }
+          zIndex={100}
+          viewed={6}
+        />
+      )}
     </div>
   );
 }
