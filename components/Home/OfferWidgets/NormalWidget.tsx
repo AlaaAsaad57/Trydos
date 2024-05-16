@@ -114,6 +114,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                           }}
                           width={20}
                           height={20}
+                          key={key}
                           src={boutique.icon}
                         />
                       );
