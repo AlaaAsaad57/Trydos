@@ -182,3 +182,7 @@ export const Sendevent = (params: any) => {
 export const GetAppLanguage = () => {
   return store.getState().homepage.language;
 };
+export function encode_utf8(params: { s: string; element: HTMLElement }) {
+  params.element.innerHTML = unescape(encodeURIComponent(params.s));
+  return "";
+}

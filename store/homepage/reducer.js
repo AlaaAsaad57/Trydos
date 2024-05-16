@@ -10,6 +10,7 @@ const initialState = {
   enableNotifications: false,
   settings: null,
   loginOpen: false,
+  boutiques: [],
 };
 
 const HomeReducer = (state = initialState, { type, payload }) => {
@@ -119,7 +120,7 @@ const HomeReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         loading: false,
-        ...payload,
+        boutiques: payload,
       };
     }
     case "GET_SETTINGS": {

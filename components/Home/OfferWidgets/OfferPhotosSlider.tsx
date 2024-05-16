@@ -4,7 +4,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import OfferAvatars from "./OfferAvatars";
 interface OfferPhotosSliderProps {
-  OfferPhotos: number[];
+  OfferPhotos: string[];
   extended: boolean;
   priority: boolean;
 }
@@ -30,7 +30,12 @@ function OfferPhotosSlider({
     >
       <Slider {...settings}>
         {OfferPhotos.map((offerPhoto, key) => (
-          <OfferSlideItem isSingle={false} priority={priority} key={key} />
+          <OfferSlideItem
+            offerPhoto={offerPhoto}
+            isSingle={false}
+            priority={priority}
+            key={key}
+          />
         ))}
       </Slider>
       <OfferAvatars priority={false} />

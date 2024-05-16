@@ -5,8 +5,13 @@ import { getId } from "utils/functions";
 interface OfferSlideItemProps {
   isSingle: boolean;
   priority: boolean;
+  offerPhoto: string;
 }
-function OfferSlideItem({ isSingle, priority }: OfferSlideItemProps) {
+function OfferSlideItem({
+  isSingle,
+  priority,
+  offerPhoto,
+}: OfferSlideItemProps) {
   let id = getId();
   return (
     <div className="offer-slide-item">
@@ -19,9 +24,7 @@ function OfferSlideItem({ isSingle, priority }: OfferSlideItemProps) {
           style={{ borderRadius: "15px" }}
           fetchPriority={priority ? "high" : "low"}
           className="OfferImage"
-          src={
-            "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_10/1708506792?_a=DATC1RAAZAA0"
-          }
+          src={offerPhoto}
           width={360}
           height={155}
           alt="offer"

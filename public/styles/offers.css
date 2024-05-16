@@ -66,6 +66,9 @@ a {
 .offer-logo {
   justify-content: center;
   margin-left: 25px;
+  font-family: var(--Quicksand-Bold);
+  font-size: 20px;
+  letter-spacing: 0.035rem;
 }
 
 .offer-category,

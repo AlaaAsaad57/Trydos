@@ -5,24 +5,34 @@ const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"));
 import KidsIcon from "public/svg/KidsIcon.svg";
 import OfferSlideItem from "./OfferSlideItem";
 import { useSelector } from "react-redux";
-import { translate } from "utils/functions";
+import { encode_utf8, translate } from "utils/functions";
 import OfferAvatars from "./OfferAvatars";
 import Link from "next/link";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import { Offer } from "models/offer";
+import { Boutique } from "models/offer";
+import RemoteSvg from "components/global/RemoteSvg";
+import { useEffect } from "react";
 interface NormalWidgetProps {
-  offer: Offer;
+  boutique: Boutique;
   myKey: number;
   onClick: Function;
 }
-const NormalWidget = ({ offer, myKey, onClick }: NormalWidgetProps) => {
+const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
   const language = useSelector((state: any) => state.homepage.language);
   const { ref, inView, entry } = useInView({
     /* Optional options */
     threshold: 0.3,
   });
+  useEffect(() => {
+    if (boutique.description && inView) {
+      encode_utf8({
+        element: document.querySelector(`#boutique-${boutique.id}`),
+        s: boutique.description,
+      });
+    }
+  }, [inView]);
   return (
     <Link
       ref={ref}
@@ -33,62 +43,7 @@ const NormalWidget = ({ offer, myKey, onClick }: NormalWidgetProps) => {
       key={myKey}
       onClick={() => onClick()}
     >
-      {myKey === 0 || myKey === 1 ? (
-        <>
-          <>
-            <Image
-              fill
-              alt="imageAlt"
-              loading="eager"
-              fetchPriority="high"
-              priority={true}
-              style={{
-                position: "absolute",
-                filter: "brightness(203%)",
-                top: "0px",
-                left: "0px",
-                borderRadius: "15px",
-                zIndex: "1",
-              }}
-              objectFit="cover"
-              objectPosition="center"
-              src={
-                "https://res.cloudinary.com/djooohujg/image/upload/q_10/w_800/f_webp/1708506792?_a=DATC1RAAZAsA0&w=800&q=60"
-              }
-            />
-            <div className="offer-blured-background" />
-            <div className="offer-blured" />
-            <div className="offer-container">
-              <div className="offer-logo">
-                <LogoOffer />
-              </div>
-              <div className="offer-category">
-                <ManIcon />
-                <WomanIcon />
-                <KidsIcon />
-              </div>
-              <div className="offer-desc">
-                {translate(
-                  "Mango Famous Turkish Brand Best Discounts",
-                  language
-                )}
-              </div>
-              {offer.photos.length > 1 ? (
-                <OfferPhotosSlider
-                  extended={false}
-                  priority={true}
-                  OfferPhotos={offer.photos}
-                />
-              ) : (
-                <div className="offer-slider-container">
-                  <OfferSlideItem priority={true} isSingle={true} />
-                  <OfferAvatars priority={true} />
-                </div>
-              )}
-            </div>
-          </>
-        </>
-      ) : (
+      {
         <>
           {inView && (
             <>
@@ -107,36 +62,40 @@ const NormalWidget = ({ offer, myKey, onClick }: NormalWidgetProps) => {
                 }}
                 objectFit="cover"
                 objectPosition="center"
-                src={
-                  "https://res.cloudinary.com/djooohujg/image/upload/q_50/w_800/f_webp/1708506792?_a=DATC1RAAZAsA0&"
-                }
+                src={boutique.banners[0]}
               />
               <div className="offer-blured-background" />
               <div className="offer-blured" />
               <div className="offer-container">
                 <div className="offer-logo">
-                  <LogoOffer />
+                  {boutique.icon ? (
+                    <RemoteSvg url={boutique.icon} />
+                  ) : (
+                    boutique.name
+                  )}
                 </div>
                 <div className="offer-category">
                   <ManIcon />
                   <WomanIcon />
                   <KidsIcon />
                 </div>
-                <div className="offer-desc">
-                  {translate(
-                    "Mango Famous Turkish Brand Best Discounts",
-                    language
-                  )}
-                </div>
-                {offer.photos.length > 1 ? (
+                <div
+                  className="offer-desc"
+                  id={`boutique-${boutique.id}`}
+                ></div>
+                {boutique.banners.length > 1 ? (
                   <OfferPhotosSlider
                     extended={false}
                     priority={false}
-                    OfferPhotos={offer.photos}
+                    OfferPhotos={boutique.banners}
                   />
                 ) : (
                   <div className="offer-slider-container">
-                    <OfferSlideItem priority={false} isSingle={true} />
+                    <OfferSlideItem
+                      offerPhoto={boutique.banners[0]}
+                      priority={false}
+                      isSingle={true}
+                    />
                     <OfferAvatars priority={false} />
                   </div>
                 )}
@@ -144,7 +103,7 @@ const NormalWidget = ({ offer, myKey, onClick }: NormalWidgetProps) => {
             </>
           )}
         </>
-      )}
+      }
       {}
     </Link>
   );
