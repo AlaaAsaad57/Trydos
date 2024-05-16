@@ -14,7 +14,6 @@ interface OfferAvatarsProps {
   boutique: Boutique;
 }
 function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
-  console.log(boutique);
   const ref = useRef<HTMLDivElement>();
   const handleMove = (e: any) => {
     let elemnts: Element[] = Array.from(ref.current.children);
@@ -52,6 +51,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
         return (
           <OfferAvatar
             name={product.product_name}
+            key={index}
             category={product.category_name}
             images={product.product_thumbnail}
             zIndex={index}

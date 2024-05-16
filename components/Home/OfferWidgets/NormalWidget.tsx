@@ -94,9 +94,11 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                   )}
                 </div>
                 <div className="offer-category">
-                  {boutique.mainCategoriesForProductIds.map((category) => {
+                  {boutique.mainCategoriesForProductIds.map((category, key) => {
                     if (category.category_icon.includes(".svg")) {
-                      return <RemoteSvg url={category.category_icon} />;
+                      return (
+                        <RemoteSvg url={category.category_icon} key={key} />
+                      );
                     } else
                       return (
                         <ImageLoader
@@ -123,6 +125,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                 ></div>
                 {boutique.banners.length > 1 ? (
                   <OfferPhotosSlider
+                    key={2}
                     extended={false}
                     priority={false}
                     boutique={boutique}
