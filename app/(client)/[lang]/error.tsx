@@ -2,8 +2,6 @@
 
 import { useEffect } from "react";
 import Logo from "components/Home/Logo";
-import axios from "axios";
-
 export default function Error({
   error,
   reset,
@@ -28,6 +26,7 @@ export default function Error({
         ? JSON.parse(localStorage.getItem("USER-CHAT")).access_token
         : null;
     }
+    let axios = (await import("axios")).default;
     axios.post(`${baseUrl}/mobile_error_log/store`, {
       error_description: error.message,
       last_json,
