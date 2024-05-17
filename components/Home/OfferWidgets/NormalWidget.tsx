@@ -29,7 +29,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
   useEffect(() => {
     if (boutique.description && inView) {
       encode_utf8({
-        element: document.querySelector(`#boutique-${boutique.id}`),
+        element: document.querySelectorAll(`#boutique-${boutique.id}`),
         s: boutique.description,
       });
     }
@@ -82,6 +82,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                         loading="eager"
                         id={"img-" + boutique.id}
                         alt={boutique.name}
+                        noLoader
                         priority={false}
                         fetchPriority={"high"}
                         style={{
@@ -110,6 +111,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                           loading="eager"
                           id={"img-" + boutique.id}
                           alt={boutique.name}
+                          noLoader
                           priority={false}
                           fetchPriority={"high"}
                           style={{

@@ -182,7 +182,12 @@ export const Sendevent = (params: any) => {
 export const GetAppLanguage = () => {
   return store.getState().homepage.language;
 };
-export function encode_utf8(params: { s: string; element: HTMLElement }) {
-  params.element.innerHTML = params.s;
+export function encode_utf8(params: {
+  s: string;
+  element: NodeListOf<Element>;
+}) {
+  params.element.forEach((ele) => {
+    ele.innerHTML = params.s;
+  });
   return "";
 }

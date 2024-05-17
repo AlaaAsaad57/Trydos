@@ -5,7 +5,8 @@ function LandingPage() {
     document.documentElement.style.overflow = "hidden";
     setTimeout(() => {
       document.documentElement.style.overflow = "initial";
-      document.getElementById("landing").style.display = "none";
+      if (document.getElementById("landing"))
+        document.getElementById("landing").style.display = "none";
     }, 3000);
   }, []);
   return (

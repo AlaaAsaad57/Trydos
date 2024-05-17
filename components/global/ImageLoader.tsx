@@ -17,7 +17,15 @@ function ImageLoader(props) {
         overflow: "hidden",
       }}
     >
-      <Loader style={{ display: loading ? "flex" : "none" }} />
+      {!props.noLoader && (
+        <Loader
+          style={{
+            display: loading ? "flex" : "none",
+            width: props.style.width,
+            height: props.style.height,
+          }}
+        />
+      )}
       <div style={{ display: loading ? "none" : "block" }}>
         <Image
           {...props}
