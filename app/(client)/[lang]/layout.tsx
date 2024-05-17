@@ -54,7 +54,7 @@ const quicksand_regular = localFont({
   src: "../../../public/fonts/Quicksand-Regular.woff2",
   variable: "--Quicksand-Regular",
   display: "swap",
-  preload: false,
+  preload: true,
 });
 const quicksand_light = localFont({
   src: "../../../public/fonts/Quicksand-Light.woff2",
