@@ -14,6 +14,8 @@ function StoryChatRow({ story, index, viewedStory, stories, select }) {
         alt="story"
         width={30}
         height={30}
+        priority={true}
+        fetchPriority={"high"}
         style={{
           borderRadius: "50%",
           border:
