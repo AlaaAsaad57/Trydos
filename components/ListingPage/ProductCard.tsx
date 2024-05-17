@@ -37,18 +37,25 @@ function ProductCard({
         });
     }
   };
+
   useEffect(() => {
     LogData({
       stories_req_data: stories_res,
       HomeData_req_data: HomeData_res,
       listing_req_data: Listing_Data_res,
     });
+    GetNextPage();
     dispatch(GetMainData(HomeData));
     dispatch({ type: "GET_PRODUCTS", payload: Listing_Data_res.body.data });
   }, []);
   return (
     <>
-      <div className="listing-container">
+      <div
+        className="listing-container"
+        onScroll={() => {
+          GetNextPage();
+        }}
+      >
         {products.map((product, i) => (
           <div key={i}>
             {!product.sync_color_images && (
