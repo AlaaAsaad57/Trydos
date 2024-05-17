@@ -350,7 +350,7 @@ function NewLoginWidget() {
                   AuthService.cancelAuth();
                 }}
                 close={() => {
-                  close();
+                  setLoginOpen(false);
                 }}
                 setStepIndactor={(e) => setStepIndcator(e)}
                 inputValue={inputValue}
@@ -372,7 +372,7 @@ function NewLoginWidget() {
             className="take-look-text"
             onClick={() => {
               AuthService.cancelAuth();
-              close();
+              setLoginOpen(false);
             }}
             style={{
               opacity: stepIndicator === -1 ? "0" : "1",
@@ -387,14 +387,14 @@ function NewLoginWidget() {
             id="login-close-icon"
             onClick={() => {
               AuthService.cancelAuth();
-              close();
+              setLoginOpen(false);
             }}
           >
             {" "}
             <svg
               onClick={() => {
                 AuthService.cancelAuth();
-                close();
+                setLoginOpen(false);
               }}
               xmlns="http://www.w3.org/2000/svg"
               width="16.411"
