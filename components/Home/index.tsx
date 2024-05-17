@@ -76,8 +76,6 @@ export default function Home({
     (state: any) => state.homepage.enableNotifications
   );
   const nameModal = useSelector((state: any) => state.chat.nameModal);
-  const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
-
   useEffect(() => {
     if (selectedStory) {
       document.documentElement

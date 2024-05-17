@@ -43,7 +43,7 @@ function Logo({ animated, style }: { animated: boolean; style: boolean }) {
           >
             <feOffset dy="3" />
             <feGaussianBlur stdDeviation="2" result="blur-2" />
-            <feFlood floodColor="#fff" stopColor="0.302" result="color" />
+            <feFlood floodColor="#fff" floodOpacity="0.302" result="color" />
             <feComposite operator="out" in="SourceGraphic" in2="blur-2" />
             <feComposite operator="in" in="color" />
             <feComposite operator="in" in2="SourceGraphic" />
