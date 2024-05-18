@@ -24,7 +24,6 @@ import NameModal from "components/global/NameModal";
 import { getUserStories } from "../../utils/functions";
 import StoryServiceClass from "services/story";
 import StoriesContainer from "./Stories/NewStories";
-import { categories } from "utils/constants";
 export default function Home({
   HomeData_res,
   HomeData,

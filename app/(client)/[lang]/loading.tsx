@@ -1,5 +1,5 @@
 import React from "react";
-import "public/styles/home.css";
+
 async function loading() {
   return (
     <div className="landing-page">

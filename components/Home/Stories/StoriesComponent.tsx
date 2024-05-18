@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SelectStory } from "store/homepage/actions";
-import dynamic from "next/dynamic";
 import StoryService from "services/story";
 import { GetUnviewedStory } from "../../../store/homepage/actions";
 import { Story } from "models/story";
 import StoriesLists from "utils/Carousel";
-const Stories = dynamic(() => import("react-insta-stories"), { ssr: false });
 function StoriesComponent() {
   const [currentStoryId, setCurrentStoryId] = useState(0);
   const selectedStory = useSelector(

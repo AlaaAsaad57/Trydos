@@ -4,11 +4,10 @@ import dynamic from "next/dynamic";
 const StoryElement = dynamic(() => import("./StoryElement"), { ssr: false });
 const AddStory = dynamic(() => import("../AddStory"), { ssr: false });
 import { useDispatch, useSelector } from "react-redux";
-import { GetUnviewedStory, SelectStory } from "store/homepage/actions";
+import { SelectStory } from "store/homepage/actions";
 import { Story } from "models/story";
 function Index() {
   const storiesData = useSelector((state: any) => state.homepage.storiesData);
-  const loading = useSelector((state: any) => state.homepage.loading);
   const dispatch = useDispatch();
   const setSelectStory = (e: Story) => {
     dispatch(SelectStory(e));

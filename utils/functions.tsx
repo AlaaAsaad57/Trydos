@@ -7,6 +7,7 @@ import profilePicture from "public/images/profileNo.png";
 import StoryServiceClass from "services/story";
 import { useEffect, useState } from "react";
 import { store } from "store";
+import Cookies from "js-cookie";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -163,8 +164,7 @@ export const useTimers = ({ durationValue }) => {
   };
 };
 export const Sendevent = async (params: any) => {
-  const event=(await import('nextjs-google-analytics')).event;
-  const Cookies = (await import("js-cookie")).default;
+  const event = (await import("nextjs-google-analytics")).event;
   try {
     let userId = localStorage.getItem("USER")
       ? JSON.parse(localStorage.getItem("USER"))?.id

@@ -25,7 +25,12 @@ const ListingReducer = (state = initialState, { type, payload }) => {
     case "GET_NEXT_PRODUCT": {
       return {
         ...state,
-        products: [...state.products, ...payload.products],
+        products: [
+          ...state.products,
+          ...payload.products.filter(
+            (s) => state.products.filter((d) => d.id === s.id).length === 0
+          ),
+        ],
         offset: state.offset + 1,
         isReachEnd: payload.products.length === 0,
         loading: false,

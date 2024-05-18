@@ -1,7 +1,6 @@
 import axios from "axios";
 import { StoriesInterface } from "models/Stories";
 import { store } from "store";
-import { DataApiHeaders } from "store/homepage/cachedActions";
 import { _isStoreLastJson, SSRDetect } from "utils/functions";
 import {
   GET_USERS_STORIES,
@@ -39,7 +38,6 @@ class StoryService {
     return data;
   }
   async loginStories() {
-    const Cookies = (await import("js-cookie")).default;
     const response = await this.http.post(LOG_IN_STORIES, {
       otp_id_token: localStorage.getItem("ID-TOKEN"),
       mobile_phone: "+" + JSON.parse(localStorage.getItem("USER")).phone,

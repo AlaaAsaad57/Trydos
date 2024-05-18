@@ -2,7 +2,6 @@ import { useMutation } from "@tanstack/react-query";
 import {
   CheckPhoneInputInterface,
   SendOtpInputInterface,
-  UserInterface,
   VerifyOtpInputInterface,
 } from "models/User";
 import AuthService from "services/auth";
