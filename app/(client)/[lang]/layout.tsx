@@ -1,4 +1,5 @@
 import "styles/globals.css";
+import "styles/home.css";
 import { ReactQueryClientProvider } from "components/Providers/ReactQueryClientProvider";
 import Providers from "store/provider";
 import localFont from "next/font/local";

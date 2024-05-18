@@ -103,7 +103,7 @@ class HomeService {
   }
   async GetBoutiques(slug) {
     const response = await this.http.get(
-      OTP_URL + HOME_DATA_URL + (slug ? `?category_slug=${slug}` : ""),
+      OTP_URL + HOME_DATA_URL + `ByCategory/${slug}`,
       {
         headers: {
           country: Cookies.get("country"),

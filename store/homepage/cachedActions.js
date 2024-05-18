@@ -36,29 +36,27 @@ export const getStories = async () => {
 };
 
 export const getHomeData = async (str) => {
+  let url = !str ? HOME_DATA_URL : HOME_DATA_URL + `ByCategory/${str}`;
   const customHeader = await DataApiHeaders();
   try {
     let time = new Date().getTime();
-    const res = await fetch(
-      OTP_URL + HOME_DATA_URL + (str ? `?category_slug=${str}` : ""),
-      {
-        next: { revalidate: 3600, tags: ["home-boutiques"] },
-        headers: { ...customHeader },
-      }
-    );
+    const res = await fetch(OTP_URL + url, {
+      next: { revalidate: 3600, tags: ["home-boutiques"] },
+      headers: { ...customHeader },
+    });
     const repo = await res.json();
     time = new Date().getTime() - time;
     let returned_res = {
       type: res.type,
       headers: [...res.headers, ...customHeader],
-      url: res.url + (str ? `?category_slug=${str}` : ""),
+      url: res.url,
       time: time + "ms",
       body: repo,
     };
     return [repo.data.boutiques, returned_res];
   } catch (e) {
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
-    return ["homedata-error", e.toString()];
+    return [[], e.toString()];
   }
 };
 export const getMainCategories = async () => {

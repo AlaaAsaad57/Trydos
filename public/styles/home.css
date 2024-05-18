@@ -271,6 +271,9 @@ body {
 svg g #Path_213320 {
   animation: opa 1s both infinite;
 }
+svg g #Path_213345 {
+  animation: opa 1s both infinite;
+}
 .active-nav-item svg g g path:first-child {
   fill: #3c3c3c;
 }

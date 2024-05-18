@@ -1,4 +1,3 @@
-import LandingPage from "components/Home/LandingPage";
 import React from "react";
 
 async function loading() {
@@ -48,7 +47,7 @@ async function loading() {
           </g>
           <g id="Group_10922" data-name="Group 10922">
             <path
-              id="Path_213320"
+              id="Path_213345"
               data-name="Path 21332"
               d="M8.929,0a8.929,8.929,0,1,0,8.929,8.929A8.929,8.929,0,0,0,8.929,0Z"
               transform="translate(206 422)"
