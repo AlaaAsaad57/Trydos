@@ -1,8 +1,4 @@
-import LogoOffer from "public/svg/offerlogo.svg";
-import ManIcon from "public/svg/manIcon.svg";
-import WomanIcon from "public/svg/WomanIcon.svg";
 const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"));
-import KidsIcon from "public/svg/KidsIcon.svg";
 import OfferSlideItem from "./OfferSlideItem";
 import { useSelector } from "react-redux";
 import { encode_utf8, translate } from "utils/functions";
