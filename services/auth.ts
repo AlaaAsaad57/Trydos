@@ -12,7 +12,6 @@ import {
 } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
-import { UserInterface } from "models/User";
 class AuthService {
   http = axios.create({
     baseURL: OTP_URL,
