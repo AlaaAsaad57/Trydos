@@ -46,8 +46,6 @@ export const GetUnviewedStory = (story) => {
 
   return index;
 };
-export const UserStartStory = () => {};
-export const UserEndStory = () => {};
 export const LogData = (data) => {
   if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") {
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(data);

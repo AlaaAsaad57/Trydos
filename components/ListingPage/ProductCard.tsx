@@ -9,9 +9,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";
 import { LISTING_INFO_URL, OTP_URL } from "utils/endpointConfig";
-import { GetMainData, LogData } from "store/homepage/actions";
+import { LogData } from "store/homepage/actions";
+import { useParams } from "next/navigation";
 function ProductCard({ Listing_Data_res }: { Listing_Data_res: any }) {
   const dispatch = useDispatch();
+  const params = useParams();
   const products = useSelector((state: any) => state.listing.products);
   const offset = useSelector((state: any) => state.listing.offset);
   const loading = useSelector((state: any) => state.listing.loading);
@@ -21,7 +23,11 @@ function ProductCard({ Listing_Data_res }: { Listing_Data_res: any }) {
       dispatch({ type: "PRODUCT_LOADING" });
       let axios = (await import("axios")).default;
       await axios
-        .get(OTP_URL + LISTING_INFO_URL + `?offset=${offset}&limit=${20}`)
+        .get(
+          OTP_URL +
+            LISTING_INFO_URL +
+            `?offset=${offset}&limit=${20}&boutique_slug=${params.categories}`
+        )
         .then((data) => {
           dispatch({ type: "GET_NEXT_PRODUCT", payload: data.data.data });
         });
