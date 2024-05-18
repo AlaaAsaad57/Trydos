@@ -86,7 +86,10 @@ export async function middleware(request) {
   }
   const routePath = pathname.split("/")[1];
   const pathN = pathname.replace(routePath, "");
-  const hasSeparator = routePath.includes("-");
+  const hasSeparator =
+    routePath.includes("-") &&
+    routePath.split("-")[0].length === 2 &&
+    routePath.split("-")[1].length === 2;
   const hasLanguage =
     hasSeparator &&
     languages.some((lang) =>
