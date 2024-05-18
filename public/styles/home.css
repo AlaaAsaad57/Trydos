@@ -51,7 +51,6 @@ body {
   transform: scale(1.25);
 }
 .categories-bar-item:hover .categories-bar-item-icon svg path,
-.categories-bar-item:hover .categories-bar-item-icon svg rect,
 .categories-bar-item:hover .categories-bar-item-icon svg circle,
 .categories-bar-item.active-nav-category .categories-bar-item-icon svg path {
   fill: #3c3c3c;

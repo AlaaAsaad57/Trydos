@@ -14,7 +14,7 @@ function OfferList({ offers, quick }: OfferListProps) {
     <div
       className={`offers-list ${
         (loginOpen && "hide-offers ") + (quick && " mt-5")
-      } `}
+      }  w-full flex flex-col`}
     >
       {/* {quick ? (
         <QuickOfferWidjet onClick={() => {}} offer={{ photos: [1] }} />

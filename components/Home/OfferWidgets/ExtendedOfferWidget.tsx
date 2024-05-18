@@ -31,7 +31,7 @@ function ExtendedOfferWidget({
     <div
       ref={ref}
       aria-label={`Go To listing Page`}
-      className="offer-widget extended-widget"
+      className="offer-widget extended-widget w-full flex flex-col"
       key={myKey}
       onClick={() => onClick()}
     >

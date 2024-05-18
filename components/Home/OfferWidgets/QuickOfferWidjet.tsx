@@ -28,7 +28,7 @@ function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
       ref={ref}
       prefetch={false}
       href={"/listing"}
-      className="offer-widget quick-widget"
+      className="offer-widget quick-widget  w-full flex flex-col"
       aria-label={`Go To listing Page`}
       onClick={() => onClick()}
     >

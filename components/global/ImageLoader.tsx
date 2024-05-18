@@ -29,8 +29,7 @@ function ImageLoader(props) {
       <div style={{ display: loading ? "none" : "block" }}>
         <Image
           {...props}
-          quality={100}
-          unoptimized
+          quality={"100"}
           onLoad={() => setLoading(false)}
           src={getImageCld()}
         />

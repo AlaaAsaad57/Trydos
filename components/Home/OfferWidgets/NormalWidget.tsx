@@ -52,7 +52,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
       href={`/${getHref()}`}
       prefetch={false}
       aria-label={`Go To listing Page`}
-      className="offer-widget"
+      className="offer-widget  w-full flex flex-col"
       key={myKey}
       aria-disabled="true"
       onMouseDown={(e) => {

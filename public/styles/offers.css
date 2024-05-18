@@ -6,19 +6,6 @@
   justify-content: flex-start;
   margin-top: 25px;
 }
-.offer-widget,
-.offers-list {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-.mobile-bar {
-  cursor: pointer;
-  padding-right: 5px;
-  overflow-x: scroll;
-  overflow-y: hidden;
-  white-space: nowrap;
-}
 .mobile-bar::-webkit-scrollbar {
   display: none;
 }
@@ -286,7 +273,7 @@ a {
 }
 .categories-bar-item .categories-bar-item-description {
   display: flex;
-  bottom: -29.5px;
+  bottom: -40px;
   right: 11px;
   position: absolute;
   opacity: 0;
