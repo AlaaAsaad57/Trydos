@@ -193,3 +193,12 @@ export function encode_utf8(params: {
   });
   return "";
 }
+
+export const getConfiguredImage = ({ src, width, height }) => {
+  if (src.includes("cloudinary")) {
+    return src.replace(
+      "/upload",
+      `/upload/w_${width},h_${height}/f_webp/q_auto`
+    );
+  } else return src;
+};

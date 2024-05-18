@@ -39,15 +39,38 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
       return s.replace("/upload", "/upload/f_webp/q_40");
     } else return s;
   };
+  const getHref = () => {
+    let str = "";
+    boutique.slug.split("").forEach((char) => {
+      if (char === "-") {
+        str += "_";
+      } else {
+        str += char;
+      }
+    });
+    return str;
+  };
   return (
     <Link
       ref={ref}
-      href={"/listing"}
+      href={`/${getHref()}`}
       prefetch={false}
       aria-label={`Go To listing Page`}
       className="offer-widget"
       key={myKey}
-      onClick={() => onClick()}
+      aria-disabled="true"
+      onMouseDown={(e) => {
+        e.preventDefault();
+      }}
+      onTouchStart={(e) => {
+        e.preventDefault();
+      }}
+      onMouseUp={(e) => {
+        e.preventDefault();
+      }}
+      onTouchEnd={(e) => {
+        e.preventDefault();
+      }}
     >
       {
         <>

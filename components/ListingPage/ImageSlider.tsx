@@ -4,6 +4,7 @@ import BorderImage from "./BorderImage";
 import Image from "next/image";
 import { useRef } from "react";
 import PointsSlider from "./PointsSlider";
+import { getConfiguredImage } from "utils/functions";
 function ImageSlider({
   renderVar,
   product_name,
@@ -88,7 +89,11 @@ function ImageSlider({
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     style={{ borderRadius: "15px", zIndex: "3" }}
                     fill
-                    src={img}
+                    src={getConfiguredImage({
+                      src: img,
+                      width: 200,
+                      height: 290,
+                    })}
                     alt={product_name || "alt"}
                   />
                 </>

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { memo } from "react";
+import { getConfiguredImage } from "utils/functions";
 
 function ImageAvatar({
   image,
@@ -64,7 +65,7 @@ function ImageAvatar({
       <Image
         loading="eager"
         quality={80}
-        src={image}
+        src={getConfiguredImage({ src: image, width: 35, height: 35 })}
         fill
         alt={alt || "alt"}
         style={{

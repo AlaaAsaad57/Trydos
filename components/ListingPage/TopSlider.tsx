@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { useEffect, memo } from "react";
 import ProductSlider from "./ProductSlider";
+import { getConfiguredImage } from "utils/functions";
 function TopSlider({
   active,
   images,
@@ -87,7 +88,7 @@ function TopSlider({
               </g>
             </svg>
             <Image
-              src={img}
+              src={getConfiguredImage({ src: img, width: 30, height: 40 })}
               width={30}
               height={40}
               alt={product_name || "alt"}

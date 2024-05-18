@@ -8,6 +8,7 @@ import ColorSlider from "./ColorSlider";
 import "styles/skeleton.css";
 import Loadding from "public/svg/loading.svg";
 import CategoryPhoto from "./CategoryPhoto";
+import Image from "next/image";
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
     return {
@@ -62,6 +63,11 @@ function ProductCover({ product }) {
       });
     return index;
   };
+  const getImageCld = (s) => {
+    if (s.includes("cloudinary")) {
+      return s.replace("/upload", "/upload/w_200,h_290/f_webp/q_40");
+    } else return s;
+  };
   return (
     <div
       className="product-container"
@@ -72,9 +78,25 @@ function ProductCover({ product }) {
         }
       }}
     >
-      <div className="blured-background" />
-      <div className="offer-blured" />
+      <Image
+        fill
+        alt="imageAlt"
+        loading="eager"
+        fetchPriority="high"
+        priority={true}
+        style={{
+          position: "absolute",
+          top: "0px",
+          left: "0px",
+          borderRadius: "15px",
+          zIndex: "1",
+        }}
+        objectFit="cover"
+        objectPosition="center"
+        src={getImageCld(productState?.activeColor?.images[0])}
+      />
       <div className="offer-blured-background" />
+      <div className="offer-blured" />
       {
         <TopSlider
           product_name={product.name}

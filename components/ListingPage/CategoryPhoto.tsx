@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Loadding from "public/svg/loading.svg";
 import { Img } from "react-image";
+import { getConfiguredImage } from "utils/functions";
 function CategoryPhoto(props: {
   alt: string;
   width: string | number;
@@ -22,7 +23,13 @@ function CategoryPhoto(props: {
       {
         <Img
           {...props}
-          src={[src]}
+          src={[
+            getConfiguredImage({
+              src: src,
+              width: props.width,
+              height: props.height,
+            }),
+          ]}
           unloader={<Loadding onClick={() => onClick()} />}
         />
       }

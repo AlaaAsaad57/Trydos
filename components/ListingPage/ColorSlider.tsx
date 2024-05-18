@@ -3,6 +3,7 @@ import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperRef, SwiperSlide } from "swiper/react";
 import BorderImage from "./BorderImage";
 import Image from "next/image";
+import { getConfiguredImage } from "utils/functions";
 function ColorSlider({
   active,
   activeColor,
@@ -91,7 +92,11 @@ function ColorSlider({
                     style={{ borderRadius: "15px", zIndex: "3" }}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    src={img.images[0]}
+                    src={getConfiguredImage({
+                      src: img.images[0],
+                      width: 200,
+                      height: 290,
+                    })}
                     alt={product_name || "alt"}
                   />
                 </>

@@ -75,18 +75,34 @@ export const changeAppLanguageServer = (language) => {
   const cookieStore = cookies();
   cookieStore.set("language", language);
 };
-export const getListingData = async () => {
+const getHref = (s) => {
+  let str = "";
+  s.split("").forEach((char) => {
+    if (char === "_") {
+      str += "-";
+    } else {
+      str += char;
+    }
+  });
+  return str;
+};
+export const getListingData = async (categories) => {
+  let str = getHref(categories);
+  let customHeader = await DataApiHeaders();
   try {
     let time = new Date().getTime();
-    const res = await fetch(OTP_URL + LISTING_INFO_URL, {
-      next: { revalidate: 3600, tags: ["listing-data"] },
-      headers: DataApiHeaders(),
-    });
+    const res = await fetch(
+      OTP_URL + LISTING_INFO_URL + `?boutique_slug=${str}`,
+      {
+        next: { revalidate: 3600, tags: ["listing-data"] },
+        headers: { ...customHeader },
+      }
+    );
     const repo = await res.json();
     time = new Date().getTime() - time;
     let returned_res = {
       type: res.type,
-      headers: [...res.headers, DataApiHeaders()],
+      headers: [...res.headers, ...customHeader],
       url: res.url,
       time: time + "ms",
       body: repo,

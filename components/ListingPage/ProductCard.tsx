@@ -10,17 +10,7 @@ import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";
 import { LISTING_INFO_URL, OTP_URL } from "utils/endpointConfig";
 import { GetMainData, LogData } from "store/homepage/actions";
-function ProductCard({
-  Listing_Data_res,
-  HomeData_res,
-  stories_res,
-  HomeData,
-}: {
-  Listing_Data_res: any;
-  HomeData_res: any;
-  stories_res: any;
-  HomeData: any;
-}) {
+function ProductCard({ Listing_Data_res }: { Listing_Data_res: any }) {
   const dispatch = useDispatch();
   const products = useSelector((state: any) => state.listing.products);
   const offset = useSelector((state: any) => state.listing.offset);
@@ -40,12 +30,9 @@ function ProductCard({
 
   useEffect(() => {
     LogData({
-      stories_req_data: stories_res,
-      HomeData_req_data: HomeData_res,
       listing_req_data: Listing_Data_res,
     });
     GetNextPage();
-    dispatch(GetMainData(HomeData));
     dispatch({ type: "GET_PRODUCTS", payload: Listing_Data_res.body.data });
   }, []);
   return (

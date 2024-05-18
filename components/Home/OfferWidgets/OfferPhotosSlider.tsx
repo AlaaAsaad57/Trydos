@@ -31,7 +31,11 @@ function OfferPhotosSlider({
       className="offer-slider-container"
       style={{ marginTop: extended && "39px" }}
     >
-      <Slider {...settings}>
+      <Slider
+        {...settings}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={(e) => e.preventDefault()}
+      >
         {OfferPhotos.map((offerPhoto, key) => (
           <OfferSlideItem
             offerPhoto={offerPhoto}

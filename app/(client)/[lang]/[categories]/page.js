@@ -10,19 +10,11 @@ export async function generateMetadata({ params, searchParams }) {
   };
 }
 async function page({ params, searchParams }) {
-  const [HomeData, HomeData_res] = await getHomeData();
-  const [Listing_data, Listing_Data_res] = await getListingData();
-  return (
-    <>
-      {
-        <ProductCard
-          Listing_Data_res={Listing_Data_res}
-          HomeData_res={HomeData_res}
-          HomeData={HomeData}
-        />
-      }
-    </>
+  console.log(params);
+  const [Listing_data, Listing_Data_res] = await getListingData(
+    params.categories
   );
+  return <>{<ProductCard Listing_Data_res={Listing_Data_res} />}</>;
 }
 
 export default page;
