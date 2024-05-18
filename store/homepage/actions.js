@@ -1,7 +1,7 @@
 import { changeAppLanguageServer } from "./cachedActions";
 import StoryService from "services/story";
-export const changeAppLanguage = async(language) => {
-  const Cookies=(await import("js-cookie")).default;
+const Cookies = (await import("js-cookie")).default;
+export const changeAppLanguage = (language) => {
   Cookies.set("language", language);
   changeAppLanguageServer(language);
   return { type: "APP-LANGUAGE", payload: language };
