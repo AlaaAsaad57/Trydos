@@ -263,10 +263,9 @@ a {
   margin-left: 50px;
 }
 
-.categories-bar-container a,
+.categories-bar-container div,
 .categories-bar-item {
   display: flex;
-
   flex-direction: column;
   cursor: pointer;
   position: relative;
@@ -275,19 +274,13 @@ a {
   justify-content: flex-start;
   align-items: center;
 }
-
-.categories-bar-container a:not(:first-child),
-.categories-bar-item:not(:first-child) {
-  margin-left: 30px;
-}
-
-.categories-bar-item-description {
+.ca .categories-bar-item-description {
   display: flex;
-  bottom: -33.5px;
-  right: 26px;
+  bottom: -13.5px;
+  right: 0px;
   position: absolute;
   opacity: 0;
-  height: 40px;
+  height: 21px;
   transition: 0.3s;
   flex-direction: row;
   align-items: flex-end;

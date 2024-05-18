@@ -61,7 +61,7 @@
     padding: 0px;
     align-items: center;
   }
-  .home-page-container .categories-bar-container:not(.mobile-bar) a,
+  .home-page-container .categories-bar-container:not(.mobile-bar) div,
   .home-page-container
     .categories-bar-container:not(.mobile-bar)
     .categories-bar-item {

@@ -28,10 +28,8 @@ function ExtendedOfferWidget({
     threshold: 0.3,
   });
   return (
-    <Link
+    <div
       ref={ref}
-      prefetch={false}
-      href={"/listing"}
       aria-label={`Go To listing Page`}
       className="offer-widget extended-widget"
       key={myKey}
@@ -108,7 +106,7 @@ function ExtendedOfferWidget({
           </div>
         </>
       )}
-    </Link>
+    </div>
   );
 }
 

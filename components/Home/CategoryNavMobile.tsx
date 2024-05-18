@@ -11,24 +11,16 @@ function CategoryNavMobile({ name, icon, myKey }: CategoryNavMobileProps) {
   const language = useSelector((state: any) => state.homepage.language);
 
   return (
-    <Link
-      prefetch={false}
-      href={`/${name}`}
-      aria-label={`Go To ${name} Category Page`}
-    >
-      <div className="categories-bar-item" key={myKey}>
-        {<div className="categories-bar-item-icon">{icon}</div>}
-        {
-          <div className="categories-bar-item-description">
-            <div
-              className={`categories-bar-item-name ${language + "-regular"}`}
-            >
-              {translate(name, language)}
-            </div>
+    <div className="categories-bar-item" key={myKey}>
+      {<div className="categories-bar-item-icon">{icon}</div>}
+      {
+        <div className="categories-bar-item-description">
+          <div className={`categories-bar-item-name ${language + "-regular"}`}>
+            {translate(name, language)}
           </div>
-        }
-      </div>
-    </Link>
+        </div>
+      }
+    </div>
   );
 }
 

@@ -66,33 +66,27 @@ const CategoryNavItem = ({
       ) : (
         <>
           {!searchEnabled && (
-            <Link
-              prefetch={false}
-              href={`/${name}`}
-              aria-label={`Go To ${name} Category Page`}
+            <div
+              className="categories-bar-item ${}"
+              onClick={() => clickItem()}
+              key={myKey}
             >
-              <div
-                className="categories-bar-item ${}"
-                onClick={() => clickItem()}
-                key={myKey}
-              >
-                {!searchEnabled && (
-                  <div className="categories-bar-item-icon">{icon}</div>
-                )}
-                {!searchEnabled && (
-                  <div className="categories-bar-item-description">
-                    <div
-                      className={`categories-bar-item-name ${
-                        language + "-regular"
-                      }`}
-                    >
-                      {translate(name, language)}
-                    </div>
-                    <NavIcon />
+              {!searchEnabled && (
+                <div className="categories-bar-item-icon">{icon}</div>
+              )}
+              {!searchEnabled && (
+                <div className="categories-bar-item-description">
+                  <div
+                    className={`categories-bar-item-name ${
+                      language + "-regular"
+                    }`}
+                  >
+                    {translate(name, language)}
                   </div>
-                )}
-              </div>
-            </Link>
+                  <NavIcon />
+                </div>
+              )}
+            </div>
           )}
         </>
       )}
