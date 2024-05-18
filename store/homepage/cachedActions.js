@@ -8,7 +8,7 @@ import {
   OTP_URL,
   STORIES_URL,
 } from "utils/endpointConfig";
-import { cookies } from "next/headers";
+
 export const getStories = async () => {
   try {
     let time = new Date().getTime();
@@ -83,6 +83,7 @@ export const getMainCategories = async () => {
   }
 };
 export const DataApiHeaders = async (forStories) => {
+  const cookies= (((await import( "next/headers")).cookies));
   const cookieStore = cookies();
   return new Headers({
     language:
@@ -96,7 +97,8 @@ export const DataApiHeaders = async (forStories) => {
         : cookieStore.get("token")?.value,
   });
 };
-export const changeAppLanguageServer = (language) => {
+export const changeAppLanguageServer =async (language) => {
+  const cookies= (((await import( "next/headers")).cookies));
   const cookieStore = cookies();
   cookieStore.set("language", language);
 };
