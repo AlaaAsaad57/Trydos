@@ -4,7 +4,11 @@ import "styles/unused-onload.css";
 import { useDispatch, useSelector } from "react-redux";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
-import { GetMainData, LogData } from "store/homepage/actions";
+import {
+  GetMainCategories,
+  GetMainData,
+  LogData,
+} from "store/homepage/actions";
 import Stories from "./Stories/index";
 import BrandsBar from "./Bars/BrandsBar";
 import QuickOffer from "./Bars/QuickOffer";
@@ -20,17 +24,27 @@ import NameModal from "components/global/NameModal";
 import { getUserStories } from "../../utils/functions";
 import StoryServiceClass from "services/story";
 import StoriesContainer from "./Stories/NewStories";
+import { categories } from "utils/constants";
 export default function Home({
   HomeData_res,
   HomeData,
+  mainCategories,
+  mainCategories_res,
 }: {
   HomeData_res: Object;
   HomeData: Object;
+  mainCategories: Object;
+  mainCategories_res: Object;
 }) {
   useEffect(() => {
     StoryServiceClass.getStories();
-    LogData({ HomeData_req_data: HomeData_res });
+    LogData({
+      HomeData_req_data: HomeData_res,
+      mainCategories,
+      mainCategories_res,
+    });
     dispatch(GetMainData(HomeData));
+    dispatch(GetMainCategories(mainCategories));
     try {
       initFB();
     } catch (e) {

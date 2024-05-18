@@ -1,15 +1,19 @@
+"use client";
 import axios from "axios";
 import { store } from "store";
 import { GetChats } from "store/chat/actions";
+import Cookies from "js-cookie";
 import userImage from "public/images/profileNo.png";
 import { _isStoreLastJson } from "utils/functions";
 import {
   CUSTOMER_INFO_URL,
+  HOME_DATA_URL,
   OTP_URL,
   REGISTER_DEVICE_URL,
   STARTER_SETTINGS,
 } from "utils/endpointConfig";
 import { SSRDetect } from "utils/functions";
+import { GetMainData } from "store/homepage/actions";
 
 class HomeService {
   http = axios.create({
@@ -96,6 +100,18 @@ class HomeService {
           localStorage.setItem("LAST_JSON", JSON.stringify(response));
       }
     }
+  }
+  async GetBoutiques(slug) {
+    const response = await this.http.get(
+      OTP_URL + HOME_DATA_URL + (slug ? `?category_slug=${slug}` : ""),
+      {
+        headers: {
+          country: Cookies.get("country"),
+          language: Cookies.get("language"),
+        },
+      }
+    );
+    store.dispatch(GetMainData(response.data.data.boutiques));
   }
 }
 

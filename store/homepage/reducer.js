@@ -2,7 +2,7 @@ import { configureStory } from "utils/functions";
 import { getUserStories } from "utils/functions";
 const initialState = {
   language: "en",
-  loading: false,
+  loading: true,
   selectedStory: null,
   renderStories: false,
   storiesData: [],
@@ -11,6 +11,7 @@ const initialState = {
   settings: null,
   loginOpen: false,
   boutiques: [],
+  categories: [],
 };
 
 const HomeReducer = (state = initialState, { type, payload }) => {
@@ -19,6 +20,13 @@ const HomeReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         enableNotifications: true,
+      };
+    }
+    case "MAIN-CATEGORIES": {
+      return {
+        ...state,
+        categories: payload,
+        loading: false,
       };
     }
     case "LOGIN-OPEN": {

@@ -2,6 +2,7 @@
 
 import {
   GET_USERS_STORIES,
+  HOME_DATA_CATEGORIES_URL,
   HOME_DATA_URL,
   LISTING_INFO_URL,
   OTP_URL,
@@ -34,12 +35,38 @@ export const getStories = async () => {
   }
 };
 
-export const getHomeData = async () => {
+export const getHomeData = async (str) => {
   const customHeader = await DataApiHeaders();
   try {
     let time = new Date().getTime();
-    const res = await fetch(OTP_URL + HOME_DATA_URL, {
-      next: { revalidate: 3600, tags: ["home-boutiques"] },
+    const res = await fetch(
+      OTP_URL + HOME_DATA_URL + (str ? `?category_slug=${str}` : ""),
+      {
+        next: { revalidate: 3600, tags: ["home-boutiques"] },
+        headers: { ...customHeader },
+      }
+    );
+    const repo = await res.json();
+    time = new Date().getTime() - time;
+    let returned_res = {
+      type: res.type,
+      headers: [...res.headers, ...customHeader],
+      url: res.url + (str ? `?category_slug=${str}` : ""),
+      time: time + "ms",
+      body: repo,
+    };
+    return [repo.data.boutiques, returned_res];
+  } catch (e) {
+    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
+    return ["homedata-error", e.toString()];
+  }
+};
+export const getMainCategories = async () => {
+  const customHeader = await DataApiHeaders();
+  try {
+    let time = new Date().getTime();
+    const res = await fetch(OTP_URL + HOME_DATA_CATEGORIES_URL, {
+      next: { revalidate: 3600, tags: ["home-categories"] },
       headers: { ...customHeader },
     });
     const repo = await res.json();
@@ -51,7 +78,7 @@ export const getHomeData = async () => {
       time: time + "ms",
       body: repo,
     };
-    return [repo.data.boutiques, returned_res];
+    return [repo.data.mainCategories, returned_res];
   } catch (e) {
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
     return ["homedata-error", e.toString()];

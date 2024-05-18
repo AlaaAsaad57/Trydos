@@ -1,9 +1,9 @@
 "use client";
-import { categories } from "utils/constants";
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import "styles/skeleton.css";
 import dynamic from "next/dynamic";
+import { Category } from "models/Category";
 const Skeleton = dynamic(() => import("react-loading-skeleton"), {
   ssr: false,
 });
@@ -15,6 +15,9 @@ interface CategoriesBarProps {
 }
 function CategoriesBar({ forMobile }: CategoriesBarProps) {
   const loading = useSelector((state: any) => state.homepage.loading);
+  const categories: Category[] = useSelector(
+    (state: any) => state.homepage.categories
+  );
   const [searchEnabled, setSearchEnabled] = useState(false);
 
   return (
@@ -45,6 +48,7 @@ function CategoriesBar({ forMobile }: CategoriesBarProps) {
                 name={category.name}
                 key={key}
                 myKey={key}
+                slug={category.slug}
                 icon={category?.icon}
               />
             )

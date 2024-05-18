@@ -4,30 +4,37 @@ import NavIcon from "public/svg/navIcon.svg";
 const SearchComponent = dynamic(() => import("./SearchComponent"), {
   ssr: false,
 });
-import Link from "next/link";
 import dynamic from "next/dynamic";
-import { ReactElement } from "react";
+import RemoteSvg from "components/global/RemoteSvg";
+import { useRouter, useSearchParams } from "next/navigation";
+import homeService from "services/home";
 interface CategoryNavItemProps {
   name: string;
-  icon: ReactElement;
+  icon: string;
   searchEnabled: boolean;
   close: Function;
   openSearch: Function;
   myKey: number;
+  slug: string;
 }
 const CategoryNavItem = ({
   name,
   icon,
   searchEnabled,
   close,
+  slug,
   openSearch,
   myKey,
 }: CategoryNavItemProps) => {
+  const searchParams = useSearchParams();
   const language = useSelector((state: any) => state.homepage.language);
+  const router = useRouter();
   const clickItem = () => {
     if (name === "Search") {
       openSearch();
     } else {
+      router.push(`/?category_slug=${slug}`);
+      homeService.GetBoutiques(slug);
     }
   };
   return (
@@ -67,12 +74,17 @@ const CategoryNavItem = ({
         <>
           {!searchEnabled && (
             <div
-              className="categories-bar-item ${}"
+              className={`categories-bar-item ${
+                decodeURI(searchParams.get("category_slug")) === slug &&
+                "active-nav-category"
+              }`}
               onClick={() => clickItem()}
               key={myKey}
             >
               {!searchEnabled && (
-                <div className="categories-bar-item-icon">{icon}</div>
+                <div className="categories-bar-item-icon  h-[15px]">
+                  <RemoteSvg url={icon} />
+                </div>
               )}
               {!searchEnabled && (
                 <div className="categories-bar-item-description">

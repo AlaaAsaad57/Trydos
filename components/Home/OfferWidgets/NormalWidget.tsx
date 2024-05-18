@@ -96,7 +96,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
               <div className="offer-blured-background" />
               <div className="offer-blured" />
               <div className="offer-container">
-                <div className="offer-logo">
+                <div className="offer-logo h-[30px]">
                   {boutique.icon ? (
                     boutique.icon.includes(".svg") ? (
                       <RemoteSvg url={boutique.icon} />
@@ -122,7 +122,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                     boutique.name
                   )}
                 </div>
-                <div className="offer-category">
+                <div className="offer-category h-[20px]">
                   {boutique.mainCategoriesForProductIds.map((category, key) => {
                     if (category.category_icon.includes(".svg")) {
                       return (

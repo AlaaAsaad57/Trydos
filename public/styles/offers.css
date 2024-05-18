@@ -12,6 +12,16 @@
   display: flex;
   flex-direction: column;
 }
+.mobile-bar {
+  cursor: pointer;
+  padding-right: 5px;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+.mobile-bar::-webkit-scrollbar {
+  display: none;
+}
 .offer-widget {
   height: 54vw;
   max-height: 476px;
@@ -274,10 +284,10 @@ a {
   justify-content: flex-start;
   align-items: center;
 }
-.ca .categories-bar-item-description {
+.categories-bar-item .categories-bar-item-description {
   display: flex;
-  bottom: -13.5px;
-  right: 0px;
+  bottom: -29.5px;
+  right: 11px;
   position: absolute;
   opacity: 0;
   height: 21px;
@@ -285,6 +295,9 @@ a {
   flex-direction: row;
   align-items: flex-end;
   justify-content: flex-start;
+}
+.categories-bar-item-name {
+  text-wrap: nowrap;
 }
 
 .categories-bar-item-icon {

@@ -7,6 +7,27 @@
 .phone-input-desc.already-registered {
   margin-bottom: min(calc(32vh - 50px), 306px);
 }
+.mobile-bar.categories-bar-container
+  .categories-bar-item
+  .categories-bar-item-description {
+  justify-content: center;
+  width: auto;
+}
+.mobile-bar.categories-bar-container .categories-bar-item {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  position: relative;
+  width: auto;
+  /* min-width: 50px; */
+  max-width: 100%;
+  justify-content: flex-start;
+  margin-inline: 5px;
+  margin-inline: 5px;
+}
+.categories-bar-item-name {
+  width: auto !important;
+}
 @media only screen and (min-width: 601px) {
   .home-page-container
     .login-w2-container.login-widget-container.step-1

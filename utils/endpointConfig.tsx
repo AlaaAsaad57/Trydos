@@ -10,7 +10,8 @@ export const OTP_URL = "https://market_staging.trydos.tech/api/new_v1";
 export const VERFIY_OTP = "/phone/verify_otp_singin";
 export const VERFIY_OTP_SIGNUP = "/phone/verify_otp_signup";
 export const SEND_OTP = "/phone/send_otp";
-export const HOME_DATA_URL = "/mobile/home/boutiques";
+export const HOME_DATA_URL = "/web/home/boutiques";
+export const HOME_DATA_CATEGORIES_URL = "/web/home/mainCategories";
 export const STARTER_SETTINGS = "/mobile/home/startingSettings";
 /*Chat */
 // staging d651b1bd0c18b021f264
