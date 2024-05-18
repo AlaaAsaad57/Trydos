@@ -163,17 +163,19 @@ export const useTimers = ({ durationValue }) => {
     Paused: (e) => Paused(e),
   };
 };
-export const Sendevent = (params: any) => {
+export const Sendevent = async (params: any) => {
+  const Cookies = (await import("js-cookie")).default;
   try {
     let userId = localStorage.getItem("USER")
       ? JSON.parse(localStorage.getItem("USER"))?.id
-      : null;
-    console.log(params);
+      : JSON.parse(localStorage.getItem("user-guest"))?.id;
     event(params.event, {
       category: params.category,
       value: params.value,
       userId: userId,
       label: params.category,
+      country: Cookies.get("country"),
+      language: Cookies.get("language"),
     });
   } catch (e) {
     console.error(e);

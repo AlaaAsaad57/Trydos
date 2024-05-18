@@ -6,6 +6,3 @@ export const ReInitialise = () => {
 export const lodaingOTP = (val) => {
   return { type: "LOADING-OTP", payload: val };
 };
-export const RegisterGuest = () => {
-  return {};
-};

@@ -35,17 +35,18 @@ export const getStories = async () => {
 };
 
 export const getHomeData = async () => {
+  const customHeader = await DataApiHeaders();
   try {
     let time = new Date().getTime();
     const res = await fetch(OTP_URL + HOME_DATA_URL, {
       next: { revalidate: 3600, tags: ["home-boutiques"] },
-      headers: DataApiHeaders(),
+      headers: { ...customHeader },
     });
     const repo = await res.json();
     time = new Date().getTime() - time;
     let returned_res = {
       type: res.type,
-      headers: [...res.headers, DataApiHeaders()],
+      headers: [...res.headers, ...customHeader],
       url: res.url,
       time: time + "ms",
       body: repo,

@@ -89,6 +89,7 @@ class HomeService {
     ) {
       let response = await this.http.post(REGISTER_DEVICE_URL);
       localStorage.setItem("DEVICE-TOKEN", response.data.data.token);
+      localStorage.setItem("guest-user", response.data.data.user);
       if (typeof window !== "undefined") {
         console.log(_isStoreLastJson(), "_isStoreLastJson");
         _isStoreLastJson() &&

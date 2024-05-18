@@ -17,7 +17,7 @@ const LoginMethods = dynamic(() => import("./LoginMethods"));
 
 import Animated from "react-mount-animation";
 function NewLoginWidget() {
-  const [stepIndicator, setStepIndcator] = useState(2);
+  const [stepIndicator, setStepIndcator] = useState(-1);
   const [signStep, setSignStep] = useState("");
   const [operation, setOperation] = useState("login");
   const [showMethods, setShowMethods] = useState(false);
@@ -38,14 +38,15 @@ function NewLoginWidget() {
   const verficationID = useSelector((state: any) => state.auth.verficationID);
   const user = useSelector((state: any) => state.auth.Tempuser);
   useEffect(() => {
-    Sendevent({
-      event: "Button Click",
-      value: "Open Login",
-      category: "User Interactive",
-    });
-    // setTimeout(() => {
-    //   setStepIndcator(0);
-    // }, 1500);
+    if (loginOpen)
+      Sendevent({
+        event: "Button Click",
+        value: "Open Login",
+        category: "User Interactive",
+      });
+    setTimeout(() => {
+      setStepIndcator(0);
+    }, 1500);
   }, [loginOpen]);
   const setLoginOpen = (e: boolean) => {
     dispatch({ type: "LOGIN-OPEN", payload: e });
