@@ -19,7 +19,7 @@ function SearchComponent({ searchEnabled, close }: SearchComponentProps) {
        */
       function handleClickOutside(event) {
         const ref = document.querySelector(".search-component-container");
-        console.log(event.target.classList, ref);
+
         if (ref && !ref?.contains(event.target)) {
           if (searchValue?.length === 0) {
             close();

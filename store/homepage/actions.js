@@ -49,6 +49,6 @@ export const GetUnviewedStory = (story) => {
 
 export const LogData = (data) => {
   if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") {
-    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(data);
+    console.log(data);
   }
 };

@@ -80,7 +80,7 @@ function VideoCall(props) {
     // function to initialise the SDK
     let init = async (name) => {
       client.on("user-joined", (user) => {
-        if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") reset();
+        reset();
         axios
           .get(
             CHAT_URL + `/api/v1/messages/start_talking/${MessageActiveCall}`,
@@ -97,12 +97,11 @@ function VideoCall(props) {
         });
       });
       client.on("user-published", async (user, mediaType) => {
-        if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-          await client.subscribe(user, mediaType);
-        if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-          if (mediaType === "video") {
-            user.audioTrack?.play();
-          }
+        await client.subscribe(user, mediaType);
+
+        if (mediaType === "video") {
+          user.audioTrack?.play();
+        }
         if (mediaType === "audio") {
           user.audioTrack?.play();
         }
@@ -129,15 +128,13 @@ function VideoCall(props) {
         .then(() => {
           setJoined(true);
         })
-        .catch((e) => console.log(e));
+        .catch((e) => {});
       if (tracks) await client.publish([tracks[0], tracks[1]]);
     };
 
     if (ready && tracks) {
       init(activeChat.id);
     }
-    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-      console.log(error, ready, tracks);
   }, [client, ready, tracks, error]);
   useEffect(() => {
     start();

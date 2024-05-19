@@ -74,7 +74,6 @@ export const GetChats = async (payload) => {
               },
             });
           }
-          console.log(desc);
         } else {
           store.dispatch({
             type: "IS_TYPING_TRUE",
@@ -120,7 +119,7 @@ export const GetLastSeen = async (chatId, friendID) => {
     const dbRef = ref(db, `ConnectStatus/${friendID.toString()}`);
     onValue(dbRef, (snapshot) => {
       const desc = snapshot.val();
-      console.log(desc);
+
       if (!!desc) {
         if (typeof desc === "string") {
           let date = desc;
@@ -141,7 +140,6 @@ export const GetLastSeen = async (chatId, friendID) => {
             },
           });
         }
-        console.log(desc);
       } else {
         store.dispatch({
           type: "IS_TYPING_TRUE",
@@ -174,9 +172,7 @@ export const setLastSeen = async (MyId) => {
       .then(() => {
         // Success.
       })
-      .catch((error) => {
-        console.log(error);
-      });
+      .catch((error) => {});
   } catch (e) {
     console.error(e);
   }
@@ -591,8 +587,7 @@ export const makeVideoCall = async (
   mobilePhone
 ) => {
   let axios = (await import("axios")).default;
-  if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-    console.log(channelId, callerName, callerPhoto, mobilePhone);
+
   try {
     store.dispatch({ type: "CALL-LOADING", payload: "video" });
     let obj =
@@ -622,7 +617,6 @@ export const makeVideoCall = async (
         }
       )
       .then((data) => {
-        if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(data);
         store.dispatch({
           type: "VIDEO_CALL",
           payload: data.data.data.token,
@@ -780,9 +774,7 @@ export const InCall = async (channelId, messageId) => {
         )
         .then(() => {});
     }
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 };
 export const RefuseCall = async (channelId, messageId, duration) => {
   try {

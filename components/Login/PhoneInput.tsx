@@ -59,7 +59,7 @@ function PhoneInput({
     let country = getCountry();
     if (country) {
       pattern = replaceString(country.format || "", ".", "x");
-      console.log(country.format);
+
       pattern = replaceString(pattern, "-", "");
       pattern = replaceString(pattern, " ", "");
       pattern = replaceString(pattern, "+", "");

@@ -38,7 +38,6 @@ class HomeService {
     );
 
     if (typeof window !== "undefined") {
-      console.log(_isStoreLastJson(), "_isStoreLastJson");
       _isStoreLastJson() &&
         localStorage.setItem("LAST_JSON", JSON.stringify(response));
     }
@@ -98,7 +97,6 @@ class HomeService {
       localStorage.setItem("DEVICE-TOKEN", response.data.data.token);
       localStorage.setItem("guest-user", response.data.data.user);
       if (typeof window !== "undefined") {
-        console.log(_isStoreLastJson(), "_isStoreLastJson");
         _isStoreLastJson() &&
           localStorage.setItem("LAST_JSON", JSON.stringify(response));
       }

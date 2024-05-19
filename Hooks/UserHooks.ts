@@ -10,9 +10,7 @@ export function useAuth() {
     mutateAsync: mutateAsyncSignin,
   } = useMutation({
     mutationFn: signin,
-    onSuccess: () => {
-      console.log("siginin");
-    },
+    onSuccess: () => {},
   });
   const signinHook = async (userData: UserInterface) => {
     try {
@@ -29,9 +27,7 @@ export function useAuth() {
     mutateAsync: mutateAsyncSignup,
   } = useMutation({
     mutationFn: signup,
-    onSuccess: () => {
-      console.log("siginup");
-    },
+    onSuccess: () => {},
   });
   const signupHook = async (userData: UserInterface) => {
     try {
@@ -48,9 +44,7 @@ export function useAuth() {
     mutateAsync: mutateAsyncSendOtp,
   } = useMutation({
     mutationFn: signup,
-    onSuccess: () => {
-      console.log("SendOtp");
-    },
+    onSuccess: () => {},
   });
   const sendOtpHook = async (userData: UserInterface) => {
     try {
@@ -59,7 +53,7 @@ export function useAuth() {
       console.error("SendOtp failed:", error);
     }
   };
-  
+
   return {
     sendOtpHook,
     signupHook,

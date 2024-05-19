@@ -36,15 +36,11 @@ class ChatService {
           "serviceWorker" in navigator &&
           requestFirebaseNotificationPermission().then(
             (firebaseToken: string) => {
-              if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-                console.log(firebaseToken);
               localStorage.setItem("firebase_token", firebaseToken);
               if (response.data.data) {
                 try {
                   if (!firebaseToken) {
                   } else {
-                    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-                      console.log(firebaseToken);
                     localStorage.setItem("firebase_token", firebaseToken);
                     this.StoreToken({
                       id: response.data.data.id,

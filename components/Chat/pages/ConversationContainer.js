@@ -65,7 +65,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
             // Success.
           })
           .catch((error) => {
-            console.log(error);
+            console.error(error);
           });
       else
         set(ref(db, `Transaction/${getUserChat().id}/${friendID}`), null)
@@ -73,7 +73,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
             // Success.
           })
           .catch((error) => {
-            console.log(error);
+            console.error(error);
           });
     }
   };
@@ -92,16 +92,14 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
           // Success.
         })
         .catch((error) => {
-          console.log(error);
+          console.error(error);
         });
     }, 2000);
     push(ref(db, `Transaction/${getUserChat().id}/${friendID}`), "Typing...")
       .then(() => {
         // Success.
       })
-      .catch((error) => {
-        console.log(error);
-      });
+      .catch((error) => {});
   };
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: true });
@@ -834,8 +832,6 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
           setCameraEnabled(bool);
         })
         .catch((e) => {
-          if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-            console.log(e, "camera-error");
           dispatch({ type: "enableNotifications" });
           toast.error("check camera premmissions and refresh");
         });

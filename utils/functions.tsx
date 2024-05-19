@@ -18,7 +18,6 @@ export const getStories = async () => {
     const repo = res;
     return repo;
   } catch (e) {
-    console.log(e);
     return [];
   }
 };

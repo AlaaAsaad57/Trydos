@@ -1,9 +1,7 @@
 import { useEffect } from "react";
 
 function UploadVideo({ vidUrl }: { vidUrl: string }) {
-  useEffect(() => {
-    console.log(vidUrl);
-  }, []);
+  useEffect(() => {}, []);
   return <video controls src={vidUrl}></video>;
 }
 

@@ -34,7 +34,6 @@ export const getStories = async ({ lang }) => {
     };
     return [repo.data.data, returned_res];
   } catch (e) {
-    console.log(e);
     return [[], e.toString()];
   }
 };
@@ -73,7 +72,6 @@ export const getHomeData = async ({ str, lang }) => {
     };
     return [repo.data.boutiques, returned_res];
   } catch (e) {
-    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
     return [[], e.toString()];
   }
 };
@@ -106,7 +104,6 @@ export const getMainCategories = async ({ lang }) => {
     };
     return [repo.data.mainCategories, returned_res];
   } catch (e) {
-    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
     return ["homedata-error", e.toString()];
   }
 };
@@ -175,7 +172,6 @@ export const getListingData = async ({ categories, lang }) => {
     };
     return [repo.data, returned_res];
   } catch (e) {
-    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
     return ["listing-error", e.toString()];
   }
 };

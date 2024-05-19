@@ -32,7 +32,6 @@ class StoryService {
     const data: StoriesInterface[] = res.data.data.data;
     store.dispatch({ type: "STORY-DATA", payload: data });
     if (typeof window !== "undefined") {
-      console.log(_isStoreLastJson(), "_isStoreLastJson");
       _isStoreLastJson() &&
         localStorage.setItem("LAST_JSON", JSON.stringify(res));
     }
@@ -50,7 +49,6 @@ class StoryService {
     localStorage.setItem("STORIES-TOKEN", response.data.data.access_token);
 
     if (typeof window !== "undefined") {
-      console.log(_isStoreLastJson(), "_isStoreLastJson");
       _isStoreLastJson() &&
         localStorage.setItem("LAST_JSON", JSON.stringify(response));
     }
@@ -65,7 +63,6 @@ class StoryService {
         );
 
         if (typeof window !== "undefined") {
-          console.log(_isStoreLastJson(), "_isStoreLastJson");
           _isStoreLastJson() &&
             localStorage.setItem("LAST_JSON", JSON.stringify(response));
         }
@@ -92,7 +89,6 @@ class StoryService {
       });
 
       if (typeof window !== "undefined") {
-        console.log(_isStoreLastJson(), "_isStoreLastJson");
         _isStoreLastJson() &&
           localStorage.setItem("LAST_JSON", JSON.stringify(response));
       }

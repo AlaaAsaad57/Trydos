@@ -5,22 +5,14 @@ export function useCreateStory() {
 
   return useMutation({
     // mutationFn: (data) => createStory(data),
-    onMutate: () => {
-      console.log("mutate");
-    },
+    onMutate: () => {},
 
-    onError: () => {
-      console.log("error");
-    },
+    onError: () => {},
 
-    onSuccess: () => {
-      console.log("success");
-    },
+    onSuccess: () => {},
 
     onSettled: async (_, error) => {
-      console.log("settled");
       if (error) {
-        console.log(error);
       } else {
         await queryClient.invalidateQueries({ queryKey: ["story"] });
       }
@@ -36,7 +28,6 @@ export function useUpdateStory() {
 
     onSettled: async (_, error, variables) => {
       if (error) {
-        console.log(error);
       } else {
         await queryClient.invalidateQueries({ queryKey: ["story"] });
         await queryClient.invalidateQueries({
@@ -53,13 +44,10 @@ export function useDeleteStory() {
   return useMutation({
     // mutationFn: (id: number) => deleteStory(id),
 
-    onSuccess: () => {
-      console.log("deleted successfully");
-    },
+    onSuccess: () => {},
 
     onSettled: async (_, error) => {
       if (error) {
-        console.log(error);
       } else {
         await queryClient.invalidateQueries({ queryKey: ["story"] });
       }

@@ -119,7 +119,6 @@ class AuthService {
       }
       return [response.data.data.already_exists, response.data.data.user.name];
     } catch (e) {
-      if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
       if (e.response.data.message === "user not found") {
         store.dispatch({ type: "WRONG-NUMBER", payload: "user not found" });
       } else {

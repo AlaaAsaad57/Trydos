@@ -42,10 +42,8 @@ function StoryHolder({ story, active, isPaused }: Props) {
             onPrevious={() => {
               if (active) {
                 if (currentStoryId > 0) {
-                  console.log("story-prev-image", story.id, currentStoryId);
                   setCurrentStoryId(currentStoryId - 1);
                 } else {
-                  console.log("story-prev", story.id);
                   dispatch(setPreviousStory(story.id));
                 }
               }
@@ -53,10 +51,8 @@ function StoryHolder({ story, active, isPaused }: Props) {
             onNext={() => {
               if (active) {
                 if (currentStoryId < story.stories.length - 1) {
-                  console.log("story-next-image", story.id, currentStoryId);
                   setCurrentStoryId(currentStoryId + 1);
                 } else {
-                  console.log("story-next", story.id);
                   dispatch(setNextStory(story.id));
                 }
               }
@@ -83,7 +79,7 @@ function StoryHolder({ story, active, isPaused }: Props) {
               setTimeout(() => {
                 if (active) {
                   setCurrentStoryId(0);
-                  console.log("allstories-end-story-next", story.id);
+
                   dispatch(setNextStory(story.id));
                 }
               }, 10);

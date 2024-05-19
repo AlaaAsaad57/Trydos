@@ -19,14 +19,14 @@ function StoriesContainer({ activeId, selectedStory }) {
   const handlers = useSwipeable({
     onTouchStartOrOnMouseDown: (e) => {
       dir = 0;
-      console.log(e, "start");
+
       document.querySelector<HTMLDivElement>(".fixed-layout").style.transition =
         "0s";
     },
     onSwiping: (e) => {
       if (e.dir === "Down") {
         dir = (e.deltaY * 100) / window.innerHeight;
-        console.log(dir);
+
         document.querySelector<HTMLDivElement>(
           ".fixed-layout"
         ).style.transform = `translateY(${dir}%)`;
@@ -43,7 +43,7 @@ function StoriesContainer({ activeId, selectedStory }) {
             document.querySelector<HTMLDivElement>(
               ".fixed-layout"
             ).style.transform = `translateY(${100}%)`;
-            console.log(e, "end");
+
             setTimeout(() => {
               dispatch(SelectStory(null));
             }, 150);
@@ -54,7 +54,6 @@ function StoriesContainer({ activeId, selectedStory }) {
             document.querySelector<HTMLDivElement>(
               ".fixed-layout"
             ).style.transform = `translateY(${0}%)`;
-            console.log(e, "end");
           }
         }
         dir = 0;
@@ -97,9 +96,7 @@ function StoriesContainer({ activeId, selectedStory }) {
             ) === 1 &&
             i > -1
           ) {
-            console.log(i);
             dispatch(SelectStory(storiesData[i]));
-            console.log("cube-changed", i);
           }
         }}
         width={window.innerWidth}

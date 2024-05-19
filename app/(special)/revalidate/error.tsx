@@ -17,7 +17,6 @@ export default function Error({
   };
   const sendError = async (error: Error & { digest?: string }) => {
     const userAgent = await _getUserAgent();
-    console.log(userAgent, "userAgent");
     let last_json: any;
     let token: any;
     if (typeof window !== "undefined") {
@@ -36,7 +35,7 @@ export default function Error({
     });
   };
   useEffect(() => {
-    sendError(error);
+    if (error) sendError(error);
   }, [error]);
   return (
     <html>

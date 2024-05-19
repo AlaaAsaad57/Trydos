@@ -94,7 +94,6 @@ function AddStory() {
           ).then((data) => {
             dispatch(AddStoryAction(data));
           });
-          console.log(path);
           setIsSelected(path);
           setFile(e.target.files[0]);
 

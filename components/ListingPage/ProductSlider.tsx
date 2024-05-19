@@ -41,7 +41,6 @@ function ProductSlider({
           slidesPerView={1}
           centeredSlides={true}
           onSlideChange={(swiper) => {
-            console.log(activeColor, "sdsd");
             setActiveColor({ ...activeColor, index: swiper.activeIndex });
           }}
           initialSlide={0}

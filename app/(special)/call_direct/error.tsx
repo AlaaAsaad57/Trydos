@@ -17,7 +17,6 @@ export default function Error({
   };
   const sendError = async (error: Error & { digest?: string }) => {
     const userAgent = await _getUserAgent();
-    console.log(userAgent, "userAgent");
     let last_json;
     let token;
     if (typeof window !== "undefined") {

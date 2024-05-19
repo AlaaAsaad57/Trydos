@@ -17,7 +17,6 @@ export function useAuthHooks() {
       try {
         const { value, step, newAccount } = CheckPhoneInput;
         await AuthService.CheckPhone(value, step, newAccount);
-        console.log("CheckPhone");
       } catch (error) {
         console.error("CheckPhone failed:", error);
       }
@@ -72,7 +71,6 @@ export function useAuthHooks() {
           EditPhoneFunc
         );
         successCallback(exists, name);
-        console.log("VerifyOtpHook");
       } catch (error) {
         errorCallback();
         console.error("VerifyOtp failed:", error);

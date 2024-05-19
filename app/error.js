@@ -10,7 +10,6 @@ export default function GlobalError({ error, reset }) {
   };
   const sendError = async () => {
     const userAgent = await _getUserAgent();
-    console.log(userAgent, "userAgent");
     let last_json;
     let token;
     if (typeof window !== "undefined") {

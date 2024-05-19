@@ -22,7 +22,6 @@ function ChatWindow(props) {
   useEffect(() => {
     setLastSeen(getUserChat()?.id?.toString());
     let interval = setInterval(() => {
-      console.log("interval");
       setLastSeen(getUserChat()?.id?.toString());
     }, 300000);
 

@@ -46,9 +46,7 @@ export default function Home({
     dispatch(GetMainCategories(mainCategories));
     try {
       initFB();
-    } catch (e) {
-      if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log(e);
-    }
+    } catch (e) {}
   }, []);
   const initFB = async () => {
     if (getUserStories()?.id) {
@@ -72,14 +70,8 @@ export default function Home({
       typeof window !== "undefined" &&
         "serviceWorker" in navigator &&
         onMessageListener()
-          .then((payload) => {
-            if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-              console.log(payload);
-          })
-          .catch((err) => {
-            if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-              console.log("failed: ", err);
-          });
+          .then((payload) => {})
+          .catch((err) => {});
     }
   };
   const selectedStory = useSelector(

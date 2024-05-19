@@ -97,7 +97,6 @@ function WebviewCall() {
     if (!data.loading) {
       setData({ ...data, loading: true });
       await Decline(data.authToken, data.msgId, duration).catch((e) => {
-        console.log(e);
         setError(e.message);
       });
       window.location.href = "/endCall";

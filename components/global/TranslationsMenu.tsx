@@ -12,7 +12,7 @@ interface TranslationsMenuProps {
 function TranslationsMenu({ init }: TranslationsMenuProps) {
   const language = useSelector((state: any) => state.homepage.language);
   const dispatch = useDispatch();
-  console.log(init);
+
   return (
     <div className="translations-container">
       {language === "ae" && <ArabicCss />}

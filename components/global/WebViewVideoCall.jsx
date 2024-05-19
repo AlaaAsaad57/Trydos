@@ -72,8 +72,7 @@ function WebViewVideoCall(props) {
       });
       client.on("user-published", async (user, mediaType) => {
         await client.subscribe(user, mediaType);
-        if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-          console.log("subscribe success");
+
         try {
           user?.audioTrack?.play();
         } catch (e) {
@@ -90,8 +89,6 @@ function WebViewVideoCall(props) {
       });
 
       client.on("user-unpublished", (user, type) => {
-        if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-          console.log("unpublished", user, type);
         if (type === "audio") {
           user.audioTrack?.stop();
         }
@@ -102,22 +99,12 @@ function WebViewVideoCall(props) {
       client.on("user-left", (user) => {
         userEndCall();
         setCallStatus("");
-        if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-          console.log("leaving", user);
         setUsers((prevUsers) => {
           return prevUsers.filter((User) => User.uid !== user.uid);
         });
       });
 
       let token = props.data.token;
-      if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-        console.log(
-          appId,
-          name.toString(),
-          token,
-          tracks[1].getMediaStreamTrack(),
-          cameras
-        );
       await client.join(
         appId,
         name.toString(),
@@ -128,8 +115,6 @@ function WebViewVideoCall(props) {
     };
 
     if (ready && tracks) {
-      if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-        console.log("init ready");
       init(props.data.channel_id);
     }
   }, [client, ready, tracks, error]);

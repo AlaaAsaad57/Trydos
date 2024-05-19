@@ -139,9 +139,7 @@ function VideoCall(props) {
           dispatch({ type: "END-CALL", payload: MessageActiveCall });
         });
       pause();
-    } catch (e) {
-      console.log(error);
-    }
+    } catch (e) {}
   };
 
   const [trackState, setTrackState] = useState({ video: true, audio: true });

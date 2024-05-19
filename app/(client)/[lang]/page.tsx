@@ -6,7 +6,6 @@ async function page({ params, searchParams }): Promise<any> {
     str: searchParams?.category_slug,
     lang: params.lang ? params.lang.split("-")[1] : null,
   });
-  console.log(params);
   const [mainCategories, mainCategories_res] = await getMainCategories({
     lang: params.lang ? params.lang.split("-")[1] : null,
   });

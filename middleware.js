@@ -156,7 +156,6 @@ export async function middleware(request) {
   if (hasLanguage) {
     const languageroute = routePath?.split("-")[1];
     setLocaleCookies(request, languageroute, preferredCountry);
-    console.log(languageroute);
   } else {
     setLocaleCookies(request, preferredLang, preferredCountry);
   }

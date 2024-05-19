@@ -644,7 +644,7 @@ export const ChatReducer = (
             newChats.push(a);
           }
         });
-        console.log(active, state.activeChat);
+
         return {
           ...state,
           data: newChats,
@@ -754,7 +754,6 @@ export const ChatReducer = (
       let chat = state.data;
       let arr = [];
       if (payload.isNew) {
-        if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") console.log("new");
         arr.push({
           ...payload.act,
           messages: [...ac.messages, payload.message],
