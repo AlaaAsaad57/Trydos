@@ -3,7 +3,7 @@ interface OfferAvatarProps {
   images: string;
   zIndex: number;
   name: string;
-  category: string;
+  category: string | number;
 }
 function OfferAvatar({ images, zIndex, name, category }: OfferAvatarProps) {
   const getImageCld = () => {

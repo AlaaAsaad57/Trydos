@@ -18,6 +18,7 @@ export interface Boutique {
   childCategoriesForProductIds: Array<{
     category_id: string;
     category_slug: string;
+    count_products: number;
     category_name: string;
     product_name: string;
     product_thumbnail: string;

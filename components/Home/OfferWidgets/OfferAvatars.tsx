@@ -52,7 +52,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
           <OfferAvatar
             name={product.product_name}
             key={index}
-            category={product.category_name}
+            category={product.count_products}
             images={product.product_thumbnail}
             zIndex={index}
           />
