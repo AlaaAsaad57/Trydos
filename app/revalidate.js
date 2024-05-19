@@ -4,9 +4,14 @@ import { revalidatePath, revalidateTag } from "next/cache";
 export default async function Revalidate() {
   revalidatePath("/", "layout");
   revalidatePath("/", "page");
-  revalidateTag("home-boutiques"); // Update cached posts
-  revalidateTag("stories"); // Update cached posts
-  revalidateTag("listing-data"); // Update cached posts
-  revalidatePath("/listing", "layout"); // Update cached posts
-  revalidatePath("/listing", "page"); // Update cached posts
+  revalidatePath("/listing", "layout");
+  revalidatePath("/listing", "page");
+  revalidateTag("home-boutiques-en");
+  revalidateTag("home-categories-en");
+  revalidateTag("stories-en");
+  revalidateTag("listing-data-en");
+  revalidateTag("home-boutiques-ae");
+  revalidateTag("home-categories-ae");
+  revalidateTag("stories-ae");
+  revalidateTag("listing-data-ae");
 }

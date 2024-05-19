@@ -61,7 +61,8 @@ body {
 .categories-bar-item .categories-bar-item-icon svg circle,
 .categories-bar-item .categories-bar-item-icon svg path,
 .categories-bar-item .categories-bar-item-icon svg circle {
-  stroke: #5d5d5d;
+  stroke: #c4c2c2;
+  fill: #c4c2c2;
 }
 .active-search {
   margin: 0px !important;

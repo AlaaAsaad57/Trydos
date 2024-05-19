@@ -11,6 +11,7 @@
 }
 .svg-holder-r svg {
   width: 20px;
+  height: 20px;
 }
 @media (prefers-color-scheme: dark) {
   :root {

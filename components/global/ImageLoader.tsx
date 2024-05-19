@@ -29,7 +29,7 @@ function ImageLoader(props) {
           }}
         />
       )}
-      <div style={{ display: loading ? "none" : "block" }}>
+      <div style={{ display: loading ? "none" : "flex" }}>
         <Image
           {...props}
           quality={"100"}

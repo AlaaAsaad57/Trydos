@@ -2,6 +2,7 @@ import { useState } from "react";
 import useSWRImmutable from "swr/immutable";
 import Loading from "public/svg/loading.svg";
 import Spinner from "./Spinner";
+import ImageLoader from "./ImageLoader";
 const fetcher = async (url) =>
   fetch(url).then((res) => {
     if (res.status === 200) return res.text();
@@ -14,7 +15,7 @@ export default function RemoteSvg({ url }) {
     errorRetryCount: 0,
   });
   if (isLoading) return <Spinner no={false} className="" />;
-  if (error)
+  else if (error)
     return (
       <>
         <Loading
@@ -24,7 +25,25 @@ export default function RemoteSvg({ url }) {
         />
       </>
     );
-  if (data)
+  else if (!url.includes("svg")) {
+    return (
+      <ImageLoader
+        loading="eager"
+        alt={"category"}
+        noLoader
+        priority={false}
+        fetchPriority={"high"}
+        style={{
+          maxWidth: "187px",
+          width: "auto",
+          height: "20px",
+        }}
+        width={20}
+        height={20}
+        src={url}
+      />
+    );
+  } else if (data)
     return (
       <div
         style={{ width: "20px", height: "20px" }}

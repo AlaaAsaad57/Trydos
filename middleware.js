@@ -153,11 +153,18 @@ export async function middleware(request) {
 
     return NextResponse.redirect(request.nextUrl);
   }
-  setLocaleCookies(request, preferredLang, preferredCountry);
+  if (hasLanguage) {
+    const languageroute = routePath?.split("-")[1];
+    setLocaleCookies(request, languageroute, preferredCountry);
+    console.log(languageroute);
+  } else {
+    setLocaleCookies(request, preferredLang, preferredCountry);
+  }
   return response;
 }
 function setLocaleCookies(request, lang, country) {
   request.cookies.set("language", lang);
+  request.cookies.set("lang", lang);
   request.cookies.set("country", country);
 }
 

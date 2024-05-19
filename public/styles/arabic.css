@@ -114,7 +114,9 @@ html[lang="ar"] .quick-event-bar .stopwatch-container {
 html[lang="ar"] .quick-event-bar .bar-desc {
   direction: rtl;
 }
-html[lang="ar"] .categories-bar-item:not(:first-child),
-html[lang="ar"] .categories-bar-container div:not(:first-child) {
-  @apply mr-[30px] ml-0 !important;
+html[lang="ar"] .categories-bar-item:not(:first-child) {
+  @apply mr-[0px] ml-0 !important;
+}
+html[lang="ar"] .categories-bar-item .categories-bar-item-description {
+  right: 0px !important;
 }
