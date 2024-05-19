@@ -24,5 +24,12 @@ export default function RemoteSvg({ url }) {
         />
       </>
     );
-  if (data) return <div dangerouslySetInnerHTML={{ __html: data }} />;
+  if (data)
+    return (
+      <div
+        style={{ width: "20px", height: "20px" }}
+        className="svg-holder-r"
+        dangerouslySetInnerHTML={{ __html: data }}
+      />
+    );
 }

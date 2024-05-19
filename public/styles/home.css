@@ -56,6 +56,12 @@ body {
 .categories-bar-item.active-nav-category .categories-bar-item-icon svg circle {
   fill: #3c3c3c;
 }
+.categories-bar-item .categories-bar-item-icon svg path,
+.categories-bar-item .categories-bar-item-icon svg circle,
+.categories-bar-item .categories-bar-item-icon svg path,
+.categories-bar-item .categories-bar-item-icon svg circle {
+  fill: #5d5d5d;
+}
 .active-search {
   margin: 0px !important;
   width: 0px !important;
