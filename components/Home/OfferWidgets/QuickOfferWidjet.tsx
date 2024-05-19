@@ -38,6 +38,7 @@ function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
             fill
             alt="imageAlt"
             loading="lazy"
+            quality={60}
             priority={false}
             style={{
               position: "absolute",

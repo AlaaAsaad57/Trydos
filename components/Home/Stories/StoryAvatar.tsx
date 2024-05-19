@@ -9,7 +9,14 @@ function StoryAvatar({
   return (
     <div className={`story-avatar ${isSeen && "is-seen-story"}`}>
       {avatar && (
-        <Image loading="eager" src={avatar} alt="user" width={28} height={28} />
+        <Image
+          quality={60}
+          loading="eager"
+          src={avatar}
+          alt="user"
+          width={28}
+          height={28}
+        />
       )}
     </div>
   );

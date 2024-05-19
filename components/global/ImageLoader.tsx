@@ -32,7 +32,7 @@ function ImageLoader(props) {
       <div style={{ display: loading ? "none" : "flex" }}>
         <Image
           {...props}
-          quality={"100"}
+          quality={100}
           onLoad={() => setLoading(false)}
           src={getImageCld()}
         />

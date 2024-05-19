@@ -88,6 +88,7 @@ function ColorSlider({
                   <div className="inset-shadow-img" />
                   <Image
                     loading="eager"
+                    quality={60}
                     priority={i === 3}
                     style={{ borderRadius: "15px", zIndex: "3" }}
                     fill

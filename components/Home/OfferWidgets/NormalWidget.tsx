@@ -86,6 +86,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                   zIndex: "1",
                 }}
                 objectFit="cover"
+                quality={60}
                 objectPosition="center"
                 src={getImageCld(boutique.banners[0])}
               />

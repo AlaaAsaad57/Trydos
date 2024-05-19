@@ -32,6 +32,7 @@ function OfferAvatar({ images, zIndex, name, category }: OfferAvatarProps) {
         src={getImageCld()}
         priority={true}
         alt="avatar"
+        quality={60}
         width={40}
         height={40}
         unoptimized
