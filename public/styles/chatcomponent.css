@@ -59,7 +59,7 @@
   justify-content: center;
   position: relative;
 }
-html[lang="ar"] .chat-window-search-holder input {
+html[lang="ae"] .chat-window-search-holder input {
   padding-left: 0px;
   padding-right: 50px;
   direction: rtl;
@@ -89,7 +89,7 @@ html[lang="ar"] .chat-window-search-holder input {
   width: 20px;
   height: 20px;
 }
-html[lang="ar"] .chat-window-search-holder svg {
+html[lang="ae"] .chat-window-search-holder svg {
   top: 10px;
   z-index: 6;
   position: absolute;
@@ -598,7 +598,7 @@ html[lang="ar"] .chat-window-search-holder svg {
   align-items: center;
   justify-content: flex-start;
 }
-html[lang="ar"] .new-chats {
+html[lang="ae"] .new-chats {
   left: 474px;
   right: initial;
 }

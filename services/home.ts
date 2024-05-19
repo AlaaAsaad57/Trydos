@@ -8,6 +8,7 @@ import { _isStoreLastJson } from "utils/functions";
 import {
   CUSTOMER_INFO_URL,
   HOME_DATA_URL,
+  LISTING_INFO_URL,
   OTP_URL,
   REGISTER_DEVICE_URL,
   STARTER_SETTINGS,
@@ -23,6 +24,8 @@ class HomeService {
         typeof localStorage !== "undefined" &&
         localStorage.getItem("MARKET-TOKEN")
       }`,
+      lang: Cookies.get("language"),
+      country: Cookies.get("country"),
     },
   });
   async getClientData() {
@@ -112,6 +115,17 @@ class HomeService {
       }
     );
     store.dispatch(GetMainData(response.data.data.boutiques));
+  }
+  async getNextProduct({ offset, categories }) {
+    const http = new HomeService().http;
+    await http
+      .get(
+        LISTING_INFO_URL +
+          `?offset=${offset}&limit=${20}&boutique_slug=${categories}`
+      )
+      .then((data) => {
+        store.dispatch({ type: "GET_NEXT_PRODUCT", payload: data.data.data });
+      });
   }
 }
 

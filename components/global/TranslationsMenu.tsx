@@ -15,7 +15,7 @@ function TranslationsMenu({ init }: TranslationsMenuProps) {
   console.log(init);
   return (
     <div className="translations-container">
-      {language === "ar" && <ArabicCss />}
+      {language === "ae" && <ArabicCss />}
       <div className="translations-container-inner">
         <div className="translation-icon">
           <TranslationsIcon />
@@ -50,14 +50,14 @@ function TranslationsMenu({ init }: TranslationsMenuProps) {
           <UKIcon width={30} height={20} />
         </div>
         <div
-          className={`translation-icon cursor-pointer ar-icon ${
-            language === "ar" && "selected-language"
+          className={`translation-icon cursor-pointer ae-icon ${
+            language === "ae" && "selected-language"
           }`}
           onClick={() => {
-            dispatch(changeAppLanguage("ar"));
+            dispatch(changeAppLanguage("ae"));
             window.location.href = window.location.href.replace(
               init,
-              `${init.split("-")[0]}-ar`
+              `${init.split("-")[0]}-ae`
             );
           }}
         >

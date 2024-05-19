@@ -1,9 +1,13 @@
 "use server";
 import ProductCard from "components/ListingPage/ProductCard";
 import { getHomeData, getListingData } from "store/homepage/cachedActions";
-async function page() {
-  const [HomeData, HomeData_res] = await getHomeData();
-  const [Listing_data, Listing_Data_res] = await getListingData();
+async function page({ params }) {
+  const [HomeData, HomeData_res] = await getHomeData({
+    lang: params.lang ? params.lang.split("-")[1] : null,
+  });
+  const [Listing_data, Listing_Data_res] = await getListingData({
+    lang: params.lang ? params.lang.split("-")[1] : null,
+  });
   return (
     <>
       {

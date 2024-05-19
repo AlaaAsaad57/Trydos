@@ -20,6 +20,7 @@ class StoryService {
           localStorage.getItem("USER-STORIES") &&
           JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
       language: Cookies.get("language"),
+      lang: Cookies.get("language"),
       country: Cookies.get("country"),
     },
   });
@@ -38,7 +39,8 @@ class StoryService {
     return data;
   }
   async loginStories() {
-    const response = await this.http.post(LOG_IN_STORIES, {
+    const http = new StoryService().http;
+    const response = await http.post(LOG_IN_STORIES, {
       otp_id_token: localStorage.getItem("ID-TOKEN"),
       mobile_phone: "+" + JSON.parse(localStorage.getItem("USER")).phone,
     });
@@ -54,10 +56,11 @@ class StoryService {
     }
   }
   async WatchStory(pid: number | string, id: number | string) {
+    const http = new StoryService().http;
     try {
       if (getUserStories()?.id) {
         store.dispatch({ type: "WATCH-STORY", payload: { pid: pid, id: id } });
-        const response = await this.http.get(
+        const response = await http.get(
           "/api/v1/stories/increase_viewers/" + pid
         );
 
@@ -76,10 +79,11 @@ class StoryService {
     endUpload: Function
   ) {
     try {
+      const http = new StoryService().http;
       const formData = new FormData();
       formData.append("file", file);
       formData.append("is_video", is_video);
-      const response = await this.http.post(UPLOAD_STORY_URL, formData, {
+      const response = await http.post(UPLOAD_STORY_URL, formData, {
         onUploadProgress: (progressEvent) => {
           callback(
             Math.round((progressEvent.loaded * 100) / progressEvent.total)

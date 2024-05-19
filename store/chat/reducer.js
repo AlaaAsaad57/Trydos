@@ -82,7 +82,7 @@ const showDate = (d) => {
   else if (new Date(nowString) - new Date(d) === 86400000) {
     return translate("Yesterday", language);
   } else if (new Date(nowString) - new Date(d) < 86400000 * 6) return day;
-  else return language === "ar" ? d.toLocaleString("ar-EG") : d;
+  else return language === "ae" ? d.toLocaleString("ar-EG") : d;
 };
 export const ChatReducer = (
   state = initialState,

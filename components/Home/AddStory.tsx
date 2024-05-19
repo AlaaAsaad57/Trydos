@@ -193,8 +193,8 @@ function AddStory() {
               position: "absolute",
               top: "263px",
               overflow: "hidden",
-              left: language !== "ar" ? "22px" : "initial",
-              right: language !== "ar" ? "initial" : "22px",
+              left: language !== "ae" ? "22px" : "initial",
+              right: language !== "ae" ? "initial" : "22px",
               zIndex: 999999,
               borderRadius: "15px",
             }}

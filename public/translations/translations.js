@@ -160,7 +160,7 @@ export const translations = {
     "Terms Of Services ": "Terms Of Services",
   },
 
-  ar: {
+  ae: {
     Man: "رجال",
     "To Take Advantage Of All The Advantages Of The Application, Please Join Us In Quick And Easy Steps And For Just One Time":
       "للاستفادة من ميزات التطبيق انضم لنا بخطوات سربعة وبسيطة لمرة واحدة",

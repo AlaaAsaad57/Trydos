@@ -2,6 +2,8 @@ import axios from "axios";
 import { store } from "store";
 import { ReInitialise } from "store/auth/actions";
 import userImage from "public/images/profileNo.png";
+import Cookies from "js-cookie";
+
 import { _isStoreLastJson } from "utils/functions";
 import {
   OTP_URL,
@@ -20,6 +22,8 @@ class AuthService {
         typeof localStorage !== "undefined" &&
         localStorage.getItem("MARKET-TOKEN")
       }`,
+      lang: Cookies.get("language"),
+      country: Cookies.get("country"),
     },
   });
 

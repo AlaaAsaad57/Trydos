@@ -10,10 +10,10 @@ export async function generateMetadata({ params, searchParams }) {
   };
 }
 async function page({ params, searchParams }) {
-  console.log(params);
-  const [Listing_data, Listing_Data_res] = await getListingData(
-    params.categories
-  );
+  const [Listing_data, Listing_Data_res] = await getListingData({
+    categories: params.categories,
+    lang: params.lang ? params.lang.split("-")[1] : null,
+  });
   return <>{<ProductCard Listing_Data_res={Listing_Data_res} />}</>;
 }
 
