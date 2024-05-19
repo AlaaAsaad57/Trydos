@@ -54,13 +54,14 @@ body {
 .categories-bar-item:hover .categories-bar-item-icon svg circle,
 .categories-bar-item.active-nav-category .categories-bar-item-icon svg path,
 .categories-bar-item.active-nav-category .categories-bar-item-icon svg circle {
+  stroke: #3c3c3c;
   fill: #3c3c3c;
 }
 .categories-bar-item .categories-bar-item-icon svg path,
 .categories-bar-item .categories-bar-item-icon svg circle,
 .categories-bar-item .categories-bar-item-icon svg path,
 .categories-bar-item .categories-bar-item-icon svg circle {
-  fill: #5d5d5d;
+  stroke: #5d5d5d;
 }
 .active-search {
   margin: 0px !important;
