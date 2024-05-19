@@ -26,8 +26,8 @@ function CategoryPhoto(props: {
           src={[
             getConfiguredImage({
               src: src,
-              width: props.width,
-              height: props.height,
+              width: 20,
+              height: 20,
             }),
           ]}
           unloader={<Loadding onClick={() => onClick()} />}

@@ -4,7 +4,10 @@ import Image from "next/image";
 function ImageLoader(props) {
   const getImageCld = () => {
     if (props.src.includes("cloudinary")) {
-      return props.src.replace("/upload", "/upload/f_webp/q_auto");
+      return props.src.replace(
+        "/upload",
+        `/upload/w_${props.width},h_${props.height}/f_webp/q_auto`
+      );
     } else return props.src;
   };
   const [loading, setLoading] = useState(true);

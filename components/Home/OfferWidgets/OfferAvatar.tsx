@@ -8,7 +8,6 @@ interface OfferAvatarProps {
 function OfferAvatar({ images, zIndex, name, category }: OfferAvatarProps) {
   const getImageCld = () => {
     if (images.includes("cloudinary")) {
-      console.log(images.replace("/upload", "/upload/f_webp/q_auto"));
       return images.replace("/upload", "/upload/w_35,h_35/f_webp/q_auto");
     } else return images;
   };
