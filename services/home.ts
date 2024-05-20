@@ -15,10 +15,8 @@ import {
 } from "utils/endpointConfig";
 import { SSRDetect } from "utils/functions";
 import { GetMainData } from "store/homepage/actions";
-
-class HomeService {
-  http = axios.create({
-    baseURL: OTP_URL,
+const getHeader = () => {
+  return {
     headers: {
       Authorization: `Bearer ${
         typeof localStorage !== "undefined" &&
@@ -27,10 +25,15 @@ class HomeService {
       lang: getLang(null, Cookies.get("language")),
       country: Cookies.get("country"),
     },
+  };
+};
+class HomeService {
+  http = axios.create({
+    baseURL: OTP_URL,
   });
   async getClientData() {
     if (!localStorage.getItem("customer-info")) this.getCustomerInfo();
-    const response = await this.http.get(STARTER_SETTINGS);
+    const response = await this.http.get(STARTER_SETTINGS, getHeader());
     store.dispatch({ type: "GET_SETTINGS", payload: response.data });
     sessionStorage.setItem(
       "starttingSetting",
@@ -46,11 +49,7 @@ class HomeService {
     }, 2000);
   }
   async getCustomerInfo() {
-    const response = await this.http.get(CUSTOMER_INFO_URL, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("MARKET-TOKEN")}`,
-      },
-    });
+    const response = await this.http.get(CUSTOMER_INFO_URL, getHeader());
     store.dispatch({
       type: "UPDATE_USER_INFO",
       payload: response.data.data.customer_info,
@@ -93,7 +92,7 @@ class HomeService {
       !localStorage.getItem("DEVICE-TOKEN") &&
       !localStorage.getItem("USER")
     ) {
-      let response = await this.http.post(REGISTER_DEVICE_URL);
+      let response = await this.http.post(REGISTER_DEVICE_URL, getHeader());
       localStorage.setItem("DEVICE-TOKEN", response.data.data.token);
       localStorage.setItem("guest-user", response.data.data.user);
       if (typeof window !== "undefined") {
@@ -105,12 +104,7 @@ class HomeService {
   async GetBoutiques(slug) {
     const response = await this.http.get(
       OTP_URL + HOME_DATA_URL + `ByCategory/${slug}`,
-      {
-        headers: {
-          country: Cookies.get("country"),
-          language: Cookies.get("language"),
-        },
-      }
+      getHeader()
     );
     store.dispatch(GetMainData(response.data.data.boutiques));
   }
@@ -121,7 +115,8 @@ class HomeService {
         LISTING_INFO_URL + `?offset=${offset}&limit=${20}`,
         JSON.stringify({
           boutique_slug: categories,
-        })
+        }),
+        getHeader()
       )
       .then((data) => {
         store.dispatch({ type: "GET_NEXT_PRODUCT", payload: data.data.data });

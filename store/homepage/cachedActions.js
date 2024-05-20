@@ -52,7 +52,7 @@ export const getHomeData = async ({ str, lang }) => {
         tags: [`home-boutiques-${cookieStore.get("lang")?.value ?? "en"}`],
       },
       headers: new Headers({
-        lang: getLang(lang, cookieStore.get("language")?.value),
+        lang: await getLang(lang, cookieStore.get("language")?.value),
         country: cookieStore.get("country") && cookieStore.get("country").value,
       }),
       credentials: "include",
@@ -63,7 +63,7 @@ export const getHomeData = async ({ str, lang }) => {
     let returned_res = {
       type: res.type,
       headers: new Headers({
-        lang: getLang(lang, cookieStore.get("language")?.value),
+        lang: await getLang(lang, cookieStore.get("language")?.value),
         country: cookieStore.get("country") && cookieStore.get("country").value,
       }),
       url: res.url,
@@ -86,7 +86,7 @@ export const getMainCategories = async ({ lang }) => {
         tags: [`home-categories-${cookieStore.get("lang")?.value ?? "en"}`],
       },
       headers: new Headers({
-        lang: getLang(lang, cookieStore.get("language")?.value),
+        lang: await getLang(lang, cookieStore.get("language")?.value),
         country: cookieStore.get("country") && cookieStore.get("country").value,
       }),
     });
@@ -95,7 +95,7 @@ export const getMainCategories = async ({ lang }) => {
     let returned_res = {
       type: res.type,
       headers: new Headers({
-        lang: getLang(lang, cookieStore.get("language")?.value),
+        lang: await getLang(lang, cookieStore.get("language")?.value),
         country: cookieStore.get("country") && cookieStore.get("country").value,
       }),
       url: res.url,
@@ -111,7 +111,7 @@ export const DataApiHeaders = async (forStories) => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   return new Headers({
-    lang: getLang(lang, cookieStore.get("language")?.value),
+    lang: await getLang(lang, cookieStore.get("language")?.value),
     country: cookieStore.get("country") && cookieStore.get("country").value,
     Authorization:
       "Bearer " + forStories
@@ -164,14 +164,16 @@ export const getListingData = async ({ categories, lang }) => {
     let time = new Date().getTime();
     const res = await fetch(
       OTP_URL + LISTING_INFO_URL,
-      JSON.stringify({ boutique_slug: str }),
+
       {
+        method: "POST",
+        body: { boutique_slug: str },
         next: {
           revalidate: 3600,
           tags: [`listing-data`],
         },
         headers: new Headers({
-          lang: getLang(lang, cookieStore.get("language")?.value),
+          lang: await getLang(lang, cookieStore.get("language")?.value),
           country:
             cookieStore.get("country") && cookieStore.get("country").value,
         }),
@@ -182,7 +184,7 @@ export const getListingData = async ({ categories, lang }) => {
     let returned_res = {
       type: res.type,
       headers: new Headers({
-        lang: getLang(lang, cookieStore.get("language")?.value),
+        lang: await getLang(lang, cookieStore.get("language")?.value),
         country: cookieStore.get("country") && cookieStore.get("country").value,
       }),
       url: res.url,
@@ -191,6 +193,7 @@ export const getListingData = async ({ categories, lang }) => {
     };
     return [repo.data, returned_res];
   } catch (e) {
+    console.log(categories, lang);
     return ["listing-error", e.toString()];
   }
 };

@@ -14,10 +14,8 @@ import {
 } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
-
-class AuthService {
-  http = axios.create({
-    baseURL: OTP_URL,
+const getHeader = () => {
+  return {
     headers: {
       Authorization: `Bearer ${
         typeof localStorage !== "undefined" &&
@@ -26,8 +24,12 @@ class AuthService {
       lang: getLang(null, Cookies.get("language")),
       country: Cookies.get("country"),
     },
+  };
+};
+class AuthService {
+  http = axios.create({
+    baseURL: OTP_URL,
   });
-
   async CheckPhone(
     value: string | number,
     step: Function,
@@ -35,7 +37,8 @@ class AuthService {
   ) {
     try {
       const response = await this.http.get(
-        "/phone/check-existence/" + `${value}`
+        "/phone/check-existence/" + `${value}`,
+        getHeader()
       );
       step(277);
       store.dispatch(ReInitialise());
@@ -55,7 +58,8 @@ class AuthService {
   ) {
     try {
       const response = await this.http.get(
-        SEND_OTP + `?phone=+${mobilePhone}&is_via_whatsapp=${is_via_whatsapp}`
+        SEND_OTP + `?phone=+${mobilePhone}&is_via_whatsapp=${is_via_whatsapp}`,
+        getHeader()
       );
       if (response.data.data.verificationId) {
         store.dispatch({
@@ -89,7 +93,8 @@ class AuthService {
         (Username.length > 0 ? VERFIY_OTP_SIGNUP : VERFIY_OTP) +
           `?verificationId=${verficationID}&otp=${code}${
             Username.length > 0 ? `&name=${Username}` : ""
-          }`
+          }`,
+        getHeader()
       );
       if (response.data?.isSuccessful === false) {
         throw new Error("Wrong Code");
@@ -149,11 +154,7 @@ class AuthService {
       axios.post(
         OTP_URL + "/customer/update-name",
         { name: name },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("MARKET-TOKEN")}`,
-          },
-        }
+        getHeader()
       );
       axios.post(
         STORIES_URL + "/api/v1/users/update",
