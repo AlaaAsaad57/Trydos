@@ -372,12 +372,7 @@ function PhoneInput({
         >
           {getCountry() && getCountry()?.iso2 && flag(getCountry()?.iso2)}
         </span>
-        <span
-          className="plus-icon-phone"
-          style={{ position: "absolute", top: "22px", left: "76px" }}
-        >
-          +
-        </span>
+        <span className="plus-icon-phone">+</span>
         <label htmlFor="phoneInput" className="no-label">
           Search
         </label>

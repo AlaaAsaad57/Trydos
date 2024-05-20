@@ -179,8 +179,11 @@
   width: 100%;
 }
 .plus-icon-phone {
-  font-size: 18px;
+  font-size: 25px;
   color: #8e8e8e;
+  position: absolute;
+  top: 12px;
+  left: 76px;
   margin-left: 7px;
   display: flex;
   font-family: var(--SF-Pro-Rounded-Regular);

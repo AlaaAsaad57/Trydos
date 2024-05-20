@@ -7,6 +7,7 @@
 }
 body {
   background: none !important;
+  min-height: 100vh;
 }
 
 .add-story-container.story-element-container {
@@ -49,6 +50,11 @@ body {
 .categories-bar-item:hover .categories-bar-item-icon,
 .categories-bar-item.active-nav-category .categories-bar-item-icon {
   transform: scale(1.25);
+}
+.categories-bar-item.active-nav-category
+  .categories-bar-item-description
+  .categories-bar-item-name {
+  color: #3c3c3c;
 }
 .categories-bar-item:hover .categories-bar-item-icon svg path,
 .categories-bar-item:hover .categories-bar-item-icon svg circle,
@@ -328,6 +334,7 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
+
   height: auto;
   overflow-x: hidden !important;
 }

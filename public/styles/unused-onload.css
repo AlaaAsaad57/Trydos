@@ -4,6 +4,14 @@
 .home-page-container .login-w2-container.login-widget-container.step-1 {
   justify-content: center;
 }
+.animation-row-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  margin-top: auto !important;
+}
 .phone-input-desc.already-registered {
   margin-bottom: min(calc(32vh - 50px), 306px);
 }

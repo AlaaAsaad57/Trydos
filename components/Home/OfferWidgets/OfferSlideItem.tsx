@@ -19,7 +19,7 @@ function OfferSlideItem({
     <div className="offer-slide-item">
       <div className="image-offer" ref={ref}>
         <div className="image-inner-shadow" style={{ height: "100%" }} />
-        {ref.current && (
+        {
           <ImageLoader
             loading="eager"
             id={id}
@@ -28,11 +28,17 @@ function OfferSlideItem({
             fetchPriority={priority ? "high" : "low"}
             className="OfferImage"
             src={offerPhoto}
-            width={ref.current.clientWidth}
-            height={ref.current.clientHeight}
+            width={
+              document.querySelector<HTMLDivElement>(".offer-slide-item")
+                ?.clientWidth ?? 900
+            }
+            height={
+              document.querySelector<HTMLDivElement>(".offer-slide-item")
+                ?.clientHeight ?? 350
+            }
             alt="offer"
           />
-        )}
+        }
         <BorderImage />
       </div>
     </div>
