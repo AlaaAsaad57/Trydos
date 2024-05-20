@@ -81,7 +81,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           quality={60}
           objectPosition="center"
           src={
-            "https://res.cloudinary.com/djooohujg/image/upload/q_50/w_800/f_webp/1708506792?_a=DATC1RAAZAsA0"
+            "https://res.cloudinary.com/djooohujg/image/upload/w_800/q_50/f_webp/1708506792?_a=DATC1RAAZAsA0"
           }
         />
         <div className="offer-blured-background" />
@@ -142,8 +142,9 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           <div className="offer-desc" id={`boutique-${boutique.id}`}></div>
           {boutique.banners.length > 1 ? (
             <OfferPhotosSlider
-              key={2}
+              key={myKey}
               extended={false}
+              myKey={myKey}
               priority={false}
               boutique={boutique}
               OfferPhotos={boutique.banners}
@@ -151,6 +152,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           ) : (
             <div className="offer-slider-container">
               <OfferSlideItem
+                mykey={myKey}
                 offerPhoto={boutique.banners[0]}
                 priority={false}
                 isSingle={true}

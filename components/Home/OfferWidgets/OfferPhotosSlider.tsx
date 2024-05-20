@@ -9,10 +9,12 @@ interface OfferPhotosSliderProps {
   extended: boolean;
   priority: boolean;
   boutique: Boutique;
+  myKey: number;
 }
 function OfferPhotosSlider({
   OfferPhotos,
   boutique,
+  myKey,
   extended,
   priority,
 }: OfferPhotosSliderProps) {
@@ -66,6 +68,7 @@ function OfferPhotosSlider({
       >
         {OfferPhotos.map((offerPhoto, key) => (
           <OfferSlideItem
+            mykey={myKey}
             offerPhoto={offerPhoto}
             isSingle={false}
             priority={priority}

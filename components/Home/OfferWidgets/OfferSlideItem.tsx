@@ -7,10 +7,12 @@ interface OfferSlideItemProps {
   isSingle: boolean;
   priority: boolean;
   offerPhoto: any;
+  mykey: number;
 }
 function OfferSlideItem({
   isSingle,
   priority,
+  mykey,
   offerPhoto,
 }: OfferSlideItemProps) {
   let id = getId();
@@ -23,9 +25,9 @@ function OfferSlideItem({
           <ImageLoader
             loading="eager"
             id={id}
-            priority={false}
+            priority={mykey < 2}
             style={{ borderRadius: "15px" }}
-            fetchPriority={priority ? "high" : "low"}
+            fetchPriority={mykey < 2 ? "high" : "low"}
             className="OfferImage"
             src={offerPhoto}
             width={

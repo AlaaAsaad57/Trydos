@@ -41,11 +41,11 @@ function OfferList({ offers, quick }: OfferListProps) {
           )
         )
       )} */}
-      {boutiques.map((boutique: Boutique) => {
+      {boutiques.map((boutique: Boutique, index) => {
         return (
           <NormalWidget
             onClick={() => {}}
-            myKey={boutique.id}
+            myKey={index}
             key={boutique.id}
             boutique={boutique}
           />
