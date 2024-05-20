@@ -71,7 +71,9 @@ function ProductNoColors({ product }) {
         }}
         objectFit="cover"
         objectPosition="center"
-        src={getImageCld(productState?.activeColor?.images[0])}
+        src={
+          "https://res.cloudinary.com/djooohujg/image/upload/q_50/w_390/f_webp/1708506792?_a=DATC1RAAZAsA0"
+        }
       />
       <div className="offer-blured-background" />
       <div className="offer-blured" />

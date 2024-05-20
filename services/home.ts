@@ -4,7 +4,7 @@ import { store } from "store";
 import { GetChats } from "store/chat/actions";
 import Cookies from "js-cookie";
 import userImage from "public/images/profileNo.png";
-import { _isStoreLastJson } from "utils/functions";
+import { _isStoreLastJson, getLang } from "utils/functions";
 import {
   CUSTOMER_INFO_URL,
   HOME_DATA_URL,
@@ -24,7 +24,7 @@ class HomeService {
         typeof localStorage !== "undefined" &&
         localStorage.getItem("MARKET-TOKEN")
       }`,
-      lang: Cookies.get("language"),
+      lang: getLang(null, Cookies.get("language")),
       country: Cookies.get("country"),
     },
   });

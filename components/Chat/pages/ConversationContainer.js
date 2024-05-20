@@ -746,7 +746,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
     else if (new Date(nowString) - new Date(d) === 86400000) {
       return translate("Yesterday", language);
     } else if (new Date(nowString) - new Date(d) < 86400000 * 6) return day;
-    else return language === "ae" ? d.toLocaleString("ar-EG") : d;
+    else return language === "ar" ? d.toLocaleString("ar-EG") : d;
   };
   useEffect(() => {
     if (first)

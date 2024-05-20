@@ -1,7 +1,8 @@
+"use client";
 import axios from "axios";
 import { StoriesInterface } from "models/Stories";
 import { store } from "store";
-import { _isStoreLastJson, SSRDetect } from "utils/functions";
+import { _isStoreLastJson, getLang } from "utils/functions";
 import {
   GET_USERS_STORIES,
   LOG_IN_STORIES,
@@ -10,6 +11,7 @@ import {
 } from "utils/endpointConfig";
 import { getUserStories } from "utils/functions";
 import Cookies from "js-cookie";
+
 class StoryService {
   http = axios.create({
     baseURL: STORIES_URL,
@@ -20,7 +22,7 @@ class StoryService {
           localStorage.getItem("USER-STORIES") &&
           JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
       language: Cookies.get("language"),
-      lang: Cookies.get("language"),
+
       country: Cookies.get("country"),
     },
   });

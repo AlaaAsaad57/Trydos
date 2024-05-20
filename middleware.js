@@ -19,9 +19,9 @@ function getLangByIp(ip) {
     case "tr":
       return "tr";
     case "ae":
-      return "ae";
+      return "ar";
     case "sy":
-      return "ae";
+      return "ar";
     case "us":
       return "en";
     default:

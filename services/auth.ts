@@ -4,7 +4,7 @@ import { ReInitialise } from "store/auth/actions";
 import userImage from "public/images/profileNo.png";
 import Cookies from "js-cookie";
 
-import { _isStoreLastJson } from "utils/functions";
+import { _isStoreLastJson, getLang } from "utils/functions";
 import {
   OTP_URL,
   SEND_OTP,
@@ -14,6 +14,7 @@ import {
 } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
+
 class AuthService {
   http = axios.create({
     baseURL: OTP_URL,
@@ -22,7 +23,7 @@ class AuthService {
         typeof localStorage !== "undefined" &&
         localStorage.getItem("MARKET-TOKEN")
       }`,
-      lang: Cookies.get("language"),
+      lang: getLang(null, Cookies.get("language")),
       country: Cookies.get("country"),
     },
   });

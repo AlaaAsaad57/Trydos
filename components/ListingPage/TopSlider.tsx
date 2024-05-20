@@ -91,6 +91,7 @@ function TopSlider({
               src={getConfiguredImage({ src: img, width: 30, height: 40 })}
               width={30}
               height={40}
+              unoptimized
               alt={product_name || "alt"}
               loading="lazy"
               style={{

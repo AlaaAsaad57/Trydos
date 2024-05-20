@@ -90,6 +90,7 @@ function ColorSlider({
                     loading="eager"
                     quality={60}
                     priority={i === 3}
+                    unoptimized
                     style={{ borderRadius: "15px", zIndex: "3" }}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

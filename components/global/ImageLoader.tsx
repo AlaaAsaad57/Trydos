@@ -20,7 +20,7 @@ function ImageLoader(props) {
         overflow: "hidden",
       }}
     >
-      {!props.noLoader && (
+      {!props.noLoader && loading && (
         <Loader
           style={{
             display: loading ? "flex" : "none",
@@ -33,6 +33,7 @@ function ImageLoader(props) {
         <Image
           {...props}
           quality={100}
+          unoptimized
           onLoad={() => setLoading(false)}
           src={getImageCld()}
         />

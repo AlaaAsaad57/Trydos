@@ -120,7 +120,7 @@ body {
 .selected-language {
   background-color: #cecdcd;
 }
-.translations-container:hover .translations-container-inner .ae-icon {
+.translations-container:hover .translations-container-inner .ar-icon {
   top: -140px;
 }
 .translations-container:hover .translations-container-inner .tr-icon {
@@ -261,6 +261,8 @@ body {
   z-index: 1000000000000000000;
   align-items: center;
   justify-content: center;
+  top: 0px;
+  left: 0px;
 }
 @keyframes opa {
   0% {

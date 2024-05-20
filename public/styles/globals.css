@@ -13,6 +13,18 @@
   width: 20px;
   height: 20px;
 }
+.offer-logo .svg-holder-r svg,
+.offer-logo {
+  width: 30px;
+  height: 30px;
+}
+.offer-category .svg-holder-r svg {
+  width: 20px;
+  height: 20px;
+}
+.offer-category .svg-holder-r svg path {
+  fill: #c4c2c2 !important;
+}
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;

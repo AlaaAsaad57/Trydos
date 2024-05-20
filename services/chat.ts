@@ -3,7 +3,7 @@ import { CHAT_URL, LOG_IN_CHAT } from "utils/endpointConfig";
 import HomeService from "services/home";
 import Cookies from "js-cookie";
 import { store } from "store";
-import { _isStoreLastJson } from "utils/functions";
+import { _isStoreLastJson, getLang } from "utils/functions";
 class ChatService {
   http = axios.create({
     baseURL: CHAT_URL,
@@ -14,7 +14,7 @@ class ChatService {
           typeof localStorage !== "undefined" &&
             localStorage.getItem("USER-CHAT")
         )?.access_token,
-      lang: Cookies.get("language"),
+      lang: getLang(null, Cookies.get("language")),
       country: Cookies.get("country"),
     },
   });

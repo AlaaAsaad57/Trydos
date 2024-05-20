@@ -43,7 +43,8 @@
 
 .offer-blured {
   background-color: oklch(0.99 0 0 / 50%);
-  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(30px) brightness(2);
   color: #faf8f9;
 }
 .offer-container {
@@ -82,7 +83,7 @@ a {
 
 .offer-category svg {
   margin-right: 4px;
-  transform: scale(0.6);
+  transform: scale(1);
 }
 
 .offer-category svg:last-child {
@@ -389,7 +390,7 @@ a {
   z-index: 8;
 }
 
-.ae-icon {
+.ar-icon {
   transition: all 0.5s ease-in-out;
   z-index: 7;
 }

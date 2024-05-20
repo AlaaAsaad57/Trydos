@@ -52,7 +52,7 @@ export const getHomeData = async ({ str, lang }) => {
         tags: [`home-boutiques-${cookieStore.get("lang")?.value ?? "en"}`],
       },
       headers: new Headers({
-        lang: lang ? lang : cookieStore.get("language")?.value || "en",
+        lang: getLang(lang, cookieStore.get("language")?.value),
         country: cookieStore.get("country") && cookieStore.get("country").value,
       }),
       credentials: "include",
@@ -63,7 +63,7 @@ export const getHomeData = async ({ str, lang }) => {
     let returned_res = {
       type: res.type,
       headers: new Headers({
-        lang: lang ? lang : cookieStore.get("language")?.value || "en",
+        lang: getLang(lang, cookieStore.get("language")?.value),
         country: cookieStore.get("country") && cookieStore.get("country").value,
       }),
       url: res.url,
@@ -86,7 +86,7 @@ export const getMainCategories = async ({ lang }) => {
         tags: [`home-categories-${cookieStore.get("lang")?.value ?? "en"}`],
       },
       headers: new Headers({
-        lang: lang ? lang : cookieStore.get("language")?.value,
+        lang: getLang(lang, cookieStore.get("language")?.value),
         country: cookieStore.get("country") && cookieStore.get("country").value,
       }),
     });
@@ -95,7 +95,7 @@ export const getMainCategories = async ({ lang }) => {
     let returned_res = {
       type: res.type,
       headers: new Headers({
-        lang: lang ? lang : cookieStore.get("language")?.value || "en",
+        lang: getLang(lang, cookieStore.get("language")?.value),
         country: cookieStore.get("country") && cookieStore.get("country").value,
       }),
       url: res.url,
@@ -111,7 +111,7 @@ export const DataApiHeaders = async (forStories) => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   return new Headers({
-    lang: cookieStore.get("language")?.value || "en",
+    lang: getLang(lang, cookieStore.get("language")?.value),
     country: cookieStore.get("country") && cookieStore.get("country").value,
     Authorization:
       "Bearer " + forStories
@@ -136,6 +136,25 @@ const getHref = (s) => {
   });
   return str;
 };
+export const getLang = (lang, cookieLang) => {
+  if (lang) {
+    if (lang === "ar") {
+      return "ae";
+    } else {
+      return lang;
+    }
+  } else {
+    if (cookieLang) {
+      if (cookieLang === "ar") {
+        return "ae";
+      } else {
+        return cookieLang;
+      }
+    } else {
+      return "en";
+    }
+  }
+};
 export const getListingData = async ({ categories, lang }) => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
@@ -151,7 +170,7 @@ export const getListingData = async ({ categories, lang }) => {
           tags: [`listing-data`],
         },
         headers: new Headers({
-          lang: lang ? lang : cookieStore.get("language")?.value || "en",
+          lang: getLang(lang, cookieStore.get("language")?.value),
           country:
             cookieStore.get("country") && cookieStore.get("country").value,
         }),
@@ -163,7 +182,7 @@ export const getListingData = async ({ categories, lang }) => {
     let returned_res = {
       type: res.type,
       headers: new Headers({
-        lang: lang ? lang : cookieStore.get("language")?.value || "en",
+        lang: getLang(lang, cookieStore.get("language")?.value),
         country: cookieStore.get("country") && cookieStore.get("country").value,
       }),
       url: res.url,

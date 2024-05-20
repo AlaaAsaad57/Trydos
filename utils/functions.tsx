@@ -201,3 +201,22 @@ export const getConfiguredImage = ({ src, width, height }) => {
     );
   } else return src;
 };
+export const getLang = (lang, cookieLang) => {
+  if (lang) {
+    if (lang === "ar") {
+      return "ae";
+    } else {
+      return lang;
+    }
+  } else {
+    if (cookieLang) {
+      if (cookieLang === "ar") {
+        return "ae";
+      } else {
+        return cookieLang;
+      }
+    } else {
+      return "en";
+    }
+  }
+};

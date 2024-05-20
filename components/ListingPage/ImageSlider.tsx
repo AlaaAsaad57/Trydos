@@ -89,6 +89,7 @@ function ImageSlider({
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     style={{ borderRadius: "15px", zIndex: "3" }}
                     fill
+                    unoptimized
                     src={getConfiguredImage({
                       src: img,
                       width: 200,

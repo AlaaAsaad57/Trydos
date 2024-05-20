@@ -109,7 +109,6 @@ export default function Home({
       <CategoryBar />
       <OfferBar />
       <QuickOffer />
-      <OffersList quick={true} offers={[1]} />
     </>
   );
 }

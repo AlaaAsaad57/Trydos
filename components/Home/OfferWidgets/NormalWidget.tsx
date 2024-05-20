@@ -18,18 +18,14 @@ interface NormalWidgetProps {
 }
 const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
   const language = useSelector((state: any) => state.homepage.language);
-  const { ref, inView, entry } = useInView({
-    /* Optional options */
-    threshold: 0.3,
-  });
   useEffect(() => {
-    if (boutique.description && inView) {
+    if (boutique.description) {
       encode_utf8({
         element: document.querySelectorAll(`#boutique-${boutique.id}`),
         s: boutique.description,
       });
     }
-  }, [inView]);
+  }, []);
   const getImageCld = (s) => {
     if (s.includes("cloudinary")) {
       return s.replace("/upload", "/upload/f_webp/q_40");
@@ -48,7 +44,6 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
   };
   return (
     <Link
-      ref={ref}
       href={`/${getHref()}`}
       prefetch={false}
       aria-label={`Go To listing Page`}
@@ -68,112 +63,103 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
         e.preventDefault();
       }}
     >
-      {
-        <>
-          {inView && (
-            <>
-              <Image
-                fill
-                alt="imageAlt"
-                loading="eager"
-                fetchPriority="high"
-                priority={true}
-                style={{
-                  position: "absolute",
-                  top: "0px",
-                  left: "0px",
-                  borderRadius: "15px",
-                  zIndex: "1",
-                }}
-                objectFit="cover"
-                quality={60}
-                objectPosition="center"
-                src={getImageCld(boutique.banners[0])}
-              />
-              <div className="offer-blured-background" />
-              <div className="offer-blured" />
-              <div className="offer-container">
-                <div className="offer-logo h-[30px]">
-                  {boutique.icon ? (
-                    boutique.icon.includes(".svg") ? (
-                      <RemoteSvg url={boutique.icon} />
-                    ) : (
-                      <ImageLoader
-                        loading="eager"
-                        id={"img-" + boutique.id}
-                        alt={boutique.name}
-                        noLoader
-                        priority={false}
-                        fetchPriority={"high"}
-                        style={{
-                          maxWidth: "187px",
-                          width: "auto",
-                          height: "30px",
-                        }}
-                        width={30}
-                        height={30}
-                        src={boutique.icon}
-                      />
-                    )
-                  ) : (
-                    boutique.name
-                  )}
-                </div>
-                <div className="offer-category h-[20px]">
-                  {boutique.mainCategoriesForProductIds.map((category, key) => {
-                    if (category.category_icon.includes(".svg")) {
-                      return (
-                        <RemoteSvg url={category.category_icon} key={key} />
-                      );
-                    } else
-                      return (
-                        <ImageLoader
-                          loading="eager"
-                          id={"img-" + boutique.id}
-                          alt={boutique.name}
-                          noLoader
-                          priority={false}
-                          fetchPriority={"high"}
-                          style={{
-                            maxWidth: "187px",
-                            width: "auto",
-                            height: "20px",
-                          }}
-                          width={20}
-                          height={20}
-                          key={key}
-                          src={boutique.icon}
-                        />
-                      );
-                  })}
-                </div>
-                <div
-                  className="offer-desc"
-                  id={`boutique-${boutique.id}`}
-                ></div>
-                {boutique.banners.length > 1 ? (
-                  <OfferPhotosSlider
-                    key={2}
-                    extended={false}
+      <>
+        <Image
+          fill
+          alt="imageAlt"
+          loading="eager"
+          fetchPriority="high"
+          priority={true}
+          style={{
+            position: "absolute",
+            top: "0px",
+            left: "0px",
+            borderRadius: "15px",
+            zIndex: "1",
+          }}
+          objectFit="cover"
+          quality={60}
+          objectPosition="center"
+          src={
+            "https://res.cloudinary.com/djooohujg/image/upload/q_50/w_800/f_webp/1708506792?_a=DATC1RAAZAsA0"
+          }
+        />
+        <div className="offer-blured-background" />
+        <div className="offer-blured" />
+        <div className="offer-container">
+          <div className="offer-logo h-[30px]">
+            {boutique.icon ? (
+              boutique.icon.includes(".svg") ? (
+                <RemoteSvg url={boutique.icon} />
+              ) : (
+                <ImageLoader
+                  loading="eager"
+                  id={"img-" + boutique.id}
+                  alt={boutique.name}
+                  noLoader
+                  priority={false}
+                  fetchPriority={"high"}
+                  style={{
+                    maxWidth: "187px",
+                    width: "auto",
+                    height: "30px",
+                  }}
+                  width={30}
+                  height={30}
+                  src={boutique.icon}
+                />
+              )
+            ) : (
+              boutique.name
+            )}
+          </div>
+          <div className="offer-category h-[20px]">
+            {boutique.mainCategoriesForProductIds.map((category, key) => {
+              if (category.category_icon.includes(".svg")) {
+                return <RemoteSvg url={category.category_icon} key={key} />;
+              } else
+                return (
+                  <ImageLoader
+                    loading="eager"
+                    id={"img-" + boutique.id}
+                    alt={boutique.name}
+                    noLoader
                     priority={false}
-                    boutique={boutique}
-                    OfferPhotos={boutique.banners}
+                    fetchPriority={"high"}
+                    style={{
+                      maxWidth: "187px",
+                      width: "auto",
+                      height: "20px",
+                    }}
+                    width={20}
+                    height={20}
+                    key={key}
+                    src={boutique.icon}
                   />
-                ) : (
-                  <div className="offer-slider-container">
-                    <OfferSlideItem
-                      offerPhoto={boutique.banners[0]}
-                      priority={false}
-                      isSingle={true}
-                    />
-                    <OfferAvatars boutique={boutique} priority={false} />
-                  </div>
-                )}
-              </div>
-            </>
+                );
+            })}
+          </div>
+          <div className="offer-desc" id={`boutique-${boutique.id}`}></div>
+          {boutique.banners.length > 1 ? (
+            <OfferPhotosSlider
+              key={2}
+              extended={false}
+              priority={false}
+              boutique={boutique}
+              OfferPhotos={boutique.banners}
+            />
+          ) : (
+            <div className="offer-slider-container">
+              <OfferSlideItem
+                offerPhoto={boutique.banners[0]}
+                priority={false}
+                isSingle={true}
+              />
+              <OfferAvatars boutique={boutique} priority={false} />
+            </div>
           )}
-        </>
-      }
+        </div>
+      </>
     </Link>
   );
 };
