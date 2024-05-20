@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
-import CategoriesBar from "./CategoriesBar";
+import { useEffect } from "react";
 import Logo from "./Logo";
 import UserNavTopSection from "./UserNavTopSection";
 import { useDispatch, useSelector } from "react-redux";
 import { changeAppLanguage } from "store/homepage/actions";
-import MobileNavigation from "./MobileNavigation";
+import dynamic from "next/dynamic";
+const CategoriesBar = dynamic(() => import("./CategoriesBar"), { ssr: true });
+const MobileNavigation = dynamic(() => import("./MobileNavigation"), {
+  ssr: true,
+});
 interface NavbarProps {
   init: string;
 }
@@ -35,7 +38,9 @@ function Navbar({ init }: NavbarProps) {
     <>
       <div className="home-navbar">
         <Logo animated={false} style={false} key={1} />
-        <CategoriesBar key={2} forMobile={false} />
+        {window.innerWidth >= 800 && (
+          <CategoriesBar key={2} forMobile={false} />
+        )}
         {
           <UserNavTopSection
             loginOpen={loginOpen}
@@ -43,7 +48,7 @@ function Navbar({ init }: NavbarProps) {
           />
         }
       </div>
-      <MobileNavigation />
+      {window.innerWidth < 800 && <MobileNavigation />}
     </>
   );
 }

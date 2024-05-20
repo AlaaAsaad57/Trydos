@@ -12,7 +12,7 @@ async function loading() {
       >
         <defs>
           <linearGradient
-            id="linear-gradient"
+            id="linear-gradient2"
             x1="0.5"
             y1="0.543"
             x2="0.5"
@@ -51,7 +51,7 @@ async function loading() {
               data-name="Path 21332"
               d="M8.929,0a8.929,8.929,0,1,0,8.929,8.929A8.929,8.929,0,0,0,8.929,0Z"
               transform="translate(206 422)"
-              fill="url(#linear-gradient)"
+              fill="url(#linear-gradient2)"
             />
             <path
               id="Path_21427"

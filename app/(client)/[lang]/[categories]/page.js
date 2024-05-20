@@ -14,7 +14,20 @@ async function page({ params, searchParams }) {
     categories: params.categories,
     lang: params.lang ? params.lang.split("-")[1] : null,
   });
-  return <>{<ProductCard Listing_Data_res={Listing_Data_res} />}</>;
+  const [HomeData, HomeData_res] = await getHomeData({
+    lang: params.lang ? params.lang.split("-")[1] : null,
+  });
+  return (
+    <>
+      {
+        <ProductCard
+          Listing_Data_res={Listing_Data_res}
+          HomeData_res={HomeData_res}
+          HomeData={HomeData}
+        />
+      }
+    </>
+  );
 }
 
 export default page;
