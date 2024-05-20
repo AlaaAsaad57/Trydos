@@ -163,7 +163,8 @@ export const getListingData = async ({ categories, lang }) => {
   try {
     let time = new Date().getTime();
     const res = await fetch(
-      OTP_URL + LISTING_INFO_URL + `?boutique_slug=${str}`,
+      OTP_URL + LISTING_INFO_URL,
+      JSON.stringify({ boutique_slug: str }),
       {
         next: {
           revalidate: 3600,

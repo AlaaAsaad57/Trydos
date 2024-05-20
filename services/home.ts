@@ -117,9 +117,11 @@ class HomeService {
   async getNextProduct({ offset, categories }) {
     const http = new HomeService().http;
     await http
-      .get(
-        LISTING_INFO_URL +
-          `?offset=${offset}&limit=${20}&boutique_slug=${categories}`
+      .post(
+        LISTING_INFO_URL + `?offset=${offset}&limit=${20}`,
+        JSON.stringify({
+          boutique_slug: categories,
+        })
       )
       .then((data) => {
         store.dispatch({ type: "GET_NEXT_PRODUCT", payload: data.data.data });
