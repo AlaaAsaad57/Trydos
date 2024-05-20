@@ -71,6 +71,7 @@ function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
             <QuickEventBar />
             {offer.photos.length > 1 ? (
               <OfferPhotosSlider
+                myKey={4}
                 extended={false}
                 priority={false}
                 boutique={null}
@@ -79,6 +80,7 @@ function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
             ) : (
               <div className="offer-slider-container">
                 <OfferSlideItem
+                  mykey={4}
                   offerPhoto={null}
                   priority={true}
                   isSingle={true}
