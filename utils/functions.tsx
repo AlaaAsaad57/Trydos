@@ -163,17 +163,16 @@ export const useTimers = ({ durationValue }) => {
   };
 };
 export const Sendevent = async (params: any) => {
-  const event = (await import("nextjs-google-analytics")).event;
   try {
     let userId = localStorage.getItem("USER")
       ? JSON.parse(localStorage.getItem("USER"))?.id
       : JSON.parse(localStorage.getItem("user-guest"))?.id;
-    event(params.event, {
-      category: params.category,
+    (window as any).gtag("event", params.event, {
+      event_category: params.category,
+      event_label: params.label,
       value: params.value,
-      userId: userId,
-      label: params.category,
       country: Cookies.get("country"),
+      userId: userId,
       language: Cookies.get("language"),
     });
   } catch (e) {
