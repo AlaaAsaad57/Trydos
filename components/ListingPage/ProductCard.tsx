@@ -1,5 +1,5 @@
 "use client";
-import { memo, useEffect } from "react";
+import { memo, useEffect, useState } from "react";
 import ProductNoColors from "./ProductNoColors";
 import ProductCover from "./ProductCover";
 // Import Swiper styles
@@ -16,19 +16,19 @@ function ProductCard({ Listing_Data_res }: { Listing_Data_res: any }) {
   const dispatch = useDispatch();
   const params = useParams();
   const products = useSelector((state: any) => state.listing.products);
-  const offset = useSelector((state: any) => state.listing.offset);
+  const [offset, setOffset] = useState(2);
   const loading = useSelector((state: any) => state.listing.loading);
   const isReachEnd = useSelector((state: any) => state.listing.isReachEnd);
   const GetNextPage = async () => {
-    if (!loading) {
+    if (!loading && !isReachEnd) {
       dispatch({ type: "PRODUCT_LOADING" });
       await homeService.getNextProduct({
         offset: offset,
         categories: params.categories,
       });
+      setOffset(offset + 1);
     }
   };
-
   useEffect(() => {
     LogData({
       listing_req_data: Listing_Data_res,
@@ -40,7 +40,7 @@ function ProductCard({ Listing_Data_res }: { Listing_Data_res: any }) {
     <>
       <div
         className="listing-container"
-        onScroll={() => {
+        onWheel={() => {
           GetNextPage();
         }}
       >

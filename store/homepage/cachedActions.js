@@ -174,7 +174,6 @@ export const getListingData = async ({ categories, lang }) => {
           country:
             cookieStore.get("country") && cookieStore.get("country").value,
         }),
-        cache: "force-cache",
       }
     );
     const repo = await res.json();

@@ -62,6 +62,7 @@ function ColorSlider({
           modifier: 1,
           scale: 1,
           stretch: 145,
+          rotate: 10,
           slideShadows: false,
         }}
         slidesPerView={1}

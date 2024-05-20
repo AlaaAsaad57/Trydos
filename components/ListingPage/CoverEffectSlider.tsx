@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, memo, Ref } from "react";
 import ImageAvatar from "./ImageAvatar";
-import { Swiper, SwiperRef, SwiperSlide } from "swiper/react";
+import { Swiper, SwiperSlide } from "swiper/react";
 import { EffectCoverflow } from "swiper/modules";
 function CoverEffectSlider({
   images,
@@ -97,7 +97,7 @@ function CoverEffectSlider({
         }}
         slidesPerView={"auto"}
         centeredSlides={true}
-        initialSlide={3}
+        initialSlide={images.length / 2}
         resistanceRatio={0}
         virtualTranslate={false}
       >

@@ -27,6 +27,7 @@
 }
 .swiper-wrapper {
   align-items: center;
+  width: auto !important;
 }
 .swiper-coverflow {
   overflow: visible !important;
