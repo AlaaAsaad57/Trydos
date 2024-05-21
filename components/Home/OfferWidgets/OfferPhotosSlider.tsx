@@ -32,40 +32,8 @@ function OfferPhotosSlider({
     <div
       className="offer-slider-container"
       style={{ marginTop: extended && "39px" }}
-      onMouseDown={(e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        e.nativeEvent.stopImmediatePropagation();
-      }}
-      onMouseUp={(e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        e.nativeEvent.stopImmediatePropagation();
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        e.nativeEvent.stopImmediatePropagation();
-      }}
     >
-      <Slider
-        {...settings}
-        onMouseDown={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          e.nativeEvent.stopImmediatePropagation();
-        }}
-        onMouseUp={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          e.nativeEvent.stopImmediatePropagation();
-        }}
-        onClick={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          e.nativeEvent.stopImmediatePropagation();
-        }}
-      >
+      <Slider {...settings}>
         {OfferPhotos.map((offerPhoto, key) => (
           <OfferSlideItem
             mykey={myKey}

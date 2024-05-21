@@ -49,19 +49,6 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
       aria-label={`Go To listing Page`}
       className="offer-widget  w-full flex flex-col"
       key={myKey}
-      aria-disabled="true"
-      onMouseDown={(e) => {
-        e.preventDefault();
-      }}
-      onTouchStart={(e) => {
-        e.preventDefault();
-      }}
-      onMouseUp={(e) => {
-        e.preventDefault();
-      }}
-      onTouchEnd={(e) => {
-        e.preventDefault();
-      }}
     >
       <>
         <Image
@@ -80,9 +67,10 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           objectFit="cover"
           quality={60}
           objectPosition="center"
-          src={
-            "https://res.cloudinary.com/djooohujg/image/upload/w_800/q_50/f_webp/1708506792?_a=DATC1RAAZAsA0"
-          }
+          src={boutique.banners[0].replace(
+            "/upload",
+            "/upload/w_800,h_342/f_webp/q_40"
+          )}
         />
         <div className="offer-blured-background" />
         <div className="offer-blured" />

@@ -59,7 +59,7 @@ function ProductNoColors({ product }) {
       <Image
         fill
         alt="imageAlt"
-        loading="eager"
+        loading="lazy"
         fetchPriority="high"
         priority={true}
         style={{
@@ -71,9 +71,10 @@ function ProductNoColors({ product }) {
         }}
         objectFit="cover"
         objectPosition="center"
-        src={
-          "https://res.cloudinary.com/djooohujg/image/upload/q_50/w_390/f_webp/1708506792?_a=DATC1RAAZAsA0"
-        }
+        src={productState.activeColor.images[0].replace(
+          "/upload",
+          "/upload/w_800,h_342/f_webp/q_40"
+        )}
       />
       <div className="offer-blured-background" />
       <div className="offer-blured" />
