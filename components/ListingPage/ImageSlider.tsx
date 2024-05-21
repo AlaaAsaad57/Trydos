@@ -108,4 +108,4 @@ function ImageSlider({
   );
 }
 
-export default memo(ImageSlider);
+export default ImageSlider;

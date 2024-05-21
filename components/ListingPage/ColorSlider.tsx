@@ -109,4 +109,4 @@ function ColorSlider({
   );
 }
 
-export default memo(ColorSlider);
+export default ColorSlider;

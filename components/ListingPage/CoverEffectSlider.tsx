@@ -139,4 +139,4 @@ function CoverEffectSlider({
   );
 }
 
-export default memo(CoverEffectSlider);
+export default CoverEffectSlider;
