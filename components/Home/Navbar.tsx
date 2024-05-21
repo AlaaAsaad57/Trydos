@@ -4,15 +4,14 @@ import Logo from "./Logo";
 import UserNavTopSection from "./UserNavTopSection";
 import { useDispatch, useSelector } from "react-redux";
 import { changeAppLanguage } from "store/homepage/actions";
-import dynamic from "next/dynamic";
-const CategoriesBar = dynamic(() => import("./CategoriesBar"), { ssr: true });
-const MobileNavigation = dynamic(() => import("./MobileNavigation"), {
-  ssr: true,
-});
+import { Category } from "models/Category";
+import CategoriesBar from "./CategoriesBar";
+import MobileNavigation from "./MobileNavigation";
 interface NavbarProps {
   init: string;
+  categories: Category[];
 }
-function Navbar({ init }: NavbarProps) {
+function Navbar({ init, categories }: NavbarProps) {
   const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
   const setLoginOpen = (e: boolean) => {
     dispatch({ type: "LOGIN-OPEN", payload: e });
@@ -39,7 +38,7 @@ function Navbar({ init }: NavbarProps) {
     <>
       <div className="home-navbar">
         <Logo animated={false} style={false} key={1} />
-        {<CategoriesBar key={2} forMobile={false} />}
+        {<CategoriesBar categories={categories} key={2} forMobile={false} />}
         {
           <UserNavTopSection
             loginOpen={loginOpen}
@@ -47,7 +46,7 @@ function Navbar({ init }: NavbarProps) {
           />
         }
       </div>
-      {<MobileNavigation />}
+      {<MobileNavigation categories={categories} />}
     </>
   );
 }

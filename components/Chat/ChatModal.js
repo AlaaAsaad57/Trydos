@@ -1,3 +1,4 @@
+"use client";
 const CallComponent = dynamic(
   () => import("components/Chat/components/CallComponent"),
   { ssr: false }

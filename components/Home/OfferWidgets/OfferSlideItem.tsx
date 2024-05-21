@@ -1,22 +1,25 @@
+"use client";
 import ImageLoader from "components/global/ImageLoader";
 import BorderImage from "./BorderImage";
-import Image from "next/image";
 import { getId } from "utils/functions";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 interface OfferSlideItemProps {
   isSingle: boolean;
   priority: boolean;
   offerPhoto: any;
   mykey: number;
+  setSrc: Function;
 }
 function OfferSlideItem({
   isSingle,
   priority,
   mykey,
   offerPhoto,
+  setSrc,
 }: OfferSlideItemProps) {
   let id = getId();
   const ref = useRef<HTMLDivElement>();
+  useEffect(() => {}, []);
   return (
     <div className="offer-slide-item">
       <div className="image-offer" ref={ref}>
@@ -24,6 +27,7 @@ function OfferSlideItem({
         {
           <ImageLoader
             loading="eager"
+            setSrc={(e) => setSrc(e)}
             id={id}
             priority={mykey < 2}
             style={{ borderRadius: "15px" }}
@@ -36,7 +40,7 @@ function OfferSlideItem({
             }
             height={
               document.querySelector<HTMLDivElement>(".offer-slide-item")
-                ?.clientHeight ?? 350
+                ?.clientHeight ?? 342
             }
             alt="offer"
           />

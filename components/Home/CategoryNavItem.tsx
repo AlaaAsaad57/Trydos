@@ -33,7 +33,7 @@ const CategoryNavItem = ({
     if (name === "Search") {
       openSearch();
     } else {
-      router.push(`/?category_slug=${slug}`);
+      router.push(`/categories/${slug}`);
       homeService.GetBoutiques(slug);
     }
   };

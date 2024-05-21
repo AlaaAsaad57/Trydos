@@ -1,14 +1,10 @@
 import React from "react";
 import Skeleton from "react-loading-skeleton";
 import CategoryNavMobile from "./CategoryNavMobile";
-import { useSelector } from "react-redux";
 import { Category } from "models/Category";
 
-function MobileNavigation() {
-  const loading = useSelector((state: any) => state.homepage.loading);
-  const categories: Category[] = useSelector(
-    (state: any) => state.homepage.categories
-  );
+function MobileNavigation({ categories }: { categories: Category[] }) {
+  const loading = false;
   if (typeof document !== "undefined") {
     const slider: HTMLDivElement = document?.querySelector(".mobile-bar");
     let isDown = false;

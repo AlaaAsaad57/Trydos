@@ -67,3 +67,11 @@ img {
   max-height: 100vh !important;
   position: absolute !important;
 }
+@media only screen and (max-width: 912px) {
+  .loading-screnn.landing-page {
+    top: 145px !important;
+  }
+}
+.loading-screnn {
+  top: 98px !important;
+}

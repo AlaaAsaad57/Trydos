@@ -1,8 +1,8 @@
 import React from "react";
-
+import "styles/globals.css";
 async function loading() {
   return (
-    <div className="landing-page">
+    <div className="landing-page loading-screnn">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"

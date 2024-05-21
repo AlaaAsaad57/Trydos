@@ -27,7 +27,7 @@ function CategoryNavMobile({
       }`}
       key={myKey}
       onClick={() => {
-        router.push(`/?category_slug=${slug}`);
+        router.push(`/categories/${slug}`);
         homeService.GetBoutiques(slug);
       }}
     >

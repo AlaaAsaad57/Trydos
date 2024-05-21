@@ -102,8 +102,9 @@ class HomeService {
     }
   }
   async GetBoutiques(slug) {
-    const response = await this.http.get(
-      OTP_URL + HOME_DATA_URL + `ByCategory/${slug}`,
+    const response = await this.http.post(
+      OTP_URL + HOME_DATA_URL + `ByCategory`,
+      { slug: slug },
       getHeader()
     );
     store.dispatch(GetMainData(response.data.data.boutiques));

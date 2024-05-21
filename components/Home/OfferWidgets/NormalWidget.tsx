@@ -1,3 +1,4 @@
+"use client";
 const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"));
 import OfferSlideItem from "./OfferSlideItem";
 import { useSelector } from "react-redux";
@@ -9,7 +10,7 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import { Boutique } from "models/offer";
 import RemoteSvg from "components/global/RemoteSvg";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ImageLoader from "components/global/ImageLoader";
 interface NormalWidgetProps {
   boutique: Boutique;
@@ -17,7 +18,7 @@ interface NormalWidgetProps {
   onClick: Function;
 }
 const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
-  const language = useSelector((state: any) => state.homepage.language);
+  const [imageSrc, setImageSrc] = useState(null);
   useEffect(() => {
     if (boutique.description) {
       encode_utf8({
@@ -44,34 +45,34 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
   };
   return (
     <Link
-      href={`/${getHref()}`}
+      href={`/products/${getHref()}`}
       prefetch={false}
       aria-label={`Go To listing Page`}
       className="offer-widget  w-full flex flex-col"
       key={myKey}
     >
       <>
-        <Image
-          fill
-          alt="imageAlt"
-          loading="eager"
-          fetchPriority="high"
-          priority={true}
-          style={{
-            position: "absolute",
-            top: "0px",
-            left: "0px",
-            borderRadius: "15px",
-            zIndex: "1",
-          }}
-          objectFit="cover"
-          quality={60}
-          objectPosition="center"
-          src={boutique.banners[0].replace(
-            "/upload",
-            "/upload/w_800,h_342/f_webp/q_40"
-          )}
-        />
+        {imageSrc && (
+          <Image
+            fill
+            alt="imageAlt"
+            loading="eager"
+            fetchPriority="high"
+            priority={true}
+            style={{
+              position: "absolute",
+              top: "0px",
+              left: "0px",
+              borderRadius: "15px",
+              zIndex: "1",
+            }}
+            objectFit="cover"
+            quality={60}
+            unoptimized
+            objectPosition="center"
+            src={imageSrc}
+          />
+        )}
         <div className="offer-blured-background" />
         <div className="offer-blured" />
         <div className="offer-container">
@@ -140,6 +141,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           ) : (
             <div className="offer-slider-container">
               <OfferSlideItem
+                setSrc={(e) => setImageSrc(e)}
                 mykey={myKey}
                 offerPhoto={boutique.banners[0]}
                 priority={false}

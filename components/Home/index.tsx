@@ -1,20 +1,10 @@
 "use client";
 import "styles/home.css";
 import "styles/unused-onload.css";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
-import {
-  GetMainCategories,
-  GetMainData,
-  LogData,
-} from "store/homepage/actions";
 import Stories from "./Stories/index";
-import BrandsBar from "./Bars/BrandsBar";
-import QuickOffer from "./Bars/QuickOffer";
-import OfferBar from "./Bars/OfferBar";
-import CategoryBar from "./Bars/CategoryBar";
-import OffersList from "./OfferWidgets/OfferList";
 import ChatService from "services/chat";
 const NotificationContainer = dynamic(() => import("./Notifications"), {
   ssr: false,
@@ -24,26 +14,9 @@ import NameModal from "components/global/NameModal";
 import { getUserStories } from "../../utils/functions";
 import StoryServiceClass from "services/story";
 import StoriesContainer from "./Stories/NewStories";
-export default function Home({
-  HomeData_res,
-  HomeData,
-  mainCategories,
-  mainCategories_res,
-}: {
-  HomeData_res: Object;
-  HomeData: Object;
-  mainCategories: Object;
-  mainCategories_res: Object;
-}) {
+export default function Home() {
   useEffect(() => {
     StoryServiceClass.getStories();
-    LogData({
-      HomeData_req_data: HomeData_res,
-      mainCategories,
-      mainCategories_res,
-    });
-    dispatch(GetMainData(HomeData));
-    dispatch(GetMainCategories(mainCategories));
     try {
       initFB();
     } catch (e) {}
@@ -91,7 +64,6 @@ export default function Home({
       document.body.style.overflowY = "initial";
     }
   }, [selectedStory]);
-  const dispatch = useDispatch();
   return (
     <>
       {enableNotifications && <NotificationContainer />}
@@ -103,11 +75,6 @@ export default function Home({
           selectedStory={selectedStory}
         />
       )}
-      <BrandsBar />
-      <OffersList key={2} quick={false} />
-      <CategoryBar />
-      <OfferBar />
-      <QuickOffer />
     </>
   );
 }

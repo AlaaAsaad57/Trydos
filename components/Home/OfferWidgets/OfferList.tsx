@@ -1,20 +1,14 @@
-import { useSelector } from "react-redux";
+"use client";
 import NormalWidget from "./NormalWidget";
-import ExtendedOfferWidget from "./ExtendedOfferWidget";
-import QuickOfferWidjet from "./QuickOfferWidjet";
+
 import { Boutique } from "models/offer";
 interface OfferListProps {
   quick: boolean;
+  boutiques: Boutique[];
 }
-function OfferList({ quick }: OfferListProps) {
-  const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
-  const boutiques = useSelector((state: any) => state.homepage.boutiques);
+function OfferList({ quick, boutiques }: OfferListProps) {
   return (
-    <div
-      className={`offers-list ${
-        (loginOpen && "hide-offers ") + (quick && " mt-5")
-      }  w-full flex flex-col`}
-    >
+    <div className={`offers-list ${quick && " mt-5"}  w-full flex flex-col`}>
       {/* {quick ? (
         <QuickOfferWidjet onClick={() => {}} offer={{ photos: [1] }} />
       ) : (

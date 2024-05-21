@@ -9,7 +9,7 @@ import OfferListServer from "components/Server/OfferListServer";
 async function page({ params }): Promise<any> {
   return (
     <>
-      <Home params={params} searchParams={null} />
+      <Home />
       <BrandsBar />
       <OfferListServer params={params} searchParams={params.categories} />
       <CategoryBar />

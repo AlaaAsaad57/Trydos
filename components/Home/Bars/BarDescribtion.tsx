@@ -1,11 +1,13 @@
 import { ReactElement } from "react";
-import { GetAppLanguage } from "utils/functions";
+import Cookies from "js-cookie";
+
 interface BarDescribtionProps {
   name: string;
   desc: string;
 }
 function BarDescribtion({ name, desc }: BarDescribtionProps): ReactElement {
-  const language = GetAppLanguage();
+  const language = Cookies.get("language");
+
   return (
     <div
       className={`bar-desc-column flex flex-col justify-start  ${

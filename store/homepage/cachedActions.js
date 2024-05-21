@@ -42,22 +42,29 @@ export const getHomeData = async ({ str, lang }) => {
   const cookies = (await import("next/headers")).cookies;
 
   const cookieStore = cookies();
-  let url = !str ? HOME_DATA_URL : HOME_DATA_URL + `ByCategory/${str}`;
+  let url = !str ? HOME_DATA_URL : HOME_DATA_URL + `ByCategory`;
+  let method = str
+    ? { method: "POST", body: JSON.stringify({ slug: str }) }
+    : { method: "GET" };
 
   try {
     let time = new Date().getTime();
     const res = await fetch(OTP_URL + url, {
+      ...method,
       next: {
         revalidate: 3600,
         tags: [`home-boutiques-${cookieStore.get("lang")?.value ?? "en"}`],
       },
       headers: new Headers({
+        Accept: "application/json",
+        "Content-Type": "application/json",
         lang: await getLang(lang, cookieStore.get("language")?.value),
         country: cookieStore.get("country") && cookieStore.get("country").value,
       }),
       credentials: "include",
       mode: "cors",
     });
+
     const repo = await res.json();
     time = new Date().getTime() - time;
     let returned_res = {
@@ -193,7 +200,6 @@ export const getListingData = async ({ categories, lang }) => {
     };
     return [repo.data, returned_res];
   } catch (e) {
-    console.log(categories, lang);
     return ["listing-error", e.toString()];
   }
 };

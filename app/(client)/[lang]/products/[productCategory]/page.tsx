@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { getHomeData, getListingData } from "store/homepage/cachedActions";
 export async function generateMetadata({ params, searchParams }) {
   // read route params
-  const categories = params.categories;
+  const categories = params.productCategory;
   return {
     title: `Trydos - ${categories}`,
     description: `Trydos ${categories} Page`,
@@ -13,7 +13,7 @@ export async function generateMetadata({ params, searchParams }) {
 }
 async function page({ params, searchParams }) {
   const [, Listing_Data_res] = await getListingData({
-    categories: params.categories,
+    categories: params.productCategory,
     lang: params.lang ? params.lang.split("-")[1] : null,
   });
 

@@ -4,7 +4,7 @@ import Loading from "public/svg/loading.svg";
 import Spinner from "./Spinner";
 import ImageLoader from "./ImageLoader";
 const fetcher = async (url) =>
-  fetch(url).then((res) => {
+  fetch(url, { cache: "force-cache" }).then((res) => {
     if (res.status === 200) return res.text();
     else throw new Error("Invalid Url");
   });

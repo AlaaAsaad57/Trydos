@@ -12,12 +12,10 @@ const CategoryNavItem = dynamic(() => import("./CategoryNavItem"), {
 });
 interface CategoriesBarProps {
   forMobile: boolean;
+  categories: Category[];
 }
-function CategoriesBar({ forMobile }: CategoriesBarProps) {
-  const loading = useSelector((state: any) => state.homepage.loading);
-  const categories: Category[] = useSelector(
-    (state: any) => state.homepage.categories
-  );
+function CategoriesBar({ forMobile, categories }: CategoriesBarProps) {
+  const loading = false;
   const [searchEnabled, setSearchEnabled] = useState(false);
 
   return (

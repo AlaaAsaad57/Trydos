@@ -1,3 +1,4 @@
+"use client";
 import TranslationsIcon from "public/svg/translations.svg";
 import UKIcon from "public/svg/uk.svg";
 import UAEIcon from "public/svg/uae.svg";

@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import LogoAuth from "public/svg/LogoAuth.svg";
 import { useDispatch, useSelector } from "react-redux";

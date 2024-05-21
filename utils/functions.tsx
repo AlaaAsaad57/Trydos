@@ -5,7 +5,6 @@ import { auto } from "@cloudinary/url-gen/qualifiers/quality";
 import { Resize } from "@cloudinary/url-gen/actions";
 import profilePicture from "public/images/profileNo.png";
 import StoryServiceClass from "services/story";
-import { useEffect, useState } from "react";
 import { store } from "store";
 import Cookies from "js-cookie";
 export const SSRDetect = () => {
@@ -129,38 +128,6 @@ export const getUserStories = () => {
 
 export const _isStoreLastJson = () => {
   return !!process.env.NEXT_PUBLIC_IS_STORE_LAST_JSON;
-};
-export const useTimers = ({ durationValue }) => {
-  const [temp, setTemp] = useState(0);
-  const [duration, setDuration] = useState(durationValue);
-  const [isFinished, Finished] = useState(false);
-  const [isPaused, Paused] = useState(false);
-  useEffect(() => {
-    let interval = setInterval(() => {
-      if (!isPaused) {
-        if (temp !== duration && duration - temp > 200) {
-          setTemp((oldValue) => oldValue + 200);
-        } else {
-          setTemp(duration);
-          Finished(true);
-        }
-      } else {
-        return;
-      }
-    }, 150);
-    return () => clearInterval(interval);
-  }, [temp]);
-  return {
-    isFinished: isFinished,
-    time: (temp * 100) / duration,
-    reset: (b) => {
-      setTemp(0);
-      setDuration(b || duration);
-      Finished(false);
-    },
-    isPaused: isPaused,
-    Paused: (e) => Paused(e),
-  };
 };
 export const Sendevent = async (params: any) => {
   try {

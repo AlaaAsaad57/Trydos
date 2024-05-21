@@ -1,13 +1,12 @@
 import CategoryIcon from "public/svg/categoryIcon.svg";
 import BarDescribtion from "./BarDescribtion";
-import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import { ReactElement } from "react";
+import Cookies from "js-cookie";
 function CategoryBar(): ReactElement {
-  const language: string = useSelector((state: any) => state.homepage.language);
-  const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
+  const language = Cookies.get("language");
   return (
-    <div className={`home-bar ${loginOpen && "hide-offers"}`}>
+    <div className={`home-bar`}>
       <CategoryIcon />
       <BarDescribtion
         name={translate("Category", language)}

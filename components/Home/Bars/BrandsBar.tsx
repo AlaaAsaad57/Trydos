@@ -1,13 +1,12 @@
 import StarIcon from "public/svg/starIcon.svg";
 import BarDescribtion from "./BarDescribtion";
-import { useSelector } from "react-redux";
+import Cookies from "js-cookie";
 import { translate } from "utils/functions";
 import { ReactElement } from "react";
 function BrandsBar(): ReactElement {
-  const language: string = useSelector((state: any) => state.homepage.language);
-  const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
+  const language = Cookies.get("language");
   return (
-    <div className={`home-bar ${loginOpen && "hide-offers"}`}>
+    <div className={`home-bar`}>
       <StarIcon />
       <BarDescribtion
         name={translate("Brands", language)}
