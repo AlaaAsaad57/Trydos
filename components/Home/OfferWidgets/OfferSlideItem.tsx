@@ -8,7 +8,7 @@ interface OfferSlideItemProps {
   priority: boolean;
   offerPhoto: any;
   mykey: number;
-  setSrc: Function;
+  setSrc: Function | null;
 }
 function OfferSlideItem({
   isSingle,

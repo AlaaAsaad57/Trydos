@@ -114,6 +114,7 @@ export default async function RootLayout({ params: { lang }, children }) {
                 {<NewLoginWidget />}
 
                 <TranslationsMenu init={lang} />
+
                 <NavbarServer lang={lang} />
                 {<ChatModal />}
               </>

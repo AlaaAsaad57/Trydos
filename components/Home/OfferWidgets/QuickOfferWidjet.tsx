@@ -80,6 +80,7 @@ function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
             ) : (
               <div className="offer-slider-container">
                 <OfferSlideItem
+                  setSrc={null}
                   mykey={4}
                   offerPhoto={null}
                   priority={true}
