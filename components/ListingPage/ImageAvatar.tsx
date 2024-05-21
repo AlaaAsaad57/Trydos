@@ -63,9 +63,9 @@ function ImageAvatar({
       )}
       <div className="shadow-inset-avatar" />
       <Image
-        loading="lazy"
-        quality={80}
-        src={getConfiguredImage({ src: image, width: 35, height: 35 })}
+        loading="eager"
+        unoptimized
+        src={getConfiguredImage({ src: image, width: 400, height: 580 })}
         fill
         alt={alt || "alt"}
         style={{

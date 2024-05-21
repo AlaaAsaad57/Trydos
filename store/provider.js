@@ -22,7 +22,7 @@ export default function Providers({ children }) {
   return (
     <ReactQueryClientProvider>
       {SSRDetect() && <GAComponent />}
-      <LandingPage />
+
       <Provider store={store}>{children}</Provider>
     </ReactQueryClientProvider>
   );

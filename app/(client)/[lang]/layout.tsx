@@ -11,6 +11,7 @@ import NewLoginWidget from "components/Login/NewLoginWidget";
 import TranslationsMenu from "components/global/TranslationsMenu";
 import NavbarServer from "components/Server/Navbar";
 import ChatModal from "components/Chat/ChatModal";
+import LandingPage from "components/Home/LandingPage";
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1.0,
@@ -112,7 +113,7 @@ export default async function RootLayout({ params: { lang }, children }) {
             <div className="home-page-container">
               <>
                 {<NewLoginWidget />}
-
+                <LandingPage />
                 <TranslationsMenu init={lang} />
 
                 <NavbarServer lang={lang} />
