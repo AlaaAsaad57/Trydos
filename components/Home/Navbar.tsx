@@ -1,3 +1,4 @@
+"use client";
 import { useEffect } from "react";
 import Logo from "./Logo";
 import UserNavTopSection from "./UserNavTopSection";
@@ -38,9 +39,7 @@ function Navbar({ init }: NavbarProps) {
     <>
       <div className="home-navbar">
         <Logo animated={false} style={false} key={1} />
-        {window.innerWidth >= 800 && (
-          <CategoriesBar key={2} forMobile={false} />
-        )}
+        {<CategoriesBar key={2} forMobile={false} />}
         {
           <UserNavTopSection
             loginOpen={loginOpen}
@@ -48,7 +47,7 @@ function Navbar({ init }: NavbarProps) {
           />
         }
       </div>
-      {window.innerWidth < 800 && <MobileNavigation />}
+      {<MobileNavigation />}
     </>
   );
 }
