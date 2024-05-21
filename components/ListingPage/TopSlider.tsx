@@ -88,7 +88,7 @@ function TopSlider({
               </g>
             </svg>
             <Image
-              src={getConfiguredImage({ src: img, width: 30, height: 40 })}
+              src={getConfiguredImage({ src: img, width: 400, height: 580 })}
               width={30}
               height={40}
               unoptimized

@@ -89,15 +89,14 @@ function ColorSlider({
                   <div className="inset-shadow-img" />
                   <Image
                     loading="lazy"
-                    quality={60}
                     unoptimized
                     style={{ borderRadius: "15px", zIndex: "3" }}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     src={getConfiguredImage({
                       src: img.images[0],
-                      width: 200,
-                      height: 290,
+                      width: 400,
+                      height: 580,
                     })}
                     alt={product_name || "alt"}
                   />

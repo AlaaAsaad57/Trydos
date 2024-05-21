@@ -5,6 +5,7 @@ import BuyButton from "./BuyButton";
 import TopSlider from "./TopSlider";
 import CategoryPhoto from "./CategoryPhoto";
 import Image from "next/image";
+import { getConfiguredImage } from "utils/functions";
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
     return {
@@ -71,10 +72,12 @@ function ProductNoColors({ product }) {
         }}
         objectFit="cover"
         objectPosition="center"
-        src={productState.activeColor.images[0].replace(
-          "/upload",
-          "/upload/w_400,h_580/f_webp/q_40"
-        )}
+        unoptimized
+        src={getConfiguredImage({
+          height: 580,
+          width: 400,
+          src: productState.activeColor.images[0],
+        })}
       />
       <div className="offer-blured-background" />
       <div className="offer-blured" />
