@@ -1,6 +1,5 @@
 const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"));
 import OfferSlideItem from "./OfferSlideItem";
-import { useSelector } from "react-redux";
 import { encode_utf8, translate } from "utils/functions";
 import OfferAvatars from "./OfferAvatars";
 import Link from "next/link";

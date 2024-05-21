@@ -1,8 +1,6 @@
-"use client";
 import ImageLoader from "components/global/ImageLoader";
 import BorderImage from "./BorderImage";
 import { getId } from "utils/functions";
-import { useEffect, useRef } from "react";
 interface OfferSlideItemProps {
   isSingle: boolean;
   priority: boolean;
@@ -18,11 +16,10 @@ function OfferSlideItem({
   setSrc,
 }: OfferSlideItemProps) {
   let id = getId();
-  const ref = useRef<HTMLDivElement>();
-  useEffect(() => {}, []);
+
   return (
     <div className="offer-slide-item">
-      <div className="image-offer" ref={ref}>
+      <div className="image-offer">
         <div className="image-inner-shadow" style={{ height: "100%" }} />
         {
           <ImageLoader
