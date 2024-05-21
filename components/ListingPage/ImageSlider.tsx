@@ -92,9 +92,10 @@ function ImageSlider({
                     unoptimized
                     src={getConfiguredImage({
                       src: img,
-                      width: 200,
-                      height: 290,
+                      width: 400,
+                      height: 580,
                     })}
+                    quality={100}
                     alt={product_name || "alt"}
                   />
                 </>
