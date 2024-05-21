@@ -14,6 +14,12 @@ async function page({ params, searchParams }): Promise<any> {
   return (
     <>
       <LandingPage />
+      <div
+        className="blue-test"
+        style={{ height: "60px", backgroundColor: "blue" }}
+      >
+        Test Page Load
+      </div>
       <Suspense fallback={<LandingPage />}>
         <Home
           mainCategories={mainCategories}
