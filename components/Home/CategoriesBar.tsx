@@ -28,32 +28,18 @@ function CategoriesBar({ forMobile, categories }: CategoriesBarProps) {
           }`}
           style={{ marginLeft: searchEnabled ? "13px" : "50px" }}
         >
-          {categories.map((category, key) =>
-            loading ? (
-              <div className="categories-bar-item" key={key}>
-                <div className="categories-bar-item-icon">
-                  <Skeleton
-                    duration={0.5}
-                    count={1}
-                    circle={true}
-                    width={"100%"}
-                    height={"100%"}
-                  />
-                </div>
-              </div>
-            ) : (
-              <CategoryNavItem
-                searchEnabled={searchEnabled}
-                close={() => setSearchEnabled(false)}
-                openSearch={() => setSearchEnabled(true)}
-                name={category.name}
-                key={key}
-                myKey={key}
-                slug={category.slug}
-                icon={category?.icon}
-              />
-            )
-          )}
+          {categories.map((category, key) => (
+            <CategoryNavItem
+              searchEnabled={searchEnabled}
+              close={() => setSearchEnabled(false)}
+              openSearch={() => setSearchEnabled(true)}
+              name={category.name}
+              key={key}
+              myKey={key}
+              slug={category.slug}
+              icon={category?.icon}
+            />
+          ))}
         </div>
       )}
     </>

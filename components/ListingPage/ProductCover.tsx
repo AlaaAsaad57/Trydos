@@ -95,7 +95,7 @@ function ProductCover({ product }) {
         objectPosition="center"
         src={productState.activeColor.images[0].replace(
           "/upload",
-          "/upload/w_800,h_342/f_webp/q_40"
+          "/upload/w_400,h_580/f_webp/q_40"
         )}
       />
       <div className="offer-blured-background" />

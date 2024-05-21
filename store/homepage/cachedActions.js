@@ -43,9 +43,19 @@ export const getHomeData = async ({ str, lang }) => {
 
   const cookieStore = cookies();
   let url = !str ? HOME_DATA_URL : HOME_DATA_URL + `ByCategory`;
-  let method = str
-    ? { method: "POST", body: JSON.stringify({ slug: str }) }
-    : { method: "GET" };
+  var details = {
+    slug: str,
+  };
+
+  var formBody = [];
+  for (var property in details) {
+    var encodedKey = encodeURIComponent(property);
+    var encodedValue = encodeURIComponent(details[property]);
+    formBody.push(encodedKey + "=" + encodedValue);
+  }
+  formBody = formBody.join("&");
+
+  let method = str ? { method: "POST", body: formBody } : { method: "GET" };
 
   try {
     let time = new Date().getTime();
@@ -57,7 +67,7 @@ export const getHomeData = async ({ str, lang }) => {
       },
       headers: new Headers({
         Accept: "application/json",
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         lang: await getLang(lang, cookieStore.get("language")?.value),
         country: cookieStore.get("country") && cookieStore.get("country").value,
       }),
@@ -66,6 +76,7 @@ export const getHomeData = async ({ str, lang }) => {
     });
 
     const repo = await res.json();
+
     time = new Date().getTime() - time;
     let returned_res = {
       type: res.type,
@@ -77,6 +88,7 @@ export const getHomeData = async ({ str, lang }) => {
       time: time + "ms",
       body: repo,
     };
+    console.log(res.url, time);
     return [repo.data.boutiques, returned_res];
   } catch (e) {
     return [[], e.toString()];
@@ -109,6 +121,7 @@ export const getMainCategories = async ({ lang }) => {
       time: time + "ms",
       body: repo,
     };
+    console.log(res.url, time);
     return [repo.data.mainCategories, returned_res];
   } catch (e) {
     return ["homedata-error", e.toString()];
@@ -198,6 +211,7 @@ export const getListingData = async ({ categories, lang }) => {
       time: time + "ms",
       body: repo,
     };
+    console.log(res.url, time);
     return [repo.data, returned_res];
   } catch (e) {
     return ["listing-error", e.toString()];

@@ -2,7 +2,7 @@
 import LandingPage from "components/Home/LandingPage";
 import ProductCard from "components/ListingPage/ProductCard";
 import { Suspense } from "react";
-import { getHomeData, getListingData } from "store/homepage/cachedActions";
+import { getListingData } from "store/homepage/cachedActions";
 export async function generateMetadata({ params, searchParams }) {
   // read route params
   const categories = params.productCategory;

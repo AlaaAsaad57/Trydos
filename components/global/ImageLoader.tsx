@@ -5,12 +5,6 @@ function ImageLoader(props) {
   const getImageCld = () => {
     if (props.src.includes("cloudinary")) {
       if (props.setSrc) {
-        console.log(
-          props.src.replace(
-            "/upload",
-            `/upload/w_${props.width},h_${props.height}/f_webp/q_auto`
-          )
-        );
         props.setSrc(
           props.src.replace(
             "/upload",

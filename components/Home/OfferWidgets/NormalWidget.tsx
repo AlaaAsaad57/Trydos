@@ -1,4 +1,3 @@
-"use client";
 const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"));
 import OfferSlideItem from "./OfferSlideItem";
 import { useSelector } from "react-redux";

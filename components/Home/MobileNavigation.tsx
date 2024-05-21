@@ -1,5 +1,4 @@
 import React from "react";
-import Skeleton from "react-loading-skeleton";
 import CategoryNavMobile from "./CategoryNavMobile";
 import { Category } from "models/Category";
 
@@ -37,29 +36,15 @@ function MobileNavigation({ categories }: { categories: Category[] }) {
     <div
       className={`categories-bar-container ${"mobile-bar cursor-pointer pr-[5px] overflow-x-scroll overflow-y-hidden whitespace-nowrap"}`}
     >
-      {categories.map((category, key) =>
-        loading ? (
-          <div className="categories-bar-item" key={key}>
-            <div className="categories-bar-item-icon">
-              <Skeleton
-                duration={0.5}
-                count={1}
-                circle={true}
-                width={"100%"}
-                height={"100%"}
-              />
-            </div>
-          </div>
-        ) : (
-          <CategoryNavMobile
-            name={category.name}
-            key={key}
-            myKey={key}
-            icon={category?.icon}
-            slug={category.slug}
-          />
-        )
-      )}
+      {categories.map((category, key) => (
+        <CategoryNavMobile
+          name={category.name}
+          key={key}
+          myKey={key}
+          icon={category?.icon}
+          slug={category.slug}
+        />
+      ))}
     </div>
   );
 }

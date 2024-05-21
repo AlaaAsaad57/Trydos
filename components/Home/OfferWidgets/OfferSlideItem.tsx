@@ -35,12 +35,16 @@ function OfferSlideItem({
             className="OfferImage"
             src={offerPhoto}
             width={
-              document.querySelector<HTMLDivElement>(".offer-slide-item")
-                ?.clientWidth ?? 900
+              (typeof document !== "undefined" &&
+                document.querySelector<HTMLDivElement>(".offer-slide-item")
+                  ?.clientWidth) ||
+              900
             }
             height={
-              document.querySelector<HTMLDivElement>(".offer-slide-item")
-                ?.clientHeight ?? 342
+              (typeof document !== "undefined" &&
+                document.querySelector<HTMLDivElement>(".offer-slide-item")
+                  ?.clientHeight) ||
+              342
             }
             alt="offer"
           />
