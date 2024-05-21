@@ -59,7 +59,7 @@ function ProductNoColors({ product }) {
       <Image
         fill
         alt="imageAlt"
-        loading="lazy"
+        loading="eager"
         fetchPriority="high"
         priority={true}
         style={{

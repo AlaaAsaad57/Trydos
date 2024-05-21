@@ -59,7 +59,7 @@ function ProductSlider({
                   <BorderImage isBig={false} />
                   <div className="inset-shadow-img" />
                   <Image
-                    loading="eager"
+                    loading="lazy"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     style={{ borderRadius: "15px", zIndex: "3" }}
                     fill

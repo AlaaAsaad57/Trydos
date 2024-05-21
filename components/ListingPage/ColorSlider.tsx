@@ -88,9 +88,8 @@ function ColorSlider({
                   <BorderImage isBig={false} />
                   <div className="inset-shadow-img" />
                   <Image
-                    loading="eager"
+                    loading="lazy"
                     quality={60}
-                    priority={i === 3}
                     unoptimized
                     style={{ borderRadius: "15px", zIndex: "3" }}
                     fill
