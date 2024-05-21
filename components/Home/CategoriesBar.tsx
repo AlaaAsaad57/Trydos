@@ -2,20 +2,13 @@
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import "styles/skeleton.css";
-import dynamic from "next/dynamic";
 import { Category } from "models/Category";
-const Skeleton = dynamic(() => import("react-loading-skeleton"), {
-  ssr: false,
-});
-const CategoryNavItem = dynamic(() => import("./CategoryNavItem"), {
-  ssr: false,
-});
+import CategoryNavItem from "./CategoryNavItem";
 interface CategoriesBarProps {
   forMobile: boolean;
   categories: Category[];
 }
 function CategoriesBar({ forMobile, categories }: CategoriesBarProps) {
-  const loading = false;
   const [searchEnabled, setSearchEnabled] = useState(false);
 
   return (
