@@ -13,6 +13,7 @@ async function page({ params, searchParams }): Promise<any> {
   });
   return (
     <>
+      <LandingPage />
       <Suspense fallback={<LandingPage />}>
         <Home
           mainCategories={mainCategories}

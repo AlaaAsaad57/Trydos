@@ -37,7 +37,7 @@ export default function Providers({ lang, children }) {
         <div className="site-container bg-neutral-50 flex justify-around min-w-[100vw] min-h-full h-full">
           <div className="home-page-container">
             {<NewLoginWidget />}
-            <LandingPage />
+
             <TranslationsMenu init={lang} />
             <Navbar init={lang} />
             {<ChatModal />}
