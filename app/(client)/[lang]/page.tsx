@@ -1,5 +1,7 @@
 "use server";
 import Home from "components/Home";
+import LandingPage from "components/Home/LandingPage";
+import { Suspense } from "react";
 import { getHomeData, getMainCategories } from "store/homepage/cachedActions";
 async function page({ params, searchParams }): Promise<any> {
   const [HomeData, HomeData_res] = await getHomeData({
@@ -11,12 +13,14 @@ async function page({ params, searchParams }): Promise<any> {
   });
   return (
     <>
-      <Home
-        mainCategories={mainCategories}
-        mainCategories_res={mainCategories_res}
-        HomeData_res={HomeData_res}
-        HomeData={HomeData}
-      />
+      <Suspense fallback={<LandingPage />}>
+        <Home
+          mainCategories={mainCategories}
+          mainCategories_res={mainCategories_res}
+          HomeData_res={HomeData_res}
+          HomeData={HomeData}
+        />
+      </Suspense>
     </>
   );
 }

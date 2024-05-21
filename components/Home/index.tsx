@@ -97,7 +97,6 @@ export default function Home({
       {enableNotifications && <NotificationContainer />}
       <Stories />
       {nameModal && <NameModal />}
-      {/* <StoriesComponent /> */}
       {selectedStory?.id && (
         <StoriesContainer
           activeId={selectedStory?.id}
@@ -105,7 +104,7 @@ export default function Home({
         />
       )}
       <BrandsBar />
-      <OffersList key={2} offers={[1, 1, 1]} quick={false} />
+      <OffersList key={2} quick={false} />
       <CategoryBar />
       <OfferBar />
       <QuickOffer />

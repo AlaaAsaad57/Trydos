@@ -4,10 +4,9 @@ import ExtendedOfferWidget from "./ExtendedOfferWidget";
 import QuickOfferWidjet from "./QuickOfferWidjet";
 import { Boutique } from "models/offer";
 interface OfferListProps {
-  offers: number[];
   quick: boolean;
 }
-function OfferList({ offers, quick }: OfferListProps) {
+function OfferList({ quick }: OfferListProps) {
   const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
   const boutiques = useSelector((state: any) => state.homepage.boutiques);
   return (

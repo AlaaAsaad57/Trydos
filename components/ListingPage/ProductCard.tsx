@@ -8,7 +8,6 @@ import "swiper/css/bundle";
 import { useDispatch, useSelector } from "react-redux";
 import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";
-import { LISTING_INFO_URL, OTP_URL } from "utils/endpointConfig";
 import { LogData } from "store/homepage/actions";
 import { useParams } from "next/navigation";
 import homeService from "services/home";
