@@ -6,7 +6,6 @@ import HomeService from "services/home";
 import GAComponent from "components/global/GAComponent";
 import { SSRDetect } from "utils/functions";
 import { ReactQueryClientProvider } from "components/Providers/ReactQueryClientProvider";
-import LandingPage from "components/Home/LandingPage";
 export default function Providers({ children }) {
   var bool = true;
 

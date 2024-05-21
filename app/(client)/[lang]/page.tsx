@@ -4,7 +4,6 @@ import BrandsBar from "components/Home/Bars/BrandsBar";
 import CategoryBar from "components/Home/Bars/CategoryBar";
 import OfferBar from "components/Home/Bars/OfferBar";
 import QuickOffer from "components/Home/Bars/QuickOffer";
-import LandingPage from "components/Home/LandingPage";
 import OfferListServer from "components/Server/OfferListServer";
 async function page({ params }): Promise<any> {
   return (
