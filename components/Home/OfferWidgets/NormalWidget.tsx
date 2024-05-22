@@ -66,10 +66,10 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
         <div className="offer-blured-background" id={`blured-${boutique.id}`} />
         <div className="offer-blured" />
         <div className="offer-container">
-          <div className="offer-logo h-[30px]">
+          <div className="offer-logo h-[20px]">
             {boutique.icon ? (
               boutique.icon.includes(".svg") ? (
-                <RemoteSvg size={30} url={boutique.icon} />
+                <RemoteSvg size={20} url={boutique.icon} />
               ) : (
                 <ImageLoader
                   loading="eager"
@@ -83,8 +83,8 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                     width: "auto",
                     height: "30px",
                   }}
-                  width={30}
-                  height={30}
+                  width={20}
+                  height={20}
                   src={boutique.icon}
                 />
               )
@@ -92,11 +92,11 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
               boutique.name
             )}
           </div>
-          <div className="offer-category h-[20px]">
+          <div className="offer-category h-[12px]">
             {boutique.mainCategoriesForProductIds.map((category, key) => {
               if (category.category_icon.includes(".svg")) {
                 return (
-                  <RemoteSvg size={20} url={category.category_icon} key={key} />
+                  <RemoteSvg size={12} url={category.category_icon} key={key} />
                 );
               } else
                 return (
@@ -110,10 +110,10 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                     style={{
                       maxWidth: "187px",
                       width: "auto",
-                      height: "20px",
+                      height: "12px",
                     }}
-                    width={20}
-                    height={20}
+                    width={12}
+                    height={12}
                     key={key}
                     src={boutique.icon}
                   />

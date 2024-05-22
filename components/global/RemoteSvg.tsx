@@ -45,17 +45,20 @@ export default function RemoteSvg({ url, size }) {
         style={{
           maxWidth: "187px",
           width: "auto",
-          height: "20px",
+          height: `${size || 20}px`,
         }}
-        width={20}
-        height={20}
+        width={size}
+        height={size}
         src={url}
       />
     );
   }
   if (data && !error)
     return (
-      <div style={{ width: "20px", height: "20px" }} className="svg-holder-r">
+      <div
+        style={{ width: `${size || 20}px`, height: `${size || 20}px` }}
+        className="svg-holder-r"
+      >
         <img src={url} alt="icon" width={size || 20} height={size || 20} />
       </div>
     );
