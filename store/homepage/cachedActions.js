@@ -163,10 +163,11 @@ export const getLang = (lang, cookieLang) => {
     }
   }
 };
-export const getListingData = async ({ categories, lang }) => {
+export const getListingData = async ({ categories, lang, productCategory }) => {
   let str = categories;
   var details = {
     boutique_slug: str,
+    category: productCategory,
   };
   var formBody = [];
   for (var property in details) {

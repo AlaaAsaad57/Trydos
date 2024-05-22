@@ -1,26 +1,33 @@
 import Image from "next/image";
+import Link from "next/link";
 interface OfferAvatarProps {
   images: string;
   zIndex: number;
   name: string;
   category: string | number;
+  linkUrl: string;
 }
-function OfferAvatar({ images, zIndex, name, category }: OfferAvatarProps) {
+function OfferAvatar({
+  images,
+  zIndex,
+  name,
+  category,
+  linkUrl,
+}: OfferAvatarProps) {
   const getImageCld = () => {
     if (images.includes("cloudinary")) {
       return images.replace("/upload", "/upload/w_35,h_35/f_avif/q_auto");
     } else return images;
   };
   return (
-    <div
+    <Link
+      href={`${linkUrl}`}
       className="offer-avatar"
       style={{
         zIndex: zIndex,
         transform: `translateX(-${(zIndex - 1) * 5}px)`,
       }}
-      onClick={(e) => {
-        e.preventDefault();
-      }}
+      onClick={(e) => {}}
     >
       <div className="offer-avatar-info">
         <span>{name}</span>
@@ -39,7 +46,7 @@ function OfferAvatar({ images, zIndex, name, category }: OfferAvatarProps) {
         unselectable="on"
         style={{ borderRadius: "50%", height: "40px" }}
       />
-    </div>
+    </Link>
   );
 }
 

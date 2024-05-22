@@ -14,6 +14,7 @@ export async function generateMetadata({ params, searchParams }) {
 async function page({ params, searchParams }) {
   const [, Listing_Data_res] = await getListingData({
     categories: params.productCategory,
+    productCategory: params.boutiqueCategory,
     lang: params.lang ? params.lang.split("-")[1] : null,
   });
 
