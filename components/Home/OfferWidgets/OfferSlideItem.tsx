@@ -6,14 +6,12 @@ interface OfferSlideItemProps {
   priority: boolean;
   offerPhoto: any;
   mykey: number;
-  setSrc: Function | null;
 }
 function OfferSlideItem({
   isSingle,
   priority,
   mykey,
   offerPhoto,
-  setSrc,
 }: OfferSlideItemProps) {
   let id = getId();
 
@@ -24,25 +22,15 @@ function OfferSlideItem({
         {
           <ImageLoader
             loading="eager"
-            setSrc={(e) => setSrc(e)}
             id={id}
             priority={mykey < 2}
+            noLoader={true}
             style={{ borderRadius: "15px" }}
             fetchPriority={mykey < 2 ? "high" : "low"}
             className="OfferImage"
             src={offerPhoto}
-            width={
-              (typeof document !== "undefined" &&
-                document.querySelector<HTMLDivElement>(".offer-slide-item")
-                  ?.clientWidth) ||
-              900
-            }
-            height={
-              (typeof document !== "undefined" &&
-                document.querySelector<HTMLDivElement>(".offer-slide-item")
-                  ?.clientHeight) ||
-              342
-            }
+            width={900}
+            height={342}
             alt="offer"
           />
         }

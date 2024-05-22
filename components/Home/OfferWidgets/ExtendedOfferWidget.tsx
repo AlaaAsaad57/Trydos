@@ -53,7 +53,7 @@ function ExtendedOfferWidget({
             objectPosition="center"
             quality={60}
             src={
-              "https://res.cloudinary.com/djooohujg/image/upload/q_50/w_800/f_webp/1708506792?_a=DdATC1RAAZAA0"
+              "https://res.cloudinary.com/djooohujg/image/upload/q_50/w_800/f_avif/1708506792?_a=DdATC1RAAZAA0"
             }
           />{" "}
           <div className="offer-blured-background" />

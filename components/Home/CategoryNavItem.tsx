@@ -8,6 +8,8 @@ import dynamic from "next/dynamic";
 import RemoteSvg from "components/global/RemoteSvg";
 import { useRouter, useSearchParams } from "next/navigation";
 import homeService from "services/home";
+import MutateLoader from "components/global/MutateLoader";
+
 interface CategoryNavItemProps {
   name: string;
   icon: string;
@@ -83,7 +85,7 @@ const CategoryNavItem = ({
             >
               {!searchEnabled && (
                 <div className="categories-bar-item-icon  h-[15px]">
-                  <RemoteSvg url={icon} />
+                  <MutateLoader url={icon} />
                 </div>
               )}
               {!searchEnabled && (

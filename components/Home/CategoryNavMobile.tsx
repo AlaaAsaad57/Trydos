@@ -1,6 +1,6 @@
 import RemoteSvg from "components/global/RemoteSvg";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { ReactElement } from "react";
+import React from "react";
 import { useSelector } from "react-redux";
 import homeService from "services/home";
 import { translate } from "utils/functions";

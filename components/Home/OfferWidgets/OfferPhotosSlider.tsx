@@ -36,7 +36,6 @@ function OfferPhotosSlider({
       <Slider {...settings}>
         {OfferPhotos.map((offerPhoto, key) => (
           <OfferSlideItem
-            setSrc={null}
             mykey={myKey}
             offerPhoto={offerPhoto}
             isSingle={false}

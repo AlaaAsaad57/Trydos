@@ -1,22 +1,21 @@
 const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"));
 import OfferSlideItem from "./OfferSlideItem";
-import { encode_utf8, translate } from "utils/functions";
+import { encode_utf8, getConfiguredImage } from "utils/functions";
 import OfferAvatars from "./OfferAvatars";
 import Link from "next/link";
-import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { Boutique } from "models/offer";
 import RemoteSvg from "components/global/RemoteSvg";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import ImageLoader from "components/global/ImageLoader";
+import Spinner from "components/global/Spinner";
 interface NormalWidgetProps {
   boutique: Boutique;
   myKey: number;
   onClick: Function;
 }
 const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
-  const [imageSrc, setImageSrc] = useState(null);
   useEffect(() => {
     if (boutique.description) {
       encode_utf8({
@@ -27,7 +26,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
   }, []);
   const getImageCld = (s) => {
     if (s.includes("cloudinary")) {
-      return s.replace("/upload", "/upload/f_webp/q_40");
+      return s.replace("/upload", "/upload/f_avif/q_40");
     } else return s;
   };
   const getHref = () => {
@@ -50,28 +49,31 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
       key={myKey}
     >
       <>
-        {imageSrc && (
-          <Image
-            fill
-            alt="imageAlt"
-            loading="eager"
-            fetchPriority="high"
-            priority={true}
-            style={{
-              position: "absolute",
-              top: "0px",
-              left: "0px",
-              borderRadius: "15px",
-              zIndex: "1",
-            }}
-            objectFit="cover"
-            quality={60}
-            unoptimized
-            objectPosition="center"
-            src={imageSrc}
-          />
-        )}
-        <div className="offer-blured-background" />
+        <Image
+          fill
+          alt="imageAlt"
+          loading="eager"
+          fetchPriority="high"
+          priority={true}
+          style={{
+            position: "absolute",
+            top: "0px",
+            left: "0px",
+            borderRadius: "15px",
+            zIndex: "1",
+          }}
+          objectFit="cover"
+          quality={60}
+          unoptimized
+          objectPosition="center"
+          src={getConfiguredImage({
+            src: boutique.banners[0],
+            width: 900,
+            height: 342,
+          })}
+        />
+
+        <div className="offer-blured-background" id={`blured-${boutique.id}`} />
         <div className="offer-blured" />
         <div className="offer-container">
           <div className="offer-logo h-[30px]">
@@ -139,7 +141,6 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           ) : (
             <div className="offer-slider-container">
               <OfferSlideItem
-                setSrc={(e) => setImageSrc(e)}
                 mykey={myKey}
                 offerPhoto={boutique.banners[0]}
                 priority={false}

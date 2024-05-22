@@ -1,20 +1,13 @@
+"use client";
 import React, { useState } from "react";
 import Loader from "./Loader";
 import Image from "next/image";
 function ImageLoader(props) {
   const getImageCld = () => {
     if (props.src.includes("cloudinary")) {
-      if (props.setSrc) {
-        props.setSrc(
-          props.src.replace(
-            "/upload",
-            `/upload/w_${props.width},h_${props.height}/f_webp/q_auto`
-          )
-        );
-      }
       return props.src.replace(
         "/upload",
-        `/upload/w_${props.width},h_${props.height}/f_webp/q_auto`
+        `/upload/w_${props.width},h_${props.height}/f_avif/q_auto`
       );
     } else return props.src;
   };
@@ -37,7 +30,13 @@ function ImageLoader(props) {
           }}
         />
       )}
-      <div style={{ display: loading ? "none" : "flex" }}>
+      <div
+        style={
+          !props.noLoader
+            ? { display: loading ? "none" : "flex" }
+            : { display: "flex" }
+        }
+      >
         <Image
           {...props}
           quality={100}
