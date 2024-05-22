@@ -30,7 +30,7 @@ function CategoryNavMobile({
     >
       {
         <div className="categories-bar-item-icon h-[15px]">
-          <RemoteSvg size={20} url={icon} />
+          <RemoteSvg size={20} url={icon} isSvg={null} />
         </div>
       }
       {
