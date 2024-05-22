@@ -46,7 +46,7 @@ function ProductNoColors({ product }) {
   });
   const getImageCld = (s) => {
     if (s.includes("cloudinary")) {
-      return s.replace("/upload", "/upload/w_200,h_290/f_webp/q_40");
+      return s.replace("/upload", "/upload/w_200,h_290/f_avif/q_40");
     } else return s;
   };
   return (
