@@ -2,6 +2,7 @@ import { useState } from "react";
 import Loadding from "public/svg/loading.svg";
 import { Img } from "react-image";
 import { getConfiguredImage } from "utils/functions";
+import Skeleton from "react-loading-skeleton";
 function CategoryPhoto(props: {
   alt: string;
   width: string | number;
@@ -26,10 +27,19 @@ function CategoryPhoto(props: {
           src={[
             getConfiguredImage({
               src: src,
-              width: 20,
-              height: 20,
+              width: props.width,
+              height: 30,
             }),
           ]}
+          loader={
+            <Skeleton
+              style={{
+                width: "20px",
+                height: "20px",
+                borderRadius: "50%",
+              }}
+            />
+          }
           unloader={<Loadding onClick={() => onClick()} />}
         />
       }

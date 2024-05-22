@@ -10,6 +10,7 @@ import Loadding from "public/svg/loading.svg";
 import CategoryPhoto from "./CategoryPhoto";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
+import RemoteSvg from "components/global/RemoteSvg";
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
     return {
@@ -92,9 +93,9 @@ function ProductCover({ product }) {
           left: "0px",
           borderRadius: "15px",
           zIndex: "1",
+          objectFit: "cover",
+          objectPosition: "center",
         }}
-        objectFit="cover"
-        objectPosition="center"
         src={getConfiguredImage({
           height: 580,
           width: 400,
@@ -199,26 +200,18 @@ function ProductCover({ product }) {
           dispatch({ type: "setActiveTopSlide", payload: false });
         }}
       >
-        {product.brand?.image && (
-          <CategoryPhoto
-            alt={product.brand.name}
-            width="66"
-            height="10"
-            src={product.brand.image}
-            style={{ borderRadius: "50%" }}
-          />
+        {product.brand?.image ? (
+          <RemoteSvg url={product.brand?.image} size={16} />
+        ) : (
+          <div className="svg-holder-r" />
         )}
         <div className="prouct-details">
           <span className="quantity">1</span>
           {product.category && (
             <span className="product-category-icon">
-              <CategoryPhoto
-                src={product?.category?.icon}
-                width={10}
-                height={10}
-                style={{}}
-                alt={product.category}
-              />
+              {product.category?.icon && (
+                <RemoteSvg url={product.category?.icon} size={10} />
+              )}
             </span>
           )}
           <span className="product-details-text">{product.name}</span>

@@ -6,8 +6,7 @@ const SearchComponent = dynamic(() => import("./SearchComponent"), {
 });
 import dynamic from "next/dynamic";
 import RemoteSvg from "components/global/RemoteSvg";
-import { useRouter, useSearchParams } from "next/navigation";
-import homeService from "services/home";
+import { useParams, useRouter } from "next/navigation";
 
 interface CategoryNavItemProps {
   name: string;
@@ -27,7 +26,7 @@ const CategoryNavItem = ({
   openSearch,
   myKey,
 }: CategoryNavItemProps) => {
-  const searchParams = useSearchParams();
+  const searchParams: { lang: string; mainCategory: string } = useParams();
   const language = useSelector((state: any) => state.homepage.language);
   const router = useRouter();
   const clickItem = () => {
@@ -35,9 +34,9 @@ const CategoryNavItem = ({
       openSearch();
     } else {
       router.push(`/categories/${slug}`);
-      homeService.GetBoutiques(slug);
     }
   };
+
   return (
     <>
       {name === "Search" ? (
@@ -76,7 +75,7 @@ const CategoryNavItem = ({
           {!searchEnabled && (
             <div
               className={`categories-bar-item ${
-                decodeURI(searchParams.get("category_slug")) === slug &&
+                decodeURI(searchParams.mainCategory) === slug &&
                 "active-nav-category"
               }`}
               onClick={() => clickItem()}
@@ -84,7 +83,7 @@ const CategoryNavItem = ({
             >
               {!searchEnabled && (
                 <div className="categories-bar-item-icon  h-[15px]">
-                  <RemoteSvg url={icon} />
+                  <RemoteSvg size={20} url={icon} />
                 </div>
               )}
               {!searchEnabled && (

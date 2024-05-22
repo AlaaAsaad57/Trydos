@@ -1,10 +1,7 @@
-"use client";
 import Script from "next/script";
-import { useEffect } from "react";
 
 function GAComponent() {
-  useEffect(() => {}, []);
-  let GA_MEASUREMENT_ID = "G-EK7TKN11PV";
+  // let GA_MEASUREMENT_ID = "G-EK7TKN11PV";
   return (
     <>
       <Script

@@ -9,7 +9,7 @@ const fetcher = async (url) =>
     else throw new Error("Invalid Url");
   });
 
-export default function RemoteSvg({ url }) {
+export default function RemoteSvg({ url, size }) {
   const [src, setSrc] = useState(url);
   const { data, error, isLoading } = useSWRImmutable(src, fetcher, {
     errorRetryCount: 0,
@@ -17,10 +17,14 @@ export default function RemoteSvg({ url }) {
   if (isLoading)
     return (
       <Skeleton
-        style={{ width: "30px", height: "30px", borderRadius: "50%" }}
+        style={{
+          width: `${size || 30}px`,
+          height: `${size || 30}px`,
+          borderRadius: "50%",
+        }}
       />
     );
-  else if (error)
+  if (error)
     return (
       <>
         <Loading
@@ -30,12 +34,12 @@ export default function RemoteSvg({ url }) {
         />
       </>
     );
-  else if (!url.includes("svg")) {
+  if (!url.includes("svg") && !error) {
     return (
       <ImageLoader
         loading="eager"
         alt={"category"}
-        noLoader
+        noLoader={true}
         priority={false}
         fetchPriority={"high"}
         style={{
@@ -48,7 +52,8 @@ export default function RemoteSvg({ url }) {
         src={url}
       />
     );
-  } else if (data)
+  }
+  if (data && !error)
     return (
       <div
         style={{ width: "20px", height: "20px" }}

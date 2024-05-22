@@ -51,11 +51,11 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
             left: "0px",
             borderRadius: "15px",
             zIndex: "1",
+            objectFit: "cover",
+            objectPosition: "center",
           }}
-          objectFit="cover"
           quality={60}
           unoptimized
-          objectPosition="center"
           src={getConfiguredImage({
             src: boutique.banners[0],
             width: 900,
@@ -69,13 +69,13 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           <div className="offer-logo h-[30px]">
             {boutique.icon ? (
               boutique.icon.includes(".svg") ? (
-                <RemoteSvg url={boutique.icon} />
+                <RemoteSvg size={30} url={boutique.icon} />
               ) : (
                 <ImageLoader
                   loading="eager"
                   id={"img-" + boutique.id}
                   alt={boutique.name}
-                  noLoader
+                  noLoader={true}
                   priority={false}
                   fetchPriority={"high"}
                   style={{
@@ -95,14 +95,16 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           <div className="offer-category h-[20px]">
             {boutique.mainCategoriesForProductIds.map((category, key) => {
               if (category.category_icon.includes(".svg")) {
-                return <RemoteSvg url={category.category_icon} key={key} />;
+                return (
+                  <RemoteSvg size={20} url={category.category_icon} key={key} />
+                );
               } else
                 return (
                   <ImageLoader
                     loading="eager"
                     id={"img-" + boutique.id}
                     alt={boutique.name}
-                    noLoader
+                    noLoader={true}
                     priority={false}
                     fetchPriority={"high"}
                     style={{

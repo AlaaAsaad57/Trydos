@@ -1,8 +1,7 @@
 import RemoteSvg from "components/global/RemoteSvg";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import { useSelector } from "react-redux";
-import homeService from "services/home";
 import { translate } from "utils/functions";
 interface CategoryNavMobileProps {
   name: string;
@@ -18,22 +17,20 @@ function CategoryNavMobile({
 }: CategoryNavMobileProps) {
   const language = useSelector((state: any) => state.homepage.language);
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams: { lang: string; mainCategory: string } = useParams();
   return (
     <div
       className={`categories-bar-item ${
-        decodeURI(searchParams.get("category_slug")) === slug &&
-        "active-nav-category"
+        decodeURI(searchParams.mainCategory) === slug && "active-nav-category"
       }`}
       key={myKey}
       onClick={() => {
         router.push(`/categories/${slug}`);
-        homeService.GetBoutiques(slug);
       }}
     >
       {
         <div className="categories-bar-item-icon h-[15px]">
-          <RemoteSvg url={icon} />
+          <RemoteSvg size={20} url={icon} />
         </div>
       }
       {

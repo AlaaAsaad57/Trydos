@@ -54,7 +54,7 @@ export const getHomeData = async ({ str, lang }) => {
     formBody.push(encodedKey + "=" + encodedValue);
   }
   formBody = formBody.join("&");
-  console.log(formBody);
+
   let method = str ? { method: "POST", body: formBody } : { method: "GET" };
 
   try {
@@ -175,7 +175,6 @@ export const getListingData = async ({ categories, lang }) => {
     formBody.push(encodedKey + "=" + encodedValue);
   }
   formBody = formBody.join("&");
-  console.log(formBody);
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
 

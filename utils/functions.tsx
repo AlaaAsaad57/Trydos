@@ -7,6 +7,7 @@ import profilePicture from "public/images/profileNo.png";
 import StoryServiceClass from "services/story";
 import { store } from "store";
 import Cookies from "js-cookie";
+import { timestamp } from "./libs/react-insta-stories-master/src/util/time";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -138,9 +139,11 @@ export const Sendevent = async (params: any) => {
       event_category: params.category,
       event_label: params.label,
       value: params.value,
-      country: Cookies.get("country"),
-      userId: userId,
-      language: Cookies.get("language"),
+      country_name: Cookies.get("country"),
+      userID: userId,
+      device_language: Cookies.get("language"),
+      timestamp: new Date().getTime(),
+      user_name: JSON.parse(localStorage.getItem("USER")),
     });
   } catch (e) {
     console.error(e);
