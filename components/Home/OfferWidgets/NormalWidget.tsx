@@ -26,7 +26,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
   }, []);
   const getImageCld = (s) => {
     if (s.includes("cloudinary")) {
-      return s.replace("/upload", "/upload/f_avif/q_40");
+      return s.replace("/upload", "/upload/f_webp/q_40");
     } else return s;
   };
 

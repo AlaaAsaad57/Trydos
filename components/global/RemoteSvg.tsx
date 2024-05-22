@@ -12,7 +12,7 @@ const fetcher = async (url) =>
 export default function RemoteSvg({ url, size }) {
   const [src, setSrc] = useState(url);
   const { data, error, isLoading } = useSWRImmutable(
-    src.replace("/upload", "/upload/w_50,h_50/f_avif/q_auto"),
+    src.replace("/upload", "/upload/w_50,h_50/f_webp/q_auto"),
     fetcher,
     {
       errorRetryCount: 0,
@@ -64,7 +64,7 @@ export default function RemoteSvg({ url, size }) {
         className="svg-holder-r"
       >
         <img
-          src={src.replace("/upload", "/upload/w_50,h_50/f_avif/q_auto")}
+          src={src.replace("/upload", "/upload/w_50,h_50/f_webp/q_auto")}
           alt="icon"
           width={size || 20}
           height={size || 20}

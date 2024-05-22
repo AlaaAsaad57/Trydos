@@ -62,7 +62,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
         <MoreOfferAvatar
           priority={false}
           images={
-            "https://res.cloudinary.com/djooohujg/image/upload/f_avif/q_10/1707907006?_a=DATC1RAAZAA0"
+            "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_10/1707907006?_a=DATC1RAAZAA0"
           }
           zIndex={100}
           viewed={6}
