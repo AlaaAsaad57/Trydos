@@ -70,7 +70,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
             </span>
           </div>
           <div className="nav-question-item">
-            <img src="/svg/UserIcon.svg" alt="user-icon" />
+            <img src="/svg/userIcon.svg" alt="user-icon" />
           </div>
         </>
       )}
