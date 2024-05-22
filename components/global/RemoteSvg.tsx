@@ -56,7 +56,7 @@ export default function RemoteSvg({ url, size }) {
   if (data && !error)
     return (
       <div style={{ width: "20px", height: "20px" }} className="svg-holder-r">
-        <img src={url} alt="icon" />
+        <img src={url} alt="icon" width={size || 20} height={size || 20} />
       </div>
     );
 }

@@ -4,12 +4,13 @@ function GAComponent() {
   // let GA_MEASUREMENT_ID = "G-EK7TKN11PV";
   return (
     <>
-      {/* <Script
+      <Script
+        defer
         strategy="lazyOnload"
         src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
       />
 
-      <Script id="" strategy="lazyOnload">
+      <Script id="" strategy="lazyOnload" defer>
         {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
@@ -18,7 +19,7 @@ function GAComponent() {
               page_path: window.location.pathname,
               });
           `}
-      </Script> */}
+      </Script>
     </>
   );
 }
