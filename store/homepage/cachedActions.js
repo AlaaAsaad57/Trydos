@@ -122,16 +122,7 @@ export const getMainCategories = async ({ lang }) => {
       body: repo,
     };
     console.log(res.url, time);
-    var arr = [];
-    await Promise.all(
-      repo.data.mainCategories.map(async (s) => {
-        let d = await (await fetch(s.icon, { cache: "force-cache" })).text();
-        console.log(d);
-        arr.push({ ...s, icon: d });
-      })
-    );
-    console.log(res.url, time);
-    return [arr, returned_res];
+    return [repo.data.mainCategories, returned_res];
   } catch (e) {
     return ["homedata-error", e.toString()];
   }
