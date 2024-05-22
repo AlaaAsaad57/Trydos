@@ -9,14 +9,15 @@
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
 }
+
 .svg-holder-r svg {
   width: 20px;
   height: 20px;
 }
 .offer-logo .svg-holder-r svg,
-.offer-logo {
-  width: 30px;
-  height: 30px;
+.offer-logo .svg-holder-r {
+  width: 30px !important;
+  height: 30px !important;
 }
 .offer-category .svg-holder-r svg {
   width: 20px;

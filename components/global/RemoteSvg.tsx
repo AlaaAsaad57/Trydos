@@ -1,8 +1,8 @@
 import { useState } from "react";
 import useSWRImmutable from "swr/immutable";
 import Loading from "public/svg/loading.svg";
-import Spinner from "./Spinner";
 import ImageLoader from "./ImageLoader";
+import Skeleton from "react-loading-skeleton";
 const fetcher = async (url) =>
   fetch(url, { cache: "force-cache" }).then((res) => {
     if (res.status === 200) return res.text();
@@ -14,7 +14,12 @@ export default function RemoteSvg({ url }) {
   const { data, error, isLoading } = useSWRImmutable(src, fetcher, {
     errorRetryCount: 0,
   });
-  if (isLoading) return <Spinner no={false} className="" />;
+  if (isLoading)
+    return (
+      <Skeleton
+        style={{ width: "30px", height: "30px", borderRadius: "50%" }}
+      />
+    );
   else if (error)
     return (
       <>

@@ -23,7 +23,7 @@ function ProductCard({ Listing_Data_res }: { Listing_Data_res: any }) {
       dispatch({ type: "PRODUCT_LOADING" });
       await homeService.getNextProduct({
         offset: offset,
-        categories: params.categories,
+        categories: params.productCategory,
       });
       setOffset(offset + 1);
     }

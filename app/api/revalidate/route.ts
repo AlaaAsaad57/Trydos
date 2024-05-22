@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
   revalidatePath("/listing", "layout");
   revalidateTag("home-categories"); // Update cached posts
 
-  revalidatePath("/listing", "page");
+  revalidatePath("/products/[productCategory]", "page");
+  revalidatePath("/products/[productCategory]", "layout");
   return NextResponse.json({ revalidated: "true" });
 }

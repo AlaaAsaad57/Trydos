@@ -104,8 +104,15 @@ class HomeService {
   async GetBoutiques(slug) {
     const response = await this.http.post(
       OTP_URL + HOME_DATA_URL + `ByCategory`,
-      { slug: slug },
-      getHeader()
+      JSON.stringify({ slug: slug }),
+      {
+        ...getHeader(),
+        headers: {
+          ...getHeader().headers,
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          Accept: "application/json",
+        },
+      }
     );
     store.dispatch(GetMainData(response.data.data.boutiques));
   }
@@ -114,10 +121,15 @@ class HomeService {
     await http
       .post(
         LISTING_INFO_URL + `?offset=${offset}&limit=${20}`,
-        JSON.stringify({
-          boutique_slug: categories,
-        }),
-        getHeader()
+        `boutique_slug=${categories}`,
+        {
+          ...getHeader(),
+          headers: {
+            ...getHeader().headers,
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+            Accept: "application/json",
+          },
+        }
       )
       .then((data) => {
         store.dispatch({ type: "GET_NEXT_PRODUCT", payload: data.data.data });

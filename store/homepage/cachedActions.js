@@ -54,7 +54,7 @@ export const getHomeData = async ({ str, lang }) => {
     formBody.push(encodedKey + "=" + encodedValue);
   }
   formBody = formBody.join("&");
-
+  console.log(formBody);
   let method = str ? { method: "POST", body: formBody } : { method: "GET" };
 
   try {
@@ -88,7 +88,6 @@ export const getHomeData = async ({ str, lang }) => {
       time: time + "ms",
       body: repo,
     };
-    console.log(res.url, time);
     return [repo.data.boutiques, returned_res];
   } catch (e) {
     return [[], e.toString()];
@@ -121,7 +120,6 @@ export const getMainCategories = async ({ lang }) => {
       time: time + "ms",
       body: repo,
     };
-    console.log(res.url, time);
     return [repo.data.mainCategories, returned_res];
   } catch (e) {
     return ["homedata-error", e.toString()];
@@ -145,17 +143,7 @@ export const changeAppLanguageServer = async (language) => {
   cookieStore.set("language", language);
   cookieStore.set("lang", language);
 };
-const getHref = (s) => {
-  let str = "";
-  s.split("").forEach((char) => {
-    if (char === "_") {
-      str += "-";
-    } else {
-      str += char;
-    }
-  });
-  return str;
-};
+
 export const getLang = (lang, cookieLang) => {
   if (lang) {
     if (lang === "ar") {
@@ -176,29 +164,37 @@ export const getLang = (lang, cookieLang) => {
   }
 };
 export const getListingData = async ({ categories, lang }) => {
+  let str = categories;
+  var details = {
+    boutique_slug: str,
+  };
+  var formBody = [];
+  for (var property in details) {
+    var encodedKey = encodeURIComponent(property);
+    var encodedValue = encodeURIComponent(details[property]);
+    formBody.push(encodedKey + "=" + encodedValue);
+  }
+  formBody = formBody.join("&");
+  console.log(formBody);
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
-  let str = getHref(categories);
 
   try {
     let time = new Date().getTime();
-    const res = await fetch(
-      OTP_URL + LISTING_INFO_URL,
-
-      {
-        method: "POST",
-        body: { boutique_slug: str },
-        next: {
-          revalidate: 3600,
-          tags: [`listing-data`],
-        },
-        headers: new Headers({
-          lang: await getLang(lang, cookieStore.get("language")?.value),
-          country:
-            cookieStore.get("country") && cookieStore.get("country").value,
-        }),
-      }
-    );
+    const res = await fetch(OTP_URL + LISTING_INFO_URL, {
+      method: "POST",
+      body: formBody,
+      next: {
+        revalidate: 3600,
+        tags: [`listing-data-${str}`, "listing-data"],
+      },
+      headers: new Headers({
+        lang: await getLang(lang, cookieStore.get("language")?.value),
+        country: cookieStore.get("country") && cookieStore.get("country").value,
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+      }),
+    });
     const repo = await res.json();
     time = new Date().getTime() - time;
     let returned_res = {
@@ -210,8 +206,9 @@ export const getListingData = async ({ categories, lang }) => {
       url: res.url,
       time: time + "ms",
       body: repo,
+      reqBody: formBody,
     };
-    console.log(res.url, time);
+
     return [repo.data, returned_res];
   } catch (e) {
     return ["listing-error", e.toString()];

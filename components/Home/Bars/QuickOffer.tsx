@@ -1,10 +1,12 @@
 import QuickIcon from "public/svg/quickIcon.svg";
 import BarDescribtion from "./BarDescribtion";
-import Cookies from "js-cookie";
+
 import { translate } from "utils/functions";
 import { ReactElement } from "react";
+import { cookies } from "next/headers";
 function QuickOffer(): ReactElement {
-  const language = Cookies.get("language");
+  let cookiesStore = cookies();
+  const language = cookiesStore.get("language").value;
 
   return (
     <div className={`home-bar`}>

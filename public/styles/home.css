@@ -58,17 +58,29 @@ body {
 }
 .categories-bar-item:hover .categories-bar-item-icon svg path,
 .categories-bar-item:hover .categories-bar-item-icon svg circle,
-.categories-bar-item.active-nav-category .categories-bar-item-icon svg path,
-.categories-bar-item.active-nav-category .categories-bar-item-icon svg circle {
-  stroke: #3c3c3c;
-  fill: #3c3c3c;
+.categories-bar-item:hover .categories-bar-item-icon svg ellipse,
+.categories-bar-item:hover
+  .categories-bar-item-icon
+  svg
+  line
+  .categories-bar-item.active-nav-category
+  .categories-bar-item-icon
+  svg
+  path,
+.categories-bar-item.active-nav-category .categories-bar-item-icon svg circle,
+.categories-bar-item.active-nav-category .categories-bar-item-icon svg ellipse,
+.categories-bar-item.active-nav-category .categories-bar-item-icon svg line {
+  stroke: #3c3c3c !important;
+  fill: #3c3c3c !important;
 }
 .categories-bar-item .categories-bar-item-icon svg path,
 .categories-bar-item .categories-bar-item-icon svg circle,
 .categories-bar-item .categories-bar-item-icon svg path,
-.categories-bar-item .categories-bar-item-icon svg circle {
-  stroke: #c4c2c2;
-  fill: #c4c2c2;
+.categories-bar-item .categories-bar-item-icon svg circle,
+.categories-bar-item .categories-bar-item-icon svg ellipse,
+.categories-bar-item .categories-bar-item-icon svg line {
+  stroke: #c4c2c2 !important;
+  fill: #c4c2c2 !important;
 }
 .active-search {
   margin: 0px !important;

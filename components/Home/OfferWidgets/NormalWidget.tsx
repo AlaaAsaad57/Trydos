@@ -7,9 +7,9 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import { Boutique } from "models/offer";
 import RemoteSvg from "components/global/RemoteSvg";
-import { Suspense, useEffect, useState } from "react";
+import { useEffect } from "react";
 import ImageLoader from "components/global/ImageLoader";
-import Spinner from "components/global/Spinner";
+
 interface NormalWidgetProps {
   boutique: Boutique;
   myKey: number;
@@ -29,20 +29,10 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
       return s.replace("/upload", "/upload/f_avif/q_40");
     } else return s;
   };
-  const getHref = () => {
-    let str = "";
-    boutique.slug.split("").forEach((char) => {
-      if (char === "-") {
-        str += "_";
-      } else {
-        str += char;
-      }
-    });
-    return str;
-  };
+
   return (
     <Link
-      href={`/products/${getHref()}`}
+      href={`/products/${boutique.slug}`}
       prefetch={false}
       aria-label={`Go To listing Page`}
       className="offer-widget  w-full flex flex-col"

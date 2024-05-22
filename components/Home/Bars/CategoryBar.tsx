@@ -2,9 +2,10 @@ import CategoryIcon from "public/svg/categoryIcon.svg";
 import BarDescribtion from "./BarDescribtion";
 import { translate } from "utils/functions";
 import { ReactElement } from "react";
-import Cookies from "js-cookie";
+import { cookies } from "next/headers";
 function CategoryBar(): ReactElement {
-  const language = Cookies.get("language");
+  let cookiesStore = cookies();
+  const language = cookiesStore.get("language").value;
   return (
     <div className={`home-bar`}>
       <CategoryIcon />
