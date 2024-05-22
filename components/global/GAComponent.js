@@ -4,7 +4,7 @@ function GAComponent() {
   // let GA_MEASUREMENT_ID = "G-EK7TKN11PV";
   return (
     <>
-      <Script
+      {/* <Script
         strategy="lazyOnload"
         src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
       />
@@ -18,7 +18,7 @@ function GAComponent() {
               page_path: window.location.pathname,
               });
           `}
-      </Script>
+      </Script> */}
     </>
   );
 }

@@ -95,16 +95,9 @@ export default async function RootLayout({ params: { lang }, children }) {
     >
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <style>
-          {`
-          body, .site-container{
-            background-color:blue !important;
-          }
-          `}
-        </style>
       </head>
 
-      <body style={{ backgroundColor: "blue" }}>
+      <body>
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-K8QKJJLK"
