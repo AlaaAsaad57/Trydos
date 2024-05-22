@@ -11,9 +11,13 @@ const fetcher = async (url) =>
 
 export default function RemoteSvg({ url, size }) {
   const [src, setSrc] = useState(url);
-  const { data, error, isLoading } = useSWRImmutable(src, fetcher, {
-    errorRetryCount: 0,
-  });
+  const { data, error, isLoading } = useSWRImmutable(
+    src.replace("/upload", "/upload/w_50,h_50/f_avif/q_auto"),
+    fetcher,
+    {
+      errorRetryCount: 0,
+    }
+  );
   if (isLoading)
     return (
       <Skeleton
@@ -59,7 +63,12 @@ export default function RemoteSvg({ url, size }) {
         style={{ width: `${size || 20}px`, height: `${size || 20}px` }}
         className="svg-holder-r"
       >
-        <img src={url} alt="icon" width={size || 20} height={size || 20} />
+        <img
+          src={src.replace("/upload", "/upload/w_50,h_50/f_avif/q_auto")}
+          alt="icon"
+          width={size || 20}
+          height={size || 20}
+        />
       </div>
     );
 }
