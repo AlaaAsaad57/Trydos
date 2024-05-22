@@ -1,4 +1,3 @@
-import StarIcon from "public/svg/starIcon.svg";
 import BarDescribtion from "./BarDescribtion";
 import { translate } from "utils/functions";
 import { ReactElement } from "react";
@@ -8,7 +7,7 @@ function BrandsBar(): ReactElement {
   const language = cookiesStore.get("language")?.value;
   return (
     <div className={`home-bar`}>
-      <StarIcon />
+      <img src={"/svg/starIcon.svg"} />
       <BarDescribtion
         name={translate("Brands", language)}
         desc={translate("Best Offers From Brands", language)}

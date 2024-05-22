@@ -1,4 +1,3 @@
-import CategoryIcon from "public/svg/categoryIcon.svg";
 import BarDescribtion from "./BarDescribtion";
 import { translate } from "utils/functions";
 import { ReactElement } from "react";
@@ -8,7 +7,7 @@ function CategoryBar(): ReactElement {
   const language = cookiesStore.get("language")?.value;
   return (
     <div className={`home-bar`}>
-      <CategoryIcon />
+      <img src={"/svg/categoryIcon.svg"} />
       <BarDescribtion
         name={translate("Category", language)}
         desc={translate(

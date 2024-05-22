@@ -1,6 +1,6 @@
 import { translate } from "utils/functions";
 import { useSelector } from "react-redux";
-import NavIcon from "public/svg/navIcon.svg";
+
 const SearchComponent = dynamic(() => import("./SearchComponent"), {
   ssr: false,
 });
@@ -59,7 +59,7 @@ const CategoryNavItem = ({
                 >
                   {translate(name, language)}
                 </div>
-                <NavIcon />
+                <img src="/svg/navIcon.svg" />
               </div>
             )}
             {name === "Search" && searchEnabled && (
@@ -95,7 +95,7 @@ const CategoryNavItem = ({
                   >
                     {translate(name, language)}
                   </div>
-                  <NavIcon />
+                  <img src="/svg/navIcon.svg" />
                 </div>
               )}
             </div>

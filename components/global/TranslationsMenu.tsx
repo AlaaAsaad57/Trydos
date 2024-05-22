@@ -1,8 +1,4 @@
 "use client";
-import TranslationsIcon from "public/svg/translations.svg";
-import UKIcon from "public/svg/uk.svg";
-import UAEIcon from "public/svg/uae.svg";
-import TRSvg from "public/svg/tr.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { changeAppLanguage } from "store/homepage/actions";
 import dynamic from "next/dynamic";
@@ -19,7 +15,7 @@ function TranslationsMenu({ init }: TranslationsMenuProps) {
       {language === "ar" && <ArabicCss />}
       <div className="translations-container-inner">
         <div className="translation-icon">
-          <TranslationsIcon />
+          <img src={"/svg/translations.svg"} />
         </div>
 
         <div
@@ -34,7 +30,7 @@ function TranslationsMenu({ init }: TranslationsMenuProps) {
             );
           }}
         >
-          <TRSvg width={30} height={20} />
+          <img src={"/svg/tr.svg"} width={30} height={20} />
         </div>
         <div
           className={`translation-icon cursor-pointer en-icon ${
@@ -48,7 +44,7 @@ function TranslationsMenu({ init }: TranslationsMenuProps) {
             );
           }}
         >
-          <UKIcon width={30} height={20} />
+          <img src={"/svg/uk.svg"} width={30} height={20} />
         </div>
         <div
           className={`translation-icon cursor-pointer ar-icon ${
@@ -62,7 +58,7 @@ function TranslationsMenu({ init }: TranslationsMenuProps) {
             );
           }}
         >
-          <UAEIcon />
+          <img src={"/svg/uae.svg"} width={30} height={20} />
         </div>
       </div>
     </div>

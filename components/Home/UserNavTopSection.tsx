@@ -1,9 +1,6 @@
 import { translate } from "utils/functions";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import QuestionIcon from "public/svg/questionIcon.svg";
-import LoginIcon from "public/svg/login.svg";
-import UserIcon from "public/svg/userIcon.svg";
+import { useEffect } from "react";
+import { useSelector } from "react-redux";
 import dynamic from "next/dynamic";
 const AuthNavSection = dynamic(() => import("./AuthNavSection"), {
   ssr: false,
@@ -39,7 +36,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
             </span>
           </div>
           <div className="nav-question-item">
-            <QuestionIcon />
+            <img src="/svg/questionIcon.svg" />
             <span
               className={`${language + "-light"}`}
               style={{
@@ -57,7 +54,8 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
             </span>
           </div>
           <div className="nav-question-item" onClick={() => openLogin(true)}>
-            <LoginIcon />
+            <img src="/svg/login.svg" alt="login" />
+
             <span
               className={`${language + "-regular"}`}
               style={{
@@ -72,7 +70,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
             </span>
           </div>
           <div className="nav-question-item">
-            <UserIcon />
+            <img src="/svg/UserIcon.svg" alt="user-icon" />
           </div>
         </>
       )}

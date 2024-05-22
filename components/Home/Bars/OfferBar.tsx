@@ -1,4 +1,3 @@
-import OfferIcon from "public/svg/offerIcon.svg";
 import BarDescribtion from "./BarDescribtion";
 import { translate } from "utils/functions";
 import { ReactElement } from "react";
@@ -8,7 +7,7 @@ function OfferBar(): ReactElement {
   const language = cookiesStore.get("language")?.value;
   return (
     <div className={`home-bar`}>
-      <OfferIcon />
+      <img src={"/svg/offerIcon.svg"} />
       <BarDescribtion
         name={translate("Offer", language)}
         desc={translate("Products With Great Offers", language)}
