@@ -14,6 +14,13 @@
   width: 20px;
   height: 20px;
 }
+.offer-category .svg-holder-r svg path,
+.offer-category .svg-holder-r svg circle,
+.offer-category .svg-holder-r svg line,
+.offer-category .svg-holder-r svg ellipse {
+  fill: #c4c2c2;
+  stroke: #c4c2c2;
+}
 .offer-logo .svg-holder-r svg,
 .offer-logo .svg-holder-r {
   width: 30px !important;
