@@ -42,9 +42,9 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
         <Image
           fill
           alt="imageAlt"
-          loading="eager"
-          fetchPriority="high"
-          priority={true}
+          loading={myKey < 2 ? "eager" : "lazy"}
+          fetchPriority={myKey < 2 ? "high" : "low"}
+          priority={myKey < 2}
           style={{
             position: "absolute",
             top: "0px",
@@ -72,12 +72,12 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                 <RemoteSvg size={20} url={boutique.icon} />
               ) : (
                 <ImageLoader
-                  loading="eager"
                   id={"img-" + boutique.id}
                   alt={boutique.name}
                   noLoader={true}
-                  priority={false}
-                  fetchPriority={"high"}
+                  loading={myKey < 2 ? "eager" : "lazy"}
+                  fetchPriority={myKey < 2 ? "high" : "low"}
+                  priority={myKey < 2}
                   style={{
                     maxWidth: "187px",
                     width: "auto",
@@ -101,12 +101,12 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
               } else
                 return (
                   <ImageLoader
-                    loading="eager"
                     id={"img-" + boutique.id}
                     alt={boutique.name}
                     noLoader={true}
-                    priority={false}
-                    fetchPriority={"high"}
+                    loading={myKey < 2 ? "eager" : "lazy"}
+                    fetchPriority={myKey < 2 ? "high" : "low"}
+                    priority={myKey < 2}
                     style={{
                       maxWidth: "187px",
                       width: "auto",

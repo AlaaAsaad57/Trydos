@@ -21,7 +21,7 @@ function Loader({ style }) {
       >
         <defs>
           <linearGradient
-            id="linear-gradient3"
+            id="linear-gradient4"
             x1="0.5"
             y1="0.543"
             x2="0.5"
@@ -60,7 +60,7 @@ function Loader({ style }) {
               data-name="Path 21332"
               d="M8.929,0a8.929,8.929,0,1,0,8.929,8.929A8.929,8.929,0,0,0,8.929,0Z"
               transform="translate(206 422)"
-              fill="url(#linear-gradient2)"
+              fill="url(#linear-gradient4)"
             />
             <path
               id="Path_21427"

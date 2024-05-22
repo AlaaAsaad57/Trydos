@@ -164,7 +164,10 @@ export function encode_utf8(params: {
 
 export const getConfiguredImage = ({ src, width, height }) => {
   if (src.includes("cloudinary")) {
-    return src.replace("/upload", `/upload/w_${width},h_${height}/f/q_auto`);
+    return src.replace(
+      "/upload",
+      `/upload/w_${width},h_${height}/f_avif/q_auto`
+    );
   } else return src;
 };
 export const getLang = (lang, cookieLang) => {

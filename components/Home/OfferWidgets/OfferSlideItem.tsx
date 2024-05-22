@@ -21,12 +21,11 @@ function OfferSlideItem({
         <div className="image-inner-shadow" style={{ height: "100%" }} />
         {
           <ImageLoader
-            loading="eager"
             id={id}
-            priority={mykey < 2}
-            noLoader={true}
-            style={{ borderRadius: "15px" }}
+            loading={mykey < 2 ? "eager" : "lazy"}
             fetchPriority={mykey < 2 ? "high" : "low"}
+            priority={mykey < 2}
+            style={{ borderRadius: "15px" }}
             className="OfferImage"
             src={offerPhoto}
             width={900}
