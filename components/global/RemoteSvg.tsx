@@ -67,7 +67,10 @@ export default function RemoteSvg({ url, size, isSvg }) {
         className="svg-holder-r"
       >
         <img
-          src={src.replace("/upload", "/upload/w_auto,h_50/f_avif/q_auto")}
+          src={src.replace(
+            "/upload",
+            `/upload/w_auto,h_50/${isSvg ? "f_svg" : "f_avif"}/q_auto`
+          )}
           alt="icon"
           width={size || 20}
           height={size || 20}
