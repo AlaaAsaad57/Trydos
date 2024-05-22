@@ -32,7 +32,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
 
   return (
     <Link
-      href={`/products/${boutique.slug}`}
+      href={`/boutiques/${boutique.slug}`}
       prefetch={false}
       aria-label={`Go To listing Page`}
       className="offer-widget  w-full flex flex-col"
