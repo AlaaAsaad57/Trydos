@@ -6,7 +6,7 @@ import { ReactElement } from "react";
 import { cookies } from "next/headers";
 function QuickOffer(): ReactElement {
   let cookiesStore = cookies();
-  const language = cookiesStore.get("language").value;
+  const language = cookiesStore.get("language")?.value;
 
   return (
     <div className={`home-bar`}>

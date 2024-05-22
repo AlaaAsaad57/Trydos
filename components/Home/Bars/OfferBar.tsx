@@ -5,7 +5,7 @@ import { ReactElement } from "react";
 import { cookies } from "next/headers";
 function OfferBar(): ReactElement {
   let cookiesStore = cookies();
-  const language = cookiesStore.get("language").value;
+  const language = cookiesStore.get("language")?.value;
   return (
     <div className={`home-bar`}>
       <OfferIcon />
