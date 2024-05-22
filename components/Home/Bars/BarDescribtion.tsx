@@ -7,7 +7,7 @@ interface BarDescribtionProps {
 }
 function BarDescribtion({ name, desc }: BarDescribtionProps): ReactElement {
   let cookiesStore = cookies();
-  const language = cookiesStore.get("language").value;
+  const language = cookiesStore.get("language")?.value;
 
   return (
     <div
