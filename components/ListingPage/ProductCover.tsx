@@ -201,7 +201,7 @@ function ProductCover({ product }) {
         }}
       >
         {product.brand?.image ? (
-          <RemoteSvg url={product.brand?.image} size={16} />
+          <RemoteSvg url={product.brand?.image} size={16} isSvg={true} />
         ) : (
           <div className="svg-holder-r" />
         )}
@@ -210,7 +210,11 @@ function ProductCover({ product }) {
           {product.category && (
             <span className="product-category-icon">
               {product.category?.icon && (
-                <RemoteSvg url={product.category?.icon} size={10} />
+                <RemoteSvg
+                  isSvg={null}
+                  url={product.category?.icon}
+                  size={10}
+                />
               )}
             </span>
           )}

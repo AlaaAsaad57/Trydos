@@ -9,10 +9,13 @@ const fetcher = async (url) =>
     else throw new Error("Invalid Url");
   });
 
-export default function RemoteSvg({ url, size }) {
+export default function RemoteSvg({ url, size, isSvg }) {
   const [src, setSrc] = useState(url);
   const { data, error, isLoading } = useSWRImmutable(
-    src.replace("/upload", "/upload/w_50,h_50/f_avif/q_auto"),
+    src.replace(
+      "/upload",
+      `/upload/w_50,h_50/${isSvg ? "f_svg" : "f_avif"}/q_auto`
+    ),
     fetcher,
     {
       errorRetryCount: 0,
@@ -60,11 +63,11 @@ export default function RemoteSvg({ url, size }) {
   if (data && !error)
     return (
       <div
-        style={{ width: `${size || 20}px`, height: `${size || 20}px` }}
+        style={{ width: `auto`, height: `${20}px` }}
         className="svg-holder-r"
       >
         <img
-          src={src.replace("/upload", "/upload/w_50,h_50/f_avif/q_auto")}
+          src={src.replace("/upload", "/upload/w_auto,h_50/f_avif/q_auto")}
           alt="icon"
           width={size || 20}
           height={size || 20}

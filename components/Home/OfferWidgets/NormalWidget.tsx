@@ -69,7 +69,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           <div className="offer-logo h-[20px]">
             {boutique.icon ? (
               boutique.icon.includes(".svg") ? (
-                <RemoteSvg size={20} url={boutique.icon} />
+                <RemoteSvg size={20} url={boutique.icon} isSvg={null} />
               ) : (
                 <ImageLoader
                   id={"img-" + boutique.id}
@@ -96,7 +96,12 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
             {boutique.mainCategoriesForProductIds.map((category, key) => {
               if (category.category_icon.includes(".svg")) {
                 return (
-                  <RemoteSvg size={12} url={category.category_icon} key={key} />
+                  <RemoteSvg
+                    size={12}
+                    url={category.category_icon}
+                    key={key}
+                    isSvg={null}
+                  />
                 );
               } else
                 return (

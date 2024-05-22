@@ -21,10 +21,10 @@
   fill: #c4c2c2;
   stroke: #c4c2c2;
 }
-.offer-logo .svg-holder-r svg,
+.offer-logo .svg-holder-r img,
 .offer-logo .svg-holder-r {
-  width: 30px !important;
-  height: 30px !important;
+  width: auto !important;
+  height: 20px !important;
 }
 .offer-category .svg-holder-r svg {
   width: 20px;
