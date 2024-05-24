@@ -39,6 +39,7 @@ export const getStories = async ({ lang }) => {
 };
 
 export const getHomeData = async ({ str, lang }) => {
+  console.log("getting homeData");
   const cookies = (await import("next/headers")).cookies;
 
   const cookieStore = cookies();
@@ -88,12 +89,15 @@ export const getHomeData = async ({ str, lang }) => {
       time: time + "ms",
       body: repo,
     };
+    console.log("get homeData!");
+
     return [repo.data.boutiques, returned_res];
   } catch (e) {
     return [[], e.toString()];
   }
 };
 export const getMainCategories = async ({ lang }) => {
+  console.log("getting main category");
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   try {
@@ -120,6 +124,8 @@ export const getMainCategories = async ({ lang }) => {
       time: time + "ms",
       body: repo,
     };
+    console.log("get main category!");
+
     return [repo.data.mainCategories, returned_res];
   } catch (e) {
     return ["homedata-error", e.toString()];

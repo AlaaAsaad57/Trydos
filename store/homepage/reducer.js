@@ -12,10 +12,18 @@ const initialState = {
   loginOpen: false,
   boutiques: [],
   categories: [],
+  session_id: new Date().getTime(),
+  previous_event_button_name: null,
 };
 
 const HomeReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "GA-EVENT": {
+      return {
+        ...state,
+        previous_event_button_name: payload,
+      };
+    }
     case "enableNotifications": {
       return {
         ...state,

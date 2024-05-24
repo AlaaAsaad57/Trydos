@@ -2,7 +2,7 @@ import RemoteSvg from "components/global/RemoteSvg";
 import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import { useSelector } from "react-redux";
-import { translate } from "utils/functions";
+import { Sendevent, translate } from "utils/functions";
 interface CategoryNavMobileProps {
   name: string;
   icon: string;
@@ -25,6 +25,11 @@ function CategoryNavMobile({
       }`}
       key={myKey}
       onClick={() => {
+        Sendevent({
+          event: "clicked_button_name",
+          category: "button_clicked",
+          value: `${name} category filter`,
+        });
         router.push(`/categories/${slug}`);
       }}
     >

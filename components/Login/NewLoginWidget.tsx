@@ -41,9 +41,9 @@ function NewLoginWidget() {
   useEffect(() => {
     if (loginOpen)
       Sendevent({
-        event: "Button Click",
-        value: "Open Login",
-        category: "User Interactive",
+        event: "clicked_button_name",
+        value: "Open Login Widget",
+        category: "button_clicked",
       });
     setTimeout(() => {
       setStepIndcator(0);
@@ -61,15 +61,15 @@ function NewLoginWidget() {
       errorCallback: () => {
         if (operation === "signup")
           Sendevent({
-            event: "signup",
+            event: "clicked_button_name",
             category: "auth",
-            value: "signup-failed",
+            value: "signup failed",
           });
         else
           Sendevent({
-            event: "login",
+            event: "clicked_button_name",
             category: "auth",
-            value: "login-failed",
+            value: "login failed",
           });
         setFailed(true);
         setTimeout(() => {
@@ -85,9 +85,9 @@ function NewLoginWidget() {
         setTimeout(() => {
           if (operation === "signup") {
             Sendevent({
-              event: "signup",
+              event: "clicked_button_name",
               category: "auth",
-              value: "signup-success",
+              value: "signup success",
             });
             if (exists && name.length > 1) {
               setSignStep("alreadyExists");
@@ -102,9 +102,9 @@ function NewLoginWidget() {
             }
           } else {
             Sendevent({
-              event: "login",
+              event: "clicked_button_name",
               category: "auth",
-              value: "login-success",
+              value: "login success",
             });
             if (exists && name.length > 1) {
               FinaliseLogin();
@@ -156,7 +156,17 @@ function NewLoginWidget() {
   if (!loginOpen) return <></>;
   return (
     <>
-      <div onClick={() => setLoginOpen(false)} className="backdrop-login" />
+      <div
+        onClick={() => {
+          Sendevent({
+            event: "clicked_button_name",
+            category: "button_clicked",
+            value: "close login widget",
+          });
+          setLoginOpen(false);
+        }}
+        className="backdrop-login"
+      />
       <div
         className={`login-widget-container login-w2-container pb-${stepIndicator} step${stepIndicator}`}
         id="widget-auth"
@@ -353,6 +363,11 @@ function NewLoginWidget() {
                 }}
                 close={() => {
                   setLoginOpen(false);
+                  Sendevent({
+                    event: "clicked_button_name",
+                    category: "button_clicked",
+                    value: "close login widget",
+                  });
                 }}
                 setStepIndactor={(e) => setStepIndcator(e)}
                 inputValue={inputValue}
@@ -374,7 +389,11 @@ function NewLoginWidget() {
             className="take-look-text"
             onClick={() => {
               AuthService.cancelAuth();
-              setLoginOpen(false);
+              Sendevent({
+                event: "clicked_button_name",
+                category: "button_clicked",
+                value: "skip login widget",
+              });
             }}
             style={{
               opacity: stepIndicator === -1 ? "0" : "1",
@@ -390,6 +409,11 @@ function NewLoginWidget() {
             onClick={() => {
               AuthService.cancelAuth();
               setLoginOpen(false);
+              Sendevent({
+                event: "clicked_button_name",
+                category: "button_clicked",
+                value: "close login widget",
+              });
             }}
           >
             {" "}

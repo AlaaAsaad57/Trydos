@@ -1,4 +1,4 @@
-import { translate } from "utils/functions";
+import { Sendevent, translate } from "utils/functions";
 import { useSelector } from "react-redux";
 
 const SearchComponent = dynamic(() => import("./SearchComponent"), {
@@ -33,6 +33,11 @@ const CategoryNavItem = ({
     if (name === "Search") {
       openSearch();
     } else {
+      Sendevent({
+        event: "clicked_button_name",
+        category: "button_clicked",
+        value: `${name} category filter`,
+      });
       router.push(`/categories/${slug}`);
     }
   };

@@ -144,7 +144,11 @@ export const Sendevent = async (params: any) => {
       device_language: Cookies.get("language"),
       timestamp: new Date().getTime(),
       user_name: JSON.parse(localStorage.getItem("USER")),
+      session_id: store.getState().homepage.session_id,
+      previous_event_button_name:
+        store.getState().homepage.previous_event_button_name,
     });
+    store.dispatch({ type: "GA-EVENT", payload: params.event });
   } catch (e) {
     console.error(e);
   }
