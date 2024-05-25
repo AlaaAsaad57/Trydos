@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Logo from "components/Home/Logo";
 import axios from "axios";
+import { OTP_URL } from "utils/endpointConfig";
 
 export default function Error({
   error,
@@ -11,7 +12,7 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  const baseUrl = "https://market_staging.trydos.tech/api/new_v1";
+  const baseUrl = OTP_URL;
   const _getUserAgent = async () => {
     return navigator.userAgent || "";
   };
