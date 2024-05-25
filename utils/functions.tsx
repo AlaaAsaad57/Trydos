@@ -134,7 +134,7 @@ export const Sendevent = async (params: any) => {
   try {
     let userId = localStorage.getItem("USER")
       ? JSON.parse(localStorage.getItem("USER"))?.id
-      : JSON.parse(localStorage.getItem("user-guest"))?.id;
+      : JSON.parse(localStorage.getItem("guest-user"))?.id;
     (window as any).gtag("event", params.event, {
       event_category: params.category,
       event_label: params.label,
@@ -142,9 +142,11 @@ export const Sendevent = async (params: any) => {
       country_name: Cookies.get("country"),
       userID: userId,
       device_language: Cookies.get("language"),
-      time_stamp: new Date().getTime(),
-      user_name: JSON.parse(localStorage.getItem("USER"))?.name,
-      session_id: store.getState().homepage.session_id,
+      time_stamp: new Date().toISOString(),
+      user_name:
+        localStorage.getItem("USER") &&
+        JSON.parse(localStorage.getItem("USER"))?.name,
+      sessionID: store.getState().homepage.session_id,
       previous_event_button_name:
         store.getState().homepage.previous_event_button_name,
     });
