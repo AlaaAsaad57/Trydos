@@ -34,7 +34,7 @@ const CategoryNavItem = ({
       openSearch();
     } else {
       Sendevent({
-        event: "clicked_button_name",
+        event: "button_clicked",
         category: "button_clicked",
         value: `${name} category filter`,
       });

@@ -138,17 +138,17 @@ export const Sendevent = async (params: any) => {
     (window as any).gtag("event", params.event, {
       event_category: params.category,
       event_label: params.label,
-      value: params.value,
+      clicked_button_name: params.value,
       country_name: Cookies.get("country"),
       userID: userId,
       device_language: Cookies.get("language"),
-      timestamp: new Date().getTime(),
-      user_name: JSON.parse(localStorage.getItem("USER")),
+      time_stamp: new Date().getTime(),
+      user_name: JSON.parse(localStorage.getItem("USER"))?.name,
       session_id: store.getState().homepage.session_id,
       previous_event_button_name:
         store.getState().homepage.previous_event_button_name,
     });
-    store.dispatch({ type: "GA-EVENT", payload: params.event });
+    store.dispatch({ type: "GA-EVENT", payload: params.value });
   } catch (e) {
     console.error(e);
   }

@@ -41,7 +41,7 @@ function NewLoginWidget() {
   useEffect(() => {
     if (loginOpen)
       Sendevent({
-        event: "clicked_button_name",
+        event: "button_clicked",
         value: "Open Login Widget",
         category: "button_clicked",
       });
@@ -61,13 +61,13 @@ function NewLoginWidget() {
       errorCallback: () => {
         if (operation === "signup")
           Sendevent({
-            event: "clicked_button_name",
+            event: "button_clicked",
             category: "auth",
             value: "signup failed",
           });
         else
           Sendevent({
-            event: "clicked_button_name",
+            event: "button_clicked",
             category: "auth",
             value: "login failed",
           });
@@ -85,7 +85,7 @@ function NewLoginWidget() {
         setTimeout(() => {
           if (operation === "signup") {
             Sendevent({
-              event: "clicked_button_name",
+              event: "button_clicked",
               category: "auth",
               value: "signup success",
             });
@@ -102,7 +102,7 @@ function NewLoginWidget() {
             }
           } else {
             Sendevent({
-              event: "clicked_button_name",
+              event: "button_clicked",
               category: "auth",
               value: "login success",
             });
@@ -159,7 +159,7 @@ function NewLoginWidget() {
       <div
         onClick={() => {
           Sendevent({
-            event: "clicked_button_name",
+            event: "button_clicked",
             category: "button_clicked",
             value: "close login widget",
           });
@@ -364,7 +364,7 @@ function NewLoginWidget() {
                 close={() => {
                   setLoginOpen(false);
                   Sendevent({
-                    event: "clicked_button_name",
+                    event: "button_clicked",
                     category: "button_clicked",
                     value: "close login widget",
                   });
@@ -390,7 +390,7 @@ function NewLoginWidget() {
             onClick={() => {
               AuthService.cancelAuth();
               Sendevent({
-                event: "clicked_button_name",
+                event: "button_clicked",
                 category: "button_clicked",
                 value: "skip login widget",
               });
@@ -410,7 +410,7 @@ function NewLoginWidget() {
               AuthService.cancelAuth();
               setLoginOpen(false);
               Sendevent({
-                event: "clicked_button_name",
+                event: "button_clicked",
                 category: "button_clicked",
                 value: "close login widget",
               });

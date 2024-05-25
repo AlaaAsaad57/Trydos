@@ -5,20 +5,15 @@ function GAComponent() {
   return (
     <>
       <Script
-        defer
-        strategy="lazyOnload"
-        src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
-      />
+        async
+        src="https://www.googletagmanager.com/gtag/js?id=G-N8LNVEWJSJ"
+      ></Script>
+      <Script>
+        {`  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
-      <Script id="" strategy="lazyOnload" defer>
-        {`
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}', {
-              page_path: window.location.pathname,
-              });
-          `}
+  gtag('config', 'G-N8LNVEWJSJ');`}
       </Script>
     </>
   );
