@@ -1,7 +1,6 @@
 import Script from "next/script";
 
 function GAComponent() {
-  // let GA_MEASUREMENT_ID = "G-EK7TKN11PV";
   return (
     <>
       <Script
