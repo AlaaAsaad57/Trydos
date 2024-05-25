@@ -7,7 +7,6 @@ import profilePicture from "public/images/profileNo.png";
 import StoryServiceClass from "services/story";
 import { store } from "store";
 import Cookies from "js-cookie";
-import { timestamp } from "./libs/react-insta-stories-master/src/util/time";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };

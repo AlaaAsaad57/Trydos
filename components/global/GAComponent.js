@@ -7,9 +7,10 @@ function GAComponent() {
       <Script
         id="google-1"
         async
+        defer
         src="https://www.googletagmanager.com/gtag/js?id=G-N8LNVEWJSJ"
       ></Script>
-      <Script id="google-2">
+      <Script defer async id="google-2">
         {`  window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
