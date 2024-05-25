@@ -10,7 +10,6 @@ import {
 } from "utils/endpointConfig";
 import { store } from "../index";
 import { getUserChat, translate } from "utils/functions";
-import { onValue, push, ref, set } from "firebase/database";
 import axios from "axios";
 import { showDate } from "components/Chat/chatsFunctions";
 export const ChatConroller = (payload) => {
@@ -102,6 +101,7 @@ export const GetChats = async (payload) => {
 };
 export const GetLastSeen = async (chatId, friendID) => {
   try {
+    const { onValue, ref } = await import("firebase/database");
     const { db } = await import("../../utils/firebaseInitv1");
     let server_time;
     await axios
@@ -153,6 +153,7 @@ export const GetLastSeen = async (chatId, friendID) => {
 };
 export const setLastSeen = async (MyId) => {
   try {
+    const { push, ref, set } = await import("firebase/database");
     let server_time;
     await axios
       .get(CHAT_URL + "/api/v1/channels/get_date_time", {

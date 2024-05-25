@@ -5,10 +5,11 @@ function GAComponent() {
   return (
     <>
       <Script
+        id="google-1"
         async
         src="https://www.googletagmanager.com/gtag/js?id=G-N8LNVEWJSJ"
       ></Script>
-      <Script>
+      <Script id="google-2">
         {`  window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
