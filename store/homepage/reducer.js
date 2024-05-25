@@ -1,5 +1,6 @@
 import { configureStory } from "utils/functions";
 import { getUserStories } from "utils/functions";
+import { v4 as uuidv4 } from "uuid";
 const initialState = {
   language: "en",
   loading: true,
@@ -12,7 +13,7 @@ const initialState = {
   loginOpen: false,
   boutiques: [],
   categories: [],
-  session_id: new Date().getTime(),
+  session_id: uuidv4(),
   previous_event_button_name: null,
 };
 
