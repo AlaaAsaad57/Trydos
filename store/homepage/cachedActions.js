@@ -171,10 +171,14 @@ export const getLang = (lang, cookieLang) => {
 };
 export const getListingData = async ({ categories, lang, productCategory }) => {
   let str = categories;
-  var details = {
-    boutique_slug: str,
-    category: productCategory,
-  };
+  var details = productCategory
+    ? {
+        boutique_slug: str,
+        category: productCategory,
+      }
+    : {
+        boutique_slug: str,
+      };
   var formBody = [];
   for (var property in details) {
     var encodedKey = encodeURIComponent(property);
@@ -214,7 +218,7 @@ export const getListingData = async ({ categories, lang, productCategory }) => {
       body: repo,
       reqBody: formBody,
     };
-    console.log(repo);
+    console.log(res);
     return [repo.data, returned_res];
   } catch (e) {
     return ["listing-error", e.toString()];
