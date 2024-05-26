@@ -100,6 +100,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
               if (category.category_icon.includes(".svg")) {
                 return (
                   <Link
+                    key={key}
                     href={`/boutiques/${boutique.slug}/categories/${category.category_slug}`}
                     prefetch={false}
                   >
@@ -114,6 +115,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
               } else
                 return (
                   <Link
+                    key={key}
                     href={`/boutiques/${boutique.slug}/categories/${category.category_slug}`}
                     prefetch={false}
                   >
