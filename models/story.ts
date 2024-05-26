@@ -1,5 +1,5 @@
 import { CloudinaryImage } from "@cloudinary/url-gen";
-import { Story as StoryInstaType } from "react-insta-stories/dist/interfaces";
+import { Story as StoryInstaType } from "utils/libs/react-insta-stories-master/src/interfaces";
 export interface Story {
   id: number;
   name: string | null;
