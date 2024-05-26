@@ -1,4 +1,4 @@
-const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"));
+import OfferPhotosSlider from "./OfferPhotosSlider";
 import OfferSlideItem from "./OfferSlideItem";
 import { encode_utf8, getConfiguredImage } from "utils/functions";
 import OfferAvatars from "./OfferAvatars";
@@ -9,6 +9,7 @@ import { Boutique } from "models/offer";
 import RemoteSvg from "components/global/RemoteSvg";
 import { useEffect } from "react";
 import ImageLoader from "components/global/ImageLoader";
+import { useRouter } from "next/navigation";
 
 interface NormalWidgetProps {
   boutique: Boutique;
@@ -16,6 +17,7 @@ interface NormalWidgetProps {
   onClick: Function;
 }
 const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
+  const router = useRouter();
   useEffect(() => {
     if (boutique.description) {
       encode_utf8({
@@ -31,9 +33,10 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
   };
 
   return (
-    <Link
-      href={`/boutiques/${boutique.slug}`}
-      prefetch={false}
+    <div
+      onClick={() => {
+        router.push(`/boutiques/${boutique.slug}`);
+      }}
       aria-label={`Go To listing Page`}
       className="offer-widget  w-full flex flex-col"
       key={myKey}
@@ -158,7 +161,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           )}
         </div>
       </>
-    </Link>
+    </div>
   );
 };
 

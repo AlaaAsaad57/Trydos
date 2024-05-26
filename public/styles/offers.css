@@ -80,7 +80,15 @@ a {
   right: 15px;
   top: 15px;
 }
-
+.offer-category a {
+  padding-inline: 6.5px;
+  display: flex;
+  align-items: center;
+  height: 12px;
+}
+.offer-category a:last-child {
+  padding-right: 0px !important;
+}
 .offer-category svg {
   margin-right: 4px;
   transform: scale(1);

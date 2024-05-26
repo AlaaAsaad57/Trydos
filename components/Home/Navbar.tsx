@@ -7,6 +7,8 @@ import { changeAppLanguage } from "store/homepage/actions";
 import { Category } from "models/Category";
 import CategoriesBar from "./CategoriesBar";
 import MobileNavigation from "./MobileNavigation";
+import dynamic from "next/dynamic";
+const AuthSections = dynamic(() => import("./AuthSections"), { ssr: false });
 interface NavbarProps {
   init: string;
   categories: Category[];
@@ -36,6 +38,7 @@ function Navbar({ init, categories }: NavbarProps) {
   }, []);
   return (
     <>
+      <AuthSections />
       <div className="home-navbar">
         <Logo animated={false} style={false} key={1} />
         {<CategoriesBar categories={categories} key={2} forMobile={false} />}

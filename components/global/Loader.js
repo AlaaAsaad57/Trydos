@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 
 function Loader({ style }) {
@@ -8,7 +9,7 @@ function Loader({ style }) {
         width: "100%",
         height: "100%",
         backgroundColor: "#E6E6E6",
-        opacity: "0.9",
+        opacity: "1",
         ...style,
       }}
     >

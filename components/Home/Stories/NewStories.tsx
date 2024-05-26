@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Cube from "react-cube-navigation";
 import { SelectStory } from "store/homepage/actions";
@@ -8,10 +8,6 @@ import { useSwipeable } from "react-swipeable";
 
 function StoriesContainer({ activeId, selectedStory }) {
   const storiesData = useSelector((state: any) => state.homepage.storiesData);
-  const [index, setIndex] = useState(
-    storiesData.findIndex((s) => s.id === selectedStory?.id)
-  );
-
   const dispatch = useDispatch();
   var dir = 0;
   const [isTop, setIsTop] = useState("");

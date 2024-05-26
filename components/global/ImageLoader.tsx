@@ -40,6 +40,8 @@ function ImageLoader(props) {
         <Image
           {...props}
           quality={100}
+          priority={true}
+          loading="eager"
           unoptimized
           onLoad={() => setLoading(false)}
           src={getImageCld()}

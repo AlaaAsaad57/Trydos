@@ -10,10 +10,13 @@ const NotificationContainer = dynamic(() => import("./Notifications"), {
   ssr: false,
 });
 import { getUserChat } from "utils/functions";
-import NameModal from "components/global/NameModal";
+const NameModal = dynamic(() => import("components/global/NameModal"));
+const StoriesContainer = dynamic(() => import("./Stories/NewStories"), {
+  loading: () => <LandingPage />,
+});
 import { getUserStories } from "../../utils/functions";
 import StoryServiceClass from "services/story";
-import StoriesContainer from "./Stories/NewStories";
+import LandingPage from "./LandingPage";
 export default function Home() {
   useEffect(() => {
     StoryServiceClass.getStories();
