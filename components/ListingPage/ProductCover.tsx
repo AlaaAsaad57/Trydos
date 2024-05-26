@@ -1,4 +1,4 @@
-import { useReducer, memo } from "react";
+import { useReducer } from "react";
 import ImageSlider from "./ImageSlider";
 import PriceLabel from "./PriceLabel";
 import BuyButton from "./BuyButton";
@@ -6,8 +6,6 @@ import TopSlider from "./TopSlider";
 import CoverEffectSlider from "./CoverEffectSlider";
 import ColorSlider from "./ColorSlider";
 import "styles/skeleton.css";
-import Loadding from "public/svg/loading.svg";
-import CategoryPhoto from "./CategoryPhoto";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 import RemoteSvg from "components/global/RemoteSvg";
@@ -232,4 +230,4 @@ function ProductCover({ product }) {
   );
 }
 
-export default memo(ProductCover);
+export default ProductCover;

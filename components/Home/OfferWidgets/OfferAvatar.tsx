@@ -27,7 +27,7 @@ function OfferAvatar({
         zIndex: zIndex,
         transform: `translateX(-${(zIndex - 1) * 5}px)`,
       }}
-      onClick={(e) => {}}
+      prefetch={false}
     >
       <div className="offer-avatar-info">
         <span>{name}</span>

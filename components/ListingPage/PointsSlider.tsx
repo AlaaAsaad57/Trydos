@@ -1,4 +1,3 @@
-import { memo } from "react";
 function PointsSlider({
   isActiveTopSlide,
   setActiveTopSlide,
@@ -88,4 +87,4 @@ function PointsSlider({
   );
 }
 
-export default memo(PointsSlider);
+export default PointsSlider;

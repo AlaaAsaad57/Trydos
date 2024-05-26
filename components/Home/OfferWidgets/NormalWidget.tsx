@@ -96,32 +96,42 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
             {boutique.mainCategoriesForProductIds.map((category, key) => {
               if (category.category_icon.includes(".svg")) {
                 return (
-                  <RemoteSvg
-                    size={12}
-                    url={category.category_icon}
-                    key={key}
-                    isSvg={null}
-                  />
+                  <Link
+                    href={`/boutiques/${boutique.slug}/categories/${category.category_slug}`}
+                    prefetch={false}
+                  >
+                    <RemoteSvg
+                      size={12}
+                      url={category.category_icon}
+                      key={key}
+                      isSvg={null}
+                    />
+                  </Link>
                 );
               } else
                 return (
-                  <ImageLoader
-                    id={"img-" + boutique.id}
-                    alt={boutique.name}
-                    noLoader={true}
-                    loading={myKey < 2 ? "eager" : "lazy"}
-                    fetchPriority={myKey < 2 ? "high" : "low"}
-                    priority={myKey < 2}
-                    style={{
-                      maxWidth: "187px",
-                      width: "auto",
-                      height: "12px",
-                    }}
-                    width={12}
-                    height={12}
-                    key={key}
-                    src={boutique.icon}
-                  />
+                  <Link
+                    href={`/boutiques/${boutique.slug}/categories/${category.category_slug}`}
+                    prefetch={false}
+                  >
+                    <ImageLoader
+                      id={"img-" + boutique.id}
+                      alt={boutique.name}
+                      noLoader={true}
+                      loading={myKey < 2 ? "eager" : "lazy"}
+                      fetchPriority={myKey < 2 ? "high" : "low"}
+                      priority={myKey < 2}
+                      style={{
+                        maxWidth: "187px",
+                        width: "auto",
+                        height: "12px",
+                      }}
+                      width={12}
+                      height={12}
+                      key={key}
+                      src={boutique.icon}
+                    />
+                  </Link>
                 );
             })}
           </div>
