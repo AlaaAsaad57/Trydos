@@ -13,10 +13,7 @@ function LandingPage({ afterLoad }) {
     }
   }, []);
   return (
-    <div
-      className={`landing-page ${afterLoad && "loading-screnn"}`}
-      id="landing"
-    >
+    <div className={`landing-page ${true && "loading-screnn"}`} id="landing">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
