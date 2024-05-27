@@ -9,9 +9,6 @@ export const changeAppLanguage = (language) => {
 export const GetMainData = (data) => {
   return { type: "SITE-MAIN-DATA", payload: data };
 };
-export const GetMainCategories = (categories) => {
-  return { type: "MAIN-CATEGORIES", payload: categories };
-};
 /*Stories Actions */
 export const SelectStory = (e) => {
   if (e) StoryService.WatchStory(e.stories[0].id, e.id);
@@ -51,7 +48,4 @@ export const LogData = (data) => {
   if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") {
     console.log(data);
   }
-};
-export const getId = () => {
-  return "img" + parseInt((Math.random() * 10000).toString());
 };

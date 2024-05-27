@@ -1,7 +1,5 @@
 import ImageLoader from "components/global/ImageLoader";
 import BorderImage from "./BorderImage";
-import { getId } from "store/homepage/actions";
-
 interface OfferSlideItemProps {
   isSingle: boolean;
   priority: boolean;
@@ -14,15 +12,12 @@ function OfferSlideItem({
   mykey,
   offerPhoto,
 }: OfferSlideItemProps) {
-  let id = getId();
-
   return (
     <div className="offer-slide-item">
       <div className="image-offer">
         <div className="image-inner-shadow" style={{ height: "100%" }} />
         {
           <ImageLoader
-            id={id}
             loading={mykey < 2 ? "eager" : "lazy"}
             fetchPriority={mykey < 2 ? "high" : "low"}
             priority={mykey < 2}

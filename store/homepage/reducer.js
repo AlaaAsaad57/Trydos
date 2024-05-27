@@ -3,10 +3,11 @@ import { getUserStories } from "utils/functions";
 import { v4 as uuidv4 } from "uuid";
 const initialState = {
   language: "en",
-  loading: true,
+  loading: false,
+  loadingStories: true,
   selectedStory: null,
   renderStories: false,
-  storiesData: [],
+  storiesData: null,
   categories: [],
   enableNotifications: false,
   settings: null,
@@ -31,13 +32,7 @@ const HomeReducer = (state = initialState, { type, payload }) => {
         enableNotifications: true,
       };
     }
-    case "MAIN-CATEGORIES": {
-      return {
-        ...state,
-        categories: payload,
-        loading: false,
-      };
-    }
+
     case "LOGIN-OPEN": {
       return {
         ...state,
@@ -77,7 +72,7 @@ const HomeReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "STORY-DATA": {
-      return { ...state, storiesData: payload };
+      return { ...state, storiesData: payload, loadingStories: false };
     }
     case "NEXT-STORY": {
       let index;

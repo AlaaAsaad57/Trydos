@@ -6,6 +6,7 @@ const AddStory = dynamic(() => import("../AddStory"), { ssr: false });
 import { useDispatch, useSelector } from "react-redux";
 import { SelectStory } from "store/homepage/actions";
 import { Story } from "models/story";
+import Skeleton from "react-loading-skeleton";
 function Index() {
   const storiesData = useSelector((state: any) => state.homepage.storiesData);
   const dispatch = useDispatch();
@@ -49,42 +50,83 @@ function Index() {
   }
   const user = useSelector((state: any) => state.auth.user);
   return (
-    <div className="stories-bar-container">
-      <div id="stories-bar" className="stories-bar">
-        <div className="stories-bars">
-          {user?.id && <AddStory />}
+    <>
+      {!storiesData ? (
+        <div className="stories-bar-container">
+          <div id="stories-bar" className="stories-bar">
+            <div className="stories-bars">
+              {user?.id && <AddStory />}
 
-          {storiesData.map((story, index) => (
-            <StoryElement
-              key={index}
-              index={index}
-              story={story}
-              select={(e) => {
-                setSelectStory(e);
-              }}
+              {[1, 1, 1, 1, 1, 1].map((story, index) => (
+                <Skeleton
+                  width={100}
+                  height={150}
+                  borderRadius={20}
+                  style={{ marginLeft: "5px" }}
+                />
+              ))}
+            </div>
+          </div>
+          <svg
+            id="stories-border2"
+            className="border"
+            xmlns="http://www.w3.org/2000/svg"
+            width={getBorderWidth()}
+            height="0.5"
+          >
+            <line
+              id="Line_1107"
+              data-name="Line 1107"
+              x2={getBorderWidth()}
+              transform="translate(0 0.25)"
+              fill="none"
+              stroke="#3c3c3c"
+              strokeWidth="0.5"
+              strokeDasharray="3 3"
             />
-          ))}
+          </svg>
         </div>
-      </div>
-      <svg
-        id="stories-border2"
-        className="border"
-        xmlns="http://www.w3.org/2000/svg"
-        width={getBorderWidth()}
-        height="0.5"
-      >
-        <line
-          id="Line_1107"
-          data-name="Line 1107"
-          x2={getBorderWidth()}
-          transform="translate(0 0.25)"
-          fill="none"
-          stroke="#3c3c3c"
-          strokeWidth="0.5"
-          strokeDasharray="3 3"
-        />
-      </svg>
-    </div>
+      ) : (
+        (storiesData.length > 0 || user?.id) && (
+          <div className="stories-bar-container">
+            <div id="stories-bar" className="stories-bar">
+              <div className="stories-bars">
+                {user?.id && <AddStory />}
+
+                {storiesData.map((story, index) => (
+                  <StoryElement
+                    key={index}
+                    index={index}
+                    story={story}
+                    select={(e) => {
+                      setSelectStory(e);
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+            <svg
+              id="stories-border2"
+              className="border"
+              xmlns="http://www.w3.org/2000/svg"
+              width={getBorderWidth()}
+              height="0.5"
+            >
+              <line
+                id="Line_1107"
+                data-name="Line 1107"
+                x2={getBorderWidth()}
+                transform="translate(0 0.25)"
+                fill="none"
+                stroke="#3c3c3c"
+                strokeWidth="0.5"
+                strokeDasharray="3 3"
+              />
+            </svg>
+          </div>
+        )
+      )}
+    </>
   );
 }
 
