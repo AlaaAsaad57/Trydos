@@ -12,13 +12,15 @@ const NotificationContainer = dynamic(() => import("./Notifications"), {
 import { getUserChat } from "utils/functions";
 const NameModal = dynamic(() => import("components/global/NameModal"));
 const StoriesContainer = dynamic(() => import("./Stories/NewStories"), {
-  loading: () => <LandingPage />,
+  loading: () => <LandingPage afterLoad={true} />,
 });
 import { getUserStories } from "../../utils/functions";
 import StoryServiceClass from "services/story";
 import LandingPage from "./LandingPage";
+import { dispatchRouteChangeEvent } from "Hooks/events";
 export default function Home() {
   useEffect(() => {
+    dispatchRouteChangeEvent("completed");
     StoryServiceClass.getStories();
     try {
       initFB();

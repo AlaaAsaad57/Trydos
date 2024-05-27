@@ -20,6 +20,12 @@ const initialState = {
 
 const HomeReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "LOADING": {
+      return {
+        ...state,
+        loading: true,
+      };
+    }
     case "GA-EVENT": {
       return {
         ...state,

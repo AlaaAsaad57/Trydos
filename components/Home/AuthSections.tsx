@@ -1,15 +1,15 @@
 "use client";
-import React, { useEffect } from "react";
+import React from "react";
 import dynamic from "next/dynamic";
 import LandingPage from "./LandingPage";
 import { useSelector } from "react-redux";
 const ChatModal = dynamic(() => import("components/Chat/ChatModal"), {
-  loading: () => <LandingPage />,
+  loading: () => <LandingPage afterLoad={true} />,
 });
 const NewLoginWidget = dynamic(
   () => import("components/Login/NewLoginWidget"),
   {
-    loading: () => <LandingPage />,
+    loading: () => <LandingPage afterLoad={true} />,
   }
 );
 function AuthSections() {

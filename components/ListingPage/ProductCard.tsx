@@ -11,6 +11,7 @@ import Spinner from "../global/Spinner";
 import { LogData } from "store/homepage/actions";
 import { useParams } from "next/navigation";
 import homeService from "services/home";
+import { dispatchRouteChangeEvent } from "Hooks/events";
 function ProductCard({ Listing_Data_res }: { Listing_Data_res: any }) {
   const dispatch = useDispatch();
   const params = useParams();
@@ -29,9 +30,7 @@ function ProductCard({ Listing_Data_res }: { Listing_Data_res: any }) {
     }
   };
   useEffect(() => {
-    LogData({
-      listing_req_data: Listing_Data_res,
-    });
+    dispatchRouteChangeEvent("completed");
     GetNextPage();
     dispatch({ type: "GET_PRODUCTS", payload: Listing_Data_res.body.data });
   }, []);

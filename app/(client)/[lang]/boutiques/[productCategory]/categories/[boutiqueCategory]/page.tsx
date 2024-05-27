@@ -1,7 +1,4 @@
-"use server";
-import LandingPage from "components/Home/LandingPage";
 import ProductCard from "components/ListingPage/ProductCard";
-import { Suspense } from "react";
 import { getListingData } from "store/homepage/cachedActions";
 export async function generateMetadata({ params, searchParams }) {
   // read route params
@@ -20,9 +17,7 @@ async function page({ params, searchParams }) {
 
   return (
     <>
-      <Suspense fallback={<LandingPage />}>
-        <ProductCard Listing_Data_res={Listing_Data_res} />
-      </Suspense>
+      <ProductCard Listing_Data_res={Listing_Data_res} />
     </>
   );
 }

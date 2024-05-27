@@ -7,6 +7,7 @@ const SearchComponent = dynamic(() => import("./SearchComponent"), {
 import dynamic from "next/dynamic";
 import RemoteSvg from "components/global/RemoteSvg";
 import { useParams, useRouter } from "next/navigation";
+import { dispatchRouteChangeEvent } from "Hooks/events";
 
 interface CategoryNavItemProps {
   name: string;
@@ -39,6 +40,7 @@ const CategoryNavItem = ({
         value: `${name} category filter`,
       });
       router.push(`/categories/${slug}`);
+      dispatchRouteChangeEvent("start");
     }
   };
 

@@ -1,3 +1,4 @@
+import NextLink from "Hooks/NextLink";
 import Image from "next/image";
 import Link from "next/link";
 interface OfferAvatarProps {
@@ -20,7 +21,7 @@ function OfferAvatar({
     } else return images;
   };
   return (
-    <Link
+    <NextLink
       href={`${linkUrl}`}
       className="offer-avatar"
       style={{
@@ -46,7 +47,7 @@ function OfferAvatar({
         unselectable="on"
         style={{ borderRadius: "50%", height: "40px" }}
       />
-    </Link>
+    </NextLink>
   );
 }
 

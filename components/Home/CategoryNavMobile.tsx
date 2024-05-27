@@ -1,4 +1,5 @@
 import RemoteSvg from "components/global/RemoteSvg";
+import { dispatchRouteChangeEvent } from "Hooks/events";
 import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import { useSelector } from "react-redux";
@@ -31,6 +32,7 @@ function CategoryNavMobile({
           value: `${name} category filter`,
         });
         router.push(`/categories/${slug}`);
+        dispatchRouteChangeEvent("start");
       }}
     >
       {

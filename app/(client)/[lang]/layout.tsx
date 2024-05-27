@@ -9,6 +9,7 @@ export const metadata = {
 import type { Viewport } from "next";
 import TranslationsMenu from "components/global/TranslationsMenu";
 import NavbarServer from "components/Server/Navbar";
+import PageLoadingIndicator from "Hooks/LoadingIndicator";
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1.0,
@@ -104,7 +105,7 @@ export default async function RootLayout({ params: { lang }, children }) {
             style={{ display: "none", visibility: "hidden" }}
           ></iframe>
         </noscript>
-
+        <PageLoadingIndicator />
         <Providers>
           <div className="site-container bg-neutral-50 flex justify-around min-w-[100vw] min-h-full h-full">
             <div className="home-page-container">

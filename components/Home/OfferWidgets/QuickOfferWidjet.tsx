@@ -13,6 +13,7 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import OfferSlideItem from "./OfferSlideItem";
 import OfferAvatars from "./OfferAvatars";
+import NextLink from "Hooks/NextLink";
 interface QuickOfferWidjetProps {
   offer: { photos: string[] };
   onClick: Function;
@@ -24,7 +25,7 @@ function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
     threshold: 0.3,
   });
   return (
-    <Link
+    <NextLink
       ref={ref}
       prefetch={false}
       href={"/listing"}
@@ -91,7 +92,7 @@ function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
           </div>
         </>
       )}
-    </Link>
+    </NextLink>
   );
 }
 

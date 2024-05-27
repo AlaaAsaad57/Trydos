@@ -1,17 +1,22 @@
 "use client";
 import React, { useEffect } from "react";
 
-function LandingPage() {
+function LandingPage({ afterLoad }) {
   useEffect(() => {
-    document.documentElement.style.overflow = "hidden";
-    setTimeout(() => {
-      document.documentElement.style.overflow = "initial";
-      if (document.getElementById("landing"))
-        document.getElementById("landing").style.display = "none";
-    }, 3000);
+    if (!afterLoad) {
+      document.documentElement.style.overflow = "hidden";
+      setTimeout(() => {
+        document.documentElement.style.overflow = "initial";
+        if (document.getElementById("landing"))
+          document.getElementById("landing").style.display = "none";
+      }, 3000);
+    }
   }, []);
   return (
-    <div className="landing-page" id="landing">
+    <div
+      className={`landing-page ${afterLoad && "loading-screnn"}`}
+      id="landing"
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"

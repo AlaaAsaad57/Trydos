@@ -13,6 +13,8 @@ const ImageLoader = dynamic(() => import("components/global/ImageLoader"), {
 });
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import NextLink from "Hooks/NextLink";
+import { dispatchRouteChangeEvent } from "Hooks/events";
 
 interface NormalWidgetProps {
   boutique: Boutique;
@@ -33,6 +35,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
     <div
       onClick={() => {
         router.push(`/boutiques/${boutique.slug}`);
+        dispatchRouteChangeEvent("start");
       }}
       aria-label={`Go To listing Page`}
       className="offer-widget  w-full flex flex-col"
@@ -96,7 +99,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
             {boutique.mainCategoriesForProductIds.map((category, key) => {
               if (category.category_icon.includes(".svg")) {
                 return (
-                  <Link
+                  <NextLink
                     key={key}
                     href={`/boutiques/${boutique.slug}/categories/${category.category_slug}`}
                     prefetch={false}
@@ -107,11 +110,11 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                       key={key}
                       isSvg={null}
                     />
-                  </Link>
+                  </NextLink>
                 );
               } else
                 return (
-                  <Link
+                  <NextLink
                     key={key}
                     href={`/boutiques/${boutique.slug}/categories/${category.category_slug}`}
                     prefetch={false}
@@ -133,7 +136,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                       key={key}
                       src={boutique.icon}
                     />
-                  </Link>
+                  </NextLink>
                 );
             })}
           </div>
