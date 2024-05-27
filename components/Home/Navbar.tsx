@@ -8,6 +8,7 @@ import { Category } from "models/Category";
 import CategoriesBar from "./CategoriesBar";
 import MobileNavigation from "./MobileNavigation";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 const AuthSections = dynamic(() => import("./AuthSections"), { ssr: false });
 interface NavbarProps {
   init: string;
@@ -40,7 +41,9 @@ function Navbar({ init, categories }: NavbarProps) {
     <>
       <AuthSections />
       <div className="home-navbar">
-        <Logo animated={false} style={false} key={1} />
+        <Link href={"/"}>
+          <Logo animated={false} style={false} key={1} />
+        </Link>
         {<CategoriesBar categories={categories} key={2} forMobile={false} />}
         {
           <UserNavTopSection
