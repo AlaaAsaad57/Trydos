@@ -1,5 +1,4 @@
 import BarDescribtion from "./BarDescribtion";
-
 import { translate } from "utils/functions";
 import { ReactElement } from "react";
 import { cookies } from "next/headers";

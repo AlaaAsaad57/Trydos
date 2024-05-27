@@ -1,15 +1,18 @@
+"use client";
 import OfferPhotosSlider from "./OfferPhotosSlider";
 import OfferSlideItem from "./OfferSlideItem";
 import { encode_utf8, getConfiguredImage } from "utils/functions";
 import OfferAvatars from "./OfferAvatars";
 import Link from "next/link";
 import Image from "next/image";
-import dynamic from "next/dynamic";
 import { Boutique } from "models/offer";
 import RemoteSvg from "components/global/RemoteSvg";
 import { useEffect } from "react";
-import ImageLoader from "components/global/ImageLoader";
+const ImageLoader = dynamic(() => import("components/global/ImageLoader"), {
+  ssr: false,
+});
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 
 interface NormalWidgetProps {
   boutique: Boutique;
@@ -26,12 +29,6 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
       });
     }
   }, []);
-  const getImageCld = (s) => {
-    if (s.includes("cloudinary")) {
-      return s.replace("/upload", "/upload/f_avif/q_40");
-    } else return s;
-  };
-
   return (
     <div
       onClick={() => {
@@ -44,7 +41,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
       <>
         <Image
           fill
-          alt="imageAlt"
+          alt={"imageAlt" + myKey}
           loading={myKey < 2 ? "eager" : "lazy"}
           fetchPriority={myKey < 2 ? "high" : "low"}
           priority={myKey < 2}
@@ -146,7 +143,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
               key={myKey}
               extended={false}
               myKey={myKey}
-              priority={false}
+              priority={myKey < 2}
               boutique={boutique}
               OfferPhotos={boutique.banners}
             />
@@ -155,10 +152,10 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
               <OfferSlideItem
                 mykey={myKey}
                 offerPhoto={boutique.banners[0]}
-                priority={false}
+                priority={myKey < 2}
                 isSingle={true}
               />
-              <OfferAvatars boutique={boutique} priority={false} />
+              <OfferAvatars boutique={boutique} priority={myKey < 2} />
             </div>
           )}
         </div>

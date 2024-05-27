@@ -16,7 +16,7 @@ function OfferAvatar({
 }: OfferAvatarProps) {
   const getImageCld = () => {
     if (images.includes("cloudinary")) {
-      return images.replace("/upload", "/upload/w_35,h_35/f_avif/q_auto");
+      return images.replace("/upload", "/upload/h_100/f_avif/q_100");
     } else return images;
   };
   return (

@@ -52,3 +52,6 @@ export const LogData = (data) => {
     console.log(data);
   }
 };
+export const getId = () => {
+  return "img" + parseInt((Math.random() * 10000).toString());
+};

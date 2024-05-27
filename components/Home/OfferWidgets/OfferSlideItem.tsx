@@ -1,6 +1,7 @@
 import ImageLoader from "components/global/ImageLoader";
 import BorderImage from "./BorderImage";
-import { getId } from "utils/functions";
+import { getId } from "store/homepage/actions";
+
 interface OfferSlideItemProps {
   isSingle: boolean;
   priority: boolean;

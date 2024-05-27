@@ -25,9 +25,6 @@ export function translate(key, language) {
     return translations[language][key] || key;
   } else return key;
 }
-export const getId = () => {
-  return "img" + parseInt((Math.random() * 10000).toString());
-};
 
 const token = SSRDetect() && localStorage.getItem("STORIES-TOKEN");
 export const getStoriesHeaders = () => {
@@ -169,10 +166,7 @@ export function encode_utf8(params: {
 
 export const getConfiguredImage = ({ src, width, height }) => {
   if (src.includes("cloudinary")) {
-    return src.replace(
-      "/upload",
-      `/upload/w_${width},h_${height}/f_avif/q_auto`
-    );
+    return src.replace("/upload", `/upload/h_${height}/f_avif/q_auto`);
   } else return src;
 };
 export const getLang = (lang, cookieLang) => {

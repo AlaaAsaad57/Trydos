@@ -6,12 +6,7 @@ async function OfferListServer({ params, searchParams }) {
     str: params?.mainCategory,
     lang: params.lang ? params.lang.split("-")[1] : null,
   });
-
-  return (
-    <Suspense>
-      <OfferList boutiques={HomeData} key={2} quick={false} />
-    </Suspense>
-  );
+  return <OfferList boutiques={HomeData} key={2} quick={false} />;
 }
 
 export default OfferListServer;

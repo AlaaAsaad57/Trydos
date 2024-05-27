@@ -7,7 +7,7 @@ function ImageLoader(props) {
     if (props.src.includes("cloudinary")) {
       return props.src.replace(
         "/upload",
-        `/upload/w_${props.width},h_${props.height}/f_avif/q_auto`
+        `/upload/h_${props.height}/f_avif/q_auto`
       );
     } else return props.src;
   };
@@ -43,7 +43,9 @@ function ImageLoader(props) {
           priority={true}
           loading="eager"
           unoptimized
-          onLoad={() => setLoading(false)}
+          onLoad={() => {
+            setLoading(false);
+          }}
           src={getImageCld()}
         />
       </div>

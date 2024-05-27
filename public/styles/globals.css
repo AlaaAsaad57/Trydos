@@ -46,6 +46,10 @@
 .background-bl {
   background-color: black;
 }
+img {
+  object-fit: cover;
+  object-position: center;
+}
 body {
   margin: 0px;
   color: rgb(var(--foreground-rgb));
