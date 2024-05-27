@@ -60,6 +60,7 @@ function Index() {
               {[1, 1, 1, 1, 1, 1].map((story, index) => (
                 <Skeleton
                   width={100}
+                  key={index}
                   height={150}
                   borderRadius={20}
                   style={{ marginLeft: "5px" }}
