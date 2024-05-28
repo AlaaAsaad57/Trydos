@@ -11,7 +11,7 @@ import {
 import { store } from "../index";
 import { getUserChat, translate } from "utils/functions";
 import axios from "axios";
-import { showDate } from "components/Chat/chatsFunctions";
+
 export const ChatConroller = (payload) => {
   if (payload) document.documentElement.style.overflow = "hidden";
   else document.documentElement.style.overflow = "initial";
@@ -117,7 +117,7 @@ export const GetLastSeen = async (chatId, friendID) => {
         store.dispatch({ type: "SET_SERVER_TIME", payload: data.data.data });
       });
     const dbRef = ref(db, `ConnectStatus/${friendID.toString()}`);
-    onValue(dbRef, (snapshot) => {
+    onValue(dbRef, async (snapshot) => {
       const desc = snapshot.val();
 
       if (!!desc) {
@@ -129,6 +129,7 @@ export const GetLastSeen = async (chatId, friendID) => {
             payload: { id: chatId.toString(), date: date },
           });
         } else {
+          const { showDate } = await import("components/Chat/chatsFunctions");
           let date =
             Object.keys(desc).length > 0 &&
             showDate(desc[Object.keys(desc)[0]]);

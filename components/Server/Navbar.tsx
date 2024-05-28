@@ -1,5 +1,4 @@
 import Navbar from "components/Home/Navbar";
-import React from "react";
 import { getMainCategories } from "store/homepage/cachedActions";
 
 async function NavbarServer({ lang }: { lang: string }) {

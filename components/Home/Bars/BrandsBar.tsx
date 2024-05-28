@@ -1,8 +1,7 @@
 import BarDescribtion from "./BarDescribtion";
 import { translate } from "utils/functions";
-import { ReactElement } from "react";
 import { cookies } from "next/headers";
-function BrandsBar(): ReactElement {
+function BrandsBar() {
   let cookiesStore = cookies();
   const language = cookiesStore.get("language")?.value;
   return (

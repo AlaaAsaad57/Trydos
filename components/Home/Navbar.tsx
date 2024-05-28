@@ -8,7 +8,6 @@ import { Category } from "models/Category";
 import CategoriesBar from "./CategoriesBar";
 import MobileNavigation from "./MobileNavigation";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import NextLink from "Hooks/NextLink";
 const AuthSections = dynamic(() => import("./AuthSections"), { ssr: false });
 interface NavbarProps {

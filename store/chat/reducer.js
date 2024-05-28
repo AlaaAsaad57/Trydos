@@ -7,7 +7,11 @@ import {
   watchChannel,
 } from "./actions";
 import { store } from "../index";
-import { toast } from "react-toastify";
+const Toast = async () => {
+  const toast = await import("react-toastify");
+
+  toast.error("only 3 pinned chats allowed");
+};
 import { getMediaReducer } from "./actions";
 const initialState = {
   chatVar: false,
@@ -1102,7 +1106,7 @@ export const ChatReducer = (
           data: arr,
         };
       } else {
-        toast.error("only 3 pinned chats allowed");
+        Toast();
         return {
           ...state,
         };

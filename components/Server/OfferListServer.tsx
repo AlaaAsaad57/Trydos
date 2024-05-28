@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React from "react";
 import { getHomeData } from "store/homepage/cachedActions";
 import OfferList from "components/Home/OfferWidgets/OfferList";
 async function OfferListServer({ params, searchParams }) {
