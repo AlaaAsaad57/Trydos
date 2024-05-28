@@ -171,6 +171,11 @@ export const getLang = (lang, cookieLang) => {
 };
 export const getListingData = async ({ categories, lang, productCategory }) => {
   let str = categories;
+  let url =
+    OTP_URL +
+    (productCategory
+      ? LISTING_INFO_URL + `?category=${productCategory}&boutique_slug=${str}`
+      : LISTING_INFO_URL + `?boutique_slug=${str}`);
   var details = productCategory
     ? {
         boutique_slug: str,
@@ -191,7 +196,7 @@ export const getListingData = async ({ categories, lang, productCategory }) => {
 
   try {
     let time = new Date().getTime();
-    const res = await fetch(OTP_URL + LISTING_INFO_URL, {
+    const res = await fetch(url, {
       method: "POST",
       body: formBody,
       next: {

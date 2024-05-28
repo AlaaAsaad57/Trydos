@@ -3,6 +3,8 @@ import React, { useEffect } from "react";
 
 function LandingPage({ afterLoad }) {
   useEffect(() => {
+    document.documentElement.style.overflow = "hidden";
+    document.documentElement.scrollTop = 0;
     if (!afterLoad) {
       document.documentElement.style.overflow = "hidden";
       setTimeout(() => {
@@ -11,6 +13,9 @@ function LandingPage({ afterLoad }) {
           document.getElementById("landing").style.display = "none";
       }, 3000);
     }
+    return () => {
+      document.documentElement.style.overflow = "initial";
+    };
   }, []);
   return (
     <div className={`landing-page ${true && "loading-screnn"}`} id="landing">

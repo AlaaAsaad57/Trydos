@@ -1,6 +1,8 @@
+import { dispatchRouteChangeEvent } from "Hooks/events";
 import NextLink from "Hooks/NextLink";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 interface OfferAvatarProps {
   images: string;
   zIndex: number;
@@ -15,20 +17,25 @@ function OfferAvatar({
   category,
   linkUrl,
 }: OfferAvatarProps) {
+  const router = useRouter();
   const getImageCld = () => {
     if (images.includes("cloudinary")) {
       return images.replace("/upload", "/upload/h_100/f_avif/q_100");
     } else return images;
   };
   return (
-    <NextLink
-      href={`${linkUrl}`}
+    <div
+      onClick={(e) => {
+        e.preventDefault();
+        router.push(linkUrl);
+        dispatchRouteChangeEvent("start");
+        console.log("link");
+      }}
       className="offer-avatar"
       style={{
         zIndex: zIndex,
         transform: `translateX(-${(zIndex - 1) * 5}px)`,
       }}
-      prefetch={false}
     >
       <div className="offer-avatar-info">
         <span>{name}</span>
@@ -47,7 +54,7 @@ function OfferAvatar({
         unselectable="on"
         style={{ borderRadius: "50%", height: "40px" }}
       />
-    </NextLink>
+    </div>
   );
 }
 

@@ -33,9 +33,12 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
   }, []);
   return (
     <div
-      onClick={() => {
-        router.push(`/boutiques/${boutique.slug}`);
-        dispatchRouteChangeEvent("start");
+      onClick={(e) => {
+        // @ts-ignore: Unreachable code error
+        if (!e.target.closest(".offer-avatar")) {
+          router.push(`/boutiques/${boutique.slug}`);
+          dispatchRouteChangeEvent("start");
+        }
       }}
       aria-label={`Go To listing Page`}
       className="offer-widget  w-full flex flex-col"
