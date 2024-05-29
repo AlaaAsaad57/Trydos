@@ -14,7 +14,7 @@ const nextConfig = withSvgr({
       "market_staging.trydos.tech",
       "s3.ap-south-1.amazonaws.com",
     ],
-    minimumCacheTTL: 60000,
+    minimumCacheTTL: 5403600,
   },
   experimental: {
     externalDir: true,
