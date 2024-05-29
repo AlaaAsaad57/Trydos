@@ -52,7 +52,7 @@ function Index() {
   return (
     <>
       {storiesData.length > 0 ||
-        (user.id && (
+        (user?.id && (
           <div className="stories-bar-container">
             <div id="stories-bar" className="stories-bar">
               <div className="stories-bars">
