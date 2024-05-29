@@ -68,7 +68,7 @@ export const configureStory = (story) => {
     } else if (storyItem.photo_path) {
       let img = myCld()
         .image(storyItem.photo_path?.split("/").pop().split(".")[0])
-        .format("avif")
+        .format("webp")
         .delivery(quality(auto()));
       returnedData.push({
         url: img.toURL(),
@@ -94,13 +94,13 @@ export const getThumb = (url, isVideo) => {
       return myCld()
         .video(url?.split("/").pop().split(".")[0])
         .resize(Resize.thumbnail("145", "255"))
-        .format("avif")
+        .format("webp")
         .delivery(quality(50));
     } else
       return myCld()
         .image(url?.split("/").pop().split(".")[0])
         .resize(Resize.thumbnail("145", "255"))
-        .format("avif")
+        .format("webp")
         .delivery(quality(50));
   }
 };
@@ -166,7 +166,7 @@ export function encode_utf8(params: {
 
 export const getConfiguredImage = ({ src, width, height }) => {
   if (src.includes("cloudinary")) {
-    return src.replace("/upload", `/upload/h_${height}/f_avif/q_auto`);
+    return src.replace("/upload", `/upload/h_${height}/f_webp/q_auto`);
   } else return src;
 };
 export const getLang = (lang, cookieLang) => {
