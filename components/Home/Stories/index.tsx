@@ -57,13 +57,14 @@ function Index() {
             <div className="stories-bars">
               {user?.id && <AddStory />}
 
-              {[1, 1, 1, 1, 1, 1].map((story, index) => (
-                <Skeleton
-                  width={100}
+              {storiesData.map((story, index) => (
+                <StoryElement
                   key={index}
-                  height={150}
-                  borderRadius={20}
-                  style={{ marginLeft: "5px" }}
+                  index={index}
+                  story={story}
+                  select={(e) => {
+                    setSelectStory(e);
+                  }}
                 />
               ))}
             </div>

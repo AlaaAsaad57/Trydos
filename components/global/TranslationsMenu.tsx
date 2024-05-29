@@ -1,4 +1,3 @@
-"use client";
 import { useDispatch, useSelector } from "react-redux";
 import { changeAppLanguage } from "store/homepage/actions";
 import dynamic from "next/dynamic";
