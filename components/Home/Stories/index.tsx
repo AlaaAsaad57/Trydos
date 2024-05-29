@@ -51,57 +51,20 @@ function Index() {
   const user = useSelector((state: any) => state.auth.user);
   return (
     <>
-      {!storiesData ? (
-        <div className="stories-bar-container">
-          <div id="stories-bar" className="stories-bar">
-            <div className="stories-bars">
-              {user?.id && <AddStory />}
-
-              {[1, 1, 1, 1, 1, 1].map((story, index) => (
-                <Skeleton
-                  width={100}
-                  key={index}
-                  height={150}
-                  borderRadius={20}
-                  style={{ marginLeft: "5px" }}
-                />
-              ))}
-            </div>
-          </div>
-          <svg
-            id="stories-border2"
-            className="border"
-            xmlns="http://www.w3.org/2000/svg"
-            width={getBorderWidth()}
-            height="0.5"
-          >
-            <line
-              id="Line_1107"
-              data-name="Line 1107"
-              x2={getBorderWidth()}
-              transform="translate(0 0.25)"
-              fill="none"
-              stroke="#3c3c3c"
-              strokeWidth="0.5"
-              strokeDasharray="3 3"
-            />
-          </svg>
-        </div>
-      ) : (
-        (storiesData.length > 0 || user?.id) && (
+      {storiesData.length > 0 ||
+        (user.id && (
           <div className="stories-bar-container">
             <div id="stories-bar" className="stories-bar">
               <div className="stories-bars">
                 {user?.id && <AddStory />}
 
-                {storiesData.map((story, index) => (
-                  <StoryElement
+                {[1, 1, 1, 1, 1, 1].map((story, index) => (
+                  <Skeleton
+                    width={100}
                     key={index}
-                    index={index}
-                    story={story}
-                    select={(e) => {
-                      setSelectStory(e);
-                    }}
+                    height={150}
+                    borderRadius={20}
+                    style={{ marginLeft: "5px" }}
                   />
                 ))}
               </div>
@@ -125,8 +88,7 @@ function Index() {
               />
             </svg>
           </div>
-        )
-      )}
+        ))}
     </>
   );
 }
