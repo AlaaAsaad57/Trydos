@@ -98,7 +98,7 @@ a {
 
 .offer-desc {
   display: flex;
-  min-height: 20px;
+  min-height: 25px;
   align-items: center;
   font-family: var(--Quicksand-Regular);
   color: #505050;
