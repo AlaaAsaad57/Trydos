@@ -61,24 +61,28 @@ const quicksand_regular = localFont({
   variable: "--Quicksand-Regular",
   display: "swap",
   preload: false,
+  fallback: ["system-ui", "arial"],
 });
 const quicksand_light = localFont({
   src: "../../../public/fonts/Quicksand-Light.woff2",
   variable: "--Quicksand-Light",
   display: "swap",
   preload: false,
+  fallback: ["system-ui", "arial"],
 });
 const quicksand_bold = localFont({
   src: "../../../public/fonts/Quicksand-Bold.woff2",
   variable: "--Quicksand-Bold",
   display: "swap",
   preload: false,
+  fallback: ["system-ui", "arial"],
 });
 const quicksand_medium = localFont({
   src: "../../../public/fonts/Quicksand-Medium.woff2",
   variable: "--Quicksand-Medium",
   display: "swap",
   preload: false,
+  fallback: ["system-ui", "arial"],
 });
 export default async function RootLayout({ params: { lang }, children }) {
   // ${sf_pro_rounded_light.variable}

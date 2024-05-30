@@ -3,6 +3,7 @@ function Logo({ animated, style }: { animated: boolean; style: boolean }) {
     <div className="logo-container">
       <img
         fetchPriority="high"
+        alt="TryDos Logo"
         width={120}
         height={36}
         loading="eager"
