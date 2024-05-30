@@ -1,0 +1,66 @@
+.translations-container:hover {
+  height: 200px;
+}
+
+.translations-container:hover .translations-container-inner .en-icon {
+  top: -70px;
+}
+.selected-language {
+  background-color: #cecdcd;
+}
+.translations-container:hover .translations-container-inner .ar-icon {
+  top: -140px;
+}
+.translations-container:hover .translations-container-inner .tr-icon {
+  top: -210px;
+}
+.translations-container-inner {
+  display: flex;
+  width: 60px;
+  height: 60px;
+  position: relative;
+}
+
+.translation-icon {
+  position: absolute;
+  z-index: 10;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  left: 0;
+  width: 60px;
+  height: 60px;
+  background-color: #f5f5f5;
+  border-radius: 50%;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.258);
+}
+
+.en-icon,
+.translation-icon {
+  transition: all 0.3s ease-in-out;
+}
+
+.en-icon {
+  z-index: 8;
+}
+
+.ar-icon {
+  transition: all 0.5s ease-in-out;
+  z-index: 7;
+}
+
+.tr-icon {
+  transition: all 0.7s ease-in-out;
+  z-index: 6;
+}
+.translations-container {
+  display: flex;
+  width: 60px;
+  height: 50px;
+  align-items: flex-end;
+  position: fixed;
+  z-index: 199;
+  right: 20px;
+  bottom: 30px;
+}

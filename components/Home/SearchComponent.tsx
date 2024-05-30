@@ -1,3 +1,4 @@
+import "styles/searchBox.css";
 import { useEffect, useRef, useState } from "react";
 import SearchIcon from "public/svg/SearchIcon.svg";
 import Divider from "public/svg/DividerIcon.svg";

@@ -13,10 +13,7 @@ function CategoriesBar({ forMobile, categories }: CategoriesBarProps) {
     <>
       {!forMobile && (
         <div
-          className={`categories-bar-container ${
-            forMobile &&
-            "mobile-bar cursor-pointer pr-[5px] overflow-x-scroll overflow-y-hidden whitespace-nowrap"
-          }`}
+          className={`categories-bar-container ${forMobile && "mobile-bar"}`}
           style={{ marginLeft: searchEnabled ? "13px" : "50px" }}
         >
           {categories.map((category, key) => (

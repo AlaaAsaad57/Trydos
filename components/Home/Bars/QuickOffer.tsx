@@ -8,7 +8,7 @@ function QuickOffer(): ReactElement {
 
   return (
     <div className={`home-bar`}>
-      <img src={"/svg/quickIcon.svg"} />
+      <img src={"/svg/quickIcon.svg"} alt="quick offer icon" />
       <BarDescribtion
         name={translate("Quick Offer", language)}
         desc={translate(

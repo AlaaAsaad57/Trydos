@@ -42,7 +42,7 @@ export const configureStory = (story) => {
   let returnedData = [];
   story?.stories?.map((storyItem) => {
     if (storyItem.full_video_path) {
-      let vid = story.full_video_path.replace(
+      let vid = storyItem.full_video_path.replace(
         "/upload",
         "/upload/w_700/f_webm/q_auto"
       );
@@ -61,7 +61,7 @@ export const configureStory = (story) => {
         type: "video",
       });
     } else if (storyItem.photo_path) {
-      let img = story.full_video_path.replace(
+      let img = storyItem.photo_path.replace(
         "/upload",
         "/upload/w_800/f_webp/q_auto"
       );

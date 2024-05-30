@@ -89,7 +89,7 @@ const CategoryNavItem = ({
               key={myKey}
             >
               {!searchEnabled && (
-                <div className="categories-bar-item-icon  h-[15px]">
+                <div className="categories-bar-item-icon ">
                   <RemoteSvg size={20} url={icon} isSvg={null} />
                 </div>
               )}

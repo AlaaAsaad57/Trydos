@@ -17,8 +17,8 @@ import { dispatchRouteChangeEvent } from "Hooks/events";
 import Loader from "components/global/Loader";
 const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"), {
   loading: () => (
-    <div className="offer-widget">
-      <Loader style={{}} />
+    <div className="offer-slider-container">
+      <Loader style={{ height: "100%", width: "100%" }} />
     </div>
   ),
 });
@@ -48,7 +48,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
         }
       }}
       aria-label={`Go To listing Page`}
-      className="offer-widget  w-full flex flex-col"
+      className="offer-widget"
       key={myKey}
     >
       <>
@@ -79,7 +79,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
         <div className="offer-blured-background" id={`blured-${boutique.id}`} />
         <div className="offer-blured" />
         <div className="offer-container">
-          <div className="offer-logo h-[20px]">
+          <div className="offer-logo">
             {boutique.icon ? (
               boutique.icon.includes(".svg") ? (
                 <RemoteSvg size={20} url={boutique.icon} isSvg={null} />
@@ -105,7 +105,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
               boutique.name
             )}
           </div>
-          <div className="offer-category h-[12px]">
+          <div className="offer-category">
             {boutique.mainCategoriesForProductIds.map((category, key) => {
               if (category.category_icon.includes(".svg")) {
                 return (

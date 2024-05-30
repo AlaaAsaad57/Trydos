@@ -1,22 +1,20 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-@font-face {
-  font-family: "Adobe Clean Light";
-  src: url("../fonts/AdobeCleanLight.otf");
-}
-@font-face {
-  font-family: "Adobe Clean Regular";
-  src: url("../fonts/AdobeCleanRegular.otf");
-}
-@font-face {
-  font-family: "Adobe Clean Bold";
-  src: url("../fonts/AdobeCleanBold.otf");
-}
-
 html,
 body {
   height: auto;
+}
+.home-page-container .login-w2-container.login-widget-container.step-1 {
+  justify-content: center;
+}
+.animation-row-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  margin-top: auto !important;
+}
+.phone-input-desc.already-registered {
+  margin-bottom: min(calc(32vh - 50px), 306px);
 }
 .login-w2-container.login-widget-container {
   background-color: white;
@@ -30,11 +28,7 @@ body {
   align-items: center;
   padding-bottom: 34px;
 }
-.login-phone-input {
-  font-size: 20px !important;
-  font-family: var(--Quicksand-Regular) !important;
-  color: #5d5c5d !important;
-}
+
 .jus-center {
   justify-content: center !important;
 }
@@ -150,12 +144,7 @@ input[type="number"] {
   top: 0px;
   left: 0px;
 }
-.phone-input-element {
-  width: 100% !important;
-  max-width: 390px !important;
-  height: 60px !important;
-  position: relative !important;
-}
+
 .phone-input-desc {
   display: flex;
   max-width: 390px;
@@ -420,4 +409,85 @@ input {
 
 .qr-extended .flex svg g path {
   fill: #4d84ff;
+}
+.phone-input-element {
+  display: flex;
+  align-items: center;
+  z-index: 2;
+  width: 100% !important;
+  max-width: 390px !important;
+  height: 60px !important;
+  position: relative !important;
+}
+.login-phone-input {
+  height: 20px;
+  font-size: 20px !important;
+  font-family: var(--Quicksand-Regular) !important;
+  color: #5d5c5d !important;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  margin-left: 4px;
+}
+@media only screen and (min-width: 601px) {
+  .home-page-container
+    .login-w2-container.login-widget-container.step-1
+    #logo-auth {
+    margin-left: 40px !important;
+  }
+  .margin-none {
+    margin: 0 !important;
+  }
+  .home-page-container .login-w2-container.login-widget-container #logo-auth {
+    margin-left: 40px !important ;
+  }
+  .home-page-container .login-w2-container.login-widget-container.step2,
+  .home-page-container .login-w2-container.login-widget-container.step3,
+  .home-page-container .login-w2-container.login-widget-container.step4 {
+    justify-content: flex-start !important;
+  }
+  .home-page-container
+    .login-w2-container.login-widget-container
+    .animation-row-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    margin-top: auto !important;
+  }
+
+  .step6 .animated-container {
+    width: 390px;
+    min-width: 390px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    margin-top: auto;
+  }
+  #secondRect {
+    width: 100%;
+  }
+  .home-page-container .login-w2-container.login-widget-container.step6 {
+    padding-bottom: 54px !important;
+  }
+  .home-page-container .login-w2-container.login-widget-container {
+    height: calc(100vh - 92px) !important;
+    max-height: 932px;
+    right: 20px;
+    justify-content: flex-start !important;
+    padding-top: 50px;
+    top: 82px;
+  }
+}
+.step6 {
+  padding-bottom: 54px !important;
+  padding-inline: 20px;
+}
+.animated-container {
+  min-width: 100%;
+  max-width: 390px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }

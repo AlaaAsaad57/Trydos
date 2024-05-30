@@ -1,20 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-.home-page-container .login-w2-container.login-widget-container.step-1 {
-  justify-content: center;
-}
-.animation-row-container {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  justify-content: center;
-  align-items: center;
-  margin-top: auto !important;
-}
-.phone-input-desc.already-registered {
-  margin-bottom: min(calc(32vh - 50px), 306px);
-}
 .mobile-bar.categories-bar-container
   .categories-bar-item
   .categories-bar-item-description {
@@ -36,124 +19,17 @@
 .categories-bar-item-name {
   width: auto !important;
 }
-@media only screen and (min-width: 601px) {
-  .home-page-container
-    .login-w2-container.login-widget-container.step-1
-    #logo-auth {
-    margin-left: 40px !important;
-  }
-  .margin-none {
-    margin: 0 !important;
-  }
-  .home-page-container .login-w2-container.login-widget-container #logo-auth {
-    margin-left: 40px !important ;
-  }
-  .home-page-container .login-w2-container.login-widget-container.step2,
-  .home-page-container .login-w2-container.login-widget-container.step3,
-  .home-page-container .login-w2-container.login-widget-container.step4 {
-    justify-content: flex-start !important;
-  }
-  .home-page-container
-    .login-w2-container.login-widget-container
-    .animation-row-container {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    justify-content: center;
-    align-items: center;
-    margin-top: auto !important;
-  }
 
-  .step6 .animated-container {
-    width: 390px;
-    min-width: 390px;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    margin-top: auto;
-  }
-  #secondRect {
-    width: 100%;
-  }
-  .home-page-container .login-w2-container.login-widget-container.step6 {
-    padding-bottom: 54px !important;
-  }
-  .home-page-container {
-    padding-top: 40px !important;
-  }
-  .home-page-container .categories-bar-container.mobile-bar {
-    display: none !important;
-  }
-  .home-page-container .categories-bar-container:not(.mobile-bar) {
-    margin-left: 50px;
-    display: flex;
-    padding: 0px;
-    align-items: center;
-  }
-  .home-page-container .categories-bar-container:not(.mobile-bar) div,
-  .home-page-container
-    .categories-bar-container:not(.mobile-bar)
-    .categories-bar-item {
-    margin: 0px;
-  }
-  .home-navbar {
-    height: 30px !important;
-  }
-  .stories-bar,
-  .stories-bars {
-    margin-top: 0px !important;
-    height: 160px !important;
-  }
-  .stories-bars {
-    padding-left: 50px;
-    padding-right: 56px;
-  }
-  .story-element-container {
-    width: 100px;
-    min-width: 100px;
-  }
-  .story-element-container:not(:first-child) {
-    margin-left: 15px;
-  }
-  .stories-bar-container {
-    margin-top: 35px !important;
-    height: auto !important;
-    flex-direction: column;
-  }
-  #stories-border2 {
-    display: flex;
-    min-height: 1px;
-    padding-inline: 30px;
-    margin-top: 40px;
-  }
-  .home-page-container .login-w2-container.login-widget-container {
-    height: calc(100vh - 92px) !important;
-    max-height: 932px;
-    right: 20px;
-    justify-content: flex-start !important;
-    padding-top: 50px;
-    top: 82px;
-  }
-}
 @media only screen and (max-width: 600px) {
   .stories-bar-container {
     margin-top: 23px !important;
   }
 }
-.step6 {
-  padding-bottom: 54px !important;
-  padding-inline: 20px;
-}
+
 svg {
   overflow: visible;
 }
-.animated-container {
-  min-width: 100%;
-  max-width: 390px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+
 @media only screen and (max-width: 912px) {
   .login-w2-container.login-widget-container {
     right: 20px;
@@ -169,11 +45,14 @@ svg {
     width: 100% !important;
     justify-content: space-between;
     padding-left: 15px;
-    padding-right: 30px;
-    height: 47px;
+    padding-right: 5px;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    min-height: 47px;
     background-color: white;
     padding-top: 7px !important;
     z-index: 8;
+    white-space: nowrap;
   }
   .categories-bar-item-name {
     font-size: 10px;
@@ -287,9 +166,7 @@ svg {
   .offers-list.mt-5 {
     margin-top: 20px !important;
   }
-  .story-element-container:not(.add-story-container) .story-element-item {
-    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.2);
-  }
+
   .home-bar {
     display: none !important;
   }
@@ -329,9 +206,7 @@ svg {
     margin-top: 60px !important;
   }
 }
-.mobile-bar .search-component-container {
-  min-width: 58vw;
-}
+
 .home-page-container .categories-bar-container.mobile-bar {
   display: none;
 }
@@ -353,5 +228,59 @@ svg {
   align-items: center;
   width: 100%;
 }
+@media only screen and (min-width: 601px) {
+  #secondRect {
+    width: 100%;
+  }
+  .home-page-container {
+    padding-top: 40px !important;
+  }
+  .home-page-container .categories-bar-container.mobile-bar {
+    display: none !important;
+  }
+  .home-page-container .categories-bar-container:not(.mobile-bar) {
+    margin-left: 50px;
+    display: flex;
+    padding: 0px;
+    align-items: center;
+  }
+  .home-page-container .categories-bar-container:not(.mobile-bar) div,
+  .home-page-container
+    .categories-bar-container:not(.mobile-bar)
+    .categories-bar-item {
+    margin: 0px;
+  }
+  .home-navbar {
+    height: 30px !important;
+  }
+  .stories-bar,
+  .stories-bars {
+    margin-top: 0px !important;
+    height: 160px !important;
+  }
+  .stories-bars {
+    padding-left: 50px;
+    padding-right: 56px;
+  }
 
+  .stories-bar-container {
+    margin-top: 35px !important;
+    height: auto !important;
+    flex-direction: column;
+  }
+  #stories-border2 {
+    display: flex;
+    min-height: 1px;
+    padding-inline: 30px;
+    margin-top: 40px;
+  }
+  .home-page-container .login-w2-container.login-widget-container {
+    height: calc(100vh - 92px) !important;
+    max-height: 932px;
+    right: 20px;
+    justify-content: flex-start !important;
+    padding-top: 50px;
+    top: 82px;
+  }
+}
 /* purgecss end ignore */

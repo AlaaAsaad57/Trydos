@@ -1,6 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 @media only screen and (max-height: 980px) {
   .qr-extend-comtainer .login-privacy-text-2 {
     display: none;

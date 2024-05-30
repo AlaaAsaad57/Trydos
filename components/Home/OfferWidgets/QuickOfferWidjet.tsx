@@ -1,8 +1,4 @@
-import LogoOffer from "public/svg/offerlogo.svg";
-import ManIcon from "public/svg/manIcon.svg";
-import WomanIcon from "public/svg/WomanIcon.svg";
 const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"));
-import KidsIcon from "public/svg/KidsIcon.svg";
 const QuickEventBar = dynamic(() => import("./QuickEventBar"));
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
@@ -27,7 +23,7 @@ function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
       ref={ref}
       prefetch={false}
       href={"/listing"}
-      className="offer-widget quick-widget  w-full flex flex-col"
+      className="offer-widget quick-widget"
       aria-label={`Go To listing Page`}
       onClick={() => onClick()}
     >
@@ -56,14 +52,8 @@ function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
           <div className="offer-blured-background" />
           <div className="offer-blured" />
           <div className="offer-container">
-            <div className="offer-logo">
-              <LogoOffer />
-            </div>
-            <div className="offer-category">
-              <ManIcon />
-              <WomanIcon />
-              <KidsIcon />
-            </div>
+            <div className="offer-logo"></div>
+            <div className="offer-category"></div>
             <div className="offer-desc">
               {translate("Mango Famous Turkish Brand Best Offers", language)}
             </div>

@@ -169,19 +169,8 @@ function AddStory() {
       )}
       {openMenu && (
         <div
-          className={`lang-modalDisable content-[""] fixed w-[-webkit-fill-available] h-[-webkit-fill-available] z-[2000] left-0 top-0 ${
-            openMenu && "open"
-          }`}
+          className={`lang-modalDisable addStory-modal ${openMenu && "open"}`}
           onClick={() => setOpenMenu(false)}
-          style={{
-            width: "100vw",
-            height: "100vh",
-            maxWidth: "1365px",
-            top: "-113px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
         >
           <div
             className="file-picker"

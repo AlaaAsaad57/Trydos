@@ -1,8 +1,21 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 .swiper {
-  height: 100% !important;
+  width: auto;
+  height: 100%;
+  position: absolute;
+  left: 0%;
+  top: 0%;
+  margin-left: 0px;
+  margin-top: px;
+}
+
+.swiper-slide {
+  background-position: center;
+  background-size: cover;
+}
+
+.swiper-slide img {
+  display: block;
+  width: 100%;
 }
 .swiper-slide-active {
   opacity: 1 !important;

@@ -5,7 +5,7 @@ import { translate } from "utils/functions";
 import ManIcon from "public/svg/manIcon.svg";
 import Border from "./Border";
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
-
+import "styles/Modal.css";
 function NameModal() {
   const Open = useSelector((state: any) => state.chat.nameModal);
   const language = useSelector((state: any) => state.homepage.language);
@@ -17,9 +17,7 @@ function NameModal() {
   return (
     <>
       <div
-        className={`lang-modalDisable content-[""] fixed w-[-webkit-fill-available] h-[-webkit-fill-available] z-[2000] left-0 top-0 ${
-          Open && "open"
-        }`}
+        className={`lang-modalDisable ${Open && "open"}`}
         onClick={(e) => {
           close();
         }}

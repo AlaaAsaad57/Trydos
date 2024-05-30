@@ -7,7 +7,7 @@ function CategoryBar(): ReactElement {
   const language = cookiesStore.get("language")?.value;
   return (
     <div className={`home-bar`}>
-      <img src={"/svg/categoryIcon.svg"} />
+      <img src={"/svg/categoryIcon.svg"} alt="category offer icon" />
       <BarDescribtion
         name={translate("Category", language)}
         desc={translate(

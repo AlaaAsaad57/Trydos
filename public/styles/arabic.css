@@ -1,8 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 html[lang=] .home-navbar {
-  @apply flex-row-reverse !important;
+  display: flex;
+  flex-direction: row-reverse;
 }
 html[lang="ar"]
   .home-page-container
@@ -17,105 +15,128 @@ html[lang="ar"]
   letter-spacing: 0.022rem !important;
 }
 html[lang="ar"] .categories-bar-container {
-  @apply ml-0 mr-[50px] flex-row-reverse !important;
+  margin-left: 0px;
+  margin-right: 50px;
+  display: flex;
+  flex-direction: row-reverse;
 }
 html[lang="ar"] .categories-bar-item:not(:first-child) {
-  @apply mr-[30px] ml-0 !important;
+  margin-right: 30px !important;
+  margin-left: 0px !important;
 }
 html[lang="ar"] .search-component-container {
-  @apply flex-row-reverse !important;
+  flex-direction: row-reverse !important;
 }
 
 html[lang="ar"] .search-component-container svg:nth-child(2) {
-  @apply mr-[10px] ml-0 !important;
+  margin-right: 10px !important;
+  margin-left: 0px !important;
 }
 html[lang="ar"] .search-component-container input {
   direction: rtl;
-  @apply text-right mr-[10px] ml-0  !important;
+  text-align: right;
+  margin-right: 10px !important;
+  margin-left: 0px !important;
 }
 html[lang="ar"] .user-nav-container,
 html[lang="ar"] .welcome-user,
-html[lang="ar"] .nav-question-item {
-  @apply flex-row-reverse !important;
-}
-html[lang="ar"] .nav-question-item {
-  @apply mr-[9px] ml-0 !important;
-}
-html[lang="ar"] .nav-question-item span {
-  @apply mr-[5px] ml-0 !important;
-}
+html[lang="ar"] .nav-question-item,
 html[lang="ar"] .login-label,
 html[lang="ar"] .login-label-title,
-html[lang="ar"] .login-qr-info {
-  @apply flex-row-reverse !important;
+html[lang="ar"] .login-qr-info,
+html[lang="ar"] .duartion-login-label,
+html[lang="ar"] .offer-container .offer-details,
+html[lang="ar"] .quick-event-bar {
+  flex-direction: row-reverse !important;
+}
+html[lang="ar"] .nav-question-item {
+  margin-right: 9px !important;
+  margin-left: 0px !important;
+}
+html[lang="ar"] .nav-question-item span {
+  margin-right: 5px !important;
+  margin-left: 0px !important;
 }
 html[lang="ar"] .login-label-text {
-  @apply mr-[10px] ml-0 !important;
+  margin-right: 10px !important;
+  margin-left: 0px !important;
 }
 html[lang="ar"] .login-label.login-extend,
 html[lang="ar"] .login-qr-section {
-  @apply items-end !important;
+  align-items: end !important;
 }
 html[lang="ar"] .login-qr-info-text {
-  @apply mr-[5px] ml-0 !important;
+  margin-right: 5px !important;
+  margin-left: 0px !important;
 }
 html[lang="ar"] .login-blue-question {
-  @apply pl-[140px] !important;
+  padding-left: 140px !important;
 }
 html[lang="ar"] .create-account-button .login-label {
-  @apply pr-[132px] justify-between flex-row-reverse pl-0 !important;
-}
-html[lang="ar"] .duartion-login-label {
-  @apply flex-row-reverse;
+  padding-right: 132px !important;
+  justify-content: space-between !important;
+  flex-direction: row-reverse;
+  padding-left: 0px !important;
 }
 html[lang="ar"] .duartion-login-label .blue-text {
-  @apply ml-0 mr-[3px] !important;
+  margin-right: 3px !important;
+  margin-left: 0px !important;
 }
 html[lang="ar"] .login-success-label {
   direction: rtl;
 }
 html[lang="ar"] .stories-bars {
-  @apply flex-row-reverse pr-[15px] !important;
+  flex-direction: row;
+  padding-right: 15px !important;
 }
 html[lang="ar"] .story-element-container {
-  @apply ml-0 mr-[5px] !important;
+  margin-right: 5px !important;
+  margin-left: 0px !important;
 }
 html[lang="ar"] .story-element-container:first-child {
-  @apply ml-0 mr-0 !important;
+  margin-right: 0px !important;
+  margin-left: 0px !important;
 }
 html[lang="ar"] .home-bar {
-  @apply flex-row-reverse pr-[10px] !important;
+  padding-right: 10px !important;
+  flex-direction: row-reverse !important;
 }
 html[lang="ar"] .offer-container {
-  @apply items-end !important;
+  align-items: end !important;
 }
 html[lang="ar"] .offer-container .offer-logo {
-  @apply mr-[25px] ml-0 !important;
+  margin-right: 25px !important;
+  margin-left: 0px !important;
 }
 html[lang="ar"] .offer-container .offer-category {
-  @apply left-[15px] right-0 flex-row !important;
+  left: 15px !important;
+  right: 0px !important;
+  flex-direction: row !important;
 }
 html[lang="ar"] .offer-desc {
-  @apply mr-[25px] ml-0 !important;
   direction: rtl;
+  margin-right: 25px !important;
+  margin-left: 0px !important;
 }
-html[lang="ar"] .offer-container .offer-details {
-  @apply flex-row-reverse !important;
-}
+
 html[lang="ar"] .offer-container .offer-details .offer-details-item {
-  @apply mr-[25px] ml-0 !important;
+  margin-right: 25px !important;
+  margin-left: 0px !important;
 }
-html[lang="ar"] .quick-event-bar {
-  @apply flex-row-reverse !important;
-}
+
 html[lang="ar"] .quick-event-bar .stopwatch-container {
-  @apply left-[10px] right-0 flex-row-reverse justify-start w-32 !important;
+  left: 10px !important;
+  right: 0px !important;
+  flex-direction: row-reverse !important;
+  justify-content: start;
+  width: 125px !important;
 }
 html[lang="ar"] .quick-event-bar .bar-desc {
   direction: rtl;
 }
 html[lang="ar"] .categories-bar-item:not(:first-child) {
-  @apply mr-[0px] ml-0 !important;
+  margin-right: 0px !important;
+  margin-left: 0px !important;
 }
 html[lang="ar"] .categories-bar-item .categories-bar-item-description {
   right: 0px !important;

@@ -31,9 +31,7 @@ function MobileNavigation({ categories }: { categories: Category[] }) {
     });
   }
   return (
-    <div
-      className={`categories-bar-container ${"mobile-bar cursor-pointer pr-[5px] overflow-x-scroll overflow-y-hidden whitespace-nowrap"}`}
-    >
+    <div className={`categories-bar-container ${"mobile-bar"}`}>
       {categories.map((category, key) => (
         <CategoryNavMobile
           name={category.name}

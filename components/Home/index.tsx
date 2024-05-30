@@ -1,6 +1,6 @@
 "use client";
 import "styles/home.css";
-import "styles/unused-onload.css";
+
 import { useSelector } from "react-redux";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";

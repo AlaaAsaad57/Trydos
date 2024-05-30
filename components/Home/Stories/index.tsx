@@ -1,5 +1,5 @@
 "use client";
-
+import "styles/stories.css";
 import dynamic from "next/dynamic";
 const StoryElement = dynamic(() => import("./StoryElement"), { ssr: false });
 const AddStory = dynamic(() => import("../AddStory"), { ssr: false });

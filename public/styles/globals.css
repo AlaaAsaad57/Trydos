@@ -1,9 +1,3 @@
-@import url("./fonts.css");
-@import url("./home.css");
-@import url("./unused-onload.css");
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -20,6 +14,9 @@
 .offer-category .svg-holder-r svg ellipse {
   fill: #c4c2c2;
   stroke: #c4c2c2;
+}
+.mobile-bar::-webkit-scrollbar {
+  display: none;
 }
 .offer-logo .svg-holder-r img,
 .offer-logo .svg-holder-r {
@@ -72,13 +69,7 @@ img {
   user-select: none;
   -webkit-user-drag: none;
 }
-.fixed-img-prev img.image-story-camera,
-.fixed-img-prev video.image-story-camera {
-  width: 100% !important;
-  height: 100% !important;
-  max-height: 100vh !important;
-  position: absolute !important;
-}
+
 @media only screen and (max-width: 912px) {
   .loading-screnn.landing-page {
     top: 145px !important;

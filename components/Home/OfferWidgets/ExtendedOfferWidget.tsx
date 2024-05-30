@@ -8,7 +8,6 @@ import DiscountIcon from "public/svg/discountIcon.svg";
 import GiftIcon from "public/svg/giftIcon.svg";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
-import Link from "next/link";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -31,7 +30,7 @@ function ExtendedOfferWidget({
     <div
       ref={ref}
       aria-label={`Go To listing Page`}
-      className="offer-widget extended-widget w-full flex flex-col"
+      className="offer-widget extended-widget"
       key={myKey}
       onClick={() => onClick()}
     >

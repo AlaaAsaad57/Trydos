@@ -7,7 +7,7 @@ function OfferBar(): ReactElement {
   const language = cookiesStore.get("language")?.value;
   return (
     <div className={`home-bar`}>
-      <img src={"/svg/offerIcon.svg"} />
+      <img src={"/svg/offerIcon.svg"} alt="offer icon" />
       <BarDescribtion
         name={translate("Offer", language)}
         desc={translate("Products With Great Offers", language)}

@@ -6,7 +6,7 @@ function BrandsBar() {
   const language = cookiesStore.get("language")?.value;
   return (
     <div className={`home-bar`}>
-      <img src={"/svg/starIcon.svg"} />
+      <img src={"/svg/starIcon.svg"} alt="star icon" />
       <BarDescribtion
         name={translate("Brands", language)}
         desc={translate("Best Offers From Brands", language)}

@@ -62,9 +62,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
       {boutique?.childCategoriesForProductIds?.length > 5 && (
         <MoreOfferAvatar
           priority={false}
-          images={
-            "https://res.cloudinary.com/djooohujg/image/upload/f_webp/q_10/1707907006?_a=DATC1RAAZAA0"
-          }
+          images={boutique?.childCategoriesForProductIds[5].product_thumbnail}
           zIndex={100}
           viewed={6}
         />

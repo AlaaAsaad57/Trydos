@@ -8,7 +8,7 @@ interface OfferListProps {
 }
 function OfferList({ quick, boutiques }: OfferListProps) {
   return (
-    <div className={`offers-list ${quick && " mt-5"}  w-full flex flex-col`}>
+    <div className={`offers-list ${quick && " mt-5"}`}>
       {/* {quick ? (
         <QuickOfferWidjet onClick={() => {}} offer={{ photos: [1] }} />
       ) : (

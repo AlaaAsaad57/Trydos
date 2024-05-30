@@ -1,9 +1,8 @@
 import "styles/globals.css";
 import "styles/home.css";
-
+import "styles/unused-onload.css";
 import Providers from "store/provider";
 import localFont from "next/font/local";
-
 import type { Viewport } from "next";
 import NavbarServer from "components/Server/Navbar";
 import PageLoadingIndicator from "Hooks/LoadingIndicator";
@@ -104,7 +103,7 @@ export default async function RootLayout({ params: { lang }, children }) {
       <body>
         <PageLoadingIndicator />
         <Providers>
-          <div className="site-container bg-neutral-50 flex justify-around min-w-[100vw] min-h-full h-full">
+          <div className="site-container">
             <div className="home-page-container">
               <>
                 <TranslationsMenu init={lang} />
