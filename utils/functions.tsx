@@ -63,7 +63,7 @@ export const configureStory = (story) => {
     } else if (storyItem.photo_path) {
       let img = storyItem.photo_path.replace(
         "/upload",
-        "/upload/w_800/fw_avif/q_auto"
+        "/upload/w_800/f_avif/q_auto"
       );
       returnedData.push({
         url: img,
@@ -86,8 +86,8 @@ export const configureStory = (story) => {
 export const getThumb = (url, isVideo) => {
   if (url) {
     if (isVideo) {
-      return url.replace("/upload", "/upload/h_100/fw_avif/q_100");
-    } else return url.replace("/upload", "/upload/h_100/fw_avif/q_100");
+      return url.replace("/upload", "/upload/h_100/f_avif/q_100");
+    } else return url.replace("/upload", "/upload/h_100/f_avif/q_100");
   }
 };
 export const getUser = () => {
@@ -152,7 +152,7 @@ export function encode_utf8(params: {
 
 export const getConfiguredImage = ({ src, width, height }) => {
   if (src.includes("cloudinary")) {
-    return src.replace("/upload", `/upload/h_${height}/fw_avif/q_auto`);
+    return src.replace("/upload", `/upload/h_${height}/f_avif/q_auto`);
   } else return src;
 };
 export const getLang = (lang, cookieLang) => {

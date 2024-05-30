@@ -14,7 +14,7 @@ export default function RemoteSvg({ url, size, isSvg }) {
   const { data, error, isLoading } = useSWRImmutable(
     src.replace(
       "/upload",
-      `/upload/w_50,h_50/${isSvg ? "f_svg" : "fw_avif"}/q_auto`
+      `/upload/w_50,h_50/${isSvg ? "f_svg" : "f_avif"}/q_auto`
     ),
     fetcher,
     {
@@ -69,7 +69,7 @@ export default function RemoteSvg({ url, size, isSvg }) {
         <img
           src={src.replace(
             "/upload",
-            `/upload/h_50/${isSvg ? "f_svg" : "fw_avif"}/q_auto`
+            `/upload/h_50/${isSvg ? "f_svg" : "f_avif"}/q_auto`
           )}
           alt="icon"
           width={size || 20}
