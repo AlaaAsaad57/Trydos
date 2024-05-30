@@ -1,7 +1,7 @@
-import { AdvancedImage } from "@cloudinary/react";
 import React from "react";
 import { configureStory, getThumb } from "../../../utils/functions";
 import { errorPNG } from "utils/constants";
+import Image from "next/image";
 function StoryChatRow({ story, index, viewedStory, stories, select }) {
   return (
     <div
@@ -9,13 +9,13 @@ function StoryChatRow({ story, index, viewedStory, stories, select }) {
       style={{ cursor: "pointer" }}
       onClick={() => select(configureStory(story))}
     >
-      <AdvancedImage
+      <Image
         className="thumb-img"
         alt="story"
         width={30}
         height={30}
-        priority={true}
-        fetchPriority={"high"}
+        priority={false}
+        fetchPriority={"low"}
         style={{
           borderRadius: "50%",
           border:
@@ -28,7 +28,7 @@ function StoryChatRow({ story, index, viewedStory, stories, select }) {
           e.currentTarget.src = errorPNG;
           e.currentTarget.onerror = null;
         }}
-        cldImg={getThumb(
+        src={getThumb(
           viewedStory.full_video_path || viewedStory.photo_path,
           viewedStory.full_video_path
         )}

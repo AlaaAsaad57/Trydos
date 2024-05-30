@@ -1,4 +1,3 @@
-import { CloudinaryImage } from "@cloudinary/url-gen";
 import { Story as StoryInstaType } from "utils/libs/react-insta-stories-master/src/interfaces";
 export interface Story {
   id: number;
@@ -8,7 +7,7 @@ export interface Story {
   mobile_phone: string;
   stories: {
     url: string;
-    FixedUrl: CloudinaryImage;
+    FixedUrl: string;
     duration: number;
     type: string;
     is_seen: boolean;

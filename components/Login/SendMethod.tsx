@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import WAIcon from "public/svg/WAIcon.svg";
 import MessageIcon from "public/svg/MessageIcon.svg";
@@ -20,7 +20,7 @@ function SendMethod({
   setMessageMethod: Function;
 }) {
   const language = useSelector((state: any) => state.homepage.language);
-  const { SendOtpHook, SendOtpData } = useAuthHooks();
+  const { SendOtpHook } = useAuthHooks();
   const SendCodeRequest = (method: string) => {
     SendOtpHook({
       mobilePhone: inputValue,

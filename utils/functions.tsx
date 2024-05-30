@@ -1,8 +1,4 @@
 import { translations } from "public/translations/translations.js";
-import { myCld } from "./constants";
-import { quality } from "@cloudinary/url-gen/actions/delivery";
-import { auto } from "@cloudinary/url-gen/qualifiers/quality";
-import { Resize } from "@cloudinary/url-gen/actions";
 import profilePicture from "public/images/profileNo.png";
 import StoryServiceClass from "services/story";
 import { store } from "store";
@@ -46,15 +42,14 @@ export const configureStory = (story) => {
   let returnedData = [];
   story?.stories?.map((storyItem) => {
     if (storyItem.full_video_path) {
-      let vid = myCld()
-        .video(storyItem.full_video_path?.split("/").pop().split(".")[0])
-        .format("webm")
-        .delivery(quality(auto()));
+      let vid = story.full_video_path.replace(
+        "/upload",
+        "/upload/w_700/f_webm/q_auto"
+      );
       returnedData.push({
-        url: vid.toURL(),
+        url: vid,
         FixedUrl: vid,
         is_seen: storyItem.is_seen,
-
         id: storyItem.id,
         header: {
           heading: story.name ?? story.mobile_phone ?? "Unknown",
@@ -66,12 +61,12 @@ export const configureStory = (story) => {
         type: "video",
       });
     } else if (storyItem.photo_path) {
-      let img = myCld()
-        .image(storyItem.photo_path?.split("/").pop().split(".")[0])
-        .format("webp")
-        .delivery(quality(auto()));
+      let img = story.full_video_path.replace(
+        "/upload",
+        "/upload/w_800/f_webp/q_auto"
+      );
       returnedData.push({
-        url: img.toURL(),
+        url: img,
         FixedUrl: img,
         is_seen: storyItem.is_seen,
         duration: 5000,
@@ -91,17 +86,8 @@ export const configureStory = (story) => {
 export const getThumb = (url, isVideo) => {
   if (url) {
     if (isVideo) {
-      return myCld()
-        .video(url?.split("/").pop().split(".")[0])
-        .resize(Resize.thumbnail("145", "255"))
-        .format("webp")
-        .delivery(quality(50));
-    } else
-      return myCld()
-        .image(url?.split("/").pop().split(".")[0])
-        .resize(Resize.thumbnail("145", "255"))
-        .format("webp")
-        .delivery(quality(50));
+      return url.replace("/upload", "/upload/h_100/f_webp/q_100");
+    } else return url.replace("/upload", "/upload/h_100/f_webp/q_100");
   }
 };
 export const getUser = () => {

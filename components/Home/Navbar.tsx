@@ -41,7 +41,7 @@ function Navbar({ init, categories }: NavbarProps) {
     <>
       <AuthSections />
       <div className="home-navbar">
-        <NextLink href={"/"}>
+        <NextLink href={"/"} aria-label="TryDos Home">
           <Logo animated={false} style={false} key={1} />
         </NextLink>
         {<CategoriesBar categories={categories} key={2} forMobile={false} />}

@@ -1,7 +1,7 @@
 import React from "react";
 import { getHomeData } from "store/homepage/cachedActions";
 import OfferList from "components/Home/OfferWidgets/OfferList";
-async function OfferListServer({ params, searchParams }) {
+async function OfferListServer({ params }) {
   const [HomeData] = await getHomeData({
     str: params?.mainCategory,
     lang: params.lang ? params.lang.split("-")[1] : null,

@@ -4,10 +4,8 @@ import WomanIcon from "public/svg/WomanIcon.svg";
 const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"));
 import KidsIcon from "public/svg/KidsIcon.svg";
 const QuickEventBar = dynamic(() => import("./QuickEventBar"));
-
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
-import Link from "next/link";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import dynamic from "next/dynamic";

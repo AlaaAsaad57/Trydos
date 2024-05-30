@@ -356,7 +356,6 @@ function NewLoginWidget() {
                 }}
                 Name={Name}
                 user={user}
-                operation={operation}
                 FinaliseLogin={() => FinaliseLogin()}
                 cancelLogin={() => {
                   AuthService.cancelAuth();

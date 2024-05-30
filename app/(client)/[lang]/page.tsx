@@ -6,7 +6,7 @@ function page({ params }) {
     <>
       <Home />
       <BrandsBar />
-      <OfferListServer params={params} searchParams={params.categories} />
+      <OfferListServer params={params} />
     </>
   );
 }

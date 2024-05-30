@@ -10,13 +10,10 @@ function CategoryPhoto(props: {
   height: string | number;
   style: object;
 }) {
-  const [reload, setReload] = useState(true);
   const [src, setSrc] = useState(props.src);
   const onClick = () => {
-    setReload(false);
     setTimeout(() => {
       setSrc(props.src + `?t=${new Date().getTime()}`);
-      setReload(true);
     }, 1000);
   };
   return (

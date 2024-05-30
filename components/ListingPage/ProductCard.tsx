@@ -8,7 +8,6 @@ import "swiper/css/bundle";
 import { useDispatch, useSelector } from "react-redux";
 import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";
-import { LogData } from "store/homepage/actions";
 import { useParams } from "next/navigation";
 import homeService from "services/home";
 import { dispatchRouteChangeEvent } from "Hooks/events";
@@ -60,7 +59,7 @@ function ProductCard({ Listing_Data_res }: { Listing_Data_res: any }) {
               <InView
                 className="spinner-container"
                 as="div"
-                onChange={(inView, entry) => {
+                onChange={(inView) => {
                   if (inView && !loading) {
                     GetNextPage();
                   }

@@ -63,11 +63,6 @@ function ProductCover({ product }) {
       });
     return index;
   };
-  const getImageCld = (s) => {
-    if (s.includes("cloudinary")) {
-      return s.replace("/upload", "/upload/h_290/f_webp/q_40");
-    } else return s;
-  };
   return (
     <div
       className="product-container"

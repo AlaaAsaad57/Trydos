@@ -5,7 +5,6 @@ import { translate } from "utils/functions";
 
 function WelcomingWidget({
   inputValue,
-  setStepIndcator,
   stepIndicator,
   signStep,
   Name,
@@ -14,7 +13,6 @@ function WelcomingWidget({
   inputValue: string;
   stepIndicator: number;
   signStep: string;
-  setStepIndcator: Function;
   Name: string;
   close: Function;
 }) {

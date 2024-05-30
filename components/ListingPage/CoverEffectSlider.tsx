@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, memo, Ref } from "react";
+import { useRef, useState, useEffect } from "react";
 import ImageAvatar from "./ImageAvatar";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { EffectCoverflow } from "swiper/modules";

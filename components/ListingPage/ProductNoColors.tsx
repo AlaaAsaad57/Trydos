@@ -1,9 +1,8 @@
-import { useReducer, memo, useEffect } from "react";
+import { useReducer } from "react";
 import ImageSlider from "./ImageSlider";
 import PriceLabel from "./PriceLabel";
 import BuyButton from "./BuyButton";
 import TopSlider from "./TopSlider";
-import CategoryPhoto from "./CategoryPhoto";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 import RemoteSvg from "components/global/RemoteSvg";
@@ -44,11 +43,6 @@ function ProductNoColors({ product }) {
     activeImageIndex: 0,
     renderVar: false,
   });
-  const getImageCld = (s) => {
-    if (s.includes("cloudinary")) {
-      return s.replace("/upload", "/upload/h_290/f_webp/q_40");
-    } else return s;
-  };
   return (
     <div
       className="product-container"

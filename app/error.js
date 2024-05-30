@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Logo from "../components/Home/Logo";
 
 import axios from "axios";

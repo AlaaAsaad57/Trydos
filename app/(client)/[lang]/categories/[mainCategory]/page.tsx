@@ -10,7 +10,7 @@ async function page({ params }): Promise<any> {
     <>
       <Home />
       <BrandsBar />
-      <OfferListServer params={params} searchParams={params.categories} />
+      <OfferListServer params={params} />
       <CategoryBar />
       <OfferBar />
       <QuickOffer />

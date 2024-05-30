@@ -71,9 +71,6 @@ function LogInPins({
             document.getElementById("login-close-icon")
           )
             setTimeout(() => {
-              let a = window.visualViewport.height;
-              let b = window.visualViewport.pageTop;
-              let c = window.innerHeight;
               document.getElementById("logo-auth").style.position = "absolute";
               document.getElementById("logo-auth").style.left = "20px";
               document.getElementById("logo-auth").style.top = `${
@@ -520,7 +517,7 @@ function LogInPins({
           <PinInput
             length={6}
             initialValue={pin}
-            onChange={(value, index) => {
+            onChange={(value) => {
               setPin(value);
             }}
             type="numeric"
@@ -529,7 +526,7 @@ function LogInPins({
             placeholder=""
             aria-label=""
             style={{ marginTop: 0 }}
-            onComplete={(value, index) => Submit(value)}
+            onComplete={(value) => Submit(value)}
             inputStyle={{
               borderRadius: 15,
               backgroundColor: "transparent",

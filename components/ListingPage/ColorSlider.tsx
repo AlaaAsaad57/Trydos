@@ -1,6 +1,6 @@
-import { useRef, useEffect, memo, MutableRefObject, Ref } from "react";
+import { useRef, useEffect } from "react";
 import { EffectCoverflow } from "swiper/modules";
-import { Swiper, SwiperRef, SwiperSlide } from "swiper/react";
+import { Swiper, SwiperSlide } from "swiper/react";
 import BorderImage from "./BorderImage";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";

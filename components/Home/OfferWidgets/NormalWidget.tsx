@@ -1,5 +1,4 @@
 "use client";
-import OfferPhotosSlider from "./OfferPhotosSlider";
 import OfferSlideItem from "./OfferSlideItem";
 import { encode_utf8, getConfiguredImage } from "utils/functions";
 import OfferAvatars from "./OfferAvatars";
@@ -15,6 +14,14 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import NextLink from "Hooks/NextLink";
 import { dispatchRouteChangeEvent } from "Hooks/events";
+import Loader from "components/global/Loader";
+const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"), {
+  loading: () => (
+    <div className="offer-widget">
+      <Loader style={{}} />
+    </div>
+  ),
+});
 
 interface NormalWidgetProps {
   boutique: Boutique;
@@ -103,6 +110,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
               if (category.category_icon.includes(".svg")) {
                 return (
                   <NextLink
+                    aria-label={`${category.category_name} products page`}
                     key={key}
                     href={`/boutiques/${boutique.slug}/categories/${category.category_slug}`}
                     prefetch={false}
@@ -118,6 +126,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
               } else
                 return (
                   <NextLink
+                    aria-label={`${category.category_name} products page`}
                     key={key}
                     href={`/boutiques/${boutique.slug}/categories/${category.category_slug}`}
                     prefetch={false}

@@ -6,13 +6,12 @@ import AuthService from "services/auth";
 function AccountNotFound({
   inputValue,
   setStepIndcator,
-  FinaliseLogin,
+
   close,
   stepIndicator,
   signStep,
 }: {
   inputValue: string;
-  FinaliseLogin: Function;
   close: Function;
   stepIndicator: number;
   signStep: string;

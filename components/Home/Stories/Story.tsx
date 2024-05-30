@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { AdvancedImage } from "@cloudinary/react";
+
 import { getThumb } from "utils/functions";
 import { errorPNG } from "utils/constants";
 import Loader from "components/global/Loader";
+import Image from "next/image";
 function Story({
   onClick,
   media,
@@ -21,7 +22,7 @@ function Story({
       <div className="story-text">{Name}</div>
       {<Loader style={{ display: load ? "none" : "flex" }} />}
       <div className="" style={{ display: !load ? "none" : "flex" }}>
-        <AdvancedImage
+        <Image
           className="thumb-img"
           alt="story"
           onLoad={(e) => {
@@ -34,7 +35,7 @@ function Story({
             e.currentTarget.src = errorPNG;
             e.currentTarget.onerror = null;
           }}
-          cldImg={getThumb(
+          src={getThumb(
             media.full_video_path || media.photo_path,
             media.full_video_path
           )}

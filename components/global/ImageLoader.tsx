@@ -44,6 +44,7 @@ function ImageLoader(props) {
           fetchPriority={props.fetchPriority}
           loading={"eager"}
           unoptimized
+          alt={props.alt}
           onLoad={() => {
             setLoading(false);
           }}

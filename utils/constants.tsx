@@ -4,7 +4,7 @@ import KidsIcon from "public/svg/KidsIcon.svg";
 import HomeIcon from "public/svg/HomeIcon.svg";
 import ElectricalIcon from "public/svg/ElectricalIcon.svg";
 import StoreIcon from "public/svg/ShopIcon.svg";
-import { Cloudinary } from "@cloudinary/url-gen";
+
 import SearchIcon from "public/svg/SearchIcon.svg";
 import pngErr from "public/images/error.png";
 export const categories = [
@@ -38,18 +38,4 @@ export const categories = [
   },
 ];
 
-export const myCld = () => {
-  return new Cloudinary({
-    cloud: {
-      cloudName: "djooohujg",
-    },
-  });
-};
-export const myCldHome = () => {
-  return new Cloudinary({
-    cloud: {
-      cloudName: "dtcmozf4d",
-    },
-  });
-};
 export const errorPNG = pngErr.src;

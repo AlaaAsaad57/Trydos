@@ -1,9 +1,7 @@
-import React from "react";
 import CategoryNavMobile from "./CategoryNavMobile";
 import { Category } from "models/Category";
 
 function MobileNavigation({ categories }: { categories: Category[] }) {
-  const loading = false;
   if (typeof document !== "undefined") {
     const slider: HTMLDivElement = document?.querySelector(".mobile-bar");
     let isDown = false;

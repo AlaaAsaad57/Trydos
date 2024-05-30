@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "components/global/Loader";
 import { setNextStory, setPreviousStory } from "store/homepage/actions";
@@ -16,14 +16,12 @@ function StoryHolder({ story, active, isPaused }: Props) {
     (state: any) => state.homepage.selectedStory
   );
   const [currentStoryId, setCurrentStoryId] = useState(0);
-  const [paused, setIsPaused] = useState(true);
+
   useEffect(() => {
     if (selectedStory.id === story.id) {
       setCurrentStoryId(0);
-      setIsPaused(false);
     } else {
       setCurrentStoryId(0);
-      setIsPaused(true);
     }
   }, [selectedStory]);
   useEffect(() => {}, []);

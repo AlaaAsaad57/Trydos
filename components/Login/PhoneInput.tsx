@@ -95,7 +95,6 @@ function PhoneInput({
         )[0];
   };
   const language = useSelector((state: any) => state.homepage.language);
-  const dispatch = useDispatch();
   const isKeyboardOpen = useDetectKeyboardOpen(200);
   useEffect(() => {
     if (isKeyboardOpen) {
@@ -105,9 +104,6 @@ function PhoneInput({
         };
 
         setTimeout(() => {
-          let a = window.visualViewport.height;
-          let b = window.visualViewport.pageTop;
-          let c = window.innerHeight;
           document.getElementById("logo-auth").style.position = "absolute";
           document.getElementById("logo-auth").style.left = "20px";
           document.getElementById("logo-auth").style.top = `${
