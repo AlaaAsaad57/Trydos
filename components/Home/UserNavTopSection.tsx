@@ -2,6 +2,7 @@ import { translate } from "utils/functions";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 const AuthNavSection = dynamic(() => import("./AuthNavSection"), {
   ssr: false,
 });
@@ -75,7 +76,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
             </span>
           </div>
           <div className="nav-question-item">
-            <img
+            <Image
               src="/svg/userIcon.svg"
               width={30}
               height={30}

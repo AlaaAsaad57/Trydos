@@ -30,6 +30,7 @@ function UserAvatar({ avatar, onClick }: UserAvatarProps) {
               src={avatar}
               quality={100}
               priority={true}
+              fetchPriority="low"
               className="avatar-user-image"
             />
           </div>
