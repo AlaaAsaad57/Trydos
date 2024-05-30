@@ -40,8 +40,9 @@ function ImageLoader(props) {
         <Image
           {...props}
           quality={100}
-          priority={true}
-          loading="eager"
+          priority={props.priority}
+          fetchPriority={props.fetchPriority}
+          loading={"eager"}
           unoptimized
           onLoad={() => {
             setLoading(false);

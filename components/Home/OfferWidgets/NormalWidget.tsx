@@ -3,7 +3,7 @@ import OfferPhotosSlider from "./OfferPhotosSlider";
 import OfferSlideItem from "./OfferSlideItem";
 import { encode_utf8, getConfiguredImage } from "utils/functions";
 import OfferAvatars from "./OfferAvatars";
-import Link from "next/link";
+
 import Image from "next/image";
 import { Boutique } from "models/offer";
 import RemoteSvg from "components/global/RemoteSvg";
