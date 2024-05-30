@@ -7,7 +7,7 @@ const initialState = {
   loadingStories: true,
   selectedStory: null,
   renderStories: false,
-  storiesData: [],
+  storiesData: null,
   categories: [],
   enableNotifications: false,
   settings: null,

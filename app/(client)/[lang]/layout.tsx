@@ -1,5 +1,6 @@
 import "styles/globals.css";
 import "styles/home.css";
+
 import Providers from "store/provider";
 import localFont from "next/font/local";
 export const metadata = {
