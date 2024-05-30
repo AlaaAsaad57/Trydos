@@ -9,7 +9,7 @@ async function OfferListServer({ params }) {
   });
   return (
     <>
-      <OfferList boutiques={HomeData.banners} key={2} quick={false} />;
+      <OfferList boutiques={HomeData} key={2} quick={false} />;
     </>
   );
 }
