@@ -6,6 +6,8 @@ import TopSlider from "./TopSlider";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 import RemoteSvg from "components/global/RemoteSvg";
+import "swiper/css";
+import "swiper/css/bundle";
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
     return {

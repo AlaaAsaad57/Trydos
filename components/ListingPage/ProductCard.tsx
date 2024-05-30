@@ -3,8 +3,7 @@ import { memo, useEffect, useState } from "react";
 import ProductNoColors from "./ProductNoColors";
 import ProductCover from "./ProductCover";
 // Import Swiper styles
-import "swiper/css";
-import "swiper/css/bundle";
+
 import { useDispatch, useSelector } from "react-redux";
 import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";

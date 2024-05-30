@@ -16,7 +16,12 @@ function TranslationsMenu({ init }: TranslationsMenuProps) {
       {language === "ar" && <ArabicCss />}
       <div className="translations-container-inner">
         <div className="translation-icon">
-          <img src={"/svg/translations.svg"} />
+          <img
+            src={"/svg/translations.svg"}
+            width={30}
+            height={30}
+            alt="language"
+          />
         </div>
 
         <div
@@ -31,7 +36,12 @@ function TranslationsMenu({ init }: TranslationsMenuProps) {
             );
           }}
         >
-          <img src={"/svg/tr.svg"} width={30} height={20} />
+          <img
+            src={"/svg/tr.svg"}
+            width={30}
+            height={20}
+            alt="turkish language"
+          />
         </div>
         <div
           className={`translation-icon cursor-pointer en-icon ${
@@ -45,7 +55,12 @@ function TranslationsMenu({ init }: TranslationsMenuProps) {
             );
           }}
         >
-          <img src={"/svg/uk.svg"} width={30} height={20} />
+          <img
+            src={"/svg/uk.svg"}
+            width={30}
+            height={20}
+            alt="english language"
+          />
         </div>
         <div
           className={`translation-icon cursor-pointer ar-icon ${
@@ -59,7 +74,12 @@ function TranslationsMenu({ init }: TranslationsMenuProps) {
             );
           }}
         >
-          <img src={"/svg/uae.svg"} width={30} height={20} />
+          <img
+            src={"/svg/uae.svg"}
+            width={30}
+            height={20}
+            alt="arabic language"
+          />
         </div>
       </div>
     </div>

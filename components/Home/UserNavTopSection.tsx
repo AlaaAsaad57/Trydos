@@ -36,7 +36,12 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
             </span>
           </div>
           <div className="nav-question-item">
-            <img src="/svg/questionIcon.svg" />
+            <img
+              src="/svg/questionIcon.svg"
+              width={15}
+              height={15}
+              alt="info icon"
+            />
             <span
               className={`${language + "-light"}`}
               style={{
@@ -54,7 +59,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
             </span>
           </div>
           <div className="nav-question-item" onClick={() => openLogin(true)}>
-            <img src="/svg/login.svg" alt="login" />
+            <img src="/svg/login.svg" width={15} height={15} alt="login" />
 
             <span
               className={`${language + "-regular"}`}
@@ -70,7 +75,12 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
             </span>
           </div>
           <div className="nav-question-item">
-            <img src="/svg/userIcon.svg" alt="user-icon" />
+            <img
+              src="/svg/userIcon.svg"
+              width={30}
+              height={30}
+              alt="user-icon"
+            />
           </div>
         </>
       )}

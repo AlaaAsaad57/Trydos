@@ -2,6 +2,8 @@ import { useReducer } from "react";
 import ImageSlider from "./ImageSlider";
 import PriceLabel from "./PriceLabel";
 import BuyButton from "./BuyButton";
+import "swiper/css";
+import "swiper/css/bundle";
 import TopSlider from "./TopSlider";
 import CoverEffectSlider from "./CoverEffectSlider";
 import ColorSlider from "./ColorSlider";
