@@ -14,14 +14,7 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import NextLink from "Hooks/NextLink";
 import { dispatchRouteChangeEvent } from "Hooks/events";
-import Loader from "components/global/Loader";
-const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"), {
-  loading: () => (
-    <div className="offer-slider-container">
-      <Loader style={{ height: "100%", width: "100%" }} />
-    </div>
-  ),
-});
+const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"));
 
 interface NormalWidgetProps {
   boutique: Boutique;

@@ -349,45 +349,18 @@
   position: static !important;
   z-index: 99999999;
 }
-
-.stories-bar {
-  width: 100%;
-  height: 200px;
-  align-items: center;
-  display: flex;
-  justify-content: flex-start;
-  position: relative;
-  margin-top: 5px;
-}
-
-.stories-bar::-webkit-scrollbar,
-.stories-bars::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-}
-
 .stories-bars {
   cursor: pointer;
-  padding-right: 5px;
-  overflow-x: scroll;
-  overflow-y: hidden;
-  white-space: nowrap;
-  width: 100%;
   height: 200px;
   align-items: center;
   display: flex;
   justify-content: flex-start;
-  padding-left: 15px;
 }
 .stories-bar-container {
-  transform: translateX(0);
   display: flex;
-  width: 100vw;
+
   height: 200px;
-  z-index: 99999999;
-  max-width: 1365px;
+
   align-items: center;
   justify-content: flex-start;
-  top: 95px;
-  left: 0;
 }

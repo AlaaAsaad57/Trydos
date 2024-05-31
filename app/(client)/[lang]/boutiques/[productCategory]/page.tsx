@@ -9,7 +9,7 @@ export async function generateMetadata({ params, searchParams }) {
   };
 }
 async function Page({ params, searchParams }) {
-  const [Listing_Data_res] = await getListingData({
+  const [, Listing_Data_res] = await getListingData({
     categories: params.productCategory,
     lang: params.lang ? params.lang.split("-")[1] : null,
     productCategory: null,
