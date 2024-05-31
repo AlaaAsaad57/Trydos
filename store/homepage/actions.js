@@ -3,7 +3,7 @@ import StoryService from "services/story";
 import Cookies from "js-cookie";
 export const changeAppLanguage = (language) => {
   Cookies.set("language", language);
-  changeAppLanguageServer(language);
+  // changeAppLanguageServer(language);
   return { type: "APP-LANGUAGE", payload: language };
 };
 export const GetMainData = (data) => {

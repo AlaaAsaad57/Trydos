@@ -1,4 +1,4 @@
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 const countriesString = process.env.NEXT_PUBLIC_COUNTRIES || "[]";
 const countries = JSON.parse(countriesString);
@@ -43,29 +43,10 @@ function getDefaultLocale(countryByIp) {
   };
   return localeENV;
 }
-async function _getCountryNameByIp(Ip) {
-  try {
-    const response = await fetch(`http://ip-api.com/json/${Ip}`);
-    const data = await response.json();
-
-    return data?.country;
-  } catch (error) {
-    console.error("Error fetching country name by IP:", error);
-    return null;
-  }
-}
 
 export async function middleware(request) {
-  const { pathname, href } = request.nextUrl;
-  let Ip = request.headers?.get("X-Forwarded-For");
+  const { pathname } = request.nextUrl;
   let countryByIp = request?.geo?.country?.toLowerCase();
-
-  const headersList = headers();
-  const referer = headersList.get("referer");
-  const curUrl = `${headersList.get("x-forwarded-proto")}://${headersList.get(
-    "host"
-  )}${pathname}`;
-
   const response = NextResponse.next();
   const cookieStore = cookies();
   const localization = cookieStore.get("country")?.value;
@@ -109,7 +90,6 @@ export async function middleware(request) {
   const preferredCountry = countries.includes(country.toLowerCase())
     ? country
     : getDefaultLocale(countryByIp).country;
-
   if (!hasSeparator) {
     //url dosen't includes language-country
     const lang = getLocale()?.language;
@@ -176,6 +156,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    "/((?!api|static|.*\\..*|_next|endCall|call_direct|revalidate|callInProg|selectCountry).*)",
+    "/((?!api|static|.*\\..*|_next|endCall|call_direct|revalidate|callInProg|selectCountry|favicon.ico).*)",
   ],
 };

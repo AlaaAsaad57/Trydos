@@ -3,6 +3,7 @@ const withSvgr = require("next-svgr");
 
 const nextConfig = withSvgr({
   swcMinify: true,
+  reactStrictMode: false,
   compress: true,
   images: {
     domains: [
