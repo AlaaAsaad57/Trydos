@@ -54,6 +54,7 @@ export default async function RootLayout({ params: { lang }, children }) {
   // ${sf_pro_rounded_regular.variable}
   // ${sf_pro_rounded_medium.variable}
   // ${sf_pro_rounded_bold.variable}
+  console.log("rendered");
   return (
     <html
       className={`
