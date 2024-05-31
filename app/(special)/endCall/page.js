@@ -1,4 +1,3 @@
-"use server";
 import MissedIcon from "components/Chat/svg/missedCall.svg";
 import "styles/calls.css";
 async function page() {

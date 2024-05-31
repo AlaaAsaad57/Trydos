@@ -8,8 +8,8 @@ export async function generateMetadata({ params, searchParams }) {
     description: `Trydos ${categories} Page`,
   };
 }
-async function page({ params, searchParams }) {
-  const [res, Listing_Data_res] = await getListingData({
+async function Page({ params, searchParams }) {
+  const [Listing_Data_res] = await getListingData({
     categories: params.productCategory,
     lang: params.lang ? params.lang.split("-")[1] : null,
     productCategory: null,
@@ -21,4 +21,4 @@ async function page({ params, searchParams }) {
   );
 }
 
-export default page;
+export default Page;

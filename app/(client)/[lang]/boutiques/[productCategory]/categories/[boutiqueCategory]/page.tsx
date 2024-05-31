@@ -1,7 +1,8 @@
-import ProductCard from "components/ListingPage/ProductCard";
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
 import { getListingData } from "store/homepage/cachedActions";
+const ProductCard = dynamic(() => import("components/ListingPage/ProductCard"));
 export async function generateMetadata({ params, searchParams }) {
-  // read route params
   const categories = params.productCategory;
   return {
     title: `Trydos - ${categories} `,
@@ -17,7 +18,9 @@ async function page({ params, searchParams }) {
 
   return (
     <>
-      <ProductCard Listing_Data_res={Listing_Data_res} />
+      <Suspense>
+        <ProductCard Listing_Data_res={Listing_Data_res} />
+      </Suspense>
     </>
   );
 }

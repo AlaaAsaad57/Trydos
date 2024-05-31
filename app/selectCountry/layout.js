@@ -1,7 +1,3 @@
-import "styles/chatstyles.css";
-import "styles/chatcomponent.css";
-import "styles/globals.css";
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en">

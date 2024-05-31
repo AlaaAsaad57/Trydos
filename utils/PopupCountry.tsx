@@ -1,4 +1,7 @@
 "use client";
+import "styles/chatstyles.css";
+import "styles/chatcomponent.css";
+import "styles/globals.css";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import "styles/popup.css";
