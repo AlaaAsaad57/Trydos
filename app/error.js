@@ -1,8 +1,6 @@
 "use client";
 import { useEffect } from "react";
 import Logo from "../components/Home/Logo";
-
-import axios from "axios";
 export default function GlobalError({ error, reset }) {
   const baseUrl = "https://market_staging.trydos.tech/api/new_v1";
   const _getUserAgent = async () => {
@@ -20,6 +18,7 @@ export default function GlobalError({ error, reset }) {
         ? JSON.parse(localStorage.getItem("USER-CHAT")).access_token
         : null;
     }
+    let axios = (await import("axios")).default;
     axios.post(`${baseUrl}/mobile_error_log/store`, {
       error_description: error.message,
       last_json,

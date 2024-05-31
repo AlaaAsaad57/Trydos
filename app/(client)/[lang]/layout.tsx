@@ -3,7 +3,7 @@ import "styles/home.css";
 import "styles/unused-onload.css";
 import Providers from "store/provider";
 import localFont from "next/font/local";
-import type { Viewport } from "next";
+
 import NavbarServer from "components/Server/Navbar";
 import PageLoadingIndicator from "Hooks/LoadingIndicator";
 import dynamic from "next/dynamic";
@@ -14,48 +14,12 @@ export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
 };
-export const viewport: Viewport = {
+export const viewport = {
   width: "device-width",
   initialScale: 1.0,
   maximumScale: 1.0,
   userScalable: false,
 };
-const aa = process.env.ENABLE_SENTRY;
-// const sf_pro_rounded_bold = localFont({
-//   src: "../../../public/fonts/FontsFree-Net-SF-Pro-Rounded-Bold.ttf",
-//   variable: "--SF-Pro-Rounded-Bold",
-//   display: "swap",
-//   preload: false,
-// });
-// const sf_pro_rounded_light = localFont({
-//   src: "../../../public/fonts/FontsFree-Net-SF-Pro-Rounded-Light.ttf",
-//   variable: "--SF-Pro-Rounded-Light",
-//   display: "swap",
-//   preload: false,
-// });
-// const sf_pro_rounded_semibold = localFont({
-//   src: "../../../public/fonts/FontsFree-Net-SF-Pro-Rounded-Semibold.ttf",
-//   variable: "--SF-Pro-Rounded-semibold",
-//   display: "swap",
-//   preload: false,
-// });
-// const sf_pro_rounded_regular = localFont({
-//   src: "../../../public/fonts/SF-Pro-Rounded.ttf",
-//   variable: "--SF-Pro-Rounded-Regular",
-//   display: "swap",
-//   preload: false,
-// });
-// const sf_pro_rounded_medium = localFont({
-//   src: "../../../public/fonts/FontsFree-Net-SF-Pro-Rounded-Medium.ttf",
-//   variable: "--SF-Pro-Rounded-Medium",
-//   display: "swap",
-//   preload: false,
-// });
-// const icon_font = localFont({
-//   src: "../../../public/fonts/NotoColorEmoji-Regular.ttf",
-//   variable: "--icon-font",
-//   display: "swap",
-// });
 const quicksand_regular = localFont({
   src: "../../../public/fonts/Quicksand-Regular.woff2",
   variable: "--Quicksand-Regular",
