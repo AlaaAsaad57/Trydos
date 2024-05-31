@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import NextLink from "Hooks/NextLink";
 import { dispatchRouteChangeEvent } from "Hooks/events";
-import OfferPhotosSlider from "./OfferPhotosSlider";
+const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"));
 
 interface NormalWidgetProps {
   boutique: Boutique;
