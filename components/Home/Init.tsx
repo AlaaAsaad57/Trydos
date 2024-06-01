@@ -8,6 +8,8 @@ function Init() {
       bool = false;
       setTimeout(() => {
         HomeService.RegisterDevice();
+      }, 6000);
+      setTimeout(() => {
         HomeService.CheckLogin();
       }, 2000);
     }
