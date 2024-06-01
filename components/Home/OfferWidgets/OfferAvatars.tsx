@@ -10,7 +10,7 @@ import OfferAvatar from "./OfferAvatar";
 import MoreOfferAvatar from "./MoreOfferAvatar";
 import { Boutique } from "models/offer";
 interface OfferAvatarsProps {
-  priority: Boolean;
+  priority: boolean;
   boutique: Boutique;
 }
 function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
@@ -56,6 +56,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
             category={product.count_products}
             images={product.product_thumbnail}
             zIndex={index}
+            priority={priority}
           />
         );
       })}

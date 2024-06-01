@@ -1,4 +1,3 @@
-import ImageLoader from "components/global/ImageLoader";
 import BorderImage from "./BorderImage";
 import Image from "next/image";
 interface OfferSlideItemProps {

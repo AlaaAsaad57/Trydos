@@ -18,6 +18,9 @@
   width: 20px;
   height: 20px;
 }
+.offer-logo img {
+  object-fit: contain;
+}
 .offer-category .svg-holder-r svg path {
   fill: #c4c2c2 !important;
 }

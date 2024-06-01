@@ -1,7 +1,5 @@
 import { dispatchRouteChangeEvent } from "Hooks/events";
-import NextLink from "Hooks/NextLink";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 interface OfferAvatarProps {
   images: string;
@@ -9,12 +7,14 @@ interface OfferAvatarProps {
   name: string;
   category: string | number;
   linkUrl: string;
+  priority: boolean;
 }
 function OfferAvatar({
   images,
   zIndex,
   name,
   category,
+  priority,
   linkUrl,
 }: OfferAvatarProps) {
   const router = useRouter();
@@ -43,9 +43,9 @@ function OfferAvatar({
       </div>
       <div className="offer-avatr-inner-s" />
       <Image
-        loading="eager"
+        loading={priority ? "eager" : "lazy"}
         src={getImageCld()}
-        priority={true}
+        priority={priority}
         alt="avatar"
         quality={60}
         width={40}
