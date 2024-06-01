@@ -45,6 +45,7 @@ function getDefaultLocale(countryByIp) {
 }
 
 export async function middleware(request) {
+  console.log("receive request");
   const { pathname } = request.nextUrl;
   let countryByIp = request?.geo?.country?.toLowerCase();
   const response = NextResponse.next();

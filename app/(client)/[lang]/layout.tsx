@@ -48,7 +48,7 @@ const quicksand_medium = localFont({
   preload: false,
   fallback: ["system-ui", "arial"],
 });
-export default async function RootLayout({ params: { lang }, children }) {
+export default function RootLayout({ params: { lang }, children }) {
   // ${sf_pro_rounded_light.variable}
   // ${sf_pro_rounded_semibold.variable}
   // ${sf_pro_rounded_regular.variable}

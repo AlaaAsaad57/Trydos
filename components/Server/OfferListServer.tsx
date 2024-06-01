@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { getHomeData } from "store/homepage/cachedActions";
 import OfferList from "components/Home/OfferWidgets/OfferList";
 import "styles/offers.css";
@@ -7,9 +7,12 @@ async function OfferListServer({ params }) {
     str: params?.mainCategory,
     lang: params.lang ? params.lang.split("-")[1] : null,
   });
+  console.log("render offers");
   return (
     <>
-      <OfferList boutiques={HomeData} key={2} quick={false} />;
+      <Suspense fallback={<p>loading</p>}>
+        <OfferList boutiques={HomeData} key={2} quick={false} />;
+      </Suspense>
     </>
   );
 }
