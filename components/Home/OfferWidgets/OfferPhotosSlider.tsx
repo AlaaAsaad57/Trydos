@@ -1,6 +1,8 @@
 import OfferSlideItem from "./OfferSlideItem";
 import OfferAvatars from "./OfferAvatars";
 import { Boutique } from "models/offer";
+import useEmblaCarousel from "embla-carousel-react";
+
 interface OfferPhotosSliderProps {
   OfferPhotos: string[];
   extended: boolean;
@@ -15,21 +17,26 @@ function OfferPhotosSlider({
   extended,
   priority,
 }: OfferPhotosSliderProps) {
+  const [emblaRef] = useEmblaCarousel();
+
   return (
     <div
       className="offer-slider-container"
       style={{ marginTop: extended && "39px" }}
     >
-      <div className="slider-container">
-        {OfferPhotos.map((offerPhoto, key) => (
-          <OfferSlideItem
-            mykey={myKey}
-            offerPhoto={offerPhoto}
-            isSingle={false}
-            priority={priority}
-            key={key}
-          />
-        ))}
+      <div className="embla" ref={emblaRef}>
+        <div className="embla__container">
+          {OfferPhotos.map((offerPhoto, key) => (
+            <div className="embla__slide" key={key}>
+              <OfferSlideItem
+                mykey={myKey}
+                offerPhoto={offerPhoto}
+                isSingle={false}
+                priority={priority}
+              />
+            </div>
+          ))}
+        </div>
       </div>
       <OfferAvatars boutique={boutique} priority={false} />
     </div>

@@ -73,7 +73,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
         <div className="offer-blured" />
         <div className="offer-container">
           <div className="offer-logo">
-            {boutique.icon ? (
+            {/* {boutique.icon ? (
               boutique.icon.includes(".svg") ? (
                 <RemoteSvg size={20} url={boutique.icon} isSvg={null} />
               ) : (
@@ -96,6 +96,28 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
               )
             ) : (
               boutique.name
+            )} */}
+            {boutique.icon ? (
+              <Image
+                id={"img-" + boutique.id}
+                alt={boutique.name}
+                loading={myKey < 2 ? "eager" : "lazy"}
+                fetchPriority={myKey < 2 ? "high" : "low"}
+                priority={myKey < 2}
+                style={{
+                  maxWidth: "187px",
+                  width: "auto",
+                  height: "30px",
+                }}
+                width={20}
+                height={20}
+                src={boutique.icon.replace(
+                  "/upload",
+                  `/upload/h_50/f_avif/q_auto`
+                )}
+              />
+            ) : (
+              boutique.name
             )}
           </div>
           <div className="offer-category">
@@ -108,11 +130,18 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                     href={`/boutiques/${boutique.slug}/categories/${category.category_slug}`}
                     prefetch={false}
                   >
-                    <RemoteSvg
-                      size={12}
-                      url={category.category_icon}
-                      key={key}
-                      isSvg={null}
+                    <Image
+                      id={"img-" + boutique.id}
+                      alt={boutique.name}
+                      loading={myKey < 2 ? "eager" : "lazy"}
+                      fetchPriority={myKey < 2 ? "high" : "low"}
+                      priority={myKey < 2}
+                      width={12}
+                      height={12}
+                      src={category.category_icon.replace(
+                        "/upload",
+                        `/upload/h_50/f_avif/q_auto`
+                      )}
                     />
                   </NextLink>
                 );

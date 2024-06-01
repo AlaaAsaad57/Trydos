@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import RemoteSvg from "components/global/RemoteSvg";
 import { useParams, useRouter } from "next/navigation";
 import { dispatchRouteChangeEvent } from "Hooks/events";
+import Image from "next/image";
 
 interface CategoryNavItemProps {
   name: string;
@@ -90,7 +91,13 @@ const CategoryNavItem = ({
             >
               {!searchEnabled && (
                 <div className="categories-bar-item-icon ">
-                  <RemoteSvg size={20} url={icon} isSvg={null} />
+                  <Image
+                    unoptimized
+                    width={20}
+                    height={20}
+                    alt={name}
+                    src={icon.replace("/upload", "/upload/h_50/f_webp/q_auto")}
+                  />
                 </div>
               )}
               {!searchEnabled && (

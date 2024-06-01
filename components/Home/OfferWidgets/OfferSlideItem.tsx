@@ -1,5 +1,6 @@
 import ImageLoader from "components/global/ImageLoader";
 import BorderImage from "./BorderImage";
+import Image from "next/image";
 interface OfferSlideItemProps {
   isSingle: boolean;
   priority: boolean;
@@ -17,14 +18,15 @@ function OfferSlideItem({
       <div className="image-offer">
         <div className="image-inner-shadow" style={{ height: "100%" }} />
         {
-          <ImageLoader
+          <Image
             loading={mykey < 2 ? "eager" : "lazy"}
             fetchPriority={mykey < 2 ? "high" : "low"}
             priority={mykey < 2}
             style={{ borderRadius: "15px" }}
             className="OfferImage"
-            src={offerPhoto}
+            src={offerPhoto.replace("/upload", `/upload/h_342/f_avif/q_auto`)}
             width={900}
+            unoptimized
             height={342}
             alt="offer"
           />
