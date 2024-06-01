@@ -77,4 +77,6 @@ export default function RemoteSvg({ url, size, isSvg }) {
         />
       </div>
     );
+
+  return <></>;
 }

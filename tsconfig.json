@@ -1,15 +1,31 @@
 {
   "compilerOptions": {
     "paths": {
-      "*": ["./*"],
-      "@/*": ["./*"],
-      "assets/*": ["./public/*"],
-      "styles/*": ["./public/styles/*"],
-      "react": ["./node_modules/@types/react"]
+      "*": [
+        "./*"
+      ],
+      "@/*": [
+        "./*"
+      ],
+      "assets/*": [
+        "./public/*"
+      ],
+      "styles/*": [
+        "./public/styles/*"
+      ],
+      "react": [
+        "./node_modules/@types/react"
+      ]
     },
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "skipLibCheck": true,
     "strict": false,
     "forceConsistentCasingInFileNames": true,
@@ -25,8 +41,16 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "target": "ES2017"
   },
-  "include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

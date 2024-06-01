@@ -1,7 +1,4 @@
 import OfferSlideItem from "./OfferSlideItem";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import OfferAvatars from "./OfferAvatars";
 import { Boutique } from "models/offer";
 interface OfferPhotosSliderProps {
@@ -18,22 +15,12 @@ function OfferPhotosSlider({
   extended,
   priority,
 }: OfferPhotosSliderProps) {
-  var settings = {
-    dots: false,
-    arrows: false,
-    infinite: true,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    slide: null,
-    centerPadding: "10px",
-    centerMode: true,
-  };
   return (
     <div
       className="offer-slider-container"
       style={{ marginTop: extended && "39px" }}
     >
-      <Slider {...settings}>
+      <div className="slider-container">
         {OfferPhotos.map((offerPhoto, key) => (
           <OfferSlideItem
             mykey={myKey}
@@ -43,7 +30,7 @@ function OfferPhotosSlider({
             key={key}
           />
         ))}
-      </Slider>
+      </div>
       <OfferAvatars boutique={boutique} priority={false} />
     </div>
   );
