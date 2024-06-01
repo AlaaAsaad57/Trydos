@@ -67,7 +67,7 @@ const CategoryNavItem = ({
                 >
                   {translate(name, language)}
                 </div>
-                <img src="/svg/navIcon.svg" />
+                <img alt="nav icon" src="/svg/navIcon.svg" />
               </div>
             )}
             {name === "Search" && searchEnabled && (
@@ -109,7 +109,7 @@ const CategoryNavItem = ({
                   >
                     {translate(name, language)}
                   </div>
-                  <img src="/svg/navIcon.svg" />
+                  <img alt="nav icon" src="/svg/navIcon.svg" />
                 </div>
               )}
             </div>
