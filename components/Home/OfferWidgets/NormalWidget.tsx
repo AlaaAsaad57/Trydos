@@ -113,7 +113,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                 height={20}
                 src={boutique.icon.replace(
                   "/upload",
-                  `/upload/h_50/f_avif/q_auto`
+                  `/upload/h_50/f_webp/q_auto`
                 )}
               />
             ) : (
@@ -140,7 +140,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                       height={12}
                       src={category.category_icon.replace(
                         "/upload",
-                        `/upload/h_50/f_avif/q_auto`
+                        `/upload/h_50/f_webp/q_auto`
                       )}
                     />
                   </NextLink>
@@ -153,22 +153,18 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                     href={`/boutiques/${boutique.slug}/categories/${category.category_slug}`}
                     prefetch={false}
                   >
-                    <ImageLoader
+                    <Image
                       id={"img-" + boutique.id}
                       alt={boutique.name}
-                      noLoader={true}
                       loading={myKey < 2 ? "eager" : "lazy"}
                       fetchPriority={myKey < 2 ? "high" : "low"}
                       priority={myKey < 2}
-                      style={{
-                        maxWidth: "187px",
-                        width: "auto",
-                        height: "12px",
-                      }}
                       width={12}
                       height={12}
-                      key={key}
-                      src={boutique.icon}
+                      src={category.category_icon.replace(
+                        "/upload",
+                        `/upload/h_50/f_webp/q_auto`
+                      )}
                     />
                   </NextLink>
                 );
