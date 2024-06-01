@@ -8,9 +8,9 @@ import Init from "components/Home/Init";
 export default function Providers({ children }) {
   return (
     <ReactQueryClientProvider>
-      {SSRDetect() && <GAComponent />}
       <Init />
       <Provider store={store}>{children}</Provider>
+      {SSRDetect() && <GAComponent />}
     </ReactQueryClientProvider>
   );
 }
