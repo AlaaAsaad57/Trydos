@@ -11,6 +11,7 @@ function ColorSlider({
   getIndex,
   colors,
   product_name,
+  priority,
 }) {
   const ImageRef = useRef<any>();
   useEffect(() => {
@@ -88,7 +89,8 @@ function ColorSlider({
                   <BorderImage isBig={false} />
                   <div className="inset-shadow-img" />
                   <Image
-                    loading="lazy"
+                    loading={priority ? "eager" : "lazy"}
+                    priority={priority}
                     unoptimized
                     style={{ borderRadius: "15px", zIndex: "3" }}
                     fill
@@ -96,7 +98,7 @@ function ColorSlider({
                     src={getConfiguredImage({
                       src: img.images[0],
                       width: 400,
-                      height: 580,
+                      height: 400,
                     })}
                     alt={product_name || "alt"}
                   />

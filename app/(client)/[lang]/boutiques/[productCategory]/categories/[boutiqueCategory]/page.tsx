@@ -1,7 +1,7 @@
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import { getListingData } from "store/homepage/cachedActions";
-const ProductCard = dynamic(() => import("components/ListingPage/ProductCard"));
+import ProductsList from "components/ListingPage/ProductsList";
 export async function generateMetadata({ params }) {
   const categories = params.productCategory;
   return {
@@ -18,9 +18,7 @@ async function page({ params }) {
 
   return (
     <>
-      <Suspense>
-        <ProductCard Listing_Data_res={Listing_Data_res} />
-      </Suspense>
+      <ProductsList Listing_Data_res={Listing_Data_res} />
     </>
   );
 }

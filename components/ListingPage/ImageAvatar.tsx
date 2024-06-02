@@ -9,6 +9,7 @@ function ImageAvatar({
   alt,
   isActive,
   name,
+  priority,
 }: {
   image: string;
   width: number;
@@ -16,6 +17,7 @@ function ImageAvatar({
   alt: string;
   isActive: boolean;
   name: string;
+  priority: boolean;
 }) {
   return (
     <div className="image-avatar">
@@ -63,9 +65,10 @@ function ImageAvatar({
       )}
       <div className="shadow-inset-avatar" />
       <Image
-        loading="eager"
+        loading={priority ? "eager" : "lazy"}
+        priority={priority}
         unoptimized
-        src={getConfiguredImage({ src: image, width: 400, height: 580 })}
+        src={getConfiguredImage({ src: image, width: 400, height: 400 })}
         fill
         alt={alt || "alt"}
         style={{
@@ -80,4 +83,4 @@ function ImageAvatar({
   );
 }
 
-export default memo(ImageAvatar);
+export default ImageAvatar;

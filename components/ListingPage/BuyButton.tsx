@@ -59,4 +59,4 @@ function BuyButton() {
   );
 }
 
-export default memo(BuyButton);
+export default BuyButton;

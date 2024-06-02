@@ -10,6 +10,7 @@ function CoverEffectSlider({
   setColor,
   isColorSelected,
   product_name,
+  priority,
 }) {
   const [activeIndex, setActive] = useState(
     images.findIndex((element) => element.color_name === activeColor.color_name)
@@ -130,6 +131,7 @@ function CoverEffectSlider({
                 image={img.images[0]}
                 name={img.color_name}
                 alt={product_name}
+                priority={priority}
               ></ImageAvatar>
             )}
           </SwiperSlide>

@@ -2,15 +2,13 @@ import { useReducer } from "react";
 import ImageSlider from "./ImageSlider";
 import PriceLabel from "./PriceLabel";
 import BuyButton from "./BuyButton";
-import "swiper/css";
-import "swiper/css/bundle";
+
 import TopSlider from "./TopSlider";
 import CoverEffectSlider from "./CoverEffectSlider";
 import ColorSlider from "./ColorSlider";
 import "styles/skeleton.css";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
-import RemoteSvg from "components/global/RemoteSvg";
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
     return {
@@ -39,7 +37,7 @@ function ProductReducer(state, { type, payload }) {
     };
   }
 }
-function ProductCover({ product }) {
+function ProductCover({ product, priority }) {
   const [productState, dispatch] = useReducer(ProductReducer, {
     isActiveTopSlide: false,
     activeColor: {
@@ -77,11 +75,11 @@ function ProductCover({ product }) {
     >
       <Image
         fill
-        alt="imageAlt"
-        loading="eager"
         unoptimized
-        fetchPriority="high"
-        priority={true}
+        alt={product.name}
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : "low"}
+        priority={priority}
         style={{
           position: "absolute",
           top: "0px",
@@ -92,7 +90,7 @@ function ProductCover({ product }) {
           objectPosition: "center",
         }}
         src={getConfiguredImage({
-          height: 580,
+          height: 400,
           width: 400,
           src: productState.activeColor.images[0],
         })}
@@ -128,6 +126,7 @@ function ProductCover({ product }) {
               {
                 <ColorSlider
                   product_name={product.name}
+                  priority={priority}
                   active={
                     productState.isColorSelected &&
                     !productState.isActiveTopSlide
@@ -146,6 +145,7 @@ function ProductCover({ product }) {
             <>
               {
                 <ImageSlider
+                  priority={priority}
                   product_name={product.name}
                   renderVar={productState.renderVar}
                   active={
@@ -169,6 +169,7 @@ function ProductCover({ product }) {
           {
             <>
               <CoverEffectSlider
+                priority={priority}
                 product_name={product.name}
                 active={!productState.isActiveTopSlide}
                 setColor={(e) => {
@@ -196,7 +197,18 @@ function ProductCover({ product }) {
         }}
       >
         {product.brand?.image ? (
-          <RemoteSvg url={product.brand?.image} size={16} isSvg={true} />
+          <Image
+            priority={priority}
+            loading={priority ? "eager" : "lazy"}
+            src={product.brand?.image.replace(
+              "/upload",
+              "/upload/h_50/f_webp/q_auto"
+            )}
+            width={16}
+            unoptimized
+            height={16}
+            alt={product.name}
+          />
         ) : (
           <div className="svg-holder-r" />
         )}
@@ -205,10 +217,16 @@ function ProductCover({ product }) {
           {product.category && (
             <span className="product-category-icon">
               {product.category?.icon && (
-                <RemoteSvg
-                  isSvg={null}
-                  url={product.category?.icon}
-                  size={10}
+                <Image
+                  priority={priority}
+                  loading={priority ? "eager" : "lazy"}
+                  src={product.category?.icon.replace(
+                    "/upload",
+                    "/upload/h_50/f_webp/q_auto"
+                  )}
+                  width={10}
+                  height={10}
+                  alt={product.name}
                 />
               )}
             </span>

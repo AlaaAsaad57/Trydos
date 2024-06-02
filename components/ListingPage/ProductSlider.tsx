@@ -67,7 +67,7 @@ function ProductSlider({
                     src={getConfiguredImage({
                       src: img,
                       width: 400,
-                      height: 580,
+                      height: 400,
                     })}
                     alt={product_name || "alt"}
                   />

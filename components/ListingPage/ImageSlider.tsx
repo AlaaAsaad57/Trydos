@@ -15,6 +15,7 @@ function ImageSlider({
   isActiveTopSlide,
   setActiveTopSlide,
   setColor,
+  priority,
 }: {
   renderVar: boolean;
   product_name: string;
@@ -25,6 +26,7 @@ function ImageSlider({
   isActiveTopSlide: boolean;
   setActiveTopSlide: Function;
   setColor: Function;
+  priority: boolean;
 }) {
   var ColorRef = useRef<any>();
   useEffect(() => {
@@ -85,7 +87,8 @@ function ImageSlider({
                   <BorderImage isBig={true} />
                   <div className="inset-shadow-img" />
                   <Image
-                    loading="eager"
+                    loading={priority ? "eager" : "lazy"}
+                    priority={priority}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     style={{ borderRadius: "15px", zIndex: "3" }}
                     fill
@@ -93,7 +96,7 @@ function ImageSlider({
                     src={getConfiguredImage({
                       src: img,
                       width: 400,
-                      height: 580,
+                      height: 400,
                     })}
                     quality={100}
                     alt={product_name || "alt"}

@@ -1,7 +1,7 @@
 "use client";
 import "styles/listing.css";
 import "styles/globals.css";
-import { memo, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ProductNoColors from "./ProductNoColors";
 import ProductCover from "./ProductCover";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,7 +10,7 @@ import Spinner from "../global/Spinner";
 import { useParams } from "next/navigation";
 import homeService from "services/home";
 import { dispatchRouteChangeEvent } from "Hooks/events";
-function ProductCard({ Listing_Data_res }: { Listing_Data_res: any }) {
+function ProductsList({ Listing_Data_res }: { Listing_Data_res: any }) {
   const dispatch = useDispatch();
   const params = useParams();
   const products = useSelector((state: any) => state.listing.products);
@@ -41,12 +41,23 @@ function ProductCard({ Listing_Data_res }: { Listing_Data_res: any }) {
           GetNextPage();
         }}
       >
-        {products.map((product, i) => (
+        {(
+          (products.length > 0 && products) ||
+          Listing_Data_res.body.data.products
+        ).map((product, i) => (
           <div key={i}>
             {!product.sync_color_images && (
-              <ProductNoColors product={product} />
+              <ProductNoColors
+                product={product}
+                priority={window.innerWidth < 600 ? i < 2 : i < 6}
+              />
             )}
-            {product.sync_color_images && <ProductCover product={product} />}
+            {product.sync_color_images && (
+              <ProductCover
+                priority={window.innerWidth < 600 ? i < 2 : i < 6}
+                product={product}
+              />
+            )}
           </div>
         ))}
       </div>
@@ -76,4 +87,4 @@ function ProductCard({ Listing_Data_res }: { Listing_Data_res: any }) {
   );
 }
 
-export default memo(ProductCard);
+export default ProductsList;

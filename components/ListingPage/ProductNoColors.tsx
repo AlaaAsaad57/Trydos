@@ -5,9 +5,7 @@ import BuyButton from "./BuyButton";
 import TopSlider from "./TopSlider";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
-import RemoteSvg from "components/global/RemoteSvg";
-import "swiper/css";
-import "swiper/css/bundle";
+
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
     return {
@@ -36,7 +34,7 @@ function ProductReducer(state, { type, payload }) {
     };
   }
 }
-function ProductNoColors({ product }) {
+function ProductNoColors({ product, priority }) {
   const [productState, dispatch] = useReducer(ProductReducer, {
     isActiveTopSlide: false,
     activeColor: { images: product.images },
@@ -49,17 +47,18 @@ function ProductNoColors({ product }) {
     <div
       className="product-container"
       onMouseLeave={() => {
-        if (productState.isActiveTopSlide) {
+        if (productState.isActiveTopSlide || productState.isColorSelected) {
           dispatch({ type: "setActiveTopSlide", payload: false });
+          dispatch({ type: "setColor", payload: false });
         }
       }}
     >
       <Image
         fill
-        alt="imageAlt"
-        loading="eager"
-        fetchPriority="high"
-        priority={true}
+        alt={product.name}
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : "low"}
+        priority={priority}
         style={{
           position: "absolute",
           top: "0px",
@@ -71,7 +70,7 @@ function ProductNoColors({ product }) {
         }}
         unoptimized
         src={getConfiguredImage({
-          height: 580,
+          height: 400,
           width: 400,
           src: productState.activeColor.images[0],
         })}
@@ -122,6 +121,7 @@ function ProductNoColors({ product }) {
                   setActiveImage={(e) =>
                     dispatch({ type: "setActiveImage", payload: e })
                   }
+                  priority={priority}
                 />
               }
             </>
@@ -138,7 +138,18 @@ function ProductNoColors({ product }) {
         }}
       >
         {product.brand?.image ? (
-          <RemoteSvg url={product.brand?.image} size={16} isSvg={true} />
+          <Image
+            priority={priority}
+            loading={priority ? "eager" : "lazy"}
+            src={product.brand?.image.replace(
+              "/upload",
+              "/upload/h_50/f_webp/q_auto"
+            )}
+            width={16}
+            height={16}
+            unoptimized
+            alt={product.name}
+          />
         ) : (
           <div className="svg-holder-r" />
         )}
@@ -147,10 +158,17 @@ function ProductNoColors({ product }) {
           {product.category && (
             <span className="product-category-icon">
               {product.category?.icon && (
-                <RemoteSvg
-                  isSvg={null}
-                  url={product.category?.icon}
-                  size={10}
+                <Image
+                  priority={priority}
+                  loading={priority ? "eager" : "lazy"}
+                  src={product.category?.icon.replace(
+                    "/upload",
+                    "/upload/h_50/f_webp/q_auto"
+                  )}
+                  width={10}
+                  unoptimized
+                  height={10}
+                  alt={product.name}
                 />
               )}
             </span>
