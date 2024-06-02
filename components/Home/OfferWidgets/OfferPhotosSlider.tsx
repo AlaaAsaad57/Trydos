@@ -29,7 +29,7 @@ function OfferPhotosSlider({
           {OfferPhotos.map((offerPhoto, key) => (
             <div className="embla__slide" key={key}>
               <OfferSlideItem
-                mykey={key < 2 ? myKey : 10}
+                mykey={key < 1 ? myKey : 10}
                 offerPhoto={offerPhoto}
                 isSingle={false}
                 priority={priority}
