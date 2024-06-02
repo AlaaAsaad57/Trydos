@@ -47,16 +47,10 @@ function ProductsList({ Listing_Data_res }: { Listing_Data_res: any }) {
         ).map((product, i) => (
           <div key={i}>
             {!product.sync_color_images && (
-              <ProductNoColors
-                product={product}
-                priority={window.innerWidth < 600 ? i < 2 : i < 6}
-              />
+              <ProductNoColors product={product} priority={i < 3} />
             )}
             {product.sync_color_images && (
-              <ProductCover
-                priority={window.innerWidth < 600 ? i < 2 : i < 6}
-                product={product}
-              />
+              <ProductCover priority={i < 3} product={product} />
             )}
           </div>
         ))}
