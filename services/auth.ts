@@ -1,4 +1,3 @@
-import axios from "axios";
 import { store } from "store";
 import { ReInitialise } from "store/auth/actions";
 import userImage from "public/images/profileNo.png";
@@ -27,24 +26,22 @@ const getHeader = () => {
   };
 };
 class AuthService {
-  http = axios.create({
-    baseURL: OTP_URL,
-  });
   async CheckPhone(
     value: string | number,
     step: Function,
     newAccount: boolean
   ) {
     try {
-      const response = await this.http.get(
-        "/phone/check-existence/" + `${value}`,
+      const response = await fetch(
+        OTP_URL + "/phone/check-existence/" + `${value}`,
         getHeader()
       );
+      let repo = await response.json();
       step(277);
       store.dispatch(ReInitialise());
       if (typeof window !== "undefined") {
         _isStoreLastJson() &&
-          localStorage.setItem("LAST_JSON", JSON.stringify(response));
+          localStorage.setItem("LAST_JSON", JSON.stringify(repo));
       }
     } catch (e) {
       step(282);
@@ -57,22 +54,25 @@ class AuthService {
     step: Function
   ) {
     try {
-      const response = await this.http.get(
-        SEND_OTP + `?phone=+${mobilePhone}&is_via_whatsapp=${is_via_whatsapp}`,
+      let response = await fetch(
+        OTP_URL +
+          SEND_OTP +
+          `?phone=+${mobilePhone}&is_via_whatsapp=${is_via_whatsapp}`,
         getHeader()
       );
-      if (response.data.data.verificationId) {
+      let repo = await response.json();
+      if (repo.data.verificationId) {
         store.dispatch({
           type: "SET-VERFICATION-ID",
-          payload: response.data.data.verificationId,
+          payload: repo.data.verificationId,
         });
 
         if (typeof window !== "undefined") {
           _isStoreLastJson() &&
-            localStorage.setItem("LAST_JSON", JSON.stringify(response));
+            localStorage.setItem("LAST_JSON", JSON.stringify(repo));
         }
       }
-      return response.data;
+      return repo;
     } catch (e) {
       step(282);
       store.dispatch({
@@ -89,31 +89,33 @@ class AuthService {
     EditPhoneFunc: Function
   ) {
     try {
-      const response = await this.http.get(
-        (Username.length > 0 ? VERFIY_OTP_SIGNUP : VERFIY_OTP) +
+      const response = await fetch(
+        OTP_URL +
+          (Username.length > 0 ? VERFIY_OTP_SIGNUP : VERFIY_OTP) +
           `?verificationId=${verficationID}&otp=${code}${
             Username.length > 0 ? `&name=${Username}` : ""
           }`,
         getHeader()
       );
-      if (response.data?.isSuccessful === false) {
+      let repo = await response.json();
+      if (repo?.isSuccessful === false) {
         throw new Error("Wrong Code");
       }
-      localStorage.setItem("ID-TOKEN", response.data.data.id_token);
-      localStorage.setItem("MARKET-TOKEN", response.data.data.token);
+      localStorage.setItem("ID-TOKEN", repo.data.id_token);
+      localStorage.setItem("MARKET-TOKEN", repo.data.token);
       localStorage.setItem(
         "USER",
         JSON.stringify({
-          ...response.data.data.user,
-          already_exists: response.data.data.already_exists,
+          ...repo.data.user,
+          already_exists: repo.data.already_exists,
           is_verified: false,
         })
       );
       store.dispatch({
         type: "TEMP-USER",
         payload: {
-          ...response.data.data.user,
-          already_exists: response.data.data.already_exists,
+          ...repo.data.user,
+          already_exists: repo.data.already_exists,
           is_verified: false,
         },
       });
@@ -121,9 +123,9 @@ class AuthService {
       ChatService.loginChat();
 
       if (typeof window !== "undefined") {
-        localStorage.setItem("LAST_JSON", JSON.stringify(response));
+        localStorage.setItem("LAST_JSON", JSON.stringify(repo));
       }
-      return [response.data.data.already_exists, response.data.data.user.name];
+      return [repo.data.already_exists, repo.data.user.name];
     } catch (e) {
       if (e.response.data.message === "user not found") {
         store.dispatch({ type: "WRONG-NUMBER", payload: "user not found" });

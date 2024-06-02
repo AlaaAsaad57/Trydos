@@ -1,5 +1,4 @@
 "use client";
-import axios from "axios";
 import { StoriesInterface } from "models/Stories";
 import { store } from "store";
 import { _isStoreLastJson, getLang } from "utils/functions";
@@ -13,25 +12,24 @@ import { getUserStories } from "utils/functions";
 import Cookies from "js-cookie";
 
 class StoryService {
-  http = axios.create({
-    baseURL: STORIES_URL,
-    headers: {
-      Authorization:
-        "Bearer " +
-        (typeof localStorage !== "undefined" &&
-          localStorage.getItem("USER-STORIES") &&
-          JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
-      language: Cookies.get("language"),
-
-      country: Cookies.get("country"),
-    },
-  });
-
   /* get stories */
 
   async getStories() {
-    const res = await this.http.get(GET_USERS_STORIES);
-    const data: StoriesInterface[] = res.data.data.data;
+    const res = await fetch(STORIES_URL + GET_USERS_STORIES, {
+      headers: {
+        Authorization:
+          "Bearer " +
+          (typeof localStorage !== "undefined" &&
+            localStorage.getItem("USER-STORIES") &&
+            JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
+        language: Cookies.get("language"),
+
+        country: Cookies.get("country"),
+      },
+    });
+    let repo = await res.json();
+
+    const data: StoriesInterface[] = repo.data.data;
     store.dispatch({ type: "STORY-DATA", payload: data });
     if (typeof window !== "undefined") {
       _isStoreLastJson() &&
@@ -40,15 +38,28 @@ class StoryService {
     return data;
   }
   async loginStories() {
-    const http = new StoryService().http;
-    const response = await http.post(LOG_IN_STORIES, {
-      otp_id_token: localStorage.getItem("ID-TOKEN"),
-      mobile_phone: "+" + JSON.parse(localStorage.getItem("USER")).phone,
+    const response = await fetch(STORIES_URL + LOG_IN_STORIES, {
+      method: "POST",
+      body: JSON.stringify({
+        otp_id_token: localStorage.getItem("ID-TOKEN"),
+        mobile_phone: "+" + JSON.parse(localStorage.getItem("USER")).phone,
+      }),
+      headers: {
+        Authorization:
+          "Bearer " +
+          (typeof localStorage !== "undefined" &&
+            localStorage.getItem("USER-STORIES") &&
+            JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
+        language: Cookies.get("language"),
+
+        country: Cookies.get("country"),
+      },
     });
-    Cookies.set("token", response.data.data.access_token);
-    localStorage.setItem("USER-STORIES", JSON.stringify(response.data.data));
-    Cookies.set("stories-token", response.data.data.access_token);
-    localStorage.setItem("STORIES-TOKEN", response.data.data.access_token);
+    let repo = await response.json();
+    Cookies.set("token", repo.data.access_token);
+    localStorage.setItem("USER-STORIES", JSON.stringify(repo.data));
+    Cookies.set("stories-token", repo.data.access_token);
+    localStorage.setItem("STORIES-TOKEN", repo.data.access_token);
 
     if (typeof window !== "undefined") {
       _isStoreLastJson() &&
@@ -56,12 +67,24 @@ class StoryService {
     }
   }
   async WatchStory(pid: number | string, id: number | string) {
-    const http = new StoryService().http;
     try {
       if (getUserStories()?.id) {
         store.dispatch({ type: "WATCH-STORY", payload: { pid: pid, id: id } });
-        const response = await http.get(
-          "/api/v1/stories/increase_viewers/" + pid
+        const response = await fetch(
+          STORIES_URL + "/api/v1/stories/increase_viewers/" + pid,
+          {
+            headers: {
+              Authorization:
+                "Bearer " +
+                (typeof localStorage !== "undefined" &&
+                  localStorage.getItem("USER-STORIES") &&
+                  JSON.parse(localStorage.getItem("USER-STORIES"))
+                    .access_token),
+              language: Cookies.get("language"),
+
+              country: Cookies.get("country"),
+            },
+          }
         );
 
         if (typeof window !== "undefined") {
@@ -78,11 +101,11 @@ class StoryService {
     endUpload: Function
   ) {
     try {
-      const http = new StoryService().http;
+      let axios = (await import("axios")).default;
       const formData = new FormData();
       formData.append("file", file);
       formData.append("is_video", is_video);
-      const response = await http.post(UPLOAD_STORY_URL, formData, {
+      const response = await axios.post(UPLOAD_STORY_URL, formData, {
         onUploadProgress: (progressEvent) => {
           callback(
             Math.round((progressEvent.loaded * 100) / progressEvent.total)

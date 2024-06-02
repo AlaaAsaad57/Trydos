@@ -1,12 +1,10 @@
-import axios from "axios";
 import { CHAT_URL, LOG_IN_CHAT } from "utils/endpointConfig";
 import HomeService from "services/home";
 import Cookies from "js-cookie";
 import { store } from "store";
 import { _isStoreLastJson, getLang } from "utils/functions";
-class ChatService {
-  http = axios.create({
-    baseURL: CHAT_URL,
+const ChatHeader = () => {
+  return {
     headers: {
       Authorization:
         "Bearer " +
@@ -17,18 +15,24 @@ class ChatService {
       lang: getLang(null, Cookies.get("language")),
       country: Cookies.get("country"),
     },
-  });
+  };
+};
+class ChatService {
   async loginChat() {
     try {
-      const response = await this.http.post(LOG_IN_CHAT, {
-        otp_id_token: localStorage.getItem("ID-TOKEN"),
-        mobile_phone: JSON.parse(localStorage.getItem("USER")).phone,
-        name: JSON.parse(localStorage.getItem("USER"))?.name,
-        original_user_id: JSON.parse(localStorage.getItem("USER")).id,
+      const response = await fetch(CHAT_URL + LOG_IN_CHAT, {
+        method: "POST",
+        body: JSON.stringify({
+          otp_id_token: localStorage.getItem("ID-TOKEN"),
+          mobile_phone: JSON.parse(localStorage.getItem("USER")).phone,
+          name: JSON.parse(localStorage.getItem("USER"))?.name,
+          original_user_id: JSON.parse(localStorage.getItem("USER")).id,
+        }),
       });
-      localStorage.setItem("USER-CHAT", JSON.stringify(response.data.data));
-      localStorage.setItem("CHAT-TOKEN", response.data.data.access_token);
-      if (response.data.data?.id) {
+      let repo = await response.json();
+      localStorage.setItem("USER-CHAT", JSON.stringify(repo.data));
+      localStorage.setItem("CHAT-TOKEN", repo.access_token);
+      if (repo.data?.id) {
         const { requestFirebaseNotificationPermission } = await import(
           "utils/firebaseInitv1"
         );
@@ -37,24 +41,21 @@ class ChatService {
           requestFirebaseNotificationPermission().then(
             (firebaseToken: string) => {
               localStorage.setItem("firebase_token", firebaseToken);
-              if (response.data.data) {
+              if (repo.data) {
                 try {
                   if (!firebaseToken) {
                   } else {
                     localStorage.setItem("firebase_token", firebaseToken);
                     this.StoreToken({
-                      id: response.data.data.id,
+                      id: repo.data.id,
                       token: firebaseToken,
-                      user: response.data.data,
+                      user: repo.data,
                     });
                   }
 
                   if (typeof window !== "undefined") {
                     _isStoreLastJson() &&
-                      localStorage.setItem(
-                        "LAST_JSON",
-                        JSON.stringify(response)
-                      );
+                      localStorage.setItem("LAST_JSON", JSON.stringify(repo));
                   }
                 } catch (e) {}
               }
@@ -71,26 +72,26 @@ class ChatService {
     user: { access_token: string; id: number };
     token: string;
   }) {
-    const response = await this.http.post(
-      "/api/v1/firebase_tokens",
-      JSON.stringify({
+    const response = await fetch(CHAT_URL + "/api/v1/firebase_tokens", {
+      method: "POST",
+      headers: {
+        Authorization:
+          "Bearer " +
+          JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
+      },
+      body: JSON.stringify({
         token: payload.token,
       }),
-      {
-        headers: {
-          Authorization:
-            "Bearer " +
-            JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
-        },
-      }
-    );
+    });
+
+    let repo = await response.json();
 
     if (typeof window !== "undefined") {
       _isStoreLastJson() &&
-        localStorage.setItem("LAST_JSON", JSON.stringify(response));
+        localStorage.setItem("LAST_JSON", JSON.stringify(repo));
     }
     store.dispatch({ type: "STORE_TOKEN_RED", payload: payload.token });
-    localStorage.setItem("firebase_id", response.data.data.id);
+    localStorage.setItem("firebase_id", repo.data.id);
   }
 }
 export default new ChatService();

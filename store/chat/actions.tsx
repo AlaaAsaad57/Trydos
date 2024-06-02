@@ -10,7 +10,6 @@ import {
 } from "utils/endpointConfig";
 import { store } from "../index";
 import { getUserChat, translate } from "utils/functions";
-import axios from "axios";
 
 export const ChatConroller = (payload) => {
   if (payload) document.documentElement.style.overflow = "hidden";
@@ -104,6 +103,7 @@ export const GetLastSeen = async (chatId, friendID) => {
     const { onValue, ref } = await import("firebase/database");
     const { db } = await import("../../utils/firebaseInitv1");
     let server_time;
+    let axios = (await import("axios")).default;
     await axios
       .get(CHAT_URL + "/api/v1/channels/get_date_time", {
         headers: {
@@ -156,6 +156,7 @@ export const setLastSeen = async (MyId) => {
   try {
     const { push, ref, set } = await import("firebase/database");
     let server_time;
+    let axios = (await import("axios")).default;
     await axios
       .get(CHAT_URL + "/api/v1/channels/get_date_time", {
         headers: {

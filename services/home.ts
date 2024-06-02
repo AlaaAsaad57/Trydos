@@ -1,5 +1,4 @@
 "use client";
-import axios from "axios";
 import { store } from "store";
 import { GetChats } from "store/chat/actions";
 import Cookies from "js-cookie";
@@ -28,40 +27,37 @@ const getHeader = () => {
   };
 };
 class HomeService {
-  http = axios.create({
-    baseURL: OTP_URL,
-  });
   async getClientData() {
     if (!localStorage.getItem("customer-info")) this.getCustomerInfo();
-    const response = await this.http.get(STARTER_SETTINGS, getHeader());
-    store.dispatch({ type: "GET_SETTINGS", payload: response.data });
-    sessionStorage.setItem(
-      "starttingSetting",
-      JSON.stringify(response.data.data)
-    );
+    const response = await fetch(OTP_URL + STARTER_SETTINGS, getHeader());
+    let repo = await response.json();
+    store.dispatch({ type: "GET_SETTINGS", payload: repo });
+    sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
 
     if (typeof window !== "undefined") {
       _isStoreLastJson() &&
-        localStorage.setItem("LAST_JSON", JSON.stringify(response));
+        localStorage.setItem("LAST_JSON", JSON.stringify(repo));
     }
     setTimeout(() => {
       GetChats(false);
     }, 2000);
   }
   async getCustomerInfo() {
-    const response = await this.http.get(CUSTOMER_INFO_URL, getHeader());
+    const response = await fetch(OTP_URL + CUSTOMER_INFO_URL, getHeader());
+    let repo = await response.json();
+
     store.dispatch({
       type: "UPDATE_USER_INFO",
-      payload: response.data.data.customer_info,
+      payload: repo.data.customer_info,
     });
     localStorage.setItem(
       "customer-info",
-      JSON.stringify(response.data.data.customer_info)
+      JSON.stringify(repo.data.customer_info)
     );
 
     if (typeof window !== "undefined") {
       _isStoreLastJson() &&
-        localStorage.setItem("LAST_JSON", JSON.stringify(response));
+        localStorage.setItem("LAST_JSON", JSON.stringify(repo));
     }
   }
   async CheckLogin() {
@@ -92,24 +88,26 @@ class HomeService {
       !localStorage.getItem("DEVICE-TOKEN") &&
       !localStorage.getItem("USER")
     ) {
-      let response = await this.http.post(REGISTER_DEVICE_URL, getHeader());
-      localStorage.setItem("DEVICE-TOKEN", response.data.data.token);
-      localStorage.setItem(
-        "guest-user",
-        JSON.stringify(response.data.data.user)
-      );
+      let response = await fetch(OTP_URL + REGISTER_DEVICE_URL, {
+        method: "POST",
+        ...getHeader(),
+      });
+      let repo = await response.json();
+      localStorage.setItem("DEVICE-TOKEN", repo.data.token);
+      localStorage.setItem("guest-user", JSON.stringify(repo.data.user));
       if (typeof window !== "undefined") {
         _isStoreLastJson() &&
-          localStorage.setItem("LAST_JSON", JSON.stringify(response));
+          localStorage.setItem("LAST_JSON", JSON.stringify(repo));
       }
     }
   }
   async GetBoutiques(slug) {
-    const response = await this.http.post(
+    const response = await fetch(
       OTP_URL + HOME_DATA_URL + `ByCategory`,
-      JSON.stringify({ slug: slug }),
+
       {
-        ...getHeader(),
+        method: "POST",
+        body: JSON.stringify({ slug: slug }),
         headers: {
           ...getHeader().headers,
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -117,26 +115,26 @@ class HomeService {
         },
       }
     );
-    store.dispatch(GetMainData(response.data.data.boutiques));
+    let repo = await response.json();
+    store.dispatch(GetMainData(repo.data.boutiques));
   }
   async getNextProduct({ offset, categories }) {
-    const http = new HomeService().http;
-    await http
-      .post(
-        LISTING_INFO_URL + `?offset=${offset}&limit=${20}`,
-        `boutique_slug=${categories}`,
-        {
-          ...getHeader(),
-          headers: {
-            ...getHeader().headers,
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-            Accept: "application/json",
-          },
-        }
-      )
-      .then((data) => {
-        store.dispatch({ type: "GET_NEXT_PRODUCT", payload: data.data.data });
-      });
+    await fetch(
+      OTP_URL + LISTING_INFO_URL + `?offset=${offset}&limit=${20}`,
+
+      {
+        method: "POST",
+        body: `boutique_slug=${categories}`,
+        headers: {
+          ...getHeader().headers,
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          Accept: "application/json",
+        },
+      }
+    ).then(async (data) => {
+      let repo = await data.json();
+      store.dispatch({ type: "GET_NEXT_PRODUCT", payload: repo.data });
+    });
   }
 }
 
