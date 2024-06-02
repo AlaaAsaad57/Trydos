@@ -8,7 +8,10 @@
   margin-left: 0px;
   margin-top: 0px;
 }
-
+.product-photos-slider .swiper-coverflow,
+.product-photos-slider .swiper-wrapper {
+  width: fit-content !important;
+}
 .swiper-slide {
   background-position: center;
   background-size: cover;
