@@ -1,11 +1,12 @@
 .swiper {
-  width: 100%;
+  width: auto;
   height: 100%;
   position: absolute;
-  left: 0%;
-  top: 0%;
+  left: 0;
+  top: 0;
+  right: 0;
   margin-left: 0px;
-  margin-top: px;
+  margin-top: 0px;
 }
 
 .swiper-slide {
