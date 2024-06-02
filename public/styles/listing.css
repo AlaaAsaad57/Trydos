@@ -48,6 +48,7 @@
 }
 .swiper-coverflow {
   overflow: visible !important;
+  margin: 0 auto;
 }
 .product-container {
   margin-top: 20px;
