@@ -4,7 +4,7 @@ function Logo({ animated, style }: { animated: boolean; style: boolean }) {
       <img
         fetchPriority="high"
         alt="TryDos Logo"
-        width={120}
+        width={130}
         height={36}
         loading="eager"
         src="/svg/Logo.svg"

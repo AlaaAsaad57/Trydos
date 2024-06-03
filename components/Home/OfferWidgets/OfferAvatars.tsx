@@ -55,7 +55,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
             key={index}
             category={product.count_products}
             images={product.product_thumbnail}
-            zIndex={index}
+            zIndex={index + 1}
             priority={priority}
           />
         );

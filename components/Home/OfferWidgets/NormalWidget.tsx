@@ -7,9 +7,6 @@ import Image from "next/image";
 import { Boutique } from "models/offer";
 import RemoteSvg from "components/global/RemoteSvg";
 import { useEffect } from "react";
-const ImageLoader = dynamic(() => import("components/global/ImageLoader"), {
-  ssr: false,
-});
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import NextLink from "Hooks/NextLink";
@@ -107,7 +104,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                 style={{
                   maxWidth: "187px",
                   width: "auto",
-                  height: "30px",
+                  height: "20px",
                 }}
                 width={20}
                 height={20}
