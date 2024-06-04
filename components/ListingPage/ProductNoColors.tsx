@@ -108,7 +108,7 @@ function ProductNoColors({ product, priority }) {
                   product_name={product.name}
                   renderVar={productState.renderVar}
                   active={!productState.isActiveTopSlide}
-                  isActiveTopSlide={productState.isActiveTopSlide}
+                  isActiveTopSlide={productState.insActiveTopSlide}
                   setActiveTopSlide={(e) =>
                     dispatch({ type: "setActiveTopSlide", payload: e })
                   }

@@ -171,7 +171,7 @@
   display: flex;
   align-items: center;
   overflow: visible;
-  background-color: #fdfdfd;
+  background-color: transparent;
   justify-content: center;
   transform: translateX(0px) translateY(-13px);
   z-index: 10;

@@ -2,17 +2,22 @@
 import "styles/listing.css";
 import "styles/globals.css";
 import { useEffect, useState } from "react";
-import ProductNoColors from "./ProductNoColors";
-import ProductCover from "./ProductCover";
 import { useDispatch, useSelector } from "react-redux";
 import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";
-import { useParams } from "next/navigation";
 import homeService from "services/home";
 import { dispatchRouteChangeEvent } from "Hooks/events";
-function ProductsList({ Listing_Data_res }: { Listing_Data_res: any }) {
+import Product from "./Product";
+function ProductsList({
+  Listing_Data_res,
+  productCategory,
+  boutiqueCategory,
+}: {
+  Listing_Data_res: any;
+  boutiqueCategory: string;
+  productCategory: string;
+}) {
   const dispatch = useDispatch();
-  const params = useParams();
   const products = useSelector((state: any) => state.listing.products);
   const [offset, setOffset] = useState(2);
   const loading = useSelector((state: any) => state.listing.loading);
@@ -22,7 +27,8 @@ function ProductsList({ Listing_Data_res }: { Listing_Data_res: any }) {
       dispatch({ type: "PRODUCT_LOADING" });
       await homeService.getNextProduct({
         offset: offset,
-        categories: params.productCategory,
+        categories: productCategory,
+        boutiqueCategory: boutiqueCategory,
       });
       setOffset(offset + 1);
     }
@@ -46,12 +52,7 @@ function ProductsList({ Listing_Data_res }: { Listing_Data_res: any }) {
           Listing_Data_res.body.data.products
         ).map((product, i) => (
           <div key={i}>
-            {!product.sync_color_images && (
-              <ProductNoColors product={product} priority={i < 3} />
-            )}
-            {product.sync_color_images && (
-              <ProductCover priority={i < 3} product={product} />
-            )}
+            <Product product={product} priority={i < 3} />
           </div>
         ))}
       </div>

@@ -223,7 +223,7 @@ export const getListingData = async ({ categories, lang, productCategory }) => {
       body: repo,
       reqBody: formBody,
     };
-    console.log(res);
+
     return [repo.data, returned_res];
   } catch (e) {
     return ["listing-error", e.toString()];

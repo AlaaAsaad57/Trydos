@@ -1,5 +1,3 @@
-import dynamic from "next/dynamic";
-import { Suspense } from "react";
 import { getListingData } from "store/homepage/cachedActions";
 import ProductsList from "components/ListingPage/ProductsList";
 export async function generateMetadata({ params }) {
@@ -18,7 +16,11 @@ async function page({ params }) {
 
   return (
     <>
-      <ProductsList Listing_Data_res={Listing_Data_res} />
+      <ProductsList
+        Listing_Data_res={Listing_Data_res}
+        productCategory={params.productCategory}
+        boutiqueCategory={params.boutiqueCategory}
+      />
     </>
   );
 }

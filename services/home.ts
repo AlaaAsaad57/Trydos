@@ -118,13 +118,28 @@ class HomeService {
     let repo = await response.json();
     store.dispatch(GetMainData(repo.data.boutiques));
   }
-  async getNextProduct({ offset, categories }) {
+  async getNextProduct({ offset, categories, boutiqueCategory }) {
+    var details = boutiqueCategory
+      ? {
+          boutique_slug: categories,
+          category: boutiqueCategory,
+        }
+      : {
+          boutique_slug: categories,
+        };
+    var formBody: any = [];
+    for (var property in details) {
+      var encodedKey = encodeURIComponent(property);
+      var encodedValue = encodeURIComponent(details[property]);
+      formBody.push(encodedKey + "=" + encodedValue);
+    }
+    formBody = formBody.join("&");
     await fetch(
       OTP_URL + LISTING_INFO_URL + `?offset=${offset}&limit=${20}`,
 
       {
         method: "POST",
-        body: `boutique_slug=${categories}`,
+        body: formBody,
         headers: {
           ...getHeader().headers,
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
