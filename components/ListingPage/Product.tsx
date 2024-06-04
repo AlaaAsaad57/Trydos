@@ -133,23 +133,25 @@ function Product({ product, priority }: { product: any; priority: boolean }) {
             productState.isColorSelected && "selected-color"
           }`}
         >
-          {product.sync_color_images && (
-            <ColorSlider
-              product_name={product.name}
-              priority={priority}
-              active={
-                productState.isColorSelected && !productState.isActiveTopSlide
-              }
-              activeColor={productState.activeColor}
-              colors={product.sync_color_images.filter(
-                (color) => color.images.length > 0
-              )}
-              getIndex={getIndex(product, productState)}
-              setActiveColor={(e) =>
-                dispatch({ type: "setActiveImage", payload: e })
-              }
-            />
-          )}
+          {product.sync_color_images &&
+            productState.isColorSelected &&
+            !productState.isActiveTopSlide && (
+              <ColorSlider
+                product_name={product.name}
+                priority={priority}
+                active={
+                  productState.isColorSelected && !productState.isActiveTopSlide
+                }
+                activeColor={productState.activeColor}
+                colors={product.sync_color_images.filter(
+                  (color) => color.images.length > 0
+                )}
+                getIndex={getIndex(product, productState)}
+                setActiveColor={(e) =>
+                  dispatch({ type: "setActiveImage", payload: e })
+                }
+              />
+            )}
           {
             <ImageSlider
               priority={priority}
@@ -201,26 +203,32 @@ function Product({ product, priority }: { product: any; priority: boolean }) {
           dispatch({ type: "setActiveTopSlide", payload: false });
         }}
       >
-        {product.brand?.image ? (
-          <Image
-            priority={priority}
-            loading={priority ? "eager" : "lazy"}
-            src={product.brand?.image.replace(
-              "/upload",
-              "/upload/h_50/f_webp/q_auto"
-            )}
-            width={16}
-            unoptimized
-            height={16}
-            alt={product.name}
-          />
-        ) : (
-          <div className="svg-holder-r" />
-        )}
-        <div className="prouct-details">
-          <span className="quantity">1</span>
+        <p className="prouct-details">
+          {product.brand?.image && (
+            <Image
+              priority={priority}
+              loading={priority ? "eager" : "lazy"}
+              src={product.brand?.image.replace(
+                "/upload",
+                "/upload/h_50/q_auto"
+              )}
+              width={16}
+              unoptimized
+              height={7}
+              alt={product.name}
+              onError={(e) => {
+                // @ts-ignore
+                e.target.style.display = "none";
+              }}
+            />
+          )}
+          {product.name.substring(0, 50)}
+
           {product.category && (
             <span className="product-category-icon">
+              <span style={{ display: "inline" }} className="quantity">
+                1
+              </span>
               {product.category?.icon && (
                 <Image
                   priority={priority}
@@ -231,13 +239,17 @@ function Product({ product, priority }: { product: any; priority: boolean }) {
                   )}
                   width={10}
                   height={10}
+                  style={{
+                    display: "inline",
+                    minWidth: "10px",
+                    minHeight: "10px",
+                  }}
                   alt={product.name}
                 />
               )}
             </span>
           )}
-          <span className="product-details-text">{product.name}</span>
-        </div>
+        </p>
       </div>
       <div className="product-footer">
         <PriceLabel

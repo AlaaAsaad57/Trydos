@@ -5,11 +5,17 @@
   max-height: 15px;
   border-radius: 0px !important;
 }
-.product-body img,
+
 .product-body svg,
 .product-body .svg-holder-r {
   width: auto;
   height: 16px;
+}
+.product-body img {
+  height: 7px;
+  width: auto;
+  display: inline;
+  margin-right: 5px;
 }
 .product-category-icon svg {
   cursor: pointer;
