@@ -6,7 +6,12 @@ import ImageSlider from "./ImageSlider";
 import PriceLabel from "./PriceLabel";
 import BuyButton from "./BuyButton";
 const TopSlider = dynamic(() => import("./TopSlider"), {
-  loading: () => <div className={`top-slider`}></div>,
+  loading: () => (
+    <>
+      <div className={`top-slider`}></div>
+      <div className="product-photos"></div>
+    </>
+  ),
 });
 const CoverEffectSlider = dynamic(() => import("./CoverEffectSlider"));
 const ColorSlider = dynamic(() => import("./ColorSlider"));
