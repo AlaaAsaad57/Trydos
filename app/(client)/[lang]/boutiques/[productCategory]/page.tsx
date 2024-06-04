@@ -16,7 +16,11 @@ async function Page({ params, searchParams }) {
   });
   return (
     <>
-      <ProductsList Listing_Data_res={Listing_Data_res} />
+      <ProductsList
+        Listing_Data_res={Listing_Data_res}
+        productCategory={params.productCategory}
+        boutiqueCategory={null}
+      />
     </>
   );
 }
