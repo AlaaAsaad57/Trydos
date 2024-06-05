@@ -1,0 +1,31 @@
+.search-contact-container {
+  width: 100%;
+  min-height: 40px;
+  background-color: #f8f8f8;
+  border-radius: 20px;
+  position: relative;
+  display: flex;
+  margin-top: 15px;
+  align-items: center;
+  justify-content: center;
+}
+.search-contact-container input {
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  outline: none;
+  border: none;
+  padding-left: 41px;
+  background-color: #f8f8f8;
+}
+.search-contact-container input,
+.search-contact-container input::placeholder {
+  color: #8d8d8d;
+  font-family: var(--Quicksand-Regular);
+  font-size: 14px;
+}
+.search-contact-container svg {
+  position: absolute;
+  top: 12px;
+  left: 15px;
+}

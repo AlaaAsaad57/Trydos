@@ -12,23 +12,10 @@ function AddToCartButton() {
           height="30"
           viewBox="0 0 30 30"
         >
-          <defs>
-            <clipPath id="clip-path">
-              <rect
-                id="Rectangle_4741"
-                data-name="Rectangle 4741"
-                width="30"
-                height="30"
-                transform="translate(-0.568 0.194)"
-                fill="none"
-              />
-            </clipPath>
-          </defs>
           <g
             id="Group_335"
             data-name="Group 335"
             transform="translate(0.568 -0.194)"
-            clip-path="url(#clip-path)"
           >
             <g
               id="Group_11014"
@@ -68,8 +55,8 @@ function AddToCartButton() {
                     transform="translate(6.044 19.49)"
                     fill="none"
                     stroke="#ffe836"
-                    stroke-linecap="round"
-                    stroke-width="0.3"
+                    strokeLinecap="round"
+                    strokeWidth="0.3"
                   />
                 </g>
               </g>

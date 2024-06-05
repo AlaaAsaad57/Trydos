@@ -20,6 +20,8 @@ function ProductDetailsSlider({
               <Image
                 width={320}
                 height={464}
+                priority={i === 0}
+                loading={i === 0 ? "eager" : "lazy"}
                 alt={name}
                 src={getConfiguredImage({ src: img, width: 500, height: 700 })}
                 unoptimized

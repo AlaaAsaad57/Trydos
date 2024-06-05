@@ -24,7 +24,7 @@ function ProductInfo({
               transform="translate(0 1)"
               fill="none"
               stroke="#C4C2C2"
-              stroke-width="2"
+              strokeWidth="2"
             />
           </svg>
           {oldPrice}
