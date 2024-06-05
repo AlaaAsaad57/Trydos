@@ -1,9 +1,9 @@
-import Init from "components/Home/Init";
-import { ReactQueryClientProvider } from "components/Providers/ReactQueryClientProvider";
-import TranslationsMenu from "components/global/TranslationsMenu";
+import Init from "../components/Home/Init";
+import { ReactQueryClientProvider } from "../components/Providers/ReactQueryClientProvider";
+import TranslationsMenu from "../components/global/TranslationsMenu";
 import { PropsWithChildren } from "react";
 import { Provider } from "react-redux";
-import { store } from "store";
+import { store } from "../store";
 
 const AllProviders = ({ children }: PropsWithChildren) => {
   return (
