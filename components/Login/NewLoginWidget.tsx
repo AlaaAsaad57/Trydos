@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import LogoAuth from "public/svg/LogoAuth.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { Sendevent, translate } from "utils/functions";
@@ -18,7 +18,7 @@ const LoginMethods = dynamic(() => import("./LoginMethods"));
 
 import Animated from "react-mount-animation";
 function NewLoginWidget() {
-  const [stepIndicator, setStepIndcator] = useState(-1);
+  const [stepIndicator, setStepIndicator] = useState(-1);
   const [signStep, setSignStep] = useState("");
   const [operation, setOperation] = useState("login");
   const [showMethods, setShowMethods] = useState(false);
@@ -46,7 +46,7 @@ function NewLoginWidget() {
         category: "button_clicked",
       });
     setTimeout(() => {
-      setStepIndcator(0);
+      setStepIndicator(0);
     }, 1500);
   }, [loginOpen]);
   const setLoginOpen = (e: boolean) => {
@@ -91,14 +91,14 @@ function NewLoginWidget() {
             });
             if (exists && name.length > 1) {
               setSignStep("alreadyExists");
-              setStepIndcator(6);
+              setStepIndicator(6);
             } else if (exists && !(name.length > 1)) {
-              setStepIndcator(7);
+              setStepIndicator(7);
             }
             if (!exists) {
               FinaliseLogin();
               setSignStep("welcomeSignup");
-              setStepIndcator(7);
+              setStepIndicator(7);
             }
           } else {
             Sendevent({
@@ -109,13 +109,13 @@ function NewLoginWidget() {
             if (exists && name.length > 1) {
               FinaliseLogin();
               setSignStep("welcomeLogin");
-              setStepIndcator(6);
+              setStepIndicator(6);
             } else if (exists && !(name.length > 1)) {
-              setStepIndcator(7);
+              setStepIndicator(7);
             }
             if (!exists) {
               setSignStep("notFound");
-              setStepIndcator(6);
+              setStepIndicator(6);
             }
           }
         }, 2000);
@@ -157,6 +157,7 @@ function NewLoginWidget() {
   return (
     <>
       <div
+        data-testid="backdrop-login"
         onClick={() => {
           Sendevent({
             event: "button_clicked",
@@ -168,6 +169,7 @@ function NewLoginWidget() {
         className="backdrop-login"
       />
       <div
+        data-testid="login-widget-container"
         className={`login-widget-container login-w2-container pb-${stepIndicator} step${stepIndicator}`}
         id="widget-auth"
         style={{
@@ -194,186 +196,188 @@ function NewLoginWidget() {
           }
         />
 
-        <>
-          {
+        <div
+          data-testid="login-animated-container"
+          className={`animation-row-container ${
+            stepIndicator === -1 && "margin-none"
+          }`}
+        >
+          <Animated.div
+            role="login-animated-container"
+            unmountTime={0.5}
+            className="animated-container"
+            show={stepIndicator === 0}
+            mountAnim={mountAnim}
+            style={{
+              animationFillMode: "forwards",
+            }}
+            unmountAnim={unmountAnim}
+          >
             <div
-              className={`animation-row-container ${
-                stepIndicator === -1 && "margin-none"
-              }`}
+              className="login-privacy-text"
+              style={{ opacity: stepIndicator === -1 ? "0" : "1" }}
             >
-              <Animated.div
-                unmountTime={0.5}
-                className="animated-container"
-                show={stepIndicator === 0}
-                mountAnim={mountAnim}
-                style={{
-                  animationFillMode: "forwards",
+              {translate(
+                "To Take Advantage Of All The Advantages Of The Application, Please Join Us In Quick And Easy Steps And For Just One Time",
+                language
+              )}
+            </div>
+            <div
+              className="login-privacy-text-2"
+              style={{ opacity: stepIndicator === -1 ? "0" : "1" }}
+            >
+              {translate("Why We Know You ?", language)}
+            </div>
+            <div
+              data-testid="login-button-group"
+              role="login-button-group"
+              className="login-button-group"
+              style={{ opacity: stepIndicator === -1 ? "0" : "1" }}
+            >
+              <div
+                data-testid="have-account-button"
+                className="login-button"
+                onClick={() => {
+                  if (window.innerWidth > 912) {
+                    setShowMethods(!showMethods);
+                    setOperation("login");
+                  } else {
+                    setStepIndicator(2);
+                    setOperation("login");
+                  }
                 }}
-                unmountAnim={unmountAnim}
               >
-                <div
-                  className="login-privacy-text"
-                  style={{ opacity: stepIndicator === -1 ? "0" : "1" }}
-                >
-                  {translate(
-                    "To Take Advantage Of All The Advantages Of The Application, Please Join Us In Quick And Easy Steps And For Just One Time",
-                    language
-                  )}
-                </div>
-                <div
-                  className="login-privacy-text-2"
-                  style={{ opacity: stepIndicator === -1 ? "0" : "1" }}
-                >
-                  {translate("Why We Know You ?", language)}
-                </div>
-                <div
-                  className="login-button-group"
-                  style={{ opacity: stepIndicator === -1 ? "0" : "1" }}
-                >
-                  <div
-                    className="login-button"
-                    onClick={() => {
-                      if (window.innerWidth > 912) {
-                        setShowMethods(!showMethods);
-                        setOperation("login");
-                      } else {
-                        setStepIndcator(2);
-                        setOperation("login");
-                      }
-                    }}
-                  >
-                    {translate("I have Already Account", language)}
-                  </div>
-                  {showMethods && (
-                    <LoginMethods
-                      confirm={() => {
-                        setStepIndcator(2);
-                        setShowMethods(!showMethods);
-                      }}
-                    />
-                  )}
-                  <div
-                    className="login-button"
-                    onClick={() => {
-                      setStepIndcator(1);
-                      setOperation("signup");
-                    }}
-                  >
-                    {translate("Create New Account", language)}
-                  </div>
-                </div>
-              </Animated.div>
-              <PrivacyConfirm
-                stepIndicator={stepIndicator}
-                setStepIndcator={(e) => setStepIndcator(e)}
-              />
-
-              <PhoneInput
-                inputValue={inputValue}
-                wrongNumber={wrongNumber}
-                setWrongNumber={(e) => setWrongNumber(e)}
-                setInputValue={(e) => setInputValue(e)}
-                stepIndicator={stepIndicator}
-                setStepIndcator={(e) => setStepIndcator(e)}
-                operation={operation}
-              />
-              <SendMethod
-                stepIndicator={stepIndicator}
-                setWrongNumber={(e) => setWrongNumber(e)}
-                setStepIndcator={(e: number) => setStepIndcator(e)}
-                setMessageMethod={(e: string) => setMessageMethod(e)}
-                inputValue={inputValue}
-              />
-
-              <LogInPins
-                expired={expired}
-                stepIndicator={stepIndicator}
-                setDisabled={(e) => {
-                  setDisabled(e);
-                  setExpired(e);
-                }}
-                resend={() => {
-                  SendOtpHook({
-                    mobilePhone: inputValue,
-                    is_via_whatsapp: MessageMethod === "WA" ? "1" : "0",
-                    step: () => {},
-                    successCallback: function () {},
-                    errorCallback: function () {
-                      setStepIndcator(3);
-                      setWrongNumber(true);
-                    },
-                  });
-                  setDisabled(false);
-                  setExpired(false);
-                }}
-                setStepIndactor={(e) => setStepIndcator(e)}
-                rendere={rendere}
-                inputValue={inputValue}
-                disabled={disabled}
-                Submit={(e) => loginFunc(e)}
-                successLogin={success}
-                wrongNumber={wrongNumber}
-                failedLogin={failedLogin}
-                setPin={(e: string) => setPins(e)}
-                pin={pins}
-                MessageMethod={MessageMethod}
-              />
-              <Animated.div
-                unmountTime={0.5}
-                className="animated-container"
-                show={stepIndicator === 7}
-                mountAnim={mountAnim}
-                style={{
-                  animationFillMode: "forwards",
-                }}
-                unmountAnim={unmountAnim}
-              >
-                <InputName
-                  value={Name}
-                  setName={(e) => setName(e)}
-                  submit={() => {
-                    AuthService.UpdateName(Name);
-                    if (operation === "login") {
-                      if (user.already_exists) setSignStep("welcomeLogin");
-                      else setSignStep("welcomeSignup");
-                    }
-                    if (operation === "signup") {
-                      if (user.already_exists) {
-                        setSignStep("welcomeLogin");
-                      } else {
-                        setSignStep("welcomeSignup");
-                      }
-                    }
-                    setStepIndcator(6);
+                {translate("I have Already Account", language)}
+              </div>
+              {showMethods && (
+                <LoginMethods
+                  confirm={() => {
+                    setStepIndicator(2);
+                    setShowMethods(!showMethods);
                   }}
                 />
-              </Animated.div>
-              <SignSteps
-                signStep={signStep}
-                stepIndicator={stepIndicator}
-                setStepSign={(e) => {
-                  setSignStep(e);
+              )}
+              <div
+                data-testid="create-account-button"
+                className="login-button"
+                onClick={() => {
+                  setStepIndicator(1);
+                  setOperation("signup");
                 }}
-                Name={Name}
-                user={user}
-                FinaliseLogin={() => FinaliseLogin()}
-                cancelLogin={() => {
-                  AuthService.cancelAuth();
-                }}
-                close={() => {
-                  setLoginOpen(false);
-                  Sendevent({
-                    event: "button_clicked",
-                    category: "button_clicked",
-                    value: "close login widget",
-                  });
-                }}
-                setStepIndactor={(e) => setStepIndcator(e)}
-                inputValue={inputValue}
-              />
+              >
+                {translate("Create New Account", language)}
+              </div>
             </div>
-          }
-        </>
+          </Animated.div>
+          <PrivacyConfirm
+            stepIndicator={stepIndicator}
+            setStepIndicator={(e) => setStepIndicator(e)}
+          />
+
+          <PhoneInput
+            inputValue={inputValue}
+            wrongNumber={wrongNumber}
+            setWrongNumber={(e) => setWrongNumber(e)}
+            setInputValue={(e) => setInputValue(e)}
+            stepIndicator={stepIndicator}
+            setStepIndicator={(e) => setStepIndicator(e)}
+            operation={operation}
+          />
+          <SendMethod
+            stepIndicator={stepIndicator}
+            setWrongNumber={(e) => setWrongNumber(e)}
+            setStepIndicator={(e: number) => setStepIndicator(e)}
+            setMessageMethod={(e: string) => setMessageMethod(e)}
+            inputValue={inputValue}
+          />
+
+          <LogInPins
+            expired={expired}
+            stepIndicator={stepIndicator}
+            setDisabled={(e) => {
+              setDisabled(e);
+              setExpired(e);
+            }}
+            resend={() => {
+              SendOtpHook({
+                mobilePhone: inputValue,
+                is_via_whatsapp: MessageMethod === "WA" ? "1" : "0",
+                step: () => {},
+                successCallback: function () {},
+                errorCallback: function () {
+                  setStepIndicator(3);
+                  setWrongNumber(true);
+                },
+              });
+              setDisabled(false);
+              setExpired(false);
+            }}
+            setStepIndactor={(e) => setStepIndicator(e)}
+            rendere={rendere}
+            inputValue={inputValue}
+            disabled={disabled}
+            Submit={(e) => loginFunc(e)}
+            successLogin={success}
+            wrongNumber={wrongNumber}
+            failedLogin={failedLogin}
+            setPin={(e: string) => setPins(e)}
+            pin={pins}
+            MessageMethod={MessageMethod}
+          />
+          <Animated.div
+            unmountTime={0.5}
+            className="animated-container"
+            show={stepIndicator === 7}
+            mountAnim={mountAnim}
+            style={{
+              animationFillMode: "forwards",
+            }}
+            unmountAnim={unmountAnim}
+          >
+            <InputName
+              value={Name}
+              setName={(e) => setName(e)}
+              submit={() => {
+                AuthService.UpdateName(Name);
+                if (operation === "login") {
+                  if (user.already_exists) setSignStep("welcomeLogin");
+                  else setSignStep("welcomeSignup");
+                }
+                if (operation === "signup") {
+                  if (user.already_exists) {
+                    setSignStep("welcomeLogin");
+                  } else {
+                    setSignStep("welcomeSignup");
+                  }
+                }
+                setStepIndicator(6);
+              }}
+            />
+          </Animated.div>
+          <SignSteps
+            signStep={signStep}
+            stepIndicator={stepIndicator}
+            setStepSign={(e) => {
+              setSignStep(e);
+            }}
+            Name={Name}
+            user={user}
+            FinaliseLogin={() => FinaliseLogin()}
+            cancelLogin={() => {
+              AuthService.cancelAuth();
+            }}
+            close={() => {
+              setLoginOpen(false);
+              Sendevent({
+                event: "button_clicked",
+                category: "button_clicked",
+                value: "close login widget",
+              });
+            }}
+            setStepIndactor={(e) => setStepIndicator(e)}
+            inputValue={inputValue}
+          />
+        </div>
         <Animated.div
           unmountTime={0.5}
           className="animated-container"

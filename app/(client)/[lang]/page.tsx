@@ -1,7 +1,7 @@
 import Home from "components/Home";
 import BrandsBar from "components/Home/Bars/BrandsBar";
 import OfferListServer from "components/Server/OfferListServer";
-function page({ params }) {
+function HomePage({ params }) {
   return (
     <>
       <Home />
@@ -11,4 +11,4 @@ function page({ params }) {
   );
 }
 
-export default page;
+export default HomePage;

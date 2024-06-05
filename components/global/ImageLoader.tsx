@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import { useState } from "react";
 import Loader from "./Loader";
 import Image from "next/image";
 function ImageLoader(props) {
@@ -41,7 +41,7 @@ function ImageLoader(props) {
           {...props}
           quality={100}
           priority={props.priority}
-          fetchPriority={props.fetchPriority}
+          fetchpriority={props.fetchpriority}
           loading={"eager"}
           unoptimized
           alt={props.alt}

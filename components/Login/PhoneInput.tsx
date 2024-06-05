@@ -1,21 +1,21 @@
 import Border from "components/global/Border";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import SolidPhoneIcon from "public/svg/SolidPhoneIcon.svg";
 import { allCountries } from "country-telephone-data";
 import replaceString from "replace-string";
 import { textMarshal } from "text-marshal";
-const { flag } = require("country-emoji");
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import LoginIcon from "public/svg/LoginIcon.svg";
 import BlueCall from "public/svg/BlueCall.svg";
 import PrivacyIcon from "public/svg/privacyicon.svg";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { translate } from "utils/functions";
 import Animated from "react-mount-animation";
+const { flag } = require("country-emoji");
 function PhoneInput({
   stepIndicator,
-  setStepIndcator,
+  setStepIndicator,
   wrongNumber,
   setWrongNumber,
   operation,
@@ -23,7 +23,7 @@ function PhoneInput({
   setInputValue,
 }: {
   stepIndicator: number;
-  setStepIndcator: Function;
+  setStepIndicator: Function;
   wrongNumber: boolean;
   setWrongNumber: Function;
   operation: string;
@@ -373,6 +373,7 @@ function PhoneInput({
           Search
         </label>
         <input
+          data-testid="phone-number-input"
           id="phoneInput"
           aria-autocomplete="both"
           aria-haspopup="false"
@@ -410,15 +411,16 @@ function PhoneInput({
         />
         {validNumber && stepIndicator <= 3 && (
           <span
+            data-testid="phone-arrow"
             className="phone-arrow"
-            onClick={() => {
-              // AuthService.CheckPhone(
-              //   inputValue,
-              //   (e) => setStepIndcator(e),
-              //   stepIndicator === 3
-              // );
-              setStepIndcator(4);
-            }}
+            // onClick={() => {
+            //   AuthService.CheckPhone(
+            //     inputValue,
+            //     (e) => setStepIndicator(e),
+            //     stepIndicator === 3
+            //   );
+            //   setStepIndicator(4);
+            // }}
           >
             <LeftArrowIcon />
           </span>

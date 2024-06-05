@@ -26,7 +26,7 @@ const getHeader = () => {
     },
   };
 };
-class AuthService {
+export class AuthService {
   http = axios.create({
     baseURL: OTP_URL,
   });
@@ -195,4 +195,5 @@ class AuthService {
     store.dispatch({ type: "CANCEL-AUTH" });
   }
 }
+
 export default new AuthService();

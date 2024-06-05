@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Qr from "public/svg/qr.svg";
 import LoginCall from "public/svg/loginCall.svg";
 import { translate } from "utils/functions";
@@ -17,9 +17,13 @@ const LoginMethods = ({ confirm }) => {
     }
   }, [showQr]);
   return (
-    <div className="login-method-container">
+    <div
+      data-testid="login-methods-container"
+      className="login-method-container"
+    >
       <div
-        className={`${showQr && "qr-extended"} login-method-qr`}
+        data-testid="login-method-qr"
+        className={`${showQr ? "qr-extended" : ""} login-method-qr`}
         onClick={(e) => {
           e.preventDefault();
           setShowQr(!showQr);
@@ -4663,7 +4667,11 @@ const LoginMethods = ({ confirm }) => {
         )}
       </div>
       {!showQr && (
-        <div className="login-method-phone" onClick={() => confirm()}>
+        <div
+          data-testid="login-method-phone"
+          className="login-method-phone"
+          onClick={() => confirm()}
+        >
           <Border className="border-button" />
           <LoginCall />
           <span>{translate("By Mobile Phone Number", language)}</span>

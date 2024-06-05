@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import WAIcon from "public/svg/WAIcon.svg";
@@ -8,12 +8,12 @@ import Animated from "react-mount-animation";
 
 function SendMethod({
   inputValue,
-  setStepIndcator,
+  setStepIndicator,
   setWrongNumber,
   setMessageMethod,
   stepIndicator,
 }: {
-  setStepIndcator: Function;
+  setStepIndicator: Function;
   stepIndicator: number;
   inputValue: string;
   setWrongNumber: Function;
@@ -28,7 +28,7 @@ function SendMethod({
       step: () => {},
       successCallback: function () {},
       errorCallback: function () {
-        setStepIndcator(3);
+        setStepIndicator(3);
         setWrongNumber(true);
       },
     });
@@ -136,7 +136,7 @@ function SendMethod({
           <div
             className="icon-detail"
             style={{ cursor: "pointer", marginTop: "3px" }}
-            onClick={() => setStepIndcator(3)}
+            onClick={() => setStepIndicator(3)}
           >
             <svg
               id="Group_10806"
@@ -245,7 +245,7 @@ function SendMethod({
           onClick={() => {
             setMessageMethod("WA");
             SendCodeRequest("1");
-            setStepIndcator(5);
+            setStepIndicator(5);
             // AuthService.SendOtp(inputValue, 1, (e) => {
             //   setStepHeight(e);
             // });
@@ -291,7 +291,7 @@ function SendMethod({
           className="message-recieve-option"
           onClick={() => {
             setMessageMethod("SMS");
-            setStepIndcator(5);
+            setStepIndicator(5);
             SendCodeRequest("0");
             // AuthService.SendOtp(inputValue, 0, (e) => {
             //   setStepHeight(e);

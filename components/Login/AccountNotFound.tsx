@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import AuthService from "services/auth";
 function AccountNotFound({
   inputValue,
-  setStepIndcator,
+  setStepIndicator,
 
   close,
   stepIndicator,
@@ -15,7 +15,7 @@ function AccountNotFound({
   close: Function;
   stepIndicator: number;
   signStep: string;
-  setStepIndcator: Function;
+  setStepIndicator: Function;
 }) {
   const language = useSelector((state: any) => state.homepage.language);
   const [active, setActive] = useState(false);
@@ -161,7 +161,7 @@ function AccountNotFound({
       <div className="login-button-group">
         <div
           className="login-button"
-          onClick={() => setStepIndcator(7)}
+          onClick={() => setStepIndicator(7)}
           style={{
             position: "relative",
             marginTop: "50px",

@@ -1,4 +1,3 @@
-import React from "react";
 import AlreadyRegistered from "./AlreadyRegistered";
 import AccountNotFound from "./AccountNotFound";
 import WelcomingWidget from "./WelcomingWidget";
@@ -48,7 +47,7 @@ function SignSteps({
           cancelLogin();
         }}
         inputValue={inputValue}
-        setStepIndcator={(e) => setStepIndactor(e)}
+        setStepIndicator={(e) => setStepIndactor(e)}
       />
       <AccountNotFound
         signStep={signStep}
@@ -58,7 +57,7 @@ function SignSteps({
         }}
         stepIndicator={stepIndicator}
         inputValue={inputValue}
-        setStepIndcator={(e) => setStepIndactor(e)}
+        setStepIndicator={(e) => setStepIndactor(e)}
       />
       <WelcomeSignup
         Name={Name}
