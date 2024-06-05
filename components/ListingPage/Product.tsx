@@ -5,6 +5,8 @@ import { getConfiguredImage } from "utils/functions";
 import ImageSlider from "./ImageSlider";
 import PriceLabel from "./PriceLabel";
 import BuyButton from "./BuyButton";
+import NextLink from "Hooks/NextLink";
+import { ProductInterface } from "models/product";
 const TopSlider = dynamic(() => import("./TopSlider"), {
   loading: () => (
     <>
@@ -53,7 +55,13 @@ const getIndex = (product, productState) => {
   return index;
 };
 
-function Product({ product, priority }: { product: any; priority: boolean }) {
+function Product({
+  product,
+  priority,
+}: {
+  product: ProductInterface;
+  priority: boolean;
+}) {
   const [productState, dispatch] = useReducer(ProductReducer, {
     isActiveTopSlide: false,
     activeColor: product.sync_color_images
@@ -76,7 +84,8 @@ function Product({ product, priority }: { product: any; priority: boolean }) {
     renderVar: false,
   });
   return (
-    <div
+    <NextLink
+      href={`/products/${product.slug}`}
       className="product-container"
       onMouseLeave={() => {
         if (productState.isActiveTopSlide || productState.isColorSelected) {
@@ -258,7 +267,7 @@ function Product({ product, priority }: { product: any; priority: boolean }) {
         />
         <BuyButton />
       </div>
-    </div>
+    </NextLink>
   );
 }
 

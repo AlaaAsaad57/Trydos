@@ -9,6 +9,7 @@ import CategoriesBar from "./CategoriesBar";
 import MobileNavigation from "./MobileNavigation";
 import dynamic from "next/dynamic";
 import NextLink from "Hooks/NextLink";
+import { usePathname } from "next/navigation";
 const AuthSections = dynamic(() => import("./AuthSections"), { ssr: false });
 interface NavbarProps {
   init: string;
@@ -21,6 +22,7 @@ function Navbar({ init, categories }: NavbarProps) {
   };
   const language = useSelector((state: any) => state.homepage.language);
   const dispatch = useDispatch();
+  const params = usePathname();
   const initFunc = async () => {
     const Cookies = (await import("js-cookie")).default;
     let languageCookies = Cookies.get("language");
@@ -37,6 +39,24 @@ function Navbar({ init, categories }: NavbarProps) {
   useEffect(() => {
     initFunc();
   }, []);
+  const showNavbar = () => {
+    if (
+      params.split("/").includes("boutiques") ||
+      params.split("/").includes("products")
+    ) {
+      return false;
+    }
+    if (
+      (params.split("/").includes("categories") &&
+        !params.split("/").includes("boutiques")) ||
+      (!params.split("/").includes("categories") &&
+        !params.split("/").includes("boutiques"))
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  };
   return (
     <>
       <AuthSections />
@@ -44,7 +64,9 @@ function Navbar({ init, categories }: NavbarProps) {
         <NextLink href={"/"} aria-label="TryDos Home">
           <Logo animated={false} style={false} key={1} />
         </NextLink>
-        {<CategoriesBar categories={categories} key={2} forMobile={false} />}
+        {showNavbar() && (
+          <CategoriesBar categories={categories} key={2} forMobile={false} />
+        )}
         {
           <UserNavTopSection
             loginOpen={loginOpen}
@@ -52,7 +74,7 @@ function Navbar({ init, categories }: NavbarProps) {
           />
         }
       </div>
-      {<MobileNavigation categories={categories} />}
+      {showNavbar() && <MobileNavigation categories={categories} />}
     </>
   );
 }
