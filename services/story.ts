@@ -105,13 +105,17 @@ class StoryService {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("is_video", is_video);
-      const response = await axios.post(UPLOAD_STORY_URL, formData, {
-        onUploadProgress: (progressEvent) => {
-          callback(
-            Math.round((progressEvent.loaded * 100) / progressEvent.total)
-          );
-        },
-      });
+      const response = await axios.post(
+        STORIES_URL + UPLOAD_STORY_URL,
+        formData,
+        {
+          onUploadProgress: (progressEvent) => {
+            callback(
+              Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            );
+          },
+        }
+      );
 
       if (typeof window !== "undefined") {
         _isStoreLastJson() &&
