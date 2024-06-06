@@ -32,6 +32,7 @@
 .share-image img {
   width: 70px;
   height: 80px;
+  object-position: top;
   border-radius: 20px;
 }
 .share-name {
