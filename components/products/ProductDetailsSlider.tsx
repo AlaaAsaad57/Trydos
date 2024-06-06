@@ -3,26 +3,31 @@ import React from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
+import { store } from "store";
+import { ProductInterface } from "models/product";
 function ProductDetailsSlider({
-  Images,
-  name,
+  product,
+  slug,
 }: {
-  Images: Array<string>;
-  name: string;
+  product: ProductInterface;
+  slug: string;
 }) {
+  const productData =
+    product ??
+    store.getState().listing.products.filter((s) => s.slug === slug)[0];
   const [emblaRef] = useEmblaCarousel();
   return (
     <div className="product-details-slider">
       <div className="embla" ref={emblaRef}>
         <div className="embla__container">
-          {Images.map((img, i) => (
+          {productData.images.map((img, i) => (
             <div className="embla__slide" key={i}>
               <Image
                 width={320}
                 height={464}
                 priority={i === 0}
                 loading={i === 0 ? "eager" : "lazy"}
-                alt={name}
+                alt={productData.name}
                 src={getConfiguredImage({ src: img, width: 500, height: 700 })}
                 unoptimized
               />

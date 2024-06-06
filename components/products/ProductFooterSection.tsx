@@ -4,17 +4,29 @@ import ProductInfo from "./ProductInfo";
 import ExtendedAreaInfo from "./ExtendedAreaInfo";
 import ProductOptions from "./ProductOptions";
 import { ProductInterface } from "models/product";
-import ShareButton from "./ShareButton";
+import { store } from "store";
+import ProductDetails from "./ProductDetails";
 
-function ProductFooterSection({ product }: { product: ProductInterface }) {
+function ProductFooterSection({
+  product,
+  slug,
+}: {
+  slug: string;
+  product: ProductInterface;
+}) {
   const [option, setOption] = useState("");
   const [sharedContacts, setShareContacts] = useState([]);
+  const productData =
+    product ??
+    store.getState().listing.products.filter((s) => s.slug === slug)[0];
+
   return (
     <div className="product-details-footer">
+      <ProductDetails />
       <ProductInfo
-        currency={product.price_formatted.split(" ")[1]}
-        newPrice={product.offer_price}
-        oldPrice={product.price}
+        currency={productData.price_formatted.split(" ")[1]}
+        newPrice={productData.offer_price}
+        oldPrice={productData.price}
       />
       {
         <ExtendedAreaInfo
