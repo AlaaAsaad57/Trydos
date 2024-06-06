@@ -75,7 +75,7 @@ export const getHomeData = async ({ str, lang }) => {
       credentials: "include",
       mode: "cors",
     });
-
+    console.log("get response homeData");
     const repo = await res.json();
 
     time = new Date().getTime() - time;
@@ -89,7 +89,7 @@ export const getHomeData = async ({ str, lang }) => {
       time: time + "ms",
       body: repo,
     };
-    console.log("get homeData!");
+    console.log("delevier homeData to ui!");
 
     return [repo.data.boutiques, returned_res];
   } catch (e) {
@@ -112,6 +112,7 @@ export const getMainCategories = async ({ lang }) => {
         country: cookieStore.get("country") && cookieStore.get("country").value,
       }),
     });
+    console.log("get response main category");
     const repo = await res.json();
     time = new Date().getTime() - time;
     let returned_res = {
@@ -124,7 +125,7 @@ export const getMainCategories = async ({ lang }) => {
       time: time + "ms",
       body: repo,
     };
-    console.log("get main category!");
+    console.log("delevier main category to ui!");
 
     return [repo.data.mainCategories, returned_res];
   } catch (e) {
@@ -211,6 +212,7 @@ export const getListingData = async ({ categories, lang, productCategory }) => {
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
       }),
     });
+    console.log("get listing response");
     const repo = await res.json();
     time = new Date().getTime() - time;
     let returned_res = {
@@ -224,7 +226,7 @@ export const getListingData = async ({ categories, lang, productCategory }) => {
       body: repo,
       reqBody: formBody,
     };
-    console.log("GetListingData!");
+    console.log("delevier main category to ui!");
     return [repo.data, returned_res];
   } catch (e) {
     return ["listing-error", e.toString()];
