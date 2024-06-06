@@ -170,6 +170,7 @@ export const getLang = (lang, cookieLang) => {
   }
 };
 export const getListingData = async ({ categories, lang, productCategory }) => {
+  console.log("gettingListingData");
   let str = categories;
   let url =
     OTP_URL +
@@ -223,7 +224,7 @@ export const getListingData = async ({ categories, lang, productCategory }) => {
       body: repo,
       reqBody: formBody,
     };
-
+    console.log("GetListingData!");
     return [repo.data, returned_res];
   } catch (e) {
     return ["listing-error", e.toString()];

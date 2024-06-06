@@ -7,6 +7,8 @@ import PriceLabel from "./PriceLabel";
 import BuyButton from "./BuyButton";
 import NextLink from "Hooks/NextLink";
 import { ProductInterface } from "models/product";
+import { Img } from "react-image";
+import Skeleton from "react-loading-skeleton";
 const TopSlider = dynamic(() => import("./TopSlider"), {
   loading: () => (
     <>
@@ -83,8 +85,10 @@ function Product({
     activeImageIndex: 0,
     renderVar: false,
   });
+
   return (
     <NextLink
+      suppressHydrationWarning
       href={`/products/${product.slug}`}
       className="product-container"
       onMouseLeave={() => {
@@ -116,6 +120,7 @@ function Product({
           src: productState.activeColor.images[0],
         })}
       />
+
       <div className="offer-blured-background" />
       <div className="offer-blured" />
       {productState.isActiveTopSlide && (
@@ -206,6 +211,7 @@ function Product({
 
       <div
         className="product-body"
+        suppressHydrationWarning
         onMouseEnter={() => dispatch({ type: "setColor", payload: false })}
         onTouchStart={() => {
           dispatch({ type: "setColor", payload: false });
@@ -214,21 +220,18 @@ function Product({
       >
         <p className="prouct-details">
           {product.brand?.image && (
-            <Image
-              priority={priority}
+            <Img
+              suppressHydrationWarning
+              loader={<Skeleton width={50} height={7} borderRadius={3} />}
+              unloader={<span suppressHydrationWarning></span>}
               loading={priority ? "eager" : "lazy"}
               src={product.brand?.image.replace(
                 "/upload",
                 "/upload/h_50/q_auto"
               )}
               width={16}
-              unoptimized
               height={7}
               alt={product.name}
-              onError={(e) => {
-                // @ts-ignore
-                e.target.style.display = "none";
-              }}
             />
           )}
           {product.name.substring(0, 50)}
@@ -239,8 +242,12 @@ function Product({
                 1
               </span>
               {product.category?.icon && (
-                <Image
-                  priority={priority}
+                <Img
+                  suppressHydrationWarning
+                  loader={
+                    <Skeleton width={10} height={10} borderRadius={"50%"} />
+                  }
+                  unloader={<span></span>}
                   loading={priority ? "eager" : "lazy"}
                   src={product.category?.icon.replace(
                     "/upload",
