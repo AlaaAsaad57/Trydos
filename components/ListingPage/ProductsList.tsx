@@ -54,7 +54,7 @@ function ProductsList({
           Listing_Data_res.body.data.products
         ).map((product, i) => (
           <div key={i}>
-            <Product product={product} priority={i < 3} />
+            <Product product={product} priority={i < 3} i={i} />
           </div>
         ))}
       </div>

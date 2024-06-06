@@ -60,9 +60,11 @@ const getIndex = (product, productState) => {
 function Product({
   product,
   priority,
+  i,
 }: {
   product: ProductInterface;
   priority: boolean;
+  i: number;
 }) {
   const [productState, dispatch] = useReducer(ProductReducer, {
     isActiveTopSlide: false,
@@ -102,8 +104,8 @@ function Product({
         fill
         alt={product.name}
         loading={priority ? "eager" : "lazy"}
-        fetchPriority={priority ? "high" : "low"}
-        priority={priority}
+        fetchPriority={i === 0 ? "high" : "low"}
+        priority={i === 0}
         style={{
           position: "absolute",
           top: "0px",
