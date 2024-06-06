@@ -253,6 +253,7 @@
 .notify-row {
   display: flex;
   flex-direction: row;
+  user-select: none;
   min-width: 100%;
   width: auto;
   align-items: center;
