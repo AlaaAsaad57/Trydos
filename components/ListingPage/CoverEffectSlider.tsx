@@ -69,7 +69,9 @@ function CoverEffectSlider({
   }
   return (
     <div
-      className={"product-photos-slider"}
+      className={
+        "product-photos-slider overflow-visible flex absolute align-center justify-center"
+      }
       onWheel={throttle(callback, 250)}
       style={{ opacity: active ? "1" : "0", zIndex: active ? "10" : "1" }}
       onMouseEnter={() => setColor(true)}
@@ -113,14 +115,15 @@ function CoverEffectSlider({
               setActive(i);
               setActiveColor(images[i]);
             }}
-            className={`image-avatar wid-${getSize(i)}`}
+            className={`image-avatar overflow-visible w-100 rounded-50 flex relative cursor-pointer wid-${getSize(
+              i
+            )}`}
             style={{
               width: `${getSize(i) - (i + 1 - 1) * 5}px`,
               height: `${getSize(i) - (i + 1 - 1) * 5}px`,
               zIndex: activeIndex === i ? "10" : i + 1,
               translate: `-${(i + 1 - 1) * 5}px, 0px`,
               overflow: "visible",
-              position: "relative",
             }}
           >
             {({ isActive }) => (

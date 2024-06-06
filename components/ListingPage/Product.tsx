@@ -12,8 +12,8 @@ import Skeleton from "react-loading-skeleton";
 const TopSlider = dynamic(() => import("./TopSlider"), {
   loading: () => (
     <>
-      <div className={`top-slider`}></div>
-      <div className="product-photos"></div>
+      <div className={`top-slider w-100 align-center flex justify-start`}></div>
+      <div className="product-photos overflow-visible w-100 align-center flex-col justify-start"></div>
     </>
   ),
 });
@@ -92,7 +92,7 @@ function Product({
     <NextLink
       suppressHydrationWarning
       href={`/products/${product.slug}`}
-      className="product-container"
+      className="product-container rounded-15 align-center flex-col relative"
       onMouseLeave={() => {
         if (productState.isActiveTopSlide || productState.isColorSelected) {
           dispatch({ type: "setActiveTopSlide", payload: false });
@@ -133,7 +133,7 @@ function Product({
         />
       )}
       <div
-        className="product-photos"
+        className="product-photos overflow-visible w-100 justify-start align-center flex-col"
         style={{
           position: !productState.isActiveTopSlide ? "static" : "absolute",
           opacity: !productState.isActiveTopSlide ? "1" : "0",
@@ -141,7 +141,7 @@ function Product({
         }}
       >
         <div
-          className={`product-container-slider ${
+          className={`product-container-slider relative ${
             productState.isColorSelected && "selected-color"
           }`}
         >
@@ -208,7 +208,7 @@ function Product({
       </div>
 
       <div
-        className="product-body"
+        className="product-body w-100 flex-col align-start justify-start"
         suppressHydrationWarning
         onMouseEnter={() => dispatch({ type: "setColor", payload: false })}
         onTouchStart={() => {
@@ -216,7 +216,7 @@ function Product({
           dispatch({ type: "setActiveTopSlide", payload: false });
         }}
       >
-        <p className="prouct-details">
+        <p className="prouct-details overflow-hidden w-100 regular-text color-dark-gray f-10">
           {product.brand?.image && (
             <Img
               suppressHydrationWarning
@@ -235,8 +235,11 @@ function Product({
           {product.name.substring(0, 50)}
 
           {product.category && (
-            <span className="product-category-icon">
-              <span style={{ display: "inline" }} className="quantity">
+            <span className="product-category-icon align-center">
+              <span
+                style={{ display: "inline" }}
+                className="justify-start quantity flex f-10 align-center med-text"
+              >
                 1
               </span>
               {product.category?.icon && (
@@ -265,7 +268,7 @@ function Product({
           )}
         </p>
       </div>
-      <div className="product-footer">
+      <div className="product-footer w-100 flex-row absolute align-center">
         <PriceLabel
           offer_price={product.offer_price}
           price_formatted={product.price_formatted}

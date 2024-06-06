@@ -38,13 +38,13 @@ function ProductsList({
     document.documentElement.style.overflow = "initial";
     document.documentElement.scrollTop = 0;
     GetNextPage();
-    console.log(Listing_Data_res);
+
     dispatch({ type: "GET_PRODUCTS", payload: Listing_Data_res.body.data });
   }, []);
   return (
     <>
       <div
-        className="listing-container"
+        className="listing-container flex"
         onWheel={() => {
           GetNextPage();
         }}
@@ -58,7 +58,7 @@ function ProductsList({
           </div>
         ))}
       </div>
-      <div className="get-next-product">
+      <div className="get-next-product regular-text color-dark-gray">
         {!isReachEnd ? (
           <>
             {" "}

@@ -55,7 +55,6 @@ function ExtendedOfferWidget({
               "https://res.cloudinary.com/djooohujg/image/upload/q_50/h_342/f_avif/1708506792?_a=DdATC1RAAZAA0"
             }
           />{" "}
-          <div className="offer-blured-background" />
           <div className="offer-blured" />
           <div className="offer-container">
             <div className="offer-logo">

@@ -49,7 +49,9 @@ function TopSlider({
   return (
     <>
       <div
-        className={`top-slider ${active && "active-sl"}`}
+        className={`top-slider w-100 align-center flex ${
+          active && "active-sl"
+        }`}
         style={{
           position: active ? "static" : "absolute",
           opacity: active ? "1" : "0",
@@ -58,7 +60,7 @@ function TopSlider({
       >
         {images.map((img, i) => (
           <div
-            className="top-slider-element"
+            className="top-slider w-100-element align-center flex relative"
             key={i}
             onClick={() => setActiveColor({ ...activeColor, index: i })}
           >
@@ -67,6 +69,7 @@ function TopSlider({
               width="30"
               height="40"
               viewBox="0 0 30 40"
+              className="absolute"
               style={{ zIndex: "4" }}
             >
               <g
@@ -104,7 +107,7 @@ function TopSlider({
         ))}
       </div>
       <div
-        className="product-photos"
+        className="product-photos overflow-visible w-100 justify-start align-center flex-col"
         style={{
           position: active ? "static" : "absolute",
           opacity: active ? "1" : "0",

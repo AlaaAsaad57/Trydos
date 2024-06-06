@@ -85,7 +85,7 @@ function ImageSlider({
               {({ isActive }) => (
                 <>
                   <BorderImage isBig={true} />
-                  <div className="inset-shadow-img" />
+                  <div className="inset-shadow-img w-100 h-100 rounded-15 absolute" />
                   <Image
                     loading={priority && i === 0 ? "eager" : "lazy"}
                     priority={priority && i === 0}

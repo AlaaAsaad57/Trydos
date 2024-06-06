@@ -87,7 +87,7 @@ function ColorSlider({
               >
                 <>
                   <BorderImage isBig={false} />
-                  <div className="inset-shadow-img" />
+                  <div className="inset-shadow-img rounded-15 absolute w-100 h-100" />
                   <Image
                     loading={priority ? "eager" : "lazy"}
                     priority={priority}

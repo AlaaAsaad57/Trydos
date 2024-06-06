@@ -19,7 +19,7 @@ function PointsSlider({
     <>
       {!isActiveTopSlide && (
         <div
-          className="top-slider-enable"
+          className="top-slider-enable align-center flex absolute justify-center cursor-pointer"
           onClick={() => {
             setActiveTopSlide();
           }}
@@ -27,12 +27,13 @@ function PointsSlider({
           {colors.map((img, i) => (
             <div
               key={i}
-              className={`slider-point-item wid-${getSize(i)} ${
-                activeIndex === i && "active-point-item"
-              }`}
+              className={`slider-point-item rounded-50 relative wid-${getSize(
+                i
+              )} ${activeIndex === i && "active-point-item"}`}
             >
               {getSize(i) === 2 ? (
                 <svg
+                  className="absolute"
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"
                   width="2"
@@ -46,6 +47,7 @@ function PointsSlider({
                 </svg>
               ) : getSize(i) === 4 ? (
                 <svg
+                  className="absolute"
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"
                   width="4"

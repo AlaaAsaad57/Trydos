@@ -49,7 +49,7 @@ function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
               "https://res.cloudinary.com/djooohujg/image/upload/q_50/w_800/f_avif/1708506792?_a=DATC1RAAZAA0&w=800&q=60"
             }
           />
-          <div className="offer-blured-background" />
+
           <div className="offer-blured" />
           <div className="offer-container">
             <div className="offer-logo"></div>

@@ -20,7 +20,7 @@ function ImageAvatar({
   priority: boolean;
 }) {
   return (
-    <div className="image-avatar">
+    <div className="image-avatar overflow-visible w-100 rounded-50 flex relative">
       {isActive ? (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -59,11 +59,14 @@ function ImageAvatar({
         </svg>
       )}
       {isActive && (
-        <div className="avatar-text-element" style={{ color: name }}>
+        <div
+          className="avatar-text-element absolute f-12 align-center justify-center med-text"
+          style={{ color: name }}
+        >
           {name}
         </div>
       )}
-      <div className="shadow-inset-avatar" />
+      <div className="shadow-inset-avatar rounded-50 absolute w-100 h-100" />
       <Image
         loading={priority ? "eager" : "lazy"}
         priority={priority}

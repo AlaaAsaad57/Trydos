@@ -59,13 +59,13 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           }}
           quality={60}
           unoptimized
-          src={
-            "https://res.cloudinary.com/djooohujg/image/upload/q_50/h_342/f_avif/1708506792?_a=DdATC1RAAZAA0"
-          }
+          src={getConfiguredImage({
+            src: boutique.banners[0],
+            width: 900,
+            height: 342,
+          })}
         />
-
-        <div className="offer-blured-background" id={`blured-${boutique.id}`} />
-        <div className="offer-blured" />
+        <div className="offer-blured" id={`blured-${boutique.id}`} />
         <div className="offer-container">
           <div className="offer-logo">
             {/* {boutique.icon ? (

@@ -240,7 +240,7 @@ function AddStory() {
         </div>
       )}
       <div
-        className="story-element-container add-story-container"
+        className="story-element-container add-story-container flex align-center justify-center"
         style={{
           borderRadius: "20px",
           animation: "none",

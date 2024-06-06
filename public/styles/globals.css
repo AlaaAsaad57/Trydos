@@ -95,3 +95,80 @@ img {
 p {
   margin: 0;
 }
+.flex {
+  display: flex;
+}
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+.absolute {
+  position: absolute;
+}
+.relative {
+  position: relative;
+}
+.f-10 {
+  font-size: 10px;
+}
+.f-12 {
+  font-size: 12px;
+}
+.f-14 {
+  font-size: 14px;
+}
+.f-16 {
+  font-size: 16px;
+}
+.align-center {
+  align-items: center;
+}
+.align-start {
+  align-items: flex-start;
+}
+.justify-center {
+  justify-content: center;
+}
+.justify-start {
+  justify-content: flex-start;
+}
+.color-dark-gray {
+  color: #3c3c3c;
+}
+.rounded-50 {
+  border-radius: 50%;
+}
+.rounded-15 {
+  border-radius: 15px;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+.regular-text {
+  font-family: var(--Quicksand-Regular);
+}
+.light-text {
+  font-family: var(--Quicksand-Light);
+}
+.med-text {
+  font-family: var(--Quicksand-Medium);
+}
+.bold-text {
+  font-family: var(--Quicksand-Bold);
+}
+.w-100 {
+  width: 100%;
+}
+.h-100 {
+  height: 100%;
+}
+.overflow-visible {
+  overflow: visible;
+}
+.overflow-hidden {
+  overflow: hidden;
+}

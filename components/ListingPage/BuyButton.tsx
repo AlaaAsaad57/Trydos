@@ -1,8 +1,8 @@
 import Image from "next/image";
 function BuyButton() {
   return (
-    <div className="buy-button">
-      <span>Buy</span>
+    <div className="buy-button light-text flex align-start justify-start cursor-pointer">
+      <span className="f-10 flex align-start">Buy</span>
       <Image
         src={"/svg/BuyButton.svg"}
         width={15}
