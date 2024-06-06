@@ -30,7 +30,8 @@ export class AuthService {
   http = axios.create({
     baseURL: OTP_URL,
   });
-  async CheckPhone(
+  static http: any;
+  static async CheckPhone(
     value: string | number,
     step: Function,
     newAccount: boolean

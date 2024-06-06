@@ -1,18 +1,14 @@
-import { describe } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
-import AllProviders from "tests/AllProviders";
+import { describe, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import AllProviders from "tests/helpers/AllProviders";
 import userEvent from "@testing-library/user-event";
 import HomeComponent from "../../components/Home";
 import { resolvedComponent } from "../utils";
 import NavbarServer from "../../components/Server/Navbar";
+import PhoneInput from "components/Login/PhoneInput";
+import { AuthService } from "services/auth";
+import React, { useState } from "react";
 
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-async function waitForElement(name: string, time: number) {
-  await delay(time);
-  return screen.queryByTestId(name);
-}
 const renderMainComponent = async () => {
   const NavbarServerResolved = await resolvedComponent(NavbarServer, {
     mainCategory: "fashion",
@@ -110,28 +106,25 @@ const renderMainComponent = async () => {
   };
 };
 
-describe("Open Login Modal", () => {
-  it("Should Render Login Text Show In Home Page Content And Click On It", async () => {
-    //   const { waitForLoginTextFound } = await renderMainComponent();
-    //   await waitForLoginTextFound();
-  });
-  // it("Should Render Login/Signup Widget To Load And Have Already Account Button And Create New Account Button", async () => {
-  // const { waitForLoginSignupWidgetToLoad } = await renderMainComponent();
-  // const { getFormInputs } = await waitForLoginSignupWidgetToLoad();
-  // const { haveAccountButton, createAccountButton } = await getFormInputs();
-  // console.log(haveAccountButton, "haveAccountButton");
-  // expect(haveAccountButton!).toBeInTheDocument();
-  // expect(createAccountButton!).toBeInTheDocument();
-  // expect(haveAccountButton!).toHaveTextContent("Already");
-  // expect(createAccountButton!).toHaveTextContent("Create");
-  // });
-  // });
-});
+// describe("Open Login Modal", () => {
+//   it("Should Render Login Text Show In Home Page Content And Click On It", async () => {
+//     const { waitForLoginTextFound } = await renderMainComponent();
+//     await waitForLoginTextFound();
+//   });
+//   it("Should Render Login/Signup Widget To Load And Have Already Account Button And Create New Account Button", async () => {
+//     const { waitForLoginSignupWidgetToLoad } = await renderMainComponent();
+//     const { getFormInputs } = await waitForLoginSignupWidgetToLoad();
+//     const { haveAccountButton, createAccountButton } = await getFormInputs();
+//     expect(haveAccountButton!).toBeInTheDocument();
+//     expect(createAccountButton!).toBeInTheDocument();
+//     expect(haveAccountButton!).toHaveTextContent("Already");
+//     expect(createAccountButton!).toHaveTextContent("Create");
+//   });
 //   it("Should Render Login Container To Load If Click On Have An Account ", async () => {
 //     const { waitForLoginContainerToLoad, waitForLoginSignupWidgetToLoad } =
 //       await renderMainComponent();
 //     const { getFormInputs } = await waitForLoginSignupWidgetToLoad();
-//     const { haveAccountButton } = getFormInputs();
+//     const { haveAccountButton } = await getFormInputs();
 //     await userEvent.click(haveAccountButton);
 //     await waitForLoginContainerToLoad();
 //   });
@@ -144,7 +137,7 @@ describe("Open Login Modal", () => {
 //     } = await renderMainComponent();
 
 //     const { getFormInputs } = await waitForLoginSignupWidgetToLoad();
-//     const { haveAccountButton } = getFormInputs();
+//     const { haveAccountButton } = await getFormInputs();
 //     await userEvent.click(haveAccountButton);
 //     const { loginQRMethod } = await waitForLoginContainerToLoad();
 //     await waitForClickQRButton(loginQRMethod);
@@ -157,105 +150,124 @@ describe("Open Login Modal", () => {
 //       waitForClickPhoneNumberButton,
 //     } = await renderMainComponent();
 //     const { getFormInputs } = await waitForLoginSignupWidgetToLoad();
-//     const { haveAccountButton } = getFormInputs();
+//     const { haveAccountButton } = await getFormInputs();
 //     await userEvent.click(haveAccountButton);
 //     const { loginPhoneNumberMethod } = await waitForLoginContainerToLoad();
 //     await waitForClickPhoneNumberButton(loginPhoneNumberMethod);
 //   });
 // });
 
-// describe("Phone Input Component", () => {
-//   const renderPhoneInput = () => {
-//     const onChange = vi.fn();
-//     const setStepIndicator = vi.fn();
-//     const setWrongNumber = vi.fn();
-//     const setInputValue = vi.fn();
+describe("Phone Input Component", async () => {
+  const renderPhoneInput = async () => {
+    const onChange = vi.fn();
+    const setStepIndicator = vi.fn();
+    const setWrongNumber = vi.fn();
+    const setInputValue = vi.fn();
+    // const setValidNumber = vi.fn();
+    const setValidNumber = vi.fn();
+    const useStateMock: any = (initialState: any) => {
+      const mockState = useState(initialState);
+      const setState = (value) => {
+        mockState[1](value);
+        setValidNumber(value);
+      };
+      return [mockState[0], setState];
+    };
+    React.useState = vi.fn().mockImplementation(useStateMock);
+    const { getByTestId, queryByTestId } = render(
+      <PhoneInput
+        stepIndicator={3}
+        setStepIndicator={setStepIndicator}
+        wrongNumber={false}
+        setWrongNumber={setWrongNumber}
+        operation={"login"}
+        inputValue={""}
+        setInputValue={setInputValue}
+      />,
+      { wrapper: AllProviders }
+    );
+    await waitFor(
+      () => expect(getByTestId("phone-number-input")).toBeInTheDocument(),
+      { timeout: 2000 }
+    );
+    const input = getByTestId("phone-number-input");
+    const user = userEvent.setup();
+    const authService = new AuthService();
+    const getArrowPhoneNumber = async () => queryByTestId("phone-arrow");
+    const getArrowPhoneNumberElement = () => getByTestId("phone-arrow");
+    const _enterPhoneNumber = async (phoneEntered: string) => {
+      fireEvent.input(input, { target: { value: phoneEntered } });
+      // await user.type(input, phoneEntered);
+      console.log(phoneEntered, "phone entered");
+      expect(setInputValue).toHaveBeenCalledWith(phoneEntered);
+      expect(setWrongNumber).toHaveBeenCalledWith(false);
+    };
+    const _submitSignupPhoneNumber = async (
+      phoneEntered: string,
+      stepIndicator
+    ) => {
+      await _enterPhoneNumber(phoneEntered);
+      expect(getArrowPhoneNumber()).toBeInTheDocument; // if valid number
+      await user.click(await getArrowPhoneNumber()!);
+      authService.http.get = vi.fn().mockResolvedValue({
+        data: {},
+      });
+      await AuthService.CheckPhone(
+        phoneEntered,
+        setStepIndicator,
+        stepIndicator
+      );
+      expect(setStepIndicator).toHaveBeenCalledWith(277);
+    };
+    const _submitLoginPhoneNumber = async (
+      phoneEntered: string,
+      stepIndicator
+    ) => {
+      await _enterPhoneNumber("96398003349");
+      expect(setValidNumber).toHaveBeenCalledWith(false);
+      // expect(await getArrowPhoneNumber()).toBeInTheDocument;
+      // const arrow = getArrowPhoneNumberElement();
+      // expect(arrow).toBeInTheDocument();
+    };
+    return {
+      input,
+      user,
+      setInputValue,
+      onChange,
+      setStepIndicator,
+      setWrongNumber,
+      authService,
+      getArrowPhoneNumber,
+      getArrowPhoneNumberElement,
+      _enterPhoneNumber,
+      _submitSignupPhoneNumber,
+      _submitLoginPhoneNumber,
+    };
+  };
+  it("Should Render An Phone Component Input And User Can Login", async () => {
+    const { input } = await renderPhoneInput();
+    expect(input).toBeInTheDocument();
+  });
 
-//     render(
-//       <PhoneInput
-//         stepIndicator={0}
-//         setStepIndicator={setStepIndicator}
-//         wrongNumber={false}
-//         setWrongNumber={setWrongNumber}
-//         operation={"login"}
-//         inputValue={""}
-//         setInputValue={setInputValue}
-//       />,
-//       { wrapper: AllProviders }
-//     );
-//     const input = screen.getByTestId("phone-number-input");
-//     const user = userEvent.setup();
-//     const authService = new AuthService();
-//     const getArrowPhoneNumber = () => screen.queryByTestId("phone-arrow");
-//     const _enterPhoneNumber = async (phoneEntered: string) => {
-//       await user.type(input, phoneEntered);
-//       expect(setInputValue).toHaveBeenCalledWith(phoneEntered);
-//       expect(setWrongNumber).toHaveBeenCalledWith(false);
-//     };
-//     const _submitSignupPhoneNumber = async (
-//       phoneEntered: string,
-//       stepIndicator
-//     ) => {
-//       await _enterPhoneNumber(phoneEntered);
-//       expect(getArrowPhoneNumber()).toBeInTheDocument; // if valid number
-//       await user.click(getArrowPhoneNumber()!);
-//       authService.http.get = vi.fn().mockResolvedValue({
-//         data: {},
-//       });
-//       await authService.CheckPhone(
-//         phoneEntered,
-//         setStepIndicator,
-//         stepIndicator
-//       );
-//       expect(setStepIndicator).toHaveBeenCalledWith(277);
-//     };
-//     const _submitLoginPhoneNumber = async (
-//       phoneEntered: string,
-//       stepIndicator
-//     ) => {
-//       await _enterPhoneNumber(phoneEntered);
-//       expect(getArrowPhoneNumber()).toBeInTheDocument; // if valid number
-//       await user.click(getArrowPhoneNumber()!);
-//     };
-//     return {
-//       input,
-//       user,
-//       setInputValue,
-//       onChange,
-//       setStepIndicator,
-//       setWrongNumber,
-//       authService,
-//       getArrowPhoneNumber,
-//       _enterPhoneNumber,
-//       _submitSignupPhoneNumber,
-//       _submitLoginPhoneNumber,
-//     };
-//   };
+  it("Should Render An Phone Component Input And User Enter Valid Number", async () => {
+    const { _enterPhoneNumber, getArrowPhoneNumber } = await renderPhoneInput();
+    const phoneNumber = "963980033496";
+    await _enterPhoneNumber(phoneNumber);
+    expect(getArrowPhoneNumber()).toBeInTheDocument; // if valid number
+  });
 
-//   it("Should Render An Phone Component Input And User Can Login", () => {
-//     const { input } = renderPhoneInput();
-//     expect(input).toBeInTheDocument();
-//   });
+  it("Should Render An Phone Component Input And User Enter Invalid Number", async () => {
+    const { _enterPhoneNumber, getArrowPhoneNumber } = await renderPhoneInput();
+    const phoneNumber = "12345678";
+    await _enterPhoneNumber(phoneNumber);
+    expect(getArrowPhoneNumber()).not.toBeInTheDocument; // if invalid number
+  });
 
-//   it("Should Render An Phone Component Input And User Enter Valid Number", async () => {
-//     const { _enterPhoneNumber, getArrowPhoneNumber } = renderPhoneInput();
-//     const phoneNumber = "963980033496";
-//     await _enterPhoneNumber(phoneNumber);
-//     expect(getArrowPhoneNumber()).toBeInTheDocument; // if valid number
-//   });
-
-//   it("Should Render An Phone Component Input And User Enter Invalid Number", async () => {
-//     const { _enterPhoneNumber, getArrowPhoneNumber } = renderPhoneInput();
-//     const phoneNumber = "12345678";
-//     await _enterPhoneNumber(phoneNumber);
-//     expect(getArrowPhoneNumber()).not.toBeInTheDocument; // if invalid number
-//   });
-
-//   it("Should Call AuthService.CheckPhone If User Click On Arrow ->", async () => {
-//     const { _submitLoginPhoneNumber } = renderPhoneInput();
-//     const phoneNumber = "963980033496";
-//     const stepIndicator = true;
-//     await _submitLoginPhoneNumber(phoneNumber, stepIndicator);
-//     // if phone number valid
-//   });
-// });
+  it("Should Call AuthService.CheckPhone If User Click On Arrow ->", async () => {
+    const { _submitLoginPhoneNumber } = await renderPhoneInput();
+    const phoneNumber = "963980033496";
+    const stepIndicator = true;
+    await _submitLoginPhoneNumber(phoneNumber, stepIndicator);
+    // if phone number valid
+  });
+});

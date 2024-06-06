@@ -76,6 +76,11 @@ function PhoneInput({
       pattern?.split("").filter((letter) => letter === "x").length
     ) {
       setValidNumber(true);
+      console.log(
+        validNumber,
+        data.plaintext,
+        pattern?.split("").filter((letter) => letter === "x")
+      );
     } else {
       setValidNumber(false);
     }

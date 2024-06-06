@@ -1,25 +1,8 @@
 import "@testing-library/jest-dom";
 import { screen } from "@testing-library/react";
 import { beforeAll, vi } from "vitest";
-import React from "react";
+import MockReactMountAnimation from "./helpers/mockReactMountAnimation";
 beforeAll(() => {
-  vi.mock("react-mount-animation", async (importOriginal) => {
-    const mod = await importOriginal<typeof import("react-mount-animation")>();
-
-    const MockAnimated = ({ show, children, ...props }) => {
-      return React.createElement("div", { ...props }, show ? children : null);
-    };
-
-    const Animated = {
-      div: MockAnimated,
-    };
-
-    return {
-      ...mod,
-      default: Animated,
-    };
-  });
-
   vi.mock("next/headers", async () => {
     return {
       cookies: () => {
@@ -33,14 +16,6 @@ beforeAll(() => {
       },
     };
   });
-  vi.mock("react-mount-animation");
-  // vi.mock("react-mount-animation", () => {
-  // vi.mock("react-mount-animation", () => ({
-  //   Animation: (props) => {
-  //     props.onExited();
-  //     return { props };
-  //   },
-  // }));
   vi.mock("next/navigation", () => ({
     useRouter() {
       return {
@@ -59,6 +34,8 @@ beforeAll(() => {
     },
   }));
 });
+vi.mock("react-mount-animation", async () => MockReactMountAnimation);
+
 screen.debug();
 afterEach(() => {
   vi.resetAllMocks();
