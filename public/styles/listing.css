@@ -8,6 +8,9 @@
   margin-left: 0px;
   margin-top: 0px;
 }
+.product-container .offer-blured {
+  background-color: rgb(250 250 250 / 89%) !important;
+}
 .swiper-3d {
   perspective: 1200px;
 }
