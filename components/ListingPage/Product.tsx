@@ -120,8 +120,6 @@ function Product({
           src: productState.activeColor.images[0],
         })}
       />
-
-      <div className="offer-blured-background" />
       <div className="offer-blured" />
       {productState.isActiveTopSlide && (
         <TopSlider
