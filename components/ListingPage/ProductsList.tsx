@@ -35,6 +35,8 @@ function ProductsList({
   };
   useEffect(() => {
     dispatchRouteChangeEvent("completed");
+    document.documentElement.style.overflow = "initial";
+    document.documentElement.scrollTop = 0;
     GetNextPage();
     console.log(Listing_Data_res);
     dispatch({ type: "GET_PRODUCTS", payload: Listing_Data_res.body.data });

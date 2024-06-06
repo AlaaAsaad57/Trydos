@@ -24,6 +24,8 @@ export default function NextLink({
     onClick?.(e);
     if (pathname !== href) {
       dispatchRouteChangeEvent("start");
+      document.documentElement.style.overflow = "hidden";
+      document.documentElement.scrollTop = 0;
     }
   };
 

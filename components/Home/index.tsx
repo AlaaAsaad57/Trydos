@@ -21,6 +21,8 @@ import { dispatchRouteChangeEvent } from "Hooks/events";
 export default function Home() {
   useEffect(() => {
     dispatchRouteChangeEvent("completed");
+    document.documentElement.style.overflow = "initial";
+    document.documentElement.scrollTop = 0;
     StoryServiceClass.getStories();
     try {
       initFB();

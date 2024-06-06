@@ -49,7 +49,7 @@ img {
   }
 }
 .loading-screnn {
-  top: 98px !important;
+  top: 62px !important;
 }
 .react-loading-skeleton:after {
   content: "";
