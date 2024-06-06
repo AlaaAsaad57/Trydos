@@ -14,7 +14,7 @@ function ExtendedAreaInfo({
   sharedContacts: Array<number>;
   setShareContacts: (e: Array<number>) => void;
 }) {
-  let height = option === "Comment" ? 263 : 300;
+  let height = 500;
   const mountAnim = ` 
   0% {max-height:0px}
   100% {max-height:${height}px}
