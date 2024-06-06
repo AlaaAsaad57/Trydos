@@ -116,11 +116,9 @@ function Product({
           objectPosition: "center",
         }}
         unoptimized
-        src={getConfiguredImage({
-          height: 400,
-          width: 400,
-          src: productState.activeColor.images[0],
-        })}
+        src={
+          "https://res.cloudinary.com/djooohujg/image/upload/q_50/h_342/f_avif/1708506792?_a=DdATC1RAAZAA0"
+        }
       />
       <div className="offer-blured" />
       {productState.isActiveTopSlide && (
