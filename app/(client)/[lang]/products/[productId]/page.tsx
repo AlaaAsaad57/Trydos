@@ -1,4 +1,3 @@
-import ProductDetails from "components/products/ProductDetails";
 import "styles/productDetails.css";
 import ProductDetailsSlider from "components/products/ProductDetailsSlider";
 import ProductFooterSection from "components/products/ProductFooterSection";
