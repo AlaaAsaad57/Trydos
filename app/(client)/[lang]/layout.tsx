@@ -6,7 +6,7 @@ import localFont from "next/font/local";
 
 import PageLoadingIndicator from "Hooks/LoadingIndicator";
 import dynamic from "next/dynamic";
-import NavbarServer from "components/Server/Navbar";
+
 const TranslationsMenu = dynamic(
   () => import("components/global/TranslationsMenu")
 );
@@ -76,7 +76,6 @@ export default function RootLayout({ params, children }) {
           <div className="site-container">
             <div className="home-page-container">
               <>
-                <NavbarServer lang={params.lang} />
                 <TranslationsMenu init={params.lang} />
               </>
 
