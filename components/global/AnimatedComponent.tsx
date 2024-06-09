@@ -5,6 +5,7 @@ export const AnimatedComponent: FunctionComponent<{
   show: boolean;
   children: React.ReactNode;
 }> = ({ show, children }) => {
+  console.log(children, "children");
   return (
     <Animated.div
       show={show}

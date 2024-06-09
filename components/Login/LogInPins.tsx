@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import PinInput from "react-pin-input";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import Timer from "./Timer";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
-import Animated from "react-mount-animation";
+import { AnimatedComponent } from "components/global/AnimatedComponent";
 
 function LogInPins({
   setPin,
@@ -138,17 +138,18 @@ function LogInPins({
     }
   }, [stepIndicator]);
   return (
-    <Animated.div
-      unmountTime={0.5}
-      className="animated-container"
+    <AnimatedComponent
+      // unmountTime={0.5}
+      // className="animated-container"
       show={active}
-      mountAnim={mountAnim}
-      style={{
-        animationFillMode: "forwards",
-      }}
-      unmountAnim={unmountAnim}
+      // mountAnim={mountAnim}
+      // style={{
+      //   animationFillMode: "forwards",
+      // }}
+      // unmountAnim={unmountAnim}
     >
       <div
+        data-testid="pin-inputs-desc"
         className="phone-input-desc"
         style={{ marginBottom: expired ? "12px" : "25px" }}
       >
@@ -448,7 +449,11 @@ function LogInPins({
           </div>
         </div>
       </div>
-      <div className="pin-inputs-container" style={{ marginTop: "0px" }}>
+      <div
+        data-testid="pin-inputs-container"
+        className="pin-inputs-container"
+        style={{ marginTop: "0px" }}
+      >
         <div className="pin-border-container" style={{ zIndex: "1" }}>
           {Array(6)
             .fill(1)
@@ -558,7 +563,7 @@ function LogInPins({
           {translate("The Code Sent Has Expired", language)}
         </span>
       )}
-    </Animated.div>
+    </AnimatedComponent>
   );
 }
 

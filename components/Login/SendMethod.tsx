@@ -4,7 +4,7 @@ import { translate } from "utils/functions";
 import WAIcon from "public/svg/WAIcon.svg";
 import MessageIcon from "public/svg/MessageIcon.svg";
 import { useAuthHooks } from "Hooks/AuthHooks";
-import Animated from "react-mount-animation";
+import { AnimatedComponent } from "components/global/AnimatedComponent";
 
 function SendMethod({
   inputValue,
@@ -55,8 +55,8 @@ function SendMethod({
     }
   }, [stepIndicator]);
   return (
-    <Animated.div
-      unmountTime={0.5}
+    <AnimatedComponent show={active}>
+      {/* unmountTime={0.5}
       className="animated-container"
       show={active}
       mountAnim={mountAnim}
@@ -64,8 +64,8 @@ function SendMethod({
         animationFillMode: "forwards",
       }}
       unmountAnim={unmountAnim}
-    >
-      <div className="phone-input-desc">
+    > */}
+      <div data-testid="pin-inputs-desc" className="phone-input-desc">
         <svg
           id="_15x15"
           data-name="15x15"
@@ -239,8 +239,9 @@ function SendMethod({
           </div>
         </div>
       </div>
-      <div className="phone-send-options">
+      <div data-testid="pin-inputs-containere" className="phone-send-options">
         <div
+          data-testid="message-whatsapp-option"
           className="message-recieve-option"
           onClick={() => {
             setMessageMethod("WA");
@@ -288,6 +289,7 @@ function SendMethod({
           </div>
         </div>
         <div
+          data-testid="message-sms-option"
           className="message-recieve-option"
           onClick={() => {
             setMessageMethod("SMS");
@@ -335,7 +337,7 @@ function SendMethod({
           </div>
         </div>
       </div>
-    </Animated.div>
+    </AnimatedComponent>
   );
 }
 

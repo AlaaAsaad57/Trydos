@@ -17,6 +17,7 @@ import dynamic from "next/dynamic";
 const LoginMethods = dynamic(() => import("./LoginMethods"));
 
 import Animated from "react-mount-animation";
+import { AnimatedComponent } from "components/global/AnimatedComponent";
 function NewLoginWidget() {
   const [stepIndicator, setStepIndicator] = useState(-1);
   const [signStep, setSignStep] = useState("");
@@ -323,15 +324,15 @@ function NewLoginWidget() {
             pin={pins}
             MessageMethod={MessageMethod}
           />
-          <Animated.div
-            unmountTime={0.5}
-            className="animated-container"
+          <AnimatedComponent
+            // unmountTime={0.5}
+            // className="animated-container"
             show={stepIndicator === 7}
-            mountAnim={mountAnim}
-            style={{
-              animationFillMode: "forwards",
-            }}
-            unmountAnim={unmountAnim}
+            // mountAnim={mountAnim}
+            // style={{
+            //   animationFillMode: "forwards",
+            // }}
+            // unmountAnim={unmountAnim}
           >
             <InputName
               value={Name}
@@ -352,7 +353,7 @@ function NewLoginWidget() {
                 setStepIndicator(6);
               }}
             />
-          </Animated.div>
+          </AnimatedComponent>
           <SignSteps
             signStep={signStep}
             stepIndicator={stepIndicator}

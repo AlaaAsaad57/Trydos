@@ -12,7 +12,6 @@ import PrivacyIcon from "public/svg/privacyicon.svg";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { translate } from "utils/functions";
 import Animated from "react-mount-animation";
-import AuthService from "services/auth";
 const { flag } = require("country-emoji");
 function PhoneInput({
   stepIndicator,
@@ -34,6 +33,9 @@ function PhoneInput({
   useEffect(() => {
     document.querySelector<HTMLInputElement>(".login-phone-input")?.focus();
   }, []);
+  useEffect(() => {
+    console.log(stepIndicator, "stepIndicator");
+  }, [stepIndicator]);
   const [active, setActive] = useState(false);
   const mountAnim = ` 
   0% {transform:translateX(800px)}
@@ -420,11 +422,11 @@ function PhoneInput({
             data-testid="phone-arrow"
             className="phone-arrow"
             onClick={() => {
-              AuthService.CheckPhone(
-                inputValue,
-                (e) => setStepIndicator(e), // not do anything
-                stepIndicator === 3
-              );
+              // AuthService.CheckPhone(
+              //   inputValue,
+              //   (e) => setStepIndicator(e), // not do anything
+              //   stepIndicator === 3
+              // );
               setStepIndicator(4);
             }}
           >

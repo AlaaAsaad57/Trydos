@@ -3,12 +3,8 @@ import { cleanup, screen } from "@testing-library/react";
 import { beforeAll, vi } from "vitest";
 import MockReactMountAnimation from "./helpers/mockReactMountAnimation";
 
-vi.mock("react-redux", () => ({
-  Provider: ({ children }) => children,
-  useSelector: vi.fn(),
-  useDispatch: vi.fn(),
-}));
 beforeAll(() => {
+  // vi.mock("services/auth");
   vi.mock("next/headers", async () => {
     return {
       cookies: () => {
