@@ -9,6 +9,7 @@ interface CategoriesBarProps {
 function CategoriesBar({ forMobile, categories }: CategoriesBarProps) {
   const [searchEnabled, setSearchEnabled] = useState(false);
 
+  // console.log(categories, "cate");
   return (
     <>
       {!forMobile && (
@@ -16,7 +17,7 @@ function CategoriesBar({ forMobile, categories }: CategoriesBarProps) {
           className={`categories-bar-container ${forMobile && "mobile-bar"}`}
           style={{ marginLeft: searchEnabled ? "13px" : "50px" }}
         >
-          {categories.map((category, key) => (
+          {categories?.map((category, key) => (
             <CategoryNavItem
               searchEnabled={searchEnabled}
               close={() => setSearchEnabled(false)}

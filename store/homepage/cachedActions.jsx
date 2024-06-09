@@ -39,7 +39,7 @@ export const getStories = async ({ lang }) => {
 };
 
 export const getHomeData = async ({ str, lang }) => {
-  console.log("getting homeData");
+  // console.log("getting homeData");
   const cookies = (await import("next/headers")).cookies;
 
   const cookieStore = cookies();
@@ -89,7 +89,7 @@ export const getHomeData = async ({ str, lang }) => {
       time: time + "ms",
       body: repo,
     };
-    console.log("get homeData!");
+    // console.log("get homeData!");
 
     return [repo.data.boutiques, returned_res];
   } catch (e) {
@@ -97,7 +97,7 @@ export const getHomeData = async ({ str, lang }) => {
   }
 };
 export const getMainCategories = async ({ lang }) => {
-  console.log("getting main category");
+  // console.log("getting main category");
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   try {
@@ -105,7 +105,7 @@ export const getMainCategories = async ({ lang }) => {
     const res = await fetch(OTP_URL + HOME_DATA_CATEGORIES_URL, {
       next: {
         revalidate: 5403600,
-        tags: [`home-categories-${cookieStore.get("lang")?.value ?? "en"}`],
+        tags: [`home-categories-${cookieStore.get("language")?.value ?? "en"}`],
       },
       headers: new Headers({
         lang: await getLang(lang, cookieStore.get("language")?.value),
@@ -124,7 +124,7 @@ export const getMainCategories = async ({ lang }) => {
       time: time + "ms",
       body: repo,
     };
-    console.log("get main category!");
+    // console.log("get main category!");
 
     return [repo.data.mainCategories, returned_res];
   } catch (e) {
@@ -223,7 +223,7 @@ export const getListingData = async ({ categories, lang, productCategory }) => {
       body: repo,
       reqBody: formBody,
     };
-    console.log(res);
+    // console.log(res);
     return [repo.data, returned_res];
   } catch (e) {
     return ["listing-error", e.toString()];

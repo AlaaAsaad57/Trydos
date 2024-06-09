@@ -1,7 +1,13 @@
 import "@testing-library/jest-dom";
-import { screen } from "@testing-library/react";
+import { cleanup, screen } from "@testing-library/react";
 import { beforeAll, vi } from "vitest";
 import MockReactMountAnimation from "./helpers/mockReactMountAnimation";
+
+vi.mock("react-redux", () => ({
+  Provider: ({ children }) => children,
+  useSelector: vi.fn(),
+  useDispatch: vi.fn(),
+}));
 beforeAll(() => {
   vi.mock("next/headers", async () => {
     return {
@@ -36,7 +42,34 @@ beforeAll(() => {
 });
 vi.mock("react-mount-animation", async () => MockReactMountAnimation);
 
+// Mock localStorage
+const localStorageMock = (() => {
+  let store = {};
+
+  return {
+    getItem: vi.fn((key) => store[key] || null),
+    setItem: vi.fn((key, value) => {
+      store[key] = String(value);
+    }),
+    removeItem: vi.fn((key) => {
+      delete store[key];
+    }),
+    clear: vi.fn(() => {
+      store = {};
+    }),
+    get length() {
+      return Object.keys(store).length;
+    },
+    key: vi.fn((index) => Object.keys(store)[index] || null),
+  };
+})();
+
+Object.defineProperty(global, "localStorage", {
+  value: localStorageMock,
+});
 screen.debug();
 afterEach(() => {
   vi.resetAllMocks();
+  cleanup();
 });
+afterEach(() => {});

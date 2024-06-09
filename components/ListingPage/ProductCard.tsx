@@ -30,7 +30,7 @@ function ProductCard({ Listing_Data_res }: { Listing_Data_res: any }) {
   useEffect(() => {
     dispatchRouteChangeEvent("completed");
     GetNextPage();
-    console.log(Listing_Data_res);
+    // console.log(Listing_Data_res);
     dispatch({ type: "GET_PRODUCTS", payload: Listing_Data_res.body.data });
   }, []);
   return (

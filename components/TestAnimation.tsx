@@ -16,7 +16,7 @@ const TestAnimation: FunctionComponent = () => {
       <button
         data-testid="animation-button"
         onClick={() => {
-          console.log("Button clicked");
+          // console.log("Button clicked");
           setShow(!show);
         }}
         type="button"

@@ -1,4 +1,3 @@
-import React from "react";
 import dynamic from "next/dynamic";
 import LandingPage from "./LandingPage";
 import { useSelector } from "react-redux";
@@ -14,6 +13,7 @@ const NewLoginWidget = dynamic(
 function AuthSections() {
   const chatOpen = useSelector((state: any) => state.chat.chatVar);
   const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
+  console.log(loginOpen, "open");
   return (
     <>
       {chatOpen && <ChatModal />}

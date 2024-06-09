@@ -2,7 +2,7 @@ import Init from "../../components/Home/Init";
 import TranslationsMenu from "../../components/global/TranslationsMenu";
 import { PropsWithChildren } from "react";
 import { Provider } from "react-redux";
-import { store } from "../../store";
+import configureStore from "redux-mock-store";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
@@ -13,6 +13,13 @@ const AllProviders = ({ children }: PropsWithChildren) => {
         retry: false,
       },
     },
+  });
+  let store: any;
+  const middlewares: any[] = [];
+  const mockStore = configureStore(middlewares);
+
+  beforeEach(() => {
+    store = mockStore({});
   });
   return (
     <QueryClientProvider client={client}>

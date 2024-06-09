@@ -152,7 +152,6 @@ function NewLoginWidget() {
 100% {transform:translateX(-800px)}
 `;
   const dispatch = useDispatch();
-
   if (!loginOpen) return <></>;
   return (
     <>

@@ -12,7 +12,7 @@ import PrivacyIcon from "public/svg/privacyicon.svg";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { translate } from "utils/functions";
 import Animated from "react-mount-animation";
-import { AuthService } from "services/auth";
+import AuthService from "services/auth";
 const { flag } = require("country-emoji");
 function PhoneInput({
   stepIndicator,
@@ -77,11 +77,11 @@ function PhoneInput({
       pattern?.split("").filter((letter) => letter === "x").length
     ) {
       setValidNumber(true);
-      console.log(
-        validNumber,
-        data.plaintext,
-        pattern?.split("").filter((letter) => letter === "x")
-      );
+      // console.log(
+      //   validNumber,
+      //   data.plaintext,
+      //   pattern?.split("").filter((letter) => letter === "x")
+      // );
     } else {
       setValidNumber(false);
     }
@@ -422,7 +422,7 @@ function PhoneInput({
             onClick={() => {
               AuthService.CheckPhone(
                 inputValue,
-                (e) => setStepIndicator(e),
+                (e) => setStepIndicator(e), // not do anything
                 stepIndicator === 3
               );
               setStepIndicator(4);

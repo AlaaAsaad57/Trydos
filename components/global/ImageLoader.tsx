@@ -4,7 +4,7 @@ import Loader from "./Loader";
 import Image from "next/image";
 function ImageLoader(props) {
   const getImageCld = () => {
-    if (props.src.includes("cloudinary")) {
+    if (props.src?.includes("cloudinary")) {
       return props.src.replace(
         "/upload",
         `/upload/h_${props.height}/f_avif/q_auto`

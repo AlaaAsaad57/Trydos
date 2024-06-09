@@ -1,7 +1,5 @@
 import { dispatchRouteChangeEvent } from "Hooks/events";
-import NextLink from "Hooks/NextLink";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 interface OfferAvatarProps {
   images: string;
@@ -29,7 +27,7 @@ function OfferAvatar({
         e.preventDefault();
         router.push(linkUrl);
         dispatchRouteChangeEvent("start");
-        console.log("link");
+        // console.log("link");
       }}
       className="offer-avatar"
       style={{

@@ -62,7 +62,10 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
           <div
             data-testid="login-text"
             className="nav-question-item"
-            onClick={() => openLogin(true)}
+            onClick={() => {
+              console.log("clicked");
+              openLogin(true);
+            }}
           >
             <img src="/svg/login.svg" width={15} height={15} alt="login" />
 
