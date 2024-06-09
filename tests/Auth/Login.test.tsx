@@ -99,7 +99,9 @@ const renderMainComponent = async () => {
   };
   const waitForClickPhoneNumberButton = async (phoneNumberMethod: Element) => {
     await user.click(phoneNumberMethod);
-    // await getPhoneNumberInput();
+
+    await screen.findByTestId("phone-number-input");
+
     expect(
       screen.getByText(/Enter Your Phone Number To Login/i)
     ).toBeInTheDocument();
@@ -119,59 +121,59 @@ const renderMainComponent = async () => {
   };
 };
 
-// describe("Open Login Modal", () => {
-//   it("Should Render Login Text Show In Home Page Content And Click On It", async () => {
-//     const { waitForLoginTextFound } = await renderMainComponent();
-//     await waitForLoginTextFound();
-//   });
-//   it("Should Render Login/Signup Widget To Load And Have Already Account Button And Create New Account Button", async () => {
-//     const { waitForLoginSignupWidgetToLoad, waitForLoginTextFound, user } =
-//       await renderMainComponent();
-//     const { showLoginButton } = await waitForLoginTextFound();
-//     await user.click(showLoginButton);
-//     const { getFormInputs } = await waitForLoginSignupWidgetToLoad();
-//     const { haveAccountButton, createAccountButton } = await getFormInputs();
-//     expect(haveAccountButton!).toBeInTheDocument();
-//     expect(createAccountButton!).toBeInTheDocument();
-//     expect(haveAccountButton!).toHaveTextContent("Already");
-//     expect(createAccountButton!).toHaveTextContent("Create");
-//   });
-//   it("Should Render Login Container To Load If Click On Have An Account ", async () => {
-//     const { waitForLoginContainerToLoad, waitForLoginSignupWidgetToLoad } =
-//       await renderMainComponent();
-//     const { getFormInputs } = await waitForLoginSignupWidgetToLoad();
-//     const { haveAccountButton } = await getFormInputs();
-//     await userEvent.click(haveAccountButton);
-//     await waitForLoginContainerToLoad();
-//   });
+describe("Open Login Modal", () => {
+  it("Should Render Login Text Show In Home Page Content And Click On It", async () => {
+    const { waitForLoginTextFound } = await renderMainComponent();
+    await waitForLoginTextFound();
+  });
+  it("Should Render Login/Signup Widget To Load And Have Already Account Button And Create New Account Button", async () => {
+    const { waitForLoginSignupWidgetToLoad, waitForLoginTextFound, user } =
+      await renderMainComponent();
+    const { showLoginButton } = await waitForLoginTextFound();
+    await user.click(showLoginButton);
+    const { getFormInputs } = await waitForLoginSignupWidgetToLoad();
+    const { haveAccountButton, createAccountButton } = await getFormInputs();
+    expect(haveAccountButton!).toBeInTheDocument();
+    expect(createAccountButton!).toBeInTheDocument();
+    expect(haveAccountButton!).toHaveTextContent("Already");
+    expect(createAccountButton!).toHaveTextContent("Create");
+  });
+  it("Should Render Login Container To Load If Click On Have An Account ", async () => {
+    const { waitForLoginContainerToLoad, waitForLoginSignupWidgetToLoad } =
+      await renderMainComponent();
+    const { getFormInputs } = await waitForLoginSignupWidgetToLoad();
+    const { haveAccountButton } = await getFormInputs();
+    await userEvent.click(haveAccountButton);
+    await waitForLoginContainerToLoad();
+  });
 
-//   it("Should Render Scan QR Container To Load If Click By Scan QR Button ", async () => {
-//     const {
-//       waitForLoginContainerToLoad,
-//       waitForLoginSignupWidgetToLoad,
-//       waitForClickQRButton,
-//     } = await renderMainComponent();
+  it("Should Render Scan QR Container To Load If Click By Scan QR Button ", async () => {
+    const {
+      waitForLoginContainerToLoad,
+      waitForLoginSignupWidgetToLoad,
+      waitForClickQRButton,
+    } = await renderMainComponent();
 
-//     const { getFormInputs } = await waitForLoginSignupWidgetToLoad();
-//     const { haveAccountButton } = await getFormInputs();
-//     await userEvent.click(haveAccountButton);
-//     const { loginQRMethod } = await waitForLoginContainerToLoad();
-//     await waitForClickQRButton(loginQRMethod);
-//   });
+    const { getFormInputs } = await waitForLoginSignupWidgetToLoad();
+    const { haveAccountButton } = await getFormInputs();
+    await userEvent.click(haveAccountButton);
+    const { loginQRMethod } = await waitForLoginContainerToLoad();
+    await waitForClickQRButton(loginQRMethod);
+  });
 
-//   it("Should Render Phone Number To Load If Click By Phone Number Button ", async () => {
-//     const {
-//       waitForLoginContainerToLoad,
-//       waitForLoginSignupWidgetToLoad,
-//       waitForClickPhoneNumberButton,
-//     } = await renderMainComponent();
-//     const { getFormInputs } = await waitForLoginSignupWidgetToLoad();
-//     const { haveAccountButton } = await getFormInputs();
-//     await userEvent.click(haveAccountButton);
-//     const { loginPhoneNumberMethod } = await waitForLoginContainerToLoad();
-//     await waitForClickPhoneNumberButton(loginPhoneNumberMethod);
-//   });
-// });
+  it("Should Render Phone Number To Load If Click By Phone Number Button ", async () => {
+    const {
+      waitForLoginContainerToLoad,
+      waitForLoginSignupWidgetToLoad,
+      waitForClickPhoneNumberButton,
+    } = await renderMainComponent();
+    const { getFormInputs } = await waitForLoginSignupWidgetToLoad();
+    const { haveAccountButton } = await getFormInputs();
+    await userEvent.click(haveAccountButton);
+    const { loginPhoneNumberMethod } = await waitForLoginContainerToLoad();
+    await waitForClickPhoneNumberButton(loginPhoneNumberMethod);
+  });
+});
 
 describe("Phone Input Component", async () => {
   const setValidNumber = vi.fn();
@@ -199,18 +201,19 @@ describe("Phone Input Component", async () => {
       />,
       { wrapper: AllProviders }
     );
-    // step === 3 &&
-    //   (await waitFor(() => queryByTestId("phone-number-input"), {
-    //     timeout: 2000,
-    //   }));
-    const getPhoneNumberInput = async () => getByTestId("phone-number-input");
+    await waitFor(
+      () => expect(getByTestId("phone-number-input")).toBeInTheDocument(),
+      { timeout: 2000 }
+    );
+
+    const phoneInput = getByTestId("phone-number-input");
     const user = userEvent.setup();
     const getArrowPhoneNumber = async () => queryByTestId("phone-arrow");
     const _enterPhoneNumber = async (phoneEntered: string) => {
-      fireEvent.input(await getPhoneNumberInput(), {
+      fireEvent.input(phoneInput, {
         target: { value: phoneEntered },
       });
-      await user.type(await getPhoneNumberInput(), phoneEntered);
+      await user.type(phoneInput, phoneEntered);
       console.log(phoneEntered, "phone entered");
       expect(setInputValue).toHaveBeenCalledWith(phoneEntered);
       expect(setWrongNumber).toHaveBeenCalledWith(false);
@@ -231,7 +234,7 @@ describe("Phone Input Component", async () => {
         JSON.stringify(mockResponse)
       );
     return {
-      getPhoneNumberInput,
+      phoneInput,
       user,
       arrow,
       setInputValue,
@@ -245,89 +248,85 @@ describe("Phone Input Component", async () => {
       callCheckPhone,
     };
   };
-  // it("Should Render An Phone Component Input And User Can Login", async () => {
-  //   const { getPhoneNumberInput } = await renderPhoneInput({ phone: "" });
-  //   expect(await getPhoneNumberInput()).toBeInTheDocument();
-  // });
+  it("Should Render An Phone Component Input And User Can Login", async () => {
+    const { phoneInput } = await renderPhoneInput({ phone: "" });
+    expect(phoneInput).toBeInTheDocument();
+  });
 
-  // it("Should Render An Phone Component Input And User Enter Valid Number", async () => {
-  //   const { _enterPhoneNumber, getArrowPhoneNumber } = await renderPhoneInput({
-  //     phone: "",
-  //   });
-  //   const phoneNumber = "963980033496";
-  //   await _enterPhoneNumber(phoneNumber);
-  //   expect(getArrowPhoneNumber()).toBeInTheDocument; // if valid number
-  // });
+  it("Should Render An Phone Component Input And User Enter Valid Number", async () => {
+    const { _enterPhoneNumber, getArrowPhoneNumber } = await renderPhoneInput({
+      phone: "",
+    });
+    const phoneNumber = "963980033496";
+    await _enterPhoneNumber(phoneNumber);
+    expect(getArrowPhoneNumber()).toBeInTheDocument; // if valid number
+  });
 
-  // it("Should Render An Phone Component Input And User Enter Invalid Number", async () => {
-  //   const { _enterPhoneNumber, getArrowPhoneNumber } = await renderPhoneInput({
-  //     phone: "",
-  //   });
-  //   const phoneNumber = "12345678";
-  //   await _enterPhoneNumber(phoneNumber);
-  //   expect(getArrowPhoneNumber()).not.toBeInTheDocument; // if invalid number
-  // });
-  // it("displays phone arrow when valid number is entered", async () => {
-  //   const {
-  //     _enterPhoneNumber,
-  //     getArrowPhoneNumber,
-  //     getPhoneNumberInput,
-  //     user,
-  //   } = await renderPhoneInput({
-  //     phone: "",
-  //   });
+  it("Should Render An Phone Component Input And User Enter Invalid Number", async () => {
+    const { _enterPhoneNumber, getArrowPhoneNumber } = await renderPhoneInput({
+      phone: "",
+    });
+    const phoneNumber = "12345678";
+    await _enterPhoneNumber(phoneNumber);
+    expect(getArrowPhoneNumber()).not.toBeInTheDocument; // if invalid number
+  });
+  it("displays phone arrow when valid number is entered", async () => {
+    const { _enterPhoneNumber, getArrowPhoneNumber, phoneInput, user } =
+      await renderPhoneInput({
+        phone: "",
+      });
 
-  //   expect(await getArrowPhoneNumber()).toBeInTheDocument;
+    expect(await getArrowPhoneNumber()).toBeInTheDocument;
 
-  //   await user.type(await getPhoneNumberInput(), "963980033496");
-  //   expect(setInputValue).toHaveBeenCalledWith("963980033496");
-  //   // expect(setValidNumber).toHaveBeenCalledWith(true);
-  //   // console.log(input.value, "input.value");
-  //   const arrow = await getArrowPhoneNumber();
-  //   expect(arrow).toBeInTheDocument;
-  // });
+    await user.type(phoneInput, "963980033496");
+    expect(setInputValue).toHaveBeenCalledWith("963980033496");
+    // expect(setValidNumber).toHaveBeenCalledWith(true);
+    // console.log(input.value, "input.value");
+    const arrow = await getArrowPhoneNumber();
+    expect(arrow).toBeInTheDocument;
+  });
 
-  // const phoneNumber = "963980033496";
-  // it(`Should Call AuthService.CheckPhone If User Click On Arrow -> With Number ${phoneNumber}`, async () => {
-  //   beforeEach(() => {
-  //     fetchMock.reset();
-  //     localStorage.clear();
-  //     vi.clearAllMocks();
-  //   });
-  //   const stepIndicator = 3;
-  //   const {
-  //     getPhoneNumberInput,
-  //     user,
-  //     getArrowPhoneNumber,
-  //     storeLastJSON,
-  //     callCheckPhone,
-  //   } = await renderPhoneInput({ phone: phoneNumber });
+  const phoneNumber = "963980033496";
+  it(`Should Call AuthService.CheckPhone If User Click On Arrow -> With Number ${phoneNumber}`, async () => {
+    beforeEach(() => {
+      fetchMock.reset();
+      localStorage.clear();
+      vi.clearAllMocks();
+    });
+    const stepIndicator = 3;
+    const {
+      phoneInput,
+      user,
+      getArrowPhoneNumber,
+      storeLastJSON,
+      callCheckPhone,
+    } = await renderPhoneInput({ phone: phoneNumber });
 
-  //   await user.type(await getPhoneNumberInput(), "963980033496");
-  //   expect(setInputValue).toHaveBeenCalledWith("963980033496");
+    await user.type(phoneInput, "963980033496");
+    expect(setInputValue).toHaveBeenCalledWith("963980033496");
 
-  //   const arrow = await getArrowPhoneNumber();
-  //   expect(arrow).toBeInTheDocument;
-  //   await user.click(arrow);
+    const arrow = await getArrowPhoneNumber();
+    expect(arrow).toBeInTheDocument;
+    await user.click(arrow);
 
-  //   const resCheckPhone = await callCheckPhone(phoneNumber);
-  //   console.log(resCheckPhone, "resCheckPhone");
+    const resCheckPhone = await callCheckPhone(phoneNumber);
+    console.log(resCheckPhone, "resCheckPhone");
 
-  //   const mockSetStepIndicator = vi.fn();
+    const mockSetStepIndicator = vi.fn();
 
-  //   await AuthService.CheckPhone(
-  //     phoneNumber,
-  //     (e) => mockSetStepIndicator(e),
-  //     stepIndicator === 3
-  //   );
-  //   const calls = fetchMock.calls();
-  //   expect(calls.length).toBeGreaterThan(0);
-  //   expect(calls[0][0]).toBe(OTP_URL + "/phone/check-existence/" + phoneNumber);
-  //   // expect(mockSetStepIndicator).toHaveBeenCalledWith(4); // not do anything
-  //   // expect(store.dispatch).toHaveBeenCalledWith(ReInitialise()); // // not do anything
-  //   storeLastJSON();
-  //   expect(setStepIndicator).toHaveBeenCalledWith(4);
-  // });
+    await AuthService.CheckPhone(
+      phoneNumber,
+      (e) => mockSetStepIndicator(e),
+      stepIndicator === 3
+    );
+    const calls = fetchMock.calls();
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls[0][0]).toBe(OTP_URL + "/phone/check-existence/" + phoneNumber);
+    // expect(mockSetStepIndicator).toHaveBeenCalledWith(4); // not do anything
+    // expect(store.dispatch).toHaveBeenCalledWith(ReInitialise()); // // not do anything
+    storeLastJSON();
+    expect(setStepIndicator).toHaveBeenCalledWith(4);
+  });
 });
 
 describe("Login Methods Component", async () => {
