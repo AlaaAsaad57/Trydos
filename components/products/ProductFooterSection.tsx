@@ -7,7 +7,7 @@ import { ProductInterface } from "models/product";
 import { store } from "store";
 import ProductDetails from "./ProductDetails";
 
-function ProductFooterSection({
+async function ProductFooterSection({
   product,
   slug,
 }: {

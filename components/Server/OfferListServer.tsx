@@ -11,9 +11,7 @@ async function OfferListServer({ params }) {
   console.log("render offers");
   return (
     <>
-      <Suspense fallback={<OfferListSkeleton />}>
-        <OfferList boutiques={HomeData} key={2} quick={false} />;
-      </Suspense>
+      <OfferList boutiques={HomeData} key={2} quick={false} />;
     </>
   );
 }

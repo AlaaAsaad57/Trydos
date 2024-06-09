@@ -6,13 +6,20 @@ import OfferBar from "components/Home/Bars/OfferBar";
 import QuickOffer from "components/Home/Bars/QuickOffer";
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
-async function page({ params }): Promise<any> {
+import NavbarSkeleton from "components/skeleton/navbar";
+import OfferListSkeleton from "components/skeleton/OfferList";
+import { Suspense } from "react";
+function page({ params }) {
   return (
     <>
-      <NavbarServer lang={params.lang} />
+      <Suspense fallback={<NavbarSkeleton noCategory={false} />}>
+        <NavbarServer lang={params.lang} />
+      </Suspense>
       <Home />
       <BrandsBar />
-      <OfferListServer params={params} />
+      <Suspense fallback={<OfferListSkeleton />}>
+        <OfferListServer params={params} />
+      </Suspense>
       <CategoryBar />
       <OfferBar />
       <QuickOffer />

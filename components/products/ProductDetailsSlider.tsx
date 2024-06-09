@@ -5,7 +5,7 @@ import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 import { store } from "store";
 import { ProductInterface } from "models/product";
-function ProductDetailsSlider({
+async function ProductDetailsSlider({
   product,
   slug,
 }: {
