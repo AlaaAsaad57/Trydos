@@ -64,7 +64,9 @@ function ProductSlider({
                     style={{ borderRadius: "15px", zIndex: "3" }}
                     fill
                     unoptimized
+                    // @ts-ignore
                     src={getConfiguredImage({
+                      // @ts-ignore
                       src: img.file_path,
                       width: 400,
                       height: 400,
