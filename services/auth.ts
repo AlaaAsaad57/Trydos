@@ -1,6 +1,5 @@
 import axios from "axios";
 import { store } from "store";
-import { ReInitialise } from "store/auth/actions";
 import userImage from "public/images/profileNo.png";
 import Cookies from "js-cookie";
 
@@ -31,27 +30,7 @@ export class AuthService {
     baseURL: OTP_URL,
   });
   static http: any;
-  static async CheckPhone(
-    value: string | number,
-    step: Function,
-    newAccount: boolean
-  ) {
-    try {
-      const response = await this.http.get(
-        "/phone/check-existence/" + `${value}`,
-        getHeader()
-      );
-      step(277);
-      store.dispatch(ReInitialise());
-      if (typeof window !== "undefined") {
-        _isStoreLastJson() &&
-          localStorage.setItem("LAST_JSON", JSON.stringify(response));
-      }
-    } catch (e) {
-      step(282);
-      store.dispatch({ type: "WRONG-NUMBER", payload: "phone already exists" });
-    }
-  }
+
   async SendOtp(
     mobilePhone: string,
     is_via_whatsapp: number | string,

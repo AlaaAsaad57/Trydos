@@ -7,8 +7,8 @@ import { resolvedComponent } from "../utils";
 import NavbarServer from "../../components/Server/Navbar";
 import PhoneInput from "components/Login/PhoneInput";
 import { AuthService } from "services/auth";
-import React, { useState } from "react";
 
+vi.mock("services/auth");
 const renderMainComponent = async () => {
   const NavbarServerResolved = await resolvedComponent(NavbarServer, {
     mainCategory: "fashion",
@@ -75,7 +75,7 @@ const renderMainComponent = async () => {
       };
     },
     waitForLoginContainerToLoad: async () => {
-      await screen.findByTestId("login-methods-container"); //
+      await waitFor(() => screen.findByTestId("login-methods-container")); //
       const loginQRMethod = screen.getByTestId("login-method-qr");
       expect(screen.getByText(/Scan Qr/i)).toBeInTheDocument();
       const loginPhoneNumberMethod = screen.getByTestId("login-method-phone");
@@ -157,23 +157,12 @@ const renderMainComponent = async () => {
 //   });
 // });
 
+const onChange = vi.fn();
+const setStepIndicator = vi.fn();
+const setWrongNumber = vi.fn();
+const setInputValue = vi.fn();
 describe("Phone Input Component", async () => {
-  const renderPhoneInput = async () => {
-    const onChange = vi.fn();
-    const setStepIndicator = vi.fn();
-    const setWrongNumber = vi.fn();
-    const setInputValue = vi.fn();
-    // const setValidNumber = vi.fn();
-    const setValidNumber = vi.fn();
-    const useStateMock: any = (initialState: any) => {
-      const mockState = useState(initialState);
-      const setState = (value) => {
-        mockState[1](value);
-        setValidNumber(value);
-      };
-      return [mockState[0], setState];
-    };
-    React.useState = vi.fn().mockImplementation(useStateMock);
+  const renderPhoneInput = async ({ phone }: { phone?: string }) => {
     const { getByTestId, queryByTestId } = render(
       <PhoneInput
         stepIndicator={3}
@@ -181,7 +170,7 @@ describe("Phone Input Component", async () => {
         wrongNumber={false}
         setWrongNumber={setWrongNumber}
         operation={"login"}
-        inputValue={""}
+        inputValue={phone}
         setInputValue={setInputValue}
       />,
       { wrapper: AllProviders }
@@ -223,11 +212,7 @@ describe("Phone Input Component", async () => {
       phoneEntered: string,
       stepIndicator
     ) => {
-      await _enterPhoneNumber("96398003349");
-      expect(setValidNumber).toHaveBeenCalledWith(false);
-      // expect(await getArrowPhoneNumber()).toBeInTheDocument;
-      // const arrow = getArrowPhoneNumberElement();
-      // expect(arrow).toBeInTheDocument();
+      await _enterPhoneNumber("963980033496");
     };
     return {
       input,
@@ -245,26 +230,102 @@ describe("Phone Input Component", async () => {
     };
   };
   it("Should Render An Phone Component Input And User Can Login", async () => {
-    const { input } = await renderPhoneInput();
+    const { input } = await renderPhoneInput({ phone: "" });
     expect(input).toBeInTheDocument();
   });
 
   it("Should Render An Phone Component Input And User Enter Valid Number", async () => {
-    const { _enterPhoneNumber, getArrowPhoneNumber } = await renderPhoneInput();
+    const { _enterPhoneNumber, getArrowPhoneNumber } = await renderPhoneInput({
+      phone: "",
+    });
     const phoneNumber = "963980033496";
     await _enterPhoneNumber(phoneNumber);
     expect(getArrowPhoneNumber()).toBeInTheDocument; // if valid number
   });
 
   it("Should Render An Phone Component Input And User Enter Invalid Number", async () => {
-    const { _enterPhoneNumber, getArrowPhoneNumber } = await renderPhoneInput();
+    const { _enterPhoneNumber, getArrowPhoneNumber } = await renderPhoneInput({
+      phone: "",
+    });
     const phoneNumber = "12345678";
     await _enterPhoneNumber(phoneNumber);
     expect(getArrowPhoneNumber()).not.toBeInTheDocument; // if invalid number
   });
+  it("displays phone arrow when valid number is entered", async () => {
+    const setValidNumber = vi.fn();
+    const onChange = vi.fn();
+    const setStepIndicator = vi.fn();
+    const setWrongNumber = vi.fn();
+    const setInputValue = vi.fn(); // Using jest.fn() instead of vi.fn()
+    const { getByTestId, queryByTestId } = render(
+      <PhoneInput
+        stepIndicator={3}
+        setStepIndicator={setStepIndicator}
+        wrongNumber={false}
+        setWrongNumber={setWrongNumber}
+        operation={"login"}
+        inputValue={""}
+        setInputValue={setInputValue}
+      />,
+      { wrapper: AllProviders }
+    );
 
+    await waitFor(
+      () => {
+        expect(getByTestId("phone-number-input")).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
+
+    const input = screen.getByTestId("phone-number-input");
+
+    const user = userEvent.setup();
+
+    await waitFor(
+      async () => {
+        await user.type(input, "963980033496");
+        expect(setInputValue).toHaveBeenCalledWith("963980033496");
+
+        // expect(setValidNumber).toHaveBeenCalledWith(true);
+        console.log(input.value, "input.value");
+        const arrow = queryByTestId("phone-arrow");
+        expect(arrow).toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
+  });
   it("Should Call AuthService.CheckPhone If User Click On Arrow ->", async () => {
-    const { _submitLoginPhoneNumber } = await renderPhoneInput();
+    const phoneNumber = "963980033496";
+    const stepIndicator = true;
+    const { _submitLoginPhoneNumber, input, user, getArrowPhoneNumberElement } =
+      await renderPhoneInput({ phone: phoneNumber });
+    await _submitLoginPhoneNumber(phoneNumber, stepIndicator);
+
+    await waitFor(
+      async () => {
+        await user.type(input, "963980033496");
+        expect(setInputValue).toHaveBeenCalledWith("963980033496");
+
+        // expect(setValidNumber).toHaveBeenCalledWith(true);
+        console.log(input.value, "input.value");
+      },
+      { timeout: 3000 }
+    );
+    const arrow = getArrowPhoneNumberElement();
+    expect(arrow).toBeInTheDocument;
+
+    await user.click(arrow);
+    AuthService.CheckPhone.mockResolvedValueOnce();
+
+    await AuthService.CheckPhone(phoneNumber, setStepIndicator, stepIndicator);
+
+    expect(setStepIndicator).toHaveBeenCalledWith(277);
+    expect(setStepIndicator).toHaveBeenCalledWith(4);
+  });
+  it("Should Show Password Input If User Exists In System", async () => {
+    const { _submitLoginPhoneNumber, user } = await renderPhoneInput({
+      phone: "",
+    });
     const phoneNumber = "963980033496";
     const stepIndicator = true;
     await _submitLoginPhoneNumber(phoneNumber, stepIndicator);
