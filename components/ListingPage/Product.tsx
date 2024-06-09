@@ -1,7 +1,6 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import React, { useReducer } from "react";
-import { getConfiguredImage } from "utils/functions";
 import ImageSlider from "./ImageSlider";
 import PriceLabel from "./PriceLabel";
 import BuyButton from "./BuyButton";
@@ -82,7 +81,7 @@ function Product({
           index: 0,
         }
       : { images: product.images },
-    activeImage: product.images[0],
+    activeImage: product.images[0].file_path,
     isColorSelected: false,
     activeImageIndex: 0,
     renderVar: false,
@@ -91,7 +90,7 @@ function Product({
   return (
     <NextLink
       suppressHydrationWarning
-      href={`/products/${product.slug}`}
+      href={`/products/${product.id}`}
       className="product-container rounded-15 align-center flex-col relative"
       onMouseLeave={() => {
         if (productState.isActiveTopSlide || productState.isColorSelected) {

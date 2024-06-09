@@ -16,7 +16,7 @@ function ProductSlider({
   const ColorRef = useRef<any>();
   useEffect(() => {
     if (activeColor && activeColor.index >= 0) {
-      ColorRef?.current?.slideTo(activeColor.index, 300, false);
+      // ColorRef?.current?.slideTo(activeColor.index, 300, false);
     }
   }, [activeColor]);
   return (
@@ -65,7 +65,7 @@ function ProductSlider({
                     fill
                     unoptimized
                     src={getConfiguredImage({
-                      src: img,
+                      src: img.file_path,
                       width: 400,
                       height: 400,
                     })}

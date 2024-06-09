@@ -41,6 +41,7 @@ function ProductsList({
 
     dispatch({ type: "GET_PRODUCTS", payload: Listing_Data_res.body.data });
   }, []);
+
   return (
     <>
       <div

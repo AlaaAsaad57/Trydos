@@ -1,10 +1,9 @@
-import ProductsList from "components/ListingPage/ProductsList";
 import ProductListServer from "components/Server/ProductList";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
 import ListingSkeleton from "components/skeleton/listing";
 import NavbarSkeleton from "components/skeleton/navbar";
 import { Suspense } from "react";
-import { getListingData } from "store/homepage/cachedActions";
+
 export async function generateMetadata({ params, searchParams }) {
   // read route params
   const categories = params.productCategory;

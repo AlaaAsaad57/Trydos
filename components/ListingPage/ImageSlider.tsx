@@ -74,7 +74,7 @@ function ImageSlider({
           initialSlide={activeColor.index}
           loop={false}
         >
-          {activeColor.images.map((img, i) => (
+          {activeColor?.images?.map((img, i) => (
             <SwiperSlide
               key={i}
               style={{
@@ -94,7 +94,7 @@ function ImageSlider({
                     fill
                     unoptimized
                     src={getConfiguredImage({
-                      src: img,
+                      src: img.file_path,
                       width: 400,
                       height: 400,
                     })}

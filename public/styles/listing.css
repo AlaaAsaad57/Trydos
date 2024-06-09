@@ -301,6 +301,10 @@
 p.product-details-text {
   padding-left: 9px;
 }
+.prouct-details img {
+  display: inline-flex;
+  margin-right: 4px;
+}
 .quantity {
   color: #5d5d5d;
 }

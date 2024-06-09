@@ -3,18 +3,9 @@ import React from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
-import { store } from "store";
 import { ProductInterface } from "models/product";
-async function ProductDetailsSlider({
-  product,
-  slug,
-}: {
-  product: ProductInterface;
-  slug: string;
-}) {
-  const productData =
-    product ??
-    store.getState().listing.products.filter((s) => s.slug === slug)[0];
+function ProductDetailsSlider({ product }: { product: ProductInterface }) {
+  const productData = product;
   const [emblaRef] = useEmblaCarousel();
   return (
     <div className="product-details-slider">

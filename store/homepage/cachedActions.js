@@ -199,8 +199,8 @@ export const getListingData = async ({ categories, lang, productCategory }) => {
   try {
     let time = new Date().getTime();
     const res = await fetch(url, {
-      method: "POST",
-      body: formBody,
+      method: "GET",
+
       next: {
         revalidate: 5403600,
         tags: [`listing-data-${str}`, "listing-data"],
@@ -232,3 +232,48 @@ export const getListingData = async ({ categories, lang, productCategory }) => {
     return ["listing-error", e.toString()];
   }
 };
+
+export async function getProductDetails({ productId, lang }) {
+  let DETAILS_URL = "/web/product/globalDetails";
+  let QTY_URL = "/web/product/qtyPriceDetails";
+  const cookies = (await import("next/headers")).cookies;
+  const cookieStore = cookies();
+  try {
+    const res = await fetch(OTP_URL + DETAILS_URL + `/${productId}`, {
+      method: "GET",
+
+      next: {
+        revalidate: 5403600,
+        tags: [`product-data-${productId}`, "listing-data"],
+      },
+      headers: new Headers({
+        lang: await getLang(lang, cookieStore.get("language")?.value),
+        country: cookieStore.get("country") && cookieStore.get("country").value,
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+      }),
+    });
+    const repo = await res.json();
+    const res1 = await fetch(OTP_URL + QTY_URL + `/${productId}`, {
+      method: "GET",
+
+      next: {
+        revalidate: 5403600,
+        tags: [`product-data-${productId}`, "listing-data"],
+      },
+      headers: new Headers({
+        lang: await getLang(lang, cookieStore.get("language")?.value),
+        country: cookieStore.get("country") && cookieStore.get("country").value,
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+      }),
+    });
+    const repo1 = await res1.json();
+
+    let prod = { ...repo.data, ...repo1.data };
+    console.log("jsjdjs");
+    return prod;
+  } catch (e) {
+    console.log(e);
+  }
+}

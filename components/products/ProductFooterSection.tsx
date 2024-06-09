@@ -4,22 +4,14 @@ import ProductInfo from "./ProductInfo";
 import ExtendedAreaInfo from "./ExtendedAreaInfo";
 import ProductOptions from "./ProductOptions";
 import { ProductInterface } from "models/product";
-import { store } from "store";
+
 import ProductDetails from "./ProductDetails";
 
-async function ProductFooterSection({
-  product,
-  slug,
-}: {
-  slug: string;
-  product: ProductInterface;
-}) {
+function ProductFooterSection({ product }: { product: ProductInterface }) {
   const [option, setOption] = useState("");
   const [sharedContacts, setShareContacts] = useState([]);
-  const productData =
-    product ??
-    store.getState().listing.products.filter((s) => s.slug === slug)[0];
-
+  const productData = product;
+  console.log(product);
   return (
     <div className="product-details-footer">
       <ProductDetails />

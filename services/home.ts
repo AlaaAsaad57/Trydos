@@ -134,12 +134,18 @@ class HomeService {
       formBody.push(encodedKey + "=" + encodedValue);
     }
     formBody = formBody.join("&");
+    let url =
+      OTP_URL +
+      (categories
+        ? LISTING_INFO_URL +
+          `?category=${boutiqueCategory}&boutique_slug=${categories}`
+        : LISTING_INFO_URL + `?boutique_slug=${categories}`);
     await fetch(
-      OTP_URL + LISTING_INFO_URL + `?offset=${offset}&limit=${20}`,
+      url + `?offset=${offset}&limit=${20}`,
 
       {
-        method: "POST",
-        body: formBody,
+        method: "GET",
+
         headers: {
           ...getHeader().headers,
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
