@@ -81,6 +81,7 @@ function Product({
           index: 0,
         }
       : { images: product.images },
+    // @ts-ignore
     activeImage: product.images[0].file_path,
     isColorSelected: false,
     activeImageIndex: 0,
