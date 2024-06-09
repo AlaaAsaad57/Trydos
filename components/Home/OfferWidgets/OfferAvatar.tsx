@@ -29,7 +29,6 @@ function OfferAvatar({
         e.preventDefault();
         router.push(linkUrl);
         dispatchRouteChangeEvent("start");
-        console.log("link");
       }}
       className="offer-avatar"
       style={{

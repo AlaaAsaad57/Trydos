@@ -3,7 +3,7 @@ import PopupCountry from "../../utils/PopupCountry";
 import { Suspense } from "react";
 async function page() {
   function SearchBarFallback() {
-    return <>Loading</>;
+    return <></>;
   }
   return (
     <>

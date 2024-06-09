@@ -23,7 +23,7 @@ function OfferSlideItem({
             priority={mykey < 2}
             style={{ borderRadius: "15px" }}
             className="OfferImage"
-            src={offerPhoto.replace("/upload", `/upload/h_342/f_avif/q_auto`)}
+            src={offerPhoto?.replace("/upload", `/upload/h_342/f_avif/q_auto`)}
             width={900}
             unoptimized
             height={342}

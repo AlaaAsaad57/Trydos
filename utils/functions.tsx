@@ -151,7 +151,7 @@ export function encode_utf8(params: {
 }
 
 export const getConfiguredImage = ({ src, width, height }) => {
-  if (src.includes("cloudinary")) {
+  if (src?.includes("cloudinary")) {
     return src.replace("/upload", `/upload/h_${height}/f_avif/q_auto`);
   } else return src;
 };

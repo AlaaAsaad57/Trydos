@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import Logo from "./Logo";
 import UserNavTopSection from "./UserNavTopSection";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,6 +10,8 @@ import MobileNavigation from "./MobileNavigation";
 import dynamic from "next/dynamic";
 import NextLink from "Hooks/NextLink";
 import { usePathname } from "next/navigation";
+import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
+import CategoriesBarSkeleton from "components/skeleton/CategoriesBar";
 const AuthSections = dynamic(() => import("./AuthSections"), { ssr: false });
 interface NavbarProps {
   init: string;

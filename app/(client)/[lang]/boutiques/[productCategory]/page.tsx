@@ -1,5 +1,7 @@
 import ProductsList from "components/ListingPage/ProductsList";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
+import ListingSkeleton from "components/skeleton/listing";
+import { Suspense } from "react";
 import { getListingData } from "store/homepage/cachedActions";
 export async function generateMetadata({ params, searchParams }) {
   // read route params
@@ -18,11 +20,13 @@ async function Page({ params, searchParams }) {
   return (
     <>
       <CustomNavbarServer lang={params.lang} />
-      <ProductsList
-        Listing_Data_res={Listing_Data_res}
-        productCategory={params.productCategory}
-        boutiqueCategory={null}
-      />
+      <Suspense fallback={<ListingSkeleton />}>
+        <ProductsList
+          Listing_Data_res={Listing_Data_res}
+          productCategory={params.productCategory}
+          boutiqueCategory={null}
+        />
+      </Suspense>
     </>
   );
 }

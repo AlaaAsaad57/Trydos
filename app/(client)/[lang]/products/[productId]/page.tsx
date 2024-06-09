@@ -2,6 +2,8 @@ import "styles/productDetails.css";
 import ProductDetailsSlider from "components/products/ProductDetailsSlider";
 import ProductFooterSection from "components/products/ProductFooterSection";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
+import { Suspense } from "react";
+import DetailsSekeleton from "components/skeleton/details";
 let product = null;
 function page({ params: { productId, lang } }) {
   let slug = productId;
@@ -9,8 +11,10 @@ function page({ params: { productId, lang } }) {
     <>
       <CustomNavbarServer lang={lang} />
       <div className="product-details-container">
-        <ProductDetailsSlider slug={slug} product={product} />
-        <ProductFooterSection slug={slug} product={product} />
+        <Suspense fallback={<DetailsSekeleton />}>
+          <ProductDetailsSlider slug={slug} product={product} />
+          <ProductFooterSection slug={slug} product={product} />
+        </Suspense>
       </div>
     </>
   );

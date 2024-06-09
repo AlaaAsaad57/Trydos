@@ -1,11 +1,4 @@
-import {
-  MouseEvent,
-  MutableRefObject,
-  Ref,
-  Touch,
-  TouchEvent,
-  useRef,
-} from "react";
+import { useRef } from "react";
 import OfferAvatar from "./OfferAvatar";
 import MoreOfferAvatar from "./MoreOfferAvatar";
 import { Boutique } from "models/offer";

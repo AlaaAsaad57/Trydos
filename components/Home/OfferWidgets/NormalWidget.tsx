@@ -32,7 +32,12 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
     <div
       onClick={(e) => {
         // @ts-ignore: Unreachable code error
-        if (!e.target.closest(".offer-avatar")) {
+        if (
+          // @ts-ignore: Unreachable code error
+          !e.target.closest(".offer-avatar") &&
+          // @ts-ignore: Unreachable code error
+          !e.target.closest(".offer-category")
+        ) {
           router.push(`/boutiques/${boutique.slug}`);
           dispatchRouteChangeEvent("start");
         }
@@ -119,11 +124,15 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
             {boutique.mainCategoriesForProductIds.map((category, key) => {
               if (category.category_icon.includes(".svg")) {
                 return (
-                  <NextLink
-                    aria-label={`${category.category_name} products page`}
+                  <div
+                    onClick={(e) => {
+                      e.preventDefault();
+                      dispatchRouteChangeEvent("start");
+                      router.push(
+                        `/boutiques/${boutique.slug}/categories/${category.category_slug}`
+                      );
+                    }}
                     key={key}
-                    href={`/boutiques/${boutique.slug}/categories/${category.category_slug}`}
-                    prefetch={false}
                   >
                     <Image
                       id={"img-" + boutique.id}
@@ -138,15 +147,20 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                         `/upload/h_50/f_webp/q_auto`
                       )}
                     />
-                  </NextLink>
+                  </div>
                 );
               } else
                 return (
-                  <NextLink
+                  <div
                     aria-label={`${category.category_name} products page`}
                     key={key}
-                    href={`/boutiques/${boutique.slug}/categories/${category.category_slug}`}
-                    prefetch={false}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      dispatchRouteChangeEvent("start");
+                      router.push(
+                        `/boutiques/${boutique.slug}/categories/${category.category_slug}`
+                      );
+                    }}
                   >
                     <Image
                       id={"img-" + boutique.id}
@@ -161,7 +175,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                         `/upload/h_50/f_webp/q_auto`
                       )}
                     />
-                  </NextLink>
+                  </div>
                 );
             })}
           </div>

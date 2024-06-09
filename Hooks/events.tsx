@@ -12,6 +12,13 @@ export const dispatchRouteChangeEvent = (
   event: "start" | "completed",
   data?: IEventDetail
 ) => {
+  if (event === "start") {
+    document.documentElement.style.overflow = "hidden";
+    document.documentElement.scrollTop = 0;
+  } else {
+    document.documentElement.style.overflow = "initial";
+    document.documentElement.scrollTop = 0;
+  }
   window.dispatchEvent(
     new CustomEvent(routeEventName(event), {
       bubbles: false,

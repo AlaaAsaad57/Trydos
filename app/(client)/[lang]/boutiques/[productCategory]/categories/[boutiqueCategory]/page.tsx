@@ -1,6 +1,8 @@
 import { getListingData } from "store/homepage/cachedActions";
 import ProductsList from "components/ListingPage/ProductsList";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
+import { Suspense } from "react";
+import ListingSkeleton from "components/skeleton/listing";
 export async function generateMetadata({ params }) {
   const categories = params.productCategory;
   return {
@@ -18,11 +20,13 @@ async function page({ params }) {
   return (
     <>
       <CustomNavbarServer lang={params.lang} />
-      <ProductsList
-        Listing_Data_res={Listing_Data_res}
-        productCategory={params.productCategory}
-        boutiqueCategory={params.boutiqueCategory}
-      />
+      <Suspense fallback={<ListingSkeleton />}>
+        <ProductsList
+          Listing_Data_res={Listing_Data_res}
+          productCategory={params.productCategory}
+          boutiqueCategory={params.boutiqueCategory}
+        />
+      </Suspense>
     </>
   );
 }
