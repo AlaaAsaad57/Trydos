@@ -520,6 +520,7 @@ function LogInPins({
 
         {rendere && (
           <PinInput
+            ariaLabel="pin-input"
             length={6}
             initialValue={pin}
             onChange={(value) => {

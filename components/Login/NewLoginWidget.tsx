@@ -16,7 +16,6 @@ import { useAuthHooks } from "Hooks/AuthHooks";
 import dynamic from "next/dynamic";
 const LoginMethods = dynamic(() => import("./LoginMethods"));
 
-import Animated from "react-mount-animation";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 function NewLoginWidget() {
   const [stepIndicator, setStepIndicator] = useState(-1);
@@ -202,7 +201,7 @@ function NewLoginWidget() {
             stepIndicator === -1 && "margin-none"
           }`}
         >
-          <Animated.div
+          <AnimatedComponent
             role="login-animated-container"
             unmountTime={0.5}
             className="animated-container"
@@ -268,7 +267,7 @@ function NewLoginWidget() {
                 {translate("Create New Account", language)}
               </div>
             </div>
-          </Animated.div>
+          </AnimatedComponent>
           <PrivacyConfirm
             stepIndicator={stepIndicator}
             setStepIndicator={(e) => setStepIndicator(e)}
@@ -378,7 +377,7 @@ function NewLoginWidget() {
             inputValue={inputValue}
           />
         </div>
-        <Animated.div
+        <AnimatedComponent
           unmountTime={0.5}
           className="animated-container"
           show={stepIndicator === 1 || stepIndicator === 0}
@@ -405,7 +404,7 @@ function NewLoginWidget() {
           >
             {translate("Later, Take A Look At The App", language)}
           </div>
-        </Animated.div>
+        </AnimatedComponent>
         {(stepIndicator > 1 || window.innerWidth > 600) && (
           <span
             id="login-close-icon"

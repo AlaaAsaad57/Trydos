@@ -13,7 +13,7 @@ import {
 } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
-const getHeader = () => {
+export const getHeader = () => {
   return {
     headers: {
       Authorization: `Bearer ${
@@ -102,24 +102,25 @@ class AuthService {
         getHeader()
       );
       let repo = await response.json();
+      console.log("repo", repo);
       if (repo?.isSuccessful === false) {
         throw new Error("Wrong Code");
       }
-      localStorage.setItem("ID-TOKEN", repo.data.id_token);
-      localStorage.setItem("MARKET-TOKEN", repo.data.token);
+      localStorage.setItem("ID-TOKEN", repo.data?.id_token);
+      localStorage.setItem("MARKET-TOKEN", repo.data?.token);
       localStorage.setItem(
         "USER",
         JSON.stringify({
-          ...repo.data.user,
-          already_exists: repo.data.already_exists,
+          ...repo.data?.user,
+          already_exists: repo.data?.already_exists,
           is_verified: false,
         })
       );
       store.dispatch({
         type: "TEMP-USER",
         payload: {
-          ...repo.data.user,
-          already_exists: repo.data.already_exists,
+          ...repo.data?.user,
+          already_exists: repo.data?.already_exists,
           is_verified: false,
         },
       });
@@ -129,9 +130,10 @@ class AuthService {
       if (typeof window !== "undefined") {
         localStorage.setItem("LAST_JSON", JSON.stringify(repo));
       }
-      return [repo.data.already_exists, repo.data.user.name];
+      return [repo.data?.already_exists, repo.data?.user.name];
     } catch (e) {
-      if (e.response.data.message === "user not found") {
+      console.log("catch", e);
+      if (e.response?.data?.message === "user not found") {
         store.dispatch({ type: "WRONG-NUMBER", payload: "user not found" });
       } else {
         store.dispatch({ type: "LOGIN_FAILED" });

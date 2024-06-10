@@ -239,7 +239,7 @@ function SendMethod({
           </div>
         </div>
       </div>
-      <div data-testid="pin-inputs-containere" className="phone-send-options">
+      <div className="phone-send-options">
         <div
           data-testid="message-whatsapp-option"
           className="message-recieve-option"

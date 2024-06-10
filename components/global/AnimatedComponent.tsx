@@ -1,13 +1,10 @@
-import { FunctionComponent } from "react";
 import Animated from "react-mount-animation";
 
-export const AnimatedComponent: FunctionComponent<{
-  show: boolean;
-  children: React.ReactNode;
-}> = ({ show, children }) => {
-  console.log(children, "children");
+export const AnimatedComponent = ({ show, children, ...rest }) => {
+  // console.log(children, "children");
   return (
     <Animated.div
+      {...rest}
       show={show}
       mountAnim="0% {opacity: 0} 100% {opacity: 1}"
       unmountAnim="0% {opacity: 1} 100% {opacity: 0}"

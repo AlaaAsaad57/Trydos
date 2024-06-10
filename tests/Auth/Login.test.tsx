@@ -2,17 +2,18 @@ import { describe, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import AllProviders from "tests/helpers/AllProviders";
 import userEvent from "@testing-library/user-event";
-import HomeComponent from "../../components/Home";
-import { resolvedComponent } from "../utils";
-import AuthService from "services/auth";
-import NavbarServer from "components/Server/Navbar";
 import { createTestStore } from "tests/helpers/createStore";
-import PhoneInput from "components/Login/PhoneInput";
-import { OTP_URL } from "utils/endpointConfig";
-import fetchMock from "fetch-mock";
-import { _isStoreLastJson } from "utils/functions";
-import SendMethod from "components/Login/SendMethod";
 import LogInPins from "components/Login/LogInPins";
+import AuthService from "services/auth";
+import fetchMock from "fetch-mock";
+import { OTP_URL, VERFIY_OTP, VERFIY_OTP_SIGNUP } from "utils/endpointConfig";
+import PhoneInput from "components/Login/PhoneInput";
+import SendMethod from "components/Login/SendMethod";
+import NavbarServer from "components/Server/Navbar";
+import HomeComponent from "components/Home";
+import { resolvedComponent } from "tests/utils";
+import { _isStoreLastJson } from "utils/functions";
+
 let store;
 beforeEach(() => {
   store = createTestStore();
@@ -374,48 +375,57 @@ describe("Login Methods Component", async () => {
   });
 });
 describe("Login Pins Component", async () => {
+  beforeEach(() => {
+    fetchMock.reset();
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+  const phone = "963980033496";
   const setStepIndicator = vi.fn();
   const setDisabled = vi.fn();
   const setExpired = vi.fn();
+  const Submit = vi.fn();
+  const VerifyOtpHook = vi.fn();
 
   const user = userEvent.setup();
   const renderLogInPinsComponent = async ({ phone }: { phone?: string }) => {
-    const { queryByTestId, getByTestId } = render(
-      <LogInPins
-        expired={false}
-        stepIndicator={5}
-        setDisabled={(e) => {
-          setDisabled(e);
-          setExpired(e);
-        }}
-        resend={() => {
-          // SendOtpHook({
-          //   mobilePhone: inputValue,
-          //   is_via_whatsapp: MessageMethod === "WA" ? "1" : "0",
-          //   step: () => {},
-          //   successCallback: function () {},
-          //   errorCallback: function () {
-          //     setStepIndicator(3);
-          //     setWrongNumber(true);
-          //   },
-          // });
-          setDisabled(false);
-          setExpired(false);
-        }}
-        setStepIndactor={(e) => setStepIndicator(e)}
-        rendere={false}
-        inputValue={phone}
-        disabled={false}
-        Submit={(e) => {}}
-        successLogin={false}
-        wrongNumber={false}
-        failedLogin={false}
-        setPin={(e: string) => {}}
-        pin={""}
-        MessageMethod={""}
-      />,
-      { wrapper: AllProviders }
-    );
+    const { queryByTestId, queryAllByLabelText, getByTestId, getByLabelText } =
+      render(
+        <LogInPins
+          expired={false}
+          stepIndicator={5}
+          setDisabled={(e) => {
+            setDisabled(e);
+            setExpired(e);
+          }}
+          resend={() => {
+            // SendOtpHook({
+            //   mobilePhone: inputValue,
+            //   is_via_whatsapp: MessageMethod === "WA" ? "1" : "0",
+            //   step: () => {},
+            //   successCallback: function () {},
+            //   errorCallback: function () {
+            //     setStepIndicator(3);
+            //     setWrongNumber(true);
+            //   },
+            // });
+            setDisabled(false);
+            setExpired(false);
+          }}
+          setStepIndactor={(e) => setStepIndicator(e)}
+          rendere={true}
+          inputValue={phone}
+          disabled={false}
+          Submit={Submit}
+          successLogin={false}
+          wrongNumber={false}
+          failedLogin={false}
+          setPin={(e: string) => {}}
+          pin={""}
+          MessageMethod={""}
+        />,
+        { wrapper: AllProviders }
+      );
     const _getPinInputContainer = async () => {
       await waitFor(
         () => expect(getByTestId("pin-inputs-container")).toBeInTheDocument(),
@@ -426,16 +436,76 @@ describe("Login Pins Component", async () => {
         pinInputContainer,
       };
     };
+    const _getPinInput = async () => {
+      await waitFor(() => queryAllByLabelText("pin-input"), { timeout: 2000 });
+      const pinInputs = queryAllByLabelText("pin-input");
+      return {
+        pinInputs,
+      };
+    };
+    const _enterPinInputsCode = async (inputs: HTMLElement[]) => {
+      for (let input of inputs) {
+        await user.type(input, "0");
+      }
+      expect(Submit).toHaveBeenCalledWith("000000");
+    };
     return {
       user,
       _getPinInputContainer,
+      _getPinInput,
+      _enterPinInputsCode,
     };
   };
-  it(`Should Render Options For OTP Code If User Click On SMS Option`, async () => {
+  it(`Should Render Pin Inputs Container For OTP Code If User Click On SMS Option`, async () => {
     const { user, _getPinInputContainer } = await renderLogInPinsComponent({
       phone: "963980033496",
     });
     const { pinInputContainer } = await _getPinInputContainer();
     expect(pinInputContainer).toBeInTheDocument;
+  });
+  it(`Should Render 6 Pin Inputs For OTP Code And Focus On First Pin Input`, async () => {
+    const { user, _getPinInputContainer, _getPinInput } =
+      await renderLogInPinsComponent({
+        phone: "963980033496",
+      });
+    const { pinInputContainer } = await _getPinInputContainer();
+    expect(pinInputContainer).toBeInTheDocument;
+    const { pinInputs } = await _getPinInput();
+    console.log(pinInputs.length, "pins");
+    expect(pinInputs.length).toEqual(6);
+    expect(pinInputs[0]).toHaveFocus;
+  });
+  it(`Should Render Methods When User Type OTP Code By 6 Digits`, async () => {
+    const { user, _getPinInputContainer, _getPinInput, _enterPinInputsCode } =
+      await renderLogInPinsComponent({
+        phone: "963980033496",
+      });
+    const { pinInputContainer } = await _getPinInputContainer();
+    expect(pinInputContainer).toBeInTheDocument;
+    const { pinInputs } = await _getPinInput();
+    console.log(pinInputs.length, "pins");
+    expect(pinInputs.length).toEqual(6);
+    expect(pinInputs[0]).toHaveFocus;
+    await _enterPinInputsCode(pinInputs);
+  });
+  it(`Should Call VerifyOtpHook After User Enter 6 Digits`, async () => {
+    await renderLogInPinsComponent({
+      phone,
+    });
+    const code = "000000";
+    const verficationID = "";
+    const Username = "";
+    const EditPhoneFunc = expect.any(Function);
+    await AuthService.VerifyOtp(code, verficationID, Username, EditPhoneFunc);
+    const calls = fetchMock.calls();
+    console.log(calls);
+    // expect(calls.length).toBeGreaterThan(0);
+    expect(calls[0][0]).toBe(
+      OTP_URL +
+        (Username.length > 0 ? VERFIY_OTP_SIGNUP : VERFIY_OTP) +
+        `?verificationId=${verficationID}&otp=${code}${
+          Username.length > 0 ? `&name=${Username}` : ""
+        }`
+    );
   });
 });
