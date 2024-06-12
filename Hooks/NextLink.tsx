@@ -22,11 +22,6 @@ export default function NextLink({
 
   const handleClick: MouseEventHandler<HTMLAnchorElement> = (e) => {
     onClick?.(e);
-    if (pathname !== href) {
-      dispatchRouteChangeEvent("start");
-      document.documentElement.style.overflow = "hidden";
-      document.documentElement.scrollTop = 0;
-    }
   };
 
   return (

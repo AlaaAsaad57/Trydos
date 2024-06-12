@@ -91,7 +91,13 @@ function TopSlider({
               </g>
             </svg>
             <Image
-              src={getConfiguredImage({ src: img, width: 400, height: 400 })}
+              // @ts-ignore
+              src={getConfiguredImage({
+                // @ts-ignore
+                src: img.file_path,
+                width: 400,
+                height: 400,
+              })}
               width={30}
               height={40}
               unoptimized

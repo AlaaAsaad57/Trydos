@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import OfferSlideItem from "./OfferSlideItem";
 import OfferAvatars from "./OfferAvatars";
 import NextLink from "Hooks/NextLink";
+import { dispatchRouteChangeEvent } from "Hooks/events";
 interface QuickOfferWidjetProps {
   offer: { photos: string[] };
   onClick: Function;
@@ -25,7 +26,12 @@ function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
       href={"/listing"}
       className="offer-widget quick-widget"
       aria-label={`Go To listing Page`}
-      onClick={() => onClick()}
+      onClick={(e) => {
+        dispatchRouteChangeEvent("start");
+        document.documentElement.style.overflow = "hidden";
+        document.documentElement.scrollTop = 0;
+        onClick();
+      }}
     >
       {inView && (
         <>

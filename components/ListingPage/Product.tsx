@@ -8,6 +8,7 @@ import NextLink from "Hooks/NextLink";
 import { ProductInterface } from "models/product";
 import { Img } from "react-image";
 import Skeleton from "react-loading-skeleton";
+import { dispatchRouteChangeEvent } from "Hooks/events";
 const TopSlider = dynamic(() => import("./TopSlider"), {
   loading: () => (
     <>
@@ -91,6 +92,26 @@ function Product({
   return (
     <NextLink
       suppressHydrationWarning
+      // @ts-ignore
+      onClick={(e, bool = false) => {
+        /* @ts-ignore*/
+        if (
+          /* @ts-ignore*/
+
+          e.target.closest(".top-slider-enable") ||
+          /* @ts-ignore*/
+
+          e.target.closest(".product-photos-slider")
+        ) {
+          dispatchRouteChangeEvent("completed");
+          e.preventDefault();
+          return false;
+        } else {
+          dispatchRouteChangeEvent("start");
+          document.documentElement.style.overflow = "hidden";
+          document.documentElement.scrollTop = 0;
+        }
+      }}
       href={`/products/${product.id}`}
       className="product-container rounded-15 align-center flex-col relative"
       onMouseLeave={() => {

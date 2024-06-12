@@ -9,7 +9,7 @@ import RemoteSvg from "components/global/RemoteSvg";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import NextLink from "Hooks/NextLink";
+
 import { dispatchRouteChangeEvent } from "Hooks/events";
 const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"));
 

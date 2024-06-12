@@ -17,7 +17,6 @@ export const dispatchRouteChangeEvent = (
     document.documentElement.scrollTop = 0;
   } else {
     document.documentElement.style.overflow = "initial";
-    document.documentElement.scrollTop = 0;
   }
   window.dispatchEvent(
     new CustomEvent(routeEventName(event), {

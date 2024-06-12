@@ -12,6 +12,7 @@ import NextLink from "Hooks/NextLink";
 import { usePathname } from "next/navigation";
 import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
 import CategoriesBarSkeleton from "components/skeleton/CategoriesBar";
+import { dispatchRouteChangeEvent } from "Hooks/events";
 const AuthSections = dynamic(() => import("./AuthSections"), { ssr: false });
 interface NavbarProps {
   init: string;
@@ -63,7 +64,15 @@ function Navbar({ init, categories }: NavbarProps) {
     <>
       <AuthSections />
       <div className="home-navbar">
-        <NextLink href={"/"} aria-label="TryDos Home">
+        <NextLink
+          href={"/"}
+          aria-label="TryDos Home"
+          onClick={(e) => {
+            dispatchRouteChangeEvent("start");
+            document.documentElement.style.overflow = "hidden";
+            document.documentElement.scrollTop = 0;
+          }}
+        >
           <Logo animated={false} style={false} key={1} />
         </NextLink>
         {showNavbar() && (
