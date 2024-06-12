@@ -3,16 +3,21 @@ import Animated from "react-mount-animation";
 import CommentSection from "./CommentSection";
 import ShareSection from "./ShareSection";
 import MoreOptionsSection from "./MoreOptionsSection";
+import { ProductInterface } from "models/product";
 function ExtendedAreaInfo({
   option,
   active,
   sharedContacts,
   setShareContacts,
+  comments,
+  product,
 }: {
   option: string;
   active: boolean;
   sharedContacts: Array<number>;
   setShareContacts: (e: Array<number>) => void;
+  comments: any[];
+  product: ProductInterface;
 }) {
   let height = 500;
   const mountAnim = ` 
@@ -53,7 +58,9 @@ function ExtendedAreaInfo({
           strokeWidth="0.7"
         />
       </svg>
-      {option === "Comment" && <CommentSection />}
+      {option === "Comment" && (
+        <CommentSection product={product} comments={comments} />
+      )}
       {option === "Share" && (
         <ShareSection
           sharedContacts={sharedContacts}

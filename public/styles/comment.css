@@ -61,3 +61,33 @@
   font-family: var(--Quicksand-Regular);
   font-size: 10px;
 }
+.comment-input-holder textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 15px;
+  outline: none;
+  border: none;
+  background-color: #f8f8f8;
+  color: #5d5c5d;
+  font-family: var(--Quicksand-Regular);
+  font-size: 14px;
+  min-height: 70px;
+  max-height: 130px;
+  padding-bottom: 20px;
+  resize: none;
+  height: auto;
+  word-wrap: break-word;
+  form-sizing: normal;
+  white-space: wrap;
+}
+.comment-input-holder textarea::-webkit-scrollbar {
+  width: 2px;
+}
+.comment-input-holder textarea::-webkit-scrollbar-thumb {
+  background-color: #8d8d8d;
+}
+.comment-input-holder {
+  width: 100%;
+  padding-inline: 20px;
+  margin-top: 10px;
+}

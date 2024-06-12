@@ -1,9 +1,22 @@
-import React from "react";
-import { translate } from "utils/functions";
-import CommentItem from "./CommentItem";
+import React, { Suspense, useState } from "react";
+import { getUser, translate } from "utils/functions";
+import Comments from "./Comments";
+import { useSelector } from "react-redux";
+import CommentBar from "./CommentBar";
 
-function CommentSection() {
+function CommentSection({ comments, product }) {
+  const user = useSelector((state: any) => state.auth.user);
   var language = "en";
+  const [CommentsData, setComments] = useState(
+    comments ? comments.map((s) => ({ ...s, is_verfied: true })) : []
+  );
+  const addComment = (s) => {
+    setComments([...CommentsData, { ...s, is_verfied: false }]);
+  };
+  const verifyComment = (mid) => {
+    let s = CommentsData.filter((m) => m.mid === mid)[0];
+    setComments([...CommentsData, { ...s, is_verfied: true }]);
+  };
   return (
     <div className="extended-section">
       <div className="extended-bar-top">
@@ -28,26 +41,9 @@ function CommentSection() {
 
         <span>{translate("Comment About This Product", language)}</span>
       </div>
-      <div className="content-extended comments-extended">
-        <CommentItem
-          date="18 feb"
-          name="Yxxx Oxxx"
-          text="Amazing Product I Buy It And I Saw It Is Good Quality Regarding Price"
-          photo="https://res.cloudinary.com/dtcmozf4d/image/upload/h_100/f_avif/q_100/v1/product/thumbnail/2024-05-12-663fce81803c3.png"
-        />
-        <CommentItem
-          date="18 feb"
-          name="Yxxx Oxxx"
-          text="Amazing Product I Buy It And I Saw It Is Good Quality Regarding Price"
-          photo="https://res.cloudinary.com/dtcmozf4d/image/upload/h_100/f_avif/q_100/v1/product/thumbnail/2024-05-12-663fce81803c3.png"
-        />
-        <CommentItem
-          date="18 feb"
-          name="Yxxx Oxxx"
-          text="Amazing Product I Buy It And I Saw It Is Good Quality Regarding Price"
-          photo="https://res.cloudinary.com/dtcmozf4d/image/upload/h_100/f_avif/q_100/v1/product/thumbnail/2024-05-12-663fce81803c3.png"
-        />
-      </div>
+
+      <Comments comments={comments} />
+      {<CommentBar product={product} />}
     </div>
   );
 }
