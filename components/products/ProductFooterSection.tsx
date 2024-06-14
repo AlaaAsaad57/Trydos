@@ -32,6 +32,7 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
   useEffect(() => {
     getData();
   }, []);
+
   return (
     <div className="product-details-footer">
       <ProductDetails />
@@ -42,6 +43,12 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
       />
       {
         <ExtendedAreaInfo
+          increase_comments={() =>
+            setProductData({
+              ...productDetails,
+              comment_count: productDetails.comment_count + 1,
+            })
+          }
           product={product}
           comments={productDetails.comments}
           sharedContacts={sharedContacts}

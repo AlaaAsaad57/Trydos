@@ -3,20 +3,42 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { OTP_URL } from "utils/endpointConfig";
 
-function CommentBar({ product }) {
+function CommentBar({ product, verifyComment, addCommentAction, isError }) {
   const [val, setVal] = useState("");
   const user = useSelector((state: any) => state.auth.user);
   const addComment = async (s) => {
-    setVal("");
-    let req = await axios.post(
-      OTP_URL + "/customer/product_comment",
-      JSON.stringify({
-        customer_id: user?.id,
-        product_id: product?.id,
+    let mid = Math.round(Math.random() * 1000);
+    try {
+      setVal("");
+
+      addCommentAction({
         comment: s,
-      })
-    );
-    let newComment = req.data.data.comment;
+        customer: { id: user.id, name: user.name },
+        created_at: new Date().toISOString(),
+        mid: mid,
+      });
+      let req = await axios.post(
+        OTP_URL + "/customer/product_comment",
+        JSON.stringify({
+          customer_id: user?.id,
+          product_id: product?.id,
+          comment: s,
+        }),
+        {
+          headers: {
+            Authorization: `Bearer ${user.access_token}`,
+          },
+        }
+      );
+      if (req.data?.data?.comment) {
+        let newComment = req.data.data.comment;
+        verifyComment(mid, newComment);
+      } else {
+        isError(mid);
+      }
+    } catch (e) {
+      isError(mid);
+    }
   };
   return (
     <div className="comment-input-holder">

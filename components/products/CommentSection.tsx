@@ -1,22 +1,46 @@
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { getUser, translate } from "utils/functions";
 import Comments from "./Comments";
 import { useSelector } from "react-redux";
 import CommentBar from "./CommentBar";
 
-function CommentSection({ comments, product }) {
+function CommentSection({ comments, product, increase_comments }) {
   const user = useSelector((state: any) => state.auth.user);
+  const [Render, setRender] = useState(false);
+
   var language = "en";
-  const [CommentsData, setComments] = useState(
-    comments ? comments.map((s) => ({ ...s, is_verfied: true })) : []
-  );
+  const [CommentsData, setComments] = useState(null);
   const addComment = (s) => {
+    console.log(s);
     setComments([...CommentsData, { ...s, is_verfied: false }]);
+    setRender(!Render);
   };
-  const verifyComment = (mid) => {
+  const verifyComment = (mid, newComent) => {
     let s = CommentsData.filter((m) => m.mid === mid)[0];
     setComments([...CommentsData, { ...s, is_verfied: true }]);
+    increase_comments();
+    setRender(!Render);
   };
+  const isError = (mid) => {
+    let s = CommentsData.filter((m) => m.mid === mid)[0];
+    if (s) {
+      setComments([
+        ...CommentsData,
+        { ...s, is_verfied: false, isError: true },
+      ]);
+      setRender(!Render);
+    }
+  };
+  useEffect(() => {
+    if (comments)
+      setComments(
+        comments.map((s) => ({ ...s, is_verfied: s.is_verfied === null }))
+      );
+    console.log(comments);
+  }, [comments]);
+  useEffect(() => {
+    console.log(CommentsData);
+  }, [CommentsData, Render]);
   return (
     <div className="extended-section">
       <div className="extended-bar-top">
@@ -42,8 +66,15 @@ function CommentSection({ comments, product }) {
         <span>{translate("Comment About This Product", language)}</span>
       </div>
 
-      <Comments comments={comments} />
-      {<CommentBar product={product} />}
+      <Comments Render={Render} comments={CommentsData} />
+      {user?.id && (
+        <CommentBar
+          addCommentAction={(s) => addComment(s)}
+          verifyComment={(mid, s) => verifyComment(mid, s)}
+          isError={(s) => isError(s)}
+          product={product}
+        />
+      )}
     </div>
   );
 }

@@ -20,9 +20,6 @@ function ProductOptions({
   share: boolean;
   productDetails: any;
 }) {
-  useEffect(() => {
-    console.log(productDetails);
-  }, [productDetails]);
   return (
     <div className="product-options-container">
       {share ? (

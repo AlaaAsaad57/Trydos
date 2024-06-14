@@ -10,14 +10,16 @@ function ExtendedAreaInfo({
   sharedContacts,
   setShareContacts,
   comments,
+  increase_comments,
   product,
 }: {
   option: string;
   active: boolean;
   sharedContacts: Array<number>;
   setShareContacts: (e: Array<number>) => void;
-  comments: any[];
+  comments: any;
   product: ProductInterface;
+  increase_comments: () => void;
 }) {
   let height = 500;
   const mountAnim = ` 
@@ -59,7 +61,11 @@ function ExtendedAreaInfo({
         />
       </svg>
       {option === "Comment" && (
-        <CommentSection product={product} comments={comments} />
+        <CommentSection
+          increase_comments={() => increase_comments()}
+          product={product}
+          comments={comments}
+        />
       )}
       {option === "Share" && (
         <ShareSection
