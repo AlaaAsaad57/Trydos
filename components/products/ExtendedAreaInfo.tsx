@@ -12,6 +12,12 @@ function ExtendedAreaInfo({
   comments,
   increase_comments,
   product,
+  CommentsData,
+  setComments,
+  Render,
+  setRender,
+  ErrorAccure,
+  resendComment,
 }: {
   option: string;
   active: boolean;
@@ -20,6 +26,12 @@ function ExtendedAreaInfo({
   comments: any;
   product: ProductInterface;
   increase_comments: () => void;
+  CommentsData: any;
+  setComments: Function;
+  ErrorAccure: Function;
+  Render: boolean;
+  setRender: Function;
+  resendComment: Function;
 }) {
   let height = 500;
   const mountAnim = ` 
@@ -64,7 +76,13 @@ function ExtendedAreaInfo({
         <CommentSection
           increase_comments={() => increase_comments()}
           product={product}
+          Render={Render}
+          setRender={(s) => setRender(s)}
           comments={comments}
+          CommentsData={CommentsData}
+          setComments={(s) => setComments(s)}
+          ErrorAccure={(s) => ErrorAccure(s)}
+          resendComment={(s) => resendComment(s)}
         />
       )}
       {option === "Share" && (

@@ -1,36 +1,24 @@
-import React, { Suspense, useEffect, useState } from "react";
-import { getUser, translate } from "utils/functions";
+import React, { useEffect } from "react";
+import { translate } from "utils/functions";
 import Comments from "./Comments";
 import { useSelector } from "react-redux";
 import CommentBar from "./CommentBar";
 
-function CommentSection({ comments, product, increase_comments }) {
+function CommentSection({
+  comments,
+  product,
+  increase_comments,
+  CommentsData,
+  setComments,
+  ErrorAccure,
+  Render,
+  setRender,
+  resendComment,
+}) {
   const user = useSelector((state: any) => state.auth.user);
-  const [Render, setRender] = useState(false);
 
   var language = "en";
-  const [CommentsData, setComments] = useState(null);
-  const addComment = (s) => {
-    console.log(s);
-    setComments([...CommentsData, { ...s, is_verfied: false }]);
-    setRender(!Render);
-  };
-  const verifyComment = (mid, newComent) => {
-    let s = CommentsData.filter((m) => m.mid === mid)[0];
-    setComments([...CommentsData, { ...s, is_verfied: true }]);
-    increase_comments();
-    setRender(!Render);
-  };
-  const isError = (mid) => {
-    let s = CommentsData.filter((m) => m.mid === mid)[0];
-    if (s) {
-      setComments([
-        ...CommentsData,
-        { ...s, is_verfied: false, isError: true },
-      ]);
-      setRender(!Render);
-    }
-  };
+
   useEffect(() => {
     if (comments)
       setComments(
@@ -66,13 +54,26 @@ function CommentSection({ comments, product, increase_comments }) {
         <span>{translate("Comment About This Product", language)}</span>
       </div>
 
-      <Comments Render={Render} comments={CommentsData} />
+      <Comments
+        CommentsData={CommentsData}
+        ErrorAccure={(s) => ErrorAccure(s)}
+        increase_comments={() => increase_comments()}
+        productId={product.id}
+        setComments={(s) => setComments(s)}
+        setRender={(s) => setRender(s)}
+        Render={Render}
+        comments={CommentsData}
+        resendComment={(s) => resendComment(s)}
+      />
       {user?.id && (
         <CommentBar
-          addCommentAction={(s) => addComment(s)}
-          verifyComment={(mid, s) => verifyComment(mid, s)}
-          isError={(s) => isError(s)}
+          CommentsData={CommentsData}
+          Render={Render}
+          increase_comments={increase_comments}
+          setComments={(s) => setComments(s)}
+          setRender={(e) => setRender(e)}
           product={product}
+          ErrorAccure={(s) => ErrorAccure(s)}
         />
       )}
     </div>

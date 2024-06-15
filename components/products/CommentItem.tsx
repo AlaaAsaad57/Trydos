@@ -1,6 +1,8 @@
 import Image from "next/image";
 import React from "react";
 import "styles/comment.css";
+import Loading from "public/svg/loading.svg";
+
 function CommentItem({
   name,
   photo,
@@ -8,6 +10,7 @@ function CommentItem({
   text,
   isPending,
   isError,
+  resendComment,
 }: {
   name: string;
   photo: string;
@@ -15,15 +18,25 @@ function CommentItem({
   text: string;
   isPending: any;
   isError: any;
+  resendComment: Function;
 }) {
   return (
     <div
       className="comment-item"
       style={{
         opacity: isPending === true ? "1" : isPending === null ? "1" : "0.7",
-        backgroundColor: isError ? "red" : "#f8f8f8",
+        backgroundColor: isError ? "#ffd6d6" : "#f8f8f8",
+        position: "relative",
       }}
     >
+      {isError && (
+        <Loading
+          style={{ position: "absolute", right: "10px", bottom: "10px" }}
+          onClick={() => {
+            resendComment();
+          }}
+        />
+      )}
       <div className="comment-photo">
         <Image src={photo} unoptimized width={20} height={20} alt={name} />
       </div>

@@ -1,10 +1,5 @@
 const initialState = {
-  user: {
-    id: 1,
-    name: "hih",
-    access_token: "akshdahdja",
-    already_exists: true,
-  },
+  user: null,
   Tempuser: null,
   failedLogin: false,
   attempts: 4,

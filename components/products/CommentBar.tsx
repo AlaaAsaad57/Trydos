@@ -3,7 +3,31 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { OTP_URL } from "utils/endpointConfig";
 
-function CommentBar({ product, verifyComment, addCommentAction, isError }) {
+function CommentBar({
+  product,
+  setComments,
+  setRender,
+  Render,
+  CommentsData,
+  increase_comments,
+  ErrorAccure,
+}) {
+  const addCommentAction = (s) => {
+    setComments([...CommentsData, { ...s, is_verfied: false }]);
+    setRender(!Render);
+  };
+  const verifyComment = (mid, newComent) => {
+    let s = CommentsData.filter((m) => m.mid === mid)[0];
+    setComments([
+      ...CommentsData.filter((d) => d.mid !== mid),
+      { ...s, is_verfied: true },
+    ]);
+    increase_comments();
+    setRender(!Render);
+  };
+  const isError = (mid) => {
+    ErrorAccure(mid);
+  };
   const [val, setVal] = useState("");
   const user = useSelector((state: any) => state.auth.user);
   const addComment = async (s) => {

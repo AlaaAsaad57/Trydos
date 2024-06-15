@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import ProductInfo from "./ProductInfo";
 import ExtendedAreaInfo from "./ExtendedAreaInfo";
 import ProductOptions from "./ProductOptions";
@@ -8,15 +8,66 @@ import { ProductInterface } from "models/product";
 import ProductDetails from "./ProductDetails";
 import axios from "axios";
 import { OTP_URL } from "utils/endpointConfig";
+function ProductReducer(state, { type, payload }) {
+  if (type === "setProductData") {
+    return {
+      ...state,
+      productDetails: payload,
+    };
+  }
+  if (type === "setComments") {
+    return {
+      ...state,
+      CommentsData: payload,
+    };
+  }
+  if (type === "ErrorAccure") {
+    let s = state.CommentsData.filter((m) => m.mid === payload)[0];
 
+    return {
+      ...state,
+      CommentsData: [
+        ...state.CommentsData.filter((comment) => comment.mid !== payload),
+        { ...s, is_verfied: false, isError: true },
+      ],
+    };
+  }
+  if (type === "setRender") {
+    return {
+      ...state,
+      Render: !state.Render,
+    };
+  }
+  if (type === "resendComment") {
+    let s = state.CommentsData.filter((m) => m.mid === payload)[0];
+    return {
+      ...state,
+      CommentsData: [
+        ...state.CommentsData.filter((comment) => comment.mid !== payload),
+        { ...s, is_verfied: false, isError: false },
+      ],
+    };
+  }
+}
 function ProductFooterSection({ product }: { product: ProductInterface }) {
-  const [option, setOption] = useState("");
-  const [productDetails, setProductData] = useState({
-    comment_count: null,
-    comments: null,
-    shares: null,
-    likes: null,
+  const [productState, dispatch] = useReducer(ProductReducer, {
+    productDetails: {
+      comment_count: null,
+      comments: null,
+      shares: null,
+      likes: null,
+    },
+    CommentsData: null,
+    Render: false,
   });
+  const setProductData = (s) => {
+    dispatch({ type: "setProductData", payload: s });
+  };
+  const setComments = (s) => {
+    dispatch({ type: "setComments", payload: s });
+  };
+  const [option, setOption] = useState("");
+
   const [sharedContacts, setShareContacts] = useState([]);
   const productData = product;
   const getData = async () => {
@@ -24,7 +75,7 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
       OTP_URL + "/web/product/likesCommentsSharesDetails/" + product.id
     );
     setProductData({
-      ...productDetails,
+      ...productState.productDetails,
       comment_count: req.data.data.comments_count,
       comments: req.data.data.comments,
     });
@@ -43,15 +94,27 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
       />
       {
         <ExtendedAreaInfo
+          Render={productState.Render}
+          setRender={() => {
+            dispatch({ type: "setRender", payload: "" });
+          }}
+          CommentsData={productState.CommentsData}
+          ErrorAccure={(s) => {
+            dispatch({ type: "ErrorAccure", payload: s });
+          }}
+          setComments={(s) => setComments(s)}
           increase_comments={() =>
             setProductData({
-              ...productDetails,
-              comment_count: productDetails.comment_count + 1,
+              ...productState.productDetails,
+              comment_count: productState.productDetails.comment_count + 1,
             })
           }
           product={product}
-          comments={productDetails.comments}
+          comments={productState.productDetails.comments}
           sharedContacts={sharedContacts}
+          resendComment={(s) => {
+            dispatch({ type: "resendComment", payload: s });
+          }}
           setShareContacts={(e) => setShareContacts(e)}
           active={option.length > 0 && option !== "Like"}
           option={option}
@@ -60,7 +123,7 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
 
       <ProductOptions
         clearShare={() => setShareContacts([])}
-        productDetails={productDetails}
+        productDetails={productState.productDetails}
         share={sharedContacts.length > 0}
         activeOption={option}
         setOption={(e) => setOption(e)}
