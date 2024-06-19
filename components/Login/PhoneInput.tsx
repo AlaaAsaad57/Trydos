@@ -405,6 +405,7 @@ function PhoneInput({
           }}
           disabled={false}
           type="number"
+          autoFocus={true}
           inputMode="numeric"
           onChange={(e) => handleInput(e)}
           className="login-phone-input"
