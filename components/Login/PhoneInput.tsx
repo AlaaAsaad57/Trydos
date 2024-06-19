@@ -6,7 +6,7 @@ import replaceString from "replace-string";
 import { textMarshal } from "text-marshal";
 const { flag } = require("country-emoji");
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import LoginIcon from "public/svg/LoginIcon.svg";
 import BlueCall from "public/svg/BlueCall.svg";
 import PrivacyIcon from "public/svg/privacyicon.svg";
@@ -107,18 +107,18 @@ function PhoneInput({
           document.getElementById("logo-auth").style.position = "absolute";
           document.getElementById("logo-auth").style.left = "20px";
           document.getElementById("logo-auth").style.top = `${
-            visualViewport.pageTop + 20
+            visualViewport.pageTop + 60
           }px`;
           document.getElementById("logo-auth").style.transform = "scale(.75)";
 
           document.getElementById("logo-auth").style.alignSelf = "flex-start";
           document.getElementById("login-close-icon").style.top = "initial";
           document.getElementById("login-close-icon").style.top = `${
-            visualViewport.pageTop + 40
+            visualViewport.pageTop + 60
           }px`;
           document.body.style.overflow = "hidden";
           document.body.style.height = `${window.innerHeight}px`;
-        }, 250);
+        }, 300);
       }
     } else {
     }
@@ -136,7 +136,8 @@ function PhoneInput({
     >
       {operation === "login" && (
         <div className="phone-input-desc mb-4v" id="phone-desc">
-          <LoginIcon style={{ marginTop: "2px" }} />
+          <LoginIcon style={{ marginTop: "2px" }} className="show-logo" />
+
           <div className="text-login-desc">
             <div className="text-login-item">
               {translate("Enter Your Phone Number To Login", language)}

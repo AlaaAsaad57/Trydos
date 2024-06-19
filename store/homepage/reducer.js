@@ -40,6 +40,11 @@ const HomeReducer = (state = initialState, { type, payload }) => {
     }
 
     case "LOGIN-OPEN": {
+      if (payload) {
+        document.documentElement.style.overflow = "hidden";
+      } else {
+        document.documentElement.style.overflow = "initial";
+      }
       return {
         ...state,
         loginOpen: payload,

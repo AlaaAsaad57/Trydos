@@ -39,14 +39,17 @@ function NewLoginWidget() {
   const verficationID = useSelector((state: any) => state.auth.verficationID);
   const user = useSelector((state: any) => state.auth.Tempuser);
   useEffect(() => {
-    if (loginOpen)
+    if (loginOpen) {
       Sendevent({
         event: "button_clicked",
         value: "Open Login Widget",
         category: "button_clicked",
       });
+    }
     setTimeout(() => {
       setStepIndcator(0);
+      if (!loginOpen) {
+      }
     }, 1500);
   }, [loginOpen]);
   const setLoginOpen = (e: boolean) => {

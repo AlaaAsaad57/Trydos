@@ -494,3 +494,14 @@ input {
 .no-label {
   display: none !important;
 }
+.hide-logo {
+  display: none;
+}
+@media screen and (max-height: 400px) {
+  .hide-logo {
+    display: flex !important;
+  }
+  .show-logo {
+    display: none !important;
+  }
+}
