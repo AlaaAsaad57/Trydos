@@ -116,8 +116,6 @@ function PhoneInput({
           document.getElementById("login-close-icon").style.top = `${
             visualViewport.pageTop + 60
           }px`;
-          document.body.style.overflow = "hidden";
-          document.body.style.height = `${window.innerHeight}px`;
         }, 300);
       }
     } else {
