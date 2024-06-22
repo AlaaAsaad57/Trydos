@@ -102,7 +102,6 @@ function PhoneInput({
         window.ontouchmove = function (e) {
           document.getElementById("phoneInput").blur();
         };
-
         setTimeout(() => {
           document.getElementById("logo-auth").style.position = "absolute";
           document.getElementById("logo-auth").style.left = "20px";

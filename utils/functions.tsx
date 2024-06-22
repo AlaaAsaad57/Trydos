@@ -3,6 +3,7 @@ import profilePicture from "public/images/profileNo.png";
 import StoryServiceClass from "services/story";
 import { store } from "store";
 import Cookies from "js-cookie";
+import { HOME_DATA_URL, LISTING_INFO_URL, OTP_URL } from "./endpointConfig";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -173,4 +174,16 @@ export const getLang = (lang, cookieLang) => {
       return "en";
     }
   }
+};
+export const getBoutiquesUrl = async () => {
+  let response = await fetch(OTP_URL + HOME_DATA_URL);
+  let data = await response.json();
+  return data.data.boutiques;
+};
+export const getProductsUrl = async () => {
+  let response = await fetch(
+    OTP_URL + LISTING_INFO_URL + "?boutique_slug=family-section-12"
+  );
+  let data = await response.json();
+  return data.data.products;
 };
