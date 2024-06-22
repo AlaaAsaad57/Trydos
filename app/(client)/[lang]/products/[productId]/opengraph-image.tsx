@@ -4,8 +4,8 @@ import LogoAuth from "public/svg/LogoAuth.svg";
 import { ImageResponse } from "next/og";
 import { getProductDataOG } from "store/homepage/cachedActions";
 export const size = {
-  width: 1200,
-  height: 1200,
+  width: 300,
+  height: 300,
 };
 export const alt = "TryDos";
 export const contentType = "image/png";
@@ -35,9 +35,9 @@ export default async function og({
         </div>
         <div tw="flex flex-col text-neutral-50">
           {/* Title */}
-          <div tw="text-7xl font-bold">{product?.name}</div>
+          <div tw="text-xl font-bold">{product?.name}</div>
           {/* Tags */}
-          <div tw="flex mt-6 flex-wrap items-center text-4xl text-neutral-200">
+          <div tw="flex mt-6 flex-wrap items-center text-s text-neutral-200">
             <div tw={`font-medium `}>{product?.category.name}</div>
             <div tw="w-4 h-4 mx-6 rounded-full bg-neutral-300 " />
             <div>{product?.brand.name}</div>
@@ -62,17 +62,17 @@ export default async function og({
             left: "0",
             right: "0",
             margin: "auto 0",
-            top: "0px",
+            bottom: "0px",
             zIndex: "99999999999",
             display: "flex",
-            alignItems: "flex-start",
+            alignItems: "flex-end",
             justifyContent: "center",
             backgroundColor: "#fafafa38",
             height: "100%",
-            paddingTop: "150px",
+            paddingBottom: "20px",
           }}
         >
-          <LogoAuth />
+          <LogoAuth style={{ scale: "0.4", transform: "scale(0.6)" }} />
         </div>
       </div>
     ),
