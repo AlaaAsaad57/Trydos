@@ -39,7 +39,6 @@ export const getStories = async ({ lang }) => {
 };
 
 export const getHomeData = async ({ str, lang }) => {
-  console.log("getting homeData");
   const cookies = (await import("next/headers")).cookies;
 
   const cookieStore = cookies();
@@ -75,7 +74,6 @@ export const getHomeData = async ({ str, lang }) => {
       credentials: "include",
       mode: "cors",
     });
-    console.log("get response homeData");
     const repo = await res.json();
 
     time = new Date().getTime() - time;
@@ -89,7 +87,6 @@ export const getHomeData = async ({ str, lang }) => {
       time: time + "ms",
       body: repo,
     };
-    console.log("delevier homeData to ui!");
 
     return [repo.data.boutiques, returned_res];
   } catch (e) {
@@ -97,7 +94,6 @@ export const getHomeData = async ({ str, lang }) => {
   }
 };
 export const getMainCategories = async ({ lang }) => {
-  console.log("getting main category");
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   try {
@@ -112,7 +108,6 @@ export const getMainCategories = async ({ lang }) => {
         country: cookieStore.get("country") && cookieStore.get("country").value,
       }),
     });
-    console.log("get response main category");
     const repo = await res.json();
     time = new Date().getTime() - time;
     let returned_res = {
@@ -125,7 +120,6 @@ export const getMainCategories = async ({ lang }) => {
       time: time + "ms",
       body: repo,
     };
-    console.log("delevier main category to ui!");
 
     return [repo.data.mainCategories, returned_res];
   } catch (e) {
@@ -171,7 +165,6 @@ export const getLang = (lang, cookieLang) => {
   }
 };
 export const getListingData = async ({ categories, lang, productCategory }) => {
-  console.log("gettingListingData");
   let str = categories;
   let url =
     OTP_URL +
@@ -212,7 +205,6 @@ export const getListingData = async ({ categories, lang, productCategory }) => {
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
       }),
     });
-    console.log("get listing response");
     const repo = await res.json();
     time = new Date().getTime() - time;
     let returned_res = {
@@ -226,7 +218,6 @@ export const getListingData = async ({ categories, lang, productCategory }) => {
       body: repo,
       reqBody: formBody,
     };
-    console.log("delevier main category to ui!");
     return [repo.data, returned_res];
   } catch (e) {
     return ["listing-error", e.toString()];

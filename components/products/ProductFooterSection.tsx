@@ -27,8 +27,20 @@ function ProductReducer(state, { type, payload }) {
     return {
       ...state,
       CommentsData: [
-        ...state.CommentsData.filter((comment) => comment.mid !== payload),
         { ...s, is_verfied: false, isError: true },
+        ...state.CommentsData.filter((comment) => comment.mid !== payload),
+        ,
+      ],
+    };
+  }
+  if (type === "VerifyComment") {
+    let s = state.CommentsData.filter((m) => m.mid === payload)[0];
+
+    return {
+      ...state,
+      CommentsData: [
+        { ...s, is_verfied: true, isError: false },
+        ...state.CommentsData.filter((comment) => comment.mid !== payload),
       ],
     };
   }
@@ -43,8 +55,8 @@ function ProductReducer(state, { type, payload }) {
     return {
       ...state,
       CommentsData: [
-        ...state.CommentsData.filter((comment) => comment.mid !== payload),
         { ...s, is_verfied: false, isError: false },
+        ...state.CommentsData.filter((comment) => comment.mid !== payload),
       ],
     };
   }
@@ -95,6 +107,9 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
       {
         <ExtendedAreaInfo
           Render={productState.Render}
+          verifyCommentAction={(mid) =>
+            dispatch({ type: "VerifyComment", payload: mid })
+          }
           setRender={() => {
             dispatch({ type: "setRender", payload: "" });
           }}

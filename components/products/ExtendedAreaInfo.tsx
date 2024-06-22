@@ -18,6 +18,7 @@ function ExtendedAreaInfo({
   setRender,
   ErrorAccure,
   resendComment,
+  verifyCommentAction,
 }: {
   option: string;
   active: boolean;
@@ -32,6 +33,7 @@ function ExtendedAreaInfo({
   Render: boolean;
   setRender: Function;
   resendComment: Function;
+  verifyCommentAction: Function;
 }) {
   let height = 500;
   const mountAnim = ` 
@@ -83,6 +85,7 @@ function ExtendedAreaInfo({
           setComments={(s) => setComments(s)}
           ErrorAccure={(s) => ErrorAccure(s)}
           resendComment={(s) => resendComment(s)}
+          verifyCommentAction={(mid) => verifyCommentAction(mid)}
         />
       )}
       {option === "Share" && (

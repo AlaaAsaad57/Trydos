@@ -24,7 +24,6 @@ function MoreOptionsSection() {
         slider.classList.remove("active");
       });
       slider?.addEventListener("mousemove", (e) => {
-        console.log("ww");
         if (!isDown) return;
         e.preventDefault();
 

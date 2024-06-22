@@ -14,21 +14,24 @@ function CommentSection({
   Render,
   setRender,
   resendComment,
+  verifyCommentAction,
 }) {
   const user = useSelector((state: any) => state.auth.user);
 
   var language = "en";
 
   useEffect(() => {
-    if (comments)
-      setComments(
-        comments.map((s) => ({ ...s, is_verfied: s.is_verfied === null }))
+    if (comments) {
+      console.log(
+        comments,
+        comments.map((s) => ({ ...s, is_verfied: s.is_verfied === undefined }))
       );
-    console.log(comments);
+      setComments(
+        comments.map((s) => ({ ...s, is_verfied: s.is_verfied === undefined }))
+      );
+    }
   }, [comments]);
-  useEffect(() => {
-    console.log(CommentsData);
-  }, [CommentsData, Render]);
+
   return (
     <div className="extended-section">
       <div className="extended-bar-top">
@@ -64,10 +67,12 @@ function CommentSection({
         Render={Render}
         comments={CommentsData}
         resendComment={(s) => resendComment(s)}
+        verifyCommentAction={(mid) => verifyCommentAction(mid)}
       />
       {user?.id && (
         <CommentBar
           CommentsData={CommentsData}
+          verifyCommentAction={(mid) => verifyCommentAction(mid)}
           Render={Render}
           increase_comments={increase_comments}
           setComments={(s) => setComments(s)}

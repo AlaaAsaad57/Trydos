@@ -11,17 +11,17 @@ function CommentBar({
   CommentsData,
   increase_comments,
   ErrorAccure,
+  verifyCommentAction,
 }) {
   const addCommentAction = (s) => {
-    setComments([...CommentsData, { ...s, is_verfied: false }]);
+    setComments([, { ...s, is_verfied: false }, ...CommentsData]);
+    setTimeout(() => {
+      document.querySelector(".comments-extended").scrollTop = 0;
+    }, 300);
     setRender(!Render);
   };
   const verifyComment = (mid, newComent) => {
-    let s = CommentsData.filter((m) => m.mid === mid)[0];
-    setComments([
-      ...CommentsData.filter((d) => d.mid !== mid),
-      { ...s, is_verfied: true },
-    ]);
+    verifyCommentAction(mid);
     increase_comments();
     setRender(!Render);
   };
@@ -43,14 +43,14 @@ function CommentBar({
       });
       let req = await axios.post(
         OTP_URL + "/customer/product_comment",
-        JSON.stringify({
+        {
           customer_id: user?.id,
           product_id: product?.id,
           comment: s,
-        }),
+        },
         {
           headers: {
-            Authorization: `Bearer ${user.access_token}`,
+            Authorization: `Bearer ${localStorage.getItem("MARKET-TOKEN")}`,
           },
         }
       );

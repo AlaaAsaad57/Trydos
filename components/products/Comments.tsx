@@ -16,33 +16,29 @@ function Comments({
   setComments,
   increase_comments,
   setRender,
+  verifyCommentAction,
 }) {
   const user = useSelector((state: any) => state.auth.user);
-  useEffect(() => {
-    console.log(comments);
-  }, [Render]);
+  useEffect(() => {}, [Render, comments]);
   const resendCommentApi = async (mid, s) => {
     try {
       let req = await axios.post(
         OTP_URL + "/customer/product_comment",
-        JSON.stringify({
+        {
           customer_id: user?.id,
           product_id: productId,
           comment: s,
-        }),
+        },
         {
           headers: {
-            Authorization: `Bearer ${user.access_token}`,
+            Authorization: `Bearer ${localStorage.getItem("MARKET-TOKEN")}`,
           },
         }
       );
       if (req.data?.data?.comment) {
         let newComment = req.data.data.comment;
         let s = CommentsData.filter((m) => m.mid === mid)[0];
-        setComments([
-          ...CommentsData.filter((d) => d.mid !== mid),
-          { ...s, is_verfied: true },
-        ]);
+        verifyCommentAction(mid);
         increase_comments();
         setRender(!Render);
       } else {
@@ -60,8 +56,8 @@ function Comments({
         text="Amazing Product I Buy It And I Saw It Is Good Quality Regarding Price"
         photo="https://res.cloudinary.com/dtcmozf4d/image/upload/h_100/f_avif/q_100/v1/product/thumbnail/2024-05-12-663fce81803c3.png"
       /> */}
-      {comments !== null ? (
-        comments.map((s, i) => (
+      {CommentsData !== null ? (
+        CommentsData.map((s, i) => (
           <CommentItem
             isPending={s.is_verfied}
             resendComment={() => {
