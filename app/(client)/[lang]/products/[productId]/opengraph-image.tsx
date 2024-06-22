@@ -4,8 +4,8 @@ import LogoAuth from "public/svg/LogoAuth.svg";
 import { ImageResponse } from "next/og";
 import { getProductDataOG } from "store/homepage/cachedActions";
 export const size = {
-  width: 1200,
-  height: 630,
+  width: 200,
+  height: 200,
 };
 export const alt = "TryDos";
 export const contentType = "image/png";
