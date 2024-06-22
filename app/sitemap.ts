@@ -3,8 +3,6 @@ import { getBoutiquesUrl, getProductsUrl } from "utils/functions";
 export default async function sitemap() {
   const baseUrl =
     "https://trydos-git-development-yasseromranramaazcoms-projects.vercel.app";
-
-  // Get All Posts from CMS
   const boutiques = await getBoutiquesUrl();
   const postsUrls =
     boutiques?.map((boutique) => {
@@ -14,7 +12,6 @@ export default async function sitemap() {
       };
     }) ?? [];
 
-  // Get All Categories from CMS
   const products = await getProductsUrl();
   const categoriesUrls =
     products?.map((product) => {
