@@ -4,13 +4,23 @@ import { Suspense } from "react";
 import DetailsSekeleton from "components/skeleton/details";
 import NavbarSkeleton from "components/skeleton/navbar";
 import ProductDetailsServer from "components/Server/ProductDetails";
+import { getProductMeta } from "utils/functions";
 export async function generateMetadata({ params }) {
-  const categories = params.productId;
+  const productId = params.productId;
+  const metaData = await getProductMeta({ productId, lang: params.lang });
+  console.log(metaData);
   return {
-    title: `Trydos - ${categories} `,
-    description: `Trydos ${categories} Page`,
+    title: metaData.name,
+    description: metaData.description,
+    openGraph: {
+      title: metaData.name,
+      description: `${metaData.description} `,
+      url: process.env.NEXT_PUBLIC_BASE_SITE_URL + `/products/${productId}`,
+      images: metaData.photo,
+    },
   };
 }
+
 async function Page({ params: { productId, lang } }) {
   return (
     <>

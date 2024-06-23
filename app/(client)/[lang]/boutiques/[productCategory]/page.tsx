@@ -2,14 +2,22 @@ import ProductListServer from "components/Server/ProductList";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
 import ListingSkeleton from "components/skeleton/listing";
 import NavbarSkeleton from "components/skeleton/navbar";
+import { title } from "process";
 import { Suspense } from "react";
+import { getBoutiqueMeta } from "utils/functions";
 
-export async function generateMetadata({ params, searchParams }) {
-  // read route params
-  const categories = params.productCategory;
+export async function generateMetadata({ params }) {
+  const boutiqueId = params.productCategory;
+  const metaData = await getBoutiqueMeta({ boutiqueId, lang: params.lang });
   return {
-    title: `Trydos - ${categories}`,
-    description: `Trydos ${categories} Page`,
+    title: `Trydos - ${metaData.name} `,
+    description: `${metaData.description} `,
+    openGraph: {
+      title: metaData.name,
+      description: `${metaData.description} `,
+      url: process.env.NEXT_PUBLIC_BASE_SITE_URL + `boutiques/${boutiqueId}`,
+      images: metaData.photo,
+    },
   };
 }
 async function Page({ params, searchParams }) {

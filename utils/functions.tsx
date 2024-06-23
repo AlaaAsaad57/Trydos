@@ -187,3 +187,36 @@ export const getProductsUrl = async () => {
   let data = await response.json();
   return data.data.products;
 };
+export const getProductMeta = async ({ productId, lang }) => {
+  const cookies = (await import("next/headers")).cookies;
+  const cookieStore = cookies();
+  let [langauge, country] = lang.split("-");
+  let resp = await fetch(OTP_URL + `/web/product/simpleDetails/${productId}`, {
+    headers: new Headers({
+      Accept: "application/json",
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+      lang: await getLang(langauge, cookieStore.get("language")?.value),
+      country: cookieStore.get("country") && cookieStore.get("country").value,
+    }),
+  });
+  let data = await resp.json();
+  return data.data;
+};
+export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
+  const cookies = (await import("next/headers")).cookies;
+  const cookieStore = cookies();
+  let [langauge, country] = lang.split("-");
+  let resp = await fetch(
+    OTP_URL + `/web/boutique/simpleDetails/${boutiqueId}`,
+    {
+      headers: new Headers({
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        lang: await getLang(langauge, cookieStore.get("language")?.value),
+        country: cookieStore.get("country") && cookieStore.get("country").value,
+      }),
+    }
+  );
+  let data = await resp.json();
+  return data.data;
+};

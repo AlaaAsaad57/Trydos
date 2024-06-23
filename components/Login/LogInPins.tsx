@@ -406,7 +406,7 @@ function LogInPins({
               {translate(
                 expired
                   ? "Didn’t You Receive A Code?"
-                  : "You Can Resend The Code After ",
+                  : "You Can Resend The Code After",
                 language
               )}
             </span>

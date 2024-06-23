@@ -38,6 +38,10 @@ html[lang="ar"] .search-component-container input {
   margin-right: 10px !important;
   margin-left: 0px !important;
 }
+
+html[lang="ar"] .user-nav-container {
+  justify-content: flex-start;
+}
 html[lang="ar"] .user-nav-container,
 html[lang="ar"] .welcome-user,
 html[lang="ar"] .nav-question-item,
