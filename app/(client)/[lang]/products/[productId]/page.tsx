@@ -8,7 +8,6 @@ import { getProductMeta } from "utils/functions";
 export async function generateMetadata({ params }) {
   const productId = params.productId;
   const metaData = await getProductMeta({ productId, lang: params.lang });
-  console.log(metaData);
   return {
     title: metaData.name,
     description: metaData.description,

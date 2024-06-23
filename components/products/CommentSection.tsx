@@ -22,10 +22,6 @@ function CommentSection({
 
   useEffect(() => {
     if (comments) {
-      console.log(
-        comments,
-        comments.map((s) => ({ ...s, is_verfied: s.is_verfied === undefined }))
-      );
       setComments(
         comments.map((s) => ({ ...s, is_verfied: s.is_verfied === undefined }))
       );

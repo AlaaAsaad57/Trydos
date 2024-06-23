@@ -23,7 +23,6 @@ const ListingReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "GET_NEXT_PRODUCT": {
-      console.log(payload);
       return {
         ...state,
         products: [
