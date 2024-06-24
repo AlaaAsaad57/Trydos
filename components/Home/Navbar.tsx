@@ -68,7 +68,7 @@ function Navbar({ init, categories }: NavbarProps) {
           href={"/"}
           aria-label="TryDos Home"
           onClick={(e) => {
-            dispatchRouteChangeEvent("start");
+            dispatchRouteChangeEvent("start", { to: "HomePage" });
             document.documentElement.style.overflow = "hidden";
             document.documentElement.scrollTop = 0;
           }}

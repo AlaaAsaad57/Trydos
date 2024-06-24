@@ -33,7 +33,7 @@ function CategoryNavMobile({
           value: `${name} category filter`,
         });
         router.push(`/categories/${slug}`);
-        dispatchRouteChangeEvent("start");
+        dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
       }}
     >
       {

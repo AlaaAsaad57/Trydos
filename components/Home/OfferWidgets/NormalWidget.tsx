@@ -39,7 +39,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           !e.target.closest(".offer-category")
         ) {
           router.push(`/boutiques/${boutique.slug}`);
-          dispatchRouteChangeEvent("start");
+          dispatchRouteChangeEvent("start", { to: "boutique" });
         }
       }}
       aria-label={`Go To listing Page`}
@@ -127,7 +127,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                   <div
                     onClick={(e) => {
                       e.preventDefault();
-                      dispatchRouteChangeEvent("start");
+                      dispatchRouteChangeEvent("start", { to: "boutique" });
                       router.push(
                         `/boutiques/${boutique.slug}/categories/${category.category_slug}`
                       );
@@ -156,7 +156,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                     key={key}
                     onClick={(e) => {
                       e.preventDefault();
-                      dispatchRouteChangeEvent("start");
+                      dispatchRouteChangeEvent("start", { to: "boutique" });
                       router.push(
                         `/boutiques/${boutique.slug}/categories/${category.category_slug}`
                       );

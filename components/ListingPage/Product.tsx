@@ -107,7 +107,7 @@ function Product({
           e.preventDefault();
           return false;
         } else {
-          dispatchRouteChangeEvent("start");
+          dispatchRouteChangeEvent("start", { to: "products" });
           document.documentElement.style.overflow = "hidden";
           document.documentElement.scrollTop = 0;
         }
