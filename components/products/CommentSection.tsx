@@ -65,7 +65,7 @@ function CommentSection({
         resendComment={(s) => resendComment(s)}
         verifyCommentAction={(mid) => verifyCommentAction(mid)}
       />
-      {user?.id && (
+      {false && (
         <CommentBar
           CommentsData={CommentsData}
           verifyCommentAction={(mid) => verifyCommentAction(mid)}

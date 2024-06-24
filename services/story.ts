@@ -42,18 +42,8 @@ class StoryService {
       method: "POST",
       body: JSON.stringify({
         otp_id_token: localStorage.getItem("ID-TOKEN"),
-        mobile_phone: "+" + JSON.parse(localStorage.getItem("USER")).phone,
+        mobile_phone: JSON.parse(localStorage.getItem("USER")).phone,
       }),
-      headers: {
-        Authorization:
-          "Bearer " +
-          (typeof localStorage !== "undefined" &&
-            localStorage.getItem("USER-STORIES") &&
-            JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
-        language: Cookies.get("language"),
-
-        country: Cookies.get("country"),
-      },
     });
     let repo = await response.json();
     Cookies.set("token", repo.data.access_token);
