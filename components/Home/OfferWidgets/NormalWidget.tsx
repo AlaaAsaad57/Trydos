@@ -47,29 +47,31 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
       key={myKey}
     >
       <>
-        <Image
-          fill
-          alt={"imageAlt" + myKey}
-          loading={myKey < 2 ? "eager" : "lazy"}
-          fetchPriority={myKey < 2 ? "high" : "low"}
-          priority={myKey < 2}
-          style={{
-            position: "absolute",
-            top: "0px",
-            left: "0px",
-            borderRadius: "15px",
-            zIndex: "1",
-            objectFit: "cover",
-            objectPosition: "center",
-          }}
-          quality={60}
-          unoptimized
-          src={getConfiguredImage({
-            src: boutique.banners[0],
-            width: 900,
-            height: 342,
-          })}
-        />
+        {boutique.banners[0] && (
+          <Image
+            fill
+            alt={"imageAlt" + myKey}
+            loading={myKey < 2 ? "eager" : "lazy"}
+            fetchPriority={myKey < 2 ? "high" : "low"}
+            priority={myKey < 2}
+            style={{
+              position: "absolute",
+              top: "0px",
+              left: "0px",
+              borderRadius: "15px",
+              zIndex: "1",
+              objectFit: "cover",
+              objectPosition: "center",
+            }}
+            quality={60}
+            unoptimized
+            src={getConfiguredImage({
+              src: boutique?.banners[0],
+              width: 900,
+              height: 342,
+            })}
+          />
+        )}
         <div className="offer-blured" id={`blured-${boutique.id}`} />
         <div className="offer-container">
           <div className="offer-logo">

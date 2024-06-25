@@ -152,9 +152,12 @@ export function encode_utf8(params: {
 }
 
 export const getConfiguredImage = ({ src, width, height }) => {
-  if (src?.includes("cloudinary")) {
-    return src.replace("/upload", `/upload/h_${height}/f_avif/q_auto`);
-  } else return src;
+  if (src.file_path?.includes("cloudinary")) {
+    return src.file_path.replace(
+      "/upload",
+      `/upload/h_${height}/f_avif/q_auto`
+    );
+  } else return src.file_path;
 };
 export const getLang = (lang, cookieLang) => {
   if (lang) {
@@ -200,6 +203,8 @@ export const getProductMeta = async ({ productId, lang }) => {
     }),
   });
   let data = await resp.json();
+  console.log(data);
+
   return data.data;
 };
 export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
@@ -218,5 +223,7 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
     }
   );
   let data = await resp.json();
+  console.log(data);
+
   return data.data;
 };

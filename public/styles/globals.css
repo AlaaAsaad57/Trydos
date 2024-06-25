@@ -176,3 +176,18 @@ span[aria-live="polite"] {
   width: 100%;
   height: 100%;
 }
+.listing-container {
+  flex-wrap: wrap;
+  background-color: #f4f4f4;
+  justify-content: space-around;
+  min-width: 100vw;
+  min-height: 100vh;
+}
+.product-container {
+  margin-top: 20px;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  width: 200px;
+  height: 362px;
+}
