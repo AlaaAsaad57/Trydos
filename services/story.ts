@@ -40,20 +40,22 @@ class StoryService {
     return data;
   }
   async loginStories() {
-    const http = new StoryService().http;
-    const response = await http.post(LOG_IN_STORIES, {
-      otp_id_token: localStorage.getItem("ID-TOKEN"),
-      mobile_phone: "+" + JSON.parse(localStorage.getItem("USER")).phone,
-    });
-    Cookies.set("token", response.data.data.access_token);
-    localStorage.setItem("USER-STORIES", JSON.stringify(response.data.data));
-    Cookies.set("stories-token", response.data.data.access_token);
-    localStorage.setItem("STORIES-TOKEN", response.data.data.access_token);
+    try {
+      const http = new StoryService().http;
+      const response = await http.post(LOG_IN_STORIES, {
+        otp_id_token: localStorage.getItem("ID-TOKEN"),
+        mobile_phone: "+" + JSON.parse(localStorage.getItem("USER")).phone,
+      });
+      Cookies.set("token", response.data.data.access_token);
+      localStorage.setItem("USER-STORIES", JSON.stringify(response.data.data));
+      Cookies.set("stories-token", response.data.data.access_token);
+      localStorage.setItem("STORIES-TOKEN", response.data.data.access_token);
 
-    if (typeof window !== "undefined") {
-      _isStoreLastJson() &&
-        localStorage.setItem("LAST_JSON", JSON.stringify(response));
-    }
+      if (typeof window !== "undefined") {
+        _isStoreLastJson() &&
+          localStorage.setItem("LAST_JSON", JSON.stringify(response));
+      }
+    } catch (e) {}
   }
   async WatchStory(pid: number | string, id: number | string) {
     const http = new StoryService().http;

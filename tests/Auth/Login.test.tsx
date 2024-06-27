@@ -61,7 +61,6 @@ const renderMainComponent = async () => {
         expect(loginWidgetContainer).toHaveClass("pb-0", { exact: false });
         const Animated = screen.getByTestId("login-animated-container");
         expect(Animated).toBeInTheDocument();
-        // console.log(Animated, "Animated");
         const loginButtonGroup = await waitFor(() => {
           screen.getByRole("login-button-group"), { timeout: 3000 };
         });
@@ -139,13 +138,36 @@ describe("Open Login Modal", () => {
     expect(haveAccountButton!).toHaveTextContent("Already");
     expect(createAccountButton!).toHaveTextContent("Create");
   });
-  it("Should Render Login Container To Load If Click On Have An Account ", async () => {
-    const { waitForLoginContainerToLoad, waitForLoginSignupWidgetToLoad } =
-      await renderMainComponent();
+  it("should render terms and conditions when click on create account,agree it and show phone Input", async () => {
+    const {
+      waitForLoginSignupWidgetToLoad,
+      user,
+      waitForLoginTextFound,
+      waitForClickPhoneNumberButton,
+    } = await renderMainComponent();
+    const { showLoginButton } = await waitForLoginTextFound();
+
+    await user.click(showLoginButton);
     const { getFormInputs } = await waitForLoginSignupWidgetToLoad();
-    const { haveAccountButton } = await getFormInputs();
-    await userEvent.click(haveAccountButton);
-    await waitForLoginContainerToLoad();
+    const { createAccountButton } = await getFormInputs();
+
+    await userEvent.click(createAccountButton);
+    await waitFor(
+      () => {
+        expect(screen.queryByTestId("Terms Of Services")).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
+    let agreeButton = screen.queryByTestId("Agree Terms");
+    await user.click(agreeButton);
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText(/Enter Your Phone Number/i)
+        ).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
   });
 
   it("Should Render Scan QR Container To Load If Click By Scan QR Button ", async () => {
@@ -163,6 +185,18 @@ describe("Open Login Modal", () => {
   });
 
   it("Should Render Phone Number To Load If Click By Phone Number Button ", async () => {
+    const {
+      waitForLoginContainerToLoad,
+      waitForLoginSignupWidgetToLoad,
+      waitForClickPhoneNumberButton,
+    } = await renderMainComponent();
+    const { getFormInputs } = await waitForLoginSignupWidgetToLoad();
+    const { haveAccountButton } = await getFormInputs();
+    await userEvent.click(haveAccountButton);
+    const { loginPhoneNumberMethod } = await waitForLoginContainerToLoad();
+    await waitForClickPhoneNumberButton(loginPhoneNumberMethod);
+  });
+  it("Should Render Phone Number To Load If Click Create Account ", async () => {
     const {
       waitForLoginContainerToLoad,
       waitForLoginSignupWidgetToLoad,
@@ -215,7 +249,6 @@ describe("Phone Input Component", async () => {
         target: { value: phoneEntered },
       });
       await user.type(phoneInput, phoneEntered);
-      console.log(phoneEntered, "phone entered");
       expect(setInputValue).toHaveBeenCalledWith(phoneEntered);
       expect(setWrongNumber).toHaveBeenCalledWith(false);
     };
@@ -311,7 +344,6 @@ describe("Phone Input Component", async () => {
     await user.click(arrow);
 
     const resCheckPhone = await callCheckPhone(phoneNumber);
-    console.log(resCheckPhone, "resCheckPhone");
 
     const mockSetStepIndicator = vi.fn();
 
@@ -388,11 +420,17 @@ describe("Login Pins Component", async () => {
   const VerifyOtpHook = vi.fn();
 
   const user = userEvent.setup();
-  const renderLogInPinsComponent = async ({ phone }: { phone?: string }) => {
+  const renderLogInPinsComponent = async ({
+    phone,
+    expired,
+  }: {
+    phone?: string;
+    expired?: boolean;
+  }) => {
     const { queryByTestId, queryAllByLabelText, getByTestId, getByLabelText } =
       render(
         <LogInPins
-          expired={false}
+          expired={expired}
           stepIndicator={5}
           setDisabled={(e) => {
             setDisabled(e);
@@ -415,7 +453,7 @@ describe("Login Pins Component", async () => {
           setStepIndactor={(e) => setStepIndicator(e)}
           rendere={true}
           inputValue={phone}
-          disabled={false}
+          disabled={expired}
           Submit={Submit}
           successLogin={false}
           wrongNumber={false}
@@ -456,14 +494,15 @@ describe("Login Pins Component", async () => {
       _enterPinInputsCode,
     };
   };
-  it(`Should Render Pin Inputs Container For OTP Code If User Click On SMS Option`, async () => {
+  it(`Should Render Pin Inputs Container For OTP Code If User Click On SMS/Whatsapp Option`, async () => {
     const { user, _getPinInputContainer } = await renderLogInPinsComponent({
       phone: "963980033496",
     });
+    await AuthService.SendOtp(phone, 1, () => {});
     const { pinInputContainer } = await _getPinInputContainer();
     expect(pinInputContainer).toBeInTheDocument;
   });
-  it(`Should Render 6 Pin Inputs For OTP Code And Focus On First Pin Input`, async () => {
+  it(`Should Render 6 Pin Inputs For OTP Code And Focus On First Pin Input and show timer for expiring`, async () => {
     const { user, _getPinInputContainer, _getPinInput } =
       await renderLogInPinsComponent({
         phone: "963980033496",
@@ -471,7 +510,10 @@ describe("Login Pins Component", async () => {
     const { pinInputContainer } = await _getPinInputContainer();
     expect(pinInputContainer).toBeInTheDocument;
     const { pinInputs } = await _getPinInput();
-    console.log(pinInputs.length, "pins");
+
+    expect(
+      screen.getByText(/You Can Resend The Code After/i)
+    ).toBeInTheDocument();
     expect(pinInputs.length).toEqual(6);
     expect(pinInputs[0]).toHaveFocus;
   });
@@ -483,22 +525,33 @@ describe("Login Pins Component", async () => {
     const { pinInputContainer } = await _getPinInputContainer();
     expect(pinInputContainer).toBeInTheDocument;
     const { pinInputs } = await _getPinInput();
-    console.log(pinInputs.length, "pins");
     expect(pinInputs.length).toEqual(6);
     expect(pinInputs[0]).toHaveFocus;
     await _enterPinInputsCode(pinInputs);
   });
-  it(`Should Call VerifyOtpHook After User Enter 6 Digits`, async () => {
-    await renderLogInPinsComponent({
-      phone,
-    });
+  it(`Should Call VerifyOtpHook After User Enter 6 wrong Digits`, async () => {
+    const { _getPinInput, _getPinInputContainer, _enterPinInputsCode } =
+      await renderLogInPinsComponent({
+        phone,
+      });
     const code = "000000";
-    const verficationID = "";
+    const verficationID = store.getState().auth.verficationID;
     const Username = "";
     const EditPhoneFunc = expect.any(Function);
+    const { pinInputContainer } = await _getPinInputContainer();
+    expect(pinInputContainer).toBeInTheDocument;
+    let { pinInputs } = await _getPinInput();
+    await waitFor(
+      async () => {
+        await _enterPinInputsCode(pinInputs);
+      },
+      { timeout: 2000 }
+    );
+    expect(pinInputs[0]).toHaveValue("0");
     await AuthService.VerifyOtp(code, verficationID, Username, EditPhoneFunc);
+
     const calls = fetchMock.calls();
-    console.log(calls);
+
     // expect(calls.length).toBeGreaterThan(0);
     expect(calls[0][0]).toBe(
       OTP_URL +
@@ -507,5 +560,17 @@ describe("Login Pins Component", async () => {
           Username.length > 0 ? `&name=${Username}` : ""
         }`
     );
+  });
+  it("should show Expired Time and show resend after code expired", async () => {
+    let { _getPinInputContainer, _getPinInput } =
+      await renderLogInPinsComponent({
+        phone,
+        expired: true,
+      });
+    const { pinInputContainer } = await _getPinInputContainer();
+    expect(pinInputContainer).toBeInTheDocument;
+    expect(screen.getByText(/Resend Code/i)).toBeInTheDocument();
+    let { pinInputs } = await _getPinInput();
+    expect(pinInputs[0]).toHaveProperty("disabled", true);
   });
 });

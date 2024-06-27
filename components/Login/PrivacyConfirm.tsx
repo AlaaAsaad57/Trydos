@@ -58,6 +58,7 @@ function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
         <ConditionIcon />
         <span
           className="privacy-text"
+          data-testid="Terms Of Services"
           onClick={() => {}}
           style={{ marginTop: "10px" }}
         >
@@ -67,6 +68,7 @@ function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
       <div className="login-button-group">
         <div
           className="login-button"
+          data-testid="Agree Terms"
           onClick={() => setStepIndicator(2)}
           style={{
             position: "relative",
