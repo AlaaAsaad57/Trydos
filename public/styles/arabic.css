@@ -18,14 +18,13 @@ html[lang="ar"] .categories-bar-container {
   margin-left: 0px;
   margin-right: 50px;
   display: flex;
-  flex-direction: row-reverse;
 }
 html[lang="ar"] .categories-bar-item:not(:first-child) {
   margin-right: 30px !important;
   margin-left: 0px !important;
 }
 html[lang="ar"] .user-nav-container {
-  justify-content: flex-start;
+  justify-content: flex-end;
 }
 html[lang="ar"] .user-nav-container,
 html[lang="ar"] .welcome-user,
