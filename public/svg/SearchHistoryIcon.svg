@@ -1,0 +1,25 @@
+<svg id="_20x20" data-name="20x20" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="Rectangle_4612" data-name="Rectangle 4612" width="20" height="20" fill="none"/>
+    </clipPath>
+  </defs>
+  <g id="Mask_Group_518" data-name="Mask Group 518" clip-path="url(#clip-path)">
+    <g id="Layer_x0020_1">
+      <g id="_2457398961808">
+        <g id="Group_12433" data-name="Group 12433">
+          <g id="Group_12432" data-name="Group 12432">
+            <path id="Path_22184" data-name="Path 22184" d="M.991,2.9H13.852" fill="none" stroke="#388cff" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="0.625" fill-rule="evenodd"/>
+            <path id="Path_22185" data-name="Path 22185" d="M.991,17.1H13.852" fill="none" stroke="#388cff" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="0.625" fill-rule="evenodd"/>
+            <path id="Path_22186" data-name="Path 22186" d="M.991,12.347H7.42" fill="none" stroke="#388cff" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="0.625" fill-rule="evenodd"/>
+            <path id="Path_22187" data-name="Path 22187" d="M.991,7.622H7.42" fill="none" stroke="#388cff" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="0.625" fill-rule="evenodd"/>
+          </g>
+          <path id="Path_22188" data-name="Path 22188" d="M16.8,10a3.282,3.282,0,1,1-3.282-3.285A3.284,3.284,0,0,1,16.8,10Z" fill="none"/>
+          <path id="Path_22189" data-name="Path 22189" d="M16.8,10a3.282,3.282,0,1,1-3.282-3.285A3.284,3.284,0,0,1,16.8,10Z" fill="#388cff" stroke="#388cff" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="0.625" fill-rule="evenodd"/>
+          <path id="Path_22190" data-name="Path 22190" d="M19.012,15.493l-3.175-3.172" fill="none" stroke="#388cff" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="0.625" fill-rule="evenodd"/>
+        </g>
+        <path id="Path_22191" data-name="Path 22191" d="M0,0H20V20H0Z" fill="none" fill-rule="evenodd"/>
+      </g>
+    </g>
+  </g>
+</svg>

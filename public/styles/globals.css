@@ -125,7 +125,7 @@ p {
   font-size: 16px;
 }
 .align-center {
-  align-items: center;
+  align-items: center !important;
 }
 .align-start {
   align-items: flex-start;
@@ -190,4 +190,11 @@ span[aria-live="polite"] {
   background-size: cover;
   width: 200px;
   height: 362px;
+}
+.boutique-border {
+  position: absolute;
+  top: 0px;
+}
+.no-label {
+  display: none !important;
 }

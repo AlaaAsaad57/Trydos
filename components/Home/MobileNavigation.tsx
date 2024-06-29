@@ -1,5 +1,6 @@
 import CategoryNavMobile from "./CategoryNavMobile";
 import { Category } from "models/Category";
+import SearchIcon from "./Search/SearchIcon";
 
 function MobileNavigation({ categories }: { categories: Category[] }) {
   if (typeof document !== "undefined") {
@@ -31,16 +32,19 @@ function MobileNavigation({ categories }: { categories: Category[] }) {
     });
   }
   return (
-    <div className={`categories-bar-container ${"mobile-bar"}`}>
-      {categories.map((category, key) => (
-        <CategoryNavMobile
-          name={category.name}
-          key={key}
-          myKey={key}
-          icon={category?.icon}
-          slug={category.slug}
-        />
-      ))}
+    <div className="flex-row search-nav-holder">
+      <SearchIcon />
+      <div className={`categories-bar-container ${"mobile-bar"}`}>
+        {categories.map((category, key) => (
+          <CategoryNavMobile
+            name={category.name}
+            key={key}
+            myKey={key}
+            icon={category?.icon}
+            slug={category.slug}
+          />
+        ))}
+      </div>
     </div>
   );
 }

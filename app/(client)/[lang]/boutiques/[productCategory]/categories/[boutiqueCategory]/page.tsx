@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import ListingSkeleton from "components/skeleton/listing";
 import ProductListServer from "components/Server/ProductList";
 import NavbarSkeleton from "components/skeleton/navbar";
+import FilterBar from "components/ListingPage/FilterBar";
 export async function generateMetadata({ params }) {
   const categories = params.productCategory;
   return {
@@ -16,7 +17,7 @@ async function page({ params }) {
       <Suspense fallback={<NavbarSkeleton noCategory={true} />}>
         <CustomNavbarServer lang={params.lang} />
       </Suspense>
-
+      <FilterBar />
       <Suspense fallback={<ListingSkeleton />}>
         <ProductListServer params={params} />
       </Suspense>

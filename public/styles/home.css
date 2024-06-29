@@ -34,7 +34,9 @@
 .lang-modalDisable {
   content: "";
   position: fixed;
-  z-index: 2000;
+  z-index: 999999998;
+  width: 100vw;
+  height: 100vh;
 }
 
 .nav-img-item.nav-question-item {
@@ -118,7 +120,7 @@ body {
 }
 
 .home-navbar {
-  z-index: 9999999999;
+  z-index: 999999996;
   height: 84px;
   flex-direction: row;
 }

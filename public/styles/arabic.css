@@ -24,21 +24,6 @@ html[lang="ar"] .categories-bar-item:not(:first-child) {
   margin-right: 30px !important;
   margin-left: 0px !important;
 }
-html[lang="ar"] .search-component-container {
-  flex-direction: row-reverse !important;
-}
-
-html[lang="ar"] .search-component-container svg:nth-child(2) {
-  margin-right: 10px !important;
-  margin-left: 0px !important;
-}
-html[lang="ar"] .search-component-container input {
-  direction: rtl;
-  text-align: right;
-  margin-right: 10px !important;
-  margin-left: 0px !important;
-}
-
 html[lang="ar"] .user-nav-container {
   justify-content: flex-start;
 }

@@ -18,6 +18,7 @@ import { getUserStories } from "../../utils/functions";
 import StoryServiceClass from "services/story";
 import LandingPage from "./LandingPage";
 import { dispatchRouteChangeEvent } from "Hooks/events";
+import SearchContainer from "./Search/SearchContainer";
 export default function Home() {
   useEffect(() => {
     dispatchRouteChangeEvent("completed");
@@ -60,6 +61,8 @@ export default function Home() {
   const enableNotifications = useSelector(
     (state: any) => state.homepage.enableNotifications
   );
+  const searchEnabled = useSelector((state: any) => state.Search.enable);
+
   const nameModal = useSelector((state: any) => state.chat.nameModal);
   useEffect(() => {
     if (selectedStory) {
@@ -82,6 +85,7 @@ export default function Home() {
           selectedStory={selectedStory}
         />
       )}
+      {<SearchContainer active={searchEnabled} />}
     </>
   );
 }

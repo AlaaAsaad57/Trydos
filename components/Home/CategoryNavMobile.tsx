@@ -40,8 +40,8 @@ function CategoryNavMobile({
         <div className="categories-bar-item-icon">
           <Image
             unoptimized
-            width={20}
-            height={20}
+            width={25}
+            height={25}
             alt={name}
             src={icon.replace("/upload", "/upload/h_50/f_webp/q_auto")}
             priority

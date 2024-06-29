@@ -10,7 +10,7 @@ const ListingReducer = (state = initialState, { type, payload }) => {
     case "GET_PRODUCTS": {
       return {
         ...state,
-        products: payload.products,
+        products: payload?.products ?? [],
         offset: 2,
         limit: 20,
         loading: false,

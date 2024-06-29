@@ -1,8 +1,13 @@
 import React from "react";
 
-function BorderImage({ isBig }: { isBig: boolean }) {
+function BorderImage({ isBig }: { isBig?: boolean }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+    <svg
+      className="boutique-border"
+      xmlns="http://www.w3.org/2000/svg"
+      width="100%"
+      height="100%"
+    >
       <g
         id="PNORSSM823IY-BE29_view2"
         fill="none"

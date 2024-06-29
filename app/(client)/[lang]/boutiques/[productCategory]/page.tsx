@@ -1,3 +1,4 @@
+import FilterBar from "components/ListingPage/FilterBar";
 import ProductListServer from "components/Server/ProductList";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
 import ListingSkeleton from "components/skeleton/listing";
@@ -26,7 +27,7 @@ async function Page({ params, searchParams }) {
       <Suspense fallback={<NavbarSkeleton noCategory={true} />}>
         <CustomNavbarServer lang={params.lang} />
       </Suspense>
-
+      <FilterBar />
       <Suspense fallback={<ListingSkeleton />}>
         <ProductListServer params={params} />
       </Suspense>

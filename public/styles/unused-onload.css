@@ -19,9 +19,7 @@ svg {
   .nav-question-item:nth-child(2) svg {
     min-width: 15px;
   }
-  .search-component-container {
-    width: 88vw;
-  }
+
   .nav-question-item span {
     cursor: pointer;
 
@@ -51,6 +49,12 @@ svg {
   .app {
     right: 0px !important;
     left: initial !important;
+    top: 100px !important;
+    z-index: 99999999;
+    height: 100vh !important;
+  }
+  .app .chat-window {
+    height: 100vh !important;
   }
 }
 @media only screen and (min-width: 913px) {
