@@ -1,5 +1,5 @@
 import React from "react";
-import "styles/searchContainer.css";
+// import "styles/searchContainer.css";
 export default function SearchContact() {
   return (
     <div className="search-contact-container">
