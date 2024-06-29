@@ -57,6 +57,7 @@ function SearchTrending({ options, setOptions }) {
         <div className="search-filter-options s2 flex-row">
           {options.map((s, index) => (
             <div
+              key={index}
               className="search-filter-option"
               onClick={(e) => {
                 if (s.isSelected === false) {
@@ -102,6 +103,7 @@ function SearchTrending({ options, setOptions }) {
         <div className="flex-col search-filter-menu">
           {options.map((s, index) => (
             <div
+              key={index}
               className="option-row-search flex-row"
               onClick={(e) => {
                 if (s.isSelected === false) {

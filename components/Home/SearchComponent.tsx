@@ -44,10 +44,12 @@ function SearchComponent({
         }
         break;
       } else {
+        // @ts-ignore
         suggestion.innerText = "";
       }
     }
     if (arr.length > 0) {
+      // @ts-ignore
       suggestion.innerText = words.filter(
         (s) =>
           s.substr(0, e.target.value.length).toUpperCase() ===
@@ -57,15 +59,17 @@ function SearchComponent({
   };
   const onKeyDown = (e) => {
     let suggestion = document.querySelector(".predicted-word");
-
+    // @ts-ignore
     if (e.keyCode == 13 && suggestion.innerText != "") {
       e.preventDefault();
+      // @ts-ignore
       dispatch({ type: "SEARCH-WORD", payload: suggestion.innerText });
       //clear the suggestion
       clearSuggestion();
     }
   };
   const clearSuggestion = () => {
+    // @ts-ignore
     let suggestion = (document.querySelector(".predicted-word").innerText = "");
   };
   return (

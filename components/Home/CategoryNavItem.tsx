@@ -70,12 +70,13 @@ const CategoryNavItem = ({
                 <img alt="nav icon" src="/svg/navIcon.svg" />
               </div>
             )}
-            {name === "Search" && searchEnabled && (
+            {/* {name === "Search" && searchEnabled && (
               <SearchComponent
                 close={() => close()}
                 searchEnabled={searchEnabled}
+
               />
-            )}
+            )} */}
           </div>
         </>
       ) : (

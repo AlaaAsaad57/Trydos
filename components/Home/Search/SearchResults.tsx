@@ -11,31 +11,31 @@ function SearchResults() {
     <div className="search-results-container flex-col">
       <div className="products-results flex-col">
         <div className="result-label">Find Products</div>
-        {searchResults.products.map((product) => {
-          return <ProductItem product={product} />;
+        {searchResults.products.map((product, index) => {
+          return <ProductItem product={product} key={index} />;
         })}
       </div>
       <div className="products-results brand-results">
         <div className="result-label">Find Brands</div>
         <div className="brands-results-row flex-row">
-          {searchResults.brands.map((brand) => (
-            <BrandItem brand={brand} />
+          {searchResults.brands.map((brand, index) => (
+            <BrandItem brand={brand} key={index} />
           ))}
         </div>
       </div>
       <div className="products-results brand-results">
         <div className="result-label">Find Categories</div>
         <div className="brands-results-row flex-row">
-          {searchResults.categories.map((category) => (
-            <CategoryItem category={category} />
+          {searchResults.categories.map((category, index) => (
+            <CategoryItem category={category} key={index} />
           ))}
         </div>
       </div>
       <div className="products-results brand-results">
         <div className="result-label">Find Boutiques</div>
         <div className="brands-results-row flex-row">
-          {searchResults.categories.map((boutique) => (
-            <BoutiqueItem boutique={boutique} />
+          {searchResults.categories.map((boutique, index) => (
+            <BoutiqueItem boutique={boutique} key={index} />
           ))}
         </div>
       </div>

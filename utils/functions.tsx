@@ -228,8 +228,6 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
   return data.data;
 };
 export const caseCheck = (word, value) => {
-  //Array of characters
-
   let inp = value;
   if (word.substr(0, value.length).toUpperCase() === value.toUpperCase())
     return word;

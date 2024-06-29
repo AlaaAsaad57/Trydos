@@ -55,6 +55,7 @@ function SearchHistory({ options, setOptions }) {
         <div className="search-filter-options s1 flex-row">
           {options.map((s, index) => (
             <div
+              key={index}
               className="search-filter-option"
               onClick={(e) => {
                 if (s.isSelected === false) {
@@ -100,6 +101,7 @@ function SearchHistory({ options, setOptions }) {
         <div className="flex-col search-filter-menu">
           {options.map((s, index) => (
             <div
+              key={index}
               className="option-row-search flex-row"
               onClick={(e) => {
                 if (s.isSelected === false) {
