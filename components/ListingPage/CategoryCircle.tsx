@@ -50,7 +50,11 @@ function CategoryCircle() {
       >
         {[1, 1, 1, 1].map((s, index) => {
           return (
-            <SubCategoryCircle MainCategoryActive={active} index={index} />
+            <SubCategoryCircle
+              key={index}
+              MainCategoryActive={active}
+              index={index}
+            />
           );
         })}
       </div>
