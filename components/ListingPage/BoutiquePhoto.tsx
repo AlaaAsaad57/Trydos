@@ -4,7 +4,7 @@ import Image from "next/image";
 
 function BoutiquePhoto() {
   return (
-    <div>
+    <div className="boutique-photo-holder">
       <div className="offer-slider-container">
         <div className="offer-slide-item" style={{ width: "100%" }}>
           <div className="image-offer">

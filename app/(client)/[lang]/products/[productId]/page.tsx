@@ -10,12 +10,12 @@ export async function generateMetadata({ params }) {
   const metaData = await getProductMeta({ productId, lang: params.lang });
   return {
     title: metaData.name,
-    description: metaData.description,
+    description: metaData?.description,
     openGraph: {
-      title: metaData.name,
-      description: `${metaData.description} `,
+      title: metaData?.name,
+      description: `${metaData?.description} `,
       url: process.env.NEXT_PUBLIC_BASE_SITE_URL + `/products/${productId}`,
-      images: metaData.photo,
+      images: metaData?.photo,
     },
   };
 }

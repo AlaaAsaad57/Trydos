@@ -262,7 +262,7 @@ export async function getProductDetails({ productId, lang }) {
     const repo1 = await res1.json();
 
     let prod = { ...repo.data, ...repo1.data };
-
+    console.log(prod);
     return prod;
   } catch (e) {
     console.log(e);

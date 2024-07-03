@@ -3,10 +3,17 @@ const initialState = {
   loading: true,
   isReachEnd: false,
   offset: 2,
+  filterEnabled: false,
 };
 
 const ListingReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "filterEnabled": {
+      return {
+        ...state,
+        filterEnabled: payload,
+      };
+    }
     case "GET_PRODUCTS": {
       return {
         ...state,

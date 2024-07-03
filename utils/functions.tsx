@@ -152,6 +152,9 @@ export function encode_utf8(params: {
 }
 
 export const getConfiguredImage = ({ src, width, height }) => {
+  if (typeof src === "string") {
+    return src.replace("/upload", `/upload/h_${height}/f_avif/q_auto`);
+  }
   if (src.file_path?.includes("cloudinary")) {
     return src.file_path.replace(
       "/upload",
@@ -247,4 +250,82 @@ export const caseCheck = (word, value) => {
   }
   //array to string
   return word.join("");
+};
+export const expandView = ({ filter }) => {
+  let filterEnabled = store.getState().listing.filterEnabled;
+  if (!filter && filterEnabled) {
+    return;
+  }
+  document.querySelector<HTMLElement>(".home-navbar").style.position = "fixed";
+  document.querySelector<HTMLElement>(".home-navbar").style.zIndex =
+    "9999999999";
+  document.querySelector<HTMLElement>(".filter-listing-bar").style.position =
+    "fixed";
+  document.querySelector<HTMLElement>(
+    ".filter-listing-bar"
+  ).style.paddingRight = "5px";
+  document.querySelector<HTMLElement>(".filter-listing-bar").style.zIndex =
+    "9999999999";
+  document.querySelector<HTMLElement>(".filter-listing-bar").style.top = "98px";
+  document.querySelector<HTMLElement>(".filter-listing-bar").style.left = "0px";
+  document.querySelector<HTMLElement>(".boutique-header").style.marginTop =
+    !filter ? "214px" : "118px";
+  document.querySelector<HTMLElement>(
+    ".boutique-top-info .boutique-text"
+  ).style.display = "none";
+  document
+    .querySelectorAll(".boutique-top-info .boutique-logo-container svg")
+    .forEach((s: HTMLElement) => {
+      s.style.display = "none";
+    });
+  document.querySelector<HTMLElement>(
+    ".boutique-photo-holder .offer-slider-container"
+  ).style.maxHeight = "0px";
+  document.querySelector<HTMLElement>(".boutique-top-info").style.zIndex =
+    "9999999999";
+  document
+    .querySelector<HTMLElement>(".boutique-top-info")
+    .classList.add("move-anim");
+};
+export const normalizeView = () => {
+  let filterEnabled = store.getState().listing.filterEnabled;
+  if (filterEnabled) {
+    return;
+  }
+  document
+    .querySelector<HTMLElement>(".boutique-top-info")
+    .classList.remove("move-anim");
+  document.querySelector<HTMLElement>(".home-navbar").style.position = "static";
+  document.querySelector<HTMLElement>(".filter-listing-bar").style.position =
+    "static";
+  document.querySelector<HTMLElement>(
+    ".filter-listing-bar"
+  ).style.paddingRight = "20px";
+  document.querySelector<HTMLElement>(".filter-listing-bar").style.top =
+    "initial";
+  document.querySelector<HTMLElement>(".boutique-header").style.marginTop =
+    "0px";
+  document.querySelector<HTMLElement>(
+    ".boutique-top-info .boutique-text"
+  ).style.display = "flex";
+  document.querySelector<HTMLElement>(
+    ".boutique-photo-holder .offer-slider-container"
+  ).style.maxHeight = "342px";
+  document
+    .querySelectorAll(".boutique-top-info .boutique-logo-container svg")
+    .forEach((s: HTMLElement) => {
+      s.style.display = "flex";
+    });
+  document.querySelector<HTMLElement>(".boutique-top-info").style.position =
+    "static";
+  document.querySelector<HTMLElement>(".boutique-top-info").style.zIndex = "1";
+  document.querySelector<HTMLElement>(".boutique-top-info").style.top =
+    "initial";
+  document.querySelector<HTMLElement>(".boutique-top-info").style.left =
+    "initial";
+  document.querySelector<HTMLElement>(".boutique-photo-holder").style.height =
+    "auto";
+  document
+    .querySelector<HTMLElement>(".boutique-top-info")
+    .classList.remove("move-anim");
 };

@@ -41,46 +41,52 @@ function ProductsList({
 
     dispatch({ type: "GET_PRODUCTS", payload: Listing_Data_res.body.data });
   }, []);
-
+  const filterEnabled = useSelector(
+    (state: any) => state.listing.filterEnabled
+  );
   return (
     <>
-      <div
-        className="listing-container flex"
-        onWheel={() => {
-          GetNextPage();
-        }}
-      >
-        {(
-          (products.length > 0 && products) ||
-          Listing_Data_res?.body?.data?.products
-        )?.map((product, i) => (
-          <div key={i}>
-            <Product product={product} priority={i < 3} i={i} />
+      {!filterEnabled && (
+        <>
+          <div
+            className="listing-container flex"
+            onWheel={() => {
+              GetNextPage();
+            }}
+          >
+            {(
+              (products.length > 0 && products) ||
+              Listing_Data_res?.body?.data?.products
+            )?.map((product, i) => (
+              <div key={i}>
+                <Product product={product} priority={i < 3} i={i} />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <div className="get-next-product regular-text color-dark-gray">
-        {!isReachEnd ? (
-          <>
-            {" "}
-            {!loading ? (
-              <InView
-                className="spinner-container"
-                as="div"
-                onChange={(inView) => {
-                  if (inView && !loading) {
-                    GetNextPage();
-                  }
-                }}
-              ></InView>
+          <div className="get-next-product regular-text color-dark-gray">
+            {!isReachEnd ? (
+              <>
+                {" "}
+                {!loading ? (
+                  <InView
+                    className="spinner-container"
+                    as="div"
+                    onChange={(inView) => {
+                      if (inView && !loading) {
+                        GetNextPage();
+                      }
+                    }}
+                  ></InView>
+                ) : (
+                  <h2>{loading && <Spinner no={false} className="" />}</h2>
+                )}
+              </>
             ) : (
-              <h2>{loading && <Spinner no={false} className="" />}</h2>
+              <>Reach End</>
             )}
-          </>
-        ) : (
-          <>Reach End</>
-        )}
-      </div>
+          </div>
+        </>
+      )}
     </>
   );
 }

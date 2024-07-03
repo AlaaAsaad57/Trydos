@@ -11,13 +11,13 @@ export async function generateMetadata({ params }) {
   const boutiqueId = params.productCategory;
   const metaData = await getBoutiqueMeta({ boutiqueId, lang: params.lang });
   return {
-    title: `Trydos - ${metaData.name} `,
-    description: `${metaData.description} `,
+    title: `Trydos - ${metaData?.name} `,
+    description: `${metaData?.description} `,
     openGraph: {
-      title: metaData.name,
-      description: `${metaData.description} `,
+      title: metaData?.name,
+      description: `${metaData?.description} `,
       url: process.env.NEXT_PUBLIC_BASE_SITE_URL + `boutiques/${boutiqueId}`,
-      images: metaData.photo,
+      images: metaData?.photo,
     },
   };
 }

@@ -1,9 +1,32 @@
-import React from "react";
+import React, { useEffect } from "react";
 import VerificationIcon from "public/svg/listing/VerificationIcon.svg";
 import TopStarIcon from "public/svg/listing/TopStar.svg";
 import BoutiquePhoto from "./BoutiquePhoto";
 import BoutiqueCategoryFilter from "./BoutiqueCategoryFilter";
+import { useSelector } from "react-redux";
+import BoutiqueBrandFilter from "./filterComponents/BoutiqueBrandFilter";
+import BoutiqueOfferFilter from "./filterComponents/BoutiqueOfferFilter";
+import BoutiquePriceFilter from "./filterComponents/BoutiquePriceFilter";
+import BoutiqueSizeFilter from "./filterComponents/BoutiqueSizeFilter";
+import { expandView, normalizeView } from "utils/functions";
+import FilterButtons from "./filterComponents/FilterButtons";
 function BoutiqueHeader() {
+  const filterEnabled = useSelector(
+    (state: any) => state.listing.filterEnabled
+  );
+  useEffect(() => {
+    window.addEventListener("scroll", function (e) {
+      if (!filterEnabled) {
+        if (window.scrollY > 66) {
+          console.log(filterEnabled);
+          expandView({ filter: false });
+        } else {
+          normalizeView();
+          console.log(filterEnabled);
+        }
+      }
+    });
+  }, []);
   return (
     <div className="boutique-header flex-col align-center">
       <div className="boutique-top-info flex-col">
@@ -21,7 +44,16 @@ function BoutiqueHeader() {
         </div>
       </div>
       <BoutiquePhoto />
-      <BoutiqueCategoryFilter />
+      <BoutiqueCategoryFilter filterEnabled={filterEnabled} />
+      {filterEnabled && (
+        <>
+          <BoutiqueBrandFilter />
+          <BoutiqueOfferFilter />
+          <BoutiquePriceFilter />
+          <BoutiqueSizeFilter />
+          <FilterButtons />
+        </>
+      )}
     </div>
   );
 }
