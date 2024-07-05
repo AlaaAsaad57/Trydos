@@ -87,8 +87,8 @@ export const configureStory = (story) => {
 export const getThumb = (url, isVideo) => {
   if (url) {
     if (isVideo) {
-      return url.replace("/upload", "/upload/h_100/f_avif/q_100");
-    } else return url.replace("/upload", "/upload/h_100/f_avif/q_100");
+      return url.replace("/upload", "/upload/h_194/f_avif/q_100");
+    } else return url.replace("/upload", "/upload/h_194/f_avif/q_100");
   }
 };
 export const getUser = () => {

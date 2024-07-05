@@ -9,6 +9,7 @@ import DetailsSekeleton from "components/skeleton/details";
 export default function PageLoadingIndicator() {
   const [isLoading, setIsLoading] = useState(false);
   const [pathname, setPathName] = useState("");
+  const [fromPath, setPathFrom] = useState("");
   const setPath = (str) => {
     if (str.includes("boutique")) {
       setPathName("listing");
@@ -23,6 +24,7 @@ export default function PageLoadingIndicator() {
   useEffect(() => {
     registerRouteChangeListener("start", ({ from, to }) => {
       setPath(to);
+      setPathFrom(from || "");
       setIsLoading(true);
     });
 
@@ -38,7 +40,17 @@ export default function PageLoadingIndicator() {
         <div
           className={`landing-page ${true && "loading-screnn"}`}
           id="landing"
-          style={{ marginTop: pathname === "home" && "240px" }}
+          style={{
+            marginTop:
+              pathname === "home"
+                ? fromPath === "details"
+                  ? "50px"
+                  : "240px"
+                : pathname === "listing"
+                ? "120px"
+                : "240px",
+            flexDirection: pathname === "listing" ? "column" : "row",
+          }}
         >
           {pathname === "home" ? (
             <OfferListSkeleton />

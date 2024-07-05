@@ -4,6 +4,14 @@ import "styles/product-body.css";
 import EyeIcon from "public/svg/product/EyeIcon.svg";
 import ProductDetailsText from "./ProductDetailsText";
 import ProductProperties from "./ProductProperties";
+import ProductDescriptors from "./ProductDescriptors";
+import ProductColors from "./ProductColors";
+import ProductSizes from "./ProductSizes";
+import CameraShots from "./CameraShots";
+import ProductStories from "./ProductStories";
+import ProductShippingOption from "./ProductShippingOption";
+import FreeReturnOption from "./FreeReturnOption";
+import FreeShippingOption from "./FreeShippingOption";
 function ProuctDetailsBody({ product }: { product: ProductInterface }) {
   return (
     <div className="product-details-body flex-row relative">
@@ -36,6 +44,25 @@ function ProuctDetailsBody({ product }: { product: ProductInterface }) {
         </div>
         <ProductDetailsText details={product.details} />
         <ProductProperties />
+        <ProductDescriptors descriptors={product.descriptors} />
+        <ProductColors
+          colors={[...product.sync_color_images]}
+          ProductColorsArray={product.colors}
+        />
+        <CameraShots images={product.images} />
+        <ProductStories />
+        <ProductSizes
+          sizes={[
+            { name: "S" },
+            { name: "M" },
+            { name: "L" },
+            { name: "XL" },
+            { name: "XXL" },
+          ]}
+        />
+        <ProductShippingOption />
+        <FreeShippingOption />
+        <FreeReturnOption />
       </div>
     </div>
   );

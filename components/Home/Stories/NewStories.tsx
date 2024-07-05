@@ -1,3 +1,4 @@
+"use client";
 import "styles/stories.css";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";

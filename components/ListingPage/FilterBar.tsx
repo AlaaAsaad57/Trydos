@@ -11,6 +11,8 @@ import FilterInfoBar from "./FilterInfoBar";
 import { useDispatch, useSelector } from "react-redux";
 import { expandView, normalizeView } from "utils/functions";
 import FloatingInfoBar from "./filterComponents/FloatingInfoBar";
+import { dispatchRouteChangeEvent } from "Hooks/events";
+import { useRouter } from "next/navigation";
 function FilterBar() {
   const dispatch = useDispatch();
   const setEnableFilter = (e) => {
@@ -19,10 +21,22 @@ function FilterBar() {
   const filterEnabled = useSelector(
     (state: any) => state.listing.filterEnabled
   );
+  const router = useRouter();
   return (
     <>
       <div className="filter-listing-bar relative flex-row align-center">
-        <div className="back-icon">
+        <div
+          className="back-icon"
+          onClick={() => {
+            dispatchRouteChangeEvent("start", {
+              to: "HomePage",
+              from: "details",
+            });
+            router.push(`/`);
+            document.documentElement.style.overflow = "hidden";
+            document.documentElement.scrollTop = 0;
+          }}
+        >
           <BackIcon />
         </div>
         <div className="filter-bar-options flex-row align-center">

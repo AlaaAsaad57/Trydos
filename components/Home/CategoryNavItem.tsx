@@ -5,7 +5,7 @@ const SearchComponent = dynamic(() => import("./SearchComponent"), {
   ssr: false,
 });
 import dynamic from "next/dynamic";
-import RemoteSvg from "components/global/RemoteSvg";
+
 import { useParams, useRouter } from "next/navigation";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import Image from "next/image";

@@ -198,3 +198,17 @@ span[aria-live="polite"] {
 .no-label {
   display: none !important;
 }
+.justify-between {
+  justify-content: space-between;
+}
+.fixed {
+  position: fixed;
+}
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #bdbdbd;
+  border-radius: 5px;
+}
