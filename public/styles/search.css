@@ -20,7 +20,10 @@
   z-index: 5;
 }
 .active-serach {
-  width: 100vw;
+  width: 101vw;
+}
+.home-page-container .active-serach + div.categories-bar-container.mobile-bar {
+  margin-left: 10px !important;
 }
 .active-serach svg#search-icon {
   scale: 0.8;

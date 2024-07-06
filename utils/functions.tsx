@@ -261,6 +261,9 @@ export const expandView = ({ filter }) => {
     "9999999999";
   document.querySelector<HTMLElement>(".filter-listing-bar").style.position =
     "fixed";
+  document
+    .querySelector<HTMLElement>(".filter-listing-bar")
+    .classList.remove("relative");
   document.querySelector<HTMLElement>(
     ".filter-listing-bar"
   ).style.paddingRight = "5px";
@@ -303,6 +306,10 @@ export const normalizeView = () => {
   ).style.paddingRight = "20px";
   document.querySelector<HTMLElement>(".filter-listing-bar").style.top =
     "initial";
+  document
+    .querySelector<HTMLElement>(".filter-listing-bar")
+    .classList.add("relative");
+
   document.querySelector<HTMLElement>(".boutique-header").style.marginTop =
     "0px";
   document.querySelector<HTMLElement>(

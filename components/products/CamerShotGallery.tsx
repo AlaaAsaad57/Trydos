@@ -52,7 +52,7 @@ function CamerShotGallery({ active, images, close }) {
         />
         {
           <>
-            <div className="image-preview">
+            <div className="image-preview flex-row justify-center align-center">
               <img width={"100%"} src={activeImage} />
             </div>
             <div className="images-slider-gallery flex-row">

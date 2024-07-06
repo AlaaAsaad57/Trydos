@@ -44,12 +44,13 @@ export default function PageLoadingIndicator() {
             marginTop:
               pathname === "home"
                 ? fromPath === "details"
-                  ? "50px"
-                  : "240px"
+                  ? "5px"
+                  : "50px"
                 : pathname === "listing"
-                ? "120px"
-                : "240px",
+                ? "5px"
+                : "50px",
             flexDirection: pathname === "listing" ? "column" : "row",
+            justifyContent: "flex-start",
           }}
         >
           {pathname === "home" ? (
