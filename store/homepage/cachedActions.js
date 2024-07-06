@@ -1,4 +1,5 @@
 "use server";
+import { notFound } from "next/navigation";
 import {
   GET_USERS_STORIES,
   HOME_DATA_CATEGORIES_URL,
@@ -262,10 +263,14 @@ export async function getProductDetails({ productId, lang }) {
     const repo1 = await res1.json();
 
     let prod = { ...repo.data, ...repo1.data };
+    if (prod.message === "Product not found") {
+      notFound();
+    }
     console.log(prod);
     return prod;
   } catch (e) {
     console.log(e);
+    notFound();
   }
 }
 export async function getProductDataOG({ slug, lang }) {

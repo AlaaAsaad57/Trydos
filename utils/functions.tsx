@@ -4,6 +4,7 @@ import StoryServiceClass from "services/story";
 import { store } from "store";
 import Cookies from "js-cookie";
 import { HOME_DATA_URL, LISTING_INFO_URL, OTP_URL } from "./endpointConfig";
+import { notFound } from "next/navigation";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -207,7 +208,9 @@ export const getProductMeta = async ({ productId, lang }) => {
   });
   let data = await resp.json();
   console.log(data);
-
+  if (data.message === "Product Not Found") {
+    notFound();
+  }
   return data.data;
 };
 export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {

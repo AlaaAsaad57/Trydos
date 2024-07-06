@@ -32,8 +32,9 @@
   margin-left: 10px;
 }
 .boutique-logo-container img {
-  height: 20;
+  height: 20px;
   width: auto;
+  margin-top: 2px;
 }
 .boutique-top-info {
   max-width: 165px;
