@@ -37,10 +37,19 @@ function ProductsList({
     dispatchRouteChangeEvent("completed");
     document.documentElement.style.overflow = "initial";
     document.documentElement.scrollTop = 0;
-    GetNextPage();
+    GetNextProd();
 
     dispatch({ type: "GET_PRODUCTS", payload: Listing_Data_res.body.data });
   }, []);
+  const GetNextProd = async () => {
+    dispatch({ type: "PRODUCT_LOADING" });
+    await homeService.getNextProduct({
+      offset: offset,
+      categories: productCategory,
+      boutiqueCategory: boutiqueCategory,
+    });
+    setOffset(offset + 1);
+  };
   const filterEnabled = useSelector(
     (state: any) => state.listing.filterEnabled
   );

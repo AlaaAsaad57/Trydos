@@ -7,7 +7,8 @@ export async function GET(request: NextRequest) {
   revalidateTag("stories");
   revalidateTag("listing-data");
   revalidatePath("/listing", "layout");
-  revalidateTag("home-categories"); // Update cached posts
+  revalidateTag("home-categories-en"); // Update cached posts
+  revalidateTag("home-categories-ar"); // Update cached posts
 
   revalidatePath("/boutiques/[productCategory]", "page");
   revalidatePath("/boutiques/[productCategory]", "layout");

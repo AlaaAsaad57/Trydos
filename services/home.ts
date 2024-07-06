@@ -119,14 +119,15 @@ class HomeService {
     store.dispatch(GetMainData(repo.data.boutiques));
   }
   async getNextProduct({ offset, categories, boutiqueCategory }) {
-    var details = boutiqueCategory
-      ? {
-          boutique_slug: categories,
-          category: boutiqueCategory,
-        }
-      : {
-          boutique_slug: categories,
-        };
+    var details =
+      boutiqueCategory !== "undefined"
+        ? {
+            boutique_slug: categories,
+            category: boutiqueCategory,
+          }
+        : {
+            boutique_slug: categories,
+          };
     var formBody: any = [];
     for (var property in details) {
       var encodedKey = encodeURIComponent(property);
@@ -138,10 +139,12 @@ class HomeService {
       OTP_URL +
       (categories
         ? LISTING_INFO_URL +
-          `?category=${boutiqueCategory}&boutique_slug=${categories}`
+          `?${
+            boutiqueCategory ? `category=${boutiqueCategory}&` : ""
+          }boutique_slug=${categories}`
         : LISTING_INFO_URL + `?boutique_slug=${categories}`);
     await fetch(
-      url + `?offset=${offset}&limit=${20}`,
+      url + `&offset=${offset}&limit=${20}`,
 
       {
         method: "GET",

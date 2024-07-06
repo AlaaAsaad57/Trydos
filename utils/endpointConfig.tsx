@@ -13,8 +13,9 @@ export const OTP_URL = "https://market_staging.antiksef.online/api/new_v1";
 export const VERFIY_OTP = "/phone/verify_otp_singin";
 export const VERFIY_OTP_SIGNUP = "/phone/verify_otp_signup";
 export const SEND_OTP = "/phone/send_otp";
-export const HOME_DATA_URL = "/web/home/boutiques";
-export const HOME_DATA_CATEGORIES_URL = "/web/home/mainCategories";
+export const HOME_DATA_URL = "/web/home/boutiquesByCategory";
+export const HOME_DATA_CATEGORIES_URL =
+  "/web/home/mainCategoriesRelatedWithBoutique";
 export const STARTER_SETTINGS = "/mobile/home/startingSettings";
 /*Chat */
 // staging d651b1bd0c18b021f264
@@ -31,4 +32,4 @@ export const SEARCH_CONTACTS_URL = "/api/v1/users/search/";
 export const DELETE_CHAT_URL = "/api/v1/channels/destroy";
 export const SET_CHANNEL_OPT_UTL = "/api/v1/channel_members/update";
 //Listing
-export const LISTING_INFO_URL = "/web/products/with_colors_without_filter";
+export const LISTING_INFO_URL = "/web/products";

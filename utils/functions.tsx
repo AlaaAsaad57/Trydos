@@ -32,12 +32,12 @@ export const getStoriesHeaders = () => {
       Authorization: `Bearer ${token}`,
     },
 
-    next: { tags: ["stories"], revalidate: 5403600 },
+    next: { tags: ["stories"], revalidate: 300 },
   };
 };
 export const GeneralCahcedHeader = (apiName) => {
   return {
-    next: { tags: [apiName], revalidate: 5403600 },
+    next: { tags: [apiName], revalidate: 300 },
   };
 };
 export const configureStory = (story) => {
@@ -182,8 +182,25 @@ export const getLang = (lang, cookieLang) => {
     }
   }
 };
-export const getBoutiquesUrl = async () => {
-  let response = await fetch(OTP_URL + HOME_DATA_URL);
+export const getBoutiquesUrl = async ({ str }) => {
+  var details = {
+    slug: str,
+  };
+
+  var formBody = [];
+  for (var property in details) {
+    var encodedKey = encodeURIComponent(property);
+    var encodedValue = encodeURIComponent(details[property]);
+    formBody.push(encodedKey + "=" + encodedValue);
+  }
+  // @ts-ignore
+  formBody = formBody.join("&");
+  // @ts-ignore
+  let response = await fetch(OTP_URL + HOME_DATA_URL, {
+    method: "POST",
+    // @ts-ignore
+    body: formBody,
+  });
   let data = await response.json();
   return data.data.boutiques;
 };

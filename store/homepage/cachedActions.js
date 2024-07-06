@@ -17,7 +17,7 @@ export const getStories = async ({ lang }) => {
     let [headersObj, headers] = await DataApiHeaders(true);
     const res = await fetch(STORIES_URL + GET_USERS_STORIES, {
       next: {
-        revalidate: 5403600,
+        revalidate: 300,
         tags: [`stories-${cookieStore.get("lang")?.value ?? lang}`],
       },
       headers: headers,
@@ -41,13 +41,16 @@ export const getStories = async ({ lang }) => {
 
 export const getHomeData = async ({ str, lang }) => {
   const cookies = (await import("next/headers")).cookies;
-
+  const [getMainCategoriesData] = await getMainCategories({ lang: lang });
+  if (!str && getMainCategoriesData.length === 0) {
+    return [[], {}];
+  }
   const cookieStore = cookies();
-  let url = !str ? HOME_DATA_URL : HOME_DATA_URL + `ByCategory`;
+  let url = HOME_DATA_URL;
   var details = {
-    slug: str,
+    slug: str || getMainCategoriesData[0].slug,
   };
-
+  console.log(details);
   var formBody = [];
   for (var property in details) {
     var encodedKey = encodeURIComponent(property);
@@ -56,14 +59,14 @@ export const getHomeData = async ({ str, lang }) => {
   }
   formBody = formBody.join("&");
 
-  let method = str ? { method: "POST", body: formBody } : { method: "GET" };
+  let method = { method: "POST", body: formBody };
 
   try {
     let time = new Date().getTime();
     const res = await fetch(OTP_URL + url, {
       ...method,
       next: {
-        revalidate: 5403600,
+        revalidate: 300,
         tags: [`home-boutiques-${cookieStore.get("lang")?.value ?? "en"}`],
       },
       headers: new Headers({
@@ -101,7 +104,7 @@ export const getMainCategories = async ({ lang }) => {
     let time = new Date().getTime();
     const res = await fetch(OTP_URL + HOME_DATA_CATEGORIES_URL, {
       next: {
-        revalidate: 5403600,
+        revalidate: 300,
         tags: [`home-categories-${cookieStore.get("lang")?.value ?? "en"}`],
       },
       headers: new Headers({
@@ -121,7 +124,6 @@ export const getMainCategories = async ({ lang }) => {
       time: time + "ms",
       body: repo,
     };
-
     return [repo.data.mainCategories, returned_res];
   } catch (e) {
     return ["homedata-error", e.toString()];
@@ -196,7 +198,7 @@ export const getListingData = async ({ categories, lang, productCategory }) => {
       method: "GET",
 
       next: {
-        revalidate: 5403600,
+        revalidate: 300,
         tags: [`listing-data-${str}`, "listing-data"],
       },
       headers: new Headers({
@@ -235,7 +237,7 @@ export async function getProductDetails({ productId, lang }) {
       method: "GET",
 
       next: {
-        revalidate: 5403600,
+        revalidate: 300,
         tags: [`product-data-${productId}`, "listing-data"],
       },
       headers: new Headers({
@@ -250,7 +252,7 @@ export async function getProductDetails({ productId, lang }) {
       method: "GET",
 
       next: {
-        revalidate: 5403600,
+        revalidate: 300,
         tags: [`product-data-${productId}`, "listing-data"],
       },
       headers: new Headers({
@@ -266,7 +268,6 @@ export async function getProductDetails({ productId, lang }) {
     if (prod.message === "Product not found") {
       notFound();
     }
-    console.log(prod);
     return prod;
   } catch (e) {
     console.log(e);
@@ -284,7 +285,7 @@ export async function getProductDataOG({ slug, lang }) {
       method: "GET",
 
       next: {
-        revalidate: 5403600,
+        revalidate: 300,
         tags: [`product-data-${slug}`, "listing-data"],
       },
       headers: new Headers({
@@ -299,7 +300,7 @@ export async function getProductDataOG({ slug, lang }) {
       method: "GET",
 
       next: {
-        revalidate: 5403600,
+        revalidate: 300,
         tags: [`product-data-${slug}`, "listing-data"],
       },
       headers: new Headers({
