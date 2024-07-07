@@ -276,7 +276,7 @@ export const expandView = ({ filter }) => {
   if (!filter && filterEnabled) {
     return;
   }
-  document.querySelector<HTMLElement>(".home-navbar").style.position = "fixed";
+  document.querySelector<HTMLElement>(".home-navbar").classList.add("fixed");
   document.querySelector<HTMLElement>(".home-navbar").style.zIndex =
     "9999999999";
   document.querySelector<HTMLElement>(".filter-listing-bar").style.position =
@@ -318,7 +318,7 @@ export const normalizeView = () => {
   document
     .querySelector<HTMLElement>(".boutique-top-info")
     .classList.remove("move-anim");
-  document.querySelector<HTMLElement>(".home-navbar").style.position = "static";
+  document.querySelector<HTMLElement>(".home-navbar").classList.remove("fixed");
   document.querySelector<HTMLElement>(".filter-listing-bar").style.position =
     "static";
   document.querySelector<HTMLElement>(

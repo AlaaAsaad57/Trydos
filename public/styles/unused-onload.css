@@ -81,6 +81,11 @@ svg {
   .home-navbar {
     height: 30px !important;
   }
+  .home-navbar.fixed {
+    height: 100px !important;
+    top: 0px;
+    background-color: #fafafa;
+  }
   .stories-bar,
   .stories-bars {
     margin-top: 0px !important;
