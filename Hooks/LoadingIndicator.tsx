@@ -22,6 +22,9 @@ export default function PageLoadingIndicator() {
     }
   };
   useEffect(() => {
+    document
+      .querySelector<HTMLElement>(".home-navbar")
+      ?.classList.remove("fixed");
     registerRouteChangeListener("start", ({ from, to }) => {
       setPath(to);
       setPathFrom(from || "");

@@ -317,8 +317,10 @@ export const normalizeView = () => {
   }
   document
     .querySelector<HTMLElement>(".boutique-top-info")
-    .classList.remove("move-anim");
-  document.querySelector<HTMLElement>(".home-navbar").classList.remove("fixed");
+    ?.classList.remove("move-anim");
+  document
+    .querySelector<HTMLElement>(".home-navbar")
+    ?.classList.remove("fixed");
   document.querySelector<HTMLElement>(".filter-listing-bar").style.position =
     "static";
   document.querySelector<HTMLElement>(
