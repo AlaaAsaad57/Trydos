@@ -5,7 +5,7 @@ import OfferListServer from "components/Server/OfferListServer";
 import NavbarSkeleton from "components/skeleton/navbar";
 import OfferListSkeleton from "components/skeleton/OfferList";
 import { Suspense } from "react";
-function page({ params }) {
+function HomePage({ params }) {
   return (
     <>
       <Suspense fallback={<NavbarSkeleton noCategory={false} />}>
@@ -20,4 +20,4 @@ function page({ params }) {
   );
 }
 
-export default page;
+export default HomePage;

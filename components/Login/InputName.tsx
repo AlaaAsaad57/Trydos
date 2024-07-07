@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
@@ -261,7 +261,7 @@ function InputName({
             onClick={() => {
               // AuthService.CheckPhone(
               //   inputValue,
-              //   (e) => setStepIndcator(e),
+              //   (e) => setStepIndicator(e),
               //   stepIndicator === 3
               // );
               submit();

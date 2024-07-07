@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import WAIcon from "public/svg/WAIcon.svg";
 import MessageIcon from "public/svg/MessageIcon.svg";
 import { useAuthHooks } from "Hooks/AuthHooks";
-import Animated from "react-mount-animation";
+import { AnimatedComponent } from "components/global/AnimatedComponent";
 
 function SendMethod({
   inputValue,
-  setStepIndcator,
+  setStepIndicator,
   setWrongNumber,
   setMessageMethod,
   stepIndicator,
 }: {
-  setStepIndcator: Function;
+  setStepIndicator: Function;
   stepIndicator: number;
   inputValue: string;
   setWrongNumber: Function;
@@ -28,7 +28,7 @@ function SendMethod({
       step: () => {},
       successCallback: function () {},
       errorCallback: function () {
-        setStepIndcator(3);
+        setStepIndicator(3);
         setWrongNumber(true);
       },
     });
@@ -55,8 +55,8 @@ function SendMethod({
     }
   }, [stepIndicator]);
   return (
-    <Animated.div
-      unmountTime={0.5}
+    <AnimatedComponent show={active}>
+      {/* unmountTime={0.5}
       className="animated-container"
       show={active}
       mountAnim={mountAnim}
@@ -64,8 +64,8 @@ function SendMethod({
         animationFillMode: "forwards",
       }}
       unmountAnim={unmountAnim}
-    >
-      <div className="phone-input-desc">
+    > */}
+      <div data-testid="pin-inputs-desc" className="phone-input-desc">
         <svg
           id="_15x15"
           data-name="15x15"
@@ -136,7 +136,7 @@ function SendMethod({
           <div
             className="icon-detail"
             style={{ cursor: "pointer", marginTop: "3px" }}
-            onClick={() => setStepIndcator(3)}
+            onClick={() => setStepIndicator(3)}
           >
             <svg
               id="Group_10806"
@@ -241,11 +241,12 @@ function SendMethod({
       </div>
       <div className="phone-send-options">
         <div
+          data-testid="message-whatsapp-option"
           className="message-recieve-option"
           onClick={() => {
             setMessageMethod("WA");
             SendCodeRequest("1");
-            setStepIndcator(5);
+            setStepIndicator(5);
             // AuthService.SendOtp(inputValue, 1, (e) => {
             //   setStepHeight(e);
             // });
@@ -288,10 +289,11 @@ function SendMethod({
           </div>
         </div>
         <div
+          data-testid="message-sms-option"
           className="message-recieve-option"
           onClick={() => {
             setMessageMethod("SMS");
-            setStepIndcator(5);
+            setStepIndicator(5);
             SendCodeRequest("0");
             // AuthService.SendOtp(inputValue, 0, (e) => {
             //   setStepHeight(e);
@@ -335,7 +337,7 @@ function SendMethod({
           </div>
         </div>
       </div>
-    </Animated.div>
+    </AnimatedComponent>
   );
 }
 

@@ -1,10 +1,9 @@
 import Border from "components/global/Border";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import SolidPhoneIcon from "public/svg/SolidPhoneIcon.svg";
 import { allCountries } from "country-telephone-data";
 import replaceString from "replace-string";
 import { textMarshal } from "text-marshal";
-const { flag } = require("country-emoji");
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
 import { useSelector } from "react-redux";
 import LoginIcon from "public/svg/LoginIcon.svg";
@@ -13,9 +12,10 @@ import PrivacyIcon from "public/svg/privacyicon.svg";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { translate } from "utils/functions";
 import Animated from "react-mount-animation";
+const { flag } = require("country-emoji");
 function PhoneInput({
   stepIndicator,
-  setStepIndcator,
+  setStepIndicator,
   wrongNumber,
   setWrongNumber,
   operation,
@@ -23,7 +23,7 @@ function PhoneInput({
   setInputValue,
 }: {
   stepIndicator: number;
-  setStepIndcator: Function;
+  setStepIndicator: Function;
   wrongNumber: boolean;
   setWrongNumber: Function;
   operation: string;
@@ -33,6 +33,9 @@ function PhoneInput({
   useEffect(() => {
     document.querySelector<HTMLInputElement>(".login-phone-input")?.focus();
   }, []);
+  useEffect(() => {
+    console.log(stepIndicator, "stepIndicator");
+  }, [stepIndicator]);
   const [active, setActive] = useState(false);
   const mountAnim = ` 
   0% {transform:translateX(800px)}
@@ -76,6 +79,11 @@ function PhoneInput({
       pattern?.split("").filter((letter) => letter === "x").length
     ) {
       setValidNumber(true);
+      // console.log(
+      //   validNumber,
+      //   data.plaintext,
+      //   pattern?.split("").filter((letter) => letter === "x")
+      // );
     } else {
       setValidNumber(false);
     }
@@ -371,6 +379,7 @@ function PhoneInput({
           Search
         </label>
         <input
+          data-testid="phone-number-input"
           id="phoneInput"
           aria-autocomplete="both"
           aria-haspopup="false"
@@ -409,14 +418,15 @@ function PhoneInput({
         />
         {validNumber && stepIndicator <= 3 && (
           <span
+            data-testid="phone-arrow"
             className="phone-arrow"
             onClick={() => {
               // AuthService.CheckPhone(
               //   inputValue,
-              //   (e) => setStepIndcator(e),
+              //   (e) => setStepIndicator(e), // not do anything
               //   stepIndicator === 3
               // );
-              setStepIndcator(4);
+              setStepIndicator(4);
             }}
           >
             <LeftArrowIcon />

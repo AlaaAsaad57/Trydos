@@ -7,7 +7,7 @@
           <path id="Path_20952" data-name="Path 20952" d="M271.979,771.85a3.877,3.877,0,0,0,3.794-3.1h-7.583A3.877,3.877,0,0,0,271.979,771.85Zm0,0" transform="translate(-260.751 -747.325)" fill="#505050"/>
         </g>
       </g>
-      <line id="Line_896" data-name="Line 896" x2="17.493" y2="21.866" transform="translate(3709.607 15814.756)" fill="none" stroke="#ff6c6c" stroke-linecap="round" stroke-width="2.187"/>
+      <line id="Line_896" data-name="Line 896" x2="17.493" y2="21.866" transform="translate(3709.607 15814.756)" fill="none" stroke="#ff6c6c" strokeLinecap="round" strokeWidth="2.187"/>
     </g>
   </g>
 </svg>

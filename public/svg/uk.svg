@@ -40,7 +40,7 @@
     >
     <rect
         id="rect124"
-        style="stroke-width:1pt;fill:#000066"
+        style="strokeWidth:1pt;fill:#000066"
         height="30"
         width="60"
         y="0"
@@ -51,22 +51,22 @@
       >
       <path
           id="path146"
-          style="stroke-width:1pt;fill:#ffffff"
+          style="strokeWidth:1pt;fill:#ffffff"
           d="m0 0v3.3541l53.292 26.646h6.708v-3.354l-53.292-26.646h-6.708zm60 0v3.354l-53.292 26.646h-6.708v-3.354l53.292-26.646h6.708z"
       />
       <path
           id="path136"
-          style="stroke-width:1pt;fill:#ffffff"
+          style="strokeWidth:1pt;fill:#ffffff"
           d="m25 0v30h10v-30h-10zm-25 10v10h60v-10h-60z"
       />
       <path
           id="path141"
-          style="stroke-width:1pt;fill:#cc0000"
+          style="strokeWidth:1pt;fill:#cc0000"
           d="m0 12v6h60v-6h-60zm27-12v30h6v-30h-6z"
       />
       <path
           id="path150"
-          style="stroke-width:1pt;fill:#cc0000"
+          style="strokeWidth:1pt;fill:#cc0000"
           d="m0 30l20-10h4.472l-20 10h-4.472zm0-30l20 10h-4.472l-15.528-7.7639v-2.2361zm35.528 10l20-10h4.472l-20 10h-4.472zm24.472 20l-20-10h4.472l15.528 7.764v2.236z"
       />
     </g

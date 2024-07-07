@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import Animated from "react-mount-animation";
+import { AnimatedComponent } from "components/global/AnimatedComponent";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 
@@ -45,18 +45,18 @@ function WelcomingWidget({
     }
   }, [stepIndicator, signStep]);
   return (
-    <Animated.div
-      unmountTime={0.5}
-      className="animated-container"
+    <AnimatedComponent
+      // unmountTime={0.5}
+      // className="animated-container"
       show={active}
-      mountAnim={mountAnim}
-      style={{
-        animationFillMode: "forwards",
-        paddingInline: "20px",
-        marginTop: "246px",
-        width: "100%",
-      }}
-      unmountAnim={unmountAnim}
+      // mountAnim={mountAnim}
+      // style={{
+      //   animationFillMode: "forwards",
+      //   paddingInline: "20px",
+      //   marginTop: "246px",
+      //   width: "100%",
+      // }}
+      // unmountAnim={unmountAnim}
     >
       <div className="phone-input-desc" style={{ marginBottom: "0px" }}>
         <svg
@@ -149,7 +149,7 @@ function WelcomingWidget({
       >
         {translate("Enjoy With Our Services", language)}
       </div>
-    </Animated.div>
+    </AnimatedComponent>
   );
 }
 

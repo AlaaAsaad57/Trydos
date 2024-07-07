@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
-import { store } from "../store/index";
+import { store } from "../store/index.jsx";
 import { getUserChat } from "./functions";
 import { GetChats, Recive } from "store/chat/actions";
 import { InCall } from "../store/chat/actions";

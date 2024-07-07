@@ -1,4 +1,3 @@
-import React from "react";
 import { configureStory, getThumb } from "../../../utils/functions";
 import { errorPNG } from "utils/constants";
 import Image from "next/image";
@@ -15,7 +14,7 @@ function StoryChatRow({ story, index, viewedStory, stories, select }) {
         width={30}
         height={30}
         priority={false}
-        fetchPriority={"low"}
+        fetchpriority={"low"}
         style={{
           borderRadius: "50%",
           border:

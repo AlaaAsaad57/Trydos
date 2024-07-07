@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import ConditionIcon from "public/svg/ConditionIcon.svg";
 import Animated from "react-mount-animation";
-function PrivacyConfirm({ stepIndicator, setStepIndcator }) {
+function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
   const language = useSelector((state: any) => state.homepage.language);
   const [active, setActive] = useState(false);
   const mountAnim = ` 
@@ -58,6 +58,7 @@ function PrivacyConfirm({ stepIndicator, setStepIndcator }) {
         <ConditionIcon />
         <span
           className="privacy-text"
+          data-testid="Terms Of Services"
           onClick={() => {}}
           style={{ marginTop: "10px" }}
         >
@@ -67,7 +68,8 @@ function PrivacyConfirm({ stepIndicator, setStepIndcator }) {
       <div className="login-button-group">
         <div
           className="login-button"
-          onClick={() => setStepIndcator(2)}
+          data-testid="Agree Terms"
+          onClick={() => setStepIndicator(2)}
           style={{
             position: "relative",
             marginTop: "58px",

@@ -7,14 +7,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@next/bundle-analyzer": "^14.2.3",
     "@sentry/nextjs": "^7.93.0",
     "@tanstack/react-query": "^5.29.2",
     "@tanstack/react-query-devtools": "^5.29.2",
+    "@testing-library/user-event": "^14.5.2",
     "@types/react": "^18.3.2",
+    "@vitejs/plugin-react": "^4.3.0",
     "agora-rtc-react": "1.1.3",
     "apexcharts": "^3.49.2",
     "axios": "^1.5.0",
@@ -22,10 +27,12 @@
     "country-telephone-data": "^0.6.3",
     "embla-carousel-react": "^8.1.3",
     "eslint-config-next": "^14.0.4",
+    "fetch-mock": "^9.11.0",
     "file-loader": "^6.2.0",
     "firebase": "^10.5.2",
     "js-cookie": "^3.0.5",
     "multi-range-slider-react": "^2.0.7",
+    "msw": "^2.3.1",
     "next": "^14.2",
     "next-svgr": "^0.0.2",
     "react": "^18",
@@ -49,6 +56,7 @@
     "react-toastify": "^9.1.3",
     "react-webcam": "^7.2.0",
     "redux": "^4.2.1",
+    "redux-mock-store": "^1.5.4",
     "replace-string": "^4.0.0",
     "sharp": "^0.33.4",
     "swiper": "^11.0.0",
@@ -56,16 +64,27 @@
     "text-marshal": "^0.0.2",
     "typescript": "^5.4.5",
     "use-detect-keyboard-open": "^0.4.0",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "vite-plugin-magical-svg": "^1.2.1",
+    "vite-plugin-svgr": "^4.2.0",
+    "vite-svg-loader": "^5.1.0"
   },
   "eslintConfig": {
     "extends": "next"
   },
   "devDependencies": {
+    "@svgr/webpack": "^8.1.0",
+    "@testing-library/jest-dom": "^6.4.5",
+    "@testing-library/react": "^15.0.7",
+    "@types/jest": "^29.5.12",
     "@types/node": "^20.12.7",
+    "@vitest/ui": "^1.6.0",
     "autoprefixer": "^10.4.19",
     "eslint": "^8.56.0",
+    "jsdom": "^24.1.0",
     "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.3"
+    "tailwindcss": "^3.4.3",
+    "vite-tsconfig-paths": "^4.3.2",
+    "vitest": "^1.6.0"
   }
 }

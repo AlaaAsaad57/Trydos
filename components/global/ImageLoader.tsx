@@ -1,10 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import { useState } from "react";
 import Loader from "./Loader";
 import Image from "next/image";
 function ImageLoader(props) {
   const getImageCld = () => {
-    if (props.src.includes("cloudinary")) {
+    if (props.src?.includes("cloudinary")) {
       return props.src.replace(
         "/upload",
         `/upload/h_${props.height}/f_avif/q_auto`
@@ -41,7 +41,7 @@ function ImageLoader(props) {
           {...props}
           quality={100}
           priority={props.priority}
-          fetchPriority={props.fetchPriority}
+          fetchpriority={props.fetchpriority}
           loading={"eager"}
           unoptimized
           draggable={"false"}

@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import AuthService from "services/auth";
 function AlreadyRegistered({
   inputValue,
-  setStepIndcator,
+  setStepIndicator,
   close,
   setStepSign,
   FinaliseLogin,
@@ -16,7 +16,7 @@ function AlreadyRegistered({
   stepIndicator: number;
   signStep: string;
   FinaliseLogin: Function;
-  setStepIndcator: Function;
+  setStepIndicator: Function;
   close: Function;
   setStepSign: Function;
 }) {
@@ -161,10 +161,10 @@ function AlreadyRegistered({
           onClick={() => {
             if (user.name.length > 1) {
               setStepSign("welcomeLogin");
-              setStepIndcator(6);
+              setStepIndicator(6);
               FinaliseLogin();
             } else {
-              setStepIndcator(7);
+              setStepIndicator(7);
             }
           }}
           style={{
