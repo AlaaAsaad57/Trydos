@@ -5,7 +5,7 @@ import SearchReducer from "./search/reducer";
 import AuthReducer from "./auth/reducer";
 import { ChatReducer } from "./chat/reducer";
 import { CartReducer } from "./Cart/reducer";
-import DetailsReducer from "./details/reducer";
+import DetailsReducer from "./Details/reducer";
 const rootReducer = combineReducers({
   homepage: HomeReducer,
   auth: AuthReducer,
