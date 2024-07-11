@@ -12,7 +12,7 @@ function OfferCircle() {
     >
       {active && <ActiveCategoryIcon className="active-category-icon" />}
       <svg
-        style={{ position: "absolute", zIndex: "6" }}
+        className="absolute z-10 top-0 left-0"
         xmlns="http://www.w3.org/2000/svg"
         width="70"
         height="70"
