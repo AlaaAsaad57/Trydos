@@ -78,6 +78,13 @@
   position: relative;
   margin-left: 10px;
 }
+.category-circle svg:not(.active-category-icon),
+.category-circle .category-shadow {
+  margin: 0 auto;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
 .category-circle img {
   z-index: 5;
 }
@@ -141,7 +148,7 @@
 }
 .active-category-icon {
   position: absolute;
-  z-index: 10;
+  z-index: 11;
   top: 0px;
   left: -2px;
 }

@@ -399,45 +399,64 @@ export const normalizeView = () => {
     .classList.remove("move-anim");
 };
 export const filterProducts = async ({
-  filterObj,
   boutiqueId,
   lang,
   offset,
   callback,
+  newFiltersCallback,
+  sizesAttr,
+  reset,
+}: {
+  reset?: boolean;
+  lang: any;
+  offset: number;
+  callback: Function;
+  newFiltersCallback: Function;
+  sizesAttr: any;
+  boutiqueId: any;
 }) => {
+  const filterObj = store.getState().details.selectedFilter;
   let filters = {
     categories: filterObj.categories.map((s) => s.id),
     prices: [
       `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
     ],
     brands: filterObj.brands.map((brand) => brand.id),
-    attributes: filterObj.sizes,
+    attributes: { ...sizesAttr, ...filterObj.sizes },
     boutique_slug: boutiqueId,
     lang: lang.split("-")[1],
     country: lang.split("-")[0],
   };
-  let str = `/web/products/with_filter?categories=${JSON.stringify(
-    filters.categories
-  )}&brands=${JSON.stringify(filters.brands)}&attributes=${JSON.stringify(
-    filters.attributes
-  )}&prices=${JSON.stringify(filters.prices)}&boutique_slug=${
-    filters.boutique_slug
-  }`;
-  let product = await axios.get(
-    OTP_URL +
-      `/web/products/with_filter?categories=${JSON.stringify(
-        filters.categories
-      )}&brands=${JSON.stringify(filters.brands)}&attributes=${JSON.stringify(
-        filters.attributes
-      )}&prices=${JSON.stringify(filters.prices)}&boutique_slug=${
-        filters.boutique_slug
-      }`,
-    {
-      headers: {
-        lang: filters.lang,
-        country: filters.country,
-      },
-    }
-  );
+  let str = "";
+  if (reset) {
+    str = `/web/products/with_filter?&boutique_slug=${boutiqueId}`;
+  } else {
+    str = `/web/products/with_filter?categories=${JSON.stringify(
+      filters.categories
+    )}&brands=${JSON.stringify(filters.brands)}&attributes=${JSON.stringify(
+      filters.attributes
+    )}&prices=${JSON.stringify(filters.prices)}&boutique_slug=${
+      filters.boutique_slug
+    }`;
+  }
+  let product = await axios.get(OTP_URL + str, {
+    headers: {
+      lang: filters.lang,
+      country: filters.country,
+    },
+  });
+  newFiltersCallback({
+    filtersVar: {
+      categories: product.data.data.categories,
+      brands: product.data.data.brands,
+      sizes:
+        product.data.data.attributes.filter((s) => s.name === "Size")[0]
+          ?.options || [],
+      prices: product.data.data.prices || { min_price: 0, max_price: 500 },
+      offers:
+        product.data.data.attributes.filter((s) => s.name === "Offer")[0]
+          ?.options || [],
+    },
+  });
   callback(product.data.data.products);
 };

@@ -23,14 +23,14 @@ function FilterButtons() {
           filterProducts({
             boutiqueId: pathName.productCategory,
             lang: pathName.lang,
-            filterObj: {
-              ...selectedFilter,
-              sizes: { ...sizesAttr, options: selectedFilter.sizes },
-            },
+            sizesAttr: sizesAttr,
             callback: (products) => {
               dispatch({ type: "GET_PRODUCT", payload: { products } });
             },
             offset: 1,
+            newFiltersCallback: ({ filtersVar }) => {
+              dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+            },
           });
           dispatch({ type: "filterEnabled", payload: false });
           window.scrollTo({ top: 0 });
@@ -42,6 +42,21 @@ function FilterButtons() {
       <div
         className="reset-button flex-row"
         onClick={() => {
+          dispatch({ type: "PRODUCT_LOADING" });
+          dispatch({ type: "RESET_LISTING_FILTER" });
+          filterProducts({
+            boutiqueId: pathName.productCategory,
+            lang: pathName.lang,
+            sizesAttr: sizesAttr,
+            callback: (products) => {
+              dispatch({ type: "GET_PRODUCT", payload: { products } });
+            },
+            offset: 1,
+            newFiltersCallback: ({ filtersVar }) => {
+              dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+            },
+            reset: true,
+          });
           dispatch({ type: "RESET-FILTER" });
         }}
       >

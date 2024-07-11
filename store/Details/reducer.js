@@ -35,6 +35,7 @@ const initialState = {
     offers: [],
     sizes: [],
   },
+  filterLoading: false,
 };
 
 const DetailsReducer = (state = initialState, { type, payload }) => {
@@ -266,6 +267,42 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
             max: state.filters.prices.max_price,
           },
         },
+      };
+    }
+    case "EDIT-FILTER": {
+      return {
+        ...state,
+        filters: { ...state.fiters, ...payload },
+        selectedFilter: {
+          ...state.selectedFilter,
+          categories: state.selectedFilter.categories.filter(
+            (cat) =>
+              payload.categories.filter((s) => s.id === cat.id).length > 0
+          ),
+          brands: state.selectedFilter.brands.filter(
+            (cat) => payload.brands.filter((s) => s.id === cat.id).length > 0
+          ),
+          sizes: state.selectedFilter.sizes.filter(
+            (cat) => payload.sizes.filter((s) => s.id === cat.id).length > 0
+          ),
+          // prices: {
+          //   min:
+          //     state.selectedFilter.prices.min < payload.prices.min_price
+          //       ? payload.prices.min_price
+          //       : state.selectedFilter.prices.min,
+          //   max:
+          //     state.selectedFilter.prices.max > payload.prices.max_price
+          //       ? payload.prices.max_price
+          //       : state.selectedFilter.prices.max,
+          // },
+        },
+        filterLoading: false,
+      };
+    }
+    case "FILTER-START": {
+      return {
+        ...state,
+        filterLoading: true,
       };
     }
     default:

@@ -65,13 +65,7 @@ function ProductsList({
     filterProducts({
       boutiqueId: pathName.productCategory,
       lang: pathName.lang,
-      filterObj: {
-        ...selectedFilter,
-        sizes: {
-          ...filters.sizesAttr,
-          options: selectedFilter.sizes,
-        },
-      },
+      sizesAttr: filters.sizesAttr,
       callback: (products) => {
         if (offset === 1)
           dispatch({ type: "GET_PRODUCT", payload: { products } });
@@ -82,6 +76,9 @@ function ProductsList({
           });
       },
       offset: offset,
+      newFiltersCallback: ({ filtersVar }) => {
+        dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+      },
     });
   };
   return (

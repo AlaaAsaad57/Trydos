@@ -10,10 +10,15 @@ import BoutiquePriceFilter from "./filterComponents/BoutiquePriceFilter";
 import BoutiqueSizeFilter from "./filterComponents/BoutiqueSizeFilter";
 import { expandView, normalizeView } from "utils/functions";
 import FilterButtons from "./filterComponents/FilterButtons";
+import FilterComponentLoader from "./filterComponents/FilterComponentLoader";
 function BoutiqueHeader({ boutique }) {
   const filterEnabled = useSelector(
     (state: any) => state.listing.filterEnabled
   );
+  const filterLoading = useSelector(
+    (state: any) => state.details.filterLoading
+  );
+  const filters = useSelector((state: any) => state.details.filters);
   useEffect(() => {
     window.addEventListener("scroll", function (e) {
       if (!filterEnabled) {
@@ -39,11 +44,12 @@ function BoutiqueHeader({ boutique }) {
       <BoutiqueCategoryFilter filterEnabled={filterEnabled} />
       {filterEnabled && (
         <>
-          <BoutiqueBrandFilter />
-          <BoutiqueOfferFilter />
+          {filters.brands.length > 0 && <BoutiqueBrandFilter />}
+          {filters.offers?.length > 0 && <BoutiqueOfferFilter />}
           <BoutiquePriceFilter />
-          <BoutiqueSizeFilter />
+          {filters.sizes?.length > 0 && <BoutiqueSizeFilter />}
           <FilterButtons />
+          {filterLoading && <FilterComponentLoader />}
         </>
       )}
     </div>

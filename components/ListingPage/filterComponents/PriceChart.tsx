@@ -1,6 +1,6 @@
 import React from "react";
 import Chart from "react-apexcharts";
-function PriceChart() {
+function PriceChart({ points }) {
   return (
     <div className="chart-container flex-row">
       <Chart
@@ -34,7 +34,7 @@ function PriceChart() {
         }}
         series={[
           {
-            data: [0, 200, 300, 340, 500, 340, 300, 200, 120, 80, 0],
+            data: points,
             name: "price",
             color: "#F8F8F8",
           },

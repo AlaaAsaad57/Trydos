@@ -1,14 +1,34 @@
-import React, { useState } from "react";
+import React from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import SubCategoryCircle from "./SubCategoryCircle";
 import { useDispatch, useSelector } from "react-redux";
+import { filterProducts } from "utils/functions";
+import { useParams } from "next/navigation";
 function CategoryCircle({ category }) {
   const selectedFilter = useSelector(
     (state: any) => state.details.selectedFilter
   );
+  const filters = useSelector((state: any) => state.details.filters);
   const dispatch = useDispatch();
+  const pathName = useParams();
   const selectCategory = (e) => {
     dispatch({ type: "FILTER-CATEGORY", payload: e });
+    filter();
+  };
+  const filter = () => {
+    dispatch({ type: "FILTER-START" });
+    filterProducts({
+      boutiqueId: pathName.productCategory,
+      lang: pathName.lang,
+      sizesAttr: filters.sizesAttr,
+      callback: (products) => {
+        dispatch({ type: "GET_PRODUCT", payload: { products } });
+      },
+      offset: 1,
+      newFiltersCallback: ({ filtersVar }) => {
+        dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+      },
+    });
   };
   const isSelected = () => {
     return (
@@ -23,29 +43,31 @@ function CategoryCircle({ category }) {
           category.category_sub.length > 0 && "extended-circle"
         }`}
       >
-        {isSelected() && (
-          <ActiveCategoryIcon className="active-category-icon" />
-        )}
-        <svg
-          className="absolute z-10 top-0 left-0"
-          xmlns="http://www.w3.org/2000/svg"
-          width="70"
-          height="70"
-          viewBox="0 0 70 70"
-        >
-          <g
-            id="Ellipse_283"
-            data-name="Ellipse 283"
-            fill="none"
-            stroke={isSelected() ? "#FF5F61" : "#fff"}
-            stroke-width="0.5"
+        <div className="relative w-[70px] h-[70px]">
+          {isSelected() && (
+            <ActiveCategoryIcon className="active-category-icon" />
+          )}
+          <svg
+            className="absolute z-10 top-0 left-0"
+            xmlns="http://www.w3.org/2000/svg"
+            width="70"
+            height="70"
+            viewBox="0 0 70 70"
           >
-            <circle cx="35" cy="35" r="35" stroke="none" />
-            <circle cx="35" cy="35" r="34.5" fill="none" />
-          </g>
-        </svg>
-        <div className="category-shadow"></div>
-        <img width={70} height={70} src={category.icon} />
+            <g
+              id="Ellipse_283"
+              data-name="Ellipse 283"
+              fill="none"
+              stroke={isSelected() ? "#FF5F61" : "#fff"}
+              stroke-width="0.5"
+            >
+              <circle cx="35" cy="35" r="35" stroke="none" />
+              <circle cx="35" cy="35" r="34.5" fill="none" />
+            </g>
+          </svg>
+          <div className="category-shadow"></div>
+          <img width={70} height={70} src={category.icon} />
+        </div>
         <div className="category-text-container flex-col align-center">
           <span className="category-title">{category.name}</span>
           <span className="category-typo">1100</span>
