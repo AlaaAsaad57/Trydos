@@ -151,8 +151,8 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           filtered: false,
           categories: [],
           prices: {
-            min: state.filters.prices.min_price,
-            max: state.filters.prices.max_price,
+            min: state?.filters.prices?.min_price || 100,
+            max: state?.filters?.prices?.max_price || 500,
           },
           brands: [],
           offers: [],

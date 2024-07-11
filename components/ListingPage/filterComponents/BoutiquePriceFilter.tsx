@@ -32,8 +32,8 @@ function BoutiquePriceFilter() {
         </div>
       </div>
       <PriceSlider
-        min={filters.prices.min_price}
-        max={filters.prices.max_price}
+        min={filters?.prices?.min_price || 100}
+        max={filters?.prices?.max_price || 500}
         Value={{
           min: selectedFilter.prices.min,
           max: selectedFilter.prices.max,
