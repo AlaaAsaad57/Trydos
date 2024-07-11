@@ -250,7 +250,7 @@
   display: none;
 }
 .product-container-slider.selected-color
-  ~ .product-photos-slider
+  .product-photos-slider
   .image-avatar
   .avatar-text-element {
   display: flex;

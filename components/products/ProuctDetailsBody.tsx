@@ -21,44 +21,46 @@ function ProuctDetailsBody({ product }: { product: ProductInterface }) {
       </div>
       <div className="product-info-section flex-col align-start">
         <div className="product-brand-logo">
-          <img
-            width={"auto"}
-            height={18}
-            src={product.brand.image}
-            alt={product.brand.name}
-          />
+          {product?.brand?.image && (
+            <img
+              width={"auto"}
+              height={18}
+              src={product.brand.image}
+              alt={product.brand.name}
+            />
+          )}
         </div>
         <div className="product-text-section flex-row align-center">
           <div className="product-name">{product.name}</div>
           <div className="product-category">
-            <img
-              width={15}
-              height={15}
-              src={product.category.icon}
-              alt={product.category.name}
-            />
+            {product?.category?.icon && (
+              <img
+                width={15}
+                height={15}
+                src={product.category.icon}
+                alt={product.category.name}
+              />
+            )}
           </div>
           <span className="separtor">|</span>
 
-          <div className="product-category-name">{product.category.name}</div>
+          <div className="product-category-name">{product.category?.name}</div>
         </div>
+
         <ProductDetailsText details={product.details} />
         <ProductProperties />
         <ProductDescriptors descriptors={product.descriptors} />
         <ProductColors
-          colors={[...product.sync_color_images]}
+          colors={product.sync_color_images || []}
           ProductColorsArray={product.colors}
         />
         <CameraShots images={product.images} />
         <ProductStories />
         <ProductSizes
-          sizes={[
-            { name: "S" },
-            { name: "M" },
-            { name: "L" },
-            { name: "XL" },
-            { name: "XXL" },
-          ]}
+          sizes={
+            product.choice_options.filter((s) => s.title == "Size")[0]
+              ?.options || []
+          }
         />
         <ProductShippingOption />
         <FreeShippingOption />

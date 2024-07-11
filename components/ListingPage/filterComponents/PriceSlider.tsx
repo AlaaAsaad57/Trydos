@@ -4,9 +4,13 @@ import "styles/slider.css";
 function PriceSlider({
   Value,
   set_Value,
+  min,
+  max,
 }: {
   Value: { min: number; max: number };
   set_Value: ({ min, max }: { min: number; max: number }) => void;
+  min: number;
+  max: number;
 }) {
   const [enabled, setEnabled] = useState(false);
   const handleInput = (e) => {
@@ -20,17 +24,16 @@ function PriceSlider({
     <div className="price-slider-container">
       <MultiRangeSlider
         className={`${enabled && "slider-enabled"}`}
-        min={200}
-        max={500}
+        min={min}
+        max={max}
         label={false}
         step={1}
         minValue={Value.min}
         maxValue={Value.max}
+        stepOnly={true}
         style={{ border: "none", boxShadow: "none" }}
-        onInput={(e) => {
-          handleInput(e);
-        }}
         onChange={(e) => {
+          handleInput(e);
           setEnabled(true);
         }}
         ruler={false}

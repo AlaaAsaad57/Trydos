@@ -7,6 +7,7 @@ import { SelectStory } from "store/homepage/actions";
 import { configureStory, getThumb } from "utils/functions";
 import StoryServiceClass from "services/story";
 import StoriesContainer from "components/Home/Stories/NewStories";
+import InfoWindow from "./InfoWindow";
 function ProductStories() {
   const stories = useSelector((state: any) => state.homepage.storiesData);
   const dispatch = useDispatch();
@@ -47,10 +48,14 @@ function ProductStories() {
       });
     }
   }, []);
+  const showInfoMessage = useSelector(
+    (state: any) => state.details.showInfoMessage
+  );
   return (
     <div
       className={`product-colors product-stories flex-col  align-start relative`}
     >
+      {<InfoWindow />}
       {selectedStory?.id && (
         <StoriesContainer
           activeId={selectedStory?.id}
@@ -60,7 +65,21 @@ function ProductStories() {
       <div className="colors-label flex-row align-center">
         <StoreisIcon />
         <span style={{ marginLeft: "5px" }}>Product Story</span>
-        <ColorsInfo style={{ marginLeft: "9px" }} />
+        <ColorsInfo
+          style={{ marginLeft: "9px" }}
+          onClick={() => {
+            dispatch({
+              type: "SHOW-INFO-MESSAGE",
+              payload: {
+                showInfoMessage: true,
+                title: `Product Story`,
+                text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
+                icon: "/svg/product/StoreisIcon.svg",
+                value: [],
+              },
+            });
+          }}
+        />
       </div>
 
       <div className={`stories-row flex-row w-100`} onClick={() => {}}>

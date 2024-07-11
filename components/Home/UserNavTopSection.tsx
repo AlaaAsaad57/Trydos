@@ -63,7 +63,6 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
             data-testid="login-text"
             className="nav-question-item"
             onClick={() => {
-              console.log("clicked");
               openLogin(true);
             }}
           >

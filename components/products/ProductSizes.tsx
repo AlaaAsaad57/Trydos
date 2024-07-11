@@ -7,10 +7,12 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import NormalSizesSlider from "./NormalSizesSlider";
 import DashedCircleBorder from "public/svg/product/DashedCircleBorder.svg";
 import SizeInfoBox from "./SizeInfoBox";
+import { useDispatch } from "react-redux";
 
 function ProductSizes({ sizes }) {
   const [extended, setExtended] = useState(false);
   const [activeColor, setActiveColorFunc] = useState([]);
+  const dispatch = useDispatch();
   const setActiveColor = (e) => {
     if (activeColor.includes(e)) {
       setActiveColorFunc(activeColor.filter((s) => s !== e));
@@ -27,9 +29,23 @@ function ProductSizes({ sizes }) {
       <div className="colors-label flex-row align-center">
         <SizesIcon />
         <span style={{ marginLeft: "5px" }}>
-          Available {sizes.length} Color
+          Available {sizes.length} Sizes
         </span>
-        <ColorsInfo style={{ marginLeft: "9px" }} />
+        <ColorsInfo
+          style={{ marginLeft: "9px" }}
+          onClick={() => {
+            dispatch({
+              type: "SHOW-INFO-MESSAGE",
+              payload: {
+                showInfoMessage: true,
+                title: ` Available ${sizes.length} Sizes`,
+                text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
+                icon: "/svg/product/SizesIcon.svg",
+                value: [],
+              },
+            });
+          }}
+        />
       </div>
       <NormalSizesSlider
         close={() => setExtended(false)}

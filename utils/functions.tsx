@@ -5,6 +5,7 @@ import { store } from "store";
 import Cookies from "js-cookie";
 import { HOME_DATA_URL, LISTING_INFO_URL, OTP_URL } from "./endpointConfig";
 import { notFound } from "next/navigation";
+import axios from "axios";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -224,7 +225,6 @@ export const getProductMeta = async ({ productId, lang }) => {
     }),
   });
   let data = await resp.json();
-  console.log(data);
   if (data.message === "Product Not Found") {
     notFound();
   }
@@ -246,8 +246,27 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
     }
   );
   let data = await resp.json();
-  console.log(data);
-
+  if (data.code === "boutique_not_found") {
+    notFound();
+  }
+  return data.data;
+};
+export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
+  const cookies = (await import("next/headers")).cookies;
+  const cookieStore = cookies();
+  let [langauge, country] = lang.split("-");
+  let resp = await fetch(
+    OTP_URL + `/web/products/filters?boutique_slug=${boutiqueId}`,
+    {
+      headers: new Headers({
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        lang: await getLang(langauge, cookieStore.get("language")?.value),
+        country: cookieStore.get("country") && cookieStore.get("country").value,
+      }),
+    }
+  );
+  let data = await resp.json();
   return data.data;
 };
 export const caseCheck = (word, value) => {
@@ -306,9 +325,19 @@ export const expandView = ({ filter }) => {
   ).style.maxHeight = "0px";
   document.querySelector<HTMLElement>(".boutique-top-info").style.zIndex =
     "9999999999";
+  document.querySelector<HTMLElement>(".boutique-top-info").style.width =
+    "auto";
+  document.querySelector<HTMLElement>(".boutique-top-info").style.marginLeft =
+    "40px";
   document
     .querySelector<HTMLElement>(".boutique-top-info")
     .classList.add("move-anim");
+  document
+    .querySelector<HTMLElement>(".boutique-top-info")
+    .classList.add("items-end");
+  document
+    .querySelector<HTMLElement>(".boutique-top-info")
+    .classList.remove("items-center");
 };
 export const normalizeView = () => {
   let filterEnabled = store.getState().listing.filterEnabled;
@@ -347,7 +376,18 @@ export const normalizeView = () => {
     });
   document.querySelector<HTMLElement>(".boutique-top-info").style.position =
     "static";
+  document
+    .querySelector<HTMLElement>(".boutique-top-info")
+    .classList.add("items-center");
+  document
+    .querySelector<HTMLElement>(".boutique-top-info")
+    .classList.remove("items-end");
+
   document.querySelector<HTMLElement>(".boutique-top-info").style.zIndex = "1";
+  document.querySelector<HTMLElement>(".boutique-top-info").style.width =
+    "100%";
+  document.querySelector<HTMLElement>(".boutique-top-info").style.marginLeft =
+    "0px";
   document.querySelector<HTMLElement>(".boutique-top-info").style.top =
     "initial";
   document.querySelector<HTMLElement>(".boutique-top-info").style.left =
@@ -357,4 +397,47 @@ export const normalizeView = () => {
   document
     .querySelector<HTMLElement>(".boutique-top-info")
     .classList.remove("move-anim");
+};
+export const filterProducts = async ({
+  filterObj,
+  boutiqueId,
+  lang,
+  offset,
+  callback,
+}) => {
+  let filters = {
+    categories: filterObj.categories.map((s) => s.id),
+    prices: [
+      `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
+    ],
+    brands: filterObj.brands.map((brand) => brand.id),
+    attributes: filterObj.sizes,
+    boutique_slug: boutiqueId,
+    lang: lang.split("-")[1],
+    country: lang.split("-")[0],
+  };
+  let str = `/web/products/with_filter?categories=${JSON.stringify(
+    filters.categories
+  )}&brands=${JSON.stringify(filters.brands)}&attributes=${JSON.stringify(
+    filters.attributes
+  )}&prices=${JSON.stringify(filters.prices)}&boutique_slug=${
+    filters.boutique_slug
+  }`;
+  let product = await axios.get(
+    OTP_URL +
+      `/web/products/with_filter?categories=${JSON.stringify(
+        filters.categories
+      )}&brands=${JSON.stringify(filters.brands)}&attributes=${JSON.stringify(
+        filters.attributes
+      )}&prices=${JSON.stringify(filters.prices)}&boutique_slug=${
+        filters.boutique_slug
+      }`,
+    {
+      headers: {
+        lang: filters.lang,
+        country: filters.country,
+      },
+    }
+  );
+  callback(product.data.data.products);
 };

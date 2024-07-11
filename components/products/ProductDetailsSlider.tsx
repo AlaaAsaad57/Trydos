@@ -6,7 +6,7 @@ import { getConfiguredImage } from "utils/functions";
 import { ProductInterface } from "models/product";
 function ProductDetailsSlider({ product }: { product: ProductInterface }) {
   const productData = product;
-  console.log(product);
+
   const [emblaRef] = useEmblaCarousel();
   return (
     <div className="product-details-slider">

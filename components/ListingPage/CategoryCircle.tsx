@@ -1,17 +1,31 @@
 import React, { useState } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import SubCategoryCircle from "./SubCategoryCircle";
-function CategoryCircle() {
-  const [active, setActive] = useState(false);
+import { useDispatch, useSelector } from "react-redux";
+function CategoryCircle({ category }) {
+  const selectedFilter = useSelector(
+    (state: any) => state.details.selectedFilter
+  );
+  const dispatch = useDispatch();
+  const selectCategory = (e) => {
+    dispatch({ type: "FILTER-CATEGORY", payload: e });
+  };
+  const isSelected = () => {
+    return (
+      selectedFilter.categories.filter((s) => s.id === category.id).length > 0
+    );
+  };
   return (
     <>
       <div
-        onClick={() => setActive(!active)}
+        onClick={() => selectCategory(category)}
         className={`category-circle flex-col align-center ${
-          true && "extended-circle"
+          category.category_sub.length > 0 && "extended-circle"
         }`}
       >
-        {active && <ActiveCategoryIcon className="active-category-icon" />}
+        {isSelected() && (
+          <ActiveCategoryIcon className="active-category-icon" />
+        )}
         <svg
           style={{ position: "absolute", zIndex: "6" }}
           xmlns="http://www.w3.org/2000/svg"
@@ -23,7 +37,7 @@ function CategoryCircle() {
             id="Ellipse_283"
             data-name="Ellipse 283"
             fill="none"
-            stroke={active ? "#FF5F61" : "#fff"}
+            stroke={isSelected() ? "#FF5F61" : "#fff"}
             stroke-width="0.5"
           >
             <circle cx="35" cy="35" r="35" stroke="none" />
@@ -31,29 +45,27 @@ function CategoryCircle() {
           </g>
         </svg>
         <div className="category-shadow"></div>
-        <img
-          width={70}
-          height={70}
-          src="https://s13emagst.akamaized.net/products/53803/53802380/images/res_678a307460a8c283499576d3cdca1304.jpg"
-        />
+        <img width={70} height={70} src={category.icon} />
         <div className="category-text-container flex-col align-center">
-          <span className="category-title">T-Shirt</span>
+          <span className="category-title">{category.name}</span>
           <span className="category-typo">1100</span>
         </div>
       </div>
       <div
-        onClick={() => !active && setActive(true)}
-        className={`categories-sub-circles ${active && "no-transform"}`}
+        className={`categories-sub-circles ${isSelected() && "no-transform"}`}
         style={{
-          minWidth: active ? `${[1, 1, 1, 1].length * 55 - 5}px` : "10px",
+          minWidth: isSelected()
+            ? `${category.category_sub.length * 55 - 5}px`
+            : "10px",
         }}
       >
-        {[1, 1, 1, 1].map((s, index) => {
+        {category.category_sub.map((s, index) => {
           return (
             <SubCategoryCircle
               key={index}
-              MainCategoryActive={active}
+              MainCategoryActive={isSelected()}
               index={index}
+              category={s}
             />
           );
         })}

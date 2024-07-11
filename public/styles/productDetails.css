@@ -10,7 +10,6 @@
 .product-details-slider {
   display: flex;
   width: auto;
-  padding-top: 12px;
   max-height: 464px;
 }
 .product-details-slider img {
@@ -150,7 +149,17 @@
   width: 97px;
   height: 70px;
   border-radius: 20px;
+  transition: 0.3s;
   background-color: #f8f8f8;
+}
+.extended-add-to-cart {
+  width: calc(100vw - 20px);
+}
+.extended-add-to-cart + .options-container {
+  min-width: 0px;
+  transition: 0.3s;
+  overflow: hidden;
+  width: 0px;
 }
 .add-cart-button img {
   position: absolute;
@@ -193,7 +202,7 @@
 .Extended-area-product {
   display: flex;
   width: 100%;
-
+  box-shadow: rgb(0, 0, 0, 0.1) 0px -3px 10px;
   position: relative;
 }
 
@@ -322,4 +331,6 @@
   font-size: 18px;
   color: #fefefe;
   font-family: var(--Quicksand-Regular);
+}
+.size-slider-coverflow .ac {
 }

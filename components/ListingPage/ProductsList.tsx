@@ -8,6 +8,8 @@ import Spinner from "../global/Spinner";
 import homeService from "services/home";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import Product from "./Product";
+import { filterProducts } from "utils/functions";
+import { useParams } from "next/navigation";
 function ProductsList({
   Listing_Data_res,
   productCategory,
@@ -19,7 +21,9 @@ function ProductsList({
 }) {
   const dispatch = useDispatch();
   const products = useSelector((state: any) => state.listing.products);
-  const [offset, setOffset] = useState(2);
+
+  const offset = useSelector((state: any) => state.listing.offset);
+
   const loading = useSelector((state: any) => state.listing.loading);
   const isReachEnd = useSelector((state: any) => state.listing.isReachEnd);
   const GetNextPage = async () => {
@@ -30,7 +34,6 @@ function ProductsList({
         categories: productCategory,
         boutiqueCategory: boutiqueCategory,
       });
-      setOffset(offset + 1);
     }
   };
   useEffect(() => {
@@ -38,7 +41,6 @@ function ProductsList({
     document.documentElement.style.overflow = "initial";
     document.documentElement.scrollTop = 0;
     GetNextProd();
-
     dispatch({ type: "GET_PRODUCTS", payload: Listing_Data_res.body.data });
   }, []);
   const GetNextProd = async () => {
@@ -48,28 +50,58 @@ function ProductsList({
       categories: productCategory,
       boutiqueCategory: boutiqueCategory,
     });
-    setOffset(offset + 1);
   };
   const filterEnabled = useSelector(
     (state: any) => state.listing.filterEnabled
   );
+  const selectedFilter = useSelector(
+    (state: any) => state.details.selectedFilter
+  );
+  const filters = useSelector((state: any) => state.details.filters);
+  const pathName = useParams();
+  const filter = () => {
+    dispatch({ type: "RESET_LISTING_FILTER" });
+    dispatch({ type: "PRODUCT_LOADING" });
+    filterProducts({
+      boutiqueId: pathName.productCategory,
+      lang: pathName.lang,
+      filterObj: {
+        ...selectedFilter,
+        sizes: {
+          ...filters.sizesAttr,
+          options: selectedFilter.sizes,
+        },
+      },
+      callback: (products) => {
+        if (offset === 1)
+          dispatch({ type: "GET_PRODUCT", payload: { products } });
+        else
+          dispatch({
+            type: "GET_NEXT_PRODUCT",
+            payload: { products },
+          });
+      },
+      offset: offset,
+    });
+  };
   return (
     <>
       {!filterEnabled && (
         <>
           <div
             className="listing-container flex"
-            onWheel={() => {
-              GetNextPage();
+            onWheelCapture={() => {
+              if (!selectedFilter.filtered) GetNextPage();
+              else if (!loading && !isReachEnd) {
+                filter();
+              }
             }}
           >
             {(
               (products.length > 0 && products) ||
               Listing_Data_res?.body?.data?.products
             )?.map((product, i) => (
-              <div key={i}>
-                <Product product={product} priority={i < 3} i={i} />
-              </div>
+              <Product key={i} product={product} priority={i < 3} i={i} />
             ))}
           </div>
           <div className="get-next-product regular-text color-dark-gray">

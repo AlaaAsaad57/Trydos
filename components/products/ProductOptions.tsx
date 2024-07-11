@@ -13,12 +13,14 @@ function ProductOptions({
   clearShare,
   share,
   productDetails,
+  product,
 }: {
   activeOption: string;
   setOption: (e: string) => void;
   clearShare: () => void;
   share: boolean;
   productDetails: any;
+  product: any;
 }) {
   return (
     <div className="product-options-container">
@@ -26,7 +28,10 @@ function ProductOptions({
         <ShareButton onClick={() => clearShare()} />
       ) : (
         <>
-          <AddToCartButton />
+          <AddToCartButton
+            setOption={() => setOption("AddToCart")}
+            product={product}
+          />
           <div className="options-container">
             <div
               className={`product-option-item ${

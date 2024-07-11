@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "styles/listing-components.css";
 import SearchIcon from "public/svg/listing/searchIcon.svg";
 import SortIcon from "public/svg/listing/sortIcon.svg";
@@ -13,7 +13,7 @@ import { expandView, normalizeView } from "utils/functions";
 import FloatingInfoBar from "./filterComponents/FloatingInfoBar";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import { useRouter } from "next/navigation";
-function FilterBar() {
+function FilterBar({ boutique, filters }) {
   const dispatch = useDispatch();
   const setEnableFilter = (e) => {
     dispatch({ type: "filterEnabled", payload: e });
@@ -22,6 +22,9 @@ function FilterBar() {
     (state: any) => state.listing.filterEnabled
   );
   const router = useRouter();
+  useEffect(() => {
+    dispatch({ type: "FILTER-INIT", payload: filters });
+  }, []);
   return (
     <>
       <div className="filter-listing-bar relative flex-row align-center">
@@ -68,7 +71,7 @@ function FilterBar() {
           </div>
         </div>
       </div>
-      <BoutiqueHeader />
+      <BoutiqueHeader boutique={boutique} />
       {!filterEnabled && <FilterInfoBar />}
       {filterEnabled && <FloatingInfoBar />}
     </>

@@ -43,6 +43,20 @@ const ListingReducer = (state = initialState, { type, payload }) => {
         loading: false,
       };
     }
+    case "RESET_LISTING_FILTER": {
+      return {
+        ...state,
+        offset: 1,
+        isReachEnd: false,
+        loading: false,
+      };
+    }
+    case "RESET-OFFSET": {
+      return {
+        ...state,
+        offset: 1,
+      };
+    }
     default:
       return state;
   }

@@ -5,23 +5,26 @@ import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { getConfiguredImage } from "utils/functions";
+
+import CameraShotGallery from "./CameraShotGallery";
+import { useDispatch } from "react-redux";
 import CircleBorder from "public/svg/product/CircleBorder";
-import CamerShotGallery from "./CamerShotGallery";
 
 function CameraShots({ images }) {
-  const [active, setActive] = useState(false);
-
+  const dispatch = useDispatch();
   return (
     <>
-      <CamerShotGallery
-        active={active}
+      <CameraShotGallery
+        close={() => {
+          dispatch({ type: "ACTIVE-CAMERA-GALLERY", payload: false });
+          document.documentElement.style.overflow = "initial";
+        }}
         images={images}
-        close={() => setActive(false)}
       />
       <div
         className={`product-colors flex-row align-start relative`}
         onClick={() => {
-          setActive(true);
+          dispatch({ type: "ACTIVE-CAMERA-GALLERY", payload: true });
           window.scrollTo({ top: 0 });
           document.documentElement.style.overflow = "hidden";
         }}
@@ -29,18 +32,32 @@ function CameraShots({ images }) {
         <div className="colors-label flex-row align-center">
           <CameraShotIcon />
           <span style={{ marginLeft: "5px" }}>Buyers Camera {12} Shot</span>
-          <ColorsInfo style={{ marginLeft: "9px" }} />
+          <ColorsInfo
+            style={{ marginLeft: "9px" }}
+            onClick={() => {
+              dispatch({
+                type: "SHOW-INFO-MESSAGE",
+                payload: {
+                  showInfoMessage: true,
+                  title: "Buyers Camera 12 Shot",
+                  text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
+                  icon: "/svg/product/CameraShotIcon.svg",
+                  value: ["Birthday", "Casual", "Business"],
+                },
+              });
+            }}
+          />
         </div>
 
         <div
-          className={`colors-row flex-row`}
-          style={{ width: `${40 * images.length - 0.5}px` }}
+          className={`colors-row flex-row justify-end w-auto`}
           onClick={() => {}}
         >
           <Swiper
             modules={[EffectCoverflow]}
             speed={100}
             effect="coverflow"
+            className="max-w-[218px]"
             slideToClickedSlide={true}
             coverflowEffect={{
               depth: 100,

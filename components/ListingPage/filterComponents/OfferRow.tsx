@@ -1,6 +1,9 @@
 import React, { useEffect } from "react";
 import OfferCircle from "./OfferCircle";
+import { useSelector } from "react-redux";
 function OfferRow() {
+  const filters = useSelector((state: any) => state.details.filters);
+
   useEffect(() => {
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector(".brand-row");
@@ -33,9 +36,9 @@ function OfferRow() {
   }, []);
   return (
     <div className="category-row-container brand-row flex-row">
-      <OfferCircle />
-      <OfferCircle />
-      <OfferCircle />
+      {filters.offers.map((offer, key) => (
+        <OfferCircle key={key} />
+      ))}
     </div>
   );
 }

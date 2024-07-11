@@ -21,7 +21,6 @@ interface NavbarProps {
 function Navbar({ init, categories }: NavbarProps) {
   const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
   const setLoginOpen = (e: boolean) => {
-    console.log("LOGIN-OPEN", e);
     dispatch({ type: "LOGIN-OPEN", payload: e });
   };
   const language = useSelector((state: any) => state.homepage.language);

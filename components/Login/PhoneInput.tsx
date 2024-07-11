@@ -33,9 +33,7 @@ function PhoneInput({
   useEffect(() => {
     document.querySelector<HTMLInputElement>(".login-phone-input")?.focus();
   }, []);
-  useEffect(() => {
-    console.log(stepIndicator, "stepIndicator");
-  }, [stepIndicator]);
+
   const [active, setActive] = useState(false);
   const mountAnim = ` 
   0% {transform:translateX(800px)}
@@ -79,11 +77,6 @@ function PhoneInput({
       pattern?.split("").filter((letter) => letter === "x").length
     ) {
       setValidNumber(true);
-      // console.log(
-      //   validNumber,
-      //   data.plaintext,
-      //   pattern?.split("").filter((letter) => letter === "x")
-      // );
     } else {
       setValidNumber(false);
     }
@@ -354,7 +347,7 @@ function PhoneInput({
           </div>
         </div>
       )}
-      <div className="phone-input-element" id="phone">
+      <div className="phone-input-element" id="phone" data-testid="hihh">
         <Border
           height={60}
           width={"100%"}

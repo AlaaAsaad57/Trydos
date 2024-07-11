@@ -1,15 +1,25 @@
 import React, { useState } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
-function BrandCircle() {
-  const [active, setActive] = useState(false);
+import { useDispatch, useSelector } from "react-redux";
+function BrandCircle({ brand }) {
+  const selectedFilter = useSelector(
+    (state: any) => state.details.selectedFilter
+  );
+  const dispatch = useDispatch();
+  const selectCategory = (e) => {
+    dispatch({ type: "FILTER-BRAND", payload: e });
+  };
+  const isSelected = () => {
+    return selectedFilter.brands.filter((s) => s.id === brand.id).length > 0;
+  };
   return (
     <div
-      onClick={() => setActive(!active)}
+      onClick={() => selectCategory(brand)}
       className={`category-circle flex-col align-center ${
         true && "extended-circle"
       }`}
     >
-      {active && <ActiveCategoryIcon className="active-category-icon" />}
+      {isSelected() && <ActiveCategoryIcon className="active-category-icon" />}
       <svg
         style={{ position: "absolute", zIndex: "6" }}
         xmlns="http://www.w3.org/2000/svg"
@@ -21,7 +31,7 @@ function BrandCircle() {
           id="Ellipse_283"
           data-name="Ellipse 283"
           fill="none"
-          stroke={active ? "#FF5F61" : "#C4C2C2"}
+          stroke={isSelected() ? "#FF5F61" : "#C4C2C2"}
           stroke-width="0.5"
         >
           <circle cx="35" cy="35" r="35" stroke="none" />
@@ -29,14 +39,9 @@ function BrandCircle() {
         </g>
       </svg>
       <div className="category-shadow"></div>
-      <img
-        className="brand-photo"
-        width={70}
-        height={70}
-        src="https://res.cloudinary.com/dtcmozf4d/image/upload/h_50/f_webp/q_auto/v1/boutiques/boutiques/icon/2024-05-22-664e11545eb62.svg"
-      />
+      <img className="brand-photo" width={70} height={70} src={brand.image} />
       <div className="category-text-container flex-col align-center">
-        <span className="category-title">T-Shirt</span>
+        <span className="category-title">{brand.name}</span>
         <span className="category-typo">1100</span>
       </div>
     </div>

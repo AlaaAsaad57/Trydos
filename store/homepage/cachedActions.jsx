@@ -41,25 +41,11 @@ export const getStories = async ({ lang }) => {
 
 export const getHomeData = async ({ str, lang }) => {
   const cookies = (await import("next/headers")).cookies;
-  const [getMainCategoriesData] = await getMainCategories({ lang: lang });
-  if (!str && getMainCategoriesData.length === 0) {
-    return [[], {}];
-  }
-  const cookieStore = cookies();
-  let url = HOME_DATA_URL;
-  var details = {
-    slug: str || getMainCategoriesData[0].slug,
-  };
-  console.log(details);
-  var formBody = [];
-  for (var property in details) {
-    var encodedKey = encodeURIComponent(property);
-    var encodedValue = encodeURIComponent(details[property]);
-    formBody.push(encodedKey + "=" + encodedValue);
-  }
-  formBody = formBody.join("&");
 
-  let method = { method: "POST", body: formBody };
+  const cookieStore = cookies();
+  let url = HOME_DATA_URL + (str?.length ? `?slug=${str}` : "");
+
+  let method = { method: "GET" };
 
   try {
     let time = new Date().getTime();
@@ -94,6 +80,7 @@ export const getHomeData = async ({ str, lang }) => {
 
     return [repo.data.boutiques, returned_res];
   } catch (e) {
+    console.log(e);
     return [[], e.toString()];
   }
 };

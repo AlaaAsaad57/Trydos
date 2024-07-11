@@ -120,7 +120,9 @@ function TopSlider({
           zIndex: active ? "4" : "1",
         }}
       >
-        <div className={`product-container-slider ${"selected-color"}`}>
+        <div
+          className={`product-container-slider ${"selected-color"} overflow-hidden`}
+        >
           <ProductSlider
             product_name={product_name}
             setActiveColor={(e) => setActiveColor(e)}

@@ -1,7 +1,6 @@
 import Animated from "react-mount-animation";
 
 export const AnimatedComponent = ({ show, children, ...rest }) => {
-  // console.log(children, "children");
   return (
     <Animated.div
       {...rest}

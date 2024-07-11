@@ -13,9 +13,8 @@ import SignSteps from "./SignSteps";
 import InputName from "./InputName";
 import AuthService from "services/auth";
 import { useAuthHooks } from "Hooks/AuthHooks";
-import dynamic from "next/dynamic";
-const LoginMethods = dynamic(() => import("./LoginMethods"));
 
+import LoginMethods from "./LoginMethods";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 function NewLoginWidget() {
   const [stepIndicator, setStepIndicator] = useState(-1);
@@ -392,7 +391,9 @@ function NewLoginWidget() {
         >
           <div
             className="take-look-text"
+            data-testid="take-look-text"
             onClick={() => {
+              setLoginOpen(false);
               AuthService.cancelAuth();
               Sendevent({
                 event: "button_clicked",
@@ -411,6 +412,7 @@ function NewLoginWidget() {
         {(stepIndicator > 1 || window.innerWidth > 600) && (
           <span
             id="login-close-icon"
+            data-testid="login-close-icon"
             onClick={() => {
               AuthService.cancelAuth();
               setLoginOpen(false);

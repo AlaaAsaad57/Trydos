@@ -10,7 +10,6 @@ interface CategoriesBarProps {
 function CategoriesBar({ forMobile, categories }: CategoriesBarProps) {
   const [searchEnabled, setSearchEnabled] = useState(false);
 
-  // console.log(categories, "cate");
   return (
     <>
       {!forMobile && (

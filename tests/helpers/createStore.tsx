@@ -1,8 +1,8 @@
 "use client";
 import { createStore, applyMiddleware, compose } from "redux";
 import rootReducer from "store/reducers";
-
-export function createTestStore() {
+let Teststore;
+function createTestStore() {
   const middlewares = [];
   const composeEnhancers = compose;
 
@@ -14,3 +14,5 @@ export function createTestStore() {
 
   return store;
 }
+Teststore = createTestStore();
+export default Teststore;

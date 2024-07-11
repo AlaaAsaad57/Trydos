@@ -1,9 +1,48 @@
+"use client";
 import React from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-function AddToCartButton() {
+function AddToCartButton({ setOption, product }) {
+  const AddToCartOption = useSelector(
+    (state: any) => state.details.AddToCartOption
+  );
+  const dispatch = useDispatch();
+  const AddToCartAction = ({ quantity }) => {
+    if (AddToCartOption?.enable)
+      dispatch({
+        type: "ADD-TO-CART-Quantity",
+        payload: {
+          ...product,
+          selectedColor: AddToCartOption?.selectedColor,
+          selectedSize: AddToCartOption?.selectedSize,
+          quantity: quantity,
+          UID: `${product.id}${AddToCartOption?.selectedColor?.color_name}${AddToCartOption?.selectedSize?.name}`,
+        },
+      });
+  };
   return (
-    <div className="add-cart-button">
-      <img src={"/svg/plusCart.svg"} />
+    <div
+      className={`add-cart-button ${
+        AddToCartOption?.enable && "extended-add-to-cart"
+      }`}
+      onClick={() => {
+        if (!AddToCartOption?.enable) {
+          setOption();
+          dispatch({
+            type: "AddToCartOptionEnable",
+            payload: { ...product, quantity: 0 },
+          });
+        } else {
+          // AddToCartAction({ quantity: 1 });
+        }
+      }}
+    >
+      <img
+        src={"/svg/plusCart.svg"}
+        onClick={() => {
+          AddToCartAction({ quantity: 1 });
+        }}
+      />
       <div className="button-desc">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -63,7 +102,19 @@ function AddToCartButton() {
             </g>
           </g>
         </svg>
-        <span>Add To Bag</span>
+        <span className="mt-1">
+          Add To Bag{" "}
+          {AddToCartOption?.enable &&
+            ` ${
+              AddToCartOption?.selectedColor?.color_name
+                ? `${AddToCartOption?.selectedColor?.color_name} color`
+                : ""
+            }  ${
+              AddToCartOption?.selectedSize?.name
+                ? `${AddToCartOption?.selectedSize?.name} size`
+                : ""
+            }`}
+        </span>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 import ColorsIcon from "public/svg/product/colors.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { getConfiguredImage } from "utils/functions";
 import "styles/listing.css";
 import SquareIcon from "public/svg/product/SquareIcon.svg";
@@ -10,9 +10,11 @@ import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import CircleBorder from "public/svg/product/CircleBorder";
 import NormalColorSlider from "./NormalColorSlider";
+import { useDispatch } from "react-redux";
 function ProductColors({ colors, ProductColorsArray }) {
   const [extended, setExtended] = useState(false);
   const [activeColor, setActiveColorFunc] = useState([]);
+  const dispatch = useDispatch();
   const setActiveColor = (e) => {
     if (activeColor.includes(e)) {
       setActiveColorFunc(activeColor.filter((s) => s !== e));
@@ -23,6 +25,11 @@ function ProductColors({ colors, ProductColorsArray }) {
   const getSize: (i: number) => number = (i) => {
     return 40;
   };
+  useEffect(() => {
+    const setActive = (e) => {
+      dispatch({ type: "AddToCartColor", payload: colors[0] });
+    };
+  }, []);
   return (
     <div
       className={`product-colors flex-row align-start relative ${
@@ -33,9 +40,23 @@ function ProductColors({ colors, ProductColorsArray }) {
       <div className="colors-label flex-row align-center">
         <ColorsIcon />
         <span style={{ marginLeft: "5px" }}>
-          Available {colors.length} Color
+          Available {colors?.length || 0} Color
         </span>
-        <ColorsInfo style={{ marginLeft: "9px" }} />
+        <ColorsInfo
+          style={{ marginLeft: "9px" }}
+          onClick={() => {
+            dispatch({
+              type: "SHOW-INFO-MESSAGE",
+              payload: {
+                showInfoMessage: true,
+                title: `Available ${colors.length} Color`,
+                text: "The Colors In The Image Are Intended To Give Approximate Information About The Color Of The Product And 100% Compatibility Is Not Guaranteed. However, The Display And Resolution Of Your Electronic Device There May Be Differences Between The Color Images And The Colors Of The Products Due To The Settings. It Is Technically Possible For An Inevitable Difference To Occur. Trydos Because Of The Difference. Does Not Have Any Liability.",
+                icon: "/svg/product/colors.svg",
+                value: [],
+              },
+            });
+          }}
+        />
       </div>
       <NormalColorSlider
         close={() => setExtended(false)}

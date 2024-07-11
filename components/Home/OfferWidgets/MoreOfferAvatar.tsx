@@ -22,10 +22,13 @@ function MoreOfferAvatar({
       style={{ zIndex: zIndex, transform: `translateX(-${viewed * 5}px)` }}
     >
       <div className="offer-more-s" />
-      <span>{translate("More", language)}</span>
+      <span className="z-40 text-[10px] regular text-white flex items-center justify-center w-full h-full">
+        {translate("More", language)}
+      </span>
       <Image
         loading="eager"
         src={images}
+        className="absolute"
         priority={priority}
         fetchPriority={priority ? "high" : "low"}
         alt="avatar"

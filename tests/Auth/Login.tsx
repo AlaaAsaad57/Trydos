@@ -2,7 +2,7 @@ import { describe, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import AllProviders from "tests/helpers/AllProviders";
 import userEvent from "@testing-library/user-event";
-import { createTestStore } from "tests/helpers/createStore";
+// import { createTestStore } from "tests/helpers/createStore";
 import LogInPins from "components/Login/LogInPins";
 import AuthService from "services/auth";
 import fetchMock from "fetch-mock";
@@ -16,7 +16,7 @@ import { _isStoreLastJson } from "utils/functions";
 
 let store;
 beforeEach(() => {
-  store = createTestStore();
+  store = "createTestStore();";
 });
 const renderMainComponent = async () => {
   const NavbarServerResolved = await resolvedComponent(NavbarServer, {

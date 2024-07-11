@@ -4,6 +4,8 @@ import CommentSection from "./CommentSection";
 import ShareSection from "./ShareSection";
 import MoreOptionsSection from "./MoreOptionsSection";
 import { ProductInterface } from "models/product";
+import SelectSize from "./SelectSize";
+
 function ExtendedAreaInfo({
   option,
   active,
@@ -19,12 +21,14 @@ function ExtendedAreaInfo({
   ErrorAccure,
   resendComment,
   verifyCommentAction,
+  colors,
 }: {
   option: string;
   active: boolean;
   sharedContacts: Array<number>;
   setShareContacts: (e: Array<number>) => void;
   comments: any;
+  colors: any[];
   product: ProductInterface;
   increase_comments: () => void;
   CommentsData: any;
@@ -46,56 +50,70 @@ function ExtendedAreaInfo({
 `;
 
   return (
-    <Animated.div
-      className="Extended-area-product"
-      show={active}
-      time={0.3}
-      mountAnim={mountAnim}
-      style={{
-        animationFillMode: "forwards",
-        width: "100%",
-      }}
-      unmountAnim={unmountAnim}
-    >
-      <svg
-        className="border-svg"
-        xmlns="http://www.w3.org/2000/svg"
-        width="100%"
-        height="1.7"
+    <>
+      <Animated.div
+        className="Extended-area-product"
+        show={active}
+        time={0.3}
+        mountAnim={mountAnim}
+        style={{
+          animationFillMode: "forwards",
+          width: "100%",
+        }}
+        unmountAnim={unmountAnim}
       >
-        <line
-          id="Line_1104"
-          data-name="Line 1104"
-          x2="100%"
-          y2="1"
-          transform="translate(0.001 0.35)"
-          fill="none"
-          stroke="#e6e6e6"
-          strokeWidth="0.7"
-        />
-      </svg>
-      {option === "Comment" && (
-        <CommentSection
-          increase_comments={() => increase_comments()}
-          product={product}
-          Render={Render}
-          setRender={(s) => setRender(s)}
-          comments={comments}
-          CommentsData={CommentsData}
-          setComments={(s) => setComments(s)}
-          ErrorAccure={(s) => ErrorAccure(s)}
-          resendComment={(s) => resendComment(s)}
-          verifyCommentAction={(mid) => verifyCommentAction(mid)}
-        />
-      )}
-      {option === "Share" && (
-        <ShareSection
-          sharedContacts={sharedContacts}
-          setShareContacts={setShareContacts}
-        />
-      )}
-      {option === "More" && <MoreOptionsSection />}
-    </Animated.div>
+        <svg
+          className="border-svg"
+          xmlns="http://www.w3.org/2000/svg"
+          width="100%"
+          height="1.7"
+        >
+          <line
+            id="Line_1104"
+            data-name="Line 1104"
+            x2="100%"
+            y2="1"
+            transform="translate(0.001 0.35)"
+            fill="none"
+            stroke="#e6e6e6"
+            strokeWidth="0.7"
+          />
+        </svg>
+        {option === "Comment" && (
+          <CommentSection
+            increase_comments={() => increase_comments()}
+            product={product}
+            Render={Render}
+            setRender={(s) => setRender(s)}
+            comments={comments}
+            CommentsData={CommentsData}
+            setComments={(s) => setComments(s)}
+            ErrorAccure={(s) => ErrorAccure(s)}
+            resendComment={(s) => resendComment(s)}
+            verifyCommentAction={(mid) => verifyCommentAction(mid)}
+          />
+        )}
+        {option === "Share" && (
+          <ShareSection
+            sharedContacts={sharedContacts}
+            setShareContacts={setShareContacts}
+          />
+        )}
+
+        {option === "More" && <MoreOptionsSection />}
+        {option === "AddToCart" &&
+          product.choice_options.filter((s) => s.title == "Size")[0]
+            ?.options && (
+            <SelectSize
+              sizes={
+                product.choice_options.filter((s) => s.title == "Size")[0]
+                  ?.options || []
+              }
+              variants={product.variation}
+            />
+          )}
+      </Animated.div>
+    </>
   );
 }
 

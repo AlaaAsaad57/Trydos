@@ -5,6 +5,8 @@ import { Provider } from "react-redux";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { store } from "store";
+import PageLoadingIndicator from "Hooks/LoadingIndicator";
+import Teststore from "./createStore";
 
 const AllProviders = ({ children }: PropsWithChildren) => {
   const client = new QueryClient({
@@ -25,12 +27,14 @@ const AllProviders = ({ children }: PropsWithChildren) => {
     <QueryClientProvider client={client}>
       {/* {SSRDetect() && <GAComponent />} */}
       <Init />
-      <Provider store={store}>
+      <PageLoadingIndicator />
+      <Provider store={Teststore}>
         <div className="site-container">
           <div className="home-page-container">
             <>
-              <TranslationsMenu init={"en-US"} />
+              <TranslationsMenu init={"en-us"} />
             </>
+
             {children}
           </div>
         </div>

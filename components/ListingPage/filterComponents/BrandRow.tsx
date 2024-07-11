@@ -1,8 +1,11 @@
 "use client";
 import React, { useEffect } from "react";
 import BrandCircle from "./BrandCircle";
+import { useSelector } from "react-redux";
 
 function BrandRow() {
+  const filters = useSelector((state: any) => state.details.filters);
+
   useEffect(() => {
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector(".brand-row");
@@ -35,9 +38,9 @@ function BrandRow() {
   }, []);
   return (
     <div className="category-row-container brand-row flex-row">
-      <BrandCircle />
-      <BrandCircle />
-      <BrandCircle />
+      {filters.brands.map((brand, key) => (
+        <BrandCircle brand={brand} key={key} />
+      ))}
     </div>
   );
 }

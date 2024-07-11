@@ -12,7 +12,7 @@ async function ProductDetailsServer({ productId, lang }) {
   let product = await getProductDetails({ productId, lang });
 
   return (
-    <div className="product-details-container">
+    <div className="product-details-container w-full">
       <BackBar link={true} close={null} />
       <ProductDetailsSlider product={product} />
       <ProuctDetailsBody product={product} />

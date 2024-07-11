@@ -9,7 +9,6 @@ const customRender = (ui: ReactElement, options = {}) =>
 export * from "@testing-library/react";
 export { customRender as render };
 export async function resolvedComponent(Component, props) {
-  console.log(Component, props);
   const ComponentResolved = await Component(props);
   return () => ComponentResolved;
 }

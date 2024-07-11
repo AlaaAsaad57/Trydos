@@ -108,7 +108,6 @@ function SearchHistory({ options, setOptions }) {
                   let arr = [...options];
                   arr[index] = { ...s, isSelected: true };
                   setOptions(arr);
-                  console.log(arr);
                 }
               }}
             >

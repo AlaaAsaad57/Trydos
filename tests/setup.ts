@@ -27,6 +27,7 @@ beforeAll(() => {
     usePathname() {
       return {
         prefetch: () => null,
+        split: () => [],
       };
     },
     useParams() {

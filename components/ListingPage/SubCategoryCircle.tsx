@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 
-function SubCategoryCircle({ index, MainCategoryActive }) {
+function SubCategoryCircle({ index, MainCategoryActive, category }) {
   const [active, setActive] = useState(false);
   return (
     <div
@@ -48,14 +48,10 @@ function SubCategoryCircle({ index, MainCategoryActive }) {
         </g>
       </svg>
 
-      <img
-        width={50}
-        height={50}
-        src="https://s13emagst.akamaized.net/products/53803/53802380/images/res_678a307460a8c283499576d3cdca1304.jpg"
-      />
+      <img width={50} height={50} src={category.icon} />
       {MainCategoryActive && (
         <div className="category-text-container flex-col align-center">
-          <span className="category-title">T-Shirt</span>
+          <span className="category-title">{category.name}</span>
           <span className="category-typo">1100</span>
         </div>
       )}

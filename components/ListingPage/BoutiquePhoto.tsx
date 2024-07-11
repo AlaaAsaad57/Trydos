@@ -2,7 +2,7 @@ import React from "react";
 import BorderImage from "./BorderImage";
 import Image from "next/image";
 
-function BoutiquePhoto() {
+function BoutiquePhoto({ photo }) {
   return (
     <div className="boutique-photo-holder">
       <div className="offer-slider-container">
@@ -15,9 +15,7 @@ function BoutiquePhoto() {
               fetchPriority={"high"}
               style={{ borderRadius: "15px" }}
               className="OfferImage"
-              src={
-                "https://res.cloudinary.com/djooohujg/image/upload/q_80/h_342/f_avif/1708506792?_a=DdATC1RAAZAA0"
-              }
+              src={photo}
               width={380}
               unoptimized
               height={135}

@@ -1,9 +1,12 @@
 import React, { useEffect } from "react";
 import SizeCircle from "./SizeCircle";
+import { useSelector } from "react-redux";
 function SizeRow() {
+  const filters = useSelector((state: any) => state.details.filters);
+
   useEffect(() => {
     if (typeof document !== "undefined") {
-      const slider: HTMLDivElement = document?.querySelector(".brand-row");
+      const slider: HTMLDivElement = document?.querySelector(".sizes-row");
       let isDown = false;
       let startX: number;
       let scrollLeft: number;
@@ -32,12 +35,10 @@ function SizeRow() {
     }
   }, []);
   return (
-    <div className="category-row-container brand-row flex-row">
-      <SizeCircle text="S" />
-      <SizeCircle text="M" />
-      <SizeCircle text="L" />
-      <SizeCircle text="XL" />
-      <SizeCircle text="XXL" />
+    <div className="category-row-container brand-row sizes-row flex-row">
+      {filters.sizes.map((size, key) => (
+        <SizeCircle text={size} key={key} />
+      ))}
     </div>
   );
 }
