@@ -328,7 +328,7 @@ export const expandView = ({ filter }) => {
   document.querySelector<HTMLElement>(".boutique-top-info").style.width =
     "auto";
   document.querySelector<HTMLElement>(".boutique-top-info").style.marginLeft =
-    "40px";
+    "60px";
   document
     .querySelector<HTMLElement>(".boutique-top-info")
     .classList.add("move-anim");

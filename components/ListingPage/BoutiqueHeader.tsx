@@ -78,9 +78,13 @@ function BoutiqueHeader({ boutique }) {
     } else {
       params.delete("searchText");
     }
-
+    dispatch({
+      type: "ACTIVE-ROUTE",
+      payload: `${pathname}?${params.toString()}`,
+    });
     replace(`${pathname}?${params.toString()}`);
   };
+
   const activeFilters = useSelector(
     (state: any) => state.details.activeFilters
   );
@@ -133,6 +137,10 @@ function BoutiqueHeader({ boutique }) {
         },
       });
     }
+    dispatch({
+      type: "ACTIVE-ROUTE",
+      payload: `${window.location.pathname}`,
+    });
   }, []);
   useEffect(() => {
     window.addEventListener("scroll", function (e) {

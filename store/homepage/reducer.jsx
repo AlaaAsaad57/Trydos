@@ -16,10 +16,17 @@ const initialState = {
   categories: [],
   session_id: uuidv4(),
   previous_event_button_name: null,
+  activeRoute: "/",
 };
 
 const HomeReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "ACTIVE-ROUTE": {
+      return {
+        ...state,
+        activeRoute: payload,
+      };
+    }
     case "LOADING": {
       return {
         ...state,

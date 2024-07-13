@@ -219,7 +219,7 @@ function Product({
             }
           }}
           href={`/products/${product.id}`}
-          className="product-container rounded-15 align-center flex-col relative"
+          className="product-container overflow-hidden rounded-15 align-center flex-col relative"
           onMouseLeave={() => {
             if (productState.isActiveTopSlide || productState.isColorSelected) {
               dispatch({ type: "setActiveTopSlide", payload: false });
