@@ -73,7 +73,12 @@ function BoutiqueHeader({ boutique }) {
         params.delete("min-pr");
       }
     }
-    console.log(params.toString(), decodeURIComponent(params.toString()));
+    if (data.searchText?.length > 0) {
+      params.set("searchText", data.searchText);
+    } else {
+      params.delete("searchText");
+    }
+
     replace(`${pathname}?${params.toString()}`);
   };
   const activeFilters = useSelector(
@@ -89,8 +94,6 @@ function BoutiqueHeader({ boutique }) {
     if (activeFiltersShouldUpdate) handleSearch(activeFilters);
   }, [activeFilters]);
   useEffect(() => {
-    console.log("hi", searchParams);
-
     if (searchParams.size > 0) {
       dispatch({
         type: "ACTIVE-FILTER",
@@ -126,6 +129,7 @@ function BoutiqueHeader({ boutique }) {
               }
             : null,
           offers: [],
+          searchText: searchParams.get("searchText"),
         },
       });
     }
@@ -152,13 +156,15 @@ function BoutiqueHeader({ boutique }) {
         <div className="boutique-text">{boutique.name}</div>
       </div>
       <BoutiquePhoto photo={boutique.photo} />
-      <BoutiqueCategoryFilter filterEnabled={filterEnabled} />
+      {filters?.categories.length > 0 && (
+        <BoutiqueCategoryFilter filterEnabled={filterEnabled} />
+      )}
       {filterEnabled && (
         <>
-          {filters.brands.length > 0 && <BoutiqueBrandFilter />}
-          {filters.offers?.length > 0 && <BoutiqueOfferFilter />}
-          {filters.prices && <BoutiquePriceFilter />}
-          {filters.sizes?.length > 0 && <BoutiqueSizeFilter />}
+          {filters?.brands.length > 0 && <BoutiqueBrandFilter />}
+          {filters?.offers?.length > 0 && <BoutiqueOfferFilter />}
+          {filters?.prices?.min_price >= 0 && <BoutiquePriceFilter />}
+          {filters?.sizes?.length > 0 && <BoutiqueSizeFilter />}
           <FilterButtons />
           {filterLoading && <FilterComponentLoader />}
         </>

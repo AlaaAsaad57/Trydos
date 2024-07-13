@@ -10,6 +10,7 @@ import { dispatchRouteChangeEvent } from "Hooks/events";
 import Product from "./Product";
 import { filterProducts } from "utils/functions";
 import { useParams } from "next/navigation";
+import ListingSkeleton from "components/skeleton/listing";
 function ProductsList({
   Listing_Data_res,
   productCategory,
@@ -25,6 +26,7 @@ function ProductsList({
   const offset = useSelector((state: any) => state.listing.offset);
 
   const loading = useSelector((state: any) => state.listing.loading);
+  const skeleton = useSelector((state: any) => state.listing.skeleton);
   const isReachEnd = useSelector((state: any) => state.listing.isReachEnd);
   const GetNextPage = async () => {
     if (!loading && !isReachEnd) {
@@ -41,7 +43,7 @@ function ProductsList({
     document.documentElement.style.overflow = "initial";
     document.documentElement.scrollTop = 0;
     GetNextProd();
-    dispatch({ type: "GET_PRODUCTS", payload: Listing_Data_res.body.data });
+    dispatch({ type: "GET_PRODUCT", payload: Listing_Data_res.body.data });
   }, []);
   const GetNextProd = async () => {
     dispatch({ type: "PRODUCT_LOADING" });
@@ -62,6 +64,7 @@ function ProductsList({
   const filter = () => {
     dispatch({ type: "RESET_LISTING_FILTER" });
     dispatch({ type: "PRODUCT_LOADING" });
+
     filterProducts({
       boutiqueId: pathName.productCategory,
       lang: pathName.lang,
@@ -80,50 +83,59 @@ function ProductsList({
       newFiltersCallback: ({ filtersVar }) => {
         dispatch({ type: "EDIT-FILTER", payload: filtersVar });
       },
+      searchText: selectedFilter.searchText,
     });
   };
   return (
     <>
       {!filterEnabled && (
         <>
-          <div
-            className="listing-container flex"
-            onWheelCapture={() => {
-              if (!selectedFilter.filtered) GetNextPage();
-              else if (!loading && !isReachEnd) {
-                filter();
-              }
-            }}
-          >
-            {(
-              (products.length > 0 && products) ||
-              Listing_Data_res?.body?.data?.products
-            )?.map((product, i) => (
-              <Product key={i} product={product} priority={i < 3} i={i} />
-            ))}
-          </div>
-          <div className="get-next-product regular-text color-dark-gray">
-            {!isReachEnd ? (
-              <>
-                {" "}
-                {!loading ? (
-                  <InView
-                    className="spinner-container"
-                    as="div"
-                    onChange={(inView) => {
-                      if (inView && !loading) {
-                        GetNextPage();
-                      }
-                    }}
-                  ></InView>
+          {skeleton ? (
+            <>
+              <ListingSkeleton forProducts={true} />
+            </>
+          ) : (
+            <>
+              <div
+                className="listing-container flex"
+                onWheelCapture={() => {
+                  if (!selectedFilter.filtered) GetNextPage();
+                  else if (!loading && !isReachEnd) {
+                    filter();
+                  }
+                }}
+              >
+                {(
+                  (products.length > 0 && products) ||
+                  Listing_Data_res?.body?.data?.products
+                )?.map((product, i) => (
+                  <Product key={i} product={product} priority={i < 3} i={i} />
+                ))}
+              </div>
+              <div className="get-next-product regular-text color-dark-gray">
+                {!isReachEnd ? (
+                  <>
+                    {" "}
+                    {!loading ? (
+                      <InView
+                        className="spinner-container"
+                        as="div"
+                        onChange={(inView) => {
+                          if (inView && !loading) {
+                            GetNextPage();
+                          }
+                        }}
+                      ></InView>
+                    ) : (
+                      <h2>{loading && <Spinner no={false} className="" />}</h2>
+                    )}
+                  </>
                 ) : (
-                  <h2>{loading && <Spinner no={false} className="" />}</h2>
+                  <>Reach End</>
                 )}
-              </>
-            ) : (
-              <>Reach End</>
-            )}
-          </div>
+              </div>
+            </>
+          )}
         </>
       )}
     </>

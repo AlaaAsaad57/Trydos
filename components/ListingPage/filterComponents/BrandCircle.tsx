@@ -16,7 +16,10 @@ function BrandCircle({ brand }) {
   };
 
   const isSelected = () => {
-    return selectedFilter.brands.filter((s) => s.id === brand.id).length > 0;
+    return (
+      selectedFilter.brands.filter((s) => parseInt(s.id) === parseInt(brand.id))
+        .length > 0
+    );
   };
   return (
     <div

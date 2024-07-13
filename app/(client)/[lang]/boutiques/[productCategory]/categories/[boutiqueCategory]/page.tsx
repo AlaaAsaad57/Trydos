@@ -33,7 +33,7 @@ async function page({ params, searchParams }) {
       <Suspense fallback={<NavbarSkeleton noCategory={true} />}>
         <CustomNavbarServer lang={params.lang} />
       </Suspense>
-      <FilterBar filters={filters} boutique={boutique} />
+
       <Suspense fallback={<ListingSkeleton />}>
         <ProductListServer searchParams={searchParams} params={params} />
       </Suspense>

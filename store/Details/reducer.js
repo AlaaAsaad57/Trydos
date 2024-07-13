@@ -34,6 +34,7 @@ const initialState = {
     brands: [],
     offers: [],
     sizes: [],
+    searchText: "",
   },
   filterLoading: false,
   activeFilters: {
@@ -42,8 +43,10 @@ const initialState = {
     prices: null,
     offers: [],
     sizes: [],
+    searchText: "",
   },
   activeFiltersShouldUpdate: false,
+  search: false,
 };
 
 const DetailsReducer = (state = initialState, { type, payload }) => {
@@ -70,7 +73,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         selectedFilter: {
           ...state.selectedFilter,
           prices:
-            payload.prices.min_price >= 0 && payload?.prices?.max_price >= 0
+            payload.prices?.min_price >= 0 && payload?.prices?.max_price >= 0
               ? {
                   min: payload?.prices?.min_price,
                   max: payload?.prices?.max_price,
@@ -173,6 +176,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           brands: [],
           offers: [],
           sizes: [],
+          searchText: "",
         },
       };
     }
@@ -305,7 +309,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           ),
           prices: payload.reset
             ? { min: payload.prices.min_price, max: payload.prices.max_price }
-            : null,
+            : { ...state.selectedFilter.prices },
         },
         filterLoading: false,
       };
@@ -319,13 +323,39 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
     case "ACTIVE-FILTER": {
       return {
         ...state,
-        activeFilters: { ...state.activeFilters, ...payload },
+        activeFilters: {
+          ...state.activeFilters,
+          ...payload,
+        },
+        selectedFilter: {
+          ...state.selectedFilter,
+          ...payload,
+        },
       };
     }
     case "enable-handling-filter": {
       return {
         ...state,
         activeFiltersShouldUpdate: true,
+      };
+    }
+    case "FILTER-SEARCH-ENABLE": {
+      return {
+        ...state,
+        search: payload,
+      };
+    }
+    case "SEARCH-FILTER": {
+      return {
+        ...state,
+        selectedFilter: {
+          ...state.selectedFilter,
+          searchText: payload,
+        },
+        activeFilters: {
+          ...state.activeFilters,
+          searchText: payload,
+        },
       };
     }
     default:

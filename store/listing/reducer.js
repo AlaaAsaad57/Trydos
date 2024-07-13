@@ -4,6 +4,7 @@ const initialState = {
   isReachEnd: false,
   offset: 2,
   filterEnabled: false,
+  skeleton: false,
 };
 
 const ListingReducer = (state = initialState, { type, payload }) => {
@@ -14,13 +15,20 @@ const ListingReducer = (state = initialState, { type, payload }) => {
         filterEnabled: payload,
       };
     }
-    case "GET_PRODUCTS": {
+    case "GET_PRODUCT": {
       return {
         ...state,
         products: payload?.products ?? [],
         offset: 2,
         limit: 20,
         loading: false,
+        skeleton: false,
+      };
+    }
+    case "Skeleton-Listing": {
+      return {
+        ...state,
+        skeleton: true,
       };
     }
     case "PRODUCT_LOADING": {

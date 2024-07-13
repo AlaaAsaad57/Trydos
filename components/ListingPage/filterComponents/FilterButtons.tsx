@@ -20,6 +20,7 @@ function FilterButtons() {
         onClick={() => {
           dispatch({ type: "PRODUCT_LOADING" });
           dispatch({ type: "RESET_LISTING_FILTER" });
+          dispatch({ type: "Skeleton-Listing" });
           filterProducts({
             boutiqueId: pathName.productCategory,
             lang: pathName.lang,
@@ -50,6 +51,7 @@ function FilterButtons() {
         onClick={() => {
           dispatch({ type: "PRODUCT_LOADING" });
           dispatch({ type: "RESET_LISTING_FILTER" });
+          dispatch({ type: "Skeleton-Listing" });
           filterProducts({
             boutiqueId: pathName.productCategory,
             lang: pathName.lang,

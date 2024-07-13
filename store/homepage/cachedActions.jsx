@@ -164,6 +164,9 @@ export const getListingData = async ({
   const cookieStore = cookies();
   if (Object.keys(searchParams).length > 0) {
     let obj = {};
+    if (Object.keys(searchParams).includes("searchText")) {
+      obj = { ...obj, search_text: searchParams.searchText };
+    }
     if (Object.keys(searchParams).includes("categories"))
       obj = {
         ...obj,
@@ -217,13 +220,25 @@ export const getListingData = async ({
     };
     let str = `/web/products/with_filter?${
       obj.categories
-        ? `categories=${JSON.stringify(obj.categories.split(","))}`
+        ? `categories=${JSON.stringify(
+            obj.categories.split(",").map((s) => parseInt(s))
+          )}`
         : ""
-    }${obj.brands ? `&brands=${JSON.stringify(obj.brands.split(","))}` : ""}${
+    }${
+      obj.brands?.length > 0
+        ? `&brands=${JSON.stringify(
+            obj.brands.split(",").map((s) => parseInt(s))
+          )}`
+        : ""
+    }${
       obj.sizes
         ? `&attributes={id:${obj.sizesAttr.id},name:${
             obj.sizesAttr.name
           },options:${JSON.stringify(obj.sizes.split(","))}}`
+        : ""
+    }${
+      obj.search_text?.length > 0
+        ? `${`&search_text=${obj.search_text || ""}`}`
         : ""
     }${
       filters.prices !== null ? `&prices=[${JSON.stringify(obj.prices)}]` : ""
@@ -243,7 +258,7 @@ export const getListingData = async ({
       }),
     });
     let repo = await productRes.json();
-    console.log(repo, str, searchParams);
+    console.log(repo, str, obj);
     return [
       [],
       {
@@ -255,8 +270,9 @@ export const getListingData = async ({
     let url =
       OTP_URL +
       (productCategory
-        ? LISTING_INFO_URL + `?category=${productCategory}&boutique_slug=${str}`
-        : LISTING_INFO_URL + `?boutique_slug=${str}`);
+        ? "/web/products/with_filter" +
+          `?category=${productCategory}&boutique_slug=${str}`
+        : "/web/products/with_filter" + `?boutique_slug=${str}`);
     var details = productCategory
       ? {
           boutique_slug: str,

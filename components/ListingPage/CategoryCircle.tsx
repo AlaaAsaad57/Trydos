@@ -22,6 +22,7 @@ function CategoryCircle({ category }) {
   };
   const filter = () => {
     dispatch({ type: "FILTER-START" });
+    dispatch({ type: "Skeleton-Listing" });
     filterProducts({
       boutiqueId: pathName.productCategory,
       lang: pathName.lang,
@@ -43,7 +44,9 @@ function CategoryCircle({ category }) {
   };
   const isSelected = () => {
     return (
-      selectedFilter.categories.filter((s) => s.id === category.id).length > 0
+      selectedFilter.categories.filter(
+        (s) => parseInt(s.id) === parseInt(category.id)
+      ).length > 0
     );
   };
   return (

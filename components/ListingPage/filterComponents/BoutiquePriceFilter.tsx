@@ -34,12 +34,12 @@ function BoutiquePriceFilter() {
         }}
       />
       <div className="price-min-max flex-row z-20">
-        {selectedFilter.prices.min >= 0 && (
+        {selectedFilter?.prices?.min >= 0 && (
           <div className="price-min">
             Min {selectedFilter.prices.min} <span>USD</span>
           </div>
         )}
-        {selectedFilter.prices.max >= 0 && (
+        {selectedFilter?.prices?.max >= 0 && (
           <div className="price-max">
             Max {selectedFilter.prices.max} <span>USD</span>
           </div>
@@ -49,8 +49,8 @@ function BoutiquePriceFilter() {
         min={filters?.prices?.min_price >= 0 ? filters?.prices?.min_price : 100}
         max={filters?.prices?.max_price || 500}
         Value={{
-          min: selectedFilter.prices.min,
-          max: selectedFilter.prices.max,
+          min: selectedFilter?.prices.min,
+          max: selectedFilter?.prices.max,
         }}
         set_Value={(e) => {
           set_Value(e);

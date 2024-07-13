@@ -131,6 +131,7 @@ class HomeService {
       brands: filterObj.brands.map((brand) => parseInt(brand.id)),
       attributes: { ...sizesAttr, ...filterObj.sizes },
       boutique_slug: categories,
+      searchText: filterObj.searchText,
     };
     let str = `categories=${JSON.stringify(
       filters.categories
@@ -138,7 +139,11 @@ class HomeService {
       filters.attributes
     )}${
       filters.prices !== null ? `&prices=${JSON.stringify(filters.prices)}` : ""
-    }&boutique_slug=${filters.boutique_slug}`;
+    }&boutique_slug=${filters.boutique_slug}${
+      filters?.searchText?.length > 0
+        ? `&search_text=${filters.searchText}`
+        : ""
+    }`;
     var details =
       boutiqueCategory !== "undefined"
         ? {

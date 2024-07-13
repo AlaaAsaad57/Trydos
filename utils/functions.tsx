@@ -407,6 +407,7 @@ export const filterProducts = async ({
   sizesAttr,
   reset,
   storeCallback,
+  searchText,
 }: {
   reset?: boolean;
   lang: any;
@@ -416,6 +417,7 @@ export const filterProducts = async ({
   sizesAttr: any;
   boutiqueId: any;
   storeCallback?: any;
+  searchText?: string;
 }) => {
   const filterObj = store.getState().details.selectedFilter;
   storeCallback(filterObj);
@@ -432,6 +434,7 @@ export const filterProducts = async ({
     boutique_slug: boutiqueId,
     lang: lang.split("-")[1],
     country: lang.split("-")[0],
+    searchText: searchText || filterObj.searchText,
   };
   let str = "";
   if (reset) {
@@ -439,11 +442,17 @@ export const filterProducts = async ({
   } else {
     str = `/web/products/with_filter?categories=${JSON.stringify(
       filters.categories
-    )}&brands=${JSON.stringify(filters.brands)}&attributes=${JSON.stringify(
-      filters.attributes
-    )}${
+    )}&brands=${JSON.stringify(filters.brands)}${
+      filters?.attributes?.options?.length > 0
+        ? `&attributes=${JSON.stringify(filters.attributes)}`
+        : ""
+    }${
       filters.prices !== null ? `&prices=${JSON.stringify(filters.prices)}` : ""
-    }&boutique_slug=${filters.boutique_slug}`;
+    }&boutique_slug=${filters.boutique_slug}${
+      filters?.searchText?.length > 0
+        ? `&search_text=${filters.searchText}`
+        : ""
+    }`;
   }
   let product = await axios.get(OTP_URL + str, {
     headers: {
