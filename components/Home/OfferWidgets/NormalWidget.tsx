@@ -131,7 +131,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                       e.preventDefault();
                       dispatchRouteChangeEvent("start", { to: "boutique" });
                       router.push(
-                        `/boutiques/${boutique.slug}/categories/${category.category_slug}`
+                        `/boutiques/${boutique.slug}?categories=${category.category_id}`
                       );
                     }}
                     key={key}
@@ -160,7 +160,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                       e.preventDefault();
                       dispatchRouteChangeEvent("start", { to: "boutique" });
                       router.push(
-                        `/boutiques/${boutique.slug}/categories/${category.category_slug}`
+                        `/boutiques/${boutique.slug}?categories=${category.category_id}`
                       );
                     }}
                   >

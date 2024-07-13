@@ -1,6 +1,7 @@
 import React from "react";
 import BorderImage from "./BorderImage";
 import Image from "next/image";
+import { getConfiguredImage } from "utils/functions";
 
 function BoutiquePhoto({ photo }) {
   return (
@@ -15,7 +16,11 @@ function BoutiquePhoto({ photo }) {
               fetchPriority={"high"}
               style={{ borderRadius: "15px" }}
               className="OfferImage"
-              src={photo}
+              src={getConfiguredImage({
+                src: photo,
+                height: 342,
+                width: 900,
+              })}
               width={380}
               unoptimized
               height={135}

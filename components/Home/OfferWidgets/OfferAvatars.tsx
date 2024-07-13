@@ -44,7 +44,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
         return (
           <OfferAvatar
             name={product.product_name}
-            linkUrl={`/boutiques/${boutique.slug}/categories/${product.category_slug}`}
+            linkUrl={`/boutiques/${boutique.slug}?categories=${product.category_id}`}
             key={index}
             category={product.count_products}
             images={product.product_thumbnail}

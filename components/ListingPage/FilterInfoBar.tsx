@@ -181,7 +181,7 @@ function FilterInfoBar() {
           {activeFilters.brands.map(
             (brand) =>
               (brand.name ||
-                filters.categories.filter((s) => s.id === parseInt(brand.id))[0]
+                filters.brands.filter((s) => s.id === parseInt(brand.id))[0]
                   ?.name) && (
                 <>
                   <div className="main-category-icon flex-row min-w-[15px] min-h-[15px]">
