@@ -36,7 +36,7 @@ async function Page({ params, searchParams }) {
       </Suspense>
       <FilterBar filters={filters} boutique={boutique} />
       <Suspense fallback={<ListingSkeleton />}>
-        <ProductListServer params={params} />
+        <ProductListServer searchParams={searchParams} params={params} />
       </Suspense>
     </>
   );

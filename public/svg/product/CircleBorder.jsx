@@ -13,7 +13,7 @@ function CircleBorder({ color }) {
         data-name="Ellipse 283"
         fill="none"
         stroke="#fff"
-        stroke-width="0.5"
+        strokeWidth="0.5"
       >
         <circle
           cx="calc(100% / 2)"

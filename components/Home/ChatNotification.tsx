@@ -19,8 +19,8 @@ function ChatNotification({ num }) {
           data-name="9"
           transform="translate(241 885)"
           fill="#388cff"
-          font-size="10"
-          font-family="SegoeUI-Bold, Segoe UI"
+          fontSize="10"
+          fontFamily="SegoeUI-Bold, Segoe UI"
           font-weight="700"
           letter-spacing="0.02em"
         >
@@ -60,7 +60,7 @@ function ChatNotification({ num }) {
           id="Mask_Group_252"
           data-name="Mask Group 252"
           transform="translate(215 870.739)"
-          clip-path="url(#clip-path-2)"
+          clipPath="url(#clipPath-2)"
         >
           <g
             id="Group_8323"

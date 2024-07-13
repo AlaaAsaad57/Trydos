@@ -76,7 +76,7 @@ function SendMethod({
           viewBox="0 0 15 15"
         >
           <defs>
-            <clipPath id="clip-path">
+            <clipPath id="clipPath">
               <rect
                 id="Rectangle_4632"
                 data-name="Rectangle 4632"
@@ -89,7 +89,7 @@ function SendMethod({
           <g
             id="Mask_Group_304"
             data-name="Mask Group 304"
-            clip-path="url(#clip-path)"
+            clipPath="url(#clipPath)"
           >
             <g id="password" transform="translate(-1.5 -1.5)">
               <path

@@ -70,7 +70,7 @@ function InputName({
                   transform="translate(-128.002 -136.002)"
                   fill="#37ef9a"
                   stroke="#404040"
-                  stroke-width="0.3"
+                  strokeWidth="0.3"
                 />
               </g>
             </g>
@@ -81,7 +81,7 @@ function InputName({
               transform="translate(0 0)"
               fill="#37ef9a"
               stroke="#2c2a2a"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
           </g>
         </svg>
@@ -146,7 +146,7 @@ function InputName({
               viewBox="0 0 10 10"
             >
               <defs>
-                <clipPath id="clip-path">
+                <clipPath id="clipPath">
                   <rect
                     id="Rectangle_4722"
                     data-name="Rectangle 4722"
@@ -159,7 +159,7 @@ function InputName({
               <g
                 id="Mask_Group_301"
                 data-name="Mask Group 301"
-                clip-path="url(#clip-path)"
+                clipPath="url(#clipPath)"
               >
                 <g
                   id="Layer_16"
@@ -206,7 +206,7 @@ function InputName({
             data-name="Rectangle 4715"
             fill="none"
             stroke="#5d5c5d"
-            stroke-width="0.5"
+            strokeWidth="0.5"
             stroke-dasharray="3 3"
           >
             <rect width="calc(100%)" height="60" rx="20" stroke="none" />

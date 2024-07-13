@@ -406,6 +406,7 @@ export const filterProducts = async ({
   newFiltersCallback,
   sizesAttr,
   reset,
+  storeCallback,
 }: {
   reset?: boolean;
   lang: any;
@@ -414,13 +415,18 @@ export const filterProducts = async ({
   newFiltersCallback: Function;
   sizesAttr: any;
   boutiqueId: any;
+  storeCallback?: any;
 }) => {
   const filterObj = store.getState().details.selectedFilter;
+  storeCallback(filterObj);
+
   let filters = {
     categories: filterObj.categories.map((s) => s.id),
-    prices: [
-      `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
-    ],
+    prices: filterObj.prices
+      ? [
+          `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
+        ]
+      : null,
     brands: filterObj.brands.map((brand) => brand.id),
     attributes: { ...sizesAttr, ...filterObj.sizes },
     boutique_slug: boutiqueId,
@@ -435,9 +441,9 @@ export const filterProducts = async ({
       filters.categories
     )}&brands=${JSON.stringify(filters.brands)}&attributes=${JSON.stringify(
       filters.attributes
-    )}&prices=${JSON.stringify(filters.prices)}&boutique_slug=${
-      filters.boutique_slug
-    }`;
+    )}${
+      filters.prices !== null ? `&prices=${JSON.stringify(filters.prices)}` : ""
+    }&boutique_slug=${filters.boutique_slug}`;
   }
   let product = await axios.get(OTP_URL + str, {
     headers: {
@@ -452,10 +458,11 @@ export const filterProducts = async ({
       sizes:
         product.data.data.attributes.filter((s) => s.name === "Size")[0]
           ?.options || [],
-      prices: product.data.data.prices || { min_price: 0, max_price: 500 },
+      prices: product.data.data.prices || null,
       offers:
         product.data.data.attributes.filter((s) => s.name === "Offer")[0]
           ?.options || [],
+      reset: reset,
     },
   });
   callback(product.data.data.products);

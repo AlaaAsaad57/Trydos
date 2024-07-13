@@ -170,7 +170,7 @@ function PhoneInput({
                 viewBox="0 0 10 10"
               >
                 <defs>
-                  <clipPath id="clip-path">
+                  <clipPath id="clipPath">
                     <rect
                       id="Rectangle_4632"
                       data-name="Rectangle 4632"
@@ -189,7 +189,7 @@ function PhoneInput({
                     id="Mask_Group_304"
                     data-name="Mask Group 304"
                     transform="translate(45 444)"
-                    clip-path="url(#clip-path)"
+                    clipPath="url(#clipPath)"
                   >
                     <g id="password" transform="translate(0.093 0)">
                       <path
@@ -275,7 +275,7 @@ function PhoneInput({
                 viewBox="0 0 10 10"
               >
                 <defs>
-                  <clipPath id="clip-path">
+                  <clipPath id="clipPath">
                     <rect
                       id="Rectangle_4632"
                       data-name="Rectangle 4632"
@@ -294,7 +294,7 @@ function PhoneInput({
                     id="Mask_Group_304"
                     data-name="Mask Group 304"
                     transform="translate(45 444)"
-                    clip-path="url(#clip-path)"
+                    clipPath="url(#clipPath)"
                   >
                     <g id="password" transform="translate(0.093 0)">
                       <path

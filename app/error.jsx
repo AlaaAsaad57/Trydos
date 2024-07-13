@@ -30,25 +30,21 @@ export default function GlobalError({ error, reset }) {
     sendError(error);
   }, [error]);
   return (
-    <html>
-      <body>
-        <div className="flex justify-start flex-col items-center p-[50px]">
-          <div>
-            <Logo style={true} />
-          </div>
-          <div className="flex flex-row items-center;">
-            <h1 className="text-[red]">Error:</h1>
-            <h2 className="p-5">{error.message}</h2>
-          </div>
+    <div className="flex justify-start flex-col items-center p-[50px]">
+      <div>
+        <Logo style={true} />
+      </div>
+      <div className="flex flex-row items-center;">
+        <h1 className="text-[red]">Error:</h1>
+        <h2 className="p-5">{error.message}</h2>
+      </div>
 
-          <button
-            className="w-[300px] flex text-center justify-center items-center bg-[aliceblue] p-5 rounded-[15px]"
-            onClick={() => (window.location.href = "/")}
-          >
-            Go Back
-          </button>
-        </div>
-      </body>
-    </html>
+      <button
+        className="w-[300px] flex text-center justify-center items-center bg-[aliceblue] p-5 rounded-[15px]"
+        onClick={() => (window.location.href = "/")}
+      >
+        Go Back
+      </button>
+    </div>
   );
 }

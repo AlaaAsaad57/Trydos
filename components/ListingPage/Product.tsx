@@ -70,6 +70,9 @@ function Product({
   const selectedFilters = useSelector(
     (state: any) => state.details.selectedFilter
   );
+  const activeFilters = useSelector(
+    (state: any) => state.details.activeFilters
+  );
   const [productState, dispatch] = useReducer(ProductReducer, {
     isActiveTopSlide: false,
     activeColor: product.sync_color_images
@@ -98,16 +101,26 @@ function Product({
       isSelectedBrand,
       isSelectedSize = false;
     //filter by categories
-    if (!selectedFilters.filtered) {
+    if (
+      activeFilters.categories.length === 0 &&
+      activeFilters.offers.length === 0 &&
+      !activeFilters.prices &&
+      activeFilters.brands.length === 0 &&
+      activeFilters.sizes.length === 0
+    ) {
       return true;
     }
-    if (selectedFilters.categories.length > 0) {
+    if (activeFilters.categories.length > 0) {
       if (
         product.categories &&
         product.categories.filter((category) => {
           if (
-            selectedFilters.categories.filter(
-              (selected_cat) => selected_cat.id === category.id
+            activeFilters.categories.filter(
+              (selected_cat) =>
+                // @ts-ignore
+                parseInt(selected_cat.id) === parseInt(category.id) ||
+                // @ts-ignore
+                parseInt(selected_cat) === parseInt(category)
             ).length > 0
           )
             return true;
@@ -120,11 +133,17 @@ function Product({
       }
     } else isSelectedCat = true;
     //filter by brand
-    if (selectedFilters.brands.length > 0) {
+    if (activeFilters.brands.length > 0) {
       if (
         product.brand?.id &&
-        selectedFilters.brands.filter((brand) => brand.id === product.brand.id)
-          .length > 0
+        activeFilters.brands.filter(
+          // @ts-ignore
+          (brand) =>
+            // @ts-ignore
+            parseInt(brand.id) === parseInt(product.brand.id) ||
+            // @ts-ignore
+            parseInt(brand) === parseInt(product.brand.id)
+        ).length > 0
       ) {
         isSelectedBrand = true;
       } else {
@@ -135,7 +154,7 @@ function Product({
     }
     //filter by size
 
-    if (selectedFilters.sizes.length > 0) {
+    if (activeFilters.sizes.length > 0) {
       if (!product.variation || product.variation.length === 0) {
         isSelectedSize = false;
       } else {
@@ -143,7 +162,7 @@ function Product({
           product.variation &&
           product.variation.filter((option) => {
             if (
-              selectedFilters.sizes.filter((size) => size === option.type)
+              activeFilters.sizes.filter((size) => size === option.type)
                 .length > 0
             ) {
               return true;
@@ -163,8 +182,8 @@ function Product({
     //filter on price
 
     if (
-      product.price >= parseInt(selectedFilters.prices.min) &&
-      product.price <= parseInt(selectedFilters.prices.max)
+      product.price >= parseInt(activeFilters.prices?.min) &&
+      product.price <= parseInt(activeFilters.prices?.max)
     ) {
       isSelectedPrice = true;
     } else {

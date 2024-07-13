@@ -76,7 +76,7 @@ function GalleryItemFloatingElements() {
               id="Mask_Group_285"
               data-name="Mask Group 285"
               transform="translate(0 0.342)"
-              clip-path="url(#clip-path)"
+              clipPath="url(#clipPath)"
             >
               <g id="Love" transform="translate(0 0.841)">
                 <path
@@ -134,7 +134,7 @@ function GalleryItemFloatingElements() {
                   data-name="Ellipse 221"
                   fill="none"
                   stroke="#505050"
-                  stroke-width="0.5"
+                  strokeWidth="0.5"
                 >
                   <circle cx="3" cy="3" r="3" stroke="none" />
                   <circle cx="3" cy="3" r="2.75" fill="none" />
@@ -145,7 +145,7 @@ function GalleryItemFloatingElements() {
                   transform="translate(0 7)"
                   fill="none"
                   stroke="#505050"
-                  stroke-width="0.5"
+                  strokeWidth="0.5"
                 >
                   <circle cx="3" cy="3" r="3" stroke="none" />
                   <circle cx="3" cy="3" r="2.75" fill="none" />
@@ -156,7 +156,7 @@ function GalleryItemFloatingElements() {
                   transform="translate(0 14)"
                   fill="none"
                   stroke="#505050"
-                  stroke-width="0.5"
+                  strokeWidth="0.5"
                 >
                   <circle cx="3" cy="3" r="3" stroke="none" />
                   <circle cx="3" cy="3" r="2.75" fill="none" />

@@ -46,7 +46,7 @@ function InfoWindow() {
               data-name="Rectangle 5686"
               fill="none"
               stroke="#707070"
-              stroke-width="0.5"
+              strokeWidth="0.5"
               stroke-dasharray="3 3"
             >
               <rect

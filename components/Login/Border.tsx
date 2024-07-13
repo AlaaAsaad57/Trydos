@@ -13,7 +13,7 @@ function Border({ className }) {
         data-name="Rectangle 4748"
         fill="none"
         stroke="#707070"
-        stroke-width="0.5"
+        strokeWidth="0.5"
         stroke-dasharray="3 3"
       >
         <rect width="100%" height="100%" rx="20" stroke="none" />

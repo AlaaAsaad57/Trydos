@@ -23,7 +23,7 @@ export async function generateMetadata({ params }) {
     },
   };
 }
-async function page({ params }) {
+async function page({ params, searchParams }) {
   const boutiqueId = params.productCategory;
   const boutique = await getBoutiqueMeta({ boutiqueId, lang: params.lang });
   const filters = await getBoutiqueFilters({ boutiqueId, lang: params.lang });
@@ -35,7 +35,7 @@ async function page({ params }) {
       </Suspense>
       <FilterBar filters={filters} boutique={boutique} />
       <Suspense fallback={<ListingSkeleton />}>
-        <ProductListServer params={params} />
+        <ProductListServer searchParams={searchParams} params={params} />
       </Suspense>
     </>
   );

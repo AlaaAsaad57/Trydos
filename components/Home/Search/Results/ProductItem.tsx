@@ -15,7 +15,7 @@ function ProductItem({ product }) {
             data-name="Rectangle 5686"
             fill="none"
             stroke="#388cff"
-            stroke-width="0.3"
+            strokeWidth="0.3"
           >
             <path
               d="M15,0H29a5,5,0,0,1,5,5V45a5,5,0,0,1-5,5H15A15,15,0,0,1,0,35V15A15,15,0,0,1,15,0Z"

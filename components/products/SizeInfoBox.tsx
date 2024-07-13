@@ -26,7 +26,7 @@ function SizeInfoBox() {
             stroke="#707070"
             stroke-linecap="round"
             stroke-linejoin="round"
-            stroke-width="0.5"
+            strokeWidth="0.5"
             stroke-dasharray="3 3"
           >
             <rect width="390" height="30" rx="10" stroke="none" />

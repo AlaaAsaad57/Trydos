@@ -21,6 +21,20 @@ function FilterBar({ boutique, filters }) {
   const filterEnabled = useSelector(
     (state: any) => state.listing.filterEnabled
   );
+  const activeFilters = useSelector(
+    (state: any) => state.details.activeFilters
+  );
+  const showFilterInfoBar = () => {
+    if (
+      activeFilters.categories.length > 0 ||
+      activeFilters.brands.length > 0 ||
+      activeFilters.sizes.length > 0 ||
+      activeFilters.offers.length > 0 ||
+      activeFilters.prices?.min
+    )
+      return true;
+    else return false;
+  };
   const router = useRouter();
   useEffect(() => {
     dispatch({ type: "FILTER-INIT", payload: filters });
@@ -72,8 +86,8 @@ function FilterBar({ boutique, filters }) {
         </div>
       </div>
       <BoutiqueHeader boutique={boutique} />
-      {!filterEnabled && <FilterInfoBar />}
-      {filterEnabled && <FloatingInfoBar />}
+      {!filterEnabled && showFilterInfoBar && <FilterInfoBar />}
+      {filterEnabled && showFilterInfoBar && <FloatingInfoBar />}
     </>
   );
 }

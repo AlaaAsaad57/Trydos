@@ -8,12 +8,17 @@ function CategoryCircle({ category }) {
   const selectedFilter = useSelector(
     (state: any) => state.details.selectedFilter
   );
+  const filterEnabled = useSelector(
+    (state: any) => state.listing.filterEnabled
+  );
   const filters = useSelector((state: any) => state.details.filters);
   const dispatch = useDispatch();
   const pathName = useParams();
   const selectCategory = (e) => {
     dispatch({ type: "FILTER-CATEGORY", payload: e });
-    filter();
+    if (!filterEnabled) {
+      filter();
+    }
   };
   const filter = () => {
     dispatch({ type: "FILTER-START" });
@@ -25,6 +30,12 @@ function CategoryCircle({ category }) {
         dispatch({ type: "GET_PRODUCT", payload: { products } });
       },
       offset: 1,
+      storeCallback: (e) => {
+        dispatch({
+          type: "ACTIVE-FILTER",
+          payload: e,
+        });
+      },
       newFiltersCallback: ({ filtersVar }) => {
         dispatch({ type: "EDIT-FILTER", payload: filtersVar });
       },
@@ -59,7 +70,7 @@ function CategoryCircle({ category }) {
               data-name="Ellipse 283"
               fill="none"
               stroke={isSelected() ? "#FF5F61" : "#fff"}
-              stroke-width="0.5"
+              strokeWidth="0.5"
             >
               <circle cx="35" cy="35" r="35" stroke="none" />
               <circle cx="35" cy="35" r="34.5" fill="none" />

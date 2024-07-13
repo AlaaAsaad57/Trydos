@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
-import { filterProducts } from "utils/functions";
+
 import { useParams } from "next/navigation";
 function BrandCircle({ brand }) {
   const selectedFilter = useSelector(
@@ -13,24 +13,8 @@ function BrandCircle({ brand }) {
   const dispatch = useDispatch();
   const selectCategory = (e) => {
     dispatch({ type: "FILTER-BRAND", payload: e });
-    filter();
   };
-  const filter = () => {
-    dispatch({ type: "FILTER-START" });
 
-    filterProducts({
-      boutiqueId: pathName.productCategory,
-      lang: pathName.lang,
-      sizesAttr: filters.sizesAttr,
-      callback: (products) => {
-        dispatch({ type: "GET_PRODUCT", payload: { products } });
-      },
-      offset: 1,
-      newFiltersCallback: ({ filtersVar }) => {
-        dispatch({ type: "EDIT-FILTER", payload: filtersVar });
-      },
-    });
-  };
   const isSelected = () => {
     return selectedFilter.brands.filter((s) => s.id === brand.id).length > 0;
   };
@@ -57,7 +41,7 @@ function BrandCircle({ brand }) {
             data-name="Ellipse 283"
             fill="none"
             stroke={isSelected() ? "#FF5F61" : "#C4C2C2"}
-            stroke-width="0.5"
+            strokeWidth="0.5"
           >
             <circle cx="35" cy="35" r="35" stroke="none" />
             <circle cx="35" cy="35" r="34.5" fill="none" />

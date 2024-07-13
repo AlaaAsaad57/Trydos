@@ -3,10 +3,13 @@ import FilterLabel from "./FilterLabel";
 
 import PriceCancel from "public/svg/listing/PriceCancel.svg";
 import PriceSlider from "./PriceSlider";
-import PriceChart from "./PriceChart";
 import { useDispatch, useSelector } from "react-redux";
-import { filterProducts } from "utils/functions";
+
 import { useParams } from "next/navigation";
+import dynamic from "next/dynamic";
+const PriceChart = dynamic(() => import("./PriceChart"), {
+  ssr: false,
+});
 function BoutiquePriceFilter() {
   const dispatch = useDispatch();
   const selectedFilter = useSelector(
@@ -18,24 +21,9 @@ function BoutiquePriceFilter() {
   const set_Value = (e) => {
     if (e.min < e.max) {
       dispatch({ type: "FILTER-PRICE", payload: e });
-      filter();
     }
   };
-  const filter = () => {
-    dispatch({ type: "FILTER-START" });
-    filterProducts({
-      boutiqueId: pathName.productCategory,
-      lang: pathName.lang,
-      sizesAttr: filters.sizesAttr,
-      callback: (products) => {
-        dispatch({ type: "GET_PRODUCT", payload: { products } });
-      },
-      offset: 1,
-      newFiltersCallback: ({ filtersVar }) => {
-        dispatch({ type: "EDIT-FILTER", payload: filtersVar });
-      },
-    });
-  };
+
   return (
     <div className="flex-col justify-start align-start filter-container relative">
       {<FilterLabel text="Filter By Price" />}
@@ -46,12 +34,16 @@ function BoutiquePriceFilter() {
         }}
       />
       <div className="price-min-max flex-row z-20">
-        <div className="price-min">
-          Min {selectedFilter.prices.min} <span>USD</span>
-        </div>
-        <div className="price-max">
-          Max {selectedFilter.prices.max} <span>USD</span>
-        </div>
+        {selectedFilter.prices.min >= 0 && (
+          <div className="price-min">
+            Min {selectedFilter.prices.min} <span>USD</span>
+          </div>
+        )}
+        {selectedFilter.prices.max >= 0 && (
+          <div className="price-max">
+            Max {selectedFilter.prices.max} <span>USD</span>
+          </div>
+        )}
       </div>
       <PriceSlider
         min={filters?.prices?.min_price >= 0 ? filters?.prices?.min_price : 100}

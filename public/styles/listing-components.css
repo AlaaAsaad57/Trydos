@@ -161,6 +161,9 @@
   border-radius: 10px;
   padding-left: 10px;
 }
+.filter-info-bar::-webkit-scrollbar {
+  display: none;
+}
 .filter-info-bar.active-category-icon {
   transform: scale(0.75) translateY(2px);
 }

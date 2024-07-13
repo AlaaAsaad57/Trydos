@@ -35,7 +35,7 @@ function SelectColor({ active, photos, close }) {
               data-name="Rectangle 5686"
               fill="none"
               stroke="#FFF"
-              stroke-width="0.5"
+              strokeWidth="0.5"
             >
               <rect
                 width="calc(100%)"

@@ -28,6 +28,12 @@ function FilterButtons() {
               dispatch({ type: "GET_PRODUCT", payload: { products } });
             },
             offset: 1,
+            storeCallback: (e) => {
+              dispatch({
+                type: "ACTIVE-FILTER",
+                payload: e,
+              });
+            },
             newFiltersCallback: ({ filtersVar }) => {
               dispatch({ type: "EDIT-FILTER", payload: filtersVar });
             },
@@ -52,6 +58,18 @@ function FilterButtons() {
               dispatch({ type: "GET_PRODUCT", payload: { products } });
             },
             offset: 1,
+            storeCallback: (e) => {
+              dispatch({
+                type: "ACTIVE-FILTER",
+                payload: {
+                  categories: [],
+                  brands: [],
+                  prices: null,
+                  offers: [],
+                  sizes: [],
+                },
+              });
+            },
             newFiltersCallback: ({ filtersVar }) => {
               dispatch({ type: "EDIT-FILTER", payload: filtersVar });
             },

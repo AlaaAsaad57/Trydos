@@ -163,7 +163,7 @@ function LogInPins({
           viewBox="0 0 15 15"
         >
           <defs>
-            <clipPath id="clip-path">
+            <clipPath id="clipPath">
               <rect
                 id="Rectangle_4632"
                 data-name="Rectangle 4632"
@@ -176,7 +176,7 @@ function LogInPins({
           <g
             id="Mask_Group_304"
             data-name="Mask Group 304"
-            clip-path="url(#clip-path)"
+            clipPath="url(#clipPath)"
           >
             <g id="password" transform="translate(-1.5 -1.5)">
               <path
@@ -272,7 +272,7 @@ function LogInPins({
                 viewBox="0 0 10 10"
               >
                 <defs>
-                  <clipPath id="clip-path">
+                  <clipPath id="clipPath">
                     <rect
                       id="Rectangle_4612"
                       data-name="Rectangle 4612"
@@ -285,7 +285,7 @@ function LogInPins({
                 <g
                   id="Mask_Group_302"
                   data-name="Mask Group 302"
-                  clip-path="url(#clip-path)"
+                  clipPath="url(#clipPath)"
                 >
                   <g
                     id="Group_10750"
@@ -317,12 +317,12 @@ function LogInPins({
                 <g
                   id="Mask_Group_303"
                   data-name="Mask Group 303"
-                  clip-path="url(#clip-path)"
+                  clipPath="url(#clipPath)"
                 >
                   <g
                     id="Mask_Group_300"
                     data-name="Mask Group 300"
-                    clip-path="url(#clip-path)"
+                    clipPath="url(#clipPath)"
                   >
                     <g id="whatsapp-5" transform="translate(0 0.004)">
                       <g

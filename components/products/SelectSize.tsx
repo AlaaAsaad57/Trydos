@@ -285,7 +285,7 @@ function SelectSize({ sizes, variants }) {
             <g
               id="Mask_Group_370"
               data-name="Mask Group 370"
-              clip-path="url(#clip-path)"
+              clipPath="url(#clipPath)"
             >
               <g id="settings">
                 <g id="Group_11210" data-name="Group 11210">
@@ -408,7 +408,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_799"
@@ -418,7 +418,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_800"
@@ -428,7 +428,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_801"
@@ -438,7 +438,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_803"
@@ -448,7 +448,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_804"
@@ -458,7 +458,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_805"
@@ -468,7 +468,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_802"
@@ -478,7 +478,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_806"
@@ -488,7 +488,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
             </g>
             <g
@@ -503,7 +503,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_799-2"
@@ -513,7 +513,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_800-2"
@@ -523,7 +523,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_801-2"
@@ -533,7 +533,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_803-2"
@@ -543,7 +543,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_804-2"
@@ -553,7 +553,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_805-2"
@@ -563,7 +563,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_802-2"
@@ -573,7 +573,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_806-2"
@@ -583,7 +583,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
             </g>
             <g
@@ -598,7 +598,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_799-3"
@@ -608,7 +608,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_800-3"
@@ -618,7 +618,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_801-3"
@@ -628,7 +628,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_803-3"
@@ -638,7 +638,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_804-3"
@@ -648,7 +648,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_805-3"
@@ -658,7 +658,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_802-3"
@@ -668,7 +668,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_806-3"
@@ -678,7 +678,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
             </g>
             <g
@@ -693,7 +693,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_799-4"
@@ -703,7 +703,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_800-4"
@@ -713,7 +713,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_801-4"
@@ -723,7 +723,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_803-4"
@@ -733,7 +733,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_804-4"
@@ -743,7 +743,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_805-4"
@@ -753,7 +753,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_802-4"
@@ -763,7 +763,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_806-4"
@@ -773,7 +773,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
             </g>
             <g
@@ -788,7 +788,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_799-5"
@@ -798,7 +798,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_800-5"
@@ -808,7 +808,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_801-5"
@@ -818,7 +818,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_803-5"
@@ -828,7 +828,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_804-5"
@@ -838,7 +838,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_805-5"
@@ -848,7 +848,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_802-5"
@@ -858,7 +858,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_806-5"
@@ -868,7 +868,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
             </g>
             <g
@@ -883,7 +883,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_799-6"
@@ -893,7 +893,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_800-6"
@@ -903,7 +903,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_801-6"
@@ -913,7 +913,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_803-6"
@@ -923,7 +923,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_804-6"
@@ -933,7 +933,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_805-6"
@@ -943,7 +943,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_802-6"
@@ -953,7 +953,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_806-6"
@@ -963,7 +963,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
             </g>
           </g>
@@ -979,7 +979,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
             <line
               id="Line_799-7"
@@ -989,7 +989,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
             <line
               id="Line_800-7"
@@ -999,7 +999,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
             <line
               id="Line_801-7"
@@ -1009,7 +1009,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
             <line
               id="Line_803-7"
@@ -1019,7 +1019,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
             <line
               id="Line_804-7"
@@ -1029,7 +1029,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
             <line
               id="Line_805-7"
@@ -1039,7 +1039,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
             <line
               id="Line_802-7"
@@ -1049,7 +1049,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
             <line
               id="Line_806-7"
@@ -1059,7 +1059,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
           </g>
         </g>
@@ -1086,7 +1086,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_799"
@@ -1096,7 +1096,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_800"
@@ -1106,7 +1106,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_801"
@@ -1116,7 +1116,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_803"
@@ -1126,7 +1126,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_804"
@@ -1136,7 +1136,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_805"
@@ -1146,7 +1146,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_802"
@@ -1156,7 +1156,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_806"
@@ -1166,7 +1166,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
             </g>
             <g
@@ -1182,7 +1182,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_799-2"
@@ -1192,7 +1192,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_800-2"
@@ -1202,7 +1202,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_801-2"
@@ -1212,7 +1212,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_803-2"
@@ -1222,7 +1222,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_804-2"
@@ -1232,7 +1232,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_805-2"
@@ -1242,7 +1242,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_802-2"
@@ -1252,7 +1252,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_806-2"
@@ -1262,7 +1262,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
             </g>
             <g
@@ -1278,7 +1278,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_799-3"
@@ -1288,7 +1288,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_800-3"
@@ -1298,7 +1298,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_801-3"
@@ -1308,7 +1308,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_803-3"
@@ -1318,7 +1318,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_804-3"
@@ -1328,7 +1328,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_805-3"
@@ -1338,7 +1338,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_802-3"
@@ -1348,7 +1348,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_806-3"
@@ -1358,7 +1358,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
             </g>
             <g
@@ -1374,7 +1374,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_799-4"
@@ -1384,7 +1384,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_800-4"
@@ -1394,7 +1394,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_801-4"
@@ -1404,7 +1404,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_803-4"
@@ -1414,7 +1414,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_804-4"
@@ -1424,7 +1424,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_805-4"
@@ -1434,7 +1434,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_802-4"
@@ -1444,7 +1444,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_806-4"
@@ -1454,7 +1454,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
             </g>
             <g
@@ -1470,7 +1470,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_799-5"
@@ -1480,7 +1480,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_800-5"
@@ -1490,7 +1490,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_801-5"
@@ -1500,7 +1500,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_803-5"
@@ -1510,7 +1510,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_804-5"
@@ -1520,7 +1520,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_805-5"
@@ -1530,7 +1530,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_802-5"
@@ -1540,7 +1540,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_806-5"
@@ -1550,7 +1550,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
             </g>
             <g
@@ -1566,7 +1566,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_799-6"
@@ -1576,7 +1576,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_800-6"
@@ -1586,7 +1586,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_801-6"
@@ -1596,7 +1596,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_803-6"
@@ -1606,7 +1606,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_804-6"
@@ -1616,7 +1616,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_805-6"
@@ -1626,7 +1626,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_802-6"
@@ -1636,7 +1636,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
               <line
                 id="Line_806-6"
@@ -1646,7 +1646,7 @@ function SliderRuler() {
                 fill="none"
                 stroke="#505050"
                 stroke-linecap="round"
-                stroke-width="0.3"
+                strokeWidth="0.3"
               />
             </g>
           </g>
@@ -1663,7 +1663,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
             <line
               id="Line_799-7"
@@ -1673,7 +1673,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
             <line
               id="Line_800-7"
@@ -1683,7 +1683,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
             <line
               id="Line_801-7"
@@ -1693,7 +1693,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
             <line
               id="Line_803-7"
@@ -1703,7 +1703,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
             <line
               id="Line_804-7"
@@ -1713,7 +1713,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
             <line
               id="Line_805-7"
@@ -1723,7 +1723,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
             <line
               id="Line_802-7"
@@ -1733,7 +1733,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
             <line
               id="Line_806-7"
@@ -1743,7 +1743,7 @@ function SliderRuler() {
               fill="none"
               stroke="#505050"
               stroke-linecap="round"
-              stroke-width="0.3"
+              strokeWidth="0.3"
             />
           </g>
         </g>

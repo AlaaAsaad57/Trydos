@@ -119,6 +119,26 @@ class HomeService {
     store.dispatch(GetMainData(repo.data.boutiques));
   }
   async getNextProduct({ offset, categories, boutiqueCategory }) {
+    const filterObj = store.getState().details.activeFilters;
+    const sizesAttr = store.getState().details.sizesAttr;
+    let filters = {
+      categories: filterObj.categories.map((s) => parseInt(s.id)),
+      prices: filterObj.prices
+        ? [
+            `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
+          ]
+        : null,
+      brands: filterObj.brands.map((brand) => parseInt(brand.id)),
+      attributes: { ...sizesAttr, ...filterObj.sizes },
+      boutique_slug: categories,
+    };
+    let str = `categories=${JSON.stringify(
+      filters.categories
+    )}&brands=${JSON.stringify(filters.brands)}&attributes=${JSON.stringify(
+      filters.attributes
+    )}${
+      filters.prices !== null ? `&prices=${JSON.stringify(filters.prices)}` : ""
+    }&boutique_slug=${filters.boutique_slug}`;
     var details =
       boutiqueCategory !== "undefined"
         ? {
@@ -138,11 +158,9 @@ class HomeService {
     let url =
       OTP_URL +
       (categories
-        ? LISTING_INFO_URL +
-          `?${
-            boutiqueCategory ? `category=${boutiqueCategory}&` : ""
-          }boutique_slug=${categories}`
-        : LISTING_INFO_URL + `?boutique_slug=${categories}`);
+        ? "/web/products/with_filter" +
+          `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
+        : LISTING_INFO_URL + `?${str}`);
     await fetch(
       url + `&offset=${offset}&limit=${20}`,
 

@@ -55,7 +55,7 @@ function GalleryItemSlider({ images }) {
                     data-name="Rectangle 5686"
                     fill="none"
                     stroke="#fff"
-                    stroke-width="0.5"
+                    strokeWidth="0.5"
                   >
                     <rect width="100%" height="100%" rx="30" stroke="none" />
                     <rect

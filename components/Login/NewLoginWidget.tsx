@@ -447,7 +447,7 @@ function NewLoginWidget() {
                   fill="none"
                   stroke="#ff5f61"
                   stroke-linecap="round"
-                  stroke-width="1"
+                  strokeWidth="1"
                 />
                 <line
                   id="Line_793"
@@ -457,7 +457,7 @@ function NewLoginWidget() {
                   fill="none"
                   stroke="#ff5f61"
                   stroke-linecap="round"
-                  stroke-width="1"
+                  strokeWidth="1"
                 />
               </g>
             </svg>

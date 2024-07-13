@@ -75,6 +75,7 @@ function ProductsList({
             payload: { products },
           });
       },
+      storeCallback: () => {},
       offset: offset,
       newFiltersCallback: ({ filtersVar }) => {
         dispatch({ type: "EDIT-FILTER", payload: filtersVar });

@@ -68,7 +68,7 @@ function WelcomingWidget({
           viewBox="0 0 15 15"
         >
           <defs>
-            <clipPath id="clip-path">
+            <clipPath id="clipPath">
               <rect
                 id="Rectangle_4720"
                 data-name="Rectangle 4720"
@@ -81,7 +81,7 @@ function WelcomingWidget({
           <g
             id="Mask_Group_299"
             data-name="Mask Group 299"
-            clip-path="url(#clip-path)"
+            clipPath="url(#clipPath)"
           >
             <path
               id="login"

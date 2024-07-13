@@ -24,7 +24,7 @@ function OfferCircle() {
             data-name="Ellipse 283"
             fill="none"
             stroke={active ? "#FF5F61" : "#C4C2C2"}
-            stroke-width="0.5"
+            strokeWidth="0.5"
           >
             <circle cx="35" cy="35" r="35" stroke="none" />
             <circle cx="35" cy="35" r="34.5" fill="none" />

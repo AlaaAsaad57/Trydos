@@ -36,6 +36,14 @@ const initialState = {
     sizes: [],
   },
   filterLoading: false,
+  activeFilters: {
+    categories: [],
+    brands: [],
+    prices: null,
+    offers: [],
+    sizes: [],
+  },
+  activeFiltersShouldUpdate: false,
 };
 
 const DetailsReducer = (state = initialState, { type, payload }) => {
@@ -61,10 +69,13 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         },
         selectedFilter: {
           ...state.selectedFilter,
-          prices: {
-            min: payload?.prices?.min_price || 0,
-            max: payload?.prices?.max_price || 500,
-          },
+          prices:
+            payload.prices.min_price >= 0 && payload?.prices?.max_price >= 0
+              ? {
+                  min: payload?.prices?.min_price,
+                  max: payload?.prices?.max_price,
+                }
+              : null,
         },
       };
     }
@@ -151,10 +162,14 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         selectedFilter: {
           filtered: false,
           categories: [],
-          prices: {
-            min: state?.filters.prices?.min_price || 100,
-            max: state?.filters?.prices?.max_price || 500,
-          },
+          prices:
+            state?.filters?.prices?.min_price >= 0 &&
+            state?.filters?.prices?.max_price >= 0
+              ? {
+                  min: state?.filters.prices?.min_price,
+                  max: state?.filters?.prices?.max_price,
+                }
+              : null,
           brands: [],
           offers: [],
           sizes: [],
@@ -262,10 +277,13 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         ...state,
         selectedFilter: {
           ...state.selectedFilter,
-          prices: {
-            min: state.filters.prices.min_price,
-            max: state.filters.prices.max_price,
-          },
+          prices:
+            state.filters.prices.min_price && state.filters.prices.min_price
+              ? {
+                  min: state.filters.prices.min_price,
+                  max: state.filters.prices.max_price,
+                }
+              : null,
         },
       };
     }
@@ -285,16 +303,9 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           sizes: state.selectedFilter.sizes.filter(
             (cat) => payload.sizes.filter((s) => s.id === cat.id).length > 0
           ),
-          // prices: {
-          //   min:
-          //     state.selectedFilter.prices.min < payload.prices.min_price
-          //       ? payload.prices.min_price
-          //       : state.selectedFilter.prices.min,
-          //   max:
-          //     state.selectedFilter.prices.max > payload.prices.max_price
-          //       ? payload.prices.max_price
-          //       : state.selectedFilter.prices.max,
-          // },
+          prices: payload.reset
+            ? { min: payload.prices.min_price, max: payload.prices.max_price }
+            : null,
         },
         filterLoading: false,
       };
@@ -302,7 +313,19 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
     case "FILTER-START": {
       return {
         ...state,
-        filterLoading: true,
+        filterLoading: false,
+      };
+    }
+    case "ACTIVE-FILTER": {
+      return {
+        ...state,
+        activeFilters: { ...state.activeFilters, ...payload },
+      };
+    }
+    case "enable-handling-filter": {
+      return {
+        ...state,
+        activeFiltersShouldUpdate: true,
       };
     }
     default:

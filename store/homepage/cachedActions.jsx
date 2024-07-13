@@ -154,34 +154,81 @@ export const getLang = (lang, cookieLang) => {
     }
   }
 };
-export const getListingData = async ({ categories, lang, productCategory }) => {
-  let str = categories;
-  let url =
-    OTP_URL +
-    (productCategory
-      ? LISTING_INFO_URL + `?category=${productCategory}&boutique_slug=${str}`
-      : LISTING_INFO_URL + `?boutique_slug=${str}`);
-  var details = productCategory
-    ? {
-        boutique_slug: str,
-        category: productCategory,
-      }
-    : {
-        boutique_slug: str,
-      };
-  var formBody = [];
-  for (var property in details) {
-    var encodedKey = encodeURIComponent(property);
-    var encodedValue = encodeURIComponent(details[property]);
-    formBody.push(encodedKey + "=" + encodedValue);
-  }
-  formBody = formBody.join("&");
+export const getListingData = async ({
+  categories,
+  lang,
+  productCategory,
+  searchParams,
+}) => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
+  if (Object.keys(searchParams).length > 0) {
+    let obj = {};
+    if (Object.keys(searchParams).includes("categories"))
+      obj = {
+        ...obj,
+        categories: `${
+          searchParams.categories.includes(",")
+            ? searchParams.categories.split(",")
+            : [searchParams.categories]
+        }`,
+      };
+    if (Object.keys(searchParams).includes("brands"))
+      obj = {
+        ...obj,
+        brands: `${
+          searchParams.brands.includes(",")
+            ? searchParams.brands.split(",")
+            : [searchParams.brands]
+        }`,
+      };
+    if (Object.keys(searchParams).includes("offers"))
+      obj = {
+        ...obj,
+        offers: `${
+          searchParams.offers.includes(",")
+            ? searchParams.offers.split(",")
+            : [searchParams.offers]
+        }`,
+      };
+    if (Object.keys(searchParams).includes("sizes"))
+      obj = {
+        ...obj,
+        sizes: `${
+          searchParams.sizes.includes(",")
+            ? searchParams.sizes.split(",")
+            : [searchParams.sizes]
+        }`,
+        sizesAttr: { id: "1", name: "Size" },
+      };
+    if (
+      Object.keys(searchParams).includes("max-pr") &&
+      Object.keys(searchParams).includes("min-pr")
+    )
+      obj = {
+        ...obj,
+        prices: `${searchParams["min-pr"]}-${searchParams["max-pr"]}`,
+      };
 
-  try {
-    let time = new Date().getTime();
-    const res = await fetch(url, {
+    let filters = {
+      ...obj,
+      boutique_slug: categories,
+      lang: lang.split("-")[1],
+    };
+    let str = `/web/products/with_filter?${
+      obj.categories
+        ? `categories=${JSON.stringify(obj.categories.split(","))}`
+        : ""
+    }${obj.brands ? `&brands=${JSON.stringify(obj.brands.split(","))}` : ""}${
+      obj.sizes
+        ? `&attributes={id:${obj.sizesAttr.id},name:${
+            obj.sizesAttr.name
+          },options:${JSON.stringify(obj.sizes.split(","))}}`
+        : ""
+    }${
+      filters.prices !== null ? `&prices=[${JSON.stringify(obj.prices)}]` : ""
+    }&boutique_slug=${categories}`;
+    let productRes = await fetch(OTP_URL + str, {
       method: "GET",
 
       next: {
@@ -195,22 +242,72 @@ export const getListingData = async ({ categories, lang, productCategory }) => {
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
       }),
     });
-    const repo = await res.json();
-    time = new Date().getTime() - time;
-    let returned_res = {
-      type: res.type,
-      headers: new Headers({
-        lang: await getLang(lang, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
-      }),
-      url: res.url,
-      time: time + "ms",
-      body: repo,
-      reqBody: formBody,
-    };
-    return [repo.data, returned_res];
-  } catch (e) {
-    return ["listing-error", e.toString()];
+    let repo = await productRes.json();
+    console.log(repo, str, searchParams);
+    return [
+      [],
+      {
+        body: repo,
+      },
+    ];
+  } else {
+    let str = categories;
+    let url =
+      OTP_URL +
+      (productCategory
+        ? LISTING_INFO_URL + `?category=${productCategory}&boutique_slug=${str}`
+        : LISTING_INFO_URL + `?boutique_slug=${str}`);
+    var details = productCategory
+      ? {
+          boutique_slug: str,
+          category: productCategory,
+        }
+      : {
+          boutique_slug: str,
+        };
+    var formBody = [];
+    for (var property in details) {
+      var encodedKey = encodeURIComponent(property);
+      var encodedValue = encodeURIComponent(details[property]);
+      formBody.push(encodedKey + "=" + encodedValue);
+    }
+    formBody = formBody.join("&");
+
+    try {
+      let time = new Date().getTime();
+      const res = await fetch(url, {
+        method: "GET",
+
+        next: {
+          revalidate: 300,
+          tags: [`listing-data-${str}`, "listing-data"],
+        },
+        headers: new Headers({
+          lang: await getLang(lang, cookieStore.get("language")?.value),
+          country:
+            cookieStore.get("country") && cookieStore.get("country").value,
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        }),
+      });
+      const repo = await res.json();
+      time = new Date().getTime() - time;
+      let returned_res = {
+        type: res.type,
+        headers: new Headers({
+          lang: await getLang(lang, cookieStore.get("language")?.value),
+          country:
+            cookieStore.get("country") && cookieStore.get("country").value,
+        }),
+        url: res.url,
+        time: time + "ms",
+        body: repo,
+        reqBody: formBody,
+      };
+      return [repo.data, returned_res];
+    } catch (e) {
+      return ["listing-error", e.toString()];
+    }
   }
 };
 

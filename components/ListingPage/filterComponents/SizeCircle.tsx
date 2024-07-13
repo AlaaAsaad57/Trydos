@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
-import { filterProducts } from "utils/functions";
+
 import { useParams } from "next/navigation";
 
 function SizeCircle({ text }: { text: string }) {
@@ -13,24 +13,8 @@ function SizeCircle({ text }: { text: string }) {
   const dispatch = useDispatch();
   const selectCategory = (e) => {
     dispatch({ type: "FILTER-SIZE", payload: e });
-    filter();
   };
-  const filter = () => {
-    dispatch({ type: "FILTER-START" });
 
-    filterProducts({
-      boutiqueId: pathName.productCategory,
-      lang: pathName.lang,
-      sizesAttr: filters.sizesAttr,
-      callback: (products) => {
-        dispatch({ type: "GET_PRODUCT", payload: { products } });
-      },
-      offset: 1,
-      newFiltersCallback: ({ filtersVar }) => {
-        dispatch({ type: "EDIT-FILTER", payload: filtersVar });
-      },
-    });
-  };
   const isSelected = () => {
     return selectedFilter.sizes.filter((s) => s === text).length > 0;
   };
@@ -59,7 +43,7 @@ function SizeCircle({ text }: { text: string }) {
             data-name="Ellipse 283"
             fill="none"
             stroke={isSelected() ? "#FF5F61" : "#6b6b6b"}
-            stroke-width="0.5"
+            strokeWidth="0.5"
             stroke-dasharray="3 3"
           >
             <circle cx="35" cy="35" r="35" stroke="none" />

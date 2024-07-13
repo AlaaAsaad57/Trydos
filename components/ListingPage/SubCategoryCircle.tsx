@@ -41,7 +41,7 @@ function SubCategoryCircle({ index, MainCategoryActive, category }) {
           data-name="Ellipse 283"
           fill="none"
           stroke={active && MainCategoryActive ? "#FF5F61" : "#fff"}
-          stroke-width="0.5"
+          strokeWidth="0.5"
         >
           <circle cx="25" cy="25" r="25" stroke="none" />
           <circle cx="25" cy="25" r="25" fill="none" />

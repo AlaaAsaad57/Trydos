@@ -11,7 +11,7 @@ function FilterButton() {
         viewBox="0 0 25 25"
       >
         <defs>
-          <clipPath id="clip-path">
+          <clipPath id="clipPath">
             <rect
               id="Rectangle_4814"
               data-name="Rectangle 4814"
@@ -26,7 +26,7 @@ function FilterButton() {
           id="Mask_Group_359"
           data-name="Mask Group 359"
           transform="translate(876.942 -379.942) rotate(90)"
-          clip-path="url(#clip-path)"
+          clipPath="url(#clipPath)"
         >
           <g
             id="Group_11151"
@@ -38,7 +38,7 @@ function FilterButton() {
               data-name="Ellipse 221"
               fill="#fff"
               stroke="#505050"
-              stroke-width="0.5"
+              strokeWidth="0.5"
             >
               <circle cx="3.741" cy="3.741" r="3.741" stroke="none" />
               <circle cx="3.741" cy="3.741" r="3.491" fill="none" />
