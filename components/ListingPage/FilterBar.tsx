@@ -55,7 +55,7 @@ function FilterBar({ boutique, filters }) {
   const { replace, push } = useRouter();
   const onChange = (e) => {
     const params = new URLSearchParams(searchParams);
-    if (e.target.value.length > 2) {
+    if (e.target.value.length > 2 || e.target.value === 0) {
       dispatch({ type: "Skeleton-Listing" });
       filterProducts({
         serachTrigger: true,

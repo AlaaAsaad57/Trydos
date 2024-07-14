@@ -463,6 +463,7 @@ export const filterProducts = async ({
       country: filters.country,
     },
   });
+  console.log(!serachTrigger);
   if (!serachTrigger)
     newFiltersCallback({
       filtersVar: {
