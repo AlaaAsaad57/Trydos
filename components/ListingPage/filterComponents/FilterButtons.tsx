@@ -87,79 +87,95 @@ function FilterButtons() {
     });
     replace(`${pathname}?${params.toString()}`);
   };
-
+  const showFilterInfoBar = () => {
+    if (
+      selectedFilter.categories.length > 0 ||
+      selectedFilter.brands.length > 0 ||
+      selectedFilter.sizes.length > 0 ||
+      selectedFilter.offers.length > 0 ||
+      selectedFilter.prices?.min >= 0
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  };
   return (
-    <div className="filter-buttons flex-row">
-      <div
-        className="apply-button flex-row"
-        onClick={() => {
-          dispatch({ type: "PRODUCT_LOADING" });
-          dispatch({ type: "RESET_LISTING_FILTER" });
-          dispatch({ type: "Skeleton-Listing" });
-          filterProducts({
-            boutiqueId: pathName.productCategory,
-            lang: pathName.lang,
-            sizesAttr: sizesAttr,
-            callback: (products) => {
-              dispatch({ type: "GET_PRODUCT", payload: { products } });
-            },
-            offset: 1,
-            storeCallback: (e) => {
-              dispatch({
-                type: "ACTIVE-FILTER",
-                payload: e,
-              });
-            },
-            newFiltersCallback: ({ filtersVar }) => {
-              dispatch({ type: "EDIT-FILTER", payload: filtersVar });
-            },
-          });
-          dispatch({ type: "filterEnabled", payload: false });
-          window.scrollTo({ top: 0 });
-          normalizeView();
-          if (activeFiltersShouldUpdate) handleSearch(selectedFilter);
-        }}
-      >
-        Apply
-      </div>
-      <div
-        className="reset-button flex-row"
-        onClick={() => {
-          dispatch({ type: "PRODUCT_LOADING" });
-          dispatch({ type: "RESET_LISTING_FILTER" });
-          dispatch({ type: "Skeleton-Listing" });
-          filterProducts({
-            boutiqueId: pathName.productCategory,
-            lang: pathName.lang,
-            sizesAttr: sizesAttr,
-            callback: (products) => {
-              dispatch({ type: "GET_PRODUCT", payload: { products } });
-            },
-            offset: 1,
-            storeCallback: (e) => {
-              dispatch({
-                type: "ACTIVE-FILTER",
-                payload: {
-                  categories: [],
-                  brands: [],
-                  prices: null,
-                  offers: [],
-                  sizes: [],
+    <>
+      {showFilterInfoBar() && (
+        <div className="filter-buttons flex-row">
+          <div
+            className="apply-button flex-row"
+            onClick={() => {
+              dispatch({ type: "PRODUCT_LOADING" });
+              dispatch({ type: "RESET_LISTING_FILTER" });
+              dispatch({ type: "Skeleton-Listing" });
+              filterProducts({
+                boutiqueId: pathName.productCategory,
+                lang: pathName.lang,
+                sizesAttr: sizesAttr,
+                callback: (products) => {
+                  dispatch({ type: "GET_PRODUCT", payload: { products } });
+                },
+                offset: 1,
+                storeCallback: (e) => {
+                  dispatch({
+                    type: "ACTIVE-FILTER",
+                    payload: e,
+                  });
+                },
+                newFiltersCallback: ({ filtersVar }) => {
+                  dispatch({ type: "EDIT-FILTER", payload: filtersVar });
                 },
               });
-            },
-            newFiltersCallback: ({ filtersVar }) => {
-              dispatch({ type: "EDIT-FILTER", payload: filtersVar });
-            },
-            reset: true,
-          });
-          dispatch({ type: "RESET-FILTER" });
-          normalizeView();
-        }}
-      >
-        Reset
-      </div>
-    </div>
+              dispatch({ type: "filterEnabled", payload: false });
+              window.scrollTo({ top: 0 });
+              normalizeView();
+              if (activeFiltersShouldUpdate) handleSearch(selectedFilter);
+            }}
+          >
+            Apply
+          </div>
+          <div
+            className="reset-button flex-row"
+            onClick={() => {
+              dispatch({ type: "PRODUCT_LOADING" });
+              dispatch({ type: "RESET_LISTING_FILTER" });
+              dispatch({ type: "Skeleton-Listing" });
+              filterProducts({
+                boutiqueId: pathName.productCategory,
+                lang: pathName.lang,
+                sizesAttr: sizesAttr,
+                callback: (products) => {
+                  dispatch({ type: "GET_PRODUCT", payload: { products } });
+                },
+                offset: 1,
+                storeCallback: (e) => {
+                  dispatch({
+                    type: "ACTIVE-FILTER",
+                    payload: {
+                      categories: [],
+                      brands: [],
+                      prices: null,
+                      offers: [],
+                      sizes: [],
+                    },
+                  });
+                },
+                newFiltersCallback: ({ filtersVar }) => {
+                  dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+                },
+                reset: true,
+              });
+              dispatch({ type: "RESET-FILTER" });
+              normalizeView();
+            }}
+          >
+            Reset
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
