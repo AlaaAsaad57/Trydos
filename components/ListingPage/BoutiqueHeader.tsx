@@ -64,7 +64,7 @@ function BoutiqueHeader({ boutique }) {
       }
     }
     //prices
-    if (data.prices) {
+    if (data.prices && data.prices?.min >= 0 && data.prices?.max >= 0) {
       params.set("max-pr", `${data.prices.max}`);
       params.set("min-pr", `${data.prices.min}`);
     } else {
