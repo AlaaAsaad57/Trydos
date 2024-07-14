@@ -180,7 +180,7 @@ function Product({
       isSelectedSize = true;
     }
     //filter on price
-
+    if (!activeFilters.prices || !activeFilters.prices?.min) return true;
     if (
       product.price >= parseInt(activeFilters.prices?.min) &&
       product.price <= parseInt(activeFilters.prices?.max)
