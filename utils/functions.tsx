@@ -457,7 +457,6 @@ export const filterProducts = async ({
         ? `&search_text=${filters.searchText}`
         : ""
     }`;
-    console.log(filters, str, "heyy");
   }
   let product = await axios.get(OTP_URL + str, {
     params: { colors: `${JSON.stringify(filters.colors)}` },
@@ -466,7 +465,7 @@ export const filterProducts = async ({
       country: filters.country,
     },
   });
-  console.log(!serachTrigger);
+
   if (!serachTrigger)
     newFiltersCallback({
       filtersVar: {

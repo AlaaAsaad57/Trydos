@@ -13,7 +13,6 @@ function FilterButton({ filters, showedFilter }) {
       dispatch({ type: "SHOWED-FILTER", payload: filters()[i + 1].name });
       document.querySelector(".filter-container").scrollLeft =
         window.innerWidth * (i + 1) - (i + 1) * 50;
-      console.log(window.innerWidth * (i + 1) - i * 50);
     }
   };
   return (
@@ -22,7 +21,7 @@ function FilterButton({ filters, showedFilter }) {
       onClick={() => onClick()}
     >
       {filters().map((s, i) => (
-        <span className={`${i > 0 && "ml-[2px]"}`}>
+        <span className={`${i > 0 && "ml-[2px]"}`} key={i}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="7.483"

@@ -252,12 +252,7 @@ export const getListingData = async ({
     }${
       filters.prices !== null ? `&prices=[${JSON.stringify(obj.prices)}]` : ""
     }&boutique_slug=${categories}`;
-    console.log(
-      str +
-        `&${new URLSearchParams({
-          colors: `[${obj?.colors?.split(",").map((s) => `"${s}"`)}]`,
-        }).toString()}`
-    );
+
     let productRes = await fetch(
       OTP_URL +
         str +
@@ -281,7 +276,7 @@ export const getListingData = async ({
       }
     );
     let repo = await productRes.json();
-    console.log(str, obj);
+
     return [
       [],
       {
@@ -343,7 +338,7 @@ export const getListingData = async ({
         body: repo,
         reqBody: formBody,
       };
-      console.log(repo, str);
+
       return [repo.data, returned_res];
     } catch (e) {
       return ["listing-error", e.toString()];

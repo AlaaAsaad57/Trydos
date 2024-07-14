@@ -372,7 +372,6 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "EDIT-FILTER": {
-      console.log(payload);
       return {
         ...state,
         filters: { ...state.filters, ...payload },

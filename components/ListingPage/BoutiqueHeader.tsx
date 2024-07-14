@@ -50,7 +50,6 @@ function BoutiqueHeader({ boutique }) {
   const { replace } = useRouter();
   const pathName = useParams();
   const handleSearch = (data) => {
-    console.log("handle");
     const params = new URLSearchParams(searchParams);
     //categories
     if (data.categories.length > 0) {
