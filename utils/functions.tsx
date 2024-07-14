@@ -424,11 +424,12 @@ export const filterProducts = async ({
 
   let filters = {
     categories: filterObj.categories.map((s) => s.id),
-    prices: filterObj.prices
-      ? [
-          `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
-        ]
-      : null,
+    prices:
+      filterObj.prices?.min >= 0
+        ? [
+            `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
+          ]
+        : null,
     brands: filterObj.brands.map((brand) => brand.id),
     attributes: { ...sizesAttr, ...filterObj.sizes },
     boutique_slug: boutiqueId,
