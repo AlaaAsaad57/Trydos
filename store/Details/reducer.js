@@ -92,11 +92,12 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
             filtered: true,
             categories:
               state.selectedFilter.categories.filter(
-                (category) => category.id === payload.id
+                (category) => parseInt(category.id) === parseInt(payload.id)
               ).length > 0
                 ? [
                     ...state.selectedFilter.categories.filter(
-                      (category) => category.id !== payload.id
+                      (category) =>
+                        parseInt(category.id) !== parseInt(payload.id)
                     ),
                   ]
                 : [...state.selectedFilter.categories, payload],
@@ -111,11 +112,11 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           filtered: true,
           brands:
             state.selectedFilter.brands.filter(
-              (brand) => brand.id === payload.id
+              (brand) => parseInt(brand.id) === parseInt(payload.id)
             ).length > 0
               ? [
                   ...state.selectedFilter.brands.filter(
-                    (brand) => brand.id !== payload.id
+                    (brand) => parseInt(brand.id) !== parseInt(payload.id)
                   ),
                 ]
               : [...state.selectedFilter.brands, payload],
