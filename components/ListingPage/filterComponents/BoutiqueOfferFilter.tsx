@@ -2,17 +2,13 @@ import React from "react";
 import FilterLabel from "./FilterLabel";
 import OfferRow from "./OfferRow";
 
-function BoutiqueOfferFilter() {
+function BoutiqueOfferFilter({ filterEnabled }) {
   return (
     <>
-      {
-        <div className="flex-col justify-start align-start filter-container">
-          {<FilterLabel text="Filter By Offer" />}
-          <div className="boutique-category-filter flex-row">
-            <OfferRow />
-          </div>
-        </div>
-      }
+      {filterEnabled && <FilterLabel text="Filter By Offer" />}
+      <div className="boutique-category-filter flex-row">
+        <OfferRow />
+      </div>
     </>
   );
 }

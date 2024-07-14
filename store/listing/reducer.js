@@ -5,11 +5,16 @@ const initialState = {
   offset: 2,
   filterEnabled: false,
   skeleton: false,
+  showedFilter: "Categories",
 };
 
 const ListingReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "SHOWED-FILTER": {
+      return { ...state, showedFilter: payload };
+    }
     case "filterEnabled": {
+      document.querySelector(".filter-container").scrollLeft = 0;
       return {
         ...state,
         filterEnabled: payload,

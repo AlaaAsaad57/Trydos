@@ -51,8 +51,8 @@
   font-size: 12px;
 }
 .boutique-category-filter {
-  padding-left: 15px;
   height: 103px;
+  min-width: 100%;
   padding-top: 9px;
   width: 100%;
   align-items: center;

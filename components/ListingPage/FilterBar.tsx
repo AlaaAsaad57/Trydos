@@ -114,6 +114,7 @@ function FilterBar({ boutique, filters }) {
           className="back-icon"
           onClick={() => {
             if (!filterEnabled) {
+              dispatch({ type: "RESET-FILTERS" });
               dispatchRouteChangeEvent("start", {
                 to: "HomePage",
                 from: "details",

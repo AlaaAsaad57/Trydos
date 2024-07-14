@@ -2,14 +2,14 @@ import React from "react";
 import FilterLabel from "./FilterLabel";
 import SizeRow from "./SizeRow";
 
-function BoutiqueOfferFilter() {
+function BoutiqueOfferFilter({ filterEnabled }) {
   return (
-    <div className="flex-col justify-start align-start filter-container size-filter-container">
-      {<FilterLabel text="Filter By Size" />}
+    <>
+      {filterEnabled && <FilterLabel text="Filter By Size" />}
       <div className="boutique-category-filter flex-row">
         <SizeRow />
       </div>
-    </div>
+    </>
   );
 }
 

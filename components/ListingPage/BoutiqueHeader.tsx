@@ -11,33 +11,106 @@ import BoutiqueSizeFilter from "./filterComponents/BoutiqueSizeFilter";
 import { expandView, normalizeView } from "utils/functions";
 import FilterButtons from "./filterComponents/FilterButtons";
 import FilterComponentLoader from "./filterComponents/FilterComponentLoader";
-import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import {
+  usePathname,
+  useSearchParams,
+  useRouter,
+  useParams,
+} from "next/navigation";
+import FilterButton from "./FilterButton";
 
 function BoutiqueHeader({ boutique }) {
   const filterEnabled = useSelector(
     (state: any) => state.listing.filterEnabled
   );
+  const showedFilter = useSelector((state: any) => state.listing.showedFilter);
   const filterLoading = useSelector(
     (state: any) => state.details.filterLoading
   );
+
   const sizesAttr = useSelector(
     (state: any) => state.details.filters.sizesAttr
   );
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const { replace } = useRouter();
 
+  const filters = useSelector((state: any) => state.details.filters);
   const activeFilters = useSelector(
     (state: any) => state.details.activeFilters
   );
-  const activeFiltersShouldUpdate = useSelector(
-    (state: any) => state.details.activeFiltersShouldUpdate
-  );
-  const filters = useSelector((state: any) => state.details.filters);
+
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch({ type: "enable-handling-filter" });
   }, []);
+  const activeFiltersShouldUpdate = useSelector(
+    (state: any) => state.details.activeFiltersShouldUpdate
+  );
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { replace } = useRouter();
+  const pathName = useParams();
+  const handleSearch = (data) => {
+    console.log("handle");
+    const params = new URLSearchParams(searchParams);
+    //categories
+    if (data.categories.length > 0) {
+      params.set("categories", `${data.categories.map((s) => s.id)}`);
+    } else {
+      if (params.get("categories")) {
+        params.delete("categories");
+      }
+    }
+    //brands
+    if (data.brands.length > 0) {
+      params.set("brands", `${data.brands.map((s) => s.id)}`);
+    } else {
+      if (params.get("brands")) {
+        params.delete("brands");
+      }
+    }
+    //sizes
+    if (data.sizes.length > 0) {
+      params.set("sizes", `${data.sizes.map((s) => s)}`);
+      params.set("attr-var", `{id:'${sizesAttr.id}',name:'${sizesAttr.name}'}`);
+    } else {
+      if (params.get("sizes")) {
+        params.delete("sizes");
+        params.delete("attr-var");
+      }
+    }
+    //offers
+    if (data.offers.length > 0) {
+      params.set("offers", `${data.offers.map((s) => s)}`);
+    } else {
+      if (params.get("offers")) {
+        params.delete("offers");
+      }
+    }
+    //prices
+    if (data.prices && data.prices?.min >= 0 && data.prices?.max >= 0) {
+      params.set("max-pr", `${data.prices.max}`);
+      params.set("min-pr", `${data.prices.min}`);
+    } else {
+      if (params.get("max-pr") && params.get("max-pr")) {
+        params.delete("max-pr");
+        params.delete("min-pr");
+      }
+    }
+    if (data.searchText?.length > 0) {
+      params.set("searchText", data.searchText);
+    } else {
+      params.delete("searchText");
+    }
+    dispatch({
+      type: "ACTIVE-ROUTE",
+      payload: `${pathname}?${params.toString()}`,
+    });
+    replace(`${pathname}?${params.toString()}`);
+  };
+  useEffect(() => {
+    if (activeFiltersShouldUpdate) {
+      handleSearch(activeFilters);
+    }
+  }, [activeFilters]);
   useEffect(() => {
     if (searchParams.size > 0) {
       dispatch({
@@ -95,7 +168,7 @@ function BoutiqueHeader({ boutique }) {
     });
   }, []);
   return (
-    <div className="boutique-header flex-col align-center">
+    <div className={`boutique-header ${"flex-col"} align-center`}>
       <div className="boutique-top-info flex-col items-center">
         <div className="boutique-logo-container flex-row align-center">
           <img width={130} height={20} src={boutique.icon} />
@@ -105,19 +178,60 @@ function BoutiqueHeader({ boutique }) {
         <div className="boutique-text">{boutique.name}</div>
       </div>
       <BoutiquePhoto photo={boutique.photo} />
-      {filters?.categories.length > 0 && (
-        <BoutiqueCategoryFilter filterEnabled={filterEnabled} />
-      )}
-      {filterEnabled && (
-        <>
-          {filters?.brands.length > 0 && <BoutiqueBrandFilter />}
-          {filters?.offers?.length > 0 && <BoutiqueOfferFilter />}
-          {filters?.prices?.min_price >= 0 && <BoutiquePriceFilter />}
-          {filters?.sizes?.length > 0 && <BoutiqueSizeFilter />}
-          <FilterButtons />
-          {filterLoading && <FilterComponentLoader />}
-        </>
-      )}
+      <div className="w-full flex-row items-center pl-[15px]">
+        {!filterEnabled && (
+          <FilterButton
+            filters={() => {
+              let arr = [];
+              if (filters.categories.length > 0)
+                arr.push({ name: "Categories" });
+              if (filters?.brands.length > 0) arr.push({ name: "Brands" });
+              if (filters?.sizes.length > 0) arr.push({ name: "Sizes" });
+              if (filters?.offers.length > 0) arr.push({ name: "Offers" });
+              return arr;
+            }}
+            showedFilter={showedFilter}
+          />
+        )}
+        <div
+          className={`${
+            filterEnabled ? "flex-col" : "flex-row"
+          }  justify-start align-start filter-container overflow-hidden scroll-smooth `}
+          onScroll={(e) => {
+            e.preventDefault();
+          }}
+        >
+          {filters?.categories.length > 0 && (
+            <BoutiqueCategoryFilter filterEnabled={filterEnabled} />
+          )}
+          {
+            <>
+              {filters?.brands.length > 0 && (
+                <>
+                  <BoutiqueBrandFilter filterEnabled={filterEnabled} />
+                </>
+              )}
+              {filters?.offers?.length > 0 && (
+                <>
+                  <BoutiqueOfferFilter filterEnabled={filterEnabled} />
+                </>
+              )}
+              {filters?.prices?.min_price >= 0 && filterEnabled && (
+                <>
+                  <BoutiquePriceFilter />
+                </>
+              )}
+              {filters?.sizes?.length > 0 && (
+                <>
+                  <BoutiqueSizeFilter filterEnabled={filterEnabled} />
+                </>
+              )}
+              <FilterButtons />
+              {filterLoading && <FilterComponentLoader />}
+            </>
+          }
+        </div>
+      </div>
     </div>
   );
 }

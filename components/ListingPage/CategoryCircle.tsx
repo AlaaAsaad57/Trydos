@@ -14,6 +14,7 @@ function CategoryCircle({ category }) {
   const filters = useSelector((state: any) => state.details.filters);
   const dispatch = useDispatch();
   const pathName = useParams();
+
   const selectCategory = (e) => {
     dispatch({ type: "FILTER-CATEGORY", payload: e });
     if (!filterEnabled) {
@@ -84,7 +85,7 @@ function CategoryCircle({ category }) {
         </div>
         <div className="category-text-container flex-col align-center">
           <span className="category-title">{category.name}</span>
-          <span className="category-typo">1100</span>
+          {/* <span className="category-typo">1100</span> */}
         </div>
       </div>
       <div

@@ -17,17 +17,15 @@ function FilterButtons() {
     (state: any) => state.details.filters.sizesAttr
   );
 
-  const pathname = usePathname();
-  const { replace } = useRouter();
-
-  const activeFilters = useSelector(
-    (state: any) => state.details.activeFilters
-  );
   const activeFiltersShouldUpdate = useSelector(
     (state: any) => state.details.activeFiltersShouldUpdate
   );
+  const filterEnabled = useSelector(
+    (state: any) => state.listing.filterEnabled
+  );
   const searchParams = useSearchParams();
-
+  const pathname = usePathname();
+  const { replace } = useRouter();
   const pathName = useParams();
   const handleSearch = (data) => {
     console.log("handle");
@@ -89,11 +87,12 @@ function FilterButtons() {
   };
   const showFilterInfoBar = () => {
     if (
-      selectedFilter.categories.length > 0 ||
-      selectedFilter.brands.length > 0 ||
-      selectedFilter.sizes.length > 0 ||
-      selectedFilter.offers.length > 0 ||
-      selectedFilter.prices?.min >= 0
+      filterEnabled &&
+      (selectedFilter.categories.length > 0 ||
+        selectedFilter.brands.length > 0 ||
+        selectedFilter.sizes.length > 0 ||
+        selectedFilter.offers.length > 0 ||
+        selectedFilter.prices?.min > 0)
     ) {
       return true;
     } else {

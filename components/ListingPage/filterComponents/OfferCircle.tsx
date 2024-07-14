@@ -43,7 +43,7 @@ function OfferCircle() {
 
       <div className="category-text-container flex-col align-center">
         <span className="category-title">T-Shirt</span>
-        <span className="category-typo">1100</span>
+        {/* <span className="category-typo">1100</span> */}
       </div>
     </div>
   );

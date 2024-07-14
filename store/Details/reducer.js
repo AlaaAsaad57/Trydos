@@ -181,6 +181,59 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         },
       };
     }
+    case "RESET-FILTERS": {
+      return {
+        ...state,
+        activeCameraGallery: false,
+        InfoMessage: {
+          showInfoMessage: false,
+          title: "",
+          icon: "",
+          text: "",
+          value: [],
+        },
+        variants: [],
+        AddToCartOption: {
+          enable: false,
+          selectedSize: { name: "M", last: "2" },
+          selectedColor: { color_name: "Blue", images: [null] },
+          quantity: 0,
+          price: null,
+          UID: "",
+        },
+        filters: {
+          categories: [],
+          brands: [],
+          prices: {},
+          sizes: [],
+          offers: [],
+          sizesAttr: {},
+        },
+        selectedFilter: {
+          categories: [],
+          filtered: false,
+          prices: {
+            min: 0,
+            max: 500,
+          },
+          brands: [],
+          offers: [],
+          sizes: [],
+          searchText: "",
+        },
+        filterLoading: false,
+        activeFilters: {
+          categories: [],
+          brands: [],
+          prices: null,
+          offers: [],
+          sizes: [],
+          searchText: "",
+        },
+        activeFiltersShouldUpdate: false,
+        search: false,
+      };
+    }
     case "ACTIVE-CAMERA-GALLERY":
       return { ...state, activeCameraGallery: payload };
     case "SHOW-INFO-MESSAGE": {

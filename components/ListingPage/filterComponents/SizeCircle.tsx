@@ -3,6 +3,7 @@ import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
 
 import { useParams } from "next/navigation";
+import { filterProducts } from "utils/functions";
 
 function SizeCircle({ text }: { text: string }) {
   const selectedFilter = useSelector(
@@ -11,10 +12,37 @@ function SizeCircle({ text }: { text: string }) {
   const pathName = useParams();
   const filters = useSelector((state: any) => state.details.filters);
   const dispatch = useDispatch();
+  const filterEnabled = useSelector(
+    (state: any) => state.listing.filterEnabled
+  );
   const selectCategory = (e) => {
     dispatch({ type: "FILTER-SIZE", payload: e });
+    if (!filterEnabled) {
+      filter();
+    }
   };
-
+  const filter = () => {
+    dispatch({ type: "FILTER-START" });
+    dispatch({ type: "Skeleton-Listing" });
+    filterProducts({
+      boutiqueId: pathName.productCategory,
+      lang: pathName.lang,
+      sizesAttr: filters.sizesAttr,
+      callback: (products) => {
+        dispatch({ type: "GET_PRODUCT", payload: { products } });
+      },
+      offset: 1,
+      storeCallback: (e) => {
+        dispatch({
+          type: "ACTIVE-FILTER",
+          payload: e,
+        });
+      },
+      newFiltersCallback: ({ filtersVar }) => {
+        dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+      },
+    });
+  };
   const isSelected = () => {
     return selectedFilter.sizes.filter((s) => s === text).length > 0;
   };
@@ -66,7 +94,7 @@ function SizeCircle({ text }: { text: string }) {
       </div>
       <div className="category-text-container flex-col align-center">
         <span className="category-title">{text}</span>
-        <span className="category-typo">1100</span>
+        {/* <span className="category-typo">1100</span> */}
       </div>
     </div>
   );

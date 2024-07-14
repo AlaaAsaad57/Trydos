@@ -25,7 +25,7 @@ function BoutiquePriceFilter() {
   };
 
   return (
-    <div className="flex-col justify-start align-start filter-container relative">
+    <div className="flex-col justify-start align-start filter-container relative w-full mt-[10px]">
       {<FilterLabel text="Filter By Price" />}
       <PriceCancel
         className="price-cancel-icon"
