@@ -293,6 +293,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "EDIT-FILTER": {
+      console.log(payload);
       return {
         ...state,
         filters: { ...state.fiters, ...payload },
@@ -308,9 +309,13 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           sizes: state.selectedFilter.sizes.filter(
             (cat) => payload.sizes.filter((s) => s.id === cat.id).length > 0
           ),
-          prices: payload.reset
-            ? { min: payload.prices.min_price, max: payload.prices.max_price }
-            : { ...state.selectedFilter.prices },
+          prices:
+            payload.reset && payload.prices?.min_price >= 0
+              ? {
+                  min: payload.prices?.min_price,
+                  max: payload.prices.max_price,
+                }
+              : { ...state.selectedFilter.prices },
         },
         filterLoading: false,
       };
