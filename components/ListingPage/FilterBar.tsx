@@ -113,13 +113,17 @@ function FilterBar({ boutique, filters }) {
         <div
           className="back-icon"
           onClick={() => {
-            dispatchRouteChangeEvent("start", {
-              to: "HomePage",
-              from: "details",
-            });
-            push(`/`);
-            document.documentElement.style.overflow = "hidden";
-            document.documentElement.scrollTop = 0;
+            if (!filterEnabled) {
+              dispatchRouteChangeEvent("start", {
+                to: "HomePage",
+                from: "details",
+              });
+              push(`/`);
+              document.documentElement.style.overflow = "hidden";
+              document.documentElement.scrollTop = 0;
+            } else {
+              dispatch({ type: "filterEnabled", payload: false });
+            }
           }}
         >
           <BackIcon />
