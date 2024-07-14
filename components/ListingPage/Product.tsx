@@ -104,7 +104,7 @@ function Product({
     if (
       activeFilters.categories.length === 0 &&
       activeFilters.offers.length === 0 &&
-      !activeFilters.prices &&
+      !(activeFilters.prices?.min >= 0) &&
       activeFilters.brands.length === 0 &&
       activeFilters.sizes.length === 0
     ) {
