@@ -408,6 +408,7 @@ export const filterProducts = async ({
   reset,
   storeCallback,
   searchText,
+  serachTrigger,
 }: {
   reset?: boolean;
   lang: any;
@@ -418,6 +419,7 @@ export const filterProducts = async ({
   boutiqueId: any;
   storeCallback?: any;
   searchText?: string;
+  serachTrigger?: boolean;
 }) => {
   const filterObj = store.getState().details.selectedFilter;
   storeCallback(filterObj);
@@ -461,19 +463,20 @@ export const filterProducts = async ({
       country: filters.country,
     },
   });
-  newFiltersCallback({
-    filtersVar: {
-      categories: product.data.data.categories,
-      brands: product.data.data.brands,
-      sizes:
-        product.data.data.attributes.filter((s) => s.name === "Size")[0]
-          ?.options || [],
-      prices: product.data.data.prices || null,
-      offers:
-        product.data.data.attributes.filter((s) => s.name === "Offer")[0]
-          ?.options || [],
-      reset: reset,
-    },
-  });
+  if (!serachTrigger)
+    newFiltersCallback({
+      filtersVar: {
+        categories: product.data.data.categories,
+        brands: product.data.data.brands,
+        sizes:
+          product.data.data.attributes.filter((s) => s.name === "Size")[0]
+            ?.options || [],
+        prices: product.data.data.prices || null,
+        offers:
+          product.data.data.attributes.filter((s) => s.name === "Offer")[0]
+            ?.options || [],
+        reset: reset,
+      },
+    });
   callback(product.data.data.products);
 };

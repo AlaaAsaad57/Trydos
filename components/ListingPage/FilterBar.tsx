@@ -58,6 +58,7 @@ function FilterBar({ boutique, filters }) {
     if (e.target.value.length > 2) {
       dispatch({ type: "Skeleton-Listing" });
       filterProducts({
+        serachTrigger: true,
         boutiqueId: paramsVar.productCategory,
         lang: paramsVar.lang,
         sizesAttr: sizesAttr,

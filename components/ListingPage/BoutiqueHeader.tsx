@@ -27,64 +27,6 @@ function BoutiqueHeader({ boutique }) {
   const pathname = usePathname();
   const { replace } = useRouter();
 
-  const handleSearch = (data) => {
-    const params = new URLSearchParams(searchParams);
-    //categories
-    if (data.categories.length > 0) {
-      params.set("categories", `${data.categories.map((s) => s.id)}`);
-    } else {
-      if (params.get("categories")) {
-        params.delete("categories");
-      }
-    }
-    //brands
-    if (data.brands.length > 0) {
-      params.set("brands", `${data.brands.map((s) => s.id)}`);
-    } else {
-      if (params.get("brands")) {
-        params.delete("brands");
-      }
-    }
-    //sizes
-    if (data.sizes.length > 0) {
-      params.set("sizes", `${data.sizes.map((s) => s)}`);
-      params.set("attr-var", `{id:'${sizesAttr.id}',name:'${sizesAttr.name}'}`);
-    } else {
-      if (params.get("sizes")) {
-        params.delete("sizes");
-        params.delete("attr-var");
-      }
-    }
-    //offers
-    if (data.offers.length > 0) {
-      params.set("offers", `${data.offers.map((s) => s)}`);
-    } else {
-      if (params.get("offers")) {
-        params.delete("offers");
-      }
-    }
-    //prices
-    if (data.prices && data.prices?.min >= 0 && data.prices?.max >= 0) {
-      params.set("max-pr", `${data.prices.max}`);
-      params.set("min-pr", `${data.prices.min}`);
-    } else {
-      if (params.get("max-pr") && params.get("max-pr")) {
-        params.delete("max-pr");
-        params.delete("min-pr");
-      }
-    }
-    if (data.searchText?.length > 0) {
-      params.set("searchText", data.searchText);
-    } else {
-      params.delete("searchText");
-    }
-    dispatch({
-      type: "ACTIVE-ROUTE",
-      payload: `${pathname}?${params.toString()}`,
-    });
-    replace(`${pathname}?${params.toString()}`);
-  };
-
   const activeFilters = useSelector(
     (state: any) => state.details.activeFilters
   );
@@ -95,8 +37,7 @@ function BoutiqueHeader({ boutique }) {
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch({ type: "enable-handling-filter" });
-    if (activeFiltersShouldUpdate) handleSearch(activeFilters);
-  }, [activeFilters]);
+  }, []);
   useEffect(() => {
     if (searchParams.size > 0) {
       dispatch({
