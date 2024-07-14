@@ -142,6 +142,9 @@ function FilterBar({ boutique, filters }) {
               document
                 .querySelector<HTMLInputElement>("#filter-search")
                 ?.focus();
+              document.querySelector<HTMLInputElement>(
+                ".boutique-logo-container"
+              ).style.display = "none";
               dispatch({ type: "FILTER-SEARCH-ENABLE", payload: true });
             }}
           >
@@ -150,6 +153,9 @@ function FilterBar({ boutique, filters }) {
               value={selectedFilters.searchText}
               onBlur={() => {
                 if (selectedFilters?.searchText.length === 0) {
+                  document.querySelector<HTMLInputElement>(
+                    ".boutique-logo-container"
+                  ).style.display = "flex";
                   dispatch({ type: "FILTER-SEARCH-ENABLE", payload: false });
                 }
               }}
