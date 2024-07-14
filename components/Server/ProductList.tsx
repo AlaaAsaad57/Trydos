@@ -20,6 +20,7 @@ async function ProductListServer({ params, searchParams }) {
     offers: Listing_Data_res.body.data.offers || [],
     prices: Listing_Data_res.body.data.prices || null,
     search_text: Listing_Data_res.body.data.result_for || "",
+    colors: Listing_Data_res.body.data.colors,
   };
 
   return (

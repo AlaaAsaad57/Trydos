@@ -154,31 +154,33 @@ function Product({
     }
     //filter by size
 
-    if (activeFilters.sizes.length > 0) {
-      if (!product.variation || product.variation.length === 0) {
-        isSelectedSize = false;
-      } else {
-        if (
-          product.variation &&
-          product.variation.filter((option) => {
-            if (
-              activeFilters.sizes.filter((size) => size === option.type)
-                .length > 0
-            ) {
-              return true;
-            } else {
-              return false;
-            }
-          }).length > 0
-        ) {
-          isSelectedSize = true;
-        } else {
-          isSelectedSize = false;
-        }
-      }
-    } else {
-      isSelectedSize = true;
-    }
+    // if (activeFilters.sizes.length > 0) {
+    //   if (!product.variation || product.variation.length === 0) {
+    //     isSelectedSize = false;
+    //   } else {
+    //     if (
+    //       product.variation &&
+    //       product.variation.filter((option) => {
+    //         if (
+    //           activeFilters.sizes.filter((size) => size === option.type)
+    //             .length > 0
+    //         ) {
+    //           return true;
+    //         } else {
+    //           return false;
+    //         }
+    //       }).length > 0
+    //     ) {
+    //       isSelectedSize = true;
+    //     } else {
+    //       isSelectedSize = false;
+    //     }
+    //   }
+    // } else {
+    //   isSelectedSize = true;
+    // }
+    isSelectedSize = true;
+
     //filter on price
     if (!activeFilters.prices || !activeFilters.prices?.min) return true;
     if (

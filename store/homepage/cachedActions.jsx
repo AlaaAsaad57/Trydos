@@ -176,6 +176,15 @@ export const getListingData = async ({
             : [searchParams.categories]
         }`,
       };
+    if (Object.keys(searchParams).includes("colors"))
+      obj = {
+        ...obj,
+        colors: `${
+          searchParams.colors.includes(",")
+            ? searchParams.colors.split(",")
+            : [searchParams.colors]
+        }`,
+      };
     if (Object.keys(searchParams).includes("brands"))
       obj = {
         ...obj,
@@ -243,22 +252,36 @@ export const getListingData = async ({
     }${
       filters.prices !== null ? `&prices=[${JSON.stringify(obj.prices)}]` : ""
     }&boutique_slug=${categories}`;
-    let productRes = await fetch(OTP_URL + str, {
-      method: "GET",
+    console.log(
+      str +
+        `&${new URLSearchParams({
+          colors: `[${obj?.colors?.split(",").map((s) => `"${s}"`)}]`,
+        }).toString()}`
+    );
+    let productRes = await fetch(
+      OTP_URL +
+        str +
+        `&${new URLSearchParams({
+          colors: `[${obj?.colors?.split(",").map((s) => `"${s}"`)}]`,
+        }).toString()}`,
+      {
+        method: "GET",
 
-      next: {
-        revalidate: 300,
-        tags: [`listing-data-${str}`, "listing-data"],
-      },
-      headers: new Headers({
-        lang: await getLang(lang, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      }),
-    });
+        next: {
+          revalidate: 300,
+          tags: [`listing-data-${str}`, "listing-data"],
+        },
+        headers: new Headers({
+          lang: await getLang(lang, cookieStore.get("language")?.value),
+          country:
+            cookieStore.get("country") && cookieStore.get("country").value,
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        }),
+      }
+    );
     let repo = await productRes.json();
-    console.log(repo, str, obj);
+    console.log(str, obj);
     return [
       [],
       {
@@ -320,6 +343,7 @@ export const getListingData = async ({
         body: repo,
         reqBody: formBody,
       };
+      console.log(repo, str);
       return [repo.data, returned_res];
     } catch (e) {
       return ["listing-error", e.toString()];

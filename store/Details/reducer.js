@@ -23,6 +23,7 @@ const initialState = {
     sizes: [],
     offers: [],
     sizesAttr: {},
+    colors: [],
   },
   selectedFilter: {
     categories: [],
@@ -35,6 +36,7 @@ const initialState = {
     offers: [],
     sizes: [],
     searchText: "",
+    colors: [],
   },
   filterLoading: false,
   activeFilters: {
@@ -44,6 +46,7 @@ const initialState = {
     offers: [],
     sizes: [],
     searchText: "",
+    colors: [],
   },
   activeFiltersShouldUpdate: false,
   search: false,
@@ -69,6 +72,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
             payload.attributes.filter((s) => s.name === "Size")[0]?.options ||
             [],
           offers: payload?.offers || [],
+          colors: payload.colors,
         },
         selectedFilter: {
           ...state.selectedFilter,
@@ -141,6 +145,24 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         },
       };
     }
+    case "FILTER-COLOR": {
+      return {
+        ...state,
+        selectedFilter: {
+          ...state.selectedFilter,
+          filtered: true,
+          colors:
+            state.selectedFilter.colors.filter((color) => color === payload)
+              .length > 0
+              ? [
+                  ...state.selectedFilter.colors.filter(
+                    (color) => color !== payload
+                  ),
+                ]
+              : [...state.selectedFilter.colors, payload],
+        },
+      };
+    }
     case "FILTER-PRICE": {
       return {
         ...state,
@@ -178,6 +200,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           offers: [],
           sizes: [],
           searchText: "",
+          colors: [],
         },
       };
     }
@@ -208,6 +231,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           sizes: [],
           offers: [],
           sizesAttr: {},
+          colos: [],
         },
         selectedFilter: {
           categories: [],
@@ -220,6 +244,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           offers: [],
           sizes: [],
           searchText: "",
+          colos: [],
         },
         filterLoading: false,
         activeFilters: {
@@ -229,6 +254,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           offers: [],
           sizes: [],
           searchText: "",
+          colos: [],
         },
         activeFiltersShouldUpdate: false,
         search: false,
@@ -349,7 +375,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
       console.log(payload);
       return {
         ...state,
-        filters: { ...state.fiters, ...payload },
+        filters: { ...state.filters, ...payload },
         selectedFilter: {
           ...state.selectedFilter,
           categories: state.selectedFilter.categories.filter(

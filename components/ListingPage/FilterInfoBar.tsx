@@ -226,13 +226,47 @@ function FilterInfoBar() {
           )}
         </>
       )}
+      {activeFilters.colors.length > 0 && (
+        <>
+          <ActiveCategoryIcon style={{ height: "21px" }} />
+          {activeFilters.colors.map((color) => (
+            <>
+              <div className="main-category-icon flex-row min-w-[15px] min-h-[15px]">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="15"
+                  height="15"
+                  viewBox="0 0 15 15"
+                  style={{ zIndex: "1" }}
+                >
+                  <g
+                    id="Ellipse_283"
+                    data-name="Ellipse 283"
+                    fill="none"
+                    stroke="#ff5f61"
+                    strokeWidth="0.5"
+                  >
+                    <circle cx="7.5" cy="7.5" r="7.5" stroke="none" />
+                    <circle cx="7.5" cy="7.5" r="7.25" fill="none" />
+                  </g>
+                </svg>
+
+                <div
+                  className="w-full h-full rounded-full"
+                  style={{ backgroundColor: color }}
+                />
+              </div>
+            </>
+          ))}
+        </>
+      )}
       {activeFilters.prices?.min >= 0 && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
           {
             <>
               <div className="category-title filter-bar-main-title">
-                {`USD ${activeFilters.prices?.min} / ${activeFilters.prices?.max} `}
+                {`${filters.prices?.currency_symbol} ${activeFilters.prices?.min} / ${activeFilters.prices?.max} `}
               </div>
             </>
           }

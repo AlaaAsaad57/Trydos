@@ -433,11 +433,12 @@ export const filterProducts = async ({
           ]
         : null,
     brands: filterObj.brands.map((brand) => brand.id),
-    attributes: { ...sizesAttr, ...filterObj.sizes },
+    attributes: { ...sizesAttr, options: filterObj.sizes },
     boutique_slug: boutiqueId,
     lang: lang.split("-")[1],
     country: lang.split("-")[0],
     searchText: searchText || filterObj.searchText,
+    colors: filterObj.colors.map((s) => s),
   };
   let str = "";
   if (reset) {
@@ -456,8 +457,10 @@ export const filterProducts = async ({
         ? `&search_text=${filters.searchText}`
         : ""
     }`;
+    console.log(filters, str, "heyy");
   }
   let product = await axios.get(OTP_URL + str, {
+    params: { colors: `${JSON.stringify(filters.colors)}` },
     headers: {
       lang: filters.lang,
       country: filters.country,
@@ -477,6 +480,7 @@ export const filterProducts = async ({
           product.data.data.attributes.filter((s) => s.name === "Offer")[0]
             ?.options || [],
         reset: reset,
+        colors: product.data.data.colors || [],
       },
     });
   callback(product.data.data.products);

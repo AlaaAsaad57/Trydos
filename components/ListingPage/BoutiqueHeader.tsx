@@ -18,6 +18,7 @@ import {
   useParams,
 } from "next/navigation";
 import FilterButton from "./FilterButton";
+import BoutiqueColorsFilter from "./filterComponents/BoutiqueColorsFilter";
 
 function BoutiqueHeader({ boutique }) {
   const filterEnabled = useSelector(
@@ -100,6 +101,14 @@ function BoutiqueHeader({ boutique }) {
     } else {
       params.delete("searchText");
     }
+    // color
+    if (data.colors.length > 0) {
+      params.set("colors", `${data.colors.map((s) => s)}`);
+    } else {
+      if (params.get("colors")) {
+        params.delete("colors");
+      }
+    }
     dispatch({
       type: "ACTIVE-ROUTE",
       payload: `${pathname}?${params.toString()}`,
@@ -125,6 +134,14 @@ function BoutiqueHeader({ boutique }) {
                   return {
                     id: s,
                   };
+                })
+            : [],
+          colors: searchParams.get("colors")
+            ? searchParams
+                .get("colors")
+                .split(",")
+                .map((s) => {
+                  return s;
                 })
             : [],
           brands: searchParams.get("brands")
@@ -178,7 +195,11 @@ function BoutiqueHeader({ boutique }) {
         <div className="boutique-text">{boutique.name}</div>
       </div>
       <BoutiquePhoto photo={boutique.photo} />
-      <div className="w-full flex-row items-center pl-[15px]">
+      <div
+        className={`w-full flex-row items-center pl-[15px] ${
+          filterEnabled && "pb-[200px]"
+        }`}
+      >
         {!filterEnabled && (
           <FilterButton
             filters={() => {
@@ -188,6 +209,7 @@ function BoutiqueHeader({ boutique }) {
               if (filters?.brands.length > 0) arr.push({ name: "Brands" });
               if (filters?.sizes.length > 0) arr.push({ name: "Sizes" });
               if (filters?.offers.length > 0) arr.push({ name: "Offers" });
+              if (filters?.colors.length > 0) arr.push({ name: "Colors" });
               return arr;
             }}
             showedFilter={showedFilter}
@@ -224,6 +246,11 @@ function BoutiqueHeader({ boutique }) {
               {filters?.sizes?.length > 0 && (
                 <>
                   <BoutiqueSizeFilter filterEnabled={filterEnabled} />
+                </>
+              )}
+              {filters?.colors?.length > 0 && (
+                <>
+                  <BoutiqueColorsFilter filterEnabled={filterEnabled} />
                 </>
               )}
               <FilterButtons />

@@ -120,7 +120,7 @@ class HomeService {
   }
   async getNextProduct({ offset, categories, boutiqueCategory }) {
     const filterObj = store.getState().details.activeFilters;
-    const sizesAttr = store.getState().details.sizesAttr;
+    const sizesAttr = store.getState().details.filters.sizesAttr;
     let filters = {
       categories: filterObj.categories.map((s) => parseInt(s.id)),
       prices: filterObj.prices
@@ -129,7 +129,7 @@ class HomeService {
           ]
         : null,
       brands: filterObj.brands.map((brand) => parseInt(brand.id)),
-      attributes: { ...sizesAttr, ...filterObj.sizes },
+      attributes: { ...sizesAttr, options: filterObj.sizes },
       boutique_slug: categories,
       searchText: filterObj.searchText,
     };
