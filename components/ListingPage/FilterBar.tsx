@@ -54,6 +54,7 @@ function FilterBar({ boutique, filters }) {
   const paramsVar = useParams();
   const { replace, push } = useRouter();
   const onChange = (e) => {
+    dispatch({ type: "SEARCH-FILTER", payload: e.target.value });
     const params = new URLSearchParams(searchParams);
     if (e.target.value.length > 2 || e.target.value === 0) {
       dispatch({ type: "Skeleton-Listing" });
@@ -150,7 +151,6 @@ function FilterBar({ boutique, filters }) {
               }}
               onChange={(e) => {
                 onChange(e);
-                dispatch({ type: "SEARCH-FILTER", payload: e.target.value });
               }}
               className={`${
                 ActiveSearch && "pl-[40px]"
