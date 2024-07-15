@@ -5,6 +5,8 @@ import SearchCloseIcon from "public/svg/SearchCloseIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { ChangeEvent } from "react";
 import { caseCheck } from "utils/functions";
+import home from "services/home";
+import useDebounce from "Hooks/useDebounce";
 interface SearchComponentProps {
   searchEnabled: boolean;
   close: Function;
@@ -25,18 +27,22 @@ function SearchComponent({
       e.preventDefault();
       clearSuggestion();
     }
+
     dispatch({ type: "SEARCH-WORD", payload: e.target.value });
   };
   const onInput = (e) => {
-    let suggestion = document.querySelector(".predicted-word");
+    let suggestion = document.querySelector<HTMLDivElement>(".predicted-word");
     let arr = [];
-    let regex = new RegExp("^" + e.target.value, "i");
+    let regex = new RegExp("^" + e.target.value.toUpperCase(), "i");
     //loop through words array
     for (let i in words) {
       //check if input matches with any word in words array
-      if (regex.test(words[i]) && e.target.value != "") {
+      if (regex.test(words[i].toUpperCase()) && e.target.value != "") {
         //Change case of word in words array according to user input
-        let selectedWord = caseCheck(words[i], e.target.value);
+        let selectedWord = caseCheck(
+          words[i].toUpperCase(),
+          e.target.value.toUpperCase()
+        );
         //display suggestion
         if (selectedWord.length > 0) {
           arr.push(selectedWord);
@@ -48,13 +54,21 @@ function SearchComponent({
         suggestion.innerText = "";
       }
     }
-    if (arr.length > 0) {
-      // @ts-ignore
-      suggestion.innerText = words.filter(
+
+    if (
+      words.filter(
         (s) =>
           s.substr(0, e.target.value.length).toUpperCase() ===
           e.target.value.toUpperCase()
-      )[0];
+      ).length > 0
+    ) {
+      console.log(
+        words.filter(
+          (s) =>
+            s.substr(0, e.target.value.length).toUpperCase() ===
+            e.target.value.toUpperCase()
+        )[0]
+      );
     }
   };
   const onKeyDown = (e) => {
@@ -72,6 +86,15 @@ function SearchComponent({
     // @ts-ignore
     let suggestion = (document.querySelector(".predicted-word").innerText = "");
   };
+  useDebounce(
+    () => {
+      if (searchValue.length > 0) {
+        home.SearchProducts({ search_text: searchValue });
+      }
+    },
+    [searchValue],
+    800
+  );
   return (
     <div className="search-component-container flex-row">
       <div className={`search-input-parent ${focus && "focuse"}`}>
@@ -96,16 +119,29 @@ function SearchComponent({
           }}
         />
 
-        <div className="predicted-word"></div>
+        <div className="predicted-word">
+          {searchValue.length > 0 &&
+            searchValue.length < 30 &&
+            words.filter(
+              (s) =>
+                s.substr(0, searchValue.length).toUpperCase() ===
+                searchValue.toUpperCase()
+            )[0]}
+        </div>
       </div>
 
       {focus ? (
         <div className="input-icons flex-row close-search-icon">
           <SearchCloseIcon
             onClick={() => {
-              close();
-              dispatch({ type: "SEARCH-WORD", payload: "" });
-              setFocuse(false);
+              if (searchValue.length > 0) {
+                dispatch({ type: "SEARCH-WORD", payload: "" });
+                dispatch({ type: "FIND-PRODUCTS", payload: [] });
+              } else {
+                close();
+                dispatch({ type: "SEARCH-WORD", payload: "" });
+                setFocuse(false);
+              }
             }}
           />
         </div>
@@ -123,8 +159,13 @@ function SearchComponent({
         <div className="search-colse-icon flex-row">
           <CloseIcon
             onClick={() => {
-              close();
-              dispatch({ type: "SEARCH-WORD", payload: "" });
+              if (searchValue.length > 0) {
+                dispatch({ type: "SEARCH-WORD", payload: "" });
+                dispatch({ type: "FIND-PRODUCTS", payload: [] });
+              } else {
+                close();
+                dispatch({ type: "SEARCH-WORD", payload: "" });
+              }
             }}
           />
         </div>

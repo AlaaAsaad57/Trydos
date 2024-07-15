@@ -183,6 +183,24 @@ class HomeService {
       store.dispatch({ type: "GET_NEXT_PRODUCT", payload: repo.data });
     });
   }
+  async SearchProducts({ search_text }) {
+    try {
+      let rep = await fetch(
+        OTP_URL + LISTING_INFO_URL + `/with_filter?search_text=${search_text}`,
+        {
+          headers: {
+            ...getHeader().headers,
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+            Accept: "application/json",
+          },
+        }
+      );
+      let repo = await rep.json();
+      store.dispatch({ type: "FIND-PRODUCTS", payload: repo.data.products });
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }
 
 export default new HomeService();

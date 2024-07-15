@@ -104,11 +104,13 @@
 .predicted-word {
   position: absolute;
   font-size: 18px;
+  padding-right: 43px;
   font-family: var(--Quicksand-Light);
   color: #c4c2c2;
   left: 43px;
-  top: 9px;
+  top: 6px;
   z-index: 4;
+  text-transform: capitalize;
 }
 .black-fill path {
   fill: #505050 !important;
