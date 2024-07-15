@@ -12,7 +12,8 @@ function FilterButton({ filters, showedFilter }) {
     } else {
       dispatch({ type: "SHOWED-FILTER", payload: filters()[i + 1].name });
       document.querySelector(".filter-container").scrollLeft =
-        window.innerWidth * (i + 1) - (i + 1) * 50;
+        document.querySelector(".boutique-category-filter").clientWidth *
+        (i + 1);
     }
   };
   return (
