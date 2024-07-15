@@ -1,7 +1,13 @@
 import Image from "next/image";
-function BuyButton() {
+function BuyButton({ buy }) {
   return (
-    <div className="buy-button light-text flex align-start justify-start cursor-pointer">
+    <div
+      className="buy-button light-text flex align-start justify-start cursor-pointer"
+      onClick={(e) => {
+        e.preventDefault();
+        buy();
+      }}
+    >
       <span className="f-10 flex align-start">Buy</span>
       <Image
         src={"/svg/BuyButton.svg"}

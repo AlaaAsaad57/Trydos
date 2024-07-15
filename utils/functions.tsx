@@ -157,7 +157,7 @@ export const getConfiguredImage = ({ src, width, height }) => {
   if (typeof src === "string") {
     return src.replace("/upload", `/upload/h_${height}/f_avif/q_auto`);
   }
-  if (src.file_path?.includes("cloudinary")) {
+  if (src?.file_path?.includes("cloudinary")) {
     return src.file_path.replace(
       "/upload",
       `/upload/h_${height}/f_avif/q_auto`

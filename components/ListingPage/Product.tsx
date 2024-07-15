@@ -6,10 +6,10 @@ import PriceLabel from "./PriceLabel";
 import BuyButton from "./BuyButton";
 import NextLink from "Hooks/NextLink";
 import { ProductInterface } from "models/product";
-import { Img } from "react-image";
+
 import Skeleton from "react-loading-skeleton";
 import { dispatchRouteChangeEvent } from "Hooks/events";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 const TopSlider = dynamic(() => import("./TopSlider"), {
   loading: () => (
     <>
@@ -53,7 +53,7 @@ const getIndex = (product, productState) => {
   product.sync_color_images
     .filter((color) => color.images.length > 0)
     .map((co, ind) => {
-      if (co.color_name === productState.activeColor.color_name) index = ind;
+      if (co.color_name === productState?.activeColor.color_name) index = ind;
     });
   return index;
 };
@@ -67,6 +67,10 @@ function Product({
   priority: boolean;
   i: number;
 }) {
+  const dispatchStore = useDispatch();
+  const addToCart = () => {
+    dispatchStore({ type: "AddToCartOptionEnable", payload: product });
+  };
   const selectedFilters = useSelector(
     (state: any) => state.details.selectedFilter
   );
@@ -195,6 +199,7 @@ function Product({
       isSelectedBrand && isSelectedCat && isSelectedPrice && isSelectedSize
     );
   };
+
   if (true)
     return (
       <div>
@@ -205,11 +210,11 @@ function Product({
             /* @ts-ignore*/
             if (
               /* @ts-ignore*/
-
               e.target.closest(".top-slider-enable") ||
               /* @ts-ignore*/
-
-              e.target.closest(".product-photos-slider")
+              e.target.closest(".product-photos-slider") ||
+              /* @ts-ignore*/
+              e.target.closest(".buy-button")
             ) {
               dispatchRouteChangeEvent("completed");
               e.preventDefault();
@@ -223,7 +228,10 @@ function Product({
           href={`/products/${product.id}`}
           className="product-container overflow-hidden rounded-15 align-center flex-col relative"
           onMouseLeave={() => {
-            if (productState.isActiveTopSlide || productState.isColorSelected) {
+            if (
+              productState?.isActiveTopSlide ||
+              productState?.isColorSelected
+            ) {
               dispatch({ type: "setActiveTopSlide", payload: false });
               dispatch({ type: "setColor", payload: false });
             }
@@ -250,11 +258,11 @@ function Product({
             }
           />
           <div className="offer-blured" />
-          {productState.isActiveTopSlide && (
+          {productState?.isActiveTopSlide && (
             <TopSlider
               product_name={product.name}
-              active={productState.isActiveTopSlide}
-              activeColor={productState.activeColor}
+              active={productState?.isActiveTopSlide}
+              activeColor={productState?.activeColor}
               setActiveColor={(e) =>
                 dispatch({ type: "setActiveColor", payload: e })
               }
@@ -264,27 +272,27 @@ function Product({
           <div
             className="product-photos overflow-visible w-100 justify-start align-center flex-col"
             style={{
-              position: !productState.isActiveTopSlide ? "static" : "absolute",
-              opacity: !productState.isActiveTopSlide ? "1" : "0",
-              zIndex: !productState.isActiveTopSlide ? "4" : "1",
+              position: !productState?.isActiveTopSlide ? "static" : "absolute",
+              opacity: !productState?.isActiveTopSlide ? "1" : "0",
+              zIndex: !productState?.isActiveTopSlide ? "4" : "1",
             }}
           >
             <div
               className={`product-container-slider relative ${
-                productState.isColorSelected && "selected-color"
+                productState?.isColorSelected && "selected-color"
               }`}
             >
               {product.sync_color_images &&
-                productState.isColorSelected &&
-                !productState.isActiveTopSlide && (
+                productState?.isColorSelected &&
+                !productState?.isActiveTopSlide && (
                   <ColorSlider
                     product_name={product.name}
                     priority={priority}
                     active={
-                      productState.isColorSelected &&
-                      !productState.isActiveTopSlide
+                      productState?.isColorSelected &&
+                      !productState?.isActiveTopSlide
                     }
-                    activeColor={productState.activeColor}
+                    activeColor={productState?.activeColor}
                     colors={product.sync_color_images.filter(
                       (color) => color.images.length > 0
                     )}
@@ -298,18 +306,18 @@ function Product({
                 <ImageSlider
                   priority={priority}
                   product_name={product.name}
-                  renderVar={productState.renderVar}
+                  renderVar={productState?.renderVar}
                   active={
-                    !productState.isColorSelected &&
-                    !productState.isActiveTopSlide
+                    !productState?.isColorSelected &&
+                    !productState?.isActiveTopSlide
                   }
-                  isActiveTopSlide={productState.isActiveTopSlide}
+                  isActiveTopSlide={productState?.isActiveTopSlide}
                   setActiveTopSlide={(e) =>
                     dispatch({ type: "setActiveTopSlide", payload: e })
                   }
                   setColor={(e) => dispatch({ type: "setColor", payload: e })}
-                  activeColor={productState.activeColor}
-                  isColorSelected={productState.isColorSelected}
+                  activeColor={productState?.activeColor}
+                  isColorSelected={productState?.isColorSelected}
                   setActiveImage={(e) =>
                     dispatch({ type: "setActiveImage", payload: e })
                   }
@@ -320,12 +328,12 @@ function Product({
                   <CoverEffectSlider
                     priority={priority}
                     product_name={product.name}
-                    active={!productState.isActiveTopSlide}
+                    active={!productState?.isActiveTopSlide}
                     setColor={(e) => {
                       dispatch({ type: "setColor", payload: e });
                     }}
-                    isColorSelected={productState.isColorSelected}
-                    activeColor={productState.activeColor}
+                    isColorSelected={productState?.isColorSelected}
+                    activeColor={productState?.activeColor}
                     setActiveColor={(e) =>
                       dispatch({ type: "setActiveColor", payload: e })
                     }
@@ -349,10 +357,7 @@ function Product({
           >
             <p className="prouct-details overflow-hidden w-100 regular-text color-dark-gray f-10">
               {product.brand?.image && (
-                <Img
-                  suppressHydrationWarning
-                  loader={<Skeleton width={50} height={7} borderRadius={3} />}
-                  unloader={<span suppressHydrationWarning></span>}
+                <img
                   loading={priority ? "eager" : "lazy"}
                   src={product.brand?.image.replace(
                     "/upload",
@@ -374,12 +379,7 @@ function Product({
                     1
                   </span>
                   {product.category?.icon && (
-                    <Img
-                      suppressHydrationWarning
-                      loader={
-                        <Skeleton width={10} height={10} borderRadius={"50%"} />
-                      }
-                      unloader={<span></span>}
+                    <img
                       loading={priority ? "eager" : "lazy"}
                       src={product.category?.icon.replace(
                         "/upload",
@@ -404,7 +404,11 @@ function Product({
               offer_price={product.offer_price}
               price_formatted={product.price_formatted}
             />
-            <BuyButton />
+            <BuyButton
+              buy={() => {
+                addToCart();
+              }}
+            />
           </div>
         </NextLink>
       </div>

@@ -8,14 +8,7 @@ const initialState = {
     value: [],
   },
   variants: [],
-  AddToCartOption: {
-    enable: false,
-    selectedSize: { name: "M", last: "2" },
-    selectedColor: { color_name: "Blue", images: [null] },
-    quantity: 0,
-    price: null,
-    UID: "",
-  },
+
   filters: {
     categories: [],
     brands: [],
@@ -84,7 +77,6 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "FILTER-INIT": {
-      console.log(payload);
       return {
         ...state,
         filters: {
@@ -210,12 +202,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         isChangedFilter: true,
       };
     }
-    case "STORE-VARIANTS": {
-      return {
-        ...state,
-        variants: payload,
-      };
-    }
+
     case "RESET-FILTER": {
       return {
         ...state,
@@ -251,14 +238,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           value: [],
         },
         variants: [],
-        AddToCartOption: {
-          enable: false,
-          selectedSize: { name: "M", last: "2" },
-          selectedColor: { color_name: "Blue", images: [null] },
-          quantity: 0,
-          price: null,
-          UID: "",
-        },
+
         filters: {
           categories: [],
           brands: [],
@@ -305,80 +285,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         },
       };
     }
-    case "AddToCartOptionEnable": {
-      return {
-        ...state,
-        AddToCartOption: { ...payload, enable: true },
-      };
-    }
-    case "AddToCartOptionDisable": {
-      return {
-        ...state,
-        AddToCartOption: { ...state.AddToCartOption, enable: false },
-      };
-    }
-    case "ADD-TO-CART-Quantity": {
-      let variant = state.variants.filter(
-        (s) =>
-          s.type.includes(
-            state?.AddToCartOption?.selectedColor?.color_name || ""
-          ) && s.type.includes(state.AddToCartOption?.selectedSize?.name || "")
-      )[0];
-      return {
-        ...state,
-        AddToCartOption: {
-          ...state.AddToCartOption,
-          quantity: state.AddToCartOption.quantity + 1,
-          price: {
-            offer_price_formated: variant?.offer_price_formated,
-            price: variant?.price,
-            offer_price: variant.offer_price,
-            price_formated: variant.price_formated,
-          },
-        },
-      };
-    }
-    case "AddToCartSize": {
-      let variant = state.variants.filter(
-        (s) =>
-          s.type.includes(
-            state?.AddToCartOption?.selectedColor?.color_name || ""
-          ) && s.type.includes(payload.name || "")
-      )[0];
-      return {
-        ...state,
-        AddToCartOption: {
-          ...state.AddToCartOption,
-          selectedSize: payload,
-          price: {
-            offer_price_formated: variant?.offer_price_formated,
-            price: variant?.price,
-            offer_price: variant.offer_price,
-            price_formated: variant.price_formated,
-          },
-        },
-      };
-    }
-    case "AddToCartColor": {
-      let variant = state.variants.filter(
-        (s) =>
-          s.type.includes(payload?.color_name || "") &&
-          s.type.includes(state?.AddToCartOption?.selectedSize?.name || "")
-      )[0];
-      return {
-        ...state,
-        AddToCartOption: {
-          ...state.AddToCartOption,
-          selectedColor: payload,
-          price: {
-            offer_price_formated: variant?.offer_price_formated,
-            price: variant?.price,
-            offer_price: variant.offer_price,
-            price_formated: variant.price_formated,
-          },
-        },
-      };
-    }
+
     case "CLOSE-INFO-MESSAGE": {
       return {
         ...state,

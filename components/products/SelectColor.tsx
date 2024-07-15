@@ -4,11 +4,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import BackBar from "./BackBar";
+import { getConfiguredImage } from "utils/functions";
 
-function SelectColor({ active, photos, close }) {
+function SelectColor({ close }) {
   const AddToCartOption = useSelector(
-    (state: any) => state.details.AddToCartOption
+    (state: any) => state.cart.AddToCartOption
   );
+  const SelectedProduct = useSelector(
+    (state: any) => state.cart.SelectedProduct
+  );
+
   const dispatch = useDispatch();
   return (
     <>
@@ -17,6 +22,8 @@ function SelectColor({ active, photos, close }) {
         <BackBar
           link={false}
           close={() => {
+            document.documentElement.style.overflow = "auto";
+            document.documentElement.scrollTop = 0;
             close();
             dispatch({ type: "AddToCartOptionDisable", payload: false });
           }}
@@ -57,13 +64,13 @@ function SelectColor({ active, photos, close }) {
             src={
               (AddToCartOption?.selectedColor?.images &&
                 AddToCartOption?.selectedColor?.images[0]) ||
-              photos[0]?.images[0]
+              SelectedProduct.images[0]?.file_path
             }
             className={"h-full object-top rounded-[15px]"}
           />
         </div>
         <div className="flex  w-full max-w-[420px] ">
-          <SelectColorsSlider colors={photos} />
+          <SelectColorsSlider colors={SelectedProduct.sync_color_images} />
         </div>
       </div>
     </>
@@ -71,7 +78,7 @@ function SelectColor({ active, photos, close }) {
 }
 
 export default SelectColor;
-const SelectColorsSlider = ({ colors }) => {
+export const SelectColorsSlider = ({ colors }) => {
   const dispatch = useDispatch();
   const setActive = (e) => {
     dispatch({ type: "AddToCartColor", payload: e });
@@ -80,6 +87,10 @@ const SelectColorsSlider = ({ colors }) => {
     <Swiper
       modules={[EffectCoverflow]}
       speed={100}
+      style={{
+        width: "100%",
+        margin: "0",
+      }}
       effect="coverflow"
       className="mt-[10px] "
       coverflowEffect={{
@@ -113,7 +124,13 @@ const SelectColorsSlider = ({ colors }) => {
             <>
               <img
                 className="w-[70px] h-[70px] rounded-full"
-                src={color.images[0]}
+                src={getConfiguredImage({
+                  src:
+                    (typeof color.images[0] === "string" && color.images[0]) ||
+                    color.images[0].file_path,
+                  width: 400,
+                  height: 400,
+                })}
               />
               {isActive && (
                 <span className="regular text-[#3C3C3C] text-[14px] absolute bottom-[-20px] w-full flex justify-center items-center">

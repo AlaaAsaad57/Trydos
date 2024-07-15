@@ -36,7 +36,7 @@ function ProductDescriptors({ descriptors }) {
   }, []);
   return (
     <div className="flex-row product-descriptors-row">
-      {descriptors.map((descriptor, key) => {
+      {descriptors?.map((descriptor, key) => {
         return (
           <div
             key={key}

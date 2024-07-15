@@ -62,13 +62,6 @@ function SearchComponent({
           e.target.value.toUpperCase()
       ).length > 0
     ) {
-      console.log(
-        words.filter(
-          (s) =>
-            s.substr(0, e.target.value.length).toUpperCase() ===
-            e.target.value.toUpperCase()
-        )[0]
-      );
     }
   };
   const onKeyDown = (e) => {

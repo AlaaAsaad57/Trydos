@@ -65,7 +65,7 @@ function ProductReducer(state, { type, payload }) {
 }
 function ProductFooterSection({ product }: { product: ProductInterface }) {
   const sizes =
-    product.choice_options.filter((s) => s.title == "Size")[0]?.options || [];
+    product?.choice_options?.filter((s) => s.title == "Size")[0]?.options || [];
   const [productState, dispatch] = useReducer(ProductReducer, {
     productDetails: {
       comment_count: null,
@@ -85,7 +85,7 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
   const [option, setOption] = useState("");
   const dispatchStore = useDispatch();
   const [sharedContacts, setShareContacts] = useState([]);
-  const productData = product;
+
   const getData = async () => {
     let req = await axios.get(
       OTP_URL + "/web/product/likesCommentsSharesDetails/" + product.id
@@ -103,28 +103,18 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
 
   return (
     <>
-      {option === "AddToCart" && (
-        <SelectColor
-          close={() => setOption("")}
-          active={option === "AddToCart"}
-          photos={
-            productData.sync_color_images?.length > 0
-              ? productData.sync_color_images
-              : [{ color_name: "Normal", images: productData.images }]
-          }
-        />
-      )}
+      {option === "AddToCart" && <SelectColor close={() => setOption("")} />}
       <div className="product-details-footer z-[9999]">
         <ProductDetails />
         <ProductInfo
-          currency={productData.price_formatted.split(" ")[1]}
-          newPrice={productData.offer_price}
-          oldPrice={productData.price}
+          currency={product?.price_formatted?.split(" ")[1]}
+          newPrice={product.offer_price}
+          oldPrice={product.price}
         />
         {
           <ExtendedAreaInfo
             Render={productState?.Render}
-            colors={productData.sync_color_images}
+            colors={product.sync_color_images}
             verifyCommentAction={(mid) =>
               dispatch({ type: "VerifyComment", payload: mid })
             }
@@ -165,6 +155,7 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
                 : [],
             selectedSize: sizes[0],
             id: product.id,
+            ...product,
           }}
           share={sharedContacts.length > 0}
           activeOption={option}

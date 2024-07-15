@@ -58,7 +58,7 @@ function ProuctDetailsBody({ product }: { product: ProductInterface }) {
         <ProductStories />
         <ProductSizes
           sizes={
-            product.choice_options.filter((s) => s.title == "Size")[0]
+            product?.choice_options?.filter((s) => s.title == "Size")[0]
               ?.options || []
           }
         />

@@ -102,11 +102,11 @@ function ExtendedAreaInfo({
 
         {option === "More" && <MoreOptionsSection />}
         {option === "AddToCart" &&
-          product.choice_options.filter((s) => s.title == "Size")[0]
+          product?.choice_options?.filter((s) => s.title == "Size")[0]
             ?.options && (
             <SelectSize
               sizes={
-                product.choice_options.filter((s) => s.title == "Size")[0]
+                product?.choice_options?.filter((s) => s.title == "Size")[0]
                   ?.options || []
               }
               variants={product.variation}

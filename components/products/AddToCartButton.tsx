@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 function AddToCartButton({ setOption, product }) {
   const AddToCartOption = useSelector(
-    (state: any) => state.details.AddToCartOption
+    (state: any) => state.cart.AddToCartOption
   );
   const dispatch = useDispatch();
   const AddToCartAction = ({ quantity }) => {
@@ -28,6 +28,8 @@ function AddToCartButton({ setOption, product }) {
       onClick={() => {
         if (!AddToCartOption?.enable) {
           setOption();
+          document.documentElement.style.overflow = "hidden";
+          document.documentElement.scrollTop = 0;
           dispatch({
             type: "AddToCartOptionEnable",
             payload: { ...product, quantity: 0 },

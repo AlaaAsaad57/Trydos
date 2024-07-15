@@ -1,0 +1,156 @@
+import SelectSize from "components/products/SelectSize";
+import React, { useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { OTP_URL } from "utils/endpointConfig";
+import { getConfiguredImage, getLang } from "utils/functions";
+import Cookies from "js-cookie";
+import AddToCartButton from "components/products/AddToCartButton";
+import { Swiper, SwiperSlide } from "swiper/react";
+import BackIcon from "public/svg/listing/backIcon.svg";
+import { EffectCoverflow } from "swiper/modules";
+import { SelectColorsSlider } from "components/products/SelectColor";
+
+function AddToCartWidget() {
+  const dispatch = useDispatch();
+  let QTY_URL = "/web/product/qtyPriceDetails";
+  const SelectedProduct = useSelector(
+    (state: any) => state.cart.SelectedProduct
+  );
+  const getDetails = async () => {
+    let repo = await fetch(OTP_URL + QTY_URL + `/${SelectedProduct.id}`, {
+      headers: {
+        Authorization: `Bearer ${
+          typeof localStorage !== "undefined" &&
+          localStorage.getItem("MARKET-TOKEN")
+        }`,
+        lang: getLang(null, Cookies.get("language")),
+        country: Cookies.get("country"),
+      },
+    });
+    let data = await repo.json();
+
+    dispatch({ type: "GET-PRODUCT-DETAILS-FOR-CART", payload: data.data });
+  };
+  useEffect(() => {
+    getDetails();
+  }, []);
+  return (
+    <div className="flex-col h-[100vh] w-[100vw] flex top-[100px] left-0 fixed z-[99999999999999999] justify-start ">
+      <SelectColor
+        close={() => {
+          dispatch({ type: "AddToCartOptionDisable" });
+        }}
+      />
+      <div className="product-details-footer z-[9999]">
+        <div className="Extended-area-product">
+          <svg
+            className="border-svg"
+            xmlns="http://www.w3.org/2000/svg"
+            width="100%"
+            height="1.7"
+          >
+            <line
+              id="Line_1104"
+              data-name="Line 1104"
+              x2="100%"
+              y2="1"
+              transform="translate(0.001 0.35)"
+              fill="none"
+              stroke="#e6e6e6"
+              strokeWidth="0.7"
+            />
+          </svg>
+          <SelectSize
+            sizes={
+              SelectedProduct?.choice_options?.filter(
+                (s) => s.title == "Size"
+              )[0]?.options || []
+            }
+            variants={SelectedProduct?.variation || []}
+          />
+        </div>
+        <div className="product-options-container">
+          {SelectedProduct?.variation && (
+            <>
+              <AddToCartButton setOption={() => {}} product={SelectedProduct} />
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default AddToCartWidget;
+const SelectColor = ({ close }) => {
+  const AddToCartOption = useSelector(
+    (state: any) => state.cart.AddToCartOption
+  );
+  const SelectedProduct = useSelector(
+    (state: any) => state.cart.SelectedProduct
+  );
+
+  const dispatch = useDispatch();
+  return (
+    <>
+      <div className="blur-md bg-[#f4f4f480] backdrop-blur-[10px] flex fixed top-[103px] left-0 h-full w-full z-[99]" />
+      <div className="back-bar align-center w-100 flex-row p-[10px] z-[99999999]">
+        <div
+          className="back-icon flex-row"
+          onClick={() => {
+            close();
+          }}
+        >
+          <BackIcon />
+        </div>
+      </div>
+      <div className="flex-col mt-[10px] w-full  z-[999] top-[103px] items-center">
+        <div className="flex-row w-auto justify-center h-available relative rounded-[15px] inset-select-shadow-image">
+          <svg
+            className="absolute  top-0 left-0"
+            xmlns="http://www.w3.org/2000/svg"
+            width="calc(100%)"
+            height="calc(100%)"
+          >
+            <g
+              id="Rectangle_5686"
+              data-name="Rectangle 5686"
+              fill="none"
+              stroke="#FFF"
+              strokeWidth="0.5"
+            >
+              <rect
+                width="calc(100%)"
+                height="calc(100%)"
+                rx="15"
+                stroke="none"
+              />
+              <rect
+                x="0.25"
+                y="0.25"
+                width="calc(100%)"
+                height="calc(100%)"
+                rx="14.75"
+                fill="none"
+              />
+            </g>
+          </svg>
+          <img
+            src={getConfiguredImage({
+              src:
+                (AddToCartOption?.selectedColor?.images &&
+                  AddToCartOption?.selectedColor?.images[0]) ||
+                SelectedProduct.images[0]?.file_path,
+              width: 400,
+              height: 400,
+            })}
+            className={"h-full object-top rounded-[15px]"}
+          />
+        </div>
+        <div className="flex  w-full max-w-[420px] ">
+          <SelectColorsSlider colors={SelectedProduct.sync_color_images} />
+        </div>
+      </div>
+    </>
+  );
+};

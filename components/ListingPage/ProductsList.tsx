@@ -11,6 +11,7 @@ import Product from "./Product";
 import { filterProducts } from "utils/functions";
 import { useParams } from "next/navigation";
 import ListingSkeleton from "components/skeleton/listing";
+import AddToCartWidget from "components/Cart/AddToCartWidget";
 function ProductsList({
   Listing_Data_res,
   productCategory,
@@ -22,6 +23,9 @@ function ProductsList({
 }) {
   const dispatch = useDispatch();
   const products = useSelector((state: any) => state.listing.products);
+  const AddToCartOption = useSelector(
+    (state: any) => state.cart.AddToCartOption
+  );
 
   const offset = useSelector((state: any) => state.listing.offset);
 
@@ -86,6 +90,7 @@ function ProductsList({
       searchText: selectedFilter.searchText,
     });
   };
+
   return (
     <>
       {!filterEnabled && (
@@ -138,6 +143,7 @@ function ProductsList({
           )}
         </>
       )}
+      {AddToCartOption.enable && <AddToCartWidget />}
     </>
   );
 }

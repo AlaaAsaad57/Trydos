@@ -274,7 +274,7 @@ export const getListingData = async ({
       }
     );
     let repo = await productRes.json();
-    console.log(productRes.url, repo.data);
+
     return [
       [],
       {
@@ -382,6 +382,7 @@ export async function getProductDetails({ productId, lang }) {
     const repo1 = await res1.json();
 
     let prod = { ...repo.data, ...repo1.data };
+
     if (prod.message === "Product not found") {
       notFound();
     }

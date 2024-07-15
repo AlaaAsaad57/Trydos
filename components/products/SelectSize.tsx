@@ -5,10 +5,10 @@ import "styles/sizeSlider.css";
 import { useDispatch, useSelector } from "react-redux";
 function SelectSize({ sizes, variants }) {
   const activeSize = useSelector(
-    (state: any) => state.details.AddToCartOption.selectedSize
+    (state: any) => state.cart.AddToCartOption.selectedSize
   );
   const activeColor = useSelector(
-    (state: any) => state.details.AddToCartOption.selectedColor
+    (state: any) => state.cart.AddToCartOption.selectedColor
   );
   const dispatch = useDispatch();
 
