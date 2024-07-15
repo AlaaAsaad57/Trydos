@@ -41,6 +41,7 @@ function FilterBar({ boutique, filters }) {
       activeFilters.categories.length > 0 ||
       activeFilters.brands.length > 0 ||
       activeFilters.sizes.length > 0 ||
+      activeFilters.colors.length > 0 ||
       activeFilters.offers.length > 0 ||
       activeFilters.prices?.min >= 0
     ) {

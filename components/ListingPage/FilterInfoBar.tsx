@@ -10,6 +10,7 @@ function FilterInfoBar() {
   const activeFilters = useSelector(
     (state: any) => state.details.activeFilters
   );
+  const currency_symbol = useSelector((state: any) => state.homepage.settings);
   const sizesAttr = useSelector(
     (state: any) => state.details.filters.sizesAttr
   );
@@ -72,6 +73,7 @@ function FilterInfoBar() {
                   prices: null,
                   offers: [],
                   sizes: [],
+                  colors: [],
                 },
               });
             },
@@ -89,9 +91,8 @@ function FilterInfoBar() {
           {activeFilters.categories.map(
             (category) =>
               (category.name ||
-                filters.categories.filter(
-                  (s) => s.id === parseInt(category.id)
-                )[0]?.name) && (
+                filters.categories.filter((s) => s.slug === category.slug)[0]
+                  ?.name) && (
                 <>
                   <div className="main-category-icon flex-row min-w-[15px] min-h-[15px]">
                     <svg
@@ -119,7 +120,7 @@ function FilterInfoBar() {
                       src={
                         category?.icon ||
                         filters.categories.filter(
-                          (s) => s.id === parseInt(category.id)
+                          (s) => s.slug === category.slug
                         )[0]?.icon
                       }
                     />
@@ -127,7 +128,7 @@ function FilterInfoBar() {
                   <div className="category-title filter-bar-main-title">
                     {category?.name ||
                       filters.categories.filter(
-                        (s) => s.id === parseInt(category.id)
+                        (s) => s.slug === category.slug
                       )[0]?.name}
                   </div>
                   {category?.category_sub?.map((s) => (
@@ -155,7 +156,7 @@ function FilterInfoBar() {
                           src={
                             s.icon ||
                             filters.categories.filter(
-                              (sub) => sub.id === parseInt(s.id)
+                              (sub) => sub.slug === s.slug
                             )[0]?.icon
                           }
                           width={10}
@@ -165,7 +166,7 @@ function FilterInfoBar() {
                       <div className="category-title filter-bar-main-title">
                         {s.name ||
                           filters.categories.filter(
-                            (sub) => sub.id === parseInt(s.id)
+                            (sub) => sub.slug === s.slug
                           )[0]?.name}
                       </div>
                     </>
@@ -181,7 +182,7 @@ function FilterInfoBar() {
           {activeFilters.brands.map(
             (brand) =>
               (brand.name ||
-                filters.brands.filter((s) => s.id === parseInt(brand.id))[0]
+                filters.brands.filter((s) => s.slug === brand.slug)[0]
                   ?.name) && (
                 <>
                   <div className="main-category-icon flex-row min-w-[15px] min-h-[15px]">
@@ -210,16 +211,15 @@ function FilterInfoBar() {
                       src={
                         brand?.image ||
                         filters.brands.filter(
-                          (sub) => sub.id === parseInt(brand.id)
+                          (sub) => sub.slug === brand.slug
                         )[0]?.image
                       }
                     />
                   </div>
                   <div className="category-title filter-bar-main-title">
                     {brand?.name ||
-                      filters.brands.filter(
-                        (sub) => sub.id === parseInt(brand.id)
-                      )[0]?.name}
+                      filters.brands.filter((sub) => sub.slug === brand.slug)[0]
+                        ?.name}
                   </div>
                 </>
               )
@@ -266,7 +266,12 @@ function FilterInfoBar() {
           {
             <>
               <div className="category-title filter-bar-main-title">
-                {`${filters.prices?.currency_symbol} ${activeFilters.prices?.min} / ${activeFilters.prices?.max} `}
+                {`${
+                  filters.prices?.currency_symbol ||
+                  (currency_symbol &&
+                    currency_symbol["starting-setting"]?.currency_symbol) ||
+                  ""
+                } ${activeFilters.prices?.min} / ${activeFilters.prices?.max} `}
               </div>
             </>
           }
@@ -277,7 +282,9 @@ function FilterInfoBar() {
           <ActiveCategoryIcon style={{ height: "21px" }} />
           {activeFilters.sizes.map((size, index) => (
             <>
-              <div className="category-title filter-bar-main-title">{size}</div>
+              <div className="category-title filter-bar-main-title uppercase">
+                {size}
+              </div>
               {index < activeFilters.sizes.length - 1 && " - "}
             </>
           ))}

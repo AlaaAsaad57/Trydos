@@ -53,7 +53,7 @@ function BoutiqueHeader({ boutique }) {
     const params = new URLSearchParams(searchParams);
     //categories
     if (data.categories.length > 0) {
-      params.set("categories", `${data.categories.map((s) => s.id)}`);
+      params.set("categories", `${data.categories.map((s) => s.slug)}`);
     } else {
       if (params.get("categories")) {
         params.delete("categories");
@@ -61,10 +61,18 @@ function BoutiqueHeader({ boutique }) {
     }
     //brands
     if (data.brands.length > 0) {
-      params.set("brands", `${data.brands.map((s) => s.id)}`);
+      params.set("brands", `${data.brands.map((s) => s.slug)}`);
     } else {
       if (params.get("brands")) {
         params.delete("brands");
+      }
+    }
+    //colors
+    if (data.colors.length > 0) {
+      params.set("colors", `${data.colors.map((s) => s.slug)}`);
+    } else {
+      if (params.get("colors")) {
+        params.delete("colors");
       }
     }
     //sizes
@@ -131,7 +139,7 @@ function BoutiqueHeader({ boutique }) {
                 .split(",")
                 .map((s) => {
                   return {
-                    id: s,
+                    slug: s,
                   };
                 })
             : [],
@@ -149,7 +157,7 @@ function BoutiqueHeader({ boutique }) {
                 .split(",")
                 .map((s) => {
                   return {
-                    id: s,
+                    slug: s,
                   };
                 })
             : [],

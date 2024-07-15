@@ -50,11 +50,41 @@ const initialState = {
   },
   activeFiltersShouldUpdate: false,
   search: false,
+  isChangedFilter: false,
 };
 
 const DetailsReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "RESET-SELECTED": {
+      return {
+        ...state,
+        selectedFilter: {
+          ...state.selectedFilter,
+          ...state.activeFilters,
+          prices:
+            (state.activeFilters.prices && {
+              ...state.activeFilters.prices,
+              min: state.activeFilters.prices.min_price,
+              max: state.activeFilters.prices.max_price,
+            }) ??
+            (state.filters.prices && {
+              ...state.filters.prices,
+              min: state.filters.prices.min_price,
+              max: state.filters.prices.max_price,
+            }) ??
+            {},
+        },
+        isChangedFilter: false,
+      };
+    }
+    case "APPLY-SELECTED": {
+      return {
+        ...state,
+        isChangedFilter: false,
+      };
+    }
     case "FILTER-INIT": {
+      console.log(payload);
       return {
         ...state,
         filters: {
@@ -96,16 +126,16 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
             filtered: true,
             categories:
               state.selectedFilter.categories.filter(
-                (category) => parseInt(category.id) === parseInt(payload.id)
+                (category) => category.slug === payload.slug
               ).length > 0
                 ? [
                     ...state.selectedFilter.categories.filter(
-                      (category) =>
-                        parseInt(category.id) !== parseInt(payload.id)
+                      (category) => category.slug !== payload.slug
                     ),
                   ]
                 : [...state.selectedFilter.categories, payload],
           },
+          isChangedFilter: true,
         };
     }
     case "FILTER-BRAND": {
@@ -116,15 +146,16 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           filtered: true,
           brands:
             state.selectedFilter.brands.filter(
-              (brand) => parseInt(brand.id) === parseInt(payload.id)
+              (brand) => brand.slug === payload.slug
             ).length > 0
               ? [
                   ...state.selectedFilter.brands.filter(
-                    (brand) => parseInt(brand.id) !== parseInt(payload.id)
+                    (brand) => brand.slug !== payload.slug
                   ),
                 ]
               : [...state.selectedFilter.brands, payload],
         },
+        isChangedFilter: true,
       };
     }
     case "FILTER-SIZE": {
@@ -143,6 +174,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
                 ]
               : [...state.selectedFilter.sizes, payload],
         },
+        isChangedFilter: true,
       };
     }
     case "FILTER-COLOR": {
@@ -161,6 +193,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
                 ]
               : [...state.selectedFilter.colors, payload],
         },
+        isChangedFilter: true,
       };
     }
     case "FILTER-PRICE": {
@@ -174,6 +207,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
             max: payload.max,
           },
         },
+        isChangedFilter: true,
       };
     }
     case "STORE-VARIANTS": {
@@ -192,6 +226,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
             state?.filters?.prices?.min_price >= 0 &&
             state?.filters?.prices?.max_price >= 0
               ? {
+                  ...state?.filters.prices,
                   min: state?.filters.prices?.min_price,
                   max: state?.filters?.prices?.max_price,
                 }
@@ -231,7 +266,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           sizes: [],
           offers: [],
           sizesAttr: {},
-          colos: [],
+          colors: [],
         },
         selectedFilter: {
           categories: [],
@@ -244,7 +279,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           offers: [],
           sizes: [],
           searchText: "",
-          colos: [],
+          colors: [],
         },
         filterLoading: false,
         activeFilters: {
@@ -254,7 +289,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           offers: [],
           sizes: [],
           searchText: "",
-          colos: [],
+          colors: [],
         },
         activeFiltersShouldUpdate: false,
         search: false,
@@ -364,6 +399,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           prices:
             state.filters.prices.min_price && state.filters.prices.min_price
               ? {
+                  ...state.filters.prices,
                   min: state.filters.prices.min_price,
                   max: state.filters.prices.max_price,
                 }
@@ -377,15 +413,19 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         filters: { ...state.filters, ...payload },
         selectedFilter: {
           ...state.selectedFilter,
+          colors: state.selectedFilter.colors.filter(
+            (cat) => payload.colors.filter((s) => s === cat).length > 0
+          ),
           categories: state.selectedFilter.categories.filter(
             (cat) =>
-              payload.categories.filter((s) => s.id === cat.id).length > 0
+              payload.categories.filter((s) => s.slug === cat.slug).length > 0
           ),
           brands: state.selectedFilter.brands.filter(
-            (cat) => payload.brands.filter((s) => s.id === cat.id).length > 0
+            (cat) =>
+              payload.brands.filter((s) => s.slug === cat.slug).length > 0
           ),
           sizes: state.selectedFilter.sizes.filter(
-            (cat) => payload.sizes.filter((s) => s.id === cat.id).length > 0
+            (cat) => payload.sizes.filter((s) => s.slug === cat.slug).length > 0
           ),
           prices:
             payload.reset && payload.prices?.min_price >= 0
@@ -395,6 +435,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
                 }
               : { ...state.selectedFilter.prices },
         },
+
         filterLoading: false,
       };
     }

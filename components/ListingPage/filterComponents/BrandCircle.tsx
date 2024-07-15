@@ -23,8 +23,7 @@ function BrandCircle({ brand }) {
 
   const isSelected = () => {
     return (
-      selectedFilter.brands.filter((s) => parseInt(s.id) === parseInt(brand.id))
-        .length > 0
+      selectedFilter.brands.filter((s) => s.slug === brand.slug).length > 0
     );
   };
   const filter = () => {

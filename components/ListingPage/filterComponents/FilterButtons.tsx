@@ -23,6 +23,12 @@ function FilterButtons() {
   const filterEnabled = useSelector(
     (state: any) => state.listing.filterEnabled
   );
+  const activeFilters = useSelector(
+    (state: any) => state.details.activeFilters
+  );
+  const isChangedFilter = useSelector(
+    (state: any) => state.details.isChangedFilter
+  );
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
@@ -31,15 +37,23 @@ function FilterButtons() {
     const params = new URLSearchParams(searchParams);
     //categories
     if (data.categories.length > 0) {
-      params.set("categories", `${data.categories.map((s) => s.id)}`);
+      params.set("categories", `${data.categories.map((s) => s.slug)}`);
     } else {
       if (params.get("categories")) {
         params.delete("categories");
       }
     }
+    //colors
+    if (data.colors.length > 0) {
+      params.set("colors", `${data.colors.map((s) => s)}`);
+    } else {
+      if (params.get("colors")) {
+        params.delete("colors");
+      }
+    }
     //brands
     if (data.brands.length > 0) {
-      params.set("brands", `${data.brands.map((s) => s.id)}`);
+      params.set("brands", `${data.brands.map((s) => s.slug)}`);
     } else {
       if (params.get("brands")) {
         params.delete("brands");
@@ -87,11 +101,15 @@ function FilterButtons() {
   const showFilterInfoBar = () => {
     if (
       filterEnabled &&
-      (selectedFilter.categories.length > 0 ||
-        selectedFilter.brands.length > 0 ||
-        selectedFilter.sizes.length > 0 ||
-        selectedFilter.offers.length > 0 ||
-        selectedFilter.prices?.min > 0)
+      isChangedFilter &&
+      (selectedFilter.categories.length !== activeFilters.categories.length ||
+        selectedFilter.colors.length !== activeFilters.colors.length ||
+        selectedFilter.sizes.length !== activeFilters.sizes.length ||
+        selectedFilter.offers.length !== activeFilters.offers.length ||
+        selectedFilter.brands.length !== activeFilters.brands.length ||
+        (selectedFilter.prices?.min > 0 &&
+          (selectedFilter.prices?.min !== activeFilters.prices?.min ||
+            selectedFilter.prices?.max !== activeFilters.prices?.max)))
     ) {
       return true;
     } else {
@@ -105,6 +123,7 @@ function FilterButtons() {
           <div
             className="apply-button flex-row"
             onClick={() => {
+              dispatch({ type: "APPLY-SELECTED" });
               dispatch({ type: "PRODUCT_LOADING" });
               dispatch({ type: "RESET_LISTING_FILTER" });
               dispatch({ type: "Skeleton-Listing" });
@@ -137,36 +156,7 @@ function FilterButtons() {
           <div
             className="reset-button flex-row"
             onClick={() => {
-              dispatch({ type: "PRODUCT_LOADING" });
-              dispatch({ type: "RESET_LISTING_FILTER" });
-              dispatch({ type: "Skeleton-Listing" });
-              filterProducts({
-                boutiqueId: pathName.productCategory,
-                lang: pathName.lang,
-                sizesAttr: sizesAttr,
-                callback: (products) => {
-                  dispatch({ type: "GET_PRODUCT", payload: { products } });
-                },
-                offset: 1,
-                storeCallback: (e) => {
-                  dispatch({
-                    type: "ACTIVE-FILTER",
-                    payload: {
-                      categories: [],
-                      brands: [],
-                      prices: null,
-                      offers: [],
-                      sizes: [],
-                    },
-                  });
-                },
-                newFiltersCallback: ({ filtersVar }) => {
-                  dispatch({ type: "EDIT-FILTER", payload: filtersVar });
-                },
-                reset: true,
-              });
-              dispatch({ type: "RESET-FILTER" });
-              normalizeView();
+              dispatch({ type: "RESET-SELECTED" });
             }}
           >
             Reset

@@ -16,7 +16,7 @@ export const SEND_OTP = "/phone/send_otp";
 export const HOME_DATA_URL = "/web/home/boutiques";
 export const HOME_DATA_CATEGORIES_URL =
   "/web/home/mainCategoriesRelatedWithBoutique";
-export const STARTER_SETTINGS = "/mobile/home/startingSettings";
+export const STARTER_SETTINGS = "/web/home/startingSettings";
 /*Chat */
 // staging d651b1bd0c18b021f264
 // live 22eecb27b12e20f4d569

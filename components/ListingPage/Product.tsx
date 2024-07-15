@@ -118,9 +118,9 @@ function Product({
             activeFilters.categories.filter(
               (selected_cat) =>
                 // @ts-ignore
-                parseInt(selected_cat.id) === parseInt(category.id) ||
+                selected_cat.slug === category.slug ||
                 // @ts-ignore
-                parseInt(selected_cat) === parseInt(category)
+                selected_cat === category
             ).length > 0
           )
             return true;
@@ -140,9 +140,9 @@ function Product({
           // @ts-ignore
           (brand) =>
             // @ts-ignore
-            parseInt(brand.id) === parseInt(product.brand.id) ||
+            brand.slug === product.brand.slug ||
             // @ts-ignore
-            parseInt(brand) === parseInt(product.brand.id)
+            brand === product.brand.slug
         ).length > 0
       ) {
         isSelectedBrand = true;
@@ -195,7 +195,7 @@ function Product({
       isSelectedBrand && isSelectedCat && isSelectedPrice && isSelectedSize
     );
   };
-  if (IsComptaibleWithFilter())
+  if (true)
     return (
       <div>
         <NextLink

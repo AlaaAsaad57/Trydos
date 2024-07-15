@@ -45,9 +45,8 @@ function CategoryCircle({ category }) {
   };
   const isSelected = () => {
     return (
-      selectedFilter.categories.filter(
-        (s) => parseInt(s.id) === parseInt(category.id)
-      ).length > 0
+      selectedFilter.categories.filter((s) => s.slug === category.slug).length >
+      0
     );
   };
   return (

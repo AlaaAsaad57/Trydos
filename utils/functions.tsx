@@ -425,14 +425,14 @@ export const filterProducts = async ({
   storeCallback(filterObj);
 
   let filters = {
-    categories: filterObj.categories.map((s) => s.id),
+    categories: filterObj.categories.map((s) => s.slug),
     prices:
       filterObj.prices?.min >= 0
         ? [
             `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
           ]
         : null,
-    brands: filterObj.brands.map((brand) => brand.id),
+    brands: filterObj.brands.map((brand) => brand.slug),
     attributes: { ...sizesAttr, options: filterObj.sizes },
     boutique_slug: boutiqueId,
     lang: lang.split("-")[1],
@@ -444,9 +444,9 @@ export const filterProducts = async ({
   if (reset) {
     str = `/web/products/with_filter?&boutique_slug=${boutiqueId}`;
   } else {
-    str = `/web/products/with_filter?categories=${JSON.stringify(
+    str = `/web/products/with_filter?category_slugs=${JSON.stringify(
       filters.categories
-    )}&brands=${JSON.stringify(filters.brands)}${
+    )}&brand_slugs=${JSON.stringify(filters.brands)}${
       filters?.attributes?.options?.length > 0
         ? `&attributes=${JSON.stringify(filters.attributes)}`
         : ""
@@ -459,7 +459,7 @@ export const filterProducts = async ({
     }`;
   }
   let product = await axios.get(OTP_URL + str, {
-    params: { colors: `${JSON.stringify(filters.colors)}` },
+    params: reset ? {} : { colors: `${JSON.stringify(filters.colors)}` },
     headers: {
       lang: filters.lang,
       country: filters.country,

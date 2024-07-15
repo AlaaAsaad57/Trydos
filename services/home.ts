@@ -122,22 +122,22 @@ class HomeService {
     const filterObj = store.getState().details.activeFilters;
     const sizesAttr = store.getState().details.filters.sizesAttr;
     let filters = {
-      categories: filterObj.categories.map((s) => parseInt(s.id)),
+      categories: filterObj.categories.map((s) => s.slug),
       prices: filterObj.prices
         ? [
             `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
           ]
         : null,
-      brands: filterObj.brands.map((brand) => parseInt(brand.id)),
+      brands: filterObj.brands.map((brand) => brand.slug),
       attributes: { ...sizesAttr, options: filterObj.sizes },
       boutique_slug: categories,
       searchText: filterObj.searchText,
     };
-    let str = `categories=${JSON.stringify(
+    let str = `category_slugs=${JSON.stringify(
       filters.categories
-    )}&brands=${JSON.stringify(filters.brands)}&attributes=${JSON.stringify(
-      filters.attributes
-    )}${
+    )}&brand_slugs=${JSON.stringify(
+      filters.brands
+    )}&attributes=${JSON.stringify(filters.attributes)}${
       filters.prices !== null ? `&prices=${JSON.stringify(filters.prices)}` : ""
     }&boutique_slug=${filters.boutique_slug}${
       filters?.searchText?.length > 0

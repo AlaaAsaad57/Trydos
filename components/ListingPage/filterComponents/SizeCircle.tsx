@@ -82,7 +82,7 @@ function SizeCircle({ text }: { text: string }) {
         <div
           className={`brand-photo ${
             isSelected() && "bold-size"
-          } whitespace-pre-wrap text-center`}
+          } whitespace-pre-wrap text-center uppercase`}
           style={{
             backgroundColor: "#fff",
             minHeight: "70px",

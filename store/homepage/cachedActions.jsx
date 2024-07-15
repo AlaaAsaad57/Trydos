@@ -229,15 +229,13 @@ export const getListingData = async ({
     };
     let str = `/web/products/with_filter?${
       obj.categories
-        ? `categories=${JSON.stringify(
-            obj.categories.split(",").map((s) => parseInt(s))
+        ? `category_slugs=${JSON.stringify(
+            obj.categories.split(",").map((s) => s)
           )}`
         : ""
     }${
       obj.brands?.length > 0
-        ? `&brands=${JSON.stringify(
-            obj.brands.split(",").map((s) => parseInt(s))
-          )}`
+        ? `&brand_slugs=${JSON.stringify(obj.brands.split(",").map((s) => s))}`
         : ""
     }${
       obj.sizes
@@ -276,7 +274,7 @@ export const getListingData = async ({
       }
     );
     let repo = await productRes.json();
-
+    console.log(productRes.url, repo.data);
     return [
       [],
       {
