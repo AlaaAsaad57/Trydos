@@ -14,7 +14,7 @@ function Border({ className }) {
         fill="none"
         stroke="#707070"
         strokeWidth="0.5"
-        stroke-dasharray="3 3"
+        strokeDasharray="3 3"
       >
         <rect width="100%" height="100%" rx="20" stroke="none" />
         <rect

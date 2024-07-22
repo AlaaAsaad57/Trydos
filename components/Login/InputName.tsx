@@ -207,7 +207,7 @@ function InputName({
             fill="none"
             stroke="#5d5c5d"
             strokeWidth="0.5"
-            stroke-dasharray="3 3"
+            strokeDasharray="3 3"
           >
             <rect width="calc(100%)" height="60" rx="20" stroke="none" />
             <rect

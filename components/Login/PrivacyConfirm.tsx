@@ -90,7 +90,7 @@ function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
                 fill="none"
                 stroke="#388cff"
                 strokeWidth="0.5"
-                stroke-dasharray="3 3"
+                strokeDasharray="3 3"
               >
                 <rect width="calc(100%)" height="100%" rx="20" stroke="none" />
                 <rect

@@ -47,7 +47,7 @@ function InfoWindow() {
               fill="none"
               stroke="#707070"
               strokeWidth="0.5"
-              stroke-dasharray="3 3"
+              strokeDasharray="3 3"
             >
               <rect
                 width="calc(100%)"

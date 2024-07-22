@@ -52,16 +52,24 @@
 }
 .boutique-category-filter {
   height: 103px;
-  min-width: 100%;
+
   padding-top: 9px;
-  width: 100%;
+  width: auto;
   align-items: center;
+}
+.filter-enabled {
+  overflow: hidden;
+  max-width: 100%;
+}
+.filter-enabled .boutique-category-filter {
+  width: 100% !important;
+  min-width: 100% !important;
 }
 .category-row-container {
   height: 103px;
   margin-left: 10px;
   cursor: pointer;
-  padding-right: 20px;
+  padding-right: 10px;
   overflow-x: scroll;
   overflow-y: hidden;
 
@@ -213,6 +221,9 @@
 .filter-container {
   width: 100%;
   margin-top: 10px;
+}
+.filter-container::-webkit-scrollbar {
+  display: none;
 }
 .filter-label {
   margin-left: 21px;

@@ -123,7 +123,7 @@ class HomeService {
     const sizesAttr = store.getState().details.filters.sizesAttr;
     let filters = {
       categories: filterObj.categories.map((s) => s.slug),
-      prices: filterObj.prices
+      prices: filterObj.prices?.pricesWord
         ? [
             `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
           ]

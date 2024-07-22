@@ -201,6 +201,37 @@ function BoutiqueHeader({ boutique }) {
       }
     });
   }, []);
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      const slider: HTMLDivElement =
+        document?.querySelector(".filter-container");
+      let isDown = false;
+      let startX: number;
+      let scrollLeft: number;
+
+      slider?.addEventListener("mousedown", (e: MouseEvent) => {
+        isDown = true;
+        slider.classList.add("active");
+        startX = e.pageX - slider.offsetLeft;
+        scrollLeft = slider.scrollLeft;
+      });
+      slider?.addEventListener("mouseleave", () => {
+        isDown = false;
+        slider.classList.remove("active");
+      });
+      slider?.addEventListener("mouseup", () => {
+        isDown = false;
+        slider.classList.remove("active");
+      });
+      slider?.addEventListener("mousemove", (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - slider.offsetLeft;
+        const walk = (x - startX) * 3; //scroll-fast
+        slider.scrollLeft = scrollLeft - walk;
+      });
+    }
+  }, []);
   return (
     <div className={`boutique-header ${"flex-col"} align-center`}>
       <div className="boutique-top-info flex-col items-center">
@@ -237,8 +268,10 @@ function BoutiqueHeader({ boutique }) {
         ) : (
           <div
             className={`${
-              filterEnabled ? "flex-col" : "flex-row"
-            }  justify-start align-start filter-container overflow-hidden scroll-smooth `}
+              filterEnabled
+                ? "flex-col filter-enabled"
+                : "flex-row items-center"
+            }  justify-start align-start filter-container overflow-auto scroll-smooth`}
             onScroll={(e) => {
               e.preventDefault();
             }}
@@ -250,11 +283,13 @@ function BoutiqueHeader({ boutique }) {
               <>
                 {filters?.brands.length > 0 && (
                   <>
+                    {!filterEnabled && <BorderThin />}
                     <BoutiqueBrandFilter filterEnabled={filterEnabled} />
                   </>
                 )}
                 {filters?.offers?.length > 0 && (
                   <>
+                    {!filterEnabled && <BorderThin />}
                     <BoutiqueOfferFilter filterEnabled={filterEnabled} />
                   </>
                 )}
@@ -265,11 +300,13 @@ function BoutiqueHeader({ boutique }) {
                 )}
                 {filters?.sizes?.length > 0 && (
                   <>
+                    {!filterEnabled && <BorderThin />}
                     <BoutiqueSizeFilter filterEnabled={filterEnabled} />
                   </>
                 )}
                 {filters?.colors?.length > 0 && (
                   <>
+                    {!filterEnabled && <BorderThin />}
                     <BoutiqueColorsFilter filterEnabled={filterEnabled} />
                   </>
                 )}
@@ -285,3 +322,24 @@ function BoutiqueHeader({ boutique }) {
 }
 
 export default BoutiqueHeader;
+
+const BorderThin = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="0.5"
+      height="63"
+      viewBox="0 0 0.5 63"
+    >
+      <path
+        id="Path_22202"
+        data-name="Path 22202"
+        d="M0,0V63"
+        transform="translate(0.25)"
+        fill="#fff"
+        stroke="#5d5d5d"
+        stroke-width="0.5"
+      />
+    </svg>
+  );
+};

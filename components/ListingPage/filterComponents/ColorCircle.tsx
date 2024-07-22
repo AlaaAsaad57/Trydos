@@ -86,7 +86,7 @@ function ColorCircle({ color }) {
             fill="none"
             stroke={isSelected() ? "#FF5F61" : "#6b6b6b"}
             strokeWidth="0.5"
-            stroke-dasharray="3 3"
+            strokeDasharray="3 3"
           >
             <circle cx="35" cy="35" r="35" stroke="none" />
             <circle cx="35" cy="35" r="34.75" fill="none" />

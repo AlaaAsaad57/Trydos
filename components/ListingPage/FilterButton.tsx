@@ -11,9 +11,13 @@ function FilterButton({ filters, showedFilter }) {
         window.innerWidth * 0;
     } else {
       dispatch({ type: "SHOWED-FILTER", payload: filters()[i + 1].name });
-      document.querySelector(".filter-container").scrollLeft =
-        document.querySelector(".boutique-category-filter").clientWidth *
-        (i + 1);
+      let a = 0;
+      document
+        .querySelectorAll(".boutique-category-filter")
+        .forEach((s, index) => {
+          if (index < i + 1) a += s.clientWidth;
+        });
+      document.querySelector(".filter-container").scrollLeft = a + 10;
     }
   };
   return (
@@ -34,7 +38,7 @@ function FilterButton({ filters, showedFilter }) {
               data-name="Ellipse 221"
               fill={s.name === showedFilter ? "#505050" : "#fff"}
               stroke="#505050"
-              stroke-width="0.5"
+              strokeWidth="0.5"
             >
               <circle cx="3.741" cy="3.741" r="3.741" stroke="none" />
               <circle cx="3.741" cy="3.741" r="3.491" fill="none" />

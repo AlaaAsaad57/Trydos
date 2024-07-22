@@ -101,25 +101,27 @@ function CategoryCircle({ category }) {
           {/* <span className="category-typo">1100</span> */}
         </div>
       </div>
-      <div
-        className={`categories-sub-circles ${isSelected() && "no-transform"}`}
-        style={{
-          minWidth: isSelected()
-            ? `${category.category_sub.length * 55 - 5}px`
-            : "10px",
-        }}
-      >
-        {category.category_sub.map((s, index) => {
-          return (
-            <SubCategoryCircle
-              key={index}
-              MainCategoryActive={isSelected()}
-              index={index}
-              category={s}
-            />
-          );
-        })}
-      </div>
+      {category.category_sub?.length > 0 && (
+        <div
+          className={`categories-sub-circles ${isSelected() && "no-transform"}`}
+          style={{
+            minWidth: isSelected()
+              ? `${category.category_sub.length * 55 - 5}px`
+              : "10px",
+          }}
+        >
+          {category.category_sub.map((s, index) => {
+            return (
+              <SubCategoryCircle
+                key={index}
+                MainCategoryActive={isSelected()}
+                index={index}
+                category={s}
+              />
+            );
+          })}
+        </div>
+      )}
     </>
   );
 }
