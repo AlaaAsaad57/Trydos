@@ -6,13 +6,14 @@ import {
 } from "next/navigation";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { filterProducts, normalizeView } from "utils/functions";
+import { filterProducts, normalizeView, UpdateFilter } from "utils/functions";
 
 function FilterButtons() {
   const dispatch = useDispatch();
   const selectedFilter = useSelector(
     (state: any) => state.details.selectedFilter
   );
+
   const sizesAttr = useSelector(
     (state: any) => state.details.filters.sizesAttr
   );
@@ -107,9 +108,7 @@ function FilterButtons() {
         selectedFilter.sizes.length !== activeFilters.sizes.length ||
         selectedFilter.offers.length !== activeFilters.offers.length ||
         selectedFilter.brands.length !== activeFilters.brands.length ||
-        (selectedFilter.prices?.min > 0 &&
-          (selectedFilter.prices?.min !== activeFilters.prices?.min ||
-            selectedFilter.prices?.max !== activeFilters.prices?.max)))
+        selectedFilter.prices.pricesWord)
     ) {
       return true;
     } else {
@@ -157,6 +156,28 @@ function FilterButtons() {
             className="reset-button flex-row"
             onClick={() => {
               dispatch({ type: "RESET-SELECTED" });
+              dispatch({ type: "FILTER-LOADING", payload: true });
+              UpdateFilter({
+                filtersVar: {
+                  categories: [],
+                  brands: [],
+                  colors: [],
+                  sizes: [],
+                },
+                sizesAttr: sizesAttr,
+                boutiqueId: pathName.productCategory,
+                lang: pathName.lang,
+                done: () => {
+                  dispatch({ type: "FILTER-LOADING", payload: false });
+                },
+                newFiltersCallback: ({ filtersVar }) => {
+                  dispatch({
+                    type: "EDIT-FILTER",
+                    payload: { ...filtersVar, reset: true },
+                  });
+                },
+                searchText: selectedFilter?.searchText,
+              });
             }}
           >
             Reset

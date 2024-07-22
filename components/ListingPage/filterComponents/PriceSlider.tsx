@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import MultiRangeSlider from "multi-range-slider-react";
+import Slider from "rc-slider";
 import "styles/slider.css";
 function PriceSlider({
   Value,
@@ -19,13 +19,15 @@ function PriceSlider({
       max: e.maxValue,
     });
   };
-
+  useEffect(() => {
+    console.log([min, max], Value);
+  }, []);
   return (
-    <div className="price-slider-container">
-      <MultiRangeSlider
+    <div className="price-slider-container mt-10 w-full pr-9 pl-5 z-10">
+      {/* <MultiRangeSlider
         className={`${enabled && "slider-enabled"}`}
-        min={min}
-        max={max}
+        min={min >= 0 ? min : Value.min}
+        max={max >= 0 ? max : Value.max}
         label={false}
         step={1}
         minValue={Value.min}
@@ -33,10 +35,24 @@ function PriceSlider({
         stepOnly={true}
         style={{ border: "none", boxShadow: "none" }}
         onChange={(e) => {
+          console.log(e);
           handleInput(e);
           setEnabled(true);
         }}
         ruler={false}
+      /> */}
+      <Slider
+        defaultValue={[min, max]}
+        range
+        min={Value.min}
+        max={Value.max}
+        step={1}
+        onChangeComplete={(e) => {
+          console.log(e);
+
+          handleInput({ minValue: e[0], maxValue: e[1] });
+          setEnabled(true);
+        }}
       />
     </div>
   );

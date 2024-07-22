@@ -17,37 +17,33 @@ function BoutiquePriceFilter() {
     (state: any) => state.details.selectedFilter
   );
   const filters = useSelector((state: any) => state.details.filters);
+  const loading = useSelector((state: any) => state.details.loading);
   const pathName = useParams();
 
   const set_Value = (e) => {
     if (
-      e.min === selectedFilter.prices.min &&
-      e.max === selectedFilter.prices.max
+      (e.min === selectedFilter.prices.min &&
+        e.max === selectedFilter.prices.max) ||
+      (e.min === filters.prices.min_price && e.max === filters.prices.max_price)
     ) {
       return;
-    }
-    if (e.min < e.max) {
-      console.log(
-        e.min,
-        e.max,
-        selectedFilter.prices.max,
-        selectedFilter,
-        selectedFilter.prices.min
-      );
-      dispatch({ type: "FILTER-PRICE", payload: e });
-      dispatch({ type: "FILTER-LOADING", payload: true });
-      UpdateFilter({
-        boutiqueId: pathName.productCategory,
-        lang: pathName.lang,
-        sizesAttr: filters.sizesAttr,
-        newFiltersCallback: ({ filtersVar }) => {
-          dispatch({ type: "EDIT-FILTER", payload: filtersVar });
-        },
-        searchText: "",
-        done: () => {
-          dispatch({ type: "FILTER-LOADING", payload: false });
-        },
-      });
+    } else if (e.min < e.max) {
+      if (!loading) {
+        dispatch({ type: "FILTER-LOADING", payload: true });
+        dispatch({ type: "FILTER-PRICE", payload: e });
+        UpdateFilter({
+          boutiqueId: pathName.productCategory,
+          lang: pathName.lang,
+          sizesAttr: filters.sizesAttr,
+          newFiltersCallback: ({ filtersVar }) => {
+            dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+          },
+          searchText: "",
+          done: () => {
+            dispatch({ type: "FILTER-LOADING", payload: false });
+          },
+        });
+      }
     }
   };
 
@@ -63,21 +59,25 @@ function BoutiquePriceFilter() {
       <div className="price-min-max flex-row z-20">
         {selectedFilter?.prices?.min >= 0 && (
           <div className="price-min">
-            Min {selectedFilter.prices.min} <span>USD</span>
+            Min {selectedFilter.prices.min}{" "}
+            <span>{filters.prices?.currency_symbol}</span>
           </div>
         )}
         {selectedFilter?.prices?.max >= 0 && (
           <div className="price-max">
-            Max {selectedFilter.prices.max} <span>USD</span>
+            Max {selectedFilter.prices.max}{" "}
+            <span>{filters.prices?.currency_symbol}</span>
           </div>
         )}
       </div>
       <PriceSlider
-        min={filters?.prices?.min_price >= 0 ? filters?.prices?.min_price : 100}
-        max={filters?.prices?.max_price || 500}
+        min={
+          selectedFilter?.prices?.min >= 0 ? selectedFilter?.prices?.min : 100
+        }
+        max={selectedFilter?.prices?.max || 500}
         Value={{
-          min: selectedFilter?.prices.min,
-          max: selectedFilter?.prices.max,
+          min: filters?.prices?.min_price,
+          max: filters?.prices?.max_price,
         }}
         set_Value={(e) => {
           set_Value(e);

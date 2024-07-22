@@ -43,7 +43,7 @@ function FilterBar({ boutique, filters }) {
       activeFilters.sizes.length > 0 ||
       activeFilters.colors.length > 0 ||
       activeFilters.offers.length > 0 ||
-      activeFilters.prices?.min >= 0
+      activeFilters.prices?.pricesWord
     ) {
       return true;
     } else {

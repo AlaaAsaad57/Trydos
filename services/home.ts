@@ -79,7 +79,7 @@ class HomeService {
       });
       setTimeout(() => {
         this.getClientData();
-      }, 6000);
+      }, 2000);
     }
   }
   async RegisterDevice() {

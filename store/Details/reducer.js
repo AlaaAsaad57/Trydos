@@ -24,6 +24,7 @@ const initialState = {
     prices: {
       min: 0,
       max: 500,
+      pricesWord: null,
     },
     brands: [],
     offers: [],
@@ -35,7 +36,9 @@ const initialState = {
   activeFilters: {
     categories: [],
     brands: [],
-    prices: null,
+    prices: {
+      pricesWord: null,
+    },
     offers: [],
     sizes: [],
     searchText: "",
@@ -44,6 +47,7 @@ const initialState = {
   activeFiltersShouldUpdate: false,
   search: false,
   isChangedFilter: false,
+
   loading: false,
 };
 
@@ -55,18 +59,26 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         selectedFilter: {
           ...state.selectedFilter,
           ...state.activeFilters,
-          prices:
-            (state.activeFilters.prices && {
-              ...state.activeFilters.prices,
-              min: state.activeFilters.prices.min_price,
-              max: state.activeFilters.prices.max_price,
-            }) ??
+          prices: (state.activeFilters.prices && {
+            ...state.activeFilters.prices,
+            pricesWord: null,
+            min:
+              state.activeFilters?.prices?.min_price ||
+              state.filters.prices?.min_price,
+            max:
+              state.activeFilters.prices?.max_price ||
+              state.filters.prices?.max_price,
+          }) ??
             (state.filters.prices && {
               ...state.filters.prices,
-              min: state.filters.prices.min_price,
-              max: state.filters.prices.max_price,
-            }) ??
-            {},
+              pricesWord: null,
+              min: state.filters.prices?.min_price,
+              max: state.filters.prices?.max_price,
+            }) ?? {
+              pricesWord: null,
+              min: state.filters?.prices?.min_price,
+              max: state.filters?.prices?.max_price,
+            },
         },
         isChangedFilter: false,
       };
@@ -204,6 +216,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           prices: {
             min: payload.min,
             max: payload.max,
+            pricesWord: `["${payload.min}-${payload.max}"]`,
           },
         },
         isChangedFilter: true,
@@ -311,11 +324,11 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         selectedFilter: {
           ...state.selectedFilter,
           prices:
-            state.filters.prices.min_price && state.filters.prices.min_price
+            state.filters.prices?.min_price && state.filters.prices?.min_price
               ? {
                   ...state.filters.prices,
-                  min: state.filters.prices.min_price,
-                  max: state.filters.prices.max_price,
+                  min: state.filters.prices?.min_price,
+                  max: state.filters.prices?.max_price,
                 }
               : null,
         },
@@ -324,32 +337,44 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
     case "EDIT-FILTER": {
       return {
         ...state,
-        filters: { ...state.filters, ...payload },
+        filters: {
+          ...state.filters,
+          categories: [...payload.categories],
+          brands: [...payload.brands],
+          sizes: [...payload.sizes],
+          colors: [...payload.colors],
+          prices: payload.prices,
+        },
         selectedFilter: {
           ...state.selectedFilter,
-          colors: state.selectedFilter.colors.filter(
-            (cat) => payload.colors.filter((s) => s === cat).length > 0
-          ),
-          categories: state.selectedFilter.categories.filter(
-            (cat) =>
-              payload.categories.filter((s) => s.slug === cat.slug).length > 0
-          ),
-          brands: state.selectedFilter.brands.filter(
-            (cat) =>
-              payload.brands.filter((s) => s.slug === cat.slug).length > 0
-          ),
-          sizes: state.selectedFilter.sizes.filter(
-            (cat) => payload.sizes.filter((s) => s.slug === cat.slug).length > 0
-          ),
+          colors: [...state.selectedFilter.colors],
+          categories: [...state.selectedFilter.categories],
+          brands: [...state.selectedFilter.brands],
+          sizes: [...state.selectedFilter.sizes],
           prices:
-            payload.reset && payload.prices?.min_price >= 0
+            payload.reset && payload?.prices?.min_price >= 0
               ? {
+                  pricesWord: null,
                   min: payload.prices?.min_price,
-                  max: payload.prices.max_price,
+                  max: payload.prices?.max_price,
                 }
-              : { ...state.selectedFilter.prices },
+              : state.selectedFilter.prices?.max > payload?.prices?.max_price
+              ? {
+                  ...state.selectedFilter.prices,
+                  min: payload.prices?.min_price,
+                  max: payload.prices?.max_price,
+                }
+              : state.selectedFilter?.prices?.min >= 0
+              ? { ...state.selectedFilter.prices }
+              : {
+                  ...state.selectedFilter.prices,
+                  min: payload.prices?.min_price,
+                  max: payload.prices?.max_price,
+                },
         },
-
+        activeFilters: {
+          ...state.activeFilters,
+        },
         filterLoading: false,
       };
     }

@@ -260,7 +260,7 @@ function FilterInfoBar() {
           ))}
         </>
       )}
-      {activeFilters.prices?.min >= 0 && (
+      {activeFilters.prices?.pricesWord && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
           {

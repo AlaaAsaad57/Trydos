@@ -2,7 +2,7 @@ import React from "react";
 import Chart from "react-apexcharts";
 function PriceChart({ points }) {
   return (
-    <div className="chart-container flex-row">
+    <div className="chart-container flex-row top-8 right-6 absolute w-full">
       <Chart
         options={{
           stroke: { curve: "smooth", show: false },

@@ -291,11 +291,7 @@
   font-family: var(--Quicksand-Light);
   font-size: 10px;
 }
-.chart-container {
-  position: absolute;
-  top: 15px;
-  left: 25px;
-}
+
 .filter-buttons {
   width: 100%;
   position: fixed;

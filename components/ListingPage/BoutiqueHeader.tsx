@@ -96,7 +96,12 @@ function BoutiqueHeader({ boutique }) {
       }
     }
     //prices
-    if (data.prices && data.prices?.min >= 0 && data.prices?.max >= 0) {
+    if (
+      data.prices &&
+      data.prices?.min >= 0 &&
+      data.prices?.max >= 0 &&
+      data.prices.pricesWord
+    ) {
       params.set("max-pr", `${data.prices.max}`);
       params.set("min-pr", `${data.prices.min}`);
     } else {
@@ -170,6 +175,9 @@ function BoutiqueHeader({ boutique }) {
             ? {
                 min: searchParams.get("min-pr"),
                 max: searchParams.get("max-pr"),
+                pricesWord: `["${searchParams.get("min-pr")}-${searchParams.get(
+                  "max-pr"
+                )}"]`,
               }
             : null,
           offers: [],

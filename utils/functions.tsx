@@ -162,7 +162,7 @@ export const getConfiguredImage = ({ src, width, height }) => {
       "/upload",
       `/upload/h_${height}/f_avif/q_auto`
     );
-  } else return src.file_path;
+  } else return src?.file_path || "";
 };
 export const getLang = (lang, cookieLang) => {
   if (lang) {
@@ -426,12 +426,11 @@ export const filterProducts = async ({
 
   let filters = {
     categories: filterObj.categories.map((s) => s.slug),
-    prices:
-      filterObj.prices?.min >= 0
-        ? [
-            `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
-          ]
-        : null,
+    prices: filterObj.prices?.pricesWord
+      ? [
+          `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
+        ]
+      : null,
     brands: filterObj.brands.map((brand) => brand.slug),
     attributes: { ...sizesAttr, options: filterObj.sizes },
     boutique_slug: boutiqueId,
@@ -492,9 +491,18 @@ export const UpdateFilter = async ({
   lang,
   newFiltersCallback,
   done,
+  filtersVar,
+}: {
+  sizesAttr: any;
+  boutiqueId: any;
+  searchText: any;
+  lang: any;
+  newFiltersCallback: any;
+  done: any;
+  filtersVar?: any;
 }) => {
   try {
-    const filterObj = store.getState().details.selectedFilter;
+    const filterObj = filtersVar || store.getState().details.selectedFilter;
     let filters = {
       categories: filterObj.categories.map((s) => s.slug),
       prices:
