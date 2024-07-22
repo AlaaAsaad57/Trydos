@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import { UpdateFilter } from "utils/functions";
 const PriceChart = dynamic(() => import("./PriceChart"), {
   ssr: false,
 });
@@ -19,8 +20,34 @@ function BoutiquePriceFilter() {
   const pathName = useParams();
 
   const set_Value = (e) => {
+    if (
+      e.min === selectedFilter.prices.min &&
+      e.max === selectedFilter.prices.max
+    ) {
+      return;
+    }
     if (e.min < e.max) {
+      console.log(
+        e.min,
+        e.max,
+        selectedFilter.prices.max,
+        selectedFilter,
+        selectedFilter.prices.min
+      );
       dispatch({ type: "FILTER-PRICE", payload: e });
+      dispatch({ type: "FILTER-LOADING", payload: true });
+      UpdateFilter({
+        boutiqueId: pathName.productCategory,
+        lang: pathName.lang,
+        sizesAttr: filters.sizesAttr,
+        newFiltersCallback: ({ filtersVar }) => {
+          dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+        },
+        searchText: "",
+        done: () => {
+          dispatch({ type: "FILTER-LOADING", payload: false });
+        },
+      });
     }
   };
 

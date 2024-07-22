@@ -44,6 +44,7 @@ const initialState = {
   activeFiltersShouldUpdate: false,
   search: false,
   isChangedFilter: false,
+  loading: false,
 };
 
 const DetailsReducer = (state = initialState, { type, payload }) => {
@@ -106,6 +107,12 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
                 }
               : null,
         },
+      };
+    }
+    case "FILTER-LOADING": {
+      return {
+        ...state,
+        loading: payload,
       };
     }
     case "FILTER-CATEGORY": {

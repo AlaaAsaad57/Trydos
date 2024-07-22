@@ -484,3 +484,74 @@ export const filterProducts = async ({
     });
   callback(product.data.data.products);
 };
+
+export const UpdateFilter = async ({
+  sizesAttr,
+  boutiqueId,
+  searchText,
+  lang,
+  newFiltersCallback,
+  done,
+}) => {
+  try {
+    const filterObj = store.getState().details.selectedFilter;
+    let filters = {
+      categories: filterObj.categories.map((s) => s.slug),
+      prices:
+        filterObj.prices?.min >= 0
+          ? [
+              `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
+            ]
+          : null,
+      brands: filterObj.brands.map((brand) => brand.slug),
+      attributes: { ...sizesAttr, options: filterObj.sizes },
+      boutique_slug: boutiqueId,
+      lang: lang.split("-")[1],
+      country: lang.split("-")[0],
+      searchText: searchText || filterObj.searchText,
+      colors: filterObj.colors.map((s) => s),
+    };
+    let str = `/web/products/filters?category_slugs=${JSON.stringify(
+      filters.categories
+    )}&brand_slugs=${JSON.stringify(filters.brands)}${
+      filters?.attributes?.options?.length > 0
+        ? `&attributes=${JSON.stringify(filters.attributes)}`
+        : ""
+    }${
+      filters.prices !== null ? `&prices=${JSON.stringify(filters.prices)}` : ""
+    }&boutique_slug=${filters.boutique_slug}${
+      filters?.searchText?.length > 0
+        ? `&search_text=${filters.searchText}`
+        : ""
+    }`;
+    let product = await axios.get(OTP_URL + str, {
+      params:
+        filters.colors.length > 0
+          ? {}
+          : { colors: `${JSON.stringify(filters.colors)}` },
+      headers: {
+        lang: filters.lang,
+        country: filters.country,
+      },
+    });
+    newFiltersCallback({
+      filtersVar: {
+        categories: product.data.data.categories,
+        brands: product.data.data.brands,
+        sizes:
+          product.data.data.attributes.filter((s) => s.name === "Size")[0]
+            ?.options || [],
+        prices: product.data.data.prices || null,
+        offers:
+          product.data.data.attributes.filter((s) => s.name === "Offer")[0]
+            ?.options || [],
+        reset: false,
+        colors: product.data.data.colors || [],
+      },
+    });
+    done();
+  } catch (error) {
+    done();
+    console.log(error);
+  }
+};

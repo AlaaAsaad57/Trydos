@@ -1,7 +1,7 @@
 import { useParams } from "next/navigation";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { filterProducts } from "utils/functions";
+import { filterProducts, UpdateFilter } from "utils/functions";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 
 function ColorCircle({ color }) {
@@ -17,8 +17,22 @@ function ColorCircle({ color }) {
   );
   const selectCategory = (e) => {
     dispatch({ type: "FILTER-COLOR", payload: e });
+    dispatch({ type: "FILTER-LOADING", payload: true });
+    UpdateFilter({
+      boutiqueId: pathName.productCategory,
+      lang: pathName.lang,
+      sizesAttr: filters.sizesAttr,
+      newFiltersCallback: ({ filtersVar }) => {
+        dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+      },
+      searchText: "",
+      done: () => {
+        dispatch({ type: "FILTER-LOADING", payload: false });
+      },
+    });
     if (!filterEnabled) {
       filter();
+    } else {
     }
   };
   const filter = () => {

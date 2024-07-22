@@ -19,6 +19,7 @@ import {
 } from "next/navigation";
 import FilterButton from "./FilterButton";
 import BoutiqueColorsFilter from "./filterComponents/BoutiqueColorsFilter";
+import FiltersSkelton from "components/skeleton/FiltersSkelton";
 
 function BoutiqueHeader({ boutique }) {
   const filterEnabled = useSelector(
@@ -28,6 +29,7 @@ function BoutiqueHeader({ boutique }) {
   const filterLoading = useSelector(
     (state: any) => state.details.filterLoading
   );
+  const loading = useSelector((state: any) => state.details.loading);
 
   const sizesAttr = useSelector(
     (state: any) => state.details.filters.sizesAttr
@@ -222,49 +224,53 @@ function BoutiqueHeader({ boutique }) {
             showedFilter={showedFilter}
           />
         )}
-        <div
-          className={`${
-            filterEnabled ? "flex-col" : "flex-row"
-          }  justify-start align-start filter-container overflow-hidden scroll-smooth `}
-          onScroll={(e) => {
-            e.preventDefault();
-          }}
-        >
-          {filters?.categories.length > 0 && (
-            <BoutiqueCategoryFilter filterEnabled={filterEnabled} />
-          )}
-          {
-            <>
-              {filters?.brands.length > 0 && (
-                <>
-                  <BoutiqueBrandFilter filterEnabled={filterEnabled} />
-                </>
-              )}
-              {filters?.offers?.length > 0 && (
-                <>
-                  <BoutiqueOfferFilter filterEnabled={filterEnabled} />
-                </>
-              )}
-              {filters?.prices?.min_price >= 0 && filterEnabled && (
-                <>
-                  <BoutiquePriceFilter />
-                </>
-              )}
-              {filters?.sizes?.length > 0 && (
-                <>
-                  <BoutiqueSizeFilter filterEnabled={filterEnabled} />
-                </>
-              )}
-              {filters?.colors?.length > 0 && (
-                <>
-                  <BoutiqueColorsFilter filterEnabled={filterEnabled} />
-                </>
-              )}
-              <FilterButtons />
-              {filterLoading && <FilterComponentLoader />}
-            </>
-          }
-        </div>
+        {loading ? (
+          <FiltersSkelton filterEnabled={filterEnabled} />
+        ) : (
+          <div
+            className={`${
+              filterEnabled ? "flex-col" : "flex-row"
+            }  justify-start align-start filter-container overflow-hidden scroll-smooth `}
+            onScroll={(e) => {
+              e.preventDefault();
+            }}
+          >
+            {filters?.categories.length > 0 && (
+              <BoutiqueCategoryFilter filterEnabled={filterEnabled} />
+            )}
+            {
+              <>
+                {filters?.brands.length > 0 && (
+                  <>
+                    <BoutiqueBrandFilter filterEnabled={filterEnabled} />
+                  </>
+                )}
+                {filters?.offers?.length > 0 && (
+                  <>
+                    <BoutiqueOfferFilter filterEnabled={filterEnabled} />
+                  </>
+                )}
+                {filters?.prices?.min_price >= 0 && filterEnabled && (
+                  <>
+                    <BoutiquePriceFilter />
+                  </>
+                )}
+                {filters?.sizes?.length > 0 && (
+                  <>
+                    <BoutiqueSizeFilter filterEnabled={filterEnabled} />
+                  </>
+                )}
+                {filters?.colors?.length > 0 && (
+                  <>
+                    <BoutiqueColorsFilter filterEnabled={filterEnabled} />
+                  </>
+                )}
+                <FilterButtons />
+                {filterLoading && <FilterComponentLoader />}
+              </>
+            }
+          </div>
+        )}
       </div>
     </div>
   );
