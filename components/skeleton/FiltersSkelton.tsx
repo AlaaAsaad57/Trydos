@@ -16,7 +16,7 @@ function FiltersSkelton({ filterEnabled }) {
       <div className="boutique-category-filter flex-row">
         <div className="category-row-container flex-row">
           {[1, 1, 1, 1, 1, 1, 1, , 1].map((category, key) => (
-            <div className={`category-circle flex-col align-center`}>
+            <div className={`category-circle flex-col align-center`} key={key}>
               <div className="relative w-[70px] h-[70px]">
                 <div className="category-shadow"></div>
                 <Skeleton width={70} height={70} borderRadius={"50%"} />
@@ -34,7 +34,7 @@ function FiltersSkelton({ filterEnabled }) {
       <div className="boutique-category-filter flex-row">
         <div className="category-row-container flex-row">
           {[1, 1, 1, 1, 1, 1, 1, , 1].map((category, key) => (
-            <div className={`category-circle flex-col align-center`}>
+            <div className={`category-circle flex-col align-center`} key={key}>
               <div className="relative w-[70px] h-[70px]">
                 <div className="category-shadow"></div>
                 <Skeleton width={70} height={70} borderRadius={"50%"} />
@@ -52,7 +52,7 @@ function FiltersSkelton({ filterEnabled }) {
       <div className="boutique-category-filter flex-row">
         <div className="category-row-container flex-row">
           {[1, 1, 1, 1, 1, 1, 1, , 1].map((category, key) => (
-            <div className={`category-circle flex-col align-center`}>
+            <div className={`category-circle flex-col align-center`} key={key}>
               <div className="relative w-[70px] h-[70px]">
                 <div className="category-shadow"></div>
                 <Skeleton width={70} height={70} borderRadius={"50%"} />
@@ -70,7 +70,7 @@ function FiltersSkelton({ filterEnabled }) {
       <div className="boutique-category-filter flex-row">
         <div className="category-row-container flex-row">
           {[1, 1, 1, 1, 1, 1, 1, , 1].map((category, key) => (
-            <div className={`category-circle flex-col align-center`}>
+            <div className={`category-circle flex-col align-center`} key={key}>
               <div className="relative w-[70px] h-[70px]">
                 <div className="category-shadow"></div>
                 <Skeleton width={70} height={70} borderRadius={"50%"} />
