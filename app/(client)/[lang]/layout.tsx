@@ -6,6 +6,7 @@ import localFont from "next/font/local";
 
 import PageLoadingIndicator from "Hooks/LoadingIndicator";
 import dynamic from "next/dynamic";
+import { getCurrency } from "store/homepage/cachedActions";
 
 const TranslationsMenu = dynamic(
   () => import("components/global/TranslationsMenu")
@@ -48,12 +49,16 @@ const quicksand_medium = localFont({
   preload: false,
   fallback: ["system-ui", "arial"],
 });
-export default function RootLayout({ params, children }) {
+export default async function RootLayout({ params, children }) {
   // ${sf_pro_rounded_light.variable}
   // ${sf_pro_rounded_semibold.variable}
   // ${sf_pro_rounded_regular.variable}
   // ${sf_pro_rounded_medium.variable}
   // ${sf_pro_rounded_bold.variable}
+  const currency = await getCurrency({
+    lang: params.lang.split("-")[1],
+    country: params.lang.split("-")[0],
+  });
   return (
     <html
       className={`
@@ -74,7 +79,7 @@ export default function RootLayout({ params, children }) {
           <div className="site-container">
             <div className="home-page-container">
               <>
-                <TranslationsMenu init={params.lang} />
+                <TranslationsMenu currency={currency} init={params.lang} />
               </>
 
               {children}

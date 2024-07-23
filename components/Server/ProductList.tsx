@@ -13,6 +13,7 @@ async function ProductListServer({ params, searchParams }) {
     lang: params.lang ? params.lang.split("-")[1] : null,
     searchParams: searchParams,
   });
+
   let filters = {
     categories: Listing_Data_res.body.data?.categories || [],
     brands: Listing_Data_res.body.data?.brands || [],

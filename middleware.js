@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-const countriesString = process.env.NEXT_PUBLIC_COUNTRIES || "[]";
-const countries = JSON.parse(countriesString);
+import { getCountriesApi } from "./store/homepage/cachedActions";
+
 const languagesString = process.env.NEXT_PUBLIC_LANGUAGES || "[]";
 const languages = JSON.parse(languagesString);
 
@@ -9,8 +9,8 @@ const languages = JSON.parse(languagesString);
 function getLocale(request) {
   const cookieStore = cookies();
   const localization = {
-    language: cookieStore.get("language")?.value,
-    country: cookieStore.get("country")?.value,
+    language: cookieStore.get("language")?.value?.toLowerCase(),
+    country: cookieStore.get("country")?.value?.toLowerCase(),
   };
   return localization;
 }
@@ -28,7 +28,7 @@ function getLangByIp(ip) {
       return "en";
   }
 }
-function getDefaultLocale(countryByIp) {
+function getDefaultLocale(countryByIp, countries) {
   const localeENV = {
     country:
       countryByIp &&
@@ -45,12 +45,17 @@ function getDefaultLocale(countryByIp) {
 }
 
 export async function middleware(request) {
+  const data = await getCountriesApi();
+
+  let countries = data.map((s) => s.iso.toLowerCase());
   const { pathname } = request.nextUrl;
   let countryByIp = request?.geo?.country?.toLowerCase();
   const response = NextResponse.next();
   const cookieStore = cookies();
   const localization = cookieStore.get("country")?.value;
   //without country cookies
+  const countryVar = getLocale()?.country ?? "";
+
   if (!localization && countryByIp) {
     const countryByIpp = countryByIp || "jp";
     // const countryName = await _getCountryNameByIp(Ip);
@@ -86,10 +91,10 @@ export async function middleware(request) {
   const country = getLocale()?.country ?? "";
   const preferredLang = languages.includes(lang.toLowerCase())
     ? lang
-    : getDefaultLocale(countryByIp).language;
+    : getDefaultLocale(countryByIp, countries).language;
   const preferredCountry = countries.includes(country.toLowerCase())
     ? country
-    : getDefaultLocale(countryByIp).country;
+    : getDefaultLocale(countryByIp, countries).country;
   if (!hasSeparator) {
     //url dosen't includes language-country
     const lang = getLocale()?.language;
@@ -98,10 +103,10 @@ export async function middleware(request) {
     if (country) {
       const preferredLang = languages.includes(lang)
         ? lang
-        : getDefaultLocale(countryByIp).language;
+        : getDefaultLocale(countryByIp, countries).language;
       const preferredCountry = countries.includes(country)
         ? country
-        : getDefaultLocale(countryByIp).country;
+        : getDefaultLocale(countryByIp, countries).country;
 
       request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathname}`;
 

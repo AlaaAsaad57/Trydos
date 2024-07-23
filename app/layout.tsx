@@ -1,9 +1,11 @@
-import { ReactNode } from "react";
+import React from "react";
 
-interface ErrorProps {
-  children: ReactNode;
+function layout({ children }) {
+  return (
+    <html>
+      <body>{children}</body>
+    </html>
+  );
 }
 
-export default function GlobalError({ children }: ErrorProps) {
-  return <>{children}</>;
-}
+export default layout;

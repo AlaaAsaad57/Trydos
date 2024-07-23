@@ -9,7 +9,8 @@ import ProductDetails from "./ProductDetails";
 import axios from "axios";
 import { OTP_URL } from "utils/endpointConfig";
 import SelectColor from "./SelectColor";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { RoundPrice } from "utils/functions";
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
     return {
@@ -100,16 +101,27 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
     getData();
     dispatchStore({ type: "STORE-VARIANTS", payload: product.variation });
   }, []);
-
+  const decimal_point_settings = useSelector(
+    (state: any) => state.homepage.settings
+  );
+  const currency = useSelector((state: any) => state.homepage.currency) || 1;
+  const getPrice = (num) => {
+    return RoundPrice({
+      num: num,
+      rate: currency?.exchange_rate,
+      points:
+        decimal_point_settings["starting-setting"]?.decimal_point_settings || 2,
+    });
+  };
   return (
     <>
       {option === "AddToCart" && <SelectColor close={() => setOption("")} />}
       <div className="product-details-footer z-[9999]">
         <ProductDetails />
         <ProductInfo
-          currency={product?.price_formatted?.split(" ")[1]}
-          newPrice={product.offer_price}
-          oldPrice={product.price}
+          currency={currency?.symbol}
+          newPrice={getPrice(product.offer_price)}
+          oldPrice={getPrice(product.price)}
         />
         {
           <ExtendedAreaInfo

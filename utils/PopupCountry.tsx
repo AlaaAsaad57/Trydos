@@ -5,33 +5,13 @@ import "styles/globals.css";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import "styles/popup.css";
-const countriesString = process.env.NEXT_PUBLIC_COUNTRIES || "[]";
-const countries = JSON.parse(countriesString);
 
-const _getCountryName = (code: string) => {
-  switch (code) {
-    case "tr":
-      return "Turkey";
-    case "us":
-      return "United States Of America";
-    case "sy":
-      return "Syria";
-    case "ae":
-      return "United Arab Emirates";
-  }
-};
-const options = countries.map((country: string) => {
-  return {
-    label: _getCountryName(country),
-    value: country,
-  };
-});
-
-const PopupCountry = () => {
+const PopupCountry = ({ options, countries }) => {
   const [localization, setLocalization] = useState({
     country: null,
     language: "en",
   });
+
   const params = useSearchParams();
   const [selectedCountry, setSelectedCountry] = useState("");
 

@@ -1,17 +1,19 @@
 import { memo } from "react";
+import { useSelector } from "react-redux";
 
 function PriceLabel({
   price_formatted,
   offer_price,
 }: {
-  price_formatted: string;
+  price_formatted: number;
   offer_price: number;
 }) {
+  const currency = useSelector((state: any) => state.homepage.currency);
   return (
     <div className="price-label flex">
       {offer_price > 0 && (
         <span className="old-price relative f-12 color-dark-gray light-text">
-          {price_formatted?.split(" ")[0]}
+          {price_formatted}
           <svg
             className="absolute w-100"
             xmlns="http://www.w3.org/2000/svg"
@@ -31,10 +33,10 @@ function PriceLabel({
         </span>
       )}
       <span className="new-price bold-text color-dark-gray flex f-12">
-        {offer_price > 0 ? offer_price : price_formatted?.split(" ")[0]}
+        {offer_price > 0 && offer_price}
       </span>
       <span className="currency-label light-text color-dark-gray flex f-10">
-        {price_formatted?.split(" ")[1]}
+        {currency?.symbol}
       </span>
     </div>
   );

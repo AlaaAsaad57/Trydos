@@ -17,10 +17,17 @@ const initialState = {
   session_id: uuidv4(),
   previous_event_button_name: null,
   activeRoute: "/",
+  currency: null,
 };
 
 const HomeReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "CURRENCY": {
+      return {
+        ...state,
+        currency: payload,
+      };
+    }
     case "ACTIVE-ROUTE": {
       return {
         ...state,

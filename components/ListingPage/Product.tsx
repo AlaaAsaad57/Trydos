@@ -6,10 +6,9 @@ import PriceLabel from "./PriceLabel";
 import BuyButton from "./BuyButton";
 import NextLink from "Hooks/NextLink";
 import { ProductInterface } from "models/product";
-
-import Skeleton from "react-loading-skeleton";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import { useDispatch, useSelector } from "react-redux";
+import { RoundPrice } from "utils/functions";
 const TopSlider = dynamic(() => import("./TopSlider"), {
   loading: () => (
     <>
@@ -199,7 +198,20 @@ function Product({
       isSelectedBrand && isSelectedCat && isSelectedPrice && isSelectedSize
     );
   };
-
+  const decimal_point_settings = useSelector(
+    (state: any) => state.homepage.settings
+  );
+  const currency = useSelector((state: any) => state.homepage.currency) || 1;
+  const getPrice = (num) => {
+    return RoundPrice({
+      num: num,
+      rate: currency?.exchange_rate,
+      points:
+        (decimal_point_settings &&
+          decimal_point_settings["starting-setting"]?.decimal_point_settings) ||
+        2,
+    });
+  };
   if (true)
     return (
       <div>
@@ -401,8 +413,8 @@ function Product({
           </div>
           <div className="product-footer w-100 flex-row absolute align-center">
             <PriceLabel
-              offer_price={product.offer_price}
-              price_formatted={product.price_formatted}
+              offer_price={getPrice(product.offer_price)}
+              price_formatted={getPrice(product.price)}
             />
             <BuyButton
               buy={() => {

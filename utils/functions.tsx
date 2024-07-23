@@ -246,6 +246,7 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
     }
   );
   let data = await resp.json();
+
   if (data.code === "boutique_not_found") {
     notFound();
   }
@@ -562,4 +563,8 @@ export const UpdateFilter = async ({
     done();
     console.log(error);
   }
+};
+export const RoundPrice = ({ num, rate, points }): number => {
+  let a = parseFloat(num);
+  return parseFloat((a * rate).toFixed(points));
 };

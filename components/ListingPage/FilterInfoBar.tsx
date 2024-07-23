@@ -3,14 +3,26 @@ import React, { useEffect } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
 import CloseIcon from "public/svg/CloseIcon.svg";
-import { filterProducts } from "utils/functions";
+import { filterProducts, RoundPrice } from "utils/functions";
 import { useParams } from "next/navigation";
 
 function FilterInfoBar() {
   const activeFilters = useSelector(
     (state: any) => state.details.activeFilters
   );
-  const currency_symbol = useSelector((state: any) => state.homepage.settings);
+  const decimal_point_settings = useSelector(
+    (state: any) => state.homepage.settings
+  );
+  const currency = useSelector((state: any) => state.homepage.currency) || 1;
+  const getPrice = (num) => {
+    return RoundPrice({
+      num: num,
+      rate: currency?.exchange_rate,
+      points:
+        decimal_point_settings["starting-setting"]?.decimal_point_settings || 2,
+    });
+  };
+  const currency_symbol = useSelector((state: any) => state.homepage.currency);
   const sizesAttr = useSelector(
     (state: any) => state.details.filters.sizesAttr
   );
@@ -266,12 +278,9 @@ function FilterInfoBar() {
           {
             <>
               <div className="category-title filter-bar-main-title">
-                {`${
-                  filters.prices?.currency_symbol ||
-                  (currency_symbol &&
-                    currency_symbol["starting-setting"]?.currency_symbol) ||
-                  ""
-                } ${activeFilters.prices?.min} / ${activeFilters.prices?.max} `}
+                {`${currency_symbol.symbol} ${getPrice(
+                  activeFilters.prices?.min
+                )} / ${getPrice(activeFilters.prices?.max)} `}
               </div>
             </>
           }

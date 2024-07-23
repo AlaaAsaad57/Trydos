@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { UpdateFilter } from "utils/functions";
+import { RoundPrice, UpdateFilter } from "utils/functions";
 const PriceChart = dynamic(() => import("./PriceChart"), {
   ssr: false,
 });
@@ -19,6 +19,7 @@ function BoutiquePriceFilter() {
   const filters = useSelector((state: any) => state.details.filters);
   const loading = useSelector((state: any) => state.details.loading);
   const pathName = useParams();
+  const currency_symbol = useSelector((state: any) => state.homepage.currency);
 
   const set_Value = (e) => {
     if (
@@ -46,7 +47,18 @@ function BoutiquePriceFilter() {
       }
     }
   };
-
+  const decimal_point_settings = useSelector(
+    (state: any) => state.homepage.settings
+  );
+  const currency = useSelector((state: any) => state.homepage.currency) || 1;
+  const getPrice = (num) => {
+    return RoundPrice({
+      num: num,
+      rate: currency?.exchange_rate,
+      points:
+        decimal_point_settings["starting-setting"]?.decimal_point_settings || 2,
+    });
+  };
   return (
     <div className="flex-col justify-start align-start filter-container relative w-full mt-[10px] pb-6">
       {<FilterLabel text="Filter By Price" />}
@@ -59,14 +71,14 @@ function BoutiquePriceFilter() {
       <div className="price-min-max flex-row z-20">
         {selectedFilter?.prices?.min >= 0 && (
           <div className="price-min">
-            Min {selectedFilter.prices.min}{" "}
-            <span>{filters.prices?.currency_symbol}</span>
+            Min {getPrice(selectedFilter.prices.min)}{" "}
+            <span>{currency_symbol.symbol}</span>
           </div>
         )}
         {selectedFilter?.prices?.max >= 0 && (
           <div className="price-max">
-            Max {selectedFilter.prices.max}{" "}
-            <span>{filters.prices?.currency_symbol}</span>
+            Max {getPrice(selectedFilter.prices.max)}{" "}
+            <span>{currency_symbol.symbol}</span>
           </div>
         )}
       </div>

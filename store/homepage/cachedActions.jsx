@@ -154,6 +154,14 @@ export const getLang = (lang, cookieLang) => {
     }
   }
 };
+export const getCountry = (country, cookieCountry) => {
+  if (country) return country;
+  else if (cookieCountry) {
+    return cookieCountry;
+  } else {
+    return null;
+  }
+};
 export const getListingData = async ({
   categories,
   lang,
@@ -437,3 +445,40 @@ export async function getProductDataOG({ slug, lang }) {
     console.log(e);
   }
 }
+export const getCountriesApi = async () => {
+  let repo = await fetch(OTP_URL + "/countries");
+  let data = await repo.json();
+  return data.data.countries;
+};
+
+export const FetchApi = async ({ url, method, body, lang, country }) => {
+  const cookies = (await import("next/headers")).cookies;
+  const cookieStore = cookies();
+  let response = await fetch(url, {
+    method: method,
+    body: body,
+    headers: new Headers({
+      lang: await getLang(lang, cookieStore.get("language")?.value),
+      country: await getCountry(
+        country,
+        cookieStore.get("country") && cookieStore.get("country").value
+      ),
+      Accept: "application/json",
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+    }),
+  });
+
+  let data = await response.json();
+  return data;
+};
+export const getCurrency = async ({ lang, country }) => {
+  let currency = await FetchApi({
+    url: OTP_URL + "/mobile/home/currency",
+    body: null,
+    method: "GET",
+    lang: lang,
+    country: country,
+  });
+
+  return currency.data.currency;
+};

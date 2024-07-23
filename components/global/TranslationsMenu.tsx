@@ -3,14 +3,18 @@ import "styles/Translations.css";
 import { useDispatch, useSelector } from "react-redux";
 import { changeAppLanguage } from "store/homepage/actions";
 import dynamic from "next/dynamic";
+import { useEffect } from "react";
 const ArabicCss = dynamic(() => import("./ArabicCss"), { ssr: true });
 interface TranslationsMenuProps {
   init: string;
+  currency: any;
 }
-function TranslationsMenu({ init }: TranslationsMenuProps) {
+function TranslationsMenu({ init, currency }: TranslationsMenuProps) {
   const language = useSelector((state: any) => state.homepage.language);
   const dispatch = useDispatch();
-
+  useEffect(() => {
+    dispatch({ type: "CURRENCY", payload: currency });
+  }, []);
   return (
     <div className="translations-container">
       {language === "ar" && <ArabicCss />}
