@@ -7,8 +7,9 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { store } from "store";
 import PageLoadingIndicator from "Hooks/LoadingIndicator";
 import Teststore from "./createStore";
+import { getCurrency } from "store/homepage/cachedActions";
 
-const AllProviders = ({ children }: PropsWithChildren) => {
+const AllProviders = async ({ children }: PropsWithChildren) => {
   const client = new QueryClient({
     defaultOptions: {
       queries: {
@@ -23,6 +24,10 @@ const AllProviders = ({ children }: PropsWithChildren) => {
   // beforeEach(() => {
   //   store = mockStore({});
   // });
+  const currency = await getCurrency({
+    lang: "en",
+    country: "tr",
+  });
   return (
     <QueryClientProvider client={client}>
       {/* {SSRDetect() && <GAComponent />} */}
@@ -32,7 +37,7 @@ const AllProviders = ({ children }: PropsWithChildren) => {
         <div className="site-container">
           <div className="home-page-container">
             <>
-              <TranslationsMenu init={"en-us"} />
+              <TranslationsMenu currency={currency} init={"en-us"} />
             </>
 
             {children}

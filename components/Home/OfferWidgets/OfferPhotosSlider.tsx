@@ -2,7 +2,7 @@ import OfferSlideItem from "./OfferSlideItem";
 import OfferAvatars from "./OfferAvatars";
 import { Boutique } from "models/offer";
 import useEmblaCarousel from "embla-carousel-react";
-
+import Autoplay from "embla-carousel-autoplay";
 interface OfferPhotosSliderProps {
   OfferPhotos: string[];
   extended: boolean;
@@ -17,7 +17,9 @@ function OfferPhotosSlider({
   extended,
   priority,
 }: OfferPhotosSliderProps) {
-  const [emblaRef] = useEmblaCarousel();
+  const [emblaRef] = useEmblaCarousel({ loop: true }, [
+    Autoplay({ delay: 3000 }),
+  ]);
 
   return (
     <div
