@@ -237,7 +237,7 @@ function Product({
               document.documentElement.scrollTop = 0;
             }
           }}
-          href={`/products/${product.id}`}
+          href={`/products/${product.slug}`}
           className="product-container overflow-hidden rounded-15 align-center flex-col relative"
           onMouseLeave={() => {
             if (

@@ -14,7 +14,7 @@ function ProductItem({ product }) {
         document.documentElement.style.overflow = "hidden";
         document.documentElement.scrollTop = 0;
       }}
-      href={`/products/${product.id}`}
+      href={`/products/${product.slug}`}
     >
       <div className="result-product flex-row">
         <div className="image-result">
