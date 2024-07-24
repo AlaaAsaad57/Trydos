@@ -338,7 +338,7 @@ const BorderThin = () => {
         transform="translate(0.25)"
         fill="#fff"
         stroke="#5d5d5d"
-        stroke-width="0.5"
+        strokeWidth="0.5"
       />
     </svg>
   );

@@ -47,7 +47,7 @@ const CartBorderHeader = () => {
         data-name="Rectangle 5281"
         fill="none"
         stroke="#707070"
-        stroke-width="0.5"
+        strokeWidth="0.5"
         stroke-dasharray="3 3"
       >
         <rect width="410" height="40" rx="8" stroke="none" />

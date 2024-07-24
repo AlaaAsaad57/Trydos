@@ -15,12 +15,14 @@ function FilterInfoBar() {
   );
   const currency = useSelector((state: any) => state.homepage.currency) || 1;
   const getPrice = (num) => {
-    return RoundPrice({
-      num: num,
-      rate: currency?.exchange_rate,
-      points:
-        decimal_point_settings["starting-setting"]?.decimal_point_settings || 2,
-    });
+    if (decimal_point_settings)
+      return RoundPrice({
+        num: num,
+        rate: currency?.exchange_rate,
+        points:
+          decimal_point_settings["starting-setting"]?.decimal_point_settings ||
+          2,
+      });
   };
   const currency_symbol = useSelector((state: any) => state.homepage.currency);
   const sizesAttr = useSelector(
