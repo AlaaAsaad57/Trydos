@@ -299,18 +299,22 @@ export const expandView = ({ filter }) => {
   document.querySelector<HTMLElement>(".home-navbar").classList.add("fixed");
   document.querySelector<HTMLElement>(".home-navbar").style.zIndex =
     "9999999999";
-  document.querySelector<HTMLElement>(".filter-listing-bar").style.position =
-    "fixed";
-  document
-    .querySelector<HTMLElement>(".filter-listing-bar")
-    .classList.remove("relative");
-  document.querySelector<HTMLElement>(
-    ".filter-listing-bar"
-  ).style.paddingRight = "5px";
-  document.querySelector<HTMLElement>(".filter-listing-bar").style.zIndex =
-    "9999999999";
-  document.querySelector<HTMLElement>(".filter-listing-bar").style.top = "98px";
-  document.querySelector<HTMLElement>(".filter-listing-bar").style.left = "0px";
+  if (document.querySelector<HTMLElement>(".filter-listing-bar")) {
+    document.querySelector<HTMLElement>(".filter-listing-bar").style.position =
+      "fixed";
+    document
+      .querySelector<HTMLElement>(".filter-listing-bar")
+      .classList.remove("relative");
+    document.querySelector<HTMLElement>(
+      ".filter-listing-bar"
+    ).style.paddingRight = "5px";
+    document.querySelector<HTMLElement>(".filter-listing-bar").style.zIndex =
+      "9999999999";
+    document.querySelector<HTMLElement>(".filter-listing-bar").style.top =
+      "98px";
+    document.querySelector<HTMLElement>(".filter-listing-bar").style.left =
+      "0px";
+  }
   document.querySelector<HTMLElement>(".boutique-header").style.marginTop =
     !filter ? "214px" : "118px";
   document.querySelector<HTMLElement>(
@@ -364,9 +368,9 @@ export const normalizeView = () => {
       .querySelector<HTMLElement>(".filter-listing-bar")
       .classList.add("relative");
   }
-
-  document.querySelector<HTMLElement>(".boutique-header").style.marginTop =
-    "0px";
+  if (document.querySelector<HTMLElement>(".boutique-header"))
+    document.querySelector<HTMLElement>(".boutique-header").style.marginTop =
+      "0px";
   document.querySelector<HTMLElement>(
     ".boutique-top-info .boutique-text"
   ).style.display = "flex";

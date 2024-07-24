@@ -9,7 +9,12 @@ import BackIcon from "public/svg/listing/backIcon.svg";
 import BoutiqueHeader from "./BoutiqueHeader";
 import FilterInfoBar from "./FilterInfoBar";
 import { useDispatch, useSelector } from "react-redux";
-import { expandView, filterProducts, normalizeView } from "utils/functions";
+import {
+  expandView,
+  filterProducts,
+  normalizeView,
+  UpdateFilter,
+} from "utils/functions";
 import FloatingInfoBar from "./filterComponents/FloatingInfoBar";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import {
@@ -18,7 +23,12 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-function FilterBar({ boutique, filters }) {
+function FilterBar({ boutique, filters, productsServer }) {
+  const selectedFilter = useSelector(
+    (state: any) => state.details.selectedFilter
+  );
+
+  const pathName = useParams();
   const dispatch = useDispatch();
   const setEnableFilter = (e) => {
     dispatch({ type: "filterEnabled", payload: e });
@@ -32,6 +42,7 @@ function FilterBar({ boutique, filters }) {
   const selectedFilters = useSelector(
     (state: any) => state.details.selectedFilter
   );
+  const products = useSelector((state: any) => state.listing.products);
   const ActiveSearch = useSelector((state: any) => state.details.search);
   const sizesAttr = useSelector(
     (state: any) => state.details.filters.sizesAttr
@@ -124,7 +135,30 @@ function FilterBar({ boutique, filters }) {
               document.documentElement.style.overflow = "hidden";
               document.documentElement.scrollTop = 0;
             } else {
-              dispatch({ type: "filterEnabled", payload: false });
+              dispatch({ type: "RESET-SELECTED" });
+              dispatch({ type: "FILTER-LOADING", payload: true });
+              UpdateFilter({
+                filtersVar: {
+                  categories: [],
+                  brands: [],
+                  colors: [],
+                  sizes: [],
+                },
+                sizesAttr: sizesAttr,
+                boutiqueId: pathName.productCategory,
+                lang: pathName.lang,
+                done: () => {
+                  dispatch({ type: "FILTER-LOADING", payload: false });
+                },
+                newFiltersCallback: ({ filtersVar }) => {
+                  dispatch({
+                    type: "EDIT-FILTER",
+                    payload: { ...filtersVar, reset: true },
+                  });
+                },
+                searchText: selectedFilter?.searchText,
+              });
+              setEnableFilter(false);
             }
           }}
         >
@@ -166,7 +200,7 @@ function FilterBar({ boutique, filters }) {
               }}
               className={`${
                 ActiveSearch && "pl-[40px]"
-              } rounded-[15px]  w-0 h-full border-0 outline-none`}
+              } rounded-[15px]  w-0 h-full border-0 outline-none text-[#5d5d5d]`}
             />
             <SearchIcon
               className={`absolute z-10 ${
@@ -190,9 +224,11 @@ function FilterBar({ boutique, filters }) {
               }
             }}
           >
-            <FilterIcon
-              className={`${filterEnabled && "filter-icon-enabled"}`}
-            />
+            {(products.length > 1 || productsServer.length > 1) && (
+              <FilterIcon
+                className={`${filterEnabled && "filter-icon-enabled"}`}
+              />
+            )}
           </div>
           <div
             className="filter-option"
@@ -209,7 +245,10 @@ function FilterBar({ boutique, filters }) {
           </div>
         </div>
       </div>
-      <BoutiqueHeader boutique={boutique} />
+      <BoutiqueHeader
+        boutique={boutique}
+        showFilters={products.length > 1 || productsServer.length > 1}
+      />
       {!filterEnabled && showFilterInfoBar() && <FilterInfoBar />}
       {filterEnabled && showFilterInfoBar() && <FloatingInfoBar />}
     </>

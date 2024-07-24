@@ -21,7 +21,7 @@ import FilterButton from "./FilterButton";
 import BoutiqueColorsFilter from "./filterComponents/BoutiqueColorsFilter";
 import FiltersSkelton from "components/skeleton/FiltersSkelton";
 
-function BoutiqueHeader({ boutique }) {
+function BoutiqueHeader({ boutique, showFilters }) {
   const filterEnabled = useSelector(
     (state: any) => state.listing.filterEnabled
   );
@@ -243,80 +243,82 @@ function BoutiqueHeader({ boutique }) {
         <div className="boutique-text">{boutique.name}</div>
       </div>
       <BoutiquePhoto photo={boutique.banners} />
-      <div
-        className={`w-full flex-row items-center pl-[15px] ${
-          filterEnabled && "pb-[200px]"
-        }`}
-      >
-        {!filterEnabled && (
-          <FilterButton
-            filters={() => {
-              let arr = [];
-              if (filters.categories.length > 0)
-                arr.push({ name: "Categories" });
-              if (filters?.brands.length > 0) arr.push({ name: "Brands" });
-              if (filters?.sizes.length > 0) arr.push({ name: "Sizes" });
-              if (filters?.offers.length > 0) arr.push({ name: "Offers" });
-              if (filters?.colors.length > 0) arr.push({ name: "Colors" });
-              return arr;
-            }}
-            showedFilter={showedFilter}
-          />
-        )}
-        {loading ? (
-          <FiltersSkelton filterEnabled={filterEnabled} />
-        ) : (
-          <div
-            className={`${
-              filterEnabled
-                ? "flex-col filter-enabled"
-                : "flex-row items-center"
-            }  justify-start align-start filter-container overflow-auto scroll-smooth`}
-            onScroll={(e) => {
-              e.preventDefault();
-            }}
-          >
-            {filters?.categories.length > 0 && (
-              <BoutiqueCategoryFilter filterEnabled={filterEnabled} />
-            )}
-            {
-              <>
-                {filters?.brands.length > 0 && (
-                  <>
-                    {!filterEnabled && <BorderThin />}
-                    <BoutiqueBrandFilter filterEnabled={filterEnabled} />
-                  </>
-                )}
-                {filters?.offers?.length > 0 && (
-                  <>
-                    {!filterEnabled && <BorderThin />}
-                    <BoutiqueOfferFilter filterEnabled={filterEnabled} />
-                  </>
-                )}
-                {filters?.prices?.min_price >= 0 && filterEnabled && (
-                  <>
-                    <BoutiquePriceFilter />
-                  </>
-                )}
-                {filters?.sizes?.length > 0 && (
-                  <>
-                    {!filterEnabled && <BorderThin />}
-                    <BoutiqueSizeFilter filterEnabled={filterEnabled} />
-                  </>
-                )}
-                {filters?.colors?.length > 0 && (
-                  <>
-                    {!filterEnabled && <BorderThin />}
-                    <BoutiqueColorsFilter filterEnabled={filterEnabled} />
-                  </>
-                )}
-                <FilterButtons />
-                {filterLoading && <FilterComponentLoader />}
-              </>
-            }
-          </div>
-        )}
-      </div>
+      {showFilters && (
+        <div
+          className={`w-full flex-row items-center pl-[15px] ${
+            filterEnabled && "pb-[200px]"
+          }`}
+        >
+          {!filterEnabled && (
+            <FilterButton
+              filters={() => {
+                let arr = [];
+                if (filters.categories.length > 0)
+                  arr.push({ name: "Categories" });
+                if (filters?.brands.length > 0) arr.push({ name: "Brands" });
+                if (filters?.sizes.length > 0) arr.push({ name: "Sizes" });
+                if (filters?.offers.length > 0) arr.push({ name: "Offers" });
+                if (filters?.colors.length > 0) arr.push({ name: "Colors" });
+                return arr;
+              }}
+              showedFilter={showedFilter}
+            />
+          )}
+          {loading ? (
+            <FiltersSkelton filterEnabled={filterEnabled} />
+          ) : (
+            <div
+              className={`${
+                filterEnabled
+                  ? "flex-col filter-enabled"
+                  : "flex-row items-center"
+              }  justify-start align-start filter-container overflow-auto scroll-smooth`}
+              onScroll={(e) => {
+                e.preventDefault();
+              }}
+            >
+              {filters?.categories.length > 0 && (
+                <BoutiqueCategoryFilter filterEnabled={filterEnabled} />
+              )}
+              {
+                <>
+                  {filters?.brands.length > 0 && (
+                    <>
+                      {!filterEnabled && <BorderThin />}
+                      <BoutiqueBrandFilter filterEnabled={filterEnabled} />
+                    </>
+                  )}
+                  {filters?.offers?.length > 0 && (
+                    <>
+                      {!filterEnabled && <BorderThin />}
+                      <BoutiqueOfferFilter filterEnabled={filterEnabled} />
+                    </>
+                  )}
+                  {filters?.prices?.min_price >= 0 && filterEnabled && (
+                    <>
+                      <BoutiquePriceFilter />
+                    </>
+                  )}
+                  {filters?.sizes?.length > 0 && (
+                    <>
+                      {!filterEnabled && <BorderThin />}
+                      <BoutiqueSizeFilter filterEnabled={filterEnabled} />
+                    </>
+                  )}
+                  {filters?.colors?.length > 0 && (
+                    <>
+                      {!filterEnabled && <BorderThin />}
+                      <BoutiqueColorsFilter filterEnabled={filterEnabled} />
+                    </>
+                  )}
+                  <FilterButtons />
+                  {filterLoading && <FilterComponentLoader />}
+                </>
+              }
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

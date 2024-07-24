@@ -26,7 +26,11 @@ async function ProductListServer({ params, searchParams }) {
 
   return (
     <>
-      <FilterBar filters={filters} boutique={boutique} />
+      <FilterBar
+        filters={filters}
+        boutique={boutique}
+        productsServer={Listing_Data_res.body.data.products}
+      />
       <ProductsList
         Listing_Data_res={Listing_Data_res}
         productCategory={params.productCategory}
