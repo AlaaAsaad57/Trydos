@@ -178,9 +178,14 @@ function FilterBar({ boutique, filters, productsServer }) {
               document
                 .querySelector<HTMLInputElement>("#filter-search")
                 ?.focus();
-              document.querySelector<HTMLInputElement>(
-                ".boutique-logo-container"
-              ).style.display = "none";
+              if (
+                document.querySelector<HTMLInputElement>(
+                  ".boutique-logo-container"
+                )
+              )
+                document.querySelector<HTMLInputElement>(
+                  ".boutique-logo-container"
+                ).style.display = "none";
               dispatch({ type: "FILTER-SEARCH-ENABLE", payload: true });
             }}
           >

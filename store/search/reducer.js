@@ -12,6 +12,15 @@ const initialState = {
 
 const SearchReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "SEARCH-RESULTS": {
+      return {
+        ...state,
+        searchResults: {
+          ...state.searchResults,
+          ...payload,
+        },
+      };
+    }
     case "FIND-PRODUCTS": {
       return {
         ...state,

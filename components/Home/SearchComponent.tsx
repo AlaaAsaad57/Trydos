@@ -4,9 +4,11 @@ import CloseIcon from "public/svg/CloseIcon.svg";
 import SearchCloseIcon from "public/svg/SearchCloseIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { ChangeEvent } from "react";
-import { caseCheck } from "utils/functions";
+import { caseCheck, onClickSearchHistory } from "utils/functions";
 import home from "services/home";
 import useDebounce from "Hooks/useDebounce";
+import { dispatchRouteChangeEvent } from "Hooks/events";
+import { useRouter } from "next/navigation";
 interface SearchComponentProps {
   searchEnabled: boolean;
   close: Function;
@@ -64,15 +66,26 @@ function SearchComponent({
     ) {
     }
   };
+  const router = useRouter();
   const onKeyDown = (e) => {
     let suggestion = document.querySelector(".predicted-word");
     // @ts-ignore
-    if (e.keyCode == 13 && suggestion.innerText != "") {
+    if (e.keyCode == 13 && suggestion.innerText !== "") {
+      // @ts-ignore
+      onClickSearchHistory(suggestion.innerText);
       e.preventDefault();
       // @ts-ignore
       dispatch({ type: "SEARCH-WORD", payload: suggestion.innerText });
       //clear the suggestion
       clearSuggestion();
+      // @ts-ignore
+    } else if (e.keyCode == 13 && suggestion.innerText === "") {
+      onClickSearchHistory(searchValue);
+      router.push(`/boutiques/listing?searchText=${searchValue}`);
+      dispatchRouteChangeEvent("start", { to: "boutique" });
+      document.documentElement.style.overflow = "hidden";
+      document.documentElement.scrollTop = 0;
+      //go to listing
     }
   };
   const clearSuggestion = () => {
@@ -105,6 +118,9 @@ function SearchComponent({
             if (searchValue.length === 0) {
               setFocuse(false);
             }
+          }}
+          onSubmit={(e) => {
+            onClickSearchHistory(searchValue);
           }}
           value={searchValue}
           onChange={(e) => {

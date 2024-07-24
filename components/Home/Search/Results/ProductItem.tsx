@@ -3,13 +3,14 @@ import NextLink from "Hooks/NextLink";
 import React from "react";
 import { getConfiguredImage } from "utils/functions";
 
-function ProductItem({ product }) {
+function ProductItem({ product, onClick }) {
   return (
     <NextLink
       suppressHydrationWarning
       // @ts-ignore
       onClick={(e, bool = false) => {
         /* @ts-ignore*/
+        onClick(product.name);
         dispatchRouteChangeEvent("start", { to: "products" });
         document.documentElement.style.overflow = "hidden";
         document.documentElement.scrollTop = 0;

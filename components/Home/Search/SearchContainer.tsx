@@ -1,19 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
 import SearchHistory from "./SearchHistory";
 import SearchTrending from "./SearchTrending";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import SearchResults from "./SearchResults";
+import { getSearchOptions } from "utils/functions";
 function SearchContainer({ active }) {
-  const [searchHistoryItems, setSearchHistory] = useState([
-    { name: "Mango", isSelected: false },
-    { name: "Dress", isSelected: false },
-    { name: "Zara", isSelected: false },
-    { name: "Tall Dress", isSelected: false },
-    { name: "Short Dress", isSelected: false },
-    { name: "Long Shirt", isSelected: false },
-    { name: "T-Shirt", isSelected: false },
-  ]);
+  const [searchHistoryItems, setSearchHistory] = useState([]);
   const [searchTrendItems, setSearchTrend] = useState([
     { name: "Mango", isSelected: false, count: 1000 },
     { name: "Dress", isSelected: false, count: 1000 },
@@ -32,7 +25,21 @@ function SearchContainer({ active }) {
   100% {transform:translateX(-800px)}
   `;
   const searchValue = useSelector((state: any) => state.Search.value);
-
+  const dispatch = useDispatch();
+  useEffect(() => {
+    if (localStorage.getItem("search-history")) {
+      setSearchHistory(JSON.parse(localStorage.getItem("search-history")));
+    } else {
+      setSearchHistory([]);
+    }
+  }, [searchValue]);
+  const getSearchData = async () => {
+    let { categories, brands } = await getSearchOptions();
+    dispatch({ type: "SEARCH-RESULTS", payload: { categories, brands } });
+  };
+  useEffect(() => {
+    getSearchData();
+  }, []);
   return (
     <Animated.div
       unmountTime={0.4}
@@ -48,7 +55,7 @@ function SearchContainer({ active }) {
           <SearchHistory
             options={searchHistoryItems}
             setOptions={(e) => {
-              setSearchHistory([...e]);
+              dispatch({ type: "SEARCH-WORD", payload: e });
             }}
           />
           <SearchTrending
@@ -57,7 +64,7 @@ function SearchContainer({ active }) {
           />
         </>
       )}
-      {searchValue.length > 0 && <SearchResults />}
+      {<SearchResults />}
     </Animated.div>
   );
 }

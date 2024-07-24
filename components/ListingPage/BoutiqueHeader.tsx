@@ -234,15 +234,19 @@ function BoutiqueHeader({ boutique, showFilters }) {
   }, []);
   return (
     <div className={`boutique-header ${"flex-col"} align-center`}>
-      <div className="boutique-top-info flex-col items-center">
-        <div className="boutique-logo-container flex-row align-center">
-          <img width={130} height={20} src={boutique.icon} />
-          <VerificationIcon />
-          <TopStarIcon />
-        </div>
-        <div className="boutique-text">{boutique.name}</div>
-      </div>
-      <BoutiquePhoto photo={boutique.banners} />
+      {boutique && (
+        <>
+          <div className="boutique-top-info flex-col items-center">
+            <div className="boutique-logo-container flex-row align-center">
+              <img width={130} height={20} src={boutique.icon} />
+              <VerificationIcon />
+              <TopStarIcon />
+            </div>
+            <div className="boutique-text">{boutique.name}</div>
+          </div>
+          <BoutiquePhoto photo={boutique.banners} />
+        </>
+      )}
       {showFilters && (
         <div
           className={`w-full flex-row items-center pl-[15px] ${

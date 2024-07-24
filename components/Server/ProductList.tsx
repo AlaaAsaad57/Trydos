@@ -6,7 +6,10 @@ import { getBoutiqueMeta } from "utils/functions";
 
 async function ProductListServer({ params, searchParams }) {
   const boutiqueId = params.productCategory;
-  const boutique = await getBoutiqueMeta({ boutiqueId, lang: params.lang });
+  const boutique =
+    boutiqueId === "listing"
+      ? null
+      : await getBoutiqueMeta({ boutiqueId, lang: params.lang });
   const [, Listing_Data_res] = await getListingData({
     categories: params.productCategory,
     productCategory: params.boutiqueCategory,

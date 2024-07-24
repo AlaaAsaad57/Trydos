@@ -58,26 +58,27 @@ function SearchHistory({ options, setOptions }) {
               key={index}
               className="search-filter-option"
               onClick={(e) => {
-                if (s.isSelected === false) {
-                  let arr = [...options];
-                  arr[index] = { ...s, isSelected: true };
-                  setOptions(arr);
-                }
+                setOptions(s);
               }}
             >
-              {s.name}{" "}
-              {s.isSelected && (
+              {s}{" "}
+              {
                 <div
                   className="close-icon-container"
                   onClick={() => {
-                    let arr = [...options];
-                    arr[index] = { ...s, isSelected: false };
-                    setOptions(arr);
+                    let arr = localStorage.getItem("search-history");
+
+                    localStorage.setItem(
+                      "search-history",
+                      JSON.stringify(
+                        JSON.parse(arr).filter((item) => item !== s)
+                      )
+                    );
                   }}
                 >
                   <CloseIconOption />
                 </div>
-              )}
+              }
             </div>
           ))}
         </div>
@@ -86,11 +87,7 @@ function SearchHistory({ options, setOptions }) {
         <span
           className="clear-options-button"
           onClick={(e) => {
-            let arr = [...options];
-            arr.map((s) => {
-              s.isSelected = false;
-            });
-            setOptions(arr);
+            localStorage.setItem("search-history", JSON.stringify([]));
           }}
         >
           Clear All
@@ -111,19 +108,17 @@ function SearchHistory({ options, setOptions }) {
                 }
               }}
             >
-              {s.name}{" "}
-              {s.isSelected && (
+              {s}{" "}
+              {
                 <div
                   className="close-icon-container"
                   onClick={() => {
-                    let arr = [...options];
-                    arr[index] = { ...s, isSelected: false };
-                    setOptions(arr);
+                    setOptions(s);
                   }}
                 >
                   <CloseIconOption />
                 </div>
-              )}
+              }
             </div>
           ))}
         </div>

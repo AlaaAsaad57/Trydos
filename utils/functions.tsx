@@ -6,6 +6,7 @@ import Cookies from "js-cookie";
 import { HOME_DATA_URL, LISTING_INFO_URL, OTP_URL } from "./endpointConfig";
 import { notFound } from "next/navigation";
 import axios from "axios";
+import { FetchApi } from "store/homepage/cachedActions";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -296,9 +297,12 @@ export const expandView = ({ filter }) => {
   if (!filter && filterEnabled) {
     return;
   }
-  document.querySelector<HTMLElement>(".home-navbar").classList.add("fixed");
-  document.querySelector<HTMLElement>(".home-navbar").style.zIndex =
-    "9999999999";
+  if (document.querySelector<HTMLElement>(".home-navbar")) {
+    document.querySelector<HTMLElement>(".home-navbar").classList.add("fixed");
+    document.querySelector<HTMLElement>(".home-navbar").style.zIndex =
+      "9999999999";
+  }
+
   if (document.querySelector<HTMLElement>(".filter-listing-bar")) {
     document.querySelector<HTMLElement>(".filter-listing-bar").style.position =
       "fixed";
@@ -315,34 +319,45 @@ export const expandView = ({ filter }) => {
     document.querySelector<HTMLElement>(".filter-listing-bar").style.left =
       "0px";
   }
-  document.querySelector<HTMLElement>(".boutique-header").style.marginTop =
-    !filter ? "214px" : "118px";
-  document.querySelector<HTMLElement>(
-    ".boutique-top-info .boutique-text"
-  ).style.display = "none";
-  document
-    .querySelectorAll(".boutique-top-info .boutique-logo-container svg")
-    .forEach((s: HTMLElement) => {
-      s.style.display = "none";
-    });
-  document.querySelector<HTMLElement>(
-    ".boutique-photo-holder .offer-slider-container"
-  ).style.maxHeight = "0px";
-  document.querySelector<HTMLElement>(".boutique-top-info").style.zIndex =
-    "9999999999";
-  document.querySelector<HTMLElement>(".boutique-top-info").style.width =
-    "auto";
-  document.querySelector<HTMLElement>(".boutique-top-info").style.marginLeft =
-    "60px";
-  document
-    .querySelector<HTMLElement>(".boutique-top-info")
-    .classList.add("move-anim");
-  document
-    .querySelector<HTMLElement>(".boutique-top-info")
-    .classList.add("items-end");
-  document
-    .querySelector<HTMLElement>(".boutique-top-info")
-    .classList.remove("items-center");
+  if (document.querySelector<HTMLElement>(".boutique-header"))
+    document.querySelector<HTMLElement>(".boutique-header").style.marginTop =
+      !filter ? "214px" : "118px";
+  if (
+    document.querySelector<HTMLElement>(".boutique-top-info .boutique-text")
+  ) {
+    document.querySelector<HTMLElement>(
+      ".boutique-top-info .boutique-text"
+    ).style.display = "none";
+    document
+      .querySelectorAll(".boutique-top-info .boutique-logo-container svg")
+      .forEach((s: HTMLElement) => {
+        s.style.display = "none";
+        document.querySelector<HTMLElement>(".boutique-top-info").style.zIndex =
+          "9999999999";
+        document.querySelector<HTMLElement>(".boutique-top-info").style.width =
+          "auto";
+        document.querySelector<HTMLElement>(
+          ".boutique-top-info"
+        ).style.marginLeft = "60px";
+        document
+          .querySelector<HTMLElement>(".boutique-top-info")
+          .classList.add("move-anim");
+        document
+          .querySelector<HTMLElement>(".boutique-top-info")
+          .classList.add("items-end");
+        document
+          .querySelector<HTMLElement>(".boutique-top-info")
+          .classList.remove("items-center");
+      });
+  }
+  if (
+    document.querySelector<HTMLElement>(
+      ".boutique-photo-holder .offer-slider-container"
+    )
+  )
+    document.querySelector<HTMLElement>(
+      ".boutique-photo-holder .offer-slider-container"
+    ).style.maxHeight = "0px";
 };
 export const normalizeView = () => {
   let filterEnabled = store.getState().listing.filterEnabled;
@@ -368,43 +383,53 @@ export const normalizeView = () => {
       .querySelector<HTMLElement>(".filter-listing-bar")
       .classList.add("relative");
   }
+  if (document.querySelector<HTMLElement>(".boutique-top-info")) {
+    document.querySelector<HTMLElement>(
+      ".boutique-top-info .boutique-text"
+    ).style.display = "flex";
+    document
+      .querySelectorAll(".boutique-top-info .boutique-logo-container svg")
+      .forEach((s: HTMLElement) => {
+        s.style.display = "flex";
+      });
+    document.querySelector<HTMLElement>(".boutique-top-info").style.position =
+      "static";
+    document
+      .querySelector<HTMLElement>(".boutique-top-info")
+      .classList.add("items-center");
+    document
+      .querySelector<HTMLElement>(".boutique-top-info")
+      .classList.remove("items-end");
+
+    document.querySelector<HTMLElement>(".boutique-top-info").style.zIndex =
+      "1";
+    document.querySelector<HTMLElement>(".boutique-top-info").style.width =
+      "100%";
+    document.querySelector<HTMLElement>(".boutique-top-info").style.marginLeft =
+      "0px";
+    document.querySelector<HTMLElement>(".boutique-top-info").style.top =
+      "initial";
+    document.querySelector<HTMLElement>(".boutique-top-info").style.left =
+      "initial";
+    document
+      .querySelector<HTMLElement>(".boutique-top-info")
+      .classList.remove("move-anim");
+  }
   if (document.querySelector<HTMLElement>(".boutique-header"))
     document.querySelector<HTMLElement>(".boutique-header").style.marginTop =
       "0px";
-  document.querySelector<HTMLElement>(
-    ".boutique-top-info .boutique-text"
-  ).style.display = "flex";
-  document.querySelector<HTMLElement>(
-    ".boutique-photo-holder .offer-slider-container"
-  ).style.maxHeight = "342px";
-  document
-    .querySelectorAll(".boutique-top-info .boutique-logo-container svg")
-    .forEach((s: HTMLElement) => {
-      s.style.display = "flex";
-    });
-  document.querySelector<HTMLElement>(".boutique-top-info").style.position =
-    "static";
-  document
-    .querySelector<HTMLElement>(".boutique-top-info")
-    .classList.add("items-center");
-  document
-    .querySelector<HTMLElement>(".boutique-top-info")
-    .classList.remove("items-end");
+  if (
+    document.querySelector<HTMLElement>(
+      ".boutique-photo-holder .offer-slider-container"
+    )
+  ) {
+    document.querySelector<HTMLElement>(
+      ".boutique-photo-holder .offer-slider-container"
+    ).style.maxHeight = "342px";
 
-  document.querySelector<HTMLElement>(".boutique-top-info").style.zIndex = "1";
-  document.querySelector<HTMLElement>(".boutique-top-info").style.width =
-    "100%";
-  document.querySelector<HTMLElement>(".boutique-top-info").style.marginLeft =
-    "0px";
-  document.querySelector<HTMLElement>(".boutique-top-info").style.top =
-    "initial";
-  document.querySelector<HTMLElement>(".boutique-top-info").style.left =
-    "initial";
-  document.querySelector<HTMLElement>(".boutique-photo-holder").style.height =
-    "auto";
-  document
-    .querySelector<HTMLElement>(".boutique-top-info")
-    .classList.remove("move-anim");
+    document.querySelector<HTMLElement>(".boutique-photo-holder").style.height =
+      "auto";
+  }
 };
 export const filterProducts = async ({
   boutiqueId,
@@ -574,4 +599,37 @@ export const UpdateFilter = async ({
 export const RoundPrice = ({ num, rate, points }): number => {
   let a = parseFloat(num);
   return parseFloat((a * rate).toFixed(points));
+};
+export const onClickSearchHistory = (searchValue) => {
+  if (localStorage.getItem("search-history")) {
+    let arr = JSON.parse(localStorage.getItem("search-history"));
+    if (arr.some((s) => s.toLowerCase() === searchValue.toLowerCase())) {
+    } else {
+      let arr = JSON.parse(localStorage.getItem("search-history"));
+      localStorage.setItem(
+        "search-history",
+        JSON.stringify([searchValue, ...arr])
+      );
+    }
+  } else {
+    localStorage.setItem("search-history", JSON.stringify([searchValue]));
+  }
+};
+export const getSearchOptions = async () => {
+  const categories = await FetchApi({
+    url: OTP_URL + "/mobile/home/categories",
+    method: "GET",
+    body: null,
+    country: null,
+    lang: null,
+  });
+  const brands = await FetchApi({
+    url: OTP_URL + "/mobile/home/brands",
+    method: "GET",
+    body: null,
+    country: null,
+    lang: null,
+  });
+  console.log(categories.data, brands.data.brands);
+  return { categories: categories.data.categories, brands: brands.data.brands };
 };

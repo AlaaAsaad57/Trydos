@@ -1,12 +1,18 @@
 "use client";
+import { useDispatch } from "react-redux";
 import NormalWidget from "./NormalWidget";
 
 import { Boutique } from "models/offer";
+import { useEffect } from "react";
 interface OfferListProps {
   quick: boolean;
   boutiques: Boutique[];
 }
 function OfferList({ quick, boutiques }: OfferListProps) {
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch({ type: "SEARCH-RESULTS", payload: { boutiques: boutiques } });
+  }, []);
   return (
     <div className={`offers-list ${quick && " mt-5"}`}>
       {/* {quick ? (

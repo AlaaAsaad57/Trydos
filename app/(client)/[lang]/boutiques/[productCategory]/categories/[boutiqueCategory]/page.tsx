@@ -6,11 +6,20 @@ import NavbarSkeleton from "components/skeleton/navbar";
 import FilterBar from "components/ListingPage/FilterBar";
 import { getBoutiqueMeta, getBoutiqueFilters } from "utils/functions";
 import { notFound } from "next/navigation";
-export async function generateMetadata({ params }) {
+export async function generateMetadata({ params, searchParams }) {
   const boutiqueId = params.productCategory;
-  const metaData = await getBoutiqueMeta({ boutiqueId, lang: params.lang });
+  const metaData =
+    boutiqueId === "listing"
+      ? { name: "listing" }
+      : await getBoutiqueMeta({ boutiqueId, lang: params.lang });
   if (!metaData?.name) {
     notFound();
+  }
+  if (boutiqueId === "listing") {
+    return {
+      title: `Trydos - ${searchParams.search_text} `,
+      description: ``,
+    };
   }
   return {
     title: `Trydos - ${metaData?.name} `,
