@@ -15,7 +15,10 @@ function FilterInfoBar() {
   );
   const currency = useSelector((state: any) => state.homepage.currency) || 1;
   const getPrice = (num) => {
-    if (decimal_point_settings)
+    if (
+      decimal_point_settings &&
+      Object.keys(decimal_point_settings).includes("starting-setting")
+    )
       return RoundPrice({
         num: num,
         rate: currency?.exchange_rate,

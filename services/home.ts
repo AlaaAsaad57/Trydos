@@ -40,7 +40,7 @@ class HomeService {
     }
     setTimeout(() => {
       GetChats(false);
-    }, 6000);
+    }, 1000);
   }
   async getCustomerInfo() {
     const response = await fetch(OTP_URL + CUSTOMER_INFO_URL, getHeader());

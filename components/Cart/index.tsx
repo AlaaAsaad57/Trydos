@@ -4,6 +4,7 @@ import { translate } from "utils/functions";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import CartIcon from "public/svg/CartIcon.svg";
 import CartLabel from "public/svg/cart/cartLabel.svg";
+import Skeleton from "react-loading-skeleton";
 
 function CartContainer({ close }) {
   const language = useSelector((state: any) => state.homepage.language);
@@ -27,7 +28,31 @@ function CartContainer({ close }) {
             <span className="ml-[3px]">AED</span>
           </div>
         </div>
-        <div className="flex-col overflow-auto w-full h-full"></div>
+      </div>
+      <div className="flex-col overflow-auto w-full h-full mt-10">
+        {[1, 1].map((s) => (
+          <div className="flex-col bg-white pb-10 pt-2 pl-2 pr-2">
+            <div className="flex-row min-h-[50px] bg-[#f8f8f8] rounded-2xl justify-between items-center pl-5 pr-5">
+              <Skeleton width={90} height={15} />
+              <div className="flex-row">
+                <CartLabel />
+                <div className="light ml-3 text-[13px] text-[#8D8D8D]">
+                  <span className="medium text-[#5D5C5D]">2</span>
+                  <span className="ml-[3px]">items</span>
+                  <span className="medium text-[#5D5C5D] ml-[3px]">1150</span>
+                  <span className="ml-[3px]">AED</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex-col w-full">
+              {[1, 1].map((s) => (
+                <div className="flex-row w-full  min-h-[161px] bg-[#FEFEFE] mt-3 rounded-2xl overflow-hidden">
+                  <Skeleton width={110} height={"100%"} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
