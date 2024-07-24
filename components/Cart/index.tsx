@@ -30,8 +30,8 @@ function CartContainer({ close }) {
         </div>
       </div>
       <div className="flex-col overflow-auto w-full h-full mt-10">
-        {[1, 1].map((s) => (
-          <div className="flex-col bg-white pb-10 pt-2 pl-2 pr-2">
+        {[1, 1].map((s, key) => (
+          <div className="flex-col bg-white pb-10 pt-2 pl-2 pr-2" key={key}>
             <div className="flex-row min-h-[50px] bg-[#f8f8f8] rounded-2xl justify-between items-center pl-5 pr-5">
               <Skeleton width={90} height={15} />
               <div className="flex-row">
@@ -45,8 +45,11 @@ function CartContainer({ close }) {
               </div>
             </div>
             <div className="flex-col w-full">
-              {[1, 1].map((s) => (
-                <div className="flex-row w-full  min-h-[161px] bg-[#FEFEFE] mt-3 rounded-2xl overflow-hidden">
+              {[1, 1].map((s, key) => (
+                <div
+                  className="flex-row w-full  min-h-[161px] bg-[#FEFEFE] mt-3 rounded-2xl overflow-hidden"
+                  key={key}
+                >
                   <Skeleton width={110} height={"100%"} />
                 </div>
               ))}
