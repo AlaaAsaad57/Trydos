@@ -1,5 +1,6 @@
 const initialState = {
   Cart: [],
+  enable: false,
   AddToCartOption: {
     enable: false,
     selectedSize: { name: "M", last: "2" },
@@ -14,6 +15,12 @@ const initialState = {
 
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "ENABLE-CART": {
+      return {
+        ...state,
+        enable: payload,
+      };
+    }
     case "GET-PRODUCT-DETAILS-FOR-CART": {
       if (
         state.AddToCartOption.enable &&

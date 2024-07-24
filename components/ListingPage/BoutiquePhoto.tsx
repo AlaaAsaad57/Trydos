@@ -10,11 +10,11 @@ function BoutiquePhoto({ photo }) {
     Autoplay({ delay: 3000 }),
   ]);
   return (
-    <div className="boutique-photo-holder">
+    <div className="boutique-photo-holder overflow-hidden">
       <div className="offer-slider-container">
         <div className="embla" ref={emblaRef}>
           <div className="embla__container">
-            {[1, 1, 1].map((s, key) => (
+            {photo.map((s, key) => (
               <div className="embla__slide" key={key}>
                 <div className="offer-slide-item" style={{ width: "100%" }}>
                   <div className="image-offer">
@@ -29,7 +29,7 @@ function BoutiquePhoto({ photo }) {
                       style={{ borderRadius: "15px" }}
                       className="OfferImage"
                       src={getConfiguredImage({
-                        src: photo,
+                        src: s.file_path,
                         height: 342,
                         width: 900,
                       })}

@@ -6,14 +6,19 @@ import UserAvatar from "./UserAvatar";
 import { ChatConroller } from "store/chat/actions";
 import { getNew } from "components/Chat/chatsFunctions";
 import ChatNotification from "./ChatNotification";
+import CartContainer from "components/Cart";
 function AuthNavSection() {
   const language = useSelector((state: any) => state.homepage.language);
   const loading = useSelector((state: any) => state.chat.loading);
   const chatVar = useSelector((state: any) => state.chat.chatVar);
-  const chats = useSelector((state: any) => state.chat.data);
   const user = useSelector((state: any) => state.auth.user);
+
+  const chats = useSelector((state: any) => state.chat.data);
   const dispatch = useDispatch();
 
+  const enableCart = (s) => {
+    dispatch({ type: "ENABLE-CART", payload: s });
+  };
   return (
     <>
       {!loading && (
@@ -47,7 +52,7 @@ function AuthNavSection() {
           // dispatch(ChatConroller(true));
         }}
       >
-        <CartIcon />
+        <CartIcon onClick={() => enableCart(true)} />
       </div>
       <div
         className={`welcome-user ${language + "-medium"}`}

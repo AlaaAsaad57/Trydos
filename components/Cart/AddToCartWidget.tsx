@@ -5,9 +5,9 @@ import { OTP_URL } from "utils/endpointConfig";
 import { getConfiguredImage, getLang } from "utils/functions";
 import Cookies from "js-cookie";
 import AddToCartButton from "components/products/AddToCartButton";
-import { Swiper, SwiperSlide } from "swiper/react";
+
 import BackIcon from "public/svg/listing/backIcon.svg";
-import { EffectCoverflow } from "swiper/modules";
+
 import { SelectColorsSlider } from "components/products/SelectColor";
 
 function AddToCartWidget() {

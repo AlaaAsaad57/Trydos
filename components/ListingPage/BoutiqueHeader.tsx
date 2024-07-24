@@ -242,7 +242,7 @@ function BoutiqueHeader({ boutique }) {
         </div>
         <div className="boutique-text">{boutique.name}</div>
       </div>
-      <BoutiquePhoto photo={boutique.photo} />
+      <BoutiquePhoto photo={boutique.banners} />
       <div
         className={`w-full flex-row items-center pl-[15px] ${
           filterEnabled && "pb-[200px]"
