@@ -206,13 +206,7 @@ export const getBoutiquesUrl = async ({ str }) => {
   let data = await response.json();
   return data.data.boutiques;
 };
-export const getProductsUrl = async () => {
-  let response = await fetch(
-    OTP_URL + LISTING_INFO_URL + "?boutique_slug=family-section-12"
-  );
-  let data = await response.json();
-  return data.data.products;
-};
+
 export const getProductMeta = async ({ productId, lang }) => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
@@ -258,7 +252,8 @@ export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
   const cookieStore = cookies();
   let [langauge, country] = lang.split("-");
   let resp = await fetch(
-    OTP_URL + `/web/products/filters?boutique_slug=${boutiqueId}`,
+    OTP_URL +
+      `/web/products/filters?boutique_slugs=${JSON.stringify([boutiqueId])}`,
     {
       headers: new Headers({
         Accept: "application/json",
@@ -474,7 +469,9 @@ export const filterProducts = async ({
   };
   let str = "";
   if (reset) {
-    str = `/web/products/with_filter?&boutique_slug=${boutiqueId}`;
+    str = `/web/products/with_filter?&boutique_slugs=${JSON.stringify([
+      boutiqueId,
+    ])}`;
   } else {
     str = `/web/products/with_filter?category_slugs=${JSON.stringify(
       filters.categories
@@ -484,7 +481,7 @@ export const filterProducts = async ({
         : ""
     }${
       filters.prices !== null ? `&prices=${JSON.stringify(filters.prices)}` : ""
-    }&boutique_slug=${filters.boutique_slug}${
+    }&boutique_slugs=${JSON.stringify([filters.boutique_slug])}${
       filters?.searchText?.length > 0
         ? `&search_text=${filters.searchText}`
         : ""
@@ -560,7 +557,7 @@ export const UpdateFilter = async ({
         : ""
     }${
       filters.prices !== null ? `&prices=${JSON.stringify(filters.prices)}` : ""
-    }&boutique_slug=${filters.boutique_slug}${
+    }&boutique_slugs=${JSON.stringify([filters.boutique_slug])}${
       filters?.searchText?.length > 0
         ? `&search_text=${filters.searchText}`
         : ""

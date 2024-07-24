@@ -4,7 +4,7 @@ import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
 import CloseIcon from "public/svg/CloseIcon.svg";
 import { filterProducts, RoundPrice } from "utils/functions";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 
 function FilterInfoBar() {
   const activeFilters = useSelector(
@@ -65,6 +65,7 @@ function FilterInfoBar() {
     }
   }, []);
   const pathName = useParams();
+  const searchParams = useSearchParams();
   return (
     <div className="filter-info-bar flex-row cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none ">
       <CloseIcon
@@ -74,7 +75,10 @@ function FilterInfoBar() {
           dispatch({ type: "RESET_LISTING_FILTER" });
           dispatch({ type: "Skeleton-Listing" });
           filterProducts({
-            boutiqueId: pathName.productCategory,
+            boutiqueId:
+              (searchParams.get("boutique_slugs") &&
+                searchParams.get("boutique_slugs")) ||
+              pathName.productCategory,
             lang: pathName.lang,
             sizesAttr: sizesAttr,
             callback: (products) => {

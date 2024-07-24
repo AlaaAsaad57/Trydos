@@ -74,13 +74,13 @@ function BoutiquePriceFilter() {
         {selectedFilter?.prices?.min >= 0 && (
           <div className="price-min">
             Min {getPrice(selectedFilter.prices.min)}{" "}
-            <span>{currency_symbol.symbol}</span>
+            <span>{currency_symbol?.symbol}</span>
           </div>
         )}
         {selectedFilter?.prices?.max >= 0 && (
           <div className="price-max">
             Max {getPrice(selectedFilter.prices.max)}{" "}
-            <span>{currency_symbol.symbol}</span>
+            <span>{currency_symbol?.symbol}</span>
           </div>
         )}
       </div>

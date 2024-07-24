@@ -17,12 +17,18 @@ function SearchIcon() {
     <div
       className={`search-icon ${searchEnabled && "active-serach"}`}
       onClick={() => {
-        if (!searchEnabled) EnableSearch(true);
+        if (!searchEnabled) {
+          EnableSearch(true);
+          document.documentElement.style.overflow = "hidden";
+        }
       }}
     >
       <Search id="search-icon" className={`${focuse && "black-fill"}`} />
       <SearchComponent
-        close={() => EnableSearch(false)}
+        close={() => {
+          EnableSearch(false);
+          document.documentElement.style.overflow = "initial";
+        }}
         searchEnabled={searchEnabled}
         focus={focuse}
         setFocuse={(s: boolean) => setFocus(s)}

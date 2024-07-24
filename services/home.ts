@@ -130,7 +130,7 @@ class HomeService {
         : null,
       brands: filterObj.brands.map((brand) => brand.slug),
       attributes: { ...sizesAttr, options: filterObj.sizes },
-      boutique_slug: categories,
+      boutique_slug: [categories],
       searchText: filterObj.searchText,
     };
     let str = `category_slugs=${JSON.stringify(
@@ -139,7 +139,7 @@ class HomeService {
       filters.brands
     )}&attributes=${JSON.stringify(filters.attributes)}${
       filters.prices !== null ? `&prices=${JSON.stringify(filters.prices)}` : ""
-    }&boutique_slug=${filters.boutique_slug}${
+    }&boutique_slugs=${JSON.stringify(filters.boutique_slug)}${
       filters?.searchText?.length > 0
         ? `&search_text=${filters.searchText}`
         : ""
@@ -147,11 +147,11 @@ class HomeService {
     var details =
       boutiqueCategory !== "undefined"
         ? {
-            boutique_slug: categories,
+            boutique_slug: [categories],
             category: boutiqueCategory,
           }
         : {
-            boutique_slug: categories,
+            boutique_slug: [categories],
           };
     var formBody: any = [];
     for (var property in details) {
@@ -183,10 +183,33 @@ class HomeService {
       store.dispatch({ type: "GET_NEXT_PRODUCT", payload: repo.data });
     });
   }
-  async SearchProducts({ search_text }) {
+  async SearchProducts({ search_text, searchFilters, callback }) {
+    let params = "";
+    let urlParams = new URLSearchParams(params);
+    if (searchFilters.categories.length > 0) {
+      urlParams.set(
+        "category_slugs",
+        JSON.stringify(searchFilters.categories.map((s) => `${s.slug}`))
+      );
+    }
+    if (searchFilters.brands.length > 0) {
+      urlParams.set(
+        "brand_slugs",
+        JSON.stringify(searchFilters.brands.map((s) => `${s.slug}`))
+      );
+    }
+    if (searchFilters.boutiques.length > 0) {
+      urlParams.set(
+        "boutique_slugs",
+        JSON.stringify(searchFilters.boutiques.map((s) => `${s.slug}`))
+      );
+    }
+    console.log(decodeURIComponent(urlParams.toString()));
     try {
       let rep = await fetch(
-        OTP_URL + LISTING_INFO_URL + `/with_filter?search_text=${search_text}`,
+        OTP_URL +
+          LISTING_INFO_URL +
+          `/with_filter?search_text=${search_text}&${urlParams.toString()}`,
         {
           headers: {
             ...getHeader().headers,
@@ -196,7 +219,7 @@ class HomeService {
         }
       );
       let repo = await rep.json();
-      store.dispatch({ type: "FIND-PRODUCTS", payload: repo.data.products });
+      callback(repo.data.products);
     } catch (error) {
       console.log(error);
     }

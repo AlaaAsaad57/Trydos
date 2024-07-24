@@ -9,7 +9,7 @@ import homeService from "services/home";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import Product from "./Product";
 import { filterProducts } from "utils/functions";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import ListingSkeleton from "components/skeleton/listing";
 import AddToCartWidget from "components/Cart/AddToCartWidget";
 function ProductsList({
@@ -32,12 +32,15 @@ function ProductsList({
   const loading = useSelector((state: any) => state.listing.loading);
   const skeleton = useSelector((state: any) => state.listing.skeleton);
   const isReachEnd = useSelector((state: any) => state.listing.isReachEnd);
+  const SearchParams = useSearchParams();
   const GetNextPage = async () => {
     if (!loading && !isReachEnd) {
       dispatch({ type: "PRODUCT_LOADING" });
       await homeService.getNextProduct({
         offset: offset,
-        categories: productCategory,
+        categories:
+          SearchParams.get("boutique_slugs") ||
+          (productCategory !== "listing" ? productCategory : null),
         boutiqueCategory: boutiqueCategory,
       });
     }
@@ -53,7 +56,9 @@ function ProductsList({
     dispatch({ type: "PRODUCT_LOADING" });
     await homeService.getNextProduct({
       offset: offset,
-      categories: productCategory,
+      categories:
+        SearchParams.get("boutique_slugs") ||
+        (productCategory !== "listing" ? productCategory : null),
       boutiqueCategory: boutiqueCategory,
     });
   };
@@ -70,7 +75,10 @@ function ProductsList({
     dispatch({ type: "PRODUCT_LOADING" });
 
     filterProducts({
-      boutiqueId: pathName.productCategory,
+      boutiqueId:
+        (SearchParams.get("boutique_slugs") &&
+          SearchParams.get("boutique_slugs")) ||
+        pathName.productCategory,
       lang: pathName.lang,
       sizesAttr: filters.sizesAttr,
       callback: (products) => {

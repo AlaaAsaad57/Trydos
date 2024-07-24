@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { filterProducts, UpdateFilter } from "utils/functions";
 
 function SizeCircle({ text }: { text: string }) {
@@ -34,11 +34,15 @@ function SizeCircle({ text }: { text: string }) {
       filter();
     }
   };
+  const SearchParams = useSearchParams();
   const filter = () => {
     dispatch({ type: "FILTER-START" });
     dispatch({ type: "Skeleton-Listing" });
     filterProducts({
-      boutiqueId: pathName.productCategory,
+      boutiqueId:
+        (SearchParams.get("boutique_slugs") &&
+          SearchParams.get("boutique_slugs")) ||
+        pathName.productCategory,
       lang: pathName.lang,
       sizesAttr: filters.sizesAttr,
       callback: (products) => {

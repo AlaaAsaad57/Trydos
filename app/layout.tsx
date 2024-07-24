@@ -2,7 +2,7 @@ import React from "react";
 
 function layout({ children }) {
   return (
-    <html>
+    <html lang="en" className="">
       <body>{children}</body>
     </html>
   );

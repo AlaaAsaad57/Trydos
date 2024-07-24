@@ -115,6 +115,8 @@ function FilterButtons() {
       return false;
     }
   };
+  const SearchParams = useSearchParams();
+
   return (
     <>
       {showFilterInfoBar() && (
@@ -127,7 +129,10 @@ function FilterButtons() {
               dispatch({ type: "RESET_LISTING_FILTER" });
               dispatch({ type: "Skeleton-Listing" });
               filterProducts({
-                boutiqueId: pathName.productCategory,
+                boutiqueId: (SearchParams.get("boutique_slugs") &&
+                  SearchParams.get("boutique_slugs")) || [
+                  pathName.productCategory,
+                ],
                 lang: pathName.lang,
                 sizesAttr: sizesAttr,
                 callback: (products) => {

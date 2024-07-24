@@ -257,7 +257,7 @@ export const getListingData = async ({
         : ""
     }${
       filters.prices !== null ? `&prices=[${JSON.stringify(obj.prices)}]` : ""
-    }&boutique_slug=${categories}`;
+    }&boutique_slugs=${JSON.stringify(categories)}`;
 
     let productRes = await fetch(
       OTP_URL +
@@ -295,15 +295,16 @@ export const getListingData = async ({
       OTP_URL +
       (productCategory
         ? "/web/products/with_filter" +
-          `?category=${productCategory}&boutique_slug=${str}`
-        : "/web/products/with_filter" + `?boutique_slug=${str}`);
+          `?category=${productCategory}&boutique_slugs=${JSON.stringify(str)}`
+        : "/web/products/with_filter" +
+          `?boutique_slugs=${JSON.stringify([str])}`);
     var details = productCategory
       ? {
-          boutique_slug: str,
+          boutique_slug: [str],
           category: productCategory,
         }
       : {
-          boutique_slug: str,
+          boutique_slug: [str],
         };
     var formBody = [];
     for (var property in details) {

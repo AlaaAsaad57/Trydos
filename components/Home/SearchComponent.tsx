@@ -8,7 +8,7 @@ import { caseCheck, onClickSearchHistory } from "utils/functions";
 import home from "services/home";
 import useDebounce from "Hooks/useDebounce";
 import { dispatchRouteChangeEvent } from "Hooks/events";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 interface SearchComponentProps {
   searchEnabled: boolean;
   close: Function;
@@ -22,6 +22,7 @@ function SearchComponent({
   setFocuse,
 }: SearchComponentProps) {
   const searchValue = useSelector((state: any) => state.Search.value);
+  const searchFilters = useSelector((state: any) => state.Search.searchFilters);
   const words = useSelector((state: any) => state.Search.searchWords);
   const dispatch = useDispatch();
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -66,22 +67,54 @@ function SearchComponent({
     ) {
     }
   };
+  const searchParams = useSearchParams();
+  const params = new URLSearchParams(searchParams);
   const router = useRouter();
+  const handleSearch = (data) => {
+    const params = new URLSearchParams(searchParams);
+    //categories
+    if (data.categories.length > 0) {
+      params.set("categories", `${data.categories.map((s) => s.slug)}`);
+    } else {
+      if (params.get("categories")) {
+        params.delete("categories");
+      }
+    }
+    //brands
+    if (data.brands.length > 0) {
+      params.set("brands", `${data.brands.map((s) => s.slug)}`);
+    } else {
+      if (params.get("brands")) {
+        params.delete("brands");
+      }
+    }
+    if (data.boutiques.length > 0) {
+      params.set("boutique_slugs", `${data.boutiques.map((s) => s.slug)}`);
+    } else {
+      if (params.get("boutique_slugs")) {
+        params.delete("boutique_slugs");
+      }
+    }
+    params.set("searchText", searchValue);
+    router.push(`/boutiques/listing?${params.toString()}`);
+  };
+
   const onKeyDown = (e) => {
     let suggestion = document.querySelector(".predicted-word");
     // @ts-ignore
-    if (e.keyCode == 13 && suggestion.innerText !== "") {
-      // @ts-ignore
-      onClickSearchHistory(suggestion.innerText);
-      e.preventDefault();
-      // @ts-ignore
-      dispatch({ type: "SEARCH-WORD", payload: suggestion.innerText });
-      //clear the suggestion
-      clearSuggestion();
-      // @ts-ignore
-    } else if (e.keyCode == 13 && suggestion.innerText === "") {
+    // if (e.keyCode == 13 && suggestion.innerText !== "") {
+    //   // @ts-ignore
+    //   onClickSearchHistory(suggestion.innerText);
+    //   e.preventDefault();
+    //   // @ts-ignore
+    //   // dispatch({ type: "SEARCH-WORD", payload: suggestion.innerText });
+    //   //clear the suggestion
+    //   clearSuggestion();
+    //   // @ts-ignore
+    // } else
+    if (e.keyCode == 13) {
       onClickSearchHistory(searchValue);
-      router.push(`/boutiques/listing?searchText=${searchValue}`);
+      handleSearch(searchFilters);
       dispatchRouteChangeEvent("start", { to: "boutique" });
       document.documentElement.style.overflow = "hidden";
       document.documentElement.scrollTop = 0;
@@ -95,7 +128,14 @@ function SearchComponent({
   useDebounce(
     () => {
       if (searchValue.length > 0) {
-        home.SearchProducts({ search_text: searchValue });
+        dispatch({ type: "SEARCH-LOADING", payload: true });
+        home.SearchProducts({
+          search_text: searchValue,
+          searchFilters: searchFilters,
+          callback: (e) => {
+            dispatch({ type: "FIND-PRODUCTS", payload: e });
+          },
+        });
       }
     },
     [searchValue],
@@ -128,7 +168,7 @@ function SearchComponent({
           }}
         />
 
-        <div className="predicted-word">
+        <div className="predicted-word hidden">
           {searchValue.length > 0 &&
             searchValue.length < 30 &&
             words.filter(

@@ -8,10 +8,57 @@ const initialState = {
     boutiques: [],
   },
   enable: false,
+  searchFilters: { categories: [], brands: [], boutiques: [] },
+  loading: false,
 };
 
 const SearchReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "SEARCH-CATEGORY": {
+      return {
+        ...state,
+        searchFilters: {
+          ...state.searchFilters,
+          categories: state.searchFilters.categories.some(
+            (s) => s.slug === payload
+          )
+            ? [
+                ...state.searchFilters.categories.filter(
+                  (s) => payload !== s.slug
+                ),
+              ]
+            : [...state.searchFilters.categories, { slug: payload }],
+        },
+      };
+    }
+    case "SEARCH-BRAND": {
+      return {
+        ...state,
+        searchFilters: {
+          ...state.searchFilters,
+          brands: state.searchFilters.brands.some((s) => s.slug === payload)
+            ? [...state.searchFilters.brands.filter((s) => payload !== s.slug)]
+            : [...state.searchFilters.brands, { slug: payload }],
+        },
+      };
+    }
+    case "SEARCH-BOUTIQUE": {
+      return {
+        ...state,
+        searchFilters: {
+          ...state.searchFilters,
+          boutiques: state.searchFilters.boutiques.some(
+            (s) => s.slug === payload
+          )
+            ? [
+                ...state.searchFilters.boutiques.filter(
+                  (s) => payload !== s.slug
+                ),
+              ]
+            : [...state.searchFilters.boutiques, { slug: payload }],
+        },
+      };
+    }
     case "SEARCH-RESULTS": {
       return {
         ...state,
@@ -29,7 +76,11 @@ const SearchReducer = (state = initialState, { type, payload }) => {
           products: payload,
         },
         searchWords: payload.map((s) => s.name),
+        loading: false,
       };
+    }
+    case "SEARCH-LOADING": {
+      return { ...state, loading: true };
     }
     case "SEARCH-WORD": {
       return {
@@ -38,10 +89,21 @@ const SearchReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "ENABLE-SEARCH": {
-      return {
-        ...state,
-        enable: payload,
-      };
+      if (payload)
+        return {
+          ...state,
+          enable: payload,
+        };
+      else
+        return {
+          ...state,
+          value: "",
+          searchFilters: {
+            categories: [],
+            brands: [],
+            boutiques: [],
+          },
+        };
     }
     default:
       return state;

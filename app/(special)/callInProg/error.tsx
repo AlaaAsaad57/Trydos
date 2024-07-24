@@ -39,7 +39,7 @@ export default function Error({
     sendError(error);
   }, [error]);
   return (
-    <html>
+    <html lang="en" className="">
       <body>
         <div className="flex justify-start flex-col items-center p-[50px]">
           <div>

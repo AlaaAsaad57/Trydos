@@ -3,7 +3,7 @@ import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import SubCategoryCircle from "./SubCategoryCircle";
 import { useDispatch, useSelector } from "react-redux";
 import { filterProducts, UpdateFilter } from "utils/functions";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 function CategoryCircle({ category }) {
   const selectedFilter = useSelector(
     (state: any) => state.details.selectedFilter
@@ -14,6 +14,7 @@ function CategoryCircle({ category }) {
   const filters = useSelector((state: any) => state.details.filters);
   const dispatch = useDispatch();
   const pathName = useParams();
+  const params = useSearchParams();
 
   const selectCategory = (e) => {
     dispatch({ type: "FILTER-CATEGORY", payload: e });
@@ -39,7 +40,9 @@ function CategoryCircle({ category }) {
     dispatch({ type: "FILTER-START" });
     dispatch({ type: "Skeleton-Listing" });
     filterProducts({
-      boutiqueId: pathName.productCategory,
+      boutiqueId:
+        (params.get("boutique_slugs") && params.get("boutique_slugs")) ||
+        pathName.productCategory,
       lang: pathName.lang,
       sizesAttr: filters.sizesAttr,
       callback: (products) => {
