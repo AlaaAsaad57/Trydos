@@ -56,7 +56,9 @@ function BoutiquePriceFilter() {
       num: num,
       rate: currency?.exchange_rate,
       points:
-        decimal_point_settings["starting-setting"]?.decimal_point_settings || 2,
+        (decimal_point_settings &&
+          decimal_point_settings["starting-setting"]?.decimal_point_settings) ||
+        2,
     });
   };
   return (

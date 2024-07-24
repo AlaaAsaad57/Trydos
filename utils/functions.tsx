@@ -345,22 +345,25 @@ export const normalizeView = () => {
   if (filterEnabled) {
     return;
   }
+  let filterBar = document.querySelector<HTMLElement>(".filter-listing-bar");
   document
     .querySelector<HTMLElement>(".boutique-top-info")
     ?.classList.remove("move-anim");
   document
     .querySelector<HTMLElement>(".home-navbar")
     ?.classList.remove("fixed");
-  document.querySelector<HTMLElement>(".filter-listing-bar").style.position =
-    "static";
-  document.querySelector<HTMLElement>(
-    ".filter-listing-bar"
-  ).style.paddingRight = "20px";
-  document.querySelector<HTMLElement>(".filter-listing-bar").style.top =
-    "initial";
-  document
-    .querySelector<HTMLElement>(".filter-listing-bar")
-    .classList.add("relative");
+  if (filterBar) {
+    document.querySelector<HTMLElement>(".filter-listing-bar").style.position =
+      "static";
+    document.querySelector<HTMLElement>(
+      ".filter-listing-bar"
+    ).style.paddingRight = "20px";
+    document.querySelector<HTMLElement>(".filter-listing-bar").style.top =
+      "initial";
+    document
+      .querySelector<HTMLElement>(".filter-listing-bar")
+      .classList.add("relative");
+  }
 
   document.querySelector<HTMLElement>(".boutique-header").style.marginTop =
     "0px";
