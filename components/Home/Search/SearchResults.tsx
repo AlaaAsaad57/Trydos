@@ -162,7 +162,10 @@ function SearchResults() {
             <div className="result-label">Find Boutiques</div>
             <div className="brands-results-row flex-row overflow-hidden">
               {[1, 11, 1].map((boutique, index) => (
-                <div className="brand-item min-w-[81px] p-0 relative ml-2 ">
+                <div
+                  className="brand-item min-w-[81px] p-0 relative ml-2 "
+                  key={index}
+                >
                   <Skeleton
                     height={30}
                     width={80}
