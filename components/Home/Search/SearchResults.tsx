@@ -112,7 +112,7 @@ function SearchResults() {
             <div className="result-label">Find Products</div>
             {[1, 1, 1].map((product, index) => {
               return (
-                <div className="result-product flex-row">
+                <div className="result-product flex-row" key={index}>
                   <div className="image-result">
                     <Skeleton width={50} height={50} borderRadius={15} />
                   </div>
@@ -127,7 +127,10 @@ function SearchResults() {
             <div className="result-label">Find Brands</div>
             <div className="brands-results-row flex-row overflow-hidden">
               {[1, 1, 1].map((brand, index) => (
-                <div className="brand-item min-w-[81px] p-0 relative ml-2 ">
+                <div
+                  className="brand-item min-w-[81px] p-0 relative ml-2 "
+                  key={index}
+                >
                   <Skeleton
                     height={30}
                     width={80}
@@ -142,7 +145,10 @@ function SearchResults() {
             <div className="result-label">Find Categories</div>
             <div className="brands-results-row flex-row overflow-hidden">
               {[1, 1, 1].map((category, index) => (
-                <div className="brand-item min-w-[81px] p-0 relative ml-2 ">
+                <div
+                  className="brand-item min-w-[81px] p-0 relative ml-2 "
+                  key={index}
+                >
                   <Skeleton
                     height={30}
                     width={80}
