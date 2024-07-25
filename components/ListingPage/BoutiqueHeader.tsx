@@ -181,7 +181,7 @@ function BoutiqueHeader({ boutique, showFilters }) {
               }
             : null,
           offers: [],
-          searchText: searchParams.get("searchText"),
+          searchText: searchParams.get("searchText") || "",
         },
       });
     }

@@ -204,7 +204,7 @@ class HomeService {
         JSON.stringify(searchFilters.boutiques.map((s) => `${s.slug}`))
       );
     }
-    console.log(decodeURIComponent(urlParams.toString()));
+
     try {
       let rep = await fetch(
         OTP_URL +
@@ -220,6 +220,48 @@ class HomeService {
       );
       let repo = await rep.json();
       callback(repo.data.products);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  async UpdateFilters({ search_text, callback }) {
+    let searchFilters = store.getState().Search.searchFilters;
+    let params = "";
+    let urlParams = new URLSearchParams(params);
+    if (searchFilters.categories.length > 0) {
+      urlParams.set(
+        "category_slugs",
+        JSON.stringify(searchFilters.categories.map((s) => `${s.slug}`))
+      );
+    }
+    if (searchFilters.brands.length > 0) {
+      urlParams.set(
+        "brand_slugs",
+        JSON.stringify(searchFilters.brands.map((s) => `${s.slug}`))
+      );
+    }
+    if (searchFilters.boutiques.length > 0) {
+      urlParams.set(
+        "boutique_slugs",
+        JSON.stringify(searchFilters.boutiques.map((s) => `${s.slug}`))
+      );
+    }
+    try {
+      let rep = await fetch(
+        OTP_URL +
+          LISTING_INFO_URL +
+          `/filters?search_text=${search_text}&${urlParams.toString()}`,
+        {
+          headers: {
+            ...getHeader().headers,
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+            Accept: "application/json",
+          },
+        }
+      );
+      let repo = await rep.json();
+      console.log(repo.data);
+      callback({ brands: repo.data.brands, categories: repo.data.categories });
     } catch (error) {
       console.log(error);
     }

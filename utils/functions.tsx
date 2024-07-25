@@ -614,19 +614,15 @@ export const onClickSearchHistory = (searchValue) => {
 };
 export const getSearchOptions = async () => {
   const categories = await FetchApi({
-    url: OTP_URL + "/mobile/home/categories",
+    url: OTP_URL + "/web/products/filters",
     method: "GET",
     body: null,
     country: null,
     lang: null,
   });
-  const brands = await FetchApi({
-    url: OTP_URL + "/mobile/home/brands",
-    method: "GET",
-    body: null,
-    country: null,
-    lang: null,
-  });
-  console.log(categories.data, brands.data.brands);
-  return { categories: categories.data.categories, brands: brands.data.brands };
+  console.log(categories);
+  return {
+    categories: categories.data.categories,
+    brands: categories.data.brands,
+  };
 };

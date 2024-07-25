@@ -26,7 +26,12 @@ function CameraShotGallery({ images, close }) {
   const scrollToClose = (e) => {
     let container = document.querySelector(".container-gallery");
 
-    if (container.scrollTop === 0 && e.deltaY < 0 && Math.abs(e.deltaY) > 50) {
+    if (
+      container &&
+      container.scrollTop === 0 &&
+      e.deltaY < 0 &&
+      Math.abs(e.deltaY) > 50
+    ) {
       close();
     }
   };

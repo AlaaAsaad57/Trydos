@@ -105,6 +105,26 @@ const SearchReducer = (state = initialState, { type, payload }) => {
           },
         };
     }
+    case "RESET-SEARCH-FILTER": {
+      return {
+        ...state,
+        searchFilters: {
+          categories: [],
+          brands: [],
+          boutiques: [],
+        },
+      };
+    }
+    case "EDIT-FILTER-SEARCH": {
+      return {
+        ...state,
+        loading: false,
+        searchResults: {
+          ...state.searchResults,
+          ...payload,
+        },
+      };
+    }
     default:
       return state;
   }

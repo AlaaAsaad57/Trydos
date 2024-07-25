@@ -65,7 +65,7 @@ function FilterBar({ boutique, filters, productsServer }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const paramsVar = useParams();
-  const { replace, push } = useRouter();
+  const router = useRouter();
   const onChange = (e) => {
     dispatch({ type: "Skeleton-Listing" });
     dispatch({ type: "SEARCH-FILTER", payload: e.target.value });
@@ -101,7 +101,7 @@ function FilterBar({ boutique, filters, productsServer }) {
       } else {
         params.delete("searchText");
       }
-      replace(`${pathname}?${params.toString()}`);
+      router.replace(`${pathname}?${params.toString()}`);
     },
     [selectedFilters.searchText],
     800
@@ -116,12 +116,14 @@ function FilterBar({ boutique, filters, productsServer }) {
           className="back-icon"
           onClick={() => {
             if (!filterEnabled) {
+              router.push(`/`);
               dispatch({ type: "RESET-FILTERS" });
+
               dispatchRouteChangeEvent("start", {
                 to: "HomePage",
                 from: "details",
               });
-              push(`/`);
+
               document.documentElement.style.overflow = "hidden";
               document.documentElement.scrollTop = 0;
             } else {

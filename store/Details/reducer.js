@@ -414,11 +414,11 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         ...state,
         selectedFilter: {
           ...state.selectedFilter,
-          searchText: payload,
+          searchText: payload || "",
         },
         activeFilters: {
           ...state.activeFilters,
-          searchText: payload,
+          searchText: payload || "",
         },
       };
     }
