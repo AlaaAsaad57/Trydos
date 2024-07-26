@@ -9,7 +9,9 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import home from "services/home";
 import Skeleton from "react-loading-skeleton";
+import Spinner from "components/global/Spinner";
 function SearchResults() {
+  const [Loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
   const searchResults = useSelector((state: any) => state.Search.searchResults);
@@ -87,7 +89,7 @@ function SearchResults() {
   }, []);
   const reset = () => {
     dispatch({ type: "RESET-SEARCH-FILTER" });
-    dispatch({ type: "SEARCH-LOADING", payload: true });
+
     home.UpdateFilters({
       search_text: searchValue || "",
       callback: (e) => {
@@ -96,182 +98,115 @@ function SearchResults() {
     });
   };
   const updateFiltersApi = () => {
-    dispatch({ type: "SEARCH-LOADING", payload: true });
+    setLoading(true);
+
     home.UpdateFilters({
       search_text: searchValue || "",
       callback: (e) => {
+        setLoading(false);
         dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
       },
     });
   };
   return (
     <div className="search-results-container flex-col">
-      {loadingSearch ? (
-        <>
-          <div className="products-results flex-col max-h-[60%] overflow-auto">
-            <div className="result-label">Find Products</div>
-            {[1, 1, 1].map((product, index) => {
-              return (
-                <div className="result-product flex-row" key={index}>
-                  <div className="image-result">
-                    <Skeleton width={50} height={50} borderRadius={15} />
-                  </div>
-                  <div className="result-product-text">
-                    <Skeleton />
-                  </div>
-                </div>
-              );
-            })}
+      <>
+        <div className="products-results flex-col max-h-[60%] overflow-auto">
+          <div className="result-label flex-row">
+            Find Products {loadingSearch && <Spinner className="ml-3" no />}
           </div>
-          <div className="products-results brand-results">
-            <div className="result-label">Find Brands</div>
-            <div className="brands-results-row flex-row overflow-hidden">
-              {[1, 1, 1].map((brand, index) => (
-                <div
-                  className="brand-item min-w-[81px] p-0 relative ml-2 "
-                  key={index}
-                >
-                  <Skeleton
-                    height={30}
-                    width={80}
-                    className="h-full max-h-[30px]"
-                  />
-                </div>
-              ))}
-            </div>
+          {searchResults.products.map((product, index) => {
+            return (
+              <ProductItem
+                product={product}
+                key={index}
+                onClick={(e) => onClickSearchHistory(e)}
+              />
+            );
+          })}
+        </div>
+        <div className="products-results brand-results">
+          <div className="result-label flex-row">
+            Find Brands {Loading && <Spinner className="ml-3" no />}
           </div>
+          <div className="brands-results-row flex-row overflow-hidden">
+            {searchResults.brands.map((brand, index) => (
+              <BrandItem
+                brand={brand}
+                key={index}
+                onClick={() => {
+                  dispatch({ type: "SEARCH-BRAND", payload: brand.slug });
+                  updateFiltersApi();
+                }}
+                isActive={searchFilters.brands.some(
+                  (s) => s.slug === brand.slug
+                )}
+              />
+            ))}
+          </div>
+        </div>
 
-          <div className="products-results brand-results">
-            <div className="result-label">Find Categories</div>
-            <div className="brands-results-row flex-row overflow-hidden">
-              {[1, 1, 1].map((category, index) => (
-                <div
-                  className="brand-item min-w-[81px] p-0 relative ml-2 "
-                  key={index}
-                >
-                  <Skeleton
-                    height={30}
-                    width={80}
-                    className="h-full max-h-[30px]"
-                  />
-                </div>
-              ))}
-            </div>
+        <div className="products-results brand-results">
+          <div className="result-label flex-row">
+            Find Categories {Loading && <Spinner className="ml-3" no />}
           </div>
-          <div className="products-results brand-results">
-            <div className="result-label">Find Boutiques</div>
-            <div className="brands-results-row flex-row overflow-hidden">
-              {[1, 11, 1].map((boutique, index) => (
-                <div
-                  className="brand-item min-w-[81px] p-0 relative ml-2 "
-                  key={index}
-                >
-                  <Skeleton
-                    height={30}
-                    width={80}
-                    className="h-full max-h-[30px]"
-                  />
-                </div>
-              ))}
-            </div>
+          <div className="brands-results-row flex-row overflow-hidden">
+            {searchResults.categories.map((category, index) => (
+              <CategoryItem
+                category={category}
+                key={index}
+                onClick={() => {
+                  dispatch({
+                    type: "SEARCH-CATEGORY",
+                    payload: category.slug,
+                  });
+                  updateFiltersApi();
+                }}
+                isActive={searchFilters.categories.some(
+                  (s) => s.slug === category.slug
+                )}
+              />
+            ))}
           </div>
-          <div className="flex-row w-full mt-3">
-            <Skeleton className="w-full h-10 p-2 cursor-pointer flex  text-[#fff] justify-center items-center rounded-xl" />
-
-            <Skeleton className="w-full h-10 ml-4 cursor-pointer p-2 flex  text-[#ff5549] justify-center items-center rounded-xl" />
+        </div>
+        <div className="products-results brand-results">
+          <div className="result-label flex-row">
+            Find Boutiques {Loading && <Spinner className="ml-3" no />}
           </div>
-        </>
-      ) : (
-        <>
-          <div className="products-results flex-col max-h-[60%] overflow-auto">
-            <div className="result-label">Find Products</div>
-            {searchResults.products.map((product, index) => {
-              return (
-                <ProductItem
-                  product={product}
-                  key={index}
-                  onClick={(e) => onClickSearchHistory(e)}
-                />
-              );
-            })}
+          <div className="brands-results-row flex-row overflow-hidden">
+            {searchResults.boutiques.map((boutique, index) => (
+              <BoutiqueItem
+                boutique={boutique}
+                key={index}
+                onClick={() => {
+                  dispatch({
+                    type: "SEARCH-BOUTIQUE",
+                    payload: boutique.slug,
+                  });
+                  updateFiltersApi();
+                }}
+                isActive={searchFilters.boutiques.some(
+                  (s) => s.slug === boutique.slug
+                )}
+              />
+            ))}
           </div>
-          <div className="products-results brand-results">
-            <div className="result-label">Find Brands</div>
-            <div className="brands-results-row flex-row overflow-hidden">
-              {searchResults.brands.map((brand, index) => (
-                <BrandItem
-                  brand={brand}
-                  key={index}
-                  onClick={() => {
-                    dispatch({ type: "SEARCH-BRAND", payload: brand.slug });
-                    updateFiltersApi();
-                  }}
-                  isActive={searchFilters.brands.some(
-                    (s) => s.slug === brand.slug
-                  )}
-                />
-              ))}
-            </div>
+        </div>
+        <div className="flex-row w-full mt-3">
+          <div
+            className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
+            onClick={() => apply()}
+          >
+            Apply
           </div>
-
-          <div className="products-results brand-results">
-            <div className="result-label">Find Categories</div>
-            <div className="brands-results-row flex-row overflow-hidden">
-              {searchResults.categories.map((category, index) => (
-                <CategoryItem
-                  category={category}
-                  key={index}
-                  onClick={() => {
-                    dispatch({
-                      type: "SEARCH-CATEGORY",
-                      payload: category.slug,
-                    });
-                    updateFiltersApi();
-                  }}
-                  isActive={searchFilters.categories.some(
-                    (s) => s.slug === category.slug
-                  )}
-                />
-              ))}
-            </div>
+          <div
+            className="w-full h-10 ml-4 cursor-pointer p-2 flex bg-[#f8f8f8] text-[#ff5549] justify-center items-center rounded-xl"
+            onClick={() => reset()}
+          >
+            Reset
           </div>
-          <div className="products-results brand-results">
-            <div className="result-label">Find Boutiques</div>
-            <div className="brands-results-row flex-row overflow-hidden">
-              {searchResults.boutiques.map((boutique, index) => (
-                <BoutiqueItem
-                  boutique={boutique}
-                  key={index}
-                  onClick={() => {
-                    dispatch({
-                      type: "SEARCH-BOUTIQUE",
-                      payload: boutique.slug,
-                    });
-                    updateFiltersApi();
-                  }}
-                  isActive={searchFilters.boutiques.some(
-                    (s) => s.slug === boutique.slug
-                  )}
-                />
-              ))}
-            </div>
-          </div>
-          <div className="flex-row w-full mt-3">
-            <div
-              className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
-              onClick={() => apply()}
-            >
-              Apply
-            </div>
-            <div
-              className="w-full h-10 ml-4 cursor-pointer p-2 flex bg-[#f8f8f8] text-[#ff5549] justify-center items-center rounded-xl"
-              onClick={() => reset()}
-            >
-              Reset
-            </div>
-          </div>
-        </>
-      )}
+        </div>
+      </>
     </div>
   );
 }

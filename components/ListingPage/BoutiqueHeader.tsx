@@ -268,9 +268,7 @@ function BoutiqueHeader({ boutique, showFilters }) {
               showedFilter={showedFilter}
             />
           )}
-          {loading ? (
-            <FiltersSkelton filterEnabled={filterEnabled} />
-          ) : (
+          {
             <div
               className={`${
                 filterEnabled
@@ -320,7 +318,7 @@ function BoutiqueHeader({ boutique, showFilters }) {
                 </>
               }
             </div>
-          )}
+          }
         </div>
       )}
     </div>
