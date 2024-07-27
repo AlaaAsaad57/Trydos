@@ -3,7 +3,15 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import home from "services/home";
 
-function AddToCartButton({ setOption, product }) {
+function AddToCartButton({
+  setOption,
+  product,
+  loading,
+}: {
+  setOption: any;
+  product: any;
+  loading?: any;
+}) {
   const AddToCartOption = useSelector(
     (state: any) => state.cart.AddToCartOption
   );
@@ -24,59 +32,71 @@ function AddToCartButton({ setOption, product }) {
   return (
     <div
       className={`add-cart-button ${
-        AddToCartOption?.enable && "extended-add-to-cart"
-      }`}
+        AddToCartOption?.enable && "extended-add-to-cart "
+      } ${!loading && "opacity-70"} `}
       onClick={() => {
-        if (!AddToCartOption?.enable) {
-          setOption();
-          document.documentElement.style.overflow = "hidden";
-          document.documentElement.scrollTop = 0;
-          dispatch({
-            type: "AddToCartOptionEnable",
-            payload: { ...product, quantity: 0 },
-          });
-        } else {
-          home.AddToCart({
-            callback: () => {
-              dispatch({
-                type: "ADD-PRODUCT-TO-CART",
-                payload: {
-                  id: product.id,
-                  color: product.colors.filter(
+        if (loading) {
+          if (!AddToCartOption?.enable) {
+            setOption();
+            document.documentElement.style.overflow = "hidden";
+            document.documentElement.scrollTop = 0;
+            dispatch({
+              type: "AddToCartOptionEnable",
+              payload: { ...product, quantity: 0 },
+            });
+          } else {
+            home.AddToCart({
+              callback: () => {
+                dispatch({
+                  type: "ADD-PRODUCT-TO-CART",
+                  payload: {
+                    id: product.id,
+                    color: product.colors
+                      ? product.colors.filter(
+                          (s) =>
+                            s.name ===
+                            AddToCartOption?.selectedColor?.color_name
+                        )[0].color
+                      : null,
+                    image: product.sync_color_images
+                      ? product.sync_color_images.filter(
+                          (s) =>
+                            s.color_name ===
+                            AddToCartOption?.selectedColor?.color_name
+                        )[0].images[0]?.file_path ??
+                        product.sync_color_images.filter(
+                          (s) =>
+                            s.color_name ===
+                            AddToCartOption?.selectedColor?.color_name
+                        )[0].images[0]
+                      : product.images[0]?.file_path ?? product.images[0],
+                    quantity: 1,
+                    size: AddToCartOption?.selectedSize?.name ?? null,
+                  },
+                });
+              },
+              id: product.id,
+              color: product.colors
+                ? product.colors.filter(
                     (s) => s.name === AddToCartOption?.selectedColor?.color_name
-                  )[0].color,
-                  image:
-                    product.sync_color_images.filter(
-                      (s) =>
-                        s.color_name ===
-                        AddToCartOption?.selectedColor?.color_name
-                    )[0].images[0]?.file_path ??
-                    product.sync_color_images.filter(
-                      (s) =>
-                        s.color_name ===
-                        AddToCartOption?.selectedColor?.color_name
-                    )[0].images[0],
-                  quantity: 1,
-                  size: AddToCartOption.selectedSize.name,
-                },
-              });
-            },
-            id: product.id,
-            color: product.colors.filter(
-              (s) => s.name === AddToCartOption?.selectedColor?.color_name
-            )[0].color,
-            image:
-              product.sync_color_images.filter(
-                (s) =>
-                  s.color_name === AddToCartOption?.selectedColor?.color_name
-              )[0].images[0]?.file_path ??
-              product.sync_color_images.filter(
-                (s) =>
-                  s.color_name === AddToCartOption?.selectedColor?.color_name
-              )[0].images[0],
-            quantity: 1,
-            size: AddToCartOption.selectedSize.name,
-          });
+                  )[0].color
+                : null,
+              image: product.sync_color_images
+                ? product.sync_color_images.filter(
+                    (s) =>
+                      s.color_name ===
+                      AddToCartOption?.selectedColor?.color_name
+                  )[0].images[0]?.file_path ??
+                  product.sync_color_images.filter(
+                    (s) =>
+                      s.color_name ===
+                      AddToCartOption?.selectedColor?.color_name
+                  )[0].images[0]
+                : product.images[0]?.file_path ?? product.images[0],
+              quantity: 1,
+              size: AddToCartOption?.selectedSize?.name ?? null,
+            });
+          }
         }
       }}
     >

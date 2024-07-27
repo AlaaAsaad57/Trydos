@@ -19,7 +19,6 @@ import {
 } from "next/navigation";
 import FilterButton from "./FilterButton";
 import BoutiqueColorsFilter from "./filterComponents/BoutiqueColorsFilter";
-import FiltersSkelton from "components/skeleton/FiltersSkelton";
 
 function BoutiqueHeader({ boutique, showFilters }) {
   const filterEnabled = useSelector(

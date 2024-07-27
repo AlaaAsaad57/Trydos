@@ -8,16 +8,19 @@ import { onClickSearchHistory } from "utils/functions";
 import { useSearchParams, useRouter } from "next/navigation";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import home from "services/home";
-import Skeleton from "react-loading-skeleton";
 import Spinner from "components/global/Spinner";
 function SearchResults() {
-  const [Loading, setLoading] = useState(false);
+  const loading = useSelector((state: any) => state.Search.partialLoading);
+  const setLoading = (e) => {
+    dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: e });
+  };
   const searchParams = useSearchParams();
   const router = useRouter();
   const searchResults = useSelector((state: any) => state.Search.searchResults);
+  const totalProducts = useSelector((state: any) => state.Search.totalProducts);
   const loadingSearch = useSelector((state: any) => state.Search.loading);
   const searchFilters = useSelector((state: any) => state.Search.searchFilters);
-  const searchValue = useSelector((state: any) => state.Search.searchValue);
+  const searchValue = useSelector((state: any) => state.Search.value);
   const dispatch = useDispatch();
   const handleSearch = (data) => {
     const params = new URLSearchParams(searchParams);
@@ -115,19 +118,20 @@ function SearchResults() {
           <div className="result-label flex-row">
             Find Products {loadingSearch && <Spinner className="ml-3" no />}
           </div>
-          {searchResults.products.map((product, index) => {
-            return (
-              <ProductItem
-                product={product}
-                key={index}
-                onClick={(e) => onClickSearchHistory(e)}
-              />
-            );
-          })}
+          {searchValue?.length > 0 &&
+            searchResults.products.map((product, index) => {
+              return (
+                <ProductItem
+                  product={product}
+                  key={index}
+                  onClick={(e) => onClickSearchHistory(e)}
+                />
+              );
+            })}
         </div>
         <div className="products-results brand-results">
           <div className="result-label flex-row">
-            Find Brands {Loading && <Spinner className="ml-3" no />}
+            Find Brands {loading && <Spinner className="ml-3" no />}
           </div>
           <div className="brands-results-row flex-row overflow-hidden">
             {searchResults.brands.map((brand, index) => (
@@ -148,22 +152,22 @@ function SearchResults() {
 
         <div className="products-results brand-results">
           <div className="result-label flex-row">
-            Find Categories {Loading && <Spinner className="ml-3" no />}
+            Find Categories {loading && <Spinner className="ml-3" no />}
           </div>
           <div className="brands-results-row flex-row overflow-hidden">
             {searchResults.categories.map((category, index) => (
               <CategoryItem
-                category={category}
+                category={category.category}
                 key={index}
                 onClick={() => {
                   dispatch({
                     type: "SEARCH-CATEGORY",
-                    payload: category.slug,
+                    payload: category.category.slug,
                   });
                   updateFiltersApi();
                 }}
                 isActive={searchFilters.categories.some(
-                  (s) => s.slug === category.slug
+                  (s) => s.slug === category.category.slug
                 )}
               />
             ))}
@@ -171,7 +175,7 @@ function SearchResults() {
         </div>
         <div className="products-results brand-results">
           <div className="result-label flex-row">
-            Find Boutiques {Loading && <Spinner className="ml-3" no />}
+            Find Boutiques {loading && <Spinner className="ml-3" no />}
           </div>
           <div className="brands-results-row flex-row overflow-hidden">
             {searchResults.boutiques.map((boutique, index) => (
@@ -192,20 +196,22 @@ function SearchResults() {
             ))}
           </div>
         </div>
-        <div className="flex-row w-full mt-3">
-          <div
-            className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
-            onClick={() => apply()}
-          >
-            Apply
+        {totalProducts > 0 && (
+          <div className="flex-row w-full mt-3">
+            <div
+              className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
+              onClick={() => apply()}
+            >
+              Search <span>(Total Products: {totalProducts})</span>
+            </div>
+            <div
+              className="w-full h-10 ml-4 cursor-pointer p-2 flex bg-[#f8f8f8] text-[#ff5549] justify-center items-center rounded-xl"
+              onClick={() => reset()}
+            >
+              Reset
+            </div>
           </div>
-          <div
-            className="w-full h-10 ml-4 cursor-pointer p-2 flex bg-[#f8f8f8] text-[#ff5549] justify-center items-center rounded-xl"
-            onClick={() => reset()}
-          >
-            Reset
-          </div>
-        </div>
+        )}
       </>
     </div>
   );

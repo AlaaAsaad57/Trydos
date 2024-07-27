@@ -31,6 +31,7 @@ function ProductOptions({
           <AddToCartButton
             setOption={() => setOption("AddToCart")}
             product={product}
+            loading={true}
           />
           <div className="options-container">
             <div

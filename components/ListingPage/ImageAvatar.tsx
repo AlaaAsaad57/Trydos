@@ -71,7 +71,7 @@ function ImageAvatar({
         loading={priority ? "eager" : "lazy"}
         priority={priority}
         unoptimized
-        src={getConfiguredImage({ src: image, width: 400, height: 400 })}
+        src={getConfiguredImage({ src: image, width: 50, height: 50 })}
         fill
         alt={alt || "alt"}
         style={{

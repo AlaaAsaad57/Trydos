@@ -1,6 +1,7 @@
 const initialState = {
   value: "",
   searchWords: [].sort(),
+  totalProducts: 0,
   searchResults: {
     products: [],
     brands: [],
@@ -10,10 +11,17 @@ const initialState = {
   enable: false,
   searchFilters: { categories: [], brands: [], boutiques: [] },
   loading: false,
+  partialLoading: false,
 };
 
 const SearchReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "SEARCH-PARTIAL-LOADING": {
+      return {
+        ...state,
+        partialLoading: payload,
+      };
+    }
     case "SEARCH-CATEGORY": {
       return {
         ...state,
@@ -103,6 +111,7 @@ const SearchReducer = (state = initialState, { type, payload }) => {
             brands: [],
             boutiques: [],
           },
+          enable: false,
         };
     }
     case "RESET-SEARCH-FILTER": {

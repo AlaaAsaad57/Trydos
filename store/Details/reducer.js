@@ -61,7 +61,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
             ? payload.sync_color_images[
                 Math.round(payload.sync_color_images.length / 2) - 1
               ]
-            : [],
+            : null,
         },
       };
     }

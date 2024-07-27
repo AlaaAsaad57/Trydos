@@ -124,7 +124,7 @@ class HomeService {
   async getNextProduct({ offset, categories, boutiqueCategory }) {
     const filterObj = store.getState().details.activeFilters;
     const sizesAttr = store.getState().details.filters.sizesAttr;
-    let filters = {
+    let filters: any = {
       categories: filterObj.categories.map((s) => s.slug),
       prices: filterObj.prices?.pricesWord
         ? [
@@ -133,9 +133,11 @@ class HomeService {
         : null,
       brands: filterObj.brands.map((brand) => brand.slug),
       attributes: { ...sizesAttr, options: filterObj.sizes },
-      boutique_slug: [categories],
+
       searchText: filterObj.searchText,
     };
+    if (categories !== "listing")
+      filters = { ...filters, boutique_slug: [categories] };
     let str = `category_slugs=${JSON.stringify(
       filters.categories
     )}&brand_slugs=${JSON.stringify(
@@ -274,9 +276,11 @@ class HomeService {
     let details = { id, color, image: imageVar, quantity, choice_1: size };
     let formBody = [];
     for (var property in details) {
-      var encodedKey = encodeURIComponent(property);
-      var encodedValue = encodeURIComponent(details[property]);
-      formBody.push(encodedKey + "=" + encodedValue);
+      if (details[property]) {
+        var encodedKey = encodeURIComponent(property);
+        var encodedValue = encodeURIComponent(details[property]);
+        formBody.push(encodedKey + "=" + encodedValue);
+      }
     }
     // @ts-ignore
     formBody = formBody.join("&");

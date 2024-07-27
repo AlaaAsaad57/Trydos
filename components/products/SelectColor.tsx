@@ -69,9 +69,11 @@ function SelectColor({ close }) {
             className={"h-full object-top rounded-[15px]"}
           />
         </div>
-        <div className="flex  w-full max-w-[420px] ">
-          <SelectColorsSlider colors={SelectedProduct.sync_color_images} />
-        </div>
+        {SelectedProduct.sync_color_images && (
+          <div className="flex  w-full max-w-[420px] ">
+            <SelectColorsSlider colors={SelectedProduct.sync_color_images} />
+          </div>
+        )}
       </div>
     </>
   );
@@ -110,7 +112,7 @@ export const SelectColorsSlider = ({ colors }) => {
       centeredSlides={true}
       loop={false}
     >
-      {colors.map((color, i) => (
+      {colors?.map((color, i) => (
         <SwiperSlide
           key={i}
           style={{

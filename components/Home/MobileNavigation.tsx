@@ -2,7 +2,7 @@ import CategoryNavMobile from "./CategoryNavMobile";
 import { Category } from "models/Category";
 import SearchIcon from "./Search/SearchIcon";
 
-function MobileNavigation({ categories }: { categories: Category[] }) {
+function MobileNavigation({ categories }: { categories: any[] }) {
   if (typeof document !== "undefined") {
     const slider: HTMLDivElement = document?.querySelector(".mobile-bar");
     let isDown = false;
@@ -40,7 +40,7 @@ function MobileNavigation({ categories }: { categories: Category[] }) {
             name={category.name}
             key={key}
             myKey={key}
-            icon={category?.icon}
+            icon={category?.flat_photo_path}
             slug={category.slug}
           />
         ))}

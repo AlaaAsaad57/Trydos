@@ -1,4 +1,5 @@
 import React from "react";
+import Skeleton from "react-loading-skeleton";
 import { translate } from "utils/functions";
 
 function ProductInfo({
@@ -26,9 +27,11 @@ function ProductInfo({
               strokeWidth="2"
             />
           </svg>
-          {oldPrice}
+          {oldPrice ?? <Skeleton width={30} height={10} />}
         </div>
-        <div className="product-new-price">{newPrice}</div>
+        <div className="product-new-price">
+          {newPrice ?? <Skeleton width={30} height={10} />}
+        </div>
         <div className="product-currency">{currency}</div>
         <div className="info-icon">
           <svg

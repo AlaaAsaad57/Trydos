@@ -86,21 +86,19 @@ function ImageSlider({
                 <>
                   <BorderImage isBig={true} />
                   <div className="inset-shadow-img w-100 h-100 rounded-15 absolute" />
-                  <Image
-                    loading={priority && i === 0 ? "eager" : "lazy"}
-                    priority={priority && i === 0}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    style={{ borderRadius: "15px", zIndex: "3" }}
-                    fill
-                    unoptimized
-                    src={getConfiguredImage({
-                      src: img.file_path,
-                      width: 400,
-                      height: 400,
-                    })}
-                    quality={100}
-                    alt={product_name || "alt"}
-                  />
+                  {(isActive || i === 0) && (
+                    <img
+                      loading={priority && i === 0 ? "eager" : "lazy"}
+                      fetchPriority={priority && i === 0 ? "high" : "low"}
+                      style={{ borderRadius: "15px", zIndex: "3" }}
+                      src={getConfiguredImage({
+                        src: img.file_path,
+                        width: 400,
+                        height: 400,
+                      })}
+                      alt={product_name || "alt"}
+                    />
+                  )}
                 </>
               )}
             </SwiperSlide>

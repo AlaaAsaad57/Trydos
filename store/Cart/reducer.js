@@ -3,7 +3,7 @@ const initialState = {
   enable: false,
   AddToCartOption: {
     enable: false,
-    selectedSize: { name: "M", last: "2" },
+    selectedSize: null,
     selectedColor: {},
     quantity: 0,
     price: null,
@@ -94,16 +94,19 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         variants: payload,
+        loading: false,
       };
     }
     case "AddToCartOptionEnable": {
       return {
         ...state,
-        SelectedProduct: { ...payload },
+        SelectedProduct: { ...payload, choice_options: null },
         AddToCartOption: {
           ...state.AddToCartOption,
           enable: true,
-          selectedColor: payload.sync_color_images[0],
+          selectedColor: payload?.sync_color_images
+            ? payload?.sync_color_images[0]
+            : null,
         },
       };
     }

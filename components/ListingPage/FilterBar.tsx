@@ -70,42 +70,7 @@ function FilterBar({ boutique, filters, productsServer }) {
     dispatch({ type: "Skeleton-Listing" });
     dispatch({ type: "SEARCH-FILTER", payload: e.target.value });
   };
-  useDebounce(
-    () => {
-      const params = new URLSearchParams(searchParams);
-      filterProducts({
-        serachTrigger: true,
-        boutiqueId:
-          (params.get("boutique_slugs") && params.get("boutique_slugs")) ||
-          pathName.productCategory,
-        lang: paramsVar.lang,
-        sizesAttr: sizesAttr,
-        callback: (products) => {
-          dispatch({ type: "GET_PRODUCT", payload: { products } });
-        },
-        offset: 1,
-        storeCallback: (e) => {
-          dispatch({
-            type: "ACTIVE-FILTER",
-            payload: e,
-          });
-        },
-        newFiltersCallback: ({ filtersVar }) => {
-          dispatch({ type: "EDIT-FILTER", payload: filtersVar });
-        },
-        searchText: selectedFilters.searchText,
-      });
 
-      if (selectedFilters.searchText > 0) {
-        params.set("searchText", selectedFilters.searchText);
-      } else {
-        params.delete("searchText");
-      }
-      router.replace(`${pathname}?${params.toString()}`);
-    },
-    [selectedFilters.searchText],
-    800
-  );
   useEffect(() => {
     dispatch({ type: "FILTER-INIT", payload: filters });
   }, []);
@@ -194,6 +159,43 @@ function FilterBar({ boutique, filters, productsServer }) {
               }}
               onChange={(e) => {
                 onChange(e);
+              }}
+              onInput={(e) => {
+                //@ts-ignore
+                if (e.keyCode == 13) {
+                  const params = new URLSearchParams(searchParams);
+
+                  filterProducts({
+                    serachTrigger: true,
+                    boutiqueId:
+                      (params.get("boutique_slugs") &&
+                        params.get("boutique_slugs")) ||
+                      pathName.productCategory,
+                    lang: paramsVar.lang,
+                    sizesAttr: sizesAttr,
+                    callback: (products) => {
+                      dispatch({ type: "GET_PRODUCT", payload: { products } });
+                    },
+                    offset: 1,
+                    storeCallback: (e) => {
+                      dispatch({
+                        type: "ACTIVE-FILTER",
+                        payload: e,
+                      });
+                    },
+                    newFiltersCallback: ({ filtersVar }) => {
+                      dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+                    },
+                    searchText: selectedFilters.searchText,
+                  });
+                  setEnableFilter(false);
+                  if (selectedFilters.searchText > 0) {
+                    params.set("searchText", selectedFilters.searchText);
+                  } else {
+                    params.delete("searchText");
+                  }
+                  router.replace(`${pathname}?${params.toString()}`);
+                }
               }}
               className={`${
                 ActiveSearch && "pl-[40px]"

@@ -9,6 +9,7 @@ import AddToCartButton from "components/products/AddToCartButton";
 import BackIcon from "public/svg/listing/backIcon.svg";
 
 import { SelectColorsSlider } from "components/products/SelectColor";
+import Skeleton from "react-loading-skeleton";
 
 function AddToCartWidget() {
   const dispatch = useDispatch();
@@ -16,6 +17,7 @@ function AddToCartWidget() {
   const SelectedProduct = useSelector(
     (state: any) => state.cart.SelectedProduct
   );
+  const product = useSelector((state: any) => state.details.product);
   const getDetails = async () => {
     let repo = await fetch(OTP_URL + QTY_URL + `/${SelectedProduct.id}`, {
       headers: {
@@ -41,40 +43,60 @@ function AddToCartWidget() {
           dispatch({ type: "AddToCartOptionDisable" });
         }}
       />
-      <div className="product-details-footer z-[9999]">
-        <div className="Extended-area-product">
-          <svg
-            className="border-svg"
-            xmlns="http://www.w3.org/2000/svg"
-            width="100%"
-            height="1.7"
-          >
-            <line
-              id="Line_1104"
-              data-name="Line 1104"
-              x2="100%"
-              y2="1"
-              transform="translate(0.001 0.35)"
-              fill="none"
-              stroke="#e6e6e6"
-              strokeWidth="0.7"
+      <div className="product-details-footer z-[9999] min-h-[100px] h-auto">
+        {SelectedProduct.choice_options &&
+        SelectedProduct.choice_options.length > 0 ? (
+          <div className="Extended-area-product">
+            <svg
+              className="border-svg"
+              xmlns="http://www.w3.org/2000/svg"
+              width="100%"
+              height="1.7"
+            >
+              <line
+                id="Line_1104"
+                data-name="Line 1104"
+                x2="100%"
+                y2="1"
+                transform="translate(0.001 0.35)"
+                fill="none"
+                stroke="#e6e6e6"
+                strokeWidth="0.7"
+              />
+            </svg>
+            <SelectSize
+              sizes={
+                SelectedProduct?.choice_options?.filter(
+                  (s) => s.title == "Size"
+                )[0]?.options || []
+              }
+              variants={SelectedProduct?.variation || []}
             />
-          </svg>
-          <SelectSize
-            sizes={
-              SelectedProduct?.choice_options?.filter(
-                (s) => s.title == "Size"
-              )[0]?.options || []
-            }
-            variants={SelectedProduct?.variation || []}
-          />
-        </div>
+          </div>
+        ) : (
+          <div className="Extended-area-product p-3">
+            <div className="flex-row">
+              <Skeleton className="w-20 h-20 rounded-full ml-2" />
+              <Skeleton className="w-20 h-20 rounded-full ml-2" />
+              <Skeleton className="w-20 h-20 rounded-full ml-2" />
+              <Skeleton className="w-20 h-20 rounded-full ml-2" />
+              <Skeleton className="w-20 h-20 rounded-full ml-2" />
+              <Skeleton className="w-20 h-20 rounded-full ml-2" />
+            </div>
+          </div>
+        )}
         <div className="product-options-container">
-          {SelectedProduct?.variation && (
+          {
             <>
-              <AddToCartButton setOption={() => {}} product={SelectedProduct} />
+              <AddToCartButton
+                loading={
+                  SelectedProduct.choice_options || product.choice_options
+                }
+                setOption={() => {}}
+                product={SelectedProduct}
+              />
             </>
-          )}
+          }
         </div>
       </div>
     </div>
@@ -147,9 +169,11 @@ const SelectColor = ({ close }) => {
             className={"h-full object-top rounded-[15px]"}
           />
         </div>
-        <div className="flex  w-full max-w-[420px] ">
-          <SelectColorsSlider colors={SelectedProduct.sync_color_images} />
-        </div>
+        {SelectedProduct.sync_color_images && (
+          <div className="flex  w-full max-w-[420px] ">
+            <SelectColorsSlider colors={SelectedProduct.sync_color_images} />
+          </div>
+        )}
       </div>
     </>
   );

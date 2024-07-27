@@ -14,7 +14,7 @@ function CategoryItem({ category, onClick, isActive }) {
         />
       )}
 
-      <img src={category.icon} />
+      <img src={category.flat_photo_path} />
       {category.name}
     </div>
   );

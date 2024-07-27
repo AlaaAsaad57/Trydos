@@ -32,6 +32,7 @@ function SearchComponent({
     }
 
     dispatch({ type: "SEARCH-WORD", payload: e.target.value });
+    dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: true });
   };
   const onInput = (e) => {
     let suggestion = document.querySelector<HTMLDivElement>(".predicted-word");
@@ -112,7 +113,7 @@ function SearchComponent({
     //   clearSuggestion();
     //   // @ts-ignore
     // } else
-    if (e.keyCode == 13) {
+    if (e.keyCode == 13 && e.target.value.length > 0) {
       onClickSearchHistory(searchValue);
       handleSearch(searchFilters);
       dispatchRouteChangeEvent("start", { to: "boutique" });
@@ -125,10 +126,23 @@ function SearchComponent({
     // @ts-ignore
     let suggestion = (document.querySelector(".predicted-word").innerText = "");
   };
+  const setLoading = (e) => {
+    dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: e });
+  };
   useDebounce(
     () => {
+      home.UpdateFilters({
+        search_text: searchValue || "",
+        callback: (e) => {
+          setLoading(false);
+          dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+        },
+      });
       if (searchValue.length > 0) {
         dispatch({ type: "SEARCH-LOADING", payload: true });
+        const updateFiltersApi = () => {
+          setLoading(true);
+        };
         home.SearchProducts({
           search_text: searchValue,
           searchFilters: searchFilters,

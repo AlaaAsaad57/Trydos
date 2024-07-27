@@ -5,11 +5,11 @@ import CategoryNavItem from "./CategoryNavItem";
 import SearchIcon from "./Search/SearchIcon";
 interface CategoriesBarProps {
   forMobile: boolean;
-  categories: Category[];
+  categories: any[];
 }
 function CategoriesBar({ forMobile, categories }: CategoriesBarProps) {
   const [searchEnabled, setSearchEnabled] = useState(false);
-
+  console.log(categories);
   return (
     <>
       {!forMobile && (
@@ -26,11 +26,11 @@ function CategoriesBar({ forMobile, categories }: CategoriesBarProps) {
                 searchEnabled={searchEnabled}
                 close={() => setSearchEnabled(false)}
                 openSearch={() => setSearchEnabled(true)}
-                name={category.name}
+                name={category?.name}
                 key={key}
                 myKey={key}
                 slug={category.slug}
-                icon={category?.icon}
+                icon={category?.flat_photo_path}
               />
             ))}
           </div>

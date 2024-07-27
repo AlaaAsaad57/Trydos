@@ -253,7 +253,10 @@ export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
   let [langauge, country] = lang.split("-");
   let resp = await fetch(
     OTP_URL +
-      `/web/products/filters?boutique_slugs=${JSON.stringify([boutiqueId])}`,
+      `/web/products/filters?${
+        boutiqueId !== "listing" &&
+        `boutique_slugs=${JSON.stringify([boutiqueId])}`
+      }`,
     {
       headers: new Headers({
         Accept: "application/json",
@@ -469,9 +472,10 @@ export const filterProducts = async ({
   };
   let str = "";
   if (reset) {
-    str = `/web/products/with_filter?&boutique_slugs=${JSON.stringify([
-      boutiqueId,
-    ])}`;
+    str = `/web/products/with_filter?${
+      boutiqueId !== "listing" &&
+      `boutique_slugs=${JSON.stringify([boutiqueId])}`
+    }`;
   } else {
     str = `/web/products/with_filter?category_slugs=${JSON.stringify(
       filters.categories
@@ -481,7 +485,11 @@ export const filterProducts = async ({
         : ""
     }${
       filters.prices !== null ? `&prices=${JSON.stringify(filters.prices)}` : ""
-    }&boutique_slugs=${JSON.stringify([filters.boutique_slug])}${
+    }${
+      filters.boutique_slug !== "listing"
+        ? `&boutique_slugs=${JSON.stringify([filters.boutique_slug])}`
+        : ""
+    }${
       filters?.searchText?.length > 0
         ? `&search_text=${filters.searchText}`
         : ""
@@ -557,7 +565,11 @@ export const UpdateFilter = async ({
         : ""
     }${
       filters.prices !== null ? `&prices=${JSON.stringify(filters.prices)}` : ""
-    }&boutique_slugs=${JSON.stringify([filters.boutique_slug])}${
+    }${
+      filters.boutique_slug !== "listing"
+        ? `&boutique_slugs=${JSON.stringify([filters.boutique_slug])}`
+        : ""
+    }${
       filters?.searchText?.length > 0
         ? `&search_text=${filters.searchText}`
         : ""

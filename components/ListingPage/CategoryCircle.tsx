@@ -62,16 +62,17 @@ function CategoryCircle({ category }) {
   };
   const isSelected = () => {
     return (
-      selectedFilter.categories.filter((s) => s.slug === category.slug).length >
-      0
+      selectedFilter.categories.filter((s) => s.slug === category.category.slug)
+        .length > 0
     );
   };
+  console.log(category);
   return (
     <>
       <div
-        onClick={() => selectCategory(category)}
+        onClick={() => selectCategory({ ...category.category })}
         className={`category-circle flex-col align-center ${
-          category.category_sub.length > 0 && "extended-circle"
+          category?.categories_sub?.length > 0 && "extended-circle"
         }`}
       >
         <div className="relative w-[70px] h-[70px]">
@@ -97,23 +98,23 @@ function CategoryCircle({ category }) {
             </g>
           </svg>
           <div className="category-shadow"></div>
-          <img width={70} height={70} src={category.icon} />
+          <img width={70} height={70} src={category.category.flat_photo_path} />
         </div>
         <div className="category-text-container flex-col align-center">
-          <span className="category-title">{category.name}</span>
+          <span className="category-title">{category.category.name}</span>
           {/* <span className="category-typo">1100</span> */}
         </div>
       </div>
-      {category.category_sub?.length > 0 && (
+      {category.categories_sub?.length > 0 && (
         <div
           className={`categories-sub-circles ${isSelected() && "no-transform"}`}
           style={{
             minWidth: isSelected()
-              ? `${category.category_sub.length * 55 - 5}px`
+              ? `${category.categories_sub.length * 55 - 5}px`
               : "10px",
           }}
         >
-          {category.category_sub.map((s, index) => {
+          {category.categories_sub.map((s, index) => {
             return (
               <SubCategoryCircle
                 key={index}

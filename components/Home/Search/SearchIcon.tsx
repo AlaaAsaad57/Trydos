@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Search from "public/svg/SearchIcon.svg";
 import "styles/search.css";
 import SearchComponent from "../SearchComponent";
@@ -12,7 +12,14 @@ function SearchIcon() {
     else document.documentElement.style.overflow = "auto";
     dispatch({ type: "ENABLE-SEARCH", payload: e });
   };
-
+  useEffect(() => {
+    if (searchEnabled) {
+      setTimeout(() => {
+        console.log(searchEnabled);
+        document.documentElement.style.overflow = "hidden";
+      }, 1000);
+    }
+  }, []);
   return (
     <div
       className={`search-icon ${searchEnabled && "active-serach"}`}
