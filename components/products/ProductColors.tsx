@@ -10,26 +10,27 @@ import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import CircleBorder from "public/svg/product/CircleBorder";
 import NormalColorSlider from "./NormalColorSlider";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 function ProductColors({ colors, ProductColorsArray }) {
   const [extended, setExtended] = useState(false);
-  const [activeColor, setActiveColorFunc] = useState([]);
-  const dispatch = useDispatch();
+
+  const activeColor = useSelector(
+    (state: any) => state.details.product?.activeColor
+  );
   const setActiveColor = (e) => {
-    if (activeColor.includes(e)) {
-      setActiveColorFunc(activeColor.filter((s) => s !== e));
-    } else {
-      setActiveColorFunc([...activeColor, e]);
-    }
+    dispatch({ type: "SET-ACTIVE-COLOR-DETAILS", payload: e });
   };
+  const dispatch = useDispatch();
+  // const setActiveColor = (e) => {
+  //   setActiveColorFunc(e);
+  // };
   const getSize: (i: number) => number = (i) => {
     return 40;
   };
-  useEffect(() => {
-    const setActive = (e) => {
-      dispatch({ type: "AddToCartColor", payload: colors[0] });
-    };
-  }, []);
+  useEffect(() => {}, []);
+  const setActive = (e) => {
+    dispatch({ type: "AddToCartColor", payload: colors[0] });
+  };
   return (
     <div
       className={`product-colors flex-row align-start relative ${
@@ -90,6 +91,9 @@ function ProductColors({ colors, ProductColorsArray }) {
           }}
           slidesPerView={"auto"}
           threshold={1}
+          onSlideChange={(e) => {
+            setActiveColor(colors[e.activeIndex]);
+          }}
           centeredSlides={true}
           initialSlide={Math.round(colors.length / 2) - 1}
           loop={false}

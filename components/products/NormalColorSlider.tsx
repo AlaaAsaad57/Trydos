@@ -1,7 +1,7 @@
 import CircleBorder from "public/svg/product/CircleBorder";
 import React, { useEffect } from "react";
 import { getConfiguredImage } from "utils/functions";
-import SquareIcon from "public/svg/product/SquareIcon.svg";
+
 function NormalColorSlider({
   active,
   colors,
@@ -51,10 +51,11 @@ function NormalColorSlider({
         <div
           key={index}
           className={`color-circle relative ${
-            activeColor.includes(color.color_name) && "active-color-circle"
+            activeColor?.color_name === color?.color_name &&
+            "active-color-circle"
           }`}
           onClick={() => {
-            setActiveColor(color.color_name);
+            setActiveColor(color);
           }}
         >
           <img
@@ -69,15 +70,15 @@ function NormalColorSlider({
           <div className="circel-inset absolute" />
           <CircleBorder
             color={
-              activeColor.includes(color.color_name)
+              activeColor?.color_name === color.color_name
                 ? ProductColorsArray.filter(
                     (s) => s.name === color.color_name
                   )[0].color
                 : "#fff"
             }
           />
-          <span className="color-name-span">{color.color_name}</span>
-          <span className="color-trend">Trend</span>
+          <span className="color-name-span ">{color.color_name}</span>
+          {color.color_trend && <span className="color-trend">Trend</span>}
         </div>
       ))}
     </div>

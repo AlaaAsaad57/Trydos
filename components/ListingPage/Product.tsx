@@ -9,6 +9,7 @@ import { ProductInterface } from "models/product";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import { useDispatch, useSelector } from "react-redux";
 import { RoundPrice } from "utils/functions";
+import home from "services/home";
 const TopSlider = dynamic(() => import("./TopSlider"), {
   loading: () => (
     <>
@@ -66,6 +67,9 @@ function Product({
   priority: boolean;
   i: number;
 }) {
+  const AddToCartOption = useSelector(
+    (state: any) => state.cart.AddToCartOption
+  );
   const dispatchStore = useDispatch();
   const addToCart = () => {
     dispatchStore({ type: "AddToCartOptionEnable", payload: product });

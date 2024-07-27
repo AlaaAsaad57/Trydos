@@ -8,4 +8,5 @@ module.exports = {
     "./utils/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   plugins: [],
+  theme: {},
 };

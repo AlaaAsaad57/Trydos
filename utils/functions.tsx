@@ -620,9 +620,19 @@ export const getSearchOptions = async () => {
     country: null,
     lang: null,
   });
-  console.log(categories);
+
   return {
     categories: categories.data.categories,
     brands: categories.data.brands,
   };
+};
+export const getCart = async ({ callback }) => {
+  let data = await FetchApi({
+    url: OTP_URL + "/cart/cart_shipping",
+    method: "GET",
+    body: null,
+    country: null,
+    lang: null,
+  });
+  callback(data);
 };

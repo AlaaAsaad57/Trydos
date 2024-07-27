@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import home from "services/home";
 
 function AddToCartButton({ setOption, product }) {
   const AddToCartOption = useSelector(
@@ -35,7 +36,47 @@ function AddToCartButton({ setOption, product }) {
             payload: { ...product, quantity: 0 },
           });
         } else {
-          // AddToCartAction({ quantity: 1 });
+          home.AddToCart({
+            callback: () => {
+              dispatch({
+                type: "ADD-PRODUCT-TO-CART",
+                payload: {
+                  id: product.id,
+                  color: product.colors.filter(
+                    (s) => s.name === AddToCartOption?.selectedColor?.color_name
+                  )[0].color,
+                  image:
+                    product.sync_color_images.filter(
+                      (s) =>
+                        s.color_name ===
+                        AddToCartOption?.selectedColor?.color_name
+                    )[0].images[0]?.file_path ??
+                    product.sync_color_images.filter(
+                      (s) =>
+                        s.color_name ===
+                        AddToCartOption?.selectedColor?.color_name
+                    )[0].images[0],
+                  quantity: 1,
+                  size: AddToCartOption.selectedSize.name,
+                },
+              });
+            },
+            id: product.id,
+            color: product.colors.filter(
+              (s) => s.name === AddToCartOption?.selectedColor?.color_name
+            )[0].color,
+            image:
+              product.sync_color_images.filter(
+                (s) =>
+                  s.color_name === AddToCartOption?.selectedColor?.color_name
+              )[0].images[0]?.file_path ??
+              product.sync_color_images.filter(
+                (s) =>
+                  s.color_name === AddToCartOption?.selectedColor?.color_name
+              )[0].images[0],
+            quantity: 1,
+            size: AddToCartOption.selectedSize.name,
+          });
         }
       }}
     >

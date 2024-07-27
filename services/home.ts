@@ -14,6 +14,8 @@ import {
 } from "utils/endpointConfig";
 import { SSRDetect } from "utils/functions";
 import { GetMainData } from "store/homepage/actions";
+import { FetchApi } from "store/homepage/cachedActions";
+import { toast } from "react-toastify";
 const getHeader = () => {
   return {
     headers: {
@@ -68,6 +70,7 @@ class HomeService {
       localStorage.getItem("ID-TOKEN") &&
       localStorage.getItem("MARKET-TOKEN")
     ) {
+      Cookies.set("market-token", localStorage.getItem("MARKET-TOKEN"));
       store.dispatch({
         type: "LOGIN_SUCCESS",
         payload: {
@@ -260,11 +263,34 @@ class HomeService {
         }
       );
       let repo = await rep.json();
-      console.log(repo.data);
+
       callback({ brands: repo.data.brands, categories: repo.data.categories });
     } catch (error) {
       console.log(error);
     }
+  }
+  async AddToCart({ id, size, color, image, quantity, callback }) {
+    const imageVar = image.split("/")[image.split("/").length - 1];
+    let details = { id, color, image: imageVar, quantity, choice_1: size };
+    let formBody = [];
+    for (var property in details) {
+      var encodedKey = encodeURIComponent(property);
+      var encodedValue = encodeURIComponent(details[property]);
+      formBody.push(encodedKey + "=" + encodedValue);
+    }
+    // @ts-ignore
+    formBody = formBody.join("&");
+    callback();
+    let data = await FetchApi({
+      url: OTP_URL + "/cart/add",
+      method: "POST",
+      body: formBody,
+      country: null,
+      lang: null,
+    });
+    console.log(data);
+    toast.success("Added Succesfully");
+    console.log(formBody);
   }
 }
 

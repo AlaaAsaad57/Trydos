@@ -1,5 +1,5 @@
 const initialState = {
-  Cart: [],
+  cart: null,
   enable: false,
   AddToCartOption: {
     enable: false,
@@ -11,10 +11,44 @@ const initialState = {
   },
   SelectedProduct: null,
   variants: [],
+  loading: true,
+  localCart: [],
 };
 
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "ADD-PRODUCT-TO-CART": {
+      return {
+        ...state,
+        localCart: [...state.localCart, payload],
+      };
+    }
+    case "CART-INIT": {
+      let brands = [];
+      let prods = payload.cart;
+      prods.map((s) => {
+        if (!s.brand?.id && !brands.some((b) => b.brand.id === null)) {
+          brands.push({ brand: null });
+        }
+        if (brands.some((b) => b.brand?.id === s.brand?.id)) {
+        } else {
+          if (s.brand) brands.push({ brand: s.brand });
+        }
+      });
+      console.log(brands, prods);
+      return {
+        ...state,
+        ...payload,
+        loading: false,
+        brands: brands,
+      };
+    }
+    case "CART-LOADING": {
+      return {
+        ...state,
+        loading: true,
+      };
+    }
     case "ENABLE-CART": {
       return {
         ...state,
@@ -30,6 +64,12 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           ...state,
           SelectedProduct: { ...state.SelectedProduct, ...payload },
           variants: payload.variation,
+          AddToCartOption: {
+            ...state.AddToCartOption,
+            selectedSize: payload?.choice_options?.filter(
+              (s) => s.title == "Size"
+            )[0]?.options[0],
+          },
         };
     }
     case "ADD-TO-CART": {

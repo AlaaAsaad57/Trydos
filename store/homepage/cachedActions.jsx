@@ -466,9 +466,9 @@ export const FetchApi = async ({ url, method, body, lang, country }) => {
       ),
       Accept: "application/json",
       "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+      Authorization: `Bearer ${cookieStore.get("market-token")?.value}`,
     }),
   });
-
   let data = await response.json();
   return data;
 };

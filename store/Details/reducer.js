@@ -8,7 +8,6 @@ const initialState = {
     value: [],
   },
   variants: [],
-
   filters: {
     categories: [],
     brands: [],
@@ -47,12 +46,34 @@ const initialState = {
   activeFiltersShouldUpdate: false,
   search: false,
   isChangedFilter: false,
-
+  product: {},
   loading: false,
 };
 
 const DetailsReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "STORE-PRODUCT": {
+      return {
+        ...state,
+        product: {
+          ...payload,
+          activeColor: payload.sync_color_images
+            ? payload.sync_color_images[
+                Math.round(payload.sync_color_images.length / 2) - 1
+              ]
+            : [],
+        },
+      };
+    }
+    case "SET-ACTIVE-COLOR-DETAILS": {
+      return {
+        ...state,
+        product: {
+          ...state.product,
+          activeColor: payload,
+        },
+      };
+    }
     case "RESET-SELECTED": {
       return {
         ...state,

@@ -29,8 +29,6 @@ function PriceSlider({
         max={Value.max}
         step={1}
         onChangeComplete={(e) => {
-          console.log(e);
-
           handleInput({ minValue: e[0], maxValue: e[1] });
           setEnabled(true);
         }}

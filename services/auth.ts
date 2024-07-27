@@ -102,6 +102,7 @@ class AuthService {
         throw new Error("Wrong Code");
       }
       localStorage.setItem("ID-TOKEN", repo.data.id_token);
+      Cookies.set("market-token", repo.data.token);
       localStorage.setItem("MARKET-TOKEN", repo.data.token);
       localStorage.setItem(
         "USER",
