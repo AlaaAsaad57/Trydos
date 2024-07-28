@@ -15,6 +15,7 @@ function FilterInfoBar() {
   );
   const currency = useSelector((state: any) => state.homepage.currency) || 1;
   const getPrice = (num) => {
+    console.log(decimal_point_settings);
     if (
       decimal_point_settings &&
       Object.keys(decimal_point_settings).includes("starting-setting")
@@ -26,6 +27,15 @@ function FilterInfoBar() {
           decimal_point_settings["starting-setting"]?.decimal_point_settings ||
           2,
       });
+    else {
+      return RoundPrice({
+        num: num,
+        rate: currency?.exchange_rate,
+        points:
+          decimal_point_settings["starting-setting"]?.decimal_point_settings ||
+          0,
+      });
+    }
   };
   const currency_symbol = useSelector((state: any) => state.homepage.currency);
   const sizesAttr = useSelector(
