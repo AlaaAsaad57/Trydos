@@ -7,7 +7,6 @@ import { changeAppLanguage } from "store/homepage/actions";
 import { Category } from "models/Category";
 import CategoriesBar from "./CategoriesBar";
 import MobileNavigation from "./MobileNavigation";
-import dynamic from "next/dynamic";
 import NextLink from "Hooks/NextLink";
 import { usePathname } from "next/navigation";
 import { dispatchRouteChangeEvent } from "Hooks/events";
@@ -75,9 +74,10 @@ function Navbar({ init, categories }: NavbarProps) {
           href={"/"}
           aria-label="TryDos Home"
           onClick={(e) => {
-            dispatchRouteChangeEvent("start", { to: "HomePage" });
-            document.documentElement.style.overflow = "hidden";
-            document.documentElement.scrollTop = 0;
+            // if(!showNavbar())
+            // dispatchRouteChangeEvent("start", { to: "HomePage" });
+            // document.documentElement.style.overflow = "hidden";
+            // document.documentElement.scrollTop = 0;
           }}
         >
           <Logo animated={false} style={false} key={1} />

@@ -1,3 +1,4 @@
+import Spinner from "components/global/Spinner";
 import {
   useParams,
   usePathname,
@@ -9,6 +10,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { filterProducts, normalizeView, UpdateFilter } from "utils/functions";
 
 function FilterButtons() {
+  const loading = useSelector((state: any) => state.details.loading);
+
   const dispatch = useDispatch();
   const selectedFilter = useSelector(
     (state: any) => state.details.selectedFilter
@@ -123,40 +126,47 @@ function FilterButtons() {
       {showFilterInfoBar() && (
         <div className="filter-buttons flex-row">
           <div
-            className="apply-button flex-row"
+            className={`apply-button flex-row`}
             onClick={() => {
-              dispatch({ type: "APPLY-SELECTED" });
-              dispatch({ type: "PRODUCT_LOADING" });
-              dispatch({ type: "RESET_LISTING_FILTER" });
-              dispatch({ type: "Skeleton-Listing" });
-              filterProducts({
-                boutiqueId: (SearchParams.get("boutique_slugs") &&
-                  SearchParams.get("boutique_slugs")) || [
-                  pathName.productCategory,
-                ],
-                lang: pathName.lang,
-                sizesAttr: sizesAttr,
-                callback: (products) => {
-                  dispatch({ type: "GET_PRODUCT", payload: { products } });
-                },
-                offset: 1,
-                storeCallback: (e) => {
-                  dispatch({
-                    type: "ACTIVE-FILTER",
-                    payload: e,
-                  });
-                },
-                newFiltersCallback: ({ filtersVar }) => {
-                  dispatch({ type: "EDIT-FILTER", payload: filtersVar });
-                },
-              });
-              dispatch({ type: "filterEnabled", payload: false });
-              window.scrollTo({ top: 0 });
-              normalizeView();
-              if (activeFiltersShouldUpdate) handleSearch(selectedFilter);
+              if (!loading) {
+                dispatch({ type: "APPLY-SELECTED" });
+                dispatch({ type: "PRODUCT_LOADING" });
+                dispatch({ type: "RESET_LISTING_FILTER" });
+                dispatch({ type: "Skeleton-Listing" });
+                filterProducts({
+                  boutiqueId: (SearchParams.get("boutique_slugs") &&
+                    SearchParams.get("boutique_slugs")) || [
+                    pathName.productCategory,
+                  ],
+                  lang: pathName.lang,
+                  sizesAttr: sizesAttr,
+                  callback: (products) => {
+                    dispatch({ type: "GET_PRODUCT", payload: { products } });
+                  },
+                  offset: 1,
+                  storeCallback: (e) => {
+                    dispatch({
+                      type: "ACTIVE-FILTER",
+                      payload: e,
+                    });
+                  },
+                  newFiltersCallback: ({ filtersVar }) => {
+                    dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+                  },
+                });
+                dispatch({ type: "filterEnabled", payload: false });
+                window.scrollTo({ top: 0 });
+                normalizeView();
+                if (activeFiltersShouldUpdate) handleSearch(selectedFilter);
+              }
             }}
           >
             Apply
+            {loading && (
+              <span className="ml-2">
+                <Spinner />
+              </span>
+            )}
           </div>
           <div
             className="reset-button flex-row"

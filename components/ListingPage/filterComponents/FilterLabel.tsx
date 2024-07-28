@@ -11,11 +11,6 @@ function FilterLabel({ text }: { text: string }) {
       <ActiveCategoryIcon />
       <div className="filter-label-text">{text}</div>
       <FilterInfoIcon className="filter-info-icon" />
-      {loading && (
-        <span className="ml-2">
-          <Spinner />
-        </span>
-      )}
     </div>
   );
 }

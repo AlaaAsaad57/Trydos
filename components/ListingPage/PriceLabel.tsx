@@ -8,10 +8,11 @@ function PriceLabel({
   price_formatted: number;
   offer_price: number;
 }) {
+  console.log(price_formatted, offer_price);
   const currency = useSelector((state: any) => state.homepage.currency);
   return (
     <div className="price-label flex">
-      {offer_price > 0 && (
+      {offer_price >= 0 && (
         <span className="old-price relative f-12 color-dark-gray light-text">
           {price_formatted}
           <svg
@@ -33,7 +34,7 @@ function PriceLabel({
         </span>
       )}
       <span className="new-price bold-text color-dark-gray flex f-12">
-        {offer_price > 0 && offer_price}
+        {offer_price >= 0 && offer_price}
       </span>
       <span className="currency-label light-text color-dark-gray flex f-10">
         {currency?.symbol}

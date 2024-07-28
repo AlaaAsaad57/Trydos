@@ -11,6 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/scss/main.scss";
 import { useEffect } from "react";
 import CartContainer from "components/Cart";
+import home from "services/home";
 export default function Providers({ children }) {
   useEffect(() => {
     if (!navigator.cookieEnabled) {
@@ -33,6 +34,9 @@ const CartProvider = () => {
   const enableCart = (s) => {
     dispatch({ type: "ENABLE-CART", payload: s });
   };
+  useEffect(() => {
+    home.CheckLogin();
+  }, []);
   const cartEnable = useSelector((state) => state.cart.enable);
   return <>{cartEnable && <CartContainer close={() => enableCart(false)} />}</>;
 };

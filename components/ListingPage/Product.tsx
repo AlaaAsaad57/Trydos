@@ -209,7 +209,7 @@ function Product({
   const getPrice = (num) => {
     return RoundPrice({
       num: num,
-      rate: currency?.exchange_rate,
+      rate: currency?.exchange_rate || 1,
       points:
         (decimal_point_settings &&
           decimal_point_settings["starting-setting"]?.decimal_point_settings) ||
