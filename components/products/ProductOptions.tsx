@@ -7,6 +7,7 @@ import CommentIcon from "./CommentIcon";
 import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
+import { useSelector } from "react-redux";
 function ProductOptions({
   activeOption,
   setOption,
@@ -22,6 +23,7 @@ function ProductOptions({
   productDetails: any;
   product: any;
 }) {
+  const loaded = useSelector((state: any) => state.cart.loaded);
   return (
     <div className="product-options-container">
       {share ? (
@@ -31,7 +33,7 @@ function ProductOptions({
           <AddToCartButton
             setOption={() => setOption("AddToCart")}
             product={product}
-            loading={true}
+            loading={loaded}
           />
           <div className="options-container">
             <div

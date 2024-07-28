@@ -7,6 +7,7 @@ const initialState = {
     text: "",
     value: [],
   },
+  PriceFiltered: false,
   variants: [],
   filters: {
     categories: [],
@@ -231,6 +232,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
     case "FILTER-PRICE": {
       return {
         ...state,
+        PriceFiltered: true,
         selectedFilter: {
           ...state.selectedFilter,
           filtered: true,
@@ -247,6 +249,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
     case "RESET-FILTER": {
       return {
         ...state,
+        PriceFiltered: false,
         selectedFilter: {
           filtered: false,
           categories: [],
@@ -358,6 +361,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
     case "EDIT-FILTER": {
       return {
         ...state,
+        PriceFiltered: payload.reset ? false : state.PriceFiltered,
         filters: {
           ...state.filters,
           categories: [...payload.categories],
@@ -433,12 +437,9 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
     case "SEARCH-FILTER": {
       return {
         ...state,
+        isChangedFilter: true,
         selectedFilter: {
           ...state.selectedFilter,
-          searchText: payload || "",
-        },
-        activeFilters: {
-          ...state.activeFilters,
           searchText: payload || "",
         },
       };

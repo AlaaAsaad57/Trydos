@@ -1,7 +1,7 @@
 import "styles/spinner.css";
 interface SpinnerProps {
-  no: boolean | null;
-  className: string | null;
+  no?: boolean | null;
+  className?: string | null;
 }
 function Spinner(props: SpinnerProps) {
   return (

@@ -33,6 +33,7 @@ export default function Error({
       last_json,
       token,
       userAgent,
+      url: location.href,
     });
   };
   useEffect(() => {

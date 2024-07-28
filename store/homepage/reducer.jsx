@@ -9,7 +9,7 @@ const initialState = {
   renderStories: false,
   storiesData: null,
   categories: [],
-  enableNotifications: false,
+
   settings: null,
   loginOpen: false,
   boutiques: [],
@@ -46,13 +46,6 @@ const HomeReducer = (state = initialState, { type, payload }) => {
         previous_event_button_name: payload,
       };
     }
-    case "enableNotifications": {
-      return {
-        ...state,
-        enableNotifications: true,
-      };
-    }
-
     case "LOGIN-OPEN": {
       if (payload) {
         document.documentElement.style.overflow = "hidden";

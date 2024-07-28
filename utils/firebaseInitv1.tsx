@@ -46,8 +46,7 @@ export const onMessageListener = async () => {
     onMessage(messaging, (payload) => {
       if (payload.data.type === "InAnotherCallEvent") {
         // store.dispatch({ type: "USER_END_CALL" });
-        store.dispatch({ type: "enableNotifications" });
-        toast.info("User In Another Call");
+        store.toast.info("User In Another Call");
       }
       if (payload.data.type === "RefuseCallEvent") {
         // getCalls();

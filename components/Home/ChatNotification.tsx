@@ -22,7 +22,7 @@ function ChatNotification({ num }) {
           fontSize="10"
           fontFamily="SegoeUI-Bold, Segoe UI"
           fontWeight="700"
-          letter-spacing="0.02em"
+          letterSpacing="0.02em"
         >
           <tspan x="-5.752" y="0">
             {num}

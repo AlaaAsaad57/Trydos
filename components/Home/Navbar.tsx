@@ -10,11 +10,10 @@ import MobileNavigation from "./MobileNavigation";
 import dynamic from "next/dynamic";
 import NextLink from "Hooks/NextLink";
 import { usePathname } from "next/navigation";
-import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
-import CategoriesBarSkeleton from "components/skeleton/CategoriesBar";
 import { dispatchRouteChangeEvent } from "Hooks/events";
-import CartContainer from "components/Cart";
-const AuthSections = dynamic(() => import("./AuthSections"), { ssr: false });
+import AuthSections from "./AuthSections";
+import { ToastContainer } from "react-toastify";
+
 interface NavbarProps {
   init: string;
   categories: Category[];
@@ -61,14 +60,13 @@ function Navbar({ init, categories }: NavbarProps) {
       return false;
     }
   };
-  const cartEnable = useSelector((state: any) => state.cart.enable);
 
-  const enableCart = (s) => {
-    dispatch({ type: "ENABLE-CART", payload: s });
-  };
   return (
     <>
-      {cartEnable && <CartContainer close={() => enableCart(false)} />}
+      <ToastContainer
+        position="top-right"
+        style={{ zIndex: "9999999999999999" }}
+      />
       <AuthSections />
       <div className="home-navbar">
         <NextLink

@@ -62,15 +62,15 @@ function CategoryCircle({ category }) {
   };
   const isSelected = () => {
     return (
-      selectedFilter.categories.filter((s) => s.slug === category.category.slug)
-        .length > 0
+      selectedFilter.categories.filter((s) => s.slug === category.slug).length >
+      0
     );
   };
-  console.log(category);
+
   return (
     <>
       <div
-        onClick={() => selectCategory({ ...category.category })}
+        onClick={() => selectCategory({ ...category })}
         className={`category-circle flex-col align-center ${
           category?.categories_sub?.length > 0 && "extended-circle"
         }`}
@@ -98,10 +98,10 @@ function CategoryCircle({ category }) {
             </g>
           </svg>
           <div className="category-shadow"></div>
-          <img width={70} height={70} src={category.category.flat_photo_path} />
+          <img width={70} height={70} src={category.flat_photo_path} />
         </div>
         <div className="category-text-container flex-col align-center">
-          <span className="category-title">{category.category.name}</span>
+          <span className="category-title">{category.name}</span>
           {/* <span className="category-typo">1100</span> */}
         </div>
       </div>

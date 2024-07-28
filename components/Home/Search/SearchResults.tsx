@@ -157,17 +157,17 @@ function SearchResults() {
           <div className="brands-results-row flex-row overflow-hidden">
             {searchResults.categories.map((category, index) => (
               <CategoryItem
-                category={category.category}
+                category={category}
                 key={index}
                 onClick={() => {
                   dispatch({
                     type: "SEARCH-CATEGORY",
-                    payload: category.category.slug,
+                    payload: category.slug,
                   });
                   updateFiltersApi();
                 }}
                 isActive={searchFilters.categories.some(
-                  (s) => s.slug === category.category.slug
+                  (s) => s.slug === category.slug
                 )}
               />
             ))}

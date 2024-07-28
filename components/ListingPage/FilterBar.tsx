@@ -67,8 +67,57 @@ function FilterBar({ boutique, filters, productsServer }) {
   const paramsVar = useParams();
   const router = useRouter();
   const onChange = (e) => {
-    dispatch({ type: "Skeleton-Listing" });
     dispatch({ type: "SEARCH-FILTER", payload: e.target.value });
+    dispatch({ type: "FILTER-LOADING", payload: true });
+    UpdateFilter({
+      sizesAttr: sizesAttr,
+      boutiqueId: pathName.productCategory,
+      lang: pathName.lang,
+      done: () => {
+        dispatch({ type: "FILTER-LOADING", payload: false });
+      },
+      newFiltersCallback: ({ filtersVar }) => {
+        dispatch({
+          type: "EDIT-FILTER",
+          payload: { ...filtersVar },
+        });
+      },
+      searchText: e.target.value,
+    });
+    if (filterEnabled) {
+    } else {
+      const params = new URLSearchParams(searchParams);
+      dispatch({ type: "Skeleton-Listing" });
+      filterProducts({
+        serachTrigger: true,
+        boutiqueId:
+          (params.get("boutique_slugs") && params.get("boutique_slugs")) ||
+          pathName.productCategory,
+        lang: paramsVar.lang,
+        sizesAttr: sizesAttr,
+        callback: (products) => {
+          dispatch({ type: "GET_PRODUCT", payload: { products } });
+        },
+        offset: 1,
+        storeCallback: (e) => {
+          dispatch({
+            type: "ACTIVE-FILTER",
+            payload: e,
+          });
+        },
+        newFiltersCallback: ({ filtersVar }) => {
+          dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+        },
+        searchText: e.target.value,
+      });
+      setEnableFilter(false);
+      if (e.target.value > 0) {
+        params.set("searchText", e.target.value);
+      } else {
+        params.delete("searchText");
+      }
+      router.replace(`${pathname}?${params.toString()}`);
+    }
   };
 
   useEffect(() => {
@@ -151,20 +200,25 @@ function FilterBar({ boutique, filters, productsServer }) {
               value={selectedFilters.searchText}
               onBlur={() => {
                 if (selectedFilters?.searchText.length === 0) {
-                  document.querySelector<HTMLInputElement>(
-                    ".boutique-logo-container"
-                  ).style.display = "flex";
+                  if (
+                    document.querySelector<HTMLInputElement>(
+                      ".boutique-logo-container"
+                    )
+                  )
+                    document.querySelector<HTMLInputElement>(
+                      ".boutique-logo-container"
+                    ).style.display = "flex";
                   dispatch({ type: "FILTER-SEARCH-ENABLE", payload: false });
                 }
               }}
               onChange={(e) => {
                 onChange(e);
               }}
-              onInput={(e) => {
+              onKeyDown={(e) => {
                 //@ts-ignore
                 if (e.keyCode == 13) {
                   const params = new URLSearchParams(searchParams);
-
+                  dispatch({ type: "Skeleton-Listing" });
                   filterProducts({
                     serachTrigger: true,
                     boutiqueId:

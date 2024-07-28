@@ -297,8 +297,9 @@ export const expandView = ({ filter }) => {
   }
   if (document.querySelector<HTMLElement>(".home-navbar")) {
     document.querySelector<HTMLElement>(".home-navbar").classList.add("fixed");
-    document.querySelector<HTMLElement>(".home-navbar").style.zIndex =
-      "9999999999";
+    document
+      .querySelector<HTMLElement>(".home-navbar")
+      .classList.add("z-[9999999999]");
   }
 
   if (document.querySelector<HTMLElement>(".filter-listing-bar")) {
@@ -453,6 +454,7 @@ export const filterProducts = async ({
   serachTrigger?: boolean;
 }) => {
   const filterObj = store.getState().details.selectedFilter;
+  const PriceFiltered = store.getState().details.PriceFiltered;
   storeCallback(filterObj);
 
   let filters = {
@@ -484,7 +486,9 @@ export const filterProducts = async ({
         ? `&attributes=${JSON.stringify(filters.attributes)}`
         : ""
     }${
-      filters.prices !== null ? `&prices=${JSON.stringify(filters.prices)}` : ""
+      filters.prices !== null && PriceFiltered
+        ? `&prices=${JSON.stringify(filters.prices)}`
+        : ""
     }${
       filters.boutique_slug !== "listing"
         ? `&boutique_slugs=${JSON.stringify([filters.boutique_slug])}`
@@ -541,6 +545,8 @@ export const UpdateFilter = async ({
 }) => {
   try {
     const filterObj = filtersVar || store.getState().details.selectedFilter;
+    const PriceFiltered = store.getState().details.PriceFiltered;
+
     let filters = {
       categories: filterObj.categories.map((s) => s.slug),
       prices:
@@ -564,7 +570,9 @@ export const UpdateFilter = async ({
         ? `&attributes=${JSON.stringify(filters.attributes)}`
         : ""
     }${
-      filters.prices !== null ? `&prices=${JSON.stringify(filters.prices)}` : ""
+      filters.prices !== null && PriceFiltered
+        ? `&prices=${JSON.stringify(filters.prices)}`
+        : ""
     }${
       filters.boutique_slug !== "listing"
         ? `&boutique_slugs=${JSON.stringify([filters.boutique_slug])}`

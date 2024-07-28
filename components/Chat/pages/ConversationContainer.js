@@ -832,7 +832,6 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
           setCameraEnabled(bool);
         })
         .catch((e) => {
-          dispatch({ type: "enableNotifications" });
           toast.error("check camera premmissions and refresh");
         });
     }
@@ -1225,7 +1224,6 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
                             setRecording(true);
                           },
                           (e) => {
-                            dispatch({ type: "enableNotifications" });
                             toast.error("No available Microphone");
                             console.error(e);
                           }

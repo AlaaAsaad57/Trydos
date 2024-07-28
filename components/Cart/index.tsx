@@ -30,7 +30,7 @@ function CartContainer({ close }) {
       },
     });
   }, []);
-  console.log(brands);
+
   const getProductsOfBrand = (s) => {
     return cart?.filter((b) => b.brand?.id === s?.id);
   };

@@ -18,7 +18,7 @@ function SelectColor({ close }) {
   return (
     <>
       <div className="blur-md bg-[#f4f4f480] backdrop-blur-[10px] flex fixed top-[103px] left-0 h-full w-full z-[99]" />
-      <div className="w-full fixed top-[55px] lef-0 z-[999999999999999]">
+      <div className="w-full fixed top-[55px] lef-0 z-[999999999]">
         <BackBar
           link={false}
           close={() => {
@@ -61,11 +61,15 @@ function SelectColor({ close }) {
             </g>
           </svg>
           <img
-            src={
-              (AddToCartOption?.selectedColor?.images &&
-                AddToCartOption?.selectedColor?.images[0]) ||
-              SelectedProduct.images[0]?.file_path
-            }
+            src={getConfiguredImage({
+              height: 400,
+              width: 400,
+              src:
+                (AddToCartOption?.selectedColor?.images &&
+                  AddToCartOption?.selectedColor?.images[0]) ||
+                SelectedProduct.images[0]?.file_path ||
+                SelectedProduct.images[0],
+            })}
             className={"h-full object-top rounded-[15px]"}
           />
         </div>

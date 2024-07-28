@@ -1,14 +1,10 @@
 "use client";
 import "styles/home.css";
-
 import { useSelector } from "react-redux";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import Stories from "./Stories/index";
 import ChatService from "services/chat";
-const NotificationContainer = dynamic(() => import("./Notifications"), {
-  ssr: false,
-});
 import { getUserChat } from "utils/functions";
 const NameModal = dynamic(() => import("components/global/NameModal"));
 const StoriesContainer = dynamic(() => import("./Stories/NewStories"), {
@@ -58,9 +54,7 @@ export default function Home() {
   const selectedStory = useSelector(
     (state: any) => state.homepage.selectedStory
   );
-  const enableNotifications = useSelector(
-    (state: any) => state.homepage.enableNotifications
-  );
+
   const searchEnabled = useSelector((state: any) => state.Search.enable);
 
   const nameModal = useSelector((state: any) => state.chat.nameModal);
@@ -76,7 +70,6 @@ export default function Home() {
   }, [selectedStory]);
   return (
     <>
-      {enableNotifications && <NotificationContainer />}
       <Stories />
       {nameModal && <NameModal />}
       {selectedStory?.id && (

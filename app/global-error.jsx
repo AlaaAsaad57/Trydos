@@ -24,6 +24,7 @@ export default function GlobalError({ error, reset }) {
       last_json,
       token,
       userAgent,
+      url: location.href,
     });
   };
   useEffect(() => {

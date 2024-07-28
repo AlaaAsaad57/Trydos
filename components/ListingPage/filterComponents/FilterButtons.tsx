@@ -108,6 +108,7 @@ function FilterButtons() {
         selectedFilter.sizes.length !== activeFilters.sizes.length ||
         selectedFilter.offers.length !== activeFilters.offers.length ||
         selectedFilter.brands.length !== activeFilters.brands.length ||
+        selectedFilter?.searchText !== activeFilters.searchText ||
         selectedFilter.prices.pricesWord)
     ) {
       return true;
@@ -181,7 +182,7 @@ function FilterButtons() {
                     payload: { ...filtersVar, reset: true },
                   });
                 },
-                searchText: selectedFilter?.searchText,
+                searchText: "",
               });
             }}
           >

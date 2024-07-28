@@ -15,7 +15,6 @@ function SearchIcon() {
   useEffect(() => {
     if (searchEnabled) {
       setTimeout(() => {
-        console.log(searchEnabled);
         document.documentElement.style.overflow = "hidden";
       }, 1000);
     }

@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import NextLink from "Hooks/NextLink";
 import { usePathname } from "next/navigation";
 import { dispatchRouteChangeEvent } from "Hooks/events";
+import { ToastContainer } from "react-toastify";
 const AuthSections = dynamic(() => import("./AuthSections"), { ssr: false });
 interface NavbarProps {
   init: string;
@@ -39,6 +40,10 @@ function CustomNavbar({ init }: NavbarProps) {
 
   return (
     <>
+      <ToastContainer
+        position="top-right"
+        style={{ zIndex: "9999999999999999" }}
+      />
       <AuthSections />
       <div className="home-navbar">
         <NextLink

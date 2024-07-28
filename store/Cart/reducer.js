@@ -13,14 +13,22 @@ const initialState = {
   variants: [],
   loading: true,
   localCart: [],
+  loaded: false,
 };
 
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "LOADED-CART": {
+      return {
+        ...state,
+        loaded: true,
+      };
+    }
     case "ADD-PRODUCT-TO-CART": {
       return {
         ...state,
         localCart: [...state.localCart, payload],
+        loaded: false,
       };
     }
     case "CART-INIT": {
@@ -35,7 +43,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           if (s.brand) brands.push({ brand: s.brand });
         }
       });
-      console.log(brands, prods);
+
       return {
         ...state,
         ...payload,
@@ -70,6 +78,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
               (s) => s.title == "Size"
             )[0]?.options[0],
           },
+          loaded: true,
         };
     }
     case "ADD-TO-CART": {
@@ -95,6 +104,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         ...state,
         variants: payload,
         loading: false,
+        loaded: true,
       };
     }
     case "AddToCartOptionEnable": {

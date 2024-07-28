@@ -13,6 +13,7 @@ import Skeleton from "react-loading-skeleton";
 
 function AddToCartWidget() {
   const dispatch = useDispatch();
+  const loaded = useSelector((state: any) => state.cart.loaded);
   let QTY_URL = "/web/product/qtyPriceDetails";
   const SelectedProduct = useSelector(
     (state: any) => state.cart.SelectedProduct
@@ -45,7 +46,8 @@ function AddToCartWidget() {
       />
       <div className="product-details-footer z-[9999] min-h-[100px] h-auto">
         {SelectedProduct.choice_options &&
-        SelectedProduct.choice_options.length > 0 ? (
+        SelectedProduct.choice_options.length > 0 &&
+        SelectedProduct?.variation ? (
           <div className="Extended-area-product">
             <svg
               className="border-svg"
@@ -90,7 +92,8 @@ function AddToCartWidget() {
             <>
               <AddToCartButton
                 loading={
-                  SelectedProduct.choice_options || product.choice_options
+                  loaded &&
+                  (SelectedProduct.choice_options || product.choice_options)
                 }
                 setOption={() => {}}
                 product={SelectedProduct}

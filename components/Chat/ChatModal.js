@@ -32,7 +32,6 @@ function ChatModal() {
               requestFirebaseNotificationPermission().then((firebaseToken) => {
                 try {
                   if (!firebaseToken) {
-                    dispatch({ type: "enableNotifications" });
                     toast.error("Please Check Notifications Premissions");
                   } else {
                     localStorage.setItem("firebase_token", firebaseToken);

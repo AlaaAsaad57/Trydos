@@ -292,9 +292,8 @@ class HomeService {
       country: null,
       lang: null,
     });
-    console.log(data);
-    toast.success("Added Succesfully");
-    console.log(formBody);
+    store.dispatch({ type: "LOADED-CART", payload: false });
+    toast.success(data.message);
   }
 }
 

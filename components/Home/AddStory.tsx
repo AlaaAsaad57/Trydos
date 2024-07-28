@@ -38,8 +38,6 @@ function AddStory() {
             if (videoElement.readyState === 4) {
               let getTime = videoElement.duration;
               if (getTime > 59) {
-                dispatch({ type: "enableNotifications" });
-
                 toast.error("1 minutes video only");
                 setFile(null);
                 setIsSelected(null);
@@ -62,7 +60,6 @@ function AddStory() {
                   .catch((e) => {
                     setFile(null);
                     setIsSelected(null);
-                    dispatch({ type: "enableNotifications" });
 
                     toast.error("Upload Failed Try Again");
                   });
@@ -127,7 +124,7 @@ function AddStory() {
             .catch((e) => {
               setFile(null);
               setIsSelected(null);
-              dispatch({ type: "enableNotifications" });
+
               toast.error("Upload Failed Try Again");
             });
           setIsSelected(path);

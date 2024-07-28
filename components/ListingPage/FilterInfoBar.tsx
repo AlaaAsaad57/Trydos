@@ -112,9 +112,8 @@ function FilterInfoBar() {
           {activeFilters.categories.map(
             (category) =>
               (category.name ||
-                filters.categories.filter(
-                  (s) => s.category.slug === category.slug
-                )[0]?.category?.name) && (
+                filters.categories.filter((s) => s.slug === category.slug)[0]
+                  ?.name) && (
                 <>
                   <div className="main-category-icon flex-row min-w-[15px] min-h-[15px]">
                     <svg
@@ -142,16 +141,16 @@ function FilterInfoBar() {
                       src={
                         category?.flat_photo_path ||
                         filters.categories.filter(
-                          (s) => s.category.slug === category.slug
-                        )[0]?.category?.flat_photo_path
+                          (s) => s.slug === category.slug
+                        )[0]?.flat_photo_path
                       }
                     />
                   </div>
                   <div className="category-title filter-bar-main-title">
                     {category?.name ||
                       filters.categories.filter(
-                        (s) => s.category.slug === category.slug
-                      )[0]?.category?.name}
+                        (s) => s.slug === category.slug
+                      )[0]?.name}
                   </div>
                   {category?.categories_sub?.map((s) => (
                     <>
