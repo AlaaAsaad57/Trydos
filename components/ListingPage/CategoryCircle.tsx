@@ -101,7 +101,12 @@ function CategoryCircle({ category }) {
           <img
             width={70}
             height={70}
-            src={category.flat_photo_path ?? category?.icon}
+            className="object-cover object-center"
+            src={
+              category.most_viewed_product_thumbnail ??
+              category.flat_photo_path ??
+              category?.icon
+            }
           />
         </div>
         <div className="category-text-container flex-col align-center">
