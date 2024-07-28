@@ -23,10 +23,10 @@ const PopupCountry = ({ options, countries }) => {
       const Cookies = (await import("js-cookie")).default;
       setLocalization({ ...localization, country: selectedCountry });
       Cookies.set("language", localization.language, {
-        expires: new Date(2147483647 * 1000),
+        expires: 365,
       });
       Cookies.set("country", selectedCountry, {
-        expires: new Date(2147483647 * 1000),
+        expires: 365,
       });
       if (params.get("path")) {
         window.location.href = "/" + params.get("path");

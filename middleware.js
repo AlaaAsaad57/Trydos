@@ -147,9 +147,15 @@ export async function middleware(request) {
   return response;
 }
 function setLocaleCookies(request, lang, country) {
-  request.cookies.set("language", lang);
-  request.cookies.set("lang", lang);
-  request.cookies.set("country", country);
+  request.cookies.set("language", lang, {
+    exoires: new Date(7467743843902 * 10000),
+  });
+  request.cookies.set("lang", lang, {
+    exoires: new Date(7467743843902 * 10000),
+  });
+  request.cookies.set("country", country, {
+    exoires: new Date(7467743843902 * 10000),
+  });
 }
 
 export const config = {

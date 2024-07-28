@@ -29,7 +29,9 @@ function Navbar({ init, categories }: NavbarProps) {
   const initFunc = async () => {
     const Cookies = (await import("js-cookie")).default;
     let languageCookies = Cookies.get("language");
-    Cookies.set("country", init.split("-")[0]);
+    Cookies.set("country", init.split("-")[0], {
+      expires: 365,
+    });
     dispatch(
       changeAppLanguage(
         init.split("-")[1] ||
