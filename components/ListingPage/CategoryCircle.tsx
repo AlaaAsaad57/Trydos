@@ -98,7 +98,11 @@ function CategoryCircle({ category }) {
             </g>
           </svg>
           <div className="category-shadow"></div>
-          <img width={70} height={70} src={category.flat_photo_path} />
+          <img
+            width={70}
+            height={70}
+            src={category.flat_photo_path ?? category?.icon}
+          />
         </div>
         <div className="category-text-container flex-col align-center">
           <span className="category-title">{category.name}</span>
