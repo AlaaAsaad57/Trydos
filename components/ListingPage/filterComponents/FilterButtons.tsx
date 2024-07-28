@@ -109,7 +109,7 @@ function FilterButtons() {
         selectedFilter.offers.length !== activeFilters.offers.length ||
         selectedFilter.brands.length !== activeFilters.brands.length ||
         selectedFilter?.searchText !== activeFilters.searchText ||
-        selectedFilter.prices.pricesWord)
+        selectedFilter?.prices?.pricesWord)
     ) {
       return true;
     } else {
