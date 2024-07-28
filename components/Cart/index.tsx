@@ -44,7 +44,7 @@ function CartContainer({ close }) {
           (decimal_point_settings &&
             decimal_point_settings["starting-setting"]
               ?.decimal_point_settings) ||
-          2,
+          0,
         rate: currency?.exchange_rate,
       });
     });
@@ -181,7 +181,7 @@ function CartContainer({ close }) {
                                           decimal_point_settings[
                                             "starting-setting"
                                           ]?.decimal_point_settings) ||
-                                        2,
+                                        0,
                                     })}
                                     <svg
                                       className="bottom-3"
@@ -209,7 +209,7 @@ function CartContainer({ close }) {
                                           decimal_point_settings[
                                             "starting-setting"
                                           ]?.decimal_point_settings) ||
-                                        2,
+                                        0,
                                     })}
                                   </div>
                                 </>
@@ -224,7 +224,7 @@ function CartContainer({ close }) {
                                           decimal_point_settings[
                                             "starting-setting"
                                           ]?.decimal_point_settings) ||
-                                        2,
+                                        0,
                                     })}
                                   </div>
                                 </>
@@ -310,7 +310,7 @@ function CartContainer({ close }) {
                                           decimal_point_settings[
                                             "starting-setting"
                                           ]?.decimal_point_settings) ||
-                                        2,
+                                        0,
                                     })}
                                     <svg
                                       className="bottom-3"
@@ -338,7 +338,7 @@ function CartContainer({ close }) {
                                           decimal_point_settings[
                                             "starting-setting"
                                           ]?.decimal_point_settings) ||
-                                        2,
+                                        0,
                                     })}
                                   </div>
                                 </>
@@ -353,7 +353,7 @@ function CartContainer({ close }) {
                                           decimal_point_settings[
                                             "starting-setting"
                                           ]?.decimal_point_settings) ||
-                                        2,
+                                        0,
                                     })}
                                   </div>
                                 </>

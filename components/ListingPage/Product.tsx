@@ -213,7 +213,7 @@ function Product({
       points:
         (decimal_point_settings &&
           decimal_point_settings["starting-setting"]?.decimal_point_settings) ||
-        2,
+        0,
     });
   };
   if (true)

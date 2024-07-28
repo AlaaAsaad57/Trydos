@@ -115,7 +115,7 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
         rate: currency?.exchange_rate,
         points:
           decimal_point_settings["starting-setting"]?.decimal_point_settings ||
-          2,
+          0,
       });
   };
   return (
