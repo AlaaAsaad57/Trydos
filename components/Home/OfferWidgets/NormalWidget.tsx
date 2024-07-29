@@ -124,7 +124,8 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           </div>
           <div className="offer-category">
             {boutique.mainCategoriesForProductIds.map((category, key) => {
-              if (category.category_icon.includes(".svg")) {
+              // @ts-ignore
+              if (category.flat_photo_path.includes(".svg")) {
                 return (
                   <div
                     onClick={(e) => {
@@ -144,7 +145,8 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                       priority={myKey < 2}
                       width={12}
                       height={12}
-                      src={category.category_icon.replace(
+                      // @ts-ignore
+                      src={category.flat_photo_path?.file_path.replace(
                         "/upload",
                         `/upload/h_50/f_webp/q_auto`
                       )}
@@ -172,7 +174,8 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                       priority={myKey < 2}
                       width={12}
                       height={12}
-                      src={category.category_icon.replace(
+                      // @ts-ignore
+                      src={category?.flat_photo_path?.file_path.replace(
                         "/upload",
                         `/upload/h_50/f_webp/q_auto`
                       )}

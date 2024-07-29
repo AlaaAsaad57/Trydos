@@ -43,11 +43,13 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
       {boutique?.childCategoriesForProductIds.map((product, index) => {
         return (
           <OfferAvatar
-            name={product.product_name}
+            // @ts-ignore
+            name={product.most_viewed_product_name}
             linkUrl={`/boutiques/${boutique.slug}?categories=${product.category_id}`}
             key={index}
             category={product.count_products}
-            images={product.product_thumbnail}
+            // @ts-ignore
+            images={product?.most_viewed_product_thumbnail}
             zIndex={index + 1}
             priority={priority}
           />

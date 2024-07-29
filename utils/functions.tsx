@@ -34,12 +34,12 @@ export const getStoriesHeaders = () => {
       Authorization: `Bearer ${token}`,
     },
 
-    next: { tags: ["stories"], revalidate: 300 },
+    next: { tags: ["stories"], revalidate: 60 },
   };
 };
 export const GeneralCahcedHeader = (apiName) => {
   return {
-    next: { tags: [apiName], revalidate: 300 },
+    next: { tags: [apiName], revalidate: 60 },
   };
 };
 export const configureStory = (story) => {
