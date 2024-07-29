@@ -288,32 +288,69 @@ class HomeService {
       console.log(error);
     }
   }
-  async AddToCart({ id, size, color, image, quantity, callback }) {
-    const imageVar = image.split("/")[image.split("/").length - 1];
-    let details = { id, color, image: imageVar, quantity, choice_1: size };
-    let formBody = [];
-    for (var property in details) {
-      if (details[property]) {
-        var encodedKey = encodeURIComponent(property);
-        var encodedValue = encodeURIComponent(details[property]);
-        formBody.push(encodedKey + "=" + encodedValue);
+  async AddToCart({
+    id,
+    size,
+    color,
+    image,
+    quantity,
+    callback,
+    alreadyExist,
+  }) {
+    console.log(alreadyExist);
+    if (alreadyExist) {
+      let dataBody = [];
+      let dataObj = { key: alreadyExist, quantity: quantity + 1 };
+      for (var property in dataObj) {
+        if (dataObj[property]) {
+          var encodedKey = encodeURIComponent(property);
+          var encodedValue = encodeURIComponent(dataObj[property]);
+          dataBody.push(encodedKey + "=" + encodedValue);
+        }
       }
-    }
-    // @ts-ignore
-    formBody = formBody.join("&");
-
-    let data = await FetchApi({
-      url: OTP_URL + "/cart/add",
-      method: "POST",
-      body: formBody,
-      country: null,
-      lang: null,
-    });
-    store.dispatch({ type: "LOADED-CART", payload: true });
-    if (data?.data?.id_cart) {
-      callback();
+      // @ts-ignore
+      dataBody = dataBody.join("&");
+      let updateQuantity = await FetchApi({
+        url: OTP_URL + "/cart/update",
+        method: "POST",
+        body: dataBody,
+        country: null,
+        lang: null,
+      });
+      console.log(updateQuantity);
+      store.dispatch({ type: "LOADED-CART", payload: true });
+      if (updateQuantity?.data?.qty >= 0) {
+        callback({ id: alreadyExist });
+      } else {
+        toast.info(updateQuantity?.message || "Failed");
+      }
     } else {
-      toast.info(data?.message || "Failed");
+      const imageVar = image.split("/")[image.split("/").length - 1];
+      let details = { id, color, image: imageVar, quantity, choice_1: size };
+      let formBody = [];
+      for (var property in details) {
+        if (details[property]) {
+          var encodedKey = encodeURIComponent(property);
+          var encodedValue = encodeURIComponent(details[property]);
+          formBody.push(encodedKey + "=" + encodedValue);
+        }
+      }
+      // @ts-ignore
+      formBody = formBody.join("&");
+
+      let data = await FetchApi({
+        url: OTP_URL + "/cart/add",
+        method: "POST",
+        body: formBody,
+        country: null,
+        lang: null,
+      });
+      store.dispatch({ type: "LOADED-CART", payload: true });
+      if (data?.data?.id_cart) {
+        callback({ id: data?.data?.id_cart });
+      } else {
+        toast.info(data?.message || "Failed");
+      }
     }
   }
 }

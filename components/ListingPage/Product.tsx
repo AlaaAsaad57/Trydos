@@ -67,9 +67,6 @@ function Product({
   priority: boolean;
   i: number;
 }) {
-  const AddToCartOption = useSelector(
-    (state: any) => state.cart.AddToCartOption
-  );
   const dispatchStore = useDispatch();
   const addToCart = () => {
     dispatchStore({ type: "AddToCartOptionEnable", payload: product });

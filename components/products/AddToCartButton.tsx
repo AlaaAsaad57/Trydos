@@ -31,6 +31,21 @@ function AddToCartButton({
         },
       });
   };
+  const isAlreayAdded = ({ sku }) => {
+    console.log(sku);
+    if (localCart.some((s) => s.sku === sku)) {
+      return localCart.filter((s) => s.sku === sku)[0]?.item_id;
+    } else {
+      return false;
+    }
+  };
+  const getQuantity = ({ sku }) => {
+    if (localCart.some((s) => s.sku === sku)) {
+      return localCart.filter((s) => s.sku === sku)[0]?.quantity;
+    } else {
+      return 1;
+    }
+  };
   return (
     <div
       className={`add-cart-button ${
@@ -48,12 +63,25 @@ function AddToCartButton({
             });
           } else {
             dispatch({ type: "LOADED-CART", payload: false });
+
             home.AddToCart({
-              callback: () => {
+              alreadyExist: isAlreayAdded({
+                sku: `${product.id}${
+                  AddToCartOption?.selectedColor?.color_name
+                    ? `-${AddToCartOption?.selectedColor?.color_name}`
+                    : ""
+                }${
+                  AddToCartOption?.selectedSize?.name
+                    ? `-${AddToCartOption?.selectedSize?.name}`
+                    : ""
+                }`,
+              }),
+              callback: ({ id }) => {
                 dispatch({
                   type: "ADD-PRODUCT-TO-CART",
                   payload: {
                     id: product.id,
+                    item_id: id,
                     color: product.colors
                       ? product.colors.filter(
                           (s) =>
@@ -75,6 +103,15 @@ function AddToCartButton({
                       : product.images[0]?.file_path ?? product.images[0],
                     quantity: 1,
                     size: AddToCartOption?.selectedSize?.name ?? null,
+                    sku: `${product.id}${
+                      AddToCartOption?.selectedColor?.color_name
+                        ? `-${AddToCartOption?.selectedColor?.color_name}`
+                        : ""
+                    }${
+                      AddToCartOption?.selectedSize?.name
+                        ? `-${AddToCartOption?.selectedSize?.name}`
+                        : ""
+                    }`,
                   },
                 });
               },
@@ -96,7 +133,17 @@ function AddToCartButton({
                       AddToCartOption?.selectedColor?.color_name
                   )[0].images[0]
                 : product.images[0]?.file_path ?? product.images[0],
-              quantity: 1,
+              quantity: getQuantity({
+                sku: `${product.id}${
+                  AddToCartOption?.selectedColor?.color_name
+                    ? `-${AddToCartOption?.selectedColor?.color_name}`
+                    : ""
+                }${
+                  AddToCartOption?.selectedSize?.name
+                    ? `-${AddToCartOption?.selectedSize?.name}`
+                    : ""
+                }`,
+              }),
               size: AddToCartOption?.selectedSize?.name ?? null,
             });
           }
@@ -112,18 +159,21 @@ function AddToCartButton({
 
       <div className="button-desc">
         <div className="flex-row max-w-[30px] justify-end">
-          {localCart?.map((s) => {
-            return (
-              <img
-                src={getConfiguredImage({
-                  src: s.image,
-                  width: 50,
-                  height: 50,
-                })}
-                className="rounded-md w-8 h-8 static"
-              />
-            );
-          })}
+          {AddToCartOption?.enable &&
+            localCart
+              .filter((d) => parseInt(d.id) === parseInt(product.id))
+              ?.map((s) => {
+                return (
+                  <img
+                    src={getConfiguredImage({
+                      src: s.image,
+                      width: 50,
+                      height: 50,
+                    })}
+                    className="rounded-md w-8 h-8 static"
+                  />
+                );
+              })}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             xmlnsXlink="http://www.w3.org/1999/xlink"

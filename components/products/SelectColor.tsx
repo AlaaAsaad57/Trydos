@@ -3,8 +3,9 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
-import BackBar from "./BackBar";
+
 import { getConfiguredImage } from "utils/functions";
+import BackIcon from "public/svg/listing/backIcon.svg";
 
 function SelectColor({ close }) {
   const AddToCartOption = useSelector(
@@ -18,17 +19,19 @@ function SelectColor({ close }) {
   return (
     <>
       <div className="blur-md bg-[#f4f4f480] backdrop-blur-[10px] flex fixed top-0 left-0 h-full w-full z-[999999999]" />
-      <div className="w-full fixed top-0 lef-0 z-[999999999]">
-        <BackBar
-          link={false}
-          className="p-0"
-          close={() => {
+
+      <div className="back-bar align-center w-100 flex-row min-h-12 bg-[#fff] p-4 z-[9999999999] fixed top-0">
+        <div
+          className="back-icon p-0"
+          onClick={() => {
             document.documentElement.style.overflow = "auto";
             document.documentElement.scrollTop = 0;
             close();
             dispatch({ type: "AddToCartOptionDisable", payload: false });
           }}
-        />
+        >
+          <BackIcon />
+        </div>
       </div>
       <div className="flex-col mt-[10px] w-full fixed  left-0 z-[999999999] top-[50px] items-center">
         <div className="flex-row w-auto justify-center h-available relative rounded-[15px] inset-select-shadow-image">

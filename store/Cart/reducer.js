@@ -25,10 +25,30 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "ADD-PRODUCT-TO-CART": {
-      return {
-        ...state,
-        localCart: [...state.localCart, payload],
-      };
+      if (state.localCart.some((s) => s.item_id === payload.item_id)) {
+        let arr = [];
+        let prod = null;
+        state.localCart.map((s) => {
+          if (s.item_id !== payload.item_id) {
+            arr.push(s);
+          } else {
+            prod = s;
+          }
+        });
+        arr.push({
+          ...prod,
+          quantity: parseInt(prod.quantity + payload.quantity),
+        });
+        return {
+          ...state,
+          localCart: arr,
+        };
+      } else {
+        return {
+          ...state,
+          localCart: [...state.localCart, payload],
+        };
+      }
     }
     case "CART-INIT": {
       let brands = [];
@@ -50,11 +70,15 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         brands: brands,
         localCart: [
           ...payload.cart.map((s) => ({
-            id: s.id,
+            id: s.product_id,
+            item_id: s.id,
             image: s.image,
             quantity: s.quantity,
             size: s.choices?.length > 0 ? s.choices[0]?.choice_1 : null,
             color: "",
+            sku: `${s.product_id}${
+              s.variations?.length > 0 ? `-${s.variations[0].color}` : ""
+            }${s.choices?.length > 0 ? `-${s.choices[0].choice_1}` : ""}`,
           })),
         ],
       };

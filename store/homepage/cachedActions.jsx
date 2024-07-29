@@ -457,13 +457,25 @@ export const getCountriesApi = async () => {
 };
 
 export const FetchApi = async ({ url, method, body, lang, country }) => {
+  let cacheVar;
+  if (url.includes("cart")) {
+    cacheVar = {
+      cache: "no-cache",
+    };
+  } else {
+    cacheVar = {
+      next: {
+        revalidate: 60,
+      },
+    };
+  }
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   let response = await fetch(url, {
     method: method,
-    next: {
-      revalidate: 60,
-    },
+
+    ...{ cacheVar },
+
     body: body,
     headers: new Headers({
       lang: await getLang(lang, cookieStore.get("language")?.value),
