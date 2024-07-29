@@ -312,7 +312,7 @@ export const expandView = ({ filter }) => {
       ".filter-listing-bar"
     ).style.paddingRight = "5px";
     document.querySelector<HTMLElement>(".filter-listing-bar").style.zIndex =
-      "9999999999";
+      "999999";
     document.querySelector<HTMLElement>(".filter-listing-bar").style.top =
       "98px";
     document.querySelector<HTMLElement>(".filter-listing-bar").style.left =
@@ -332,7 +332,7 @@ export const expandView = ({ filter }) => {
       .forEach((s: HTMLElement) => {
         s.style.display = "none";
         document.querySelector<HTMLElement>(".boutique-top-info").style.zIndex =
-          "9999999999";
+          "999999";
         document.querySelector<HTMLElement>(".boutique-top-info").style.width =
           "auto";
         document.querySelector<HTMLElement>(

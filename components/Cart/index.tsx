@@ -54,7 +54,13 @@ function CartContainer({ close }) {
     <div className="flex-col fixed top-0 left-0 h-[100vh] w-full bg-[#F8F8F8] min-w-[100vw] z-[9999999999] pt-1">
       <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
         <div className="flex-row  w-full min-h-10 pl-1 pr-2  relative justify-between items-center ">
-          <BackIcon className="cursor-pointer z-50" onClick={() => close()} />
+          <BackIcon
+            className="cursor-pointer z-50"
+            onClick={() => {
+              document.documentElement.style.overflow = "auto";
+              close();
+            }}
+          />
           <span className="text-[13px] text-[#505050] regular">
             {translate("Your Shopping Bag", language)}
           </span>
@@ -452,6 +458,10 @@ function CartContainer({ close }) {
 
 export default CartContainer;
 const CartBorderHeader = () => {
+  useEffect(() => {
+    document.documentElement.scrollTo({ top: 0 });
+    document.documentElement.style.overflow = "hidden";
+  }, []);
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
