@@ -17,10 +17,11 @@ function SelectColor({ close }) {
   const dispatch = useDispatch();
   return (
     <>
-      <div className="blur-md bg-[#f4f4f480] backdrop-blur-[10px] flex fixed top-[103px] left-0 h-full w-full z-[99]" />
-      <div className="w-full fixed top-[55px] lef-0 z-[999999999]">
+      <div className="blur-md bg-[#f4f4f480] backdrop-blur-[10px] flex fixed top-0 left-0 h-full w-full z-[999999999]" />
+      <div className="w-full fixed top-0 lef-0 z-[999999999]">
         <BackBar
           link={false}
+          className="p-0"
           close={() => {
             document.documentElement.style.overflow = "auto";
             document.documentElement.scrollTop = 0;
@@ -29,7 +30,7 @@ function SelectColor({ close }) {
           }}
         />
       </div>
-      <div className="flex-col mt-[10px] w-full fixed  left-0 z-[999] top-[103px] items-center">
+      <div className="flex-col mt-[10px] w-full fixed  left-0 z-[999999999] top-[50px] items-center">
         <div className="flex-row w-auto justify-center h-available relative rounded-[15px] inset-select-shadow-image">
           <svg
             className="absolute  top-0 left-0"

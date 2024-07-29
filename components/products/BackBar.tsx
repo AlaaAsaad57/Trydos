@@ -4,13 +4,21 @@ import BackIcon from "public/svg/listing/backIcon.svg";
 import { useRouter } from "next/navigation";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import { useSelector } from "react-redux";
-function BackBar({ close, link }) {
+function BackBar({
+  close,
+  link,
+  className,
+}: {
+  className?: any;
+  close: any;
+  link: any;
+}) {
   const router = useRouter();
   const activeRoute = useSelector((state: any) => state.homepage.activeRoute);
   return (
     <div className="back-bar align-center w-100 flex-row">
       <div
-        className="back-icon flex-row"
+        className={`back-icon flex-row ${className}`}
         onClick={() => {
           if (link) {
             if (activeRoute === "/") {

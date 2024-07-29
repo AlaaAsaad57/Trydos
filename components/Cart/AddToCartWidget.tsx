@@ -38,7 +38,7 @@ function AddToCartWidget() {
     getDetails();
   }, []);
   return (
-    <div className="flex-col h-[100vh] w-[100vw] flex top-[100px] left-0 fixed z-[99999999999999999] justify-start ">
+    <div className="flex-col h-[100vh] w-[100vw] flex top-0 left-0 fixed z-[99999999999999999] justify-start ">
       <SelectColor
         close={() => {
           dispatch({ type: "AddToCartOptionDisable" });
@@ -118,10 +118,10 @@ const SelectColor = ({ close }) => {
   const dispatch = useDispatch();
   return (
     <>
-      <div className="blur-md bg-[#f4f4f480] backdrop-blur-[10px] flex fixed top-[103px] left-0 h-full w-full z-[99]" />
-      <div className="back-bar align-center w-100 flex-row p-[10px] z-[99999999]">
+      <div className="blur-md bg-[#f4f4f480] backdrop-blur-[10px] flex fixed top-0 left-0 h-full w-full z-[99]" />
+      <div className="back-bar align-center w-100 flex-row min-h-12 bg-[#fff] p-4 z-[99999999]">
         <div
-          className="back-icon flex-row"
+          className="back-icon p-0"
           onClick={() => {
             close();
           }}

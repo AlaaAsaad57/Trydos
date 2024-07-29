@@ -121,7 +121,7 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
   return (
     <>
       {option === "AddToCart" && <SelectColor close={() => setOption("")} />}
-      <div className="product-details-footer z-[9999]">
+      <div className="product-details-footer z-[999999999]">
         <ProductDetails />
         <ProductInfo
           currency={currency?.symbol}
