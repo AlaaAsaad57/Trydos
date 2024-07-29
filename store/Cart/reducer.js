@@ -21,14 +21,13 @@ export const CartReducer = (state = initialState, { type, payload }) => {
     case "LOADED-CART": {
       return {
         ...state,
-        loaded: true,
+        loaded: payload,
       };
     }
     case "ADD-PRODUCT-TO-CART": {
       return {
         ...state,
         localCart: [...state.localCart, payload],
-        loaded: false,
       };
     }
     case "CART-INIT": {
@@ -49,6 +48,15 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         ...payload,
         loading: false,
         brands: brands,
+        localCart: [
+          ...payload.cart.map((s) => ({
+            id: s.id,
+            image: s.image,
+            quantity: s.quantity,
+            size: s.choices?.length > 0 ? s.choices[0]?.choice_1 : null,
+            color: "",
+          })),
+        ],
       };
     }
     case "CART-LOADING": {

@@ -301,7 +301,7 @@ class HomeService {
     }
     // @ts-ignore
     formBody = formBody.join("&");
-    callback();
+
     let data = await FetchApi({
       url: OTP_URL + "/cart/add",
       method: "POST",
@@ -309,8 +309,12 @@ class HomeService {
       country: null,
       lang: null,
     });
-    store.dispatch({ type: "LOADED-CART", payload: false });
-    toast.success(data.message);
+    store.dispatch({ type: "LOADED-CART", payload: true });
+    if (data?.data?.id_cart) {
+      callback();
+    } else {
+      toast.info(data?.message || "Failed");
+    }
   }
 }
 
