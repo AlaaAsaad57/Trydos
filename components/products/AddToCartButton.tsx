@@ -162,7 +162,7 @@ function AddToCartButton({
           {AddToCartOption?.enable &&
             localCart
               .filter((d) => parseInt(d.id) === parseInt(product.id))
-              ?.map((s) => {
+              ?.map((s, key) => {
                 return (
                   <img
                     src={getConfiguredImage({
@@ -170,6 +170,7 @@ function AddToCartButton({
                       width: 50,
                       height: 50,
                     })}
+                    key={key}
                     className="rounded-md w-8 h-8 static"
                   />
                 );
