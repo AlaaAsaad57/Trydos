@@ -31,7 +31,10 @@ function Comments({
         },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("MARKET-TOKEN")}`,
+            Authorization: `Bearer ${
+              localStorage.getItem("MARKET-TOKEN") ||
+              localStorage.getItem("DEVICE-TOKEN")
+            }`,
           },
         }
       );

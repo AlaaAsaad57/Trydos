@@ -45,9 +45,7 @@ function AddToCartWidget() {
         }}
       />
       <div className="product-details-footer z-[9999] min-h-[100px] h-auto">
-        {SelectedProduct.choice_options &&
-        SelectedProduct.choice_options.length > 0 &&
-        SelectedProduct?.variation ? (
+        {SelectedProduct.choice_options && SelectedProduct?.variation ? (
           <div className="Extended-area-product">
             <svg
               className="border-svg"
@@ -66,14 +64,16 @@ function AddToCartWidget() {
                 strokeWidth="0.7"
               />
             </svg>
-            <SelectSize
-              sizes={
-                SelectedProduct?.choice_options?.filter(
-                  (s) => s.title == "Size"
-                )[0]?.options || []
-              }
-              variants={SelectedProduct?.variation || []}
-            />
+            {SelectedProduct.choice_options?.length > 0 && (
+              <SelectSize
+                sizes={
+                  SelectedProduct?.choice_options?.filter(
+                    (s) => s.title == "Size"
+                  )[0]?.options || []
+                }
+                variants={SelectedProduct?.variation || []}
+              />
+            )}
           </div>
         ) : (
           <div className="Extended-area-product p-3">

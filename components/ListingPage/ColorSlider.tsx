@@ -88,12 +88,10 @@ function ColorSlider({
                 <>
                   <BorderImage isBig={false} />
                   <div className="inset-shadow-img rounded-15 absolute w-100 h-100" />
-                  <Image
+                  <img
                     loading={priority ? "eager" : "lazy"}
-                    priority={priority}
-                    unoptimized
+                    fetchPriority={priority ? "high" : "low"}
                     style={{ borderRadius: "15px", zIndex: "3" }}
-                    fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     src={getConfiguredImage({
                       src: img.images[0].file_path,

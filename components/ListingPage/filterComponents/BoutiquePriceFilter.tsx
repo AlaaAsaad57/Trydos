@@ -73,25 +73,27 @@ function BoutiquePriceFilter() {
       <div className="price-min-max flex-row z-20">
         {selectedFilter?.prices?.min >= 0 && (
           <div className="price-min">
-            Min {getPrice(selectedFilter.prices.min)}{" "}
+            Min {getPrice(filters.prices?.min_price)}{" "}
             <span>{currency_symbol?.symbol}</span>
           </div>
         )}
         {selectedFilter?.prices?.max >= 0 && (
           <div className="price-max">
-            Max {getPrice(selectedFilter.prices.max)}{" "}
+            Max {getPrice(filters.prices?.max_price)}{" "}
             <span>{currency_symbol?.symbol}</span>
           </div>
         )}
       </div>
       <PriceSlider
         min={
-          selectedFilter?.prices?.min >= 0 ? selectedFilter?.prices?.min : 100
+          getPrice(selectedFilter?.prices?.min) >= 0
+            ? getPrice(selectedFilter?.prices?.min)
+            : 100
         }
-        max={selectedFilter?.prices?.max || 500}
+        max={getPrice(selectedFilter?.prices?.max) || 500}
         Value={{
-          min: filters?.prices?.min_price,
-          max: filters?.prices?.max_price,
+          min: getPrice(filters?.prices?.min_price),
+          max: getPrice(filters?.prices?.max_price),
         }}
         set_Value={(e) => {
           set_Value(e);

@@ -37,13 +37,11 @@ function ImageLoader(props) {
             : { display: "flex" }
         }
       >
-        <Image
+        <img
           {...props}
           quality={100}
           priority={props.priority}
-          fetchpriority={props.fetchpriority}
           loading={"eager"}
-          unoptimized
           draggable={"false"}
           alt={props.alt}
           onLoad={() => {

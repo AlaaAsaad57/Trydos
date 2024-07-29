@@ -11,6 +11,9 @@ import { filterProducts, normalizeView, UpdateFilter } from "utils/functions";
 
 function FilterButtons() {
   const loading = useSelector((state: any) => state.details.loading);
+  const totalProducts = useSelector(
+    (state: any) => state.details.totalProducts
+  );
 
   const dispatch = useDispatch();
   const selectedFilter = useSelector(
@@ -162,9 +165,13 @@ function FilterButtons() {
             }}
           >
             Apply
-            {loading && (
+            {loading ? (
               <span className="ml-2">
                 <Spinner />
+              </span>
+            ) : (
+              <span className="text-[#fafafa] regular ml-2">
+                (Total Products: {totalProducts})
               </span>
             )}
           </div>

@@ -10,9 +10,7 @@ interface OfferListProps {
 }
 function OfferList({ quick, boutiques }: OfferListProps) {
   const dispatch = useDispatch();
-  useEffect(() => {
-    dispatch({ type: "SEARCH-RESULTS", payload: { boutiques: boutiques } });
-  }, []);
+
   return (
     <div className={`offers-list ${quick && " mt-5"}`}>
       {/* {quick ? (

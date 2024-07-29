@@ -3,7 +3,7 @@ import { store } from "store";
 import { GetChats } from "store/chat/actions";
 import Cookies from "js-cookie";
 import userImage from "public/images/profileNo.png";
-import { _isStoreLastJson, getLang } from "utils/functions";
+import { _isStoreLastJson, getCart, getLang } from "utils/functions";
 import {
   CUSTOMER_INFO_URL,
   HOME_DATA_URL,
@@ -20,8 +20,8 @@ const getHeader = () => {
   return {
     headers: {
       Authorization: `Bearer ${
-        typeof localStorage !== "undefined" &&
-        localStorage.getItem("MARKET-TOKEN")
+        localStorage.getItem("MARKET-TOKEN") ||
+        localStorage.getItem("DEVICE-TOKEN")
       }`,
       lang: getLang(null, Cookies.get("language")),
       country: Cookies.get("country"),
@@ -30,19 +30,23 @@ const getHeader = () => {
 };
 class HomeService {
   async getClientData() {
-    if (!localStorage.getItem("customer-info")) this.getCustomerInfo();
     const response = await fetch(OTP_URL + STARTER_SETTINGS, getHeader());
     let repo = await response.json();
     store.dispatch({ type: "GET_SETTINGS", payload: repo });
     sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
-
+    if (!localStorage.getItem("customer-info")) this.getCustomerInfo();
+    getCart({
+      callback: (data) => {
+        store.dispatch({ type: "CART-INIT", payload: data.data });
+      },
+    });
     if (typeof window !== "undefined") {
       _isStoreLastJson() &&
         localStorage.setItem("LAST_JSON", JSON.stringify(repo));
     }
     setTimeout(() => {
-      GetChats(false);
-    }, 10);
+      if (localStorage.getItem("USER")) GetChats(false);
+    }, 5000);
   }
   async getCustomerInfo() {
     const response = await fetch(OTP_URL + CUSTOMER_INFO_URL, getHeader());
@@ -80,12 +84,17 @@ class HomeService {
           avatar: JSON.parse(localStorage.getItem("USER")).avatar || userImage,
         },
       });
-      setTimeout(() => {
-        this.getClientData();
-      }, 2000);
     }
+    setTimeout(() => {
+      this.getClientData();
+    }, 10);
   }
   async RegisterDevice() {
+    if (!Cookies.get("DEVICE-TOKEN") && localStorage.getItem("DEVICE-TOKEN")) {
+      Cookies.set("DEVICE-TOKEN", localStorage.getItem("DEVICE-TOKEN"), {
+        expires: 365,
+      });
+    }
     if (
       SSRDetect() &&
       !localStorage.getItem("DEVICE-TOKEN") &&
@@ -97,6 +106,9 @@ class HomeService {
       });
       let repo = await response.json();
       localStorage.setItem("DEVICE-TOKEN", repo.data.token);
+      Cookies.set("DEVICE-TOKEN", repo.data.token, {
+        expires: 365,
+      });
       localStorage.setItem("guest-user", JSON.stringify(repo.data.user));
       if (typeof window !== "undefined") {
         _isStoreLastJson() &&
@@ -266,7 +278,11 @@ class HomeService {
       );
       let repo = await rep.json();
 
-      callback({ brands: repo.data.brands, categories: repo.data.categories });
+      callback({
+        brands: repo.data.brands,
+        categories: repo.data.categories,
+        total_size: repo.data.total_size,
+      });
     } catch (error) {
       console.log(error);
     }

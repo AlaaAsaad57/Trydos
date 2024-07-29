@@ -17,8 +17,8 @@ const getHeader = () => {
   return {
     headers: {
       Authorization: `Bearer ${
-        typeof localStorage !== "undefined" &&
-        localStorage.getItem("MARKET-TOKEN")
+        localStorage.getItem("MARKET-TOKEN") ||
+        localStorage.getItem("DEVICE-TOKEN")
       }`,
       lang: getLang(null, Cookies.get("language")),
       country: Cookies.get("country"),

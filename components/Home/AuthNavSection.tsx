@@ -1,12 +1,11 @@
 import { useDispatch, useSelector } from "react-redux";
 import ChatIcon from "public/svg/ChatIcon.svg";
-import CartIcon from "public/svg/CartIcon.svg";
 import { translate } from "utils/functions";
 import UserAvatar from "./UserAvatar";
 import { ChatConroller } from "store/chat/actions";
 import { getNew } from "components/Chat/chatsFunctions";
 import ChatNotification from "./ChatNotification";
-import CartContainer from "components/Cart";
+
 function AuthNavSection() {
   const language = useSelector((state: any) => state.homepage.language);
   const loading = useSelector((state: any) => state.chat.loading);
@@ -16,9 +15,6 @@ function AuthNavSection() {
   const chats = useSelector((state: any) => state.chat.data);
   const dispatch = useDispatch();
 
-  const enableCart = (s) => {
-    dispatch({ type: "ENABLE-CART", payload: s });
-  };
   return (
     <>
       {!loading && (
@@ -45,15 +41,7 @@ function AuthNavSection() {
           {chatVar && <ChatIcon />}
         </div>
       )}
-      <div
-        className="nav-question-item"
-        style={{ marginRight: "30px", marginLeft: "0px" }}
-        onClick={() => {
-          // dispatch(ChatConroller(true));
-        }}
-      >
-        <CartIcon onClick={() => enableCart(true)} />
-      </div>
+
       <div
         className={`welcome-user ${language + "-medium"}`}
         style={{ marginRight: "12px", marginLeft: "0px" }}

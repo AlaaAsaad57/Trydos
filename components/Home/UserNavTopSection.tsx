@@ -1,11 +1,12 @@
 import { translate } from "utils/functions";
 import { useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-const AuthNavSection = dynamic(() => import("./AuthNavSection"), {
-  ssr: false,
-});
+import AuthNavSection from "./AuthNavSection";
+
+import CartIcon from "public/svg/CartIcon.svg";
+
 interface UserNavTopSectionProps {
   loginOpen: boolean;
   openLogin: Function;
@@ -22,8 +23,21 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
       }
     }, 1000);
   }, [user]);
+  const dispatch = useDispatch();
+  const enableCart = (s) => {
+    dispatch({ type: "ENABLE-CART", payload: s });
+  };
   return (
     <div className="user-nav-container">
+      <div
+        className="nav-question-item"
+        style={{ marginRight: "30px", marginLeft: "0px" }}
+        onClick={() => {
+          // dispatch(ChatConroller(true));
+        }}
+      >
+        <CartIcon onClick={() => enableCart(true)} />
+      </div>
       {!user && (
         <>
           <div className={`welcome-user ${language + "-medium"}`}>

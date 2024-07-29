@@ -582,9 +582,10 @@ export const UpdateFilter = async ({
         ? `&search_text=${filters.searchText}`
         : ""
     }`;
+    console.log(filters);
     let product = await axios.get(OTP_URL + str, {
       params:
-        filters.colors.length > 0
+        filters.colors.length === 0
           ? {}
           : { colors: `${JSON.stringify(filters.colors)}` },
       headers: {
@@ -605,6 +606,7 @@ export const UpdateFilter = async ({
             ?.options || [],
         reset: false,
         colors: product.data.data.colors || [],
+        total_size: product.data.data.total_size,
       },
     });
     done();
@@ -644,6 +646,7 @@ export const getSearchOptions = async () => {
   return {
     categories: categories.data.categories,
     brands: categories.data.brands,
+    boutiques: categories.data.boutiques,
   };
 };
 export const getCart = async ({ callback }) => {

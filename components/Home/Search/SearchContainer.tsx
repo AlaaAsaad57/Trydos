@@ -34,8 +34,11 @@ function SearchContainer({ active }) {
     }
   }, [searchValue]);
   const getSearchData = async () => {
-    let { categories, brands } = await getSearchOptions();
-    dispatch({ type: "SEARCH-RESULTS", payload: { categories, brands } });
+    let { categories, brands, boutiques } = await getSearchOptions();
+    dispatch({
+      type: "SEARCH-RESULTS",
+      payload: { categories, brands, boutiques },
+    });
   };
   useEffect(() => {
     getSearchData();

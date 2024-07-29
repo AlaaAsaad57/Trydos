@@ -13,7 +13,7 @@ function BoutiqueItem({ boutique, onClick, isActive }) {
           className="absolute"
         />
       )}
-      <img src={boutique.banners[0].file_path} className="rounded-xl" />
+      <img src={boutique?.banner?.file_path} className="rounded-xl" />
     </div>
   );
 }

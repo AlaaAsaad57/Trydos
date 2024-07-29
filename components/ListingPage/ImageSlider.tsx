@@ -84,7 +84,7 @@ function ImageSlider({
             >
               {({ isActive }) => (
                 <>
-                  <BorderImage isBig={true} />
+                  {/* <BorderImage isBig={true} /> */}
                   <div className="inset-shadow-img w-100 h-100 rounded-15 absolute" />
                   {(isActive || i === 0) && (
                     <img

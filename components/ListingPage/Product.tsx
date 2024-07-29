@@ -10,16 +10,16 @@ import { dispatchRouteChangeEvent } from "Hooks/events";
 import { useDispatch, useSelector } from "react-redux";
 import { RoundPrice } from "utils/functions";
 import home from "services/home";
-const TopSlider = dynamic(() => import("./TopSlider"), {
-  loading: () => (
-    <>
-      <div className={`top-slider w-100 align-center flex justify-start`}></div>
-      <div className="product-photos overflow-visible w-100 align-center flex-col justify-start"></div>
-    </>
-  ),
-});
-const CoverEffectSlider = dynamic(() => import("./CoverEffectSlider"));
-const ColorSlider = dynamic(() => import("./ColorSlider"));
+// const TopSlider = dynamic(() => import("./TopSlider"), {
+//   loading: () => (
+//     <>
+//       <div className={`top-slider w-100 align-center flex justify-start`}></div>
+//       <div className="product-photos overflow-visible w-100 align-center flex-col justify-start"></div>
+//     </>
+//   ),
+// });
+// const CoverEffectSlider = dynamic(() => import("./CoverEffectSlider"));
+// const ColorSlider = dynamic(() => import("./ColorSlider"));
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
     return {
@@ -274,7 +274,7 @@ function Product({
             }
           />
           <div className="offer-blured" />
-          {productState?.isActiveTopSlide && (
+          {/* {productState?.isActiveTopSlide && (
             <TopSlider
               product_name={product.name}
               active={productState?.isActiveTopSlide}
@@ -284,7 +284,7 @@ function Product({
               }
               images={productState?.activeColor?.images}
             />
-          )}
+          )} */}
           <div
             className="product-photos overflow-visible w-100 justify-start align-center flex-col"
             style={{
@@ -298,7 +298,7 @@ function Product({
                 productState?.isColorSelected && "selected-color"
               }`}
             >
-              {product.sync_color_images &&
+              {/* {product.sync_color_images &&
                 productState?.isColorSelected &&
                 !productState?.isActiveTopSlide && (
                   <ColorSlider
@@ -317,7 +317,7 @@ function Product({
                       dispatch({ type: "setActiveImage", payload: e })
                     }
                   />
-                )}
+                )} */}
               {
                 <ImageSlider
                   priority={priority}
@@ -339,7 +339,7 @@ function Product({
                   }
                 />
               }
-              {product.sync_color_images && (
+              {/* {product.sync_color_images && (
                 <>
                   <CoverEffectSlider
                     priority={priority}
@@ -358,7 +358,7 @@ function Product({
                     )}
                   />
                 </>
-              )}
+              )} */}
             </div>
           </div>
 

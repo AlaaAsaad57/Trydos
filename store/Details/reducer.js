@@ -1,5 +1,6 @@
 const initialState = {
   activeCameraGallery: false,
+  totalProducts: null,
   InfoMessage: {
     showInfoMessage: false,
     title: "",
@@ -361,6 +362,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
     case "EDIT-FILTER": {
       return {
         ...state,
+        totalProducts: payload.reset ? null : payload.total_size,
         PriceFiltered: payload.reset ? false : state.PriceFiltered,
         filters: {
           ...state.filters,

@@ -1,7 +1,7 @@
 const initialState = {
   value: "",
   searchWords: [].sort(),
-  totalProducts: 0,
+  totalProducts: null,
   searchResults: {
     products: [],
     brands: [],
@@ -112,6 +112,7 @@ const SearchReducer = (state = initialState, { type, payload }) => {
             boutiques: [],
           },
           enable: false,
+          totalProducts: null,
         };
     }
     case "RESET-SEARCH-FILTER": {
@@ -122,6 +123,7 @@ const SearchReducer = (state = initialState, { type, payload }) => {
           brands: [],
           boutiques: [],
         },
+        totalProducts: null,
       };
     }
     case "EDIT-FILTER-SEARCH": {
@@ -132,6 +134,7 @@ const SearchReducer = (state = initialState, { type, payload }) => {
           ...state.searchResults,
           ...payload,
         },
+        totalProducts: payload.total_size,
       };
     }
     default:

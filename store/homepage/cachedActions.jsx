@@ -457,6 +457,9 @@ export const FetchApi = async ({ url, method, body, lang, country }) => {
   const cookieStore = cookies();
   let response = await fetch(url, {
     method: method,
+    next: {
+      revalidate: 60,
+    },
     body: body,
     headers: new Headers({
       lang: await getLang(lang, cookieStore.get("language")?.value),
@@ -466,7 +469,10 @@ export const FetchApi = async ({ url, method, body, lang, country }) => {
       ),
       Accept: "application/json",
       "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      Authorization: `Bearer ${cookieStore.get("market-token")?.value}`,
+      Authorization: `Bearer ${
+        cookieStore.get("market-token")?.value ??
+        cookieStore.get("DEVICE-TOKEN")?.value
+      }`,
     }),
   });
   let data = await response.json();

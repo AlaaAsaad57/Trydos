@@ -9,6 +9,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import home from "services/home";
 import Spinner from "components/global/Spinner";
+import Skeleton from "react-loading-skeleton";
 function SearchResults() {
   const loading = useSelector((state: any) => state.Search.partialLoading);
   const setLoading = (e) => {
@@ -111,6 +112,17 @@ function SearchResults() {
       },
     });
   };
+  const showButton = () => {
+    if (
+      (searchFilters.categories.length > 0 ||
+        searchFilters.brands.length > 0 ||
+        searchFilters.boutiques.length > 0 ||
+        searchValue.length > 0) &&
+      totalProducts > 0
+    )
+      return true;
+    else return false;
+  };
   return (
     <div className="search-results-container flex-col">
       <>
@@ -196,16 +208,29 @@ function SearchResults() {
             ))}
           </div>
         </div>
-        {totalProducts > 0 && (
+        {showButton() && (
           <div className="flex-row w-full mt-3">
             <div
               className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
               onClick={() => apply()}
             >
-              Search <span>(Total Products: {totalProducts})</span>
+              Search{" "}
+              {loading ? (
+                <span className="ml-2">
+                  <Spinner className="" />
+                </span>
+              ) : (
+                <>
+                  {totalProducts !== null && (
+                    <span className="text-[#fafafa] regular ml-2">
+                      (Total Products: {totalProducts})
+                    </span>
+                  )}
+                </>
+              )}
             </div>
             <div
-              className="w-full h-10 ml-4 cursor-pointer p-2 flex bg-[#f8f8f8] text-[#ff5549] justify-center items-center rounded-xl"
+              className="w-16 h-10 ml-4 cursor-pointer p-2 flex bg-[#f8f8f8] text-[#ff5549] justify-center items-center rounded-xl"
               onClick={() => reset()}
             >
               Reset
