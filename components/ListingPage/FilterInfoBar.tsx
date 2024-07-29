@@ -15,7 +15,6 @@ function FilterInfoBar() {
   );
   const currency = useSelector((state: any) => state.homepage.currency) || 1;
   const getPrice = (num) => {
-    console.log(decimal_point_settings);
     if (
       decimal_point_settings &&
       Object.keys(decimal_point_settings).includes("starting-setting")

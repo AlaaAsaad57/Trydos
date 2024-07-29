@@ -20,6 +20,7 @@ interface NormalWidgetProps {
 }
 const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
   const router = useRouter();
+
   useEffect(() => {
     if (boutique.description) {
       encode_utf8({
@@ -125,7 +126,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           <div className="offer-category">
             {boutique.mainCategoriesForProductIds.map((category, key) => {
               // @ts-ignore
-              if (category.flat_photo_path.includes(".svg")) {
+              if (category?.flat_photo_path?.includes(".svg")) {
                 return (
                   <div
                     onClick={(e) => {
@@ -146,7 +147,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                       width={12}
                       height={12}
                       // @ts-ignore
-                      src={category.flat_photo_path?.file_path.replace(
+                      src={category.flat_photo_path?.replace(
                         "/upload",
                         `/upload/h_50/f_webp/q_auto`
                       )}
@@ -175,7 +176,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                       width={12}
                       height={12}
                       // @ts-ignore
-                      src={category?.flat_photo_path?.file_path.replace(
+                      src={category?.flat_photo_path?.file_path?.replace(
                         "/upload",
                         `/upload/h_50/f_webp/q_auto`
                       )}

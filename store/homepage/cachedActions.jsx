@@ -46,14 +46,18 @@ export const getHomeData = async ({ str, lang }) => {
   let url = HOME_DATA_URL + (str?.length ? `?slug=${str}` : "");
 
   let method = { method: "GET" };
-
+  console.log(url);
   try {
     let time = new Date().getTime();
     const res = await fetch(OTP_URL + url, {
       ...method,
       next: {
         revalidate: 60,
-        tags: [`home-boutiques-${cookieStore.get("lang")?.value ?? "en"}`],
+        tags: [
+          `home-boutiques home-boutiques-${
+            cookieStore.get("lang")?.value ?? "en"
+          }`,
+        ],
       },
       headers: new Headers({
         Accept: "application/json",

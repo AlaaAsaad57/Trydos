@@ -8,7 +8,6 @@ function PriceLabel({
   price_formatted: number;
   offer_price: number;
 }) {
-  console.log(price_formatted, offer_price);
   const currency = useSelector((state: any) => state.homepage.currency);
   return (
     <div className="price-label flex">

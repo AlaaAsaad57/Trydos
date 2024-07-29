@@ -19,7 +19,7 @@ function PriceSlider({
       max: e.maxValue,
     });
   };
-  console.log(min, max);
+
   return (
     <div className="price-slider-container mt-10 w-full pr-9 pl-5 z-10">
       <Slider

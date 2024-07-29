@@ -10,6 +10,7 @@ export default async function Revalidate() {
   revalidateTag("home-categories-en");
   revalidateTag("stories-en");
   revalidateTag("listing-data-en");
+  revalidateTag("home-boutiques");
   revalidateTag("home-boutiques-ar");
   revalidateTag("home-categories-ar");
   revalidateTag("stories-ar");
