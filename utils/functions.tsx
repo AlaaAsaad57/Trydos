@@ -299,7 +299,7 @@ export const expandView = ({ filter }) => {
     document.querySelector<HTMLElement>(".home-navbar").classList.add("fixed");
     document
       .querySelector<HTMLElement>(".home-navbar")
-      .classList.add("z-[9999999999]");
+      .classList.add("z-[999999999]");
   }
 
   if (document.querySelector<HTMLElement>(".filter-listing-bar")) {
