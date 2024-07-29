@@ -281,6 +281,7 @@ class HomeService {
       callback({
         brands: repo.data.brands,
         categories: repo.data.categories,
+        boutiques: repo.data.boutiques,
         total_size: repo.data.total_size,
       });
     } catch (error) {
