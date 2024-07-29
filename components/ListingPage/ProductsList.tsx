@@ -124,29 +124,40 @@ function ProductsList({
                 )?.map((product, i) => (
                   <Product key={i} product={product} priority={i < 3} i={i} />
                 ))}
-              </div>
-              <div className="get-next-product regular-text color-dark-gray">
-                {!isReachEnd ? (
-                  <>
-                    {" "}
-                    {!loading ? (
-                      <InView
-                        className="spinner-container"
-                        as="div"
-                        onChange={(inView) => {
-                          if (inView && !loading) {
-                            GetNextPage();
-                          }
-                        }}
-                      ></InView>
-                    ) : (
-                      <h2>{loading && <Spinner no={false} className="" />}</h2>
-                    )}
-                  </>
-                ) : (
-                  <>Reach End</>
+                {(products.length === 0 ||
+                  Listing_Data_res?.body?.data?.products?.length === 0) && (
+                  <div className="flex p-3 h-10 justify-center items-center light text-[#5d5d5d] text-[14px]">
+                    No Results Found
+                  </div>
                 )}
               </div>
+              {(products.length > 0 ||
+                Listing_Data_res?.body?.data?.products?.length > 0) && (
+                <div className="get-next-product regular-text color-dark-gray">
+                  {!isReachEnd ? (
+                    <>
+                      {" "}
+                      {!loading ? (
+                        <InView
+                          className="spinner-container"
+                          as="div"
+                          onChange={(inView) => {
+                            if (inView && !loading) {
+                              GetNextPage();
+                            }
+                          }}
+                        ></InView>
+                      ) : (
+                        <h2>
+                          {loading && <Spinner no={false} className="" />}
+                        </h2>
+                      )}
+                    </>
+                  ) : (
+                    <>Reach End</>
+                  )}
+                </div>
+              )}
             </>
           )}
         </>

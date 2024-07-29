@@ -479,6 +479,7 @@ export const FetchApi = async ({ url, method, body, lang, country }) => {
       }`,
     }),
   });
+
   let data = await response.json();
   return data;
 };

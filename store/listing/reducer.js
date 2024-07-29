@@ -14,7 +14,8 @@ const ListingReducer = (state = initialState, { type, payload }) => {
       return { ...state, showedFilter: payload };
     }
     case "filterEnabled": {
-      document.querySelector(".filter-container").scrollLeft = 0;
+      if (document.querySelector(".filter-container"))
+        document.querySelector(".filter-container").scrollLeft = 0;
       return {
         ...state,
         filterEnabled: payload,

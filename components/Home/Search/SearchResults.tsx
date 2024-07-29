@@ -93,10 +93,12 @@ function SearchResults() {
   }, []);
   const reset = () => {
     dispatch({ type: "RESET-SEARCH-FILTER" });
-
+    setLoading(true);
+    dispatch({ type: "SEARCH-WORD", payload: "" });
     home.UpdateFilters({
-      search_text: searchValue || "",
+      search_text: "",
       callback: (e) => {
+        setLoading(false);
         dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
       },
     });
@@ -126,117 +128,134 @@ function SearchResults() {
   return (
     <div className="search-results-container flex-col">
       <>
-        <div className="products-results flex-col max-h-[60%] overflow-auto">
-          <div className="result-label flex-row">
-            Find Products {loadingSearch && <Spinner className="ml-3" no />}
-          </div>
-          {searchValue?.length > 0 &&
-            searchResults.products.map((product, index) => {
-              return (
-                <ProductItem
-                  product={product}
-                  key={index}
-                  onClick={(e) => onClickSearchHistory(e)}
-                />
-              );
-            })}
-        </div>
-        <div className="products-results brand-results">
-          <div className="result-label flex-row">
-            Find Brands {loading && <Spinner className="ml-3" no />}
-          </div>
-          <div className="brands-results-row flex-row overflow-hidden">
-            {searchResults.brands.map((brand, index) => (
-              <BrandItem
-                brand={brand}
-                key={index}
-                onClick={() => {
-                  dispatch({ type: "SEARCH-BRAND", payload: brand.slug });
-                  updateFiltersApi();
-                }}
-                isActive={searchFilters.brands.some(
-                  (s) => s.slug === brand.slug
-                )}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="products-results brand-results">
-          <div className="result-label flex-row">
-            Find Categories {loading && <Spinner className="ml-3" no />}
-          </div>
-          <div className="brands-results-row flex-row overflow-hidden">
-            {searchResults.categories.map((category, index) => (
-              <CategoryItem
-                category={category}
-                key={index}
-                onClick={() => {
-                  dispatch({
-                    type: "SEARCH-CATEGORY",
-                    payload: category.slug,
-                  });
-                  updateFiltersApi();
-                }}
-                isActive={searchFilters.categories.some(
-                  (s) => s.slug === category.slug
-                )}
-              />
-            ))}
-          </div>
-        </div>
-        <div className="products-results brand-results">
-          <div className="result-label flex-row">
-            Find Boutiques {loading && <Spinner className="ml-3" no />}
-          </div>
-          <div className="brands-results-row flex-row overflow-hidden">
-            {searchResults.boutiques.map((boutique, index) => (
-              <BoutiqueItem
-                boutique={boutique}
-                key={index}
-                onClick={() => {
-                  dispatch({
-                    type: "SEARCH-BOUTIQUE",
-                    payload: boutique.slug,
-                  });
-                  updateFiltersApi();
-                }}
-                isActive={searchFilters.boutiques.some(
-                  (s) => s.slug === boutique.slug
-                )}
-              />
-            ))}
-          </div>
-        </div>
-        {showButton() && (
-          <div className="flex-row w-full mt-3">
-            <div
-              className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
-              onClick={() => apply()}
-            >
-              Search{" "}
-              {loading ? (
-                <span className="ml-2">
-                  <Spinner className="" />
-                </span>
-              ) : (
-                <>
-                  {totalProducts !== null && (
-                    <span className="text-[#fafafa] regular ml-2">
-                      (Total Products: {totalProducts})
-                    </span>
-                  )}
-                </>
-              )}
+        {(searchResults.products.length > 0 || loading) && (
+          <div className="products-results flex-col max-h-[60%] overflow-auto">
+            <div className="result-label flex-row">
+              Find Products {loadingSearch && <Spinner className="ml-3" no />}
             </div>
-            <div
-              className="w-16 h-10 ml-4 cursor-pointer p-2 flex bg-[#f8f8f8] text-[#ff5549] justify-center items-center rounded-xl"
-              onClick={() => reset()}
-            >
-              Reset
+            {searchValue?.length > 0 &&
+              searchResults.products.map((product, index) => {
+                return (
+                  <ProductItem
+                    product={product}
+                    key={index}
+                    onClick={(e) => onClickSearchHistory(e)}
+                  />
+                );
+              })}
+          </div>
+        )}
+        {(searchResults.brands.length > 0 || loading) && (
+          <div className="products-results brand-results">
+            <div className="result-label flex-row">
+              Find Brands {loading && <Spinner className="ml-3" no />}
+            </div>
+            <div className="brands-results-row flex-row overflow-hidden">
+              {searchResults.brands.map((brand, index) => (
+                <BrandItem
+                  brand={brand}
+                  key={index}
+                  onClick={() => {
+                    dispatch({ type: "SEARCH-BRAND", payload: brand.slug });
+                    updateFiltersApi();
+                  }}
+                  isActive={searchFilters.brands.some(
+                    (s) => s.slug === brand.slug
+                  )}
+                />
+              ))}
             </div>
           </div>
         )}
+
+        {(searchResults.categories.length > 0 || loading) && (
+          <div className="products-results brand-results">
+            <div className="result-label flex-row">
+              Find Categories {loading && <Spinner className="ml-3" no />}
+            </div>
+            <div className="brands-results-row flex-row overflow-hidden">
+              {searchResults.categories.map((category, index) => (
+                <CategoryItem
+                  category={category}
+                  key={index}
+                  onClick={() => {
+                    dispatch({
+                      type: "SEARCH-CATEGORY",
+                      payload: category.slug,
+                    });
+                    updateFiltersApi();
+                  }}
+                  isActive={searchFilters.categories.some(
+                    (s) => s.slug === category.slug
+                  )}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        {(searchResults.boutiques.length > 0 || loading) && (
+          <div className="products-results brand-results">
+            <div className="result-label flex-row">
+              Find Boutiques {loading && <Spinner className="ml-3" no />}
+            </div>
+            <div className="brands-results-row flex-row overflow-hidden">
+              {searchResults.boutiques.map((boutique, index) => (
+                <BoutiqueItem
+                  boutique={boutique}
+                  key={index}
+                  onClick={() => {
+                    dispatch({
+                      type: "SEARCH-BOUTIQUE",
+                      payload: boutique.slug,
+                    });
+                    updateFiltersApi();
+                  }}
+                  isActive={searchFilters.boutiques.some(
+                    (s) => s.slug === boutique.slug
+                  )}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        {totalProducts === 0 && !loading && (
+          <div className="flex p-3 justify-center items-center light text-[#5d5d5d] text-[14px]">
+            No Results Found
+          </div>
+        )}
+        {
+          <div className="flex-row w-full mt-3 justify-center">
+            {(showButton() || loading) && (
+              <div
+                className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
+                onClick={() => apply()}
+              >
+                Search{" "}
+                {loading ? (
+                  <span className="ml-2">
+                    <Spinner className="" />
+                  </span>
+                ) : (
+                  <>
+                    {totalProducts !== null && (
+                      <span className="text-[#fafafa] regular ml-2">
+                        (Total Products: {totalProducts})
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+            {(showButton() || totalProducts === 0) && (
+              <div
+                className="w-16 h-10 ml-4 cursor-pointer p-2 flex bg-[#f8f8f8] text-[#ff5549] justify-center items-center rounded-xl"
+                onClick={() => reset()}
+              >
+                Reset
+              </div>
+            )}
+          </div>
+        }
       </>
     </div>
   );

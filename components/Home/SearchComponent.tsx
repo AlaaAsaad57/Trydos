@@ -22,6 +22,7 @@ function SearchComponent({
   setFocuse,
 }: SearchComponentProps) {
   const searchValue = useSelector((state: any) => state.Search.value);
+
   const searchFilters = useSelector((state: any) => state.Search.searchFilters);
   const words = useSelector((state: any) => state.Search.searchWords);
   const dispatch = useDispatch();
@@ -198,6 +199,7 @@ function SearchComponent({
           <SearchCloseIcon
             onClick={() => {
               if (searchValue.length > 0) {
+                setLoading(true);
                 dispatch({ type: "SEARCH-WORD", payload: "" });
                 dispatch({ type: "FIND-PRODUCTS", payload: [] });
               } else {

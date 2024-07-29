@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import CloseIcon from "public/svg/CloseIcon.svg";
 import { filterProducts, RoundPrice } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
-
+import Search from "public/svg/SearchIcon.svg";
 function FilterInfoBar() {
   const activeFilters = useSelector(
     (state: any) => state.details.activeFilters
@@ -309,6 +309,17 @@ function FilterInfoBar() {
               {index < activeFilters.sizes.length - 1 && " - "}
             </>
           ))}
+        </>
+      )}
+      {activeFilters.searchText?.length > 0 && (
+        <>
+          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <span>
+            <Search className="scale-75" />
+          </span>
+          <div className="category-title filter-bar-main-title uppercase">
+            {activeFilters.searchText}
+          </div>
         </>
       )}
     </div>

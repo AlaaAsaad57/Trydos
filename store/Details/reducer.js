@@ -401,6 +401,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         },
         activeFilters: {
           ...state.activeFilters,
+          searchText: payload.reset ? "" : state.activeFilters.searchText,
         },
         filterLoading: false,
       };

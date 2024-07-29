@@ -186,6 +186,7 @@ function FilterButtons() {
                   brands: [],
                   colors: [],
                   sizes: [],
+                  boutiques: [],
                 },
                 sizesAttr: sizesAttr,
                 boutiqueId: pathName.productCategory,
