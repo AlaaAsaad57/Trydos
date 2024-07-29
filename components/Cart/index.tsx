@@ -94,8 +94,7 @@ function CartContainer({ close }) {
                           width: 90,
                           height: 90,
                         })}
-                        width={90}
-                        className="object-cover h-4"
+                        className="object-contain h-4 max-w-[90px] w-auto"
                         height={15}
                       />
                       <div className="flex-row">
@@ -118,7 +117,7 @@ function CartContainer({ close }) {
                           className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] mt-3 rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
                           key={key}
                         >
-                          <div className="flex-row w-[110px] min-h-[161px] relative">
+                          <div className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative">
                             <img
                               src={getConfiguredImage({
                                 height: 150,
@@ -138,14 +137,13 @@ function CartContainer({ close }) {
                                   width: 150,
                                   src: product.brand.image,
                                 })}
-                                width={"90"}
                                 height={10}
                                 style={{
                                   top: "0px",
                                   maxHeight: "100%",
                                   display: "flex",
                                 }}
-                                className="object-cover h-4"
+                                className="object-contain h-4 max-w-[90px] w-auto"
                               />
                             </div>
                             <div className="text-xs mt-1 text-[#505050] flex regular">

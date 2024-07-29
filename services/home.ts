@@ -34,7 +34,8 @@ class HomeService {
     let repo = await response.json();
     store.dispatch({ type: "GET_SETTINGS", payload: repo });
     sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
-    if (!localStorage.getItem("customer-info")) this.getCustomerInfo();
+    if (!localStorage.getItem("customer-info") && localStorage.getItem("USER"))
+      this.getCustomerInfo();
     getCart({
       callback: (data) => {
         store.dispatch({ type: "CART-INIT", payload: data.data });
@@ -84,10 +85,12 @@ class HomeService {
           avatar: JSON.parse(localStorage.getItem("USER")).avatar || userImage,
         },
       });
+      setTimeout(() => {
+        this.getClientData();
+      }, 10);
+    } else {
+      this.RegisterDevice();
     }
-    setTimeout(() => {
-      this.getClientData();
-    }, 10);
   }
   async RegisterDevice() {
     if (!Cookies.get("DEVICE-TOKEN") && localStorage.getItem("DEVICE-TOKEN")) {
@@ -110,6 +113,9 @@ class HomeService {
         expires: 365,
       });
       localStorage.setItem("guest-user", JSON.stringify(repo.data.user));
+      setTimeout(() => {
+        this.getClientData();
+      }, 10);
       if (typeof window !== "undefined") {
         _isStoreLastJson() &&
           localStorage.setItem("LAST_JSON", JSON.stringify(repo));
