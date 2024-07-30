@@ -254,7 +254,7 @@ function Product({
               )}
               width={200}
               height={290}
-              className="w-full h-full max-h-[290px] min-h-[290px]"
+              className="w-full h-full max-h-[290px] min-h-[290px] rounded-t-2xl"
             />
           </div>
         </div>
