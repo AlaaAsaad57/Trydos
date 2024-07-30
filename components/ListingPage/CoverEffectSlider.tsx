@@ -70,7 +70,7 @@ function CoverEffectSlider({
   return (
     <div
       className={
-        "product-photos-slider overflow-visible flex absolute align-center justify-center"
+        "product-photos-slider overflow-visible flex absolute align-center justify-center max-h[35px]"
       }
       onWheel={throttle(callback, 250)}
       style={{ opacity: active ? "1" : "0", zIndex: active ? "10" : "1" }}

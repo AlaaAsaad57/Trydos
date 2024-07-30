@@ -1,4 +1,4 @@
-import Image from "next/image";
+"use client";
 function BuyButton({ buy }) {
   return (
     <div
@@ -9,12 +9,12 @@ function BuyButton({ buy }) {
       }}
     >
       <span className="f-10 flex align-start">Buy</span>
-      <Image
+      <img
         src={"/svg/BuyButton.svg"}
         width={15}
         height={15}
         alt="buy Button"
-        unoptimized
+        className="max-h-[20px] max-w-[40px]"
       />
     </div>
   );

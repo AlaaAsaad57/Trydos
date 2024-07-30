@@ -1,4 +1,4 @@
-import { memo } from "react";
+"use client";
 import { useSelector } from "react-redux";
 
 function PriceLabel({
@@ -42,4 +42,4 @@ function PriceLabel({
   );
 }
 
-export default memo(PriceLabel);
+export default PriceLabel;

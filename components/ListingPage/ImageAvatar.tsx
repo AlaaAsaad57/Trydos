@@ -1,5 +1,3 @@
-import Image from "next/image";
-import { memo } from "react";
 import { getConfiguredImage } from "utils/functions";
 
 function ImageAvatar({
@@ -67,13 +65,11 @@ function ImageAvatar({
         </div>
       )}
       <div className="shadow-inset-avatar rounded-50 absolute w-100 h-100" />
-      <Image
+      <img
         loading={priority ? "eager" : "lazy"}
-        priority={priority}
-        unoptimized
         src={getConfiguredImage({ src: image, width: 50, height: 50 })}
-        fill
         alt={alt || "alt"}
+        className="w-full"
         style={{
           borderRadius: "50%",
           zIndex: "3",
