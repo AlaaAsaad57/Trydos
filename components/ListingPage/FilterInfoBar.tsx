@@ -142,10 +142,12 @@ function FilterInfoBar() {
                       width={20}
                       height={20}
                       src={
-                        category?.flat_photo_path ||
+                        category.most_viewed_product_thumbnail ??
+                        category.flat_photo_path ??
+                        category?.icon ??
                         filters.categories.filter(
                           (s) => s.slug === category.slug
-                        )[0]?.flat_photo_path
+                        )[0]?.most_viewed_product_thumbnail
                       }
                     />
                   </div>
