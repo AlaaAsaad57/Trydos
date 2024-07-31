@@ -1,5 +1,5 @@
 import FilterBar from "components/ListingPage/FilterBar";
-import ProductListTest from "components/ListingPage/ProductListTest";
+
 import ProductsList from "components/ListingPage/ProductsList";
 import React from "react";
 import { getListingData } from "store/homepage/cachedActions";
@@ -32,11 +32,11 @@ async function ProductListServer({ params, searchParams }) {
 
   return (
     <>
-      {/* <FilterBar
+      <FilterBar
         filters={filters}
         boutique={boutique}
         productsServer={Listing_Data_res.body.data.products}
-      /> */}
+      />
       <ProductsList
         Listing_Data_res={Listing_Data_res}
         productCategory={params.productCategory}

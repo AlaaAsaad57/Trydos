@@ -12,7 +12,7 @@ import { filterProducts } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
 import ListingSkeleton from "components/skeleton/listing";
 import AddToCartWidget from "components/Cart/AddToCartWidget";
-import ProductListTest from "./ProductListTest";
+
 function ProductsList({
   Listing_Data_res,
   productCategory,

@@ -151,6 +151,7 @@ function Product({
             zIndex: "1",
             objectFit: "cover",
             objectPosition: "center",
+            willChange: "transform",
           }}
           width={200}
           height={290}
