@@ -141,6 +141,7 @@ p {
 }
 .absolute {
   position: absolute;
+  will-change: transform;
 }
 .relative {
   position: relative;
@@ -236,6 +237,7 @@ span[aria-live="polite"] {
 }
 .fixed {
   position: fixed;
+  will-change: transform;
 }
 *::-webkit-scrollbar {
   width: 5px;
