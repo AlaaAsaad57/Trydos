@@ -185,7 +185,7 @@ function Product({
               productState?.isColorSelected && "selected-color"
             }`}
           >
-            {/* {product.sync_color_images &&
+            {product.sync_color_images &&
               productState?.isColorSelected &&
               !productState?.isActiveTopSlide && (
                 <ColorSlider
@@ -246,17 +246,7 @@ function Product({
                   )}
                 />
               </>
-            )} */}
-            <img
-              // @ts-ignore
-              src={product.images[0]?.file_path?.replace(
-                "/upload",
-                "/upload/f_avif/h_400/q_auto"
-              )}
-              width={200}
-              height={290}
-              className="w-full h-full max-h-[290px] min-h-[290px] rounded-t-2xl"
-            />
+            )}
           </div>
         </div>
 
