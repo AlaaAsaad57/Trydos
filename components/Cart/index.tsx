@@ -72,7 +72,17 @@ function CartContainer({ close }) {
           <div className="light ml-1 text-[13px] text-[#8D8D8D]">
             <span className="medium text-[#5D5C5D]">{cart?.length}</span>
             <span className="ml-[3px]">items</span>
-            <span className="medium text-[#5D5C5D] ml-[3px]">{total_cash}</span>
+            <span className="medium text-[#5D5C5D] ml-[3px]">
+              {RoundPrice({
+                num: total_cash,
+                points:
+                  (decimal_point_settings &&
+                    decimal_point_settings["starting-setting"]
+                      ?.decimal_point_settings) ||
+                  0,
+                rate: currency?.exchange_rate,
+              })}
+            </span>
             <span className="ml-[3px]">{currency?.symbol}</span>
           </div>
         </div>
