@@ -68,8 +68,8 @@ function FilterBar({ boutique, filters, productsServer }) {
   const paramsVar = useParams();
   const router = useRouter();
   const onChange = (e) => {
-    dispatch({ type: "SEARCH-FILTER", payload: e.target.value });
     dispatch({ type: "FILTER-LOADING", payload: true });
+    dispatch({ type: "SEARCH-FILTER", payload: e.target.value });
     UpdateFilter({
       sizesAttr: sizesAttr,
       boutiqueId: pathName.productCategory,

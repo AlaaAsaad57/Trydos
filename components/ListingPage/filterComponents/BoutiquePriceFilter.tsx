@@ -31,7 +31,13 @@ function BoutiquePriceFilter() {
     } else if (e.min < e.max) {
       if (!loading) {
         dispatch({ type: "FILTER-LOADING", payload: true });
-        dispatch({ type: "FILTER-PRICE", payload: e });
+        dispatch({
+          type: "FILTER-PRICE",
+          payload: {
+            min: e.min / currency?.exchange_rate,
+            max: e.max / currency?.exchange_rate,
+          },
+        });
         UpdateFilter({
           boutiqueId: pathName.productCategory,
           lang: pathName.lang,
