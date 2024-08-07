@@ -30,24 +30,31 @@ const getHeader = () => {
 };
 class HomeService {
   async getClientData() {
-    const response = await fetch(OTP_URL + STARTER_SETTINGS, getHeader());
-    let repo = await response.json();
-    store.dispatch({ type: "GET_SETTINGS", payload: repo });
-    sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
-    if (!localStorage.getItem("customer-info") && localStorage.getItem("USER"))
-      this.getCustomerInfo();
-    getCart({
-      callback: (data) => {
-        store.dispatch({ type: "CART-INIT", payload: data.data });
-      },
-    });
-    if (typeof window !== "undefined") {
-      _isStoreLastJson() &&
-        localStorage.setItem("LAST_JSON", JSON.stringify(repo));
+    try {
+      const response = await fetch(OTP_URL + STARTER_SETTINGS, getHeader());
+      let repo = await response.json();
+      store.dispatch({ type: "GET_SETTINGS", payload: repo });
+      sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
+      if (
+        !localStorage.getItem("customer-info") &&
+        localStorage.getItem("USER")
+      )
+        this.getCustomerInfo();
+      getCart({
+        callback: (data) => {
+          store.dispatch({ type: "CART-INIT", payload: data.data });
+        },
+      });
+      if (typeof window !== "undefined") {
+        _isStoreLastJson() &&
+          localStorage.setItem("LAST_JSON", JSON.stringify(repo));
+      }
+      setTimeout(() => {
+        if (localStorage.getItem("USER")) GetChats(false);
+      }, 5000);
+    } catch (e) {
+      console.error(e);
     }
-    setTimeout(() => {
-      if (localStorage.getItem("USER")) GetChats(false);
-    }, 5000);
   }
   async getCustomerInfo() {
     const response = await fetch(OTP_URL + CUSTOMER_INFO_URL, getHeader());
@@ -113,14 +120,15 @@ class HomeService {
         expires: 365,
       });
       localStorage.setItem("guest-user", JSON.stringify(repo.data.user));
-      setTimeout(() => {
-        this.getClientData();
-      }, 10);
+
       if (typeof window !== "undefined") {
         _isStoreLastJson() &&
           localStorage.setItem("LAST_JSON", JSON.stringify(repo));
       }
     }
+    setTimeout(() => {
+      this.getClientData();
+    }, 10);
   }
   async GetBoutiques(slug) {
     const response = await fetch(

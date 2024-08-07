@@ -126,12 +126,12 @@ function ProductsList({
                   <Product key={i} product={product} priority={i < 3} i={i} />
                 ))}
 
-                {(products.length === 0 ||
-                  Listing_Data_res?.body?.data?.products?.length === 0) && (
-                  <div className="flex p-3 h-10 justify-center items-center light text-[#5d5d5d] text-[14px]">
-                    No Results Found
-                  </div>
-                )}
+                {products.length === 0 &&
+                  Listing_Data_res?.body?.data?.products?.length === 0 && (
+                    <div className="flex p-3 h-10 justify-center items-center light text-[#5d5d5d] text-[14px]">
+                      No Results Found
+                    </div>
+                  )}
               </div>
               {(products.length > 0 ||
                 Listing_Data_res?.body?.data?.products?.length > 0) && (

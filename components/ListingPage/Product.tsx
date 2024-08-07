@@ -107,7 +107,7 @@ function Product({
     });
   };
   return (
-    <div>
+    <div className="max-h-[362px]">
       <NextLink
         suppressHydrationWarning
         // @ts-ignore

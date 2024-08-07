@@ -293,8 +293,8 @@ function FilterInfoBar() {
             <>
               <div className="category-title filter-bar-main-title">
                 {`${currency_symbol?.symbol} ${getPrice(
-                  activeFilters.prices?.min
-                )} / ${getPrice(activeFilters.prices?.max)} `}
+                  parseInt(activeFilters.prices?.min)
+                )} / ${getPrice(parseInt(activeFilters.prices?.max))} `}
               </div>
             </>
           }

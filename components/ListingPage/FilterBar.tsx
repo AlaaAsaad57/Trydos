@@ -250,6 +250,8 @@ function FilterBar({ boutique, filters, productsServer }) {
                     params.delete("searchText");
                   }
                   router.replace(`${pathname}?${params.toString()}`);
+                  // @ts-ignore
+                  e.target.blur();
                 }
               }}
               className={`${
