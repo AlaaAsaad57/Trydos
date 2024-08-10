@@ -139,7 +139,7 @@ function Product({
           }
         }}
       >
-        <img
+        {/* <img
           alt={product.name}
           loading={priority ? "eager" : "lazy"}
           fetchPriority={i === 0 ? "high" : "low"}
@@ -160,7 +160,7 @@ function Product({
             "https://res.cloudinary.com/djooohujg/image/upload/q_50/h_342/f_avif/1708506792?_a=DdATC1RAAZAA0"
           }
         />
-        <div className="offer-blured" />
+        <div className="offer-blured" /> */}
         {productState?.isActiveTopSlide && (
           <TopSlider
             product_name={product.name}
