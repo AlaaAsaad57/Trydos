@@ -217,10 +217,14 @@ span[aria-live="polite"] {
   min-width: 100vw;
   min-height: 100vh;
 }
-.product-container {
+.listing-container > div {
   margin-top: 20px;
+}
+.product-container {
   background-position: center center;
   background-repeat: no-repeat;
+  background-color: #fafafa;
+  border-radius: 15px;
   background-size: cover;
   width: 200px;
   height: 362px;
@@ -974,4 +978,17 @@ input::-webkit-inner-spin-button {
 /* Firefox */
 input[type="number"] {
   -moz-appearance: textfield;
+}
+
+* {
+  -webkit-overflow-scrolling: touch;
+  -webkit-backface-visibility: hidden;
+}
+
+div > * {
+  -webkit-transform: translateZ(0px);
+}
+
+div > * {
+  -webkit-transform: translate3d(0, 0, 0);
 }
