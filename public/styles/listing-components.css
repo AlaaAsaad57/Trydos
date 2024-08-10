@@ -86,6 +86,7 @@
   height: 100%;
   position: relative;
   margin-left: 10px;
+  z-index: 10;
 }
 .category-circle svg:not(.active-category-icon),
 .category-circle .category-shadow {
