@@ -342,3 +342,6 @@
 .boutique-item:first-child {
   margin-left: 0px;
 }
+.brands-results-row::-webkit-scrollbar {
+  display: none;
+}

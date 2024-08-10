@@ -1,16 +1,21 @@
 import React, { useState } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 
-function SubCategoryCircle({ index, MainCategoryActive, category }) {
-  const [active, setActive] = useState(false);
+function SubCategoryCircle({
+  index,
+  MainCategoryActive,
+  category,
+  onClick,
+  active,
+}) {
   return (
     <div
       className="sub-circle"
       onClick={() => {
-        if (MainCategoryActive) setActive(!active);
+        onClick();
       }}
       style={{
-        transform: `translateX(-${(index + 1) * 50 - (index + 1) * 3}px)`,
+        transform: `translateX(-${(index + 1) * 45 - (index + 1) * 3}px)`,
         zIndex: 4 - index,
       }}
     >
@@ -48,7 +53,15 @@ function SubCategoryCircle({ index, MainCategoryActive, category }) {
         </g>
       </svg>
 
-      <img width={50} height={50} src={category.icon} />
+      <img
+        width={50}
+        height={50}
+        src={
+          category.most_viewed_product_thumbnail ??
+          category.flat_photo_path ??
+          category?.icon
+        }
+      />
       {MainCategoryActive && (
         <div className="category-text-container flex-col align-center">
           <span className="category-title">{category.name}</span>

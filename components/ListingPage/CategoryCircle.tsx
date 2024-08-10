@@ -17,6 +17,20 @@ function CategoryCircle({ category }) {
   const params = useSearchParams();
 
   const selectCategory = (e) => {
+    if (
+      selectedFilter.categories.filter((s) =>
+        category.childes.map((sub) => sub.slug).includes(s.slug)
+      ) &&
+      selectedFilter.categories.filter((s) => s.slug === category.slug).length >
+        0
+    ) {
+      let arr = selectedFilter.categories.filter((s) =>
+        category.childes.map((sub) => sub.slug).includes(s.slug)
+      );
+      arr.map((s) => {
+        dispatch({ type: "FILTER-CATEGORY", payload: s });
+      });
+    }
     dispatch({ type: "FILTER-CATEGORY", payload: e });
     dispatch({ type: "FILTER-LOADING", payload: true });
     UpdateFilter({
@@ -75,7 +89,7 @@ function CategoryCircle({ category }) {
           category?.categories_sub?.length > 0 && "extended-circle"
         }`}
       >
-        <div className="relative w-[70px] h-[70px]">
+        <div className="relative w-[70px] h-[70px] z-10">
           {isSelected() && (
             <ActiveCategoryIcon className="active-category-icon" />
           )}
@@ -114,19 +128,45 @@ function CategoryCircle({ category }) {
           {/* <span className="category-typo">1100</span> */}
         </div>
       </div>
-      {category.categories_sub?.length > 0 && (
+      {category.childes?.length > 0 && (
         <div
-          className={`categories-sub-circles ${isSelected() && "no-transform"}`}
+          className={`categories-sub-circles ${
+            isSelected() && "no-transform"
+          } z-0`}
           style={{
             minWidth: isSelected()
-              ? `${category.categories_sub.length * 55 - 5}px`
+              ? `${category.childes.length * 55 - 5}px`
               : "10px",
           }}
         >
-          {category.categories_sub.map((s, index) => {
+          {category.childes.map((s, index) => {
             return (
               <SubCategoryCircle
                 key={index}
+                active={
+                  selectedFilter.categories.filter((sub) => sub.slug === s.slug)
+                    .length > 0
+                }
+                onClick={() => {
+                  dispatch({ type: "FILTER-CATEGORY", payload: s });
+                  dispatch({ type: "FILTER-LOADING", payload: true });
+                  UpdateFilter({
+                    boutiqueId: pathName.productCategory,
+                    lang: pathName.lang,
+                    sizesAttr: filters.sizesAttr,
+                    newFiltersCallback: ({ filtersVar }) => {
+                      dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+                    },
+                    searchText: "",
+                    done: () => {
+                      dispatch({ type: "FILTER-LOADING", payload: false });
+                    },
+                  });
+                  if (!filterEnabled) {
+                    filter();
+                  } else {
+                  }
+                }}
                 MainCategoryActive={isSelected()}
                 index={index}
                 category={s}

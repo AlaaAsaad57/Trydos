@@ -122,6 +122,9 @@
 }
 .category-title {
   color: #8e8e8e;
+  max-width: 100%;
+  white-space: pre-wrap;
+  text-align: center;
 }
 .category-typo {
   color: #c4c2c2;

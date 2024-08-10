@@ -151,26 +151,24 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "FILTER-CATEGORY": {
-      if (payload.parent_id) {
-      } else
-        return {
-          ...state,
-          selectedFilter: {
-            ...state.selectedFilter,
-            filtered: true,
-            categories:
-              state.selectedFilter.categories.filter(
-                (category) => category.slug === payload.slug
-              ).length > 0
-                ? [
-                    ...state.selectedFilter.categories.filter(
-                      (category) => category.slug !== payload.slug
-                    ),
-                  ]
-                : [...state.selectedFilter.categories, payload],
-          },
-          isChangedFilter: true,
-        };
+      return {
+        ...state,
+        selectedFilter: {
+          ...state.selectedFilter,
+          filtered: true,
+          categories:
+            state.selectedFilter.categories.filter(
+              (category) => category.slug === payload.slug
+            ).length > 0
+              ? [
+                  ...state.selectedFilter.categories.filter(
+                    (category) => category.slug !== payload.slug
+                  ),
+                ]
+              : [...state.selectedFilter.categories, payload],
+        },
+        isChangedFilter: true,
+      };
     }
     case "FILTER-BRAND": {
       return {

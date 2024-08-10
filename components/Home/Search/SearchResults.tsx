@@ -9,7 +9,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import home from "services/home";
 import Spinner from "components/global/Spinner";
-import Skeleton from "react-loading-skeleton";
 function SearchResults() {
   const loading = useSelector((state: any) => state.Search.partialLoading);
   const setLoading = (e) => {
@@ -90,7 +89,7 @@ function SearchResults() {
           });
         });
     }
-  }, []);
+  }, [searchResults]);
   const reset = () => {
     dispatch({ type: "RESET-SEARCH-FILTER" });
     setLoading(true);
@@ -150,7 +149,7 @@ function SearchResults() {
             <div className="result-label flex-row">
               Find Brands {loading && <Spinner className="ml-3" no />}
             </div>
-            <div className="brands-results-row flex-row overflow-hidden">
+            <div className="brands-results-row flex-row overflow-auto">
               {searchResults.brands.map((brand, index) => (
                 <BrandItem
                   brand={brand}
@@ -173,15 +172,15 @@ function SearchResults() {
             <div className="result-label flex-row">
               Find Categories {loading && <Spinner className="ml-3" no />}
             </div>
-            <div className="brands-results-row flex-row overflow-hidden">
+            <div className="brands-results-row flex-row overflow-auto">
               {searchResults.categories.map((category, index) => (
                 <CategoryItem
                   category={category}
                   key={index}
-                  onClick={() => {
+                  onClick={(e) => {
                     dispatch({
                       type: "SEARCH-CATEGORY",
-                      payload: category.slug,
+                      payload: e.slug,
                     });
                     updateFiltersApi();
                   }}
@@ -198,7 +197,7 @@ function SearchResults() {
             <div className="result-label flex-row">
               Find Boutiques {loading && <Spinner className="ml-3" no />}
             </div>
-            <div className="brands-results-row flex-row overflow-hidden">
+            <div className="brands-results-row flex-row overflow-auto">
               {searchResults.boutiques.map((boutique, index) => (
                 <BoutiqueItem
                   boutique={boutique}
