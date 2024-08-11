@@ -62,6 +62,8 @@ function Product({
 }) {
   const dispatchStore = useDispatch();
   const addToCart = () => {
+    document.documentElement.style.overflow = "hidden";
+    document.documentElement.scrollTop = 0;
     dispatchStore({ type: "AddToCartOptionEnable", payload: product });
   };
   const selectedFilters = useSelector(

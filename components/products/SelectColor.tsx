@@ -3,6 +3,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
+import CartIcon from "public/svg/CartIcon.svg";
 
 import { getConfiguredImage } from "utils/functions";
 import BackIcon from "public/svg/listing/backIcon.svg";
@@ -16,11 +17,14 @@ function SelectColor({ close }) {
   );
 
   const dispatch = useDispatch();
+  const enableCart = (s) => {
+    dispatch({ type: "ENABLE-CART", payload: s });
+  };
   return (
     <>
       <div className="blur-md bg-[#f4f4f480] backdrop-blur-[10px] flex fixed top-0 left-0 h-full w-full z-[999999999]" />
 
-      <div className="back-bar align-center w-100 flex-row min-h-12 bg-[#fff] p-4 z-[9999999999] fixed top-0">
+      <div className="back-bar align-center w-100 flex-row min-h-12 bg-[#fff] p-4 z-[9999999999] fixed top-0 justify-between">
         <div
           className="back-icon p-0"
           onClick={() => {
@@ -32,9 +36,16 @@ function SelectColor({ close }) {
         >
           <BackIcon />
         </div>
+        <CartIcon
+          className="cart-icon"
+          onClick={() => {
+            close();
+            enableCart(true);
+          }}
+        />
       </div>
-      <div className="flex-col mt-[10px] w-full fixed  left-0 z-[999999999] top-[50px] items-center">
-        <div className="flex-row w-auto justify-center h-available relative rounded-[15px] inset-select-shadow-image">
+      <div className="flex-col mt-[10px] w-full fixed  left-0 z-[9999999999] top-[50px] items-center">
+        <div className="flex-row w-auto justify-center moved-min-img relative rounded-[15px] inset-select-shadow-image image-cart-container">
           <svg
             className="absolute  top-0 left-0"
             xmlns="http://www.w3.org/2000/svg"
@@ -74,7 +85,7 @@ function SelectColor({ close }) {
                 SelectedProduct.images[0]?.file_path ||
                 SelectedProduct.images[0],
             })}
-            className={"h-full object-top rounded-[15px]"}
+            className={"h-full object-top rounded-[15px] moved-img "}
           />
         </div>
         {SelectedProduct.sync_color_images && (

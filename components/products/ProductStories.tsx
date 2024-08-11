@@ -55,7 +55,7 @@ function ProductStories() {
     <div
       className={`product-colors product-stories flex-col  align-start relative`}
     >
-      {<InfoWindow />}
+      {showInfoMessage && <InfoWindow />}
       {selectedStory?.id && (
         <StoriesContainer
           activeId={selectedStory?.id}

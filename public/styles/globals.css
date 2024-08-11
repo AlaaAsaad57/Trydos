@@ -979,16 +979,3 @@ input::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
-
-* {
-  -webkit-overflow-scrolling: touch;
-  -webkit-backface-visibility: hidden;
-}
-
-div > * {
-  -webkit-transform: translateZ(0px);
-}
-
-div > * {
-  -webkit-transform: translate3d(0, 0, 0);
-}

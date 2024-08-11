@@ -152,6 +152,79 @@
   transition: 0.3s;
   background-color: #f8f8f8;
 }
+.success-add.add-cart-button {
+  background-color: #b7ffc7 !important;
+  animation: shake 0.5s;
+  animation-iteration-count: 1;
+}
+@keyframes shake {
+  0% {
+    transform: translate(3px, 0px) rotate(0deg);
+  }
+  10% {
+    transform: translate(-3px, 0px) rotate(0deg);
+  }
+  20% {
+    transform: translate(-6px, 0px) rotate(0deg);
+  }
+  30% {
+    transform: translate(6px, 0px) rotate(0deg);
+  }
+  40% {
+    transform: translate(3px, 0px) rotate(0deg);
+  }
+  50% {
+    transform: translate(-3px, 0px) rotate(0deg);
+  }
+  60% {
+    transform: translate(-2px, 0px) rotate(0deg);
+  }
+  70% {
+    transform: translate(2px, 0px) rotate(0deg);
+  }
+  80% {
+    transform: translate(-1px, 0px) rotate(0deg);
+  }
+  90% {
+    transform: translate(1px, 0px) rotate(0deg);
+  }
+  100% {
+    transform: translate(0px, 0px) rotate(0deg);
+  }
+}
+.flying-img {
+  max-width: 100%;
+  position: absolute;
+  animation: fly_to_cart 1s ease-in-out;
+  z-index: 999999999999;
+  animation-fill-mode: forwards;
+}
+.cart-icon {
+  z-index: 9999999999999;
+}
+@keyframes fly_to_cart {
+  0% {
+    left: 0;
+    top: 0;
+  }
+  45%,
+  50% {
+    left: var(--left);
+    top: 0px;
+  }
+  /* 80%,
+  90% {
+    left: var(--left);
+    top: var(--top);
+    transform: scale(0.2);
+  } */
+  100% {
+    left: calc(var(--left) + 40px);
+    transform: scale(0.2);
+    top: var(--top);
+    transform: scale(0.2);
+  }
+}
 .extended-add-to-cart {
   width: calc(100vw - 20px);
 }
@@ -163,6 +236,7 @@
 }
 .add-cart-button img {
   position: absolute;
+
   right: 0px;
   top: 0px;
 }

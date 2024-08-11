@@ -70,9 +70,11 @@
   box-shadow: inset 0px 4px 6px rgba(255, 255, 255, 0.5);
 }
 .h-available {
-  height: calc(100vh - 632px);
+  height: calc(100vh - 518px);
 }
-
+.moved-min-img {
+  height: calc(100vh - 572px);
+}
 .inset-select-shadow-image:before {
   position: absolute;
   content: "";

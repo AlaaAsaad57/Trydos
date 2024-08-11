@@ -8,10 +8,12 @@ function AddToCartButton({
   setOption,
   product,
   loading,
+  AddToCartAnimation,
 }: {
   setOption: any;
   product: any;
   loading?: any;
+  AddToCartAnimation: Function;
 }) {
   const AddToCartOption = useSelector(
     (state: any) => state.cart.AddToCartOption
@@ -49,8 +51,8 @@ function AddToCartButton({
   return (
     <div
       className={`add-cart-button ${
-        AddToCartOption?.enable && "extended-add-to-cart "
-      } ${!loading && "opacity-70"} `}
+        AddToCartOption?.enable && "extended-add-to-cart"
+      } ${!loading && " opacity-70"} `}
       onClick={() => {
         if (loading) {
           if (!AddToCartOption?.enable) {
@@ -114,6 +116,20 @@ function AddToCartButton({
                     }`,
                   },
                 });
+                try {
+                  let elem = document.querySelector(".add-cart-button");
+                  setTimeout(() => {
+                    elem.classList.add("success-add");
+                    console.log(elem);
+                  }, 200);
+
+                  AddToCartAnimation({});
+                  setTimeout(() => {
+                    elem.classList.remove("success-add");
+                  }, 1200);
+                } catch (e) {
+                  console.log(e);
+                }
               },
               id: product.id,
               color: product.colors

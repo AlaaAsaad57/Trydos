@@ -659,3 +659,45 @@ export const getCart = async ({ callback }) => {
   });
   callback(data);
 };
+export const AddToCartAnimation = (e) => {
+  let shopping_cart = document.querySelector<SVGAElement>(".cart-icon");
+  let target_parent = document.querySelector<HTMLDivElement>(
+    ".image-cart-container"
+  );
+  target_parent.style.zIndex = "99999999999";
+  // Creating separate Image
+  let img = target_parent.querySelector("img");
+  // @ts-ignore
+  let flying_img = img.cloneNode();
+  // @ts-ignore
+  flying_img.classList.add("flying-img");
+
+  target_parent.appendChild(flying_img);
+
+  // Finding position of flying image
+  // @ts-ignore
+  const flying_img_pos = flying_img.getBoundingClientRect();
+  // @ts-ignore
+  const shopping_cart_pos = shopping_cart.getBoundingClientRect();
+
+  let data = {
+    left:
+      shopping_cart_pos.left -
+      (shopping_cart_pos.width / 2 +
+        flying_img_pos.left +
+        flying_img_pos.width / 2),
+    top: shopping_cart_pos.bottom - flying_img_pos.bottom + 30,
+  };
+
+  // @ts-ignore
+  flying_img.style.cssText = `
+                                --left : ${(data.left - 20).toFixed(2)}px;
+                                --top : ${(data.top + 90).toFixed(2)}px;
+                                
+                                `;
+
+  setTimeout(() => {
+    target_parent.style.zIndex = "";
+    target_parent.removeChild(flying_img);
+  }, 1100);
+};

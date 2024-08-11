@@ -8,6 +8,7 @@ import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
 import { useSelector } from "react-redux";
+import { AddToCartAnimation } from "utils/functions";
 function ProductOptions({
   activeOption,
   setOption,
@@ -34,6 +35,9 @@ function ProductOptions({
             setOption={() => setOption("AddToCart")}
             product={product}
             loading={loaded}
+            AddToCartAnimation={(e) => {
+              AddToCartAnimation(e);
+            }}
           />
           <div className="options-container">
             <div
