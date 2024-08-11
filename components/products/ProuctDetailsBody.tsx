@@ -21,11 +21,11 @@ function ProuctDetailsBody({ product }: { product: ProductInterface }) {
       </div>
       <div className="product-info-section flex-col align-start">
         <div className="product-brand-logo">
-          {product?.brand?.image && (
+          {product?.brand?.icon && (
             <img
               width={"auto"}
               height={18}
-              src={product.brand.image}
+              src={product.brand.icon}
               alt={product.brand.name}
             />
           )}

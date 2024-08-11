@@ -50,13 +50,13 @@ function FilterBar({ boutique, filters, productsServer }) {
   );
   const showFilterInfoBar = () => {
     if (
-      activeFilters.categories.length > 0 ||
-      activeFilters.brands.length > 0 ||
-      activeFilters.sizes.length > 0 ||
-      activeFilters.colors.length > 0 ||
-      activeFilters.offers.length > 0 ||
-      activeFilters.prices?.pricesWord ||
-      activeFilters.searchText?.length > 0
+      selectedFilter.categories.length > 0 ||
+      selectedFilter.brands.length > 0 ||
+      selectedFilter.sizes.length > 0 ||
+      selectedFilter.colors.length > 0 ||
+      selectedFilter.offers.length > 0 ||
+      selectedFilter.prices?.pricesWord ||
+      selectedFilter.searchText?.length > 0
     ) {
       return true;
     } else {
@@ -305,7 +305,9 @@ function FilterBar({ boutique, filters, productsServer }) {
         boutique={boutique}
         showFilters={products.length > 1 || productsServer.length > 1}
       />
-      {!filterEnabled && showFilterInfoBar() && <FilterInfoBar />}
+      {!filterEnabled && showFilterInfoBar() && (
+        <FilterInfoBar filtersVariable={activeFilters} />
+      )}
       {filterEnabled && showFilterInfoBar() && <FloatingInfoBar />}
     </>
   );

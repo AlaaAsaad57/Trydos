@@ -589,7 +589,7 @@ export const UpdateFilter = async ({
           ? {}
           : { colors: `${JSON.stringify(filters.colors)}` },
       headers: {
-        lang: filters.lang,
+        lang: filters.lang === "ar" ? "ae" : filters.lang,
         country: filters.country,
       },
     });
@@ -636,7 +636,7 @@ export const onClickSearchHistory = (searchValue) => {
 };
 export const getSearchOptions = async () => {
   const categories = await FetchApi({
-    url: OTP_URL + "/web/products/filters",
+    url: OTP_URL + "/web/search/filters",
     method: "GET",
     body: null,
     country: null,

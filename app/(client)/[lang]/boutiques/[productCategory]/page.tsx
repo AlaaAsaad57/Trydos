@@ -5,7 +5,7 @@ import ListingSkeleton from "components/skeleton/listing";
 import NavbarSkeleton from "components/skeleton/navbar";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { getBoutiqueMeta, getBoutiqueFilters } from "utils/functions";
+import { getBoutiqueMeta } from "utils/functions";
 
 export async function generateMetadata({ params, searchParams }) {
   const boutiqueId = params.productCategory;

@@ -280,8 +280,11 @@ class HomeService {
     try {
       let rep = await fetch(
         OTP_URL +
-          LISTING_INFO_URL +
-          `/filters?search_text=${search_text}&${urlParams.toString()}`,
+          `/web/search/filters?${
+            search_text?.length > 0 ? `search_text=${search_text}` : ""
+          }${
+            urlParams.toString()?.length > 0 ? `&${urlParams.toString()}` : ""
+          }`,
         {
           headers: {
             ...getHeader().headers,

@@ -6,10 +6,7 @@ import CloseIcon from "public/svg/CloseIcon.svg";
 import { filterProducts, RoundPrice } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
 import Search from "public/svg/SearchIcon.svg";
-function FilterInfoBar() {
-  const activeFilters = useSelector(
-    (state: any) => state.details.activeFilters
-  );
+function FilterInfoBar({ filtersVariable }) {
   const decimal_point_settings = useSelector(
     (state: any) => state.homepage.settings
   );
@@ -109,10 +106,10 @@ function FilterInfoBar() {
           dispatch({ type: "RESET-FILTER" });
         }}
       />
-      {activeFilters.categories.length > 0 && (
+      {filtersVariable.categories.length > 0 && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
-          {activeFilters.categories.map(
+          {filtersVariable.categories.map(
             (category) =>
               (category.name ||
                 filters.categories.filter((s) => s.slug === category.slug)[0]
@@ -202,10 +199,10 @@ function FilterInfoBar() {
           )}
         </>
       )}
-      {activeFilters.brands.length > 0 && (
+      {filtersVariable.brands.length > 0 && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
-          {activeFilters.brands.map(
+          {filtersVariable.brands.map(
             (brand) =>
               (brand.name ||
                 filters.brands.filter((s) => s.slug === brand.slug)[0]
@@ -235,10 +232,10 @@ function FilterInfoBar() {
                       width={20}
                       height={20}
                       src={
-                        brand?.image ||
+                        brand?.icon ||
                         filters.brands.filter(
                           (sub) => sub.slug === brand.slug
-                        )[0]?.image
+                        )[0]?.icon
                       }
                     />
                   </div>
@@ -252,10 +249,10 @@ function FilterInfoBar() {
           )}
         </>
       )}
-      {activeFilters.colors.length > 0 && (
+      {filtersVariable.colors.length > 0 && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
-          {activeFilters.colors.map((color) => (
+          {filtersVariable.colors.map((color) => (
             <>
               <div className="main-category-icon flex-row min-w-[15px] min-h-[15px]">
                 <svg
@@ -286,41 +283,41 @@ function FilterInfoBar() {
           ))}
         </>
       )}
-      {activeFilters.prices?.pricesWord && (
+      {filtersVariable.prices?.pricesWord && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
           {
             <>
               <div className="category-title filter-bar-main-title">
                 {`${currency_symbol?.symbol} ${getPrice(
-                  parseFloat(activeFilters.prices?.min)
-                )} / ${getPrice(parseFloat(activeFilters.prices?.max))} `}
+                  parseFloat(filtersVariable.prices?.min)
+                )} / ${getPrice(parseFloat(filtersVariable.prices?.max))} `}
               </div>
             </>
           }
         </>
       )}
-      {activeFilters.sizes.length > 0 && (
+      {filtersVariable.sizes.length > 0 && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
-          {activeFilters.sizes.map((size, index) => (
+          {filtersVariable.sizes.map((size, index) => (
             <>
               <div className="category-title filter-bar-main-title uppercase">
                 {size}
               </div>
-              {index < activeFilters.sizes.length - 1 && " - "}
+              {index < filtersVariable.sizes.length - 1 && " - "}
             </>
           ))}
         </>
       )}
-      {activeFilters.searchText?.length > 0 && (
+      {filtersVariable.searchText?.length > 0 && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
           <span>
             <Search className="scale-75" />
           </span>
           <div className="category-title filter-bar-main-title uppercase">
-            {activeFilters.searchText}
+            {filtersVariable.searchText}
           </div>
         </>
       )}
