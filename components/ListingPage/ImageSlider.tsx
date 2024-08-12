@@ -96,6 +96,7 @@ function ImageSlider({
                         width: 400,
                         height: 400,
                       })}
+                      key={product_name}
                       alt={product_name || "alt"}
                     />
                   )}
