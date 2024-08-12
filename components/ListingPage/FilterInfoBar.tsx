@@ -79,7 +79,8 @@ function FilterInfoBar({
       <CloseIcon
         className="mr-2 ml-2"
         onClick={() => {
-          reset();
+          dispatch({ type: "RESET-FILTER" });
+
           dispatch({ type: "PRODUCT_LOADING" });
           dispatch({ type: "RESET_LISTING_FILTER" });
           dispatch({ type: "Skeleton-Listing" });
@@ -113,6 +114,7 @@ function FilterInfoBar({
             reset: true,
           });
           dispatch({ type: "RESET-FILTER" });
+          if (reset) reset();
         }}
       />
       {filtersVariable?.categories.length > 0 && (
