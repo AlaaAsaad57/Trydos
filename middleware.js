@@ -18,7 +18,7 @@ function getLangByIp(ip) {
   switch (ip) {
     case "tr":
       return "tr";
-    case "ae":
+    case "ar":
       return "ar";
     case "sy":
       return "ar";

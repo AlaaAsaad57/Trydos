@@ -9,12 +9,21 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import home from "services/home";
 import Spinner from "components/global/Spinner";
+import FilterInfoBar from "components/ListingPage/FilterInfoBar";
 function SearchResults() {
   const loading = useSelector((state: any) => state.Search.partialLoading);
   const setLoading = (e) => {
     dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: e });
   };
   const searchParams = useSearchParams();
+  const showFilterBar = () => {
+    return (
+      searchFilters.categories.length > 0 ||
+      searchFilters.brands.length > 0 ||
+      searchFilters.boutiques.length > 0 ||
+      searchValue.length > 0
+    );
+  };
   const router = useRouter();
   const searchResults = useSelector((state: any) => state.Search.searchResults);
   const totalProducts = useSelector((state: any) => state.Search.totalProducts);
@@ -155,7 +164,7 @@ function SearchResults() {
                   brand={brand}
                   key={index}
                   onClick={() => {
-                    dispatch({ type: "SEARCH-BRAND", payload: brand.slug });
+                    dispatch({ type: "SEARCH-BRAND", payload: brand });
                     updateFiltersApi();
                   }}
                   isActive={searchFilters.brands.some(
@@ -180,7 +189,7 @@ function SearchResults() {
                   onClick={(e) => {
                     dispatch({
                       type: "SEARCH-CATEGORY",
-                      payload: e.slug,
+                      payload: e,
                     });
                     updateFiltersApi();
                   }}
@@ -205,7 +214,7 @@ function SearchResults() {
                   onClick={() => {
                     dispatch({
                       type: "SEARCH-BOUTIQUE",
-                      payload: boutique.slug,
+                      payload: boutique,
                     });
                     updateFiltersApi();
                   }}
@@ -256,6 +265,13 @@ function SearchResults() {
           </div>
         }
       </>
+      {showFilterBar() && (
+        <FilterInfoBar
+          searchValue={searchValue}
+          reset={() => reset()}
+          filtersVariable={searchFilters}
+        />
+      )}
     </div>
   );
 }

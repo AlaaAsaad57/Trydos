@@ -19,7 +19,7 @@ export type ProductInterface = {
   brand: {
     id: number;
     name: string;
-    image: string;
+    icon: string;
   };
   colors: Array<{
     name: string;

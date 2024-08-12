@@ -28,14 +28,14 @@ const SearchReducer = (state = initialState, { type, payload }) => {
         searchFilters: {
           ...state.searchFilters,
           categories: state.searchFilters.categories.some(
-            (s) => s.slug === payload
+            (s) => s.slug === payload.slug
           )
             ? [
                 ...state.searchFilters.categories.filter(
-                  (s) => payload !== s.slug
+                  (s) => payload.slug !== s.slug
                 ),
               ]
-            : [...state.searchFilters.categories, { slug: payload }],
+            : [...state.searchFilters.categories, payload],
         },
       };
     }
@@ -44,9 +44,15 @@ const SearchReducer = (state = initialState, { type, payload }) => {
         ...state,
         searchFilters: {
           ...state.searchFilters,
-          brands: state.searchFilters.brands.some((s) => s.slug === payload)
-            ? [...state.searchFilters.brands.filter((s) => payload !== s.slug)]
-            : [...state.searchFilters.brands, { slug: payload }],
+          brands: state.searchFilters.brands.some(
+            (s) => s.slug === payload.slug
+          )
+            ? [
+                ...state.searchFilters.brands.filter(
+                  (s) => payload.slug !== s.slug
+                ),
+              ]
+            : [...state.searchFilters.brands, payload],
         },
       };
     }
@@ -56,14 +62,14 @@ const SearchReducer = (state = initialState, { type, payload }) => {
         searchFilters: {
           ...state.searchFilters,
           boutiques: state.searchFilters.boutiques.some(
-            (s) => s.slug === payload
+            (s) => s.slug === payload.slug
           )
             ? [
                 ...state.searchFilters.boutiques.filter(
-                  (s) => payload !== s.slug
+                  (s) => payload.slug !== s.slug
                 ),
               ]
-            : [...state.searchFilters.boutiques, { slug: payload }],
+            : [...state.searchFilters.boutiques, payload],
         },
       };
     }

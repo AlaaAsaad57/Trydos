@@ -168,14 +168,14 @@ export const getConfiguredImage = ({ src, width, height }) => {
 export const getLang = (lang, cookieLang) => {
   if (lang) {
     if (lang === "ar") {
-      return "ae";
+      return "ar";
     } else {
       return lang;
     }
   } else {
     if (cookieLang) {
       if (cookieLang === "ar") {
-        return "ae";
+        return "ar";
       } else {
         return cookieLang;
       }
@@ -589,7 +589,7 @@ export const UpdateFilter = async ({
           ? {}
           : { colors: `${JSON.stringify(filters.colors)}` },
       headers: {
-        lang: filters.lang === "ar" ? "ae" : filters.lang,
+        lang: filters.lang === "ar" ? "ar" : filters.lang,
         country: filters.country,
       },
     });

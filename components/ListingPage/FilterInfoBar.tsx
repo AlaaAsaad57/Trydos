@@ -6,7 +6,15 @@ import CloseIcon from "public/svg/CloseIcon.svg";
 import { filterProducts, RoundPrice } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
 import Search from "public/svg/SearchIcon.svg";
-function FilterInfoBar({ filtersVariable }) {
+function FilterInfoBar({
+  filtersVariable,
+  reset,
+  searchValue,
+}: {
+  filtersVariable: any;
+  reset?: Function;
+  searchValue?: string;
+}) {
   const decimal_point_settings = useSelector(
     (state: any) => state.homepage.settings
   );
@@ -71,6 +79,7 @@ function FilterInfoBar({ filtersVariable }) {
       <CloseIcon
         className="mr-2 ml-2"
         onClick={() => {
+          reset();
           dispatch({ type: "PRODUCT_LOADING" });
           dispatch({ type: "RESET_LISTING_FILTER" });
           dispatch({ type: "Skeleton-Listing" });
@@ -106,10 +115,10 @@ function FilterInfoBar({ filtersVariable }) {
           dispatch({ type: "RESET-FILTER" });
         }}
       />
-      {filtersVariable.categories.length > 0 && (
+      {filtersVariable?.categories.length > 0 && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
-          {filtersVariable.categories.map(
+          {filtersVariable?.categories.map(
             (category) =>
               (category.name ||
                 filters.categories.filter((s) => s.slug === category.slug)[0]
@@ -199,10 +208,51 @@ function FilterInfoBar({ filtersVariable }) {
           )}
         </>
       )}
-      {filtersVariable.brands.length > 0 && (
+      {filtersVariable?.boutiques?.length > 0 && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
-          {filtersVariable.brands.map(
+          {filtersVariable?.boutiques?.map(
+            (category) =>
+              category.name && (
+                <>
+                  <div className="main-category-icon flex-row min-w-[15px] min-h-[15px]">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="15"
+                      height="15"
+                      viewBox="0 0 15 15"
+                      style={{ zIndex: "1" }}
+                    >
+                      <g
+                        id="Ellipse_283"
+                        data-name="Ellipse 283"
+                        fill="none"
+                        stroke="#ff5f61"
+                        strokeWidth="0.5"
+                      >
+                        <circle cx="7.5" cy="7.5" r="7.5" stroke="none" />
+                        <circle cx="7.5" cy="7.5" r="7.25" fill="none" />
+                      </g>
+                    </svg>
+
+                    <img
+                      width={20}
+                      height={20}
+                      src={category?.banner?.file_path}
+                    />
+                  </div>
+                  <div className="category-title filter-bar-main-title">
+                    {category?.name}
+                  </div>
+                </>
+              )
+          )}
+        </>
+      )}
+      {filtersVariable?.brands?.length > 0 && (
+        <>
+          <ActiveCategoryIcon style={{ height: "21px" }} />
+          {filtersVariable?.brands?.map(
             (brand) =>
               (brand.name ||
                 filters.brands.filter((s) => s.slug === brand.slug)[0]
@@ -249,10 +299,10 @@ function FilterInfoBar({ filtersVariable }) {
           )}
         </>
       )}
-      {filtersVariable.colors.length > 0 && (
+      {filtersVariable?.colors?.length > 0 && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
-          {filtersVariable.colors.map((color) => (
+          {filtersVariable?.colors.map((color) => (
             <>
               <div className="main-category-icon flex-row min-w-[15px] min-h-[15px]">
                 <svg
@@ -283,41 +333,41 @@ function FilterInfoBar({ filtersVariable }) {
           ))}
         </>
       )}
-      {filtersVariable.prices?.pricesWord && (
+      {filtersVariable?.prices?.pricesWord && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
           {
             <>
               <div className="category-title filter-bar-main-title">
                 {`${currency_symbol?.symbol} ${getPrice(
-                  parseFloat(filtersVariable.prices?.min)
-                )} / ${getPrice(parseFloat(filtersVariable.prices?.max))} `}
+                  parseFloat(filtersVariable?.prices?.min)
+                )} / ${getPrice(parseFloat(filtersVariable?.prices?.max))} `}
               </div>
             </>
           }
         </>
       )}
-      {filtersVariable.sizes.length > 0 && (
+      {filtersVariable?.sizes?.length > 0 && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
-          {filtersVariable.sizes.map((size, index) => (
+          {filtersVariable?.sizes.map((size, index) => (
             <>
               <div className="category-title filter-bar-main-title uppercase">
                 {size}
               </div>
-              {index < filtersVariable.sizes.length - 1 && " - "}
+              {index < filtersVariable?.sizes.length - 1 && " - "}
             </>
           ))}
         </>
       )}
-      {filtersVariable.searchText?.length > 0 && (
+      {(filtersVariable?.searchText?.length > 0 || searchValue?.length > 0) && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
           <span>
             <Search className="scale-75" />
           </span>
           <div className="category-title filter-bar-main-title uppercase">
-            {filtersVariable.searchText}
+            {filtersVariable?.searchText || searchValue}
           </div>
         </>
       )}

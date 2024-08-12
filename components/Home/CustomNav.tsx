@@ -52,6 +52,7 @@ function CustomNavbar({ init }: NavbarProps) {
           href={"/"}
           aria-label="TryDos Home"
           onClick={(e) => {
+            dispatch({ type: "ENABLE-SEARCH", payload: false });
             dispatchRouteChangeEvent("start", { from: "", to: "HomePage" });
             document.documentElement.style.overflow = "hidden";
             document.documentElement.scrollTop = 0;

@@ -261,10 +261,10 @@ function Product({
           }}
         >
           <p className="prouct-details overflow-hidden w-100 regular-text color-dark-gray f-10">
-            {product.brand?.image && (
+            {product.brand?.icon && (
               <img
                 loading={priority ? "eager" : "lazy"}
-                src={product.brand?.image.replace(
+                src={product.brand?.icon.replace(
                   "/upload",
                   "/upload/h_50/q_auto"
                 )}

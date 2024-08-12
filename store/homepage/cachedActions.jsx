@@ -142,14 +142,14 @@ export const changeAppLanguageServer = async (language) => {
 export const getLang = (lang, cookieLang) => {
   if (lang) {
     if (lang === "ar") {
-      return "ae";
+      return "ar";
     } else {
       return lang;
     }
   } else {
     if (cookieLang) {
       if (cookieLang === "ar") {
-        return "ae";
+        return "ar";
       } else {
         return cookieLang;
       }
