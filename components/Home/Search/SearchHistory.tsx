@@ -54,32 +54,36 @@ function SearchHistory({ options, setOptions }) {
       {!openMenu && (
         <div className="search-filter-options s1 flex-row">
           {options.map((s, index) => (
-            <div
-              key={index}
-              className="search-filter-option"
-              onClick={(e) => {
-                setOptions(s);
-              }}
-            >
-              {s}{" "}
-              {
+            <>
+              {s?.length > 0 && (
                 <div
-                  className="close-icon-container"
-                  onClick={() => {
-                    let arr = localStorage.getItem("search-history");
-
-                    localStorage.setItem(
-                      "search-history",
-                      JSON.stringify(
-                        JSON.parse(arr).filter((item) => item !== s)
-                      )
-                    );
+                  key={index}
+                  className="search-filter-option"
+                  onClick={(e) => {
+                    setOptions(s);
                   }}
                 >
-                  <CloseIconOption />
+                  {s}{" "}
+                  {
+                    <div
+                      className="close-icon-container"
+                      onClick={() => {
+                        let arr = localStorage.getItem("search-history");
+
+                        localStorage.setItem(
+                          "search-history",
+                          JSON.stringify(
+                            JSON.parse(arr).filter((item) => item !== s)
+                          )
+                        );
+                      }}
+                    >
+                      <CloseIconOption />
+                    </div>
+                  }
                 </div>
-              }
-            </div>
+              )}
+            </>
           ))}
         </div>
       )}

@@ -80,7 +80,7 @@ function FilterInfoBar({
         className="mr-2 ml-2"
         onClick={() => {
           dispatch({ type: "RESET-FILTER" });
-
+          dispatch({ type: "FILTER-LOADING", payload: true });
           dispatch({ type: "PRODUCT_LOADING" });
           dispatch({ type: "RESET_LISTING_FILTER" });
           dispatch({ type: "Skeleton-Listing" });
