@@ -231,6 +231,13 @@ function SearchResults() {
             No Results Found
           </div>
         )}
+        {showFilterBar() && (
+          <FilterInfoBar
+            searchValue={searchValue}
+            reset={() => reset()}
+            filtersVariable={searchFilters}
+          />
+        )}
         {
           <div className="flex-row w-full mt-3 justify-center">
             {(showButton() || loading) && (
@@ -265,13 +272,6 @@ function SearchResults() {
           </div>
         }
       </>
-      {showFilterBar() && (
-        <FilterInfoBar
-          searchValue={searchValue}
-          reset={() => reset()}
-          filtersVariable={searchFilters}
-        />
-      )}
     </div>
   );
 }
