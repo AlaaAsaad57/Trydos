@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import SubCategoryCircle from "./SubCategoryCircle";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,7 +15,6 @@ function CategoryCircle({ category }) {
   const dispatch = useDispatch();
   const pathName = useParams();
   const params = useSearchParams();
-
   const selectCategory = (e) => {
     if (
       selectedFilter.categories.filter((s) =>
@@ -80,11 +79,32 @@ function CategoryCircle({ category }) {
       0
     );
   };
+  const isSelectedChild = () => {
+    if (
+      selectedFilter.categories.filter(
+        (s) => category.childes.filter((sub) => sub.slug === s.slug).length > 0
+      ).length > 0
+    )
+      return true;
+    else return false;
+  };
+  const [expanded, setExpanded] = useState(isSelected() || isSelectedChild());
 
   return (
     <>
       <div
-        onClick={() => selectCategory({ ...category })}
+        onClick={() => {
+          if (expanded && !isSelected()) {
+            selectCategory({ ...category });
+          } else if (expanded || isSelected()) {
+            selectCategory({ ...category });
+            if (!isSelectedChild()) {
+              setExpanded(false);
+            }
+          } else {
+            setExpanded(!expanded);
+          }
+        }}
         className={`category-circle flex-col align-center ${
           category?.categories_sub?.length > 0 && "extended-circle"
         }`}
@@ -131,12 +151,13 @@ function CategoryCircle({ category }) {
       {category.childes?.length > 0 && (
         <div
           className={`categories-sub-circles ${
-            isSelected() && "no-transform"
+            (isSelectedChild() || expanded) && "no-transform"
           } z-0`}
           style={{
-            minWidth: isSelected()
-              ? `${category.childes.length * 55 - 5}px`
-              : "10px",
+            minWidth:
+              isSelectedChild() || expanded
+                ? `${category.childes.length * 55 - 5}px`
+                : "10px",
           }}
         >
           {category.childes.map((s, index) => {
@@ -167,7 +188,7 @@ function CategoryCircle({ category }) {
                   } else {
                   }
                 }}
-                MainCategoryActive={isSelected()}
+                MainCategoryActive={expanded}
                 index={index}
                 category={s}
               />

@@ -1,4 +1,4 @@
-import RemoteSvg from "components/global/RemoteSvg";
+import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
@@ -32,10 +32,18 @@ function CategoryNavMobile({
           category: "button_clicked",
           value: `${name} category filter`,
         });
-        router.push(`/categories/${slug}`);
-        dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
+        if (decodeURI(searchParams.mainCategory) === slug) {
+          router.push("/");
+          dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
+        } else {
+          router.push(`/categories/${slug}`);
+          dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
+        }
       }}
     >
+      {decodeURI(searchParams.mainCategory) === slug && (
+        <ActiveCategoryIcon className="absolute top-[-7px] left-[-13px]" />
+      )}
       {
         <div className="categories-bar-item-icon">
           <Image

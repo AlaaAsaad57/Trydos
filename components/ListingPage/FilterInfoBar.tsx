@@ -74,6 +74,16 @@ function FilterInfoBar({
   }, []);
   const pathName = useParams();
   const searchParams = useSearchParams();
+  const getCategory = (slug) => {
+    let variable = { name: "", most_viewed_product_thumbnail: "" };
+    filters.categories.map((s) =>
+      s.childes?.map((sub) => {
+        variable = sub;
+        if (sub.slug === slug) return sub;
+      })
+    );
+    return variable;
+  };
   return (
     <div className="filter-info-bar flex-row cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none ">
       <CloseIcon
@@ -125,7 +135,8 @@ function FilterInfoBar({
             (category) =>
               (category.name ||
                 filters.categories.filter((s) => s.slug === category.slug)[0]
-                  ?.name) && (
+                  ?.name ||
+                getCategory(category.slug)?.name) && (
                 <>
                   <div className="main-category-icon flex-row min-w-[15px] min-h-[15px]">
                     <svg
@@ -156,7 +167,9 @@ function FilterInfoBar({
                         category?.icon ??
                         filters.categories.filter(
                           (s) => s.slug === category.slug
-                        )[0]?.most_viewed_product_thumbnail
+                        )[0]?.most_viewed_product_thumbnail ??
+                        getCategory(category.slug)
+                          ?.most_viewed_product_thumbnail
                       }
                     />
                   </div>
@@ -164,7 +177,8 @@ function FilterInfoBar({
                     {category?.name ||
                       filters.categories.filter(
                         (s) => s.slug === category.slug
-                      )[0]?.name}
+                      )[0]?.name ||
+                      getCategory(category.slug)?.name}
                   </div>
                   {category?.categories_sub?.map((s) => (
                     <>

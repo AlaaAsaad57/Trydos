@@ -1,3 +1,4 @@
+"use client";
 import { useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 
@@ -40,6 +41,7 @@ function ImageSlider({
       >
         {!isColorSelected && (
           <PointsSlider
+            key={product_name}
             colors={activeColor.images}
             activeIndex={ColorRef.current?.activeIndex || 0}
             isActiveTopSlide={isActiveTopSlide}
@@ -52,6 +54,7 @@ function ImageSlider({
 
         <Swiper
           effect="coverflow"
+          id={product_name}
           coverflowEffect={{
             depth: 100,
             modifier: 1,

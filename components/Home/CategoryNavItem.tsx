@@ -1,11 +1,6 @@
 import { Sendevent, translate } from "utils/functions";
 import { useSelector } from "react-redux";
-
-const SearchComponent = dynamic(() => import("./SearchComponent"), {
-  ssr: false,
-});
-import dynamic from "next/dynamic";
-
+import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { useParams, useRouter } from "next/navigation";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import Image from "next/image";
@@ -90,6 +85,9 @@ const CategoryNavItem = ({
               onClick={() => clickItem()}
               key={myKey}
             >
+              {/* {decodeURI(searchParams.mainCategory) === slug && (
+                <ActiveCategoryIcon className="absolute top-[-7px] left-[-13px]" />
+              )} */}
               {!searchEnabled && (
                 <div className="categories-bar-item-icon ">
                   <Image

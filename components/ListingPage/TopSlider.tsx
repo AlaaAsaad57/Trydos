@@ -11,7 +11,7 @@ function TopSlider({
 }: {
   active: boolean;
   images: string[];
-  activeColor: { index: number; images: string[] };
+  activeColor: any;
   setActiveColor: Function;
   product_name: string;
 }) {

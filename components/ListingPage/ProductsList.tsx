@@ -123,7 +123,12 @@ function ProductsList({
                   (products.length > 0 && products) ||
                   Listing_Data_res?.body?.data?.products
                 )?.map((product, i) => (
-                  <Product key={i} product={product} priority={i < 3} i={i} />
+                  <Product
+                    key={product.id}
+                    product={product}
+                    priority={i < 3}
+                    i={i}
+                  />
                 ))}
 
                 {products.length === 0 &&
