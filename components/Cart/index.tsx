@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getCart,
@@ -93,174 +93,13 @@ function CartContainer({ close }) {
             {brands?.map((s, key) => (
               <>
                 {s.brand?.id ? (
-                  <div
-                    className="flex-col bg-white pb-10 pt-2 pl-2 pr-2"
+                  <BrandCart
                     key={key}
-                  >
-                    <div className="flex-row min-h-[50px] bg-[#f8f8f8] rounded-2xl justify-between items-center pl-5 pr-5">
-                      <img
-                        src={getConfiguredImage({
-                          src: s.brand.image,
-                          width: 90,
-                          height: 90,
-                        })}
-                        className="object-contain h-4 max-w-[90px] w-auto"
-                        height={15}
-                      />
-                      <div className="flex-row">
-                        <CartLabel />
-                        <div className="light ml-3 text-[13px] text-[#8D8D8D]">
-                          <span className="medium text-[#5D5C5D]">
-                            {getProductsOfBrand(s.brand).length}
-                          </span>
-                          <span className="ml-[3px]">items</span>
-                          <span className="medium text-[#5D5C5D] ml-[3px]">
-                            {getPriceOfBrand(s.brand)}
-                          </span>
-                          <span className="ml-[3px]">{currency?.symbol}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-col w-full">
-                      {getProductsOfBrand(s.brand)?.map((product, key) => (
-                        <div
-                          className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] mt-3 rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
-                          key={key}
-                        >
-                          <div className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative">
-                            <img
-                              src={getConfiguredImage({
-                                height: 150,
-                                width: 150,
-                                src: product.image,
-                              })}
-                              width={110}
-                              height={"100%"}
-                              className="rounded-2xl"
-                            />
-                          </div>
-                          <div className="flex-col mt-4 ml-5">
-                            <div className="h-[10px] overflow-hidden">
-                              <img
-                                src={getConfiguredImage({
-                                  height: 150,
-                                  width: 150,
-                                  src: product.brand.image,
-                                })}
-                                height={10}
-                                style={{
-                                  top: "0px",
-                                  maxHeight: "100%",
-                                  display: "flex",
-                                }}
-                                className="object-contain h-4 max-w-[90px] w-auto"
-                              />
-                            </div>
-                            <div className="text-xs mt-1 text-[#505050] flex regular">
-                              {product.name}
-                            </div>
-                            <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                              <CartItemTypeIcon />
-                              <span className="ml-1.5"></span>
-                            </div>
-                            {product.variations[0]?.color && (
-                              <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                                <CartColorIcon />
-                                <span className="ml-1.5">color,</span>
-                                <span className="regular">
-                                  {product.variations[0].color}
-                                </span>
-                              </div>
-                            )}
-                            {product.variations[0]?.Size && (
-                              <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                                <CartSizeIcon />
-                                <span className="ml-1.5">Size,</span>
-                                <span className="regular">
-                                  {product.variations[0].Size}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="absolute right-4 bottom-7">
-                            <div className="product-info-price">
-                              {product.offer_price ? (
-                                <>
-                                  <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
-                                    {RoundPrice({
-                                      num: product.price,
-                                      rate: currency.exchange_rate,
-                                      points:
-                                        (decimal_point_settings &&
-                                          decimal_point_settings[
-                                            "starting-setting"
-                                          ]?.decimal_point_settings) ||
-                                        0,
-                                    })}
-                                    <svg
-                                      className="bottom-3"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="100%"
-                                      height="2"
-                                    >
-                                      <line
-                                        id="Line_1104"
-                                        data-name="Line 1104"
-                                        x2="100%"
-                                        transform="translate(0 1)"
-                                        fill="none"
-                                        stroke="#C4C2C2"
-                                        strokeWidth="2"
-                                      />
-                                    </svg>
-                                  </div>
-                                  <div className="product-new-price text-[18px] bold">
-                                    {RoundPrice({
-                                      num: product.offer_price,
-                                      rate: currency.exchange_rate,
-                                      points:
-                                        (decimal_point_settings &&
-                                          decimal_point_settings[
-                                            "starting-setting"
-                                          ]?.decimal_point_settings) ||
-                                        0,
-                                    })}
-                                  </div>
-                                </>
-                              ) : (
-                                <>
-                                  <div className="product-new-price text-[18px] bold">
-                                    {RoundPrice({
-                                      num: product.price,
-                                      rate: currency.exchange_rate,
-                                      points:
-                                        (decimal_point_settings &&
-                                          decimal_point_settings[
-                                            "starting-setting"
-                                          ]?.decimal_point_settings) ||
-                                        0,
-                                    })}
-                                  </div>
-                                </>
-                              )}
-                              <div className="product-currency text-[8px] text-[#C4C2C2] regular">
-                                {currency?.symbol}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="absolute top-1 right-1">
-                            <input
-                              defaultValue={product.quantity}
-                              type="number"
-                              min={1}
-                              max={product.available_quantity}
-                              className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                    currency={currency?.symbol}
+                    price={getPriceOfBrand(s?.brand)}
+                    products={getProductsOfBrand(s?.brand)}
+                    s={s}
+                  />
                 ) : (
                   <div
                     className="flex-col bg-[#FFF4B5] pb-10 rounded-2xl"
@@ -715,5 +554,176 @@ const CartColorIcon = () => {
         />
       </g>
     </svg>
+  );
+};
+export const BrandCart = ({ key, s, products, price, currency }) => {
+  const [expanded, setExpanded] = useState(true);
+  const decimal_point_settings = useSelector(
+    (state: any) => state.homepage.settings
+  );
+  return (
+    <div className="flex-col bg-white pb-10 pt-2 pl-2 pr-2" key={key}>
+      <div
+        className="flex-row min-h-[50px] bg-[#f8f8f8] rounded-2xl justify-between items-center pl-5 pr-5"
+        onClick={() => setExpanded(!expanded)}
+      >
+        <img
+          src={getConfiguredImage({
+            src: s.brand.image,
+            width: 90,
+            height: 90,
+          })}
+          className="object-contain h-4 max-w-[90px] w-auto"
+          height={15}
+        />
+        <div className="flex-row">
+          <CartLabel />
+          <div className="light ml-3 text-[13px] text-[#8D8D8D]">
+            <span className="medium text-[#5D5C5D]">{products.length}</span>
+            <span className="ml-[3px]">items</span>
+            <span className="medium text-[#5D5C5D] ml-[3px]">{price}</span>
+            <span className="ml-[3px]">{currency}</span>
+          </div>
+        </div>
+      </div>
+      {expanded && (
+        <div className="flex-col w-full">
+          {products?.map((product, key) => (
+            <div
+              className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] mt-3 rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
+              key={key}
+            >
+              <div className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative">
+                <img
+                  src={getConfiguredImage({
+                    height: 150,
+                    width: 150,
+                    src: product.image,
+                  })}
+                  width={110}
+                  height={"100%"}
+                  className="rounded-2xl"
+                />
+              </div>
+              <div className="flex-col mt-4 ml-5">
+                <div className="h-[10px] overflow-hidden">
+                  <img
+                    src={getConfiguredImage({
+                      height: 150,
+                      width: 150,
+                      src: product.brand.image,
+                    })}
+                    height={10}
+                    style={{
+                      top: "0px",
+                      maxHeight: "100%",
+                      display: "flex",
+                    }}
+                    className="object-contain h-4 max-w-[90px] w-auto"
+                  />
+                </div>
+                <div className="text-xs mt-1 text-[#505050] flex regular">
+                  {product.name}
+                </div>
+                <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
+                  <CartItemTypeIcon />
+                  <span className="ml-1.5"></span>
+                </div>
+                {product.variations[0]?.color && (
+                  <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
+                    <CartColorIcon />
+                    <span className="ml-1.5">color,</span>
+                    <span className="regular">
+                      {product.variations[0].color}
+                    </span>
+                  </div>
+                )}
+                {product.variations[0]?.Size && (
+                  <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
+                    <CartSizeIcon />
+                    <span className="ml-1.5">Size,</span>
+                    <span className="regular">
+                      {product.variations[0].Size}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="absolute right-4 bottom-7">
+                <div className="product-info-price">
+                  {product.offer_price ? (
+                    <>
+                      <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
+                        {RoundPrice({
+                          num: product.price,
+                          rate: currency.exchange_rate,
+                          points:
+                            (decimal_point_settings &&
+                              decimal_point_settings["starting-setting"]
+                                ?.decimal_point_settings) ||
+                            0,
+                        })}
+                        <svg
+                          className="bottom-3"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="100%"
+                          height="2"
+                        >
+                          <line
+                            id="Line_1104"
+                            data-name="Line 1104"
+                            x2="100%"
+                            transform="translate(0 1)"
+                            fill="none"
+                            stroke="#C4C2C2"
+                            strokeWidth="2"
+                          />
+                        </svg>
+                      </div>
+                      <div className="product-new-price text-[18px] bold">
+                        {RoundPrice({
+                          num: product.offer_price,
+                          rate: currency.exchange_rate,
+                          points:
+                            (decimal_point_settings &&
+                              decimal_point_settings["starting-setting"]
+                                ?.decimal_point_settings) ||
+                            0,
+                        })}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="product-new-price text-[18px] bold">
+                        {RoundPrice({
+                          num: product.price,
+                          rate: currency.exchange_rate,
+                          points:
+                            (decimal_point_settings &&
+                              decimal_point_settings["starting-setting"]
+                                ?.decimal_point_settings) ||
+                            0,
+                        })}
+                      </div>
+                    </>
+                  )}
+                  <div className="product-currency text-[8px] text-[#C4C2C2] regular">
+                    {currency?.symbol}
+                  </div>
+                </div>
+              </div>
+              <div className="absolute top-1 right-1">
+                <input
+                  defaultValue={product.quantity}
+                  type="number"
+                  min={1}
+                  max={product.available_quantity}
+                  className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };

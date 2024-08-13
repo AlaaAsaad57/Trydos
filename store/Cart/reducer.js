@@ -42,11 +42,19 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         return {
           ...state,
           localCart: arr,
+          AddToCartOption: {
+            ...state.AddToCartOption,
+            quantity: 0,
+          },
         };
       } else {
         return {
           ...state,
           localCart: [...state.localCart, payload],
+          AddToCartOption: {
+            ...state.AddToCartOption,
+            quantity: 0,
+          },
         };
       }
     }
@@ -165,7 +173,12 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           s.type.includes(
             state?.AddToCartOption?.selectedColor?.color_name || ""
           ) && s.type.includes(state.AddToCartOption?.selectedSize?.name || "")
-      )[0];
+      )[0] || {
+        offer_price_formated: payload?.offer_price_formated,
+        price: payload?.price,
+        offer_price: payload.offer_price,
+        price_formated: payload.price_formated,
+      };
       return {
         ...state,
         AddToCartOption: {
@@ -178,6 +191,21 @@ export const CartReducer = (state = initialState, { type, payload }) => {
             price_formated: variant.price_formated,
           },
         },
+      };
+    }
+    case "REMOVE-QUANTITY": {
+      return {
+        ...state,
+        AddToCartOption:
+          state.AddToCartOption.quantity === 1
+            ? {
+                ...state.AddToCartOption,
+                quantity: 0,
+              }
+            : {
+                ...state.AddToCartOption,
+                quantity: state.AddToCartOption.quantity - 1,
+              },
       };
     }
     case "AddToCartSize": {

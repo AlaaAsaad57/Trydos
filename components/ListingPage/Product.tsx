@@ -212,6 +212,7 @@ function Product({
                 priority={priority}
                 product_name={product.name}
                 renderVar={productState?.renderVar}
+                key={product.name}
                 active={
                   !productState?.isColorSelected &&
                   !productState?.isActiveTopSlide
