@@ -361,6 +361,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         totalProducts: payload.reset ? null : payload.total_size,
+        loading: false,
         PriceFiltered: payload.reset ? false : state.PriceFiltered,
         filters: {
           ...state.filters,

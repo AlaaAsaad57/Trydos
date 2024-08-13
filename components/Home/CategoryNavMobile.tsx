@@ -43,7 +43,7 @@ function CategoryNavMobile({
             width={25}
             height={25}
             alt={name}
-            src={icon.replace("/upload", "/upload/h_50/f_webp/q_auto")}
+            src={icon?.replace("/upload", "/upload/h_50/f_webp/q_auto")}
             priority
             loading="eager"
           />

@@ -93,6 +93,7 @@ function FilterInfoBar({
             sizesAttr: sizesAttr,
             callback: (products) => {
               dispatch({ type: "GET_PRODUCT", payload: { products } });
+              dispatch({ type: "FILTER-LOADING", payload: false });
             },
             offset: 1,
             storeCallback: (e) => {

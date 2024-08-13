@@ -114,7 +114,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                 }}
                 width={20}
                 height={20}
-                src={boutique.icon.replace(
+                src={boutique?.icon?.replace(
                   "/upload",
                   `/upload/h_50/f_webp/q_auto`
                 )}

@@ -46,9 +46,8 @@ export default function Error({
       </div>
       <div className="flex flex-row items-center;">
         <h1 className="text-[red]">Error:</h1>
-        <h2 className="p-5">{error.message}</h2>
+        <h2 className="p-5 text-[#5d5d5d]">{error.message}</h2>
       </div>
-
       <button
         className="w-[300px] flex text-center justify-center items-center bg-[aliceblue] p-5 rounded-[15px]"
         onClick={() => (window.location.href = "/")}

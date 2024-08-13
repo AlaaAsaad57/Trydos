@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import BorderImage from "./BorderImage";
-import Image from "next/image";
+
 import { useRef } from "react";
 import PointsSlider from "./PointsSlider";
 import { getConfiguredImage } from "utils/functions";
@@ -96,7 +95,7 @@ function ImageSlider({
                         width: 400,
                         height: 400,
                       })}
-                      key={product_name}
+                      key={`${product_name}-${i}`}
                       alt={product_name || "alt"}
                     />
                   )}
