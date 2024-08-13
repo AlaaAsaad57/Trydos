@@ -1,6 +1,6 @@
 "use client";
 import "styles/home.css";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import Stories from "./Stories/index";
@@ -25,7 +25,9 @@ export default function Home() {
       initFB();
     } catch (e) {}
   }, []);
+  const dispatch = useDispatch();
   const initFB = async () => {
+    dispatch({ type: "RESET-FILTERS" });
     if (getUserStories()?.id) {
       const Cookies = (await import("js-cookie")).default;
       Cookies.set("token", getUserStories()?.access_token);
