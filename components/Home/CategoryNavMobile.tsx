@@ -10,16 +10,21 @@ interface CategoryNavMobileProps {
   icon: string;
   myKey: number;
   slug: string;
+  active: boolean;
+  setActive: Function;
 }
 function CategoryNavMobile({
   name,
   icon,
   myKey,
   slug,
+  active,
+  setActive,
 }: CategoryNavMobileProps) {
   const language = useSelector((state: any) => state.homepage.language);
   const router = useRouter();
   const searchParams: { lang: string; mainCategory: string } = useParams();
+
   return (
     <div
       className={`categories-bar-item ${
@@ -27,6 +32,7 @@ function CategoryNavMobile({
       }`}
       key={myKey}
       onClick={() => {
+        setActive(slug);
         Sendevent({
           event: "button_clicked",
           category: "button_clicked",
@@ -41,7 +47,7 @@ function CategoryNavMobile({
         }
       }}
     >
-      {decodeURI(searchParams.mainCategory) === slug && (
+      {active && (
         <ActiveCategoryIcon className="absolute top-[-7px] left-[-13px]" />
       )}
       {
