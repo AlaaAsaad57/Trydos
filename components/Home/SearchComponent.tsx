@@ -123,7 +123,6 @@ function SearchComponent({
       //go to listing
     } else {
       if (e.target.value.length > 0) {
-        console.log("h");
         dispatch({ type: "SEARCH-LOADING", payload: true });
         home.UpdateFilters({
           search_text: e.target.value || "",

@@ -13,7 +13,6 @@ import ColorSlider from "./ColorSlider";
 import TopSlider from "./TopSlider";
 
 function ProductReducer(state, { type, payload }) {
-  console.log(type);
   if (type === "setActiveTopSlide") {
     return {
       ...state,

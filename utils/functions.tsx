@@ -651,7 +651,7 @@ export const UpdateFilter = async ({
         ? `&search_text=${filters.searchText}`
         : ""
     }`;
-    console.log(filters);
+
     let product = await axios.get(OTP_URL + str, {
       params:
         filters.colors.length === 0

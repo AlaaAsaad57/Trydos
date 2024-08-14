@@ -34,7 +34,6 @@ function AddToCartButton({
       });
   };
   const isAlreayAdded = ({ sku }) => {
-    console.log(sku);
     if (localCart.some((s) => s.sku === sku)) {
       return localCart.filter((s) => s.sku === sku)[0]?.item_id;
     } else {
@@ -102,7 +101,6 @@ function AddToCartButton({
                         let elem = document.querySelector(".add-cart-button");
                         setTimeout(() => {
                           elem.classList.add("success-add");
-                          console.log(elem);
                         }, 200);
 
                         AddToCartAnimation(selectedCartItem.UID);

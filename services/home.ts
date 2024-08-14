@@ -315,7 +315,6 @@ class HomeService {
     callback,
     alreadyExist,
   }) {
-    console.log(alreadyExist);
     if (alreadyExist) {
       let dataBody = [];
       let dataObj = { key: alreadyExist, quantity: quantity + 1 };
