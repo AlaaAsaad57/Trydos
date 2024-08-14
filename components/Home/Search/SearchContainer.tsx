@@ -5,6 +5,7 @@ import SearchTrending from "./SearchTrending";
 import { useDispatch, useSelector } from "react-redux";
 import SearchResults from "./SearchResults";
 import { getSearchOptions } from "utils/functions";
+import { LogData } from "store/homepage/actions";
 function SearchContainer({ active }) {
   const [searchHistoryItems, setSearchHistory] = useState([]);
   const [searchTrendItems, setSearchTrend] = useState([
@@ -34,7 +35,8 @@ function SearchContainer({ active }) {
     }
   }, [searchValue]);
   const getSearchData = async () => {
-    let { categories, brands, boutiques } = await getSearchOptions();
+    let [{ categories, brands, boutiques }, res] = await getSearchOptions();
+    LogData(res);
     dispatch({
       type: "SEARCH-RESULTS",
       payload: { categories, brands, boutiques },

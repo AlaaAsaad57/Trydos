@@ -13,7 +13,7 @@ import {
   STARTER_SETTINGS,
 } from "utils/endpointConfig";
 import { SSRDetect } from "utils/functions";
-import { GetMainData } from "store/homepage/actions";
+import { GetMainData, LogData } from "store/homepage/actions";
 import { FetchApi } from "store/homepage/cachedActions";
 import { toast } from "react-toastify";
 const getHeader = () => {
@@ -41,8 +41,9 @@ class HomeService {
       )
         this.getCustomerInfo();
       getCart({
-        callback: (data) => {
+        callback: ([data, res]) => {
           store.dispatch({ type: "CART-INIT", payload: data.data });
+          LogData(res);
         },
       });
       if (typeof window !== "undefined") {
@@ -327,14 +328,15 @@ class HomeService {
       }
       // @ts-ignore
       dataBody = dataBody.join("&");
-      let updateQuantity = await FetchApi({
+      let [updateQuantity, data] = await FetchApi({
         url: OTP_URL + "/cart/update",
         method: "POST",
         body: dataBody,
         country: null,
         lang: null,
       });
-      console.log(updateQuantity);
+      LogData(data);
+
       store.dispatch({ type: "LOADED-CART", payload: true });
       if (updateQuantity?.data?.qty >= 0) {
         callback({ id: alreadyExist });
@@ -355,13 +357,14 @@ class HomeService {
       // @ts-ignore
       formBody = formBody.join("&");
 
-      let data = await FetchApi({
+      let [data, response] = await FetchApi({
         url: OTP_URL + "/cart/add",
         method: "POST",
         body: formBody,
         country: null,
         lang: null,
       });
+      LogData(response);
       store.dispatch({ type: "LOADED-CART", payload: true });
       if (data?.data?.id_cart) {
         callback({ id: data?.data?.id_cart });

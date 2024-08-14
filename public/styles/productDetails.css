@@ -192,25 +192,21 @@
     transform: translate(0px, 0px) rotate(0deg);
   }
 }
-.flying-img {
+img.flying-img {
   max-width: 100%;
-  position: absolute;
-  animation: fly_to_cart 1s ease-in-out;
-  z-index: 999999999999;
+  position: fixed !important;
+  max-width: 22px;
+  animation: fly_to_cart 2s ease-in-out;
+
   animation-fill-mode: forwards;
 }
 .cart-icon {
-  z-index: 9999999999999;
+  z-index: 99999999;
 }
 @keyframes fly_to_cart {
-  0% {
-    left: 0;
-    top: 0;
-  }
   45%,
   50% {
     left: var(--left);
-    top: 0px;
   }
   /* 80%,
   90% {
@@ -219,10 +215,9 @@
     transform: scale(0.2);
   } */
   100% {
-    left: calc(var(--left) + 40px);
-    transform: scale(0.2);
+    left: calc(var(--left));
+
     top: var(--top);
-    transform: scale(0.2);
   }
 }
 .extended-add-to-cart {

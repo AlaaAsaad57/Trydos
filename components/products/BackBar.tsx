@@ -1,18 +1,24 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import { useRouter } from "next/navigation";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import { useSelector } from "react-redux";
+import { LogData } from "store/homepage/actions";
 function BackBar({
   close,
   link,
   className,
+  data,
 }: {
   className?: any;
   close: any;
   link: any;
+  data?: any;
 }) {
+  useEffect(() => {
+    LogData(data);
+  }, []);
   const router = useRouter();
   const activeRoute = useSelector((state: any) => state.homepage.activeRoute);
   return (

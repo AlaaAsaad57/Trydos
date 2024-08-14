@@ -24,7 +24,7 @@ const AllProviders = async ({ children }: PropsWithChildren) => {
   // beforeEach(() => {
   //   store = mockStore({});
   // });
-  const currency = await getCurrency({
+  const [currency, res] = await getCurrency({
     lang: "en",
     country: "tr",
   });
@@ -37,7 +37,7 @@ const AllProviders = async ({ children }: PropsWithChildren) => {
         <div className="site-container">
           <div className="home-page-container">
             <>
-              <TranslationsMenu currency={currency} init={"en-us"} />
+              <TranslationsMenu res={res} currency={currency} init={"en-us"} />
             </>
 
             {children}

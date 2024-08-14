@@ -8,6 +8,7 @@ const initialState = {
     quantity: 0,
     price: null,
     UID: "",
+    selectedOptions: [],
   },
   SelectedProduct: null,
   variants: [],
@@ -39,12 +40,12 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           ...prod,
           quantity: parseInt(prod.quantity + payload.quantity),
         });
+
         return {
           ...state,
           localCart: arr,
           AddToCartOption: {
             ...state.AddToCartOption,
-            quantity: 0,
           },
         };
       } else {
@@ -57,6 +58,17 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           },
         };
       }
+    }
+    case "ANIMATION-END": {
+      return {
+        ...state,
+        AddToCartOption: {
+          ...state.AddToCartOption,
+          selectedOptions: state.AddToCartOption.selectedOptions.filter(
+            (s) => s.UID !== payload
+          ),
+        },
+      };
     }
     case "CART-INIT": {
       let brands = [];
@@ -163,49 +175,76 @@ export const CartReducer = (state = initialState, { type, payload }) => {
     case "AddToCartOptionDisable": {
       return {
         ...state,
-        AddToCartOption: { ...state.AddToCartOption, enable: false },
+        AddToCartOption: {
+          enable: false,
+          selectedSize: null,
+          selectedColor: {},
+          quantity: 0,
+          price: null,
+          UID: "",
+          selectedOptions: [],
+        },
         SelectedProduct: null,
       };
     }
     case "ADD-TO-CART-Quantity": {
-      let variant = state.variants.filter(
-        (s) =>
-          s.type.includes(
-            state?.AddToCartOption?.selectedColor?.color_name || ""
-          ) && s.type.includes(state.AddToCartOption?.selectedSize?.name || "")
-      )[0] || {
-        offer_price_formated: payload?.offer_price_formated,
-        price: payload?.price,
-        offer_price: payload.offer_price,
-        price_formated: payload.price_formated,
-      };
+      let arr_of_selected = [];
+      if (
+        state.AddToCartOption.selectedOptions.filter(
+          (s) => s.UID === payload.UID
+        ).length > 0
+      ) {
+        let variable = state.AddToCartOption.selectedOptions.filter(
+          (s) => s.UID === payload.UID
+        )[0];
+        arr_of_selected = state.AddToCartOption.selectedOptions.map((s) => {
+          if (s.UID === payload.UID)
+            return { ...variable, quantity: variable.quantity + 1 };
+          else return s;
+        });
+        return {
+          ...state,
+          AddToCartOption: {
+            ...state.AddToCartOption,
+            selectedOptions: arr_of_selected,
+          },
+        };
+      } else {
+        return {
+          ...state,
+          AddToCartOption: {
+            ...state.AddToCartOption,
+            selectedOptions: [
+              ...state.AddToCartOption.selectedOptions,
+              { ...payload, quantity: 1 },
+            ],
+          },
+        };
+      }
+    }
+    case "REMOVE-QUANTITY": {
+      let arr_of_selected = [];
+      let variable = state.AddToCartOption.selectedOptions.filter(
+        (s) => s.UID === payload
+      )[0];
+      if (variable.quantity === 1) {
+        arr_of_selected = state.AddToCartOption.selectedOptions.filter(
+          (s) => s.UID !== payload
+        );
+      } else {
+        arr_of_selected = state.AddToCartOption.selectedOptions.map((s) => {
+          if (s.UID === payload) {
+            return { ...s, quantity: s.quantity - 1 };
+          } else return s;
+        });
+      }
+
       return {
         ...state,
         AddToCartOption: {
           ...state.AddToCartOption,
-          quantity: state.AddToCartOption.quantity + 1,
-          price: {
-            offer_price_formated: variant?.offer_price_formated,
-            price: variant?.price,
-            offer_price: variant.offer_price,
-            price_formated: variant.price_formated,
-          },
+          selectedOptions: arr_of_selected,
         },
-      };
-    }
-    case "REMOVE-QUANTITY": {
-      return {
-        ...state,
-        AddToCartOption:
-          state.AddToCartOption.quantity === 1
-            ? {
-                ...state.AddToCartOption,
-                quantity: 0,
-              }
-            : {
-                ...state.AddToCartOption,
-                quantity: state.AddToCartOption.quantity - 1,
-              },
       };
     }
     case "AddToCartSize": {

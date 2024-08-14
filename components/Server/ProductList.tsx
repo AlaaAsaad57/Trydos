@@ -11,7 +11,7 @@ async function ProductListServer({ params, searchParams }) {
     boutiqueId === "listing"
       ? null
       : await getBoutiqueMeta({ boutiqueId, lang: params.lang });
-  const [, Listing_Data_res] = await getListingData({
+  const [Listing_Data_res, response] = await getListingData({
     categories: (searchParams.boutique_slugs && [
       searchParams.boutique_slugs,
     ]) || [params.productCategory],
@@ -38,6 +38,7 @@ async function ProductListServer({ params, searchParams }) {
         productsServer={Listing_Data_res.body.data.products}
       />
       <ProductsList
+        response={response}
         Listing_Data_res={Listing_Data_res}
         productCategory={params.productCategory}
         boutiqueCategory={params.boutiqueCategory}

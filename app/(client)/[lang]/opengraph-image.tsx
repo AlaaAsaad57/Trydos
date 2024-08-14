@@ -2,7 +2,7 @@ import "public/styles/og.css";
 import LogoAuth from "public/svg/LogoAuth.svg";
 
 import { ImageResponse } from "next/og";
-import { getProductDataOG } from "store/homepage/cachedActions";
+
 export const size = {
   width: 300,
   height: 300,

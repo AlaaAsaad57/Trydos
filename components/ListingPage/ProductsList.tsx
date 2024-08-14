@@ -12,15 +12,18 @@ import { filterProducts } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
 import ListingSkeleton from "components/skeleton/listing";
 import AddToCartWidget from "components/Cart/AddToCartWidget";
+import { LogData } from "store/homepage/actions";
 
 function ProductsList({
   Listing_Data_res,
   productCategory,
   boutiqueCategory,
+  response,
 }: {
   Listing_Data_res: any;
   boutiqueCategory: string;
   productCategory: string;
+  response?: any;
 }) {
   const dispatch = useDispatch();
   const products = useSelector((state: any) => state.listing.products);
@@ -47,6 +50,7 @@ function ProductsList({
     }
   };
   useEffect(() => {
+    LogData(response);
     dispatchRouteChangeEvent("completed");
     document.documentElement.style.overflow = "initial";
     document.documentElement.scrollTop = 0;

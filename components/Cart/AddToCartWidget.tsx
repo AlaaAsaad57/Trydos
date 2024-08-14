@@ -15,6 +15,7 @@ import BackIcon from "public/svg/listing/backIcon.svg";
 import { SelectColorsSlider } from "components/products/SelectColor";
 import Skeleton from "react-loading-skeleton";
 import CartIcon from "public/svg/CartIcon.svg";
+import { LogData } from "store/homepage/actions";
 
 function AddToCartWidget() {
   const dispatch = useDispatch();
@@ -25,6 +26,7 @@ function AddToCartWidget() {
   );
   const product = useSelector((state: any) => state.details.product);
   const getDetails = async () => {
+    let start = new Date();
     let repo = await fetch(OTP_URL + QTY_URL + `/${SelectedProduct.id}`, {
       headers: {
         Authorization: `Bearer ${
@@ -36,7 +38,21 @@ function AddToCartWidget() {
       },
     });
     let data = await repo.json();
-
+    let end = new Date();
+    LogData({
+      request: "Get Product Quantity info",
+      url: OTP_URL + QTY_URL + `/${SelectedProduct.id}`,
+      headers: {
+        Authorization: `Bearer ${
+          typeof localStorage !== "undefined" &&
+          localStorage.getItem("MARKET-TOKEN")
+        }`,
+        lang: getLang(null, Cookies.get("language")),
+        country: Cookies.get("country"),
+      },
+      response: data,
+      time: end.getTime() - start.getTime(),
+    });
     dispatch({ type: "GET-PRODUCT-DETAILS-FOR-CART", payload: data.data });
   };
   useEffect(() => {

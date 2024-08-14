@@ -10,6 +10,7 @@ import BackIcon from "public/svg/listing/backIcon.svg";
 import CartIcon from "public/svg/CartIcon.svg";
 import CartLabel from "public/svg/cart/cartLabel.svg";
 import Skeleton from "react-loading-skeleton";
+import { LogData } from "store/homepage/actions";
 
 function CartContainer({ close }) {
   const language = useSelector((state: any) => state.homepage.language);
@@ -25,8 +26,9 @@ function CartContainer({ close }) {
   useEffect(() => {
     dispatch({ type: "CART-LOADING" });
     getCart({
-      callback: (data) => {
+      callback: ([data, res]) => {
         dispatch({ type: "CART-INIT", payload: data.data });
+        LogData(res);
       },
     });
   }, []);

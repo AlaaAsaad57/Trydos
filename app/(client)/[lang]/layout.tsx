@@ -55,7 +55,7 @@ export default async function RootLayout({ params, children }) {
   // ${sf_pro_rounded_regular.variable}
   // ${sf_pro_rounded_medium.variable}
   // ${sf_pro_rounded_bold.variable}
-  const currency = await getCurrency({
+  const [currency, res] = await getCurrency({
     lang: params.lang.split("-")[1],
     country: params.lang.split("-")[0],
   });
@@ -79,7 +79,11 @@ export default async function RootLayout({ params, children }) {
           <div className="site-container">
             <div className="home-page-container">
               <>
-                <TranslationsMenu currency={currency} init={params.lang} />
+                <TranslationsMenu
+                  res={res}
+                  currency={currency}
+                  init={params.lang}
+                />
               </>
 
               {children}

@@ -46,7 +46,7 @@ export const getHomeData = async ({ str, lang }) => {
   let url = HOME_DATA_URL + (str?.length ? `?slug=${str}` : "");
 
   let method = { method: "GET" };
-  console.log(url);
+
   try {
     let time = new Date().getTime();
     const res = await fetch(OTP_URL + url, {
@@ -79,7 +79,8 @@ export const getHomeData = async ({ str, lang }) => {
       }),
       url: res.url,
       time: time + "ms",
-      body: repo,
+      response: repo,
+      request: "Get boutiques",
     };
 
     return [repo.data.boutiques, returned_res];
@@ -113,7 +114,8 @@ export const getMainCategories = async ({ lang }) => {
       }),
       url: res.url,
       time: time + "ms",
-      body: repo,
+      response: repo,
+      request: "Get Categories Navbar",
     };
     return [repo.data.mainCategories, returned_res];
   } catch (e) {
@@ -172,6 +174,7 @@ export const getListingData = async ({
   productCategory,
   searchParams,
 }) => {
+  let time = new Date().getTime();
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   if (Object.keys(searchParams).length > 0) {
@@ -236,11 +239,18 @@ export const getListingData = async ({
 
     let filters = {
       ...obj,
-      boutique_slug: categories,
-      lang: lang.split("-")[1],
+
+      lang: lang,
     };
+    if (!categories.includes("listing")) {
+      filters = {
+        ...filters,
+        boutique_slug: categories,
+      };
+    }
+
     let str = `/web/products/with_filter?${
-      obj.categories
+      obj.categories?.length > 0
         ? `category_slugs=${JSON.stringify(
             obj.categories.split(",").map((s) => s)
           )}`
@@ -250,7 +260,7 @@ export const getListingData = async ({
         ? `&brand_slugs=${JSON.stringify(obj.brands.split(",").map((s) => s))}`
         : ""
     }${
-      obj.sizes
+      obj.sizes?.length > 0
         ? `&attributes={id:${obj.sizesAttr.id},name:${
             obj.sizesAttr.name
           },options:${JSON.stringify(obj.sizes.split(","))}}`
@@ -259,16 +269,20 @@ export const getListingData = async ({
       obj.search_text?.length > 0
         ? `${`&search_text=${obj.search_text || ""}`}`
         : ""
-    }${
-      filters.prices !== null ? `&prices=[${JSON.stringify(obj.prices)}]` : ""
-    }&boutique_slugs=${JSON.stringify(categories)}`;
+    }${filters.prices ? `&prices=[${JSON.stringify(obj.prices)}]` : ""}${
+      filters.boutique_slug
+        ? `&boutique_slugs=${JSON.stringify(categories)}`
+        : ""
+    }`;
 
     let productRes = await fetch(
       OTP_URL +
         str +
-        `&${new URLSearchParams({
-          colors: `[${obj?.colors?.split(",").map((s) => `"${s}"`)}]`,
-        }).toString()}`,
+        (filters.colors
+          ? `&${new URLSearchParams({
+              colors: `[${obj?.colors?.split(",").map((s) => `"${s}"`)}]`,
+            }).toString()}`
+          : ""),
       {
         method: "GET",
 
@@ -286,22 +300,42 @@ export const getListingData = async ({
       }
     );
     let repo = await productRes.json();
-
+    time = new Date().getTime() - time;
+    let returned_res = {
+      type: productRes.type,
+      headers: new Headers({
+        lang: await getLang(lang, cookieStore.get("language")?.value),
+        country: cookieStore.get("country") && cookieStore.get("country").value,
+      }),
+      url: productRes.url,
+      time: time + "ms",
+      response: repo,
+      request: "Get Products with Filters",
+    };
     return [
-      [],
       {
         body: repo,
       },
+      returned_res,
     ];
   } else {
     let str = categories;
+
     let url =
       OTP_URL +
       (productCategory
         ? "/web/products/with_filter" +
-          `?category=${productCategory}&boutique_slugs=${JSON.stringify(str)}`
+          `?category=${productCategory}${
+            !str.includes("listing")
+              ? `&boutique_slugs=${JSON.stringify(str)}`
+              : ""
+          }`
         : "/web/products/with_filter" +
-          `?boutique_slugs=${JSON.stringify([str])}`);
+          `${
+            !str.includes("listing")
+              ? `?boutique_slugs=${JSON.stringify(str)}`
+              : ""
+          }`);
     var details = productCategory
       ? {
           boutique_slug: [str],
@@ -337,6 +371,7 @@ export const getListingData = async ({
       });
       const repo = await res.json();
       time = new Date().getTime() - time;
+      time = new Date().getTime() - time;
       let returned_res = {
         type: res.type,
         headers: new Headers({
@@ -346,11 +381,16 @@ export const getListingData = async ({
         }),
         url: res.url,
         time: time + "ms",
-        body: repo,
-        reqBody: formBody,
+        response: repo,
+        request: "Get Products with Filters ",
       };
 
-      return [repo.data, returned_res];
+      return [
+        {
+          body: repo,
+        },
+        returned_res,
+      ];
     } catch (e) {
       return ["listing-error", e.toString()];
     }
@@ -358,6 +398,7 @@ export const getListingData = async ({
 };
 
 export async function getProductDetails({ productId, lang }) {
+  let start1 = new Date().getTime();
   let DETAILS_URL = "/web/product/globalDetails";
   let QTY_URL = "/web/product/qtyPriceDetails";
   const cookies = (await import("next/headers")).cookies;
@@ -378,6 +419,8 @@ export async function getProductDetails({ productId, lang }) {
       }),
     });
     const repo = await res.json();
+    let end1 = new Date().getTime() - start1;
+    let start2 = new Date().getTime();
     const res1 = await fetch(OTP_URL + QTY_URL + `/${productId}`, {
       method: "GET",
 
@@ -393,13 +436,35 @@ export async function getProductDetails({ productId, lang }) {
       }),
     });
     const repo1 = await res1.json();
-
+    let end2 = new Date().getTime() - start2;
     let prod = { ...repo.data, ...repo1.data };
 
     if (prod.message === "Product not found") {
       notFound();
     }
-    return prod;
+    let returned_res = {
+      type: res.type,
+      headers: new Headers({
+        lang: await getLang(lang, cookieStore.get("language")?.value),
+        country: cookieStore.get("country") && cookieStore.get("country").value,
+      }),
+      url: res.url,
+      time: end1 + "ms",
+      response: repo,
+      request: "Get Product Global Details",
+    };
+    let returned_res1 = {
+      type: res1.type,
+      headers: new Headers({
+        lang: await getLang(lang, cookieStore.get("language")?.value),
+        country: cookieStore.get("country") && cookieStore.get("country").value,
+      }),
+      url: res1.url,
+      time: end2 + "ms",
+      response: repo1,
+      request: "Get Product quantity prices Details",
+    };
+    return [prod, [returned_res, returned_res1]];
   } catch (e) {
     console.log(e);
     notFound();
@@ -409,46 +474,72 @@ export async function getProductDataOG({ slug, lang }) {
   let DETAILS_URL = "/web/product/globalDetails";
   let QTY_URL = "/web/product/qtyPriceDetails";
 
-  const cookies = (await import("next/headers")).cookies;
-  const cookieStore = cookies();
-  try {
-    const res = await fetch(OTP_URL + DETAILS_URL + `/${slug}`, {
-      method: "GET",
+  // const cookies = (await import("next/headers")).cookies;
+  // const cookieStore = cookies();
+  // let start1=new Date().getTime();
+  // try {
+  //   const res = await fetch(OTP_URL + DETAILS_URL + `/${slug}`, {
+  //     method: "GET",
 
-      next: {
-        revalidate: 60,
-        tags: [`product-data-${slug}`, "listing-data"],
-      },
-      headers: new Headers({
-        lang: await getLang(lang, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      }),
-    });
-    const repo = await res.json();
-    const res1 = await fetch(OTP_URL + QTY_URL + `/${slug}`, {
-      method: "GET",
+  //     next: {
+  //       revalidate: 60,
+  //       tags: [`product-data-${slug}`, "listing-data"],
+  //     },
+  //     headers: new Headers({
+  //       lang: await getLang(lang, cookieStore.get("language")?.value),
+  //       country: cookieStore.get("country") && cookieStore.get("country").value,
+  //       Accept: "application/json",
+  //       "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+  //     }),
+  //   });
+  //   const repo = await res.json();
+  //   let end1=new Date().getTime()-start1;
+  //   let start2=new Date().getTime();
+  //   const res1 = await fetch(OTP_URL + QTY_URL + `/${slug}`, {
+  //     method: "GET",
 
-      next: {
-        revalidate: 60,
-        tags: [`product-data-${slug}`, "listing-data"],
-      },
-      headers: new Headers({
-        lang: await getLang(lang, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      }),
-    });
-    const repo1 = await res1.json();
+  //     next: {
+  //       revalidate: 60,
+  //       tags: [`product-data-${slug}`, "listing-data"],
+  //     },
+  //     headers: new Headers({
+  //       lang: await getLang(lang, cookieStore.get("language")?.value),
+  //       country: cookieStore.get("country") && cookieStore.get("country").value,
+  //       Accept: "application/json",
+  //       "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+  //     }),
+  //   });
+  //   const repo1 = await res1.json();
+  //   let end2=new Date().getTime()-start2
+  //   let returned_res = {
+  //     type: res.type,
+  //     headers: new Headers({
+  //       lang: await getLang(lang, cookieStore.get("language")?.value),
+  //       country: cookieStore.get("country") && cookieStore.get("country").value,
+  //     }),
+  //     url: res.url,
+  //     time: end1 + "ms",
+  //     response: repo,
+  //     request:'Get Product Global Details For OG Images'
+  //   };
+  //   let returned_res1 = {
+  //     type: res1.type,
+  //     headers: new Headers({
+  //       lang: await getLang(lang, cookieStore.get("language")?.value),
+  //       country: cookieStore.get("country") && cookieStore.get("country").value,
+  //     }),
+  //     url: res1.url,
+  //     time: end2 + "ms",
+  //     response: repo1,
+  //     request:'Get Product quantity prices Details for OG Image'
+  //   };
+  //   let prod = { ...repo.data, ...repo1.data };
 
-    let prod = { ...repo.data, ...repo1.data };
-
-    return prod;
-  } catch (e) {
-    console.log(e);
-  }
+  //   return prod;
+  // } catch (e) {
+  //   console.log(e);
+  // }
+  return { name: "product" };
 }
 export const getCountriesApi = async () => {
   let repo = await fetch(OTP_URL + "/countries");
@@ -471,6 +562,7 @@ export const FetchApi = async ({ url, method, body, lang, country }) => {
   }
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
+  let start = new Date().getTime();
   let response = await fetch(url, {
     method: method,
 
@@ -491,12 +583,32 @@ export const FetchApi = async ({ url, method, body, lang, country }) => {
       }`,
     }),
   });
-
   let data = await response.json();
-  return data;
+  let end = new Date().getTime() - start;
+  let returned_res = {
+    url,
+    method,
+    body,
+    response: data,
+    headers: new Headers({
+      lang: await getLang(lang, cookieStore.get("language")?.value),
+      country: await getCountry(
+        country,
+        cookieStore.get("country") && cookieStore.get("country").value
+      ),
+      Accept: "application/json",
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+      Authorization: `Bearer ${
+        cookieStore.get("market-token")?.value ??
+        cookieStore.get("DEVICE-TOKEN")?.value
+      }`,
+    }),
+    time: `${end}ms`,
+  };
+  return [data, returned_res];
 };
 export const getCurrency = async ({ lang, country }) => {
-  let currency = await FetchApi({
+  let [currency, data] = await FetchApi({
     url: OTP_URL + "/mobile/home/currency",
     body: null,
     method: "GET",
@@ -504,5 +616,5 @@ export const getCurrency = async ({ lang, country }) => {
     country: country,
   });
 
-  return currency.data.currency;
+  return [currency.data.currency, data];
 };

@@ -9,11 +9,11 @@ import React from "react";
 import { getProductDetails } from "store/homepage/cachedActions";
 
 async function ProductDetailsServer({ productId, lang }) {
-  let product = await getProductDetails({ productId, lang });
+  let [product, data] = await getProductDetails({ productId, lang });
 
   return (
     <div className="product-details-container w-full">
-      <BackBar link={true} close={null} />
+      <BackBar link={true} close={null} data={data} />
       <ProductDetailsSlider product={product} />
       <ProuctDetailsBody product={product} />
       <ProductFooterSection product={product} />

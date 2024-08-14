@@ -7,6 +7,7 @@ import { HOME_DATA_URL, LISTING_INFO_URL, OTP_URL } from "./endpointConfig";
 import { notFound } from "next/navigation";
 import axios from "axios";
 import { FetchApi } from "store/homepage/cachedActions";
+import { LogData } from "store/homepage/actions";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -188,7 +189,7 @@ export const getBoutiquesUrl = async ({ str }) => {
   var details = {
     slug: str,
   };
-
+  let start = new Date();
   var formBody = [];
   for (var property in details) {
     var encodedKey = encodeURIComponent(property);
@@ -204,12 +205,28 @@ export const getBoutiquesUrl = async ({ str }) => {
     body: formBody,
   });
   let data = await response.json();
+  let end = new Date();
+  LogData({
+    request: "Get boutiques by category",
+    url: OTP_URL + HOME_DATA_URL,
+    headers: {
+      Authorization: `Bearer ${
+        typeof localStorage !== "undefined" &&
+        localStorage.getItem("MARKET-TOKEN")
+      }`,
+      lang: getLang(null, Cookies.get("language")),
+      country: Cookies.get("country"),
+    },
+    response: data,
+    time: end.getTime() - start.getTime(),
+  });
   return data.data.boutiques;
 };
 
 export const getProductMeta = async ({ productId, lang }) => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
+  let start = new Date();
   let [langauge, country] = lang.split("-");
   let resp = await fetch(OTP_URL + `/web/product/simpleDetails/${productId}`, {
     headers: new Headers({
@@ -220,6 +237,21 @@ export const getProductMeta = async ({ productId, lang }) => {
     }),
   });
   let data = await resp.json();
+  let end = new Date();
+  LogData({
+    request: "Get Product meta info",
+    url: OTP_URL + `/web/product/simpleDetails/${productId}`,
+    headers: {
+      Authorization: `Bearer ${
+        typeof localStorage !== "undefined" &&
+        localStorage.getItem("MARKET-TOKEN")
+      }`,
+      lang: getLang(null, Cookies.get("language")),
+      country: Cookies.get("country"),
+    },
+    response: data,
+    time: end.getTime() - start.getTime(),
+  });
   if (data.message === "Product Not Found") {
     notFound();
   }
@@ -229,6 +261,7 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   let [langauge, country] = lang.split("-");
+  let start = new Date();
   let resp = await fetch(
     OTP_URL + `/web/boutique/simpleDetails/${boutiqueId}`,
     {
@@ -241,13 +274,28 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
     }
   );
   let data = await resp.json();
-
+  let end = new Date();
+  LogData({
+    request: "Get Product simple info",
+    url: OTP_URL + `/web/boutique/simpleDetails/${boutiqueId}`,
+    headers: {
+      Authorization: `Bearer ${
+        typeof localStorage !== "undefined" &&
+        localStorage.getItem("MARKET-TOKEN")
+      }`,
+      lang: getLang(null, Cookies.get("language")),
+      country: Cookies.get("country"),
+    },
+    response: data,
+    time: end.getTime() - start.getTime(),
+  });
   if (data.code === "boutique_not_found") {
     notFound();
   }
   return data.data;
 };
 export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
+  let start = new Date();
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   let [langauge, country] = lang.split("-");
@@ -266,7 +314,28 @@ export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
       }),
     }
   );
+
   let data = await resp.json();
+  let end = new Date();
+  LogData({
+    request: "Get Boutique Filters",
+    url:
+      OTP_URL +
+      `/web/products/filters?${
+        boutiqueId !== "listing" &&
+        `boutique_slugs=${JSON.stringify([boutiqueId])}`
+      }`,
+    headers: {
+      Authorization: `Bearer ${
+        typeof localStorage !== "undefined" &&
+        localStorage.getItem("MARKET-TOKEN")
+      }`,
+      lang: getLang(null, Cookies.get("language")),
+      country: Cookies.get("country"),
+    },
+    response: data,
+    time: end.getTime() - start.getTime(),
+  });
   return data.data;
 };
 export const caseCheck = (word, value) => {
@@ -635,7 +704,7 @@ export const onClickSearchHistory = (searchValue) => {
   }
 };
 export const getSearchOptions = async () => {
-  const categories = await FetchApi({
+  const [categories, data] = await FetchApi({
     url: OTP_URL + "/web/search/filters",
     method: "GET",
     body: null,
@@ -643,61 +712,101 @@ export const getSearchOptions = async () => {
     lang: null,
   });
 
-  return {
-    categories: categories.data.categories,
-    brands: categories.data.brands,
-    boutiques: categories.data.boutiques,
-  };
+  return [
+    {
+      categories: categories.data.categories,
+      brands: categories.data.brands,
+      boutiques: categories.data.boutiques,
+    },
+    data,
+  ];
 };
 export const getCart = async ({ callback }) => {
-  let data = await FetchApi({
+  let [data, response] = await FetchApi({
     url: OTP_URL + "/cart/cart_shipping",
     method: "GET",
     body: null,
     country: null,
     lang: null,
   });
-  callback(data);
+  callback([data, response]);
 };
 export const AddToCartAnimation = (e) => {
   let shopping_cart = document.querySelector<SVGAElement>(".cart-icon");
   let target_parent = document.querySelector<HTMLDivElement>(
-    ".image-cart-container"
+    `.image-container-cart`
   );
   target_parent.style.zIndex = "99999999999";
   // Creating separate Image
-  let img = target_parent.querySelector("img");
+  let imgs = target_parent.querySelectorAll(`#img${e}`);
   // @ts-ignore
-  let flying_img = img.cloneNode();
-  // @ts-ignore
-  flying_img.classList.add("flying-img");
+  imgs.forEach((img) => {
+    // Finding position of flying image
+    // @ts-ignore
+    const flying_img_pos = img.getBoundingClientRect();
 
-  target_parent.appendChild(flying_img);
+    // @ts-ignore
+    const shopping_cart_pos = shopping_cart.getBoundingClientRect();
 
-  // Finding position of flying image
-  // @ts-ignore
-  const flying_img_pos = flying_img.getBoundingClientRect();
-  // @ts-ignore
-  const shopping_cart_pos = shopping_cart.getBoundingClientRect();
+    let data = {
+      left: shopping_cart_pos.left,
+      top: shopping_cart_pos.top,
+    };
 
-  let data = {
-    left:
-      shopping_cart_pos.left -
-      (shopping_cart_pos.width / 2 +
-        flying_img_pos.left +
-        flying_img_pos.width / 2),
-    top: shopping_cart_pos.bottom - flying_img_pos.bottom + 30,
-  };
+    // @ts-ignore
+    img.style.cssText = `
+                                  --left : ${data.left.toFixed(2)}px;
+                                  --top : ${data.top.toFixed(2)}px;
+                                  left:${flying_img_pos.left}px;
+                                  top:${flying_img_pos.top}px;
+                                  z-index: 99999999999999;
+                                  `;
+    // @ts-ignore
+    img.classList.add("flying-img");
+  });
 
-  // @ts-ignore
-  flying_img.style.cssText = `
-                                --left : ${(data.left - 20).toFixed(2)}px;
-                                --top : ${(data.top + 90).toFixed(2)}px;
-                                
-                                `;
-
-  setTimeout(() => {
-    target_parent.style.zIndex = "";
-    target_parent.removeChild(flying_img);
-  }, 1100);
+  // setTimeout(() => {
+  //   store.dispatch({ type: "ANIMATION-END", payload: e });
+  // }, 1300);
+  // @ts-ignoreZ
+};
+export const AxiosInstaceRequest = async ({ url, method, body }) => {
+  let start = new Date().getTime();
+  let lang = Cookies.get("language");
+  let country = Cookies.get("country");
+  let axios = (await import("axios")).default;
+  if (method === "GET") {
+    let res = await axios.get(url, {
+      headers: {
+        lang: lang,
+        country: country,
+      },
+    });
+    let end = new Date().getTime() - start;
+    let returned_res = {
+      url,
+      method,
+      headers: {
+        lang: lang,
+        country: country,
+      },
+    };
+  } else if (method === "POST") {
+    let res = await axios.post(url, JSON.stringify(body), {
+      headers: {
+        lang: lang,
+        country: country,
+      },
+    });
+    let end = new Date().getTime() - start;
+    let returned_res = {
+      url,
+      method,
+      body,
+      headers: {
+        lang: lang,
+        country: country,
+      },
+    };
+  }
 };

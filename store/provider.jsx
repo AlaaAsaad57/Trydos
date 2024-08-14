@@ -34,9 +34,7 @@ const CartProvider = () => {
   const enableCart = (s) => {
     dispatch({ type: "ENABLE-CART", payload: s });
   };
-  useEffect(() => {
-    home.CheckLogin();
-  }, []);
+
   const cartEnable = useSelector((state) => state.cart.enable);
   return <>{cartEnable && <CartContainer close={() => enableCart(false)} />}</>;
 };

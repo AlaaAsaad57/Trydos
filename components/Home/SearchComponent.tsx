@@ -3,7 +3,7 @@ import SearchMicIcon from "public/svg/SearchMicIcon.svg";
 import CloseIcon from "public/svg/CloseIcon.svg";
 import SearchCloseIcon from "public/svg/SearchCloseIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
-import { ChangeEvent } from "react";
+import { ChangeEvent, useEffect } from "react";
 import { caseCheck, onClickSearchHistory } from "utils/functions";
 import home from "services/home";
 import useDebounce from "Hooks/useDebounce";
@@ -121,6 +121,25 @@ function SearchComponent({
       document.documentElement.style.overflow = "hidden";
       document.documentElement.scrollTop = 0;
       //go to listing
+    } else {
+      if (e.target.value.length > 0) {
+        console.log("h");
+        dispatch({ type: "SEARCH-LOADING", payload: true });
+        home.UpdateFilters({
+          search_text: e.target.value || "",
+          callback: (e) => {
+            setLoading(false);
+            dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+          },
+        });
+        home.SearchProducts({
+          search_text: e.target.value,
+          searchFilters: searchFilters,
+          callback: (e) => {
+            dispatch({ type: "FIND-PRODUCTS", payload: e });
+          },
+        });
+      }
     }
   };
   const clearSuggestion = () => {
@@ -130,32 +149,7 @@ function SearchComponent({
   const setLoading = (e) => {
     dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: e });
   };
-  useDebounce(
-    () => {
-      home.UpdateFilters({
-        search_text: searchValue || "",
-        callback: (e) => {
-          setLoading(false);
-          dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
-        },
-      });
-      if (searchValue.length > 0) {
-        dispatch({ type: "SEARCH-LOADING", payload: true });
-        const updateFiltersApi = () => {
-          setLoading(true);
-        };
-        home.SearchProducts({
-          search_text: searchValue,
-          searchFilters: searchFilters,
-          callback: (e) => {
-            dispatch({ type: "FIND-PRODUCTS", payload: e });
-          },
-        });
-      }
-    },
-    [searchValue],
-    800
-  );
+
   return (
     <div className="search-component-container flex-row">
       <div className={`search-input-parent ${focus && "focuse"}`}>
@@ -166,7 +160,7 @@ function SearchComponent({
           onInput={(e) => {
             onInput(e);
           }}
-          onKeyDown={(e) => {
+          onKeyUp={(e) => {
             onKeyDown(e);
           }}
           onBlur={() => {
