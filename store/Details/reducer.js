@@ -80,28 +80,28 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         selectedFilter: {
-          ...state.selectedFilter,
-          ...state.activeFilters,
-          prices: (state.activeFilters.prices && {
-            ...state.activeFilters.prices,
+          filtered: false,
+          categories: [],
+          prices: {
             pricesWord: null,
-            min:
-              state.activeFilters?.prices?.min_price ||
-              state.filters.prices?.min_price,
-            max:
-              state.activeFilters.prices?.max_price ||
-              state.filters.prices?.max_price,
-          }) ??
-            (state.filters.prices && {
-              ...state.filters.prices,
-              pricesWord: null,
-              min: state.filters.prices?.min_price,
-              max: state.filters.prices?.max_price,
-            }) ?? {
-              pricesWord: null,
-              min: state.filters?.prices?.min_price,
-              max: state.filters?.prices?.max_price,
-            },
+          },
+          brands: [],
+          offers: [],
+          sizes: [],
+          searchText: "",
+          colors: [],
+        },
+        activeFilters: {
+          filtered: false,
+          categories: [],
+          prices: {
+            pricesWord: null,
+          },
+          brands: [],
+          offers: [],
+          sizes: [],
+          searchText: "",
+          colors: [],
         },
         isChangedFilter: false,
       };
