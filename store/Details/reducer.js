@@ -137,6 +137,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           prices:
             payload.prices?.min_price >= 0 && payload?.prices?.max_price >= 0
               ? {
+                  pricesWord: state.selectedFilter.pricesWord,
                   min: payload?.prices?.min_price,
                   max: payload?.prices?.max_price,
                 }

@@ -123,91 +123,109 @@ function FilterButtons() {
     }
   };
   const SearchParams = useSearchParams();
+  const isSelectFilter = () => {
+    if (
+      selectedFilter.categories.length > 0 ||
+      selectedFilter.brands.length > 0 ||
+      selectedFilter.colors.length > 0 ||
+      selectedFilter.sizes.length > 0 ||
+      selectedFilter.searchText.length > 0 ||
+      selectedFilter.prices.pricesWord
+    )
+      return true;
+    else return false;
+  };
 
   return (
     <>
-      {showFilterInfoBar() && (
+      {
         <div className="filter-buttons flex-row">
-          <div
-            className={`apply-button flex-row`}
-            onClick={() => {
-              if (!loading) {
-                dispatch({ type: "APPLY-SELECTED" });
-                dispatch({ type: "PRODUCT_LOADING" });
-                dispatch({ type: "RESET_LISTING_FILTER" });
-                dispatch({ type: "Skeleton-Listing" });
-                filterProducts({
-                  boutiqueId: (SearchParams.get("boutique_slugs") &&
-                    SearchParams.get("boutique_slugs")) || [
-                    pathName.productCategory,
-                  ],
-                  lang: pathName.lang,
-                  sizesAttr: sizesAttr,
-                  callback: (products) => {
-                    dispatch({ type: "GET_PRODUCT", payload: { products } });
+          {showFilterInfoBar() ? (
+            <div
+              className={`apply-button flex-row`}
+              onClick={() => {
+                if (!loading) {
+                  dispatch({ type: "APPLY-SELECTED" });
+                  dispatch({ type: "PRODUCT_LOADING" });
+                  dispatch({ type: "RESET_LISTING_FILTER" });
+                  dispatch({ type: "Skeleton-Listing" });
+                  filterProducts({
+                    boutiqueId: (SearchParams.get("boutique_slugs") &&
+                      SearchParams.get("boutique_slugs")) || [
+                      pathName.productCategory,
+                    ],
+                    lang: pathName.lang,
+                    sizesAttr: sizesAttr,
+                    callback: (products) => {
+                      dispatch({ type: "GET_PRODUCT", payload: { products } });
+                    },
+                    offset: 1,
+                    storeCallback: (e) => {
+                      dispatch({
+                        type: "ACTIVE-FILTER",
+                        payload: e,
+                      });
+                    },
+                    newFiltersCallback: ({ filtersVar }) => {
+                      dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+                    },
+                  });
+                  dispatch({ type: "filterEnabled", payload: false });
+                  window.scrollTo({ top: 0 });
+                  normalizeView();
+                  if (activeFiltersShouldUpdate) handleSearch(selectedFilter);
+                }
+              }}
+            >
+              Apply
+              {loading ? (
+                <span className="ml-2">
+                  <Spinner />
+                </span>
+              ) : (
+                <span className="text-[#fafafa] regular ml-2">
+                  (Total Products: {totalProducts})
+                </span>
+              )}
+            </div>
+          ) : (
+            <div className={`apply-button flex-row opacity-0`}></div>
+          )}
+          {isSelectFilter() && (
+            <div
+              className="reset-button flex-row"
+              onClick={() => {
+                dispatch({ type: "RESET-SELECTED" });
+                dispatch({ type: "FILTER-LOADING", payload: true });
+                UpdateFilter({
+                  filtersVar: {
+                    categories: [],
+                    brands: [],
+                    colors: [],
+                    sizes: [],
+                    boutiques: [],
                   },
-                  offset: 1,
-                  storeCallback: (e) => {
-                    dispatch({
-                      type: "ACTIVE-FILTER",
-                      payload: e,
-                    });
+                  sizesAttr: sizesAttr,
+                  boutiqueId: pathName.productCategory,
+                  lang: pathName.lang,
+                  done: () => {
+                    dispatch({ type: "FILTER-LOADING", payload: false });
                   },
                   newFiltersCallback: ({ filtersVar }) => {
-                    dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+                    dispatch({
+                      type: "EDIT-FILTER",
+                      payload: { ...filtersVar, reset: true },
+                    });
                   },
+                  searchText: "",
                 });
-                dispatch({ type: "filterEnabled", payload: false });
-                window.scrollTo({ top: 0 });
-                normalizeView();
-                if (activeFiltersShouldUpdate) handleSearch(selectedFilter);
-              }
-            }}
-          >
-            Apply
-            {loading ? (
-              <span className="ml-2">
-                <Spinner />
-              </span>
-            ) : (
-              <span className="text-[#fafafa] regular ml-2">
-                (Total Products: {totalProducts})
-              </span>
-            )}
-          </div>
-          <div
-            className="reset-button flex-row"
-            onClick={() => {
-              dispatch({ type: "RESET-SELECTED" });
-              dispatch({ type: "FILTER-LOADING", payload: true });
-              UpdateFilter({
-                filtersVar: {
-                  categories: [],
-                  brands: [],
-                  colors: [],
-                  sizes: [],
-                  boutiques: [],
-                },
-                sizesAttr: sizesAttr,
-                boutiqueId: pathName.productCategory,
-                lang: pathName.lang,
-                done: () => {
-                  dispatch({ type: "FILTER-LOADING", payload: false });
-                },
-                newFiltersCallback: ({ filtersVar }) => {
-                  dispatch({
-                    type: "EDIT-FILTER",
-                    payload: { ...filtersVar, reset: true },
-                  });
-                },
-                searchText: "",
-              });
-            }}
-          >
-            Reset
-          </div>
+              }}
+            >
+              Reset
+            </div>
+          )}
         </div>
-      )}
+      }
     </>
   );
 }
