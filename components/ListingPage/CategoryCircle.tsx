@@ -102,6 +102,7 @@ function CategoryCircle({ category }) {
               setExpanded(false);
             }
           } else {
+            selectCategory({ ...category });
             setExpanded(!expanded);
           }
         }}
@@ -169,6 +170,8 @@ function CategoryCircle({ category }) {
                     .length > 0
                 }
                 onClick={() => {
+                  if (isSelected())
+                    dispatch({ type: "FILTER-CATEGORY", payload: category });
                   dispatch({ type: "FILTER-CATEGORY", payload: s });
                   dispatch({ type: "FILTER-LOADING", payload: true });
                   UpdateFilter({

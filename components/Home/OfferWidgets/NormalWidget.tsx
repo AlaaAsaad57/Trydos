@@ -5,7 +5,7 @@ import OfferAvatars from "./OfferAvatars";
 
 import Image from "next/image";
 import { Boutique } from "models/offer";
-import RemoteSvg from "components/global/RemoteSvg";
+
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -76,33 +76,10 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
         <div className="offer-blured" id={`blured-${boutique.id}`} />
         <div className="offer-container">
           <div className="offer-logo">
-            {/* {boutique.icon ? (
-              boutique.icon.includes(".svg") ? (
-                <RemoteSvg size={20} url={boutique.icon} isSvg={null} />
-              ) : (
-                <ImageLoader
-                  id={"img-" + boutique.id}
-                  alt={boutique.name}
-                  noLoader={true}
-                  loading={myKey < 2 ? "eager" : "lazy"}
-                  fetchPriority={myKey < 2 ? "high" : "low"}
-                  priority={myKey < 2}
-                  style={{
-                    maxWidth: "187px",
-                    width: "auto",
-                    height: "30px",
-                  }}
-                  width={20}
-                  height={20}
-                  src={boutique.icon}
-                />
-              )
-            ) : (
-              boutique.name
-            )} */}
             {boutique.icon ? (
               <Image
                 id={"img-" + boutique.id}
+                className="object-contain"
                 alt={boutique.name}
                 loading={myKey < 2 ? "eager" : "lazy"}
                 fetchPriority={myKey < 2 ? "high" : "low"}

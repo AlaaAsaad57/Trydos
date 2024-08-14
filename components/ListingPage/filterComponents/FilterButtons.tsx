@@ -130,7 +130,7 @@ function FilterButtons() {
       selectedFilter.colors.length > 0 ||
       selectedFilter.sizes.length > 0 ||
       selectedFilter.searchText.length > 0 ||
-      selectedFilter.prices.pricesWord
+      selectedFilter.prices?.pricesWord
     )
       return true;
     else return false;

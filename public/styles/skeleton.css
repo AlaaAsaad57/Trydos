@@ -6,8 +6,7 @@
   border-radius: 0px !important;
 }
 
-.product-body svg,
-.product-body .svg-holder-r {
+.product-body svg {
   width: auto;
   height: 16px;
 }

@@ -2,46 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-.svg-holder-r svg {
-  width: 20px;
-  height: 20px;
-}
-.offer-category .svg-holder-r svg path,
-.offer-category .svg-holder-r svg circle,
-.offer-category .svg-holder-r svg line,
-.offer-category .svg-holder-r svg ellipse {
-  fill: #c4c2c2;
-  stroke: #c4c2c2;
-}
-.offer-logo .svg-holder-r img,
-.offer-logo .svg-holder-r {
-  width: auto !important;
-  height: 20px !important;
-}
-.offer-category .svg-holder-r svg {
-  width: 20px;
-  height: 20px;
-}
-.offer-logo img {
-  object-fit: contain;
-}
-.offer-category .svg-holder-r svg path {
-  fill: #c4c2c2 !important;
-}
-.scale-w-2 {
-  transform: scale(2);
-}
-.background-bl {
-  background-color: black;
-}
-#videos {
-  display: flex;
-  padding: 10px;
-  height: 400px;
-}
-#videos video {
-  object-fit: contain !important;
-}
 img {
   user-select: none;
   -webkit-user-drag: none;
