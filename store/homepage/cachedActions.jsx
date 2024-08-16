@@ -571,16 +571,16 @@ export async function getProductDataOG({ slug, lang }) {
   return { name: "product" };
 }
 export const getCountriesApi = async () => {
-  // let start = new Date().getTime();
-  // let repo = await fetch(OTP_URL + "/countries");
-  // let data = await repo.json();
-  // let end = new Date().getTime();
-  // console.log("countries Time id" + `${end - start}`);
-  // return data.data.countries;
-  return [
-    { iso: "tr", nicename: "turkey" },
-    { iso: "lb", nicename: "lebanon" },
-  ];
+  let start = new Date().getTime();
+  let repo = await fetch(OTP_URL + "/countries");
+  let data = await repo.json();
+  let end = new Date().getTime();
+  console.log("countries Time id" + `${end - start}`);
+  return data.data.countries;
+  // return [
+  //   { iso: "tr", nicename: "turkey" },
+  //   { iso: "lb", nicename: "lebanon" },
+  // ];
 };
 
 export const FetchApi = async ({ url, method, body, lang, country }) => {
