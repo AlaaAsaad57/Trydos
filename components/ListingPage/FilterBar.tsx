@@ -135,13 +135,13 @@ function FilterBar({ boutique, filters, productsServer }) {
               window.location.pathname = `/`;
               dispatch({ type: "RESET-FILTERS" });
 
-              dispatchRouteChangeEvent("start", {
-                to: "HomePage",
-                from: "details",
-              });
+              // dispatchRouteChangeEvent("start", {
+              //   to: "HomePage",
+              //   from: "details",
+              // });
 
-              document.documentElement.style.overflow = "hidden";
-              document.documentElement.scrollTop = 0;
+              // document.documentElement.style.overflow = "hidden";
+              // document.documentElement.scrollTop = 0;
             } else {
               dispatch({ type: "RESET-SELECTED" });
               dispatch({ type: "FILTER-LOADING", payload: true });

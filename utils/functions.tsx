@@ -228,6 +228,7 @@ export const getProductMeta = async ({ productId, lang }) => {
   const cookieStore = cookies();
   let start = new Date();
   let [langauge, country] = lang.split("-");
+
   let resp = await fetch(OTP_URL + `/web/product/simpleDetails/${productId}`, {
     headers: new Headers({
       Accept: "application/json",
@@ -255,6 +256,8 @@ export const getProductMeta = async ({ productId, lang }) => {
   if (data.message === "Product Not Found") {
     notFound();
   }
+  console.log(`product meta time is ${end.getTime() - start.getTime()}`);
+
   return data.data;
 };
 export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
@@ -292,6 +295,7 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
   if (data.code === "boutique_not_found") {
     notFound();
   }
+  console.log(`boutique meta time is ${end.getTime() - start.getTime()}`);
   return data.data;
 };
 export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
@@ -336,6 +340,7 @@ export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
     response: data,
     time: end.getTime() - start.getTime(),
   });
+  console.log(`boutiques filters time is ${end.getTime() - start.getTime()}`);
   return data.data;
 };
 export const caseCheck = (word, value) => {
