@@ -574,13 +574,14 @@ export const getCountriesApi = async () => {
   let start = new Date().getTime();
   let repo = await fetch(OTP_URL + "/countries", {
     next: {
-      revalidate: 546262,
+      revalidate: 60000,
+      tags: ["countries"],
     },
-    cache: "force-cache",
   });
-  let data = await repo.json();
   let end = new Date().getTime();
   console.log("countries Time is " + `${end - start}ms`);
+  let data = await repo.json();
+
   return data.data.countries;
   // return [
   //   { iso: "tr", nicename: "turkey" },
