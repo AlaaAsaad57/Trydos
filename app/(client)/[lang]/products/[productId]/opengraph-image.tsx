@@ -16,7 +16,14 @@ export default async function og({
   params: { productId: string; lang: string };
 }) {
   const slug = params.productId;
-  const product = await getProductDataOG({ slug, lang: params.lang });
+  const product = {
+    name: "",
+    images: [""],
+    category: { name: "" },
+    brand: { name: "" },
+    price: "",
+    price_formatted: "",
+  };
   return new ImageResponse(
     (
       <div tw="relative flex w-full h-full flex items-center justify-center">

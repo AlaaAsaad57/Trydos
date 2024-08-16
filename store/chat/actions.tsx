@@ -3,6 +3,7 @@ import {
   DELETE_CHAT_URL,
   GET_CHATS_URL,
   GET_CONTATCS_URL,
+  OTP_URL,
   SEARCH_CONTACTS_URL,
   SEARCH_USERS_URL,
   SEND_MESSAGE_URL,
@@ -10,6 +11,7 @@ import {
 } from "utils/endpointConfig";
 import { store } from "../index";
 import { getUserChat, translate } from "utils/functions";
+import { FetchApi } from "store/homepage/cachedActions";
 
 export const ChatConroller = (payload) => {
   if (payload) document.documentElement.style.overflow = "hidden";
@@ -847,4 +849,15 @@ export const GetChatDetails = async (id) => {
       payload: { id: id, data: resp.data.data },
     });
   } catch (e) {}
+};
+export const getCurrency = async ({ lang, country, callback }) => {
+  let [currency, data] = await FetchApi({
+    url: OTP_URL + "/mobile/home/currency",
+    body: null,
+    method: "GET",
+    lang: lang,
+    country: country,
+  });
+  callback({ currency: currency.data.currency, res: data });
+  return [currency.data.currency, data];
 };

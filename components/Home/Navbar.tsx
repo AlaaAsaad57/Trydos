@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import Logo from "./Logo";
 import UserNavTopSection from "./UserNavTopSection";
 import { useDispatch, useSelector } from "react-redux";
-import { changeAppLanguage } from "store/homepage/actions";
+import { changeAppLanguage, LogData } from "store/homepage/actions";
 import { Category } from "models/Category";
 import CategoriesBar from "./CategoriesBar";
 import MobileNavigation from "./MobileNavigation";
@@ -16,8 +16,9 @@ import { ToastContainer } from "react-toastify";
 interface NavbarProps {
   init: string;
   categories: Category[];
+  response?: any;
 }
-function Navbar({ init, categories }: NavbarProps) {
+function Navbar({ init, categories, response }: NavbarProps) {
   const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
   const setLoginOpen = (e: boolean) => {
     dispatch({ type: "LOGIN-OPEN", payload: e });
@@ -41,6 +42,7 @@ function Navbar({ init, categories }: NavbarProps) {
     );
   };
   useEffect(() => {
+    LogData(response);
     initFunc();
   }, []);
   const showNavbar = () => {

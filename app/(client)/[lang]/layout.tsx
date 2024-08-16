@@ -3,14 +3,8 @@ import "styles/home.css";
 import "styles/unused-onload.css";
 import Providers from "store/provider";
 import localFont from "next/font/local";
-
 import PageLoadingIndicator from "Hooks/LoadingIndicator";
-import dynamic from "next/dynamic";
-import { getCurrency } from "store/homepage/cachedActions";
-
-const TranslationsMenu = dynamic(
-  () => import("components/global/TranslationsMenu")
-);
+import TranslationsMenu from "components/global/TranslationsMenu";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -55,10 +49,7 @@ export default async function RootLayout({ params, children }) {
   // ${sf_pro_rounded_regular.variable}
   // ${sf_pro_rounded_medium.variable}
   // ${sf_pro_rounded_bold.variable}
-  const [currency, res] = await getCurrency({
-    lang: params.lang.split("-")[1],
-    country: params.lang.split("-")[0],
-  });
+
   return (
     <html
       className={`
@@ -79,11 +70,7 @@ export default async function RootLayout({ params, children }) {
           <div className="site-container">
             <div className="home-page-container">
               <>
-                <TranslationsMenu
-                  res={res}
-                  currency={currency}
-                  init={params.lang}
-                />
+                <TranslationsMenu init={params.lang} />
               </>
 
               {children}

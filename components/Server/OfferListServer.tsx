@@ -4,14 +4,20 @@ import OfferList from "components/Home/OfferWidgets/OfferList";
 import "styles/offers.css";
 
 async function OfferListServer({ params }) {
-  const [HomeData] = await getHomeData({
+  const [HomeData, response] = await getHomeData({
     str: params?.mainCategory,
     lang: params.lang ? params.lang.split("-")[1] : null,
   });
 
   return (
     <>
-      <OfferList boutiques={HomeData} key={2} quick={false} />;
+      <OfferList
+        response={response}
+        boutiques={HomeData}
+        key={2}
+        quick={false}
+      />
+      ;
     </>
   );
 }

@@ -48,7 +48,7 @@ export const getHomeData = async ({ str, lang }) => {
   let method = { method: "GET" };
 
   try {
-    let time = new Date().getTime();
+    let start = new Date().getTime();
     const res = await fetch(OTP_URL + url, {
       ...method,
       next: {
@@ -70,7 +70,8 @@ export const getHomeData = async ({ str, lang }) => {
     });
     const repo = await res.json();
 
-    time = new Date().getTime() - time;
+    let end = new Date().getTime();
+    let time = end - start;
     let returned_res = {
       type: res.type,
       headers: new Headers({
@@ -82,8 +83,10 @@ export const getHomeData = async ({ str, lang }) => {
       response: repo,
       request: "Get boutiques",
     };
-
-    return [repo.data.boutiques, returned_res];
+    console.log(time, "boutiques-home");
+    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
+      return [repo.data.boutiques, returned_res];
+    else return [repo.data.boutiques, {}];
   } catch (e) {
     console.log(e);
     return [[], e.toString()];
@@ -93,7 +96,7 @@ export const getMainCategories = async ({ lang }) => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   try {
-    let time = new Date().getTime();
+    let start = new Date().getTime();
     const res = await fetch(OTP_URL + HOME_DATA_CATEGORIES_URL, {
       next: {
         revalidate: 60,
@@ -105,7 +108,8 @@ export const getMainCategories = async ({ lang }) => {
       }),
     });
     const repo = await res.json();
-    time = new Date().getTime() - time;
+    let end = new Date().getTime();
+    let time = end - start;
     let returned_res = {
       type: res.type,
       headers: new Headers({
@@ -117,7 +121,10 @@ export const getMainCategories = async ({ lang }) => {
       response: repo,
       request: "Get Categories Navbar",
     };
-    return [repo.data.mainCategories, returned_res];
+    console.log(time, "categories");
+    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
+      return [repo.data.mainCategories, returned_res];
+    else return [repo.data.mainCategories, {}];
   } catch (e) {
     return ["homedata-error", e.toString()];
   }
@@ -174,7 +181,7 @@ export const getListingData = async ({
   productCategory,
   searchParams,
 }) => {
-  let time = new Date().getTime();
+  let start = new Date().getTime();
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   if (Object.keys(searchParams).length > 0) {
@@ -300,7 +307,8 @@ export const getListingData = async ({
       }
     );
     let repo = await productRes.json();
-    time = new Date().getTime() - time;
+    let end = new Date().getTime();
+    let time = end - start;
     let returned_res = {
       type: productRes.type,
       headers: new Headers({
@@ -312,12 +320,21 @@ export const getListingData = async ({
       response: repo,
       request: "Get Products with Filters",
     };
-    return [
-      {
-        body: repo,
-      },
-      returned_res,
-    ];
+    console.log(time, "boutiques-product");
+    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
+      return [
+        {
+          body: repo,
+        },
+        returned_res,
+      ];
+    else
+      return [
+        {
+          body: repo,
+        },
+        {},
+      ];
   } else {
     let str = categories;
 
@@ -353,7 +370,6 @@ export const getListingData = async ({
     formBody = formBody.join("&");
 
     try {
-      let time = new Date().getTime();
       const res = await fetch(url, {
         method: "GET",
 
@@ -369,9 +385,10 @@ export const getListingData = async ({
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         }),
       });
+      let end = new Date().getTime();
+      let time = end - start;
       const repo = await res.json();
-      time = new Date().getTime() - time;
-      time = new Date().getTime() - time;
+
       let returned_res = {
         type: res.type,
         headers: new Headers({
@@ -385,12 +402,21 @@ export const getListingData = async ({
         request: "Get Products with Filters ",
       };
 
-      return [
-        {
-          body: repo,
-        },
-        returned_res,
-      ];
+      console.log(time, "boutiques-products");
+      if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
+        return [
+          {
+            body: repo,
+          },
+          returned_res,
+        ];
+      else
+        return [
+          {
+            body: repo,
+          },
+          {},
+        ];
     } catch (e) {
       return ["listing-error", e.toString()];
     }
@@ -464,7 +490,10 @@ export async function getProductDetails({ productId, lang }) {
       response: repo1,
       request: "Get Product quantity prices Details",
     };
-    return [prod, [returned_res, returned_res1]];
+    console.log(end1 + end2, "product-details");
+    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
+      return [prod, [returned_res, returned_res1]];
+    else return [prod, [{}, {}]];
   } catch (e) {
     console.log(e);
     notFound();
@@ -542,9 +571,16 @@ export async function getProductDataOG({ slug, lang }) {
   return { name: "product" };
 }
 export const getCountriesApi = async () => {
-  let repo = await fetch(OTP_URL + "/countries");
-  let data = await repo.json();
-  return data.data.countries;
+  // let start = new Date().getTime();
+  // let repo = await fetch(OTP_URL + "/countries");
+  // let data = await repo.json();
+  // let end = new Date().getTime();
+  // console.log("countries Time id" + `${end - start}`);
+  // return data.data.countries;
+  return [
+    { iso: "tr", nicename: "turkey" },
+    { iso: "lb", nicename: "lebanon" },
+  ];
 };
 
 export const FetchApi = async ({ url, method, body, lang, country }) => {
@@ -605,16 +641,7 @@ export const FetchApi = async ({ url, method, body, lang, country }) => {
     }),
     time: `${end}ms`,
   };
-  return [data, returned_res];
-};
-export const getCurrency = async ({ lang, country }) => {
-  let [currency, data] = await FetchApi({
-    url: OTP_URL + "/mobile/home/currency",
-    body: null,
-    method: "GET",
-    lang: lang,
-    country: country,
-  });
-
-  return [currency.data.currency, data];
+  if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
+    return [data, returned_res];
+  else return [data, {}];
 };

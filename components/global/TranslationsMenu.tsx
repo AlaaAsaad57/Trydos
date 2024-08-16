@@ -4,18 +4,24 @@ import { useDispatch, useSelector } from "react-redux";
 import { changeAppLanguage, LogData } from "store/homepage/actions";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
+import { getCurrency } from "store/chat/actions";
+
 const ArabicCss = dynamic(() => import("./ArabicCss"), { ssr: true });
 interface TranslationsMenuProps {
   init: string;
-  currency: any;
-  res?: any;
 }
-function TranslationsMenu({ init, currency, res }: TranslationsMenuProps) {
+function TranslationsMenu({ init }: TranslationsMenuProps) {
   const language = useSelector((state: any) => state.homepage.language);
   const dispatch = useDispatch();
   useEffect(() => {
-    dispatch({ type: "CURRENCY", payload: currency });
-    LogData(res);
+    getCurrency({
+      lang: init.split("-")[1],
+      country: init.split("-")[0],
+      callback: ({ currency, res }) => {
+        dispatch({ type: "CURRENCY", payload: currency });
+        LogData(res);
+      },
+    });
   }, []);
   return (
     <div className="translations-container">

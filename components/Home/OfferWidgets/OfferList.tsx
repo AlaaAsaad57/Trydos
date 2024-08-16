@@ -4,12 +4,16 @@ import NormalWidget from "./NormalWidget";
 
 import { Boutique } from "models/offer";
 import { useEffect } from "react";
+import { LogData } from "store/homepage/actions";
 interface OfferListProps {
   quick: boolean;
   boutiques: Boutique[];
+  response?: any;
 }
-function OfferList({ quick, boutiques }: OfferListProps) {
-  const dispatch = useDispatch();
+function OfferList({ quick, boutiques, response }: OfferListProps) {
+  useEffect(() => {
+    LogData(response);
+  }, []);
 
   return (
     <div className={`offers-list ${quick && " mt-5"}`}>
