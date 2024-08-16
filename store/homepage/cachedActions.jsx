@@ -572,10 +572,15 @@ export async function getProductDataOG({ slug, lang }) {
 }
 export const getCountriesApi = async () => {
   let start = new Date().getTime();
-  let repo = await fetch(OTP_URL + "/countries");
+  let repo = await fetch(OTP_URL + "/countries", {
+    next: {
+      revalidate: 546262,
+    },
+    cache: "force-cache",
+  });
   let data = await repo.json();
   let end = new Date().getTime();
-  console.log("countries Time id" + `${end - start}`);
+  console.log("countries Time is " + `${end - start}ms`);
   return data.data.countries;
   // return [
   //   { iso: "tr", nicename: "turkey" },
