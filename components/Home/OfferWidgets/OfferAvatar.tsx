@@ -27,9 +27,10 @@ function OfferAvatar({
   return (
     <div
       onClick={(e) => {
-        e.preventDefault();
-        router.push(linkUrl);
-        dispatchRouteChangeEvent("start", { to: "boutique" });
+        window.location.pathname = linkUrl;
+        // e.preventDefault();
+        // router.push(linkUrl);
+        // dispatchRouteChangeEvent("start", { to: "boutique" });
       }}
       className="offer-avatar"
       style={{

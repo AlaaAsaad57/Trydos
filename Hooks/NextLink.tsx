@@ -9,7 +9,7 @@ import { usePathname } from "next/navigation";
 
 export interface INextLinkProps
   extends Omit<ComponentProps<typeof Link>, "href"> {
-  href: string | UrlObject;
+  href: string;
 }
 export default function NextLink({
   href,
@@ -25,7 +25,7 @@ export default function NextLink({
   };
 
   return (
-    <Link
+    <a
       prefetch={false}
       className={className}
       href={href}
@@ -33,6 +33,6 @@ export default function NextLink({
       onClick={handleClick}
     >
       {children}
-    </Link>
+    </a>
   );
 }

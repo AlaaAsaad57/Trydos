@@ -39,8 +39,9 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           // @ts-ignore: Unreachable code error
           !e.target.closest(".offer-category")
         ) {
-          router.push(`/boutiques/${boutique.slug}`);
-          dispatchRouteChangeEvent("start", { to: "boutique" });
+          window.location.pathname = `/boutiques/${boutique.slug}`;
+          // router.push(`/boutiques/${boutique.slug}`);
+          // dispatchRouteChangeEvent("start", { to: "boutique" });
         }
       }}
       aria-label={`Go To listing Page`}
@@ -108,10 +109,11 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                   <div
                     onClick={(e) => {
                       e.preventDefault();
-                      dispatchRouteChangeEvent("start", { to: "boutique" });
-                      router.push(
-                        `/boutiques/${boutique.slug}?categories=${category.category_id}`
-                      );
+                      // dispatchRouteChangeEvent("start", { to: "boutique" });
+                      // router.push(
+                      //   `/boutiques/${boutique.slug}?categories=${category.category_id}`
+                      // );
+                      window.location.pathname = `/boutiques/${boutique.slug}?categories=${category.category_id}`;
                     }}
                     key={key}
                   >
@@ -138,10 +140,11 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                     key={key}
                     onClick={(e) => {
                       e.preventDefault();
-                      dispatchRouteChangeEvent("start", { to: "boutique" });
-                      router.push(
-                        `/boutiques/${boutique.slug}?categories=${category.category_id}`
-                      );
+                      // dispatchRouteChangeEvent("start", { to: "boutique" });
+                      // router.push(
+                      //   `/boutiques/${boutique.slug}?categories=${category.category_id}`
+                      // );
+                      window.location.pathname = `/boutiques/${boutique.slug}?categories=${category.category_id}`;
                     }}
                   >
                     <Image

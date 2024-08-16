@@ -35,8 +35,9 @@ const CategoryNavItem = ({
         category: "button_clicked",
         value: `${name} category filter`,
       });
-      router.push(`/categories/${slug}`);
-      dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
+      // router.push(`/categories/${slug}`);
+      // dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
+      window.location.pathname = `/categories/${slug}`;
     }
   };
 

@@ -98,7 +98,8 @@ function SearchComponent({
       }
     }
     params.set("searchText", searchValue);
-    router.push(`/boutiques/listing?${params.toString()}`);
+    window.location.pathname = `/boutiques/listing?${params.toString()}`;
+    // router.push(`/boutiques/listing?${params.toString()}`);
   };
 
   const onKeyDown = (e) => {

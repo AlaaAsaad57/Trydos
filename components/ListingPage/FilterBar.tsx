@@ -131,7 +131,8 @@ function FilterBar({ boutique, filters, productsServer }) {
           className="back-icon"
           onClick={() => {
             if (!filterEnabled) {
-              router.push(`/`);
+              // router.push(`/`);
+              window.location.pathname = `/`;
               dispatch({ type: "RESET-FILTERS" });
 
               dispatchRouteChangeEvent("start", {

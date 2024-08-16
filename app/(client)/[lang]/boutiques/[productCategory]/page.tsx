@@ -33,13 +33,12 @@ export async function generateMetadata({ params, searchParams }) {
     },
   };
 }
-async function Page({ params, searchParams }) {
+function Page({ params, searchParams }) {
   return (
     <>
       <Suspense fallback={<NavbarSkeleton noCategory={true} />}>
         <CustomNavbarServer lang={params.lang} />
       </Suspense>
-
       <Suspense fallback={<ListingSkeleton />}>
         <ProductListServer searchParams={searchParams} params={params} />
       </Suspense>

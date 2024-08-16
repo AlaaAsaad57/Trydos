@@ -28,21 +28,25 @@ function BackBar({
         onClick={() => {
           if (link) {
             if (activeRoute === "/") {
-              dispatchRouteChangeEvent("start", {
-                to: "HomePage",
-                from: "details",
-              });
-              router.push(`/`);
-              document.documentElement.style.overflow = "hidden";
-              document.documentElement.scrollTop = 0;
+              window.location.pathname = `/`;
+              // dispatchRouteChangeEvent("start", {
+              //   to: "HomePage",
+              //   from: "details",
+              // });
+
+              //   router.push(`/`);
+              // document.documentElement.style.overflow = "hidden";
+              // document.documentElement.scrollTop = 0;
             } else {
-              dispatchRouteChangeEvent("start", {
-                to: "boutique",
-                from: "details",
-              });
-              router.push(activeRoute);
-              document.documentElement.style.overflow = "hidden";
-              document.documentElement.scrollTop = 0;
+              window.location.pathname = activeRoute;
+              // dispatchRouteChangeEvent("start", {
+              //   to: "boutique",
+              //   from: "details",
+              // });
+              // window.location.pathname=(activeRoute);
+              // router.push(activeRoute);
+              // document.documentElement.style.overflow = "hidden";
+              // document.documentElement.scrollTop = 0;
             }
           } else close();
         }}

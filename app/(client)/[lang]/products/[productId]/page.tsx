@@ -24,7 +24,7 @@ export async function generateMetadata({ params }) {
   };
 }
 
-async function Page({ params: { productId, lang } }) {
+function Page({ params: { productId, lang } }) {
   return (
     <>
       <Suspense fallback={<NavbarSkeleton noCategory={true} />}>

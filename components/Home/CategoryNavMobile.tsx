@@ -39,11 +39,13 @@ function CategoryNavMobile({
           value: `${name} category filter`,
         });
         if (decodeURI(searchParams.mainCategory) === slug) {
-          router.push("/");
-          dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
+          window.location.pathname = `/`;
+          // router.push("/");
+          // dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
         } else {
-          router.push(`/categories/${slug}`);
-          dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
+          window.location.pathname = `/categories/${slug}`;
+          // router.push(`/categories/${slug}`);
+          // dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
         }
       }}
     >
