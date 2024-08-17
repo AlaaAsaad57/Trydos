@@ -40,7 +40,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           // @ts-ignore: Unreachable code error
           !e.target.closest(".offer-category")
         ) {
-          window.location.pathname = `/boutiques/${boutique.slug}`;
+          window.location.href = `/boutiques/${boutique.slug}`;
           // router.push(`/boutiques/${boutique.slug}`);
           // dispatchRouteChangeEvent("start", { to: "boutique" });
         }

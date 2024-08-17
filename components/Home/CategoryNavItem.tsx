@@ -37,7 +37,7 @@ const CategoryNavItem = ({
       });
       // router.push(`/categories/${slug}`);
       // dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
-      window.location.pathname = `/categories/${slug}`;
+      window.location.href = `/categories/${slug}`;
     }
   };
 

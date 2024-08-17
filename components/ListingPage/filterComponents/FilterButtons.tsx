@@ -138,7 +138,7 @@ function FilterButtons() {
 
   return (
     <>
-      {
+      {filterEnabled && (
         <div className="filter-buttons flex-row">
           {showFilterInfoBar() ? (
             <div
@@ -225,7 +225,7 @@ function FilterButtons() {
             </div>
           )}
         </div>
-      }
+      )}
     </>
   );
 }

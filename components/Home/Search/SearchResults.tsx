@@ -58,7 +58,7 @@ function SearchResults() {
     }
     if (searchValue) params.set("searchText", searchValue);
     // router.push(`/boutiques/listing?${params.toString()}`);
-    window.location.pathname = `/boutiques/listing?${params.toString()}`;
+    window.location.href = `/boutiques/listing?${params.toString()}`;
   };
   const apply = () => {
     onClickSearchHistory(searchValue || "");

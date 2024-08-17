@@ -186,7 +186,7 @@ function BoutiqueHeader({ boutique, showFilters }) {
     }
     dispatch({
       type: "ACTIVE-ROUTE",
-      payload: `${window.location.pathname}`,
+      payload: `${window.location.href}`,
     });
   }, []);
   useEffect(() => {

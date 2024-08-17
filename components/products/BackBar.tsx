@@ -28,7 +28,7 @@ function BackBar({
         onClick={() => {
           if (link) {
             if (activeRoute === "/") {
-              window.location.pathname = `/`;
+              window.location.href = `/`;
               // dispatchRouteChangeEvent("start", {
               //   to: "HomePage",
               //   from: "details",
@@ -38,12 +38,12 @@ function BackBar({
               // document.documentElement.style.overflow = "hidden";
               // document.documentElement.scrollTop = 0;
             } else {
-              window.location.pathname = activeRoute;
+              window.location.href = activeRoute;
               // dispatchRouteChangeEvent("start", {
               //   to: "boutique",
               //   from: "details",
               // });
-              // window.location.pathname=(activeRoute);
+              // window.location.href=(activeRoute);
               // router.push(activeRoute);
               // document.documentElement.style.overflow = "hidden";
               // document.documentElement.scrollTop = 0;
