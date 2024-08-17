@@ -19,9 +19,6 @@ interface NormalWidgetProps {
   onClick: Function;
 }
 const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
-  console.log(boutique);
-  const router = useRouter();
-
   useEffect(() => {
     if (boutique.description) {
       encode_utf8({
