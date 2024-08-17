@@ -27,13 +27,9 @@ import { notFound } from "next/navigation";
 function Page({ params: { productId, lang } }) {
   return (
     <>
-      <Suspense fallback={<NavbarSkeleton noCategory={true} />}>
-        <CustomNavbarServer lang={lang} />
-      </Suspense>
+      <CustomNavbarServer lang={lang} />
 
-      <Suspense fallback={<DetailsSekeleton />}>
-        <ProductDetailsServer productId={productId} lang={lang} />
-      </Suspense>
+      <ProductDetailsServer productId={productId} lang={lang} />
     </>
   );
 }

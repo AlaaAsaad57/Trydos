@@ -36,12 +36,9 @@ import { getBoutiqueMeta } from "utils/functions";
 function Page({ params, searchParams }) {
   return (
     <>
-      <Suspense fallback={<NavbarSkeleton noCategory={true} />}>
-        <CustomNavbarServer lang={params.lang} />
-      </Suspense>
-      <Suspense fallback={<ListingSkeleton />}>
-        <ProductListServer searchParams={searchParams} params={params} />
-      </Suspense>
+      <CustomNavbarServer lang={params.lang} />
+
+      <ProductListServer searchParams={searchParams} params={params} />
     </>
   );
 }

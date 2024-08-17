@@ -12,14 +12,13 @@ import { Suspense } from "react";
 function page({ params }) {
   return (
     <>
-      <Suspense fallback={<NavbarSkeleton noCategory={false} />}>
-        <NavbarServer lang={params.lang} />
-      </Suspense>
+      <NavbarServer lang={params.lang} />
+
       <Home />
       <BrandsBar />
-      <Suspense fallback={<OfferListSkeleton />}>
-        <OfferListServer params={params} />
-      </Suspense>
+
+      <OfferListServer params={params} />
+
       <CategoryBar />
       <OfferBar />
       <QuickOffer />

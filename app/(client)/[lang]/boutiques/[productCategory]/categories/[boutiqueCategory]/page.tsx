@@ -37,13 +37,9 @@ async function page({ params, searchParams }) {
 
   return (
     <>
-      <Suspense fallback={<NavbarSkeleton noCategory={true} />}>
-        <CustomNavbarServer lang={params.lang} />
-      </Suspense>
+      <CustomNavbarServer lang={params.lang} />
 
-      <Suspense fallback={<ListingSkeleton />}>
-        <ProductListServer searchParams={searchParams} params={params} />
-      </Suspense>
+      <ProductListServer searchParams={searchParams} params={params} />
     </>
   );
 }
