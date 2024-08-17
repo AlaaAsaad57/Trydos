@@ -867,7 +867,8 @@ svg {
   position: relative;
   display: flex;
   transform: translateX(-5px);
-  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.16));
+  /* commit slow */
+  /* filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.16)); */
 }
 .offer-avatr-inner-s,
 .offer-more-s {

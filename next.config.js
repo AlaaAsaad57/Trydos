@@ -5,6 +5,37 @@ const nextConfig = withSvgr({
   swcMinify: true,
   reactStrictMode: false,
   compress: true,
+  async headers() {
+    return [
+      {
+        source: "/:lang",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "s-maxage=3600, stale-while-revalidate=3600",
+          },
+        ],
+      },
+      {
+        source: "/:lang/boutiques/:productCategory",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "s-maxage=3600, stale-while-revalidate=3600",
+          },
+        ],
+      },
+      {
+        source: "/:lang/products/:productId",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "s-maxage=3600, stale-while-revalidate=3600",
+          },
+        ],
+      },
+    ];
+  },
   images: {
     domains: [
       "res.cloudinary.com",
@@ -18,6 +49,10 @@ const nextConfig = withSvgr({
   experimental: {
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
+    staleTimes: {
+      dynamic: 3600,
+      static: 3600,
+    },
   },
   webpack(config, options) {
     config.module.rules.push({

@@ -106,6 +106,22 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         isChangedFilter: false,
       };
     }
+    case "RESET-SELECTED-Back": {
+      return {
+        ...state,
+        selectedFilter: {
+          ...state.selectedFilter,
+          categories: state.activeFilters.categories,
+          brands: state.activeFilters.sizes,
+          sizes: state.activeFilters.sizes,
+          colors: state.activeFilters.colors,
+          prices: {
+            ...state.selectedFilter.prices,
+            pricesWord: state.activeFilters?.prices?.pricesWord ?? null,
+          },
+        },
+      };
+    }
     case "APPLY-SELECTED": {
       return {
         ...state,
