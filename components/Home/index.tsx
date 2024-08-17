@@ -67,6 +67,9 @@ export default function Home() {
         .setAttribute("content", "");
       document.body.style.overflowY = "hidden";
     } else {
+      document.documentElement
+        .getElementsByTagName("meta")[0]
+        .setAttribute("content", "");
       document.body.style.overflowY = "initial";
     }
   }, [selectedStory]);

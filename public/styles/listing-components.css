@@ -313,6 +313,7 @@
   position: fixed;
   bottom: 0px;
   padding-inline: 20px;
+  background-color: #fafafa;
   cursor: pointer;
   left: 0px;
   z-index: 22;
