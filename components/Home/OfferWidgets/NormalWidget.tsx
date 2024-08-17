@@ -75,7 +75,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           />
         )}
         <div className="offer-blured" id={`blured-${boutique.id}`} /> */}
-        <div className="offer-container">
+        <div className="offer-container cursor-pointer">
           <div className="offer-logo">
             {boutique.icon ? (
               <Image
