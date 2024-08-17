@@ -17,7 +17,7 @@ export const getStories = async ({ lang }) => {
     let [headersObj, headers] = await DataApiHeaders(true);
     const res = await fetch(STORIES_URL + GET_USERS_STORIES, {
       next: {
-        revalidate: 60,
+        revalidate: 3600,
         tags: [`stories-${cookieStore.get("lang")?.value ?? lang}`],
       },
       headers: headers,
@@ -52,7 +52,7 @@ export const getHomeData = async ({ str, lang }) => {
     const res = await fetch(OTP_URL + url, {
       ...method,
       next: {
-        revalidate: 60,
+        revalidate: 3600,
         tags: [
           `home-boutiques home-boutiques-${
             cookieStore.get("lang")?.value ?? "en"
@@ -99,7 +99,7 @@ export const getMainCategories = async ({ lang }) => {
     let start = new Date().getTime();
     const res = await fetch(OTP_URL + HOME_DATA_CATEGORIES_URL, {
       next: {
-        revalidate: 60,
+        revalidate: 3600,
         tags: [`home-categories-${cookieStore.get("lang")?.value ?? "en"}`],
       },
       headers: new Headers({
@@ -294,7 +294,7 @@ export const getListingData = async ({
         method: "GET",
 
         next: {
-          revalidate: 60,
+          revalidate: 3600,
           tags: [`listing-data-${str}`, "listing-data"],
         },
         headers: new Headers({
@@ -374,7 +374,7 @@ export const getListingData = async ({
         method: "GET",
 
         next: {
-          revalidate: 60,
+          revalidate: 3600,
           tags: [`listing-data-${str}`, "listing-data"],
         },
         headers: new Headers({
@@ -434,7 +434,7 @@ export async function getProductDetails({ productId, lang }) {
       method: "GET",
 
       next: {
-        revalidate: 60,
+        revalidate: 3600,
         tags: [`product-data-${productId}`, "listing-data"],
       },
       headers: new Headers({
@@ -451,7 +451,7 @@ export async function getProductDetails({ productId, lang }) {
       method: "GET",
 
       next: {
-        revalidate: 60,
+        revalidate: 3600,
         tags: [`product-data-${productId}`, "listing-data"],
       },
       headers: new Headers({
@@ -511,7 +511,7 @@ export async function getProductDataOG({ slug, lang }) {
   //     method: "GET",
 
   //     next: {
-  //       revalidate: 60,
+  //       revalidate: 3600,
   //       tags: [`product-data-${slug}`, "listing-data"],
   //     },
   //     headers: new Headers({
@@ -528,7 +528,7 @@ export async function getProductDataOG({ slug, lang }) {
   //     method: "GET",
 
   //     next: {
-  //       revalidate: 60,
+  //       revalidate: 3600,
   //       tags: [`product-data-${slug}`, "listing-data"],
   //     },
   //     headers: new Headers({
@@ -598,7 +598,7 @@ export const FetchApi = async ({ url, method, body, lang, country }) => {
   } else {
     cacheVar = {
       next: {
-        revalidate: 60,
+        revalidate: 3600,
       },
     };
   }
