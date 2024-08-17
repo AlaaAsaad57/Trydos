@@ -8,11 +8,29 @@ const nextConfig = withSvgr({
   async headers() {
     return [
       {
-        source: "/about",
+        source: "/:lang",
         headers: [
           {
             key: "Cache-Control",
-            value: "s-maxage=1, stale-while-revalidate=3600",
+            value: "s-maxage=3600, stale-while-revalidate=3600",
+          },
+        ],
+      },
+      {
+        source: "/:lang/boutiques/:productCategory",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "s-maxage=3600, stale-while-revalidate=3600",
+          },
+        ],
+      },
+      {
+        source: "/:lang/products/:productId",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "s-maxage=3600, stale-while-revalidate=3600",
           },
         ],
       },
@@ -31,6 +49,10 @@ const nextConfig = withSvgr({
   experimental: {
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
+    staleTimes: {
+      dynamic: 3600,
+      static: 3600,
+    },
   },
   webpack(config, options) {
     config.module.rules.push({
