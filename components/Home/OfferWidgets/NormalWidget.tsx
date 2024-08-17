@@ -48,7 +48,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
       key={myKey}
     >
       <>
-        {boutique.banners[0] && (
+        {/* {boutique.banners[0] && (
           <Image
             fill
             alt={"imageAlt" + myKey}
@@ -73,7 +73,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
             })}
           />
         )}
-        <div className="offer-blured" id={`blured-${boutique.id}`} />
+        <div className="offer-blured" id={`blured-${boutique.id}`} /> */}
         <div className="offer-container">
           <div className="offer-logo">
             {boutique.icon ? (

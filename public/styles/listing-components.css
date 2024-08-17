@@ -261,7 +261,7 @@
 .filter-listing-bar,
 .boutique-top-info,
 .boutique-photo-holder .offer-slider-container {
-  transition: 0.4s;
+  transition: 1s;
 }
 @keyframes move {
   0% {

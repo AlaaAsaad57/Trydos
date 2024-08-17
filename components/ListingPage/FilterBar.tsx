@@ -142,14 +142,14 @@ function FilterBar({ boutique, filters, productsServer }) {
               document.documentElement.style.overflow = "hidden";
               document.documentElement.scrollTop = 0;
             } else {
-              dispatch({ type: "RESET-SELECTED" });
-              dispatch({ type: "FILTER-LOADING", payload: true });
+              dispatch({ type: "RESET-SELECTED-Back" });
+
               UpdateFilter({
                 filtersVar: {
-                  categories: [],
-                  brands: [],
-                  colors: [],
-                  sizes: [],
+                  categories: activeFilters.categories,
+                  brands: activeFilters.brands,
+                  colors: activeFilters.colors,
+                  sizes: activeFilters.sizes,
                 },
                 sizesAttr: sizesAttr,
                 boutiqueId: pathName.productCategory,
@@ -166,6 +166,7 @@ function FilterBar({ boutique, filters, productsServer }) {
                 searchText: selectedFilter?.searchText,
               });
               setEnableFilter(false);
+              normalizeView();
             }
           }}
         >
