@@ -311,11 +311,13 @@
 .filter-buttons {
   width: 100%;
   position: fixed;
-  bottom: 20px;
+  bottom: 0px;
   padding-inline: 20px;
   cursor: pointer;
   left: 0px;
   z-index: 22;
+  height: 100px;
+  padding-block: 20px;
 }
 .apply-button {
   width: 100%;
