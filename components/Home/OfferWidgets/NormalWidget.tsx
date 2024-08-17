@@ -19,6 +19,7 @@ interface NormalWidgetProps {
   onClick: Function;
 }
 const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
+  console.log(boutique);
   const router = useRouter();
 
   useEffect(() => {
@@ -113,7 +114,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                       // router.push(
                       //   `/boutiques/${boutique.slug}?categories=${category.category_id}`
                       // );
-                      window.location.pathname = `/boutiques/${boutique.slug}?categories=${category.category_id}`;
+                      window.location.href = `/boutiques/${boutique.slug}?categories=${category.slug}`;
                     }}
                     key={key}
                   >
@@ -144,7 +145,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                       // router.push(
                       //   `/boutiques/${boutique.slug}?categories=${category.category_id}`
                       // );
-                      window.location.pathname = `/boutiques/${boutique.slug}?categories=${category.category_id}`;
+                      window.location.href = `/boutiques/${boutique.slug}?categories=${category.slug}`;
                     }}
                   >
                     <Image

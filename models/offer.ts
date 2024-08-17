@@ -14,6 +14,7 @@ export interface Boutique {
     category_slug: string;
     category_name: string;
     category_icon: string;
+    slug: string;
   }>;
   childCategoriesForProductIds: Array<{
     category_id: string;
@@ -22,5 +23,6 @@ export interface Boutique {
     category_name: string;
     product_name: string;
     product_thumbnail: string;
+    slug: string;
   }>;
 }

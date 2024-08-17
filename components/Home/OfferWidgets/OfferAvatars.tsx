@@ -45,7 +45,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
           <OfferAvatar
             // @ts-ignore
             name={product.most_viewed_product_name}
-            linkUrl={`/boutiques/${boutique.slug}?categories=${product.category_id}`}
+            linkUrl={`/boutiques/${boutique.slug}?categories=${product.slug}`}
             key={index}
             category={product.count_products}
             // @ts-ignore
