@@ -10,8 +10,8 @@ const composeEnhancers =
 
 export const store = createStore(
   rootReducer,
-  undefined
-  // composeEnhancers(persistState(["details"]))
+  undefined,
+  composeEnhancers(persistState(["homepage"]))
 );
 
 const unsubscribe = store.subscribe(() => {});
