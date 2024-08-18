@@ -65,12 +65,7 @@ function Product({
     document.documentElement.scrollTop = 0;
     dispatchStore({ type: "AddToCartOptionEnable", payload: product });
   };
-  const selectedFilters = useSelector(
-    (state: any) => state.details.selectedFilter
-  );
-  const activeFilters = useSelector(
-    (state: any) => state.details.activeFilters
-  );
+
   const [productState, dispatch] = useReducer(ProductReducer, {
     isActiveTopSlide: false,
     activeColor: product.sync_color_images

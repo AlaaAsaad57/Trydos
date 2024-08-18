@@ -256,7 +256,7 @@ export const getListingData = async ({
       };
     }
 
-    let str = `/web/products?${
+    let str = `/web/products?limit=4&offset=1${
       obj.categories?.length > 0
         ? `category_slugs=${JSON.stringify(
             obj.categories.split(",").map((s) => s)
@@ -341,16 +341,16 @@ export const getListingData = async ({
     let url =
       OTP_URL +
       (productCategory
-        ? "/web/products" +
-          `?category=${productCategory}${
+        ? "/web/products?limit=4&offset=1" +
+          `&category=${productCategory}${
             !str.includes("listing")
               ? `&boutique_slugs=${JSON.stringify(str)}`
               : ""
           }`
-        : "/web/products" +
+        : "/web/products?limit=4&offset=1" +
           `${
             !str.includes("listing")
-              ? `?boutique_slugs=${JSON.stringify(str)}`
+              ? `&boutique_slugs=${JSON.stringify(str)}`
               : ""
           }`);
     var details = productCategory

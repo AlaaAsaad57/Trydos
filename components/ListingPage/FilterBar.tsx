@@ -321,7 +321,7 @@ function FilterBar({ boutique, filters, productsServer }) {
       </div>
       <BoutiqueHeader
         boutique={boutique}
-        showFilters={products.length > 1 || productsServer.length > 1}
+        showFilters={products?.length > 1 || productsServer?.length > 1}
       />
       {!filterEnabled && showFilterInfoBar() && (
         <FilterInfoBar filtersVariable={activeFilters} />

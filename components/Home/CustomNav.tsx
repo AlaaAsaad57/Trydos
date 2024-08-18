@@ -9,7 +9,7 @@ import NextLink from "Hooks/NextLink";
 import { usePathname } from "next/navigation";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import { ToastContainer } from "react-toastify";
-const AuthSections = dynamic(() => import("./AuthSections"), { ssr: false });
+import AuthSections from "./AuthSections";
 interface NavbarProps {
   init: string;
 }

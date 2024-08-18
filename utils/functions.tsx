@@ -268,6 +268,9 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
   let resp = await fetch(
     OTP_URL + `/web/boutique/simpleDetails/${boutiqueId}`,
     {
+      next: {
+        revalidate: 3600,
+      },
       headers: new Headers({
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",

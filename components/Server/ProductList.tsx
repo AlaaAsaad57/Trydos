@@ -32,7 +32,7 @@ async function ProductListServer({ params, searchParams }) {
           searchParams: searchParams,
         }}
         boutique={boutique}
-        productsServer={Listing_Data_res.body.data.products}
+        productsServer={Listing_Data_res.body.data?.products}
       />
       <ProductsList
         response={response}

@@ -1,7 +1,7 @@
 "use client";
 import "styles/listing.css";
 import "styles/globals.css";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";
