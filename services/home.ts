@@ -18,6 +18,9 @@ import { FetchApi } from "store/homepage/cachedActions";
 import { toast } from "react-toastify";
 const getHeader = () => {
   return {
+    next: {
+      revalidate: 3600,
+    },
     headers: {
       Authorization: `Bearer ${
         localStorage.getItem("MARKET-TOKEN") ||
@@ -195,7 +198,7 @@ class HomeService {
     let url =
       OTP_URL +
       (categories
-        ? "/web/products/with_filter" +
+        ? "/web/products" +
           `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
         : LISTING_INFO_URL + `?${str}`);
     await fetch(

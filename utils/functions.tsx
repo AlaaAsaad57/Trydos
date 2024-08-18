@@ -553,51 +553,61 @@ export const filterProducts = async ({
       `boutique_slugs=${JSON.stringify([boutiqueId])}`
     }`;
   } else {
-    str = `/web/products/with_filter?category_slugs=${JSON.stringify(
-      filters.categories
-    )}&brand_slugs=${JSON.stringify(filters.brands)}${
-      filters?.attributes?.options?.length > 0
-        ? `&attributes=${JSON.stringify(filters.attributes)}`
-        : ""
-    }${
-      filters.prices !== null && PriceFiltered
-        ? `&prices=${JSON.stringify(filters.prices)}`
-        : ""
-    }${
-      filters.boutique_slug !== "listing"
-        ? `&boutique_slugs=${JSON.stringify([filters.boutique_slug])}`
-        : ""
-    }${
-      filters?.searchText?.length > 0
-        ? `&search_text=${filters.searchText}`
-        : ""
-    }`;
+    str =
+      `/web/products/with_filter?category_slugs=${JSON.stringify(
+        filters.categories
+      )}&brand_slugs=${JSON.stringify(filters.brands)}${
+        filters?.attributes?.options?.length > 0
+          ? `&attributes=${JSON.stringify(filters.attributes)}`
+          : ""
+      }${
+        filters.prices !== null && PriceFiltered
+          ? `&prices=${JSON.stringify(filters.prices)}`
+          : ""
+      }${
+        filters.boutique_slug !== "listing"
+          ? `&boutique_slugs=${JSON.stringify([filters.boutique_slug])}`
+          : ""
+      }${
+        filters?.searchText?.length > 0
+          ? `&search_text=${filters.searchText}`
+          : ""
+      }` +
+      `${
+        filters?.colors?.length > 0
+          ? `&${new URLSearchParams({
+              colors: `[${JSON.stringify(filters?.colors)
+                ?.split(",")
+                .map((s) => `"${s}"`)}]`,
+            }).toString()}`
+          : ""
+      }`;
   }
-  let product = await axios.get(OTP_URL + str, {
-    params: reset ? {} : { colors: `${JSON.stringify(filters.colors)}` },
+  let product = await fetch(OTP_URL + str, {
     headers: {
       lang: filters.lang,
       country: filters.country,
     },
   });
-
+  let repo = await product.json();
+  console.log(repo, str);
   if (!serachTrigger)
     newFiltersCallback({
       filtersVar: {
-        categories: product.data.data.categories,
-        brands: product.data.data.brands,
+        categories: repo.data.categories,
+        brands: repo.data.brands,
         sizes:
-          product.data.data.attributes.filter((s) => s.name === "Size")[0]
-            ?.options || [],
-        prices: product.data.data.prices || null,
+          repo.data.attributes.filter((s) => s.name === "Size")[0]?.options ||
+          [],
+        prices: repo.data.prices || null,
         offers:
-          product.data.data.attributes.filter((s) => s.name === "Offer")[0]
-            ?.options || [],
+          repo.data.attributes.filter((s) => s.name === "Offer")[0]?.options ||
+          [],
         reset: reset,
-        colors: product.data.data.colors || [],
+        colors: repo.data.colors || [],
       },
     });
-  callback(product.data.data.products);
+  callback(repo.data.products);
 };
 
 export const UpdateFilter = async ({
@@ -813,5 +823,238 @@ export const AxiosInstaceRequest = async ({ url, method, body }) => {
         country: country,
       },
     };
+  }
+};
+export const getListingDataFilters = async ({
+  categories,
+  lang,
+  productCategory,
+  searchParams,
+  callback,
+}) => {
+  let start = new Date().getTime();
+
+  if (Object.keys(searchParams).length > 0) {
+    let obj = {
+      categories: ``,
+      brands: ``,
+      sizes: ``,
+      colors: ``,
+      search_text: "",
+      offers: "",
+      sizesAttr: null,
+      prices: "",
+    };
+    if (Object.keys(searchParams).includes("searchText")) {
+      obj = { ...obj, search_text: searchParams.searchText };
+    }
+    if (Object.keys(searchParams).includes("categories"))
+      obj = {
+        ...obj,
+        categories: `${
+          searchParams.categories.includes(",")
+            ? searchParams.categories.split(",")
+            : [searchParams.categories]
+        }`,
+      };
+    if (Object.keys(searchParams).includes("colors"))
+      obj = {
+        ...obj,
+        colors: `${
+          searchParams.colors.includes(",")
+            ? searchParams.colors.split(",")
+            : [searchParams.colors]
+        }`,
+      };
+    if (Object.keys(searchParams).includes("brands"))
+      obj = {
+        ...obj,
+        brands: `${
+          searchParams.brands.includes(",")
+            ? searchParams.brands.split(",")
+            : [searchParams.brands]
+        }`,
+      };
+    if (Object.keys(searchParams).includes("offers"))
+      obj = {
+        ...obj,
+        offers: `${
+          searchParams.offers.includes(",")
+            ? searchParams.offers.split(",")
+            : [searchParams.offers]
+        }`,
+      };
+    if (Object.keys(searchParams).includes("sizes"))
+      obj = {
+        ...obj,
+        sizes: `${
+          searchParams.sizes.includes(",")
+            ? searchParams.sizes.split(",")
+            : [searchParams.sizes]
+        }`,
+        sizesAttr: { id: "1", name: "Size" },
+      };
+    if (
+      Object.keys(searchParams).includes("max-pr") &&
+      Object.keys(searchParams).includes("min-pr")
+    )
+      obj = {
+        ...obj,
+        prices: `${searchParams["min-pr"]}-${searchParams["max-pr"]}`,
+      };
+
+    let filters = {
+      ...obj,
+      boutique_slug: null,
+      lang: lang,
+    };
+    if (!categories.includes("listing")) {
+      filters = {
+        ...filters,
+        boutique_slug: categories,
+      };
+    }
+
+    let str = `/web/products/filters?${
+      obj.categories?.length > 0
+        ? `category_slugs=${JSON.stringify(
+            obj.categories.split(",").map((s) => s)
+          )}`
+        : ""
+    }${
+      obj.brands?.length > 0
+        ? `&brand_slugs=${JSON.stringify(obj.brands.split(",").map((s) => s))}`
+        : ""
+    }${
+      obj.sizes?.length > 0
+        ? `&attributes={id:${obj.sizesAttr.id},name:${
+            obj.sizesAttr.name
+          },options:${JSON.stringify(obj.sizes.split(","))}}`
+        : ""
+    }${
+      obj.search_text?.length > 0
+        ? `${`&search_text=${obj.search_text || ""}`}`
+        : ""
+    }${filters.prices ? `&prices=[${JSON.stringify(obj.prices)}]` : ""}${
+      filters.boutique_slug
+        ? `&boutique_slugs=${JSON.stringify(categories)}`
+        : ""
+    }`;
+
+    let productRes = await fetch(
+      OTP_URL +
+        str +
+        (filters.colors
+          ? `&${new URLSearchParams({
+              colors: `[${obj?.colors?.split(",").map((s) => `"${s}"`)}]`,
+            }).toString()}`
+          : ""),
+      {
+        method: "GET",
+
+        next: {
+          revalidate: 3600,
+          tags: [`listing-data-${str}`, "listing-data"],
+        },
+        headers: new Headers({
+          lang: Cookies.get("language"),
+          country: Cookies.get("country"),
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        }),
+      }
+    );
+    let repo = await productRes.json();
+    let end = new Date().getTime();
+    let time = end - start;
+    let returned_res = {
+      type: productRes.type,
+      headers: new Headers({
+        lang: Cookies.get("language"),
+        country: Cookies.get("country"),
+      }),
+      url: productRes.url,
+      time: time + "ms",
+      response: repo,
+      request: "Get Products with Filters",
+    };
+
+    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
+      callback({
+        body: repo,
+      });
+    else
+      callback({
+        body: repo,
+      });
+  } else {
+    let str = categories;
+
+    let url =
+      OTP_URL +
+      (productCategory
+        ? "/web/products/filters" +
+          `?category=${productCategory}${
+            !str.includes("listing")
+              ? `&boutique_slugs=${JSON.stringify(str)}`
+              : ""
+          }`
+        : "/web/products/filters" +
+          `${
+            !str.includes("listing")
+              ? `?boutique_slugs=${JSON.stringify(str)}`
+              : ""
+          }`);
+    var details = productCategory
+      ? {
+          boutique_slug: [str],
+          category: productCategory,
+        }
+      : {
+          boutique_slug: [str],
+        };
+
+    try {
+      const res = await fetch(url, {
+        method: "GET",
+
+        next: {
+          revalidate: 3600,
+          tags: [`listing-data-${str}`, "listing-data"],
+        },
+        headers: new Headers({
+          lang: Cookies.get("language"),
+          country: Cookies.get("country"),
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        }),
+      });
+      let end = new Date().getTime();
+      let time = end - start;
+      const repo = await res.json();
+
+      let returned_res = {
+        type: res.type,
+        headers: new Headers({
+          lang: Cookies.get("language"),
+          country: Cookies.get("country"),
+        }),
+        url: res.url,
+        time: time + "ms",
+        response: repo,
+        request: "Get Products with Filters ",
+      };
+
+      if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
+        callback({
+          body: repo,
+        });
+      else
+        callback({
+          body: repo,
+        });
+    } catch (e) {
+      console.log(e);
+    }
   }
 };

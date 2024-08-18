@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   expandView,
   filterProducts,
+  getListingDataFilters,
   normalizeView,
   UpdateFilter,
 } from "utils/functions";
@@ -122,7 +123,22 @@ function FilterBar({ boutique, filters, productsServer }) {
   };
 
   useEffect(() => {
-    dispatch({ type: "FILTER-INIT", payload: filters });
+    getListingDataFilters({
+      ...filters,
+      callback: (Listing_Data_res) => {
+        let filtersVar = {
+          categories: Listing_Data_res.body.data?.categories || [],
+          brands: Listing_Data_res.body.data?.brands || [],
+          attributes: Listing_Data_res.body.data?.attributes || [],
+          offers: Listing_Data_res.body.data?.offers || [],
+          prices: Listing_Data_res.body.data?.prices || null,
+          search_text: Listing_Data_res.body.data?.result_for || "",
+          colors: Listing_Data_res.body.data?.colors || [],
+        };
+        console.log(Listing_Data_res);
+        dispatch({ type: "FILTER-INIT", payload: filtersVar });
+      },
+    });
   }, []);
   return (
     <>
