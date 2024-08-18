@@ -36,7 +36,9 @@ export const dynamicParams = true;
 export const generateStaticParams = async () => {
   return [];
 };
-function Page({ params, searchParams }) {
+export const revalidate = 36000;
+
+async function Page({ params, searchParams }) {
   return (
     <>
       <CustomNavbarServer lang={params.lang} />

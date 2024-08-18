@@ -3,8 +3,13 @@ import BrandsBar from "components/Home/Bars/BrandsBar";
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
 
-export const revalidte = 36000;
-function HomePage({ params }) {
+export const dynamicParams = true;
+export const generateStaticParams = async () => {
+  return [];
+};
+
+export const revalidate = 36000;
+async function HomePage({ params }) {
   return (
     <>
       <NavbarServer lang={params.lang} />

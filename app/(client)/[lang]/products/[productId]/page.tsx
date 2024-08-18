@@ -21,8 +21,12 @@ import ProductDetailsServer from "components/Server/ProductDetails";
 //   };
 // }
 
-export const revalidte = 36000;
-function Page({ params: { productId, lang } }) {
+export const dynamicParams = true;
+export const generateStaticParams = async () => {
+  return [];
+};
+export const revalidate = 36000;
+async function Page({ params: { productId, lang } }) {
   return (
     <>
       <CustomNavbarServer lang={lang} />

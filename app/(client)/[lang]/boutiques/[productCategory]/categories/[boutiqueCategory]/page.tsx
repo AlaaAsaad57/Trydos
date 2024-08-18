@@ -32,7 +32,6 @@ import ProductListServer from "components/Server/ProductList";
 //     },
 //   };
 // }
-export const revalidte = 36000;
 async function page({ params, searchParams }) {
   const boutiqueId = params.productCategory;
 
@@ -46,3 +45,9 @@ async function page({ params, searchParams }) {
 }
 
 export default page;
+
+export const dynamicParams = true;
+export const generateStaticParams = async () => {
+  return [];
+};
+export const revalidate = 36000;
