@@ -45,6 +45,7 @@ function getDefaultLocale(countryByIp, countries) {
 }
 
 export async function middleware(request) {
+  const start = new Date().getTime();
   const data = await getCountriesApi();
 
   let countries = data.map((s) => s.iso.toLowerCase());
@@ -109,7 +110,8 @@ export async function middleware(request) {
         : getDefaultLocale(countryByIp, countries).country;
 
       request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathname}`;
-
+      const end = new Date().getTime();
+      console.log(end - start);
       return NextResponse.redirect(request.nextUrl);
     } else {
       if (countries.includes(countryByIp)) {
@@ -118,7 +120,11 @@ export async function middleware(request) {
         request.nextUrl.pathname = `/selectCountry`;
       }
       if (pathN.length > 1) request.nextUrl.searchParams.set("path", pathN);
-      return NextResponse.redirect(request.nextUrl);
+      {
+        const end = new Date().getTime();
+        console.log(end - start);
+        return NextResponse.redirect(request.nextUrl);
+      }
     }
   } else if (!hasLanguage || !hasCountry) {
     if (!hasLanguage && !hasCountry) {
@@ -135,7 +141,8 @@ export async function middleware(request) {
       if (pathN.length > 1) request.nextUrl.searchParams.set("path", pathN);
       //
     }
-
+    const end = new Date().getTime();
+    console.log(end - start);
     return NextResponse.redirect(request.nextUrl);
   }
   if (hasLanguage) {

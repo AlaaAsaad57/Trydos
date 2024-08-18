@@ -258,7 +258,7 @@ export const getListingData = async ({
 
     let str = `/web/products?limit=4&offset=1${
       obj.categories?.length > 0
-        ? `category_slugs=${JSON.stringify(
+        ? `&category_slugs=${JSON.stringify(
             obj.categories.split(",").map((s) => s)
           )}`
         : ""
@@ -320,7 +320,7 @@ export const getListingData = async ({
       response: repo,
       request: "Get Products with Filters",
     };
-    console.log(time, "boutiques-product");
+
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
       return [
         {

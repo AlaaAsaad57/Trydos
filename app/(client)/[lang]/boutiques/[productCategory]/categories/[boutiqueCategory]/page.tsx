@@ -1,11 +1,11 @@
 import CustomNavbarServer from "components/Server/ServerCustomNav";
-import { Suspense } from "react";
-import ListingSkeleton from "components/skeleton/listing";
+// import { Suspense } from "react";
+// import ListingSkeleton from "components/skeleton/listing";
 import ProductListServer from "components/Server/ProductList";
-import NavbarSkeleton from "components/skeleton/navbar";
-import FilterBar from "components/ListingPage/FilterBar";
-import { getBoutiqueMeta, getBoutiqueFilters } from "utils/functions";
-import { notFound } from "next/navigation";
+// import NavbarSkeleton from "components/skeleton/navbar";
+// import FilterBar from "components/ListingPage/FilterBar";
+// import { getBoutiqueMeta, getBoutiqueFilters } from "utils/functions";
+// import { notFound } from "next/navigation";
 // export async function generateMetadata({ params, searchParams }) {
 //   const boutiqueId = params.productCategory;
 //   const metaData =
@@ -32,6 +32,7 @@ import { notFound } from "next/navigation";
 //     },
 //   };
 // }
+export const revalidte = 36000;
 async function page({ params, searchParams }) {
   const boutiqueId = params.productCategory;
 

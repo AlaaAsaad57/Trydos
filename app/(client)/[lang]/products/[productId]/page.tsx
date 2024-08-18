@@ -1,11 +1,8 @@
 import "styles/productDetails.css";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
-import { Suspense } from "react";
-import DetailsSekeleton from "components/skeleton/details";
-import NavbarSkeleton from "components/skeleton/navbar";
+
 import ProductDetailsServer from "components/Server/ProductDetails";
-import { getProductMeta } from "utils/functions";
-import { notFound } from "next/navigation";
+
 // export async function generateMetadata({ params }) {
 //   const productId = params.productId;
 //   const metaData = await getProductMeta({ productId, lang: params.lang });
@@ -24,6 +21,7 @@ import { notFound } from "next/navigation";
 //   };
 // }
 
+export const revalidte = 36000;
 function Page({ params: { productId, lang } }) {
   return (
     <>

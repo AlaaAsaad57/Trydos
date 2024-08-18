@@ -298,7 +298,7 @@ function FilterBar({ boutique, filters, productsServer }) {
               }
             }}
           >
-            {(products.length > 1 || productsServer.length > 1) && (
+            {(products.length > 1 || productsServer?.length > 1) && (
               <FilterIcon
                 className={`${filterEnabled && "filter-icon-enabled"}`}
               />
