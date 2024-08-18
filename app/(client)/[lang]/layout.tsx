@@ -3,7 +3,7 @@ import "styles/home.css";
 import "styles/unused-onload.css";
 import Providers from "store/provider";
 import localFont from "next/font/local";
-import PageLoadingIndicator from "Hooks/LoadingIndicator";
+
 import TranslationsMenu from "components/global/TranslationsMenu";
 export const metadata = {
   title: "TryDos",
@@ -65,7 +65,6 @@ export default async function RootLayout({ params, children }) {
       </head>
 
       <body>
-        <PageLoadingIndicator />
         <Providers>
           <div className="site-container">
             <div className="home-page-container">
