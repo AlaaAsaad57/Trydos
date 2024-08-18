@@ -60,19 +60,19 @@ export default function Home() {
   const searchEnabled = useSelector((state: any) => state.Search.enable);
 
   const nameModal = useSelector((state: any) => state.chat.nameModal);
-  useEffect(() => {
-    if (selectedStory) {
-      document.documentElement
-        .getElementsByTagName("meta")[0]
-        .setAttribute("content", "");
-      document.body.style.overflowY = "hidden";
-    } else {
-      document.documentElement
-        .getElementsByTagName("meta")[0]
-        .setAttribute("content", "");
-      document.body.style.overflowY = "initial";
-    }
-  }, [selectedStory]);
+  // useEffect(() => {
+  //   if (selectedStory) {
+  //     document.documentElement
+  //       .getElementsByTagName("meta")[0]
+  //       .setAttribute("content", "");
+  //     document.body.style.overflowY = "hidden";
+  //   } else {
+  //     document.documentElement
+  //       .getElementsByTagName("meta")[0]
+  //       .setAttribute("content", "");
+  //     document.body.style.overflowY = "initial";
+  //   }
+  // }, [selectedStory]);
   return (
     <>
       <Stories />
