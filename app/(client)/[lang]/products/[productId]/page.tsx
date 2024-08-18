@@ -22,9 +22,7 @@ import ProductDetailsServer from "components/Server/ProductDetails";
 // }
 
 export const dynamicParams = true;
-export const generateStaticParams = async () => {
-  return [];
-};
+
 export const revalidate = 36000;
 async function Page({ params: { productId, lang } }) {
   return (

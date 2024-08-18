@@ -33,9 +33,7 @@ import CustomNavbarServer from "components/Server/ServerCustomNav";
 //   };
 // }
 export const dynamicParams = true;
-export const generateStaticParams = async () => {
-  return [];
-};
+
 export const revalidate = 36000;
 
 async function Page({ params, searchParams }) {

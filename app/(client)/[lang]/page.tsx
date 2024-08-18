@@ -4,9 +4,6 @@ import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
 
 export const dynamicParams = true;
-export const generateStaticParams = async () => {
-  return [];
-};
 
 export const revalidate = 36000;
 async function HomePage({ params }) {
