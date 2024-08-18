@@ -74,7 +74,7 @@ function Index() {
               ))}
             </div>
           </div>
-          {show && (
+          {/* {show && (
             <svg
               id="stories-border2"
               className="border"
@@ -93,7 +93,7 @@ function Index() {
                 strokeDasharray="3 3"
               />
             </svg>
-          )}
+          )} */}
         </div>
       ) : (
         (storiesData.length > 0 || user?.id) && (
