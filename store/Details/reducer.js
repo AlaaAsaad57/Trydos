@@ -50,10 +50,17 @@ const initialState = {
   isChangedFilter: false,
   product: {},
   loading: false,
+  activeRoute: "/",
 };
 
 const DetailsReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "ACTIVE-ROUTE": {
+      return {
+        ...state,
+        activeRoute: payload,
+      };
+    }
     case "STORE-PRODUCT": {
       return {
         ...state,

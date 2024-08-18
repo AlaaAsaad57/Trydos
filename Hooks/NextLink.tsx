@@ -25,13 +25,7 @@ export default function NextLink({
   };
 
   return (
-    <a
-      prefetch={false}
-      className={className}
-      href={href}
-      {...props}
-      onClick={handleClick}
-    >
+    <a className={className} href={href} {...props} onClick={handleClick}>
       {children}
     </a>
   );

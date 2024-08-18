@@ -199,7 +199,7 @@ class HomeService {
           `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
         : LISTING_INFO_URL + `?${str}`);
     await fetch(
-      url + `&offset=${offset}&limit=${20}`,
+      url + `&offset=${offset}&limit=${10}`,
 
       {
         method: "GET",
@@ -241,7 +241,7 @@ class HomeService {
       let rep = await fetch(
         OTP_URL +
           LISTING_INFO_URL +
-          `/with_filter?search_text=${search_text}&${urlParams.toString()}`,
+          `/with_filter?search_text=${search_text}&${urlParams.toString()}&offset=1&limit=8`,
         {
           headers: {
             ...getHeader().headers,

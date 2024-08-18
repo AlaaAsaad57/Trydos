@@ -16,7 +16,7 @@ const initialState = {
   categories: [],
   session_id: uuidv4(),
   previous_event_button_name: null,
-  activeRoute: "/",
+
   currency: null,
 };
 
@@ -26,12 +26,6 @@ const HomeReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         currency: payload,
-      };
-    }
-    case "ACTIVE-ROUTE": {
-      return {
-        ...state,
-        activeRoute: payload,
       };
     }
     case "LOADING": {

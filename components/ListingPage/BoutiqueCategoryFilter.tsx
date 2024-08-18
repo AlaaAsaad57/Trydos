@@ -1,5 +1,5 @@
 import React from "react";
-import FilterButton from "./FilterButton";
+
 import CategoryRow from "./CategoryRow";
 import FilterLabel from "./filterComponents/FilterLabel";
 

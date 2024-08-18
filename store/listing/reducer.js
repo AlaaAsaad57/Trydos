@@ -26,7 +26,7 @@ const ListingReducer = (state = initialState, { type, payload }) => {
         ...state,
         products: payload?.products ?? [],
         offset: 2,
-        limit: 20,
+        limit: 10,
         loading: false,
         skeleton: false,
       };
