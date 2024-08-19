@@ -27,6 +27,7 @@ const initialState = {
       max: 500,
       pricesWord: null,
     },
+    pricesSelected: [],
     brands: [],
     offers: [],
     sizes: [],
@@ -90,6 +91,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           sizes: [],
           searchText: "",
           colors: [],
+          pricesSelected: [],
         },
         activeFilters: {
           filtered: false,
@@ -261,7 +263,19 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         isChangedFilter: true,
       };
     }
-
+    case "FILTER-PRICE-TEXT": {
+      return {
+        ...state,
+        selectedFilter: {
+          ...state.selectedFilter,
+          pricesSelected: state.selectedFilter.pricesSelected?.some(
+            (s) => s === payload
+          )
+            ? state.selectedFilter.pricesSelected.filter((s) => s !== payload)
+            : [...state.selectedFilter.pricesSelected, payload],
+        },
+      };
+    }
     case "RESET-FILTER": {
       return {
         ...state,
@@ -283,6 +297,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           sizes: [],
           searchText: "",
           colors: [],
+          pricesSelected: [],
         },
       };
     }
@@ -320,6 +335,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
           sizes: [],
           searchText: "",
           colors: [],
+          pricesSelected: [],
         },
         filterLoading: false,
         activeFilters: {

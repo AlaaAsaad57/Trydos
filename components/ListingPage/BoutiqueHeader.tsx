@@ -19,6 +19,7 @@ import {
 } from "next/navigation";
 import FilterButton from "./FilterButton";
 import BoutiqueColorsFilter from "./filterComponents/BoutiqueColorsFilter";
+import BoutiquePriceSelect from "./BoutiquePriceSelect";
 
 function BoutiqueHeader({ boutique, showFilters }) {
   const filterEnabled = useSelector(
@@ -262,6 +263,8 @@ function BoutiqueHeader({ boutique, showFilters }) {
                 if (filters?.sizes.length > 0) arr.push({ name: "Sizes" });
                 if (filters?.offers.length > 0) arr.push({ name: "Offers" });
                 if (filters?.colors.length > 0) arr.push({ name: "Colors" });
+                if (filters?.prices?.priceRanges.length > 0)
+                  arr.push({ name: "Prices" });
                 return arr;
               }}
               showedFilter={showedFilter}
@@ -295,11 +298,20 @@ function BoutiqueHeader({ boutique, showFilters }) {
                       <BoutiqueOfferFilter filterEnabled={filterEnabled} />
                     </>
                   )}
-                  {filters?.prices?.min_price >= 0 && filterEnabled && (
-                    <>
-                      <BoutiquePriceFilter />
-                    </>
-                  )}
+                  {filters?.prices?.min_price >= 0 &&
+                    (filterEnabled ? (
+                      <>
+                        <BoutiquePriceFilter />
+                      </>
+                    ) : (
+                      <>
+                        {" "}
+                        {!filterEnabled && <BorderThin />}
+                        <BoutiquePriceSelect
+                          prices={filters.prices.priceRanges}
+                        />
+                      </>
+                    ))}
                   {filters?.sizes?.length > 0 && (
                     <>
                       {!filterEnabled && <BorderThin />}
