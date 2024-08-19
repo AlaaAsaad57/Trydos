@@ -7,7 +7,10 @@ import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
 
 export const dynamicParams = true;
+export const dynamic = "force-static";
 
+// CDN cache currently only works on nodejs runtime
+export const runtime = "nodejs";
 export const revalidate = 36000;
 async function page({ params }) {
   return (

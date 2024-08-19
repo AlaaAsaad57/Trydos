@@ -21,7 +21,10 @@ import { getListingDataProd } from "store/homepage/cachedActions";
 //     },
 //   };
 // }
+export const dynamic = "force-static";
 
+// CDN cache currently only works on nodejs runtime
+export const runtime = "nodejs";
 export const dynamicParams = true;
 export const generateStaticParams = async () => {
   const Listing_Data_res = await getListingDataProd();

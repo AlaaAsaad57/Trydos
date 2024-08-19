@@ -34,6 +34,10 @@ import { getHomeDataStatic } from "store/homepage/cachedActions";
 //   };
 // }
 export const dynamicParams = true;
+export const dynamic = "force-static";
+
+// CDN cache currently only works on nodejs runtime
+export const runtime = "nodejs";
 export const generateStaticParams = async () => {
   const HomeData = await getHomeDataStatic();
   let arr = [
