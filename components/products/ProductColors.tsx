@@ -98,7 +98,7 @@ function ProductColors({ colors, ProductColorsArray }) {
           initialSlide={Math.round(colors.length / 2) - 1}
           loop={false}
         >
-          {colors.map((color, index) => (
+          {colors?.map((color, index) => (
             <SwiperSlide
               key={index}
               style={{

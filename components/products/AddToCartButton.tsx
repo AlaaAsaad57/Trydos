@@ -49,7 +49,7 @@ function AddToCartButton({
   };
   const getTotalQuantity = () => {
     let num = 0;
-    AddToCartOption.selectedOptions.map((s) => {
+    AddToCartOption.selectedOptions?.map((s) => {
       num = num + s.quantity;
     });
     return num;
@@ -82,7 +82,7 @@ function AddToCartButton({
               ) {
                 AddToCartAction({ quantity: 1 });
               } else {
-                AddToCartOption.selectedOptions.map((selectedCartItem) => {
+                AddToCartOption.selectedOptions?.map((selectedCartItem) => {
                   dispatch({ type: "LOADED-CART", payload: false });
                   home.AddToCart({
                     alreadyExist: isAlreayAdded({

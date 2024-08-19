@@ -82,7 +82,7 @@ function ProductSizes({ sizes }) {
           initialSlide={Math.round(sizes.length / 2) - 1}
           loop={false}
         >
-          {sizes.map((size, index) => (
+          {sizes?.map((size, index) => (
             <SwiperSlide
               key={index}
               style={{

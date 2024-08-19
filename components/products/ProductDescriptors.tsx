@@ -55,7 +55,7 @@ function ProductDescriptors({ descriptors }) {
                 {descriptor.descriptor_group.name}
               </div>
               <div className="descriptor-values flex-row">
-                {descriptor.descriptors.map((sub_descriptor, index) => (
+                {descriptor?.descriptors?.map((sub_descriptor, index) => (
                   <div
                     className="sub-descriptor align-center flex-row"
                     key={index}
