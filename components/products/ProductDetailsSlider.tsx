@@ -27,7 +27,7 @@ function ProductDetailsSlider({ product }: { product: ProductInterface }) {
                 Math.round(productData.sync_color_images.length / 2) - 1
               ]) ??
             productData
-          )?.images.map((img, i) => (
+          )?.images?.map((img, i) => (
             <div className="embla__slide" key={i}>
               <Image
                 width={320}

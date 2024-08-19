@@ -34,12 +34,12 @@ export const generateStaticParams = async () => {
     { lang: "lb-en" },
     { lang: "lb-ar" },
   ].map((l) => {
-    return Listing_Data_res.data.products.map((s) => {
+    return Listing_Data_res.data.products?.map((s) => {
       return { slug: s.slug, lang: l.lang };
     });
   });
 
-  return arr.flat().map((s) => ({
+  return arr?.flat()?.map((s) => ({
     productId: s.slug,
     lang: s.lang,
   }));
