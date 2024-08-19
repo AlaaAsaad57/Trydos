@@ -9,12 +9,15 @@ import { getUserChat } from "utils/functions";
 const NameModal = dynamic(() => import("components/global/NameModal"));
 const StoriesContainer = dynamic(() => import("./Stories/NewStories"), {
   loading: () => <LandingPage afterLoad={true} />,
+  ssr: false,
 });
 import { getUserStories } from "../../utils/functions";
 import StoryServiceClass from "services/story";
 import LandingPage from "./LandingPage";
 import { dispatchRouteChangeEvent } from "Hooks/events";
-import SearchContainer from "./Search/SearchContainer";
+const SearchContainer = dynamic(() => import("./Search/SearchContainer"), {
+  ssr: false,
+});
 export default function Home() {
   useEffect(() => {
     dispatchRouteChangeEvent("completed");

@@ -243,8 +243,8 @@ class HomeService {
     try {
       let rep = await fetch(
         OTP_URL +
-          LISTING_INFO_URL +
-          `/with_filter?search_text=${search_text}&${urlParams.toString()}&offset=1&limit=4`,
+          "/web/search" +
+          `?search_text=${search_text}&${urlParams.toString()}&offset=1&limit=4`,
         {
           headers: {
             ...getHeader().headers,

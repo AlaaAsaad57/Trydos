@@ -1,9 +1,11 @@
-import FilterBar from "components/ListingPage/FilterBar";
-
 import ProductsList from "components/ListingPage/ProductsList";
+import dynamic from "next/dynamic";
 import React from "react";
 import { getListingData } from "store/homepage/cachedActions";
 import { getBoutiqueMeta } from "utils/functions";
+const FilterBar = dynamic(() => import("components/ListingPage/FilterBar"), {
+  ssr: false,
+});
 
 async function ProductListServer({ params, searchParams }) {
   const boutiqueId = params.productCategory;
