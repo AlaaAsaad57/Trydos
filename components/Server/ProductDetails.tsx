@@ -1,9 +1,13 @@
 "use server";
+import dynamic from "next/dynamic";
+
 import BackBar from "components/products/BackBar";
 import ProductDetailsSlider from "components/products/ProductDetailsSlider";
 import ProductFooterSection from "components/products/ProductFooterSection";
-import ProuctDetailsBody from "components/products/ProuctDetailsBody";
-import { dispatchRouteChangeEvent } from "Hooks/events";
+const ProuctDetailsBody = dynamic(
+  () => import("components/products/ProuctDetailsBody"),
+  { ssr: false }
+);
 
 import React from "react";
 import { getProductDetails } from "store/homepage/cachedActions";

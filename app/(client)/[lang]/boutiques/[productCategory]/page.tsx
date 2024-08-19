@@ -1,6 +1,6 @@
 import ProductListServer from "components/Server/ProductList";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
-import { getHomeDataStatic } from "store/homepage/cachedActions";
+
 // import ListingSkeleton from "components/skeleton/listing";
 // import NavbarSkeleton from "components/skeleton/navbar";
 // import { notFound } from "next/navigation";
