@@ -33,30 +33,8 @@ import { getHomeDataStatic } from "store/homepage/cachedActions";
 //     },
 //   };
 // }
-export const dynamicParams = true;
-export const dynamic = "force-static";
 
-// CDN cache currently only works on nodejs runtime
-export const runtime = "nodejs";
-export const generateStaticParams = async () => {
-  const HomeData = await getHomeDataStatic();
-  let arr = [
-    { lang: "tr-en" },
-    { lang: "tr-ar" },
-    { lang: "lb-en" },
-    { lang: "lb-ar" },
-  ].map((l) => {
-    return HomeData.map((s) => {
-      return { slug: s.slug, lang: l.lang };
-    });
-  });
-
-  return arr.flat().map((s) => ({
-    lang: s.lang,
-    productCategory: s.slug,
-  }));
-};
-export const revalidate = 36000;
+export const revalidate = 3600;
 
 async function Page({ params, searchParams }) {
   return (

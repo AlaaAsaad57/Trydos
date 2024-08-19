@@ -21,30 +21,8 @@ import { getListingDataProd } from "store/homepage/cachedActions";
 //     },
 //   };
 // }
-export const dynamic = "force-static";
 
-// CDN cache currently only works on nodejs runtime
-export const runtime = "nodejs";
-export const dynamicParams = true;
-export const generateStaticParams = async () => {
-  const Listing_Data_res = await getListingDataProd();
-  let arr = [
-    { lang: "tr-en" },
-    { lang: "tr-ar" },
-    { lang: "lb-en" },
-    { lang: "lb-ar" },
-  ].map((l) => {
-    return Listing_Data_res.data.products?.map((s) => {
-      return { slug: s.slug, lang: l.lang };
-    });
-  });
-
-  return arr?.flat()?.map((s) => ({
-    productId: s.slug,
-    lang: s.lang,
-  }));
-};
-export const revalidate = 36000;
+export const revalidate = 3600;
 async function Page({ params: { productId, lang } }) {
   return (
     <>

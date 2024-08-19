@@ -14,6 +14,7 @@ export type ProductInterface = {
   category: {
     id: number;
     name: string;
+    flat_photo_path: string;
     icon: string;
   };
   brand: {

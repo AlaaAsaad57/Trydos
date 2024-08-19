@@ -46,6 +46,4 @@ async function page({ params, searchParams }) {
 
 export default page;
 
-export const dynamicParams = true;
-
-export const revalidate = 36000;
+export const revalidate = 3600;

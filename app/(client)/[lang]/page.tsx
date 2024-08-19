@@ -2,18 +2,7 @@ import Home from "components/Home";
 import BrandsBar from "components/Home/Bars/BrandsBar";
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
-
-export const dynamicParams = true;
-export const generateStaticParams = async () => {
-  return [
-    { lang: "tr-en" },
-    { lang: "tr-ar" },
-    { lang: "lb-en" },
-    { lang: "lb-ar" },
-  ];
-};
-
-export const revalidate = 36000;
+export const revalidate = 3600;
 async function HomePage({ params }) {
   return (
     <>
