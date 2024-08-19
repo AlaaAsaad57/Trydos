@@ -50,7 +50,7 @@ export default async function RootLayout({ params, children }) {
   // ${sf_pro_rounded_regular.variable}
   // ${sf_pro_rounded_medium.variable}
   // ${sf_pro_rounded_bold.variable}
-
+  console.log("layout start");
   return (
     <html
       className={`

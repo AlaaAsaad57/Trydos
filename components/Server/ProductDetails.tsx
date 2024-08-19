@@ -10,7 +10,7 @@ import { getProductDetails } from "store/homepage/cachedActions";
 
 async function ProductDetailsServer({ productId, lang }) {
   let [product, data] = await getProductDetails({ productId, lang });
-
+  console.log("product loaded");
   return (
     <div className="product-details-container w-full">
       <BackBar link={true} close={null} data={data} />

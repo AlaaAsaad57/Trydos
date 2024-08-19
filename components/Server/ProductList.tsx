@@ -19,7 +19,7 @@ async function ProductListServer({ params, searchParams }) {
     lang: params.lang ? params.lang.split("-")[1] : null,
     searchParams: searchParams,
   });
-
+  console.log("boutique-filter loaded");
   return (
     <>
       <FilterBar
