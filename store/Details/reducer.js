@@ -112,7 +112,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         selectedFilter: {
           ...state.selectedFilter,
           categories: state.activeFilters.categories,
-          brands: state.activeFilters.sizes,
+          brands: state.activeFilters.brands,
           sizes: state.activeFilters.sizes,
           colors: state.activeFilters.colors,
           prices: {
