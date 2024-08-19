@@ -1,6 +1,6 @@
 import React, { useReducer } from "react";
 import ImageSlider from "./ImageSlider";
-import PriceLabel from "./PriceLabel";
+
 import BuyButton from "./BuyButton";
 import NextLink from "Hooks/NextLink";
 import { ProductInterface } from "models/product";
@@ -11,6 +11,10 @@ import dynamic from "next/dynamic";
 const CoverEffectSlider = dynamic(() => import("./CoverEffectSlider"), {
   ssr: false,
 });
+const PriceLabel = dynamic(() => import("./PriceLabel"), {
+  ssr: false,
+});
+
 import ColorSlider from "./ColorSlider";
 import TopSlider from "./TopSlider";
 
