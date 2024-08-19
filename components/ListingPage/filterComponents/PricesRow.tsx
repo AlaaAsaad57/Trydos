@@ -19,7 +19,13 @@ function SizeCircle({ text }: { text: string }) {
     let { min, max } = getPrice(e);
 
     dispatch({ type: "FILTER-LOADING", payload: true });
-    dispatch({ type: "FILTER-PRICE", payload: { min, max } });
+    dispatch({
+      type: "FILTER-PRICE",
+      payload: {
+        min: Math.round(min / currency?.exchange_rate),
+        max: Math.round(max / currency?.exchange_rate),
+      },
+    });
     dispatch({ type: "FILTER-PRICE-TEXT", payload: `${min} - ${max}` });
     UpdateFilter({
       boutiqueId: pathName.productCategory,

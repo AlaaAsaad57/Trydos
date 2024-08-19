@@ -263,7 +263,7 @@ function BoutiqueHeader({ boutique, showFilters }) {
                 if (filters?.sizes.length > 0) arr.push({ name: "Sizes" });
                 if (filters?.offers.length > 0) arr.push({ name: "Offers" });
                 if (filters?.colors.length > 0) arr.push({ name: "Colors" });
-                if (filters?.prices?.priceRanges.length > 0)
+                if (filters?.prices?.priceRanges?.length > 0)
                   arr.push({ name: "Prices" });
                 return arr;
               }}

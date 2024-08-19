@@ -284,10 +284,10 @@ function Product({
                 >
                   1
                 </span>
-                {product.category?.flat_photo_path && (
+                {product?.category?.flat_photo_path?.length > 0 && (
                   <img
                     loading={priority ? "eager" : "lazy"}
-                    src={product.category?.flat_photo_path?.replace(
+                    src={product?.category?.flat_photo_path?.replace(
                       "/upload",
                       "/upload/h_50/f_webp/q_auto"
                     )}
