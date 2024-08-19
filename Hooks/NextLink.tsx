@@ -3,8 +3,6 @@
 // eslint-disable-next-line no-restricted-imports
 import Link from "next/link";
 import React, { ComponentProps, MouseEventHandler } from "react";
-import { UrlObject } from "url";
-import { dispatchRouteChangeEvent } from "./events";
 import { usePathname } from "next/navigation";
 
 export interface INextLinkProps

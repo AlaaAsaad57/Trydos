@@ -6,9 +6,11 @@ import NextLink from "Hooks/NextLink";
 import { ProductInterface } from "models/product";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import { useDispatch, useSelector } from "react-redux";
-import { getConfiguredImage, RoundPrice } from "utils/functions";
-
-import CoverEffectSlider from "./CoverEffectSlider";
+import { RoundPrice } from "utils/functions";
+import dynamic from "next/dynamic";
+const CoverEffectSlider = dynamic(() => import("./CoverEffectSlider"), {
+  ssr: false,
+});
 import ColorSlider from "./ColorSlider";
 import TopSlider from "./TopSlider";
 
