@@ -92,6 +92,27 @@ export const getHomeData = async ({ str, lang }) => {
     return [[], e.toString()];
   }
 };
+
+export const getHomeDataStatic = async () => {
+  let url = HOME_DATA_URL;
+
+  let method = { method: "GET" };
+
+  const res = await fetch(OTP_URL + url, {
+    ...method,
+    next: {
+      revalidate: 3600,
+      tags: [`home-boutiques home-boutiques`],
+    },
+
+    credentials: "include",
+    mode: "cors",
+  });
+  const repo = await res.json();
+
+  return repo.data.boutiques;
+};
+
 export const getMainCategories = async ({ lang }) => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
@@ -650,4 +671,17 @@ export const FetchApi = async ({ url, method, body, lang, country }) => {
   if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
     return [data, returned_res];
   else return [data, {}];
+};
+export const getListingDataProd = async () => {
+  let str = `/web/products?limit=1000&offset=1`;
+  let res = await fetch(OTP_URL + str, {
+    method: "GET",
+
+    next: {
+      revalidate: 3600,
+      tags: [`listing-data-${str}`, "listing-data"],
+    },
+  });
+  let repo = await res.json();
+  return repo;
 };
