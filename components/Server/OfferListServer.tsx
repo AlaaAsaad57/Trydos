@@ -2,6 +2,7 @@ import React from "react";
 import { getHomeData } from "store/homepage/cachedActions";
 import OfferList from "components/Home/OfferWidgets/OfferList";
 import "styles/offers.css";
+import "styles/productDetails.css";
 
 async function OfferListServer({ params }) {
   const [HomeData, response] = await getHomeData({
