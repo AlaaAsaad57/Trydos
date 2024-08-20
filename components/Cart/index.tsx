@@ -97,7 +97,7 @@ function CartContainer({ close }) {
                 {s.brand?.id ? (
                   <BrandCart
                     key={key}
-                    currency={currency?.symbol}
+                    currency={currency}
                     price={getPriceOfBrand(s?.brand)}
                     products={getProductsOfBrand(s?.brand)}
                     s={s}
@@ -563,6 +563,7 @@ export const BrandCart = ({ key, s, products, price, currency }) => {
   const decimal_point_settings = useSelector(
     (state: any) => state.homepage.settings
   );
+
   return (
     <div className="flex-col bg-white pb-10 pt-2 pl-2 pr-2" key={key}>
       <div
@@ -584,7 +585,7 @@ export const BrandCart = ({ key, s, products, price, currency }) => {
             <span className="medium text-[#5D5C5D]">{products.length}</span>
             <span className="ml-[3px]">items</span>
             <span className="medium text-[#5D5C5D] ml-[3px]">{price}</span>
-            <span className="ml-[3px]">{currency}</span>
+            <span className="ml-[3px]">{currency?.symbol}</span>
           </div>
         </div>
       </div>
@@ -657,7 +658,7 @@ export const BrandCart = ({ key, s, products, price, currency }) => {
                       <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
                         {RoundPrice({
                           num: product.price,
-                          rate: currency.exchange_rate,
+                          rate: currency?.exchange_rate,
                           points:
                             (decimal_point_settings &&
                               decimal_point_settings["starting-setting"]
