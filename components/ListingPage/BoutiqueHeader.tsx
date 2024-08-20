@@ -298,6 +298,19 @@ function BoutiqueHeader({ boutique, showFilters }) {
                       <BoutiqueOfferFilter filterEnabled={filterEnabled} />
                     </>
                   )}
+
+                  {filters?.sizes?.length > 0 && (
+                    <>
+                      {!filterEnabled && <BorderThin />}
+                      <BoutiqueSizeFilter filterEnabled={filterEnabled} />
+                    </>
+                  )}
+                  {filters?.colors?.length > 0 && (
+                    <>
+                      {!filterEnabled && <BorderThin />}
+                      <BoutiqueColorsFilter filterEnabled={filterEnabled} />
+                    </>
+                  )}
                   {filters?.prices?.min_price >= 0 &&
                     (filterEnabled ? (
                       <>
@@ -312,18 +325,6 @@ function BoutiqueHeader({ boutique, showFilters }) {
                         />
                       </>
                     ))}
-                  {filters?.sizes?.length > 0 && (
-                    <>
-                      {!filterEnabled && <BorderThin />}
-                      <BoutiqueSizeFilter filterEnabled={filterEnabled} />
-                    </>
-                  )}
-                  {filters?.colors?.length > 0 && (
-                    <>
-                      {!filterEnabled && <BorderThin />}
-                      <BoutiqueColorsFilter filterEnabled={filterEnabled} />
-                    </>
-                  )}
                   <FilterButtons />
                   {filterLoading && <FilterComponentLoader />}
                 </>

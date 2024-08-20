@@ -110,42 +110,28 @@ function SizeCircle({ text }: { text: string }) {
       }`}
     >
       {" "}
-      <div className="relative w-[70px] h-[70px]">
+      <div className="relative w-[140px] h-[70px]">
         {isSelected() && (
           <ActiveCategoryIcon className="active-category-icon" />
         )}
 
-        <svg
-          className="absolute z-10 top-0 left-0"
-          xmlns="http://www.w3.org/2000/svg"
-          width="70"
-          height="70"
-          viewBox="0 0 70 70"
-        >
-          <g
-            id="Ellipse_283"
-            data-name="Ellipse 283"
-            fill="none"
-            stroke={isSelected() ? "#FF5F61" : "#6b6b6b"}
-            strokeWidth="0.5"
-            strokeDasharray="3 3"
-          >
-            <circle cx="35" cy="35" r="35" stroke="none" />
-            <circle cx="35" cy="35" r="34.75" fill="none" />
-          </g>
-        </svg>
-
         <div
           className={`brand-photo ${
             isSelected() && "bold-size"
-          } whitespace-pre-wrap text-center uppercase`}
+          } whitespace-pre-wrap text-center uppercase rounded-xl ${
+            isSelected()
+              ? "border-[#FF5F61] border-[1px] border-dashed"
+              : " border-[#6b6b6b] border-[1px] border-dashed"
+          }`}
           style={{
             backgroundColor: "#fff",
             minHeight: "70px",
-            minWidth: "70px",
+            minWidth: "140px",
           }}
         >
-          {`${getPrice(text).min} - ${getPrice(text).max}`}
+          {`${getPrice(text).min} ${currency?.symbol} - ${getPrice(text).max} ${
+            currency?.symbol
+          }`}
         </div>
       </div>
       <div className="category-text-container flex-col align-center">

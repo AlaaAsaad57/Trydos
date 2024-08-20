@@ -43,7 +43,8 @@ export const getHomeData = async ({ str, lang }) => {
   const cookies = (await import("next/headers")).cookies;
 
   const cookieStore = cookies();
-  let url = HOME_DATA_URL + (str?.length ? `?slug=${str}` : "");
+  let url =
+    HOME_DATA_URL + (str?.length ? `?slug=${str}&limit=15` : "?limit=15");
 
   let method = { method: "GET" };
 
