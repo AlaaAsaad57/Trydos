@@ -256,7 +256,6 @@ export const getProductMeta = async ({ productId, lang }) => {
   if (data.message === "Product Not Found") {
     notFound();
   }
-  console.log(`product meta time is ${end.getTime() - start.getTime()}`);
 
   return data.data;
 };
@@ -298,7 +297,7 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
   if (data.code === "boutique_not_found") {
     notFound();
   }
-  console.log(`boutique meta time is ${end.getTime() - start.getTime()}`);
+
   return data.data;
 };
 export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
@@ -343,7 +342,7 @@ export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
     response: data,
     time: end.getTime() - start.getTime(),
   });
-  console.log(`boutiques filters time is ${end.getTime() - start.getTime()}`);
+
   return data.data;
 };
 export const caseCheck = (word, value) => {
@@ -593,7 +592,7 @@ export const filterProducts = async ({
     },
   });
   let repo = await product.json();
-  console.log(repo, str);
+
   if (!serachTrigger)
     newFiltersCallback({
       filtersVar: {

@@ -82,7 +82,7 @@ function SizeCircle({ text }: { text: string }) {
   const currency = useSelector((state: any) => state.homepage.currency) || 1;
   const getPrice = (text) => {
     let [min, max] = text.split(" - ");
-    console.log([min, max]);
+
     min = RoundPrice({
       num: min,
       points:

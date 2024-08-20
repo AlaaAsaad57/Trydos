@@ -83,7 +83,7 @@ export const getHomeData = async ({ str, lang }) => {
       response: repo,
       request: "Get boutiques",
     };
-    console.log(time, "boutiques-home");
+
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
       return [repo.data.boutiques, returned_res];
     else return [repo.data.boutiques, {}];
@@ -142,7 +142,7 @@ export const getMainCategories = async ({ lang }) => {
       response: repo,
       request: "Get Categories Navbar",
     };
-    console.log(time, "categories");
+
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
       return [repo.data.mainCategories, returned_res];
     else return [repo.data.mainCategories, {}];
@@ -423,7 +423,6 @@ export const getListingData = async ({
         request: "Get Products with Filters ",
       };
 
-      console.log(time, "boutiques-products");
       if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
         return [
           {
@@ -511,7 +510,7 @@ export async function getProductDetails({ productId, lang }) {
       response: repo1,
       request: "Get Product quantity prices Details",
     };
-    console.log(end1 + end2, "product-details");
+
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
       return [prod, [returned_res, returned_res1]];
     else return [prod, [{}, {}]];

@@ -135,7 +135,7 @@ function FilterBar({ boutique, filters, productsServer }) {
           search_text: Listing_Data_res.body.data?.result_for || "",
           colors: Listing_Data_res.body.data?.colors || [],
         };
-        console.log(Listing_Data_res);
+
         dispatch({ type: "FILTER-INIT", payload: filtersVar });
       },
     });

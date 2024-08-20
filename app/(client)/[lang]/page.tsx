@@ -4,7 +4,6 @@ import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
 export const revalidate = 3600;
 async function HomePage({ params }) {
-  console.log("homepage start");
   return (
     <>
       <NavbarServer lang={params.lang} />
