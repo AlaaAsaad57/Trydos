@@ -11,7 +11,7 @@ import CartIcon from "public/svg/CartIcon.svg";
 import CartLabel from "public/svg/cart/cartLabel.svg";
 import Skeleton from "react-loading-skeleton";
 import { LogData } from "store/homepage/actions";
-
+import "styles/productDetails.css";
 function CartContainer({ close }) {
   const language = useSelector((state: any) => state.homepage.language);
   const loading = useSelector((state: any) => state.cart.loading);

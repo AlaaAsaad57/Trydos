@@ -11,7 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/scss/main.scss";
 import { useEffect } from "react";
 import CartContainer from "components/Cart";
-import home from "services/home";
+
 export default function Providers({ children }) {
   useEffect(() => {
     if (!navigator.cookieEnabled) {
