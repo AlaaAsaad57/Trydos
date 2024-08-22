@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getCountriesApi } from "./store/homepage/cachedActions";
 
 const languagesString = process.env.NEXT_PUBLIC_LANGUAGES || "[]";
@@ -49,7 +49,12 @@ export async function middleware(request) {
   const data = await getCountriesApi();
 
   let countries = data.map((s) => s.iso.toLowerCase());
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams, search, host, protocol } = request.nextUrl;
+  let isFilter =
+    pathname.includes("/boutiques") &&
+    searchParams.size > 0 &&
+    !pathname.includes("/filters");
+
   let countryByIp = request?.geo?.country?.toLowerCase();
   const response = NextResponse.next();
   const cookieStore = cookies();
@@ -71,6 +76,7 @@ export async function middleware(request) {
       value: originCountryJSON,
     });
   }
+
   const routePath = pathname.split("/")[1];
   const pathN = pathname.replace(routePath, "");
   const hasSeparator =
@@ -110,8 +116,14 @@ export async function middleware(request) {
         : getDefaultLocale(countryByIp, countries).country;
 
       request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathname}`;
-
-      return NextResponse.redirect(request.nextUrl);
+      if (isFilter)
+        return NextResponse.redirect(
+          `${host}${pathname.replace(
+            "/boutiques",
+            "/filters/boutiques"
+          )}${search}`
+        );
+      else return NextResponse.redirect(request.nextUrl);
     } else {
       if (countries.includes(countryByIp)) {
         request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathname}`;
@@ -120,7 +132,14 @@ export async function middleware(request) {
       }
       if (pathN.length > 1) request.nextUrl.searchParams.set("path", pathN);
       {
-        return NextResponse.redirect(request.nextUrl);
+        if (isFilter)
+          return NextResponse.redirect(
+            `${host}${pathname.replace(
+              "/boutiques",
+              "/filters/boutiques"
+            )}${search}`
+          );
+        else return NextResponse.redirect(request.nextUrl);
       }
     }
   } else if (!hasLanguage || !hasCountry) {
@@ -138,14 +157,35 @@ export async function middleware(request) {
       if (pathN.length > 1) request.nextUrl.searchParams.set("path", pathN);
       //
     }
-
-    return NextResponse.redirect(request.nextUrl);
+    if (isFilter) {
+      return NextResponse.redirect(
+        `${host}${pathname.replace(
+          "/boutiques",
+          "/filters/boutiques"
+        )}${search}`
+      );
+    } else return NextResponse.redirect(request.nextUrl);
   }
   if (hasLanguage) {
     const languageroute = routePath?.split("-")[1];
     setLocaleCookies(request, languageroute, preferredCountry);
   } else {
     setLocaleCookies(request, preferredLang, preferredCountry);
+  }
+  if (isFilter) {
+    console.log(
+      "jj",
+      `${protocol}${host}${pathname.replace(
+        "/boutiques",
+        "/filters/boutiques"
+      )}${search}`
+    );
+    return NextResponse.redirect(
+      `${protocol}${host}${pathname.replace(
+        "/boutiques",
+        "/filters/boutiques"
+      )}${search}`
+    );
   }
   return response;
 }

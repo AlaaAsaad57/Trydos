@@ -98,7 +98,7 @@ function SearchComponent({
       }
     }
     params.set("searchText", searchValue);
-    window.location.href = `/boutiques/listing?${params.toString()}`;
+    window.location.href = `/filters/boutiques/listing?${params.toString()}`;
     // router.push(`/boutiques/listing?${params.toString()}`);
   };
 

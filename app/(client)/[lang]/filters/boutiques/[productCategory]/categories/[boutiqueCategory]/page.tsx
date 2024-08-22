@@ -1,13 +1,11 @@
-import ProductListServer from "components/Server/ProductList";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
-import { getHomeDataStatic } from "store/homepage/cachedActions";
-
-// import ListingSkeleton from "components/skeleton/listing";
-// import NavbarSkeleton from "components/skeleton/navbar";
-// import { notFound } from "next/navigation";
 // import { Suspense } from "react";
-// import { getBoutiqueMeta } from "utils/functions";
-
+// import ListingSkeleton from "components/skeleton/listing";
+import ProductListServer from "components/Server/ProductList";
+// import NavbarSkeleton from "components/skeleton/navbar";
+// import FilterBar from "components/ListingPage/FilterBar";
+// import { getBoutiqueMeta, getBoutiqueFilters } from "utils/functions";
+// import { notFound } from "next/navigation";
 // export async function generateMetadata({ params, searchParams }) {
 //   const boutiqueId = params.productCategory;
 //   const metaData =
@@ -34,29 +32,9 @@ import { getHomeDataStatic } from "store/homepage/cachedActions";
 //     },
 //   };
 // }
+async function page({ params, searchParams }) {
+  const boutiqueId = params.productCategory;
 
-export const revalidate = 3600;
-export const dynamicParams = true;
-export const generateStaticParams = async () => {
-  const HomeData = await getHomeDataStatic();
-  let arr = [
-    { lang: "tr-en" },
-    { lang: "tr-ar" },
-    { lang: "lb-en" },
-    { lang: "lb-ar" },
-  ].map((l) => {
-    return HomeData.map((s) => {
-      return { slug: s.slug, lang: l.lang };
-    });
-  });
-
-  return arr.flat().map((s) => ({
-    lang: s.lang,
-    productCategory: s.slug,
-  }));
-};
-
-async function Page({ params, searchParams }) {
   return (
     <>
       <CustomNavbarServer lang={params.lang} />
@@ -66,4 +44,6 @@ async function Page({ params, searchParams }) {
   );
 }
 
-export default Page;
+export default page;
+
+export const revalidate = 3600;

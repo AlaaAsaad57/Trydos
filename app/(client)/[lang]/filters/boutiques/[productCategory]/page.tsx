@@ -1,6 +1,5 @@
 import ProductListServer from "components/Server/ProductList";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
-import { getHomeDataStatic } from "store/homepage/cachedActions";
 
 // import ListingSkeleton from "components/skeleton/listing";
 // import NavbarSkeleton from "components/skeleton/navbar";
@@ -36,25 +35,6 @@ import { getHomeDataStatic } from "store/homepage/cachedActions";
 // }
 
 export const revalidate = 3600;
-export const dynamicParams = true;
-export const generateStaticParams = async () => {
-  const HomeData = await getHomeDataStatic();
-  let arr = [
-    { lang: "tr-en" },
-    { lang: "tr-ar" },
-    { lang: "lb-en" },
-    { lang: "lb-ar" },
-  ].map((l) => {
-    return HomeData.map((s) => {
-      return { slug: s.slug, lang: l.lang };
-    });
-  });
-
-  return arr.flat().map((s) => ({
-    lang: s.lang,
-    productCategory: s.slug,
-  }));
-};
 
 async function Page({ params, searchParams }) {
   return (

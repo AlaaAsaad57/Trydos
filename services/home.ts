@@ -166,6 +166,7 @@ class HomeService {
 
       searchText: filterObj.searchText,
     };
+    console.log(filters, filterObj);
     if (categories !== "listing")
       filters = { ...filters, boutique_slug: [categories] };
     let str = `category_slugs=${JSON.stringify(
