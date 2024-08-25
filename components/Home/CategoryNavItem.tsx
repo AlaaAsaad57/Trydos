@@ -37,7 +37,15 @@ const CategoryNavItem = ({
       });
       // router.push(`/categories/${slug}`);
       // dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
-      window.location.href = `/categories/${slug}`;
+      if (decodeURI(searchParams.mainCategory) === slug) {
+        window.location.href = `/`;
+        // router.push("/");
+        // dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
+      } else {
+        window.location.href = `/categories/${slug}`;
+        // router.push(`/categories/${slug}`);
+        // dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
+      }
     }
   };
 
