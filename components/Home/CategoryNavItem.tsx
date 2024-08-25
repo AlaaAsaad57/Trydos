@@ -13,6 +13,8 @@ interface CategoryNavItemProps {
   openSearch: Function;
   myKey: number;
   slug: string;
+  active: boolean;
+  setActive: Function;
 }
 const CategoryNavItem = ({
   name,
@@ -22,6 +24,8 @@ const CategoryNavItem = ({
   slug,
   openSearch,
   myKey,
+  setActive,
+  active,
 }: CategoryNavItemProps) => {
   const searchParams: { lang: string; mainCategory: string } = useParams();
   const language = useSelector((state: any) => state.homepage.language);
@@ -30,6 +34,7 @@ const CategoryNavItem = ({
     if (name === "Search") {
       openSearch();
     } else {
+      setActive(slug);
       Sendevent({
         event: "button_clicked",
         category: "button_clicked",
@@ -38,6 +43,15 @@ const CategoryNavItem = ({
       // router.push(`/categories/${slug}`);
       // dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
       window.location.href = `/categories/${slug}`;
+      if (decodeURI(searchParams.mainCategory) === slug) {
+        window.location.href = `/`;
+        // router.push("/");
+        // dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
+      } else {
+        window.location.href = `/categories/${slug}`;
+        // router.push(`/categories/${slug}`);
+        // dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
+      }
     }
   };
 
@@ -80,7 +94,7 @@ const CategoryNavItem = ({
           {!searchEnabled && (
             <div
               className={`categories-bar-item ${
-                decodeURI(searchParams.mainCategory) === slug &&
+                (decodeURI(searchParams.mainCategory) === slug || active) &&
                 "active-nav-category"
               }`}
               onClick={() => clickItem()}
