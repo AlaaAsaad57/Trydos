@@ -7,17 +7,19 @@ import Stories from "./Stories/index";
 import ChatService from "services/chat";
 import { getUserChat } from "utils/functions";
 const NameModal = dynamic(() => import("components/global/NameModal"));
-const StoriesContainer = dynamic(() => import("./Stories/NewStories"), {
-  loading: () => <LandingPage afterLoad={true} />,
-  ssr: false,
-});
+// const StoriesContainer = dynamic(() => import("./Stories/NewStories"), {
+//   loading: () => <LandingPage afterLoad={true} />,
+//   ssr: false,
+// });
+import StoriesContainer from "./Stories/NewStories";
+
 import { getUserStories } from "../../utils/functions";
 import StoryServiceClass from "services/story";
-import LandingPage from "./LandingPage";
+// import LandingPage from "./LandingPage";
 import { dispatchRouteChangeEvent } from "Hooks/events";
-const SearchContainer = dynamic(() => import("./Search/SearchContainer"), {
-  ssr: false,
-});
+
+import SearchContainer from "./Search/SearchContainer";
+
 export default function Home() {
   useEffect(() => {
     dispatchRouteChangeEvent("completed");
