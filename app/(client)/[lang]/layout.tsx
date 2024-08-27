@@ -43,7 +43,7 @@ const quicksand_medium = localFont({
   preload: false,
   fallback: ["system-ui", "arial"],
 });
-export const revalidte = 36000;
+export const revalidte = 360000;
 export default async function RootLayout({ params, children }) {
   // ${sf_pro_rounded_light.variable}
   // ${sf_pro_rounded_semibold.variable}

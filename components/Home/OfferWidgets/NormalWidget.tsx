@@ -13,6 +13,7 @@ import dynamic from "next/dynamic";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 
 import OfferPhotosSlider from "./OfferPhotosSlider";
+import NextLink from "Hooks/NextLink";
 
 interface NormalWidgetProps {
   boutique: Boutique;
@@ -29,7 +30,8 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
     }
   }, []);
   return (
-    <div
+    <NextLink
+      href={`/boutiques/${boutique.slug}`}
       onClick={(e) => {
         // @ts-ignore: Unreachable code error
         if (
@@ -38,9 +40,12 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           // @ts-ignore: Unreachable code error
           !e.target.closest(".offer-category")
         ) {
-          window.location.href = `/boutiques/${boutique.slug}`;
+          // window.location.href = `/boutiques/${boutique.slug}`;
           // router.push(`/boutiques/${boutique.slug}`);
           // dispatchRouteChangeEvent("start", { to: "boutique" });
+        } else {
+          e.preventDefault();
+          e.stopPropagation();
         }
       }}
       aria-label={`Go To listing Page`}
@@ -187,7 +192,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           )}
         </div>
       </>
-    </div>
+    </NextLink>
   );
 };
 

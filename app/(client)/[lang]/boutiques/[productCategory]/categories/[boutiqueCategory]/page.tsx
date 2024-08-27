@@ -46,4 +46,4 @@ async function page({ params, searchParams }) {
 
 export default page;
 
-export const revalidate = 3600;
+export const revalidate = 36000;

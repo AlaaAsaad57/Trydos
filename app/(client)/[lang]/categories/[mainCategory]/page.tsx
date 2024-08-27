@@ -6,7 +6,7 @@ import QuickOffer from "components/Home/Bars/QuickOffer";
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
 
-export const revalidate = 3600;
+export const revalidate = 36000;
 async function page({ params }) {
   return (
     <>

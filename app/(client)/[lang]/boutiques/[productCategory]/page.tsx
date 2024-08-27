@@ -35,7 +35,7 @@ import { getHomeDataStatic } from "store/homepage/cachedActions";
 //   };
 // }
 
-export const revalidate = 3600;
+export const revalidate = 36000;
 export const dynamicParams = true;
 export const generateStaticParams = async () => {
   const HomeData = await getHomeDataStatic();

@@ -268,7 +268,7 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
     OTP_URL + `/web/boutique/simpleDetails/${boutiqueId}`,
     {
       next: {
-        revalidate: 3600,
+        revalidate: 36000,
       },
       headers: new Headers({
         Accept: "application/json",
@@ -955,7 +955,7 @@ export const getListingDataFilters = async ({
         method: "GET",
 
         next: {
-          revalidate: 3600,
+          revalidate: 36000,
           tags: [`listing-data-${str}`, "listing-data"],
         },
         headers: new Headers({
@@ -1021,7 +1021,7 @@ export const getListingDataFilters = async ({
         method: "GET",
 
         next: {
-          revalidate: 3600,
+          revalidate: 36000,
           tags: [`listing-data-${str}`, "listing-data"],
         },
         headers: new Headers({

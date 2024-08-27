@@ -34,7 +34,7 @@ import CustomNavbarServer from "components/Server/ServerCustomNav";
 //   };
 // }
 
-export const revalidate = 3600;
+export const revalidate = 36000;
 
 async function Page({ params, searchParams }) {
   return (
