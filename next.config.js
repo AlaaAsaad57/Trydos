@@ -5,6 +5,12 @@ const nextConfig = withSvgr({
   swcMinify: true,
   reactStrictMode: false,
   compress: true,
+  logging: {
+    fetches: {
+      hmrRefreshes: true,
+      fullUrl: true,
+    },
+  },
   async headers() {
     return [
       {

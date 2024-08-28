@@ -1,5 +1,5 @@
 import Home from "components/Home";
-import BrandsBar from "components/Home/Bars/BrandsBar";
+// import BrandsBar from "components/Home/Bars/BrandsBar";
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
 export const revalidate = 360000;
@@ -19,7 +19,7 @@ async function HomePage({ params }) {
       <NavbarServer lang={params.lang} />
 
       <Home />
-      <BrandsBar />
+      {/* <BrandsBar /> */}
 
       <OfferListServer params={params} />
     </>

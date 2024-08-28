@@ -7,11 +7,6 @@ import Image from "next/image";
 import { Boutique } from "models/offer";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
-
-import { dispatchRouteChangeEvent } from "Hooks/events";
-
 import OfferPhotosSlider from "./OfferPhotosSlider";
 import NextLink from "Hooks/NextLink";
 

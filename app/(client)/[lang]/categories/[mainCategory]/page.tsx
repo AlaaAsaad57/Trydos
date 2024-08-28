@@ -1,8 +1,8 @@
 import Home from "components/Home";
-import BrandsBar from "components/Home/Bars/BrandsBar";
-import CategoryBar from "components/Home/Bars/CategoryBar";
-import OfferBar from "components/Home/Bars/OfferBar";
-import QuickOffer from "components/Home/Bars/QuickOffer";
+// import BrandsBar from "components/Home/Bars/BrandsBar";
+// import CategoryBar from "components/Home/Bars/CategoryBar";
+// import OfferBar from "components/Home/Bars/OfferBar";
+// import QuickOffer from "components/Home/Bars/QuickOffer";
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
 import { getMainCategoriesStatic } from "store/homepage/cachedActions";
@@ -22,7 +22,6 @@ export const generateStaticParams = async () => {
       return { slug: s.slug, lang: l.lang };
     });
   });
-  console.log(arr);
 
   return arr.flat().map((s) => ({
     mainCategory: s.slug,
@@ -35,13 +34,8 @@ async function page({ params }) {
       <NavbarServer lang={params.lang} />
 
       <Home />
-      <BrandsBar />
 
       <OfferListServer params={params} />
-
-      <CategoryBar />
-      <OfferBar />
-      <QuickOffer />
     </>
   );
 }

@@ -1,7 +1,6 @@
 import { translate } from "utils/functions";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import AuthNavSection from "./AuthNavSection";
 

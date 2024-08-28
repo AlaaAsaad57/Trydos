@@ -940,3 +940,6 @@ input::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+#nprogress .bar {
+  z-index: 999999999999 !important;
+}

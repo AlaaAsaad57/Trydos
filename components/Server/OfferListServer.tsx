@@ -9,7 +9,7 @@ async function OfferListServer({ params }) {
     str: params?.mainCategory,
     lang: params.lang ? params.lang.split("-")[1] : null,
   });
-
+  console.log(response);
   return (
     <>
       <OfferList

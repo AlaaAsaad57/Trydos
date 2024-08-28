@@ -20,7 +20,7 @@ export default function Providers({ children }) {
   }, []);
   return (
     <ReactQueryClientProvider>
-      <ProgressBar height="4px" />
+      <ProgressBar height="4px" options={{ showSpinner: false }} />
       <Init />
       <Provider store={store}>
         <CartProvider />
