@@ -150,7 +150,7 @@ function FilterBar({ boutique, filters, productsServer }) {
           onClick={() => {
             if (!filterEnabled) {
               // router.push(`/`);
-              window.location.href = `/`;
+
               dispatch({ type: "RESET-FILTERS" });
 
               // dispatchRouteChangeEvent("start", {
