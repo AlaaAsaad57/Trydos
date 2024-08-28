@@ -4,6 +4,7 @@ import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { useParams, useRouter } from "next/navigation";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import Image from "next/image";
+import NextLink from "Hooks/NextLink";
 
 interface CategoryNavItemProps {
   name: string;
@@ -37,15 +38,6 @@ const CategoryNavItem = ({
       });
       // router.push(`/categories/${slug}`);
       // dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
-      if (decodeURI(searchParams.mainCategory) === slug) {
-        window.location.href = `/`;
-        // router.push("/");
-        // dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
-      } else {
-        window.location.href = `/categories/${slug}`;
-        // router.push(`/categories/${slug}`);
-        // dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
-      }
     }
   };
 
@@ -86,7 +78,12 @@ const CategoryNavItem = ({
       ) : (
         <>
           {!searchEnabled && (
-            <div
+            <NextLink
+              href={
+                decodeURI(searchParams.mainCategory) === slug
+                  ? "/"
+                  : `/categories/${slug}`
+              }
               className={`categories-bar-item ${
                 decodeURI(searchParams.mainCategory) === slug &&
                 "active-nav-category"
@@ -120,7 +117,7 @@ const CategoryNavItem = ({
                   <img alt="nav icon" src="/svg/navIcon.svg" />
                 </div>
               )}
-            </div>
+            </NextLink>
           )}
         </>
       )}

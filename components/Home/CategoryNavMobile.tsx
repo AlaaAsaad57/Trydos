@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import { useSelector } from "react-redux";
 import { Sendevent, translate } from "utils/functions";
+import NextLink from "Hooks/NextLink";
 interface CategoryNavMobileProps {
   name: string;
   icon: string;
@@ -26,11 +27,16 @@ function CategoryNavMobile({
   const searchParams: { lang: string; mainCategory: string } = useParams();
 
   return (
-    <div
+    <NextLink
       className={`categories-bar-item ${
         decodeURI(searchParams.mainCategory) === slug && "active-nav-category"
       }`}
       key={myKey}
+      href={
+        decodeURI(searchParams.mainCategory) === slug
+          ? "/"
+          : `/categories/${slug}`
+      }
       onClick={() => {
         setActive(slug);
         Sendevent({
@@ -38,15 +44,6 @@ function CategoryNavMobile({
           category: "button_clicked",
           value: `${name} category filter`,
         });
-        if (decodeURI(searchParams.mainCategory) === slug) {
-          window.location.href = `/`;
-          // router.push("/");
-          // dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
-        } else {
-          window.location.href = `/categories/${slug}`;
-          // router.push(`/categories/${slug}`);
-          // dispatchRouteChangeEvent("start", { from: "", to: "categoriesPage" });
-        }
       }}
     >
       {active && (
@@ -72,7 +69,7 @@ function CategoryNavMobile({
           </div>
         </div>
       }
-    </div>
+    </NextLink>
   );
 }
 

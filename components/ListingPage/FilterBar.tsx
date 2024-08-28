@@ -25,6 +25,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import useDebounce from "Hooks/useDebounce";
+import NextLink from "Hooks/NextLink";
 function FilterBar({ boutique, filters, productsServer }) {
   const selectedFilter = useSelector(
     (state: any) => state.details.selectedFilter
@@ -143,7 +144,8 @@ function FilterBar({ boutique, filters, productsServer }) {
   return (
     <>
       <div className="filter-listing-bar relative flex-row align-center">
-        <div
+        <NextLink
+          href={filterEnabled ? "#" : "/"}
           className="back-icon"
           onClick={() => {
             if (!filterEnabled) {
@@ -188,7 +190,7 @@ function FilterBar({ boutique, filters, productsServer }) {
           }}
         >
           <BackIcon />
-        </div>
+        </NextLink>
         <div
           className={`filter-bar-options flex-row align-center ${
             ActiveSearch && "w-full"

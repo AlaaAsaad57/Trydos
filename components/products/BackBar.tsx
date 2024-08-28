@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import { useSelector } from "react-redux";
 import { LogData } from "store/homepage/actions";
+import NextLink from "Hooks/NextLink";
 function BackBar({
   close,
   link,
@@ -23,7 +24,8 @@ function BackBar({
   const activeRoute = useSelector((state: any) => state.homepage.activeRoute);
   return (
     <div className="back-bar align-center w-100 flex-row">
-      <div
+      <NextLink
+        href={link ? activeRoute : "#"}
         className={`back-icon flex-row ${className}`}
         onClick={() => {
           if (link) {
@@ -52,7 +54,7 @@ function BackBar({
         }}
       >
         <BackIcon />
-      </div>
+      </NextLink>
     </div>
   );
 }

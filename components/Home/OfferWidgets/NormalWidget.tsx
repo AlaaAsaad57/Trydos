@@ -148,7 +148,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                       // router.push(
                       //   `/boutiques/${boutique.slug}?categories=${category.category_id}`
                       // );
-                      window.location.href = `/boutiques/${boutique.slug}?categories=${category.slug}`;
+                      window.location.href = `/filters/boutiques/${boutique.slug}?categories=${category.slug}`;
                     }}
                   >
                     <Image
