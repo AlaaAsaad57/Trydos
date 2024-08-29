@@ -55,6 +55,7 @@ const nextConfig = withSvgr({
   experimental: {
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
+    serverActions: true,
     staleTimes: {
       dynamic: 36000,
       static: 36000,
