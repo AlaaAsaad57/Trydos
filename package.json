@@ -37,7 +37,7 @@
     "less-loader": "^12.2.0",
     "msw": "^2.3.1",
     "multi-range-slider-react": "^2.0.7",
-    "next": "^14.2",
+    "next": "^13.2",
     "next-nprogress-bar": "^2.3.13",
     "next-svgr": "^0.0.2",
     "nextjs-progressbar": "^0.0.16",
