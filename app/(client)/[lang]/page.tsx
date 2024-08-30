@@ -3,16 +3,7 @@ import Home from "components/Home";
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
 export const revalidate = 360000;
-export const dynamicParams = true;
-export const generateStaticParams = async () => {
-  return [
-    { lang: "tr-en" },
-    { lang: "tr-ar" },
-    { lang: "lb-en" },
-    { lang: "lb-ar" },
-  ];
-};
-
+export const runtime = "edge";
 async function HomePage({ params }) {
   return (
     <>

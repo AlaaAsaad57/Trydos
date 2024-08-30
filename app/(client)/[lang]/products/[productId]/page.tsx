@@ -23,25 +23,7 @@ import { getListingDataProd } from "store/homepage/cachedActions";
 // }
 
 export const revalidate = 3600;
-export const dynamicParams = true;
-export const generateStaticParams = async () => {
-  const Listing_Data_res = await getListingDataProd();
-  let arr = [
-    { lang: "tr-en" },
-    { lang: "tr-ar" },
-    { lang: "lb-en" },
-    { lang: "lb-ar" },
-  ].map((l) => {
-    return Listing_Data_res.data.products.map((s) => {
-      return { slug: s.slug, lang: l.lang };
-    });
-  });
-
-  return arr.flat().map((s) => ({
-    productId: s.slug,
-    lang: s.lang,
-  }));
-};
+export const runtime = "edge";
 
 async function Page({ params: { productId, lang } }) {
   return (
