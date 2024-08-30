@@ -173,13 +173,6 @@ export async function middleware(request) {
     setLocaleCookies(request, preferredLang, preferredCountry);
   }
   if (isFilter) {
-    console.log(
-      "jj",
-      `${protocol}${host}${pathname.replace(
-        "/boutiques",
-        "/filters/boutiques"
-      )}${search}`
-    );
     return NextResponse.redirect(
       `${protocol}${host}${pathname.replace(
         "/boutiques",

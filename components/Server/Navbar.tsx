@@ -5,7 +5,7 @@ async function NavbarServer({ lang }: { lang: string }) {
   const [categories, response] = await getMainCategories({
     lang: lang.split("-")[1],
   });
-  console.log(response);
+
   return <Navbar response={response} init={lang} categories={categories} />;
 }
 
