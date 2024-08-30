@@ -8,9 +8,7 @@ import { dispatchRouteChangeEvent } from "Hooks/events";
 import { useDispatch, useSelector } from "react-redux";
 import { RoundPrice } from "utils/functions";
 import dynamic from "next/dynamic";
-const CoverEffectSlider = dynamic(() => import("./CoverEffectSlider"), {
-  ssr: false,
-});
+import CoverEffectSlider from "./CoverEffectSlider";
 const PriceLabel = dynamic(() => import("./PriceLabel"), {
   ssr: false,
 });

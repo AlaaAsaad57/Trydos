@@ -5,14 +5,13 @@ import UserNavTopSection from "./UserNavTopSection";
 import { useDispatch, useSelector } from "react-redux";
 import { changeAppLanguage, LogData } from "store/homepage/actions";
 import { Category } from "models/Category";
-import CategoriesBar from "./CategoriesBar";
 import MobileNavigation from "./MobileNavigation";
+import CategoriesBar from "./CategoriesBar";
 import NextLink from "Hooks/NextLink";
 import { usePathname } from "next/navigation";
 
 import AuthSections from "./AuthSections";
 import { ToastContainer } from "react-toastify";
-import dynamic from "next/dynamic";
 
 interface NavbarProps {
   init: string;

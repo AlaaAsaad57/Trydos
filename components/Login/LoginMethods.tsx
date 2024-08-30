@@ -2469,8 +2469,8 @@ const LoginMethods = ({ confirm }) => {
                     transform="translate(96.082 113.257)"
                   >
                     <g
-                      id="Group_3600"
-                      data-name="Group 3600"
+                      id="Group_36000"
+                      data-name="Group 36000"
                       transform="translate(0 0)"
                     >
                       <rect

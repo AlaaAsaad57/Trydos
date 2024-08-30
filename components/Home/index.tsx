@@ -17,9 +17,10 @@ import { getUserStories } from "../../utils/functions";
 import StoryServiceClass from "services/story";
 // import LandingPage from "./LandingPage";
 import { dispatchRouteChangeEvent } from "Hooks/events";
-
+// const SearchContainer = dynamic(() => import("./Search/SearchContainer"), {
+//   ssr: false,
+// });
 import SearchContainer from "./Search/SearchContainer";
-
 export default function Home() {
   useEffect(() => {
     dispatchRouteChangeEvent("completed");

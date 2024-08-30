@@ -19,7 +19,7 @@ import { toast } from "react-toastify";
 const getHeader = () => {
   return {
     next: {
-      revalidate: 3600,
+      revalidate: 36000,
     },
     headers: {
       Authorization: `Bearer ${
@@ -166,6 +166,7 @@ class HomeService {
 
       searchText: filterObj.searchText,
     };
+    console.log(filters, filterObj);
     if (categories !== "listing")
       filters = { ...filters, boutique_slug: [categories] };
     let str = `category_slugs=${JSON.stringify(

@@ -54,8 +54,11 @@ function ProductsList({
     dispatchRouteChangeEvent("completed");
     document.documentElement.style.overflow = "initial";
     document.documentElement.scrollTop = 0;
-    GetNextProd();
+
     dispatch({ type: "GET_PRODUCT", payload: Listing_Data_res.body.data });
+    setTimeout(() => {
+      GetNextProd();
+    }, 2000);
   }, []);
   const GetNextProd = async () => {
     dispatch({ type: "PRODUCT_LOADING" });

@@ -3,9 +3,7 @@ import dynamic from "next/dynamic";
 import React from "react";
 import { getListingData } from "store/homepage/cachedActions";
 import { getBoutiqueMeta } from "utils/functions";
-const FilterBar = dynamic(() => import("components/ListingPage/FilterBar"), {
-  ssr: false,
-});
+import FilterBar from "components/ListingPage/FilterBar";
 
 async function ProductListServer({ params, searchParams }) {
   const boutiqueId = params.productCategory;

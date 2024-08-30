@@ -4,7 +4,6 @@ import Logo from "./Logo";
 import UserNavTopSection from "./UserNavTopSection";
 import { useDispatch, useSelector } from "react-redux";
 import { changeAppLanguage } from "store/homepage/actions";
-import dynamic from "next/dynamic";
 import NextLink from "Hooks/NextLink";
 import { usePathname } from "next/navigation";
 import { dispatchRouteChangeEvent } from "Hooks/events";

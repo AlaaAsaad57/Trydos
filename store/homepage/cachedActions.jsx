@@ -151,6 +151,16 @@ export const getMainCategories = async ({ lang }) => {
     return ["homedata-error", e.toString()];
   }
 };
+export const getMainCategoriesStatic = async () => {
+  try {
+    const res = await fetch(OTP_URL + HOME_DATA_CATEGORIES_URL);
+    const repo = await res.json();
+
+    return [repo.data.mainCategories];
+  } catch (e) {
+    return ["homedata-error", e.toString()];
+  }
+};
 export const DataApiHeaders = async (forStories) => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
