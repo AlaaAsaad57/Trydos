@@ -2,7 +2,7 @@
 
 // eslint-disable-next-line no-restricted-imports
 import Link from "next/link";
-import React, { ComponentProps, MouseEventHandler } from "react";
+import React, { ComponentProps, MouseEventHandler, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 export interface INextLinkProps
@@ -22,15 +22,22 @@ export default function NextLink({
     onClick?.(e);
   };
 
+  useEffect(() => {
+    let child = document.createElement("link");
+    child.rel = "prefetch";
+    child.href = href;
+    document.head.appendChild(child);
+  }, []);
   return (
-    <Link
+    <a
       prefetch={true}
       className={className}
       href={href}
       {...props}
+      rel="prefetch"
       onClick={handleClick}
     >
-      {children}
-    </Link>
+      <>{children}</>
+    </a>
   );
 }
