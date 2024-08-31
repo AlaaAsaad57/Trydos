@@ -13,6 +13,7 @@ import Skeleton from "react-loading-skeleton";
 import { LogData } from "store/homepage/actions";
 import "styles/productDetails.css";
 import NextLink from "Hooks/NextLink";
+import { useParams } from "next/navigation";
 function CartContainer({ close }) {
   const language = useSelector((state: any) => state.homepage.language);
   const loading = useSelector((state: any) => state.cart.loading);
@@ -33,7 +34,7 @@ function CartContainer({ close }) {
       },
     });
   }, []);
-
+  const params = useParams();
   const getProductsOfBrand = (s) => {
     return cart?.filter((b) => b.boutique?.id === s?.id);
   };
@@ -97,6 +98,7 @@ function CartContainer({ close }) {
               <>
                 {boutique?.id ? (
                   <BrandCart
+                    close={close}
                     key={key}
                     currency={currency}
                     price={getPriceOfBrand(boutique)}
@@ -111,9 +113,16 @@ function CartContainer({ close }) {
                     <div className="flex-col w-full">
                       {getProductsOfBrand(boutique).map((product, key) => (
                         <NextLink
-                          href={`/products/${product.slug}`}
+                          href={
+                            params?.productId === product.slug
+                              ? "#"
+                              : `/products/${product.slug}`
+                          }
                           className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
                           key={key}
+                          onClick={(e) => {
+                            close();
+                          }}
                         >
                           <div className="flex-row w-[110px] min-h-[161px] relative">
                             <img
@@ -560,12 +569,19 @@ const CartColorIcon = () => {
     </svg>
   );
 };
-export const BrandCart = ({ key, boutique, products, price, currency }) => {
+export const BrandCart = ({
+  key,
+  boutique,
+  products,
+  price,
+  currency,
+  close,
+}) => {
   const [expanded, setExpanded] = useState(true);
   const decimal_point_settings = useSelector(
     (state: any) => state.homepage.settings
   );
-
+  const params = useParams();
   return (
     <div className="flex-col bg-white pb-10 pt-2 pl-2 pr-2" key={key}>
       <div
@@ -595,9 +611,16 @@ export const BrandCart = ({ key, boutique, products, price, currency }) => {
         <div className="flex-col w-full">
           {products?.map((product, key) => (
             <NextLink
-              href={`/products/${product.slug}`}
+              href={
+                params?.productId === product.slug
+                  ? "#"
+                  : `/products/${product.slug}`
+              }
               className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
               key={key}
+              onClick={(e) => {
+                close();
+              }}
             >
               <div className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative">
                 <img

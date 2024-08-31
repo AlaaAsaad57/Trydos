@@ -2,12 +2,15 @@ import { useRef } from "react";
 import OfferAvatar from "./OfferAvatar";
 import MoreOfferAvatar from "./MoreOfferAvatar";
 import { Boutique } from "models/offer";
+import { useRouter } from "next-nprogress-bar";
+
 interface OfferAvatarsProps {
   priority: boolean;
   boutique: Boutique;
 }
 function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
   const ref = useRef<HTMLDivElement>();
+  const router = useRouter();
   const handleMove = (e: any) => {
     let elemnts: Element[] = Array.from(ref.current.children);
     let clientX = e.clientX || e.touches[0]?.clientX;
@@ -45,7 +48,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
           <OfferAvatar
             // @ts-ignore
             name={product.most_viewed_product_name}
-            linkUrl={`/filters/boutiques/${boutique.slug}?categories=${product.slug}`}
+            linkUrl={`/boutiques/${boutique.slug}?categories=${product.slug}`}
             key={index}
             category={product.count_products}
             // @ts-ignore

@@ -121,6 +121,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
             ...state.selectedFilter.prices,
             pricesWord: state.activeFilters?.prices?.pricesWord ?? null,
           },
+          searchText: state.activeFilters.searchText,
         },
       };
     }

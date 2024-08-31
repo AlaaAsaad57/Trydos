@@ -5,7 +5,7 @@ import OfferAvatars from "./OfferAvatars";
 
 import Image from "next/image";
 import { Boutique } from "models/offer";
-
+import { useRouter } from "next-nprogress-bar";
 import { useEffect } from "react";
 import OfferPhotosSlider from "./OfferPhotosSlider";
 import NextLink from "Hooks/NextLink";
@@ -16,6 +16,7 @@ interface NormalWidgetProps {
   onClick: Function;
 }
 const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
+  const router = useRouter();
   useEffect(() => {
     if (boutique.description) {
       encode_utf8({
@@ -35,7 +36,6 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           // @ts-ignore: Unreachable code error
           !e.target.closest(".offer-category")
         ) {
-          // window.location.href = `/boutiques/${boutique.slug}`;
           // router.push(`/boutiques/${boutique.slug}`);
           // dispatchRouteChangeEvent("start", { to: "boutique" });
         } else {
@@ -109,10 +109,9 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                     onClick={(e) => {
                       e.preventDefault();
                       // dispatchRouteChangeEvent("start", { to: "boutique" });
-                      // router.push(
-                      //   `/boutiques/${boutique.slug}?categories=${category.category_id}`
-                      // );
-                      window.location.href = `/boutiques/${boutique.slug}?categories=${category.slug}`;
+                      router.push(
+                        `/boutiques/${boutique.slug}?categories=${category.category_id}`
+                      );
                     }}
                     key={key}
                   >
@@ -140,10 +139,9 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                     onClick={(e) => {
                       e.preventDefault();
                       // dispatchRouteChangeEvent("start", { to: "boutique" });
-                      // router.push(
-                      //   `/boutiques/${boutique.slug}?categories=${category.category_id}`
-                      // );
-                      window.location.href = `/filters/boutiques/${boutique.slug}?categories=${category.slug}`;
+                      router.push(
+                        `/boutiques/${boutique.slug}?categories=${category.category_id}`
+                      );
                     }}
                   >
                     <Image

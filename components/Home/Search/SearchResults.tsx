@@ -5,7 +5,9 @@ import BrandItem from "./Results/BrandItem";
 import CategoryItem from "./Results/CategoryItem";
 import BoutiqueItem from "./Results/BoutiqueItem";
 import { onClickSearchHistory } from "utils/functions";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next-nprogress-bar";
+
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import home from "services/home";
 import Spinner from "components/global/Spinner";
@@ -57,8 +59,7 @@ function SearchResults() {
       }
     }
     if (searchValue) params.set("searchText", searchValue);
-    // router.push(`/boutiques/listing?${params.toString()}`);
-    window.location.href = `/boutiques/listing?${params.toString()}`;
+    router.push(`/boutiques/listing?${params.toString()}`);
   };
   const apply = () => {
     onClickSearchHistory(searchValue || "");

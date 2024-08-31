@@ -693,6 +693,7 @@ export const UpdateFilter = async ({
         reset: false,
         colors: product.data.data.colors || [],
         total_size: product.data.data.total_size,
+        searchText: searchText,
       },
     });
     done();

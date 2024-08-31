@@ -125,6 +125,7 @@ export const getMainCategories = async ({ lang }) => {
         tags: [`home-categories-${cookieStore.get("lang")?.value ?? "en"}`],
       },
       headers: new Headers({
+        "ssr-req": "true",
         lang: await getLang(lang, cookieStore.get("language")?.value),
         country: cookieStore.get("country") && cookieStore.get("country").value,
       }),
@@ -330,6 +331,7 @@ export const getListingData = async ({
           tags: [`listing-data-${str}`, "listing-data"],
         },
         headers: new Headers({
+          "ssr-req": "true",
           lang: await getLang(lang, cookieStore.get("language")?.value),
           country:
             cookieStore.get("country") && cookieStore.get("country").value,
@@ -410,6 +412,7 @@ export const getListingData = async ({
           tags: [`listing-data-${str}`, "listing-data"],
         },
         headers: new Headers({
+          "ssr-req": "true",
           lang: await getLang(lang, cookieStore.get("language")?.value),
           country:
             cookieStore.get("country") && cookieStore.get("country").value,
@@ -643,6 +646,7 @@ export const FetchApi = async ({ url, method, body, lang, country }) => {
 
     body: body,
     headers: new Headers({
+      "ssr-req": "true",
       lang: await getLang(lang, cookieStore.get("language")?.value),
       country: await getCountry(
         country,

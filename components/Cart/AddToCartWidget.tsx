@@ -29,6 +29,7 @@ function AddToCartWidget() {
     let start = new Date();
     let repo = await fetch(OTP_URL + QTY_URL + `/${SelectedProduct.id}`, {
       headers: {
+        "ssr-req": "true",
         Authorization: `Bearer ${
           typeof localStorage !== "undefined" &&
           localStorage.getItem("MARKET-TOKEN")

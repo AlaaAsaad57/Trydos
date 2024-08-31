@@ -1,6 +1,7 @@
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next-nprogress-bar";
+
 interface OfferAvatarProps {
   images: string;
   zIndex: number;
@@ -27,9 +28,8 @@ function OfferAvatar({
   return (
     <div
       onClick={(e) => {
-        window.location.href = linkUrl;
         // e.preventDefault();
-        // router.push(linkUrl);
+        router.push(linkUrl);
         // dispatchRouteChangeEvent("start", { to: "boutique" });
       }}
       className="offer-avatar"

@@ -3,7 +3,7 @@ import "styles/home.css";
 import "styles/unused-onload.css";
 import Providers from "store/provider";
 import localFont from "next/font/local";
-import NextNProgress from "nextjs-progressbar";
+import { ViewTransitions } from "next-view-transitions";
 import TranslationsMenu from "components/global/TranslationsMenu";
 export const metadata = {
   title: "TryDos",

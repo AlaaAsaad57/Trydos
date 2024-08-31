@@ -16,6 +16,7 @@ import StoryService from "services/story";
 const getHeader = () => {
   return {
     headers: {
+      "ssr-req": "true",
       Authorization: `Bearer ${
         localStorage.getItem("MARKET-TOKEN") ||
         localStorage.getItem("DEVICE-TOKEN")

@@ -116,14 +116,7 @@ export async function middleware(request) {
         : getDefaultLocale(countryByIp, countries).country;
 
       request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathname}`;
-      if (isFilter)
-        return NextResponse.redirect(
-          `${host}${pathname.replace(
-            "/boutiques",
-            "/filters/boutiques"
-          )}${search}`
-        );
-      else return NextResponse.redirect(request.nextUrl);
+      return NextResponse.redirect(request.nextUrl);
     } else {
       if (countries.includes(countryByIp)) {
         request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathname}`;
@@ -132,14 +125,7 @@ export async function middleware(request) {
       }
       if (pathN.length > 1) request.nextUrl.searchParams.set("path", pathN);
       {
-        if (isFilter)
-          return NextResponse.redirect(
-            `${host}${pathname.replace(
-              "/boutiques",
-              "/filters/boutiques"
-            )}${search}`
-          );
-        else return NextResponse.redirect(request.nextUrl);
+        return NextResponse.redirect(request.nextUrl);
       }
     }
   } else if (!hasLanguage || !hasCountry) {
@@ -156,14 +142,6 @@ export async function middleware(request) {
       request.nextUrl.pathname = `/selectCountry`;
       if (pathN.length > 1) request.nextUrl.searchParams.set("path", pathN);
       //
-    }
-    if (isFilter) {
-      return NextResponse.redirect(
-        `${host}${pathname.replace(
-          "/boutiques",
-          "/filters/boutiques"
-        )}${search}`
-      );
     } else return NextResponse.redirect(request.nextUrl);
   }
   if (hasLanguage) {
@@ -172,14 +150,7 @@ export async function middleware(request) {
   } else {
     setLocaleCookies(request, preferredLang, preferredCountry);
   }
-  if (isFilter) {
-    return NextResponse.redirect(
-      `${protocol}${host}${pathname.replace(
-        "/boutiques",
-        "/filters/boutiques"
-      )}${search}`
-    );
-  }
+
   return response;
 }
 function setLocaleCookies(request, lang, country) {
@@ -203,6 +174,9 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    "/((?!api|static|.*\\..*|_next|endCall|call_direct|revalidate|test|callInProg|selectCountry|favicon.ico).*)",
+    {
+      source:
+        "/((?!api|static|.*\\..*|_next|endCall|call_direct|revalidate|test|callInProg|selectCountry|favicon.ico).*)",
+    },
   ],
 };

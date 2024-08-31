@@ -8,7 +8,8 @@ import { caseCheck, onClickSearchHistory } from "utils/functions";
 import home from "services/home";
 import useDebounce from "Hooks/useDebounce";
 import { dispatchRouteChangeEvent } from "Hooks/events";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next-nprogress-bar";
 interface SearchComponentProps {
   searchEnabled: boolean;
   close: Function;
@@ -98,8 +99,8 @@ function SearchComponent({
       }
     }
     params.set("searchText", searchValue);
-    window.location.href = `/filters/boutiques/listing?${params.toString()}`;
-    // router.push(`/boutiques/listing?${params.toString()}`);
+
+    router.push(`/boutiques/listing?${params.toString()}`);
   };
 
   const onKeyDown = (e) => {

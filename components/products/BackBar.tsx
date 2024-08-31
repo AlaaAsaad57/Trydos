@@ -30,12 +30,10 @@ function BackBar({
         onClick={() => {
           if (link) {
             if (activeRoute === "/") {
-              window.location.href = `/`;
               // dispatchRouteChangeEvent("start", {
               //   to: "HomePage",
               //   from: "details",
               // });
-
               //   router.push(`/`);
               // document.documentElement.style.overflow = "hidden";
               // document.documentElement.scrollTop = 0;

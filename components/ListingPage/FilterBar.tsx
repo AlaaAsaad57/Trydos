@@ -179,7 +179,7 @@ function FilterBar({ boutique, filters, productsServer }) {
                 newFiltersCallback: ({ filtersVar }) => {
                   dispatch({
                     type: "EDIT-FILTER",
-                    payload: { ...filtersVar, reset: true },
+                    payload: { ...filtersVar, reset: false },
                   });
                 },
                 searchText: selectedFilter?.searchText,

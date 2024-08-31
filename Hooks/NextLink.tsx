@@ -35,7 +35,10 @@ export default function NextLink({
       href={href}
       {...props}
       rel="prefetch"
-      onClick={handleClick}
+      onClick={(e) => {
+        console.log("ss");
+        onClick(e);
+      }}
     >
       <>{children}</>
     </Link>
