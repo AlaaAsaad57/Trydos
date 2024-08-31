@@ -11,7 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/scss/main.scss";
 import { useEffect } from "react";
 import CartContainer from "components/Cart";
-// import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
+import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 export default function Providers({ children }) {
   useEffect(() => {
     if (!navigator.cookieEnabled) {
@@ -20,11 +20,11 @@ export default function Providers({ children }) {
   }, []);
   return (
     <ReactQueryClientProvider>
-      {/* <ProgressBar
+      <ProgressBar
         color="#f53d3d"
         height="4px"
         options={{ showSpinner: false }}
-      /> */}
+      />
       <Init />
       <Provider store={store}>
         <CartProvider />
