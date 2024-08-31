@@ -41,5 +41,9 @@ const CartProvider = () => {
   };
 
   const cartEnable = useSelector((state) => state.cart.enable);
-  return <>{cartEnable && <CartContainer close={() => enableCart(false)} />}</>;
+  return (
+    <>
+      {cartEnable ? <CartContainer close={() => enableCart(false)} /> : <></>}
+    </>
+  );
 };

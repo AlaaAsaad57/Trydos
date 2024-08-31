@@ -18,7 +18,6 @@ async function OfferListServer({ params }) {
         key={2}
         quick={false}
       />
-      ;
     </>
   );
 }

@@ -44,7 +44,7 @@ export const getHomeData = async ({ str, lang }) => {
 
   const cookieStore = cookies();
   let url =
-    HOME_DATA_URL + (str?.length ? `?slug=${str}&limit=15` : "?limit=15");
+    HOME_DATA_URL + (str?.length ? `?slug=${str}&limit=10` : "?limit=10");
 
   let method = { method: "GET" };
 
@@ -694,4 +694,61 @@ export const getListingDataProd = async () => {
   });
   let repo = await res.json();
   return repo;
+};
+export const getHomeDataOffset = async ({ str, lang, offset }) => {
+  const cookies = (await import("next/headers")).cookies;
+
+  const cookieStore = cookies();
+  let url =
+    HOME_DATA_URL +
+    (str?.length
+      ? `?slug=${str}&limit=10&offset=${offset}`
+      : `?limit=10&offset=${offset}`);
+
+  let method = { method: "GET" };
+
+  try {
+    let start = new Date().getTime();
+    const res = await fetch(OTP_URL + url, {
+      ...method,
+      next: {
+        revalidate: 3600,
+        tags: [
+          `home-boutiques home-boutiques-${
+            cookieStore.get("lang")?.value ?? "en"
+          }`,
+        ],
+      },
+      headers: new Headers({
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        lang: await getLang(lang, cookieStore.get("language")?.value),
+        country: cookieStore.get("country") && cookieStore.get("country").value,
+      }),
+      credentials: "include",
+      mode: "cors",
+    });
+    const repo = await res.json();
+
+    let end = new Date().getTime();
+    let time = end - start;
+    let returned_res = {
+      type: res.type,
+      headers: new Headers({
+        lang: await getLang(lang, cookieStore.get("language")?.value),
+        country: cookieStore.get("country") && cookieStore.get("country").value,
+      }),
+      url: res.url,
+      time: time + "ms",
+      response: repo,
+      request: "Get boutiques",
+    };
+
+    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
+      return [repo.data.boutiques, returned_res];
+    else return [repo.data.boutiques, {}];
+  } catch (e) {
+    console.log(e);
+    return [[], e.toString()];
+  }
 };

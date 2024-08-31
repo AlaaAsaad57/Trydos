@@ -246,7 +246,10 @@ function AddToCartButton({
                     return (
                       <img
                         src={getConfiguredImage({
-                          src: s.selectedColor.images[0],
+                          src:
+                            s?.selectedColor?.images[0] ??
+                            AddToCartOption.selectedOptions[0]?.images[0]
+                              .file_path,
                           width: 50,
                           height: 50,
                         })}

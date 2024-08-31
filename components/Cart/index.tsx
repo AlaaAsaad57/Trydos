@@ -12,6 +12,7 @@ import CartLabel from "public/svg/cart/cartLabel.svg";
 import Skeleton from "react-loading-skeleton";
 import { LogData } from "store/homepage/actions";
 import "styles/productDetails.css";
+import NextLink from "Hooks/NextLink";
 function CartContainer({ close }) {
   const language = useSelector((state: any) => state.homepage.language);
   const loading = useSelector((state: any) => state.cart.loading);
@@ -34,7 +35,7 @@ function CartContainer({ close }) {
   }, []);
 
   const getProductsOfBrand = (s) => {
-    return cart?.filter((b) => b.brand?.id === s?.id);
+    return cart?.filter((b) => b.boutique?.id === s?.id);
   };
   const getPriceOfBrand = (s) => {
     let prods = getProductsOfBrand(s);
@@ -92,15 +93,15 @@ function CartContainer({ close }) {
       <div className="flex-col overflow-auto w-full h-full mt-10">
         {!loading ? (
           <>
-            {brands?.map((s, key) => (
+            {brands?.map((boutique, key) => (
               <>
-                {s.brand?.id ? (
+                {boutique?.id ? (
                   <BrandCart
                     key={key}
                     currency={currency}
-                    price={getPriceOfBrand(s?.brand)}
-                    products={getProductsOfBrand(s?.brand)}
-                    s={s}
+                    price={getPriceOfBrand(boutique)}
+                    products={getProductsOfBrand(boutique)}
+                    boutique={boutique}
                   />
                 ) : (
                   <div
@@ -108,8 +109,9 @@ function CartContainer({ close }) {
                     key={key}
                   >
                     <div className="flex-col w-full">
-                      {getProductsOfBrand(s).map((product, key) => (
-                        <div
+                      {getProductsOfBrand(boutique).map((product, key) => (
+                        <NextLink
+                          href={`/products/${product.slug}`}
                           className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
                           key={key}
                         >
@@ -227,7 +229,7 @@ function CartContainer({ close }) {
                               className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
                             />
                           </div>
-                        </div>
+                        </NextLink>
                       ))}
                     </div>
                   </div>
@@ -558,7 +560,7 @@ const CartColorIcon = () => {
     </svg>
   );
 };
-export const BrandCart = ({ key, s, products, price, currency }) => {
+export const BrandCart = ({ key, boutique, products, price, currency }) => {
   const [expanded, setExpanded] = useState(true);
   const decimal_point_settings = useSelector(
     (state: any) => state.homepage.settings
@@ -572,7 +574,7 @@ export const BrandCart = ({ key, s, products, price, currency }) => {
       >
         <img
           src={getConfiguredImage({
-            src: s.brand.image,
+            src: boutique.icon,
             width: 90,
             height: 90,
           })}
@@ -592,8 +594,9 @@ export const BrandCart = ({ key, s, products, price, currency }) => {
       {expanded && (
         <div className="flex-col w-full">
           {products?.map((product, key) => (
-            <div
-              className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] mt-3 rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
+            <NextLink
+              href={`/products/${product.slug}`}
+              className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
               key={key}
             >
               <div className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative">
@@ -723,7 +726,7 @@ export const BrandCart = ({ key, s, products, price, currency }) => {
                   className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
                 />
               </div>
-            </div>
+            </NextLink>
           ))}
         </div>
       )}

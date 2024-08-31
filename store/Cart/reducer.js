@@ -46,6 +46,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           localCart: arr,
           AddToCartOption: {
             ...state.AddToCartOption,
+            quantity: 0,
           },
         };
       } else {
@@ -74,12 +75,12 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       let brands = [];
       let prods = payload.cart;
       prods.map((s) => {
-        if (!s.brand?.id && !brands.some((b) => b.brand.id === null)) {
+        if (!s.boutique?.id && !brands.some((b) => b.boutique.id === null)) {
           brands.push({ brand: null });
         }
-        if (brands.some((b) => b.brand?.id === s.brand?.id)) {
+        if (brands.some((b) => b?.id === s.boutique?.id)) {
         } else {
-          if (s.brand) brands.push({ brand: s.brand });
+          if (s.boutique) brands.push(s.boutique);
         }
       });
 

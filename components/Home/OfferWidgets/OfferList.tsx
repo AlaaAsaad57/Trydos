@@ -3,8 +3,9 @@ import { useDispatch } from "react-redux";
 import NormalWidget from "./NormalWidget";
 
 import { Boutique } from "models/offer";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { LogData } from "store/homepage/actions";
+import InfinteScroll from "components/global/InfinteScroll";
 interface OfferListProps {
   quick: boolean;
   boutiques: Boutique[];
@@ -14,7 +15,10 @@ function OfferList({ quick, boutiques, response }: OfferListProps) {
   useEffect(() => {
     LogData(response);
   }, []);
-
+  const [nextBoutieues, setBoutiques] = useState([]);
+  const SetBoutiquesFunction = (arr) => {
+    setBoutiques([...nextBoutieues, ...arr]);
+  };
   return (
     <div className={`offers-list ${quick && " mt-5"}`}>
       {/* {quick ? (
@@ -42,7 +46,7 @@ function OfferList({ quick, boutiques, response }: OfferListProps) {
           )
         )
       )} */}
-      {boutiques.map((boutique: Boutique, index) => {
+      {[...boutiques, ...nextBoutieues].map((boutique: Boutique, index) => {
         return (
           <NormalWidget
             onClick={() => {}}
@@ -52,6 +56,7 @@ function OfferList({ quick, boutiques, response }: OfferListProps) {
           />
         );
       })}
+      <InfinteScroll SetBoutiques={(arr) => SetBoutiquesFunction(arr)} />
     </div>
   );
 }
