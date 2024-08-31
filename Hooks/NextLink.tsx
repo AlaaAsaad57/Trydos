@@ -29,7 +29,7 @@ export default function NextLink({
     document.head.appendChild(child);
   }, []);
   return (
-    <a
+    <Link
       prefetch={true}
       className={className}
       href={href}
@@ -38,6 +38,6 @@ export default function NextLink({
       onClick={handleClick}
     >
       <>{children}</>
-    </a>
+    </Link>
   );
 }
