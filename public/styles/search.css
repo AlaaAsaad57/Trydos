@@ -162,8 +162,8 @@
   display: flex;
   cursor: pointer;
   align-items: center;
-  padding-left: 10px;
-  padding-right: 15px;
+  padding-left: 40px;
+  padding-right: 40px;
   justify-self: center;
   position: relative;
 }

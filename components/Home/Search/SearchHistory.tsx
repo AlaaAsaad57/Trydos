@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import SearchHistoryIcon from "public/svg/SearchHistoryIcon.svg";
 import CloseIconOption from "public/svg/CloseIconOption.svg";
+import home from "services/home";
+import { useDispatch, useSelector } from "react-redux";
 
 function SearchHistory({ options, setOptions }) {
   const [openMenu, setOpen] = useState(false);
@@ -36,6 +38,12 @@ function SearchHistory({ options, setOptions }) {
       });
     }
   }, []);
+  const dispatch = useDispatch();
+  const searchFilters = useSelector((state: any) => state.Search.searchFilters);
+  const setLoading = (e) => {
+    dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: e });
+  };
+
   return (
     <div
       className={` ${
@@ -60,7 +68,25 @@ function SearchHistory({ options, setOptions }) {
                   key={index}
                   className="search-filter-option"
                   onClick={(e) => {
-                    setOptions(s);
+                    // @ts-ignore
+                    if (!e.target.closest(".close-icon-container")) {
+                      dispatch({ type: "SEARCH-LOADING", payload: true });
+                      home.UpdateFilters({
+                        search_text: s || "",
+                        callback: (e) => {
+                          setLoading(false);
+                          dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+                        },
+                      });
+                      home.SearchProducts({
+                        search_text: s,
+                        searchFilters: searchFilters,
+                        callback: (e) => {
+                          dispatch({ type: "FIND-PRODUCTS", payload: e });
+                        },
+                      });
+                      setOptions(s);
+                    }
                   }}
                 >
                   {s}{" "}

@@ -124,23 +124,21 @@ function SearchComponent({
       document.documentElement.scrollTop = 0;
       //go to listing
     } else {
-      if (e.target.value.length > 0) {
-        dispatch({ type: "SEARCH-LOADING", payload: true });
-        home.UpdateFilters({
-          search_text: e.target.value || "",
-          callback: (e) => {
-            setLoading(false);
-            dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
-          },
-        });
-        home.SearchProducts({
-          search_text: e.target.value,
-          searchFilters: searchFilters,
-          callback: (e) => {
-            dispatch({ type: "FIND-PRODUCTS", payload: e });
-          },
-        });
-      }
+      dispatch({ type: "SEARCH-LOADING", payload: true });
+      home.UpdateFilters({
+        search_text: e.target.value || "",
+        callback: (e) => {
+          setLoading(false);
+          dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+        },
+      });
+      home.SearchProducts({
+        search_text: e.target.value,
+        searchFilters: searchFilters,
+        callback: (e) => {
+          dispatch({ type: "FIND-PRODUCTS", payload: e });
+        },
+      });
     }
   };
   const clearSuggestion = () => {
