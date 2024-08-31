@@ -22,12 +22,6 @@ export default function NextLink({
     onClick?.(e);
   };
 
-  useEffect(() => {
-    let child = document.createElement("link");
-    child.rel = "prefetch";
-    child.href = href;
-    document.head.appendChild(child);
-  }, []);
   return (
     <Link
       prefetch={true}
