@@ -6,9 +6,7 @@ import "styles/productDetails.css";
 
 async function OfferListServer({ params }) {
   let res = await fetch(process.env.HOST + `/api/boutiques?offset=1&limit=10`);
-  console.log(
-    process.env.HOST + `/api/boutiques?offset=1&limit=10&lang=${params.lang}`
-  );
+
   let body = await res.json();
   let boutiques = body.data.boutiques;
   return (

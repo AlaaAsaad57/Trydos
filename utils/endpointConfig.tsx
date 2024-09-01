@@ -9,6 +9,7 @@ export const REGISTER_DEVICE_URL = "/auth/register-guest";
 export const CUSTOMER_INFO_URL = "/customer/info";
 /*OTP Auth */
 // export const OTP_URL = "https://market_staging.trydos.tech/api/new_v1";
+// export const OTP_URL = "https://market_staging_backend.trydos.dev/api/new_v1";
 export const OTP_URL = "https://market_staging.antiksef.online/api/new_v1";
 export const VERFIY_OTP = "/phone/verify_otp_singin";
 export const VERFIY_OTP_SIGNUP = "/phone/verify_otp_signup";

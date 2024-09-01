@@ -30,7 +30,6 @@ export default function NextLink({
       {...props}
       rel="prefetch"
       onClick={(e) => {
-        console.log("ss");
         onClick(e);
       }}
     >
