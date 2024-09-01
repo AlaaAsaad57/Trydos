@@ -1,17 +1,23 @@
 import React from "react";
-
+import { getHomeData } from "store/homepage/cachedActions";
 import OfferList from "components/Home/OfferWidgets/OfferList";
 import "styles/offers.css";
 import "styles/productDetails.css";
 
 async function OfferListServer({ params }) {
-  let res = await fetch(process.env.HOST + `/api/boutiques?offset=1&limit=10`);
+  const [HomeData, response] = await getHomeData({
+    str: params?.mainCategory,
+    lang: params.lang ? params.lang.split("-")[1] : null,
+  });
 
-  let body = await res.json();
-  let boutiques = body.data.boutiques;
   return (
     <>
-      <OfferList response={body} boutiques={boutiques} key={2} quick={false} />
+      <OfferList
+        response={response}
+        boutiques={HomeData}
+        key={2}
+        quick={false}
+      />
     </>
   );
 }
