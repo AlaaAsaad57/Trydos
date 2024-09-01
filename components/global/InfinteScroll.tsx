@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { InView } from "react-intersection-observer";
 import Spinner from "./Spinner";
-import { getHomeDataOffset } from "store/homepage/cachedActions";
 import { useParams } from "next/navigation";
 
 function InfinteScroll({ SetBoutiques }) {
@@ -11,11 +10,13 @@ function InfinteScroll({ SetBoutiques }) {
   const params = useParams();
   const getNextBoutique = async () => {
     setLoading(true);
-    let [boutiques] = await getHomeDataOffset({
-      str: params.mainCategory ?? null,
-      lang: params.lang,
-      offset: offset + 1,
-    });
+    let res = await fetch(
+      `/api/boutiques?lang=${params.lang}&offset=${offset + 1}${
+        params.mainCategory?.length > 0 ? `&str=${params.mainCategory}` : ""
+      }`
+    );
+    let body = await res.json();
+    let boutiques = body.data.boutiques;
     if (boutiques.length === 0) {
       setLoading(false);
       setEnd(true);
