@@ -1,7 +1,7 @@
 "use client";
 import "styles/stories.css";
 import dynamic from "next/dynamic";
-const StoryElement = dynamic(() => import("./StoryElement"), { ssr: false });
+import StoryElement from "./StoryElement";
 const AddStory = dynamic(() => import("../AddStory"), { ssr: false });
 import { useDispatch, useSelector } from "react-redux";
 import { SelectStory } from "store/homepage/actions";
