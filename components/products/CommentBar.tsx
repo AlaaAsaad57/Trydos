@@ -1,7 +1,6 @@
 import axios from "axios";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
-import { OTP_URL } from "utils/endpointConfig";
 
 function CommentBar({
   product,
@@ -42,7 +41,7 @@ function CommentBar({
         mid: mid,
       });
       let req = await axios.post(
-        OTP_URL + "/customer/product_comment",
+        process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/product_comment",
         {
           customer_id: user?.id,
           product_id: product?.id,

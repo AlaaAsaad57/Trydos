@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { OTP_URL } from "utils/endpointConfig";
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   let str = searchParams.get("slug");
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       ? `?slug=${str}&limit=10&offset=${offset}`
       : `?limit=10&offset=${offset}`);
 
-  let res = await fetch(OTP_URL + BOUTIQUE_URL, {
+  let res = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + BOUTIQUE_URL, {
     next: {
       revalidate: 36000,
     },

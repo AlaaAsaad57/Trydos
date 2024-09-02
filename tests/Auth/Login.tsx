@@ -6,7 +6,7 @@ import userEvent from "@testing-library/user-event";
 import LogInPins from "components/Login/LogInPins";
 import AuthService from "services/auth";
 import fetchMock from "fetch-mock";
-import { OTP_URL, VERFIY_OTP, VERFIY_OTP_SIGNUP } from "utils/endpointConfig";
+import { VERFIY_OTP, VERFIY_OTP_SIGNUP } from "utils/endpointConfig";
 import PhoneInput from "components/Login/PhoneInput";
 import SendMethod from "components/Login/SendMethod";
 import NavbarServer from "components/Server/Navbar";
@@ -255,9 +255,16 @@ describe("Phone Input Component", async () => {
     const arrow = screen.queryByTestId("phone-arrow");
     const mockResponse = { data: {} };
     const callCheckPhone = async (phoneNumber) => {
-      fetchMock.mock(OTP_URL + "/phone/check-existence/" + phoneNumber, 200);
+      fetchMock.mock(
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+          "/phone/check-existence/" +
+          phoneNumber,
+        200
+      );
       const res = await fetch(
-        OTP_URL + "/phone/check-existence/" + phoneNumber
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+          "/phone/check-existence/" +
+          phoneNumber
       );
       return res;
     };
@@ -354,7 +361,11 @@ describe("Phone Input Component", async () => {
     );
     const calls = fetchMock.calls();
     expect(calls.length).toBeGreaterThan(0);
-    expect(calls[0][0]).toBe(OTP_URL + "/phone/check-existence/" + phoneNumber);
+    expect(calls[0][0]).toBe(
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/phone/check-existence/" +
+        phoneNumber
+    );
     // expect(mockSetStepIndicator).toHaveBeenCalledWith(4); // not do anything
     // expect(store.dispatch).toHaveBeenCalledWith(ReInitialise()); // // not do anything
     storeLastJSON();
@@ -554,7 +565,7 @@ describe("Login Pins Component", async () => {
 
     // expect(calls.length).toBeGreaterThan(0);
     expect(calls[0][0]).toBe(
-      OTP_URL +
+      process.env.NEXT_PUBLIC_BACKEND_URL +
         (Username.length > 0 ? VERFIY_OTP_SIGNUP : VERFIY_OTP) +
         `?verificationId=${verficationID}&otp=${code}${
           Username.length > 0 ? `&name=${Username}` : ""

@@ -3,7 +3,6 @@ import {
   DELETE_CHAT_URL,
   GET_CHATS_URL,
   GET_CONTATCS_URL,
-  OTP_URL,
   SEARCH_CONTACTS_URL,
   SEARCH_USERS_URL,
   SEND_MESSAGE_URL,
@@ -12,6 +11,7 @@ import {
 import { store } from "../index";
 import { getUserChat, translate } from "utils/functions";
 import { FetchApi } from "store/homepage/cachedActions";
+import { AxiosGet } from "utils/constants";
 
 export const ChatConroller = (payload) => {
   if (payload) document.documentElement.style.overflow = "hidden";
@@ -851,13 +851,10 @@ export const GetChatDetails = async (id) => {
   } catch (e) {}
 };
 export const getCurrency = async ({ lang, country, callback }) => {
-  let [currency, data] = await FetchApi({
-    url: OTP_URL + "/mobile/home/currency",
-    body: null,
-    method: "GET",
-    lang: lang,
-    country: country,
+  let currency = await AxiosGet({
+    url: process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile/home/currency",
   });
-  callback({ currency: currency.data.currency, res: data });
-  return [currency.data.currency, data];
+  //
+  callback({ currency: currency?.currency, res: {} });
+  return currency?.currency;
 };

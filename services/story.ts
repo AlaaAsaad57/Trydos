@@ -5,7 +5,6 @@ import { _isStoreLastJson, getLang } from "utils/functions";
 import {
   GET_USERS_STORIES,
   LOG_IN_STORIES,
-  STORIES_URL,
   UPLOAD_STORY_URL,
 } from "utils/endpointConfig";
 import { getUserStories } from "utils/functions";
@@ -15,18 +14,21 @@ class StoryService {
   /* get stories */
 
   async getStories() {
-    const res = await fetch(STORIES_URL + GET_USERS_STORIES, {
-      headers: {
-        Authorization:
-          "Bearer " +
-          (typeof localStorage !== "undefined" &&
-            localStorage.getItem("USER-STORIES") &&
-            JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
-        language: Cookies.get("language"),
+    const res = await fetch(
+      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + GET_USERS_STORIES,
+      {
+        headers: {
+          Authorization:
+            "Bearer " +
+            (typeof localStorage !== "undefined" &&
+              localStorage.getItem("USER-STORIES") &&
+              JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
+          language: Cookies.get("language"),
 
-        country: Cookies.get("country"),
-      },
-    });
+          country: Cookies.get("country"),
+        },
+      }
+    );
     let repo = await res.json();
 
     const data: StoriesInterface[] = repo.data.data;
@@ -38,13 +40,16 @@ class StoryService {
     return data;
   }
   async loginStories() {
-    const response = await fetch(STORIES_URL + LOG_IN_STORIES, {
-      method: "POST",
-      body: JSON.stringify({
-        otp_id_token: localStorage.getItem("ID-TOKEN"),
-        mobile_phone: JSON.parse(localStorage.getItem("USER")).phone,
-      }),
-    });
+    const response = await fetch(
+      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + LOG_IN_STORIES,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          otp_id_token: localStorage.getItem("ID-TOKEN"),
+          mobile_phone: JSON.parse(localStorage.getItem("USER")).phone,
+        }),
+      }
+    );
     let repo = await response.json();
     Cookies.set("token", repo.data.access_token);
     localStorage.setItem("USER-STORIES", JSON.stringify(repo.data));
@@ -61,7 +66,9 @@ class StoryService {
       if (getUserStories()?.id) {
         store.dispatch({ type: "WATCH-STORY", payload: { pid: pid, id: id } });
         const response = await fetch(
-          STORIES_URL + "/api/v1/stories/increase_viewers/" + pid,
+          process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
+            "/api/v1/stories/increase_viewers/" +
+            pid,
           {
             headers: {
               Authorization:
@@ -96,7 +103,7 @@ class StoryService {
       formData.append("file", file);
       formData.append("is_video", is_video);
       const response = await axios.post(
-        STORIES_URL + UPLOAD_STORY_URL,
+        process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + UPLOAD_STORY_URL,
         formData,
         {
           onUploadProgress: (progressEvent) => {

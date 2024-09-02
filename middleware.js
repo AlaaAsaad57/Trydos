@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { getCountriesApi } from "./store/homepage/cachedActions";
 
-const languagesString = process.env.NEXT_PUBLIC_LANGUAGES || "[]";
+const languagesString = '["en", "ar", "tr"]' || "[]";
 const languages = JSON.parse(languagesString);
 
 // Get the preferred locale, similar to the above or using a library

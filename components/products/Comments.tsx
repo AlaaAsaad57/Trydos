@@ -3,7 +3,7 @@ import CommentItem from "./CommentItem";
 import { showDate } from "components/Chat/chatsFunctions";
 import Skeleton from "react-loading-skeleton";
 import axios from "axios";
-import { OTP_URL } from "utils/endpointConfig";
+
 import { useSelector } from "react-redux";
 
 function Comments({
@@ -23,7 +23,7 @@ function Comments({
   const resendCommentApi = async (mid, s) => {
     try {
       let req = await axios.post(
-        OTP_URL + "/customer/product_comment",
+        process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/product_comment",
         {
           customer_id: user?.id,
           product_id: productId,

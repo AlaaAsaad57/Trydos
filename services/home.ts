@@ -8,7 +8,6 @@ import {
   CUSTOMER_INFO_URL,
   HOME_DATA_URL,
   LISTING_INFO_URL,
-  OTP_URL,
   REGISTER_DEVICE_URL,
   STARTER_SETTINGS,
 } from "utils/endpointConfig";
@@ -34,7 +33,10 @@ const getHeader = () => {
 class HomeService {
   async getClientData() {
     try {
-      const response = await fetch(OTP_URL + STARTER_SETTINGS, getHeader());
+      const response = await fetch(
+        process.env.NEXT_PUBLIC_BACKEND_URL + STARTER_SETTINGS,
+        getHeader()
+      );
       let repo = await response.json();
       store.dispatch({ type: "GET_SETTINGS", payload: repo });
       sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
@@ -45,8 +47,10 @@ class HomeService {
         this.getCustomerInfo();
       getCart({
         callback: ([data, res]) => {
-          store.dispatch({ type: "CART-INIT", payload: data.data });
-          LogData(res);
+          store.dispatch({
+            type: "CART-INIT",
+            payload: data ?? { cart: [] },
+          });
         },
       });
       if (typeof window !== "undefined") {
@@ -61,7 +65,10 @@ class HomeService {
     }
   }
   async getCustomerInfo() {
-    const response = await fetch(OTP_URL + CUSTOMER_INFO_URL, getHeader());
+    const response = await fetch(
+      process.env.NEXT_PUBLIC_BACKEND_URL + CUSTOMER_INFO_URL,
+      getHeader()
+    );
     let repo = await response.json();
 
     store.dispatch({
@@ -114,10 +121,13 @@ class HomeService {
       !localStorage.getItem("DEVICE-TOKEN") &&
       !localStorage.getItem("USER")
     ) {
-      let response = await fetch(OTP_URL + REGISTER_DEVICE_URL, {
-        method: "POST",
-        ...getHeader(),
-      });
+      let response = await fetch(
+        process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
+        {
+          method: "POST",
+          ...getHeader(),
+        }
+      );
       let repo = await response.json();
       localStorage.setItem("DEVICE-TOKEN", repo.data.token);
       Cookies.set("DEVICE-TOKEN", repo.data.token, {
@@ -136,7 +146,7 @@ class HomeService {
   }
   async GetBoutiques(slug) {
     const response = await fetch(
-      OTP_URL + HOME_DATA_URL + `ByCategory`,
+      process.env.NEXT_PUBLIC_BACKEND_URL + HOME_DATA_URL + `ByCategory`,
 
       {
         method: "POST",
@@ -197,7 +207,7 @@ class HomeService {
     }
     formBody = formBody.join("&");
     let url =
-      OTP_URL +
+      process.env.NEXT_PUBLIC_BACKEND_URL +
       (categories
         ? "/web/products" +
           `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
@@ -243,7 +253,7 @@ class HomeService {
 
     try {
       let rep = await fetch(
-        OTP_URL +
+        process.env.NEXT_PUBLIC_BACKEND_URL +
           "/web/search" +
           `?search_text=${search_text}&${urlParams.toString()}&offset=1&limit=4`,
         {
@@ -284,7 +294,7 @@ class HomeService {
     }
     try {
       let rep = await fetch(
-        OTP_URL +
+        process.env.NEXT_PUBLIC_BACKEND_URL +
           `/web/search/filters?${
             search_text?.length > 0 ? `search_text=${search_text}` : ""
           }${
@@ -332,7 +342,7 @@ class HomeService {
       // @ts-ignore
       dataBody = dataBody.join("&");
       let [updateQuantity, data] = await FetchApi({
-        url: OTP_URL + "/cart/update",
+        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
         method: "POST",
         body: dataBody,
         country: null,
@@ -361,7 +371,7 @@ class HomeService {
       formBody = formBody.join("&");
 
       let [data, response] = await FetchApi({
-        url: OTP_URL + "/cart/add",
+        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/add",
         method: "POST",
         body: formBody,
         country: null,

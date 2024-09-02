@@ -7,7 +7,7 @@ import { ProductInterface } from "models/product";
 
 import ProductDetails from "./ProductDetails";
 import axios from "axios";
-import { OTP_URL } from "utils/endpointConfig";
+
 import SelectColor from "./SelectColor";
 import { useDispatch, useSelector } from "react-redux";
 import { RoundPrice } from "utils/functions";
@@ -89,7 +89,9 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
 
   const getData = async () => {
     let req = await axios.get(
-      OTP_URL + "/web/product/likesCommentsSharesDetails/" + product.id
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/web/product/likesCommentsSharesDetails/" +
+        product.id
     );
     setProductData({
       ...productState.productDetails,

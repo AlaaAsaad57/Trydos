@@ -4,13 +4,7 @@ import userImage from "public/images/profileNo.png";
 import Cookies from "js-cookie";
 
 import { _isStoreLastJson, getLang } from "utils/functions";
-import {
-  OTP_URL,
-  SEND_OTP,
-  STORIES_URL,
-  VERFIY_OTP,
-  VERFIY_OTP_SIGNUP,
-} from "utils/endpointConfig";
+import { SEND_OTP, VERFIY_OTP, VERFIY_OTP_SIGNUP } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
 const getHeader = () => {
@@ -34,7 +28,9 @@ class AuthService {
   ) {
     try {
       const response = await fetch(
-        OTP_URL + "/phone/check-existence/" + `${value}`,
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+          "/phone/check-existence/" +
+          `${value}`,
         getHeader()
       );
       let repo = await response.json();
@@ -56,7 +52,7 @@ class AuthService {
   ) {
     try {
       let response = await fetch(
-        OTP_URL +
+        process.env.NEXT_PUBLIC_BACKEND_URL +
           SEND_OTP +
           `?phone=+${mobilePhone}&is_via_whatsapp=${is_via_whatsapp}`,
         getHeader()
@@ -91,7 +87,7 @@ class AuthService {
   ) {
     try {
       const response = await fetch(
-        OTP_URL +
+        process.env.NEXT_PUBLIC_BACKEND_URL +
           (Username.length > 0 ? VERFIY_OTP_SIGNUP : VERFIY_OTP) +
           `?verificationId=${verficationID}&otp=${code}${
             Username.length > 0 ? `&name=${Username}` : ""
@@ -156,12 +152,12 @@ class AuthService {
       store.dispatch({ type: "UPDATE-NAME", payload: name });
       let axios = (await import("axios")).default;
       axios.post(
-        OTP_URL + "/customer/update-name",
+        process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-name",
         { name: name },
         getHeader()
       );
       axios.post(
-        STORIES_URL + "/api/v1/users/update",
+        process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + "/api/v1/users/update",
         { name: name },
         {
           headers: {

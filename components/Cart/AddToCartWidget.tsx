@@ -1,7 +1,7 @@
 import SelectSize from "components/products/SelectSize";
 import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { OTP_URL } from "utils/endpointConfig";
+
 import {
   AddToCartAnimation,
   getConfiguredImage,
@@ -27,22 +27,28 @@ function AddToCartWidget() {
   const product = useSelector((state: any) => state.details.product);
   const getDetails = async () => {
     let start = new Date();
-    let repo = await fetch(OTP_URL + QTY_URL + `/${SelectedProduct.id}`, {
-      headers: {
-        "ssr-req": "true",
-        Authorization: `Bearer ${
-          typeof localStorage !== "undefined" &&
-          localStorage.getItem("MARKET-TOKEN")
-        }`,
-        lang: getLang(null, Cookies.get("language")),
-        country: Cookies.get("country"),
-      },
-    });
+    let repo = await fetch(
+      process.env.NEXT_PUBLIC_BACKEND_URL + QTY_URL + `/${SelectedProduct.id}`,
+      {
+        headers: {
+          "ssr-req": "true",
+          Authorization: `Bearer ${
+            typeof localStorage !== "undefined" &&
+            localStorage.getItem("MARKET-TOKEN")
+          }`,
+          lang: getLang(null, Cookies.get("language")),
+          country: Cookies.get("country"),
+        },
+      }
+    );
     let data = await repo.json();
     let end = new Date();
     LogData({
       request: "Get Product Quantity info",
-      url: OTP_URL + QTY_URL + `/${SelectedProduct.id}`,
+      url:
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+        QTY_URL +
+        `/${SelectedProduct.id}`,
       headers: {
         Authorization: `Bearer ${
           typeof localStorage !== "undefined" &&

@@ -4,9 +4,6 @@ import {
   GET_USERS_STORIES,
   HOME_DATA_CATEGORIES_URL,
   HOME_DATA_URL,
-  LISTING_INFO_URL,
-  OTP_URL,
-  STORIES_URL,
 } from "utils/endpointConfig";
 
 export const getStories = async ({ lang }) => {
@@ -15,13 +12,16 @@ export const getStories = async ({ lang }) => {
   try {
     let time = new Date().getTime();
     let [headersObj, headers] = await DataApiHeaders(true);
-    const res = await fetch(STORIES_URL + GET_USERS_STORIES, {
-      next: {
-        revalidate: 3600,
-        tags: [`stories-${cookieStore.get("lang")?.value ?? lang}`],
-      },
-      headers: headers,
-    });
+    const res = await fetch(
+      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + GET_USERS_STORIES,
+      {
+        next: {
+          revalidate: 3600,
+          tags: [`stories-${cookieStore.get("lang")?.value ?? lang}`],
+        },
+        headers: headers,
+      }
+    );
     // hi
     const repo = await res.json();
     time = new Date().getTime() - time;
@@ -50,7 +50,7 @@ export const getHomeData = async ({ str, lang }) => {
 
   try {
     let start = new Date().getTime();
-    const res = await fetch(OTP_URL + url, {
+    const res = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + url, {
       ...method,
       next: {
         revalidate: 3600,
@@ -99,7 +99,7 @@ export const getHomeDataStatic = async () => {
 
   let method = { method: "GET" };
 
-  const res = await fetch(OTP_URL + url, {
+  const res = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + url, {
     ...method,
     next: {
       revalidate: 3600,
@@ -119,17 +119,21 @@ export const getMainCategories = async ({ lang }) => {
   const cookieStore = cookies();
   try {
     let start = new Date().getTime();
-    const res = await fetch(OTP_URL + HOME_DATA_CATEGORIES_URL, {
-      next: {
-        revalidate: 3600,
-        tags: [`home-categories-${cookieStore.get("lang")?.value ?? "en"}`],
-      },
-      headers: new Headers({
-        "ssr-req": "true",
-        lang: await getLang(lang, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
-      }),
-    });
+    const res = await fetch(
+      process.env.NEXT_PUBLIC_BACKEND_URL + HOME_DATA_CATEGORIES_URL,
+      {
+        next: {
+          revalidate: 3600,
+          tags: [`home-categories-${cookieStore.get("lang")?.value ?? "en"}`],
+        },
+        headers: new Headers({
+          "ssr-req": "true",
+          lang: await getLang(lang, cookieStore.get("language")?.value),
+          country:
+            cookieStore.get("country") && cookieStore.get("country").value,
+        }),
+      }
+    );
     const repo = await res.json();
     let end = new Date().getTime();
     let time = end - start;
@@ -154,7 +158,9 @@ export const getMainCategories = async ({ lang }) => {
 };
 export const getMainCategoriesStatic = async () => {
   try {
-    const res = await fetch(OTP_URL + HOME_DATA_CATEGORIES_URL);
+    const res = await fetch(
+      process.env.NEXT_PUBLIC_BACKEND_URL + HOME_DATA_CATEGORIES_URL
+    );
     const repo = await res.json();
 
     return [repo.data.mainCategories];
@@ -316,7 +322,7 @@ export const getListingData = async ({
     }`;
 
     let productRes = await fetch(
-      OTP_URL +
+      process.env.NEXT_PUBLIC_BACKEND_URL +
         str +
         (filters.colors
           ? `&${new URLSearchParams({
@@ -373,7 +379,7 @@ export const getListingData = async ({
     let str = categories;
 
     let url =
-      OTP_URL +
+      process.env.NEXT_PUBLIC_BACKEND_URL +
       (productCategory
         ? "/web/products?limit=4&offset=1" +
           `&category=${productCategory}${
@@ -464,37 +470,45 @@ export async function getProductDetails({ productId, lang }) {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   try {
-    const res = await fetch(OTP_URL + DETAILS_URL + `/${productId}`, {
-      method: "GET",
+    const res = await fetch(
+      process.env.NEXT_PUBLIC_BACKEND_URL + DETAILS_URL + `/${productId}`,
+      {
+        method: "GET",
 
-      next: {
-        revalidate: 3600,
-        tags: [`product-data-${productId}`, "listing-data"],
-      },
-      headers: new Headers({
-        lang: await getLang(lang, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      }),
-    });
+        next: {
+          revalidate: 3600,
+          tags: [`product-data-${productId}`, "listing-data"],
+        },
+        headers: new Headers({
+          lang: await getLang(lang, cookieStore.get("language")?.value),
+          country:
+            cookieStore.get("country") && cookieStore.get("country").value,
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        }),
+      }
+    );
     const repo = await res.json();
     let end1 = new Date().getTime() - start1;
     let start2 = new Date().getTime();
-    const res1 = await fetch(OTP_URL + QTY_URL + `/${productId}`, {
-      method: "GET",
+    const res1 = await fetch(
+      process.env.NEXT_PUBLIC_BACKEND_URL + QTY_URL + `/${productId}`,
+      {
+        method: "GET",
 
-      next: {
-        revalidate: 3600,
-        tags: [`product-data-${productId}`, "listing-data"],
-      },
-      headers: new Headers({
-        lang: await getLang(lang, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      }),
-    });
+        next: {
+          revalidate: 3600,
+          tags: [`product-data-${productId}`, "listing-data"],
+        },
+        headers: new Headers({
+          lang: await getLang(lang, cookieStore.get("language")?.value),
+          country:
+            cookieStore.get("country") && cookieStore.get("country").value,
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        }),
+      }
+    );
     const repo1 = await res1.json();
     let end2 = new Date().getTime() - start2;
     let prod = { ...repo.data, ...repo1.data };
@@ -541,7 +555,7 @@ export async function getProductDataOG({ slug, lang }) {
   // const cookieStore = cookies();
   // let start1=new Date().getTime();
   // try {
-  //   const res = await fetch(OTP_URL + DETAILS_URL + `/${slug}`, {
+  //   const res = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + DETAILS_URL + `/${slug}`, {
   //     method: "GET",
 
   //     next: {
@@ -558,7 +572,7 @@ export async function getProductDataOG({ slug, lang }) {
   //   const repo = await res.json();
   //   let end1=new Date().getTime()-start1;
   //   let start2=new Date().getTime();
-  //   const res1 = await fetch(OTP_URL + QTY_URL + `/${slug}`, {
+  //   const res1 = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + QTY_URL + `/${slug}`, {
   //     method: "GET",
 
   //     next: {
@@ -606,7 +620,7 @@ export async function getProductDataOG({ slug, lang }) {
 }
 export const getCountriesApi = async () => {
   let start = new Date().getTime();
-  let repo = await fetch(OTP_URL + "/countries", {
+  let repo = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + "/countries", {
     next: {
       revalidate: 60000,
       tags: ["countries"],
@@ -682,9 +696,10 @@ export const FetchApi = async ({ url, method, body, lang, country }) => {
     return [data, returned_res];
   else return [data, {}];
 };
+
 export const getListingDataProd = async () => {
   let str = `/web/products?limit=1000&offset=1`;
-  let res = await fetch(OTP_URL + str, {
+  let res = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + str, {
     method: "GET",
 
     next: {
@@ -709,7 +724,7 @@ export const getHomeDataOffset = async ({ str, lang, offset }) => {
 
   try {
     let start = new Date().getTime();
-    const res = await fetch(OTP_URL + url, {
+    const res = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + url, {
       ...method,
       next: {
         revalidate: 3600,

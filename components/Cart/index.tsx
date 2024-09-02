@@ -29,8 +29,7 @@ function CartContainer({ close }) {
     dispatch({ type: "CART-LOADING" });
     getCart({
       callback: ([data, res]) => {
-        dispatch({ type: "CART-INIT", payload: data.data });
-        LogData(res);
+        dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
       },
     });
   }, []);

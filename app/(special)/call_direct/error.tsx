@@ -3,8 +3,6 @@
 import { useEffect } from "react";
 import Logo from "components/Home/Logo";
 
-import { OTP_URL } from "utils/endpointConfig";
-
 export default function Error({
   error,
   reset,
@@ -12,7 +10,7 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  const baseUrl = OTP_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   const _getUserAgent = async () => {
     return navigator.userAgent || "";
   };

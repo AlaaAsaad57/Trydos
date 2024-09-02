@@ -3,11 +3,12 @@ import profilePicture from "public/images/profileNo.png";
 import StoryServiceClass from "services/story";
 import { store } from "store";
 import Cookies from "js-cookie";
-import { HOME_DATA_URL, LISTING_INFO_URL, OTP_URL } from "./endpointConfig";
+import { HOME_DATA_URL } from "./endpointConfig";
 import { notFound } from "next/navigation";
 import axios from "axios";
 import { FetchApi } from "store/homepage/cachedActions";
 import { LogData } from "store/homepage/actions";
+import { AxiosGet } from "./constants";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -199,16 +200,19 @@ export const getBoutiquesUrl = async ({ str }) => {
   // @ts-ignore
   formBody = formBody.join("&");
   // @ts-ignore
-  let response = await fetch(OTP_URL + HOME_DATA_URL, {
-    method: "POST",
-    // @ts-ignore
-    body: formBody,
-  });
+  let response = await fetch(
+    process.env.NEXT_PUBLIC_BACKEND_URL + HOME_DATA_URL,
+    {
+      method: "POST",
+      // @ts-ignore
+      body: formBody,
+    }
+  );
   let data = await response.json();
   let end = new Date();
   LogData({
     request: "Get boutiques by category",
-    url: OTP_URL + HOME_DATA_URL,
+    url: process.env.NEXT_PUBLIC_BACKEND_URL + HOME_DATA_URL,
     headers: {
       Authorization: `Bearer ${
         typeof localStorage !== "undefined" &&
@@ -229,19 +233,25 @@ export const getProductMeta = async ({ productId, lang }) => {
   let start = new Date();
   let [langauge, country] = lang.split("-");
 
-  let resp = await fetch(OTP_URL + `/web/product/simpleDetails/${productId}`, {
-    headers: new Headers({
-      Accept: "application/json",
-      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      lang: await getLang(langauge, cookieStore.get("language")?.value),
-      country: cookieStore.get("country") && cookieStore.get("country").value,
-    }),
-  });
+  let resp = await fetch(
+    process.env.NEXT_PUBLIC_BACKEND_URL +
+      `/web/product/simpleDetails/${productId}`,
+    {
+      headers: new Headers({
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        lang: await getLang(langauge, cookieStore.get("language")?.value),
+        country: cookieStore.get("country") && cookieStore.get("country").value,
+      }),
+    }
+  );
   let data = await resp.json();
   let end = new Date();
   LogData({
     request: "Get Product meta info",
-    url: OTP_URL + `/web/product/simpleDetails/${productId}`,
+    url:
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+      `/web/product/simpleDetails/${productId}`,
     headers: {
       Authorization: `Bearer ${
         typeof localStorage !== "undefined" &&
@@ -265,7 +275,8 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
   let [langauge, country] = lang.split("-");
   let start = new Date();
   let resp = await fetch(
-    OTP_URL + `/web/boutique/simpleDetails/${boutiqueId}`,
+    process.env.NEXT_PUBLIC_BACKEND_URL +
+      `/web/boutique/simpleDetails/${boutiqueId}`,
     {
       next: {
         revalidate: 36000,
@@ -282,7 +293,9 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
   let end = new Date();
   LogData({
     request: "Get Product simple info",
-    url: OTP_URL + `/web/boutique/simpleDetails/${boutiqueId}`,
+    url:
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+      `/web/boutique/simpleDetails/${boutiqueId}`,
     headers: {
       Authorization: `Bearer ${
         typeof localStorage !== "undefined" &&
@@ -306,7 +319,7 @@ export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
   const cookieStore = cookies();
   let [langauge, country] = lang.split("-");
   let resp = await fetch(
-    OTP_URL +
+    process.env.NEXT_PUBLIC_BACKEND_URL +
       `/web/products/filters?${
         boutiqueId !== "listing" &&
         `boutique_slugs=${JSON.stringify([boutiqueId])}`
@@ -326,7 +339,7 @@ export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
   LogData({
     request: "Get Boutique Filters",
     url:
-      OTP_URL +
+      process.env.NEXT_PUBLIC_BACKEND_URL +
       `/web/products/filters?${
         boutiqueId !== "listing" &&
         `boutique_slugs=${JSON.stringify([boutiqueId])}`
@@ -585,7 +598,7 @@ export const filterProducts = async ({
           : ""
       }`;
   }
-  let product = await fetch(OTP_URL + str, {
+  let product = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + str, {
     headers: {
       lang: filters.lang,
       country: filters.country,
@@ -669,7 +682,7 @@ export const UpdateFilter = async ({
         : ""
     }`;
 
-    let product = await axios.get(OTP_URL + str, {
+    let product = await axios.get(process.env.NEXT_PUBLIC_BACKEND_URL + str, {
       params:
         filters.colors.length === 0
           ? {}
@@ -722,32 +735,32 @@ export const onClickSearchHistory = (searchValue) => {
   }
 };
 export const getSearchOptions = async () => {
-  const [categories, data] = await FetchApi({
-    url: OTP_URL + "/web/search/filters",
-    method: "GET",
-    body: null,
-    country: null,
-    lang: null,
+  let categories = await AxiosGet({
+    url: process.env.NEXT_PUBLIC_BACKEND_URL + "/web/search/filters",
   });
-
+  console.log(categories);
   return [
     {
-      categories: categories.data.categories,
-      brands: categories.data.brands,
-      boutiques: categories.data.boutiques,
+      categories: categories?.categories ?? [],
+      brands: categories?.brands ?? [],
+      boutiques: categories?.boutiques ?? [],
     },
-    data,
+    {},
   ];
 };
 export const getCart = async ({ callback }) => {
-  let [data, response] = await FetchApi({
-    url: OTP_URL + "/cart/cart_shipping",
-    method: "GET",
-    body: null,
-    country: null,
-    lang: null,
+  // let [data, response] = await FetchApi({
+  //   url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/cart_shipping",
+  //   method: "GET",
+  //   body: null,
+  //   country: null,
+  //   lang: null,
+  // });
+  let data = await AxiosGet({
+    url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/cart_shipping",
   });
-  callback([data, response]);
+
+  callback([data, {}]);
 };
 export const AddToCartAnimation = (e) => {
   let shopping_cart = document.querySelector<SVGAElement>(".cart-icon");
@@ -945,7 +958,7 @@ export const getListingDataFilters = async ({
     }`;
 
     let productRes = await fetch(
-      OTP_URL +
+      process.env.NEXT_PUBLIC_BACKEND_URL +
         str +
         (filters.colors
           ? `&${new URLSearchParams({
@@ -994,7 +1007,7 @@ export const getListingDataFilters = async ({
     let str = categories;
 
     let url =
-      OTP_URL +
+      process.env.NEXT_PUBLIC_BACKEND_URL +
       (productCategory
         ? "/web/products/filters" +
           `?category=${productCategory}${
