@@ -5,7 +5,7 @@ import UserNavTopSection from "./UserNavTopSection";
 import { useDispatch, useSelector } from "react-redux";
 import { changeAppLanguage } from "store/homepage/actions";
 import NextLink from "Hooks/NextLink";
-import { usePathname } from "next/navigation";
+
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import { ToastContainer } from "react-toastify";
 import AuthSections from "./AuthSections";
@@ -19,7 +19,7 @@ function CustomNavbar({ init }: NavbarProps) {
   };
   const language = useSelector((state: any) => state.homepage.language);
   const dispatch = useDispatch();
-  const params = usePathname();
+
   const initFunc = async () => {
     const Cookies = (await import("js-cookie")).default;
     let languageCookies = Cookies.get("language");

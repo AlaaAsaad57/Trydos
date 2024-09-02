@@ -26,8 +26,14 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
   const enableCart = (s) => {
     dispatch({ type: "ENABLE-CART", payload: s });
   };
+  const searchEnabled = useSelector((state: any) => state.Search.enable);
+
   return (
-    <div className="user-nav-container">
+    <div
+      className={`${
+        searchEnabled && "hidden"
+      } user-nav-container min-w-[400px]`}
+    >
       <div
         className="nav-question-item"
         style={{ marginRight: "30px", marginLeft: "0px" }}

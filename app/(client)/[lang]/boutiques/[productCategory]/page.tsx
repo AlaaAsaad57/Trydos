@@ -37,8 +37,17 @@ import { getHomeDataStatic } from "store/homepage/cachedActions";
 
 export const revalidate = 36000;
 export const runtime = "edge";
-
-async function Page({ params, searchParams }) {
+interface ParamsType {
+  lang: string;
+  productCategory: string;
+}
+async function Page({
+  params,
+  searchParams,
+}: {
+  params: ParamsType;
+  searchParams: any;
+}) {
   return (
     <>
       <CustomNavbarServer lang={params.lang} />

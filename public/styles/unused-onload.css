@@ -71,6 +71,11 @@ svg {
     display: flex;
     padding: 0px;
     align-items: center;
+    overflow: scroll;
+  }
+  .home-page-container
+    .categories-bar-container:not(.mobile-bar)::-webkit-scrollbar {
+    display: none;
   }
   .home-page-container .categories-bar-container:not(.mobile-bar) div,
   .home-page-container

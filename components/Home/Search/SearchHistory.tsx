@@ -70,6 +70,10 @@ function SearchHistory({ options, setOptions }) {
                   onClick={(e) => {
                     // @ts-ignore
                     if (!e.target.closest(".close-icon-container")) {
+                      dispatch({
+                        type: "SEARCH-PARTIAL-LOADING",
+                        payload: true,
+                      });
                       dispatch({ type: "SEARCH-LOADING", payload: true });
                       home.UpdateFilters({
                         search_text: s || "",

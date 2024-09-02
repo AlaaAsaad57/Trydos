@@ -27,7 +27,8 @@ img {
     width: 100vw;
   }
   .active-serach {
-    min-width: calc(100vw - 179px);
+    min-width: min(calc(100vw - 179px), 1096px);
+    max-width: 1096px;
   }
   .active-serach .search-component-container {
     width: 100%;
