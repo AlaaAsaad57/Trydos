@@ -639,7 +639,7 @@ export const BrandCart = ({
                     src={getConfiguredImage({
                       height: 150,
                       width: 150,
-                      src: product.brand.image,
+                      src: product.brand?.image,
                     })}
                     height={10}
                     style={{
