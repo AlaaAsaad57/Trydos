@@ -1,10 +1,10 @@
 import axios from "axios";
-import { CHAT_URL } from "utils/endpointConfig";
 
 export const AnswerCall = async (token, mid, chid) => {
   let req = await axios
     .post(
-      CHAT_URL + `/api/v1/messages/answer_call/${mid}`,
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+        `/api/v1/messages/answer_call/${mid}`,
       {},
       {
         headers: {
@@ -18,7 +18,8 @@ export const getAgoraToken = async (channel_id, token, mid, uid) => {
   let tok, status, req;
   req = await axios
     .post(
-      CHAT_URL + `/api/v1/channels/${channel_id}/agora_token`,
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+        `/api/v1/channels/${channel_id}/agora_token`,
       {},
       {
         headers: {
@@ -30,11 +31,15 @@ export const getAgoraToken = async (channel_id, token, mid, uid) => {
       tok = data.data.data;
     });
   await axios
-    .get(CHAT_URL + `/api/v1/messages/${mid}/users`, {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    })
+    .get(
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+        `/api/v1/messages/${mid}/users`,
+      {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      }
+    )
     .then((data) => {
       if (
         data.data.data.filter(
@@ -54,7 +59,8 @@ export const getAgoraTokenForInit = async (channel_id, token, mid) => {
   let tok, req;
   req = await axios
     .post(
-      CHAT_URL + `/api/v1/channels/${channel_id}/agora_token`,
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+        `/api/v1/channels/${channel_id}/agora_token`,
       {},
       {
         headers: {
@@ -73,11 +79,14 @@ export const getAgoraTokenForInit = async (channel_id, token, mid) => {
 export const getUserInfo = async (token, channel) => {
   let datas = [];
   await axios
-    .get(CHAT_URL + "/api/v1/channels/" + channel, {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    })
+    .get(
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + "/api/v1/channels/" + channel,
+      {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      }
+    )
     .then((data) => {
       datas = [
         data.data.data.channel_name,
@@ -90,7 +99,8 @@ export const getUserInfo = async (token, channel) => {
 export const Decline = async (token, mid, duration) => {
   let req = await axios
     .post(
-      CHAT_URL + `/api/v1/messages/refuse_call/${mid}`,
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+        `/api/v1/messages/refuse_call/${mid}`,
       { duration_in_seconds: duration || 0, payload: { target: "webview" } },
       {
         headers: {
@@ -102,18 +112,23 @@ export const Decline = async (token, mid, duration) => {
 };
 export const StartTalking = async (token, mid) => {
   let req = await axios
-    .post(CHAT_URL + `/api/v1/messages/start_talking/${mid}`, {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    })
+    .post(
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+        `/api/v1/messages/start_talking/${mid}`,
+      {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      }
+    )
     .then((data) => {});
 };
 export const AnswerWebView = async (token, messageId) => {
   try {
     await axios
       .post(
-        CHAT_URL + `/api/v1/messages/answer_call/${messageId}`,
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+          `/api/v1/messages/answer_call/${messageId}`,
         {},
         {
           headers: {

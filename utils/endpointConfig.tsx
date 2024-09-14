@@ -16,7 +16,7 @@ export const STARTER_SETTINGS = "/web/home/startingSettings";
 // staging d651b1bd0c18b021f264
 // live 22eecb27b12e20f4d569
 // export const CHAT_URL = "https://chating_staging_trydos.trydos.tech";
-export const CHAT_URL = "https://chating_staging_trydos.antiksef.online";
+
 export const LOG_IN_CHAT = "/api/v1/users/login";
 export const GET_CHATS_URL = "/api/v2/channels/my_channels";
 export const GET_CONTATCS_URL = "/api/v1/users/my_contacts";

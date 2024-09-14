@@ -1,5 +1,4 @@
 import {
-  CHAT_URL,
   DELETE_CHAT_URL,
   GET_CHATS_URL,
   GET_CONTATCS_URL,
@@ -26,7 +25,7 @@ export const GetChats = async (payload) => {
       store.dispatch({ type: "CHAT_LOADING" });
     }
     let resp = await axios.post(
-      CHAT_URL + GET_CHATS_URL,
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + GET_CHATS_URL,
       { role_id: 116 },
       {
         headers: {
@@ -88,13 +87,16 @@ export const GetChats = async (payload) => {
     });
     store.dispatch({ type: "CHAT_DONE" });
     getCalls(null);
-    let response = await axios.get(CHAT_URL + GET_CONTATCS_URL, {
-      headers: {
-        Authorization:
-          `Bearer ` +
-          JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
-      },
-    });
+    let response = await axios.get(
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + GET_CONTATCS_URL,
+      {
+        headers: {
+          Authorization:
+            `Bearer ` +
+            JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+        },
+      }
+    );
     store.dispatch({ type: "GET_CONTACTS_RED", payload: response.data.data });
   } catch (e) {
     console.error(e);
@@ -107,13 +109,17 @@ export const GetLastSeen = async (chatId, friendID) => {
     let server_time;
     let axios = (await import("axios")).default;
     await axios
-      .get(CHAT_URL + "/api/v1/channels/get_date_time", {
-        headers: {
-          Authorization:
-            `Bearer ` +
-            JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
-        },
-      })
+      .get(
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+          "/api/v1/channels/get_date_time",
+        {
+          headers: {
+            Authorization:
+              `Bearer ` +
+              JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+          },
+        }
+      )
       .then((data) => {
         server_time = data.data.data;
         store.dispatch({ type: "SET_SERVER_TIME", payload: data.data.data });
@@ -160,13 +166,17 @@ export const setLastSeen = async (MyId) => {
     let server_time;
     let axios = (await import("axios")).default;
     await axios
-      .get(CHAT_URL + "/api/v1/channels/get_date_time", {
-        headers: {
-          Authorization:
-            `Bearer ` +
-            JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
-        },
-      })
+      .get(
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+          "/api/v1/channels/get_date_time",
+        {
+          headers: {
+            Authorization:
+              `Bearer ` +
+              JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+          },
+        }
+      )
       .then((data) => {
         server_time = data.data.data;
         store.dispatch({ type: "SET_SERVER_TIME", payload: data.data.data });
@@ -188,7 +198,7 @@ export const getCalls = async (id) => {
     store.dispatch({ type: "CALL_LOADING", payload: true });
     await axios
       .post(
-        CHAT_URL + "/api/v1/channels/my_calls",
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + "/api/v1/channels/my_calls",
         { limit: "20", last_message_id: id },
         {
           headers: {
@@ -212,7 +222,7 @@ export const getCalls = async (id) => {
 export const SendMessage = async (payload, isNew) => {
   let axios = (await import("axios")).default;
   const AxiosInstance = axios.create({
-    baseURL: CHAT_URL,
+    baseURL: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL,
     timeout: 0,
     headers: {
       Authorization:
@@ -228,7 +238,7 @@ export const SendMessage = async (payload, isNew) => {
   let message = payload;
   try {
     let a = await AxiosInstance.post(
-      CHAT_URL + SEND_MESSAGE_URL,
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + SEND_MESSAGE_URL,
       JSON.stringify(message)
     );
     if (a.data.data) {
@@ -262,7 +272,7 @@ export async function watchChannel(payload) {
   let axios = (await import("axios")).default;
   try {
     const AxiosInstance = axios.create({
-      baseURL: CHAT_URL,
+      baseURL: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL,
       timeout: 0,
       headers: {
         Authorization:
@@ -277,7 +287,8 @@ export async function watchChannel(payload) {
     });
     // await AxiosInstance.get(`/api/v1/channels/${payload}/received`);
     let resp = await AxiosInstance.get(
-      CHAT_URL + `/api/v1/channels/${payload}/watched`
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+        `/api/v1/channels/${payload}/watched`
     );
   } catch (e) {}
 }
@@ -285,7 +296,7 @@ export async function StartChat(payload) {
   let axios = (await import("axios")).default;
   try {
     const AxiosInstance = axios.create({
-      baseURL: CHAT_URL,
+      baseURL: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL,
       timeout: 0,
       headers: {
         Authorization:
@@ -299,7 +310,7 @@ export async function StartChat(payload) {
       },
     });
     store.dispatch({ type: "CHAT_LOADING_USER" });
-    const base = CHAT_URL;
+    const base = process.env.NEXT_PUBLIC_CHAT_BACKEND_URL;
     let resp = await AxiosInstance.get(base + SEARCH_USERS_URL + payload);
     store.dispatch({ type: "SEARCH_USER_RED", payload: resp.data.data });
     store.dispatch({ type: "CHAT_DONE_USER" });
@@ -310,7 +321,7 @@ export async function StartChat(payload) {
 export async function DeleteMessageApi(msg_id, bool) {
   let axios = (await import("axios")).default;
   const AxiosInstance = axios.create({
-    baseURL: CHAT_URL,
+    baseURL: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL,
     timeout: 0,
     headers: {
       Authorization:
@@ -332,7 +343,7 @@ export async function deleteChat(payload) {
   let axios = (await import("axios")).default;
   try {
     const AxiosInstance = axios.create({
-      baseURL: CHAT_URL,
+      baseURL: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL,
       timeout: 0,
       headers: {
         Authorization:
@@ -353,7 +364,7 @@ export async function deleteChat(payload) {
 export async function Recive(payload) {
   let axios = (await import("axios")).default;
   const AxiosInstance = axios.create({
-    baseURL: CHAT_URL,
+    baseURL: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL,
     timeout: 0,
     headers: {
       Authorization:
@@ -374,7 +385,7 @@ export async function getPage(channel, mid) {
   let axios = (await import("axios")).default;
   try {
     const AxiosInstance = axios.create({
-      baseURL: CHAT_URL,
+      baseURL: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL,
       timeout: 0,
       headers: {
         Authorization:
@@ -401,7 +412,7 @@ export async function SearchContact(payload) {
   let axios = (await import("axios")).default;
   try {
     const AxiosInstance = axios.create({
-      baseURL: CHAT_URL,
+      baseURL: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL,
       timeout: 0,
       headers: {
         Authorization:
@@ -424,7 +435,7 @@ export async function PinnChat(payload) {
   let axios = (await import("axios")).default;
   try {
     const AxiosInstance = axios.create({
-      baseURL: CHAT_URL,
+      baseURL: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL,
       timeout: 0,
       headers: {
         Authorization:
@@ -452,7 +463,7 @@ export async function MuteChat(payload) {
   let axios = (await import("axios")).default;
   try {
     const AxiosInstance = axios.create({
-      baseURL: CHAT_URL,
+      baseURL: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL,
       timeout: 0,
       headers: {
         Authorization:
@@ -478,7 +489,7 @@ export async function MuteChat(payload) {
 export async function getMessagesBetweenMessage(payload) {
   let axios = (await import("axios")).default;
   const AxiosInstance = axios.create({
-    baseURL: CHAT_URL,
+    baseURL: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL,
     timeout: 0,
     headers: {
       Authorization:
@@ -504,7 +515,7 @@ export async function getMessagesBetweenMessage(payload) {
 export async function getContacts() {
   let axios = (await import("axios")).default;
   const AxiosInstance = axios.create({
-    baseURL: CHAT_URL,
+    baseURL: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL,
     timeout: 0,
     headers: {
       Authorization:
@@ -524,7 +535,7 @@ export const getMedia = async (id, media) => {
   try {
     let axios = (await import("axios")).default;
     let resp = await axios.post(
-      CHAT_URL +
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
         `/api/v1/messages/messages_of_channel/${id}?limit=10&message_type=${media}`,
       {},
       {
@@ -601,7 +612,8 @@ export const makeVideoCall = async (
         : { channel_id: channelId };
     await axios
       .post(
-        CHAT_URL + `/api/v1/messages/video_call`,
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+          `/api/v1/messages/video_call`,
         {
           ...obj,
           payload: {
@@ -653,7 +665,8 @@ export const makeVoiceCall = async (
     store.dispatch({ type: "CALL-LOADING", payload: "voice" });
     await axios
       .post(
-        CHAT_URL + `/api/v1/messages/voice_call`,
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+          `/api/v1/messages/voice_call`,
         {
           ...obj,
           payload: {
@@ -704,13 +717,17 @@ export const AnswerCall = async (channelId, messageId) => {
       )
     );
     await axios
-      .get(CHAT_URL + `/api/v1/messages/${messageId}/users`, {
-        headers: {
-          Authorization:
-            "Bearer " +
-            JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
-        },
-      })
+      .get(
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+          `/api/v1/messages/${messageId}/users`,
+        {
+          headers: {
+            Authorization:
+              "Bearer " +
+              JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+          },
+        }
+      )
       .then((data) => {
         if (
           data.data.data.filter(
@@ -726,7 +743,8 @@ export const AnswerCall = async (channelId, messageId) => {
     if (status === false) {
       await axios
         .post(
-          CHAT_URL + `/api/v1/channels/${channelId}/agora_token`,
+          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+            `/api/v1/channels/${channelId}/agora_token`,
           {},
           {
             headers: {
@@ -766,7 +784,8 @@ export const InCall = async (channelId, messageId) => {
           : { channel_id: channelId };
       await axios
         .post(
-          CHAT_URL + `/api/v1/messages/in_another_call/${messageId}`,
+          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+            `/api/v1/messages/in_another_call/${messageId}`,
           { ...obj },
           {
             headers: {
@@ -794,7 +813,8 @@ export const RefuseCall = async (channelId, messageId, duration) => {
 
       await axios
         .post(
-          CHAT_URL + `/api/v1/messages/refuse_call/${messageId}`,
+          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+            `/api/v1/messages/refuse_call/${messageId}`,
           { ...obj, payload: { target: "web" } },
           {
             headers: {
@@ -821,7 +841,8 @@ export const Answer = async (channelId, messageId) => {
         : { channel_id: channelId };
     await axios
       .post(
-        CHAT_URL + `/api/v1/messages/answer_call/${messageId}`,
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+          `/api/v1/messages/answer_call/${messageId}`,
         { ...obj },
         {
           headers: {
@@ -837,13 +858,16 @@ export const Answer = async (channelId, messageId) => {
 export const GetChatDetails = async (id) => {
   try {
     let axios = (await import("axios")).default;
-    let resp = await axios.get(CHAT_URL + `/api/v2/channels/${id}/media`, {
-      headers: {
-        Authorization:
-          `Bearer ` +
-          JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
-      },
-    });
+    let resp = await axios.get(
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + `/api/v2/channels/${id}/media`,
+      {
+        headers: {
+          Authorization:
+            `Bearer ` +
+            JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+        },
+      }
+    );
     store.dispatch({
       type: "EDIT_CHAT_INFO",
       payload: { id: id, data: resp.data.data },

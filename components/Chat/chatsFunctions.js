@@ -5,10 +5,10 @@ import MissedCall from "./svg/missedCall.svg";
 import IncomingCall from "./svg/IncomingCall.svg";
 import OutgoingCall from "./svg/outgoingCall.svg";
 import { store } from "store";
-import { CHAT_URL } from "utils/endpointConfig";
+
 import { SendMessage } from "store/chat/actions";
 import { getUserChat, translate } from "utils/functions";
-export const FILE_SERVER = CHAT_URL;
+export const FILE_SERVER = process.env.NEXT_PUBLIC_CHAT_BACKEND_URL;
 export const getUser = () => {
   return (
     (localStorage.getItem("USER-CHAT") &&
@@ -530,7 +530,10 @@ const uploadFile = async (file_name, file, onUploadProgress) => {
   formData.append("file", file);
   formData.append("file_name", file_name);
   let axios = (await import("axios")).default;
-  return axios.post(CHAT_URL + "/api/v1/upload_file", formData);
+  return axios.post(
+    process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + "/api/v1/upload_file",
+    formData
+  );
 };
 
 export const upload = async (file) => {

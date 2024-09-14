@@ -1,4 +1,4 @@
-import { CHAT_URL, LOG_IN_CHAT } from "utils/endpointConfig";
+import { LOG_IN_CHAT } from "utils/endpointConfig";
 import HomeService from "services/home";
 import Cookies from "js-cookie";
 import { store } from "store";
@@ -20,15 +20,18 @@ const ChatHeader = () => {
 class ChatService {
   async loginChat() {
     try {
-      const response = await fetch(CHAT_URL + LOG_IN_CHAT, {
-        method: "POST",
-        body: JSON.stringify({
-          otp_id_token: localStorage.getItem("ID-TOKEN"),
-          mobile_phone: JSON.parse(localStorage.getItem("USER")).phone,
-          name: JSON.parse(localStorage.getItem("USER"))?.name,
-          original_user_id: JSON.parse(localStorage.getItem("USER")).id,
-        }),
-      });
+      const response = await fetch(
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + LOG_IN_CHAT,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            otp_id_token: localStorage.getItem("ID-TOKEN"),
+            mobile_phone: JSON.parse(localStorage.getItem("USER")).phone,
+            name: JSON.parse(localStorage.getItem("USER"))?.name,
+            original_user_id: JSON.parse(localStorage.getItem("USER")).id,
+          }),
+        }
+      );
       let repo = await response.json();
       localStorage.setItem("USER-CHAT", JSON.stringify(repo.data));
       localStorage.setItem("CHAT-TOKEN", repo.access_token);
@@ -72,17 +75,20 @@ class ChatService {
     user: { access_token: string; id: number };
     token: string;
   }) {
-    const response = await fetch(CHAT_URL + "/api/v1/firebase_tokens", {
-      method: "POST",
-      headers: {
-        Authorization:
-          "Bearer " +
-          JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
-      },
-      body: JSON.stringify({
-        token: payload.token,
-      }),
-    });
+    const response = await fetch(
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + "/api/v1/firebase_tokens",
+      {
+        method: "POST",
+        headers: {
+          Authorization:
+            "Bearer " +
+            JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
+        },
+        body: JSON.stringify({
+          token: payload.token,
+        }),
+      }
+    );
 
     let repo = await response.json();
 

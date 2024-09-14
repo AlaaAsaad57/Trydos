@@ -57,7 +57,7 @@ function FilterBar({ boutique, filters, productsServer }) {
       selectedFilter.sizes.length > 0 ||
       selectedFilter.colors.length > 0 ||
       selectedFilter.offers.length > 0 ||
-      selectedFilter.prices?.pricesWord ||
+      activeFilters.prices?.pricesWord ||
       selectedFilter.searchText?.length > 0
     ) {
       return true;

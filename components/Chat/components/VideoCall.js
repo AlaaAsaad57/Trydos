@@ -15,7 +15,7 @@ import { useStopwatch } from "react-timer-hook";
 import { RefuseCall } from "store/chat/actions";
 import { getTwoLetters } from "../chatsFunctions";
 import axios from "axios";
-import { CHAT_URL } from "utils/endpointConfig";
+
 import { getUserChat, translate } from "utils/functions";
 const config = {
   mode: "rtc",
@@ -58,7 +58,7 @@ function VideoCall(props) {
     let token;
     let data = await axios
       .post(
-        CHAT_URL + "/api/v1/agora/token",
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + "/api/v1/agora/token",
         {
           channel_name: channelName,
         },
@@ -83,7 +83,8 @@ function VideoCall(props) {
         reset();
         axios
           .get(
-            CHAT_URL + `/api/v1/messages/start_talking/${MessageActiveCall}`,
+            process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+              `/api/v1/messages/start_talking/${MessageActiveCall}`,
             {
               headers: {
                 Authorization: "Bearer " + getUserChat().access_token,

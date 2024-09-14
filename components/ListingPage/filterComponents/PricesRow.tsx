@@ -5,7 +5,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams, useSearchParams } from "next/navigation";
 import { filterProducts, RoundPrice, UpdateFilter } from "utils/functions";
 
-function SizeCircle({ text }: { text: string }) {
+function SizeCircle({
+  text,
+}: {
+  text: {
+    min_price: number;
+    max_price: number;
+    min_price_formated: string;
+    max_price_formated: string;
+  };
+}) {
   const selectedFilter = useSelector(
     (state: any) => state.details.selectedFilter
   );
@@ -16,17 +25,20 @@ function SizeCircle({ text }: { text: string }) {
     (state: any) => state.listing.filterEnabled
   );
   const selectCategory = (e) => {
-    let { min, max } = getPrice(e);
+    let { min_price, max_price, min_price_formated, max_price_formated } = e;
 
     dispatch({ type: "FILTER-LOADING", payload: true });
     dispatch({
       type: "FILTER-PRICE",
       payload: {
-        min: Math.round(min / currency?.exchange_rate),
-        max: Math.round(max / currency?.exchange_rate),
+        min: Math.round(min_price),
+        max: Math.round(max_price),
       },
     });
-    dispatch({ type: "FILTER-PRICE-TEXT", payload: `${min} - ${max}` });
+    dispatch({
+      type: "FILTER-PRICE-TEXT",
+      payload: `${min_price_formated} - ${max_price_formated}`,
+    });
     UpdateFilter({
       boutiqueId: pathName.productCategory,
       lang: pathName.lang,
@@ -72,7 +84,7 @@ function SizeCircle({ text }: { text: string }) {
   const isSelected = () => {
     return (
       selectedFilter?.pricesSelected.filter(
-        (s) => s === `${getPrice(text).min} - ${getPrice(text).max}`
+        (s) => s === `${text.min_price_formated} - ${text.max_price_formated}`
       ).length > 0
     );
   };
@@ -80,28 +92,7 @@ function SizeCircle({ text }: { text: string }) {
     (state: any) => state.homepage.settings
   );
   const currency = useSelector((state: any) => state.homepage.currency) || 1;
-  const getPrice = (text) => {
-    let [min, max] = text.split(" - ");
 
-    min = RoundPrice({
-      num: min,
-      points:
-        (decimal_point_settings &&
-          decimal_point_settings["starting-setting"]?.decimal_point_settings) ||
-        0,
-      rate: currency?.exchange_rate,
-    });
-    max = RoundPrice({
-      num: max,
-      points:
-        (decimal_point_settings &&
-          decimal_point_settings["starting-setting"]?.decimal_point_settings) ||
-        0,
-      rate: currency?.exchange_rate,
-    });
-
-    return { min, max };
-  };
   return (
     <div
       onClick={() => selectCategory(text)}
@@ -129,9 +120,8 @@ function SizeCircle({ text }: { text: string }) {
             minWidth: "140px",
           }}
         >
-          {`${getPrice(text).min} ${currency?.symbol} - ${getPrice(text).max} ${
-            currency?.symbol
-          }`}
+          {currency?.currency_symbol}
+          {` ${text.min_price_formated} - ${text.max_price_formated}`}
         </div>
       </div>
       <div className="category-text-container flex-col align-center">
@@ -178,7 +168,7 @@ function PricesRow() {
     <div className="category-row-container brand-row prices-row flex-row">
       {filters?.prices?.priceRanges.map(
         (price, key) =>
-          price.products_count > 0 && <SizeCircle text={price.text} key={key} />
+          price.products_count > 0 && <SizeCircle text={price} key={key} />
       )}
     </div>
   );
