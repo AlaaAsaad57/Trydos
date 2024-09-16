@@ -8,7 +8,7 @@ import { notFound } from "next/navigation";
 import axios from "axios";
 import { FetchApi } from "store/homepage/cachedActions";
 import { LogData } from "store/homepage/actions";
-import { AxiosGet } from "./constants";
+import { AxiosCacheApi, AxiosGet } from "./constants";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -563,66 +563,62 @@ export const filterProducts = async ({
   };
   let str = "";
   if (reset) {
-    str = `/web/products/with_filter?${
+    str = `/web/products?${
       boutiqueId !== "listing" &&
       `boutique_slugs=${JSON.stringify([boutiqueId])}`
     }`;
   } else {
-    str =
-      `/web/products/with_filter?category_slugs=${JSON.stringify(
-        filters.categories
-      )}&brand_slugs=${JSON.stringify(filters.brands)}${
-        filters?.attributes?.options?.length > 0
-          ? `&attributes=${JSON.stringify(filters.attributes)}`
-          : ""
-      }${
-        filters.prices !== null && PriceFiltered
-          ? `&prices=${JSON.stringify(filters.prices)}`
-          : ""
-      }${
-        filters.boutique_slug !== "listing"
-          ? `&boutique_slugs=${JSON.stringify([filters.boutique_slug])}`
-          : ""
-      }${
-        filters?.searchText?.length > 0
-          ? `&search_text=${filters.searchText}`
-          : ""
-      }` +
-      `${
-        filters?.colors?.length > 0
-          ? `&${new URLSearchParams({
-              colors: `[${JSON.stringify(filters?.colors)
-                ?.split(",")
-                .map((s) => `"${s}"`)}]`,
-            }).toString()}`
-          : ""
-      }`;
+    str = `/web/products?${
+      filters.categories.length > 0
+        ? `category_slugs=${JSON.stringify(filters.categories)}`
+        : ""
+    }${
+      filters.brands.length > 0
+        ? `&brand_slugs=${JSON.stringify(filters.brands)}`
+        : ""
+    }${
+      filters?.attributes?.options?.length > 0
+        ? `&attributes=${JSON.stringify(filters.attributes)}`
+        : ""
+    }${
+      filters.prices !== null && PriceFiltered
+        ? `&prices=${JSON.stringify(filters.prices)}`
+        : ""
+    }${
+      filters.boutique_slug !== "listing"
+        ? `&boutique_slugs=${JSON.stringify([filters.boutique_slug])}`
+        : ""
+    }${
+      filters?.searchText?.length > 0
+        ? `&search_text=${filters.searchText}`
+        : ""
+    }${filters.colors.length > 0 ? `${JSON.stringify(filters.colors)}` : ``}`;
   }
-  let [product] = await FetchApi({
+  let product = await AxiosCacheApi({
     url: process.env.NEXT_PUBLIC_BACKEND_URL + str,
-    method: "GET",
-    body: null,
-    country: filters.country,
-    lang: filters.lang,
+    params:
+      filters.colors.length === 0
+        ? null
+        : { colors: `${JSON.stringify(filters.colors)}` },
   });
   console.log(product);
   if (!serachTrigger)
-    newFiltersCallback({
-      filtersVar: {
-        categories: product.data.categories,
-        brands: product.data.brands,
-        sizes:
-          product.data.attributes.filter((s) => s.name === "Size")[0]
-            ?.options || [],
-        prices: product.data.prices || null,
-        offers:
-          product.data.attributes.filter((s) => s.name === "Offer")[0]
-            ?.options || [],
-        reset: reset,
-        colors: product.data.colors || [],
-      },
-    });
-  callback(product.data.products);
+    // newFiltersCallback({
+    //   filtersVar: {
+    //     categories: product.data.categories,
+    //     brands: product.data.brands,
+    //     sizes:
+    //       product.data.attributes.filter((s) => s.name === "Size")[0]
+    //         ?.options || [],
+    //     prices: product.data.prices || null,
+    //     offers:
+    //       product.data.attributes.filter((s) => s.name === "Offer")[0]
+    //         ?.options || [],
+    //     reset: reset,
+    //     colors: product.data.colors || [],
+    //   },
+    // });
+    callback(product.data.products);
 };
 
 export const UpdateFilter = async ({
@@ -662,9 +658,15 @@ export const UpdateFilter = async ({
       searchText: searchText || filterObj.searchText,
       colors: filterObj.colors.map((s) => s),
     };
-    let str = `/web/products/filters?category_slugs=${JSON.stringify(
-      filters.categories
-    )}&brand_slugs=${JSON.stringify(filters.brands)}${
+    let str = `/web/products/filters?${
+      filters.categories.length > 0
+        ? `category_slugs=${JSON.stringify(filters.categories)}`
+        : ""
+    }${
+      filters.brands.length > 0
+        ? `&brand_slugs=${JSON.stringify(filters.brands)}`
+        : ""
+    }${
       filters?.attributes?.options?.length > 0
         ? `&attributes=${JSON.stringify(filters.attributes)}`
         : ""
@@ -680,32 +682,29 @@ export const UpdateFilter = async ({
       filters?.searchText?.length > 0
         ? `&search_text=${filters.searchText}`
         : ""
-    }`;
+    }${filters.colors.length > 0 ? `${JSON.stringify(filters.colors)}` : ``}`;
 
-    let product = await axios.get(process.env.NEXT_PUBLIC_BACKEND_URL + str, {
+    let product = await AxiosCacheApi({
+      url: process.env.NEXT_PUBLIC_BACKEND_URL + str,
       params:
         filters.colors.length === 0
-          ? {}
+          ? null
           : { colors: `${JSON.stringify(filters.colors)}` },
-      headers: {
-        lang: filters.lang === "ar" ? "ar" : filters.lang,
-        country: filters.country,
-      },
     });
     newFiltersCallback({
       filtersVar: {
-        categories: product.data.data.categories,
-        brands: product.data.data.brands,
+        categories: product.data.categories,
+        brands: product.data.brands,
         sizes:
-          product.data.data.attributes.filter((s) => s.name === "Size")[0]
+          product.data.attributes.filter((s) => s.name === "Size")[0]
             ?.options || [],
-        prices: product.data.data.prices || null,
+        prices: product.data.prices || null,
         offers:
-          product.data.data.attributes.filter((s) => s.name === "Offer")[0]
+          product.data.attributes.filter((s) => s.name === "Offer")[0]
             ?.options || [],
         reset: false,
-        colors: product.data.data.colors || [],
-        total_size: product.data.data.total_size,
+        colors: product.data.colors || [],
+        total_size: product.data.total_size,
         searchText: searchText,
       },
     });

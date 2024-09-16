@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
 import CloseIcon from "public/svg/CloseIcon.svg";
-import { filterProducts, RoundPrice } from "utils/functions";
+import { filterProducts, RoundPrice, UpdateFilter } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
 import Search from "public/svg/SearchIcon.svg";
 
@@ -125,6 +125,22 @@ function FilterInfoBar({
               dispatch({ type: "EDIT-FILTER", payload: filtersVar });
             },
             reset: true,
+          });
+
+          UpdateFilter({
+            sizesAttr: sizesAttr,
+            boutiqueId: pathName.productCategory,
+            lang: pathName.lang,
+            done: () => {
+              dispatch({ type: "FILTER-LOADING", payload: false });
+            },
+            newFiltersCallback: ({ filtersVar }) => {
+              dispatch({
+                type: "EDIT-FILTER",
+                payload: { ...filtersVar, reset: true },
+              });
+            },
+            searchText: "",
           });
           dispatch({ type: "RESET-FILTER" });
           if (reset) reset();

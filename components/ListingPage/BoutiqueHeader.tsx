@@ -20,6 +20,44 @@ import {
 import FilterButton from "./FilterButton";
 import BoutiqueColorsFilter from "./filterComponents/BoutiqueColorsFilter";
 import BoutiquePriceSelect from "./BoutiquePriceSelect";
+import { AxiosCacheApi } from "utils/constants";
+const PrefetchingFilters = () => {
+  const filters = useSelector((state: any) => state.details.filters);
+  let params = useParams();
+  let boutique = params.productCategory;
+  let arr = [];
+
+  arr = [...filters.categories.slice(0, 3), ...filters.brands.slice(0, 4)];
+
+  useEffect(() => {
+    AxiosCacheApi({
+      url:
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+        `/web/products${boutique ? `?boutique_slugs=["${boutique}"]` : ""}`,
+    });
+    arr.map((s) => {
+      if (s.childes) {
+        AxiosCacheApi({
+          url:
+            process.env.NEXT_PUBLIC_BACKEND_URL +
+            `/web/products?category_slugs=${JSON.stringify([s.slug])}${
+              boutique ? `&boutique_slugs=["${boutique}"]` : ""
+            }`,
+        });
+      } else {
+        AxiosCacheApi({
+          url:
+            process.env.NEXT_PUBLIC_BACKEND_URL +
+            `/web/products?&brand_slugs=${JSON.stringify([s.slug])}${
+              boutique ? `&boutique_slugs=["${boutique}"]` : ""
+            }`,
+        });
+      }
+    });
+  }, []);
+
+  return <></>;
+};
 
 function BoutiqueHeader({ boutique, showFilters }) {
   const filterEnabled = useSelector(
@@ -50,7 +88,7 @@ function BoutiqueHeader({ boutique, showFilters }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
-  const pathName = useParams();
+
   const handleSearch = (data) => {
     const params = new URLSearchParams(searchParams);
     //categories
@@ -234,6 +272,9 @@ function BoutiqueHeader({ boutique, showFilters }) {
   }, []);
   return (
     <div className={`boutique-header ${"flex-col"} align-center`}>
+      {(filters.categories.length > 0 || filters.brands.length > 0) && (
+        <PrefetchingFilters />
+      )}
       {boutique && (
         <>
           <div className="boutique-top-info flex-col items-center">
