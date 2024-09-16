@@ -40,22 +40,39 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           ...prod,
           quantity: parseInt(prod.quantity + payload.quantity),
         });
-
+        let selectedOptions = [];
+        state.AddToCartOption.selectedOptions.map((s) => {
+          if (s.UID === payload.UID) {
+            selectedOptions.push();
+          } else {
+            selectedOptions.push(s);
+          }
+        });
         return {
           ...state,
           localCart: arr,
           AddToCartOption: {
             ...state.AddToCartOption,
             quantity: 0,
+            selectedOptions: selectedOptions,
           },
         };
       } else {
+        let selectedOptions = [];
+        state.AddToCartOption.selectedOptions.map((s) => {
+          if (s.UID === payload.UID) {
+            selectedOptions.push();
+          } else {
+            selectedOptions.push(s);
+          }
+        });
         return {
           ...state,
           localCart: [...state.localCart, payload],
           AddToCartOption: {
             ...state.AddToCartOption,
             quantity: 0,
+            selectedOptions: selectedOptions,
           },
         };
       }

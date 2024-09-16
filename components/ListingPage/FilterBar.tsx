@@ -24,7 +24,6 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import useDebounce from "Hooks/useDebounce";
 import NextLink from "Hooks/NextLink";
 function FilterBar({ boutique, filters, productsServer }) {
   const selectedFilter = useSelector(

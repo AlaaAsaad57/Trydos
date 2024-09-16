@@ -82,13 +82,13 @@ function SelectColor({ close }) {
               src:
                 (AddToCartOption?.selectedColor?.images &&
                   AddToCartOption?.selectedColor?.images[0]) ||
-                SelectedProduct.images[0]?.file_path ||
-                SelectedProduct.images[0],
+                SelectedProduct?.images[0]?.file_path ||
+                SelectedProduct?.images[0],
             })}
             className={"h-full object-top rounded-[15px] moved-img "}
           />
         </div>
-        {SelectedProduct.sync_color_images && (
+        {SelectedProduct?.sync_color_images && (
           <div className="flex  w-full max-w-[420px] ">
             <SelectColorsSlider colors={SelectedProduct.sync_color_images} />
           </div>
