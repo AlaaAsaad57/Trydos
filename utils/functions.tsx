@@ -598,31 +598,31 @@ export const filterProducts = async ({
           : ""
       }`;
   }
-  let product = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + str, {
-    headers: {
-      lang: filters.lang,
-      country: filters.country,
-    },
+  let [product] = await FetchApi({
+    url: process.env.NEXT_PUBLIC_BACKEND_URL + str,
+    method: "GET",
+    body: null,
+    country: filters.country,
+    lang: filters.lang,
   });
-  let repo = await product.json();
-
+  console.log(product);
   if (!serachTrigger)
     newFiltersCallback({
       filtersVar: {
-        categories: repo.data.categories,
-        brands: repo.data.brands,
+        categories: product.data.categories,
+        brands: product.data.brands,
         sizes:
-          repo.data.attributes.filter((s) => s.name === "Size")[0]?.options ||
-          [],
-        prices: repo.data.prices || null,
+          product.data.attributes.filter((s) => s.name === "Size")[0]
+            ?.options || [],
+        prices: product.data.prices || null,
         offers:
-          repo.data.attributes.filter((s) => s.name === "Offer")[0]?.options ||
-          [],
+          product.data.attributes.filter((s) => s.name === "Offer")[0]
+            ?.options || [],
         reset: reset,
-        colors: repo.data.colors || [],
+        colors: product.data.colors || [],
       },
     });
-  callback(repo.data.products);
+  callback(product.data.products);
 };
 
 export const UpdateFilter = async ({

@@ -6,6 +6,7 @@ import CloseIcon from "public/svg/CloseIcon.svg";
 import { filterProducts, RoundPrice } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
 import Search from "public/svg/SearchIcon.svg";
+
 function FilterInfoBar({
   filtersVariable,
   reset,
@@ -94,6 +95,7 @@ function FilterInfoBar({
           dispatch({ type: "PRODUCT_LOADING" });
           dispatch({ type: "RESET_LISTING_FILTER" });
           dispatch({ type: "Skeleton-Listing" });
+          // @ts-ignore
           filterProducts({
             boutiqueId:
               (searchParams.get("boutique_slugs") &&

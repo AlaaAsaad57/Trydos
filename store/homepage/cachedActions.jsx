@@ -634,26 +634,27 @@ export const getCountriesApi = async () => {
 };
 
 export const FetchApi = async ({ url, method, body, lang, country }) => {
-  let cacheVar;
-  if (url.includes("cart")) {
-    cacheVar = {
-      cache: "no-cache",
-    };
-  } else {
-    cacheVar = {
-      next: {
-        revalidate: 3600,
-      },
-    };
-  }
+  // let cacheVar;
+  // if (url.includes("cart")) {
+  //   cacheVar = {
+  //     cache: "no-cache",
+  //   };
+  // } else {
+  //   cacheVar = {
+  //     next: {
+  //       revalidate: 3600,
+  //     },
+  //   };
+  // }
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   let start = new Date().getTime();
   let response = await fetch(url, {
     method: method,
 
-    ...{ cacheVar },
-
+    next: {
+      revalidate: 36000,
+    },
     body: body,
     headers: new Headers({
       "ssr-req": "true",
@@ -692,6 +693,7 @@ export const FetchApi = async ({ url, method, body, lang, country }) => {
     }),
     time: `${end}ms`,
   };
+  console.log(end);
   if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
     return [data, returned_res];
   else return [data, {}];
