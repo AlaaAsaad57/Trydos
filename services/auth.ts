@@ -28,7 +28,7 @@ class AuthService {
   ) {
     try {
       const response = await fetch(
-        process.env.NEXT_PUBLIC_OTP_BACKEND_URL +
+        process.env.NEXT_PUBLIC_BACKEND_URL +
           "/phone/check-existence/" +
           `${value}`,
         getHeader()
@@ -52,7 +52,7 @@ class AuthService {
   ) {
     try {
       let response = await fetch(
-        process.env.NEXT_PUBLIC_OTP_BACKEND_URL +
+        process.env.NEXT_PUBLIC_BACKEND_URL +
           SEND_OTP +
           `?phone=+${mobilePhone}&is_via_whatsapp=${is_via_whatsapp}`,
         getHeader()
@@ -87,7 +87,7 @@ class AuthService {
   ) {
     try {
       const response = await fetch(
-        process.env.NEXT_PUBLIC_OTP_BACKEND_URL +
+        process.env.NEXT_PUBLIC_BACKEND_URL +
           (Username.length > 0 ? VERFIY_OTP_SIGNUP : VERFIY_OTP) +
           `?verificationId=${verficationID}&otp=${code}${
             Username.length > 0 ? `&name=${Username}` : ""
