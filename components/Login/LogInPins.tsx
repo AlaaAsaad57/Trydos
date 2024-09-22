@@ -560,7 +560,7 @@ function LogInPins({
         </span>
       )}
       {expired && (
-        <span className="lgiht-text">
+        <span className="lgiht-text justify-center">
           {translate("The Code Sent Has Expired", language)}
         </span>
       )}
