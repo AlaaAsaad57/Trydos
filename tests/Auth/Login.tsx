@@ -509,7 +509,12 @@ describe("Login Pins Component", async () => {
     const { user, _getPinInputContainer } = await renderLogInPinsComponent({
       phone: "963980033496",
     });
-    await AuthService.SendOtp(phone, 1, () => {});
+    await AuthService.SendOtp(
+      phone,
+      1,
+      () => {},
+      () => {}
+    );
     const { pinInputContainer } = await _getPinInputContainer();
     expect(pinInputContainer).toBeInTheDocument;
   });

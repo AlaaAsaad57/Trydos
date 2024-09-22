@@ -121,7 +121,15 @@ function SizeCircle({
           }}
         >
           {currency?.currency_symbol}
-          {` ${text.min_price_formated} - ${text.max_price_formated}`}
+          {` ${RoundPrice({
+            num: text.min_price_formated,
+            points: decimal_point_settings,
+            rate: currency.exchange_rate,
+          })} - ${RoundPrice({
+            num: text.max_price_formated,
+            points: decimal_point_settings,
+            rate: currency.exchange_rate,
+          })}`}
         </div>
       </div>
       <div className="category-text-container flex-col align-center">
