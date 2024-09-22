@@ -32,7 +32,8 @@ function NewLoginWidget() {
   const [inputValue, setInputValue] = useState("");
   const [MessageMethod, setMessageMethod] = useState("");
   const [failedLogin, setFailed] = useState(false);
-  const [wrongNumber, setWrongNumber] = useState(false);
+  const [wrongNumberVar, setWrongNumber] = useState(false);
+  const wrongNumber = useSelector((state: any) => state.auth.wrongNumber);
   const language = useSelector((state: any) => state.homepage.language);
   const { VerifyOtpHook, SendOtpHook } = useAuthHooks();
   const verficationID = useSelector((state: any) => state.auth.verficationID);
@@ -60,7 +61,7 @@ function NewLoginWidget() {
       EditPhoneFunc: () => {},
       Username: "",
       verificationID: verficationID,
-      errorCallback: () => {
+      errorCallback: (e) => {
         if (operation === "signup")
           Sendevent({
             event: "button_clicked",
@@ -278,7 +279,10 @@ function NewLoginWidget() {
           <PhoneInput
             inputValue={inputValue}
             wrongNumber={wrongNumber}
-            setWrongNumber={(e) => setWrongNumber(e)}
+            setWrongNumber={(e) => {
+              setWrongNumber(e);
+              dispatch({ type: "WRONG-NUMBER", payload: e });
+            }}
             setInputValue={(e) => setInputValue(e)}
             stepIndicator={stepIndicator}
             setStepIndicator={(e) => setStepIndicator(e)}
@@ -286,7 +290,10 @@ function NewLoginWidget() {
           />
           <SendMethod
             stepIndicator={stepIndicator}
-            setWrongNumber={(e) => setWrongNumber(e)}
+            setWrongNumber={(e) => {
+              setWrongNumber(e);
+              dispatch({ type: "WRONG-NUMBER", payload: e });
+            }}
             setStepIndicator={(e: number) => setStepIndicator(e)}
             setMessageMethod={(e: string) => setMessageMethod(e)}
             inputValue={inputValue}
@@ -305,9 +312,9 @@ function NewLoginWidget() {
                 is_via_whatsapp: MessageMethod === "WA" ? "1" : "0",
                 step: () => {},
                 successCallback: function () {},
-                errorCallback: function () {
+                errorCallback: function (msg) {
                   setStepIndicator(3);
-                  setWrongNumber(true);
+                  setWrongNumber(msg);
                 },
               });
               setDisabled(false);

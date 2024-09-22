@@ -38,9 +38,16 @@ export function useAuthHooks() {
         successCallback,
       } = SendOtpInput;
       try {
-        await AuthService.SendOtp(mobilePhone, is_via_whatsapp, step);
+        let errorCallbackFunc = (e) => errorCallback(e);
+        await AuthService.SendOtp(
+          mobilePhone,
+          is_via_whatsapp,
+          step,
+          errorCallbackFunc
+        );
         successCallback();
       } catch (error) {
+        console.log(error);
         errorCallback();
         console.error("SendOtp failed:", error);
       }

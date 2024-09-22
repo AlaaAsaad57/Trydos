@@ -27,9 +27,8 @@ function SendMethod({
       is_via_whatsapp: method,
       step: () => {},
       successCallback: function () {},
-      errorCallback: function () {
+      errorCallback: function (e) {
         setStepIndicator(3);
-        setWrongNumber(true);
       },
     });
   };

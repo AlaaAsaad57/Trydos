@@ -51,8 +51,10 @@ class AuthService {
   async SendOtp(
     mobilePhone: string,
     is_via_whatsapp: number | string,
-    step: Function
+    step: Function,
+    errorCallback: Function
   ) {
+    let msg = "";
     try {
       let response = await fetch(
         process.env.NEXT_PUBLIC_BACKEND_URL +
@@ -60,8 +62,11 @@ class AuthService {
           `?phone=+${mobilePhone}&is_via_whatsapp=${is_via_whatsapp}`,
         getHeader()
       );
+
       let repo = await response.json();
-      if (repo.data.verificationId) {
+
+      msg = repo.message;
+      if (repo.data?.verificationId) {
         store.dispatch({
           type: "SET-VERFICATION-ID",
           payload: repo.data.verificationId,
@@ -71,13 +76,15 @@ class AuthService {
           _isStoreLastJson() &&
             localStorage.setItem("LAST_JSON", JSON.stringify(repo));
         }
-      }
+      } else throw new Error(msg);
       return repo;
     } catch (e) {
       step(282);
+      console.log(e, msg);
+      errorCallback();
       store.dispatch({
         type: "WRONG-NUMBER",
-        payload: e.response.data.message,
+        payload: msg,
       });
       throw e;
     }
