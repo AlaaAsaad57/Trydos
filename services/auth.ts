@@ -42,7 +42,10 @@ class AuthService {
       }
     } catch (e) {
       step(282);
-      store.dispatch({ type: "WRONG-NUMBER", payload: "phone already exists" });
+      store.dispatch({
+        type: "WRONG-NUMBER",
+        payload: e.response.data.message,
+      });
     }
   }
   async SendOtp(
@@ -74,7 +77,7 @@ class AuthService {
       step(282);
       store.dispatch({
         type: "WRONG-NUMBER",
-        payload: "failed to send otp code please try again",
+        payload: e.response.data.message,
       });
       throw e;
     }

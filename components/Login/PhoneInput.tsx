@@ -431,7 +431,7 @@ function PhoneInput({
           className="blue-text"
           style={{ color: "#ff5f61", fontSize: "12px", marginTop: "10px" }}
         >
-          {translate("Invalid Phone Number", language)}
+          {wrongNumber || translate("Invalid Phone Number", language)}
         </div>
       )}
     </Animated.div>
