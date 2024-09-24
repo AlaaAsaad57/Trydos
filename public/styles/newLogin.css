@@ -491,7 +491,9 @@ input {
   flex-direction: column;
   align-items: center;
 }
-
+.phone-animate {
+  transform: translateX(800px);
+}
 .hide-logo {
   display: none;
 }

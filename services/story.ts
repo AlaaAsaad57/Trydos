@@ -9,6 +9,7 @@ import {
 } from "utils/endpointConfig";
 import { getUserStories } from "utils/functions";
 import Cookies from "js-cookie";
+import axios from "axios";
 
 class StoryService {
   /* get stories */
@@ -40,17 +41,14 @@ class StoryService {
     return data;
   }
   async loginStories() {
-    const response = await fetch(
+    const response = await axios.post(
       process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + LOG_IN_STORIES,
       {
-        method: "POST",
-        body: JSON.stringify({
-          otp_id_token: localStorage.getItem("ID-TOKEN"),
-          mobile_phone: JSON.parse(localStorage.getItem("USER")).phone,
-        }),
+        otp_id_token: localStorage.getItem("ID-TOKEN"),
+        mobile_phone: JSON.parse(localStorage.getItem("USER")).phone,
       }
     );
-    let repo = await response.json();
+    let repo = response.data;
     Cookies.set("token", repo.data.access_token);
     localStorage.setItem("USER-STORIES", JSON.stringify(repo.data));
     Cookies.set("stories-token", repo.data.access_token);

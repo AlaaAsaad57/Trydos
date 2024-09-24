@@ -259,7 +259,9 @@ function ChatMessage(props) {
     // ) {
     if (props.message?.auth_message_status?.is_deleted === 1) {
       return (
-        <div className={"message-hold" + " " + `${opens && "ac"}`}>
+        <div
+          className={"message-hold" + " " + `${opens && "ac"} deleted-message`}
+        >
           <div
             ref={refmessage}
             style={{ backgroundColor: "#cecece" }}
@@ -1250,8 +1252,10 @@ function ChatMessage(props) {
                   )}
                 </div>
               )}
-              {props.message.message_content &&
-                props.message.message_content?.content}
+              <span className="message-body-text-content">
+                {props.message.message_content &&
+                  props.message.message_content?.content}
+              </span>
 
               <div className="message-date">{getMessageStatus()}</div>
             </div>
@@ -2461,8 +2465,10 @@ function ChatMessage(props) {
                   )}
                 </div>
               )}
-              {props.message.message_content &&
-                props.message.message_content?.content}
+              <span className="message-body-text-content">
+                {props.message.message_content &&
+                  props.message.message_content?.content}
+              </span>
 
               <div className="other-date">
                 {getMessageTime(props.message.created_at, true)}

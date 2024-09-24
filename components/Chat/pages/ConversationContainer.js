@@ -464,6 +464,11 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
       });
     }
     dispatch({ type: "REFS" });
+    setTimeout(() => {
+      document
+        .querySelector("#scroled")
+        ?.scrollIntoView({ block: "end", inline: "end" });
+    }, 400);
   };
   const toBase64 = (file, i, type) =>
     new Promise((resolve, reject) => {

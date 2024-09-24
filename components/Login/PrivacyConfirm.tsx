@@ -7,12 +7,12 @@ function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
   const language = useSelector((state: any) => state.homepage.language);
   const [active, setActive] = useState(false);
   const mountAnim = ` 
-  0% {transform:translateX(800px)}
-  100% {transform:translateX(0px)}
+  0% {transform: translateX(800px)}
+  100% {transform: translateX(0px)}
 `;
   const unmountAnim = `
-0% {transform:translateX(0px)}
-100% {transform:translateX(-800px)}
+0% {transform: translateX(0px)}
+100% {transform: translateX(-800px)}
 `;
   useEffect(() => {
     if (stepIndicator === 1) {
@@ -28,12 +28,9 @@ function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
   return (
     <Animated.div
       unmountTime={0.5}
-      className="animated-container"
+      className="animated-container phone-animate"
       show={active}
       mountAnim={mountAnim}
-      style={{
-        animationFillMode: "forwards",
-      }}
       unmountAnim={unmountAnim}
     >
       <div

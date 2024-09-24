@@ -1,15 +1,32 @@
-import Animated from "react-mount-animation";
+import { useTransition, animated } from "react-spring";
 
 export const AnimatedComponent = ({ show, children, ...rest }) => {
+  const transition = useTransition(show, {
+    from: { x: -800 },
+    enter: { x: 0 },
+    leave: { x: 800 },
+    config: {
+      bounce: 0,
+      clamp: false,
+      precision: 0,
+      friction: 10,
+    },
+  });
   return (
-    <Animated.div
-      {...rest}
-      show={show}
-      mountAnim="0% {opacity: 0} 100% {opacity: 1}"
-      unmountAnim="0% {opacity: 1} 100% {opacity: 0}"
-      style={{ animationFillMode: "forwards" }}
-    >
-      {show && <div data-testid="animated-container">{children}</div>}
-    </Animated.div>
+    <>
+      {transition((style, item) =>
+        item ? (
+          <animated.div
+            style={style}
+            data-testid="animated-container"
+            className="animated-container"
+          >
+            {children}
+          </animated.div>
+        ) : (
+          <></>
+        )
+      )}
+    </>
   );
 };
