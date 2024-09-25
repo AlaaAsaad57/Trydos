@@ -1,3 +1,4 @@
+/// <reference types="web-bluetooth" />
 "use client";
 import { useDispatch } from "react-redux";
 import NormalWidget from "./NormalWidget";
@@ -12,6 +13,19 @@ interface OfferListProps {
   response?: any;
 }
 function OfferList({ quick, boutiques, response }: OfferListProps) {
+  const BTFunction = async () => {
+    try {
+      let device = await navigator.bluetooth
+        .requestDevice({
+          acceptAllDevices: true,
+        })
+        .then((d) => {
+          d.gatt.connect();
+        });
+    } catch (e) {
+      console.log(e);
+    }
+  };
   useEffect(() => {
     LogData(response);
   }, []);
@@ -46,6 +60,12 @@ function OfferList({ quick, boutiques, response }: OfferListProps) {
           )
         )
       )} */}
+      <button
+        className="p-10 w-full rounded-sm bg-slate-600 text-yellow-50"
+        onClick={() => BTFunction()}
+      >
+        Bluetooth
+      </button>
       {[...boutiques, ...nextBoutieues].map((boutique: Boutique, index) => {
         return (
           <NormalWidget
@@ -56,6 +76,7 @@ function OfferList({ quick, boutiques, response }: OfferListProps) {
           />
         );
       })}
+
       <InfinteScroll SetBoutiques={(arr) => SetBoutiquesFunction(arr)} />
     </div>
   );
