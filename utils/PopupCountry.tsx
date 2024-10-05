@@ -5,6 +5,7 @@ import "styles/globals.css";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import "styles/popup.css";
+import Link from "next/link";
 
 const PopupCountry = ({ options, countries }) => {
   const [localization, setLocalization] = useState({
@@ -83,7 +84,12 @@ const PopupCountry = ({ options, countries }) => {
                   className="!p-10 inline-block"
                   value={country.value}
                 >
-                  {country.label}
+                  <Link
+                    href={`/${country.value}-${localization.language}`}
+                    prefetch={true}
+                  >
+                    {country.label}
+                  </Link>
                 </option>
               );
             }
