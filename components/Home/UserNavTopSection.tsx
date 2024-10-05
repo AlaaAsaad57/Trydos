@@ -5,6 +5,7 @@ import Image from "next/image";
 import AuthNavSection from "./AuthNavSection";
 
 import CartIcon from "public/svg/CartIcon.svg";
+import React from "react";
 
 interface UserNavTopSectionProps {
   loginOpen: boolean;
@@ -32,7 +33,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
     <div
       className={`${
         searchEnabled && "hidden"
-      } user-nav-container min-w-[400px]`}
+      } user-nav-container md:min-w-[400px]`}
     >
       <div
         className="nav-question-item"
