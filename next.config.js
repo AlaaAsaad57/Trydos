@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const withSvgr = require("next-svgr");
 
-const nextConfig = withSvgr({
+let nextConfig = withSvgr({
   swcMinify: true,
   reactStrictMode: false,
   compress: true,
@@ -72,6 +72,7 @@ const nextConfig = withSvgr({
   },
   // your config for other plugins or the general next.js here...
 });
+
 const sentryWebpackPluginOptions = {
   // Additional config options for the Sentry webpack plugin. Keep in mind that
   // the following options are set automatically, and overriding them is not

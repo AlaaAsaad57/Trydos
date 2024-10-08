@@ -21,6 +21,7 @@ import { dispatchRouteChangeEvent } from "Hooks/events";
 //   ssr: false,
 // });
 import SearchContainer from "./Search/SearchContainer";
+import React from "react";
 export default function Home() {
   useEffect(() => {
     dispatchRouteChangeEvent("completed");

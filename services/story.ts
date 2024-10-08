@@ -104,6 +104,16 @@ class StoryService {
         process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + UPLOAD_STORY_URL,
         formData,
         {
+          headers: {
+            Authorization:
+              "Bearer " +
+              (typeof localStorage !== "undefined" &&
+                localStorage.getItem("USER-STORIES") &&
+                JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
+            language: Cookies.get("language"),
+
+            country: Cookies.get("country"),
+          },
           onUploadProgress: (progressEvent) => {
             callback(
               Math.round((progressEvent.loaded * 100) / progressEvent.total)

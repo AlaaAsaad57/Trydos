@@ -92,7 +92,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       let brands = [];
       let prods = payload.cart;
       prods.map((s) => {
-        if (!s.boutique?.id && !brands.some((b) => b.boutique.id === null)) {
+        if (!s?.boutique?.id && !brands.some((b) => b?.boutique?.id === null)) {
           brands.push({ brand: null });
         }
         if (brands.some((b) => b?.id === s.boutique?.id)) {

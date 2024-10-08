@@ -1,5 +1,6 @@
 export const translations = {
   en: {
+    "in one word what is in this photo?": "in one word what is in this photo?",
     Brands: "Brands",
     "this message was deleted": "this message was deleted",
     "No Answer": "No Answer",
@@ -161,6 +162,8 @@ export const translations = {
   },
 
   ar: {
+    "in one word what is in this photo?":
+      "في كلمة واحدة ماذا يوجد في هذه الصورة أجبني باللغة العربية؟",
     Man: "رجال",
     "To Take Advantage Of All The Advantages Of The Application, Please Join Us In Quick And Easy Steps And For Just One Time":
       "للاستفادة من ميزات التطبيق انضم لنا بخطوات سربعة وبسيطة لمرة واحدة",

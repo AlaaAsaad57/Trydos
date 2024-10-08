@@ -4,6 +4,8 @@ import "styles/unused-onload.css";
 import Providers from "store/provider";
 import localFont from "next/font/local";
 import TranslationsMenu from "components/global/TranslationsMenu";
+import React from "react";
+import "regenerator-runtime/runtime";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -58,9 +60,10 @@ export default async function RootLayout({ params, children }) {
       ${quicksand_medium.variable}
       ${quicksand_bold.variable}
       font-sans`}
-      lang={params.lang.split("-")[1]}
+      lang={params.lang.split("-")[1] === "ar" ? "ar-AE" : "en-US"}
     >
       <head>
+        <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
 

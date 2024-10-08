@@ -345,3 +345,6 @@
 .brands-results-row::-webkit-scrollbar {
   display: none;
 }
+.listening-icon-mic path {
+  fill: #388cff;
+}

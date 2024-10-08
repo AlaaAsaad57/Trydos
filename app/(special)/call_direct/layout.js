@@ -5,6 +5,9 @@ import "styles/globals.css";
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+      </head>
       <link rel="icon" href="/favicon.ico" sizes="any" />
       <body className="bg-black">{children}</body>
     </html>

@@ -1,5 +1,3 @@
-import SearchCamIcon from "public/svg/SearchCamIcon.svg";
-import SearchMicIcon from "public/svg/SearchMicIcon.svg";
 import CloseIcon from "public/svg/CloseIcon.svg";
 import SearchCloseIcon from "public/svg/SearchCloseIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,6 +8,8 @@ import useDebounce from "Hooks/useDebounce";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next-nprogress-bar";
+import SearchVoice from "./Search/SearchVoice";
+import SearchImage from "./Search/SearchImage";
 interface SearchComponentProps {
   searchEnabled: boolean;
   close: Function;
@@ -194,7 +194,22 @@ function SearchComponent({
               if (searchValue.length > 0) {
                 setLoading(true);
                 dispatch({ type: "SEARCH-WORD", payload: "" });
+
                 dispatch({ type: "FIND-PRODUCTS", payload: [] });
+                home.UpdateFilters({
+                  search_text: "",
+                  callback: (e) => {
+                    setLoading(false);
+                    dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+                  },
+                });
+                home.SearchProducts({
+                  search_text: "",
+                  searchFilters: searchFilters,
+                  callback: (e) => {
+                    dispatch({ type: "FIND-PRODUCTS", payload: e });
+                  },
+                });
               } else {
                 close();
                 dispatch({ type: "SEARCH-WORD", payload: "" });
@@ -206,10 +221,52 @@ function SearchComponent({
       ) : (
         <div className="input-icons flex-row">
           <div className="input-icon">
-            <SearchCamIcon />
+            <SearchImage
+              setSearchValue={(e) => {
+                if (e?.length > 0) {
+                  dispatch({ type: "SEARCH-WORD", payload: e });
+                  dispatch({ type: "SEARCH-LOADING", payload: true });
+                  home.UpdateFilters({
+                    search_text: e || "",
+                    callback: (e) => {
+                      setLoading(false);
+                      dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+                    },
+                  });
+                  home.SearchProducts({
+                    search_text: e,
+                    searchFilters: searchFilters,
+                    callback: (e) => {
+                      dispatch({ type: "FIND-PRODUCTS", payload: e });
+                    },
+                  });
+                }
+              }}
+            />
           </div>
           <div className="input-icon">
-            <SearchMicIcon />
+            <SearchVoice
+              setSearchValue={(e) => {
+                if (e?.length > 0) {
+                  dispatch({ type: "SEARCH-WORD", payload: e });
+                  dispatch({ type: "SEARCH-LOADING", payload: true });
+                  home.UpdateFilters({
+                    search_text: e || "",
+                    callback: (e) => {
+                      setLoading(false);
+                      dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+                    },
+                  });
+                  home.SearchProducts({
+                    search_text: e,
+                    searchFilters: searchFilters,
+                    callback: (e) => {
+                      dispatch({ type: "FIND-PRODUCTS", payload: e });
+                    },
+                  });
+                }
+              }}
+            />
           </div>
         </div>
       )}
@@ -220,6 +277,21 @@ function SearchComponent({
               if (searchValue.length > 0) {
                 dispatch({ type: "SEARCH-WORD", payload: "" });
                 dispatch({ type: "FIND-PRODUCTS", payload: [] });
+                dispatch({ type: "SEARCH-LOADING", payload: true });
+                home.UpdateFilters({
+                  search_text: "",
+                  callback: (e) => {
+                    setLoading(false);
+                    dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+                  },
+                });
+                home.SearchProducts({
+                  search_text: "",
+                  searchFilters: searchFilters,
+                  callback: (e) => {
+                    dispatch({ type: "FIND-PRODUCTS", payload: e });
+                  },
+                });
               } else {
                 close();
                 dispatch({ type: "SEARCH-WORD", payload: "" });

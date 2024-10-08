@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import Logo from "../components/Home/Logo";
+import "regenerator-runtime/runtime";
 export default function GlobalError({ error, reset }) {
   const baseUrl = "https://market_staging.trydos.tech/api/new_v1";
   const _getUserAgent = async () => {
