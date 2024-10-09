@@ -24,7 +24,7 @@ function SelectSize({ sizes, variants }) {
     if (variant) {
       if (variant.qty === 0) return 0;
       else {
-        if (variant.qty < 10) return 2;
+        if (variant.qty <= 10) return variant.qty;
         else return 100;
       }
     }
@@ -110,7 +110,7 @@ function SelectSize({ sizes, variants }) {
           {getVariants() < 10 && (
             <>
               <span className="text-[#FFAF5F]">Last </span>
-              <span className="text-[#FFAF5F] meduim">2</span>
+              <span className="text-[#FFAF5F] meduim">{getVariants()}</span>
             </>
           )}
         </div>

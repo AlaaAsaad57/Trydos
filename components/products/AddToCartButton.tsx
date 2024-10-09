@@ -41,10 +41,46 @@ function AddToCartButton({
     }
   };
   const getQuantity = ({ sku }) => {
+    let qty = 0;
+    if (
+      !AddToCartOption.selectedOptions[0].selectedColor &&
+      !AddToCartOption.selectedOptions[0].selectedSize
+    ) {
+      qty = AddToCartOption.selectedOptions[0].quantity - 1;
+    } else if (
+      AddToCartOption.selectedOptions[0].selectedColor &&
+      AddToCartOption.selectedOptions[0].selectedSize
+    ) {
+      let selectedVariant = AddToCartOption.selectedOptions.filter(
+        (s) =>
+          s.selectedColor.color_name ===
+            AddToCartOption.selectedColor.color_name &&
+          s.selectedSize?.name === AddToCartOption.selectedSize?.name
+      )[0];
+      qty = selectedVariant?.quantity - 1;
+    } else if (
+      AddToCartOption.selectedOptions[0].selectedColor &&
+      !AddToCartOption.selectedOptions[0].selectedSize
+    ) {
+      let selectedVariant = AddToCartOption.selectedOptions.filter(
+        (s) =>
+          s.selectedColor.color_name ===
+          AddToCartOption.selectedColor.color_name
+      )[0];
+      qty = selectedVariant.quantity - 1;
+    } else if (
+      !AddToCartOption.selectedOptions[0].selectedColor &&
+      AddToCartOption.selectedOptions[0].selectedSize
+    ) {
+      let selectedVariant = AddToCartOption.selectedOptions.filter(
+        (s) => s.selectedSize?.name === AddToCartOption.selectedSize?.name
+      )[0];
+      qty = selectedVariant.quantity - 1;
+    }
     if (localCart.some((s) => s.sku === sku)) {
-      return localCart.filter((s) => s.sku === sku)[0]?.quantity;
+      return localCart.filter((s) => s.sku === sku)[0]?.quantity + qty;
     } else {
-      return 1;
+      return 1 + qty;
     }
   };
   const getTotalQuantity = () => {
@@ -54,6 +90,7 @@ function AddToCartButton({
     });
     return num;
   };
+
   return (
     <div
       className={`add-cart-button ${
@@ -65,7 +102,7 @@ function AddToCartButton({
         } else {
           if (loading) {
             if (!AddToCartOption?.enable) {
-              setOption();
+              setOption("AddToCart");
               document.documentElement.style.overflow = "hidden";
               document.documentElement.scrollTop = 0;
               dispatch({
@@ -114,7 +151,7 @@ function AddToCartButton({
                               color: product.colors
                                 ? product.colors.filter(
                                     (s) =>
-                                      s.name ===
+                                      s?.name ===
                                       selectedCartItem?.selectedColor
                                         ?.color_name
                                   )[0].color
@@ -153,6 +190,9 @@ function AddToCartButton({
                       } catch (e) {
                         console.log(e);
                       }
+                    },
+                    errCallback: () => {
+                      setOption("");
                     },
                     id: product.id,
                     color: product.colors
@@ -194,14 +234,16 @@ function AddToCartButton({
         }
       }}
     >
-      <img
-        src={"/svg/plusCart.svg"}
-        className="plus-icon-button"
-        onClick={(e) => {
-          e.preventDefault();
-          AddToCartAction({ quantity: 1 });
-        }}
-      />
+      {
+        <img
+          src={"/svg/plusCart.svg"}
+          className="plus-icon-button"
+          onClick={(e) => {
+            e.preventDefault();
+            AddToCartAction({ quantity: 1 });
+          }}
+        />
+      }
 
       {AddToCartOption.selectedOptions.filter(
         (s) =>

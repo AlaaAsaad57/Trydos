@@ -38,7 +38,6 @@ function BackBar({
               // document.documentElement.style.overflow = "hidden";
               // document.documentElement.scrollTop = 0;
             } else {
-              window.location.href = activeRoute;
               // dispatchRouteChangeEvent("start", {
               //   to: "boutique",
               //   from: "details",

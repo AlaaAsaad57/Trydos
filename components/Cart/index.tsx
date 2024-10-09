@@ -9,6 +9,7 @@ import {
 import BackIcon from "public/svg/listing/backIcon.svg";
 import CartIcon from "public/svg/CartIcon.svg";
 import CartLabel from "public/svg/cart/cartLabel.svg";
+import ErrorIcon from "public/svg/cart/Error.svg";
 import Skeleton from "react-loading-skeleton";
 import { LogData } from "store/homepage/actions";
 import "styles/productDetails.css";
@@ -158,6 +159,15 @@ function CartContainer({ close }) {
                                 <span className="ml-1.5">Size,</span>
                                 <span className="regular">
                                   {product.variations[0].Size}
+                                </span>
+                              </div>
+                            )}
+                            {product.quantity > product.available_quantity && (
+                              <div className="flex-row items-center text-[12px] light text-[#fd445d]">
+                                <ErrorIcon />
+                                <span className="ml-1.5">Availabilty,</span>
+                                <span className="regular ml-1">
+                                  Out Of Stock
                                 </span>
                               </div>
                             )}
@@ -673,6 +683,13 @@ export const BrandCart = ({
                     <span className="regular">
                       {product.variations[0].Size}
                     </span>
+                  </div>
+                )}
+                {product.quantity > product.available_quantity && (
+                  <div className="flex-row items-center text-[12px] light text-[#fd445d]">
+                    <ErrorIcon />
+                    <span className="ml-1.5">Availabilty,</span>
+                    <span className="regular ml-1">Out Of Stock</span>
                   </div>
                 )}
               </div>

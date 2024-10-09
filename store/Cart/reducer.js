@@ -187,6 +187,9 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           selectedColor: payload?.sync_color_images
             ? payload?.sync_color_images[0]
             : null,
+          selectedSize:
+            payload?.choice_options.filter((s) => s.title === "Size")[0]
+              ?.options[0] || null,
         },
       };
     }
@@ -194,6 +197,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         AddToCartOption: {
+          ...state.AddToCartOption,
           enable: false,
           selectedSize: null,
           selectedColor: {},

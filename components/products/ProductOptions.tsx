@@ -32,7 +32,7 @@ function ProductOptions({
       ) : (
         <>
           <AddToCartButton
-            setOption={() => setOption("AddToCart")}
+            setOption={(s) => setOption(s)}
             product={product}
             loading={loaded}
             AddToCartAnimation={(e) => {

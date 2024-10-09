@@ -328,6 +328,16 @@ class HomeService {
     quantity,
     callback,
     alreadyExist,
+    errCallback,
+  }: {
+    id: number;
+    size: string;
+    color: string;
+    image: string;
+    quantity: number;
+    callback: Function;
+    alreadyExist: boolean;
+    errCallback?: Function;
   }) {
     if (alreadyExist) {
       let dataBody = [];
@@ -348,12 +358,14 @@ class HomeService {
         country: null,
         lang: null,
       });
-      LogData(data);
+      console.log({ data, dataBody, updateQuantity });
 
       store.dispatch({ type: "LOADED-CART", payload: true });
-      if (updateQuantity?.data?.qty >= 0) {
+      if (updateQuantity?.data?.qty >= 0 && updateQuantity?.data.status !== 0) {
         callback({ id: alreadyExist });
       } else {
+        errCallback();
+        store.dispatch({ type: "AddToCartOptionDisable" });
         toast.info(updateQuantity?.message || "Failed");
       }
     } else {
@@ -377,11 +389,13 @@ class HomeService {
         country: null,
         lang: null,
       });
-      LogData(response);
+      console.log({ response, formBody });
       store.dispatch({ type: "LOADED-CART", payload: true });
       if (data?.data?.id_cart) {
         callback({ id: data?.data?.id_cart });
       } else {
+        errCallback();
+        store.dispatch({ type: "AddToCartOptionDisable", payload: true });
         toast.info(data?.message || "Failed");
       }
     }

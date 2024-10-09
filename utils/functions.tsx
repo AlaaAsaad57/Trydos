@@ -821,6 +821,7 @@ export const AxiosInstaceRequest = async ({ url, method, body }) => {
         country: country,
       },
     };
+    return returned_res;
   } else if (method === "POST") {
     let res = await axios.post(url, JSON.stringify(body), {
       headers: {
@@ -838,6 +839,7 @@ export const AxiosInstaceRequest = async ({ url, method, body }) => {
         country: country,
       },
     };
+    return returned_res;
   }
 };
 export const getListingDataFilters = async ({
