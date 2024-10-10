@@ -25,6 +25,9 @@ function ProductOptions({
   product: any;
 }) {
   const loaded = useSelector((state: any) => state.cart.loaded);
+  const SelectedProduct = useSelector(
+    (state: any) => state.cart.SelectedProduct
+  );
   return (
     <div className="product-options-container">
       {share ? (
@@ -33,7 +36,8 @@ function ProductOptions({
         <>
           <AddToCartButton
             setOption={(s) => setOption(s)}
-            product={product}
+            productVar={product}
+            product={SelectedProduct}
             loading={loaded}
             AddToCartAnimation={(e) => {
               AddToCartAnimation(e);

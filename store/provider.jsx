@@ -11,7 +11,10 @@ import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/scss/main.scss";
 import { useEffect } from "react";
 import CartContainer from "components/Cart";
-import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
+import {
+  AppProgressBar as ProgressBar,
+  stopProgress,
+} from "next-nprogress-bar";
 export default function Providers({ children }) {
   useEffect(() => {
     if (!navigator.cookieEnabled) {

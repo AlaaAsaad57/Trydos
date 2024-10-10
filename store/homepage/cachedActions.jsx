@@ -485,6 +485,10 @@ export async function getProductDetails({ productId, lang }) {
             cookieStore.get("country") && cookieStore.get("country").value,
           Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          Authorization: `Bearer ${
+            cookieStore.get("market-token")?.value ||
+            cookieStore.get("DEVICE-TOKEN")?.value
+          }`,
         }),
       }
     );
@@ -506,11 +510,16 @@ export async function getProductDetails({ productId, lang }) {
             cookieStore.get("country") && cookieStore.get("country").value,
           Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          Authorization: `Bearer ${
+            cookieStore.get("market-token")?.value ||
+            cookieStore.get("DEVICE-TOKEN")?.value
+          }`,
         }),
       }
     );
     const repo1 = await res1.json();
     let end2 = new Date().getTime() - start2;
+    console.log(cookieStore.get("DEVICE-TOKEN")?.value);
     let prod = { ...repo.data, ...repo1.data };
 
     if (prod.message === "Product not found") {
@@ -627,7 +636,7 @@ export const getCountriesApi = async () => {
     },
   });
   let end = new Date().getTime();
-  console.log("countries Time is " + `${end - start}ms`);
+
   let data = await repo.json();
 
   return data.data.countries;
@@ -693,7 +702,7 @@ export const FetchApi = async ({ url, method, body, lang, country }) => {
     }),
     time: `${end}ms`,
   };
-  console.log(end);
+
   if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
     return [data, returned_res];
   else return [data, {}];

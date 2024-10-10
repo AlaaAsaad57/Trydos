@@ -152,6 +152,7 @@
   transition: 0.3s;
   background-color: #f8f8f8;
 }
+
 .success-add.add-cart-button {
   background-color: #b7ffc7 !important;
   animation: shake 0.5s;

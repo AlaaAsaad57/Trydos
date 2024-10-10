@@ -10,7 +10,8 @@ import axios from "axios";
 
 import SelectColor from "./SelectColor";
 import { useDispatch, useSelector } from "react-redux";
-import { RoundPrice } from "utils/functions";
+import { RoundPrice, UserToken } from "utils/functions";
+import auth from "services/auth";
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
     return {
@@ -91,17 +92,37 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
     let req = await axios.get(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/web/product/likesCommentsSharesDetails/" +
-        product.id
+        product.id,
+      {
+        headers: {
+          Authorization: `Bearer ${UserToken()}`,
+        },
+      }
     );
     setProductData({
       ...productState.productDetails,
       comment_count: req.data.data.comments_count,
       comments: req.data.data.comments,
     });
+    let arr = [];
+    if (req.data.data.variation.length) {
+      req.data.data.variation.map((s) => {
+        let d = product.variation.filter((w) => w.type === s.type)[0];
+        arr.push({ ...s, ...d });
+      });
+    }
+    dispatchStore({
+      type: "GET-PRODUCT-VARIATION",
+      payload: {
+        ...product,
+        is_product_notify_for_user: req.data.data.is_product_notify_for_user,
+        variation: arr,
+      },
+    });
+    dispatchStore({ type: "STORE-VARIANTS", payload: req.data.data.variation });
   };
   useEffect(() => {
     getData();
-    dispatchStore({ type: "STORE-VARIANTS", payload: product.variation });
   }, []);
   const decimal_point_settings = useSelector(
     (state: any) => state.homepage.settings

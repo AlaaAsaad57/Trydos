@@ -358,7 +358,6 @@ class HomeService {
         country: null,
         lang: null,
       });
-      console.log({ data, dataBody, updateQuantity });
 
       store.dispatch({ type: "LOADED-CART", payload: true });
       if (updateQuantity?.data?.qty >= 0 && updateQuantity?.data.status !== 0) {
@@ -389,7 +388,7 @@ class HomeService {
         country: null,
         lang: null,
       });
-      console.log({ response, formBody });
+
       store.dispatch({ type: "LOADED-CART", payload: true });
       if (data?.data?.id_cart) {
         callback({ id: data?.data?.id_cart });

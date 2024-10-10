@@ -19,7 +19,6 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
     });
   }
   useEffect(() => {
-    console.log(finalTranscript);
     setSearchValue(finalTranscript);
   }, [finalTranscript]);
   return (

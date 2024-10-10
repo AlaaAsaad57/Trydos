@@ -7,6 +7,9 @@ function SelectSize({ sizes, variants }) {
   const activeSize = useSelector(
     (state: any) => state.cart.AddToCartOption.selectedSize
   );
+  const SelectedProduct = useSelector(
+    (state: any) => state.cart.SelectedProduct
+  );
   const activeColor = useSelector(
     (state: any) => state.cart.AddToCartOption.selectedColor
   );
@@ -20,7 +23,7 @@ function SelectSize({ sizes, variants }) {
       (s) =>
         s.type.includes(activeColor?.color_name || "") &&
         s.type.includes(activeSize?.name || "")
-    )[0];
+    )[0] || { qty: SelectedProduct.Left_stock };
     if (variant) {
       if (variant.qty === 0) return 0;
       else {

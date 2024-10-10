@@ -16,6 +16,8 @@ import { SelectColorsSlider } from "components/products/SelectColor";
 import Skeleton from "react-loading-skeleton";
 import CartIcon from "public/svg/CartIcon.svg";
 import { LogData } from "store/homepage/actions";
+import auth from "services/auth";
+import home from "services/home";
 
 function AddToCartWidget() {
   const dispatch = useDispatch();
@@ -26,15 +28,17 @@ function AddToCartWidget() {
   );
   const product = useSelector((state: any) => state.details.product);
   const getDetails = async () => {
+    if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
     let start = new Date();
+
     let repo = await fetch(
       process.env.NEXT_PUBLIC_BACKEND_URL + QTY_URL + `/${SelectedProduct.id}`,
       {
         headers: {
           "ssr-req": "true",
           Authorization: `Bearer ${
-            typeof localStorage !== "undefined" &&
-            localStorage.getItem("MARKET-TOKEN")
+            localStorage.getItem("MARKET-TOKEN") ||
+            localStorage.getItem("DEVICE-TOKEN")
           }`,
           lang: getLang(null, Cookies.get("language")),
           country: Cookies.get("country"),
@@ -60,7 +64,11 @@ function AddToCartWidget() {
       response: data,
       time: end.getTime() - start.getTime(),
     });
+    let additionalData = await auth.getProductNotify({
+      id: SelectedProduct.id,
+    });
     dispatch({ type: "GET-PRODUCT-DETAILS-FOR-CART", payload: data.data });
+    dispatch({ type: "GET-PRODUCT-VARIATION", payload: additionalData });
   };
   useEffect(() => {
     getDetails();
@@ -124,6 +132,7 @@ function AddToCartWidget() {
                   (SelectedProduct.choice_options || product.choice_options)
                 }
                 setOption={() => {}}
+                productVar={product}
                 AddToCartAnimation={(e) => {
                   AddToCartAnimation(e);
                 }}

@@ -4,7 +4,6 @@ import ImageSlider from "./ImageSlider";
 import BuyButton from "./BuyButton";
 import NextLink from "Hooks/NextLink";
 import { ProductInterface } from "models/product";
-import { dispatchRouteChangeEvent } from "Hooks/events";
 import { useDispatch, useSelector } from "react-redux";
 import { RoundPrice } from "utils/functions";
 import dynamic from "next/dynamic";
@@ -12,7 +11,6 @@ import CoverEffectSlider from "./CoverEffectSlider";
 const PriceLabel = dynamic(() => import("./PriceLabel"), {
   ssr: false,
 });
-
 import ColorSlider from "./ColorSlider";
 import TopSlider from "./TopSlider";
 
@@ -121,13 +119,12 @@ function Product({
             /* @ts-ignore*/
             e.target.closest(".buy-button")
           ) {
-            dispatchRouteChangeEvent("completed");
-            e.preventDefault();
             return false;
           } else {
-            // dispatchRouteChangeEvent("start", { to: "products" });
-            // document.documentElement.style.overflow = "hidden";
-            // document.documentElement.scrollTop = 0;
+            setTimeout(() => {
+              // @ts-ignore
+              document.querySelector("#nprogress").style.opacity = "1";
+            }, 1000);
           }
         }}
         href={`/products/${product.slug}`}
@@ -310,8 +307,14 @@ function Product({
             price_formatted={getPrice(product.price)}
           />
           <BuyButton
-            buy={() => {
+            buy={(e) => {
+              // @ts-ignore
+
               addToCart();
+              setTimeout(() => {
+                // @ts-ignore
+                document.querySelector("#nprogress").style.opacity = "0";
+              }, 1000);
             }}
           />
         </div>

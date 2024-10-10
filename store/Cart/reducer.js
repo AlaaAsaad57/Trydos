@@ -1,5 +1,5 @@
 const initialState = {
-  cart: null,
+  cart: [],
   enable: false,
   AddToCartOption: {
     enable: false,
@@ -151,8 +151,20 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           loaded: true,
         };
     }
+    case "GET-PRODUCT-VARIATION": {
+      console.log(payload);
+      return {
+        ...state,
+        SelectedProduct: { ...state.SelectedProduct, ...payload },
+        variants: payload.variation,
+        AddToCartOption: {
+          ...state.AddToCartOption,
+        },
+        loaded: true,
+      };
+    }
     case "ADD-TO-CART": {
-      if (state.cart.some((s) => s.id === payload?.id)) {
+      if (state.cart?.some((s) => s.id === payload?.id)) {
         if (payload.quantity === 0) {
           return {
             ...state,
@@ -167,7 +179,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
             cartTemp.push({ ...s });
           }
         });
-      } else return { ...state, Cart: [...state.Cart, payload] };
+      } else return { ...state, cart: [...state.cart, payload] };
     }
     case "STORE-VARIANTS": {
       return {
@@ -178,19 +190,56 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "AddToCartOptionEnable": {
+      if (payload)
+        return {
+          ...state,
+          SelectedProduct: { ...payload, choice_options: null },
+          AddToCartOption: {
+            ...state.AddToCartOption,
+            enable: true,
+            selectedColor: payload?.sync_color_images
+              ? payload?.sync_color_images[0]
+              : null,
+            selectedSize:
+              payload?.choice_options?.filter((s) => s.title === "Size")[0]
+                ?.options[0] || null,
+          },
+        };
+      else
+        return {
+          ...state,
+          SelectedProduct: { ...state.SelectedProduct },
+          AddToCartOption: {
+            ...state.AddToCartOption,
+            enable: true,
+            selectedColor: state.SelectedProduct?.sync_color_images
+              ? state.SelectedProduct?.sync_color_images[0]
+              : null,
+            selectedSize:
+              state.SelectedProduct?.choice_options?.filter(
+                (s) => s.title === "Size"
+              )[0]?.options[0] || null,
+          },
+        };
+    }
+    case "NOTIFY-PRODUCT": {
+      let temp = { ...state.SelectedProduct };
+      let newVal = {};
+      if (temp.variation && temp.variation?.length > 0) {
+        newVal = {
+          ...temp,
+          variation: temp.variation.map((s) => {
+            if (s.type === payload)
+              return { ...s, variant_notify_for_user: true };
+            else return s;
+          }),
+        };
+      } else {
+        newVal = { ...temp, is_product_notify_for_user: true };
+      }
       return {
         ...state,
-        SelectedProduct: { ...payload, choice_options: null },
-        AddToCartOption: {
-          ...state.AddToCartOption,
-          enable: true,
-          selectedColor: payload?.sync_color_images
-            ? payload?.sync_color_images[0]
-            : null,
-          selectedSize:
-            payload?.choice_options.filter((s) => s.title === "Size")[0]
-              ?.options[0] || null,
-        },
+        SelectedProduct: { ...newVal },
       };
     }
     case "AddToCartOptionDisable": {

@@ -322,7 +322,7 @@ describe("Phone Input Component", async () => {
     await user.type(phoneInput, "963980033496");
     expect(setInputValue).toHaveBeenCalledWith("963980033496");
     // expect(setValidNumber).toHaveBeenCalledWith(true);
-    // console.log(input.value, "input.value");
+
     const arrow = await getArrowPhoneNumber();
     expect(arrow).toBeInTheDocument;
   });

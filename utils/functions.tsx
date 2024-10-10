@@ -9,6 +9,7 @@ import axios from "axios";
 import { FetchApi } from "store/homepage/cachedActions";
 import { LogData } from "store/homepage/actions";
 import { AxiosCacheApi, AxiosGet } from "./constants";
+import home from "services/home";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -98,14 +99,29 @@ export const getThumb = (url, isVideo) => {
 };
 export const getUser = () => {
   return (
-    localStorage.getItem("USER-CHAT") &&
-    JSON.parse(localStorage.getItem("USER"))
+    localStorage.getItem("USER") && JSON.parse(localStorage.getItem("USER"))
   );
 };
 export const getUserChat = () => {
   return (
     localStorage.getItem("USER-CHAT") &&
     JSON.parse(localStorage.getItem("USER-CHAT"))
+  );
+};
+export const UserToken = () => {
+  return (
+    localStorage.getItem("MARKET-TOKEN") ||
+    localStorage.getItem("DEVICE-TOKEN") ||
+    false
+  );
+};
+export const UserID = () => {
+  return (
+    (localStorage.getItem("USER") &&
+      JSON.parse(localStorage.getItem("USER"))?.id) ||
+    (localStorage.getItem("guest-user") &&
+      JSON.parse(localStorage.getItem("guest-user"))?.id) ||
+    false
   );
 };
 export const getUserStories = () => {
@@ -601,7 +617,7 @@ export const filterProducts = async ({
         ? null
         : { colors: `${JSON.stringify(filters.colors)}` },
   });
-  console.log(product);
+
   if (!serachTrigger)
     // newFiltersCallback({
     //   filtersVar: {
@@ -737,7 +753,7 @@ export const getSearchOptions = async () => {
   let categories = await AxiosGet({
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/web/search/filters",
   });
-  console.log(categories);
+
   return [
     {
       categories: categories?.categories ?? [],
@@ -755,6 +771,7 @@ export const getCart = async ({ callback }) => {
   //   country: null,
   //   lang: null,
   // });
+  if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
   let data = await AxiosGet({
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/cart_shipping",
   });

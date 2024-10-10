@@ -11,7 +11,6 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
 
   const [loading, setLoading] = useState(false);
   const GemeniFunc = async (file) => {
-    console.log(file);
     let image_result = await fileToGenerativePart(file);
     const result = await model
       .generateContent([

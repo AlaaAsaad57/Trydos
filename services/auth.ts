@@ -3,10 +3,13 @@ import { ReInitialise } from "store/auth/actions";
 import userImage from "public/images/profileNo.png";
 import Cookies from "js-cookie";
 
-import { _isStoreLastJson, getLang } from "utils/functions";
+import { _isStoreLastJson, getLang, UserID } from "utils/functions";
 import { SEND_OTP, VERFIY_OTP, VERFIY_OTP_SIGNUP } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
+import { FetchApi } from "store/homepage/cachedActions";
+import axios from "axios";
+import home from "./home";
 const getHeader = () => {
   return {
     headers: {
@@ -203,6 +206,42 @@ class AuthService {
   }
   async cancelAuth() {
     store.dispatch({ type: "CANCEL-AUTH" });
+  }
+  async NotifyForProducts({ id, variant }) {
+    const details = {
+      product_id: id,
+      variant,
+      user_id: UserID(),
+      notification_type_id: 1,
+    };
+    var formBody: any = [];
+    for (var property in details) {
+      var encodedKey = encodeURIComponent(property);
+      var encodedValue = encodeURIComponent(details[property]);
+      formBody.push(encodedKey + "=" + encodedValue);
+    }
+    formBody = formBody.join("&");
+    let data = await axios.post(
+      process.env.NEXT_PUBLIC_BACKEND_URL + "/product_notification/store",
+      formBody,
+      {
+        ...getHeader(),
+      }
+    );
+  }
+  async getProductNotify({ id }) {
+    if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
+    let data = await axios.get(
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/web/product/likesCommentsSharesDetails/" +
+        id,
+
+      {
+        ...getHeader(),
+      }
+    );
+
+    return data.data.data;
   }
 }
 export default new AuthService();
