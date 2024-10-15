@@ -38,7 +38,7 @@ function ShareSection({
 
         <span>{translate("Share This Product With", language)}</span>
       </div>
-      {sharedContacts.length > 0 && <SearchContact />}
+      {/* {sharedContacts.length > 0 && <SearchContact />} */}
 
       <div className="content-extended">
         <ShareOptions

@@ -11,6 +11,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import CircleBorder from "public/svg/product/CircleBorder";
 import NormalColorSlider from "./NormalColorSlider";
 import { useDispatch, useSelector } from "react-redux";
+import { useSearchParams } from "next/navigation";
 function ProductColors({ colors, ProductColorsArray }) {
   const [extended, setExtended] = useState(false);
 
@@ -24,6 +25,7 @@ function ProductColors({ colors, ProductColorsArray }) {
   // const setActiveColor = (e) => {
   //   setActiveColorFunc(e);
   // };
+  const searchParams = useSearchParams();
   const getSize: (i: number) => number = (i) => {
     return 40;
   };
@@ -95,7 +97,13 @@ function ProductColors({ colors, ProductColorsArray }) {
             setActiveColor(colors[e.activeIndex]);
           }}
           centeredSlides={true}
-          initialSlide={Math.round(colors.length / 2) - 1}
+          initialSlide={
+            (searchParams.get("color") &&
+              colors.findIndex(
+                (s) => s.color_name === searchParams.get("color")
+              )) ??
+            Math.round(colors.length / 2) - 1
+          }
           loop={false}
         >
           {colors?.map((color, index) => (

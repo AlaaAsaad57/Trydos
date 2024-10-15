@@ -301,7 +301,9 @@ img.flying-img {
   margin-left: 55px;
 }
 .extended-bar-top.share-bar-top {
-  margin-left: 96px;
+  width: 100%;
+  justify-content: center !important;
+  margin-left: 0px !important;
 }
 .extended-bar-top span {
   margin-left: 10px;

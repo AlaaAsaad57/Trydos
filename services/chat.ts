@@ -2,7 +2,10 @@ import { LOG_IN_CHAT } from "utils/endpointConfig";
 import HomeService from "services/home";
 import Cookies from "js-cookie";
 import { store } from "store";
-import { _isStoreLastJson, getLang } from "utils/functions";
+import { _isStoreLastJson, getLang, translate } from "utils/functions";
+import axios from "axios";
+import { GetChats } from "store/chat/actions";
+import { toast } from "react-toastify";
 const ChatHeader = () => {
   return {
     headers: {
@@ -34,7 +37,7 @@ class ChatService {
       );
       let repo = await response.json();
       localStorage.setItem("USER-CHAT", JSON.stringify(repo.data));
-      localStorage.setItem("CHAT-TOKEN", repo.access_token);
+      localStorage.setItem("CHAT-TOKEN", repo.data.access_token);
       if (repo.data?.id) {
         const { requestFirebaseNotificationPermission } = await import(
           "utils/firebaseInitv1"
@@ -69,6 +72,25 @@ class ChatService {
         throw new Error();
       }
     } catch (e) {}
+  }
+  async ShareProduct({ userId, product, callback }) {
+    try {
+      let response = await axios.post(
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+          "/api/v1/messages/share_product",
+        JSON.stringify({ receiver_ids: userId, content: [product] }),
+        { ...ChatHeader() }
+      );
+      await GetChats("share");
+      toast.success(
+        translate("Shared Successfully", store.getState().homepage.language)
+      );
+      callback();
+    } catch (e) {
+      toast.error(
+        translate("Product Share error", store.getState.homepage.language)
+      );
+    }
   }
   async StoreToken(payload: {
     id: string | number;

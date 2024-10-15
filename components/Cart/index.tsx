@@ -14,7 +14,7 @@ import Skeleton from "react-loading-skeleton";
 import { LogData } from "store/homepage/actions";
 import "styles/productDetails.css";
 import NextLink from "Hooks/NextLink";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 function CartContainer({ close }) {
   const language = useSelector((state: any) => state.homepage.language);
   const loading = useSelector((state: any) => state.cart.loading);
@@ -54,6 +54,9 @@ function CartContainer({ close }) {
     });
     return pr;
   };
+
+  const ProductDetails = useSelector((state: any) => state.details.product);
+  const searchParams = useSearchParams();
   return (
     <div className="flex-col fixed top-0 left-0 h-[100vh] w-full bg-[#F8F8F8] min-w-[100vw] z-[9999999999] pt-1">
       <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
@@ -114,13 +117,35 @@ function CartContainer({ close }) {
                       {getProductsOfBrand(boutique).map((product, key) => (
                         <NextLink
                           href={
-                            params?.productId === product.slug
+                            params?.productId === product.slug &&
+                            product?.variations[0].color ===
+                              searchParams.get("color")
                               ? "#"
-                              : `/products/${product.slug}`
+                              : `/products/${product.slug}${
+                                  product?.variations &&
+                                  product?.variations[0]?.color
+                                    ? `?color=${product?.variations[0]?.color}`
+                                    : ""
+                                }`
                           }
                           className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
                           key={key}
                           onClick={(e) => {
+                            if (params?.productId === product.slug) {
+                              if (product.variations[0].color) {
+                                dispatch({
+                                  type: "SET-ACTIVE-COLOR-DETAILS",
+                                  payload:
+                                    ProductDetails.sync_color_images[
+                                      ProductDetails.sync_color_images.findIndex(
+                                        (s) =>
+                                          s.color_name ===
+                                          product?.variations[0]?.color
+                                      )
+                                    ],
+                                });
+                              }
+                            }
                             close();
                           }}
                         >
@@ -586,11 +611,14 @@ export const BrandCart = ({
   currency,
   close,
 }) => {
+  const dispatch = useDispatch();
+  const ProductDetails = useSelector((state: any) => state.details.product);
   const [expanded, setExpanded] = useState(true);
   const decimal_point_settings = useSelector(
     (state: any) => state.homepage.settings
   );
   const params = useParams();
+  const sarchParams = useSearchParams();
   return (
     <div className="flex-col bg-white pb-10 pt-2 pl-2 pr-2" key={key}>
       <div
@@ -621,13 +649,32 @@ export const BrandCart = ({
           {products?.map((product, key) => (
             <NextLink
               href={
-                params?.productId === product.slug
+                params?.productId === product.slug &&
+                product?.variations[0].color === sarchParams.get("color")
                   ? "#"
-                  : `/products/${product.slug}`
+                  : `/products/${product.slug}${
+                      product?.variations && product?.variations[0]?.color
+                        ? `?color=${product?.variations[0]?.color}`
+                        : ""
+                    }`
               }
               className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
               key={key}
               onClick={(e) => {
+                if (params?.productId === product.slug) {
+                  if (product.variations[0].color) {
+                    dispatch({
+                      type: "SET-ACTIVE-COLOR-DETAILS",
+                      payload:
+                        ProductDetails.sync_color_images[
+                          ProductDetails.sync_color_images.findIndex(
+                            (s) =>
+                              s.color_name === product?.variations[0]?.color
+                          )
+                        ],
+                    });
+                  }
+                }
                 close();
               }}
             >

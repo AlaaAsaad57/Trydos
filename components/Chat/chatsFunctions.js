@@ -523,6 +523,80 @@ export const forwardMessage = (m, activeChat) => {
     });
     store.dispatch({ type: "FORWARD-MESSAGEs", payload: null });
   }
+  if (
+    m.message_type.name === "ShareProduct" ||
+    m.message_type === "ShareProduct"
+  ) {
+    SendMessage(
+      {
+        mid: i,
+        cid: activeChat?.id,
+        is_forward: 1,
+        receiver_user_id: activeChat.channel_members.filter(
+          (a) =>
+            parseInt(a.user_id) !==
+            parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
+        )[0]?.user_id,
+        receiver_role_id: activeChat.channel_members.filter(
+          (a) =>
+            parseInt(a.user_id) !==
+            parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
+        )[0]?.role_id,
+        sender_role_id: JSON.parse(localStorage.getItem("USER-CHAT")).role_id,
+        content: { ...m.message_content.content },
+        parent_message_id: null,
+        message_type: "ShareProduct",
+      },
+      false
+    );
+    store.dispatch({
+      type: "SEND-MESSAGE",
+      payload: {
+        act: activeChat,
+        message: {
+          mid: i,
+          receiver_user_id: activeChat.channel_members.filter(
+            (a) =>
+              parseInt(a.user_id) !==
+              parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
+          )[0]?.user_id,
+          receiver_role_id: activeChat.channel_members.filter(
+            (a) =>
+              parseInt(a.user_id) !==
+              parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
+          )[0]?.role_id,
+          sender_role_id: JSON.parse(localStorage.getItem("USER-CHAT")).role_id,
+          sender_user_id: JSON.parse(localStorage.getItem("USER-CHAT")).id,
+          message_type: { name: "ShareProduct" },
+          type: "pending",
+          is_forward: 1,
+          created_at: new Date(),
+          message_status: [
+            {
+              is_watched: false,
+              is_received: 0,
+              user_id:
+                localStorage.getItem("USER-CHAT") &&
+                JSON.parse(localStorage.getItem("USER-CHAT")).id,
+            },
+            {
+              is_received: 0,
+              is_watched: false,
+              user_id: activeChat.channel_members.filter(
+                (a) =>
+                  parseInt(a.user_id) !==
+                  parseInt(JSON.parse(localStorage.getItem("USER-CHAT")).id)
+              )[0]?.user_id,
+            },
+          ],
+          message_content: { ...m.message_content.content },
+          cid: activeChat?.id,
+        },
+        isNew: false,
+      },
+    });
+    store.dispatch({ type: "FORWARD-MESSAGEs", payload: null });
+  }
 };
 
 const uploadFile = async (file_name, file, onUploadProgress) => {

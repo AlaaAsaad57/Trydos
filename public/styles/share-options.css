@@ -3,11 +3,12 @@
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: center;
+  max-height: 350px;
 }
 .share-avatar {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   position: relative;
   flex-direction: column;
   cursor: pointer;
@@ -37,10 +38,14 @@
 }
 .share-name {
   display: flex;
+  text-align: center;
   margin-top: 10px;
   color: #505050;
   font-family: var(--Quicksand-Regular);
   font-size: 14px;
+  text-wrap: wrap;
+  max-width: 70px;
+  justify-content: center;
 }
 .share-avatar:not(:last-child) {
   margin-right: 8px;

@@ -663,6 +663,28 @@ img {
   background-color: #b4ffd9;
   font-family: var(--SF-Pro-Rounded-Regular);
 }
+.product-share-span {
+  position: absolute;
+  max-width: 315px;
+  height: 99%;
+  width: 99%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  backdrop-filter: brightness(0.8);
+  font-size: 20px;
+  color: #fafafa;
+  text-wrap: wrap;
+  text-align: center;
+  padding: 38px;
+  text-shadow: 0px 3px 3px #0b0b0b7a;
+}
+.product-share-image {
+  height: 521px !important;
+}
 .self-align .message-body {
   background-color: #fff9b4;
 }

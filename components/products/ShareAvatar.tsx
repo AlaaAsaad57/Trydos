@@ -1,12 +1,15 @@
 import Image from "next/image";
 import React from "react";
+import profilePng from "public/images/profileNo.png";
 
 function ShareAvatar({
   active,
   setActive,
+  contact,
 }: {
   active: boolean;
   setActive: () => void;
+  contact: any;
 }) {
   return (
     <div
@@ -18,11 +21,13 @@ function ShareAvatar({
           width={70}
           height={80}
           alt="Omar"
-          src="https://res.cloudinary.com/dtcmozf4d/image/upload/h_100/f_avif/q_100/v1/product/thumbnail/2024-05-12-663fce81803c3.png"
+          src={contact.contact_user?.photo_path ?? profilePng}
           unoptimized
         />
       </div>
-      <div className="share-name">Omar</div>
+      <div className="share-name">
+        {contact?.name ?? contact?.contact_user?.name ?? contact?.mobile_phone}
+      </div>
       <div className="selected-share">
         <svg
           xmlns="http://www.w3.org/2000/svg"

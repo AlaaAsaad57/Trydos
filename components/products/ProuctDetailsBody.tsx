@@ -1,5 +1,5 @@
 import { ProductInterface } from "models/product";
-import React from "react";
+import React, { useEffect } from "react";
 import "styles/product-body.css";
 import EyeIcon from "public/svg/product/EyeIcon.svg";
 import ProductDetailsText from "./ProductDetailsText";
@@ -12,6 +12,8 @@ import ProductStories from "./ProductStories";
 import ProductShippingOption from "./ProductShippingOption";
 import FreeReturnOption from "./FreeReturnOption";
 import FreeShippingOption from "./FreeShippingOption";
+import { useSearchParams } from "next/navigation";
+import { useDispatch } from "react-redux";
 function ProuctDetailsBody({ product }: { product: ProductInterface }) {
   return (
     <div className="product-details-body flex-row relative">
@@ -47,7 +49,7 @@ function ProuctDetailsBody({ product }: { product: ProductInterface }) {
           <div className="product-category-name">{product.category?.name}</div>
         </div>
 
-        <ProductDetailsText details={product.details} />
+        <ProductDetailsText product={product} details={product.details} />
         <ProductProperties />
         <ProductDescriptors descriptors={product.descriptors} />
         <ProductColors

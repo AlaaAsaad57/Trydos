@@ -1,8 +1,28 @@
 "use client";
+import { ProductInterface } from "models/product";
+import { useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import { encode_utf8 } from "utils/functions";
 
-function ProductDetailsText({ details }: { details: string }) {
+function ProductDetailsText({
+  details,
+  product,
+}: {
+  details: string;
+  product: ProductInterface;
+}) {
+  const searchParams = useSearchParams();
+  const dispatch = useDispatch();
+  useEffect(() => {
+    if (searchParams.get("color"))
+      dispatch({
+        type: "SET-ACTIVE-COLOR-DETAILS",
+        payload: product.sync_color_images.filter(
+          (s) => s.color_name === searchParams.get("color")
+        )[0],
+      });
+  }, []);
   const [show, setShow] = useState(false);
   useEffect(() => {
     if (details) {

@@ -85,19 +85,22 @@ export const GetChats = async (payload) => {
       type: "SET_LAST_NOTIFICATION_DATE",
       payload: new Date().toLocaleString(),
     });
+
     store.dispatch({ type: "CHAT_DONE" });
-    getCalls(null);
-    let response = await axios.get(
-      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + GET_CONTATCS_URL,
-      {
-        headers: {
-          Authorization:
-            `Bearer ` +
-            JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
-        },
-      }
-    );
-    store.dispatch({ type: "GET_CONTACTS_RED", payload: response.data.data });
+    if (payload !== "share") {
+      getCalls(null);
+      let response = await axios.get(
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + GET_CONTATCS_URL,
+        {
+          headers: {
+            Authorization:
+              `Bearer ` +
+              JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+          },
+        }
+      );
+      store.dispatch({ type: "GET_CONTACTS_RED", payload: response.data.data });
+    }
   } catch (e) {
     console.error(e);
   }

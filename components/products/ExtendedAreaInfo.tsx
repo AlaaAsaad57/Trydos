@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Animated from "react-mount-animation";
 import CommentSection from "./CommentSection";
 import ShareSection from "./ShareSection";
 import MoreOptionsSection from "./MoreOptionsSection";
 import { ProductInterface } from "models/product";
 import SelectSize from "./SelectSize";
+import { getContacts } from "store/chat/actions";
 
 function ExtendedAreaInfo({
   option,
@@ -48,6 +49,9 @@ function ExtendedAreaInfo({
 0% {max-height:${height}px}
 100% {max-height:0px}
 `;
+  useEffect(() => {
+    if (localStorage.getItem("USER-CHAT")) getContacts();
+  }, []);
 
   return (
     <>

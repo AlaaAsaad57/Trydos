@@ -16,8 +16,10 @@ function ProductOptions({
   share,
   productDetails,
   product,
+  shareAction,
 }: {
   activeOption: string;
+  shareAction: any;
   setOption: (e: string) => void;
   clearShare: () => void;
   share: boolean;
@@ -31,7 +33,7 @@ function ProductOptions({
   return (
     <div className="product-options-container">
       {share ? (
-        <ShareButton onClick={() => clearShare()} />
+        <ShareButton onClick={() => shareAction()} />
       ) : (
         <>
           <AddToCartButton

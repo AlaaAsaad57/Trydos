@@ -35,6 +35,16 @@ function LastMessageBody({ message, status }) {
         </>
       );
     }
+    if (message.message_type.name === "ShareProduct") {
+      return (
+        <>
+          {message.sender_user_id === getUser()?.id &&
+            getMessageStatusIcon(message.message_status, message.mid)}
+
+          {translate("Product", language)}
+        </>
+      );
+    }
     if (message.message_type.name === "VoiceMessage") {
       return (
         <>

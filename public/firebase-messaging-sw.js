@@ -69,6 +69,15 @@ messaging.onBackgroundMessage(async function (payload) {
         icon: JSON.parse(payload?.data.message).icon,
         image: JSON.parse(payload?.data.message).image,
       };
+    } else if (
+      JSON.parse(payload.data.message).message_type.name === "ShareProduct"
+    ) {
+      notificationOptions = {
+        body: "Shared Product",
+        icon: JSON.parse(payload?.data.message)?.icon,
+        image: JSON.parse(payload?.data.message).message_content.content
+          .product_image_url,
+      };
     } else {
       notificationOptions = {
         body: "Missed Call",

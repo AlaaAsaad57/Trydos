@@ -10,8 +10,15 @@ import axios from "axios";
 
 import SelectColor from "./SelectColor";
 import { useDispatch, useSelector } from "react-redux";
-import { RoundPrice, UserToken } from "utils/functions";
+import {
+  GetAppLanguage,
+  RoundPrice,
+  translate,
+  UserToken,
+} from "utils/functions";
 import auth from "services/auth";
+import { toast } from "react-toastify";
+import chat from "services/chat";
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
     return {
@@ -141,6 +148,30 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
           0,
       });
   };
+  const shareAction = () => {
+    if (sharedContacts.length > 0) {
+      const messageShare = {
+        product_id: product.id,
+
+        product_image_url: product.images[0],
+        product_name: product.name,
+        product_slug: product.slug,
+        product_description: product?.details,
+      };
+      chat.ShareProduct({
+        userId: sharedContacts,
+        product: messageShare,
+        callback: () => {
+          setShareContacts([]);
+          setOption("");
+        },
+      });
+    } else {
+      toast.warn(
+        translate("please select one contact at least", GetAppLanguage())
+      );
+    }
+  };
   return (
     <>
       {option === "AddToCart" && <SelectColor close={() => setOption("")} />}
@@ -186,6 +217,7 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
 
         <ProductOptions
           clearShare={() => setShareContacts([])}
+          shareAction={() => shareAction()}
           productDetails={productState.productDetails}
           product={{
             name: product.name,
