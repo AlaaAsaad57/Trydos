@@ -96,6 +96,19 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
   const [sharedContacts, setShareContacts] = useState([]);
 
   const getData = async () => {
+    let reqShares = await axios.get(
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+        `/api/v2/elastic/shared_count/${product.id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${UserToken()}`,
+        },
+      }
+    );
+    dispatchStore({
+      type: "shares",
+      payload: reqShares.data.data.shared_count,
+    });
     let req = await axios.get(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/web/product/likesCommentsSharesDetails/" +

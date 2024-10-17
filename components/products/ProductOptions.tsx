@@ -27,6 +27,7 @@ function ProductOptions({
   product: any;
 }) {
   const loaded = useSelector((state: any) => state.cart.loaded);
+  const sharesCount = useSelector((state: any) => state.details.sharesCount);
   const SelectedProduct = useSelector(
     (state: any) => state.cart.SelectedProduct
   );
@@ -75,7 +76,13 @@ function ProductOptions({
               onClick={() => setOption("Share")}
             >
               <Share />
-              <span>2k</span>
+              <span>
+                {sharesCount !== null && sharesCount >= 0 ? (
+                  sharesCount
+                ) : (
+                  <Skeleton width={15} height={14}></Skeleton>
+                )}
+              </span>
             </div>
             <div
               className="product-option-item"

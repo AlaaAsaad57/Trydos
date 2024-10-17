@@ -51,6 +51,7 @@ const initialState = {
   isChangedFilter: false,
   product: {},
   loading: false,
+  sharesCount: null,
 };
 
 const DetailsReducer = (state = initialState, { type, payload }) => {
@@ -72,6 +73,13 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
               ]
             : null,
         },
+        sharesCount: null,
+      };
+    }
+    case "shares": {
+      return {
+        ...state,
+        sharesCount: payload,
       };
     }
     case "SET-ACTIVE-COLOR-DETAILS": {
