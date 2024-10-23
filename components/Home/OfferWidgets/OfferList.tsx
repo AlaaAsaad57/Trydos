@@ -1,6 +1,5 @@
-/// <reference types="web-bluetooth" />
 "use client";
-import { useDispatch } from "react-redux";
+
 import NormalWidget from "./NormalWidget";
 
 import { Boutique } from "models/offer";

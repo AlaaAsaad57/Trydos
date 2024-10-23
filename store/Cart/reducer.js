@@ -152,7 +152,6 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         };
     }
     case "GET-PRODUCT-VARIATION": {
-      console.log(payload);
       return {
         ...state,
         SelectedProduct: { ...state.SelectedProduct, ...payload },
@@ -161,6 +160,12 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           ...state.AddToCartOption,
         },
         loaded: true,
+      };
+    }
+    case "EDIT-INFO": {
+      return {
+        ...state,
+        SelectedProduct: { ...state.SelectedProduct, ...payload },
       };
     }
     case "ADD-TO-CART": {

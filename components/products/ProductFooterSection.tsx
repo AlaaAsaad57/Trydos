@@ -14,6 +14,7 @@ import {
   GetAppLanguage,
   RoundPrice,
   translate,
+  UserID,
   UserToken,
 } from "utils/functions";
 import auth from "services/auth";
@@ -94,7 +95,7 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
   const [option, setOption] = useState("");
   const dispatchStore = useDispatch();
   const [sharedContacts, setShareContacts] = useState([]);
-
+  const [loading, setLoading] = useState(true);
   const getData = async () => {
     let reqShares = await axios.get(
       process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
@@ -109,24 +110,34 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
       type: "shares",
       payload: reqShares.data.data.shared_count,
     });
-    let req = await axios.get(
-      process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/web/product/likesCommentsSharesDetails/" +
-        product.id,
-      {
-        headers: {
-          Authorization: `Bearer ${UserToken()}`,
-        },
-      }
-    );
+    let req = await axios
+      .get(
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+          "/web/product/likesCommentsSharesDetails/" +
+          product.id,
+        {
+          headers: {
+            Authorization: `Bearer ${UserToken()}`,
+          },
+        }
+      )
+      .catch((e) => {});
+
+    // @ts-ignore
+    let likesNum = req?.data.data.count_of_likes;
+    // @ts-ignore
+    let isLiked = req?.data.data.is_liked;
     setProductData({
       ...productState.productDetails,
-      comment_count: req.data.data.comments_count,
-      comments: req.data.data.comments,
+      // @ts-ignore
+      comment_count: req?.data.data.comments_count,
+      // @ts-ignore
+      comments: req?.data.data.comments,
     });
     let arr = [];
-    if (req.data.data.variation.length) {
-      req.data.data.variation.map((s) => {
+    // @ts-ignore
+    if (req?.data.data.variation.length) {
+      req?.data.data.variation.map((s) => {
         let d = product.variation.filter((w) => w.type === s.type)[0];
         arr.push({ ...s, ...d });
       });
@@ -135,11 +146,20 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
       type: "GET-PRODUCT-VARIATION",
       payload: {
         ...product,
-        is_product_notify_for_user: req.data.data.is_product_notify_for_user,
+        // @ts-ignore
+        is_product_notify_for_user: req?.data.data.is_product_notify_for_user,
         variation: arr,
+        likes: likesNum,
+        is_liked: isLiked,
       },
     });
-    dispatchStore({ type: "STORE-VARIANTS", payload: req.data.data.variation });
+    // @ts-ignore
+    dispatchStore({
+      type: "STORE-VARIANTS",
+      // @ts-ignore
+      payload: req?.data.data.variation,
+    });
+    setLoading(false);
   };
   useEffect(() => {
     getData();
@@ -230,6 +250,7 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
 
         <ProductOptions
           clearShare={() => setShareContacts([])}
+          loading={loading}
           shareAction={() => shareAction()}
           productDetails={productState.productDetails}
           product={{

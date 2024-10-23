@@ -82,6 +82,12 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         sharesCount: payload,
       };
     }
+    case "SHARE-SOCIAL": {
+      return {
+        ...state,
+        sharesCount: state.sharesCount + 1,
+      };
+    }
     case "SET-ACTIVE-COLOR-DETAILS": {
       return {
         ...state,

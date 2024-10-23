@@ -2,12 +2,16 @@ import React from "react";
 import { translate } from "utils/functions";
 import ShareOptions from "./ShareOptions";
 import SearchContact from "./SearchContact";
+import { ProductInterface } from "models/product";
 
 function ShareSection({
   setShareContacts,
   sharedContacts,
+  product,
 }: {
   sharedContacts: Array<number>;
+  product: ProductInterface;
+
   setShareContacts: (e: Array<number>) => void;
 }) {
   var language = "en";
@@ -43,6 +47,7 @@ function ShareSection({
       <div className="content-extended">
         <ShareOptions
           setShareContacts={setShareContacts}
+          product={product}
           sharedContacts={sharedContacts}
         />
       </div>

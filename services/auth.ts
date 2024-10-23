@@ -83,7 +83,7 @@ class AuthService {
       return repo;
     } catch (e) {
       step(282);
-      console.log(e, msg);
+
       errorCallback();
       store.dispatch({
         type: "WRONG-NUMBER",

@@ -12,8 +12,7 @@ import ProductStories from "./ProductStories";
 import ProductShippingOption from "./ProductShippingOption";
 import FreeReturnOption from "./FreeReturnOption";
 import FreeShippingOption from "./FreeShippingOption";
-import { useSearchParams } from "next/navigation";
-import { useDispatch } from "react-redux";
+
 function ProuctDetailsBody({ product }: { product: ProductInterface }) {
   return (
     <div className="product-details-body flex-row relative">

@@ -100,6 +100,7 @@ function ExtendedAreaInfo({
         {option === "Share" && (
           <ShareSection
             sharedContacts={sharedContacts}
+            product={product}
             setShareContacts={setShareContacts}
           />
         )}

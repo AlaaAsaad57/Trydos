@@ -1,14 +1,16 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import AddToCartButton from "./AddToCartButton";
 import Heart from "public/svg/Heart.svg";
+import HeartFill from "public/svg/HeartFill.svg";
 
 import Share from "public/svg/share.svg";
 import CommentIcon from "./CommentIcon";
 import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
-import { useSelector } from "react-redux";
-import { AddToCartAnimation } from "utils/functions";
+import { useDispatch, useSelector } from "react-redux";
+import { AddToCartAnimation, UserID, UserToken } from "utils/functions";
+import axios from "axios";
 function ProductOptions({
   activeOption,
   setOption,
@@ -17,6 +19,7 @@ function ProductOptions({
   productDetails,
   product,
   shareAction,
+  loading,
 }: {
   activeOption: string;
   shareAction: any;
@@ -25,12 +28,54 @@ function ProductOptions({
   share: boolean;
   productDetails: any;
   product: any;
+  loading: boolean;
 }) {
+  const shareData = {
+    title: product.name,
+    text: window.location.href,
+    url: window.location.href,
+  };
+
   const loaded = useSelector((state: any) => state.cart.loaded);
   const sharesCount = useSelector((state: any) => state.details.sharesCount);
   const SelectedProduct = useSelector(
     (state: any) => state.cart.SelectedProduct
   );
+  const [shareEnable, setShare] = useState(false);
+  const [isLiked, setLiked] = useState(false);
+  const dispatch = useDispatch();
+  const LikeProduct = async (bool) => {
+    if (bool) {
+      dispatch({
+        type: "EDIT-INFO",
+        payload: { likes: SelectedProduct?.likes + 1, is_liked: true },
+      });
+      await axios.post(
+        process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/store`,
+        { product_id: product.id, user_id: UserID() },
+        {
+          headers: {
+            Authorization: `Bearer ${UserToken()}`,
+          },
+        }
+      );
+    } else {
+      setLiked(false);
+      dispatch({
+        type: "EDIT-INFO",
+        payload: { likes: SelectedProduct?.likes - 1, is_liked: false },
+      });
+      axios.post(
+        process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/delete`,
+        { product_id: product.id, user_id: UserID() },
+        {
+          headers: {
+            Authorization: `Bearer ${UserToken()}`,
+          },
+        }
+      );
+    }
+  };
   return (
     <div className="product-options-container">
       {share ? (
@@ -51,10 +96,19 @@ function ProductOptions({
               className={`product-option-item ${
                 activeOption === "Like" && "active-option"
               }`}
-              onClick={() => setOption("Like")}
+              onClick={() => {
+                setOption("Like");
+                setLiked(!isLiked);
+                if (isLiked || SelectedProduct?.is_liked) LikeProduct(false);
+                else LikeProduct(true);
+              }}
             >
-              <Heart />
-              <span>110k</span>
+              {SelectedProduct?.is_liked || isLiked ? <HeartFill /> : <Heart />}
+              {loading ? (
+                <Skeleton width={15} height={14}></Skeleton>
+              ) : (
+                <span>{SelectedProduct.likes}</span>
+              )}
             </div>
             <div
               className="product-option-item"
@@ -70,11 +124,14 @@ function ProductOptions({
               </span>
             </div>
             <div
-              className={`product-option-item ${
+              className={`product-option-item relative ${
                 activeOption === "Share" && "active-option"
               }`}
-              onClick={() => setOption("Share")}
+              onClick={() => {
+                setOption("Share");
+              }}
             >
+              {" "}
               <Share />
               <span>
                 {sharesCount !== null && sharesCount >= 0 ? (
