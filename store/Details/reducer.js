@@ -1,5 +1,6 @@
 const initialState = {
   activeCameraGallery: false,
+  shareLoading: false,
   totalProducts: null,
   InfoMessage: {
     showInfoMessage: false,
@@ -56,6 +57,12 @@ const initialState = {
 
 const DetailsReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "share-loading": {
+      return {
+        ...state,
+        shareLoading: payload,
+      };
+    }
     case "STORE-PRODUCT": {
       return {
         ...state,

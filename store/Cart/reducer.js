@@ -15,6 +15,7 @@ const initialState = {
   loading: true,
   localCart: [],
   loaded: false,
+  oldCart: null,
 };
 
 export const CartReducer = (state = initialState, { type, payload }) => {
@@ -86,6 +87,12 @@ export const CartReducer = (state = initialState, { type, payload }) => {
             (s) => s.UID !== payload
           ),
         },
+      };
+    }
+    case "STORE-OLD-CART": {
+      return {
+        ...state,
+        oldCart: payload,
       };
     }
     case "CART-INIT": {

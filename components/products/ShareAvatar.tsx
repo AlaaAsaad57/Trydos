@@ -6,15 +6,21 @@ function ShareAvatar({
   active,
   setActive,
   contact,
+  disable,
 }: {
   active: boolean;
   setActive: () => void;
   contact: any;
+  disable: boolean;
 }) {
   return (
     <div
-      className={`share-avatar ${active && "selected"}`}
-      onClick={() => setActive()}
+      className={`share-avatar ${active && "selected"} ${
+        disable && "opacity-50"
+      }`}
+      onClick={() => {
+        if (!disable) setActive();
+      }}
     >
       <div className="share-image">
         <Image

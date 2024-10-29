@@ -23,6 +23,7 @@ function ShareOptions({
   product: ProductInterface;
 }) {
   const sharesCount = useSelector((state: any) => state.details.sharesCount);
+  const shareLoading = useSelector((state: any) => state.details.shareLoading);
   const dispatch = useDispatch();
   const shareSocial = async (appName) => {
     await axios.post(
@@ -41,6 +42,7 @@ function ShareOptions({
           <ShareAvatar
             key={i}
             contact={key}
+            disable={shareLoading}
             active={sharedContacts.some((s) => s === key.contact_user_id)}
             setActive={() => {
               if (sharedContacts.some((s) => s === key.contact_user_id))

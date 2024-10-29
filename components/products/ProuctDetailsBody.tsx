@@ -1,5 +1,6 @@
+"use client";
 import { ProductInterface } from "models/product";
-import React, { useEffect } from "react";
+import React from "react";
 import "styles/product-body.css";
 import EyeIcon from "public/svg/product/EyeIcon.svg";
 import ProductDetailsText from "./ProductDetailsText";
@@ -7,18 +8,29 @@ import ProductProperties from "./ProductProperties";
 import ProductDescriptors from "./ProductDescriptors";
 import ProductColors from "./ProductColors";
 import ProductSizes from "./ProductSizes";
-import CameraShots from "./CameraShots";
+// import CameraShots from "./CameraShots";
 import ProductStories from "./ProductStories";
 import ProductShippingOption from "./ProductShippingOption";
 import FreeReturnOption from "./FreeReturnOption";
 import FreeShippingOption from "./FreeShippingOption";
+import { useSelector } from "react-redux";
+import Skeleton from "react-loading-skeleton";
 
 function ProuctDetailsBody({ product }: { product: ProductInterface }) {
+  const SelectedProduct = useSelector(
+    (state: any) => state.cart.SelectedProduct
+  );
   return (
     <div className="product-details-body flex-row relative">
       <div className="view-count absolute flex-row align-center">
         <EyeIcon />
-        <span>{product.views_count}</span>
+        {SelectedProduct?.views_count >= 0 ? (
+          <span>{SelectedProduct.views_count ?? "1"}</span>
+        ) : (
+          <span className="m-0">
+            <Skeleton className="m-0" count={1} width={20} height={10} />
+          </span>
+        )}
       </div>
       <div className="product-info-section flex-col align-start">
         <div className="product-brand-logo">

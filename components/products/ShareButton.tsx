@@ -1,10 +1,18 @@
+"use client";
 import React from "react";
+import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 
 function ShareButton({ onClick }: { onClick: () => void }) {
   let language = "en";
+  const shareLoading = useSelector((state: any) => state.details.shareLoading);
   return (
-    <div onClick={() => onClick()} className="share-button">
+    <div
+      onClick={() => {
+        if (!shareLoading) onClick();
+      }}
+      className={`share-button ${shareLoading && "opacity-65"}`}
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"

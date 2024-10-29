@@ -74,6 +74,7 @@ function ProductReducer(state, { type, payload }) {
   }
 }
 function ProductFooterSection({ product }: { product: ProductInterface }) {
+  const shareLoading = useSelector((state: any) => state.details.shareLoading);
   const sizes =
     product?.choice_options?.filter((s) => s.title == "Size")[0]?.options || [];
   const [productState, dispatch] = useReducer(ProductReducer, {
@@ -122,6 +123,13 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
         }
       )
       .catch((e) => {});
+    const viewsReq = await axios.post(
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + `/api/products/view`,
+      {
+        user_id: UserID(),
+        product_id: product.id,
+      }
+    );
 
     // @ts-ignore
     let likesNum = req?.data.data.count_of_likes;
@@ -151,6 +159,7 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
         variation: arr,
         likes: likesNum,
         is_liked: isLiked,
+        views_count: viewsReq.data.view_count,
       },
     });
     // @ts-ignore
@@ -191,10 +200,12 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
         product_slug: product.slug,
         product_description: product?.details,
       };
+      dispatchStore({ type: "share-loading", payload: true });
       chat.ShareProduct({
         userId: sharedContacts,
         product: messageShare,
         callback: () => {
+          dispatchStore({ type: "share-loading", payload: false });
           setShareContacts([]);
           setOption("");
         },
@@ -265,7 +276,10 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
           }}
           share={sharedContacts.length > 0}
           activeOption={option}
-          setOption={(e) => setOption(e)}
+          setOption={(e) => {
+            if (option === e) setOption("");
+            else setOption(e);
+          }}
         />
       </div>
     </>
