@@ -470,11 +470,11 @@ function CartContainer({ close }) {
                   </div>
                   <div className="absolute right-4 bottom-7">
                     <div className="product-info-price">
-                      {product.offer_price ? (
+                      {product.discount > 0 ? (
                         <>
                           <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
                             {RoundPrice({
-                              num: product.price,
+                              num: product.price_of_variant,
                               rate: currency?.exchange_rate,
                               points:
                                 (decimal_point_settings &&
@@ -501,7 +501,7 @@ function CartContainer({ close }) {
                           </div>
                           <div className="product-new-price text-[18px] bold">
                             {RoundPrice({
-                              num: product.offer_price,
+                              num: product.price_of_variant - product.discount,
                               rate: currency.exchange_rate,
                               points:
                                 (decimal_point_settings &&
@@ -515,7 +515,7 @@ function CartContainer({ close }) {
                         <>
                           <div className="product-new-price text-[18px] bold">
                             {RoundPrice({
-                              num: product.price,
+                              num: product.price_of_variant - product.discount,
                               rate: currency.exchange_rate,
                               points:
                                 (decimal_point_settings &&
@@ -533,7 +533,7 @@ function CartContainer({ close }) {
                   </div>
                   <div className="absolute top-1 right-1">
                     <input
-                      defaultValue={product.quantity}
+                      defaultValue={parseInt(product.quantity)}
                       type="number"
                       min={1}
                       max={product.available_quantity}
@@ -1005,7 +1005,7 @@ export const BrandCart = ({
               </div>
               <div className="absolute top-1 right-1">
                 <input
-                  defaultValue={product.quantity}
+                  defaultValue={parseInt(product.quantity)}
                   type="number"
                   min={1}
                   max={product.available_quantity}

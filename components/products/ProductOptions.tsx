@@ -107,7 +107,7 @@ function ProductOptions({
               {loading ? (
                 <Skeleton width={15} height={14}></Skeleton>
               ) : (
-                <span>{SelectedProduct.likes}</span>
+                <span>{SelectedProduct?.likes}</span>
               )}
             </div>
             <div

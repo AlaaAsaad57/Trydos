@@ -351,6 +351,7 @@ class HomeService {
       }
       // @ts-ignore
       dataBody = dataBody.join("&");
+      console.log(dataObj);
       let [updateQuantity, data] = await FetchApi({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
         method: "POST",
@@ -370,6 +371,7 @@ class HomeService {
     } else {
       const imageVar = image.split("/")[image.split("/").length - 1];
       let details = { id, color, image: imageVar, quantity, choice_1: size };
+      console.log(details);
       let formBody = [];
       for (var property in details) {
         if (details[property]) {
@@ -380,7 +382,7 @@ class HomeService {
       }
       // @ts-ignore
       formBody = formBody.join("&");
-
+      console.log();
       let [data, response] = await FetchApi({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/add",
         method: "POST",

@@ -44,7 +44,6 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         let selectedOptions = [];
         state.AddToCartOption.selectedOptions.map((s) => {
           if (s.UID === payload.UID) {
-            selectedOptions.push();
           } else {
             selectedOptions.push(s);
           }
@@ -52,8 +51,10 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         return {
           ...state,
           localCart: arr,
+          enable: false,
           AddToCartOption: {
             ...state.AddToCartOption,
+            enable: false,
             quantity: 0,
             selectedOptions: selectedOptions,
           },
@@ -62,7 +63,6 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         let selectedOptions = [];
         state.AddToCartOption.selectedOptions.map((s) => {
           if (s.UID === payload.UID) {
-            selectedOptions.push();
           } else {
             selectedOptions.push(s);
           }
@@ -73,6 +73,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           AddToCartOption: {
             ...state.AddToCartOption,
             quantity: 0,
+            enable: false,
             selectedOptions: selectedOptions,
           },
         };
@@ -267,7 +268,6 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           UID: "",
           selectedOptions: [],
         },
-        SelectedProduct: null,
       };
     }
     case "ADD-TO-CART-Quantity": {

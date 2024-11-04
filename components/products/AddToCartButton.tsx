@@ -94,7 +94,6 @@ function AddToCartButton({
     return num;
   };
   const isQuantityEmpty = () => {
-    return true;
     if (getSelectedVariantofProduct() === "") return product.left_stock === 0;
     else
       return (
@@ -155,7 +154,7 @@ function AddToCartButton({
       !productVar.sync_color_images &&
       productVar.choice_options?.length > 0
     ) {
-      return `${AddToCartOption.selectedSize.name}`;
+      return `${AddToCartOption.selectedSize?.name}`;
     }
   };
   return (
@@ -370,7 +369,7 @@ function AddToCartButton({
                                               s?.name ===
                                               selectedCartItem?.selectedColor
                                                 ?.color_name
-                                          )[0].color
+                                          )[0]?.color
                                         : null,
                                       image: product.sync_color_images
                                         ? product.sync_color_images.filter(
@@ -404,6 +403,7 @@ function AddToCartButton({
                                       UID: `${product.id}${selectedCartItem?.selectedColor?.color_name}${selectedCartItem?.selectedSize?.name}`,
                                     },
                                   });
+                                  setOption("");
                                 }, 1200);
                               } catch (e) {
                                 console.log(e);
@@ -413,13 +413,17 @@ function AddToCartButton({
                               setOption("");
                             },
                             id: product.id,
-                            color: product.colors
-                              ? product.colors.filter(
-                                  (s) =>
-                                    s.name ===
-                                    selectedCartItem?.selectedColor?.color_name
-                                )[0].color
-                              : null,
+                            color:
+                              product.colors?.length === 1
+                                ? product.colors[0].color
+                                : product.colors
+                                ? product.colors.filter(
+                                    (s) =>
+                                      s.name ===
+                                      selectedCartItem?.selectedColor
+                                        ?.color_name
+                                  )[0]?.color
+                                : null,
                             image: product.sync_color_images
                               ? product.sync_color_images.filter(
                                   (s) =>

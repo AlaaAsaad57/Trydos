@@ -94,6 +94,7 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
     dispatch({ type: "setComments", payload: s });
   };
   const [option, setOption] = useState("");
+
   const dispatchStore = useDispatch();
   const [sharedContacts, setShareContacts] = useState([]);
   const [loading, setLoading] = useState(true);
