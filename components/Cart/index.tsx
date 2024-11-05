@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  GetAppLanguage,
   getCart,
   getConfiguredImage,
   RoundPrice,
@@ -15,6 +16,7 @@ import { LogData } from "store/homepage/actions";
 import "styles/productDetails.css";
 import NextLink from "Hooks/NextLink";
 import { useParams, useSearchParams } from "next/navigation";
+import home from "services/home";
 function CartContainer({ close }) {
   const language = useSelector((state: any) => state.homepage.language);
   const oldCart = useSelector((state: any) => state.cart.oldCart);
@@ -83,209 +85,224 @@ function CartContainer({ close }) {
           <div className="light ml-1 text-[13px] text-[#8D8D8D]">
             <span className="medium text-[#5D5C5D]">{cart?.length}</span>
             <span className="ml-[3px]">items</span>
-            <span className="medium text-[#5D5C5D] ml-[3px]">
-              {RoundPrice({
-                num: total_cash,
-                points:
-                  (decimal_point_settings &&
-                    decimal_point_settings["starting-setting"]
-                      ?.decimal_point_settings) ||
-                  0,
-                rate: currency?.exchange_rate,
-              })}
-            </span>
-            <span className="ml-[3px]">{currency?.symbol}</span>
+            {cart?.length > 0 && (
+              <>
+                <span className="medium text-[#5D5C5D] ml-[3px]">
+                  {RoundPrice({
+                    num: total_cash,
+                    points:
+                      (decimal_point_settings &&
+                        decimal_point_settings["starting-setting"]
+                          ?.decimal_point_settings) ||
+                      0,
+                    rate: currency?.exchange_rate,
+                  })}
+                </span>
+                <span className="ml-[3px]">{currency?.symbol}</span>
+              </>
+            )}
           </div>
         </div>
       </div>
-      <div className="flex-col overflow-auto w-full h-full mt-10">
+      <div className="flex-col overflow-auto w-full h-auto mt-10">
         {!loading ? (
           <>
-            {brands?.map((boutique, key) => (
+            {cart.length > 0 ? (
               <>
-                {boutique?.id ? (
-                  <BrandCart
-                    close={close}
-                    key={key}
-                    currency={currency}
-                    price={getPriceOfBrand(boutique, cart)}
-                    products={getProductsOfBrand(boutique, cart)}
-                    boutique={boutique}
-                  />
-                ) : (
-                  <div
-                    className="flex-col bg-[#FFF4B5] pb-10 rounded-2xl"
-                    key={key}
-                  >
-                    <div className="flex-col w-full">
-                      {getProductsOfBrand(boutique, cart).map(
-                        (product, key) => (
-                          <NextLink
-                            href={
-                              params?.productId === product.slug &&
-                              product?.variations[0].color ===
-                                searchParams.get("color")
-                                ? "#"
-                                : `/products/${product.slug}${
-                                    product?.variations &&
-                                    product?.variations[0]?.color
-                                      ? `?color=${product?.variations[0]?.color}`
-                                      : ""
-                                  }`
-                            }
-                            className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
-                            key={key}
-                            onClick={(e) => {
-                              if (params?.productId === product.slug) {
-                                if (product.variations[0].color) {
-                                  dispatch({
-                                    type: "SET-ACTIVE-COLOR-DETAILS",
-                                    payload:
-                                      ProductDetails.sync_color_images[
-                                        ProductDetails.sync_color_images.findIndex(
-                                          (s) =>
-                                            s.color_name ===
-                                            product?.variations[0]?.color
-                                        )
-                                      ],
-                                  });
+                {brands?.map((boutique, key) => (
+                  <>
+                    {boutique?.id ? (
+                      <BrandCart
+                        close={close}
+                        isOldCart={false}
+                        key={key}
+                        currency={currency}
+                        price={getPriceOfBrand(boutique, cart)}
+                        products={getProductsOfBrand(boutique, cart)}
+                        boutique={boutique}
+                      />
+                    ) : (
+                      <div
+                        className="flex-col bg-[#FFF4B5] pb-10 rounded-2xl"
+                        key={key}
+                      >
+                        <div className="flex-col w-full">
+                          {getProductsOfBrand(boutique, cart).map(
+                            (product, key) => (
+                              <NextLink
+                                href={
+                                  params?.productId === product.slug &&
+                                  product?.variations[0].color ===
+                                    searchParams.get("color")
+                                    ? "#"
+                                    : `/products/${product.slug}${
+                                        product?.variations &&
+                                        product?.variations[0]?.color
+                                          ? `?color=${product?.variations[0]?.color}`
+                                          : ""
+                                      }`
                                 }
-                              }
-                              close();
-                            }}
-                          >
-                            <div className="flex-row w-[110px] min-h-[161px] relative">
-                              <img
-                                src={getConfiguredImage({
-                                  height: 150,
-                                  width: 150,
-                                  src: product.image,
-                                })}
-                                width={110}
-                                height={"100%"}
-                                className="rounded-2xl"
-                              />
-                            </div>
-                            <div className="flex-col mt-4 ml-5">
-                              <div className="text-xs mt-1 text-[#505050] flex regular">
-                                {product.name}
-                              </div>
-                              <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                                <CartItemTypeIcon />
-                                <span className="ml-1.5"></span>
-                              </div>
-                              {product.variations[0]?.color && (
-                                <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                                  <CartColorIcon />
-                                  <span className="ml-1.5">color,</span>
-                                  <span className="regular">
-                                    {product.variations[0].color}
-                                  </span>
+                                className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
+                                key={key}
+                                onClick={(e) => {
+                                  if (params?.productId === product.slug) {
+                                    if (product.variations[0].color) {
+                                      dispatch({
+                                        type: "SET-ACTIVE-COLOR-DETAILS",
+                                        payload:
+                                          ProductDetails.sync_color_images[
+                                            ProductDetails.sync_color_images.findIndex(
+                                              (s) =>
+                                                s.color_name ===
+                                                product?.variations[0]?.color
+                                            )
+                                          ],
+                                      });
+                                    }
+                                  }
+                                  close();
+                                }}
+                              >
+                                <div className="flex-row w-[110px] min-h-[161px] relative">
+                                  <img
+                                    src={getConfiguredImage({
+                                      height: 150,
+                                      width: 150,
+                                      src: product.image,
+                                    })}
+                                    width={110}
+                                    height={"100%"}
+                                    className="rounded-2xl"
+                                  />
                                 </div>
-                              )}
-                              {product.variations[0]?.Size && (
-                                <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                                  <CartSizeIcon />
-                                  <span className="ml-1.5">Size,</span>
-                                  <span className="regular">
-                                    {product.variations[0].Size}
-                                  </span>
-                                </div>
-                              )}
-                              {product.quantity >
-                                product.available_quantity && (
-                                <div className="flex-row items-center text-[12px] light text-[#fd445d]">
-                                  <ErrorIcon />
-                                  <span className="ml-1.5">Availabilty,</span>
-                                  <span className="regular ml-1">
-                                    Out Of Stock
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                            <div className="absolute right-4 bottom-7">
-                              <div className="product-info-price">
-                                {product.offer_price ? (
-                                  <>
-                                    <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
-                                      {RoundPrice({
-                                        num: product.price,
-                                        rate: currency.exchange_rate,
-                                        points:
-                                          (decimal_point_settings &&
-                                            decimal_point_settings[
-                                              "starting-setting"
-                                            ]?.decimal_point_settings) ||
-                                          0,
-                                      })}
-                                      <svg
-                                        className="bottom-3"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="100%"
-                                        height="2"
-                                      >
-                                        <line
-                                          id="Line_1104"
-                                          data-name="Line 1104"
-                                          x2="100%"
-                                          transform="translate(0 1)"
-                                          fill="none"
-                                          stroke="#C4C2C2"
-                                          strokeWidth="2"
-                                        />
-                                      </svg>
+                                <div className="flex-col mt-4 ml-5">
+                                  <div className="text-xs mt-1 text-[#505050] flex regular">
+                                    {product.name}
+                                  </div>
+                                  <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
+                                    <CartItemTypeIcon />
+                                    <span className="ml-1.5"></span>
+                                  </div>
+                                  {product.variations[0]?.color && (
+                                    <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
+                                      <CartColorIcon />
+                                      <span className="ml-1.5">color,</span>
+                                      <span className="regular">
+                                        {product.variations[0].color}
+                                      </span>
                                     </div>
-                                    <div className="product-new-price text-[18px] bold">
-                                      {RoundPrice({
-                                        num: product.offer_price,
-                                        rate: currency.exchange_rate,
-                                        points:
-                                          (decimal_point_settings &&
-                                            decimal_point_settings[
-                                              "starting-setting"
-                                            ]?.decimal_point_settings) ||
-                                          0,
-                                      })}
+                                  )}
+                                  {product.variations[0]?.Size && (
+                                    <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
+                                      <CartSizeIcon />
+                                      <span className="ml-1.5">Size,</span>
+                                      <span className="regular">
+                                        {product.variations[0].Size}
+                                      </span>
                                     </div>
-                                  </>
-                                ) : (
-                                  <>
-                                    <div className="product-new-price text-[18px] bold">
-                                      {RoundPrice({
-                                        num: product.price,
-                                        rate: currency.exchange_rate,
-                                        points:
-                                          (decimal_point_settings &&
-                                            decimal_point_settings[
-                                              "starting-setting"
-                                            ]?.decimal_point_settings) ||
-                                          0,
-                                      })}
+                                  )}
+                                  {product.quantity >
+                                    product.available_quantity && (
+                                    <div className="flex-row items-center text-[12px] light text-[#fd445d]">
+                                      <ErrorIcon />
+                                      <span className="ml-1.5">
+                                        Availabilty,
+                                      </span>
+                                      <span className="regular ml-1">
+                                        Out Of Stock
+                                      </span>
                                     </div>
-                                  </>
-                                )}
-                                <div className="product-currency text-[8px] text-[#C4C2C2] regular">
-                                  {currency?.symbol}
+                                  )}
                                 </div>
-                              </div>
-                            </div>
-                            <div className="absolute top-1 right-1">
-                              <input
-                                defaultValue={product.quantity}
-                                type="number"
-                                min={1}
-                                max={product.available_quantity}
-                                className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
-                              />
-                            </div>
-                          </NextLink>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )}
+                                <div className="absolute right-4 bottom-7">
+                                  <div className="product-info-price">
+                                    {product.offer_price ? (
+                                      <>
+                                        <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
+                                          {RoundPrice({
+                                            num: product.price,
+                                            rate: currency.exchange_rate,
+                                            points:
+                                              (decimal_point_settings &&
+                                                decimal_point_settings[
+                                                  "starting-setting"
+                                                ]?.decimal_point_settings) ||
+                                              0,
+                                          })}
+                                          <svg
+                                            className="bottom-3"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="100%"
+                                            height="2"
+                                          >
+                                            <line
+                                              id="Line_1104"
+                                              data-name="Line 1104"
+                                              x2="100%"
+                                              transform="translate(0 1)"
+                                              fill="none"
+                                              stroke="#C4C2C2"
+                                              strokeWidth="2"
+                                            />
+                                          </svg>
+                                        </div>
+                                        <div className="product-new-price text-[18px] bold">
+                                          {RoundPrice({
+                                            num: product.offer_price,
+                                            rate: currency.exchange_rate,
+                                            points:
+                                              (decimal_point_settings &&
+                                                decimal_point_settings[
+                                                  "starting-setting"
+                                                ]?.decimal_point_settings) ||
+                                              0,
+                                          })}
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <div className="product-new-price text-[18px] bold">
+                                          {RoundPrice({
+                                            num: product.price,
+                                            rate: currency.exchange_rate,
+                                            points:
+                                              (decimal_point_settings &&
+                                                decimal_point_settings[
+                                                  "starting-setting"
+                                                ]?.decimal_point_settings) ||
+                                              0,
+                                          })}
+                                        </div>
+                                      </>
+                                    )}
+                                    <div className="product-currency text-[8px] text-[#C4C2C2] regular">
+                                      {currency?.symbol}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="absolute top-1 right-1">
+                                  <input
+                                    defaultValue={product.quantity}
+                                    type="number"
+                                    min={1}
+                                    max={product.available_quantity}
+                                    className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
+                                  />
+                                </div>
+                              </NextLink>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ))}
               </>
-            ))}
+            ) : (
+              <div className="flex-row items-center justify-center light text-[#5d5d5d] text-[16px]">
+                {translate("Cart is Empty", GetAppLanguage())}
+              </div>
+            )}
           </>
         ) : (
           <>
@@ -355,9 +372,12 @@ function CartContainer({ close }) {
       </div>
       {oldCart?.oldCart?.length > 0 && (
         <>
-          <div className="flex-row mt-1 min-h-[30px] w-full items-center justify-center bg-[#F8F8F8] rounded-[10px]">
+          <hr className="p-4" />
+          <div className="flex-row mt-0 min-h-[30px] w-full items-center justify-center bg-[#F8F8F8] rounded-[10px]">
             <CartLabel />{" "}
-            <span className="regular text-[#5D5C5D]">Old Cart</span>
+            <span className="regular text-[#5D5C5D]">
+              {translate("Previously Viewed", GetAppLanguage())}
+            </span>
             <div className="light ml-1 text-[13px] text-[#8D8D8D]">
               <span className="medium text-[#5D5C5D]">
                 {oldCart.oldCart?.length}
@@ -376,14 +396,24 @@ function CartContainer({ close }) {
               </span>
               <span className="ml-[3px]">{currency?.symbol}</span>
             </div>
+            <span
+              className="cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]"
+              onClick={() => {
+                home.hideOldCart({});
+                dispatch({ type: "STORE-OLD-CART", payload: [] });
+              }}
+            >
+              {translate("Hide All", GetAppLanguage())}
+            </span>
           </div>
-          <div className="flex-col overflow-auto w-full h-full mt-10">
+          <div className="flex-col overflow-auto w-full h-auto mt-10">
             {!loading ? (
               <>
                 {oldBrands?.map((boutique, key) => (
                   <>
                     {boutique?.id ? (
                       <BrandCart
+                        isOldCart={true}
                         close={close}
                         key={key}
                         currency={currency}
@@ -903,6 +933,7 @@ export const BrandCart = ({
   price,
   currency,
   close,
+  isOldCart,
 }) => {
   const dispatch = useDispatch();
   const ProductDetails = useSelector((state: any) => state.details.product);
@@ -943,7 +974,7 @@ export const BrandCart = ({
             <NextLink
               href={
                 params?.productId === product.slug &&
-                product?.variations[0].color === sarchParams.get("color")
+                product?.variations[0]?.color === sarchParams.get("color")
                   ? "#"
                   : `/products/${product.slug}${
                       product?.variations && product?.variations[0]?.color
@@ -954,6 +985,12 @@ export const BrandCart = ({
               className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
               key={key}
               onClick={(e) => {
+                // @ts-ignore
+                if (e.target.closest(".hide-btn")) return false;
+                setTimeout(() => {
+                  // @ts-ignore
+                  document.querySelector("#nprogress").style.opacity = "1";
+                }, 1000);
                 if (params?.productId === product.slug) {
                   if (product.variations[0].color) {
                     dispatch({
@@ -1033,6 +1070,25 @@ export const BrandCart = ({
                   </div>
                 )}
               </div>
+              {isOldCart && (
+                <div
+                  className="absolute right-4 bottom-16 hide-btn"
+                  onClick={(e) => {
+                    e.preventDefault();
+
+                    dispatch({ type: "HIDE-OLD-CART", payload: product.id });
+                    home.hideOldCart({ id: product.id });
+                    setTimeout(() => {
+                      // @ts-ignore
+                      document.querySelector("#nprogress").style.opacity = "0";
+                    }, 1000);
+                  }}
+                >
+                  <span className="hide-btn cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]">
+                    {translate("Hide", GetAppLanguage())}
+                  </span>
+                </div>
+              )}
               <div className="absolute right-4 bottom-7">
                 <div className="product-info-price">
                   {product.offer_price ? (

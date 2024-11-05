@@ -68,17 +68,18 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         ...state,
         product: {
           ...payload,
-          activeColor: payload.colorFrom
-            ? payload.sync_color_images[
-                payload.sync_color_images.findIndex(
-                  (s) => s.color_name === payload.colorFrom
-                )
-              ]
-            : payload.sync_color_images
-            ? payload.sync_color_images[
-                Math.round(payload.sync_color_images.length / 2) - 1
-              ]
-            : null,
+          activeColor:
+            payload.colorFrom && payload.sync_color_images
+              ? payload.sync_color_images[
+                  payload.sync_color_images.findIndex(
+                    (s) => s.color_name === payload.colorFrom
+                  )
+                ]
+              : payload.sync_color_images
+              ? payload.sync_color_images[
+                  Math.round(payload.sync_color_images.length / 2) - 1
+                ]
+              : null,
         },
         sharesCount: null,
       };

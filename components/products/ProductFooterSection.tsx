@@ -172,6 +172,7 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
     setLoading(false);
   };
   useEffect(() => {
+    dispatchStore({ type: "LOADED-CART", payload: false });
     getData();
   }, []);
   const decimal_point_settings = useSelector(

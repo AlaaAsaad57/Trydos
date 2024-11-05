@@ -18,7 +18,7 @@ function ProductDetailsText({
     if (searchParams.get("color"))
       dispatch({
         type: "SET-ACTIVE-COLOR-DETAILS",
-        payload: product.sync_color_images.filter(
+        payload: product.sync_color_images?.filter(
           (s) => s.color_name === searchParams.get("color")
         )[0],
       });

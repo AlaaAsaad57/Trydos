@@ -16,6 +16,7 @@ function ProductDetailsSlider({ product }: { product: ProductInterface }) {
   const searchParams = useSearchParams();
   const dispatch = useDispatch();
   useEffect(() => {
+    dispatch({ type: "EDIT-INFO", payload: { ...product } });
     dispatch({
       type: "STORE-PRODUCT",
       payload: { ...product, colorFrom: searchParams.get("color") },

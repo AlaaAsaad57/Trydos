@@ -15,6 +15,8 @@ import { SSRDetect } from "utils/functions";
 import { GetMainData, LogData } from "store/homepage/actions";
 import { FetchApi } from "store/homepage/cachedActions";
 import { toast } from "react-toastify";
+import { AxiosGet } from "utils/constants";
+import axios from "node_modules/axios";
 const getHeader = () => {
   return {
     next: {
@@ -390,7 +392,7 @@ class HomeService {
         country: null,
         lang: null,
       });
-
+      console.log(data);
       store.dispatch({ type: "LOADED-CART", payload: true });
       if (data?.data?.id_cart) {
         callback({ id: data?.data?.id_cart });
@@ -399,6 +401,26 @@ class HomeService {
         store.dispatch({ type: "AddToCartOptionDisable", payload: true });
         toast.info(data?.message || "Failed");
       }
+    }
+  }
+  async hideOldCart({ id }: { id?: number }) {
+    try {
+      let response = await axios.post(
+        process.env.NEXT_PUBLIC_BACKEND_URL + "/old-cart/hide",
+        { id: id },
+        {
+          headers: {
+            Authorization: `Bearer ${
+              localStorage.getItem("MARKET-TOKEN") ||
+              localStorage.getItem("DEVICE-TOKEN")
+            }`,
+            lang: getLang(null, Cookies.get("language")),
+            country: Cookies.get("country"),
+          },
+        }
+      );
+    } catch (error) {
+      toast.info("Error hiding old Cart");
     }
   }
 }

@@ -97,7 +97,7 @@ function AddToCartButton({
     if (getSelectedVariantofProduct() === "") return product.left_stock === 0;
     else
       return (
-        product.variation.filter(
+        product.variation?.filter(
           (s) => s.type === getSelectedVariantofProduct()
         )[0]?.qty === 0
       );
