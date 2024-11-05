@@ -33,6 +33,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
       element.classList.remove("active-hover");
     });
   };
+  if (boutique.childCategoriesForProductIds.length > 5) console.log(boutique);
   return (
     <div
       ref={ref}
@@ -44,24 +45,26 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
       onMouseMove={(e) => handleMove(e)}
     >
       {boutique?.childCategoriesForProductIds.map((product, index) => {
-        return (
-          <OfferAvatar
-            // @ts-ignore
-            name={product.most_viewed_product_name}
-            linkUrl={`/boutiques/${boutique.slug}?categories=${product.slug}`}
-            key={index}
-            category={product.count_products}
-            // @ts-ignore
-            images={product?.most_viewed_product_thumbnail}
-            zIndex={index + 1}
-            priority={priority}
-          />
-        );
+        if (index < 5)
+          return (
+            <OfferAvatar
+              name={product.most_viewed_product_name}
+              linkUrl={`/boutiques/${boutique.slug}?categories=${product.slug}`}
+              key={index}
+              category={product.count_products}
+              images={product?.most_viewed_product_thumbnail}
+              zIndex={index + 1}
+              priority={priority}
+            />
+          );
       })}
       {boutique?.childCategoriesForProductIds?.length > 5 && (
         <MoreOfferAvatar
           priority={false}
-          images={boutique?.childCategoriesForProductIds[5].product_thumbnail}
+          images={
+            boutique?.childCategoriesForProductIds[5]
+              .most_viewed_product_thumbnail
+          }
           zIndex={100}
           viewed={6}
         />

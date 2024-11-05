@@ -1,3 +1,4 @@
+"use client";
 import CloseIcon from "public/svg/CloseIcon.svg";
 import SearchCloseIcon from "public/svg/SearchCloseIcon.svg";
 import { useDispatch, useSelector } from "react-redux";

@@ -9,6 +9,7 @@ import { useRouter } from "next-nprogress-bar";
 import { useEffect } from "react";
 import OfferPhotosSlider from "./OfferPhotosSlider";
 import NextLink from "Hooks/NextLink";
+import axios from "node_modules/axios";
 
 interface NormalWidgetProps {
   boutique: Boutique;
@@ -18,6 +19,7 @@ interface NormalWidgetProps {
 const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
   const router = useRouter();
   useEffect(() => {
+    axios.get("https://jsonplaceholder.typicode.com/posts");
     if (boutique.description) {
       encode_utf8({
         element: document.querySelectorAll(`#boutique-${boutique.id}`),

@@ -23,6 +23,8 @@ export interface Boutique {
     category_name: string;
     product_name: string;
     product_thumbnail: string;
+    most_viewed_product_thumbnail: string;
+    most_viewed_product_name: string;
     slug: string;
   }>;
 }

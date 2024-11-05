@@ -6,6 +6,7 @@ import { Boutique } from "models/offer";
 import { useEffect, useState } from "react";
 import { LogData } from "store/homepage/actions";
 import InfinteScroll from "components/global/InfinteScroll";
+import axios from "node_modules/axios";
 interface OfferListProps {
   quick: boolean;
   boutiques: Boutique[];

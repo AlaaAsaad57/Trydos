@@ -16,6 +16,7 @@ const initialState = {
   localCart: [],
   loaded: false,
   oldCart: null,
+  oldBrands: [],
 };
 
 export const CartReducer = (state = initialState, { type, payload }) => {
@@ -91,9 +92,29 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "STORE-OLD-CART": {
+      let brands = [];
+
+      let products = payload.oldCart;
+      products.map((s) => {
+        if (!s?.boutique?.id && !brands.some((b) => b?.boutique?.id === null)) {
+          brands.push({ brand: null });
+        }
+        if (brands.some((b) => b?.id === s.boutique?.id)) {
+        } else {
+          if (s.boutique) brands.push(s.boutique);
+        }
+      });
+      let oldCart = products.map((product) => ({
+        ...product,
+        offer_price: product.discount
+          ? product.price_of_variant - product.discount
+          : 0,
+        price: product.price_of_variant,
+      }));
       return {
         ...state,
-        oldCart: payload,
+        oldCart: { ...payload, oldCart: oldCart },
+        oldBrands: brands,
       };
     }
     case "CART-INIT": {

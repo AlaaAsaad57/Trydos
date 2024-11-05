@@ -778,7 +778,7 @@ export const getCart = async ({ callback }) => {
   let oldCartData = await AxiosGet({
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/old-cart/get_old_cart",
   });
-  console.log(oldCartData);
+
   store.dispatch({
     type: "STORE-OLD-CART",
     payload: oldCartData.original.data,
