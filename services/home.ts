@@ -354,21 +354,28 @@ class HomeService {
       // @ts-ignore
       dataBody = dataBody.join("&");
       console.log(dataObj);
-      let [updateQuantity, data] = await FetchApi({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
-        method: "POST",
-        body: dataBody,
-        country: null,
-        lang: null,
-      });
+      const res = await axios.post(
+        process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
+        dataBody,
+        {
+          headers: {
+            Authorization: `Bearer ${
+              localStorage.getItem("MARKET-TOKEN") ||
+              localStorage.getItem("DEVICE-TOKEN")
+            }`,
+            lang: getLang(null, Cookies.get("language")),
+            country: Cookies.get("country"),
+          },
+        }
+      );
 
       store.dispatch({ type: "LOADED-CART", payload: true });
-      if (updateQuantity?.data?.qty >= 0 && updateQuantity?.data.status !== 0) {
+      if (res.data?.data?.qty >= 0 && res.data?.data.status !== 0) {
         callback({ id: alreadyExist });
       } else {
         errCallback();
         store.dispatch({ type: "AddToCartOptionDisable" });
-        toast.info(updateQuantity?.message || "Failed");
+        toast.info(res.data?.message || "Failed");
       }
     } else {
       const imageVar = image.split("/")[image.split("/").length - 1];
@@ -384,22 +391,29 @@ class HomeService {
       }
       // @ts-ignore
       formBody = formBody.join("&");
-      console.log();
-      let [data, response] = await FetchApi({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/add",
-        method: "POST",
-        body: formBody,
-        country: null,
-        lang: null,
-      });
-      console.log(data);
+
+      const res = await axios.post(
+        process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/add",
+        formBody,
+        {
+          headers: {
+            Authorization: `Bearer ${
+              localStorage.getItem("MARKET-TOKEN") ||
+              localStorage.getItem("DEVICE-TOKEN")
+            }`,
+            lang: getLang(null, Cookies.get("language")),
+            country: Cookies.get("country"),
+          },
+        }
+      );
+
       store.dispatch({ type: "LOADED-CART", payload: true });
-      if (data?.data?.id_cart) {
-        callback({ id: data?.data?.id_cart });
+      if (res.data?.data?.id_cart) {
+        callback({ id: res.data?.data?.id_cart });
       } else {
         errCallback();
         store.dispatch({ type: "AddToCartOptionDisable", payload: true });
-        toast.info(data?.message || "Failed");
+        toast.info(res.data?.message || "Failed");
       }
     }
   }
