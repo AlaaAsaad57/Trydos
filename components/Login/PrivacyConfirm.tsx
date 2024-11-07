@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
 import ConditionIcon from "public/svg/ConditionIcon.svg";
-import Animated from "react-mount-animation";
+
 import { useTransition, animated } from "react-spring";
 function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
   const language = useSelector((state: any) => state.homepage.language);
