@@ -20,16 +20,20 @@ function SelectSize({ sizes, variants }) {
     console.log(getVariants(e.name));
   };
   const getVariants = (e?: any | undefined | null) => {
-    let variant = e &
-      variants.filter(
-        (s) =>
-          s.type.includes(activeColor?.color_name || "") && s.type.includes(e)
-      )[0] ||
-      variants.filter(
-        (s) =>
-          s.type.includes(activeColor?.color_name || "") &&
-          s.type.includes(activeSize?.name || "")
-      )[0] || { qty: SelectedProduct.Left_stock };
+    console.log();
+    let variant = (e
+      ? variants.filter((s) => {
+          let size = s.type.split("-")[1] || s.type.split("-")[0];
+          return s.type.includes(activeColor?.color_name || "") && size === e;
+        })[0]
+      : variants.filter((s) => {
+          let size = s.type.split("-")[1] || s.type.split("-")[0];
+          return (
+            s.type.includes(activeColor?.color_name || "") &&
+            activeSize?.name === size
+          );
+        })[0]) || { qty: SelectedProduct.Left_stock };
+
     if (variant) {
       if (variant.qty === 0) return 0;
       else {
@@ -39,7 +43,7 @@ function SelectSize({ sizes, variants }) {
     }
     return 0;
   };
-  getVariants();
+
   return (
     <div className="flex-col items-center justify-center pt-[20px] w-full h-[235px] regular text-[14px] text-[#505050] pl-5 pr-5">
       <div className="flex-row items-center">

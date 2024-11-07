@@ -94,7 +94,7 @@ function AddToCartButton({
     return num;
   };
   const isQuantityEmpty = () => {
-    if (getSelectedVariantofProduct() === "") return product?.left_stock === 0;
+    if (getSelectedVariantofProduct() === "") return product?.Left_stock === 0;
     else
       return (
         product?.variation?.filter(
@@ -161,27 +161,10 @@ function AddToCartButton({
     let selectedCartItem = product?.variation?.filter(
       (s) => s.type === getSelectedVariantofProduct()
     )[0];
-    console.log(
-      selectedCartItem,
-      product?.variation,
-      getSelectedVariantofProduct(),
-      getQuantity({
-        sku: `${product?.id}${
-          selectedCartItem?.selectedColor?.color_name
-            ? `-${selectedCartItem?.selectedColor?.color_name}`
-            : product.colors?.length > 0
-            ? `-${product.colors[0]?.name}`
-            : ""
-        }${
-          selectedCartItem?.selectedSize?.name
-            ? `-${selectedCartItem?.selectedSize?.name}`
-            : ""
-        }`,
-      })
-    );
-    if (getSelectedVariantofProduct() === "")
+
+    if (getSelectedVariantofProduct() === "") {
       return (
-        product?.left_stock ===
+        product?.Left_stock ===
         getQuantity({
           sku: `${product?.id}${
             selectedCartItem?.selectedColor?.color_name
@@ -196,7 +179,7 @@ function AddToCartButton({
           }`,
         })
       );
-    else {
+    } else {
       return (
         selectedCartItem?.qty ===
         getQuantity({
