@@ -988,8 +988,9 @@ export const BrandCart = ({
                 // @ts-ignore
                 if (e.target.closest(".hide-btn")) return false;
                 setTimeout(() => {
-                  // @ts-ignore
-                  document.querySelector("#nprogress").style.opacity = "1";
+                  if (document.querySelector("#nprogress"))
+                    // @ts-ignore
+                    document.querySelector("#nprogress").style.opacity = "1";
                 }, 1000);
                 if (params?.productId === product.slug) {
                   if (product.variations[0].color) {
@@ -1079,8 +1080,10 @@ export const BrandCart = ({
                     dispatch({ type: "HIDE-OLD-CART", payload: product.id });
                     home.hideOldCart({ id: product.id });
                     setTimeout(() => {
-                      // @ts-ignore
-                      document.querySelector("#nprogress").style.opacity = "0";
+                      if (document.querySelector("#nprogress"))
+                        // @ts-ignore
+                        document.querySelector("#nprogress").style.opacity =
+                          "0";
                     }, 1000);
                   }}
                 >

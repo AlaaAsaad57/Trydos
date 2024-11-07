@@ -4,6 +4,8 @@ export default defineConfig({
   projectId: "d1rk7o",
   chromeWebSecurity: false,
   e2e: {
+    // @ts-ignore
+    hideXHRInCommandLog: true,
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },
