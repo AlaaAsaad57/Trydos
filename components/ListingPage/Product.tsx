@@ -122,8 +122,9 @@ function Product({
             return false;
           } else {
             setTimeout(() => {
-              // @ts-ignore
-              document.querySelector("#nprogress").style.opacity = "1";
+              if (document.querySelector("#nprogress"))
+                // @ts-ignore
+                document.querySelector("#nprogress").style.opacity = "1";
             }, 1000);
           }
         }}
@@ -312,8 +313,9 @@ function Product({
 
               addToCart();
               setTimeout(() => {
-                // @ts-ignore
-                document.querySelector("#nprogress").style.opacity = "0";
+                if (document.querySelector("#nprogress"))
+                  // @ts-ignore
+                  document.querySelector("#nprogress").style.opacity = "0";
               }, 1000);
             }}
           />

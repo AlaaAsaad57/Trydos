@@ -17,13 +17,23 @@ function SelectSize({ sizes, variants }) {
 
   const setActive = (e) => {
     dispatch({ type: "AddToCartSize", payload: e });
+    console.log(getVariants(e.name));
   };
-  const getVariants = () => {
-    let variant = variants.filter(
-      (s) =>
-        s.type.includes(activeColor?.color_name || "") &&
-        s.type.includes(activeSize?.name || "")
-    )[0] || { qty: SelectedProduct.Left_stock };
+  const getVariants = (e?: any | undefined | null) => {
+    console.log();
+    let variant = (e
+      ? variants.filter((s) => {
+          let size = s.type.split("-")[1] || s.type.split("-")[0];
+          return s.type.includes(activeColor?.color_name || "") && size === e;
+        })[0]
+      : variants.filter((s) => {
+          let size = s.type.split("-")[1] || s.type.split("-")[0];
+          return (
+            s.type.includes(activeColor?.color_name || "") &&
+            activeSize?.name === size
+          );
+        })[0]) || { qty: SelectedProduct.Left_stock };
+
     if (variant) {
       if (variant.qty === 0) return 0;
       else {
@@ -33,6 +43,7 @@ function SelectSize({ sizes, variants }) {
     }
     return 0;
   };
+
   return (
     <div className="flex-col items-center justify-center pt-[20px] w-full h-[235px] regular text-[14px] text-[#505050] pl-5 pr-5">
       <div className="flex-row items-center">
@@ -95,7 +106,7 @@ function SelectSize({ sizes, variants }) {
       </div>
       <div className="flex-row h-[96px] w-full max-w-[420px] min-w-[420px] relative">
         <SelectSizeSlider
-          getVariants={() => getVariants()}
+          getVariants={(e) => getVariants(e)}
           sizes={sizes}
           setActive={(e) => setActive(e)}
         />
@@ -369,9 +380,9 @@ const SelectSizeSlider = ({ sizes, setActive, getVariants }) => {
               height: "70px",
             }}
             className={`${
-              getVariants() === 0
+              getVariants(size.name) === 0
                 ? "red-bg"
-                : getVariants() < 10
+                : getVariants(size.name) < 10
                 ? "yellow-bg"
                 : ""
             } flex-row items-center justify-center text-[30px] bold select-none flex`}
