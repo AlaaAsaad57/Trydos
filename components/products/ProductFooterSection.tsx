@@ -99,77 +99,82 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
   const [sharedContacts, setShareContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const getData = async () => {
-    let reqShares = await axios.get(
-      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        `/api/v2/elastic/shared_count/${product.id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${UserToken()}`,
-        },
-      }
-    );
-    dispatchStore({
-      type: "shares",
-      payload: reqShares.data.data.shared_count,
-    });
-    let req = await axios
-      .get(
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-          "/web/product/likesCommentsSharesDetails/" +
-          product.id,
+    try {
+      let reqShares = await axios.get(
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+          `/api/v2/elastic/shared_count/${product.id}`,
         {
           headers: {
             Authorization: `Bearer ${UserToken()}`,
           },
         }
-      )
-      .catch((e) => {});
-    const viewsReq = await axios.post(
-      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + `/api/products/view`,
-      {
-        user_id: UserID(),
-        product_id: product.id,
-      }
-    );
-
-    // @ts-ignore
-    let likesNum = req?.data.data.count_of_likes;
-    // @ts-ignore
-    let isLiked = req?.data.data.is_liked;
-    setProductData({
-      ...productState.productDetails,
-      // @ts-ignore
-      comment_count: req?.data.data.comments_count,
-      // @ts-ignore
-      comments: req?.data.data.comments,
-    });
-    let arr = [];
-    // @ts-ignore
-    if (req?.data.data.variation.length) {
-      req?.data.data.variation.map((s) => {
-        let d = product.variation.filter((w) => w.type === s.type)[0];
-        arr.push({ ...s, ...d });
+      );
+      dispatchStore({
+        type: "shares",
+        payload: reqShares.data.data.shared_count,
       });
-    }
-    dispatchStore({
-      type: "GET-PRODUCT-VARIATION",
-      payload: {
-        ...product,
-        // @ts-ignore
-        is_product_notify_for_user: req?.data.data.is_product_notify_for_user,
-        variation: arr,
-        likes: likesNum,
-        is_liked: isLiked,
-        views_count: viewsReq.data.view_count,
-      },
-    });
-    // @ts-ignore
-    dispatchStore({
-      type: "STORE-VARIANTS",
+      let req = await axios
+        .get(
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+            "/web/product/likesCommentsSharesDetails/" +
+            product.id,
+          {
+            headers: {
+              Authorization: `Bearer ${UserToken()}`,
+            },
+          }
+        )
+        .catch((e) => {});
+      const viewsReq = await axios.post(
+        process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + `/api/products/view`,
+        {
+          user_id: UserID(),
+          product_id: product.id,
+        }
+      );
+
       // @ts-ignore
-      payload: req?.data.data.variation,
-    });
-    setLoading(false);
+      let likesNum = req?.data.data.count_of_likes;
+      // @ts-ignore
+      let isLiked = req?.data.data.is_liked;
+      setProductData({
+        ...productState.productDetails,
+        // @ts-ignore
+        comment_count: req?.data.data.comments_count,
+        // @ts-ignore
+        comments: req?.data.data.comments,
+      });
+      let arr = [];
+      // @ts-ignore
+      if (req?.data.data.variation.length) {
+        req?.data.data.variation.map((s) => {
+          let d = product.variation.filter((w) => w.type === s.type)[0];
+          arr.push({ ...s, ...d });
+        });
+      }
+      dispatchStore({
+        type: "GET-PRODUCT-VARIATION",
+        payload: {
+          ...product,
+          // @ts-ignore
+          is_product_notify_for_user: req?.data.data.is_product_notify_for_user,
+          variation: arr,
+          likes: likesNum,
+          is_liked: isLiked,
+          views_count: viewsReq.data.view_count,
+        },
+      });
+      // @ts-ignore
+      dispatchStore({
+        type: "STORE-VARIANTS",
+        // @ts-ignore
+        payload: req?.data.data.variation,
+      });
+      setLoading(false);
+    } catch (error) {
+      toast.error(translate("Failed To Get Product details", GetAppLanguage()));
+      setLoading(false);
+    }
   };
   useEffect(() => {
     dispatchStore({ type: "LOADED-CART", payload: false });

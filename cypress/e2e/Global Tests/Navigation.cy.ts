@@ -7,7 +7,7 @@ describe("Navigations Test", () => {
       .then((href) => {
         const link = href;
         cy.get(".offer-widget:first-child").click();
-
+        cy.wait(5000);
         cy.url().should("contain", link);
       });
   });

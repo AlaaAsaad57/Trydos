@@ -11,9 +11,9 @@ import BlueCall from "public/svg/BlueCall.svg";
 import PrivacyIcon from "public/svg/privacyicon.svg";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { translate } from "utils/functions";
-import Animated from "react-mount-animation";
+
 const { flag } = require("country-emoji");
-import Transition from "react-motion-ui-pack";
+
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 function PhoneInput({
   stepIndicator,
