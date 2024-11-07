@@ -9,6 +9,7 @@ export default defineConfig({
     },
     baseUrl: "http://localhost:3000",
     // baseUrl: "https://trydos-front.vercel.app",
+    testIsolation: false,
   },
 
   component: {
