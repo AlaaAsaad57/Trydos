@@ -40,7 +40,7 @@ function OfferPhotosSlider({
           ))}
         </div>
       </div>
-      <OfferAvatars boutique={boutique} priority={false} />
+      {/* <OfferAvatars boutique={boutique} priority={false} /> */}
     </div>
   );
 }

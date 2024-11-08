@@ -63,7 +63,7 @@ function Chat(props) {
             <NewChatsSide activeChat={activeChat} chats={chats} />
           </>
         ) : (
-          <div className="notification-enable">
+          <div className="notification-enable text-[#5d5d5d]">
             {translate("Please Enable Notification to use Chat", language)}
           </div>
         )}

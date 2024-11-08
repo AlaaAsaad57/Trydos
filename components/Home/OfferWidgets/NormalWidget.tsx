@@ -181,7 +181,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                 priority={myKey < 2}
                 isSingle={true}
               />
-              <OfferAvatars boutique={boutique} priority={myKey < 2} />
+              {/* <OfferAvatars boutique={boutique} priority={myKey < 2} /> */}
             </div>
           )}
         </div>

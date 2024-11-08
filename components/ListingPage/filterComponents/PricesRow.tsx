@@ -11,8 +11,6 @@ function SizeCircle({
   text: {
     min_price: number;
     max_price: number;
-    min_price_formated: string;
-    max_price_formated: string;
   };
 }) {
   const selectedFilter = useSelector(
@@ -25,7 +23,7 @@ function SizeCircle({
     (state: any) => state.listing.filterEnabled
   );
   const selectCategory = (e) => {
-    let { min_price, max_price, min_price_formated, max_price_formated } = e;
+    let { min_price, max_price } = e;
 
     dispatch({ type: "FILTER-LOADING", payload: true });
     dispatch({
@@ -37,7 +35,7 @@ function SizeCircle({
     });
     dispatch({
       type: "FILTER-PRICE-TEXT",
-      payload: `${min_price_formated} - ${max_price_formated}`,
+      payload: `${min_price} - ${max_price}`,
     });
     UpdateFilter({
       boutiqueId: pathName.productCategory,
@@ -84,7 +82,7 @@ function SizeCircle({
   const isSelected = () => {
     return (
       selectedFilter?.pricesSelected.filter(
-        (s) => s === `${text.min_price_formated} - ${text.max_price_formated}`
+        (s) => s === `${text.min_price} - ${text.max_price}`
       ).length > 0
     );
   };
@@ -122,11 +120,11 @@ function SizeCircle({
         >
           {currency?.currency_symbol}
           {` ${RoundPrice({
-            num: text.min_price_formated,
+            num: text.min_price,
             points: decimal_point_settings,
             rate: currency.exchange_rate,
           })} - ${RoundPrice({
-            num: text.max_price_formated,
+            num: text.max_price,
             points: decimal_point_settings,
             rate: currency.exchange_rate,
           })}`}

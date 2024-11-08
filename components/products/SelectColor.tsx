@@ -18,6 +18,7 @@ function SelectColor({ close }) {
 
   const dispatch = useDispatch();
   const enableCart = (s) => {
+    window.history.pushState({ isPopup: true }, "open Cart");
     dispatch({ type: "ENABLE-CART", payload: s });
   };
   return (

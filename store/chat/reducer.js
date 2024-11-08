@@ -118,7 +118,7 @@ export const ChatReducer = (
       };
     }
     case "CHAT-OPEN": {
-      if (JSON.parse(localStorage.getItem("USER")).name?.length > 2)
+      if (JSON.parse(localStorage.getItem("USER"))?.name?.length > 2)
         return {
           ...state,
           chatVar: payload,

@@ -25,6 +25,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
   }, [user]);
   const dispatch = useDispatch();
   const enableCart = (s) => {
+    window.history.pushState({ isPopup: true }, "open Cart");
     dispatch({ type: "ENABLE-CART", payload: s });
   };
   const searchEnabled = useSelector((state: any) => state.Search.enable);
@@ -96,6 +97,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
                 fontSize: "14px",
                 marginLeft: "5px",
                 cursor: "pointer",
+                left: "-8px",
               }}
             >
               {translate("Login", language)}

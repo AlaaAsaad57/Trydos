@@ -3,16 +3,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  let str = searchParams.get("slug");
+  let str = searchParams.get("str");
   let offset = searchParams.get("offset");
   let lang = searchParams.get("lang");
   let [language, country] = lang?.split("-") ?? ["", ""];
   let BOUTIQUE_URL =
     "/web/home/boutiques" +
-    (str?.length
+    (str?.length > 0
       ? `?slug=${str}&limit=10&offset=${offset}`
       : `?limit=10&offset=${offset}`);
-
+  console.log(BOUTIQUE_URL);
   let res = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + BOUTIQUE_URL, {
     next: {
       revalidate: 36000,

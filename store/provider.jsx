@@ -40,8 +40,18 @@ export default function Providers({ children }) {
 const CartProvider = () => {
   const dispatch = useDispatch();
   const enableCart = (s) => {
+    window.history.pushState({ isPopup: true }, "open Cart");
     dispatch({ type: "ENABLE-CART", payload: s });
   };
+  useEffect(() => {
+    window.addEventListener("popstate", (event) => {
+      if (event.state?.isPopup) {
+        dispatch({ type: "ENABLE-CART", payload: false });
+        dispatch({ type: "LOGIN-OPEN", payload: false });
+        dispatch({ type: "CHAT-OPEN", payload: false });
+      }
+    });
+  }, []);
 
   const cartEnable = useSelector((state) => state.cart.enable);
   return (

@@ -15,6 +15,7 @@ import { AxiosGet } from "utils/constants";
 export const ChatConroller = (payload) => {
   if (payload) document.documentElement.style.overflow = "hidden";
   else document.documentElement.style.overflow = "initial";
+  window.history.pushState({ isPopup: true }, "open Chat");
   return { type: "CHAT-OPEN", payload: payload };
 };
 export const GetChats = async (payload) => {

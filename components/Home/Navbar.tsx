@@ -8,7 +8,7 @@ import { Category } from "models/Category";
 import MobileNavigation from "./MobileNavigation";
 import CategoriesBar from "./CategoriesBar";
 import NextLink from "Hooks/NextLink";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import AuthSections from "./AuthSections";
 import { ToastContainer } from "react-toastify";
@@ -21,6 +21,7 @@ interface NavbarProps {
 function Navbar({ init, categories, response }: NavbarProps) {
   const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
   const setLoginOpen = (e: boolean) => {
+    window.history.pushState({ isPopup: true }, "open Login");
     dispatch({ type: "LOGIN-OPEN", payload: e });
   };
   const language = useSelector((state: any) => state.homepage.language);
