@@ -9,7 +9,7 @@ deploy-to-vercel:
   script:
     - echo $VERCEL_TOKEN
     - npm i -g vercel
-    - vercel --token RxBPi4PALYovZWQxdtbXQmAM > deployment-url.txt
+    - vercel --token RxBPi4PALYovZWQxdtbXQmAM > vercel_deployment_url.txt
 
   artifacts:
     when: on_success
