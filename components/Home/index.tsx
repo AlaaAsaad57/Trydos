@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import Stories from "./Stories/index";
 import ChatService from "services/chat";
-import { getUserChat } from "utils/functions";
+import { getUser, getUserChat } from "utils/functions";
 const NameModal = dynamic(() => import("components/global/NameModal"));
 // const StoriesContainer = dynamic(() => import("./Stories/NewStories"), {
 //   loading: () => <LandingPage afterLoad={true} />,
@@ -80,10 +80,16 @@ export default function Home() {
   //     document.body.style.overflowY = "initial";
   //   }
   // }, [selectedStory]);
+  const getNameModalOpen = () => {
+    let name = JSON.parse(localStorage.getItem("USER") || "{}")?.name;
+    return (
+      getUserChat()?.id && getUser()?.id && name?.length === 0 && nameModal
+    );
+  };
   return (
     <>
       <Stories />
-      {nameModal && <NameModal />}
+      {getNameModalOpen() && <NameModal />}
       {selectedStory?.id && (
         <StoriesContainer
           activeId={selectedStory?.id}

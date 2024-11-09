@@ -93,8 +93,8 @@ class ChatService {
     }
   }
   async StoreToken(payload: {
-    id: string | number;
-    user: { access_token: string; id: number };
+    id?: string | number;
+    user?: { access_token: string; id: number };
     token: string;
   }) {
     const response = await fetch(
@@ -104,7 +104,8 @@ class ChatService {
         headers: {
           Authorization:
             "Bearer " +
-            JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
+            (JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token ||
+              localStorage.getItem("DEVICE-TOKEN")),
         },
         body: JSON.stringify({
           token: payload.token,

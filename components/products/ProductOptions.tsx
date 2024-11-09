@@ -86,7 +86,7 @@ function ProductOptions({
             setOption={(s) => setOption(s)}
             productVar={product}
             product={SelectedProduct}
-            loading={loaded}
+            loading={loaded && SelectedProduct.choice_options}
             AddToCartAnimation={(e) => {
               AddToCartAnimation(e);
             }}

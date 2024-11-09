@@ -260,6 +260,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         return {
           ...state,
           SelectedProduct: { ...payload, choice_options: null },
+          loaded: false,
           AddToCartOption: {
             ...state.AddToCartOption,
             enable: true,

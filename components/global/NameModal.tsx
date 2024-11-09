@@ -24,7 +24,7 @@ function NameModal() {
       ></div>
 
       <div
-        className="app"
+        className="app max-w-[280px] max-h-[140px] left-0 right-0 mx-auto my-0"
         style={{
           position: "fixed",
           zIndex: "999999999",
@@ -40,23 +40,28 @@ function NameModal() {
         }}
       >
         <div
-          className="phone-input-element"
-          style={{ height: "50px", fontSize: "12px", color: "#5d5d5d" }}
+          className="flex regular"
+          style={{ fontSize: "12px", color: "#5d5d5d" }}
         >
           {translate("Enter Your Name", language)}
         </div>
         <div
-          className="phone-input-element"
+          className="phone-input-element mt-3"
           style={{ height: "50px", padding: "12px" }}
         >
-          <Border color={null} height={50} width={250} />
-          <ManIcon style={{ width: "20px" }} />
+          <Border color={"#707070"} height={50} width={250} />
+          <ManIcon style={{ width: "20px", position: "absolute" }} />
           <label htmlFor="phone" className="no-label">
             Name
           </label>
           <input
-            className="login-phone-input"
-            style={{ zIndex: "2" }}
+            className="login-phone-input absolute top-0 text-[12px] regular"
+            style={{
+              zIndex: "2",
+              height: "50px",
+              left: "35px",
+              fontSize: "12px",
+            }}
             value={value}
             onChange={(e) => {
               setValue(e.target.value);

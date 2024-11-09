@@ -5,7 +5,9 @@ import home from "services/home";
 import { getConfiguredImage, getUser, UserToken } from "utils/functions";
 import NotifySVG from "public/svg/cart/NotifyCart.svg";
 import auth from "services/auth";
-import Skeleton from "node_modules/react-loading-skeleton/dist";
+import ChatService from "services/chat";
+import Spinner from "components/global/Spinner";
+import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 function AddToCartButton({
   setOption,
   product,
@@ -111,9 +113,16 @@ function AddToCartButton({
       });
   };
   const NotifyAction = () => {
-    if (!isNotified()) {
+    if (true) {
       setNotify();
-
+      requestFirebaseNotificationPermission().then((fbtoken) => {
+        if (fbtoken) {
+          fbtoken &&
+            ChatService.StoreToken({
+              token: fbtoken,
+            });
+        }
+      });
       auth.NotifyForProducts({
         id: product?.id,
         variant: getSelectedVariantofProduct(),
@@ -350,9 +359,108 @@ function AddToCartButton({
         <>
           {!loading ? (
             // @ts-ignore
-            <Skeleton className={`add-cart-button`}>
-              <div className="button-desc"></div>
-            </Skeleton>
+            <div
+              className={`add-cart-button  opacity-45 ${
+                AddToCartOption?.enable && "extended-add-to-cart"
+              }`}
+            >
+              {product && !isReachedMax() && (
+                <img
+                  src={"/svg/plusCart.svg"}
+                  className="plus-icon-button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    AddToCartAction({ quantity: 1 });
+                  }}
+                />
+              )}
+
+              {AddToCartOption.selectedOptions.filter(
+                (s) =>
+                  s.UID ===
+                  `${product?.id}${AddToCartOption?.selectedColor?.color_name}${AddToCartOption?.selectedSize?.name}`
+              ).length > 0 &&
+                AddToCartOption.selectedOptions.filter(
+                  (s) =>
+                    s.UID ===
+                    `${product?.id}${AddToCartOption?.selectedColor?.color_name}${AddToCartOption?.selectedSize?.name}`
+                )[0]?.quantity > 0 && (
+                  <span
+                    className="absolute top-0 left-0 rounded-2xl bg-white flex justify-center items-center p-2 plus-icon-button"
+                    onClick={() => {
+                      dispatch({
+                        type: "REMOVE-QUANTITY",
+                        payload: `${product?.id}${AddToCartOption?.selectedColor?.color_name}${AddToCartOption?.selectedSize?.name}`,
+                      });
+                    }}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="15.002"
+                      height="3.188"
+                      viewBox="0 0 15.002 3.188"
+                    >
+                      <path
+                        id="Path_21462"
+                        data-name="Path 21462"
+                        d="M2.1,2.165A1.567,1.567,0,0,1,.942,1.7,1.573,1.573,0,0,1,.48.544,1.479,1.479,0,0,1,.942-.586,1.623,1.623,0,0,1,2.1-1.02H13.862a1.594,1.594,0,0,1,1.156.449A1.525,1.525,0,0,1,15.48.573a1.525,1.525,0,0,1-.462,1.144,1.594,1.594,0,0,1-1.156.449Z"
+                        transform="translate(-0.479 1.021)"
+                        fill="#505050"
+                      />
+                    </svg>
+                  </span>
+                )}
+
+              <div className="button-desc">
+                <div className="flex-row max-w-[30px] justify-end relative image-container-cart">
+                  {AddToCartOption?.enable &&
+                    AddToCartOption.selectedOptions
+                      .filter((d) => parseInt(d.id) === parseInt(product?.id))
+                      ?.map((s, key) => {
+                        return Array(s.quantity)
+                          .fill(1)
+                          .map((num) => {
+                            return (
+                              <img
+                                src={getConfiguredImage({
+                                  src:
+                                    s?.selectedColor?.images[0] ??
+                                    AddToCartOption.selectedOptions[0]
+                                      ?.images[0].file_path ??
+                                    AddToCartOption.selectedOptions[0]
+                                      ?.images[0],
+                                  width: 50,
+                                  height: 50,
+                                })}
+                                id={`img${s.UID}`}
+                                key={key}
+                                className="rounded-md w-8 h-8 static"
+                              />
+                            );
+                          });
+                      })}
+                  {getTotalQuantity() > 0 && (
+                    <span className="bg-green-500 text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
+                      {getTotalQuantity()}
+                    </span>
+                  )}
+                  <Spinner isMargen={true} />
+                </div>
+                <span className="mt-1">
+                  Add To Bag{" "}
+                  {AddToCartOption?.enable &&
+                    ` ${
+                      AddToCartOption?.selectedColor?.color_name
+                        ? `${AddToCartOption?.selectedColor?.color_name} color`
+                        : ""
+                    }  ${
+                      AddToCartOption?.selectedSize?.name
+                        ? `${AddToCartOption?.selectedSize?.name} size`
+                        : ""
+                    }`}
+                </span>
+              </div>
+            </div>
           ) : (
             <div
               className={`add-cart-button ${

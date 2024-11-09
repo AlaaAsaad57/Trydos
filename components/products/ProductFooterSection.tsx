@@ -134,19 +134,19 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
       );
 
       // @ts-ignore
-      let likesNum = req?.data.data.count_of_likes;
+      let likesNum = req?.data?.data?.count_of_likes || 0;
       // @ts-ignore
-      let isLiked = req?.data.data.is_liked;
+      let isLiked = req?.data?.data?.is_liked || 0;
       setProductData({
         ...productState.productDetails,
         // @ts-ignore
-        comment_count: req?.data.data.comments_count,
+        comment_count: req?.data?.data?.comments_count || 0,
         // @ts-ignore
-        comments: req?.data.data.comments,
+        comments: req?.data?.data?.comments || [],
       });
       let arr = [];
       // @ts-ignore
-      if (req?.data.data.variation.length) {
+      if (req?.data?.data?.variation?.length) {
         req?.data.data.variation.map((s) => {
           let d = product.variation.filter((w) => w.type === s.type)[0];
           arr.push({ ...s, ...d });
@@ -161,14 +161,14 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
           variation: arr,
           likes: likesNum,
           is_liked: isLiked,
-          views_count: viewsReq.data.view_count,
+          views_count: viewsReq?.data?.view_count || 0,
         },
       });
       // @ts-ignore
       dispatchStore({
         type: "STORE-VARIANTS",
         // @ts-ignore
-        payload: req?.data.data.variation,
+        payload: req?.data?.data?.variation,
       });
       setLoading(false);
     } catch (error) {
@@ -223,72 +223,75 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
       );
     }
   };
+  const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
   return (
     <>
       {option === "AddToCart" && <SelectColor close={() => setOption("")} />}
-      <div className="product-details-footer z-[999999999]">
-        <ProductDetails />
-        <ProductInfo
-          currency={currency?.symbol}
-          newPrice={getPrice(product.offer_price)}
-          oldPrice={getPrice(product.price)}
-        />
-        {
-          <ExtendedAreaInfo
-            Render={productState?.Render}
-            colors={product.sync_color_images}
-            verifyCommentAction={(mid) =>
-              dispatch({ type: "VerifyComment", payload: mid })
-            }
-            setRender={() => {
-              dispatch({ type: "setRender", payload: "" });
-            }}
-            CommentsData={productState.CommentsData}
-            ErrorAccure={(s) => {
-              dispatch({ type: "ErrorAccure", payload: s });
-            }}
-            setComments={(s) => setComments(s)}
-            increase_comments={() =>
-              setProductData({
-                ...productState.productDetails,
-                comment_count: productState.productDetails.comment_count + 1,
-              })
-            }
-            product={product}
-            comments={productState.productDetails.comments}
-            sharedContacts={sharedContacts}
-            resendComment={(s) => {
-              dispatch({ type: "resendComment", payload: s });
-            }}
-            setShareContacts={(e) => setShareContacts(e)}
-            active={option.length > 0 && option !== "Like"}
-            option={option}
+      {!loginOpen && (
+        <div className="product-details-footer z-[999999999]">
+          <ProductDetails />
+          <ProductInfo
+            currency={currency?.symbol}
+            newPrice={getPrice(product.offer_price)}
+            oldPrice={getPrice(product.price)}
           />
-        }
+          {
+            <ExtendedAreaInfo
+              Render={productState?.Render}
+              colors={product.sync_color_images}
+              verifyCommentAction={(mid) =>
+                dispatch({ type: "VerifyComment", payload: mid })
+              }
+              setRender={() => {
+                dispatch({ type: "setRender", payload: "" });
+              }}
+              CommentsData={productState.CommentsData}
+              ErrorAccure={(s) => {
+                dispatch({ type: "ErrorAccure", payload: s });
+              }}
+              setComments={(s) => setComments(s)}
+              increase_comments={() =>
+                setProductData({
+                  ...productState.productDetails,
+                  comment_count: productState.productDetails.comment_count + 1,
+                })
+              }
+              product={product}
+              comments={productState.productDetails.comments}
+              sharedContacts={sharedContacts}
+              resendComment={(s) => {
+                dispatch({ type: "resendComment", payload: s });
+              }}
+              setShareContacts={(e) => setShareContacts(e)}
+              active={option.length > 0 && option !== "Like"}
+              option={option}
+            />
+          }
 
-        <ProductOptions
-          clearShare={() => setShareContacts([])}
-          loading={loading}
-          shareAction={() => shareAction()}
-          productDetails={productState.productDetails}
-          product={{
-            name: product.name,
-            selectedColor:
-              product.sync_color_images?.length > 0
-                ? product.sync_color_images[0]
-                : [],
-            selectedSize: sizes[0],
-            id: product.id,
-            ...product,
-          }}
-          share={sharedContacts.length > 0}
-          activeOption={option}
-          setOption={(e) => {
-            if (option === e) setOption("");
-            else setOption(e);
-          }}
-        />
-      </div>
+          <ProductOptions
+            clearShare={() => setShareContacts([])}
+            loading={loading}
+            shareAction={() => shareAction()}
+            productDetails={productState.productDetails}
+            product={{
+              name: product.name,
+              selectedColor:
+                product.sync_color_images?.length > 0
+                  ? product.sync_color_images[0]
+                  : [],
+              selectedSize: sizes[0],
+              id: product.id,
+              ...product,
+            }}
+            share={sharedContacts.length > 0}
+            activeOption={option}
+            setOption={(e) => {
+              if (option === e) setOption("");
+              else setOption(e);
+            }}
+          />
+        </div>
+      )}
     </>
   );
 }

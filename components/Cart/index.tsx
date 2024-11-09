@@ -64,7 +64,7 @@ function CartContainer({ close }) {
   const ProductDetails = useSelector((state: any) => state.details.product);
   const searchParams = useSearchParams();
   return (
-    <div className="flex-col fixed top-0 left-0 h-[100vh] w-full bg-[#F8F8F8] min-w-[100vw] z-[9999999999] pt-1">
+    <div className="flex-col fixed top-0 left-0 min-h-[100vh] max-h-[100vh] h-auto overflow-scroll w-full bg-[#F8F8F8] min-w-[100vw] z-[9999999999] pt-1">
       <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
         <div className="flex-row  w-full min-h-10 pl-1 pr-2  relative justify-between items-center ">
           <BackIcon
@@ -104,7 +104,7 @@ function CartContainer({ close }) {
           </div>
         </div>
       </div>
-      <div className="flex-col overflow-auto w-full h-auto mt-10">
+      <div className="flex-col  w-full h-auto mt-10">
         {!loading ? (
           <>
             {cart.length > 0 ? (
@@ -406,7 +406,7 @@ function CartContainer({ close }) {
               {translate("Hide All", GetAppLanguage())}
             </span>
           </div>
-          <div className="flex-col overflow-auto w-full h-auto mt-10">
+          <div className="flex-col  w-full h-auto mt-10">
             {!loading ? (
               <>
                 {oldBrands?.map((boutique, key) => (

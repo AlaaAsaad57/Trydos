@@ -16,7 +16,6 @@ function Border({ height, width, color }: BorderProps) {
         id="Rectangle_4732"
         data-name="Rectangle 4732"
         fill="none"
-        stroke={color || "#707070"}
         strokeWidth="0.5"
         strokeDasharray="3 3"
       >
@@ -25,7 +24,7 @@ function Border({ height, width, color }: BorderProps) {
           width={width || "390"}
           height={height}
           rx="20"
-          stroke="none"
+          stroke={color || "#707070"}
         />
         <rect
           id="secondRect"

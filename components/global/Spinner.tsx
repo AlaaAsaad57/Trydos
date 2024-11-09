@@ -2,10 +2,18 @@ import "styles/spinner.css";
 interface SpinnerProps {
   no?: boolean | null;
   className?: string | null;
+  isMargen?: boolean;
 }
 function Spinner(props: SpinnerProps) {
   return (
-    <div className={"spin-cont " + (props.no && " no-tran ") + props.className}>
+    <div
+      className={
+        "spin-cont " +
+        (props.no && " no-tran ") +
+        props.className +
+        `${props.isMargen && "flex items-center justify-center ml-4"}`
+      }
+    >
       <svg
         className="spinner-component"
         xmlns="http://www.w3.org/2000/svg"
