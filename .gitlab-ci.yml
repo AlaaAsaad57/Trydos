@@ -25,7 +25,7 @@ cypress_test:
     - DEPLOYMENT_URL=$(cat vercel_deployment_url.txt)
     - npm i  --legacy-peer-deps
     - npm ci --legacy-peer-deps
-    - npm run test --env CYPRESS_BASE_URL=https://trydos-front-git-development-trydos-front-team.vercel.app
+    - npm run test
 
   artifacts:
     when: on_success

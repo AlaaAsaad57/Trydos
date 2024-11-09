@@ -12,6 +12,7 @@ export default defineConfig({
     reportDir: "public/reports",
     charts: true,
     reportPageTitle: "My Test Suite",
+    overwrite: true,
   },
   video: true,
   e2e: {
@@ -21,8 +22,9 @@ export default defineConfig({
       require("cypress-mochawesome-reporter/plugin")(on);
       // implement node event listeners here
     },
-    baseUrl: "http://127.0.0.1:3000",
-    // baseUrl: "https://trydos-front.vercel.app",
+    // baseUrl: "http://127.0.0.1:3000",
+    baseUrl:
+      "https://trydos-front-git-development-trydos-front-team.vercel.app",
     testIsolation: false,
   },
 
