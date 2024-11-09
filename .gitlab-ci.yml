@@ -4,7 +4,7 @@ stages:
 
 deploy-to-vercel:
   stage: deploy
-  image: node:13.10.1-alpine3.10
+  image: node:20.0.0
 
   script:
     - npm i -g vercel
