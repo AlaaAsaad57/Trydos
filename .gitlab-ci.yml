@@ -24,6 +24,7 @@ cypress_test:
 
   script:
     - DEPLOYMENT_URL=$(cat vercel_deployment_url.txt)
+    - npm i  --legacy-peer-deps
     - npm ci
     - $(npm bin)/cypress run --env CYPRESS_BASE_URL=$DEPLOYMENT_URL+`/tr-en`
 
