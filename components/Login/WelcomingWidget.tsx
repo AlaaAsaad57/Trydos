@@ -58,7 +58,7 @@ function WelcomingWidget({
       // }}
       // unmountAnim={unmountAnim}
     >
-      <div className="phone-input-desc" style={{ marginBottom: "0px" }}>
+      {/* <div className="phone-input-desc" style={{ marginBottom: "0px" }}>
         <svg
           style={{ transform: "translateY(2px)" }}
           xmlns="http://www.w3.org/2000/svg"
@@ -138,7 +138,7 @@ function WelcomingWidget({
             <span style={{ color: "#5d5d5d" }}>+{inputValue}</span>
           </div>
         </div>
-      </div>
+      </div> */}
       <div className="welcoming-container">
         <div className="welcoming-label">{translate("Hello,", language)}</div>
         <div className="welcoming-user">{Name || "Alaa Asaad"}</div>
