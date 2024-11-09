@@ -228,17 +228,7 @@ function BoutiqueHeader({ boutique, showFilters }) {
       payload: `${window.location.href}`,
     });
   }, []);
-  useEffect(() => {
-    window.addEventListener("scroll", function (e) {
-      if (!filterEnabled) {
-        if (window.scrollY > 66) {
-          expandView({ filter: false });
-        } else {
-          normalizeView();
-        }
-      }
-    });
-  }, []);
+
   useEffect(() => {
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement =

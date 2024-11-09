@@ -255,9 +255,11 @@ class HomeService {
 
     try {
       let rep = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-          "/web/search" +
-          `?search_text=${search_text}&${urlParams.toString()}&offset=1&limit=4`,
+        process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+          "/api/products/search" +
+          `?search_text=${search_text}${
+            urlParams.size > 0 && `&` + urlParams.toString()
+          }&limit=4&with_filter=false`,
         {
           headers: {
             ...getHeader().headers,
@@ -297,7 +299,7 @@ class HomeService {
     try {
       let rep = await fetch(
         process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/web/search/filters?${
+          `/products/search?${
             search_text?.length > 0 ? `search_text=${search_text}` : ""
           }${
             urlParams.toString()?.length > 0 ? `&${urlParams.toString()}` : ""

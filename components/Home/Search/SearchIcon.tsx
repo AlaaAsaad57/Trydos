@@ -4,6 +4,7 @@ import Search from "public/svg/SearchIcon.svg";
 import "styles/search.css";
 import SearchComponent from "../SearchComponent";
 import { useDispatch, useSelector } from "react-redux";
+import { normalizeView } from "utils/functions";
 function SearchIcon() {
   const searchEnabled = useSelector((state: any) => state.Search.enable);
   const [focuse, setFocus] = useState(false);
@@ -31,6 +32,8 @@ function SearchIcon() {
           className={`search-icon ${searchEnabled && "active-serach"}`}
           onClick={() => {
             if (!searchEnabled) {
+              normalizeView();
+              document.documentElement.scrollTo({ top: 0 });
               EnableSearch(true);
               document.documentElement.style.overflow = "hidden";
             }

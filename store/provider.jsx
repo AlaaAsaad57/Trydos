@@ -2,7 +2,7 @@
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { store } from "./index";
 import GAComponent from "components/global/GAComponent";
-import { SSRDetect } from "utils/functions";
+import { expandView, normalizeView, SSRDetect } from "utils/functions";
 import { ReactQueryClientProvider } from "components/Providers/ReactQueryClientProvider";
 import Init from "components/Home/Init";
 import { toast } from "react-toastify";
@@ -21,6 +21,7 @@ export default function Providers({ children }) {
       toast.info("Cookies Is Not Enabled");
     }
   }, []);
+
   return (
     <ReactQueryClientProvider>
       <ProgressBar
@@ -39,6 +40,7 @@ export default function Providers({ children }) {
 }
 const CartProvider = () => {
   const dispatch = useDispatch();
+  const filterEnabled = useSelector((state) => state.listing.filterEnabled);
   const enableCart = (s) => {
     window.history.pushState({ isPopup: true }, "open Cart");
     dispatch({ type: "ENABLE-CART", payload: s });
@@ -49,6 +51,15 @@ const CartProvider = () => {
         dispatch({ type: "ENABLE-CART", payload: false });
         dispatch({ type: "LOGIN-OPEN", payload: false });
         dispatch({ type: "CHAT-OPEN", payload: false });
+      }
+    });
+    window.addEventListener("scroll", function (e) {
+      if (!filterEnabled) {
+        if (window.scrollY > 66) {
+          expandView({ filter: false });
+        } else {
+          normalizeView();
+        }
       }
     });
   }, []);

@@ -401,10 +401,9 @@ export const expandView = ({ filter }) => {
     return;
   }
   if (document.querySelector<HTMLElement>(".home-navbar")) {
-    document.querySelector<HTMLElement>(".home-navbar").classList.add("fixed");
     document
       .querySelector<HTMLElement>(".home-navbar")
-      .classList.add("z-[999999999]");
+      .classList.add("animate-in");
   }
 
   if (document.querySelector<HTMLElement>(".filter-listing-bar")) {
@@ -469,12 +468,15 @@ export const normalizeView = () => {
     return;
   }
   let filterBar = document.querySelector<HTMLElement>(".filter-listing-bar");
-  document
-    .querySelector<HTMLElement>(".boutique-top-info")
-    ?.classList.remove("move-anim");
+  if (document.querySelector<HTMLElement>(".boutique-top-info")) {
+    document
+      .querySelector<HTMLElement>(".boutique-top-info")
+      ?.classList.remove("move-anim");
+  }
+
   document
     .querySelector<HTMLElement>(".home-navbar")
-    ?.classList.remove("fixed");
+    ?.classList.remove("animate-in");
   if (filterBar) {
     document.querySelector<HTMLElement>(".filter-listing-bar").style.position =
       "static";

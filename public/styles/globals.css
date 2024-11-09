@@ -944,3 +944,27 @@ input[type="number"] {
 #nprogress .bar {
   z-index: 999999999999 !important;
 }
+.home-navbar.animate-in {
+  animation-name: animate-in;
+  animation-duration: 0.5s;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+}
+@keyframes animate-in {
+  0% {
+    position: fixed;
+    top: -66px;
+    opacity: 0.5;
+    z-index: 999999999;
+    padding: 40px 30px;
+  }
+  100% {
+    position: fixed;
+    top: 0px;
+    opacity: 1;
+    z-index: 999999999;
+    padding: 40px 30px;
+
+    background: #fafafa;
+  }
+}
