@@ -8,8 +8,7 @@ deploy-to-vercel:
 
   script:
     - npm i -g vercel
-    - DEPLOYMENT_URL=$(vercel --token $VERCEL_TOKEN --confirm)
-    - echo $DEPLOYMENT_URL >vercel_deployment_url.txt
+    - vercel > deployment-url.txt
 
   artifacts:
     when: on_success
