@@ -103,10 +103,11 @@ export const getUser = () => {
   );
 };
 export const getUserChat = () => {
-  return (
-    localStorage.getItem("USER-CHAT") &&
-    JSON.parse(localStorage.getItem("USER-CHAT"))
-  );
+  if (typeof window !== "undefined")
+    return (
+      localStorage.getItem("USER-CHAT") &&
+      JSON.parse(localStorage.getItem("USER-CHAT"))
+    );
 };
 export const UserToken = () => {
   return (

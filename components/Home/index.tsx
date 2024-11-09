@@ -81,7 +81,9 @@ export default function Home() {
   //   }
   // }, [selectedStory]);
   const getNameModalOpen = () => {
-    let name = JSON.parse(localStorage.getItem("USER") || "{}")?.name;
+    let name =
+      typeof window !== "undefined" &&
+      JSON.parse(localStorage.getItem("USER") || "{}")?.name;
     return (
       getUserChat()?.id && getUser()?.id && name?.length === 0 && nameModal
     );
