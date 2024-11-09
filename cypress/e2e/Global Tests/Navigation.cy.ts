@@ -4,6 +4,7 @@ describe("Navigations Test", () => {
     cy.visit("/");
 
     cy.get("#country").select("TR");
+    cy.wait(5000);
   });
   it("it should visit home page and navigate to listing/filter page correctly", () => {
     cy.visit("/");
