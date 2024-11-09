@@ -24,7 +24,7 @@ cypress_test:
     - DEPLOYMENT_URL=$(cat vercel_deployment_url.txt)
     - npm i
     - npm ci
-    - $(npm bin)/cypress run --env CYPRESS_BASE_URL=$DEPLOYMENT_URL
+    - $(npm bin)/cypress run --env CYPRESS_BASE_URL=$DEPLOYMENT_URL+`/tr-en`
 
   artifacts:
     when: on_success
