@@ -32,3 +32,4 @@ cypress_test:
     paths:
       - cypress/screenshots
       - cypress/videos
+      - cypress/reports
