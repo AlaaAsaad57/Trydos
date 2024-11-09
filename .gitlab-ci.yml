@@ -1,14 +1,15 @@
 stages:
-  - deploy
+  - build and deploy
   - test
 
 deploy-to-vercel:
-  stage: deploy
+  stage: build and deploy
   image: node:20.0.0
 
   script:
     - echo $VERCEL_TOKEN
     - npm i -g vercel
+    - npm next build
     - vercel --token RxBPi4PALYovZWQxdtbXQmAM > vercel_deployment_url.txt
 
   artifacts:
@@ -22,7 +23,6 @@ cypress_test:
 
   script:
     - DEPLOYMENT_URL=$(cat vercel_deployment_url.txt)
-    - npm i
     - npm ci
     - $(npm bin)/cypress run --env CYPRESS_BASE_URL=$DEPLOYMENT_URL+`/tr-en`
 
