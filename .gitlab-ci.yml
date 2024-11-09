@@ -7,7 +7,7 @@ deploy-to-vercel:
   image: node:20.0.0
 
   script:
-    -echo $VERCEL_TOKEN
+    - echo $VERCEL_TOKEN
     - npm i -g vercel
     - vercel --token RxBPi4PALYovZWQxdtbXQmAM > deployment-url.txt
 
