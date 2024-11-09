@@ -7,7 +7,7 @@
 
 # testing
 /coverage
-
+/cypress/reports
 # next.js
 /.next/
 /out/
