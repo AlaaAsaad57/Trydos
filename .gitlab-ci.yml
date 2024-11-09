@@ -7,7 +7,6 @@ deploy-to-vercel:
   image: node:20.0.0
 
   script:
-    - echo $VERCEL_TOKEN
     - npm i -g vercel
     - npm i  --legacy-peer-deps
     - npx next build
@@ -26,7 +25,7 @@ cypress_test:
     - DEPLOYMENT_URL=$(cat vercel_deployment_url.txt)
     - npm i  --legacy-peer-deps
     - npm ci --legacy-peer-deps
-    - npm run test --env CYPRESS_BASE_URL=$DEPLOYMENT_URL
+    - npm run test --env CYPRESS_BASE_URL=https://trydos-front-git-development-trydos-front-team.vercel.app
 
   artifacts:
     when: on_success
