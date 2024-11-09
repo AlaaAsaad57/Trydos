@@ -9,7 +9,7 @@ export default defineConfig({
     embeddedScreenshots: true,
     html: true,
     inlineAssets: true,
-    reportDir: "cypress/reports",
+    reportDir: "public/reports",
     charts: true,
     reportPageTitle: "My Test Suite",
   },
