@@ -18,7 +18,7 @@ deploy-to-vercel:
       - vercel_deployment_url.txt
 
 cypress_test:
-  image: cypress/browsers:node12.16.2-chrome81-ff75
+  image: cypress/included
   stage: test
 
   script:
