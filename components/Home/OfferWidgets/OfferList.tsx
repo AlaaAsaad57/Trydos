@@ -6,13 +6,18 @@ import { Boutique } from "models/offer";
 import { useEffect, useState } from "react";
 import { LogData } from "store/homepage/actions";
 import InfinteScroll from "components/global/InfinteScroll";
-import axios from "node_modules/axios";
 interface OfferListProps {
   quick: boolean;
   boutiques: Boutique[];
   response?: any;
+  offsetVariable?: string;
 }
-function OfferList({ quick, boutiques, response }: OfferListProps) {
+function OfferList({
+  quick,
+  boutiques,
+  response,
+  offsetVariable,
+}: OfferListProps) {
   useEffect(() => {
     LogData(response);
   }, []);
@@ -59,7 +64,10 @@ function OfferList({ quick, boutiques, response }: OfferListProps) {
         );
       })}
 
-      <InfinteScroll SetBoutiques={(arr) => SetBoutiquesFunction(arr)} />
+      <InfinteScroll
+        offsetVariable={offsetVariable}
+        SetBoutiques={(arr) => SetBoutiquesFunction(arr)}
+      />
     </div>
   );
 }

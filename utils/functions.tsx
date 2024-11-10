@@ -336,10 +336,10 @@ export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
   const cookieStore = cookies();
   let [langauge, country] = lang.split("-");
   let resp = await fetch(
-    process.env.NEXT_PUBLIC_BACKEND_URL +
-      `/web/products/filters?${
+    process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+      `/api/products/search?with_products=false${
         boutiqueId !== "listing" &&
-        `boutique_slugs=${JSON.stringify([boutiqueId])}`
+        `&boutique_slugs=${JSON.stringify([boutiqueId])}`
       }`,
     {
       headers: new Headers({
@@ -356,10 +356,10 @@ export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
   LogData({
     request: "Get Boutique Filters",
     url:
-      process.env.NEXT_PUBLIC_BACKEND_URL +
-      `/web/products/filters?${
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+      `/api/products/search?with_products=false${
         boutiqueId !== "listing" &&
-        `boutique_slugs=${JSON.stringify([boutiqueId])}`
+        `&boutique_slugs=${JSON.stringify([boutiqueId])}`
       }`,
     headers: {
       Authorization: `Bearer ${
@@ -582,12 +582,12 @@ export const filterProducts = async ({
   };
   let str = "";
   if (reset) {
-    str = `/web/products?${
+    str = `/api/products/search?${
       boutiqueId !== "listing" &&
       `boutique_slugs=${JSON.stringify([boutiqueId])}`
     }`;
   } else {
-    str = `/web/products?${
+    str = `/api/products/search?${
       filters.categories.length > 0
         ? `category_slugs=${JSON.stringify(filters.categories)}`
         : ""
@@ -614,7 +614,7 @@ export const filterProducts = async ({
     }${filters.colors.length > 0 ? `${JSON.stringify(filters.colors)}` : ``}`;
   }
   let product = await AxiosCacheApi({
-    url: process.env.NEXT_PUBLIC_BACKEND_URL + str,
+    url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str,
     params:
       filters.colors.length === 0
         ? null
@@ -677,9 +677,9 @@ export const UpdateFilter = async ({
       searchText: searchText || filterObj.searchText,
       colors: filterObj.colors.map((s) => s),
     };
-    let str = `/web/products/filters?${
+    let str = `/api/products/search?with_products=false${
       filters.categories.length > 0
-        ? `category_slugs=${JSON.stringify(filters.categories)}`
+        ? `&category_slugs=${JSON.stringify(filters.categories)}`
         : ""
     }${
       filters.brands.length > 0
@@ -704,7 +704,7 @@ export const UpdateFilter = async ({
     }${filters.colors.length > 0 ? `${JSON.stringify(filters.colors)}` : ``}`;
 
     let product = await AxiosCacheApi({
-      url: process.env.NEXT_PUBLIC_BACKEND_URL + str,
+      url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str,
       params:
         filters.colors.length === 0
           ? null
@@ -959,9 +959,9 @@ export const getListingDataFilters = async ({
       };
     }
 
-    let str = `/web/products/filters?${
+    let str = `/api/products/search?with_products=false${
       obj.categories?.length > 0
-        ? `category_slugs=${JSON.stringify(
+        ? `&category_slugs=${JSON.stringify(
             obj.categories.split(",").map((s) => s)
           )}`
         : ""
@@ -986,7 +986,7 @@ export const getListingDataFilters = async ({
     }`;
 
     let productRes = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL +
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
         str +
         (filters.colors
           ? `&${new URLSearchParams({
@@ -1035,18 +1035,18 @@ export const getListingDataFilters = async ({
     let str = categories;
 
     let url =
-      process.env.NEXT_PUBLIC_BACKEND_URL +
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
       (productCategory
-        ? "/web/products/filters" +
+        ? "/api/products/search?with_products=false" +
           `?category=${productCategory}${
             !str.includes("listing")
               ? `&boutique_slugs=${JSON.stringify(str)}`
               : ""
           }`
-        : "/web/products/filters" +
+        : "/api/products/search?with_products=false" +
           `${
             !str.includes("listing")
-              ? `?boutique_slugs=${JSON.stringify(str)}`
+              ? `&boutique_slugs=${JSON.stringify(str)}`
               : ""
           }`);
     var details = productCategory

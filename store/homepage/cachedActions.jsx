@@ -44,13 +44,16 @@ export const getHomeData = async ({ str, lang }) => {
 
   const cookieStore = cookies();
   let url =
-    HOME_DATA_URL + (str?.length ? `?slug=${str}&limit=10` : "?limit=10");
+    HOME_DATA_URL +
+    (str?.length
+      ? `?category_slugs=["${str}"]&limit=10`
+      : "?category_slugs=[]&limit=10");
 
   let method = { method: "GET" };
 
   try {
     let start = new Date().getTime();
-    const res = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + url, {
+    const res = await fetch(process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + url, {
       ...method,
       next: {
         revalidate: 3600,
@@ -86,8 +89,8 @@ export const getHomeData = async ({ str, lang }) => {
     };
 
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-      return [repo.data.boutiques, returned_res];
-    else return [repo.data.boutiques, {}];
+      return [repo.data, returned_res];
+    else return [repo.data, {}];
   } catch (e) {
     console.log(e);
     return [[], e.toString()];
@@ -120,7 +123,7 @@ export const getMainCategories = async ({ lang }) => {
   try {
     let start = new Date().getTime();
     const res = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + HOME_DATA_CATEGORIES_URL,
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + HOME_DATA_CATEGORIES_URL,
       {
         next: {
           revalidate: 3600,
@@ -148,7 +151,7 @@ export const getMainCategories = async ({ lang }) => {
       response: repo,
       request: "Get Categories Navbar",
     };
-
+    console.log(repo.data);
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
       return [repo.data.mainCategories, returned_res];
     else return [repo.data.mainCategories, {}];
@@ -156,18 +159,7 @@ export const getMainCategories = async ({ lang }) => {
     return ["homedata-error", e.toString()];
   }
 };
-export const getMainCategoriesStatic = async () => {
-  try {
-    const res = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + HOME_DATA_CATEGORIES_URL
-    );
-    const repo = await res.json();
 
-    return [repo.data.mainCategories];
-  } catch (e) {
-    return ["homedata-error", e.toString()];
-  }
-};
 export const DataApiHeaders = async (forStories) => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
@@ -295,7 +287,7 @@ export const getListingData = async ({
       };
     }
 
-    let str = `/web/products?limit=4&offset=1${
+    let str = `/api/products/search?limit=4${
       obj.categories?.length > 0
         ? `&category_slugs=${JSON.stringify(
             obj.categories.split(",").map((s) => s)
@@ -322,7 +314,7 @@ export const getListingData = async ({
     }`;
 
     let productRes = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL +
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
         str +
         (filters.colors
           ? `&${new URLSearchParams({
@@ -379,15 +371,15 @@ export const getListingData = async ({
     let str = categories;
 
     let url =
-      process.env.NEXT_PUBLIC_BACKEND_URL +
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
       (productCategory
-        ? "/web/products?limit=4&offset=1" +
+        ? "/api/products/search?limit=4" +
           `&category=${productCategory}${
             !str.includes("listing")
               ? `&boutique_slugs=${JSON.stringify(str)}`
               : ""
           }`
-        : "/web/products?limit=4&offset=1" +
+        : "/api/products/search?limit=4" +
           `${
             !str.includes("listing")
               ? `&boutique_slugs=${JSON.stringify(str)}`
@@ -716,8 +708,8 @@ export const FetchApi = async ({ url, method, body, lang, country }) => {
 };
 
 export const getListingDataProd = async () => {
-  let str = `/web/products?limit=1000&offset=1`;
-  let res = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + str, {
+  let str = `/api/products/search?limit=1000`;
+  let res = await fetch(process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str, {
     method: "GET",
 
     next: {

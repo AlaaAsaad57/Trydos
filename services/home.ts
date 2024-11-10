@@ -209,9 +209,9 @@ class HomeService {
     }
     formBody = formBody.join("&");
     let url =
-      process.env.NEXT_PUBLIC_BACKEND_URL +
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
       (categories
-        ? "/web/products" +
+        ? "/api/products/search" +
           `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
         : LISTING_INFO_URL + `?${str}`);
     await fetch(
@@ -228,6 +228,7 @@ class HomeService {
       }
     ).then(async (data) => {
       let repo = await data.json();
+      console.log(repo);
       store.dispatch({ type: "GET_NEXT_PRODUCT", payload: repo.data });
     });
   }

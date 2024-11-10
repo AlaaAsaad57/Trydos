@@ -2,7 +2,7 @@ const initialState = {
   products: [],
   loading: true,
   isReachEnd: false,
-  offset: 2,
+  offset: null,
   filterEnabled: false,
   skeleton: false,
   showedFilter: "Categories",
@@ -25,7 +25,7 @@ const ListingReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         products: payload?.products ?? [],
-        offset: 2,
+        offset: payload.offset,
         limit: 4,
         loading: false,
         skeleton: false,
@@ -52,7 +52,7 @@ const ListingReducer = (state = initialState, { type, payload }) => {
             (s) => state.products.filter((d) => d.id === s.id).length === 0
           ),
         ],
-        offset: state.offset + 1,
+        offset: payload.offset,
         isReachEnd: payload.products.length === 0,
         loading: false,
       };

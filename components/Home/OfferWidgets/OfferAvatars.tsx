@@ -33,7 +33,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
       element.classList.remove("active-hover");
     });
   };
-  if (boutique.childCategoriesForProductIds.length > 5) console.log(boutique);
+
   return (
     <div
       ref={ref}
@@ -52,7 +52,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
               linkUrl={`/boutiques/${boutique.slug}?categories=${product.slug}`}
               key={index}
               category={product.count_products}
-              images={product?.most_viewed_product_thumbnail}
+              images={product?.most_viewed_product_thumbnail.file_path}
               zIndex={index + 1}
               priority={priority}
             />
@@ -63,7 +63,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
           priority={false}
           images={
             boutique?.childCategoriesForProductIds[5]
-              .most_viewed_product_thumbnail
+              .most_viewed_product_thumbnail.file_path
           }
           zIndex={100}
           viewed={6}

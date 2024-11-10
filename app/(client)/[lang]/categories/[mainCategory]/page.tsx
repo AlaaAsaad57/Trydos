@@ -5,7 +5,6 @@ import Home from "components/Home";
 // import QuickOffer from "components/Home/Bars/QuickOffer";
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
-import { getMainCategoriesStatic } from "store/homepage/cachedActions";
 
 export const revalidate = 36000;
 export const runtime = "edge";

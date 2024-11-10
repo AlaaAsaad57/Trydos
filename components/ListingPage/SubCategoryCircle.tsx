@@ -57,9 +57,9 @@ function SubCategoryCircle({
         width={50}
         height={50}
         src={
-          category.most_viewed_product_thumbnail ??
-          category.flat_photo_path ??
-          category?.icon
+          category.most_viewed_product_thumbnail?.file_path ??
+          category.flat_photo_path?.file_path ??
+          category?.icon?.file_path
         }
       />
       {MainCategoryActive && (

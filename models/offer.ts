@@ -4,7 +4,7 @@ export interface Offer {
 export interface Boutique {
   id: number;
   name: string;
-  icon: string;
+  icon: { file_path: string };
   slug: string;
   position: number;
   description: string;
@@ -13,7 +13,7 @@ export interface Boutique {
     category_id: number;
     category_slug: string;
     category_name: string;
-    category_icon: string;
+    category_icon: { file_path: string };
     slug: string;
   }>;
   childCategoriesForProductIds: Array<{
@@ -23,7 +23,7 @@ export interface Boutique {
     category_name: string;
     product_name: string;
     product_thumbnail: string;
-    most_viewed_product_thumbnail: string;
+    most_viewed_product_thumbnail: { file_path: string };
     most_viewed_product_name: string;
     slug: string;
   }>;

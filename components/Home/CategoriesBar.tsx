@@ -34,7 +34,7 @@ function CategoriesBar({ forMobile, categories }: CategoriesBarProps) {
                 key={key}
                 myKey={key}
                 slug={category.slug}
-                icon={category?.flat_photo_path}
+                icon={category?.flat_photo_path?.file_path}
               />
             ))}
           </div>

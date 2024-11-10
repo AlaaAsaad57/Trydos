@@ -1,6 +1,5 @@
 import { Sendevent, translate } from "utils/functions";
 import { useSelector } from "react-redux";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { useParams, useRouter } from "next/navigation";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import Image from "next/image";

@@ -96,7 +96,12 @@ function BrandCircle({ brand }) {
           </g>
         </svg>
         <div className="category-shadow"></div>
-        <img className="brand-photo" width={70} height={70} src={brand.icon} />
+        <img
+          className="brand-photo"
+          width={70}
+          height={70}
+          src={brand.icon?.file_path}
+        />
       </div>
 
       <div className="category-text-container flex-col align-center">

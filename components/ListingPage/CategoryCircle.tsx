@@ -138,9 +138,9 @@ function CategoryCircle({ category }) {
             height={70}
             className="object-cover object-center"
             src={
-              category.most_viewed_product_thumbnail ??
-              category.flat_photo_path ??
-              category?.icon
+              category.most_viewed_product_thumbnail?.file_path ??
+              category.flat_photo_path?.file_path ??
+              category?.icon?.file_path
             }
           />
         </div>

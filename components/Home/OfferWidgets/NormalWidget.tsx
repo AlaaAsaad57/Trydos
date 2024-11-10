@@ -9,7 +9,6 @@ import { useRouter } from "next-nprogress-bar";
 import { useEffect } from "react";
 import OfferPhotosSlider from "./OfferPhotosSlider";
 import NextLink from "Hooks/NextLink";
-import axios from "node_modules/axios";
 
 interface NormalWidgetProps {
   boutique: Boutique;
@@ -77,7 +76,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
         <div className="offer-blured" id={`blured-${boutique.id}`} /> */}
         <div className="offer-container cursor-pointer">
           <div className="offer-logo">
-            {boutique.icon ? (
+            {boutique.icon?.file_path ? (
               <Image
                 id={"img-" + boutique.id}
                 className="object-contain"
@@ -92,7 +91,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                 }}
                 width={20}
                 height={20}
-                src={boutique?.icon?.replace(
+                src={boutique?.icon?.file_path?.replace(
                   "/upload",
                   `/upload/h_50/f_webp/q_auto`
                 )}
@@ -104,7 +103,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           <div className="offer-category">
             {boutique.mainCategoriesForProductIds.map((category, key) => {
               // @ts-ignore
-              if (category?.flat_photo_path?.includes(".svg")) {
+              if (category?.flat_photo_path?.file_path?.includes(".svg")) {
                 return (
                   <div
                     onClick={(e) => {
@@ -125,7 +124,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                       width={12}
                       height={12}
                       // @ts-ignore
-                      src={category.flat_photo_path?.replace(
+                      src={category.flat_photo_path?.file_path?.replace(
                         "/upload",
                         `/upload/h_50/f_webp/q_auto`
                       )}
@@ -181,7 +180,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                 priority={myKey < 2}
                 isSingle={true}
               />
-              {/* <OfferAvatars boutique={boutique} priority={myKey < 2} /> */}
+              <OfferAvatars boutique={boutique} priority={myKey < 2} />
             </div>
           )}
         </div>

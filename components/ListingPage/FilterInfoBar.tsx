@@ -76,7 +76,10 @@ function FilterInfoBar({
   const pathName = useParams();
   const searchParams = useSearchParams();
   const getCategory = (slug) => {
-    let variable = { name: "", most_viewed_product_thumbnail: "" };
+    let variable = {
+      name: "",
+      most_viewed_product_thumbnail: { file_path: "" },
+    };
     filters.categories.map((s) =>
       s.childes?.map((sub) => {
         variable = sub;
@@ -180,14 +183,14 @@ function FilterInfoBar({
                       width={20}
                       height={20}
                       src={
-                        category.most_viewed_product_thumbnail ??
-                        category.flat_photo_path ??
-                        category?.icon ??
+                        category.most_viewed_product_thumbnail?.file_path ??
+                        category.flat_photo_path?.file_path ??
+                        category?.icon?.file_path?.file_path ??
                         filters.categories.filter(
                           (s) => s.slug === category.slug
-                        )[0]?.most_viewed_product_thumbnail ??
+                        )[0]?.most_viewed_product_thumbnail?.file_path ??
                         getCategory(category.slug)
-                          ?.most_viewed_product_thumbnail
+                          ?.most_viewed_product_thumbnail?.file_path
                       }
                     />
                   </div>
@@ -224,7 +227,7 @@ function FilterInfoBar({
                             s.icon ||
                             filters.categories.filter(
                               (sub) => sub.slug === s.slug
-                            )[0]?.icon
+                            )[0]?.icon?.file_path
                           }
                           width={10}
                           height={10}
@@ -317,10 +320,10 @@ function FilterInfoBar({
                       width={20}
                       height={20}
                       src={
-                        brand?.icon ||
+                        brand?.icon?.file_path ||
                         filters.brands.filter(
                           (sub) => sub.slug === brand.slug
-                        )[0]?.icon
+                        )[0]?.icon?.file_path
                       }
                     />
                   </div>

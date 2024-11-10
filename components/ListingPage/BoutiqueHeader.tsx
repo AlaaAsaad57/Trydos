@@ -32,23 +32,25 @@ const PrefetchingFilters = () => {
   useEffect(() => {
     AxiosCacheApi({
       url:
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-        `/web/products${boutique ? `?boutique_slugs=["${boutique}"]` : ""}`,
+        process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+        `/api/products/search${
+          boutique ? `?boutique_slugs=["${boutique}"]` : ""
+        }`,
     });
     arr.map((s) => {
       if (s.childes) {
         AxiosCacheApi({
           url:
-            process.env.NEXT_PUBLIC_BACKEND_URL +
-            `/web/products?category_slugs=${JSON.stringify([s.slug])}${
+            process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+            `/api/products/search?category_slugs=${JSON.stringify([s.slug])}${
               boutique ? `&boutique_slugs=["${boutique}"]` : ""
             }`,
         });
       } else {
         AxiosCacheApi({
           url:
-            process.env.NEXT_PUBLIC_BACKEND_URL +
-            `/web/products?&brand_slugs=${JSON.stringify([s.slug])}${
+            process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+            `/api/products/search?&brand_slugs=${JSON.stringify([s.slug])}${
               boutique ? `&boutique_slugs=["${boutique}"]` : ""
             }`,
         });

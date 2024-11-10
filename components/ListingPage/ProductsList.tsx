@@ -32,7 +32,7 @@ function ProductsList({
   );
 
   const offset = useSelector((state: any) => state.listing.offset);
-
+  console.log(Listing_Data_res);
   const loading = useSelector((state: any) => state.listing.loading);
   const skeleton = useSelector((state: any) => state.listing.skeleton);
   const isReachEnd = useSelector((state: any) => state.listing.isReachEnd);
@@ -63,7 +63,7 @@ function ProductsList({
   const GetNextProd = async () => {
     dispatch({ type: "PRODUCT_LOADING" });
     await homeService.getNextProduct({
-      offset: offset,
+      offset: offset ?? Listing_Data_res.body.data.offset,
       categories:
         SearchParams.get("boutique_slugs") ||
         (productCategory !== "listing" ? productCategory : null),

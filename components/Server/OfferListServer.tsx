@@ -14,8 +14,9 @@ async function OfferListServer({ params }) {
     <>
       <OfferList
         response={response}
-        boutiques={HomeData}
+        boutiques={HomeData?.boutiques || []}
         key={2}
+        offsetVariable={HomeData?.offset}
         quick={false}
       />
     </>

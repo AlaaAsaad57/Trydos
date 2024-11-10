@@ -48,7 +48,7 @@ function MobileNavigation({ categories }: { categories: any[] }) {
             setActive={() => setActiveCatgory(category.slug)}
             key={key}
             myKey={key}
-            icon={category?.flat_photo_path}
+            icon={category?.flat_photo_path?.file_path}
             slug={category.slug}
           />
         ))}
