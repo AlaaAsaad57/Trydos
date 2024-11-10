@@ -6,6 +6,13 @@ describe.only("Login Scenario Test", () => {
       // just counting the matched calls
       count += 1;
     });
+    before(() => {
+      cy.clearAllCookies();
+      cy.visit("/");
+
+      cy.get("#country").select("TR");
+      cy.wait(5000);
+    });
     cy.visit("/", {
       onBeforeLoad(win) {
         cy.stub(win.Notification, "requestPermission")
