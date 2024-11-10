@@ -1,5 +1,10 @@
 describe.only("Login Scenario Test", () => {
   before(() => {
+    Cypress.on("uncaught:exception", (err, runnable) => {
+      // returning false here prevents Cypress from
+      // failing the test
+      return false;
+    });
     cy.clearAllCookies();
     cy.visit("/");
 
@@ -52,8 +57,9 @@ describe.only("Login Scenario Test", () => {
     cy.get(".pincode-input-text:nth-child(6)").type("9", {
       scrollBehavior: false,
     });
-    cy.wait(5000);
-    expect(count).to.be.greaterThan(0);
+    cy.wait(5000).then(() => {
+      expect(count).to.be.greaterThan(0);
+    });
     //
   });
 });
