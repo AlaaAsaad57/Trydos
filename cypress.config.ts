@@ -26,6 +26,12 @@ export default defineConfig({
     baseUrl:
       "https://trydos-front-git-development-trydos-front-team.vercel.app",
     testIsolation: false,
+    env: {
+      browserPermissions: {
+        notifications: "allow",
+        geolocation: "allow",
+      },
+    },
   },
 
   component: {
