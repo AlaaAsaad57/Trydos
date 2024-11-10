@@ -12,7 +12,7 @@ function BrandItem({ brand, onClick, isActive }) {
           className="absolute"
         />
       )}
-      <img src={brand.icon} className="h-full max-h-[30px]" />
+      <img src={brand.icon?.file_path} className="h-full max-h-[30px]" />
     </div>
   );
 }

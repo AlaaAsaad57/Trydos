@@ -183,9 +183,9 @@ function FilterInfoBar({
                       width={20}
                       height={20}
                       src={
+                        category?.icon?.file_path ??
                         category.most_viewed_product_thumbnail?.file_path ??
                         category.flat_photo_path?.file_path ??
-                        category?.icon?.file_path?.file_path ??
                         filters.categories.filter(
                           (s) => s.slug === category.slug
                         )[0]?.most_viewed_product_thumbnail?.file_path ??
@@ -224,7 +224,7 @@ function FilterInfoBar({
                         </svg>
                         <img
                           src={
-                            s.icon ||
+                            s.icon?.file_path ||
                             filters.categories.filter(
                               (sub) => sub.slug === s.slug
                             )[0]?.icon?.file_path

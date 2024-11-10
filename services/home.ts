@@ -179,15 +179,20 @@ class HomeService {
       searchText: filterObj.searchText,
     };
 
-    if (categories !== "listing")
+    if (categories && categories !== "listing")
       filters = { ...filters, boutique_slug: [categories] };
+
     let str = `category_slugs=${JSON.stringify(
       filters.categories
     )}&brand_slugs=${JSON.stringify(
       filters.brands
     )}&attributes=${JSON.stringify(filters.attributes)}${
-      filters.prices !== null ? `&prices=${JSON.stringify(filters.prices)}` : ""
-    }&boutique_slugs=${JSON.stringify(filters.boutique_slug)}${
+      filters.prices !== null ? `&price=${JSON.stringify(filters.prices)}` : ""
+    }${
+      filters.boutique_slug
+        ? `&boutique_slugs=${JSON.stringify(filters.boutique_slug)}`
+        : ""
+    }${
       filters?.searchText?.length > 0
         ? `&search_text=${filters.searchText}`
         : ""
@@ -299,8 +304,8 @@ class HomeService {
     }
     try {
       let rep = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/products/search?${
+        process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+          `/api/products/search?${
             search_text?.length > 0 ? `search_text=${search_text}` : ""
           }${
             urlParams.toString()?.length > 0 ? `&${urlParams.toString()}` : ""

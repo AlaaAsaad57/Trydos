@@ -307,7 +307,7 @@ export const getListingData = async ({
       obj.search_text?.length > 0
         ? `${`&search_text=${obj.search_text || ""}`}`
         : ""
-    }${filters.prices ? `&prices=[${JSON.stringify(obj.prices)}]` : ""}${
+    }${filters.prices ? `&price=[${JSON.stringify(obj.prices)}]` : ""}${
       filters.boutique_slug
         ? `&boutique_slugs=${JSON.stringify(categories)}`
         : ""

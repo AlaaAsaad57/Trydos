@@ -339,6 +339,7 @@ export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
     process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
       `/api/products/search?with_products=false${
         boutiqueId !== "listing" &&
+        boutiqueId &&
         `&boutique_slugs=${JSON.stringify([boutiqueId])}`
       }`,
     {
@@ -359,6 +360,7 @@ export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
       `/api/products/search?with_products=false${
         boutiqueId !== "listing" &&
+        boutiqueId &&
         `&boutique_slugs=${JSON.stringify([boutiqueId])}`
       }`,
     headers: {
@@ -584,6 +586,7 @@ export const filterProducts = async ({
   if (reset) {
     str = `/api/products/search?limit=4&${
       boutiqueId !== "listing" &&
+      boutiqueId &&
       `boutique_slugs=${JSON.stringify([boutiqueId])}`
     }`;
   } else {
@@ -601,10 +604,10 @@ export const filterProducts = async ({
         : ""
     }${
       filters.prices !== null && PriceFiltered
-        ? `&prices=${JSON.stringify(filters.prices)}`
+        ? `&price=${JSON.stringify(filters.prices)}`
         : ""
     }${
-      filters.boutique_slug !== "listing"
+      filters.boutique_slug !== "listing" && filters.boutique_slug
         ? `&boutique_slugs=${JSON.stringify([filters.boutique_slug])}`
         : ""
     }${
@@ -691,10 +694,10 @@ export const UpdateFilter = async ({
         : ""
     }${
       filters.prices !== null && PriceFiltered
-        ? `&prices=${JSON.stringify(filters.prices)}`
+        ? `&price=${JSON.stringify(filters.prices)}`
         : ""
     }${
-      filters.boutique_slug !== "listing"
+      filters.boutique_slug !== "listing" && filters.boutique_slug
         ? `&boutique_slugs=${JSON.stringify([filters.boutique_slug])}`
         : ""
     }${
@@ -712,10 +715,10 @@ export const UpdateFilter = async ({
     });
     newFiltersCallback({
       filtersVar: {
-        categories: product.data.categories,
-        brands: product.data.brands,
+        categories: product.data?.categories || [],
+        brands: product.data.brands || [],
         sizes:
-          product.data.attributes.filter((s) => s.name === "Size")[0]
+          product.data.attributes?.filter((s) => s.name === "Size")[0]
             ?.options || [],
         prices: product.data.prices || null,
         offers:
@@ -754,7 +757,9 @@ export const onClickSearchHistory = (searchValue) => {
 };
 export const getSearchOptions = async () => {
   let categories = await AxiosGet({
-    url: process.env.NEXT_PUBLIC_BACKEND_URL + "/web/search/filters",
+    url:
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+      "/api/products/search?with_products=false",
   });
 
   return [
@@ -979,7 +984,7 @@ export const getListingDataFilters = async ({
       obj.search_text?.length > 0
         ? `${`&search_text=${obj.search_text || ""}`}`
         : ""
-    }${filters.prices ? `&prices=[${JSON.stringify(obj.prices)}]` : ""}${
+    }${filters.prices ? `&price=[${JSON.stringify(obj.prices)}]` : ""}${
       filters.boutique_slug
         ? `&boutique_slugs=${JSON.stringify(categories)}`
         : ""
@@ -1039,13 +1044,13 @@ export const getListingDataFilters = async ({
       (productCategory
         ? "/api/products/search?with_products=false" +
           `?category=${productCategory}${
-            !str.includes("listing")
+            !str.includes("listing") && str
               ? `&boutique_slugs=${JSON.stringify(str)}`
               : ""
           }`
         : "/api/products/search?with_products=false" +
           `${
-            !str.includes("listing")
+            !str.includes("listing") && str
               ? `&boutique_slugs=${JSON.stringify(str)}`
               : ""
           }`);

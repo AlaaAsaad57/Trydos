@@ -25,7 +25,7 @@ function CategoryItem({ category, onClick, isActive }) {
           />
         )}
 
-        <img src={category.flat_photo_path} />
+        <img src={category.flat_photo_path?.file_path} />
         {category.name}
       </div>
       {category.childes?.length > 0 && (
@@ -48,7 +48,7 @@ function CategoryItem({ category, onClick, isActive }) {
                     className="absolute"
                   />
                 )}
-              <img src={s.flat_photo_path} />
+              <img src={s.flat_photo_path?.file_path} />
               {s.name}
             </div>
           ))}
