@@ -123,22 +123,17 @@ function FilterBar({ boutique, filters, productsServer }) {
   };
 
   useEffect(() => {
-    getListingDataFilters({
-      ...filters,
-      callback: (Listing_Data_res) => {
-        let filtersVar = {
-          categories: Listing_Data_res.body.data?.categories || [],
-          brands: Listing_Data_res.body.data?.brands || [],
-          attributes: Listing_Data_res.body.data?.attributes || [],
-          offers: Listing_Data_res.body.data?.offers || [],
-          prices: Listing_Data_res.body.data?.prices || null,
-          search_text: Listing_Data_res.body.data?.result_for || "",
-          colors: Listing_Data_res.body.data?.colors || [],
-        };
+    let filtersVar = {
+      categories: filters?.categories || [],
+      brands: filters?.brands || [],
+      attributes: filters?.attributes || [],
+      offers: filters?.offers || [],
+      prices: filters?.prices || null,
+      search_text: filters?.result_for || "",
+      colors: filters?.colors || [],
+    };
 
-        dispatch({ type: "FILTER-INIT", payload: filtersVar });
-      },
-    });
+    dispatch({ type: "FILTER-INIT", payload: filtersVar });
   }, []);
   return (
     <>

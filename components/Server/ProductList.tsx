@@ -23,16 +23,15 @@ async function ProductListServer({ params, searchParams }) {
   return (
     <>
       <FilterBar
-        filters={{
-          categories: (searchParams.boutique_slugs && [
-            searchParams.boutique_slugs,
-          ]) || [params.productCategory],
-          productCategory: params.boutiqueCategory,
-          lang: params.lang ? params.lang.split("-")[1] : null,
-          searchParams: searchParams,
-        }}
         boutique={boutique}
         productsServer={Listing_Data_res.body.data?.products}
+        filters={{
+          categories: Listing_Data_res.body.data?.categories,
+          brands: Listing_Data_res.body.data?.brands,
+          colors: Listing_Data_res.body.data?.colors,
+          prices: Listing_Data_res.body.data?.prices,
+          search_text: Listing_Data_res.body.data?.search_text,
+        }}
       />
       <ProductsList
         response={response}

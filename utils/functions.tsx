@@ -582,7 +582,7 @@ export const filterProducts = async ({
   };
   let str = "";
   if (reset) {
-    str = `/api/products/search?${
+    str = `/api/products/search?limit=4&${
       boutiqueId !== "listing" &&
       `boutique_slugs=${JSON.stringify([boutiqueId])}`
     }`;

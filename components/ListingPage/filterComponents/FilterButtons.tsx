@@ -150,10 +150,11 @@ function FilterButtons() {
                   dispatch({ type: "RESET_LISTING_FILTER" });
                   dispatch({ type: "Skeleton-Listing" });
                   filterProducts({
-                    boutiqueId: (SearchParams.get("boutique_slugs") &&
-                      SearchParams.get("boutique_slugs")) || [
+                    boutiqueId:
+                      (SearchParams.get("boutique_slugs") &&
+                        SearchParams.get("boutique_slugs")) ||
                       pathName.productCategory,
-                    ],
+
                     lang: pathName.lang,
                     sizesAttr: sizesAttr,
                     callback: (products) => {

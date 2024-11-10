@@ -90,7 +90,7 @@ function ProductsList({
       lang: pathName.lang,
       sizesAttr: filters.sizesAttr,
       callback: (products) => {
-        if (offset === 1)
+        if (offset === null)
           dispatch({ type: "GET_PRODUCT", payload: { products } });
         else
           dispatch({
