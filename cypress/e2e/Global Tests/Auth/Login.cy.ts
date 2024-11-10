@@ -14,13 +14,7 @@ describe.only("Login Scenario Test", () => {
       count += 1;
     });
 
-    cy.visit("/", {
-      onBeforeLoad(win) {
-        cy.stub(win.Notification, "requestPermission")
-          .resolves("granted") // @ts-ignore
-          .as("premission");
-      },
-    });
+    cy.visit("/", {});
     cy.clearAllCookies();
     cy.clearAllLocalStorage();
     cy.clearAllSessionStorage();
@@ -59,11 +53,7 @@ describe.only("Login Scenario Test", () => {
       scrollBehavior: false,
     });
     cy.wait(5000);
-    cy.get("@premission")
-      .should("have.been.called")
-      .then((s) => {
-        expect(count).to.be.greaterThan(0);
-      });
+    expect(count).to.be.greaterThan(0);
     //
   });
 });

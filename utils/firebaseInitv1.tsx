@@ -44,6 +44,7 @@ export const onMessageListener = async () => {
   const { toast } = await import("react-toastify");
   return new Promise((resolve) => {
     onMessage(messaging, (payload) => {
+      console.log(payload);
       if (payload.data.type === "InAnotherCallEvent") {
         // store.dispatch({ type: "USER_END_CALL" });
         store.toast.info("User In Another Call");

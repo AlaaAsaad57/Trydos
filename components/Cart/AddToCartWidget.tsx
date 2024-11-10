@@ -30,7 +30,6 @@ function AddToCartWidget() {
   const getDetails = async () => {
     if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
     let start = new Date();
-
     let repo = await fetch(
       process.env.NEXT_PUBLIC_BACKEND_URL + QTY_URL + `/${SelectedProduct.id}`,
       {

@@ -3,7 +3,13 @@ import { store } from "store";
 import { GetChats } from "store/chat/actions";
 import Cookies from "js-cookie";
 import userImage from "public/images/profileNo.png";
-import { _isStoreLastJson, getCart, getLang } from "utils/functions";
+import {
+  _isStoreLastJson,
+  getCart,
+  getLang,
+  UserID,
+  UserToken,
+} from "utils/functions";
 import {
   CUSTOMER_INFO_URL,
   HOME_DATA_URL,
@@ -17,6 +23,7 @@ import { FetchApi } from "store/homepage/cachedActions";
 import { toast } from "react-toastify";
 import { AxiosGet } from "utils/constants";
 import axios from "node_modules/axios";
+import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 const getHeader = () => {
   return {
     next: {
@@ -88,6 +95,7 @@ class HomeService {
     }
   }
   async CheckLogin() {
+    await this.RegisterDevice();
     if (
       SSRDetect() &&
       localStorage.getItem("USER") &&
@@ -113,6 +121,20 @@ class HomeService {
     }
   }
   async RegisterDevice() {
+    if (!localStorage.getItem("FB-DEVICE-TOKEN")) {
+      await requestFirebaseNotificationPermission().then(async (token) => {
+        // @ts-ignore
+        localStorage.setItem("FB-DEVICE-TOKEN", token);
+        await axios.post(
+          process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
+          {
+            device_token: token,
+            user_id: UserID(),
+            auth_token: UserToken(),
+          }
+        );
+      });
+    }
     if (!Cookies.get("DEVICE-TOKEN") && localStorage.getItem("DEVICE-TOKEN")) {
       Cookies.set("DEVICE-TOKEN", localStorage.getItem("DEVICE-TOKEN"), {
         expires: 365,
@@ -136,7 +158,14 @@ class HomeService {
         expires: 365,
       });
       localStorage.setItem("guest-user", JSON.stringify(repo.data.user));
-
+      await axios.post(
+        process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
+        {
+          device_token: localStorage.getItem("DEVICE-TOKEN"),
+          user_id: UserID(),
+          auth_token: UserToken(),
+        }
+      );
       if (typeof window !== "undefined") {
         _isStoreLastJson() &&
           localStorage.setItem("LAST_JSON", JSON.stringify(repo));
