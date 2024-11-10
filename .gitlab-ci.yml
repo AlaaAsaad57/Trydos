@@ -4,7 +4,7 @@ stages:
 
 deploy-to-vercel:
   stage: build and deploy
-  image: node:20.0.0
+  image: node:20.9.0
 
   script:
     - yarn
