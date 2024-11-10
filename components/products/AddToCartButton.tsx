@@ -154,7 +154,7 @@ function AddToCartButton({
       productVar.sync_color_images &&
       productVar.choice_options?.length > 0
     ) {
-      return `${AddToCartOption.selectedColor.color_name}-${AddToCartOption.selectedSize.name}`;
+      return `${AddToCartOption.selectedColor.color_name}-${AddToCartOption?.selectedSize?.name}`;
     } else if (
       productVar.sync_color_images &&
       productVar.choice_options?.length === 0

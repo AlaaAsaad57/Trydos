@@ -49,8 +49,8 @@ svg {
   .app {
     right: 0px !important;
     left: initial !important;
-    top: 100px !important;
-    z-index: 99999999;
+    top: 0px !important;
+    z-index: 999999999999999999999;
     height: 100vh !important;
   }
   .app .chat-window {

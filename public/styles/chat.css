@@ -7,7 +7,7 @@
   height: calc(100vh - 110px);
   max-height: 919px;
   position: fixed;
-  z-index: 999999999;
+  z-index: 999999999999999999999;
   right: 30px;
   left: initial;
   top: 105px;
