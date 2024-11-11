@@ -297,18 +297,19 @@ export const onMessageListener = async () => {
           resolve(payload);
         }
       } else if (payload.data.type === "message") {
-        Recive(parseInt(JSON.parse(payload.data.message).channel.id));
+        Recive(parseInt(JSON.parse(payload.data.data).message.channel.id));
         if (
           store
             ?.getState()
             ?.chat?.data.filter(
               (chat) =>
                 parseInt(chat.id) ===
-                parseInt(JSON.parse(payload?.data.message)?.channel?.id)
+                parseInt(JSON.parse(payload.data.data).message.channel.id)
             )[0]
             ?.messages.filter(
               (message) =>
-                parseInt(message.id) === parseInt(payload.data.prev_message_id)
+                parseInt(message.id) ===
+                parseInt(JSON.parse(payload.data.data).prev_message_id)
             ).length > 0
         ) {
           store.dispatch({
@@ -317,15 +318,17 @@ export const onMessageListener = async () => {
           });
           store.dispatch({
             type: "REC_CHA",
-            payload: parseInt(JSON.parse(payload.data.message).channel.id),
+            payload: parseInt(JSON.parse(payload.data.data).message.channel.id),
           });
           if (
             parseInt(store?.getState()?.chat?.activeChat?.id) ===
-            parseInt(JSON.parse(payload?.data.message)?.channel?.id)
+            parseInt(JSON.parse(payload?.data.data)?.message?.channel?.id)
           ) {
             store.dispatch({
               type: "WATCH_CHANNEL",
-              payload: parseInt(JSON.parse(payload.data.message)?.channel?.id),
+              payload: parseInt(
+                JSON.parse(payload.data.data)?.message?.channel?.id
+              ),
             });
           } else {
             let active = store?.getState()?.chat?.activeChat;
@@ -345,8 +348,11 @@ export const onMessageListener = async () => {
           store.dispatch({
             type: "SEND-MESSAGE",
             payload: {
-              act: JSON.parse(payload.data.message).channel,
-              message: { ...JSON.parse(payload.data.message), channel: null },
+              act: JSON.parse(payload.data.data)?.message?.channel,
+              message: {
+                ...JSON.parse(payload.data.data).message,
+                channel: null,
+              },
             },
           });
 
