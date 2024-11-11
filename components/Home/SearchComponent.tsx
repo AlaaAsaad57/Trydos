@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { ChangeEvent, useEffect } from "react";
 import { caseCheck, onClickSearchHistory } from "utils/functions";
 import home from "services/home";
-import useDebounce from "Hooks/useDebounce";
+import { DebounceInput } from "react-debounce-input";
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next-nprogress-bar";
@@ -153,7 +153,9 @@ function SearchComponent({
   return (
     <div className="search-component-container flex-row">
       <div className={`search-input-parent ${focus && "focuse"}`}>
-        <input
+        <input />
+        <DebounceInput
+          minLength={2}
           className="search-input"
           placeholder="Search"
           onFocus={() => setFocuse(true)}
@@ -175,8 +177,8 @@ function SearchComponent({
           onChange={(e) => {
             onChange(e);
           }}
+          debounceTimeout={400}
         />
-
         <div className="predicted-word hidden">
           {searchValue.length > 0 &&
             searchValue.length < 30 &&

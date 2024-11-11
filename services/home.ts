@@ -95,7 +95,7 @@ class HomeService {
     }
   }
   async CheckLogin() {
-    await this.RegisterDevice();
+    if (!localStorage.getItem("FB-DEVICE-TOKEN")) await this.RegisterDevice();
     if (
       SSRDetect() &&
       localStorage.getItem("USER") &&
@@ -121,20 +121,6 @@ class HomeService {
     }
   }
   async RegisterDevice() {
-    if (!localStorage.getItem("FB-DEVICE-TOKEN")) {
-      await requestFirebaseNotificationPermission().then(async (token) => {
-        // @ts-ignore
-        localStorage.setItem("FB-DEVICE-TOKEN", token);
-        await axios.post(
-          process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
-          {
-            device_token: token,
-            user_id: UserID(),
-            auth_token: UserToken(),
-          }
-        );
-      });
-    }
     if (!Cookies.get("DEVICE-TOKEN") && localStorage.getItem("DEVICE-TOKEN")) {
       Cookies.set("DEVICE-TOKEN", localStorage.getItem("DEVICE-TOKEN"), {
         expires: 365,
@@ -170,6 +156,20 @@ class HomeService {
         _isStoreLastJson() &&
           localStorage.setItem("LAST_JSON", JSON.stringify(repo));
       }
+    }
+    if (!localStorage.getItem("FB-DEVICE-TOKEN")) {
+      await requestFirebaseNotificationPermission().then(async (token) => {
+        // @ts-ignore
+        localStorage.setItem("FB-DEVICE-TOKEN", token);
+        await axios.post(
+          process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
+          {
+            device_token: token,
+            user_id: UserID(),
+            auth_token: UserToken(),
+          }
+        );
+      });
     }
     setTimeout(() => {
       this.getClientData();
