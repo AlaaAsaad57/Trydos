@@ -1,7 +1,7 @@
 import { useParams, useSearchParams } from "next/navigation";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { filterProducts, UpdateFilter } from "utils/functions";
+import { filterProducts, Sendevent, UpdateFilter } from "utils/functions";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 
 function ColorCircle({ color }) {
@@ -17,6 +17,14 @@ function ColorCircle({ color }) {
   );
   const selectCategory = (e) => {
     dispatch({ type: "FILTER-COLOR", payload: e });
+    Sendevent({
+      event: "button_clicked",
+      value: "add_filter_button",
+      extra: {
+        type: "color",
+        name: e.name,
+      },
+    });
     dispatch({ type: "FILTER-LOADING", payload: true });
     UpdateFilter({
       boutiqueId: pathName.productCategory,

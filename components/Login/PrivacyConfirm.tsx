@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { translate } from "utils/functions";
+import { Sendevent, translate } from "utils/functions";
 import ConditionIcon from "public/svg/ConditionIcon.svg";
 
 import { useTransition, animated } from "react-spring";
@@ -70,7 +70,13 @@ function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
               <div
                 className="login-button"
                 data-testid="Agree Terms"
-                onClick={() => setStepIndicator(2)}
+                onClick={() => {
+                  Sendevent({
+                    event: "button_clicked",
+                    value: "agree_continue_button",
+                  });
+                  setStepIndicator(2);
+                }}
                 style={{
                   position: "relative",
                   marginTop: "58px",

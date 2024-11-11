@@ -1,6 +1,6 @@
 "use client";
 import { ProductInterface } from "models/product";
-import React from "react";
+import React, { useEffect } from "react";
 import "styles/product-body.css";
 import EyeIcon from "public/svg/product/EyeIcon.svg";
 import ProductDetailsText from "./ProductDetailsText";
@@ -15,11 +15,22 @@ import FreeReturnOption from "./FreeReturnOption";
 import FreeShippingOption from "./FreeShippingOption";
 import { useSelector } from "react-redux";
 import Skeleton from "react-loading-skeleton";
+import { Sendevent } from "utils/functions";
 
 function ProuctDetailsBody({ product }: { product: ProductInterface }) {
   const SelectedProduct = useSelector(
     (state: any) => state.cart.SelectedProduct
   );
+  useEffect(() => {
+    Sendevent({
+      event: "viewed_product",
+      extra: {
+        product_name: product.name,
+        product_id: product.id,
+        product_categories: product.categories.map((s) => s.id),
+      },
+    });
+  }, []);
   return (
     <div className="product-details-body flex-row relative">
       <div className="view-count absolute flex-row align-center">

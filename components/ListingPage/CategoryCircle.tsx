@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import SubCategoryCircle from "./SubCategoryCircle";
 import { useDispatch, useSelector } from "react-redux";
-import { filterProducts, UpdateFilter } from "utils/functions";
+import { filterProducts, Sendevent, UpdateFilter } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
 function CategoryCircle({ category }) {
   const selectedFilter = useSelector(
@@ -16,6 +16,14 @@ function CategoryCircle({ category }) {
   const pathName = useParams();
   const params = useSearchParams();
   const selectCategory = (e) => {
+    Sendevent({
+      event: "button_clicked",
+      value: "add_filter_button",
+      extra: {
+        type: "category",
+        name: e.name,
+      },
+    });
     if (
       selectedFilter.categories.filter((s) =>
         category.childes.map((sub) => sub.slug).includes(s.slug)

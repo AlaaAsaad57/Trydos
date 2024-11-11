@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import "styles/popup.css";
 import Link from "next/link";
+import { Sendevent } from "./functions";
+import { event } from "node_modules/cypress/types/jquery";
 
 const PopupCountry = ({ options, countries }) => {
   const [localization, setLocalization] = useState({
@@ -60,6 +62,10 @@ const PopupCountry = ({ options, countries }) => {
           id="country"
           value={selectedCountry}
           onChange={(e) => {
+            Sendevent({
+              event: "button_clicked",
+              value: "choose_country_and_continue_button",
+            });
             setSelectedCountry(e.target.value);
           }}
           className={`w-full disabled:bg-gray-300 py-3.5 flex items-center justify-start bg-white text-sm text-gray-500

@@ -42,7 +42,7 @@ function NewLoginWidget() {
     if (loginOpen) {
       Sendevent({
         event: "button_clicked",
-        value: "Open Login Widget",
+        value: "Open_Login_Widget",
         category: "button_clicked",
       });
     }
@@ -62,18 +62,11 @@ function NewLoginWidget() {
       Username: "",
       verificationID: verficationID,
       errorCallback: (e) => {
-        if (operation === "signup")
-          Sendevent({
-            event: "button_clicked",
-            category: "auth",
-            value: "signup failed",
-          });
-        else
-          Sendevent({
-            event: "button_clicked",
-            category: "auth",
-            value: "login failed",
-          });
+        Sendevent({
+          event: "programming_clicked",
+          value: "otp_failed_event",
+        });
+
         setFailed(true);
         setTimeout(() => {
           setPins("");
@@ -88,11 +81,16 @@ function NewLoginWidget() {
         setTimeout(() => {
           if (operation === "signup") {
             Sendevent({
-              event: "button_clicked",
-              category: "auth",
-              value: "signup success",
+              event: "programming_clicked",
+
+              value: "verify_otp_signup_success_event",
             });
             if (exists && name.length > 1) {
+              Sendevent({
+                event: "programming_clicked",
+
+                value: "user_already_exists_event",
+              });
               setSignStep("alreadyExists");
               setStepIndicator(6);
             } else if (exists && !(name.length > 1)) {
@@ -104,12 +102,12 @@ function NewLoginWidget() {
               setStepIndicator(7);
             }
           } else {
-            Sendevent({
-              event: "button_clicked",
-              category: "auth",
-              value: "login success",
-            });
             if (exists && name.length > 1) {
+              Sendevent({
+                event: "programming_clicked",
+
+                value: "verify_otp_signin_success_event",
+              });
               FinaliseLogin();
               setSignStep("welcomeLogin");
               setStepIndicator(6);
@@ -117,6 +115,11 @@ function NewLoginWidget() {
               setStepIndicator(7);
             }
             if (!exists) {
+              Sendevent({
+                event: "programming_clicked",
+
+                value: "phone_number_not_registered_event",
+              });
               setSignStep("notFound");
               setStepIndicator(6);
             }
@@ -163,8 +166,7 @@ function NewLoginWidget() {
         onClick={() => {
           Sendevent({
             event: "button_clicked",
-            category: "button_clicked",
-            value: "close login widget",
+            value: "later_take_look_button",
           });
           setLoginOpen(false);
         }}
@@ -240,6 +242,10 @@ function NewLoginWidget() {
                 data-testid="have-account-button"
                 className="login-button"
                 onClick={() => {
+                  Sendevent({
+                    event: "button_clicked",
+                    value: "i_have_already_account_button",
+                  });
                   if (window.innerWidth > 912) {
                     setShowMethods(!showMethods);
                     setOperation("login");
@@ -263,6 +269,10 @@ function NewLoginWidget() {
                 data-testid="create-account-button"
                 className="login-button"
                 onClick={() => {
+                  Sendevent({
+                    event: "button_clicked",
+                    value: "create_new_account_button",
+                  });
                   setStepIndicator(1);
                   setOperation("signup");
                 }}
@@ -379,7 +389,7 @@ function NewLoginWidget() {
               Sendevent({
                 event: "button_clicked",
                 category: "button_clicked",
-                value: "close login widget",
+                value: "later_take_look_button",
               });
             }}
             setStepIndactor={(e) => setStepIndicator(e)}
@@ -426,13 +436,18 @@ function NewLoginWidget() {
               Sendevent({
                 event: "button_clicked",
                 category: "button_clicked",
-                value: "close login widget",
+                value: "later_take_look_button",
               });
             }}
           >
             {" "}
             <svg
               onClick={() => {
+                Sendevent({
+                  event: "button_clicked",
+                  category: "button_clicked",
+                  value: "later_take_look_button",
+                });
                 AuthService.cancelAuth();
                 setLoginOpen(false);
               }}

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
-import { translate } from "utils/functions";
+import { Sendevent, translate } from "utils/functions";
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 
@@ -264,6 +264,10 @@ function InputName({
               //   (e) => setStepIndicator(e),
               //   stepIndicator === 3
               // );
+              Sendevent({
+                event: "button_clicked",
+                value: "confirm_name_button",
+              });
               submit();
             }}
           >

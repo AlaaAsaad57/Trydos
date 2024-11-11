@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import ChatIcon from "public/svg/ChatIcon.svg";
-import { translate } from "utils/functions";
+import { Sendevent, translate } from "utils/functions";
 import UserAvatar from "./UserAvatar";
 import { ChatConroller } from "store/chat/actions";
 import { getNew } from "components/Chat/chatsFunctions";
@@ -30,6 +30,10 @@ function AuthNavSection() {
               !chatVar && getNew(chats).length > 0 && "translateY(-1px)",
           }}
           onClick={() => {
+            Sendevent({
+              event: "button_clicked",
+              value: "chat_nav_bar_button",
+            });
             dispatch(ChatConroller(true));
           }}
         >
@@ -51,6 +55,10 @@ function AuthNavSection() {
       </div>
       <UserAvatar
         onClick={() => {
+          Sendevent({
+            event: "button_clicked",
+            values: "me_nav_bar_button",
+          });
           localStorage.clear();
           window.location.reload();
         }}

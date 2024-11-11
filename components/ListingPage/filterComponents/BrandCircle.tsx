@@ -3,7 +3,7 @@ import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
 
 import { useParams, useSearchParams } from "next/navigation";
-import { filterProducts, UpdateFilter } from "utils/functions";
+import { filterProducts, Sendevent, UpdateFilter } from "utils/functions";
 function BrandCircle({ brand }) {
   const selectedFilter = useSelector(
     (state: any) => state.details.selectedFilter
@@ -16,6 +16,14 @@ function BrandCircle({ brand }) {
   );
   const dispatch = useDispatch();
   const selectCategory = (e) => {
+    Sendevent({
+      event: "button_clicked",
+      value: "add_filter_button",
+      extra: {
+        type: "brand",
+        name: e.name,
+      },
+    });
     dispatch({ type: "FILTER-BRAND", payload: e });
     dispatch({ type: "FILTER-LOADING", payload: true });
     UpdateFilter({

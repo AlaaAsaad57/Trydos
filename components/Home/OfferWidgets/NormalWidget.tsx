@@ -1,6 +1,6 @@
 "use client";
 import OfferSlideItem from "./OfferSlideItem";
-import { encode_utf8, getConfiguredImage } from "utils/functions";
+import { encode_utf8, getConfiguredImage, Sendevent } from "utils/functions";
 import OfferAvatars from "./OfferAvatars";
 
 import Image from "next/image";
@@ -36,8 +36,10 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           // @ts-ignore: Unreachable code error
           !e.target.closest(".offer-category")
         ) {
-          // router.push(`/boutiques/${boutique.slug}`);
-          // dispatchRouteChangeEvent("start", { to: "boutique" });
+          Sendevent({
+            event: "button_clicked",
+            value: "choose_boutique_button",
+          });
         } else {
           e.preventDefault();
           e.stopPropagation();

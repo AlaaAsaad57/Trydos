@@ -3,7 +3,7 @@ import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
 
 import { useParams, useSearchParams } from "next/navigation";
-import { filterProducts, UpdateFilter } from "utils/functions";
+import { filterProducts, Sendevent, UpdateFilter } from "utils/functions";
 
 function SizeCircle({ text }: { text: string }) {
   const selectedFilter = useSelector(
@@ -17,6 +17,14 @@ function SizeCircle({ text }: { text: string }) {
   );
   const selectCategory = (e) => {
     dispatch({ type: "FILTER-LOADING", payload: true });
+    Sendevent({
+      event: "button_clicked",
+      value: "add_filter_button",
+      extra: {
+        type: "size",
+        name: e,
+      },
+    });
     dispatch({ type: "FILTER-SIZE", payload: e });
     UpdateFilter({
       boutiqueId: pathName.productCategory,

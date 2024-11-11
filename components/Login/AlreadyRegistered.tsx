@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
 import { useSelector } from "react-redux";
-import { translate } from "utils/functions";
+import { Sendevent, translate } from "utils/functions";
 import AuthService from "services/auth";
 function AlreadyRegistered({
   inputValue,
@@ -160,6 +160,10 @@ function AlreadyRegistered({
           className="login-button"
           onClick={() => {
             if (user.name.length > 1) {
+              Sendevent({
+                event: "button_clicked",
+                value: "login_continue_button",
+              });
               setStepSign("welcomeLogin");
               setStepIndicator(6);
               FinaliseLogin();

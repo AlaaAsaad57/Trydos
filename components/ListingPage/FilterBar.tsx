@@ -14,6 +14,7 @@ import {
   filterProducts,
   getListingDataFilters,
   normalizeView,
+  Sendevent,
   UpdateFilter,
 } from "utils/functions";
 import FloatingInfoBar from "./filterComponents/FloatingInfoBar";
@@ -144,7 +145,10 @@ function FilterBar({ boutique, filters, productsServer }) {
           onClick={() => {
             if (!filterEnabled) {
               // router.push(`/`);
-
+              Sendevent({
+                event: "button_clicked",
+                value: "back_app_button",
+              });
               dispatch({ type: "RESET-FILTERS" });
 
               // dispatchRouteChangeEvent("start", {
@@ -196,6 +200,10 @@ function FilterBar({ boutique, filters, productsServer }) {
               "w-[75%] [&>input]:w-full [&>input]:bg-[#f8f8f8] [&>input]:h-[40px]"
             }`}
             onClick={() => {
+              Sendevent({
+                event: "button_clicked",
+                value: "open_search_field_button",
+              });
               document
                 .querySelector<HTMLInputElement>("#filter-search")
                 ?.focus();
@@ -287,8 +295,16 @@ function FilterBar({ boutique, filters, productsServer }) {
               setEnableFilter(!filterEnabled);
 
               if (filterEnabled) {
+                Sendevent({
+                  event: "button_clicked",
+                  value: "filter_close_icon_button",
+                });
                 normalizeView();
               } else {
+                Sendevent({
+                  event: "button_clicked",
+                  value: "product_listing_filter_icon_button",
+                });
                 expandView({ filter: true });
                 window.scrollTo({ top: 0 });
               }

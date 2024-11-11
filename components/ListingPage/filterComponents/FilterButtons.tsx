@@ -7,7 +7,12 @@ import {
 } from "next/navigation";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { filterProducts, normalizeView, UpdateFilter } from "utils/functions";
+import {
+  filterProducts,
+  normalizeView,
+  Sendevent,
+  UpdateFilter,
+} from "utils/functions";
 
 function FilterButtons() {
   const loading = useSelector((state: any) => state.details.loading);
@@ -145,6 +150,10 @@ function FilterButtons() {
               className={`apply-button flex-row`}
               onClick={() => {
                 if (!loading) {
+                  Sendevent({
+                    event: "button_clicked",
+                    value: "apply_filter_button",
+                  });
                   dispatch({ type: "APPLY-SELECTED" });
                   dispatch({ type: "PRODUCT_LOADING" });
                   dispatch({ type: "RESET_LISTING_FILTER" });
@@ -196,6 +205,10 @@ function FilterButtons() {
             <div
               className="reset-button flex-row"
               onClick={() => {
+                Sendevent({
+                  event: "button_clicked",
+                  value: "reset_button",
+                });
                 dispatch({ type: "RESET-SELECTED" });
                 dispatch({ type: "FILTER-LOADING", payload: true });
                 UpdateFilter({

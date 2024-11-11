@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import PinInput from "react-pin-input";
 import { useSelector } from "react-redux";
-import { translate } from "utils/functions";
+import { Sendevent, translate } from "utils/functions";
 import Timer from "./Timer";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
@@ -409,13 +409,26 @@ function LogInPins({
                   <Timer
                     onResume={() => setDisabled(false)}
                     onFinish={() => {
+                      Sendevent({
+                        event: "programming_event",
+                        value: "timer_has_expired_event",
+                      });
                       setDisabled(true);
                     }}
                   />
                 </span>
               ) : (
                 <>
-                  <span className="blue-text" onClick={() => resend()}>
+                  <span
+                    className="blue-text"
+                    onClick={() => {
+                      Sendevent({
+                        event: "button_clicked",
+                        value: "resend_otp_button",
+                      });
+                      resend();
+                    }}
+                  >
                     {translate("Resend Code", language)}
                   </span>
                   <span className="blue-text" style={{ color: "#5d5d5d" }}>

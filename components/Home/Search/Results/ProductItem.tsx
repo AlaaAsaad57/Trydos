@@ -1,7 +1,7 @@
 import { dispatchRouteChangeEvent } from "Hooks/events";
 import NextLink from "Hooks/NextLink";
 import React from "react";
-import { getConfiguredImage } from "utils/functions";
+import { getConfiguredImage, Sendevent } from "utils/functions";
 
 function ProductItem({ product, onClick }) {
   return (
@@ -11,6 +11,10 @@ function ProductItem({ product, onClick }) {
       onClick={(e, bool = false) => {
         /* @ts-ignore*/
         onClick(product.name);
+        Sendevent({
+          event: "choose_product_button",
+          value: "choose",
+        });
         dispatchRouteChangeEvent("start", { to: "products" });
         document.documentElement.style.overflow = "hidden";
         document.documentElement.scrollTop = 0;

@@ -3,7 +3,12 @@ import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
 
 import { useParams, useSearchParams } from "next/navigation";
-import { filterProducts, RoundPrice, UpdateFilter } from "utils/functions";
+import {
+  filterProducts,
+  RoundPrice,
+  Sendevent,
+  UpdateFilter,
+} from "utils/functions";
 
 function SizeCircle({
   text,
@@ -26,11 +31,27 @@ function SizeCircle({
     let { min_price, max_price } = e;
 
     dispatch({ type: "FILTER-LOADING", payload: true });
+    Sendevent({
+      event: "button_clicked",
+      value: "add_filter_button",
+      extra: {
+        type: "price",
+        name: `${Math.round(min_price)} - ${Math.round(max_price)}`,
+      },
+    });
     dispatch({
       type: "FILTER-PRICE",
       payload: {
         min: Math.round(min_price),
         max: Math.round(max_price),
+      },
+    });
+    Sendevent({
+      event: "button_clicked",
+      value: "add_filter_button",
+      extra: {
+        type: "price",
+        name: `${min_price} - ${max_price}`,
       },
     });
     dispatch({

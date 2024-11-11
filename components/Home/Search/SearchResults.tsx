@@ -4,7 +4,7 @@ import ProductItem from "./Results/ProductItem";
 import BrandItem from "./Results/BrandItem";
 import CategoryItem from "./Results/CategoryItem";
 import BoutiqueItem from "./Results/BoutiqueItem";
-import { onClickSearchHistory } from "utils/functions";
+import { onClickSearchHistory, Sendevent } from "utils/functions";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next-nprogress-bar";
 
@@ -62,6 +62,10 @@ function SearchResults() {
     router.push(`/boutiques/listing?${params.toString()}`);
   };
   const apply = () => {
+    Sendevent({
+      event: "button_clicked",
+      value: "apply_home_search_result_button",
+    });
     onClickSearchHistory(searchValue || "");
     handleSearch(searchFilters);
     dispatchRouteChangeEvent("start", { to: "boutique" });
@@ -102,6 +106,10 @@ function SearchResults() {
     }
   }, [searchResults]);
   const reset = () => {
+    Sendevent({
+      event: "button_clicked",
+      value: "reset_home_search_button",
+    });
     dispatch({ type: "RESET-SEARCH-FILTER" });
     setLoading(true);
     dispatch({ type: "SEARCH-WORD", payload: "" });
@@ -166,6 +174,14 @@ function SearchResults() {
                   brand={brand}
                   key={index}
                   onClick={() => {
+                    Sendevent({
+                      event: "button_clicked",
+                      value: "add_filter_button",
+                      extra: {
+                        type: "brand",
+                        name: brand.name,
+                      },
+                    });
                     dispatch({ type: "SEARCH-BRAND", payload: brand });
                     updateFiltersApi();
                   }}
@@ -189,6 +205,14 @@ function SearchResults() {
                   category={category}
                   key={index}
                   onClick={(e) => {
+                    Sendevent({
+                      event: "button_clicked",
+                      value: "add_filter_button",
+                      extra: {
+                        type: "category",
+                        name: category.name,
+                      },
+                    });
                     dispatch({
                       type: "SEARCH-CATEGORY",
                       payload: e,
@@ -214,6 +238,14 @@ function SearchResults() {
                   boutique={boutique}
                   key={index}
                   onClick={() => {
+                    Sendevent({
+                      event: "button_clicked",
+                      value: "add_filter_button",
+                      extra: {
+                        type: "boutique",
+                        name: boutique.name,
+                      },
+                    });
                     dispatch({
                       type: "SEARCH-BOUTIQUE",
                       payload: boutique,

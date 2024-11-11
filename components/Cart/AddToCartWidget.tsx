@@ -6,6 +6,7 @@ import {
   AddToCartAnimation,
   getConfiguredImage,
   getLang,
+  Sendevent,
 } from "utils/functions";
 import Cookies from "js-cookie";
 import AddToCartButton from "components/products/AddToCartButton";
@@ -175,6 +176,10 @@ const SelectColor = ({ close }) => {
         <CartIcon
           className="cart-icon"
           onClick={() => {
+            Sendevent({
+              event: "button_clicked",
+              value: "cart_nav_bar_button",
+            });
             close();
             enableCart(true);
           }}

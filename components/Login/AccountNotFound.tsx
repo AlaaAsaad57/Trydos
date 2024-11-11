@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
 import { useSelector } from "react-redux";
-import { translate } from "utils/functions";
+import { Sendevent, translate } from "utils/functions";
 import AuthService from "services/auth";
 function AccountNotFound({
   inputValue,
@@ -161,7 +161,13 @@ function AccountNotFound({
       <div className="login-button-group">
         <div
           className="login-button"
-          onClick={() => setStepIndicator(7)}
+          onClick={() => {
+            Sendevent({
+              event: "button_clicked",
+              value: "create_new_account_continue_button",
+            });
+            setStepIndicator(7);
+          }}
           style={{
             position: "relative",
             marginTop: "50px",

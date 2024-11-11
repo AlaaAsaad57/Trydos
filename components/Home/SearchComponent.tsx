@@ -3,7 +3,7 @@ import CloseIcon from "public/svg/CloseIcon.svg";
 import SearchCloseIcon from "public/svg/SearchCloseIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { ChangeEvent, useEffect } from "react";
-import { caseCheck, onClickSearchHistory } from "utils/functions";
+import { caseCheck, onClickSearchHistory, Sendevent } from "utils/functions";
 import home from "services/home";
 import { DebounceInput } from "react-debounce-input";
 import { dispatchRouteChangeEvent } from "Hooks/events";
@@ -195,6 +195,10 @@ function SearchComponent({
           <SearchCloseIcon
             onClick={() => {
               if (searchValue.length > 0) {
+                Sendevent({
+                  event: "button_clicked",
+                  value: "reset_home_search_button",
+                });
                 setLoading(true);
                 dispatch({ type: "SEARCH-WORD", payload: "" });
 
@@ -214,6 +218,11 @@ function SearchComponent({
                   },
                 });
               } else {
+                Sendevent({
+                  event: "button_clicked",
+                  value: "search_close_icon_button",
+                });
+
                 close();
                 dispatch({ type: "SEARCH-WORD", payload: "" });
                 setFocuse(false);
@@ -227,6 +236,11 @@ function SearchComponent({
             <SearchImage
               setSearchValue={(e) => {
                 if (e?.length > 0) {
+                  Sendevent({
+                    event: "button_clicked",
+                    value: "search_with_image_button",
+                  });
+
                   dispatch({ type: "SEARCH-WORD", payload: e });
                   dispatch({ type: "SEARCH-LOADING", payload: true });
                   home.UpdateFilters({
@@ -251,6 +265,11 @@ function SearchComponent({
             <SearchVoice
               setSearchValue={(e) => {
                 if (e?.length > 0) {
+                  Sendevent({
+                    event: "button_clicked",
+                    value: "search_with_voice_button",
+                  });
+
                   dispatch({ type: "SEARCH-WORD", payload: e });
                   dispatch({ type: "SEARCH-LOADING", payload: true });
                   home.UpdateFilters({

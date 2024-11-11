@@ -41,8 +41,10 @@ function CategoryNavMobile({
         setActive(slug);
         Sendevent({
           event: "button_clicked",
-          category: "button_clicked",
-          value: `${name} category filter`,
+          value: `choose_category_button`,
+          extra: {
+            category: slug,
+          },
         });
       }}
     >

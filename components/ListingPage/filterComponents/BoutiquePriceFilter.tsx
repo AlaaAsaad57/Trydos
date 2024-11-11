@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { RoundPrice, UpdateFilter } from "utils/functions";
+import { RoundPrice, Sendevent, UpdateFilter } from "utils/functions";
 const PriceChart = dynamic(() => import("./PriceChart"), {
   ssr: false,
 });
@@ -30,6 +30,16 @@ function BoutiquePriceFilter() {
       return;
     } else if (e.min < e.max) {
       dispatch({ type: "FILTER-LOADING", payload: true });
+      Sendevent({
+        event: "button_clicked",
+        value: "add_filter_button",
+        extra: {
+          type: "price",
+          name: `${e.min / currency?.exchange_rate} - ${
+            e.max / currency?.exchange_rate
+          }`,
+        },
+      });
       dispatch({
         type: "FILTER-PRICE",
         payload: {

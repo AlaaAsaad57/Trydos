@@ -8,7 +8,7 @@ import BoutiqueBrandFilter from "./filterComponents/BoutiqueBrandFilter";
 import BoutiqueOfferFilter from "./filterComponents/BoutiqueOfferFilter";
 import BoutiquePriceFilter from "./filterComponents/BoutiquePriceFilter";
 import BoutiqueSizeFilter from "./filterComponents/BoutiqueSizeFilter";
-import { expandView, normalizeView } from "utils/functions";
+import { expandView, normalizeView, Sendevent } from "utils/functions";
 import FilterButtons from "./filterComponents/FilterButtons";
 import FilterComponentLoader from "./filterComponents/FilterComponentLoader";
 import {
@@ -82,6 +82,16 @@ function BoutiqueHeader({ boutique, showFilters }) {
 
   const dispatch = useDispatch();
   useEffect(() => {
+    if (boutique) {
+      console.log(boutique);
+      Sendevent({
+        event: "viewed_boutique",
+        extra: {
+          boutique_name: boutique.name,
+          boutique_id: boutique.id,
+        },
+      });
+    }
     dispatch({ type: "enable-handling-filter" });
   }, []);
   const activeFiltersShouldUpdate = useSelector(

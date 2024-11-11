@@ -5,7 +5,7 @@ import BuyButton from "./BuyButton";
 import NextLink from "Hooks/NextLink";
 import { ProductInterface } from "models/product";
 import { useDispatch, useSelector } from "react-redux";
-import { RoundPrice } from "utils/functions";
+import { RoundPrice, Sendevent } from "utils/functions";
 import dynamic from "next/dynamic";
 import CoverEffectSlider from "./CoverEffectSlider";
 const PriceLabel = dynamic(() => import("./PriceLabel"), {
@@ -121,6 +121,10 @@ function Product({
           ) {
             return false;
           } else {
+            Sendevent({
+              event: "button_clicked",
+              values: "choose_product_button",
+            });
             setTimeout(() => {
               if (document.querySelector("#nprogress"))
                 // @ts-ignore

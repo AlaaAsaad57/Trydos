@@ -2,7 +2,12 @@
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { store } from "./index";
 import GAComponent from "components/global/GAComponent";
-import { expandView, normalizeView, SSRDetect } from "utils/functions";
+import {
+  expandView,
+  normalizeView,
+  Sendevent,
+  SSRDetect,
+} from "utils/functions";
 import { ReactQueryClientProvider } from "components/Providers/ReactQueryClientProvider";
 import Init from "components/Home/Init";
 import { toast } from "react-toastify";
@@ -67,7 +72,19 @@ const CartProvider = () => {
   const cartEnable = useSelector((state) => state.cart.enable);
   return (
     <>
-      {cartEnable ? <CartContainer close={() => enableCart(false)} /> : <></>}
+      {cartEnable ? (
+        <CartContainer
+          close={() => {
+            Sendevent({
+              event: "button_clicked",
+              value: "appbar_backicon_button",
+            });
+            enableCart(false);
+          }}
+        />
+      ) : (
+        <></>
+      )}
     </>
   );
 };

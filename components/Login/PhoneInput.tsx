@@ -10,7 +10,7 @@ import LoginIcon from "public/svg/LoginIcon.svg";
 import BlueCall from "public/svg/BlueCall.svg";
 import PrivacyIcon from "public/svg/privacyicon.svg";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
-import { translate } from "utils/functions";
+import { Sendevent, translate } from "utils/functions";
 
 const { flag } = require("country-emoji");
 
@@ -423,11 +423,10 @@ function PhoneInput({
               data-testid="phone-arrow"
               className="phone-arrow"
               onClick={() => {
-                // AuthService.CheckPhone(
-                //   inputValue,
-                //   (e) => setStepIndicator(e), // not do anything
-                //   stepIndicator === 3
-                // );
+                Sendevent({
+                  event: "button_clicked",
+                  value: "confirm_phone_number_button",
+                });
                 setStepIndicator(4);
               }}
             >

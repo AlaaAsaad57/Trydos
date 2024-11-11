@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { translate } from "utils/functions";
+import { Sendevent, translate } from "utils/functions";
 import WAIcon from "public/svg/WAIcon.svg";
 import MessageIcon from "public/svg/MessageIcon.svg";
 import { useAuthHooks } from "Hooks/AuthHooks";
@@ -239,6 +239,10 @@ function SendMethod({
               setMessageMethod("WA");
               SendCodeRequest("1");
               setStepIndicator(5);
+              Sendevent({
+                event: "button_clicked",
+                value: "choose_whatsapp_button",
+              });
               // AuthService.SendOtp(inputValue, 1, (e) => {
               //   setStepHeight(e);
               // });
@@ -289,6 +293,10 @@ function SendMethod({
               setMessageMethod("SMS");
               setStepIndicator(5);
               SendCodeRequest("0");
+              Sendevent({
+                event: "button_clicked",
+                value: "choose_sms_button",
+              });
               // AuthService.SendOtp(inputValue, 0, (e) => {
               //   setStepHeight(e);
               // });
