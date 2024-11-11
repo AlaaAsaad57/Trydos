@@ -34,7 +34,7 @@
 .lang-modalDisable {
   content: "";
   position: fixed;
-  z-index: 999999999999999999998;
+  z-index: 9999999999998;
   width: 100vw;
   height: 100vh;
 }
