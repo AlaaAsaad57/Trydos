@@ -68,6 +68,7 @@ function WebviewCall() {
         }
       }
     } catch (error) {
+      console.error(error);
       setData({ ...data, error: error.message });
     }
   };
