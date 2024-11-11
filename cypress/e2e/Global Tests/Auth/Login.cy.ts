@@ -6,7 +6,7 @@ describe.only("Login Scenario Test", () => {
       return false;
     });
     cy.clearAllCookies();
-    cy.visit("/");
+    cy.Visit("/");
 
     cy.get("#country").select("TR");
     cy.wait(5000);
@@ -19,7 +19,6 @@ describe.only("Login Scenario Test", () => {
       count += 1;
     });
 
-    cy.visit("/", {});
     cy.clearAllCookies();
     cy.clearAllLocalStorage();
     cy.clearAllSessionStorage();

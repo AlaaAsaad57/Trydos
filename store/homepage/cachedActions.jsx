@@ -151,7 +151,6 @@ export const getMainCategories = async ({ lang }) => {
       response: repo,
       request: "Get Categories Navbar",
     };
-    console.log(repo.data);
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
       return [repo.data.mainCategories, returned_res];
     else return [repo.data.mainCategories, {}];

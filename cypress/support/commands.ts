@@ -35,3 +35,12 @@
 //     }
 //   }
 // }
+Cypress.Commands.add("Visit", function (url: string) {
+  cy.visit(url, {
+    onBeforeLoad(win) {
+      // @ts-ignore
+      cy.stub(win.Notification, "permission", "granted");
+      cy.stub(win, "Notification").as("Notification");
+    },
+  });
+});

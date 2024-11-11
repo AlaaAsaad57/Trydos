@@ -17,7 +17,6 @@ function SelectSize({ sizes, variants }) {
 
   const setActive = (e) => {
     dispatch({ type: "AddToCartSize", payload: e });
-    console.log(getVariants(e.name));
   };
   const getVariants = (e?: any | undefined | null) => {
     console.log();

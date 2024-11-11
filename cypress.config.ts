@@ -23,8 +23,7 @@ export default defineConfig({
       // implement node event listeners here
     },
     // baseUrl: "http://127.0.0.1:3000",
-    baseUrl:
-      "https://trydos-front-git-development-trydos-front-team.vercel.app",
+    baseUrl: "http://localhost:3000",
     testIsolation: false,
     env: {
       browserPermissions: {

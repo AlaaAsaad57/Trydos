@@ -25,7 +25,7 @@ const ListingReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         products: payload?.products ?? [],
-        offset: payload.offset,
+        offset: payload?.offset,
         limit: 4,
         loading: false,
         skeleton: false,
@@ -54,6 +54,13 @@ const ListingReducer = (state = initialState, { type, payload }) => {
         ],
         offset: payload.offset,
         isReachEnd: payload.products.length === 0,
+        loading: false,
+      };
+    }
+    case "GET_NEXT_PRODUCT_ERROR": {
+      return {
+        ...state,
+
         loading: false,
       };
     }

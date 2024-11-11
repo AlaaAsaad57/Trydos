@@ -262,8 +262,11 @@ class HomeService {
       }
     ).then(async (data) => {
       let repo = await data.json();
-      console.log(repo);
-      store.dispatch({ type: "GET_NEXT_PRODUCT", payload: repo.data });
+      if (repo.data?.products)
+        store.dispatch({ type: "GET_NEXT_PRODUCT", payload: repo.data });
+      else {
+        store.dispatch({ type: "GET_NEXT_PRODUCT_ERROR" });
+      }
     });
   }
   async SearchProducts({ search_text, searchFilters, callback }) {
@@ -390,7 +393,6 @@ class HomeService {
       }
       // @ts-ignore
       dataBody = dataBody.join("&");
-      console.log(dataObj);
       const res = await axios.post(
         process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
         dataBody,
@@ -417,7 +419,6 @@ class HomeService {
     } else {
       const imageVar = image.split("/")[image.split("/").length - 1];
       let details = { id, color, image: imageVar, quantity, choice_1: size };
-      console.log(details);
       let formBody = [];
       for (var property in details) {
         if (details[property]) {

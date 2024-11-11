@@ -44,6 +44,5 @@ export const AxiosCacheApi = async ({
 
     id: url,
   });
-  console.log(res);
   return res.data;
 };
