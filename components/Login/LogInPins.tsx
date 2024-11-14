@@ -558,7 +558,7 @@ function LogInPins({
           )}
         </div>
         {wrongNumber && (
-          <span className="lgiht-text">
+          <span className="light-text error-login-text">
             {translate(
               "Please Enter The Correct Code Sent To Your Phone",
               language
@@ -566,7 +566,7 @@ function LogInPins({
           </span>
         )}
         {expired && (
-          <span className="lgiht-text justify-center">
+          <span className="light-text justify-center">
             {translate("The Code Sent Has Expired", language)}
           </span>
         )}
