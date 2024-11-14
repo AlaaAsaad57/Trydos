@@ -59,7 +59,7 @@ function PhoneInput({
   const handleInput = (e) => {
     setWrongNumber(false);
     let pattern = null;
-    let country = getCountry();
+    let country = getCountry(e.target.value);
     if (country) {
       pattern = replaceString(country.format || "", ".", "x");
 
@@ -74,6 +74,7 @@ function PhoneInput({
       disallowCharacters: [/[a-z]/],
     });
     setInputValue(data.plaintext);
+    console.log(data.plaintext, pattern);
     if (
       data.plaintext.length ===
       pattern?.split("").filter((letter) => letter === "x").length
@@ -86,15 +87,15 @@ function PhoneInput({
     e.target.value = data.marshaltext;
   };
   const [validNumber, setValidNumber] = useState(false);
-  const getCountry = () => {
+  const getCountry = (text) => {
     return allCountries.filter((countryItem) =>
-      inputValue.startsWith(countryItem.dialCode)
+      (text || inputValue).startsWith(countryItem.dialCode)
     ).length === 1
       ? allCountries.filter((countryItem) =>
-          inputValue.startsWith(countryItem.dialCode)
+          (text || inputValue).startsWith(countryItem.dialCode)
         )[0]
       : allCountries.filter((countryItem) =>
-          inputValue.startsWith(countryItem.dialCode)
+          (text || inputValue).startsWith(countryItem.dialCode)
         )[0];
   };
   const language = useSelector((state: any) => state.homepage.language);
