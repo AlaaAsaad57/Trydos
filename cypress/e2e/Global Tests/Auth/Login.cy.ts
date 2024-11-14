@@ -61,7 +61,7 @@ describe.only("Login Scenario Test", () => {
     });
     //
   });
-  it.only("Login UnSuccessful Attempt should show error message to user", () => {
+  it("Login UnSuccessful Attempt should show error message to user", () => {
     let count = 0;
     cy.clearAllLocalStorage();
     cy.clearAllSessionStorage();
