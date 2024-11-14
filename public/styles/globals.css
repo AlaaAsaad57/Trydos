@@ -777,7 +777,7 @@ a {
     position: relative;
     padding: 0;
   }
-  .nav-question-item span {
+  .nav-question-item span:not(.test) {
     position: absolute;
     opacity: 0;
     display: flex;

@@ -16,7 +16,7 @@ function NotificationsTest() {
           <div className="app bg-slate-100 top-[110px] right-8">
             <div className="flex-col">
               <div className="flex-row justify-between p-3">
-                <span>
+                <span className="test">
                   new boutique added (should open boutique page product listing
                   filtered by boutique) (done)
                 </span>
@@ -30,7 +30,7 @@ function NotificationsTest() {
                 </div>
               </div>
               <div className="flex-row justify-between p-3">
-                <span>
+                <span className="test">
                   product QTy or variant or products available in wanted
                   products or old carts (should open product details)
                 </span>
@@ -39,7 +39,7 @@ function NotificationsTest() {
                 </div>
               </div>
               <div className="flex-row justify-between p-3">
-                <span>
+                <span className="test">
                   product in cart removed and converted to old card(shoul open
                   cartpage) (done)
                 </span>
@@ -51,7 +51,7 @@ function NotificationsTest() {
                 </div>
               </div>
               <div className="flex-row justify-between p-3">
-                <span>
+                <span className="test">
                   wishlist products has discount (should open product details
                   page)
                 </span>
@@ -60,7 +60,7 @@ function NotificationsTest() {
                 </div>
               </div>
               <div className="flex-row justify-between p-3">
-                <span>
+                <span className="test">
                   {" "}
                   if products in wishlist or old cart or cart has new comment or
                   buyer cammera (should open product details)
@@ -70,7 +70,7 @@ function NotificationsTest() {
                 </div>
               </div>
               <div className="flex-row justify-between p-3">
-                <span>
+                <span className="test">
                   new category added(should open category que page product
                   listing filtered by category )
                 </span>
@@ -79,7 +79,7 @@ function NotificationsTest() {
                 </div>
               </div>
               <div className="flex-row justify-between p-3">
-                <span>
+                <span className="test">
                   when user open product details page and all qty in users
                   carts: user should not see add to cart, otherwise user should
                   see notify me when avaible and when product moved to old cart
@@ -91,7 +91,7 @@ function NotificationsTest() {
                 </div>
               </div>
               <div className="flex-row justify-between p-3">
-                <span>
+                <span className="test">
                   when user open product details page and all qty in users
                   carts: user should not see add to cart, otherwise user should
                   see notify me when avaible and when product moved to old cart
