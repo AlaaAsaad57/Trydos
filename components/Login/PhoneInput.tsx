@@ -87,7 +87,7 @@ function PhoneInput({
     e.target.value = data.marshaltext;
   };
   const [validNumber, setValidNumber] = useState(false);
-  const getCountry = (text) => {
+  const getCountry = (text?: string) => {
     return allCountries.filter((countryItem) =>
       (text || inputValue).startsWith(countryItem.dialCode)
     ).length === 1
