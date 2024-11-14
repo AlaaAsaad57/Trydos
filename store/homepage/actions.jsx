@@ -12,6 +12,9 @@ export const GetMainData = (data) => {
 };
 /*Stories Actions */
 export const SelectStory = (e) => {
+  if (e) {
+    window.history.pushState({ isPopup: true }, "open Cart");
+  }
   if (e) StoryService.WatchStory(e.stories[0].id, e.id);
   return { type: "STORY-SELECTED", payload: e };
 };

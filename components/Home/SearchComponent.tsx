@@ -36,6 +36,21 @@ function SearchComponent({
 
     dispatch({ type: "SEARCH-WORD", payload: e.target.value });
     dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: true });
+    dispatch({ type: "SEARCH-LOADING", payload: true });
+    home.UpdateFilters({
+      search_text: e.target.value || "",
+      callback: (e) => {
+        setLoading(false);
+        dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+      },
+    });
+    home.SearchProducts({
+      search_text: e.target.value,
+      searchFilters: searchFilters,
+      callback: (e) => {
+        dispatch({ type: "FIND-PRODUCTS", payload: e });
+      },
+    });
   };
   const onInput = (e) => {
     let suggestion = document.querySelector<HTMLDivElement>(".predicted-word");
@@ -125,21 +140,6 @@ function SearchComponent({
       document.documentElement.scrollTop = 0;
       //go to listing
     } else {
-      dispatch({ type: "SEARCH-LOADING", payload: true });
-      home.UpdateFilters({
-        search_text: e.target.value || "",
-        callback: (e) => {
-          setLoading(false);
-          dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
-        },
-      });
-      home.SearchProducts({
-        search_text: e.target.value,
-        searchFilters: searchFilters,
-        callback: (e) => {
-          dispatch({ type: "FIND-PRODUCTS", payload: e });
-        },
-      });
     }
   };
   const clearSuggestion = () => {
@@ -153,7 +153,6 @@ function SearchComponent({
   return (
     <div className="search-component-container flex-row">
       <div className={`search-input-parent ${focus && "focuse"}`}>
-        <input />
         <DebounceInput
           minLength={2}
           className="search-input"

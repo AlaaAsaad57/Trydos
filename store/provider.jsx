@@ -54,6 +54,7 @@ const CartProvider = () => {
   useEffect(() => {
     window.addEventListener("popstate", (event) => {
       if (event.state?.isPopup) {
+        dispatch({ type: "STORY-SELECTED", payload: null });
         dispatch({ type: "ENABLE-CART", payload: false });
         dispatch({ type: "LOGIN-OPEN", payload: false });
         dispatch({ type: "CHAT-OPEN", payload: false });
