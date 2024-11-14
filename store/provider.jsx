@@ -20,6 +20,7 @@ import {
   AppProgressBar as ProgressBar,
   stopProgress,
 } from "next-nprogress-bar";
+import { useSearchParams } from "node_modules/next/navigation";
 export default function Providers({ children }) {
   useEffect(() => {
     if (!navigator.cookieEnabled) {
@@ -68,7 +69,12 @@ const CartProvider = () => {
       }
     });
   }, []);
-
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("cart")) {
+      enableCart(true);
+    }
+  }, []);
   const cartEnable = useSelector((state) => state.cart.enable);
   return (
     <>

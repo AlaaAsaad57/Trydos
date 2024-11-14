@@ -775,7 +775,11 @@ export const getCart = async ({ callback }) => {
   //   country: null,
   //   lang: null,
   // });
-  if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
+  if (
+    !localStorage.getItem("DEVICE-TOKEN") &&
+    !localStorage.getItem("MARKET-TOKEN")
+  )
+    await home.RegisterDevice();
   let data = await AxiosGet({
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/cart_shipping",
   });

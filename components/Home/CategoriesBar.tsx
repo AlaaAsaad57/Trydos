@@ -23,7 +23,7 @@ function CategoriesBar({ forMobile, categories }: CategoriesBarProps) {
             className={`categories-bar-container ${forMobile && "mobile-bar"}`}
             style={{ marginLeft: searchEnabled ? "13px" : "50px" }}
           >
-            {categories.map((category, key) => (
+            {categories?.map((category, key) => (
               <CategoryNavItem
                 active={active === category.slug}
                 setActive={(e) => setActive(e)}

@@ -475,6 +475,22 @@ class HomeService {
       toast.info("Error hiding old Cart");
     }
   }
+  async TestNotificationBoutique({ boutique_id }) {
+    await axios.post(
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/firebase_device_tokens/send_boutique_created",
+      { boutique_id: 66 },
+      { ...getHeader() }
+    );
+  }
+  async TestNotificationProductToOldCart() {
+    await axios.post(
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/firebase_device_tokens/send_product_cart_expiration",
+      { product_id: 5566 },
+      { ...getHeader() }
+    );
+  }
 }
 
 export default new HomeService();

@@ -6,6 +6,7 @@ import AuthNavSection from "./AuthNavSection";
 
 import CartIcon from "public/svg/CartIcon.svg";
 import React from "react";
+import NotificationsTest from "components/global/NotificationsTest";
 
 interface UserNavTopSectionProps {
   loginOpen: boolean;
@@ -36,6 +37,12 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
         searchEnabled && "hidden"
       } user-nav-container md:min-w-[400px]`}
     >
+      <div
+        className="nav-question-item"
+        style={{ marginRight: "30px", marginLeft: "0px" }}
+      >
+        {user && <NotificationsTest />}
+      </div>
       <div
         className="nav-question-item"
         style={{ marginRight: "30px", marginLeft: "0px" }}
