@@ -58,6 +58,7 @@ const CartProvider = () => {
         dispatch({ type: "ENABLE-CART", payload: false });
         dispatch({ type: "LOGIN-OPEN", payload: false });
         dispatch({ type: "CHAT-OPEN", payload: false });
+        dispatch({ type: "ENABLE-SEARCH", payload: false });
       }
     });
     window.addEventListener("scroll", function (e) {
