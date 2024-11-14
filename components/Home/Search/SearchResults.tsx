@@ -20,9 +20,9 @@ function SearchResults() {
   const searchParams = useSearchParams();
   const showFilterBar = () => {
     return (
-      searchFilters.categories.length > 0 ||
-      searchFilters.brands.length > 0 ||
-      searchFilters.boutiques.length > 0 ||
+      searchFilters?.categories.length > 0 ||
+      searchFilters?.brands.length > 0 ||
+      searchFilters?.boutiques.length > 0 ||
       searchValue.length > 0
     );
   };
@@ -134,9 +134,9 @@ function SearchResults() {
   };
   const showButton = () => {
     if (
-      (searchFilters.categories.length > 0 ||
-        searchFilters.brands.length > 0 ||
-        searchFilters.boutiques.length > 0 ||
+      (searchFilters?.categories.length > 0 ||
+        searchFilters?.brands.length > 0 ||
+        searchFilters?.boutiques.length > 0 ||
         searchValue.length > 0) &&
       totalProducts > 0
     )
@@ -146,13 +146,13 @@ function SearchResults() {
   return (
     <div className="search-results-container flex-col">
       <>
-        {(searchResults.products.length > 0 || loading) && (
+        {(searchResults?.products.length > 0 || loading) && (
           <div className="products-results flex-col max-h-[60%] overflow-auto">
             <div className="result-label flex-row">
               Find Products {loadingSearch && <Spinner className="ml-3" no />}
             </div>
             {searchValue?.length > 0 &&
-              searchResults.products.map((product, index) => {
+              searchResults?.products.map((product, index) => {
                 return (
                   <ProductItem
                     product={product}
@@ -163,13 +163,13 @@ function SearchResults() {
               })}
           </div>
         )}
-        {(searchResults.brands.length > 0 || loading) && (
+        {(searchResults?.brands.length > 0 || loading) && (
           <div className="products-results brand-results">
             <div className="result-label flex-row">
               Find Brands {loading && <Spinner className="ml-3" no />}
             </div>
             <div className="brands-results-row flex-row overflow-auto">
-              {searchResults.brands.map((brand, index) => (
+              {searchResults?.brands.map((brand, index) => (
                 <BrandItem
                   brand={brand}
                   key={index}
@@ -185,7 +185,7 @@ function SearchResults() {
                     dispatch({ type: "SEARCH-BRAND", payload: brand });
                     updateFiltersApi();
                   }}
-                  isActive={searchFilters.brands.some(
+                  isActive={searchFilters?.brands.some(
                     (s) => s.slug === brand.slug
                   )}
                 />
@@ -194,13 +194,13 @@ function SearchResults() {
           </div>
         )}
 
-        {(searchResults.categories.length > 0 || loading) && (
+        {(searchResults?.categories.length > 0 || loading) && (
           <div className="products-results brand-results">
             <div className="result-label flex-row">
               Find Categories {loading && <Spinner className="ml-3" no />}
             </div>
             <div className="brands-results-row flex-row overflow-auto">
-              {searchResults.categories.map((category, index) => (
+              {searchResults?.categories.map((category, index) => (
                 <CategoryItem
                   category={category}
                   key={index}
@@ -219,7 +219,7 @@ function SearchResults() {
                     });
                     updateFiltersApi();
                   }}
-                  isActive={searchFilters.categories.some(
+                  isActive={searchFilters?.categories.some(
                     (s) => s.slug === category.slug
                   )}
                 />
@@ -227,13 +227,13 @@ function SearchResults() {
             </div>
           </div>
         )}
-        {(searchResults.boutiques.length > 0 || loading) && (
+        {(searchResults?.boutiques.length > 0 || loading) && (
           <div className="products-results brand-results">
             <div className="result-label flex-row">
               Find Boutiques {loading && <Spinner className="ml-3" no />}
             </div>
             <div className="brands-results-row flex-row overflow-auto">
-              {searchResults.boutiques.map((boutique, index) => (
+              {searchResults?.boutiques.map((boutique, index) => (
                 <BoutiqueItem
                   boutique={boutique}
                   key={index}
@@ -252,7 +252,7 @@ function SearchResults() {
                     });
                     updateFiltersApi();
                   }}
-                  isActive={searchFilters.boutiques.some(
+                  isActive={searchFilters?.boutiques.some(
                     (s) => s.slug === boutique.slug
                   )}
                 />

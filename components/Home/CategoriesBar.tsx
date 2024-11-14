@@ -4,14 +4,19 @@ import { Category } from "models/Category";
 import CategoryNavItem from "./CategoryNavItem";
 import SearchIcon from "./Search/SearchIcon";
 import { useParams } from "next/navigation";
+import { useDispatch, useSelector } from "node_modules/react-redux/es";
 interface CategoriesBarProps {
   forMobile: boolean;
   categories: any[];
 }
 function CategoriesBar({ forMobile, categories }: CategoriesBarProps) {
   const searchParams: { lang: string; mainCategory: string } = useParams();
-  const [searchEnabled, setSearchEnabled] = useState(false);
   const [active, setActive] = useState(searchParams.mainCategory ?? false);
+  const searchEnabled = useSelector((state: any) => state.Search.enable);
+  const dispatch = useDispatch();
+  const setSearchEnabled = (e) => {
+    dispatch({ type: "ENABLE-SEARCH", payload: e });
+  };
   return (
     <>
       {!forMobile && (
@@ -23,20 +28,21 @@ function CategoriesBar({ forMobile, categories }: CategoriesBarProps) {
             className={`categories-bar-container ${forMobile && "mobile-bar"}`}
             style={{ marginLeft: searchEnabled ? "13px" : "50px" }}
           >
-            {categories?.map((category, key) => (
-              <CategoryNavItem
-                active={active === category.slug}
-                setActive={(e) => setActive(e)}
-                searchEnabled={searchEnabled}
-                close={() => setSearchEnabled(false)}
-                openSearch={() => setSearchEnabled(true)}
-                name={category?.name}
-                key={key}
-                myKey={key}
-                slug={category.slug}
-                icon={category?.flat_photo_path?.file_path}
-              />
-            ))}
+            {!searchEnabled &&
+              categories?.map((category, key) => (
+                <CategoryNavItem
+                  active={active === category.slug}
+                  setActive={(e) => setActive(e)}
+                  searchEnabled={searchEnabled}
+                  close={() => setSearchEnabled(false)}
+                  openSearch={() => setSearchEnabled(true)}
+                  name={category?.name}
+                  key={key}
+                  myKey={key}
+                  slug={category.slug}
+                  icon={category?.flat_photo_path?.file_path}
+                />
+              ))}
           </div>
         </>
       )}
