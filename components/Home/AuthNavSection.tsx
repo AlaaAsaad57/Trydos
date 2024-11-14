@@ -8,7 +8,6 @@ import ChatNotification from "./ChatNotification";
 
 function AuthNavSection() {
   const language = useSelector((state: any) => state.homepage.language);
-  const loading = useSelector((state: any) => state.chat.loading);
   const chatVar = useSelector((state: any) => state.chat.chatVar);
   const user = useSelector((state: any) => state.auth.user);
 
@@ -17,7 +16,7 @@ function AuthNavSection() {
 
   return (
     <>
-      {!loading && (
+      {
         <div
           className={`${chatVar && "active-nav-item"} nav-question-item`}
           style={{
@@ -44,7 +43,7 @@ function AuthNavSection() {
           )}
           {chatVar && <ChatIcon />}
         </div>
-      )}
+      }
 
       <div
         className={`welcome-user ${language + "-medium"}`}
