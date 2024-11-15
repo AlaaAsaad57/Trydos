@@ -43,7 +43,6 @@ function NewLoginWidget() {
       Sendevent({
         event: "button_clicked",
         value: "Open_Login_Widget",
-        category: "button_clicked",
       });
     }
     setTimeout(() => {

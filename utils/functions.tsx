@@ -141,6 +141,7 @@ export const Sendevent = async (params: {
     | "viewed_boutique";
   value?: string;
   extra?: any;
+  category?: any;
 }) => {
   try {
     let userId = localStorage.getItem("USER")

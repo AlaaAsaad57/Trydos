@@ -34,7 +34,12 @@ function NotificationsTest() {
                   product QTy or variant or products available in wanted
                   products or old carts (should open product details)
                 </span>
-                <div className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md">
+                <div
+                  className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md"
+                  onClick={() => {
+                    home.TestNotificationProductAvailable();
+                  }}
+                >
                   Test
                 </div>
               </div>
@@ -55,7 +60,12 @@ function NotificationsTest() {
                   wishlist products has discount (should open product details
                   page)
                 </span>
-                <div className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md">
+                <div
+                  className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md"
+                  onClick={() => {
+                    home.TestNotificationProductDiscount();
+                  }}
+                >
                   Test
                 </div>
               </div>
@@ -65,7 +75,12 @@ function NotificationsTest() {
                   if products in wishlist or old cart or cart has new comment or
                   buyer cammera (should open product details)
                 </span>
-                <div className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md">
+                <div
+                  className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md"
+                  onClick={() => {
+                    home.TestNotificationProductComment();
+                  }}
+                >
                   Test
                 </div>
               </div>
@@ -74,31 +89,12 @@ function NotificationsTest() {
                   new category added(should open category que page product
                   listing filtered by category )
                 </span>
-                <div className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md">
-                  Test
-                </div>
-              </div>
-              <div className="flex-row justify-between p-3">
-                <span className="test">
-                  when user open product details page and all qty in users
-                  carts: user should not see add to cart, otherwise user should
-                  see notify me when avaible and when product moved to old cart
-                  , user should recieve this prouduct current available (should
-                  open product details)
-                </span>
-                <div className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md">
-                  Test
-                </div>
-              </div>
-              <div className="flex-row justify-between p-3">
-                <span className="test">
-                  when user open product details page and all qty in users
-                  carts: user should not see add to cart, otherwise user should
-                  see notify me when avaible and when product moved to old cart
-                  , user should recieve this prouduct current available (should
-                  open product details)
-                </span>
-                <div className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md">
+                <div
+                  className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md"
+                  onClick={() => {
+                    home.TestNotificationCategoryCreated();
+                  }}
+                >
                   Test
                 </div>
               </div>

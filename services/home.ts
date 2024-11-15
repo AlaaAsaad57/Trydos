@@ -479,7 +479,7 @@ class HomeService {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_boutique_created",
-      { boutique_id: 66 },
+      { boutique_id: 66, topic: "eee" },
       { ...getHeader() }
     );
   }
@@ -488,6 +488,38 @@ class HomeService {
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_product_cart_expiration",
       { product_id: 5566 },
+      { ...getHeader() }
+    );
+  }
+  async TestNotificationProductAvailable() {
+    await axios.post(
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/firebase_device_tokens/send_product_availability",
+      { product_id: 5550, variant: "Gold-XXL" },
+      { ...getHeader() }
+    );
+  }
+  async TestNotificationProductComment() {
+    await axios.post(
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/firebase_device_tokens/send_product_comment",
+      { product_id: 5550 },
+      { ...getHeader() }
+    );
+  }
+  async TestNotificationProductDiscount() {
+    await axios.post(
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/firebase_device_tokens/send_product_discount",
+      { product_id: 5550 },
+      { ...getHeader() }
+    );
+  }
+  async TestNotificationCategoryCreated() {
+    await axios.post(
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/firebase_device_tokens/send_category_created",
+      { category_id: 368 },
       { ...getHeader() }
     );
   }
