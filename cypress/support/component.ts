@@ -30,6 +30,7 @@ declare global {
     interface Chainable {
       mount: typeof mount;
       Visit(value: string): void;
+      Exist(selector: string): Promise<boolean>;
     }
   }
 }

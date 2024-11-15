@@ -44,3 +44,18 @@ Cypress.Commands.add("Visit", function (url: string) {
     },
   });
 });
+Cypress.Commands.add("Exist", (selector) => {
+  cy.get("body")
+    .should("exist")
+    .then(($body) => {
+      return new Cypress.Promise((resolve, reject) => {
+        if ($body.find(selector).length > 0) {
+          console.log("cy.exist() - Matching element found in DOM!");
+          resolve(true);
+        } else {
+          console.log("cy.exist() - Element did not exist!");
+          resolve(false);
+        }
+      });
+    });
+});

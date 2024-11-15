@@ -62,6 +62,7 @@ describe.only("Login Scenario Test", () => {
     //
   });
   it("Login UnSuccessful Attempt should show error message to user", () => {
+    cy.wait(30000);
     let count = 0;
     cy.clearAllLocalStorage();
     cy.clearAllSessionStorage();
@@ -76,8 +77,18 @@ describe.only("Login Scenario Test", () => {
     cy.viewport(783, 824);
 
     cy.wait(5000);
-    cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-    cy.wait(3000);
+    cy.Exist(".en-regular:nth-child(2)").then((exists) => {
+      if (exists) {
+        cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
+      } else {
+        cy.clearAllLocalStorage();
+        cy.clearAllCookies();
+        cy.reload();
+        cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
+      }
+    });
+
+    cy.wait(8000);
     cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false });
     // cy.get(".login-method-phone > .border-button").click();
     cy.get("#phoneInput").click({ scrollBehavior: false });
