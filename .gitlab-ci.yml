@@ -22,7 +22,7 @@ build-app:
       - node_modules/
   allow_failure: true
 deploy:
-  image: node:20.0.9
+  image: node:20.9.0
   stage: deploy
 
   script:
