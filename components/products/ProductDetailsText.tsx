@@ -3,7 +3,7 @@ import { ProductInterface } from "models/product";
 import { useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { encode_utf8 } from "utils/functions";
+import { encode_utf8, Sendevent } from "utils/functions";
 
 function ProductDetailsText({
   details,
@@ -35,10 +35,11 @@ function ProductDetailsText({
   return (
     <div className="product-details-text">
       <div id="details"></div>
-      {!show && (
+      {!show ? (
         <span
           className="read-more"
           onClick={() => {
+            Sendevent({ event: "button_clicked", value: "read_more_button" });
             setShow(true);
             encode_utf8({
               element: document.querySelectorAll(
@@ -49,6 +50,22 @@ function ProductDetailsText({
           }}
         >
           Read More{" "}
+        </span>
+      ) : (
+        <span
+          className="read-more"
+          onClick={() => {
+            Sendevent({ event: "button_clicked", value: "read_less_button" });
+            setShow(true);
+            encode_utf8({
+              element: document.querySelectorAll(
+                `.product-details-text #details`
+              ),
+              s: details.substring(0, 95) + "...",
+            });
+          }}
+        >
+          Read Less{" "}
         </span>
       )}
     </div>

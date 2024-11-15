@@ -16,6 +16,7 @@ import FreeShippingOption from "./FreeShippingOption";
 import { useSelector } from "react-redux";
 import Skeleton from "react-loading-skeleton";
 import { Sendevent } from "utils/functions";
+import CameraShots from "./CameraShots";
 
 function ProuctDetailsBody({ product }: { product: ProductInterface }) {
   const SelectedProduct = useSelector(
@@ -78,7 +79,7 @@ function ProuctDetailsBody({ product }: { product: ProductInterface }) {
           colors={product.sync_color_images || []}
           ProductColorsArray={product.colors}
         />
-        {/* <CameraShots images={product.images} /> */}
+        <CameraShots images={product.images} />
         <ProductStories />
         <ProductSizes
           sizes={

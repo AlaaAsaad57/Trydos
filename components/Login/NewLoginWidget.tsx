@@ -63,7 +63,7 @@ function NewLoginWidget() {
       verificationID: verficationID,
       errorCallback: (e) => {
         Sendevent({
-          event: "programming_clicked",
+          event: "programming_event",
           value: "otp_failed_event",
         });
 
@@ -81,13 +81,13 @@ function NewLoginWidget() {
         setTimeout(() => {
           if (operation === "signup") {
             Sendevent({
-              event: "programming_clicked",
+              event: "programming_event",
 
               value: "verify_otp_signup_success_event",
             });
             if (exists && name.length > 1) {
               Sendevent({
-                event: "programming_clicked",
+                event: "programming_event",
 
                 value: "user_already_exists_event",
               });
@@ -104,7 +104,7 @@ function NewLoginWidget() {
           } else {
             if (exists && name.length > 1) {
               Sendevent({
-                event: "programming_clicked",
+                event: "programming_event",
 
                 value: "verify_otp_signin_success_event",
               });
@@ -116,7 +116,7 @@ function NewLoginWidget() {
             }
             if (!exists) {
               Sendevent({
-                event: "programming_clicked",
+                event: "programming_event",
 
                 value: "phone_number_not_registered_event",
               });

@@ -6,6 +6,7 @@ import FastIcon from "public/svg/product/FastIcon.svg";
 import PlaneIcon from "public/svg/product/PlaneIcon.svg";
 import PackingIcon from "public/svg/product/PackingIcon.svg";
 import MarkerIcon from "public/svg/product/MarkerIcon.svg";
+import { Sendevent } from "utils/functions";
 function ProductShippingOption() {
   const [extended, setExtended] = useState(false);
   return (
@@ -14,6 +15,7 @@ function ProductShippingOption() {
         extended && "extended-address-bar"
       }`}
       onClick={() => {
+        Sendevent({ event: "button_clicked", value: "at_your_address_button" });
         setExtended(!extended);
       }}
     >

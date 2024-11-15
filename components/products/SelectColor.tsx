@@ -5,7 +5,7 @@ import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import CartIcon from "public/svg/CartIcon.svg";
 
-import { getConfiguredImage } from "utils/functions";
+import { getConfiguredImage, Sendevent } from "utils/functions";
 import BackIcon from "public/svg/listing/backIcon.svg";
 
 function SelectColor({ close }) {
@@ -104,6 +104,7 @@ export default SelectColor;
 export const SelectColorsSlider = ({ colors }) => {
   const dispatch = useDispatch();
   const setActive = (e) => {
+    Sendevent({ event: "button_clicked", value: "slide_choose_color_event" });
     dispatch({ type: "AddToCartColor", payload: e });
   };
   return (

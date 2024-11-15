@@ -5,8 +5,6 @@ import { store } from "store";
 import Cookies from "js-cookie";
 import { HOME_DATA_URL } from "./endpointConfig";
 import { notFound } from "next/navigation";
-import axios from "axios";
-import { FetchApi } from "store/homepage/cachedActions";
 import { LogData } from "store/homepage/actions";
 import { AxiosCacheApi, AxiosGet } from "./constants";
 import home from "services/home";
@@ -135,7 +133,15 @@ export const getUserStories = () => {
 export const _isStoreLastJson = () => {
   return !!process.env.NEXT_PUBLIC_IS_STORE_LAST_JSON;
 };
-export const Sendevent = async (params: any) => {
+export const Sendevent = async (params: {
+  event:
+    | "programming_event"
+    | "button_clicked"
+    | "viewed_product"
+    | "viewed_boutique";
+  value?: string;
+  extra?: any;
+}) => {
   try {
     let userId = localStorage.getItem("USER")
       ? JSON.parse(localStorage.getItem("USER"))?.id

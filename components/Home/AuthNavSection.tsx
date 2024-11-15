@@ -56,7 +56,7 @@ function AuthNavSection() {
         onClick={() => {
           Sendevent({
             event: "button_clicked",
-            values: "me_nav_bar_button",
+            value: "me_nav_bar_button",
           });
           localStorage.clear();
           window.location.reload();

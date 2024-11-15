@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
+import { Sendevent } from "utils/functions";
 
 function CommentBar({
   product,
@@ -73,6 +74,10 @@ function CommentBar({
           // @ts-ignore
           if ((e.key === "Enter" || e.keyCode === "13") && !e.shiftKey) {
             e.preventDefault();
+            Sendevent({
+              event: "button_clicked",
+              value: "confirm_comment_button",
+            });
             addComment(val);
             e.currentTarget.style.height = "auto";
           }

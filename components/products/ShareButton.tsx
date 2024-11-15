@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { useSelector } from "react-redux";
-import { translate } from "utils/functions";
+import { Sendevent, translate } from "utils/functions";
 
 function ShareButton({ onClick }: { onClick: () => void }) {
   let language = "en";
@@ -9,7 +9,13 @@ function ShareButton({ onClick }: { onClick: () => void }) {
   return (
     <div
       onClick={() => {
-        if (!shareLoading) onClick();
+        if (!shareLoading) {
+          Sendevent({
+            event: "button_clicked",
+            value: "share_with_chat_button",
+          });
+          onClick();
+        }
       }}
       className={`share-button ${shareLoading && "opacity-65"}`}
     >

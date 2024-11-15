@@ -8,6 +8,7 @@ import { SelectStory } from "store/homepage/actions";
 import { Story } from "models/story";
 import Skeleton from "react-loading-skeleton";
 import { useEffect, useState } from "react";
+import { Sendevent } from "utils/functions";
 function Index() {
   const storiesData = useSelector((state: any) => state.homepage.storiesData);
   const [show, setShow] = useState(false);
@@ -49,6 +50,10 @@ function Index() {
       const x = e.pageX - slider.offsetLeft;
       const walk = (x - startX) * 3; //scroll-fast
       slider.scrollLeft = scrollLeft - walk;
+      Sendevent({
+        event: "programming_event",
+        value: "scroll_stories_in_home_event",
+      });
     });
   }
   const user = useSelector((state: any) => state.auth.user);

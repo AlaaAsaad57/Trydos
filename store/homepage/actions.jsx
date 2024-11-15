@@ -1,5 +1,6 @@
 import StoryService from "services/story";
 import Cookies from "js-cookie";
+import { Sendevent } from "utils/functions";
 export const changeAppLanguage = (language) => {
   Cookies.set("language", language, {
     expires: 365,
@@ -15,7 +16,10 @@ export const SelectStory = (e) => {
   if (e) {
     window.history.pushState({ isPopup: true }, "open Cart");
   }
-  if (e) StoryService.WatchStory(e.stories[0].id, e.id);
+  if (e) {
+    Sendevent({ event: "button_clicked", value: "view_story_button" });
+    StoryService.WatchStory(e.stories[0].id, e.id);
+  }
   return { type: "STORY-SELECTED", payload: e };
 };
 export const GetStoryData = (data) => {

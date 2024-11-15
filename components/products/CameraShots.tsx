@@ -4,7 +4,7 @@ import CameraShotIcon from "public/svg/product/CameraShotIcon.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { getConfiguredImage } from "utils/functions";
+import { getConfiguredImage, Sendevent } from "utils/functions";
 
 import CameraShotGallery from "./CameraShotGallery";
 import { useDispatch } from "react-redux";
@@ -24,6 +24,10 @@ function CameraShots({ images }) {
       <div
         className={`product-colors flex-row align-start relative`}
         onClick={() => {
+          Sendevent({
+            event: "button_clicked",
+            value: "show_buyers_camera_button",
+          });
           dispatch({ type: "ACTIVE-CAMERA-GALLERY", payload: true });
           window.scrollTo({ top: 0 });
           document.documentElement.style.overflow = "hidden";

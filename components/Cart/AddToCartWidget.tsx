@@ -77,7 +77,10 @@ function AddToCartWidget() {
     <div className="flex-col h-[100vh] w-[100vw] flex top-0 left-0 fixed z-[99999999999999999] justify-start ">
       <SelectColor
         close={() => {
-          // close Widget
+          Sendevent({
+            event: "button_clicked",
+            value: "trydos_appbar_backicon_button",
+          });
           dispatch({ type: "AddToCartOptionDisable" });
         }}
       />

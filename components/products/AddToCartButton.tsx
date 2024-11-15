@@ -2,7 +2,12 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import home from "services/home";
-import { getConfiguredImage, getUser, UserToken } from "utils/functions";
+import {
+  getConfiguredImage,
+  getUser,
+  Sendevent,
+  UserToken,
+} from "utils/functions";
 import NotifySVG from "public/svg/cart/NotifyCart.svg";
 import auth from "services/auth";
 import ChatService from "services/chat";
@@ -114,6 +119,7 @@ function AddToCartButton({
   };
   const NotifyAction = () => {
     if (true) {
+      Sendevent({ event: "button_clicked", value: "notify_me_button" });
       setNotify();
       requestFirebaseNotificationPermission().then((fbtoken) => {
         if (fbtoken) {
@@ -370,6 +376,11 @@ function AddToCartButton({
                   className="plus-icon-button"
                   onClick={(e) => {
                     e.preventDefault();
+                    Sendevent({
+                      event: "button_clicked",
+                      value: "increase_qty_button",
+                    });
+
                     AddToCartAction({ quantity: 1 });
                   }}
                 />
@@ -388,6 +399,10 @@ function AddToCartButton({
                   <span
                     className="absolute top-0 left-0 rounded-2xl bg-white flex justify-center items-center p-2 plus-icon-button"
                     onClick={() => {
+                      Sendevent({
+                        event: "button_clicked",
+                        value: "decrease_qty_button",
+                      });
                       dispatch({
                         type: "REMOVE-QUANTITY",
                         payload: `${product?.id}${AddToCartOption?.selectedColor?.color_name}${AddToCartOption?.selectedSize?.name}`,
@@ -467,6 +482,10 @@ function AddToCartButton({
                 AddToCartOption?.enable && "extended-add-to-cart"
               }  `}
               onClick={(e) => {
+                Sendevent({
+                  event: "button_clicked",
+                  value: "add_to_bag_button",
+                });
                 // @ts-ignore
                 if (e.target.closest(".plus-icon-button")) {
                 } else {
@@ -488,6 +507,10 @@ function AddToCartButton({
                       ) {
                         AddToCartAction({ quantity: 1 });
                       } else {
+                        Sendevent({
+                          event: "button_clicked",
+                          value: "add_product_to_bag_button",
+                        });
                         AddToCartOption.selectedOptions?.map(
                           (selectedCartItem) => {
                             dispatch({ type: "LOADED-CART", payload: false });
@@ -512,7 +535,10 @@ function AddToCartButton({
                                   setTimeout(() => {
                                     elem.classList.add("success-add");
                                   }, 200);
-
+                                  Sendevent({
+                                    event: "button_clicked",
+                                    value: "added_product_to_bag_event",
+                                  });
                                   AddToCartAnimation(selectedCartItem?.UID);
                                   setTimeout(() => {
                                     elem.classList.remove("success-add");

@@ -35,7 +35,7 @@ export const renderer: Renderer = ({
         <div>
           <img
             style={computedStyles}
-            src={story.url + "?a=ssa"}
+            src={story.url}
             ref={imgRef}
             onLoad={imageLoaded}
           />

@@ -1,8 +1,6 @@
 import React from "react";
 import GalleryItemSlider from "./GalleryItemSlider";
 import Heart from "public/svg/Heart.svg";
-import ShareButton from "./ShareButton";
-import ThreePoints from "./ThreePoints";
 
 function GalleryItem({
   image,

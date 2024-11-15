@@ -123,7 +123,7 @@ function Product({
           } else {
             Sendevent({
               event: "button_clicked",
-              values: "choose_product_button",
+              value: "choose_product_button",
             });
             setTimeout(() => {
               if (document.querySelector("#nprogress"))

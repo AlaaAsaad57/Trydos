@@ -4,6 +4,7 @@ import Loader from "components/global/Loader";
 import { setNextStory, setPreviousStory } from "store/homepage/actions";
 import { StoryType } from "models/story";
 import ReactInstaStories from "utils/libs/react-insta-stories-master/src";
+import { Sendevent } from "utils/functions";
 
 interface Props {
   story: StoryType;
@@ -38,6 +39,10 @@ function StoryHolder({ story, active, isPaused }: Props) {
             loader={<Loader style={{}} />}
             currentIndex={0}
             onPrevious={() => {
+              Sendevent({
+                event: "button_clicked",
+                value: "change_story_in_stroyscreen_event",
+              });
               if (active) {
                 if (currentStoryId > 0) {
                   setCurrentStoryId(currentStoryId - 1);
@@ -47,6 +52,10 @@ function StoryHolder({ story, active, isPaused }: Props) {
               }
             }}
             onNext={() => {
+              Sendevent({
+                event: "button_clicked",
+                value: "change_story_in_stroyscreen_event",
+              });
               if (active) {
                 if (currentStoryId < story.stories.length - 1) {
                   setCurrentStoryId(currentStoryId + 1);

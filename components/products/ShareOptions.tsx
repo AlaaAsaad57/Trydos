@@ -13,6 +13,7 @@ import {
 } from "react-share";
 import axios from "axios";
 import { ProductInterface } from "models/product";
+import { Sendevent } from "utils/functions";
 function ShareOptions({
   setShareContacts,
   sharedContacts,
@@ -60,6 +61,10 @@ function ShareOptions({
               <FacebookShareButton
                 url={window.location.href}
                 beforeOnClick={() => {
+                  Sendevent({
+                    event: "button_clicked",
+                    value: "share_with_facebook_button",
+                  });
                   shareSocial("Facebook");
                 }}
               >
@@ -72,6 +77,10 @@ function ShareOptions({
             <div className="share-image social shadow-none">
               <TwitterShareButton
                 beforeOnClick={() => {
+                  Sendevent({
+                    event: "button_clicked",
+                    value: "share_with_twiter_button",
+                  });
                   shareSocial("Twitter");
                 }}
                 url={window.location.href}
@@ -86,6 +95,10 @@ function ShareOptions({
             <div className="share-image social shadow-none">
               <WhatsappShareButton
                 beforeOnClick={() => {
+                  Sendevent({
+                    event: "button_clicked",
+                    value: "share_with_whatsapp_button",
+                  });
                   shareSocial("WhatsApp");
                 }}
                 url={window.location.href}

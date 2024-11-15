@@ -3,6 +3,7 @@ import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "styles/sizeSlider.css";
 import { useDispatch, useSelector } from "react-redux";
+import { Sendevent } from "utils/functions";
 function SelectSize({ sizes, variants }) {
   const activeSize = useSelector(
     (state: any) => state.cart.AddToCartOption.selectedSize
@@ -16,6 +17,8 @@ function SelectSize({ sizes, variants }) {
   const dispatch = useDispatch();
 
   const setActive = (e) => {
+    Sendevent({ event: "button_clicked", value: "slide_choose_size_event" });
+
     dispatch({ type: "AddToCartSize", payload: e });
   };
   const getVariants = (e?: any | undefined | null) => {

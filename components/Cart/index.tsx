@@ -5,6 +5,7 @@ import {
   getCart,
   getConfiguredImage,
   RoundPrice,
+  Sendevent,
   translate,
 } from "utils/functions";
 import BackIcon from "public/svg/listing/backIcon.svg";
@@ -70,6 +71,10 @@ function CartContainer({ close }) {
           <BackIcon
             className="cursor-pointer z-50"
             onClick={() => {
+              Sendevent({
+                event: "button_clicked",
+                value: "appbar_backicon_button",
+              });
               document.documentElement.style.overflow = "auto";
               close();
             }}
@@ -145,6 +150,10 @@ function CartContainer({ close }) {
                                 className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
                                 key={key}
                                 onClick={(e) => {
+                                  Sendevent({
+                                    event: "button_clicked",
+                                    value: "item_in_cart_button",
+                                  });
                                   if (params?.productId === product.slug) {
                                     if (product.variations[0].color) {
                                       dispatch({
@@ -399,6 +408,10 @@ function CartContainer({ close }) {
             <span
               className="cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]"
               onClick={() => {
+                Sendevent({
+                  event: "button_clicked",
+                  value: "remove_old_products_button",
+                });
                 home.hideOldCart({});
                 dispatch({ type: "STORE-OLD-CART", payload: [] });
               }}
@@ -1076,6 +1089,10 @@ export const BrandCart = ({
                   className="absolute right-4 bottom-16 hide-btn"
                   onClick={(e) => {
                     e.preventDefault();
+                    Sendevent({
+                      event: "button_clicked",
+                      value: "remove_old_product_item_button",
+                    });
 
                     dispatch({ type: "HIDE-OLD-CART", payload: product.id });
                     home.hideOldCart({ id: product.id });

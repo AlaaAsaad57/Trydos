@@ -9,7 +9,12 @@ import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
 import { useDispatch, useSelector } from "react-redux";
-import { AddToCartAnimation, UserID, UserToken } from "utils/functions";
+import {
+  AddToCartAnimation,
+  Sendevent,
+  UserID,
+  UserToken,
+} from "utils/functions";
 import axios from "axios";
 function ProductOptions({
   activeOption,
@@ -97,6 +102,10 @@ function ProductOptions({
                 activeOption === "Like" && "active-option"
               }`}
               onClick={() => {
+                Sendevent({
+                  event: "button_clicked",
+                  value: "like_product_button",
+                });
                 setOption("Like");
                 setLiked(!isLiked);
                 if (isLiked || SelectedProduct?.is_liked) LikeProduct(false);
@@ -112,7 +121,13 @@ function ProductOptions({
             </div>
             <div
               className="product-option-item"
-              onClick={() => setOption("Comment")}
+              onClick={() => {
+                Sendevent({
+                  event: "button_clicked",
+                  value: "show_comments_button",
+                });
+                setOption("Comment");
+              }}
             >
               <CommentIcon active={activeOption === "Comment"} />
               <span>
@@ -128,6 +143,10 @@ function ProductOptions({
                 activeOption === "Share" && "active-option"
               }`}
               onClick={() => {
+                Sendevent({
+                  event: "button_clicked",
+                  value: "share_product_button",
+                });
                 setOption("Share");
               }}
             >
@@ -143,7 +162,13 @@ function ProductOptions({
             </div>
             <div
               className="product-option-item"
-              onClick={() => setOption("More")}
+              onClick={() => {
+                Sendevent({
+                  event: "button_clicked",
+                  value: "more_options_button",
+                });
+                setOption("More");
+              }}
             >
               <ThreePoints active={activeOption === "More"} />
               <span></span>

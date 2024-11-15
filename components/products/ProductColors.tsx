@@ -2,7 +2,7 @@
 import ColorsIcon from "public/svg/product/colors.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import React, { useEffect, useState } from "react";
-import { getConfiguredImage } from "utils/functions";
+import { getConfiguredImage, Sendevent } from "utils/functions";
 import "styles/listing.css";
 import SquareIcon from "public/svg/product/SquareIcon.svg";
 
@@ -94,6 +94,10 @@ function ProductColors({ colors, ProductColorsArray }) {
           slidesPerView={"auto"}
           threshold={1}
           onSlideChange={(e) => {
+            Sendevent({
+              event: "button_clicked",
+              value: "choose_available_color_button",
+            });
             setActiveColor(colors[e.activeIndex]);
           }}
           centeredSlides={true}

@@ -8,6 +8,7 @@ import NormalSizesSlider from "./NormalSizesSlider";
 import DashedCircleBorder from "public/svg/product/DashedCircleBorder.svg";
 import SizeInfoBox from "./SizeInfoBox";
 import { useDispatch } from "react-redux";
+import { Sendevent } from "utils/functions";
 
 function ProductSizes({ sizes }) {
   const [extended, setExtended] = useState(false);
@@ -68,6 +69,12 @@ function ProductSizes({ sizes }) {
           speed={100}
           effect="coverflow"
           slideToClickedSlide={true}
+          onChange={() => {
+            Sendevent({
+              event: "button_clicked",
+              value: "choose_available_size_button",
+            });
+          }}
           coverflowEffect={{
             depth: 100,
             modifier: 1.8,

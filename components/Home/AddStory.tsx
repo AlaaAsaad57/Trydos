@@ -14,6 +14,7 @@ const NewStoryModal = dynamic(() => import("./Stories/CameraStory"), {
 import { dataURLtoFile } from "components/Chat/chatsFunctions";
 import dynamic from "next/dynamic";
 import { toast } from "react-toastify";
+import { Sendevent } from "utils/functions";
 
 function AddStory() {
   const [uploaded, setUpload] = useState(0);
@@ -45,6 +46,10 @@ function AddStory() {
                 return;
               } else {
                 clearInterval(timer);
+                Sendevent({
+                  event: "button_clicked",
+                  value: "confirm_upload_story_button",
+                });
                 let path = await StoryService.upload(
                   e.target.files[0],
                   (e) => setUpload(e),
@@ -55,9 +60,19 @@ function AddStory() {
                   }
                 )
                   .then((data) => {
+                    Sendevent({
+                      event: "programming_event",
+                      value: "upload_story_success",
+                    });
+
                     dispatch(AddStoryAction(data));
                   })
                   .catch((e) => {
+                    Sendevent({
+                      event: "programming_event",
+                      value: "upload_story_failed",
+                    });
+
                     setFile(null);
                     setIsSelected(null);
 
@@ -197,6 +212,10 @@ function AddStory() {
               }}
               onClick={(e) => {
                 setOpenCamera(true);
+                Sendevent({
+                  event: "button_clicked",
+                  value: "upload_camera_button",
+                });
                 document.body.style.overflow = "hidden";
               }}
             >
@@ -214,6 +233,11 @@ function AddStory() {
                 border: "#00000029 1px solid",
               }}
               onClick={() => {
+                Sendevent({
+                  event: "button_clicked",
+                  value: "upload_gallery_button",
+                });
+
                 if (!isSelected) {
                   let Image = document.createElement("input");
                   Image.onblur = () => {};
@@ -247,9 +271,13 @@ function AddStory() {
           justifyContent: "center",
         }}
         onClick={() => {
-          if (JSON.parse(localStorage.getItem("USER")).name.length > 1)
+          if (JSON.parse(localStorage.getItem("USER")).name.length > 1) {
+            Sendevent({
+              event: "button_clicked",
+              value: "upload_story_button",
+            });
             setOpenMenu(true);
-          else dispatch({ type: "SHOW-MODAL", payload: true });
+          } else dispatch({ type: "SHOW-MODAL", payload: true });
         }}
       >
         {isSelected ? (
