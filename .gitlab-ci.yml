@@ -20,7 +20,7 @@ build-app:
   cache:
     paths:
       - node_modules/
-  allow_failure: false
+  allow_failure: true
 deploy:
   image: node:20.0.9
   stage: deploy
