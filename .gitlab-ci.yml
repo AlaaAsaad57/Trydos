@@ -1,25 +1,32 @@
 stages:
-  - build and deploy
-  - test
+  - build & test
+  - deploy
 
-deploy-to-vercel:
-  stage: build and deploy
-  image: node:20.9.0
-
+build-app:
+  stage: build & test
+  image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
+  services:
+    - name: x11vnc/x11vnc
+    - name: selenium/standalone-chrome
   script:
     - yarn
     - npx next build
-
-cypress_test:
-  image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
-  stage: test
-
-  script:
-    - yarn
-    - npm run test
-
+    - npx next start &
+    - npx wait-on http://localhost:3000
+    - DISPLAY=99.0 npx cypress run --browser chrome --config baseUrl=http://localhost:3000
   artifacts:
     when: always
     paths:
       - cypress/screenshots
       - cypress/reports
+    expire_in: 1 week
+  cache:
+    paths:
+      - node_modules/
+  allow_failure: false
+deploy:
+  image: node:20.0.9
+  stage: deploy
+
+  script:
+    - echo "Test Deploy to Vercel"

@@ -22,9 +22,9 @@ export default defineConfig({
       require("cypress-mochawesome-reporter/plugin")(on);
       // implement node event listeners here
     },
-    baseUrl:
-      "https://trydos-front-git-development-trydos-front-team.vercel.app/",
-    // baseUrl: "http://localhost:3000",
+    // baseUrl:
+    //   "https://trydos-front-git-development-trydos-front-team.vercel.app/",
+    baseUrl: "http://localhost:3000",
     testIsolation: false,
     env: {
       browserPermissions: {
