@@ -12,8 +12,8 @@ function ProductItem({ product, onClick }) {
         /* @ts-ignore*/
         onClick(product.name);
         Sendevent({
-          event: "choose_product_button",
-          value: "choose",
+          event: "button_clicked",
+          value: "choose_product_button",
         });
         dispatchRouteChangeEvent("start", { to: "products" });
         document.documentElement.style.overflow = "hidden";
