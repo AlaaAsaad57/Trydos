@@ -34,8 +34,8 @@ function ChatLists(props) {
   return (
     <div className="chat-list-items">
       {loading &&
-        [1, 1, 1, 1, 1].map((s) => (
-          <Skeleton className="chat-conversation-item" />
+        [1, 1, 1, 1, 1].map((s, i) => (
+          <Skeleton key={i} className="chat-conversation-item" />
         ))}
       {!loading && (
         <>
