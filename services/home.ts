@@ -119,6 +119,20 @@ class HomeService {
     } else {
       this.RegisterDevice();
     }
+    if (true) {
+      await requestFirebaseNotificationPermission().then(async (token) => {
+        // @ts-ignore
+        localStorage.setItem("FB-DEVICE-TOKEN", token);
+        await axios.post(
+          process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
+          {
+            device_token: token,
+            user_id: UserID(),
+            auth_token: UserToken(),
+          }
+        );
+      });
+    }
   }
   async RegisterDevice() {
     if (!Cookies.get("DEVICE-TOKEN") && localStorage.getItem("DEVICE-TOKEN")) {
@@ -144,33 +158,25 @@ class HomeService {
         expires: 365,
       });
       localStorage.setItem("guest-user", JSON.stringify(repo.data.user));
-      await axios.post(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
-        {
-          device_token: localStorage.getItem("DEVICE-TOKEN"),
-          user_id: UserID(),
-          auth_token: UserToken(),
-        }
-      );
+      await requestFirebaseNotificationPermission().then(async (token) => {
+        // @ts-ignore
+        localStorage.setItem("FB-DEVICE-TOKEN", token);
+        if (localStorage.getItem("MARKET-TOKEN"))
+          await axios.post(
+            process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
+            {
+              device_token: token,
+              user_id: UserID(),
+              auth_token: UserToken(),
+            }
+          );
+      });
       if (typeof window !== "undefined") {
         _isStoreLastJson() &&
           localStorage.setItem("LAST_JSON", JSON.stringify(repo));
       }
     }
-    if (!localStorage.getItem("FB-DEVICE-TOKEN")) {
-      await requestFirebaseNotificationPermission().then(async (token) => {
-        // @ts-ignore
-        localStorage.setItem("FB-DEVICE-TOKEN", token);
-        await axios.post(
-          process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
-          {
-            device_token: token,
-            user_id: UserID(),
-            auth_token: UserToken(),
-          }
-        );
-      });
-    }
+
     setTimeout(() => {
       this.getClientData();
     }, 10);

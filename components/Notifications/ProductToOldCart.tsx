@@ -17,7 +17,7 @@ function ProductToOldCart({ data }) {
         <div className="b-icon">
           <img width={20} height={20} src={"svg/CartIcon.svg"} />
         </div>
-        <div className={`regular flex ml-2 boutique-desc-notification`}>
+        <div className={`regular inline ml-2 boutique-desc-notification`}>
           {data.product_name}{" "}
           <span className="ml-1">has converted to old cart</span>
         </div>
