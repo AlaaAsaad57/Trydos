@@ -38,6 +38,7 @@
     "fetch-mock": "^9.11.0",
     "file-loader": "^6.2.0",
     "firebase": "^10.5.2",
+    "firebase-admin": "^10.5.2",
     "js-cookie": "^3.0.5",
     "less": "^4.2.0",
     "less-loader": "^12.2.0",

@@ -8,6 +8,7 @@ import { InCall } from "../store/chat/actions";
 import Boutique from "components/Notifications/Boutique";
 import { Id } from "react-toastify";
 import ProductToOldCart from "components/Notifications/ProductToOldCart";
+import Category from "components/Notifications/Category";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
@@ -50,7 +51,6 @@ export const onMessageListener = async () => {
       console.log(payload);
       if (payload.data.title === "market") {
         const data = JSON.parse(payload.data.body);
-
         if (JSON.parse(payload.data.body).type === "boutique created") {
           const toaster = (myProps, toastProps): Id =>
             toast(<Boutique {...myProps} />, { ...toastProps });
@@ -65,6 +65,14 @@ export const onMessageListener = async () => {
 
           toaster.info = (myProps, toastProps): Id =>
             toast.info(<ProductToOldCart {...myProps} />, { ...toastProps });
+          toaster.info({ data: data }, { data: data });
+        }
+        if (JSON.parse(payload.data.body).type === "category created") {
+          const toaster = (myProps, toastProps): Id =>
+            toast(<Category {...myProps} />, { ...toastProps });
+
+          toaster.info = (myProps, toastProps): Id =>
+            toast.info(<Category {...myProps} />, { ...toastProps });
           toaster.info({ data: data }, { data: data });
         }
       } else {

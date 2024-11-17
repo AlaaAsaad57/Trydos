@@ -528,51 +528,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
     });
   const uploadPhoto = () => {
     sendStatues("Sending file...");
-    let Image = document.createElement("input");
-    Image.onblur = () => {};
-    Image.onchange = async (e) => {
-      let i = Math.random();
-      if (e.target.files[0]?.type.includes("image")) {
-        sendPhoto(e.target.files[0], i, "ImageMessage");
-
-        let pat = await upload(e.target.files[0]);
-
-        sendStatues(null);
-        SendMessage(
-          {
-            receiver_user_id: activeChat.channel_members.filter(
-              (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-            )[0]?.user_id,
-            receiver_role_id: activeChat.channel_members.filter(
-              (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-            )[0]?.role_id,
-            sender_role_id: getUser().role_id,
-            content: [{ file_path: pat.path, file_name: pat.name }],
-            parent_message_id: replyMessage?.id,
-            message_type: "ImageMessage",
-            mid: i,
-            cid: activeChat.id,
-          },
-          typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
-            ? activeChat.id
-            : false
-        );
-      } else if (e.target.files[0]?.type.includes("audio")) {
-        sendVid(e.target.files[0], i, "VoiceMessage");
-      } else if (e.target.files[0]?.type.includes("video")) {
-        sendVid(e.target.files[0], i, "VideoMessage");
-      } else {
-        sendVid(e.target.files[0], i, "FileMessage");
-      }
-    };
-    setTimeout(() => {
-      sendStatues(null);
-    }, 5000);
-    Image.type = "file";
-    Image.hidden = true;
-    Image.accept = "*/*";
-    Image.style = { position: "absolute", opacity: "0" };
-    let i = document.body.appendChild(Image);
+    let i = document.querySelector("input[type='file']");
     i.click();
   };
   const openCameraMobile = () => {
@@ -843,6 +799,48 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
   };
   return (
     <>
+      <input
+        hidden={true}
+        accept="*/*"
+        style={{ position: "absolute", opacity: "0" }}
+        onChange={async (e) => {
+          let i = Math.random();
+          if (e.target.files[0]?.type.includes("image")) {
+            sendPhoto(e.target.files[0], i, "ImageMessage");
+
+            let pat = await upload(e.target.files[0]);
+
+            sendStatues(null);
+            SendMessage(
+              {
+                receiver_user_id: activeChat.channel_members.filter(
+                  (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+                )[0]?.user_id,
+                receiver_role_id: activeChat.channel_members.filter(
+                  (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+                )[0]?.role_id,
+                sender_role_id: getUser().role_id,
+                content: [{ file_path: pat.path, file_name: pat.name }],
+                parent_message_id: replyMessage?.id,
+                message_type: "ImageMessage",
+                mid: i,
+                cid: activeChat.id,
+              },
+              typeof activeChat?.id === "string" &&
+                activeChat?.id?.includes("ch")
+                ? activeChat.id
+                : false
+            );
+          } else if (e.target.files[0]?.type.includes("audio")) {
+            sendVid(e.target.files[0], i, "VoiceMessage");
+          } else if (e.target.files[0]?.type.includes("video")) {
+            sendVid(e.target.files[0], i, "VideoMessage");
+          } else {
+            sendVid(e.target.files[0], i, "FileMessage");
+          }
+        }}
+        type="file"
+      />
       {activeChat?.id && call && call.includes("vid") && AgoraToken && (
         <VideoCall
           audio={call.includes("outgoing")}

@@ -43,7 +43,7 @@ export default function Home() {
     if (getUserChat()?.id) {
       const { requestFirebaseNotificationPermission, onMessageListener } =
         await import("utils/firebaseInitv1");
-      requestFirebaseNotificationPermission().then((fbtoken) => {
+      requestFirebaseNotificationPermission().then(async (fbtoken) => {
         if (fbtoken) {
           fbtoken &&
             ChatService.StoreToken({
@@ -51,6 +51,19 @@ export default function Home() {
               token: fbtoken,
               user: getUserChat(),
             });
+
+          await fetch("/api/subscribeToTopic", {
+            cache: "no-cache",
+            method: "POST",
+            // @ts-ignore
+            body: JSON.stringify({ token: fbtoken, topic: "boutique_created" }),
+          });
+          await fetch("/api/subscribeToTopic", {
+            cache: "no-cache",
+            method: "POST",
+            // @ts-ignore
+            body: JSON.stringify({ token: fbtoken, topic: "category_created" }),
+          });
         }
       });
       typeof window !== "undefined" &&

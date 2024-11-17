@@ -36,6 +36,21 @@ messaging.onBackgroundMessage(async function (payload) {
         };
         self.registration.showNotification("New Boutique", notificationOptions);
       }
+      if (JSON.parse(payload.data.body).type === "category created") {
+        notificationOptions = {
+          body: JSON.parse(payload?.data.body)?.category_name,
+          icon: JSON.parse(payload?.data.body)?.image,
+          // image: JSON.parse(payload?.data.body)?.banner[0].file_path,
+          data: {
+            url:
+              url +
+              `boutiques/listing?categories=${
+                JSON.parse(payload?.data.body).category_slug
+              }`,
+          }, // The URL which we are going to use later
+        };
+        self.registration.showNotification("New Category", notificationOptions);
+      }
       if (JSON.parse(payload.data.body).type === "product cart expiration") {
         notificationOptions = {
           body: `${

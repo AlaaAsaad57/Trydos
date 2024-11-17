@@ -3,7 +3,6 @@ import React, { useEffect } from "react";
 import { encode_utf8 } from "utils/functions";
 
 function Boutique({ data }) {
-  console.log(data);
   useEffect(() => {
     encode_utf8({
       element: document.querySelectorAll(

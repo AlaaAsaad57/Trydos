@@ -479,7 +479,7 @@ class HomeService {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_boutique_created",
-      { boutique_id: 66, topic: "eee" },
+      { boutique_id: 66, topic: "boutique_created" },
       { ...getHeader() }
     );
   }
@@ -519,7 +519,7 @@ class HomeService {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_category_created",
-      { category_id: 368 },
+      { category_id: 368, topic: "category_created" },
       { ...getHeader() }
     );
   }

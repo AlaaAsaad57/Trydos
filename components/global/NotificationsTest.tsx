@@ -87,7 +87,7 @@ function NotificationsTest() {
               <div className="flex-row justify-between p-3">
                 <span className="test">
                   new category added(should open category que page product
-                  listing filtered by category )
+                  listing filtered by category ) (done)
                 </span>
                 <div
                   className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md"
