@@ -9,6 +9,7 @@ import Boutique from "components/Notifications/Boutique";
 import { Id } from "react-toastify";
 import ProductToOldCart from "components/Notifications/ProductToOldCart";
 import Category from "components/Notifications/Category";
+import ProductAvailable from "components/Notifications/ProductAvailable";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
@@ -73,6 +74,14 @@ export const onMessageListener = async () => {
 
           toaster.info = (myProps, toastProps): Id =>
             toast.info(<Category {...myProps} />, { ...toastProps });
+          toaster.info({ data: data }, { data: data });
+        }
+        if (JSON.parse(payload.data.body).type === "product availability") {
+          const toaster = (myProps, toastProps): Id =>
+            toast(<ProductAvailable {...myProps} />, { ...toastProps });
+
+          toaster.info = (myProps, toastProps): Id =>
+            toast.info(<ProductAvailable {...myProps} />, { ...toastProps });
           toaster.info({ data: data }, { data: data });
         }
       } else {

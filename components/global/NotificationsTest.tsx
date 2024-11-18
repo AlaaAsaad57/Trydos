@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import NotifyIcon from "public/svg/cart/NotifyCart.svg";
 import home from "services/home";
+import { useSelector } from "node_modules/react-redux/es";
 function NotificationsTest() {
   const [enable, setEnable] = useState(false);
-  const NotifyBoutique = () => {};
+  const starttingSetting = useSelector((state: any) => state.homepage.settings);
   return (
     <div className="flex">
       <NotifyIcon onClick={() => setEnable(true)} />
@@ -32,11 +33,19 @@ function NotificationsTest() {
               <div className="flex-row justify-between p-3">
                 <span className="test">
                   product QTy or variant or products available in wanted
-                  products or old carts (should open product details)
+                  products or old carts (should open product details) (done)
                 </span>
                 <div
                   className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md"
-                  onClick={() => {
+                  onClick={async () => {
+                    let type = starttingSetting.notificationTypes.filter(
+                      (s) => s.name === "product availability"
+                    )[0]?.id;
+                    await home.StoreNotificationProduct({
+                      type_id: type,
+                      product_id: 5550,
+                      variant: "Gold-XXL",
+                    });
                     home.TestNotificationProductAvailable();
                   }}
                 >
@@ -63,6 +72,14 @@ function NotificationsTest() {
                 <div
                   className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md"
                   onClick={() => {
+                    // let type = starttingSetting.notificationTypes.filter(
+                    //   (s) => s.name === "product discount"
+                    // )[0]?.id;
+                    // home.StoreNotificationProduct({
+                    //   type_id:type,
+                    //   product_id:5550,
+                    //   variant:"Gold-XXL"
+                    // });
                     home.TestNotificationProductDiscount();
                   }}
                 >

@@ -529,6 +529,26 @@ class HomeService {
       { ...getHeader() }
     );
   }
+  async StoreNotificationProduct({ type_id, variant, product_id }) {
+    let detail = {
+      user_id: UserID(),
+      product_id: product_id,
+      notification_type_id: type_id,
+      variant: variant,
+    };
+    var formBody: any = [];
+    for (var property in detail) {
+      var encodedKey = encodeURIComponent(property);
+      var encodedValue = encodeURIComponent(detail[property]);
+      formBody.push(encodedKey + "=" + encodedValue);
+    }
+    formBody = formBody.join("&");
+    await axios.post(
+      process.env.NEXT_PUBLIC_BACKEND_URL + "/product_notification/store",
+      formBody,
+      { ...getHeader() }
+    );
+  }
 }
 
 export default new HomeService();
