@@ -16,6 +16,7 @@ import {
   UserToken,
 } from "utils/functions";
 import axios from "axios";
+import home from "services/home";
 function ProductOptions({
   activeOption,
   setOption,
@@ -64,6 +65,7 @@ function ProductOptions({
           },
         }
       );
+      await home.subscribeToTopics(SelectedProduct.slug_en_topic);
     } else {
       setLiked(false);
       dispatch({

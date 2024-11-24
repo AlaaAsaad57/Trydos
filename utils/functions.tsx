@@ -147,17 +147,21 @@ export const Sendevent = async (params: {
     let userId = localStorage.getItem("USER")
       ? JSON.parse(localStorage.getItem("USER"))?.id
       : "empty";
-    (window as any).gtag("event", params.event, {
-      executed_event_name: params.value,
-      country_name: Cookies.get("country"),
-      userID: userId,
-      device_language: Cookies.get("language"),
-      time_stamp: new Date().toISOString(),
+    if (typeof window !== "undefined") {
+      // @ts-ignore
+      (window as any).gtag("event", params.event, {
+        executed_event_name: params.value,
+        country_name: Cookies.get("country"),
+        userID: userId,
+        device_language: Cookies.get("language"),
+        time_stamp: new Date().toISOString(),
 
-      our_session_id: store.getState().homepage.session_id,
-      previous_event_button_name:
-        store.getState().homepage.previous_event_button_name,
-    });
+        our_session_id: store.getState().homepage.session_id,
+        previous_event_button_name:
+          store.getState().homepage.previous_event_button_name,
+      });
+    }
+
     store.dispatch({ type: "GA-EVENT", payload: params.value });
   } catch (e) {
     console.error(e);

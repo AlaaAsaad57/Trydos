@@ -515,6 +515,7 @@ function AddToCartButton({
                           (selectedCartItem) => {
                             dispatch({ type: "LOADED-CART", payload: false });
                             home.AddToCart({
+                              slug: product.slug_en_topic,
                               alreadyExist: isAlreayAdded({
                                 sku: `${product?.id}${
                                   selectedCartItem?.selectedColor?.color_name

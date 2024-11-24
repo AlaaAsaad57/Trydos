@@ -79,7 +79,7 @@ export function useAuthHooks() {
         );
         successCallback(exists, name);
       } catch (error) {
-        errorCallback();
+        errorCallback(error);
         console.error("VerifyOtp failed:", error);
       }
     },

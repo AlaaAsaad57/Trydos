@@ -420,7 +420,7 @@ function LogInPins({
               ) : (
                 <>
                   <span
-                    className="blue-text"
+                    className="blue-text resend-code-button"
                     onClick={() => {
                       Sendevent({
                         event: "button_clicked",

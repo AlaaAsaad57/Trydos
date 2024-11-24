@@ -168,7 +168,12 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
       dispatchStore({
         type: "STORE-VARIANTS",
         // @ts-ignore
-        payload: req?.data?.data?.variation,
+        payload: {
+          // @ts-ignore
+          variation: req?.data?.data?.variation,
+          // @ts-ignore
+          slug_en_topic: req?.data?.data?.slug_en_topic,
+        },
       });
       setLoading(false);
     } catch (error) {

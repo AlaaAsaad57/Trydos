@@ -1,7 +1,12 @@
+import { useSelector } from "node_modules/react-redux/es";
 import React, { useEffect } from "react";
+import home from "services/home";
 import { translate } from "utils/functions";
 
 function MoreOptionsSection() {
+  const SelectedProduct = useSelector(
+    (state: any) => state.cart.SelectedProduct
+  );
   useEffect(() => {
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector("#slider-options");
@@ -112,10 +117,26 @@ function MoreOptionsSection() {
             <div className="button-option">
               {translate("Change In Price", language)}
             </div>
-            <div className="button-option">
+            <div
+              className="button-option"
+              onClick={async () => {
+                await home.subscribeToTopics({
+                  slug: SelectedProduct.slug_en_topic,
+                  discount: true,
+                });
+              }}
+            >
               {translate("Discounts", language)}
             </div>
-            <div className="button-option">
+            <div
+              className="button-option"
+              onClick={async () => {
+                await home.subscribeToTopics({
+                  slug: SelectedProduct.slug_en_topic,
+                  comments: true,
+                });
+              }}
+            >
               {translate("Follow Comments", language)}
             </div>
             <div className="button-option">{translate("Offers", language)}</div>

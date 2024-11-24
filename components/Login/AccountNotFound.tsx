@@ -98,7 +98,7 @@ function AccountNotFound({
         </svg>
 
         <div className="text-login-desc">
-          <div className="text-login-item">
+          <div className="text-login-item not-registered">
             {translate(
               "Sorry, This Number Is Not Registered With Us !",
               language

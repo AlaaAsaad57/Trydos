@@ -108,6 +108,10 @@ class AuthService {
         getHeader()
       );
       let repo = await response.json();
+
+      if (repo?.data?.message === "user not found") {
+        throw new Error("user not found");
+      }
       if (repo?.isSuccessful === false) {
         throw new Error("Wrong Code");
       }
@@ -138,7 +142,8 @@ class AuthService {
       }
       return [repo.data.already_exists, repo.data.user.name];
     } catch (e) {
-      if (e.response.data.message === "user not found") {
+      console.log(e);
+      if (e.message === "user not found") {
         store.dispatch({ type: "WRONG-NUMBER", payload: "user not found" });
       } else {
         store.dispatch({ type: "LOGIN_FAILED" });

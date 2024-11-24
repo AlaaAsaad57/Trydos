@@ -65,7 +65,6 @@ function NewLoginWidget() {
           event: "programming_event",
           value: "otp_failed_event",
         });
-
         setFailed(true);
         setTimeout(() => {
           setPins("");
@@ -75,6 +74,15 @@ function NewLoginWidget() {
             setRender(true);
           }, 300);
         }, 1000);
+        if (e.message === "user not found") {
+          Sendevent({
+            event: "programming_event",
+
+            value: "phone_number_not_registered_event",
+          });
+          setSignStep("notFound");
+          setStepIndicator(6);
+        }
       },
       successCallback: (exists, name) => {
         setTimeout(() => {

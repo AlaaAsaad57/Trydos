@@ -23,14 +23,16 @@ function ProuctDetailsBody({ product }: { product: ProductInterface }) {
     (state: any) => state.cart.SelectedProduct
   );
   useEffect(() => {
-    Sendevent({
-      event: "viewed_product",
-      extra: {
-        product_name: product.name,
-        product_id: product.id,
-        product_categories: product.categories.map((s) => s.id),
-      },
-    });
+    setTimeout(() => {
+      Sendevent({
+        event: "viewed_product",
+        extra: {
+          product_name: product.name,
+          product_id: product.id,
+          product_categories: product.categories.map((s) => s.id),
+        },
+      });
+    }, 2000);
   }, []);
   return (
     <div className="product-details-body flex-row relative">

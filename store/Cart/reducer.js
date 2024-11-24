@@ -253,6 +253,10 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         variants: payload,
         loading: false,
         loaded: true,
+        SelectedProduct: {
+          ...state.SelectedProduct,
+          slug_en_topic: payload.slug_en_topic,
+        },
       };
     }
     case "AddToCartOptionEnable": {

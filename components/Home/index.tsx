@@ -62,6 +62,24 @@ export default function Home() {
             cache: "no-cache",
             method: "POST",
             // @ts-ignore
+            body: JSON.stringify({
+              token: fbtoken,
+              topic: "product_discount_mixit-solid-bangle-bracelet-RhqqPZ",
+            }),
+          });
+          await fetch("/api/subscribeToTopic", {
+            cache: "no-cache",
+            method: "POST",
+            // @ts-ignore
+            body: JSON.stringify({
+              token: fbtoken,
+              topic: "product_comment_mixit-solid-bangle-bracelet-RhqqPZ",
+            }),
+          });
+          await fetch("/api/subscribeToTopic", {
+            cache: "no-cache",
+            method: "POST",
+            // @ts-ignore
             body: JSON.stringify({ token: fbtoken, topic: "category_created" }),
           });
         }

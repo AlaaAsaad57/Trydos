@@ -377,6 +377,7 @@ class HomeService {
     callback,
     alreadyExist,
     errCallback,
+    slug,
   }: {
     id: number;
     size: string;
@@ -386,6 +387,7 @@ class HomeService {
     callback: Function;
     alreadyExist: boolean;
     errCallback?: Function;
+    slug: string;
   }) {
     if (alreadyExist) {
       let dataBody = [];
@@ -454,12 +456,48 @@ class HomeService {
       store.dispatch({ type: "LOADED-CART", payload: true });
       if (res.data?.data?.id_cart) {
         callback({ id: res.data?.data?.id_cart });
+        await this.subscribeToTopics({
+          slug: slug,
+          discount: true,
+          comments: true,
+        });
       } else {
         errCallback();
         store.dispatch({ type: "AddToCartOptionDisable", payload: true });
         toast.info(res.data?.message || "Failed");
       }
     }
+  }
+  async subscribeToTopics({
+    slug,
+    discount,
+    comments,
+  }: {
+    slug: string;
+    discount?: boolean;
+    comments?: boolean;
+  }) {
+    let fbtoken = localStorage.getItem("FB-DEVICE-TOKEN");
+    if (discount)
+      await fetch("/api/subscribeToTopic", {
+        cache: "no-cache",
+        method: "POST",
+        // @ts-ignore
+        body: JSON.stringify({
+          token: fbtoken,
+          topic: `product_discount_${slug}`,
+        }),
+      });
+    if (comments)
+      await fetch("/api/subscribeToTopic", {
+        cache: "no-cache",
+        method: "POST",
+        // @ts-ignore
+        body: JSON.stringify({
+          token: fbtoken,
+          topic: `product_comment_${slug}`,
+        }),
+      });
   }
   async hideOldCart({ id }: { id?: number }) {
     try {
@@ -517,7 +555,7 @@ class HomeService {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_product_discount",
-      { product_id: 5550 },
+      { product_id: 5550, topic: "product_discount" },
       { ...getHeader() }
     );
   }
@@ -543,11 +581,13 @@ class HomeService {
       formBody.push(encodedKey + "=" + encodedValue);
     }
     formBody = formBody.join("&");
-    await axios.post(
-      process.env.NEXT_PUBLIC_BACKEND_URL + "/product_notification/store",
-      formBody,
-      { ...getHeader() }
-    );
+    await axios
+      .post(
+        process.env.NEXT_PUBLIC_BACKEND_URL + "/product_notification/store",
+        formBody,
+        { ...getHeader() }
+      )
+      .catch((e) => {});
   }
 }
 
