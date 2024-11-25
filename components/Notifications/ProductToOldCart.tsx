@@ -12,7 +12,7 @@ function ProductToOldCart({ data }) {
   };
   return (
     <div className="flex-col" onClick={() => openCart()}>
-      <div className="regular p-2">data.boutique_description</div>
+      <div className="regular p-2">{data.boutique_description}</div>
       <div className="flex-row items-center">
         <div className="b-icon">
           <img width={20} height={20} src={"svg/CartIcon.svg"} />

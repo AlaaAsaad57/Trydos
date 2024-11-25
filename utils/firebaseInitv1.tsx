@@ -28,6 +28,7 @@ const firebaseConfig = {
   messagingSenderId: "817506223106",
   appId: "1:817506223106:web:e9e39c9a34ac2aff82131b",
   measurementId: "G-NZ5P3EHDH3",
+  databaseUrl: "https://trydos-2e2b2-default-rtdb.firebaseio.com",
 };
 export const firebaseApp = initializeApp(firebaseConfig);
 export const db = getDatabase(firebaseApp);
@@ -85,6 +86,22 @@ export const onMessageListener = async () => {
           toaster.info({ data: data }, { data: data });
         }
         if (JSON.parse(payload.data.body).type === "product availability") {
+          const toaster = (myProps, toastProps): Id =>
+            toast(<ProductAvailable {...myProps} />, { ...toastProps });
+
+          toaster.info = (myProps, toastProps): Id =>
+            toast.info(<ProductAvailable {...myProps} />, { ...toastProps });
+          toaster.info({ data: data }, { data: data });
+        }
+        if (JSON.parse(payload.data.body).type === "product discount") {
+          const toaster = (myProps, toastProps): Id =>
+            toast(<ProductAvailable {...myProps} />, { ...toastProps });
+
+          toaster.info = (myProps, toastProps): Id =>
+            toast.info(<ProductAvailable {...myProps} />, { ...toastProps });
+          toaster.info({ data: data }, { data: data });
+        }
+        if (JSON.parse(payload.data.body).type === "product comment") {
           const toaster = (myProps, toastProps): Id =>
             toast(<ProductAvailable {...myProps} />, { ...toastProps });
 

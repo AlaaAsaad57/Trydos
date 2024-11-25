@@ -21,6 +21,7 @@ const firebaseConfig = {
   messagingSenderId: "817506223106",
   appId: "1:817506223106:web:e9e39c9a34ac2aff82131b",
   measurementId: "G-NZ5P3EHDH3",
+  databaseUrl: "https://trydos-2e2b2-default-rtdb.firebaseio.com",
 };
 firebase.initializeApp(firebaseConfig);
 
@@ -79,6 +80,34 @@ messaging.onBackgroundMessage(async function (payload) {
           body: `${
             JSON.parse(payload.data.body)?.product_name
           } is Now Available`,
+          image: JSON.parse(payload.data.body).image,
+          data: {
+            url: url + `products/${JSON.parse(payload.data.body).product_slug}`,
+          }, // The URL which we are going to use later
+        };
+        self.registration.showNotification(
+          JSON.parse(payload.data.body).description,
+          notificationOptions
+        );
+      }
+      if (JSON.parse(payload.data.body).type === "product discount") {
+        notificationOptions = {
+          body: `${JSON.parse(payload.data.body)?.product_name} has Discount`,
+          image: JSON.parse(payload.data.body).image,
+          data: {
+            url: url + `products/${JSON.parse(payload.data.body).product_slug}`,
+          }, // The URL which we are going to use later
+        };
+        self.registration.showNotification(
+          JSON.parse(payload.data.body).description,
+          notificationOptions
+        );
+      }
+      if (JSON.parse(payload.data.body).type === "product comment") {
+        notificationOptions = {
+          body: `${
+            JSON.parse(payload.data.body)?.product_name
+          } has new Comments`,
           image: JSON.parse(payload.data.body).image,
           data: {
             url: url + `products/${JSON.parse(payload.data.body).product_slug}`,

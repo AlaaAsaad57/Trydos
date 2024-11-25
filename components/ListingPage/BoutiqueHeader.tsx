@@ -83,7 +83,6 @@ function BoutiqueHeader({ boutique, showFilters }) {
   const dispatch = useDispatch();
   useEffect(() => {
     if (boutique) {
-      console.log(boutique);
       Sendevent({
         event: "viewed_boutique",
         extra: {

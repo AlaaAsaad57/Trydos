@@ -536,18 +536,25 @@ class HomeService {
     );
   }
   async TestNotificationProductAvailable() {
-    await axios.post(
-      process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/firebase_device_tokens/send_product_availability",
-      { product_id: 5550, variant: "Gold-XXL" },
-      { ...getHeader() }
-    );
+    await axios
+      .post(
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+          "/firebase_device_tokens/send_product_availability",
+        { product_id: 5550, variant: "Gold-XXL" },
+        { ...getHeader() }
+      )
+      .catch((s) => {
+        console.error(s);
+      });
   }
   async TestNotificationProductComment() {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_product_comment",
-      { product_id: 5550 },
+      {
+        product_id: 5550,
+        topic: "product_comment_mixit-solid-bangle-bracelet-RhqqPZ",
+      },
       { ...getHeader() }
     );
   }
@@ -555,7 +562,10 @@ class HomeService {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_product_discount",
-      { product_id: 5550, topic: "product_discount" },
+      {
+        product_id: 5550,
+        topic: "product_discount_mixit-solid-bangle-bracelet-RhqqPZ",
+      },
       { ...getHeader() }
     );
   }
