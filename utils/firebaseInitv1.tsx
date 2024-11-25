@@ -12,14 +12,22 @@ import Category from "components/Notifications/Category";
 import ProductAvailable from "components/Notifications/ProductAvailable";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
-  authDomain: "trydos-ce234.firebaseapp.com",
-  databaseURL: "https://trydos-ce234-default-rtdb.firebaseio.com",
-  projectId: "trydos-ce234",
-  storageBucket: "trydos-ce234.appspot.com",
-  messagingSenderId: "912302743695",
-  appId: "1:912302743695:web:17d05f7385b792bf4110fa",
-  measurementId: "G-N8LNVEWJSJ",
+  // apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
+  // authDomain: "trydos-ce234.firebaseapp.com",
+  // databaseURL: "https://trydos-ce234-default-rtdb.firebaseio.com",
+  // projectId: "trydos-ce234",
+  // storageBucket: "trydos-ce234.appspot.com",
+  // messagingSenderId: "912302743695",
+  // appId: "1:912302743695:web:17d05f7385b792bf4110fa",
+  // measurementId: "G-N8LNVEWJSJ",
+
+  apiKey: "AIzaSyC3YInmCP8IqflkPjnpB9X4QCOQTa2bD64",
+  authDomain: "trydos-2e2b2.firebaseapp.com",
+  projectId: "trydos-2e2b2",
+  storageBucket: "trydos-2e2b2.firebasestorage.app",
+  messagingSenderId: "817506223106",
+  appId: "1:817506223106:web:e9e39c9a34ac2aff82131b",
+  measurementId: "G-NZ5P3EHDH3",
 };
 export const firebaseApp = initializeApp(firebaseConfig);
 export const db = getDatabase(firebaseApp);
