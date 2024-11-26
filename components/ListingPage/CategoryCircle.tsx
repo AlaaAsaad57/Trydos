@@ -163,10 +163,7 @@ function CategoryCircle({ category }) {
             (isSelectedChild() || expanded) && "no-transform"
           } z-0`}
           style={{
-            minWidth:
-              isSelectedChild() || expanded
-                ? `${category.childes.length * 55 - 5}px`
-                : "10px",
+            minWidth: isSelectedChild() || expanded ? "max-content" : "10px",
           }}
         >
           {category.childes.map((s, index) => {
@@ -177,10 +174,10 @@ function CategoryCircle({ category }) {
                   selectedFilter.categories.filter((sub) => sub.slug === s.slug)
                     .length > 0
                 }
-                onClick={() => {
+                onClick={(sub) => {
                   if (isSelected())
                     dispatch({ type: "FILTER-CATEGORY", payload: category });
-                  dispatch({ type: "FILTER-CATEGORY", payload: s });
+                  dispatch({ type: "FILTER-CATEGORY", payload: sub });
                   dispatch({ type: "FILTER-LOADING", payload: true });
                   UpdateFilter({
                     boutiqueId: pathName.productCategory,
