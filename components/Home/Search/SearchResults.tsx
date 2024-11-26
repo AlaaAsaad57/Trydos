@@ -152,7 +152,7 @@ function SearchResults() {
               Find Products {loadingSearch && <Spinner className="ml-3" no />}
             </div>
             {searchValue?.length > 0 &&
-              searchResults?.products.map((product, index) => {
+              searchResults?.products?.map((product, index) => {
                 return (
                   <ProductItem
                     product={product}
@@ -233,7 +233,7 @@ function SearchResults() {
               Find Boutiques {loading && <Spinner className="ml-3" no />}
             </div>
             <div className="brands-results-row flex-row overflow-auto">
-              {searchResults?.boutiques.map((boutique, index) => (
+              {searchResults?.boutiques?.map((boutique, index) => (
                 <BoutiqueItem
                   boutique={boutique}
                   key={index}
