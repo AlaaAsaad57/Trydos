@@ -48,7 +48,7 @@ function SearchComponent({
       search_text: e.target.value,
       searchFilters: searchFilters,
       callback: (e) => {
-        dispatch({ type: "FIND-PRODUCTS", payload: e });
+        dispatch({ type: "FIND-PRODUCTS", payload: e || [] });
       },
     });
   };

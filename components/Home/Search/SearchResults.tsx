@@ -146,7 +146,7 @@ function SearchResults() {
   return (
     <div className="search-results-container flex-col">
       <>
-        {(searchResults?.products.length > 0 || loading) && (
+        {(searchResults?.products?.length > 0 || loading) && (
           <div className="products-results flex-col max-h-[60%] overflow-auto">
             <div className="result-label flex-row">
               Find Products {loadingSearch && <Spinner className="ml-3" no />}
@@ -163,13 +163,13 @@ function SearchResults() {
               })}
           </div>
         )}
-        {(searchResults?.brands.length > 0 || loading) && (
+        {(searchResults?.brands?.length > 0 || loading) && (
           <div className="products-results brand-results">
             <div className="result-label flex-row">
               Find Brands {loading && <Spinner className="ml-3" no />}
             </div>
             <div className="brands-results-row flex-row overflow-auto">
-              {searchResults?.brands.map((brand, index) => (
+              {searchResults?.brands?.map((brand, index) => (
                 <BrandItem
                   brand={brand}
                   key={index}
@@ -194,13 +194,13 @@ function SearchResults() {
           </div>
         )}
 
-        {(searchResults?.categories.length > 0 || loading) && (
+        {(searchResults?.categories?.length > 0 || loading) && (
           <div className="products-results brand-results">
             <div className="result-label flex-row">
               Find Categories {loading && <Spinner className="ml-3" no />}
             </div>
             <div className="brands-results-row flex-row overflow-auto">
-              {searchResults?.categories.map((category, index) => (
+              {searchResults?.categories?.map((category, index) => (
                 <CategoryItem
                   category={category}
                   key={index}
@@ -227,7 +227,7 @@ function SearchResults() {
             </div>
           </div>
         )}
-        {(searchResults?.boutiques.length > 0 || loading) && (
+        {(searchResults?.boutiques?.length > 0 || loading) && (
           <div className="products-results brand-results">
             <div className="result-label flex-row">
               Find Boutiques {loading && <Spinner className="ml-3" no />}

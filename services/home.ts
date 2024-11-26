@@ -302,7 +302,7 @@ class HomeService {
         process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
           "/api/products/search" +
           `?search_text=${search_text}${
-            urlParams.size > 0 && `&` + urlParams.toString()
+            urlParams.size > 0 ? `&` + urlParams.toString() : ""
           }&limit=4&with_filter=false`,
         {
           headers: {
