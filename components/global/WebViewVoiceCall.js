@@ -32,6 +32,8 @@ function WebViewVoiceCall(props) {
       client.on("user-joined", (user) => {
         reset();
         start();
+        console.log("reset");
+
         setUsers((prevUsers) => {
           return [...prevUsers, user];
         });
@@ -39,11 +41,11 @@ function WebViewVoiceCall(props) {
       client.on("user-published", async (user, mediaType) => {
         await client.subscribe(user, mediaType);
         if (mediaType === "video") {
-          start();
+          // start();
         }
         if (mediaType === "audio") {
           // StartTalking(props.data.authToken, props.data.msgId);
-          start();
+          // start();
           user.audioTrack?.play();
         }
       });
