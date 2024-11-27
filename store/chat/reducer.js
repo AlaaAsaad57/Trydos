@@ -27,7 +27,13 @@ const initialState = {
   qouted: null,
   NotificationPremission: false,
   pusher_channels: [],
-  SearchEnable: false,
+  search: {
+    searchValue: "",
+    loading: false,
+    activeMessage: null,
+    messages: [],
+    offset: "0",
+  },
   user_loading: false,
   fbToken: null,
   newChats: [],
@@ -427,10 +433,42 @@ export const ChatReducer = (
         call: pa,
       };
     }
-    case "SEARCH_CHAT": {
+    case "CHAT-SEARCH-VALUE": {
       return {
         ...state,
-        SearchEnable: payload,
+        search: {
+          ...state.search,
+          searchValue: payload,
+        },
+      };
+    }
+    case "CHAT-SEARCH-REQUEST": {
+      return {
+        ...state,
+        search: {
+          ...state.search,
+          loading: false,
+          messages: payload.messages,
+          activeMessage: payload.messages[payload.messages.length - 1] ?? null,
+        },
+      };
+    }
+    case "CHAT-SEARCH-ID": {
+      return {
+        ...state,
+        search: {
+          ...state.search,
+          activeMessage: payload,
+        },
+      };
+    }
+    case "CHAT-SEARCH-LOADING": {
+      return {
+        ...state,
+        search: {
+          ...state.search,
+          loading: payload,
+        },
       };
     }
     case "CONV_DATWE": {
@@ -1027,6 +1065,10 @@ export const ChatReducer = (
           (s) => parseInt(s.id) === parseInt(state.activeChat.id)
         )[0],
         fetch: true,
+        search: {
+          ...state.search,
+          loading: false,
+        },
         first: false,
         mid: payload.mes.length === 0 ? null : state.mid,
       };

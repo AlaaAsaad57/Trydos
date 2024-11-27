@@ -23,11 +23,9 @@ export async function POST(request: NextRequest) {
     await getMessaging(app)
       .subscribeToTopic(token, topic)
       .then((s) => {
-        console.log("success", s);
         return NextResponse.json({ subscribed: true, s }, { status: 200 });
       })
       .catch((s) => {
-        console.error("error", s);
         return NextResponse.json({ subscribed: false, s }, { status: 500 });
       });
   } catch (error) {

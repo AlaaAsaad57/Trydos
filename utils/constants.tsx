@@ -6,16 +6,20 @@ import { setupCache } from "axios-cache-interceptor";
 export const errorPNG = pngErr.src;
 
 export const AxiosGet = async ({ url }) => {
-  let res = await axios.get(url, {
-    headers: {
-      lang: Cookies.get("language"),
-      country: Cookies.get("country"),
-      Authorization: `Bearer ${
-        Cookies.get("market-token") ?? Cookies.get("DEVICE-TOKEN")
-      }`,
-    },
-  });
-  return res.data.data;
+  try {
+    let res = await axios.get(url, {
+      headers: {
+        lang: Cookies.get("language"),
+        country: Cookies.get("country"),
+        Authorization: `Bearer ${
+          Cookies.get("market-token") ?? Cookies.get("DEVICE-TOKEN")
+        }`,
+      },
+    });
+    return res?.data.data;
+  } catch (error) {
+    console.error(error, url);
+  }
 };
 
 let axiosInstance = axios.create();

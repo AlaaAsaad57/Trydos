@@ -33,6 +33,7 @@ import { SSRDetect, getUserChat, translate } from "utils/functions";
 import dynamic from "next/dynamic";
 import { push, ref, set } from "firebase/database";
 import { db } from "utils/firebaseInitv1";
+import ChatSearch from "../components/ChatSearch";
 const VideoCall = dynamic(() =>
   import("components/Chat/components/VideoCall", { ssr: false })
 );
@@ -797,6 +798,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
         });
     }
   };
+  const [searchEnable, enableSearch] = useState(false);
   return (
     <>
       <input
@@ -1034,6 +1036,10 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
             }}
             cancel={() => openDetails(false)}
             activeChat={activeChat}
+            enableSearch={() => {
+              openDetails(false);
+              enableSearch(true);
+            }}
           />
         )}
         <ChatHeader
@@ -1044,6 +1050,13 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
           chats={chats}
           activeChat={activeChat}
         />
+        {searchEnable && (
+          <ChatSearch
+            close={() => {
+              enableSearch(false);
+            }}
+          />
+        )}
         <div className="chat-message-container">
           {!(typeof active?.id === "string" && active?.id?.includes("ch")) &&
             active?.id && (

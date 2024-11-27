@@ -155,7 +155,7 @@ export const getMainCategories = async ({ lang }) => {
       return [repo.data.mainCategories, returned_res];
     else return [repo.data.mainCategories, {}];
   } catch (e) {
-    return ["homedata-error", e.toString()];
+    return [e.toString(), e.toString()];
   }
 };
 

@@ -23,6 +23,7 @@ function ChatInfo({
   callLoading,
   makeAudioCall,
   makeVideoCall,
+  enableSearch,
 }) {
   const ref = useRef();
   const [showMedia, setMedia] = useState(false);
@@ -154,6 +155,7 @@ function ChatInfo({
             <div
               className="chat-user-info-option"
               style={{ marginLeft: "98px" }}
+              onClick={() => enableSearch()}
             >
               <InfoSearchIcon></InfoSearchIcon> <span>Search</span>
             </div>

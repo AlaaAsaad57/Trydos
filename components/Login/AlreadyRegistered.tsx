@@ -102,7 +102,7 @@ function AlreadyRegistered({
         </svg>
 
         <div className="text-login-desc">
-          <div className="text-login-item">
+          <div className="text-login-item already-registered">
             {translate("This Number Already Registered With Us !", language)}
           </div>
           <div className="icon-detail" style={{ marginTop: "1px" }}>

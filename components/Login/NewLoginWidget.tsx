@@ -164,6 +164,11 @@ function NewLoginWidget() {
 0% {transform:translateX(0px)}
 100% {transform:translateX(-800px)}
 `;
+  const backAction = () => {
+    if (operation === "login" && stepIndicator === 2) {
+      setStepIndicator(0);
+    } else setStepIndicator(stepIndicator - 1);
+  };
   const dispatch = useDispatch();
   if (!loginOpen) return <></>;
   return (
@@ -189,6 +194,34 @@ function NewLoginWidget() {
           overflow: "hidden",
         }}
       >
+        {stepIndicator >= 1 && (
+          <div
+            className="absolute top-[64px] left-[12px] cursor-pointer p-2"
+            onClick={() => {
+              backAction();
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="11.611"
+              height="24.216"
+              viewBox="0 0 11.611 24.216"
+            >
+              <path
+                id="Path_14693"
+                data-name="Path 14693"
+                d="M8,0,0,9.715,8,20"
+                transform="translate(1.5 2.111)"
+                fill="none"
+                stroke="#5d5d5d"
+                strokeLinecap="round"
+                stroke-linejoin="round"
+                strokeWidth="3"
+              />
+            </svg>
+          </div>
+        )}
+
         <LogoAuth
           className="logo-auth"
           id="logo-auth"

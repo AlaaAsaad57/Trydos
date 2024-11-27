@@ -22,7 +22,6 @@ function SelectSize({ sizes, variants }) {
     dispatch({ type: "AddToCartSize", payload: e });
   };
   const getVariants = (e?: any | undefined | null) => {
-    console.log();
     let variant = (e
       ? variants.filter((s) => {
           let size = s.type.split("-")[1] || s.type.split("-")[0];

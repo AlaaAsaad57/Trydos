@@ -142,7 +142,6 @@ class AuthService {
       }
       return [repo.data.already_exists, repo.data.user.name];
     } catch (e) {
-      console.log(e);
       if (e.message === "user not found") {
         store.dispatch({ type: "WRONG-NUMBER", payload: "user not found" });
       } else {

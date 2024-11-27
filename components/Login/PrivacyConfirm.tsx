@@ -68,7 +68,7 @@ function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
             </div>
             <div className="login-button-group">
               <div
-                className="login-button"
+                className="login-button agree-terms"
                 data-testid="Agree Terms"
                 onClick={() => {
                   Sendevent({

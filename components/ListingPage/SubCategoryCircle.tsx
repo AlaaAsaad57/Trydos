@@ -99,6 +99,7 @@ function SubCategoryCircle({
           {category.childes.map((s, index) => {
             return (
               <div
+                key={index}
                 className="sub-circle"
                 onClick={() => {
                   onClick(s);

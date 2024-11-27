@@ -800,7 +800,7 @@ export const getCart = async ({ callback }) => {
 
   store.dispatch({
     type: "STORE-OLD-CART",
-    payload: oldCartData.original.data,
+    payload: oldCartData?.original?.data,
   });
   callback([data, {}]);
 };

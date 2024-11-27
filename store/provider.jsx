@@ -62,9 +62,7 @@ export default function Providers({ children }) {
     // Observe DOM changes for dynamically added images
     const observer = new MutationObserver(() => addErrorListeners());
     observer.observe(document.body, { childList: true, subtree: true });
-    setTimeout(() => {
-      addErrorListeners();
-    }, 8000);
+
     return () => {
       // Cleanup
       observer.disconnect();
