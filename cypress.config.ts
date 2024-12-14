@@ -18,6 +18,8 @@ export default defineConfig({
   e2e: {
     // @ts-ignore
     hideXHRInCommandLog: true,
+    experimentalStudio: true,
+
     setupNodeEvents(on, config) {
       require("cypress-mochawesome-reporter/plugin")(on);
       // implement node event listeners here

@@ -1,4 +1,4 @@
-describe.only("Login Scenario Test", () => {
+describe("Login Scenario Test", () => {
   before(() => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       // returning false here prevents Cypress from

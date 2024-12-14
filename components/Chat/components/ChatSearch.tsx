@@ -33,8 +33,8 @@ function ChatSearch({ close }) {
       {
         query: value,
         channel_id: parseInt(activeChat.id),
-        limit: 10,
-        offset: offset,
+        limit: 100,
+        offset: parseInt(offset),
       },
       {
         headers: {
@@ -51,52 +51,135 @@ function ChatSearch({ close }) {
         newOffset,
       },
     });
-    await getMessagesBetweenMessage({
-      first: activeChat?.id,
-      second:
-        parseInt(activeChat.messages[activeChat.messages.length - 1]?.id) -
-        parseInt(
+    dispatch({
+      type: "qouted",
+      payload:
+        response.data.messages_ids[response.data.messages_ids.length - 1],
+    });
+    if (
+      activeChat.messages.filter(
+        (s) =>
+          parseInt(s.id) ===
           response.data.messages_ids[response.data.messages_ids.length - 1]
-        ),
-    });
-  };
-  const NextSearch = async () => {
-    let nextMessageId = messages.map((s, index) => {
-      if (s === activeMessage) {
-        if (messages[index + 1]) {
-          return messages[index + 1];
-        }
-      }
-    });
-    if (nextMessageId[0]) {
-      dispatch({ type: "CHAT-SEARCH-LOADING", payload: true });
+      ).length > 0
+    ) {
+    } else
       await getMessagesBetweenMessage({
         first: activeChat?.id,
         second:
           parseInt(activeChat.messages[activeChat.messages.length - 1]?.id) -
-          parseInt(nextMessageId[0]),
+          parseInt(
+            response.data.messages_ids[response.data.messages_ids.length - 1]
+          ),
       });
+    var numb = response.data.messages_ids[response.data.messages_ids.length - 1]
+      ?.toString()
+      ?.match(/\d/g);
+    numb = numb?.join("");
+    let el = document.querySelector(
+      `#main-container-${
+        response.data.messages_ids[response.data.messages_ids.length - 1]
+      }`
+    );
+
+    if (el) {
+      el.scrollIntoView({ block: "center" });
+
+      setTimeout(() => {
+        el.classList.add("backdrop_msg");
+      }, 300);
+      setTimeout(() => {
+        el.classList.remove("backdrop_msg");
+      }, 3000);
+    }
+  };
+  const NextSearch = async () => {
+    let nextMessageId;
+    messages.map((s, index) => {
+      if (s === activeMessage) {
+        if (messages[index + 1]) {
+          nextMessageId = messages[index + 1];
+        }
+      }
+      return;
+    });
+
+    if (nextMessageId) {
+      dispatch({
+        type: "qouted",
+        payload: nextMessageId,
+      });
+      if (
+        activeChat.messages.filter((s) => parseInt(s.id) === nextMessageId)
+          .length > 0
+      ) {
+      } else {
+        dispatch({ type: "CHAT-SEARCH-LOADING", payload: true });
+        await getMessagesBetweenMessage({
+          first: activeChat?.id,
+          second:
+            parseInt(activeChat.messages[activeChat.messages.length - 1]?.id) -
+            parseInt(nextMessageId),
+        });
+      }
       dispatch({ type: "CHAT-SEARCH-ID", payload: nextMessageId });
+      var numb = nextMessageId?.toString()?.match(/\d/g);
+      numb = numb?.join("");
+      let el = document.querySelector(`#main-container-${nextMessageId}`);
+      if (el) {
+        el.scrollIntoView({ block: "center" });
+
+        setTimeout(() => {
+          el.classList.add("backdrop_msg");
+        }, 300);
+        setTimeout(() => {
+          el.classList.remove("backdrop_msg");
+        }, 3000);
+      }
     }
   };
   const PreviousSearch = async () => {
-    let prevMessageId = messages.map((s, index) => {
+    let prevMessageId;
+    messages.map((s, index) => {
       if (s === activeMessage) {
         if (messages[index - 1]) {
-          return messages[index + 1];
+          prevMessageId = messages[index - 1];
         }
       }
     });
-    if (prevMessageId[0]) {
-      dispatch({ type: "CHAT-SEARCH-LOADING", payload: true });
 
-      await getMessagesBetweenMessage({
-        first: activeChat?.id,
-        second:
-          parseInt(activeChat.messages[activeChat.messages.length - 1]?.id) -
-          parseInt(prevMessageId[0]),
+    if (prevMessageId) {
+      dispatch({
+        type: "qouted",
+        payload: prevMessageId,
       });
+      if (
+        activeChat.messages.filter((s) => parseInt(s.id) === prevMessageId)
+          .length > 0
+      ) {
+      } else {
+        dispatch({ type: "CHAT-SEARCH-LOADING", payload: true });
+        await getMessagesBetweenMessage({
+          first: activeChat?.id,
+          second:
+            parseInt(activeChat.messages[activeChat.messages.length - 1]?.id) -
+            parseInt(prevMessageId),
+        });
+      }
       dispatch({ type: "CHAT-SEARCH-ID", payload: prevMessageId });
+      var numb = prevMessageId?.toString()?.match(/\d/g);
+      numb = numb?.join("");
+      let el = document.querySelector(`#main-container-${prevMessageId}`);
+      if (el) {
+        el.scrollIntoView({ block: "center" });
+
+        setTimeout(() => {
+          el.classList.add("backdrop_msg");
+        }, 300);
+        setTimeout(() => {
+          el.classList.remove("backdrop_msg");
+        }, 3000);
+      }
     }
   };
   useEffect(() => {
@@ -193,17 +276,22 @@ function ChatSearch({ close }) {
       </div>
       <div className="flex ml-2">
         <div
-          className={`flex cursor-pointer ${loading && "opacity-0"}`}
+          className={`flex cursor-pointer ${loading && "opacity-0"} ${
+            activeMessage === messages[messages.length - 1] && "opacity-5"
+          }`}
           onClick={() => {
-            if (!loading) NextSearch();
+            if (!loading && activeMessage !== messages[messages.length - 1])
+              NextSearch();
           }}
         >
           <DownArrow style={{ transform: "scale(0.8)" }} />
         </div>
         <div
-          className={`flex ml-1 cursor-pointer  ${loading && "opacity-0"}`}
+          className={`flex ml-1 cursor-pointer  ${loading && "opacity-0"} ${
+            activeMessage === messages[0] && "opacity-5"
+          }`}
           onClick={() => {
-            if (!loading) PreviousSearch();
+            if (!loading && activeMessage !== messages[0]) PreviousSearch();
           }}
         >
           <UpArrow style={{ transform: "scale(0.8)" }} />
