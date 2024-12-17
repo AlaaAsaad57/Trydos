@@ -67,47 +67,47 @@ function LogInPins({
               .blur();
           };
 
-          if (
-            document.getElementById("logo-auth") &&
-            document.getElementById("login-close-icon")
-          )
-            setTimeout(() => {
-              document.getElementById("logo-auth").style.position = "absolute";
-              document.getElementById("logo-auth").style.left = "20px";
-              document.getElementById("logo-auth").style.top = `${
-                visualViewport.pageTop + 10
-              }px`;
-              document.getElementById("logo-auth").style.transform =
-                "scale(.75)";
+          // if (
+          //   document.getElementById("logo-auth") &&
+          //   document.getElementById("login-close-icon")
+          // )
+          //   setTimeout(() => {
+          //     document.getElementById("logo-auth").style.position = "absolute";
+          //     document.getElementById("logo-auth").style.left = "20px";
+          //     document.getElementById("logo-auth").style.top = `${
+          //       visualViewport.pageTop + 10
+          //     }px`;
+          //     document.getElementById("logo-auth").style.transform =
+          //       "scale(.75)";
 
-              document.getElementById("logo-auth").style.alignSelf =
-                "flex-start";
-              document.getElementById("login-close-icon").style.top = "initial";
-              document.getElementById("login-close-icon").style.top = `${
-                visualViewport.pageTop + 30
-              }px`;
-              document.body.style.overflow = "hidden";
-              document.body.style.height = `${window.innerHeight}px`;
-            }, 250);
+          //     document.getElementById("logo-auth").style.alignSelf =
+          //       "flex-start";
+          //     document.getElementById("login-close-icon").style.top = "initial";
+          //     document.getElementById("login-close-icon").style.top = `${
+          //       visualViewport.pageTop + 30
+          //     }px`;
+          //     document.body.style.overflow = "hidden";
+          //     document.body.style.height = `${window.innerHeight}px`;
+          //   }, 250);
         }
       } else {
         if (window.innerWidth < 900) {
-          if (
-            document.getElementById("logo-auth") &&
-            document.getElementById("login-close-icon")
-          ) {
-            window.ontouchmove = function (e) {};
-            document.getElementById("logo-auth").style.position = "absolute";
-            document.getElementById("logo-auth").style.marginLeft = "0px";
-            document.getElementById("logo-auth").style.alignSelf = "initial";
-            document.getElementById("logo-auth").style.transform = "none";
-            document.getElementById("logo-auth").style.top = "60px";
-            document.getElementById("login-close-icon").style.top = "60px";
-            document.getElementById("login-close-icon").style.bottom =
-              "initial";
-            document.body.style.overflow = "auto";
-            document.body.style.height = "auto";
-          }
+          // if (
+          //   document.getElementById("logo-auth") &&
+          //   document.getElementById("login-close-icon")
+          // ) {
+          //   window.ontouchmove = function (e) {};
+          //   document.getElementById("logo-auth").style.position = "absolute";
+          //   document.getElementById("logo-auth").style.marginLeft = "0px";
+          //   document.getElementById("logo-auth").style.alignSelf = "initial";
+          //   document.getElementById("logo-auth").style.transform = "none";
+          //   document.getElementById("logo-auth").style.top = "60px";
+          //   document.getElementById("login-close-icon").style.top = "60px";
+          //   document.getElementById("login-close-icon").style.bottom =
+          //     "initial";
+          //   document.body.style.overflow = "auto";
+          //   document.body.style.height = "auto";
+          // }
         }
       }
     }

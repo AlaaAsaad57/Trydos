@@ -443,6 +443,7 @@ function CartContainer({ close }) {
                       </NextLink>{" "}
                       <QuantutyInput
                         id={product.id}
+                        disabled={false}
                         max={product.available_quantity}
                         setValue={() => {}}
                         value={product.quantity}
@@ -547,12 +548,14 @@ function CartContainer({ close }) {
           )}
         </div>
         {oldCart?.oldCart?.length > 0 && (
-          <>
+          <div className="flex-col bg-[#F8F8F8]  w-full h-auto mt-10">
             <hr className="p-4" />
-            <div className="flex-row mt-0 min-h-[30px] w-full items-center justify-center bg-[#F8F8F8] rounded-[10px]">
-              <CartLabel />{" "}
-              <span className="regular text-[#5D5C5D]">
-                {translate("Previously Viewed", GetAppLanguage())}
+            <div className="flex-row mt-0 min-h-[30px] w-full items-center justify-start bg-[#F8F8F8] rounded-[10px]">
+              <span className="ml-[32px]">
+                <OldCartIcon />
+              </span>{" "}
+              <span className="regular text-[#505050] text-[15px] ml-1">
+                {translate("Out Of Bag!", GetAppLanguage())}
               </span>
               <span
                 className="cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]"
@@ -568,11 +571,11 @@ function CartContainer({ close }) {
                 {translate("Hide All", GetAppLanguage())}
               </span>
             </div>
-            <div className="flex-col  w-full h-auto mt-10">
+            <div className="flex-col  w-full h-auto mt-3">
               {!loading ? (
                 <>
                   {oldCart?.oldCart.map((product, key) => (
-                    <div className="relative">
+                    <div className="relative px-1">
                       <NextLink
                         href={
                           params?.productId === product.slug &&
@@ -586,8 +589,9 @@ function CartContainer({ close }) {
                                   : ""
                               }`
                         }
-                        className="flex-row mt-2 w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
+                        className="flex-row mt-2 w-full relative  min-h-[208px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
                         key={key}
+                        style={{ border: "1px solid #ff5f617a" }}
                         onClick={(e) => {
                           // @ts-ignore
                           if (e.target.closest(".hide-btn")) return false;
@@ -628,7 +632,7 @@ function CartContainer({ close }) {
                             })}
                             width={110}
                             height={"100%"}
-                            className="rounded-2xl"
+                            className="rounded-2xl opacity-50"
                           />
                         </div>
                         <div className="flex-col mt-4 ml-5">
@@ -704,7 +708,7 @@ function CartContainer({ close }) {
                         </div>
                         {
                           <div
-                            className="absolute right-4 bottom-16 hide-btn"
+                            className="absolute right-4 bottom-[95px] hide-btn"
                             onClick={(e) => {
                               e.preventDefault();
                               Sendevent({
@@ -731,7 +735,7 @@ function CartContainer({ close }) {
                             </span>
                           </div>
                         }
-                        <div className="absolute right-4 bottom-3">
+                        <div className="absolute right-4 bottom-[57px]">
                           <div className="product-info-price">
                             {product.offer_price ? (
                               <>
@@ -832,19 +836,75 @@ function CartContainer({ close }) {
                           />
                         </div>
                       </NextLink>
-                      {/* <QuantutyInput
-                      id={product.id}
-                      value={product.quantity}
-                      max={product.available_quantity}
-                      setValue={() => {}}
-                      deleteFunction={() => {
-                        dispatch({
-                          type: "HIDE-OLD-CART",
-                          payload: product.id,
-                        });
-                        home.hideOldCart({ id: product.id });
-                      }}
-                    /> */}
+                      <QuantutyInput
+                        id={product.id}
+                        disabled={true}
+                        value={product.quantity}
+                        max={product.available_quantity}
+                        setValue={() => {}}
+                        deleteFunction={() => {}}
+                      />
+                      <div className="absolute flex-row cursor-pointer items-center pl-3 pr-3 max-w-[90vw] bottom-[8px] left-[9px] mx-auto right-[0px] w-full h-[32px] rounded-[15px] bg-[#F8F8F8]">
+                        <span
+                          style={{
+                            height: "15px",
+                            scale: "0.8",
+                            transform: "translateY(-3px)",
+                          }}
+                        >
+                          <OldCartIcon />
+                        </span>
+                        <span className="text-[#8D8D8D] bold text-[12px] ml-1">
+                          Out Of Bag!{" "}
+                          <span className="regular">
+                            Time Running Out.{" "}
+                            <span className="bold">-30:00</span> | Add Again?
+                          </span>
+                        </span>
+                        <span className="ml-auto">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="12"
+                            height="12"
+                            viewBox="0 0 12 12"
+                          >
+                            <g
+                              id="Group_11624"
+                              data-name="Group 11624"
+                              transform="translate(-65 -464)"
+                            >
+                              <g
+                                id="Group_10756"
+                                data-name="Group 10756"
+                                transform="translate(65 464)"
+                              >
+                                <path
+                                  id="Subtraction_1"
+                                  data-name="Subtraction 1"
+                                  d="M.262,9.636a.258.258,0,0,1-.156-.054.29.29,0,0,1-.1-.3L.675,7.091A4.792,4.792,0,0,1,0,4.636,4.554,4.554,0,0,1,4.458,0,4.554,4.554,0,0,1,8.914,4.636,4.555,4.555,0,0,1,4.458,9.273a4.341,4.341,0,0,1-2.5-.794L.409,9.589A.238.238,0,0,1,.262,9.636ZM4.416,6.982a.571.571,0,1,0,.562.571A.558.558,0,0,0,4.416,6.982Zm.115-4.55a.879.879,0,0,1,.954.88c0,.432-.183.7-.7,1.023a1.433,1.433,0,0,0-.817,1.288v.1c0,.319.171.518.447.518.255,0,.4-.162.426-.469.021-.445.181-.669.714-1a1.684,1.684,0,0,0-.987-3.16A1.8,1.8,0,0,0,2.812,2.6a1.186,1.186,0,0,0-.115.518.386.386,0,0,0,.413.434c.224,0,.349-.108.43-.372A.951.951,0,0,1,4.531,2.432Z"
+                                  transform="translate(0 2.364)"
+                                  fill="#8e8e8e"
+                                />
+                                <path
+                                  id="Path_21380"
+                                  data-name="Path 21380"
+                                  d="M10.677,9.661a.259.259,0,0,1-.157.055.237.237,0,0,1-.147-.047L8.824,8.559l-.017.011a5.314,5.314,0,0,0,.4-2.036A5.089,5.089,0,0,0,4.227,1.352a4.724,4.724,0,0,0-1.094.127A4.326,4.326,0,0,1,6.325.079a4.555,4.555,0,0,1,4.457,4.636,4.778,4.778,0,0,1-.675,2.455l.664,2.189a.287.287,0,0,1-.094.3Z"
+                                  transform="translate(0.23 0.466)"
+                                  fill="#8e8e8e"
+                                />
+                                <rect
+                                  id="Rectangle_4714"
+                                  data-name="Rectangle 4714"
+                                  width="11.536"
+                                  height="12"
+                                  transform="translate(0.464)"
+                                  fill="none"
+                                />
+                              </g>
+                            </g>
+                          </svg>
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </>
@@ -918,7 +978,7 @@ function CartContainer({ close }) {
               )}
             </div>
             {!loading && <OrderButton close={() => close()} />}
-          </>
+          </div>
         )}
       </div>
     </div>
@@ -926,7 +986,127 @@ function CartContainer({ close }) {
 }
 
 export default CartContainer;
-
+const OldCartIcon = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      xmlnsXlink="http://www.w3.org/1999/xlink"
+      width="19"
+      height="19"
+      viewBox="0 0 19 19"
+    >
+      <defs>
+        <clipPath id="clip-path22">
+          <rect
+            id="Rectangle_5771"
+            data-name="Rectangle 5771"
+            width="19"
+            height="19"
+            transform="translate(385 60)"
+            fill="none"
+          />
+        </clipPath>
+        <linearGradient
+          id="linear-gradient22"
+          x1="0.5"
+          y1="0.955"
+          x2="0.5"
+          gradientUnits="objectBoundingBox"
+        >
+          <stop offset="0" stop-color="#d3d3d3" />
+          <stop offset="1" stop-color="#c4c2c2" />
+        </linearGradient>
+      </defs>
+      <g
+        id="Mask_Group_538"
+        data-name="Mask Group 538"
+        transform="translate(-385 -60)"
+        clip-path="url(#clip-path22)"
+      >
+        <g
+          id="Group_10817"
+          data-name="Group 10817"
+          transform="translate(385 61.583)"
+        >
+          <g
+            id="Group_4037"
+            data-name="Group 4037"
+            transform="translate(5.463 0)"
+          >
+            <g
+              id="Group_4033"
+              data-name="Group 4033"
+              transform="translate(0 0)"
+            >
+              <g id="Group_4032" data-name="Group 4032">
+                <path
+                  id="Path_15859"
+                  data-name="Path 15859"
+                  d="M-1.992-1.536h9.46L9.256,8.328S8.361,9.7,7.847,9.7A99.722,99.722,0,0,1-2.607,9.527c-.856-.106-1.154-1.2-1.154-1.2Z"
+                  transform="translate(4.048 5.913)"
+                  fill="#8d8d8d"
+                />
+                <g id="bag-5">
+                  <g id="Group_2946" data-name="Group 2946">
+                    <path
+                      id="Path_15168"
+                      data-name="Path 15168"
+                      d="M51.9,38.124h9.736a1.9,1.9,0,0,0,1.9-1.9.2.2,0,0,0,0-.036l-1.58-8.924a1.049,1.049,0,0,0-1.041-.888H59.774V25.3a3.005,3.005,0,1,0-6.011,0v1.08H52.625a1.049,1.049,0,0,0-1.041.889L50,36.188a.2.2,0,0,0,0,.036A1.9,1.9,0,0,0,51.9,38.124ZM54.177,25.3a2.591,2.591,0,0,1,5.182,0v1.08H54.177Zm-2.186,2.039v0a.637.637,0,0,1,.633-.54h1.138v1.64a.207.207,0,1,0,.414,0v-1.64h5.182v1.64a.207.207,0,1,0,.414,0v-1.64h1.138a.637.637,0,0,1,.633.54v0l1.578,8.906a1.488,1.488,0,0,1-1.486,1.468H51.9a1.488,1.488,0,0,1-1.486-1.468Z"
+                      transform="translate(-50 -22.29)"
+                      fill="#3c3c3c"
+                    />
+                  </g>
+                </g>
+              </g>
+              <path
+                id="Path_15172"
+                data-name="Path 15172"
+                d="M0,0A6.211,6.211,0,0,0,3.439,1.416,7.45,7.45,0,0,0,7.12,0"
+                transform="translate(3.208 10.345)"
+                fill="none"
+                stroke="#fce66e"
+                stroke-linecap="round"
+                stroke-width="0.5"
+              />
+            </g>
+          </g>
+          <g
+            id="Group_10626"
+            data-name="Group 10626"
+            transform="translate(0 5.185)"
+          >
+            <g
+              id="Group_4033-2"
+              data-name="Group 4033"
+              transform="translate(0 0)"
+            >
+              <g id="Group_4032-2" data-name="Group 4032">
+                <path
+                  id="Path_15859-2"
+                  data-name="Path 15859"
+                  d="M-2.571-1.536H3.793L5,5.1s-.6.923-.95.922A67.132,67.132,0,0,1-2.985,5.9c-.576-.071-.776-.806-.776-.806Z"
+                  transform="translate(3.955 4.48)"
+                  fill="url(#linear-gradient22)"
+                />
+                <g id="bag-5-2" data-name="bag-5">
+                  <g id="Group_2946-2" data-name="Group 2946">
+                    <path
+                      id="Path_15168-2"
+                      data-name="Path 15168"
+                      d="M51.278,32.94h6.548a1.28,1.28,0,0,0,1.278-1.28.14.14,0,0,0,0-.024l-1.066-6a.705.705,0,0,0-.7-.6h-.766v-.726a2.021,2.021,0,0,0-4.043,0v.726h-.766a.705.705,0,0,0-.7.6l-1.065,6a.137.137,0,0,0,0,.024A1.28,1.28,0,0,0,51.278,32.94Zm1.531-8.628a1.742,1.742,0,0,1,3.483,0v.726H52.809Zm-1.47,1.372v0a.428.428,0,0,1,.422-.364h.772v1.1a.139.139,0,0,0,.279,0v-1.1H56.3v1.1a.139.139,0,0,0,.279,0v-1.1h.766a.428.428,0,0,1,.422.364v0l1.061,5.99a1,1,0,0,1-1,.989H51.278a1,1,0,0,1-1-.987Z"
+                      transform="translate(-49.999 -22.291)"
+                      fill="#3c3c3c"
+                    />
+                  </g>
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+    </svg>
+  );
+};
 const CartItemTypeIcon = () => {
   return (
     <svg
@@ -1302,7 +1482,14 @@ const SavedIcon = () => {
     </svg>
   );
 };
-const QuantutyInput = ({ value, setValue, max, deleteFunction, id }) => {
+const QuantutyInput = ({
+  value,
+  setValue,
+  max,
+  deleteFunction,
+  id,
+  disabled,
+}) => {
   const [inputValue, setInputValue] = useState(parseInt(value));
   const PlusIcon = ({ className }) => {
     return (
@@ -1390,7 +1577,11 @@ const QuantutyInput = ({ value, setValue, max, deleteFunction, id }) => {
     );
   };
   return (
-    <div className="absolute bottom-[20px] left-[125px]">
+    <div
+      className={`absolute ${
+        disabled ? "bottom-[64px]" : "bottom-[20px]"
+      } left-[125px]`}
+    >
       <div className="flex-row hide-btn relative max-w-[72px] w-[72px] h-[24px] mt-4 z-50">
         <svg
           className="absolute hide-btn"
@@ -1427,6 +1618,7 @@ const QuantutyInput = ({ value, setValue, max, deleteFunction, id }) => {
         <div
           className="absolute hide-btn h-[24px] flex items-center right-[6px]  cursor-pointer"
           onClick={() => {
+            if (disabled) return false;
             if (inputValue === max) return false;
             // @ts-ignore
             else {
@@ -1442,6 +1634,7 @@ const QuantutyInput = ({ value, setValue, max, deleteFunction, id }) => {
           <div
             className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
             onClick={() => {
+              if (disabled) return false;
               if (inputValue > 1) {
                 // @ts-ignore
                 setInputValue(parseInt(inputValue) - 1);

@@ -21,22 +21,22 @@ function InputName({
           document.getElementById("phoneInput").blur();
         };
 
-        setTimeout(() => {
-          document.getElementById("logo-auth").style.position = "absolute";
-          document.getElementById("logo-auth").style.left = "20px";
-          document.getElementById("logo-auth").style.top = `${
-            visualViewport.height > 311 ? visualViewport.pageTop + 15 : 0
-          }px`;
-          document.getElementById("logo-auth").style.transform = "scale(.75)";
+        // setTimeout(() => {
+        //   document.getElementById("logo-auth").style.position = "absolute";
+        //   document.getElementById("logo-auth").style.left = "20px";
+        //   document.getElementById("logo-auth").style.top = `${
+        //     visualViewport.height > 311 ? visualViewport.pageTop + 15 : 0
+        //   }px`;
+        //   document.getElementById("logo-auth").style.transform = "scale(.75)";
 
-          document.getElementById("logo-auth").style.alignSelf = "flex-start";
-          document.getElementById("login-close-icon").style.top = "initial";
-          document.getElementById("login-close-icon").style.top = `${
-            visualViewport.pageTop + 40
-          }px`;
-          document.body.style.overflow = "hidden";
-          document.body.style.height = `${window.innerHeight}px`;
-        }, 250);
+        //   document.getElementById("logo-auth").style.alignSelf = "flex-start";
+        //   document.getElementById("login-close-icon").style.top = "initial";
+        //   document.getElementById("login-close-icon").style.top = `${
+        //     visualViewport.pageTop + 40
+        //   }px`;
+        //   document.body.style.overflow = "hidden";
+        //   document.body.style.height = `${window.innerHeight}px`;
+        // }, 250);
       }
     } else {
     }
@@ -240,18 +240,18 @@ function InputName({
           }}
           onBlur={() => {
             window.ontouchmove = function (e) {};
-            if (window.innerWidth < 900) {
-              document.getElementById("logo-auth").style.position = "absolute";
-              document.getElementById("logo-auth").style.marginLeft = "0px";
-              document.getElementById("logo-auth").style.alignSelf = "initial";
-              document.getElementById("logo-auth").style.transform = "none";
-              document.getElementById("logo-auth").style.top = "60px";
-              document.getElementById("login-close-icon").style.top = "60px";
-              document.getElementById("login-close-icon").style.bottom =
-                "initial";
-              document.body.style.overflow = "auto";
-              document.body.style.height = "auto";
-            }
+            // if (window.innerWidth < 900) {
+            //   document.getElementById("logo-auth").style.position = "absolute";
+            //   document.getElementById("logo-auth").style.marginLeft = "0px";
+            //   document.getElementById("logo-auth").style.alignSelf = "initial";
+            //   document.getElementById("logo-auth").style.transform = "none";
+            //   document.getElementById("logo-auth").style.top = "60px";
+            //   document.getElementById("login-close-icon").style.top = "60px";
+            //   document.getElementById("login-close-icon").style.bottom =
+            //     "initial";
+            //   document.body.style.overflow = "auto";
+            //   document.body.style.height = "auto";
+            // }
           }}
           placeholder={translate("Enter Your Name", language)}
         />

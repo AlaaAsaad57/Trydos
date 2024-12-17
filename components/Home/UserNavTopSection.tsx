@@ -37,12 +37,12 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
         searchEnabled && "hidden"
       } user-nav-container md:min-w-[400px]`}
     >
-      <div
+      {/* <div
         className="nav-question-item"
         style={{ marginRight: "30px", marginLeft: "0px" }}
       >
         {user && <NotificationsTest />}
-      </div>
+      </div> */}
       <div
         className="nav-question-item cart-icon-selector"
         style={{ marginRight: "30px", marginLeft: "0px" }}

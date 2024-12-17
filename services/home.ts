@@ -121,14 +121,18 @@ class HomeService {
       await requestFirebaseNotificationPermission().then(async (token) => {
         // @ts-ignore
         localStorage.setItem("FB-DEVICE-TOKEN", token);
-        await axios.post(
-          process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
-          {
-            device_token: token,
-            user_id: UserID(),
-            auth_token: UserToken(),
-          }
-        );
+
+        setTimeout(async () => {
+          if (UserToken())
+            await axios.post(
+              process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
+              {
+                device_token: token,
+                user_id: UserID(),
+                auth_token: UserToken(),
+              }
+            );
+        }, 3000);
       });
     }
   }
