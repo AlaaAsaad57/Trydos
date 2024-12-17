@@ -286,7 +286,7 @@ function BoutiqueHeader({ boutique, showFilters }) {
             </div>
             <div className="boutique-text">{boutique.name}</div>
           </div>
-          <BoutiquePhoto photo={boutique.banners} />
+          <BoutiquePhoto photo={boutique?.banners} />
         </>
       )}
       {showFilters && (

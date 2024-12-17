@@ -165,23 +165,25 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
             })}
           </div>
           <div className="offer-desc" id={`boutique-${boutique.id}`}></div>
-          {boutique.banners.length > 1 ? (
+          {boutique?.banners?.length > 1 ? (
             <OfferPhotosSlider
               key={myKey}
               extended={false}
               myKey={myKey}
               priority={myKey < 2}
               boutique={boutique}
-              OfferPhotos={boutique.banners}
+              OfferPhotos={boutique.banners || []}
             />
           ) : (
             <div className="offer-slider-container">
-              <OfferSlideItem
-                mykey={myKey}
-                offerPhoto={boutique.banners[0]}
-                priority={myKey < 2}
-                isSingle={true}
-              />
+              {boutique?.banners && boutique?.banners[0] && (
+                <OfferSlideItem
+                  mykey={myKey}
+                  offerPhoto={boutique?.banners[0]}
+                  priority={myKey < 2}
+                  isSingle={true}
+                />
+              )}
               <OfferAvatars boutique={boutique} priority={myKey < 2} />
             </div>
           )}
