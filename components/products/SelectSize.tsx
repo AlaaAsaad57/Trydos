@@ -17,9 +17,8 @@ function SelectSize({ sizes, variants }) {
   const dispatch = useDispatch();
 
   const setActive = (e) => {
-    Sendevent({ event: "button_clicked", value: "slide_choose_size_event" });
-
     dispatch({ type: "AddToCartSize", payload: e });
+    Sendevent({ event: "button_clicked", value: "slide_choose_size_event" });
   };
   const getVariants = (e?: any | undefined | null) => {
     let variant = (e

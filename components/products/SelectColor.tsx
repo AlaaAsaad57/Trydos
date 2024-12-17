@@ -104,8 +104,8 @@ export default SelectColor;
 export const SelectColorsSlider = ({ colors }) => {
   const dispatch = useDispatch();
   const setActive = (e) => {
-    Sendevent({ event: "button_clicked", value: "slide_choose_color_event" });
     dispatch({ type: "AddToCartColor", payload: e });
+    Sendevent({ event: "button_clicked", value: "slide_choose_color_event" });
   };
   return (
     <Swiper

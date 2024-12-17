@@ -19,9 +19,7 @@ import {
 } from "utils/endpointConfig";
 import { SSRDetect } from "utils/functions";
 import { GetMainData, LogData } from "store/homepage/actions";
-import { FetchApi } from "store/homepage/cachedActions";
 import { toast } from "react-toastify";
-import { AxiosGet } from "utils/constants";
 import axios from "node_modules/axios";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 const getHeader = () => {
@@ -391,9 +389,9 @@ class HomeService {
   }) {
     if (alreadyExist) {
       let dataBody = [];
-      let dataObj = { key: alreadyExist, quantity: quantity + 1 };
+      let dataObj = { key: alreadyExist, quantity: quantity + 1 || 0 };
       for (var property in dataObj) {
-        if (dataObj[property]) {
+        if (dataObj[property] || dataObj[property] === 0) {
           var encodedKey = encodeURIComponent(property);
           var encodedValue = encodeURIComponent(dataObj[property]);
           dataBody.push(encodedKey + "=" + encodedValue);
@@ -421,7 +419,7 @@ class HomeService {
         callback({ id: alreadyExist });
       } else {
         errCallback();
-        store.dispatch({ type: "AddToCartOptionDisable" });
+        // store.dispatch({ type: "AddToCartOptionDisable" });
         toast.info(res.data?.message || "Failed");
       }
     } else {
@@ -463,7 +461,7 @@ class HomeService {
         });
       } else {
         errCallback();
-        store.dispatch({ type: "AddToCartOptionDisable", payload: true });
+        // store.dispatch({ type: "AddToCartOptionDisable", payload: true });
         toast.info(res.data?.message || "Failed");
       }
     }

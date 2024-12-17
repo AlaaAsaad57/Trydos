@@ -51,6 +51,12 @@ function AddToCartButton({
       return false;
     }
   };
+  const getQuantityForAdd = ({ sku }) => {
+    if (localCart.filter((s) => s.sku === sku).length > 0) {
+      let a = localCart.filter((s) => s.sku === sku)[0]?.quantity;
+      return a;
+    } else return 1;
+  };
   const getQuantity = ({ sku }) => {
     let qty = 0;
     if (
@@ -88,11 +94,8 @@ function AddToCartButton({
       )[0];
       qty = selectedVariant.quantity - 1;
     }
-    if (localCart.some((s) => s.sku === sku)) {
-      return localCart.filter((s) => s.sku === sku)[0]?.quantity + qty;
-    } else {
-      return 1 + qty;
-    }
+
+    return 1 + qty;
   };
   const getTotalQuantity = () => {
     let num = 0;
@@ -382,11 +385,137 @@ function AddToCartButton({
                     });
 
                     AddToCartAction({ quantity: 1 });
+                    Sendevent({
+                      event: "button_clicked",
+                      value: "add_product_to_bag_button",
+                    });
+                    dispatch({ type: "LOADED-CART", payload: false });
+                    AddToCartAction({ quantity: 1 });
+                    home.AddToCart({
+                      slug: product.slug_en_topic,
+                      alreadyExist: isAlreayAdded({
+                        sku: `${product?.id}${
+                          AddToCartOption?.selectedColor?.color_name
+                            ? `-${AddToCartOption?.selectedColor?.color_name}`
+                            : product.colors?.length > 0
+                            ? `-${product.colors[0]?.name}`
+                            : ""
+                        }${
+                          AddToCartOption?.selectedSize?.name
+                            ? `-${AddToCartOption?.selectedSize?.name}`
+                            : ""
+                        }`,
+                      }),
+                      callback: ({ id }) => {
+                        try {
+                          let elem = document.querySelector(".add-cart-button");
+                          setTimeout(() => {
+                            elem.classList.add("success-add");
+                          }, 200);
+                          Sendevent({
+                            event: "button_clicked",
+                            value: "added_product_to_bag_event",
+                          });
+                          AddToCartAnimation(AddToCartOption?.UID);
+                          setTimeout(() => {
+                            elem.classList.remove("success-add");
+                            dispatch({
+                              type: "ADD-PRODUCT-TO-CART",
+                              payload: {
+                                id: product?.id,
+                                item_id: id,
+                                color: product?.colors
+                                  ? product?.colors.filter(
+                                      (s) =>
+                                        s?.name ===
+                                        AddToCartOption?.selectedColor
+                                          ?.color_name
+                                    )[0]?.color
+                                  : null,
+                                image: product?.sync_color_images
+                                  ? product?.sync_color_images.filter(
+                                      (s) =>
+                                        s.color_name ===
+                                        AddToCartOption?.selectedColor
+                                          ?.color_name
+                                    )[0].images[0]?.file_path ??
+                                    product?.sync_color_images.filter(
+                                      (s) =>
+                                        s.color_name ===
+                                        AddToCartOption?.selectedColor
+                                          ?.color_name
+                                    )[0].images[0]
+                                  : product?.images[0]?.file_path ??
+                                    product?.images[0],
+                                quantity: AddToCartOption?.quantity || 1,
+                                size:
+                                  AddToCartOption?.selectedSize?.name ?? null,
+                                sku: `${product?.id}${
+                                  AddToCartOption?.selectedColor?.color_name
+                                    ? `-${AddToCartOption?.selectedColor?.color_name}`
+                                    : product.colors?.length > 0
+                                    ? `-${product.colors[0]?.name}`
+                                    : ""
+                                }${
+                                  AddToCartOption?.selectedSize?.name
+                                    ? `-${AddToCartOption?.selectedSize?.name}`
+                                    : ""
+                                }`,
+                                UID: `${product?.id}${AddToCartOption?.selectedColor?.color_name}${AddToCartOption?.selectedSize?.name}`,
+                              },
+                            });
+                            // setOption("AddToCart");
+                          }, 1200);
+                        } catch (e) {
+                          console.log(e);
+                        }
+                      },
+                      errCallback: () => {
+                        // setOption("AddToCart");
+                      },
+                      id: product?.id,
+                      color:
+                        product?.colors?.length === 1
+                          ? product?.colors[0].color
+                          : product?.colors
+                          ? product?.colors.filter(
+                              (s) =>
+                                s.name ===
+                                AddToCartOption?.selectedColor?.color_name
+                            )[0]?.color
+                          : null,
+                      image: product?.sync_color_images
+                        ? product?.sync_color_images.filter(
+                            (s) =>
+                              s.color_name ===
+                              AddToCartOption?.selectedColor?.color_name
+                          )[0].images[0]?.file_path ??
+                          product?.sync_color_images.filter(
+                            (s) =>
+                              s.color_name ===
+                              AddToCartOption?.selectedColor?.color_name
+                          )[0].images[0]
+                        : product?.images[0]?.file_path ?? product?.images[0],
+                      quantity: getQuantityForAdd({
+                        sku: `${product?.id}${
+                          AddToCartOption?.selectedColor?.color_name
+                            ? `-${AddToCartOption?.selectedColor?.color_name}`
+                            : product.colors?.length > 0
+                            ? `-${product.colors[0]?.name}`
+                            : ""
+                        }${
+                          AddToCartOption?.selectedSize?.name
+                            ? `-${AddToCartOption?.selectedSize?.name}`
+                            : ""
+                        }`,
+                      }),
+                      size: AddToCartOption?.selectedSize?.name ?? null,
+                    });
                   }}
                 />
               )}
 
-              {AddToCartOption.selectedOptions.filter(
+              {/* {AddToCartOption.selectedOptions.filter(
                 (s) =>
                   s.UID ===
                   `${product?.id}${AddToCartOption?.selectedColor?.color_name}${AddToCartOption?.selectedSize?.name}`
@@ -424,7 +553,7 @@ function AddToCartButton({
                       />
                     </svg>
                   </span>
-                )}
+                )} */}
 
               <div className="button-desc">
                 <div className="flex-row max-w-[30px] justify-end relative image-container-cart">
@@ -487,8 +616,7 @@ function AddToCartButton({
                   value: "add_to_bag_button",
                 });
                 // @ts-ignore
-                if (e.target.closest(".plus-icon-button")) {
-                } else {
+                {
                   if (loading) {
                     if (!AddToCartOption?.enable) {
                       setOption("AddToCart");
@@ -498,153 +626,136 @@ function AddToCartButton({
                         type: "AddToCartOptionEnable",
                       });
                     } else {
-                      if (
-                        AddToCartOption.selectedOptions.filter(
-                          (s) =>
-                            s.UID ===
-                            `${product?.id}${AddToCartOption?.selectedColor?.color_name}${AddToCartOption?.selectedSize?.name}`
-                        ).length === 0
-                      ) {
-                        AddToCartAction({ quantity: 1 });
-                      } else {
+                      {
                         Sendevent({
                           event: "button_clicked",
                           value: "add_product_to_bag_button",
                         });
-                        AddToCartOption.selectedOptions?.map(
-                          (selectedCartItem) => {
-                            dispatch({ type: "LOADED-CART", payload: false });
-                            home.AddToCart({
-                              slug: product.slug_en_topic,
-                              alreadyExist: isAlreayAdded({
-                                sku: `${product?.id}${
-                                  selectedCartItem?.selectedColor?.color_name
-                                    ? `-${selectedCartItem?.selectedColor?.color_name}`
-                                    : product.colors?.length > 0
-                                    ? `-${product.colors[0]?.name}`
-                                    : ""
-                                }${
-                                  selectedCartItem?.selectedSize?.name
-                                    ? `-${selectedCartItem?.selectedSize?.name}`
-                                    : ""
-                                }`,
-                              }),
-                              callback: ({ id }) => {
-                                try {
-                                  let elem =
-                                    document.querySelector(".add-cart-button");
-                                  setTimeout(() => {
-                                    elem.classList.add("success-add");
-                                  }, 200);
-                                  Sendevent({
-                                    event: "button_clicked",
-                                    value: "added_product_to_bag_event",
-                                  });
-                                  AddToCartAnimation(selectedCartItem?.UID);
-                                  setTimeout(() => {
-                                    elem.classList.remove("success-add");
-                                    dispatch({
-                                      type: "ADD-PRODUCT-TO-CART",
-                                      payload: {
-                                        id: product?.id,
-                                        item_id: id,
-                                        color: product?.colors
-                                          ? product?.colors.filter(
-                                              (s) =>
-                                                s?.name ===
-                                                selectedCartItem?.selectedColor
-                                                  ?.color_name
-                                            )[0]?.color
-                                          : null,
-                                        image: product?.sync_color_images
-                                          ? product?.sync_color_images.filter(
-                                              (s) =>
-                                                s.color_name ===
-                                                selectedCartItem?.selectedColor
-                                                  ?.color_name
-                                            )[0].images[0]?.file_path ??
-                                            product?.sync_color_images.filter(
-                                              (s) =>
-                                                s.color_name ===
-                                                selectedCartItem?.selectedColor
-                                                  ?.color_name
-                                            )[0].images[0]
-                                          : product?.images[0]?.file_path ??
-                                            product?.images[0],
-                                        quantity:
-                                          selectedCartItem?.quantity || 1,
-                                        size:
-                                          selectedCartItem?.selectedSize
-                                            ?.name ?? null,
-                                        sku: `${product?.id}${
-                                          selectedCartItem?.selectedColor
-                                            ?.color_name
-                                            ? `-${selectedCartItem?.selectedColor?.color_name}`
-                                            : product.colors?.length > 0
-                                            ? `-${product.colors[0]?.name}`
-                                            : ""
-                                        }${
-                                          selectedCartItem?.selectedSize?.name
-                                            ? `-${selectedCartItem?.selectedSize?.name}`
-                                            : ""
-                                        }`,
-                                        UID: `${product?.id}${selectedCartItem?.selectedColor?.color_name}${selectedCartItem?.selectedSize?.name}`,
-                                      },
-                                    });
-                                    setOption("");
-                                  }, 1200);
-                                } catch (e) {
-                                  console.log(e);
-                                }
-                              },
-                              errCallback: () => {
-                                setOption("");
-                              },
-                              id: product?.id,
-                              color:
-                                product?.colors?.length === 1
-                                  ? product?.colors[0].color
-                                  : product?.colors
-                                  ? product?.colors.filter(
-                                      (s) =>
-                                        s.name ===
-                                        selectedCartItem?.selectedColor
-                                          ?.color_name
-                                    )[0]?.color
-                                  : null,
-                              image: product?.sync_color_images
-                                ? product?.sync_color_images.filter(
-                                    (s) =>
-                                      s.color_name ===
-                                      selectedCartItem?.selectedColor
-                                        ?.color_name
-                                  )[0].images[0]?.file_path ??
-                                  product?.sync_color_images.filter(
-                                    (s) =>
-                                      s.color_name ===
-                                      selectedCartItem?.selectedColor
-                                        ?.color_name
-                                  )[0].images[0]
-                                : product?.images[0]?.file_path ??
-                                  product?.images[0],
-                              quantity: getQuantity({
-                                sku: `${product?.id}${
-                                  selectedCartItem?.selectedColor?.color_name
-                                    ? `-${selectedCartItem?.selectedColor?.color_name}`
-                                    : product.colors?.length > 0
-                                    ? `-${product.colors[0]?.name}`
-                                    : ""
-                                }${
-                                  selectedCartItem?.selectedSize?.name
-                                    ? `-${selectedCartItem?.selectedSize?.name}`
-                                    : ""
-                                }`,
-                              }),
-                              size:
-                                selectedCartItem?.selectedSize?.name ?? null,
-                            });
-                          }
-                        );
+                        dispatch({ type: "LOADED-CART", payload: false });
+                        AddToCartAction({ quantity: 1 });
+                        home.AddToCart({
+                          slug: product.slug_en_topic,
+                          alreadyExist: isAlreayAdded({
+                            sku: `${product?.id}${
+                              AddToCartOption?.selectedColor?.color_name
+                                ? `-${AddToCartOption?.selectedColor?.color_name}`
+                                : product.colors?.length > 0
+                                ? `-${product.colors[0]?.name}`
+                                : ""
+                            }${
+                              AddToCartOption?.selectedSize?.name
+                                ? `-${AddToCartOption?.selectedSize?.name}`
+                                : ""
+                            }`,
+                          }),
+                          callback: ({ id }) => {
+                            try {
+                              let elem =
+                                document.querySelector(".add-cart-button");
+                              setTimeout(() => {
+                                elem.classList.add("success-add");
+                              }, 200);
+                              Sendevent({
+                                event: "button_clicked",
+                                value: "added_product_to_bag_event",
+                              });
+                              AddToCartAnimation(AddToCartOption?.UID);
+                              setTimeout(() => {
+                                elem.classList.remove("success-add");
+                                dispatch({
+                                  type: "ADD-PRODUCT-TO-CART",
+                                  payload: {
+                                    id: product?.id,
+                                    item_id: id,
+                                    color: product?.colors
+                                      ? product?.colors.filter(
+                                          (s) =>
+                                            s?.name ===
+                                            AddToCartOption?.selectedColor
+                                              ?.color_name
+                                        )[0]?.color
+                                      : null,
+                                    image: product?.sync_color_images
+                                      ? product?.sync_color_images.filter(
+                                          (s) =>
+                                            s.color_name ===
+                                            AddToCartOption?.selectedColor
+                                              ?.color_name
+                                        )[0].images[0]?.file_path ??
+                                        product?.sync_color_images.filter(
+                                          (s) =>
+                                            s.color_name ===
+                                            AddToCartOption?.selectedColor
+                                              ?.color_name
+                                        )[0].images[0]
+                                      : product?.images[0]?.file_path ??
+                                        product?.images[0],
+                                    quantity: AddToCartOption?.quantity || 1,
+                                    size:
+                                      AddToCartOption?.selectedSize?.name ??
+                                      null,
+                                    sku: `${product?.id}${
+                                      AddToCartOption?.selectedColor?.color_name
+                                        ? `-${AddToCartOption?.selectedColor?.color_name}`
+                                        : product.colors?.length > 0
+                                        ? `-${product.colors[0]?.name}`
+                                        : ""
+                                    }${
+                                      AddToCartOption?.selectedSize?.name
+                                        ? `-${AddToCartOption?.selectedSize?.name}`
+                                        : ""
+                                    }`,
+                                    UID: `${product?.id}${AddToCartOption?.selectedColor?.color_name}${AddToCartOption?.selectedSize?.name}`,
+                                  },
+                                });
+                                // setOption("AddToCart");
+                              }, 1200);
+                            } catch (e) {
+                              console.log(e);
+                            }
+                          },
+                          errCallback: () => {
+                            // setOption("AddToCart");
+                          },
+                          id: product?.id,
+                          color:
+                            product?.colors?.length === 1
+                              ? product?.colors[0].color
+                              : product?.colors
+                              ? product?.colors.filter(
+                                  (s) =>
+                                    s.name ===
+                                    AddToCartOption?.selectedColor?.color_name
+                                )[0]?.color
+                              : null,
+                          image: product?.sync_color_images
+                            ? product?.sync_color_images.filter(
+                                (s) =>
+                                  s.color_name ===
+                                  AddToCartOption?.selectedColor?.color_name
+                              )[0].images[0]?.file_path ??
+                              product?.sync_color_images.filter(
+                                (s) =>
+                                  s.color_name ===
+                                  AddToCartOption?.selectedColor?.color_name
+                              )[0].images[0]
+                            : product?.images[0]?.file_path ??
+                              product?.images[0],
+                          quantity: getQuantityForAdd({
+                            sku: `${product?.id}${
+                              AddToCartOption?.selectedColor?.color_name
+                                ? `-${AddToCartOption?.selectedColor?.color_name}`
+                                : product.colors?.length > 0
+                                ? `-${product.colors[0]?.name}`
+                                : ""
+                            }${
+                              AddToCartOption?.selectedSize?.name
+                                ? `-${AddToCartOption?.selectedSize?.name}`
+                                : ""
+                            }`,
+                          }),
+                          size: AddToCartOption?.selectedSize?.name ?? null,
+                        });
                       }
                     }
                   }

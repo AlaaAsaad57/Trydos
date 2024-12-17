@@ -16,7 +16,6 @@ const initialState = {
   localCart: [],
   loaded: false,
   oldCart: null,
-  oldBrands: [],
 };
 
 export const CartReducer = (state = initialState, { type, payload }) => {
@@ -44,8 +43,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         });
         let selectedOptions = [];
         state.AddToCartOption.selectedOptions.map((s) => {
-          if (s.UID === payload.UID) {
-          } else {
+          {
             selectedOptions.push(s);
           }
         });
@@ -55,7 +53,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           enable: false,
           AddToCartOption: {
             ...state.AddToCartOption,
-            enable: false,
+            enable: true,
             quantity: 0,
             selectedOptions: selectedOptions,
           },
@@ -74,7 +72,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           AddToCartOption: {
             ...state.AddToCartOption,
             quantity: 0,
-            enable: false,
+            enable: true,
             selectedOptions: selectedOptions,
           },
         };
@@ -99,15 +97,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         };
       let brands = [];
       let products = payload.oldCart ?? [];
-      products.map((s) => {
-        if (!s?.boutique?.id && !brands.some((b) => b?.boutique?.id === null)) {
-          brands.push({ brand: null });
-        }
-        if (brands.some((b) => b?.id === s.boutique?.id)) {
-        } else {
-          if (s.boutique) brands.push(s.boutique);
-        }
-      });
+
       let oldCart = products.map((product) => ({
         ...product,
         offer_price: product.discount
@@ -118,24 +108,14 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         oldCart: { ...payload, oldCart: oldCart },
-        oldBrands: brands,
       };
     }
     case "HIDE-OLD-CART": {
-      let brands = [];
       let products =
         state.oldCart?.oldCart.filter(
           (oldCartItem) => oldCartItem.id !== payload
         ) || [];
-      products.map((s) => {
-        if (!s?.boutique?.id && !brands.some((b) => b?.boutique?.id === null)) {
-          brands.push({ brand: null });
-        }
-        if (brands.some((b) => b?.id === s.boutique?.id)) {
-        } else {
-          if (s.boutique) brands.push(s.boutique);
-        }
-      });
+
       let oldCart = products.map((product) => ({
         ...product,
         offer_price: product.discount
@@ -146,27 +126,13 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         oldCart: { ...state.oldCart, oldCart: oldCart },
-        oldBrands: brands,
       };
     }
     case "CART-INIT": {
-      let brands = [];
-      let prods = payload.cart;
-      prods.map((s) => {
-        if (!s?.boutique?.id && !brands.some((b) => b?.boutique?.id === null)) {
-          brands.push({ brand: null });
-        }
-        if (brands.some((b) => b?.id === s.boutique?.id)) {
-        } else {
-          if (s.boutique) brands.push(s.boutique);
-        }
-      });
-
       return {
         ...state,
         ...payload,
         loading: false,
-        brands: brands,
         localCart: [
           ...payload.cart.map((s) => ({
             id: s.product_id,
@@ -180,6 +146,12 @@ export const CartReducer = (state = initialState, { type, payload }) => {
             }${s.choices?.length > 0 ? `-${s.choices[0].choice_1}` : ""}`,
           })),
         ],
+      };
+    }
+    case "REMOVE-FROM-CART": {
+      return {
+        ...state,
+        cart: state.cart.filter((s) => s.id !== payload),
       };
     }
     case "CART-LOADING": {
@@ -389,7 +361,8 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "AddToCartSize": {
-      let variant = state.variants.filter(
+      console.log(state.variants || state.variants.variation);
+      let variant = (state.variants || state.variants.variation).filter(
         (s) =>
           s.type.includes(
             state?.AddToCartOption?.selectedColor?.color_name || ""
@@ -410,7 +383,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "AddToCartColor": {
-      let variant = state.variants.filter(
+      let variant = (state.variants || state.variants.variation).filter(
         (s) =>
           s.type.includes(payload?.color_name || "") &&
           s.type.includes(state?.AddToCartOption?.selectedSize?.name || "")

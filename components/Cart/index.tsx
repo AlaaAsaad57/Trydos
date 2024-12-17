@@ -4,28 +4,35 @@ import {
   GetAppLanguage,
   getCart,
   getConfiguredImage,
+  getLang,
   RoundPrice,
   Sendevent,
   translate,
 } from "utils/functions";
 import BackIcon from "public/svg/listing/backIcon.svg";
-import CartIcon from "public/svg/CartIcon.svg";
+import Cookies from "js-cookie";
+
+import ShareIcon from "public/svg/listing/shareIcon.svg";
 import CartLabel from "public/svg/cart/cartLabel.svg";
 import ErrorIcon from "public/svg/cart/Error.svg";
 import Skeleton from "react-loading-skeleton";
-import { LogData } from "store/homepage/actions";
+
 import "styles/productDetails.css";
 import NextLink from "Hooks/NextLink";
 import { useParams, useSearchParams } from "next/navigation";
 import home from "services/home";
+
+import { toast } from "react-toastify";
+import axios from "node_modules/axios";
+import OrderButton from "./OrderButton";
 function CartContainer({ close }) {
   const language = useSelector((state: any) => state.homepage.language);
   const oldCart = useSelector((state: any) => state.cart.oldCart);
-  const oldBrands = useSelector((state: any) => state.cart.oldBrands);
+
   const loading = useSelector((state: any) => state.cart.loading);
   const cart = useSelector((state: any) => state.cart?.cart);
   const total_cash = useSelector((state: any) => state.cart?.total_cash);
-  const brands = useSelector((state: any) => state.cart?.brands);
+
   const currency = useSelector((state: any) => state.homepage.currency) || 1;
   const decimal_point_settings = useSelector(
     (state: any) => state.homepage.settings
@@ -40,34 +47,15 @@ function CartContainer({ close }) {
     });
   }, []);
   const params = useParams();
-  const getProductsOfBrand = (s, CartVariable) => {
-    return CartVariable?.filter((b) => b.boutique?.id === s?.id);
-  };
 
-  const getPriceOfBrand = (s, CartVariable) => {
-    let prods = getProductsOfBrand(s, CartVariable);
-    let pr = 0;
-    prods?.map((product) => {
-      pr += RoundPrice({
-        num: (product.offer_price || product.price) * product.quantity,
-        points:
-          (decimal_point_settings &&
-            decimal_point_settings["starting-setting"]
-              ?.decimal_point_settings) ||
-          0,
-        rate: currency?.exchange_rate,
-      });
-    });
-    return pr;
-  };
   const sarchParams = useSearchParams();
 
   const ProductDetails = useSelector((state: any) => state.details.product);
   const searchParams = useSearchParams();
   return (
-    <div className="flex-col fixed top-0 left-0 min-h-[100vh] max-h-[100vh] h-auto overflow-scroll w-full bg-[#F8F8F8] min-w-[100vw] z-[9999999999] pt-1">
+    <div className="flex-col fixed top-0 left-0 min-h-[100vh] max-h-[100vh] h-auto overflow-scroll w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1">
       <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
-        <div className="flex-row  w-full min-h-10 pl-1 pr-2  relative justify-between items-center ">
+        <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
           <BackIcon
             className="cursor-pointer z-50"
             onClick={() => {
@@ -79,34 +67,133 @@ function CartContainer({ close }) {
               close();
             }}
           />
-          <span className="text-[13px] text-[#505050] regular">
-            {translate("Your Shopping Bag", language)}
+          <span className="text-[13px] text-[#505050] regular flex-row items-center ">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              xmlnsXlink="http://www.w3.org/1999/xlink"
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+            >
+              <defs>
+                <clipPath id="clip-path">
+                  <rect
+                    id="Rectangle_4612"
+                    data-name="Rectangle 4612"
+                    width="20"
+                    height="20"
+                    transform="translate(385 60)"
+                    fill="none"
+                  />
+                </clipPath>
+                <linearGradient
+                  id="linear-gradient"
+                  x1="0.5"
+                  y1="0.955"
+                  x2="0.5"
+                  gradientUnits="objectBoundingBox"
+                >
+                  <stop offset="0" stop-color="#f53c3c" />
+                  <stop offset="1" stop-color="#ff9696" />
+                </linearGradient>
+              </defs>
+              <g
+                id="Mask_Group_388"
+                data-name="Mask Group 388"
+                transform="translate(-385 -60)"
+                clip-path="url(#clip-path)"
+              >
+                <g
+                  id="Group_10817"
+                  data-name="Group 10817"
+                  transform="translate(385 61.666)"
+                >
+                  <g
+                    id="Group_4037"
+                    data-name="Group 4037"
+                    transform="translate(5.751 0)"
+                  >
+                    <g
+                      id="Group_4033"
+                      data-name="Group 4033"
+                      transform="translate(0 0)"
+                    >
+                      <g id="Group_4032" data-name="Group 4032">
+                        <path
+                          id="Path_15859"
+                          data-name="Path 15859"
+                          d="M-1.9-1.536H8.059L9.941,8.847S9,10.291,8.458,10.291a104.971,104.971,0,0,1-11-.182c-.9-.111-1.214-1.261-1.214-1.261Z"
+                          transform="translate(4.064 6.144)"
+                          fill="#2c2a2a"
+                        />
+                        <g id="bag-5">
+                          <g id="Group_2946" data-name="Group 2946">
+                            <path
+                              id="Path_15168"
+                              data-name="Path 15168"
+                              d="M52,38.957H62.249a2,2,0,0,0,2-2,.213.213,0,0,0,0-.038l-1.663-9.393a1.1,1.1,0,0,0-1.1-.935h-1.2V25.454a3.164,3.164,0,1,0-6.327,0v1.137h-1.2a1.1,1.1,0,0,0-1.1.936L50,36.919a.216.216,0,0,0,0,.038A2,2,0,0,0,52,38.957Zm2.4-13.5a2.727,2.727,0,1,1,5.454,0v1.137H54.4ZM52.1,27.6v0a.67.67,0,0,1,.667-.569h1.2v1.726a.218.218,0,1,0,.436,0V27.027h5.454v1.726a.218.218,0,1,0,.436,0V27.027h1.2a.67.67,0,0,1,.667.569v0l1.661,9.375a1.566,1.566,0,0,1-1.564,1.546H52a1.566,1.566,0,0,1-1.564-1.546Z"
+                              transform="translate(-50 -22.29)"
+                              fill="#3c3c3c"
+                            />
+                          </g>
+                        </g>
+                      </g>
+                      <path
+                        id="Path_15172"
+                        data-name="Path 15172"
+                        d="M0,0A6.538,6.538,0,0,0,3.62,1.491,7.842,7.842,0,0,0,7.5,0"
+                        transform="translate(3.377 10.89)"
+                        fill="none"
+                        stroke="#fce66e"
+                        stroke-linecap="round"
+                        stroke-width="0.5"
+                      />
+                    </g>
+                  </g>
+                  <g
+                    id="Group_10626"
+                    data-name="Group 10626"
+                    transform="translate(0 5.458)"
+                  >
+                    <g
+                      id="Group_4033-2"
+                      data-name="Group 4033"
+                      transform="translate(0 0)"
+                    >
+                      <g id="Group_4032-2" data-name="Group 4032">
+                        <path
+                          id="Path_15859-2"
+                          data-name="Path 15859"
+                          d="M-2.508-1.536h6.7L5.456,5.448s-.633.971-1,.971a70.666,70.666,0,0,1-7.4-.122c-.606-.074-.817-.848-.817-.848Z"
+                          transform="translate(3.965 4.635)"
+                          fill="url(#linear-gradient)"
+                        />
+                        <g id="bag-5-2" data-name="bag-5">
+                          <g id="Group_2946-2" data-name="Group 2946">
+                            <path
+                              id="Path_15168-2"
+                              data-name="Path 15168"
+                              d="M51.345,33.5h6.893a1.347,1.347,0,0,0,1.346-1.348.144.144,0,0,0,0-.026l-1.122-6.315a.742.742,0,0,0-.737-.629h-.806v-.764a2.128,2.128,0,0,0-4.256,0v.764h-.806a.742.742,0,0,0-.737.629L50,32.129a.145.145,0,0,0,0,.026A1.347,1.347,0,0,0,51.345,33.5Zm1.611-9.082a1.833,1.833,0,0,1,3.667,0v.764H52.956Zm-1.547,1.444v0a.451.451,0,0,1,.444-.383h.813v1.161a.147.147,0,1,0,.293,0V25.476h3.667v1.161a.147.147,0,1,0,.293,0V25.476h.806a.451.451,0,0,1,.444.383v0l1.117,6.306a1.056,1.056,0,0,1-1.049,1.041H51.345a1.056,1.056,0,0,1-1.052-1.039Z"
+                              transform="translate(-49.999 -22.291)"
+                              fill="#3c3c3c"
+                            />
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </svg>
+            <span className="regular ml-[8px]">
+              {translate("Shopping Bag", language)}{" "}
+              {cart.length > 0 && (
+                <span className="bold">{cart.length} Items</span>
+              )}
+            </span>
           </span>
-          <CartIcon />
-          <CartBorderHeader />
-        </div>
-        <div className="flex-row mt-1 min-h-[30px] w-full items-center justify-center bg-[#F8F8F8] rounded-[10px]">
-          <CartLabel />
-          <div className="light ml-1 text-[13px] text-[#8D8D8D]">
-            <span className="medium text-[#5D5C5D]">{cart?.length}</span>
-            <span className="ml-[3px]">items</span>
-            {cart?.length > 0 && (
-              <>
-                <span className="medium text-[#5D5C5D] ml-[3px]">
-                  {RoundPrice({
-                    num: total_cash,
-                    points:
-                      (decimal_point_settings &&
-                        decimal_point_settings["starting-setting"]
-                          ?.decimal_point_settings) ||
-                      0,
-                    rate: currency?.exchange_rate,
-                  })}
-                </span>
-                <span className="ml-[3px]">{currency?.symbol}</span>
-              </>
-            )}
-          </div>
+
+          <ShareIcon />
         </div>
       </div>
       <div className="flex-col  w-full h-auto mt-10">
@@ -114,197 +201,264 @@ function CartContainer({ close }) {
           <>
             {cart.length > 0 ? (
               <>
-                {brands?.map((boutique, key) => (
-                  <>
-                    {boutique?.id ? (
-                      <BrandCart
-                        close={close}
-                        isOldCart={false}
-                        key={key}
-                        currency={currency}
-                        price={getPriceOfBrand(boutique, cart)}
-                        products={getProductsOfBrand(boutique, cart)}
-                        boutique={boutique}
-                      />
-                    ) : (
-                      <div
-                        className="flex-col bg-[#FFF4B5] pb-10 rounded-2xl"
-                        key={key}
-                      >
-                        <div className="flex-col w-full">
-                          {getProductsOfBrand(boutique, cart).map(
-                            (product, key) => (
-                              <NextLink
-                                href={
-                                  params?.productId === product.slug &&
-                                  product?.variations[0].color ===
-                                    searchParams.get("color")
-                                    ? "#"
-                                    : `/products/${product.slug}${
-                                        product?.variations &&
-                                        product?.variations[0]?.color
-                                          ? `?color=${product?.variations[0]?.color}`
-                                          : ""
-                                      }`
-                                }
-                                className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
-                                key={key}
-                                onClick={(e) => {
-                                  Sendevent({
-                                    event: "button_clicked",
-                                    value: "item_in_cart_button",
-                                  });
-                                  if (params?.productId === product.slug) {
-                                    if (product.variations[0].color) {
-                                      dispatch({
-                                        type: "SET-ACTIVE-COLOR-DETAILS",
-                                        payload:
-                                          ProductDetails.sync_color_images[
-                                            ProductDetails.sync_color_images.findIndex(
-                                              (s) =>
-                                                s.color_name ===
-                                                product?.variations[0]?.color
-                                            )
-                                          ],
-                                      });
-                                    }
-                                  }
-                                  close();
-                                }}
-                              >
-                                <div className="flex-row w-[110px] min-h-[161px] relative">
-                                  <img
-                                    src={getConfiguredImage({
-                                      height: 150,
-                                      width: 150,
-                                      src: product.image,
-                                    })}
-                                    width={110}
-                                    height={"100%"}
-                                    className="rounded-2xl"
-                                  />
-                                </div>
-                                <div className="flex-col mt-4 ml-5">
-                                  <div className="text-xs mt-1 text-[#505050] flex regular">
-                                    {product.name}
-                                  </div>
-                                  <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                                    <CartItemTypeIcon />
-                                    <span className="ml-1.5"></span>
-                                  </div>
-                                  {product.variations[0]?.color && (
-                                    <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                                      <CartColorIcon />
-                                      <span className="ml-1.5">color,</span>
-                                      <span className="regular">
-                                        {product.variations[0].color}
-                                      </span>
-                                    </div>
-                                  )}
-                                  {product.variations[0]?.Size && (
-                                    <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                                      <CartSizeIcon />
-                                      <span className="ml-1.5">Size,</span>
-                                      <span className="regular">
-                                        {product.variations[0].Size}
-                                      </span>
-                                    </div>
-                                  )}
-                                  {product.quantity >
-                                    product.available_quantity && (
-                                    <div className="flex-row items-center text-[12px] light text-[#fd445d]">
-                                      <ErrorIcon />
-                                      <span className="ml-1.5">
-                                        Availabilty,
-                                      </span>
-                                      <span className="regular ml-1">
-                                        Out Of Stock
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="absolute right-4 bottom-7">
-                                  <div className="product-info-price">
-                                    {product.offer_price ? (
-                                      <>
-                                        <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
-                                          {RoundPrice({
-                                            num: product.price,
-                                            rate: currency.exchange_rate,
-                                            points:
-                                              (decimal_point_settings &&
-                                                decimal_point_settings[
-                                                  "starting-setting"
-                                                ]?.decimal_point_settings) ||
-                                              0,
-                                          })}
-                                          <svg
-                                            className="bottom-3"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="100%"
-                                            height="2"
-                                          >
-                                            <line
-                                              id="Line_1104"
-                                              data-name="Line 1104"
-                                              x2="100%"
-                                              transform="translate(0 1)"
-                                              fill="none"
-                                              stroke="#C4C2C2"
-                                              strokeWidth="2"
-                                            />
-                                          </svg>
-                                        </div>
-                                        <div className="product-new-price text-[18px] bold">
-                                          {RoundPrice({
-                                            num: product.offer_price,
-                                            rate: currency.exchange_rate,
-                                            points:
-                                              (decimal_point_settings &&
-                                                decimal_point_settings[
-                                                  "starting-setting"
-                                                ]?.decimal_point_settings) ||
-                                              0,
-                                          })}
-                                        </div>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <div className="product-new-price text-[18px] bold">
-                                          {RoundPrice({
-                                            num: product.price,
-                                            rate: currency.exchange_rate,
-                                            points:
-                                              (decimal_point_settings &&
-                                                decimal_point_settings[
-                                                  "starting-setting"
-                                                ]?.decimal_point_settings) ||
-                                              0,
-                                          })}
-                                        </div>
-                                      </>
-                                    )}
-                                    <div className="product-currency text-[8px] text-[#C4C2C2] regular">
-                                      {currency?.symbol}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="absolute top-1 right-1">
-                                  <input
-                                    defaultValue={product.quantity}
-                                    type="number"
-                                    min={1}
-                                    max={product.available_quantity}
-                                    className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
-                                  />
-                                </div>
-                              </NextLink>
-                            )
+                {cart?.map((product, key) => (
+                  <div className="relative">
+                    {" "}
+                    <NextLink
+                      href={
+                        params?.productId === product.slug &&
+                        product?.variations[0]?.color ===
+                          sarchParams.get("color")
+                          ? "#"
+                          : `/products/${product.slug}${
+                              product?.variations &&
+                              product?.variations[0]?.color
+                                ? `?color=${product?.variations[0]?.color}`
+                                : ""
+                            }`
+                      }
+                      className="flex-row mt-2 w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
+                      key={key}
+                      onClick={(e) => {
+                        // @ts-ignore
+                        if (e.target.closest(".hide-btn")) return false;
+                        // @ts-ignore
+                        if (e.target.closest(".hide-btn")) return false;
+                        setTimeout(() => {
+                          if (document.querySelector("#nprogress"))
+                            // @ts-ignore
+                            document.querySelector("#nprogress").style.opacity =
+                              "1";
+                        }, 1000);
+                        if (params?.productId === product.slug) {
+                          if (product.variations[0].color) {
+                            dispatch({
+                              type: "SET-ACTIVE-COLOR-DETAILS",
+                              payload:
+                                ProductDetails.sync_color_images[
+                                  ProductDetails.sync_color_images.findIndex(
+                                    (s) =>
+                                      s.color_name ===
+                                      product?.variations[0]?.color
+                                  )
+                                ],
+                            });
+                          }
+                        }
+                        close();
+                      }}
+                    >
+                      <div className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative">
+                        <img
+                          src={getConfiguredImage({
+                            height: 150,
+                            width: 150,
+                            src: product.image,
+                          })}
+                          width={110}
+                          height={"100%"}
+                          className="rounded-2xl"
+                        />
+                      </div>
+                      <div className="flex-col mt-4 ml-5">
+                        <div className="h-[10px] overflow-hidden">
+                          <img
+                            src={getConfiguredImage({
+                              height: 150,
+                              width: 150,
+                              src: product.brand?.image,
+                            })}
+                            height={10}
+                            style={{
+                              top: "0px",
+                              maxHeight: "100%",
+                              display: "flex",
+                            }}
+                            className="object-contain h-4 max-w-[90px] w-auto"
+                          />
+                        </div>
+                        <div className="text-xs mt-1 text-[#505050] flex regular">
+                          {product.name}
+                        </div>
+                        <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
+                          <CartItemTypeIcon />
+                          <span className="ml-1.5"></span>
+                        </div>
+                        <div className="flex-row flex-wrap">
+                          {product.variations[0]?.color && (
+                            <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                              <CartColorIcon />
+                              <span className="ml-1.5">color,</span>
+                              <span className="regular">
+                                {product.variations[0].color}
+                              </span>
+                            </div>
+                          )}
+                          {product.variations[0]?.Size && (
+                            <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
+                              <CartSizeIcon />
+                              <span className="ml-1.5">Size,</span>
+                              <span className="regular">
+                                {product.variations[0].Size}
+                              </span>
+                            </div>
                           )}
                         </div>
+                        <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                          <PiecesIcon />
+                          <span className="ml-1.5 text-[#8D8D8D] regular">
+                            Composed Of:{" "}
+                          </span>
+                          <span className="regular">
+                            {product.count_of_pieces} Piece
+                          </span>
+                        </div>
+                        <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                          <DeleiveryIcon />
+                          <span className="ml-1.5 text-[#8D8D8D] regular">
+                            Shipping:{" "}
+                          </span>
+                          <span className="regular">
+                            3 Days{" "}
+                            <span className="ml-1 underline">Details</span>
+                          </span>
+                        </div>
+
+                        {product.quantity > product.available_quantity && (
+                          <div className="flex-row items-center text-[12px] light text-[#fd445d]">
+                            <ErrorIcon />
+                            <span className="ml-1.5">Availabilty,</span>
+                            <span className="regular ml-1">Out Of Stock</span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </>
+
+                      <div className="absolute right-4 bottom-3">
+                        <div className="product-info-price">
+                          {product.offer_price ? (
+                            <>
+                              <div className="flex-col">
+                                <div className="flex-row">
+                                  <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
+                                    {RoundPrice({
+                                      num: product.price,
+                                      rate: currency?.exchange_rate,
+                                      points:
+                                        (decimal_point_settings &&
+                                          decimal_point_settings[
+                                            "starting-setting"
+                                          ]?.decimal_point_settings) ||
+                                        0,
+                                    })}
+                                    <svg
+                                      className="bottom-3"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="100%"
+                                      height="2"
+                                    >
+                                      <line
+                                        id="Line_1104"
+                                        data-name="Line 1104"
+                                        x2="100%"
+                                        transform="translate(0 1)"
+                                        fill="none"
+                                        stroke="#C4C2C2"
+                                        strokeWidth="2"
+                                      />
+                                    </svg>
+                                  </div>
+                                  <div className="product-new-price text-[18px] bold">
+                                    {RoundPrice({
+                                      num: product.offer_price,
+                                      rate: currency.exchange_rate,
+                                      points:
+                                        (decimal_point_settings &&
+                                          decimal_point_settings[
+                                            "starting-setting"
+                                          ]?.decimal_point_settings) ||
+                                        0,
+                                    })}
+                                  </div>
+                                  <div className="product-currency text-[8px] light text-[#1D1D1D]">
+                                    {currency?.symbol}
+                                  </div>
+                                </div>
+                                <div className="flex-row">
+                                  <SavedIcon />
+                                  <span className="text-[8px] text-[#388CFF]">
+                                    Saved{" "}
+                                    <span className="bold">
+                                      {parseInt(
+                                        (
+                                          ((product.price -
+                                            product.offer_price) /
+                                            product.price) *
+                                          100
+                                        ).toString()
+                                      )}
+                                      %
+                                    </span>
+                                  </span>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="product-new-price text-[14px] light text-[#1D1D1D]">
+                                {RoundPrice({
+                                  num: product.price,
+                                  rate: currency.exchange_rate,
+                                  points:
+                                    (decimal_point_settings &&
+                                      decimal_point_settings["starting-setting"]
+                                        ?.decimal_point_settings) ||
+                                    0,
+                                })}
+                              </div>
+                            </>
+                          )}
+                          <div className="product-currency text-[8px] text-[#C4C2C2] regular">
+                            {currency?.symbol}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="absolute top-1 right-1">
+                        <input
+                          defaultValue={key + 1}
+                          type="number"
+                          min={1}
+                          disabled
+                          max={product.available_quantity}
+                          className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
+                        />
+                      </div>
+                    </NextLink>{" "}
+                    <QuantutyInput
+                      id={product.id}
+                      max={product.available_quantity}
+                      setValue={() => {}}
+                      value={product.quantity}
+                      deleteFunction={() => {
+                        dispatch({
+                          type: "REMOVE-FROM-CART",
+                          payload: product.id,
+                        });
+                        home.AddToCart({
+                          alreadyExist: product.id,
+                          callback: () => {},
+                          color: product.variations[0].color,
+                          size: product.variations[0].Size,
+                          id: product.product_id,
+                          image: product.image,
+                          quantity: -1,
+                          slug: product.slug,
+                          errCallback: () => {
+                            toast.error(translate("failed!", GetAppLanguage()));
+                          },
+                        });
+                      }}
+                    />
+                  </div>
                 ))}
               </>
             ) : (
@@ -346,7 +500,7 @@ function CartContainer({ close }) {
                           />
                         </div>
                       </div>
-                      <div className="absolute right-4 bottom-7">
+                      <div className="absolute right-4 bottom-3">
                         <div className="product-info-price">
                           <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
                             <svg
@@ -387,24 +541,6 @@ function CartContainer({ close }) {
             <span className="regular text-[#5D5C5D]">
               {translate("Previously Viewed", GetAppLanguage())}
             </span>
-            <div className="light ml-1 text-[13px] text-[#8D8D8D]">
-              <span className="medium text-[#5D5C5D]">
-                {oldCart.oldCart?.length}
-              </span>
-              <span className="ml-[3px]">items</span>
-              <span className="medium text-[#5D5C5D] ml-[3px]">
-                {RoundPrice({
-                  num: oldCart.total_cash,
-                  points:
-                    (decimal_point_settings &&
-                      decimal_point_settings["starting-setting"]
-                        ?.decimal_point_settings) ||
-                    0,
-                  rate: currency?.exchange_rate,
-                })}
-              </span>
-              <span className="ml-[3px]">{currency?.symbol}</span>
-            </div>
             <span
               className="cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]"
               onClick={() => {
@@ -422,193 +558,278 @@ function CartContainer({ close }) {
           <div className="flex-col  w-full h-auto mt-10">
             {!loading ? (
               <>
-                {oldBrands?.map((boutique, key) => (
-                  <>
-                    {boutique?.id ? (
-                      <BrandCart
-                        isOldCart={true}
-                        close={close}
-                        key={key}
-                        currency={currency}
-                        price={getPriceOfBrand(boutique, oldCart.oldCart)}
-                        products={getProductsOfBrand(boutique, oldCart.oldCart)}
-                        boutique={boutique}
-                      />
-                    ) : (
-                      <div
-                        className="flex-col bg-[#FFF4B5] pb-10 rounded-2xl"
-                        key={key}
-                      >
-                        <div className="flex-col w-full">
-                          {getProductsOfBrand(boutique, oldCart.oldCart).map(
-                            (product, key) => (
-                              <NextLink
-                                href={
-                                  params?.productId === product.slug &&
-                                  product?.variations[0].color ===
-                                    searchParams.get("color")
-                                    ? "#"
-                                    : `/products/${product.slug}${
-                                        product?.variations &&
-                                        product?.variations[0]?.color
-                                          ? `?color=${product?.variations[0]?.color}`
-                                          : ""
-                                      }`
-                                }
-                                className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
-                                key={key}
-                                onClick={(e) => {
-                                  if (params?.productId === product.slug) {
-                                    if (product.variations[0].color) {
-                                      dispatch({
-                                        type: "SET-ACTIVE-COLOR-DETAILS",
-                                        payload:
-                                          ProductDetails.sync_color_images[
-                                            ProductDetails.sync_color_images.findIndex(
-                                              (s) =>
-                                                s.color_name ===
-                                                product?.variations[0]?.color
-                                            )
-                                          ],
-                                      });
-                                    }
-                                  }
-                                  close();
-                                }}
-                              >
-                                <div className="flex-row w-[110px] min-h-[161px] relative">
-                                  <img
-                                    src={getConfiguredImage({
-                                      height: 150,
-                                      width: 150,
-                                      src: product.image,
+                {oldCart?.oldCart.map((product, key) => (
+                  <div className="relative">
+                    <NextLink
+                      href={
+                        params?.productId === product.slug &&
+                        product?.variations[0]?.color ===
+                          sarchParams.get("color")
+                          ? "#"
+                          : `/products/${product.slug}${
+                              product?.variations &&
+                              product?.variations[0]?.color
+                                ? `?color=${product?.variations[0]?.color}`
+                                : ""
+                            }`
+                      }
+                      className="flex-row mt-2 w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
+                      key={key}
+                      onClick={(e) => {
+                        // @ts-ignore
+                        if (e.target.closest(".hide-btn")) return false;
+                        // @ts-ignore
+                        if (e.target.closest(".hide-btn")) return false;
+                        setTimeout(() => {
+                          if (document.querySelector("#nprogress"))
+                            // @ts-ignore
+                            document.querySelector("#nprogress").style.opacity =
+                              "1";
+                        }, 1000);
+                        if (params?.productId === product.slug) {
+                          if (product.variations[0].color) {
+                            dispatch({
+                              type: "SET-ACTIVE-COLOR-DETAILS",
+                              payload:
+                                ProductDetails.sync_color_images[
+                                  ProductDetails.sync_color_images.findIndex(
+                                    (s) =>
+                                      s.color_name ===
+                                      product?.variations[0]?.color
+                                  )
+                                ],
+                            });
+                          }
+                        }
+                        close();
+                      }}
+                    >
+                      <div className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative">
+                        <img
+                          src={getConfiguredImage({
+                            height: 150,
+                            width: 150,
+                            src: product.image,
+                          })}
+                          width={110}
+                          height={"100%"}
+                          className="rounded-2xl"
+                        />
+                      </div>
+                      <div className="flex-col mt-4 ml-5">
+                        <div className="h-[10px] overflow-hidden">
+                          <img
+                            src={getConfiguredImage({
+                              height: 150,
+                              width: 150,
+                              src: product.brand?.image,
+                            })}
+                            height={10}
+                            style={{
+                              top: "0px",
+                              maxHeight: "100%",
+                              display: "flex",
+                            }}
+                            className="object-contain h-4 max-w-[90px] w-auto"
+                          />
+                        </div>
+                        <div className="text-xs mt-1 text-[#505050] flex regular">
+                          {product.name}
+                        </div>
+                        <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
+                          <span className="ml-1.5"></span>
+                        </div>
+                        <div className="flex-row flex-wrap">
+                          {product.variations[0]?.color && (
+                            <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                              <CartColorIcon />
+                              <span className="ml-1.5">color,</span>
+                              <span className="regular">
+                                {product.variations[0].color}
+                              </span>
+                            </div>
+                          )}
+                          {product.variations[0]?.Size && (
+                            <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
+                              <CartSizeIcon />
+                              <span className="ml-1.5">Size,</span>
+                              <span className="regular">
+                                {product.variations[0].Size}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                          <PiecesIcon />
+                          <span className="ml-1.5 text-[#8D8D8D] regular">
+                            Composed Of:{" "}
+                          </span>
+                          <span className="regular">
+                            {product.count_of_pieces} Piece
+                          </span>
+                        </div>
+                        <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                          <DeleiveryIcon />
+                          <span className="ml-1.5 text-[#8D8D8D] regular">
+                            Shipping:{" "}
+                          </span>
+                          <span className="regular">
+                            3 Days{" "}
+                            <span className="ml-1 underline">Details</span>
+                          </span>
+                        </div>
+
+                        {product.quantity > product.available_quantity && (
+                          <div className="flex-row items-center text-[12px] light text-[#fd445d]">
+                            <ErrorIcon />
+                            <span className="ml-1.5">Availabilty,</span>
+                            <span className="regular ml-1">Out Of Stock</span>
+                          </div>
+                        )}
+                      </div>
+                      {
+                        <div
+                          className="absolute right-4 bottom-16 hide-btn"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            Sendevent({
+                              event: "button_clicked",
+                              value: "remove_old_product_item_button",
+                            });
+
+                            dispatch({
+                              type: "HIDE-OLD-CART",
+                              payload: product.id,
+                            });
+                            home.hideOldCart({ id: product.id });
+                            setTimeout(() => {
+                              if (document.querySelector("#nprogress"))
+                                // @ts-ignore
+                                document.querySelector(
+                                  "#nprogress" // @ts-ignore
+                                ).style.opacity = "0";
+                            }, 1000);
+                          }}
+                        >
+                          <span className="hide-btn cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]">
+                            {translate("Hide", GetAppLanguage())}
+                          </span>
+                        </div>
+                      }
+                      <div className="absolute right-4 bottom-3">
+                        <div className="product-info-price">
+                          {product.offer_price ? (
+                            <>
+                              <div className="flex-col">
+                                <div className="flex-row">
+                                  <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
+                                    {RoundPrice({
+                                      num: product.price,
+                                      rate: currency?.exchange_rate,
+                                      points:
+                                        (decimal_point_settings &&
+                                          decimal_point_settings[
+                                            "starting-setting"
+                                          ]?.decimal_point_settings) ||
+                                        0,
                                     })}
-                                    width={110}
-                                    height={"100%"}
-                                    className="rounded-2xl"
-                                  />
-                                </div>
-                                <div className="flex-col mt-4 ml-5">
-                                  <div className="text-xs mt-1 text-[#505050] flex regular">
-                                    {product.name}
+                                    <svg
+                                      className="bottom-3"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="100%"
+                                      height="2"
+                                    >
+                                      <line
+                                        id="Line_1104"
+                                        data-name="Line 1104"
+                                        x2="100%"
+                                        transform="translate(0 1)"
+                                        fill="none"
+                                        stroke="#C4C2C2"
+                                        strokeWidth="2"
+                                      />
+                                    </svg>
                                   </div>
-                                  <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                                    <CartItemTypeIcon />
-                                    <span className="ml-1.5"></span>
+                                  <div className="product-new-price text-[18px] bold">
+                                    {RoundPrice({
+                                      num: product.offer_price,
+                                      rate: currency.exchange_rate,
+                                      points:
+                                        (decimal_point_settings &&
+                                          decimal_point_settings[
+                                            "starting-setting"
+                                          ]?.decimal_point_settings) ||
+                                        0,
+                                    })}
                                   </div>
-                                  {product.variations[0]?.color && (
-                                    <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                                      <CartColorIcon />
-                                      <span className="ml-1.5">color,</span>
-                                      <span className="regular">
-                                        {product.variations[0].color}
-                                      </span>
-                                    </div>
-                                  )}
-                                  {product.variations[0]?.Size && (
-                                    <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                                      <CartSizeIcon />
-                                      <span className="ml-1.5">Size,</span>
-                                      <span className="regular">
-                                        {product.variations[0].Size}
-                                      </span>
-                                    </div>
-                                  )}
-                                  {product.quantity >
-                                    product.available_quantity && (
-                                    <div className="flex-row items-center text-[12px] light text-[#fd445d]">
-                                      <ErrorIcon />
-                                      <span className="ml-1.5">
-                                        Availabilty,
-                                      </span>
-                                      <span className="regular ml-1">
-                                        Out Of Stock
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="absolute right-4 bottom-7">
-                                  <div className="product-info-price">
-                                    {product.offer_price ? (
-                                      <>
-                                        <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
-                                          {RoundPrice({
-                                            num: product.price,
-                                            rate: currency.exchange_rate,
-                                            points:
-                                              (decimal_point_settings &&
-                                                decimal_point_settings[
-                                                  "starting-setting"
-                                                ]?.decimal_point_settings) ||
-                                              0,
-                                          })}
-                                          <svg
-                                            className="bottom-3"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="100%"
-                                            height="2"
-                                          >
-                                            <line
-                                              id="Line_1104"
-                                              data-name="Line 1104"
-                                              x2="100%"
-                                              transform="translate(0 1)"
-                                              fill="none"
-                                              stroke="#C4C2C2"
-                                              strokeWidth="2"
-                                            />
-                                          </svg>
-                                        </div>
-                                        <div className="product-new-price text-[18px] bold">
-                                          {RoundPrice({
-                                            num: product.offer_price,
-                                            rate: currency.exchange_rate,
-                                            points:
-                                              (decimal_point_settings &&
-                                                decimal_point_settings[
-                                                  "starting-setting"
-                                                ]?.decimal_point_settings) ||
-                                              0,
-                                          })}
-                                        </div>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <div className="product-new-price text-[18px] bold">
-                                          {RoundPrice({
-                                            num: product.price,
-                                            rate: currency.exchange_rate,
-                                            points:
-                                              (decimal_point_settings &&
-                                                decimal_point_settings[
-                                                  "starting-setting"
-                                                ]?.decimal_point_settings) ||
-                                              0,
-                                          })}
-                                        </div>
-                                      </>
-                                    )}
-                                    <div className="product-currency text-[8px] text-[#C4C2C2] regular">
-                                      {currency?.symbol}
-                                    </div>
+                                  <div className="product-currency text-[8px] light text-[#1D1D1D]">
+                                    {currency?.symbol}
                                   </div>
                                 </div>
-                                <div className="absolute top-1 right-1">
-                                  <input
-                                    defaultValue={product.quantity}
-                                    type="number"
-                                    min={1}
-                                    max={product.available_quantity}
-                                    className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
-                                  />
+                                <div className="flex-row">
+                                  <SavedIcon />
+                                  <span className="text-[8px] text-[#388CFF]">
+                                    Saved{" "}
+                                    <span className="bold">
+                                      {parseInt(
+                                        (
+                                          ((product.price -
+                                            product.offer_price) /
+                                            product.price) *
+                                          100
+                                        ).toString()
+                                      )}
+                                      %
+                                    </span>
+                                  </span>
                                 </div>
-                              </NextLink>
-                            )
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="product-new-price text-[14px] bold">
+                                {RoundPrice({
+                                  num: product.price,
+                                  rate: currency.exchange_rate,
+                                  points:
+                                    (decimal_point_settings &&
+                                      decimal_point_settings["starting-setting"]
+                                        ?.decimal_point_settings) ||
+                                    0,
+                                })}
+                              </div>
+                              <div className="product-currency text-[8px] light text-[#1D1D1D]">
+                                {currency?.symbol}
+                              </div>
+                            </>
                           )}
                         </div>
                       </div>
-                    )}
-                  </>
+                      <div className="absolute top-1 right-1">
+                        <input
+                          defaultValue={key + 1}
+                          type="number"
+                          min={1}
+                          disabled
+                          max={product.available_quantity}
+                          className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
+                        />
+                      </div>
+                    </NextLink>
+                    {/* <QuantutyInput
+                      id={product.id}
+                      value={product.quantity}
+                      max={product.available_quantity}
+                      setValue={() => {}}
+                      deleteFunction={() => {
+                        dispatch({
+                          type: "HIDE-OLD-CART",
+                          payload: product.id,
+                        });
+                        home.hideOldCart({ id: product.id });
+                      }}
+                    /> */}
+                  </div>
                 ))}
               </>
             ) : (
@@ -647,7 +868,7 @@ function CartContainer({ close }) {
                               />
                             </div>
                           </div>
-                          <div className="absolute right-4 bottom-7">
+                          <div className="absolute right-4 bottom-3">
                             <div className="product-info-price">
                               <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
                                 <svg
@@ -680,6 +901,7 @@ function CartContainer({ close }) {
               </>
             )}
           </div>
+          {!loading && <OrderButton close={() => close()} />}
         </>
       )}
     </div>
@@ -687,39 +909,7 @@ function CartContainer({ close }) {
 }
 
 export default CartContainer;
-const CartBorderHeader = () => {
-  useEffect(() => {
-    document.documentElement.scrollTo({ top: 0 });
-    document.documentElement.style.overflow = "hidden";
-  }, []);
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="100%"
-      height="40"
-      className="absolute top-0 left-0"
-    >
-      <g
-        id="Rectangle_5281"
-        data-name="Rectangle 5281"
-        fill="none"
-        stroke="#707070"
-        strokeWidth="0.5"
-        stroke-dasharray="3 3"
-      >
-        <rect width="410" height="40" rx="8" stroke="none" />
-        <rect
-          x="0.25"
-          y="0.25"
-          width="100%"
-          height="39.5"
-          rx="7.75"
-          fill="none"
-        />
-      </g>
-    </svg>
-  );
-};
+
 const CartItemTypeIcon = () => {
   return (
     <svg
@@ -733,7 +923,6 @@ const CartItemTypeIcon = () => {
         id="Mask_Group_329"
         data-name="Mask Group 329"
         transform="translate(0 0.36)"
-        clip-path="url(#clip-path)"
       >
         <g id="dress" transform="translate(2 0.141)">
           <path
@@ -913,7 +1102,7 @@ const CartColorIcon = () => {
     >
       <defs>
         <linearGradient
-          id="linear-gradient"
+          id="linear-gradient1"
           x1="0.5"
           x2="0.5"
           y2="1"
@@ -925,7 +1114,7 @@ const CartColorIcon = () => {
           <stop offset="1" stop-color="#ff6767" />
         </linearGradient>
       </defs>
-      <g id="Exclusion_5" data-name="Exclusion 5" fill="url(#linear-gradient)">
+      <g id="Exclusion_5" data-name="Exclusion 5" fill="url(#linear-gradient1)">
         <path
           d="M 5.000699996948242 9.850000381469727 C 2.32600998878479 9.850000381469727 0.1500000059604645 7.674330234527588 0.1500000059604645 5.000060081481934 C 0.1500000059604645 2.325730085372925 2.32600998878479 0.1500000059604645 5.000699996948242 0.1500000059604645 C 7.674610137939453 0.1500000059604645 9.850000381469727 2.325730085372925 9.850000381469727 5.000060081481934 C 9.850000381469727 7.674330234527588 7.674610137939453 9.850000381469727 5.000699996948242 9.850000381469727 Z M 5.000699996948242 1.915169954299927 C 3.300379991531372 1.915169954299927 1.917060017585754 3.299050092697144 1.917060017585754 5.000060081481934 C 1.917060017585754 6.700940132141113 3.300379991531372 8.084710121154785 5.000699996948242 8.084710121154785 C 6.699999809265137 8.084710121154785 8.082480430603027 6.700940132141113 8.082480430603027 5.000060081481934 C 8.082480430603027 3.299050092697144 6.699999809265137 1.915169954299927 5.000699996948242 1.915169954299927 Z"
           stroke="none"
@@ -939,252 +1128,331 @@ const CartColorIcon = () => {
     </svg>
   );
 };
-export const BrandCart = ({
-  key,
-  boutique,
-  products,
-  price,
-  currency,
-  close,
-  isOldCart,
-}) => {
-  const dispatch = useDispatch();
-  const ProductDetails = useSelector((state: any) => state.details.product);
-  const [expanded, setExpanded] = useState(true);
-  const decimal_point_settings = useSelector(
-    (state: any) => state.homepage.settings
-  );
-  const params = useParams();
-  const sarchParams = useSearchParams();
-  return (
-    <div className="flex-col bg-white pb-10 pt-2 pl-2 pr-2" key={key}>
-      <div
-        className="flex-row min-h-[50px] bg-[#f8f8f8] rounded-2xl justify-between items-center pl-5 pr-5"
-        onClick={() => setExpanded(!expanded)}
-      >
-        <img
-          src={getConfiguredImage({
-            src: boutique.icon,
-            width: 90,
-            height: 90,
-          })}
-          className="object-contain h-4 max-w-[90px] w-auto"
-          height={15}
-        />
-        <div className="flex-row">
-          <CartLabel />
-          <div className="light ml-3 text-[13px] text-[#8D8D8D]">
-            <span className="medium text-[#5D5C5D]">{products.length}</span>
-            <span className="ml-[3px]">items</span>
-            <span className="medium text-[#5D5C5D] ml-[3px]">{price}</span>
-            <span className="ml-[3px]">{currency?.symbol}</span>
-          </div>
-        </div>
-      </div>
-      {expanded && (
-        <div className="flex-col w-full">
-          {products?.map((product, key) => (
-            <NextLink
-              href={
-                params?.productId === product.slug &&
-                product?.variations[0]?.color === sarchParams.get("color")
-                  ? "#"
-                  : `/products/${product.slug}${
-                      product?.variations && product?.variations[0]?.color
-                        ? `?color=${product?.variations[0]?.color}`
-                        : ""
-                    }`
-              }
-              className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
-              key={key}
-              onClick={(e) => {
-                // @ts-ignore
-                if (e.target.closest(".hide-btn")) return false;
-                setTimeout(() => {
-                  if (document.querySelector("#nprogress"))
-                    // @ts-ignore
-                    document.querySelector("#nprogress").style.opacity = "1";
-                }, 1000);
-                if (params?.productId === product.slug) {
-                  if (product.variations[0].color) {
-                    dispatch({
-                      type: "SET-ACTIVE-COLOR-DETAILS",
-                      payload:
-                        ProductDetails.sync_color_images[
-                          ProductDetails.sync_color_images.findIndex(
-                            (s) =>
-                              s.color_name === product?.variations[0]?.color
-                          )
-                        ],
-                    });
-                  }
-                }
-                close();
-              }}
-            >
-              <div className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative">
-                <img
-                  src={getConfiguredImage({
-                    height: 150,
-                    width: 150,
-                    src: product.image,
-                  })}
-                  width={110}
-                  height={"100%"}
-                  className="rounded-2xl"
-                />
-              </div>
-              <div className="flex-col mt-4 ml-5">
-                <div className="h-[10px] overflow-hidden">
-                  <img
-                    src={getConfiguredImage({
-                      height: 150,
-                      width: 150,
-                      src: product.brand?.image,
-                    })}
-                    height={10}
-                    style={{
-                      top: "0px",
-                      maxHeight: "100%",
-                      display: "flex",
-                    }}
-                    className="object-contain h-4 max-w-[90px] w-auto"
-                  />
-                </div>
-                <div className="text-xs mt-1 text-[#505050] flex regular">
-                  {product.name}
-                </div>
-                <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                  <CartItemTypeIcon />
-                  <span className="ml-1.5"></span>
-                </div>
-                {product.variations[0]?.color && (
-                  <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                    <CartColorIcon />
-                    <span className="ml-1.5">color,</span>
-                    <span className="regular">
-                      {product.variations[0].color}
-                    </span>
-                  </div>
-                )}
-                {product.variations[0]?.Size && (
-                  <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                    <CartSizeIcon />
-                    <span className="ml-1.5">Size,</span>
-                    <span className="regular">
-                      {product.variations[0].Size}
-                    </span>
-                  </div>
-                )}
-                {product.quantity > product.available_quantity && (
-                  <div className="flex-row items-center text-[12px] light text-[#fd445d]">
-                    <ErrorIcon />
-                    <span className="ml-1.5">Availabilty,</span>
-                    <span className="regular ml-1">Out Of Stock</span>
-                  </div>
-                )}
-              </div>
-              {isOldCart && (
-                <div
-                  className="absolute right-4 bottom-16 hide-btn"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    Sendevent({
-                      event: "button_clicked",
-                      value: "remove_old_product_item_button",
-                    });
 
-                    dispatch({ type: "HIDE-OLD-CART", payload: product.id });
-                    home.hideOldCart({ id: product.id });
-                    setTimeout(() => {
-                      if (document.querySelector("#nprogress"))
-                        // @ts-ignore
-                        document.querySelector("#nprogress").style.opacity =
-                          "0";
-                    }, 1000);
-                  }}
-                >
-                  <span className="hide-btn cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]">
-                    {translate("Hide", GetAppLanguage())}
-                  </span>
-                </div>
-              )}
-              <div className="absolute right-4 bottom-7">
-                <div className="product-info-price">
-                  {product.offer_price ? (
-                    <>
-                      <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
-                        {RoundPrice({
-                          num: product.price,
-                          rate: currency?.exchange_rate,
-                          points:
-                            (decimal_point_settings &&
-                              decimal_point_settings["starting-setting"]
-                                ?.decimal_point_settings) ||
-                            0,
-                        })}
-                        <svg
-                          className="bottom-3"
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="100%"
-                          height="2"
-                        >
-                          <line
-                            id="Line_1104"
-                            data-name="Line 1104"
-                            x2="100%"
-                            transform="translate(0 1)"
-                            fill="none"
-                            stroke="#C4C2C2"
-                            strokeWidth="2"
-                          />
-                        </svg>
-                      </div>
-                      <div className="product-new-price text-[18px] bold">
-                        {RoundPrice({
-                          num: product.offer_price,
-                          rate: currency.exchange_rate,
-                          points:
-                            (decimal_point_settings &&
-                              decimal_point_settings["starting-setting"]
-                                ?.decimal_point_settings) ||
-                            0,
-                        })}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="product-new-price text-[18px] bold">
-                        {RoundPrice({
-                          num: product.price,
-                          rate: currency.exchange_rate,
-                          points:
-                            (decimal_point_settings &&
-                              decimal_point_settings["starting-setting"]
-                                ?.decimal_point_settings) ||
-                            0,
-                        })}
-                      </div>
-                    </>
-                  )}
-                  <div className="product-currency text-[8px] text-[#C4C2C2] regular">
-                    {currency?.symbol}
-                  </div>
-                </div>
-              </div>
-              <div className="absolute top-1 right-1">
-                <input
-                  defaultValue={parseInt(product.quantity)}
-                  type="number"
-                  min={1}
-                  max={product.available_quantity}
-                  className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
+const PiecesIcon = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      xmlnsXlink="http://www.w3.org/1999/xlink"
+      width="10"
+      height="10"
+      viewBox="0 0 10 10"
+    >
+      <defs>
+        <clipPath id="clip-path1">
+          <rect
+            id="Rectangle_4751"
+            data-name="Rectangle 4751"
+            width="10"
+            height="10"
+            transform="translate(0 -0.36)"
+            fill="none"
+          />
+        </clipPath>
+      </defs>
+      <g
+        id="Mask_Group_329"
+        data-name="Mask Group 329"
+        transform="translate(0 0.36)"
+        clip-path="url(#clip-path1)"
+      >
+        <g id="dress" transform="translate(1.424 -0.36)">
+          <path
+            id="Path_14636"
+            data-name="Path 14636"
+            d="M87.839,11.741l.662-.416A2.706,2.706,0,0,0,89.549,10.1a.195.195,0,0,1,.374.107l-.27,1.721a1.945,1.945,0,0,1-.894,1.353H86.923a1.945,1.945,0,0,1-.894-1.353l-.27-1.721a.195.195,0,1,1,.374-.107,2.706,2.706,0,0,0,1.048,1.225l.662.416"
+            transform="translate(-84.265 -9.959)"
+            fill="#8d8d8d"
+          />
+          <path
+            id="Path_14637"
+            data-name="Path 14637"
+            d="M14.474,177.67l2.657,6.065a1.011,1.011,0,0,0-1.43,0,1.011,1.011,0,0,1-1.43,0,1.011,1.011,0,0,0-1.43,0,1.011,1.011,0,0,1-1.43,0,1.011,1.011,0,0,0-1.43,0l2.659-6.065Zm0,0"
+            transform="translate(-9.979 -174.35)"
+            fill="#8d8d8d"
+          />
+        </g>
+      </g>
+    </svg>
+  );
+};
+export const DeleiveryIcon = () => {
+  return (
+    <svg
+      id="_15x15_photo_back"
+      data-name="15x15 photo back"
+      xmlns="http://www.w3.org/2000/svg"
+      xmlnsXlink="http://www.w3.org/1999/xlink"
+      width="10"
+      height="10"
+      viewBox="0 0 10 10"
+    >
+      <defs>
+        <clipPath id="clip-path2">
+          <rect
+            id="Rectangle_4561"
+            data-name="Rectangle 4561"
+            width="10"
+            height="10"
+            fill="none"
+          />
+        </clipPath>
+      </defs>
+      <g
+        id="Mask_Group_497"
+        data-name="Mask Group 497"
+        clip-path="url(#clip-path2)"
+      >
+        <path
+          id="courier-services"
+          d="M10.145,5.084a.4.4,0,0,1-.4.39h-1.6A1.085,1.085,0,0,1,7.655,5.3L6.525,4.207a.382.382,0,0,1,0-.551.413.413,0,0,1,.569,0L8.167,4.694H9.743a.4.4,0,0,1,.4.39ZM3.354,4.992a.413.413,0,0,0,.569-.006l1.06-1.05.386,0,.206-.781-.625.007a1.084,1.084,0,0,0-.487.178L3.347,4.441a.382.382,0,0,0,.007.551ZM8.095,7.273l-1.184-.93.289-1.1L6.326,4.4a.649.649,0,0,1,0-.937.7.7,0,0,1,.968,0l.3.291.032-.121a.535.535,0,0,0-.4-.65l-.7-.174a.555.555,0,0,0-.671.385l-.162.614L5.1,6.067,4.37,7.435,2.893,7.353a.281.281,0,0,0-.3.262l-.018.361a.28.28,0,0,0,.271.289l1.994.093c.081,0,.252-.025.288-.095L5.9,6.775l.131.075,1.249.941L7.358,9.51a.282.282,0,0,0,.3.264l.373-.015A.28.28,0,0,0,8.3,9.473L8.218,7.542a.455.455,0,0,0-.123-.269Zm1.991-4.845H9.633v.564a.139.139,0,0,1-.141.136H8.9a.138.138,0,0,1-.141-.136V2.428H8.308a.139.139,0,0,0-.141.136V4.285a.139.139,0,0,0,.141.136h1.778a.139.139,0,0,0,.141-.136V2.565A.139.139,0,0,0,10.085,2.428Zm-.734,0h-.31v.427h.31ZM7.981,1.592h.493a.136.136,0,1,0,0-.273H7.919a.98.98,0,0,0-.078-.157A1.015,1.015,0,0,0,7.216.709a1.046,1.046,0,0,0-.773.108.989.989,0,0,0-.467.6l0,.011a.961.961,0,0,0-.028.165H7.981ZM.645,5.779a.136.136,0,1,0,0,.273H3.157a.136.136,0,1,0,0-.273ZM1.983,7.267H.588a.136.136,0,1,0,0,.273H1.983a.136.136,0,1,0,0-.273ZM3.368,1.586h1.62a.136.136,0,1,0,0-.273H3.368a.136.136,0,1,0,0,.273ZM2.731,4.427a.139.139,0,0,0-.141-.136H.367a.136.136,0,1,0,0,.273H2.59a.139.139,0,0,0,.141-.136Zm-.96-1.352H3.6a.136.136,0,1,0,0-.273H1.771a.136.136,0,1,0,0,.273Zm4.974-.418a.882.882,0,0,0,1.07-.614.83.83,0,0,0,.027-.178H6.084a.858.858,0,0,0,.661.793Z"
+          transform="translate(-0.226 -0.227)"
+          fill="#8d8d8d"
+          fill-rule="evenodd"
+        />
+      </g>
+    </svg>
+  );
+};
+const SavedIcon = () => {
+  return (
+    <svg
+      id="_10x10_flag_photo"
+      data-name="10x10 flag photo"
+      xmlns="http://www.w3.org/2000/svg"
+      xmlnsXlink="http://www.w3.org/1999/xlink"
+      width="10"
+      height="10"
+      viewBox="0 0 10 10"
+    >
+      <defs>
+        <clipPath id="clip-path3">
+          <rect
+            id="Rectangle_4644"
+            data-name="Rectangle 4644"
+            width="10"
+            height="10"
+            fill="none"
+          />
+        </clipPath>
+      </defs>
+      <g
+        id="Mask_Group_530"
+        data-name="Mask Group 530"
+        clip-path="url(#clip-path3)"
+      >
+        <g id="Line_color" transform="translate(-0.118 -0.121)">
+          <g id="Group_12726" data-name="Group 12726">
+            <g id="Group_12723" data-name="Group 12723">
+              <g id="Group_12722" data-name="Group 12722">
+                <g id="Group_12721" data-name="Group 12721">
+                  <path
+                    id="Path_22213"
+                    data-name="Path 22213"
+                    d="M8.364,3.079c-2.089-1.292-4.238.754-4.238.754L1.85,6.109S.621,7.18,2.447,9s2.886.6,2.886.6L7.61,7.317s2.046-2.148.754-4.237ZM7.656,4.485a.494.494,0,1,1,0-.7A.493.493,0,0,1,7.656,4.485Z"
+                    fill="#388cff"
+                  />
+                  <g id="Group_12720" data-name="Group 12720">
+                    <path
+                      id="Path_22214"
+                      data-name="Path 22214"
+                      d="M8.424,2.976a2.961,2.961,0,0,0-1.809-.432,4.053,4.053,0,0,0-1.532.478,4.862,4.862,0,0,0-1.165.849l-1.6,1.6c-.178.178-.355.358-.535.535a1.512,1.512,0,0,0-.22.269,1.56,1.56,0,0,0-.233.91A2.622,2.622,0,0,0,1.97,8.647c.633.792,1.727,1.746,2.833,1.4a1.478,1.478,0,0,0,.581-.336c.085-.081.166-.167.249-.25L7.285,7.812A6.7,6.7,0,0,0,8.092,6.9a3.843,3.843,0,0,0,.747-2.983,3.008,3.008,0,0,0-.372-.9c-.08-.132-.288-.011-.207.121a2.75,2.75,0,0,1,.395,1.74A3.827,3.827,0,0,1,8.178,6.3,4.593,4.593,0,0,1,7.4,7.361L5.837,8.92l-.556.556-.05.051c-.019.019-.04.038-.06.056l-.043.035c.024-.019-.028.02-.039.027a1.3,1.3,0,0,1-.772.232,2.311,2.311,0,0,1-1.364-.585c-.727-.586-1.673-1.616-1.309-2.64a1.336,1.336,0,0,1,.16-.306c.01-.014.04-.054.025-.034l.037-.045q.026-.03.054-.058l.263-.262L3.8,4.333a6.57,6.57,0,0,1,.835-.751,3.651,3.651,0,0,1,2.8-.754,2.793,2.793,0,0,1,.868.354c.132.081.253-.127.121-.207Z"
+                      fill="#3c3c59"
+                    />
+                    <path
+                      id="Path_22215"
+                      data-name="Path 22215"
+                      d="M7.572,4.4l-.026.024-.012.01c.017-.015,0,0,0,0a.557.557,0,0,1-.064.039l-.017.008c.014-.006,0,0-.008,0l-.014,0a.492.492,0,0,1-.07.018l-.014,0c.027,0,.009,0,0,0l-.034,0H7.283c-.008,0-.046-.005-.016,0A.547.547,0,0,1,7.206,4.5l-.032-.01L7.16,4.48c-.014,0,.018.009,0,0a.6.6,0,0,1-.06-.034l-.025-.017c.02.015-.01-.009-.015-.014a.573.573,0,0,1-.049-.052c.015.018,0-.006-.008-.012s-.014-.022-.021-.034l-.016-.031c-.01-.021,0,.014,0-.007a.558.558,0,0,1-.02-.07c0-.011,0-.022-.006-.033,0,.025,0,0,0-.011a.634.634,0,0,1,0-.072s0-.019,0,0,0,0,0-.008,0-.022.007-.033a.536.536,0,0,1,.021-.064c-.009.022,0,0,.006-.011l.017-.03.019-.029L7.015,3.9c-.01.014,0,0,0,0a.5.5,0,0,1,.047-.047l.016-.013s-.015.011,0,0l.033-.022L7.14,3.8l.018-.009s.017-.008,0,0l.022-.008.037-.011.028-.006.019,0s-.022,0-.008,0,.048,0,.072,0h.019s.019,0,0,0,0,0,0,0l.019,0a.491.491,0,0,1,.07.02l.014.005s-.018-.009-.006,0l.031.015.03.018.012.008s.024.018.012.008,0,0,0,0l.015.014.026.025.024.027s-.011-.015,0,0l.014.021a.616.616,0,0,1,.038.069c-.01-.021,0,0,0,.012s.008.025.011.037.006.025.008.038,0,.025,0,.008,0,0,0,.008a.491.491,0,0,1,0,.077s0,.025,0,.008,0,0,0,.008,0,.025-.008.038-.007.025-.011.037l-.007.018c-.006.016.009-.017,0,0a.723.723,0,0,1-.039.069l-.009.012c-.018.026.01-.009,0,0L7.572,4.4a.12.12,0,0,0,.17.17.623.623,0,0,0,.118-.7.614.614,0,0,0-.6-.344.613.613,0,1,0,.487,1.045.12.12,0,0,0-.17-.17Z"
+                      fill="#3c3c59"
+                    />
+                  </g>
+                </g>
+              </g>
+            </g>
+            <g id="Group_12725" data-name="Group 12725">
+              <g id="Group_12724" data-name="Group 12724">
+                <path
+                  id="Path_22216"
+                  data-name="Path 22216"
+                  d="M8.531,3.246A4.058,4.058,0,0,0,8.864,1.2c-.047-.4-.2-1-.673-1.075S7.368.553,7.178.909a4.078,4.078,0,0,0-.46,1.96c.008.458.105,1.252.661,1.375.15.033.215-.2.064-.231a.506.506,0,0,1-.323-.306,1.817,1.817,0,0,1-.155-.667,3.889,3.889,0,0,1,.3-1.767A2.348,2.348,0,0,1,7.646.641.743.743,0,0,1,8.062.362c.37-.052.5.479.549.744a3.7,3.7,0,0,1-.287,2.018c-.061.14.146.263.207.121Z"
+                  fill="#3c3c59"
                 />
-              </div>
-            </NextLink>
-          ))}
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+    </svg>
+  );
+};
+const QuantutyInput = ({ value, setValue, max, deleteFunction, id }) => {
+  const [inputValue, setInputValue] = useState(parseInt(value));
+  const PlusIcon = ({ className }) => {
+    return (
+      <svg
+        className={"hide-btn"}
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        viewBox="0 0 12 12"
+      >
+        <path
+          id="Path_21462"
+          className="hide-btn"
+          data-name="Path 21462"
+          d="M1.775.295A1.254,1.254,0,0,1,.85-.076,1.259,1.259,0,0,1,.48-1a1.183,1.183,0,0,1,.37-.9,1.3,1.3,0,0,1,.925-.347h9.41a1.275,1.275,0,0,1,.925.359,1.22,1.22,0,0,1,.37.915,1.22,1.22,0,0,1-.37.915,1.275,1.275,0,0,1-.925.359ZM6.445,4.812A1.478,1.478,0,0,1,5.37,4.4a1.424,1.424,0,0,1-.428-1.066V-5.705a1.4,1.4,0,0,1,.439-1.066,1.518,1.518,0,0,1,1.087-.417,1.43,1.43,0,0,1,1.075.417,1.467,1.467,0,0,1,.4,1.066V3.329A1.445,1.445,0,0,1,7.532,4.4,1.468,1.468,0,0,1,6.445,4.812Z"
+          transform="translate(-0.48 7.188)"
+          fill="#8d8d8d"
+        />
+      </svg>
+    );
+  };
+  const MinusIcon = ({ className }) => {
+    return (
+      <svg
+        className={"hide-btn"}
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="2.548"
+        viewBox="0 0 12 2.548"
+      >
+        <path
+          className="hide-btn"
+          id="Path_22217"
+          data-name="Path 22217"
+          d="M1.775.295A1.254,1.254,0,0,1,.85-.076,1.259,1.259,0,0,1,.48-1a1.183,1.183,0,0,1,.37-.9,1.3,1.3,0,0,1,.925-.347h9.41a1.275,1.275,0,0,1,.925.359,1.22,1.22,0,0,1,.37.915,1.22,1.22,0,0,1-.37.915,1.275,1.275,0,0,1-.925.359Z"
+          transform="translate(-0.48 2.254)"
+          fill="#8d8d8d"
+        />
+      </svg>
+    );
+  };
+  const DeleteIcon = () => {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="9.746"
+        height="12"
+        viewBox="0 0 9.746 12"
+      >
+        <path
+          id="Path_14712"
+          data-name="Path 14712"
+          d="M.795,3.571V10.5a1.55,1.55,0,0,0,.412,1.069,1.384,1.384,0,0,0,1,.434H7.528a1.384,1.384,0,0,0,1-.434A1.55,1.55,0,0,0,8.945,10.5V3.571A1.074,1.074,0,0,0,8.669,1.46H7.231V1.109A1.1,1.1,0,0,0,6.118,0h-2.5a1.1,1.1,0,0,0-1.113,1.11V1.46H1.07A1.074,1.074,0,0,0,.795,3.571Zm6.734,7.865H2.211a.89.89,0,0,1-.854-.941V3.6H8.383v6.9A.89.89,0,0,1,7.528,11.437ZM3.071,1.109A.541.541,0,0,1,3.622.561h2.5a.541.541,0,0,1,.551.548V1.46h-3.6Zm-2,.913h7.6a.506.506,0,1,1,0,1.012H1.07a.506.506,0,1,1,0-1.012Zm0,0"
+          transform="translate(0.003 0.001)"
+          fill="#ff5f61"
+        />
+      </svg>
+    );
+  };
+  const updateQuantity = async (quantity) => {
+    let dataBody = [];
+    let dataObj = { key: id, quantity: quantity };
+    for (var property in dataObj) {
+      if (dataObj[property] || dataObj[property] === 0) {
+        var encodedKey = encodeURIComponent(property);
+        var encodedValue = encodeURIComponent(dataObj[property]);
+        dataBody.push(encodedKey + "=" + encodedValue);
+      }
+    }
+    // @ts-ignore
+    dataBody = dataBody.join("&");
+    const res = await axios.post(
+      process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
+      dataBody,
+      {
+        headers: {
+          Authorization: `Bearer ${
+            localStorage.getItem("MARKET-TOKEN") ||
+            localStorage.getItem("DEVICE-TOKEN")
+          }`,
+          lang: getLang(null, Cookies.get("language")),
+          country: Cookies.get("country"),
+        },
+      }
+    );
+  };
+  return (
+    <div className="absolute bottom-[20px] left-[125px]">
+      <div className="flex-row hide-btn relative max-w-[72px] w-[72px] h-[24px] mt-4 z-50">
+        <svg
+          className="absolute hide-btn"
+          xmlns="http://www.w3.org/2000/svg"
+          width="72"
+          height="24"
+          viewBox="0 0 72 24"
+        >
+          <g
+            id="Group_12755"
+            data-name="Group 12755"
+            transform="translate(-140 -277)"
+          >
+            <g
+              id="Rectangle_5745"
+              data-name="Rectangle 5745"
+              transform="translate(140 277)"
+              fill="none"
+              stroke="#d3d3d3"
+              stroke-width="0.5"
+            >
+              <rect width="72" height="24" rx="5" stroke="none" />
+              <rect
+                x="0.25"
+                y="0.25"
+                width="71.5"
+                height="23.5"
+                rx="4.75"
+                fill="none"
+              />
+            </g>
+          </g>
+        </svg>
+        <div
+          className="absolute hide-btn h-[24px] flex items-center right-[6px]  cursor-pointer"
+          onClick={() => {
+            if (inputValue === max) return false;
+            // @ts-ignore
+            else {
+              setInputValue(parseInt(inputValue.toString()) + 1);
+              updateQuantity(parseInt(inputValue.toString()) + 1);
+            }
+          }}
+        >
+          <PlusIcon className="" />
         </div>
-      )}
+
+        {inputValue > 1 ? (
+          <div
+            className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
+            onClick={() => {
+              if (inputValue > 1) {
+                // @ts-ignore
+                setInputValue(parseInt(inputValue) - 1);
+                updateQuantity(parseInt(inputValue.toString()) - 1);
+              }
+            }}
+          >
+            <MinusIcon className="" />
+          </div>
+        ) : (
+          <div
+            className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
+            onClick={() => {
+              deleteFunction();
+            }}
+          >
+            <DeleteIcon />
+          </div>
+        )}
+        <input
+          // @ts-ignore
+          value={parseInt(inputValue)}
+          max={max}
+          disabled
+          onChange={(e) => {}}
+          className="outline-none hide-btn text-[14px] medium text-[#1D1D1D] text-center max-w-[72px] border-none py-1  w-[72px] h-[24px]"
+        />
+      </div>
     </div>
   );
 };
