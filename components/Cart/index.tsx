@@ -53,7 +53,11 @@ function CartContainer({ close }) {
   const ProductDetails = useSelector((state: any) => state.details.product);
   const searchParams = useSearchParams();
   return (
-    <div className="flex-col fixed top-0 left-0 min-h-[100vh] max-h-[100vh] h-auto overflow-scroll w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1">
+    <div
+      className={`${
+        cart.length > 0 ? "pb-[145px]" : "pb-[90px]"
+      } flex-col  fixed top-0 left-0 min-h-[100vh] max-h-[100vh] h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
+    >
       <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
         <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
           <BackIcon
@@ -196,627 +200,639 @@ function CartContainer({ close }) {
           <ShareIcon />
         </div>
       </div>
-      <div className="flex-col  w-full h-auto mt-10">
-        {!loading ? (
-          <>
-            {cart.length > 0 ? (
-              <>
-                {cart?.map((product, key) => (
-                  <div className="relative">
-                    {" "}
-                    <NextLink
-                      href={
-                        params?.productId === product.slug &&
-                        product?.variations[0]?.color ===
-                          sarchParams.get("color")
-                          ? "#"
-                          : `/products/${product.slug}${
-                              product?.variations &&
-                              product?.variations[0]?.color
-                                ? `?color=${product?.variations[0]?.color}`
-                                : ""
-                            }`
-                      }
-                      className="flex-row mt-2 w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
-                      key={key}
-                      onClick={(e) => {
-                        // @ts-ignore
-                        if (e.target.closest(".hide-btn")) return false;
-                        // @ts-ignore
-                        if (e.target.closest(".hide-btn")) return false;
-                        setTimeout(() => {
-                          if (document.querySelector("#nprogress"))
-                            // @ts-ignore
-                            document.querySelector("#nprogress").style.opacity =
-                              "1";
-                        }, 1000);
-                        if (params?.productId === product.slug) {
-                          if (product.variations[0].color) {
-                            dispatch({
-                              type: "SET-ACTIVE-COLOR-DETAILS",
-                              payload:
-                                ProductDetails.sync_color_images[
-                                  ProductDetails.sync_color_images.findIndex(
-                                    (s) =>
-                                      s.color_name ===
-                                      product?.variations[0]?.color
-                                  )
-                                ],
-                            });
-                          }
+      <div className="flex-col overflow-auto">
+        <div className="flex-col  w-full h-auto mt-10">
+          {!loading ? (
+            <>
+              {cart.length > 0 ? (
+                <>
+                  {cart?.map((product, key) => (
+                    <div className="relative">
+                      {" "}
+                      <NextLink
+                        href={
+                          params?.productId === product.slug &&
+                          product?.variations[0]?.color ===
+                            sarchParams.get("color")
+                            ? "#"
+                            : `/products/${product.slug}${
+                                product?.variations &&
+                                product?.variations[0]?.color
+                                  ? `?color=${product?.variations[0]?.color}`
+                                  : ""
+                              }`
                         }
-                        close();
-                      }}
-                    >
-                      <div className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative">
-                        <img
-                          src={getConfiguredImage({
-                            height: 150,
-                            width: 150,
-                            src: product.image,
-                          })}
-                          width={110}
-                          height={"100%"}
-                          className="rounded-2xl"
-                        />
-                      </div>
-                      <div className="flex-col mt-4 ml-5">
-                        <div className="h-[10px] overflow-hidden">
+                        className="flex-row mt-2 w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
+                        key={key}
+                        onClick={(e) => {
+                          // @ts-ignore
+                          if (e.target.closest(".hide-btn")) return false;
+                          // @ts-ignore
+                          if (e.target.closest(".hide-btn")) return false;
+                          setTimeout(() => {
+                            if (document.querySelector("#nprogress"))
+                              // @ts-ignore
+                              document.querySelector(
+                                "#nprogress"
+                                // @ts-ignore
+                              ).style.opacity = "1";
+                          }, 1000);
+                          if (params?.productId === product.slug) {
+                            if (product.variations[0].color) {
+                              dispatch({
+                                type: "SET-ACTIVE-COLOR-DETAILS",
+                                payload:
+                                  ProductDetails.sync_color_images[
+                                    ProductDetails.sync_color_images.findIndex(
+                                      (s) =>
+                                        s.color_name ===
+                                        product?.variations[0]?.color
+                                    )
+                                  ],
+                              });
+                            }
+                          }
+                          close();
+                        }}
+                      >
+                        <div className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative">
                           <img
                             src={getConfiguredImage({
                               height: 150,
                               width: 150,
-                              src: product.brand?.image,
+                              src: product.image,
                             })}
-                            height={10}
-                            style={{
-                              top: "0px",
-                              maxHeight: "100%",
-                              display: "flex",
-                            }}
-                            className="object-contain h-4 max-w-[90px] w-auto"
+                            width={110}
+                            height={"100%"}
+                            className="rounded-2xl"
                           />
                         </div>
-                        <div className="text-xs mt-1 text-[#505050] flex regular">
-                          {product.name}
-                        </div>
-                        <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                          <CartItemTypeIcon />
-                          <span className="ml-1.5"></span>
-                        </div>
-                        <div className="flex-row flex-wrap">
-                          {product.variations[0]?.color && (
-                            <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
-                              <CartColorIcon />
-                              <span className="ml-1.5">color,</span>
-                              <span className="regular">
-                                {product.variations[0].color}
-                              </span>
-                            </div>
-                          )}
-                          {product.variations[0]?.Size && (
-                            <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                              <CartSizeIcon />
-                              <span className="ml-1.5">Size,</span>
-                              <span className="regular">
-                                {product.variations[0].Size}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
-                          <PiecesIcon />
-                          <span className="ml-1.5 text-[#8D8D8D] regular">
-                            Composed Of:{" "}
-                          </span>
-                          <span className="regular">
-                            {product.count_of_pieces} Piece
-                          </span>
-                        </div>
-                        <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
-                          <DeleiveryIcon />
-                          <span className="ml-1.5 text-[#8D8D8D] regular">
-                            Shipping:{" "}
-                          </span>
-                          <span className="regular">
-                            3 Days{" "}
-                            <span className="ml-1 underline">Details</span>
-                          </span>
-                        </div>
-
-                        {product.quantity > product.available_quantity && (
-                          <div className="flex-row items-center text-[12px] light text-[#fd445d]">
-                            <ErrorIcon />
-                            <span className="ml-1.5">Availabilty,</span>
-                            <span className="regular ml-1">Out Of Stock</span>
+                        <div className="flex-col mt-4 ml-5">
+                          <div className="h-[10px] overflow-hidden">
+                            <img
+                              src={getConfiguredImage({
+                                height: 150,
+                                width: 150,
+                                src: product.brand?.image,
+                              })}
+                              height={10}
+                              style={{
+                                top: "0px",
+                                maxHeight: "100%",
+                                display: "flex",
+                              }}
+                              className="object-contain h-4 max-w-[90px] w-auto"
+                            />
                           </div>
-                        )}
-                      </div>
+                          <div className="text-xs mt-1 text-[#505050] flex regular">
+                            {product.name}
+                          </div>
+                          <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
+                            <CartItemTypeIcon />
+                            <span className="ml-1.5"></span>
+                          </div>
+                          <div className="flex-row flex-wrap">
+                            {product.variations[0]?.color && (
+                              <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                                <CartColorIcon />
+                                <span className="ml-1.5">color,</span>
+                                <span className="regular">
+                                  {product.variations[0].color}
+                                </span>
+                              </div>
+                            )}
+                            {product.variations[0]?.Size && (
+                              <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
+                                <CartSizeIcon />
+                                <span className="ml-1.5">Size,</span>
+                                <span className="regular">
+                                  {product.variations[0].Size}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                            <PiecesIcon />
+                            <span className="ml-1.5 text-[#8D8D8D] regular">
+                              Composed Of:{" "}
+                            </span>
+                            <span className="regular">
+                              {product.count_of_pieces} Piece
+                            </span>
+                          </div>
+                          <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                            <DeleiveryIcon />
+                            <span className="ml-1.5 text-[#8D8D8D] regular">
+                              Shipping:{" "}
+                            </span>
+                            <span className="regular">
+                              3 Days{" "}
+                              <span className="ml-1 underline">Details</span>
+                            </span>
+                          </div>
 
-                      <div className="absolute right-4 bottom-3">
-                        <div className="product-info-price">
-                          {product.offer_price ? (
-                            <>
-                              <div className="flex-col">
-                                <div className="flex-row">
-                                  <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
-                                    {RoundPrice({
-                                      num: product.price,
-                                      rate: currency?.exchange_rate,
-                                      points:
-                                        (decimal_point_settings &&
-                                          decimal_point_settings[
-                                            "starting-setting"
-                                          ]?.decimal_point_settings) ||
-                                        0,
-                                    })}
-                                    <svg
-                                      className="bottom-3"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="100%"
-                                      height="2"
-                                    >
-                                      <line
-                                        id="Line_1104"
-                                        data-name="Line 1104"
-                                        x2="100%"
-                                        transform="translate(0 1)"
-                                        fill="none"
-                                        stroke="#C4C2C2"
-                                        strokeWidth="2"
-                                      />
-                                    </svg>
+                          {product.quantity > product.available_quantity && (
+                            <div className="flex-row items-center text-[12px] light text-[#fd445d]">
+                              <ErrorIcon />
+                              <span className="ml-1.5">Availabilty,</span>
+                              <span className="regular ml-1">Out Of Stock</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="absolute right-4 bottom-3">
+                          <div className="product-info-price">
+                            {product.offer_price ? (
+                              <>
+                                <div className="flex-col">
+                                  <div className="flex-row">
+                                    <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
+                                      {RoundPrice({
+                                        num: product.price,
+                                        rate: currency?.exchange_rate,
+                                        points:
+                                          (decimal_point_settings &&
+                                            decimal_point_settings[
+                                              "starting-setting"
+                                            ]?.decimal_point_settings) ||
+                                          0,
+                                      })}
+                                      <svg
+                                        className="bottom-3"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="100%"
+                                        height="2"
+                                      >
+                                        <line
+                                          id="Line_1104"
+                                          data-name="Line 1104"
+                                          x2="100%"
+                                          transform="translate(0 1)"
+                                          fill="none"
+                                          stroke="#C4C2C2"
+                                          strokeWidth="2"
+                                        />
+                                      </svg>
+                                    </div>
+                                    <div className="product-new-price text-[18px] bold">
+                                      {RoundPrice({
+                                        num: product.offer_price,
+                                        rate: currency.exchange_rate,
+                                        points:
+                                          (decimal_point_settings &&
+                                            decimal_point_settings[
+                                              "starting-setting"
+                                            ]?.decimal_point_settings) ||
+                                          0,
+                                      })}
+                                    </div>
+                                    <div className="product-currency text-[8px] light text-[#1D1D1D]">
+                                      {currency?.symbol}
+                                    </div>
                                   </div>
-                                  <div className="product-new-price text-[18px] bold">
-                                    {RoundPrice({
-                                      num: product.offer_price,
-                                      rate: currency.exchange_rate,
-                                      points:
-                                        (decimal_point_settings &&
-                                          decimal_point_settings[
-                                            "starting-setting"
-                                          ]?.decimal_point_settings) ||
-                                        0,
-                                    })}
-                                  </div>
-                                  <div className="product-currency text-[8px] light text-[#1D1D1D]">
-                                    {currency?.symbol}
-                                  </div>
-                                </div>
-                                <div className="flex-row">
-                                  <SavedIcon />
-                                  <span className="text-[8px] text-[#388CFF]">
-                                    Saved{" "}
-                                    <span className="bold">
-                                      {parseInt(
-                                        (
-                                          ((product.price -
-                                            product.offer_price) /
-                                            product.price) *
-                                          100
-                                        ).toString()
-                                      )}
-                                      %
+                                  <div className="flex-row">
+                                    <SavedIcon />
+                                    <span className="text-[8px] text-[#388CFF]">
+                                      Saved{" "}
+                                      <span className="bold">
+                                        {parseInt(
+                                          (
+                                            ((product.price -
+                                              product.offer_price) /
+                                              product.price) *
+                                            100
+                                          ).toString()
+                                        )}
+                                        %
+                                      </span>
                                     </span>
-                                  </span>
+                                  </div>
                                 </div>
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div className="product-new-price text-[14px] light text-[#1D1D1D]">
-                                {RoundPrice({
-                                  num: product.price,
-                                  rate: currency.exchange_rate,
-                                  points:
-                                    (decimal_point_settings &&
-                                      decimal_point_settings["starting-setting"]
-                                        ?.decimal_point_settings) ||
-                                    0,
-                                })}
-                              </div>
-                            </>
-                          )}
-                          <div className="product-currency text-[8px] text-[#C4C2C2] regular">
-                            {currency?.symbol}
+                              </>
+                            ) : (
+                              <>
+                                <div className="product-new-price text-[14px] light text-[#1D1D1D]">
+                                  {RoundPrice({
+                                    num: product.price,
+                                    rate: currency.exchange_rate,
+                                    points:
+                                      (decimal_point_settings &&
+                                        decimal_point_settings[
+                                          "starting-setting"
+                                        ]?.decimal_point_settings) ||
+                                      0,
+                                  })}
+                                </div>
+                              </>
+                            )}
+                            <div className="product-currency text-[8px] text-[#C4C2C2] regular">
+                              {currency?.symbol}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="absolute top-1 right-1">
-                        <input
-                          defaultValue={key + 1}
-                          type="number"
-                          min={1}
-                          disabled
-                          max={product.available_quantity}
-                          className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
-                        />
-                      </div>
-                    </NextLink>{" "}
-                    <QuantutyInput
-                      id={product.id}
-                      max={product.available_quantity}
-                      setValue={() => {}}
-                      value={product.quantity}
-                      deleteFunction={() => {
-                        dispatch({
-                          type: "REMOVE-FROM-CART",
-                          payload: product.id,
-                        });
-                        home.AddToCart({
-                          alreadyExist: product.id,
-                          callback: () => {},
-                          color: product.variations[0].color,
-                          size: product.variations[0].Size,
-                          id: product.product_id,
-                          image: product.image,
-                          quantity: -1,
-                          slug: product.slug,
-                          errCallback: () => {
-                            toast.error(translate("failed!", GetAppLanguage()));
-                          },
-                        });
-                      }}
-                    />
-                  </div>
-                ))}
-              </>
-            ) : (
-              <div className="flex-row items-center justify-center light text-[#5d5d5d] text-[16px]">
-                {translate("Cart is Empty", GetAppLanguage())}
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            {[1, 1].map((s, key) => (
-              <div className="flex-col bg-white pb-10 pt-2 pl-2 pr-2" key={key}>
-                <div className="flex-row min-h-[50px] bg-[#f8f8f8] rounded-2xl justify-between items-center pl-5 pr-5">
-                  <Skeleton width={90} height={15} />
-                </div>
-                <div className="flex-col w-full">
-                  {[1, 1].map((s, key) => (
-                    <div
-                      className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] mt-3 rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
-                      key={key}
-                    >
-                      <div className="flex-row w-[110px] min-h-[161px] relative">
-                        <Skeleton
-                          width={110}
-                          height={"100%"}
-                          borderRadius={15}
-                        />
-                      </div>
-                      <div className="flex-col mt-4 ml-5">
-                        <div className="h-[10px] overflow-hidden">
-                          <Skeleton
-                            width={"90"}
-                            height={10}
-                            style={{
-                              top: "0px",
-                              maxHeight: "100%",
-                              display: "flex",
-                            }}
+                        <div className="absolute top-1 right-1">
+                          <input
+                            defaultValue={key + 1}
+                            type="number"
+                            min={1}
+                            disabled
+                            max={product.available_quantity}
+                            className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
                           />
                         </div>
-                      </div>
-                      <div className="absolute right-4 bottom-3">
-                        <div className="product-info-price">
-                          <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
-                            <svg
-                              className="bottom-3"
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="100%"
-                              height="2"
-                            >
-                              <line
-                                id="Line_1104"
-                                data-name="Line 1104"
-                                x2="100%"
-                                transform="translate(0 1)"
-                                fill="none"
-                                stroke="#C4C2C2"
-                                strokeWidth="2"
-                              />
-                            </svg>
-                          </div>
-                          <div className="product-new-price text-[18px] bold"></div>
-                          <div className="product-currency text-[8px] text-[#C4C2C2] regular"></div>
-                        </div>
-                      </div>
-                      <div className="absolute top-1 right-1"></div>
+                      </NextLink>{" "}
+                      <QuantutyInput
+                        id={product.id}
+                        max={product.available_quantity}
+                        setValue={() => {}}
+                        value={product.quantity}
+                        deleteFunction={() => {
+                          dispatch({
+                            type: "REMOVE-FROM-CART",
+                            payload: product.id,
+                          });
+                          home.AddToCart({
+                            alreadyExist: product.id,
+                            callback: () => {},
+                            color: product.variations[0].color,
+                            size: product.variations[0].Size,
+                            id: product.product_id,
+                            image: product.image,
+                            quantity: -1,
+                            slug: product.slug,
+                            errCallback: () => {
+                              toast.error(
+                                translate("failed!", GetAppLanguage())
+                              );
+                            },
+                          });
+                        }}
+                      />
                     </div>
                   ))}
+                </>
+              ) : (
+                <div className="flex-row items-center justify-center light text-[#5d5d5d] text-[16px]">
+                  {translate("Cart is Empty", GetAppLanguage())}
                 </div>
-              </div>
-            ))}
-          </>
-        )}
-      </div>
-      {oldCart?.oldCart?.length > 0 && (
-        <>
-          <hr className="p-4" />
-          <div className="flex-row mt-0 min-h-[30px] w-full items-center justify-center bg-[#F8F8F8] rounded-[10px]">
-            <CartLabel />{" "}
-            <span className="regular text-[#5D5C5D]">
-              {translate("Previously Viewed", GetAppLanguage())}
-            </span>
-            <span
-              className="cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]"
-              onClick={() => {
-                Sendevent({
-                  event: "button_clicked",
-                  value: "remove_old_products_button",
-                });
-                home.hideOldCart({});
-                dispatch({ type: "STORE-OLD-CART", payload: [] });
-              }}
-            >
-              {translate("Hide All", GetAppLanguage())}
-            </span>
-          </div>
-          <div className="flex-col  w-full h-auto mt-10">
-            {!loading ? (
-              <>
-                {oldCart?.oldCart.map((product, key) => (
-                  <div className="relative">
-                    <NextLink
-                      href={
-                        params?.productId === product.slug &&
-                        product?.variations[0]?.color ===
-                          sarchParams.get("color")
-                          ? "#"
-                          : `/products/${product.slug}${
-                              product?.variations &&
-                              product?.variations[0]?.color
-                                ? `?color=${product?.variations[0]?.color}`
-                                : ""
-                            }`
-                      }
-                      className="flex-row mt-2 w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
-                      key={key}
-                      onClick={(e) => {
-                        // @ts-ignore
-                        if (e.target.closest(".hide-btn")) return false;
-                        // @ts-ignore
-                        if (e.target.closest(".hide-btn")) return false;
-                        setTimeout(() => {
-                          if (document.querySelector("#nprogress"))
-                            // @ts-ignore
-                            document.querySelector("#nprogress").style.opacity =
-                              "1";
-                        }, 1000);
-                        if (params?.productId === product.slug) {
-                          if (product.variations[0].color) {
-                            dispatch({
-                              type: "SET-ACTIVE-COLOR-DETAILS",
-                              payload:
-                                ProductDetails.sync_color_images[
-                                  ProductDetails.sync_color_images.findIndex(
-                                    (s) =>
-                                      s.color_name ===
-                                      product?.variations[0]?.color
-                                  )
-                                ],
-                            });
-                          }
-                        }
-                        close();
-                      }}
-                    >
-                      <div className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative">
-                        <img
-                          src={getConfiguredImage({
-                            height: 150,
-                            width: 150,
-                            src: product.image,
-                          })}
-                          width={110}
-                          height={"100%"}
-                          className="rounded-2xl"
-                        />
+              )}
+            </>
+          ) : (
+            <>
+              {[1, 1].map((s, key) => (
+                <div
+                  className="flex-col bg-white pb-10 pt-2 pl-2 pr-2"
+                  key={key}
+                >
+                  <div className="flex-row min-h-[50px] bg-[#f8f8f8] rounded-2xl justify-between items-center pl-5 pr-5">
+                    <Skeleton width={90} height={15} />
+                  </div>
+                  <div className="flex-col w-full">
+                    {[1, 1].map((s, key) => (
+                      <div
+                        className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] mt-3 rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
+                        key={key}
+                      >
+                        <div className="flex-row w-[110px] min-h-[161px] relative">
+                          <Skeleton
+                            width={110}
+                            height={"100%"}
+                            borderRadius={15}
+                          />
+                        </div>
+                        <div className="flex-col mt-4 ml-5">
+                          <div className="h-[10px] overflow-hidden">
+                            <Skeleton
+                              width={"90"}
+                              height={10}
+                              style={{
+                                top: "0px",
+                                maxHeight: "100%",
+                                display: "flex",
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div className="absolute right-4 bottom-3">
+                          <div className="product-info-price">
+                            <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
+                              <svg
+                                className="bottom-3"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="100%"
+                                height="2"
+                              >
+                                <line
+                                  id="Line_1104"
+                                  data-name="Line 1104"
+                                  x2="100%"
+                                  transform="translate(0 1)"
+                                  fill="none"
+                                  stroke="#C4C2C2"
+                                  strokeWidth="2"
+                                />
+                              </svg>
+                            </div>
+                            <div className="product-new-price text-[18px] bold"></div>
+                            <div className="product-currency text-[8px] text-[#C4C2C2] regular"></div>
+                          </div>
+                        </div>
+                        <div className="absolute top-1 right-1"></div>
                       </div>
-                      <div className="flex-col mt-4 ml-5">
-                        <div className="h-[10px] overflow-hidden">
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+        {oldCart?.oldCart?.length > 0 && (
+          <>
+            <hr className="p-4" />
+            <div className="flex-row mt-0 min-h-[30px] w-full items-center justify-center bg-[#F8F8F8] rounded-[10px]">
+              <CartLabel />{" "}
+              <span className="regular text-[#5D5C5D]">
+                {translate("Previously Viewed", GetAppLanguage())}
+              </span>
+              <span
+                className="cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]"
+                onClick={() => {
+                  Sendevent({
+                    event: "button_clicked",
+                    value: "remove_old_products_button",
+                  });
+                  home.hideOldCart({});
+                  dispatch({ type: "STORE-OLD-CART", payload: [] });
+                }}
+              >
+                {translate("Hide All", GetAppLanguage())}
+              </span>
+            </div>
+            <div className="flex-col  w-full h-auto mt-10">
+              {!loading ? (
+                <>
+                  {oldCart?.oldCart.map((product, key) => (
+                    <div className="relative">
+                      <NextLink
+                        href={
+                          params?.productId === product.slug &&
+                          product?.variations[0]?.color ===
+                            sarchParams.get("color")
+                            ? "#"
+                            : `/products/${product.slug}${
+                                product?.variations &&
+                                product?.variations[0]?.color
+                                  ? `?color=${product?.variations[0]?.color}`
+                                  : ""
+                              }`
+                        }
+                        className="flex-row mt-2 w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
+                        key={key}
+                        onClick={(e) => {
+                          // @ts-ignore
+                          if (e.target.closest(".hide-btn")) return false;
+                          // @ts-ignore
+                          if (e.target.closest(".hide-btn")) return false;
+                          setTimeout(() => {
+                            if (document.querySelector("#nprogress"))
+                              // @ts-ignore
+                              document.querySelector(
+                                "#nprogress"
+                                // @ts-ignore
+                              ).style.opacity = "1";
+                          }, 1000);
+                          if (params?.productId === product.slug) {
+                            if (product.variations[0].color) {
+                              dispatch({
+                                type: "SET-ACTIVE-COLOR-DETAILS",
+                                payload:
+                                  ProductDetails.sync_color_images[
+                                    ProductDetails.sync_color_images.findIndex(
+                                      (s) =>
+                                        s.color_name ===
+                                        product?.variations[0]?.color
+                                    )
+                                  ],
+                              });
+                            }
+                          }
+                          close();
+                        }}
+                      >
+                        <div className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative">
                           <img
                             src={getConfiguredImage({
                               height: 150,
                               width: 150,
-                              src: product.brand?.image,
+                              src: product.image,
                             })}
-                            height={10}
-                            style={{
-                              top: "0px",
-                              maxHeight: "100%",
-                              display: "flex",
-                            }}
-                            className="object-contain h-4 max-w-[90px] w-auto"
+                            width={110}
+                            height={"100%"}
+                            className="rounded-2xl"
                           />
                         </div>
-                        <div className="text-xs mt-1 text-[#505050] flex regular">
-                          {product.name}
-                        </div>
-                        <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                          <span className="ml-1.5"></span>
-                        </div>
-                        <div className="flex-row flex-wrap">
-                          {product.variations[0]?.color && (
-                            <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
-                              <CartColorIcon />
-                              <span className="ml-1.5">color,</span>
-                              <span className="regular">
-                                {product.variations[0].color}
-                              </span>
-                            </div>
-                          )}
-                          {product.variations[0]?.Size && (
-                            <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                              <CartSizeIcon />
-                              <span className="ml-1.5">Size,</span>
-                              <span className="regular">
-                                {product.variations[0].Size}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
-                          <PiecesIcon />
-                          <span className="ml-1.5 text-[#8D8D8D] regular">
-                            Composed Of:{" "}
-                          </span>
-                          <span className="regular">
-                            {product.count_of_pieces} Piece
-                          </span>
-                        </div>
-                        <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
-                          <DeleiveryIcon />
-                          <span className="ml-1.5 text-[#8D8D8D] regular">
-                            Shipping:{" "}
-                          </span>
-                          <span className="regular">
-                            3 Days{" "}
-                            <span className="ml-1 underline">Details</span>
-                          </span>
-                        </div>
-
-                        {product.quantity > product.available_quantity && (
-                          <div className="flex-row items-center text-[12px] light text-[#fd445d]">
-                            <ErrorIcon />
-                            <span className="ml-1.5">Availabilty,</span>
-                            <span className="regular ml-1">Out Of Stock</span>
+                        <div className="flex-col mt-4 ml-5">
+                          <div className="h-[10px] overflow-hidden">
+                            <img
+                              src={getConfiguredImage({
+                                height: 150,
+                                width: 150,
+                                src: product.brand?.image,
+                              })}
+                              height={10}
+                              style={{
+                                top: "0px",
+                                maxHeight: "100%",
+                                display: "flex",
+                              }}
+                              className="object-contain h-4 max-w-[90px] w-auto"
+                            />
                           </div>
-                        )}
-                      </div>
-                      {
-                        <div
-                          className="absolute right-4 bottom-16 hide-btn"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            Sendevent({
-                              event: "button_clicked",
-                              value: "remove_old_product_item_button",
-                            });
+                          <div className="text-xs mt-1 text-[#505050] flex regular">
+                            {product.name}
+                          </div>
+                          <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
+                            <span className="ml-1.5"></span>
+                          </div>
+                          <div className="flex-row flex-wrap">
+                            {product.variations[0]?.color && (
+                              <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                                <CartColorIcon />
+                                <span className="ml-1.5">color,</span>
+                                <span className="regular">
+                                  {product.variations[0].color}
+                                </span>
+                              </div>
+                            )}
+                            {product.variations[0]?.Size && (
+                              <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
+                                <CartSizeIcon />
+                                <span className="ml-1.5">Size,</span>
+                                <span className="regular">
+                                  {product.variations[0].Size}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                            <PiecesIcon />
+                            <span className="ml-1.5 text-[#8D8D8D] regular">
+                              Composed Of:{" "}
+                            </span>
+                            <span className="regular">
+                              {product.count_of_pieces} Piece
+                            </span>
+                          </div>
+                          <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                            <DeleiveryIcon />
+                            <span className="ml-1.5 text-[#8D8D8D] regular">
+                              Shipping:{" "}
+                            </span>
+                            <span className="regular">
+                              3 Days{" "}
+                              <span className="ml-1 underline">Details</span>
+                            </span>
+                          </div>
 
-                            dispatch({
-                              type: "HIDE-OLD-CART",
-                              payload: product.id,
-                            });
-                            home.hideOldCart({ id: product.id });
-                            setTimeout(() => {
-                              if (document.querySelector("#nprogress"))
-                                // @ts-ignore
-                                document.querySelector(
-                                  "#nprogress" // @ts-ignore
-                                ).style.opacity = "0";
-                            }, 1000);
-                          }}
-                        >
-                          <span className="hide-btn cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]">
-                            {translate("Hide", GetAppLanguage())}
-                          </span>
-                        </div>
-                      }
-                      <div className="absolute right-4 bottom-3">
-                        <div className="product-info-price">
-                          {product.offer_price ? (
-                            <>
-                              <div className="flex-col">
-                                <div className="flex-row">
-                                  <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
-                                    {RoundPrice({
-                                      num: product.price,
-                                      rate: currency?.exchange_rate,
-                                      points:
-                                        (decimal_point_settings &&
-                                          decimal_point_settings[
-                                            "starting-setting"
-                                          ]?.decimal_point_settings) ||
-                                        0,
-                                    })}
-                                    <svg
-                                      className="bottom-3"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="100%"
-                                      height="2"
-                                    >
-                                      <line
-                                        id="Line_1104"
-                                        data-name="Line 1104"
-                                        x2="100%"
-                                        transform="translate(0 1)"
-                                        fill="none"
-                                        stroke="#C4C2C2"
-                                        strokeWidth="2"
-                                      />
-                                    </svg>
-                                  </div>
-                                  <div className="product-new-price text-[18px] bold">
-                                    {RoundPrice({
-                                      num: product.offer_price,
-                                      rate: currency.exchange_rate,
-                                      points:
-                                        (decimal_point_settings &&
-                                          decimal_point_settings[
-                                            "starting-setting"
-                                          ]?.decimal_point_settings) ||
-                                        0,
-                                    })}
-                                  </div>
-                                  <div className="product-currency text-[8px] light text-[#1D1D1D]">
-                                    {currency?.symbol}
-                                  </div>
-                                </div>
-                                <div className="flex-row">
-                                  <SavedIcon />
-                                  <span className="text-[8px] text-[#388CFF]">
-                                    Saved{" "}
-                                    <span className="bold">
-                                      {parseInt(
-                                        (
-                                          ((product.price -
-                                            product.offer_price) /
-                                            product.price) *
-                                          100
-                                        ).toString()
-                                      )}
-                                      %
-                                    </span>
-                                  </span>
-                                </div>
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div className="product-new-price text-[14px] bold">
-                                {RoundPrice({
-                                  num: product.price,
-                                  rate: currency.exchange_rate,
-                                  points:
-                                    (decimal_point_settings &&
-                                      decimal_point_settings["starting-setting"]
-                                        ?.decimal_point_settings) ||
-                                    0,
-                                })}
-                              </div>
-                              <div className="product-currency text-[8px] light text-[#1D1D1D]">
-                                {currency?.symbol}
-                              </div>
-                            </>
+                          {product.quantity > product.available_quantity && (
+                            <div className="flex-row items-center text-[12px] light text-[#fd445d]">
+                              <ErrorIcon />
+                              <span className="ml-1.5">Availabilty,</span>
+                              <span className="regular ml-1">Out Of Stock</span>
+                            </div>
                           )}
                         </div>
-                      </div>
-                      <div className="absolute top-1 right-1">
-                        <input
-                          defaultValue={key + 1}
-                          type="number"
-                          min={1}
-                          disabled
-                          max={product.available_quantity}
-                          className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
-                        />
-                      </div>
-                    </NextLink>
-                    {/* <QuantutyInput
+                        {
+                          <div
+                            className="absolute right-4 bottom-16 hide-btn"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              Sendevent({
+                                event: "button_clicked",
+                                value: "remove_old_product_item_button",
+                              });
+
+                              dispatch({
+                                type: "HIDE-OLD-CART",
+                                payload: product.id,
+                              });
+                              home.hideOldCart({ id: product.id });
+                              setTimeout(() => {
+                                if (document.querySelector("#nprogress"))
+                                  // @ts-ignore
+                                  document.querySelector(
+                                    "#nprogress" // @ts-ignore
+                                  ).style.opacity = "0";
+                              }, 1000);
+                            }}
+                          >
+                            <span className="hide-btn cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]">
+                              {translate("Hide", GetAppLanguage())}
+                            </span>
+                          </div>
+                        }
+                        <div className="absolute right-4 bottom-3">
+                          <div className="product-info-price">
+                            {product.offer_price ? (
+                              <>
+                                <div className="flex-col">
+                                  <div className="flex-row">
+                                    <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
+                                      {RoundPrice({
+                                        num: product.price,
+                                        rate: currency?.exchange_rate,
+                                        points:
+                                          (decimal_point_settings &&
+                                            decimal_point_settings[
+                                              "starting-setting"
+                                            ]?.decimal_point_settings) ||
+                                          0,
+                                      })}
+                                      <svg
+                                        className="bottom-3"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="100%"
+                                        height="2"
+                                      >
+                                        <line
+                                          id="Line_1104"
+                                          data-name="Line 1104"
+                                          x2="100%"
+                                          transform="translate(0 1)"
+                                          fill="none"
+                                          stroke="#C4C2C2"
+                                          strokeWidth="2"
+                                        />
+                                      </svg>
+                                    </div>
+                                    <div className="product-new-price text-[18px] bold">
+                                      {RoundPrice({
+                                        num: product.offer_price,
+                                        rate: currency.exchange_rate,
+                                        points:
+                                          (decimal_point_settings &&
+                                            decimal_point_settings[
+                                              "starting-setting"
+                                            ]?.decimal_point_settings) ||
+                                          0,
+                                      })}
+                                    </div>
+                                    <div className="product-currency text-[8px] light text-[#1D1D1D]">
+                                      {currency?.symbol}
+                                    </div>
+                                  </div>
+                                  <div className="flex-row">
+                                    <SavedIcon />
+                                    <span className="text-[8px] text-[#388CFF]">
+                                      Saved{" "}
+                                      <span className="bold">
+                                        {parseInt(
+                                          (
+                                            ((product.price -
+                                              product.offer_price) /
+                                              product.price) *
+                                            100
+                                          ).toString()
+                                        )}
+                                        %
+                                      </span>
+                                    </span>
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="product-new-price text-[14px] bold">
+                                  {RoundPrice({
+                                    num: product.price,
+                                    rate: currency.exchange_rate,
+                                    points:
+                                      (decimal_point_settings &&
+                                        decimal_point_settings[
+                                          "starting-setting"
+                                        ]?.decimal_point_settings) ||
+                                      0,
+                                  })}
+                                </div>
+                                <div className="product-currency text-[8px] light text-[#1D1D1D]">
+                                  {currency?.symbol}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div className="absolute top-1 right-1">
+                          <input
+                            defaultValue={key + 1}
+                            type="number"
+                            min={1}
+                            disabled
+                            max={product.available_quantity}
+                            className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
+                          />
+                        </div>
+                      </NextLink>
+                      {/* <QuantutyInput
                       id={product.id}
                       value={product.quantity}
                       max={product.available_quantity}
@@ -829,81 +845,82 @@ function CartContainer({ close }) {
                         home.hideOldCart({ id: product.id });
                       }}
                     /> */}
-                  </div>
-                ))}
-              </>
-            ) : (
-              <>
-                {[1, 1].map((s, key) => (
-                  <div
-                    className="flex-col bg-white pb-10 pt-2 pl-2 pr-2"
-                    key={key}
-                  >
-                    <div className="flex-row min-h-[50px] bg-[#f8f8f8] rounded-2xl justify-between items-center pl-5 pr-5">
-                      <Skeleton width={90} height={15} />
                     </div>
-                    <div className="flex-col w-full">
-                      {[1, 1].map((s, key) => (
-                        <div
-                          className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] mt-3 rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
-                          key={key}
-                        >
-                          <div className="flex-row w-[110px] min-h-[161px] relative">
-                            <Skeleton
-                              width={110}
-                              height={"100%"}
-                              borderRadius={15}
-                            />
-                          </div>
-                          <div className="flex-col mt-4 ml-5">
-                            <div className="h-[10px] overflow-hidden">
+                  ))}
+                </>
+              ) : (
+                <>
+                  {[1, 1].map((s, key) => (
+                    <div
+                      className="flex-col bg-white pb-10 pt-2 pl-2 pr-2"
+                      key={key}
+                    >
+                      <div className="flex-row min-h-[50px] bg-[#f8f8f8] rounded-2xl justify-between items-center pl-5 pr-5">
+                        <Skeleton width={90} height={15} />
+                      </div>
+                      <div className="flex-col w-full">
+                        {[1, 1].map((s, key) => (
+                          <div
+                            className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] mt-3 rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
+                            key={key}
+                          >
+                            <div className="flex-row w-[110px] min-h-[161px] relative">
                               <Skeleton
-                                width={"90"}
-                                height={10}
-                                style={{
-                                  top: "0px",
-                                  maxHeight: "100%",
-                                  display: "flex",
-                                }}
+                                width={110}
+                                height={"100%"}
+                                borderRadius={15}
                               />
                             </div>
-                          </div>
-                          <div className="absolute right-4 bottom-3">
-                            <div className="product-info-price">
-                              <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
-                                <svg
-                                  className="bottom-3"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="100%"
-                                  height="2"
-                                >
-                                  <line
-                                    id="Line_1104"
-                                    data-name="Line 1104"
-                                    x2="100%"
-                                    transform="translate(0 1)"
-                                    fill="none"
-                                    stroke="#C4C2C2"
-                                    strokeWidth="2"
-                                  />
-                                </svg>
+                            <div className="flex-col mt-4 ml-5">
+                              <div className="h-[10px] overflow-hidden">
+                                <Skeleton
+                                  width={"90"}
+                                  height={10}
+                                  style={{
+                                    top: "0px",
+                                    maxHeight: "100%",
+                                    display: "flex",
+                                  }}
+                                />
                               </div>
-                              <div className="product-new-price text-[18px] bold"></div>
-                              <div className="product-currency text-[8px] text-[#C4C2C2] regular"></div>
                             </div>
+                            <div className="absolute right-4 bottom-3">
+                              <div className="product-info-price">
+                                <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
+                                  <svg
+                                    className="bottom-3"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="100%"
+                                    height="2"
+                                  >
+                                    <line
+                                      id="Line_1104"
+                                      data-name="Line 1104"
+                                      x2="100%"
+                                      transform="translate(0 1)"
+                                      fill="none"
+                                      stroke="#C4C2C2"
+                                      strokeWidth="2"
+                                    />
+                                  </svg>
+                                </div>
+                                <div className="product-new-price text-[18px] bold"></div>
+                                <div className="product-currency text-[8px] text-[#C4C2C2] regular"></div>
+                              </div>
+                            </div>
+                            <div className="absolute top-1 right-1"></div>
                           </div>
-                          <div className="absolute top-1 right-1"></div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </>
-            )}
-          </div>
-          {!loading && <OrderButton close={() => close()} />}
-        </>
-      )}
+                  ))}
+                </>
+              )}
+            </div>
+            {!loading && <OrderButton close={() => close()} />}
+          </>
+        )}
+      </div>
     </div>
   );
 }

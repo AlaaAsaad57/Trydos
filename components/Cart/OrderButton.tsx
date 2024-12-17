@@ -698,154 +698,167 @@ function OrderButton({ close }) {
       </svg>
     );
   };
+  const getDiscount = () => {
+    var a = parseInt(
+      ((cart.total_discount_on_product / cart.sub_total) * 100).toString()
+    );
+    return a;
+  };
   return (
-    <div className="flex-col fixed bottom-0 left-0 bg-white min-h-[100px] w-full">
-      {cart.cart.length > 0 && (
-        <div
-          className={`flex-col w-full ${
-            expanded
-              ? "h-[336px] pt-[20px] px-[12px] pb-[10x] rounded-t-[30x]"
-              : "h-[76px] pt-[20px] px-[12px] pb-[10x] rounded-t-[30x]"
-          }  transition-all`}
-        >
-          {expanded && (
-            <>
-              <div className="flex-row items-center">
-                <ItemsIcon />
-                <span className="ml-[5px] medium text-[#1D1D1D] text-[13px]">
-                  Item <span className="mt-1 bold">{cart.cart.length}</span>{" "}
-                </span>
-              </div>
-              <div className="flex-row items-start h-[50px] w-full justify-between mt-2">
-                <div className="flex-col pl-[28px] text-[#1D1D1D]">
-                  <span className="medium text-[13px]">Price</span>
-                  <span className="regular text-[11px]">Normal Price</span>
-                </div>
-                <span className="ml-[5px] medium text-[#1D1D1D] text-[13px] pr-[13px]">
-                  {cart.total_cash} {currency_symbol.symbol}
-                </span>
-              </div>
-              <div className="flex-row items-start h-[50px] w-full justify-between mt-2 bg-[#FDFDEF] rounded-[12px] pt-1">
-                <div className="flex-row pl-[12px]">
-                  <span className="flex-row translate-y-[3px]">
-                    <DiscoutIcon />
-                  </span>{" "}
-                  <div className="flex-col pl-1 text-[#A28E5B]">
-                    <span className="medium text-[13px] text-[#A28E5B]">
-                      Total Discount{" "}
-                      <span className="bold text-[#A28E5B] ">{30}%</span>
-                    </span>
-                    <span className="regular text-[11px] text-[#A28E5B]">
-                      Click To Show All Discount
-                    </span>
-                  </div>
-                </div>
-
-                <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#A28E5B]">
-                  {cart.total_cash} {currency_symbol.symbol}
-                </span>
-              </div>
-              <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
-                <div className="flex-row pl-[12px]">
-                  <span className="flex-row translate-y-[3px]">
-                    <GiftIcon />
-                  </span>{" "}
-                  <div className="flex-col pl-1 text-[#5BA260]">
-                    <span className="medium text-[13px] text-[#5BA260]">
-                      Gift
-                    </span>
-                    <span className="regular text-[11px] text-[#5BA260]">
-                      First Shopping
-                    </span>
-                  </div>
-                </div>
-
-                <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]">
-                  {-10} {currency_symbol.symbol}
-                </span>
-              </div>
-              <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
-                <div className="flex-row pl-[12px]">
-                  <span className="flex-row translate-y-[3px]">
-                    <GiftIcon />
-                  </span>{" "}
-                  <div className="flex-col pl-1 text-[#5BA260]">
-                    <span className="medium text-[13px] text-[#5BA260]">
-                      Shipping
-                    </span>
-                    <span className="regular text-[11px] text-[#5BA260]">
-                      Shipping Is Completely Free Without Any Extras
-                    </span>
-                  </div>
-                </div>
-
-                <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]">
-                  <span className="line-through">10</span>
-                  {10} {currency_symbol.symbol}
-                </span>
-              </div>
-            </>
-          )}
+    <>
+      {expanded && (
+        <div className="fixed min-w-[100vw] min-h-[100vh] opacity-40 bg-[black]" />
+      )}
+      <div className="flex-col z-50 fixed bottom-0 left-0 bg-white min-h-[100px] w-full">
+        {cart.cart.length > 0 && (
           <div
-            onClick={() => {
-              setExpanded(!expanded);
-            }}
-            className=" cursor-pointer flex-row items-center h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1 bg-[#F8F8F8]"
+            className={`flex-col w-full ${
+              expanded
+                ? "h-[336px] pt-[20px] px-[12px] pb-[10x] rounded-t-[30x]"
+                : "h-[76px] pt-[20px] px-[12px] pb-[10x] rounded-t-[30x]"
+            }  transition-all`}
           >
-            <div className="flex-row pl-[12px]">
-              <div className="flex-col pl-4 text-[#1D1D1D]">
-                <span className="bold text-[13px] text-[#1D1D1D]">Total</span>
-                <span className="medium text-[11px] text-[#8D8D8D]">
-                  All Inclusive Without Additions
-                </span>
-              </div>
-            </div>
+            {expanded && (
+              <>
+                <div className="flex-row items-center">
+                  <ItemsIcon />
+                  <span className="ml-[5px] medium text-[#1D1D1D] text-[13px]">
+                    Item <span className="mt-1 bold">{cart.cart.length}</span>{" "}
+                  </span>
+                </div>
+                <div className="flex-row items-start h-[50px] w-full justify-between mt-2">
+                  <div className="flex-col pl-[28px] text-[#1D1D1D]">
+                    <span className="medium text-[13px]">Price</span>
+                    <span className="regular text-[11px]">Normal Price</span>
+                  </div>
+                  <span className="ml-[5px] medium text-[#1D1D1D] text-[13px] pr-[13px]">
+                    {cart.sub_total} {currency_symbol.symbol}
+                  </span>
+                </div>
+                <div className="flex-row items-start h-[50px] w-full justify-between mt-2 bg-[#FDFDEF] rounded-[12px] pt-1">
+                  <div className="flex-row pl-[12px]">
+                    <span className="flex-row translate-y-[3px]">
+                      <DiscoutIcon />
+                    </span>{" "}
+                    <div className="flex-col pl-1 text-[#A28E5B]">
+                      <span className="medium text-[13px] text-[#A28E5B]">
+                        Total Discount{" "}
+                        <span className="bold text-[#A28E5B] ">
+                          {getDiscount()}%
+                        </span>
+                      </span>
+                      <span className="regular text-[11px] text-[#A28E5B]">
+                        Click To Show All Discount
+                      </span>
+                    </div>
+                  </div>
 
-            <span className="flex-row justify-center items-center ml-[5px] bold  text-[16px] pr-[13px] text-[#1D1D1D]">
-              <span className="line-through regular mr-2">
-                {cart.total_cash}
-              </span>{" "}
-              {cart.total_cash} {currency_symbol.symbol}
-              <span className="ml-2">
-                <MenuIcon className={expanded && "rotate-180"} />
+                  <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#A28E5B]">
+                    {cart.total_discount_on_product} {currency_symbol.symbol}
+                  </span>
+                </div>
+                <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
+                  <div className="flex-row pl-[12px]">
+                    <span className="flex-row translate-y-[3px]">
+                      <GiftIcon />
+                    </span>{" "}
+                    <div className="flex-col pl-1 text-[#5BA260]">
+                      <span className="medium text-[13px] text-[#5BA260]">
+                        Gift
+                      </span>
+                      <span className="regular text-[11px] text-[#5BA260]">
+                        First Shopping
+                      </span>
+                    </div>
+                  </div>
+
+                  <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]">
+                    {-10} {currency_symbol.symbol}
+                  </span>
+                </div>
+                <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
+                  <div className="flex-row pl-[12px]">
+                    <span className="flex-row translate-y-[3px]">
+                      <GiftIcon />
+                    </span>{" "}
+                    <div className="flex-col pl-1 text-[#5BA260]">
+                      <span className="medium text-[13px] text-[#5BA260]">
+                        Shipping
+                      </span>
+                      <span className="regular text-[11px] text-[#5BA260]">
+                        Shipping Is Completely Free Without Any Extras
+                      </span>
+                    </div>
+                  </div>
+
+                  <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]">
+                    <span className="line-through">10</span>
+                    {cart.total_shipping_cost} {currency_symbol.symbol}
+                  </span>
+                </div>
+              </>
+            )}
+            <div
+              onClick={() => {
+                setExpanded(!expanded);
+              }}
+              className=" cursor-pointer flex-row items-center h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1 bg-[#F8F8F8]"
+            >
+              <div className="flex-row pl-[12px]">
+                <div className="flex-col pl-4 text-[#1D1D1D]">
+                  <span className="bold text-[13px] text-[#1D1D1D]">Total</span>
+                  <span className="medium text-[11px] text-[#8D8D8D]">
+                    All Inclusive Without Additions
+                  </span>
+                </div>
+              </div>
+
+              <span className="flex-row justify-center items-center ml-[5px] bold  text-[16px] pr-[13px] text-[#1D1D1D]">
+                <span className="line-through regular mr-2">
+                  {cart.sub_total}
+                </span>{" "}
+                {cart.total_cash} {currency_symbol.symbol}
+                <span className="ml-2">
+                  <MenuIcon className={expanded && "rotate-180"} />
+                </span>
               </span>
-            </span>
+            </div>
+          </div>
+        )}
+        <div className="flex-row w-full px-5 pt-3">
+          <div
+            className="cursor-pointer  flex-col w-full h-[70px] bg-[#3C3C3C] rounded-[20px] text-center justify-center items-center"
+            style={{
+              boxShadow:
+                "inset 0px 3px 6px rgba(255,255,255,0.16), 0px 3px 6px rgba(0,0,0,0.1)",
+            }}
+            onClick={() => {
+              if (cart.cart.length === 0) {
+                close();
+              }
+            }}
+          >
+            {cart.cart.length === 0 ? (
+              <>
+                <span className="text-[#FEFEFE] text-[18px] medium ">
+                  {translate("Back To Home", GetAppLanguage())}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-[#FEFEFE] text-[18px] medium ">
+                  {translate("Confirm And Continue", GetAppLanguage())}
+                </span>
+                <span className="text-[#FEFEFE] text-[14px] medium ">
+                  {cart.cart.length} items {cart.total_cash}{" "}
+                  {currency_symbol?.symbol}
+                </span>
+              </>
+            )}
           </div>
         </div>
-      )}
-      <div className="flex-row w-full px-5 pt-3">
-        <div
-          className="cursor-pointer  flex-col w-full h-[70px] bg-[#3C3C3C] rounded-[20px] text-center justify-center items-center"
-          style={{
-            boxShadow:
-              "inset 0px 3px 6px rgba(255,255,255,0.16), 0px 3px 6px rgba(0,0,0,0.1)",
-          }}
-          onClick={() => {
-            if (cart.cart.length === 0) {
-              close();
-            }
-          }}
-        >
-          {cart.cart.length === 0 ? (
-            <>
-              <span className="text-[#FEFEFE] text-[18px] medium ">
-                {translate("Back To Home", GetAppLanguage())}
-              </span>
-            </>
-          ) : (
-            <>
-              <span className="text-[#FEFEFE] text-[18px] medium ">
-                {translate("Confirm And Continue", GetAppLanguage())}
-              </span>
-              <span className="text-[#FEFEFE] text-[14px] medium ">
-                {cart.cart.length} items {cart.total_cash}{" "}
-                {currency_symbol?.symbol}
-              </span>
-            </>
-          )}
-        </div>
       </div>
-    </div>
+    </>
   );
 }
 

@@ -4,6 +4,8 @@ import { useSelector } from "react-redux";
 import ImageIcon from "../svg/image.svg";
 import VideoIcon from "../svg/video.svg";
 import AudioIcon from "../svg/audio.svg";
+import profile from "public/images/profileNo.png";
+
 import out from "../svg/output.png";
 import Image from "next/image";
 import { getUserChat } from "utils/functions";
@@ -89,7 +91,7 @@ function RepliedMessage({
                     ?.user?.photo_path?.includes("eu") ? (
                     activeChat.channel_members.filter(
                       (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -114,7 +116,7 @@ function RepliedMessage({
                     )
                   ) : activeChat.channel_members.filter(
                       (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -133,12 +135,14 @@ function RepliedMessage({
                       alt="user-img"
                       className="abs-avva"
                       src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
+                        (activeChat &&
+                          activeChat.channel_members &&
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.photo_path) ||
+                        profile
                       }
                     />
                   )}
@@ -187,7 +191,7 @@ function RepliedMessage({
                       activeChat.channel_members.filter(
                         (a) =>
                           parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.name ? (
+                      )[0]?.user?.name?.length > 1 ? (
                         <>
                           {getTwoLetters(
                             activeChat.channel_members.filter(
@@ -212,7 +216,7 @@ function RepliedMessage({
                       )
                     ) : activeChat.channel_members.filter(
                         (user) => user.user_id === getUserChat()?.id
-                      )[0]?.user?.name ? (
+                      )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -232,13 +236,14 @@ function RepliedMessage({
                         alt="user-img"
                         className="abs-avva"
                         src={
-                          activeChat &&
-                          activeChat.channel_members &&
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.photo_path
+                          (activeChat &&
+                            activeChat.channel_members &&
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.photo_path) ||
+                          profile
                         }
                       />
                     )}
@@ -286,7 +291,7 @@ function RepliedMessage({
                     ?.user?.photo_path?.includes("eu") ? (
                     activeChat.channel_members.filter(
                       (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -311,7 +316,7 @@ function RepliedMessage({
                     )
                   ) : activeChat.channel_members.filter(
                       (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -330,12 +335,14 @@ function RepliedMessage({
                       alt="user-img"
                       className="abs-avva"
                       src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
+                        (activeChat &&
+                          activeChat.channel_members &&
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.photo_path) ||
+                        profile
                       }
                     />
                   )}
@@ -382,7 +389,7 @@ function RepliedMessage({
                     ?.user?.photo_path?.includes("eu") ? (
                     activeChat.channel_members.filter(
                       (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -407,7 +414,7 @@ function RepliedMessage({
                     )
                   ) : activeChat.channel_members.filter(
                       (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -426,12 +433,14 @@ function RepliedMessage({
                       alt="user-img"
                       className="abs-avva"
                       src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
+                        (activeChat &&
+                          activeChat.channel_members &&
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.photo_path) ||
+                        profile
                       }
                     />
                   )}
@@ -484,7 +493,7 @@ function RepliedMessage({
                       activeChat.channel_members.filter(
                         (a) =>
                           parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.name ? (
+                      )[0]?.user?.name?.length > 1 ? (
                         <>
                           {getTwoLetters(
                             activeChat.channel_members.filter(
@@ -509,7 +518,7 @@ function RepliedMessage({
                       )
                     ) : activeChat.channel_members.filter(
                         (user) => user.user_id === getUserChat()?.id
-                      )[0]?.user?.name ? (
+                      )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -529,13 +538,14 @@ function RepliedMessage({
                         alt="user-img"
                         className="abs-avva"
                         src={
-                          activeChat &&
-                          activeChat.channel_members &&
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.photo_path
+                          (activeChat &&
+                            activeChat.channel_members &&
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.photo_path) ||
+                          profile
                         }
                       />
                     )}
@@ -591,7 +601,7 @@ function RepliedMessage({
                     ?.user?.photo_path?.includes("eu") ? (
                     activeChat.channel_members.filter(
                       (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -616,7 +626,7 @@ function RepliedMessage({
                     )
                   ) : activeChat.channel_members.filter(
                       (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -635,12 +645,14 @@ function RepliedMessage({
                       alt="user-img"
                       className="abs-avva"
                       src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
+                        (activeChat &&
+                          activeChat.channel_members &&
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.photo_path) ||
+                        profile
                       }
                     />
                   )}
@@ -689,7 +701,7 @@ function RepliedMessage({
                       activeChat.channel_members.filter(
                         (a) =>
                           parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]?.user?.name ? (
+                      )[0]?.user?.name?.length > 1 ? (
                         <>
                           {getTwoLetters(
                             activeChat.channel_members.filter(
@@ -714,7 +726,7 @@ function RepliedMessage({
                       )
                     ) : activeChat.channel_members.filter(
                         (user) => user.user_id !== getUserChat()?.id
-                      )[0]?.user?.name ? (
+                      )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -734,13 +746,14 @@ function RepliedMessage({
                         alt="user-img"
                         className="abs-avva"
                         src={
-                          activeChat &&
-                          activeChat.channel_members &&
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.photo_path
+                          (activeChat &&
+                            activeChat.channel_members &&
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.photo_path) ||
+                          profile
                         }
                       />
                     )}
@@ -790,7 +803,7 @@ function RepliedMessage({
                       activeChat.channel_members.filter(
                         (a) =>
                           parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]?.user?.name ? (
+                      )[0]?.user?.name?.length > 1 ? (
                         <>
                           {getTwoLetters(
                             activeChat.channel_members.filter(
@@ -815,7 +828,7 @@ function RepliedMessage({
                       )
                     ) : activeChat.channel_members.filter(
                         (user) => user.user_id !== getUserChat()?.id
-                      )[0]?.user?.name ? (
+                      )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -835,13 +848,14 @@ function RepliedMessage({
                         alt="user-img"
                         className="abs-avva"
                         src={
-                          activeChat &&
-                          activeChat.channel_members &&
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.photo_path
+                          (activeChat &&
+                            activeChat.channel_members &&
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.photo_path) ||
+                          profile
                         }
                       />
                     )}
@@ -889,7 +903,7 @@ function RepliedMessage({
                     ?.user?.photo_path?.includes("eu") ? (
                     activeChat.channel_members.filter(
                       (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -914,7 +928,7 @@ function RepliedMessage({
                     )
                   ) : activeChat.channel_members.filter(
                       (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -933,12 +947,14 @@ function RepliedMessage({
                       alt="user-img"
                       className="abs-avva"
                       src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
+                        (activeChat &&
+                          activeChat.channel_members &&
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.photo_path) ||
+                        profile
                       }
                     />
                   )}
@@ -989,7 +1005,7 @@ function RepliedMessage({
                     ?.user?.photo_path?.includes("eu") ? (
                     activeChat.channel_members.filter(
                       (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -1014,7 +1030,7 @@ function RepliedMessage({
                     )
                   ) : activeChat.channel_members.filter(
                       (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -1033,12 +1049,14 @@ function RepliedMessage({
                       alt="user-img"
                       className="abs-avva"
                       src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
+                        (activeChat &&
+                          activeChat.channel_members &&
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.photo_path) ||
+                        profile
                       }
                     />
                   )}

@@ -15,7 +15,7 @@ function UserInfoHeader() {
       >
         <div className="inset-shadow" />
         {getUserChat().photo_path?.includes("eu") ? (
-          getUserChat().name ? (
+          getUserChat().name?.length > 1 ? (
             getTwoLetters(getUserChat().name)
           ) : (
             <Image alt="user" src={40} width={40} height={ProfilePicture.src} />
@@ -27,7 +27,7 @@ function UserInfoHeader() {
             width={40}
             height={getUserChat().photo_path}
           />
-        ) : getUserChat().name ? (
+        ) : getUserChat().name?.length > 1 ? (
           getTwoLetters(getUserChat().name)
         ) : (
           <Image

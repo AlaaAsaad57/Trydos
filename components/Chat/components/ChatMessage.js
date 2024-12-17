@@ -308,7 +308,7 @@ function ChatMessage(props) {
                   ?.user?.photo_path?.includes("eu") ? (
                   activeChat.channel_members.filter(
                     (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                  )[0]?.user?.name ? (
+                  )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -332,7 +332,7 @@ function ChatMessage(props) {
                   )
                 ) : activeChat.channel_members.filter(
                     (user) => user.user_id === getUserChat()?.id
-                  )[0]?.user?.name ? (
+                  )[0]?.user?.name?.length > 1 ? (
                   <>
                     {getTwoLetters(
                       activeChat.channel_members.filter(
@@ -454,7 +454,7 @@ function ChatMessage(props) {
                     ?.user?.photo_path?.includes("eu") ? (
                     activeChat.channel_members.filter(
                       (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -480,7 +480,7 @@ function ChatMessage(props) {
                     )
                   ) : activeChat.channel_members.filter(
                       (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -676,7 +676,7 @@ function ChatMessage(props) {
                     ?.user?.photo_path?.includes("eu") ? (
                     activeChat.channel_members.filter(
                       (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -702,7 +702,7 @@ function ChatMessage(props) {
                     )
                   ) : activeChat.channel_members.filter(
                       (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -900,7 +900,7 @@ function ChatMessage(props) {
                     ?.user?.photo_path?.includes("eu") ? (
                     activeChat.channel_members.filter(
                       (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -925,7 +925,7 @@ function ChatMessage(props) {
                     )
                   ) : activeChat.channel_members.filter(
                       (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -1169,7 +1169,7 @@ function ChatMessage(props) {
                         activeChat.channel_members.filter(
                           (a) =>
                             parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ? (
+                        )[0]?.user?.name?.length > 1 ? (
                           <>
                             {getTwoLetters(
                               activeChat.channel_members.filter(
@@ -1194,7 +1194,7 @@ function ChatMessage(props) {
                         )
                       ) : activeChat.channel_members.filter(
                           (user) => user.user_id === getUserChat()?.id
-                        )[0]?.user?.name ? (
+                        )[0]?.user?.name?.length > 1 ? (
                         <>
                           {getTwoLetters(
                             activeChat.channel_members.filter(
@@ -1415,7 +1415,7 @@ function ChatMessage(props) {
                     ?.user?.photo_path?.includes("eu") ? (
                     activeChat.channel_members.filter(
                       (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -1440,7 +1440,7 @@ function ChatMessage(props) {
                     )
                   ) : activeChat.channel_members.filter(
                       (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -1613,7 +1613,7 @@ function ChatMessage(props) {
                     ?.user?.photo_path?.includes("eu") ? (
                     activeChat.channel_members.filter(
                       (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -1638,7 +1638,7 @@ function ChatMessage(props) {
                     )
                   ) : activeChat.channel_members.filter(
                       (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -1804,7 +1804,7 @@ function ChatMessage(props) {
                   ?.user?.photo_path?.includes("eu") ? (
                   activeChat.channel_members.filter(
                     (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                  )[0]?.user?.name ? (
+                  )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -1828,7 +1828,7 @@ function ChatMessage(props) {
                   )
                 ) : activeChat.channel_members.filter(
                     (user) => user.user_id === getUserChat()?.id
-                  )[0]?.user?.name ? (
+                  )[0]?.user?.name?.length > 1 ? (
                   <>
                     {getTwoLetters(
                       activeChat.channel_members.filter(
@@ -1891,7 +1891,7 @@ function ChatMessage(props) {
                 ?.user?.photo_path?.includes("eu") ? (
                 activeChat.channel_members.filter(
                   (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                )[0]?.user?.name ? (
+                )[0]?.user?.name?.length > 1 ? (
                   <>
                     {getTwoLetters(
                       activeChat.channel_members.filter(
@@ -1909,7 +1909,7 @@ function ChatMessage(props) {
                 )
               ) : activeChat.channel_members.filter(
                   (user) => user.user_id === getUserChat()?.id
-                )[0]?.user?.name ? (
+                )[0]?.user?.name?.length > 1 ? (
                 <>
                   {getTwoLetters(
                     activeChat.channel_members.filter(
@@ -2027,7 +2027,7 @@ function ChatMessage(props) {
                     ?.user?.photo_path?.includes("eu") ? (
                     activeChat.channel_members.filter(
                       (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -2052,7 +2052,7 @@ function ChatMessage(props) {
                     )
                   ) : activeChat.channel_members.filter(
                       (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -2207,7 +2207,7 @@ function ChatMessage(props) {
                     ?.user?.photo_path?.includes("eu") ? (
                     activeChat.channel_members.filter(
                       (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -2232,7 +2232,7 @@ function ChatMessage(props) {
                     )
                   ) : activeChat.channel_members.filter(
                       (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -2385,7 +2385,7 @@ function ChatMessage(props) {
                     ?.user?.photo_path?.includes("eu") ? (
                     activeChat.channel_members.filter(
                       (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -2410,7 +2410,7 @@ function ChatMessage(props) {
                     )
                   ) : activeChat.channel_members.filter(
                       (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -2573,7 +2573,7 @@ function ChatMessage(props) {
                         activeChat.channel_members.filter(
                           (a) =>
                             parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ? (
+                        )[0]?.user?.name?.length > 1 ? (
                           <>
                             {getTwoLetters(
                               activeChat.channel_members.filter(
@@ -2598,7 +2598,7 @@ function ChatMessage(props) {
                         )
                       ) : activeChat.channel_members.filter(
                           (user) => user.user_id !== getUserChat()?.id
-                        )[0]?.user?.name ? (
+                        )[0]?.user?.name?.length > 1 ? (
                         <>
                           {getTwoLetters(
                             activeChat.channel_members.filter(
@@ -2813,7 +2813,7 @@ function ChatMessage(props) {
                     ?.user?.photo_path?.includes("eu") ? (
                     activeChat.channel_members.filter(
                       (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -2838,7 +2838,7 @@ function ChatMessage(props) {
                     )
                   ) : activeChat.channel_members.filter(
                       (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -2975,7 +2975,7 @@ function ChatMessage(props) {
                     ?.user?.photo_path?.includes("eu") ? (
                     activeChat.channel_members.filter(
                       (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                       <>
                         {getTwoLetters(
                           activeChat.channel_members.filter(
@@ -3000,7 +3000,7 @@ function ChatMessage(props) {
                     )
                   ) : activeChat.channel_members.filter(
                       (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.name ? (
+                    )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -3129,7 +3129,7 @@ function ChatMessage(props) {
                   ?.user?.photo_path?.includes("eu") ? (
                   activeChat.channel_members.filter(
                     (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                  )[0]?.user?.name ? (
+                  )[0]?.user?.name?.length > 1 ? (
                     <>
                       {getTwoLetters(
                         activeChat.channel_members.filter(
@@ -3153,7 +3153,7 @@ function ChatMessage(props) {
                   )
                 ) : activeChat.channel_members.filter(
                     (user) => user.user_id !== getUserChat()?.id
-                  )[0]?.user?.name ? (
+                  )[0]?.user?.name?.length > 1 ? (
                   <>
                     {getTwoLetters(
                       activeChat.channel_members.filter(
@@ -3216,7 +3216,7 @@ function ChatMessage(props) {
                 ?.user?.photo_path?.includes("eu") ? (
                 activeChat.channel_members.filter(
                   (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                )[0]?.user?.name ? (
+                )[0]?.user?.name?.length > 1 ? (
                   <>
                     {getTwoLetters(
                       activeChat.channel_members.filter(
@@ -3234,7 +3234,7 @@ function ChatMessage(props) {
                 )
               ) : activeChat.channel_members.filter(
                   (user) => user.user_id !== getUserChat()?.id
-                )[0]?.user?.name ? (
+                )[0]?.user?.name?.length > 1 ? (
                 <>
                   {getTwoLetters(
                     activeChat.channel_members.filter(
