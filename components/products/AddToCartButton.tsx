@@ -163,7 +163,7 @@ function AddToCartButton({
       productVar.sync_color_images &&
       productVar.choice_options?.length > 0
     ) {
-      return `${AddToCartOption.selectedColor.color_name}-${AddToCartOption?.selectedSize?.name}`;
+      return `${AddToCartOption.selectedColor?.color_name}-${AddToCartOption?.selectedSize?.name}`;
     } else if (
       productVar.sync_color_images &&
       productVar.choice_options?.length === 0
@@ -773,7 +773,7 @@ function AddToCartButton({
                 />
               )}
 
-              {AddToCartOption.selectedOptions.filter(
+              {/* {AddToCartOption.selectedOptions.filter(
                 (s) =>
                   s.UID ===
                   `${product?.id}${AddToCartOption?.selectedColor?.color_name}${AddToCartOption?.selectedSize?.name}`
@@ -807,7 +807,7 @@ function AddToCartButton({
                       />
                     </svg>
                   </span>
-                )}
+                )} */}
 
               <div className="button-desc">
                 <div className="flex-row max-w-[30px] justify-end relative image-container-cart">

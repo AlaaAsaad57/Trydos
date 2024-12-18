@@ -207,7 +207,7 @@ function CartContainer({ close }) {
               {cart.length > 0 ? (
                 <>
                   {cart?.map((product, key) => (
-                    <div className="relative">
+                    <div className="relative" key={key}>
                       {" "}
                       <NextLink
                         href={
@@ -226,17 +226,7 @@ function CartContainer({ close }) {
                         key={key}
                         onClick={(e) => {
                           // @ts-ignore
-                          if (e.target.closest(".hide-btn")) return false;
-                          // @ts-ignore
-                          if (e.target.closest(".hide-btn")) return false;
-                          setTimeout(() => {
-                            if (document.querySelector("#nprogress"))
-                              // @ts-ignore
-                              document.querySelector(
-                                "#nprogress"
-                                // @ts-ignore
-                              ).style.opacity = "1";
-                          }, 1000);
+
                           if (params?.productId === product.slug) {
                             if (product.variations[0].color) {
                               dispatch({
@@ -452,21 +442,7 @@ function CartContainer({ close }) {
                             type: "REMOVE-FROM-CART",
                             payload: product.id,
                           });
-                          home.AddToCart({
-                            alreadyExist: product.id,
-                            callback: () => {},
-                            color: product.variations[0].color,
-                            size: product.variations[0].Size,
-                            id: product.product_id,
-                            image: product.image,
-                            quantity: -1,
-                            slug: product.slug,
-                            errCallback: () => {
-                              toast.error(
-                                translate("failed!", GetAppLanguage())
-                              );
-                            },
-                          });
+                          home.RemoveFromCart({ key: product.id });
                         }}
                       />
                     </div>
@@ -575,7 +551,7 @@ function CartContainer({ close }) {
               {!loading ? (
                 <>
                   {oldCart?.oldCart.map((product, key) => (
-                    <div className="relative px-1">
+                    <div className="relative px-1" key={key}>
                       <NextLink
                         href={
                           params?.productId === product.slug &&
@@ -594,17 +570,7 @@ function CartContainer({ close }) {
                         style={{ border: "1px solid #ff5f617a" }}
                         onClick={(e) => {
                           // @ts-ignore
-                          if (e.target.closest(".hide-btn")) return false;
-                          // @ts-ignore
-                          if (e.target.closest(".hide-btn")) return false;
-                          setTimeout(() => {
-                            if (document.querySelector("#nprogress"))
-                              // @ts-ignore
-                              document.querySelector(
-                                "#nprogress"
-                                // @ts-ignore
-                              ).style.opacity = "1";
-                          }, 1000);
+
                           if (params?.productId === product.slug) {
                             if (product.variations[0].color) {
                               dispatch({
@@ -721,13 +687,6 @@ function CartContainer({ close }) {
                                 payload: product.id,
                               });
                               home.hideOldCart({ id: product.id });
-                              setTimeout(() => {
-                                if (document.querySelector("#nprogress"))
-                                  // @ts-ignore
-                                  document.querySelector(
-                                    "#nprogress" // @ts-ignore
-                                  ).style.opacity = "0";
-                              }, 1000);
                             }}
                           >
                             <span className="hide-btn cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]">
@@ -835,6 +794,67 @@ function CartContainer({ close }) {
                             className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
                           />
                         </div>
+                        <div className="absolute flex-row cursor-pointer items-center pl-3 pr-3 max-w-[90vw] bottom-[8px] left-[9px] mx-auto right-[0px] w-full h-[32px] rounded-[15px] bg-[#F8F8F8]">
+                          <span
+                            style={{
+                              height: "15px",
+                              scale: "0.8",
+                              transform: "translateY(-3px)",
+                            }}
+                          >
+                            <OldCartIcon />
+                          </span>
+                          <span className="text-[#8D8D8D] bold text-[12px] ml-1">
+                            Out Of Bag!{" "}
+                            <span className="regular">
+                              Time Running Out.{" "}
+                              <span className="bold">-30:00</span> | Add Again?
+                            </span>
+                          </span>
+                          <span className="ml-auto">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="12"
+                              height="12"
+                              viewBox="0 0 12 12"
+                            >
+                              <g
+                                id="Group_11624"
+                                data-name="Group 11624"
+                                transform="translate(-65 -464)"
+                              >
+                                <g
+                                  id="Group_10756"
+                                  data-name="Group 10756"
+                                  transform="translate(65 464)"
+                                >
+                                  <path
+                                    id="Subtraction_1"
+                                    data-name="Subtraction 1"
+                                    d="M.262,9.636a.258.258,0,0,1-.156-.054.29.29,0,0,1-.1-.3L.675,7.091A4.792,4.792,0,0,1,0,4.636,4.554,4.554,0,0,1,4.458,0,4.554,4.554,0,0,1,8.914,4.636,4.555,4.555,0,0,1,4.458,9.273a4.341,4.341,0,0,1-2.5-.794L.409,9.589A.238.238,0,0,1,.262,9.636ZM4.416,6.982a.571.571,0,1,0,.562.571A.558.558,0,0,0,4.416,6.982Zm.115-4.55a.879.879,0,0,1,.954.88c0,.432-.183.7-.7,1.023a1.433,1.433,0,0,0-.817,1.288v.1c0,.319.171.518.447.518.255,0,.4-.162.426-.469.021-.445.181-.669.714-1a1.684,1.684,0,0,0-.987-3.16A1.8,1.8,0,0,0,2.812,2.6a1.186,1.186,0,0,0-.115.518.386.386,0,0,0,.413.434c.224,0,.349-.108.43-.372A.951.951,0,0,1,4.531,2.432Z"
+                                    transform="translate(0 2.364)"
+                                    fill="#8e8e8e"
+                                  />
+                                  <path
+                                    id="Path_21380"
+                                    data-name="Path 21380"
+                                    d="M10.677,9.661a.259.259,0,0,1-.157.055.237.237,0,0,1-.147-.047L8.824,8.559l-.017.011a5.314,5.314,0,0,0,.4-2.036A5.089,5.089,0,0,0,4.227,1.352a4.724,4.724,0,0,0-1.094.127A4.326,4.326,0,0,1,6.325.079a4.555,4.555,0,0,1,4.457,4.636,4.778,4.778,0,0,1-.675,2.455l.664,2.189a.287.287,0,0,1-.094.3Z"
+                                    transform="translate(0.23 0.466)"
+                                    fill="#8e8e8e"
+                                  />
+                                  <rect
+                                    id="Rectangle_4714"
+                                    data-name="Rectangle 4714"
+                                    width="11.536"
+                                    height="12"
+                                    transform="translate(0.464)"
+                                    fill="none"
+                                  />
+                                </g>
+                              </g>
+                            </svg>
+                          </span>
+                        </div>
                       </NextLink>
                       <QuantutyInput
                         id={product.id}
@@ -844,67 +864,6 @@ function CartContainer({ close }) {
                         setValue={() => {}}
                         deleteFunction={() => {}}
                       />
-                      <div className="absolute flex-row cursor-pointer items-center pl-3 pr-3 max-w-[90vw] bottom-[8px] left-[9px] mx-auto right-[0px] w-full h-[32px] rounded-[15px] bg-[#F8F8F8]">
-                        <span
-                          style={{
-                            height: "15px",
-                            scale: "0.8",
-                            transform: "translateY(-3px)",
-                          }}
-                        >
-                          <OldCartIcon />
-                        </span>
-                        <span className="text-[#8D8D8D] bold text-[12px] ml-1">
-                          Out Of Bag!{" "}
-                          <span className="regular">
-                            Time Running Out.{" "}
-                            <span className="bold">-30:00</span> | Add Again?
-                          </span>
-                        </span>
-                        <span className="ml-auto">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="12"
-                            height="12"
-                            viewBox="0 0 12 12"
-                          >
-                            <g
-                              id="Group_11624"
-                              data-name="Group 11624"
-                              transform="translate(-65 -464)"
-                            >
-                              <g
-                                id="Group_10756"
-                                data-name="Group 10756"
-                                transform="translate(65 464)"
-                              >
-                                <path
-                                  id="Subtraction_1"
-                                  data-name="Subtraction 1"
-                                  d="M.262,9.636a.258.258,0,0,1-.156-.054.29.29,0,0,1-.1-.3L.675,7.091A4.792,4.792,0,0,1,0,4.636,4.554,4.554,0,0,1,4.458,0,4.554,4.554,0,0,1,8.914,4.636,4.555,4.555,0,0,1,4.458,9.273a4.341,4.341,0,0,1-2.5-.794L.409,9.589A.238.238,0,0,1,.262,9.636ZM4.416,6.982a.571.571,0,1,0,.562.571A.558.558,0,0,0,4.416,6.982Zm.115-4.55a.879.879,0,0,1,.954.88c0,.432-.183.7-.7,1.023a1.433,1.433,0,0,0-.817,1.288v.1c0,.319.171.518.447.518.255,0,.4-.162.426-.469.021-.445.181-.669.714-1a1.684,1.684,0,0,0-.987-3.16A1.8,1.8,0,0,0,2.812,2.6a1.186,1.186,0,0,0-.115.518.386.386,0,0,0,.413.434c.224,0,.349-.108.43-.372A.951.951,0,0,1,4.531,2.432Z"
-                                  transform="translate(0 2.364)"
-                                  fill="#8e8e8e"
-                                />
-                                <path
-                                  id="Path_21380"
-                                  data-name="Path 21380"
-                                  d="M10.677,9.661a.259.259,0,0,1-.157.055.237.237,0,0,1-.147-.047L8.824,8.559l-.017.011a5.314,5.314,0,0,0,.4-2.036A5.089,5.089,0,0,0,4.227,1.352a4.724,4.724,0,0,0-1.094.127A4.326,4.326,0,0,1,6.325.079a4.555,4.555,0,0,1,4.457,4.636,4.778,4.778,0,0,1-.675,2.455l.664,2.189a.287.287,0,0,1-.094.3Z"
-                                  transform="translate(0.23 0.466)"
-                                  fill="#8e8e8e"
-                                />
-                                <rect
-                                  id="Rectangle_4714"
-                                  data-name="Rectangle 4714"
-                                  width="11.536"
-                                  height="12"
-                                  transform="translate(0.464)"
-                                  fill="none"
-                                />
-                              </g>
-                            </g>
-                          </svg>
-                        </span>
-                      </div>
                     </div>
                   ))}
                 </>

@@ -579,6 +579,15 @@ class HomeService {
       { ...getHeader() }
     );
   }
+  async RemoveFromCart({ key }) {
+    try {
+      await axios.post(
+        process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/remove",
+        { key: key },
+        { ...getHeader() }
+      );
+    } catch (error) {}
+  }
   async StoreNotificationProduct({ type_id, variant, product_id }) {
     let detail = {
       user_id: UserID(),
