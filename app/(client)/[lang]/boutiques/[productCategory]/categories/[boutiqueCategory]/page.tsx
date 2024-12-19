@@ -46,4 +46,4 @@ async function page({ params, searchParams }) {
 
 export default page;
 
-export const revalidate = 36000;
+export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);

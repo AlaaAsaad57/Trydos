@@ -9,7 +9,7 @@ function Page() {
   const revalidate = async () => {
     await Revalidate();
   };
-  return <div>page</div>;
+  return <div></div>;
 }
 
 export default Page;

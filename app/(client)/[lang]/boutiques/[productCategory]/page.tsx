@@ -35,7 +35,7 @@ export async function generateMetadata({ params, searchParams }) {
   };
 }
 
-export const revalidate = 36000;
+export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const runtime = "edge";
 interface ParamsType {
   lang: string;

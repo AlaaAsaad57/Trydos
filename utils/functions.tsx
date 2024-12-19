@@ -35,12 +35,18 @@ export const getStoriesHeaders = () => {
       Authorization: `Bearer ${token}`,
     },
 
-    next: { tags: ["stories"], revalidate: 60 },
+    next: {
+      tags: ["stories"],
+      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+    },
   };
 };
 export const GeneralCahcedHeader = (apiName) => {
   return {
-    next: { tags: [apiName], revalidate: 60 },
+    next: {
+      tags: [apiName],
+      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+    },
   };
 };
 export const configureStory = (story) => {
@@ -303,7 +309,7 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
       `/web/boutique/simpleDetails/${boutiqueId}`,
     {
       next: {
-        revalidate: 36000,
+        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
       },
       headers: new Headers({
         Accept: "application/json",
@@ -1010,7 +1016,7 @@ export const getListingDataFilters = async ({
         method: "GET",
 
         next: {
-          revalidate: 36000,
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
           tags: [`listing-data-${str}`, "listing-data"],
         },
         headers: new Headers({
@@ -1076,7 +1082,7 @@ export const getListingDataFilters = async ({
         method: "GET",
 
         next: {
-          revalidate: 36000,
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
           tags: [`listing-data-${str}`, "listing-data"],
         },
         headers: new Headers({

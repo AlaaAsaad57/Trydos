@@ -34,7 +34,7 @@ import CustomNavbarServer from "components/Server/ServerCustomNav";
 //   };
 // }
 
-export const revalidate = 36000;
+export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const runtime = "edge";
 
 async function Page({ params, searchParams }) {

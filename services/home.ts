@@ -25,7 +25,7 @@ import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 const getHeader = () => {
   return {
     next: {
-      revalidate: 36000,
+      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
     },
     headers: {
       Authorization: `Bearer ${

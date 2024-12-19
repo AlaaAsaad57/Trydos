@@ -24,7 +24,7 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export const revalidate = 3600;
+export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const runtime = "edge";
 
 async function Page({ params: { productId, lang } }) {
