@@ -7,6 +7,7 @@ import AuthNavSection from "./AuthNavSection";
 import CartIcon from "public/svg/CartIcon.svg";
 import React from "react";
 import NotificationsTest from "components/global/NotificationsTest";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
 interface UserNavTopSectionProps {
   loginOpen: boolean;
@@ -25,9 +26,25 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
     }, 1000);
   }, [user]);
   const dispatch = useDispatch();
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const enableCart = (s) => {
     window.history.pushState({ isPopup: true }, "open Cart");
     dispatch({ type: "ENABLE-CART", payload: s });
+    if (s) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set("cart", "true");
+
+      // Use router.push with pathname and updated query
+      router.push(`${pathname}?${newParams.toString()}`);
+    } else {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("cart");
+
+      // Use router.push with pathname and updated query
+      router.push(`${pathname}?${newParams.toString()}`);
+    }
   };
   const searchEnabled = useSelector((state: any) => state.Search.enable);
 

@@ -32,7 +32,24 @@ function CartContainer({ close }) {
   const loading = useSelector((state: any) => state.cart.loading);
   const cart = useSelector((state: any) => state.cart?.cart);
   const total_cash = useSelector((state: any) => state.cart?.total_cash);
-
+  const getURLOfProduct = ({ product }) => {
+    let productUrl;
+    if (product.variations[0]?.color && !product.variations[0]?.Size)
+      productUrl = `/products/${
+        product.slug
+      }${`?color=${product?.variations[0]?.color}`}`;
+    else if (!product.variations[0]?.color && product.variations[0]?.Size)
+      productUrl = `/products/${
+        product.slug
+      }${`?size=${product?.variations[0]?.Size}`}`;
+    else if (!product.variations[0]?.color && !product.variations[0]?.Size)
+      productUrl = `/products/${product.slug}`;
+    else if (product.variations[0]?.color && product.variations[0]?.Size)
+      productUrl = `/products/${
+        product.slug
+      }${`?size=${product?.variations[0]?.Size}&color=${product?.variations[0]?.color}`}`;
+    return productUrl;
+  };
   const currency = useSelector((state: any) => state.homepage.currency) || 1;
   const decimal_point_settings = useSelector(
     (state: any) => state.homepage.settings
@@ -215,12 +232,7 @@ function CartContainer({ close }) {
                           product?.variations[0]?.color ===
                             sarchParams.get("color")
                             ? "#"
-                            : `/products/${product.slug}${
-                                product?.variations &&
-                                product?.variations[0]?.color
-                                  ? `?color=${product?.variations[0]?.color}`
-                                  : ""
-                              }`
+                            : getURLOfProduct({ product })
                         }
                         className="flex-row mt-2 w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
                         key={key}
@@ -277,10 +289,7 @@ function CartContainer({ close }) {
                           <div className="text-xs mt-1 text-[#505050] flex regular">
                             {product.name}
                           </div>
-                          <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                            <CartItemTypeIcon />
-                            <span className="ml-1.5"></span>
-                          </div>
+
                           <div className="flex-row flex-wrap">
                             {product.variations[0]?.color && (
                               <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
@@ -558,12 +567,7 @@ function CartContainer({ close }) {
                           product?.variations[0]?.color ===
                             sarchParams.get("color")
                             ? "#"
-                            : `/products/${product.slug}${
-                                product?.variations &&
-                                product?.variations[0]?.color
-                                  ? `?color=${product?.variations[0]?.color}`
-                                  : ""
-                              }`
+                            : getURLOfProduct({ product })
                         }
                         className="flex-row mt-2 w-full relative  min-h-[208px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
                         key={key}

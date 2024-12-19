@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "styles/sizeSlider.css";
 import { useDispatch, useSelector } from "react-redux";
 import { Sendevent } from "utils/functions";
+import { useSearchParams } from "node_modules/next/navigation";
 function SelectSize({ sizes, variants }) {
   const activeSize = useSelector(
     (state: any) => state.cart.AddToCartOption.selectedSize
@@ -20,6 +21,7 @@ function SelectSize({ sizes, variants }) {
     dispatch({ type: "AddToCartSize", payload: e });
     Sendevent({ event: "button_clicked", value: "slide_choose_size_event" });
   };
+
   const getVariants = (e?: any | undefined | null) => {
     let variant = (e
       ? variants.filter((s) => {
@@ -343,6 +345,25 @@ function SelectSize({ sizes, variants }) {
 
 export default SelectSize;
 const SelectSizeSlider = ({ sizes, setActive, getVariants }) => {
+  const searchParams = useSearchParams();
+  const dispatch = useDispatch();
+  useEffect(() => {
+    if (searchParams.get("size")) {
+      let size = sizes.filter((s) => s.name === searchParams.get("size"))[0];
+      if (size) dispatch({ type: "AddToCartSize", payload: size });
+    }
+  }, []);
+  const getInitial = () => {
+    if (searchParams.get("size")) {
+      let index = 0;
+      sizes.map((s, i) => {
+        if (s.name === searchParams.get("size")) index = i;
+      });
+      return index;
+    }
+
+    return 0;
+  };
   return (
     <>
       <SliderRuler />
@@ -370,6 +391,7 @@ const SelectSizeSlider = ({ sizes, setActive, getVariants }) => {
         // }}
 
         loop={false}
+        initialSlide={getInitial()}
       >
         {sizes.map((size, i) => (
           <SwiperSlide

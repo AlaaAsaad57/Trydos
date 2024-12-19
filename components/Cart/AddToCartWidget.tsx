@@ -19,6 +19,7 @@ import CartIcon from "public/svg/CartIcon.svg";
 import { LogData } from "store/homepage/actions";
 import auth from "services/auth";
 import home from "services/home";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 function AddToCartWidget() {
   const dispatch = useDispatch();
@@ -77,11 +78,11 @@ function AddToCartWidget() {
     <div className="flex-col h-[100vh] w-[100vw] flex top-0 left-0 fixed z-[99999999999999999] justify-start ">
       <SelectColor
         close={() => {
+          dispatch({ type: "AddToCartOptionDisable" });
           Sendevent({
             event: "button_clicked",
             value: "trydos_appbar_backicon_button",
           });
-          dispatch({ type: "AddToCartOptionDisable" });
         }}
       />
       <div className="product-details-footer z-[9999] min-h-[100px] h-auto">
@@ -158,10 +159,26 @@ const SelectColor = ({ close }) => {
   const SelectedProduct = useSelector(
     (state: any) => state.cart.SelectedProduct
   );
-
   const dispatch = useDispatch();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const searchParams = useSearchParams();
   const enableCart = (s) => {
     window.history.pushState({ isPopup: true }, "open Cart");
+    if (s) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set("cart", "true");
+
+      // Use router.push with pathname and updated query
+      router.push(`${pathname}?${newParams.toString()}`);
+    } else {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("cart");
+
+      // Use router.push with pathname and updated query
+      router.push(`${pathname}?${newParams.toString()}`);
+    }
     dispatch({ type: "ENABLE-CART", payload: s });
   };
   return (

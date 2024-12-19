@@ -206,7 +206,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         if (payload.quantity === 0) {
           return {
             ...state,
-            Cart: state.cart.filter((s) => s.id !== payload.id),
+            cart: state.cart.filter((s) => s.id !== payload.id),
           };
         }
         let cartTemp = [];

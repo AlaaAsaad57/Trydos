@@ -20,7 +20,9 @@ import {
   AppProgressBar as ProgressBar,
   stopProgress,
 } from "next-nprogress-bar";
-import { useSearchParams } from "node_modules/next/navigation";
+import { usePathname, useSearchParams } from "node_modules/next/navigation";
+import { useRouter } from "node_modules/next/router";
+import CartProvider from "components/Cart/CartProvider";
 export default function Providers({ children }) {
   useEffect(() => {
     if (!navigator.cookieEnabled) {
@@ -85,55 +87,3 @@ export default function Providers({ children }) {
     </ReactQueryClientProvider>
   );
 }
-const CartProvider = () => {
-  const dispatch = useDispatch();
-  const filterEnabled = useSelector((state) => state.listing.filterEnabled);
-  const enableCart = (s) => {
-    window.history.pushState({ isPopup: true }, "open Cart");
-    dispatch({ type: "ENABLE-CART", payload: s });
-  };
-  useEffect(() => {
-    window.addEventListener("popstate", (event) => {
-      if (event.state?.isPopup) {
-        dispatch({ type: "STORY-SELECTED", payload: null });
-        dispatch({ type: "ENABLE-CART", payload: false });
-        dispatch({ type: "LOGIN-OPEN", payload: false });
-        dispatch({ type: "CHAT-OPEN", payload: false });
-        dispatch({ type: "ENABLE-SEARCH", payload: false });
-      }
-    });
-    window.addEventListener("scroll", function (e) {
-      if (!filterEnabled) {
-        if (window.scrollY > 66) {
-          expandView({ filter: false });
-        } else {
-          normalizeView();
-        }
-      }
-    });
-  }, []);
-  const searchParams = useSearchParams();
-  useEffect(() => {
-    if (searchParams.get("cart")) {
-      enableCart(true);
-    }
-  }, []);
-  const cartEnable = useSelector((state) => state.cart.enable);
-  return (
-    <>
-      {cartEnable ? (
-        <CartContainer
-          close={() => {
-            Sendevent({
-              event: "button_clicked",
-              value: "appbar_backicon_button",
-            });
-            enableCart(false);
-          }}
-        />
-      ) : (
-        <></>
-      )}
-    </>
-  );
-};

@@ -98,9 +98,10 @@ function AddToCartButton({
     return 1 + qty;
   };
   const getTotalQuantity = () => {
+    if (!AddToCartOption?.enable) return 0;
     let num = 0;
-    AddToCartOption.selectedOptions?.map((s) => {
-      num = num + s.quantity;
+    localCart?.map((s) => {
+      if (s.id == product.id) num = num + s.quantity;
     });
     return num;
   };
@@ -217,6 +218,7 @@ function AddToCartButton({
       );
     }
   };
+
   return (
     <>
       {AddToCartOption.enable && isQuantityEmpty() ? (
@@ -558,8 +560,8 @@ function AddToCartButton({
               <div className="button-desc">
                 <div className="flex-row max-w-[30px] justify-end relative image-container-cart">
                   {AddToCartOption?.enable &&
-                    AddToCartOption.selectedOptions
-                      .filter((d) => parseInt(d.id) === parseInt(product?.id))
+                    localCart
+                      .filter((s) => s.id === product.id)
                       ?.map((s, key) => {
                         return Array(s.quantity)
                           .fill(1)
@@ -567,12 +569,7 @@ function AddToCartButton({
                             return (
                               <img
                                 src={getConfiguredImage({
-                                  src:
-                                    s?.selectedColor?.images[0] ??
-                                    AddToCartOption.selectedOptions[0]
-                                      ?.images[0].file_path ??
-                                    AddToCartOption.selectedOptions[0]
-                                      ?.images[0],
+                                  src: s.image,
                                   width: 50,
                                   height: 50,
                                 })}
@@ -812,8 +809,8 @@ function AddToCartButton({
               <div className="button-desc">
                 <div className="flex-row max-w-[30px] justify-end relative image-container-cart">
                   {AddToCartOption?.enable &&
-                    AddToCartOption.selectedOptions
-                      .filter((d) => parseInt(d.id) === parseInt(product?.id))
+                    localCart
+                      .filter((s) => s.id === product.id)
                       ?.map((s, key) => {
                         return Array(s.quantity)
                           .fill(1)
@@ -821,12 +818,7 @@ function AddToCartButton({
                             return (
                               <img
                                 src={getConfiguredImage({
-                                  src:
-                                    s?.selectedColor?.images[0] ??
-                                    AddToCartOption.selectedOptions[0]
-                                      ?.images[0].file_path ??
-                                    AddToCartOption.selectedOptions[0]
-                                      ?.images[0],
+                                  src: s.image,
                                   width: 50,
                                   height: 50,
                                 })}

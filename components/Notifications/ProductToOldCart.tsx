@@ -3,12 +3,21 @@ import React, { useEffect } from "react";
 import { encode_utf8 } from "utils/functions";
 import CartIcon from "public/svg/CartIcon.svg";
 import { useDispatch } from "node_modules/react-redux/es";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 function ProductToOldCart({ data }) {
   const dispatch = useDispatch();
-
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const openCart = () => {
     window.history.pushState({ isPopup: true }, "open Cart");
     dispatch({ type: "ENABLE-CART", payload: true });
+
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("cart", "true");
+
+    // Use router.push with pathname and updated query
+    router.push(`${pathname}?${newParams.toString()}`);
   };
   return (
     <div className="flex-col" onClick={() => openCart()}>

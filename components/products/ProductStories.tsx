@@ -18,7 +18,10 @@ function ProductStories() {
     dispatch(SelectStory(e));
   };
   useEffect(() => {
-    StoryServiceClass.getStories();
+    setTimeout(() => {
+      StoryServiceClass.getStories();
+    }, 5000);
+
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector(".stories-row");
       let isDown = false;

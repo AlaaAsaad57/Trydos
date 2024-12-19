@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -7,6 +7,7 @@ import CartIcon from "public/svg/CartIcon.svg";
 
 import { getConfiguredImage, Sendevent } from "utils/functions";
 import BackIcon from "public/svg/listing/backIcon.svg";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 function SelectColor({ close }) {
   const AddToCartOption = useSelector(
@@ -17,10 +18,27 @@ function SelectColor({ close }) {
   );
 
   const dispatch = useDispatch();
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const enableCart = (s) => {
     window.history.pushState({ isPopup: true }, "open Cart");
     dispatch({ type: "ENABLE-CART", payload: s });
+    if (s) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set("cart", "true");
+
+      // Use router.push with pathname and updated query
+      router.push(`${pathname}?${newParams.toString()}`);
+    } else {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("cart");
+
+      // Use router.push with pathname and updated query
+      router.push(`${pathname}?${newParams.toString()}`);
+    }
   };
+
   return (
     <>
       <div className="blur-md bg-[#f4f4f480] backdrop-blur-[10px] flex fixed top-0 left-0 h-full w-full z-[999999999]" />
@@ -40,6 +58,7 @@ function SelectColor({ close }) {
         <CartIcon
           className="cart-icon"
           onClick={() => {
+            dispatch({ type: "AddToCartOptionDisable", payload: false });
             close();
             enableCart(true);
           }}
@@ -107,6 +126,26 @@ export const SelectColorsSlider = ({ colors }) => {
     dispatch({ type: "AddToCartColor", payload: e });
     Sendevent({ event: "button_clicked", value: "slide_choose_color_event" });
   };
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("color")) {
+      let color = colors.filter(
+        (s) => s.color_name === searchParams.get("color")
+      )[0];
+      if (color) dispatch({ type: "AddToCartColor", payload: color });
+    }
+  }, []);
+  const getInitial = () => {
+    if (searchParams.get("color")) {
+      let index = 0;
+      colors.map((s, i) => {
+        if (s.color_name === searchParams.get("color")) index = i;
+      });
+      return index;
+    }
+
+    return 0;
+  };
   return (
     <Swiper
       modules={[EffectCoverflow]}
@@ -129,7 +168,7 @@ export const SelectColorsSlider = ({ colors }) => {
         setActive(colors[e.activeIndex]);
       }}
       slidesPerView={7}
-      initialSlide={0}
+      initialSlide={getInitial()}
       threshold={1}
       centeredSlides={true}
       loop={false}

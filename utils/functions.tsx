@@ -805,39 +805,35 @@ export const getCart = async ({ callback }) => {
   callback([data, {}]);
 };
 export const AddToCartAnimation = (e) => {
-  let shopping_cart = document.querySelector<SVGAElement>(".cart-icon");
-  let target_parent = document.querySelector<HTMLDivElement>(
-    `.image-container-cart`
-  );
-  target_parent.style.zIndex = "99999999999";
-  // Creating separate Image
-  let imgs = target_parent.querySelectorAll(`#img${e}`);
-  // @ts-ignore
-  imgs.forEach((img) => {
-    // Finding position of flying image
-    // @ts-ignore
-    const flying_img_pos = img.getBoundingClientRect();
-
-    // @ts-ignore
-    const shopping_cart_pos = shopping_cart.getBoundingClientRect();
-
-    let data = {
-      left: shopping_cart_pos.left,
-      top: shopping_cart_pos.top,
-    };
-
-    // @ts-ignore
-    img.style.cssText = `
-                                  --left : ${data.left.toFixed(2)}px;
-                                  --top : ${data.top.toFixed(2)}px;
-                                  left:${flying_img_pos.left}px;
-                                  top:${flying_img_pos.top}px;
-                                  z-index: 99999999999999;
-                                  `;
-    // @ts-ignore
-    img.classList.add("flying-img");
-  });
-
+  // let shopping_cart = document.querySelector<SVGAElement>(".cart-icon");
+  // let target_parent = document.querySelector<HTMLDivElement>(
+  //   `.image-container-cart`
+  // );
+  // target_parent.style.zIndex = "99999999999";
+  // // Creating separate Image
+  // let imgs = target_parent.querySelectorAll(`#img${e}`);
+  // // @ts-ignore
+  // imgs.forEach((img) => {
+  //   // Finding position of flying image
+  //   // @ts-ignore
+  //   const flying_img_pos = img.getBoundingClientRect();
+  //   // @ts-ignore
+  //   const shopping_cart_pos = shopping_cart.getBoundingClientRect();
+  //   let data = {
+  //     left: shopping_cart_pos.left,
+  //     top: shopping_cart_pos.top,
+  //   };
+  //   // @ts-ignore
+  //   img.style.cssText = `
+  //                                 --left : ${data.left.toFixed(2)}px;
+  //                                 --top : ${data.top.toFixed(2)}px;
+  //                                 left:${flying_img_pos.left}px;
+  //                                 top:${flying_img_pos.top}px;
+  //                                 z-index: 99999999999999;
+  //                                 `;
+  //   // @ts-ignore
+  //   img.classList.add("flying-img");
+  // });
   // setTimeout(() => {
   //   store.dispatch({ type: "ANIMATION-END", payload: e });
   // }, 1300);
