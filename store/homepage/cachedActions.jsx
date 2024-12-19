@@ -548,8 +548,7 @@ export async function getProductDetails({ productId, lang }) {
 }
 export async function getProductDataOG({ slug, lang }) {
   let DETAILS_URL = "/web/product/globalDetails";
-  let QTY_URL = "/web/product/qtyPriceDetails";
-
+  console.log(slug);
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   let start1 = new Date().getTime();
@@ -574,50 +573,20 @@ export async function getProductDataOG({ slug, lang }) {
     );
     const repo = await res.json();
     let end1 = new Date().getTime() - start1;
-    let start2 = new Date().getTime();
-    const res1 = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + QTY_URL + `/${slug}`,
-      {
-        method: "GET",
 
-        next: {
-          revalidate: 3600,
-          tags: [`product-data-${slug}`, "listing-data"],
-        },
-        headers: new Headers({
-          lang: await getLang(lang, cookieStore.get("language")?.value),
-          country:
-            cookieStore.get("country") && cookieStore.get("country").value,
-          Accept: "application/json",
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        }),
-      }
-    );
-    const repo1 = await res1.json();
-    let end2 = new Date().getTime() - start2;
-    let returned_res = {
-      type: res.type,
-      headers: new Headers({
-        lang: await getLang(lang, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
-      }),
-      url: res.url,
-      time: end1 + "ms",
-      response: repo,
-      request: "Get Product Global Details For OG Images",
-    };
-    let returned_res1 = {
-      type: res1.type,
-      headers: new Headers({
-        lang: await getLang(lang, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
-      }),
-      url: res1.url,
-      time: end2 + "ms",
-      response: repo1,
-      request: "Get Product quantity prices Details for OG Image",
-    };
-    let prod = { ...repo.data, ...repo1.data };
+    // let returned_res = {
+    //   type: res.type,
+    //   headers: new Headers({
+    //     lang: await getLang(lang, cookieStore.get("language")?.value),
+    //     country: cookieStore.get("country") && cookieStore.get("country").value,
+    //   }),
+    //   url: res.url,
+    //   time: end1 + "ms",
+    //   response: repo,
+    //   request: "Get Product Global Details For OG Images",
+    // };
+
+    let prod = { ...repo.data };
 
     return prod;
   } catch (e) {

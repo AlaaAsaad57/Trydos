@@ -10,7 +10,13 @@ export const size = {
 export const alt = "TryDos";
 export const contentType = "image/png";
 export const runtime = "edge";
-export default async function og({ params }: { params: { lang: string } }) {
+export default async function og({
+  params,
+  searchParams,
+}: {
+  params: { lang: string };
+  searchParams: string;
+}) {
   return new ImageResponse(
     (
       <div tw="relative flex w-full h-full flex items-center justify-center">
@@ -27,7 +33,7 @@ export default async function og({ params }: { params: { lang: string } }) {
             right: "0",
             margin: "auto 0",
             bottom: "0px",
-            zIndex: "99999999999",
+            zIndex: "22",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

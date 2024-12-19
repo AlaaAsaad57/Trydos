@@ -30,7 +30,7 @@ export async function generateMetadata({ params, searchParams }) {
       title: metaData?.name,
       description: `${metaData?.description} `,
       url: process.env.NEXT_PUBLIC_BASE_SITE_URL + `boutiques/${boutiqueId}`,
-      images: metaData?.photo,
+      images: metaData?.banners[0].file_path,
     },
   };
 }

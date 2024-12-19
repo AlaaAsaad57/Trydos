@@ -100,6 +100,35 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
   const [loading, setLoading] = useState(true);
   const getData = async () => {
     try {
+      let req = await axios
+        .get(
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+            "/web/product/likesCommentsSharesDetails/" +
+            product.id,
+          {
+            headers: {
+              Authorization: `Bearer ${UserToken()}`,
+            },
+          }
+        )
+        .catch((e) => {});
+      dispatchStore({
+        type: "STORE-VARIANTS",
+        // @ts-ignore
+        payload: {
+          // @ts-ignore
+          variation: req?.data?.data?.variation,
+          // @ts-ignore
+          slug_en_topic: req?.data?.data?.slug_en_topic,
+        },
+      });
+      const viewsReq = await axios.post(
+        process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + `/api/products/view`,
+        {
+          user_id: UserID(),
+          product_id: product.id,
+        }
+      );
       let reqShares = await axios.get(
         process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
           `/api/v2/elastic/shared_count/${product.id}`,
@@ -113,26 +142,6 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
         type: "shares",
         payload: reqShares.data.data.shared_count,
       });
-      let req = await axios
-        .get(
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-            "/web/product/likesCommentsSharesDetails/" +
-            product.id,
-          {
-            headers: {
-              Authorization: `Bearer ${UserToken()}`,
-            },
-          }
-        )
-        .catch((e) => {});
-      const viewsReq = await axios.post(
-        process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + `/api/products/view`,
-        {
-          user_id: UserID(),
-          product_id: product.id,
-        }
-      );
-
       // @ts-ignore
       let likesNum = req?.data?.data?.count_of_likes || 0;
       // @ts-ignore
@@ -165,16 +174,7 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
         },
       });
       // @ts-ignore
-      dispatchStore({
-        type: "STORE-VARIANTS",
-        // @ts-ignore
-        payload: {
-          // @ts-ignore
-          variation: req?.data?.data?.variation,
-          // @ts-ignore
-          slug_en_topic: req?.data?.data?.slug_en_topic,
-        },
-      });
+
       setLoading(false);
     } catch (error) {
       toast.error(translate("Failed To Get Product details", GetAppLanguage()));

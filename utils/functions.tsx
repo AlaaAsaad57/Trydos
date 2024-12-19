@@ -331,11 +331,12 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
     response: data,
     time: end.getTime() - start.getTime(),
   });
+
   if (data.code === "boutique_not_found") {
     notFound();
   }
 
-  return data.data;
+  return { ...data.data, image: data.data.banners[0].file_path };
 };
 export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
   let start = new Date();
