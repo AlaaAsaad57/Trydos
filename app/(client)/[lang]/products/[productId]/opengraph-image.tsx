@@ -3,8 +3,8 @@ import "public/styles/og.css";
 import { ImageResponse } from "next/og";
 import { getProductDataOG } from "store/homepage/cachedActions";
 export const size = {
-  width: 1200,
-  height: 630,
+  width: 300,
+  height: 300,
 };
 export const alt = "TryDos";
 export const contentType = "image/png";

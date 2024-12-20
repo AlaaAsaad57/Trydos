@@ -2,7 +2,7 @@ import "styles/productDetails.css";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
 
 import ProductDetailsServer from "components/Server/ProductDetails";
-import { getListingDataProd } from "store/homepage/cachedActions";
+
 import { getProductMeta } from "utils/functions";
 import { notFound } from "next/navigation";
 
@@ -15,12 +15,6 @@ export async function generateMetadata({ params }) {
   return {
     title: metaData?.name,
     description: metaData?.description,
-    openGraph: {
-      title: metaData?.name,
-      description: `${metaData?.details} `,
-      url: process.env.NEXT_PUBLIC_BASE_SITE_URL + `/products/${productId}`,
-      images: metaData?.photo,
-    },
   };
 }
 

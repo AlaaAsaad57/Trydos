@@ -16,7 +16,9 @@ export async function GET(request: NextRequest) {
   let res = await fetch(
     process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + BOUTIQUE_URL,
     {
-      cache: "no-cache",
+      next: {
+        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+      },
 
       headers: new Headers({
         Accept: "application/json",

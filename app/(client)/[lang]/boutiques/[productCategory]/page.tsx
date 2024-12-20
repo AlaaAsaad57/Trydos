@@ -26,12 +26,6 @@ export async function generateMetadata({ params, searchParams }) {
   return {
     title: `Trydos - ${metaData?.name} `,
     description: `${metaData?.description} `,
-    openGraph: {
-      title: metaData?.name,
-      description: `${metaData?.description} `,
-      url: process.env.NEXT_PUBLIC_BASE_SITE_URL + `boutiques/${boutiqueId}`,
-      images: metaData?.banners[0].file_path,
-    },
   };
 }
 

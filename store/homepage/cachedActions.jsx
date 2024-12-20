@@ -610,18 +610,6 @@ export const getCountriesApi = async () => {
 };
 
 export const FetchApi = async ({ url, method, body, lang, country }) => {
-  // let cacheVar;
-  // if (url.includes("cart")) {
-  //   cacheVar = {
-  //     cache: "no-cache",
-  //   };
-  // } else {
-  //   cacheVar = {
-  //     next: {
-  //       revalidate: 3600,
-  //     },
-  //   };
-  // }
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   let start = new Date().getTime();

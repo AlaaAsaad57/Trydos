@@ -2,7 +2,7 @@ import "public/styles/og.css";
 import { ImageResponse } from "next/og";
 import { getBoutiqueMeta } from "utils/functions";
 export const size = {
-  width: 400,
+  width: 300,
   height: 300,
 };
 export const alt = "TryDos";

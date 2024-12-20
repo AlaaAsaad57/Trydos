@@ -482,7 +482,6 @@ class HomeService {
     let fbtoken = localStorage.getItem("FB-DEVICE-TOKEN");
     if (discount)
       await fetch("/api/subscribeToTopic", {
-        cache: "no-cache",
         method: "POST",
         // @ts-ignore
         body: JSON.stringify({

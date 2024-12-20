@@ -41,7 +41,7 @@ export const AxiosCacheApi = async ({
       }`,
     },
     cache: {
-      ttl: 3600 * 1000,
+      ttl: parseInt(process.env.NEXT_PUBLIC_REVALIDATE) * 1000,
       interpretHeader: false,
       methods: ["post", "get"],
     },
