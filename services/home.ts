@@ -454,7 +454,16 @@ class HomeService {
           },
         }
       );
-
+      let fbtoken = localStorage.getItem("FB-DEVICE-TOKEN");
+      await fetch("/api/subscribeToTopic", {
+        cache: "no-cache",
+        method: "POST",
+        // @ts-ignore
+        body: JSON.stringify({
+          token: fbtoken,
+          topic: `product_hurry_up_${res.data?.data?.id_cart}`,
+        }),
+      });
       store.dispatch({ type: "LOADED-CART", payload: true });
       if (res.data?.data?.id_cart) {
         callback({ id: res.data?.data?.id_cart });

@@ -5,6 +5,7 @@ import {
   HOME_DATA_CATEGORIES_URL,
   HOME_DATA_URL,
 } from "utils/endpointConfig";
+import { LogData } from "./actions";
 
 export const getStories = async ({ lang }) => {
   const cookies = (await import("next/headers")).cookies;
@@ -603,7 +604,7 @@ export const getCountriesApi = async () => {
     },
   });
   let end = new Date().getTime();
-
+  LogData({ repo, desc: "countries" });
   let data = await repo.json();
 
   return data.data.countries;

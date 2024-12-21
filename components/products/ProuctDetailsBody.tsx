@@ -32,7 +32,7 @@ function ProuctDetailsBody({ product }: { product: ProductInterface }) {
           product_categories: product.categories.map((s) => s.id),
         },
       });
-    }, 2000);
+    }, 4000);
   }, []);
   return (
     <div className="product-details-body flex-row relative">

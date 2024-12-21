@@ -36,12 +36,6 @@ function ProductOptions({
   product: any;
   loading: boolean;
 }) {
-  const shareData = {
-    title: product.name,
-    text: window.location.href,
-    url: window.location.href,
-  };
-
   const loaded = useSelector((state: any) => state.cart.loaded);
   const sharesCount = useSelector((state: any) => state.details.sharesCount);
   const SelectedProduct = useSelector(

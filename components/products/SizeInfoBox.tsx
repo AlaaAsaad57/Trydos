@@ -24,7 +24,7 @@ function SizeInfoBox() {
             data-name="Rectangle 5140"
             fill="none"
             stroke="#707070"
-            stroke-linecap="round"
+            strokeLinecap="round"
             stroke-linejoin="round"
             strokeWidth="0.5"
             strokeDasharray="3 3"

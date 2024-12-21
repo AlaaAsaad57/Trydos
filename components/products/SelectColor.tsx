@@ -122,7 +122,12 @@ function SelectColor({ close }) {
 export default SelectColor;
 export const SelectColorsSlider = ({ colors }) => {
   const dispatch = useDispatch();
+  const router = useRouter();
+  const pathname = usePathname();
   const setActive = (e) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("color", e.color_name);
+    router.push(pathname + `?${newParams.toString()}`, { scroll: false });
     dispatch({ type: "AddToCartColor", payload: e });
     Sendevent({ event: "button_clicked", value: "slide_choose_color_event" });
   };

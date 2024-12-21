@@ -9,11 +9,15 @@ import DashedCircleBorder from "public/svg/product/DashedCircleBorder.svg";
 import SizeInfoBox from "./SizeInfoBox";
 import { useDispatch } from "react-redux";
 import { Sendevent } from "utils/functions";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 function ProductSizes({ sizes }) {
   const [extended, setExtended] = useState(false);
   const [activeColor, setActiveColorFunc] = useState([]);
   const dispatch = useDispatch();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
   const setActiveColor = (e) => {
     if (activeColor.includes(e)) {
       setActiveColorFunc(activeColor.filter((s) => s !== e));
@@ -53,7 +57,12 @@ function ProductSizes({ sizes }) {
         sizes={sizes}
         activeColor={activeColor}
         active={extended}
-        setActiveColor={(e) => setActiveColor(e)}
+        setActiveColor={(e) => {
+          const newParams = new URLSearchParams(searchParams);
+          newParams.set("size", e);
+          router.push(pathname + `?${newParams.toString()}`);
+          setActiveColor(e);
+        }}
       />
       <div
         className={`colors-row flex-row ${
@@ -75,6 +84,13 @@ function ProductSizes({ sizes }) {
               value: "choose_available_size_button",
             });
           }}
+          onSlideChange={(swiper) => {
+            const newParams = new URLSearchParams(searchParams);
+            newParams.set("size", sizes[swiper.activeIndex].name);
+            router.push(pathname + `?${newParams.toString()}`, {
+              scroll: false,
+            });
+          }}
           coverflowEffect={{
             depth: 100,
             modifier: 1.8,
@@ -86,7 +102,7 @@ function ProductSizes({ sizes }) {
           slidesPerView={"auto"}
           threshold={1}
           centeredSlides={true}
-          initialSlide={Math.round(sizes.length / 2) - 1}
+          initialSlide={0}
           loop={false}
         >
           {sizes?.map((size, index) => (

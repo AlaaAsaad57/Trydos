@@ -4,7 +4,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "styles/sizeSlider.css";
 import { useDispatch, useSelector } from "react-redux";
 import { Sendevent } from "utils/functions";
-import { useSearchParams } from "node_modules/next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 function SelectSize({ sizes, variants }) {
   const activeSize = useSelector(
     (state: any) => state.cart.AddToCartOption.selectedSize
@@ -16,8 +16,13 @@ function SelectSize({ sizes, variants }) {
     (state: any) => state.cart.AddToCartOption.selectedColor
   );
   const dispatch = useDispatch();
-
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const setActive = (e) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("size", e.name);
+    router.push(pathname + `?${newParams.toString()}`, { scroll: false });
     dispatch({ type: "AddToCartSize", payload: e });
     Sendevent({ event: "button_clicked", value: "slide_choose_size_event" });
   };
@@ -347,6 +352,8 @@ export default SelectSize;
 const SelectSizeSlider = ({ sizes, setActive, getVariants }) => {
   const searchParams = useSearchParams();
   const dispatch = useDispatch();
+  const router = useRouter();
+  const pathname = usePathname();
   useEffect(() => {
     if (searchParams.get("size")) {
       let size = sizes.filter((s) => s.name === searchParams.get("size"))[0];
@@ -381,6 +388,12 @@ const SelectSizeSlider = ({ sizes, setActive, getVariants }) => {
           slideShadows: false,
         }}
         onSlideChange={(e) => {
+          let searchParamsVar = {
+            ...searchParams,
+            size: sizes[e.activeIndex].name,
+          };
+          router.push(pathname + `?${searchParamsVar.toString()}`);
+
           setActive(sizes[e.activeIndex]);
         }}
         slidesPerView={7}
@@ -443,7 +456,7 @@ function SliderRuler() {
                 y2="4.571"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -453,7 +466,7 @@ function SliderRuler() {
                 transform="translate(6.079)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -463,7 +476,7 @@ function SliderRuler() {
                 transform="translate(12.159)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -473,7 +486,7 @@ function SliderRuler() {
                 transform="translate(18.238)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -483,7 +496,7 @@ function SliderRuler() {
                 transform="translate(30.397)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -493,7 +506,7 @@ function SliderRuler() {
                 transform="translate(36.476)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -503,7 +516,7 @@ function SliderRuler() {
                 transform="translate(42.556)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -513,7 +526,7 @@ function SliderRuler() {
                 transform="translate(24.317)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -523,7 +536,7 @@ function SliderRuler() {
                 transform="translate(48.635)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
             </g>
@@ -538,7 +551,7 @@ function SliderRuler() {
                 y2="4.571"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -548,7 +561,7 @@ function SliderRuler() {
                 transform="translate(6.079)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -558,7 +571,7 @@ function SliderRuler() {
                 transform="translate(12.159)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -568,7 +581,7 @@ function SliderRuler() {
                 transform="translate(18.238)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -578,7 +591,7 @@ function SliderRuler() {
                 transform="translate(30.397)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -588,7 +601,7 @@ function SliderRuler() {
                 transform="translate(36.476)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -598,7 +611,7 @@ function SliderRuler() {
                 transform="translate(42.556)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -608,7 +621,7 @@ function SliderRuler() {
                 transform="translate(24.317)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -618,7 +631,7 @@ function SliderRuler() {
                 transform="translate(48.635)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
             </g>
@@ -633,7 +646,7 @@ function SliderRuler() {
                 y2="4.571"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -643,7 +656,7 @@ function SliderRuler() {
                 transform="translate(6.079)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -653,7 +666,7 @@ function SliderRuler() {
                 transform="translate(12.159)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -663,7 +676,7 @@ function SliderRuler() {
                 transform="translate(18.238)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -673,7 +686,7 @@ function SliderRuler() {
                 transform="translate(30.397)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -683,7 +696,7 @@ function SliderRuler() {
                 transform="translate(36.476)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -693,7 +706,7 @@ function SliderRuler() {
                 transform="translate(42.556)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -703,7 +716,7 @@ function SliderRuler() {
                 transform="translate(24.317)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -713,7 +726,7 @@ function SliderRuler() {
                 transform="translate(48.635)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
             </g>
@@ -728,7 +741,7 @@ function SliderRuler() {
                 y2="4.571"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -738,7 +751,7 @@ function SliderRuler() {
                 transform="translate(6.079)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -748,7 +761,7 @@ function SliderRuler() {
                 transform="translate(12.159)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -758,7 +771,7 @@ function SliderRuler() {
                 transform="translate(18.238)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -768,7 +781,7 @@ function SliderRuler() {
                 transform="translate(30.397)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -778,7 +791,7 @@ function SliderRuler() {
                 transform="translate(36.476)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -788,7 +801,7 @@ function SliderRuler() {
                 transform="translate(42.556)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -798,7 +811,7 @@ function SliderRuler() {
                 transform="translate(24.317)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -808,7 +821,7 @@ function SliderRuler() {
                 transform="translate(48.635)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
             </g>
@@ -823,7 +836,7 @@ function SliderRuler() {
                 y2="4.571"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -833,7 +846,7 @@ function SliderRuler() {
                 transform="translate(6.079)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -843,7 +856,7 @@ function SliderRuler() {
                 transform="translate(12.159)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -853,7 +866,7 @@ function SliderRuler() {
                 transform="translate(18.238)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -863,7 +876,7 @@ function SliderRuler() {
                 transform="translate(30.397)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -873,7 +886,7 @@ function SliderRuler() {
                 transform="translate(36.476)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -883,7 +896,7 @@ function SliderRuler() {
                 transform="translate(42.556)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -893,7 +906,7 @@ function SliderRuler() {
                 transform="translate(24.317)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -903,7 +916,7 @@ function SliderRuler() {
                 transform="translate(48.635)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
             </g>
@@ -918,7 +931,7 @@ function SliderRuler() {
                 y2="4.571"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -928,7 +941,7 @@ function SliderRuler() {
                 transform="translate(6.079)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -938,7 +951,7 @@ function SliderRuler() {
                 transform="translate(12.159)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -948,7 +961,7 @@ function SliderRuler() {
                 transform="translate(18.238)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -958,7 +971,7 @@ function SliderRuler() {
                 transform="translate(30.397)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -968,7 +981,7 @@ function SliderRuler() {
                 transform="translate(36.476)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -978,7 +991,7 @@ function SliderRuler() {
                 transform="translate(42.556)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -988,7 +1001,7 @@ function SliderRuler() {
                 transform="translate(24.317)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -998,7 +1011,7 @@ function SliderRuler() {
                 transform="translate(48.635)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
             </g>
@@ -1014,7 +1027,7 @@ function SliderRuler() {
               y2="4.571"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
             <line
@@ -1024,7 +1037,7 @@ function SliderRuler() {
               transform="translate(6.079)"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
             <line
@@ -1034,7 +1047,7 @@ function SliderRuler() {
               transform="translate(12.159)"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
             <line
@@ -1044,7 +1057,7 @@ function SliderRuler() {
               transform="translate(18.238)"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
             <line
@@ -1054,7 +1067,7 @@ function SliderRuler() {
               transform="translate(30.397)"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
             <line
@@ -1064,7 +1077,7 @@ function SliderRuler() {
               transform="translate(36.476)"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
             <line
@@ -1074,7 +1087,7 @@ function SliderRuler() {
               transform="translate(42.556)"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
             <line
@@ -1084,7 +1097,7 @@ function SliderRuler() {
               transform="translate(24.317)"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
             <line
@@ -1094,7 +1107,7 @@ function SliderRuler() {
               transform="translate(48.635)"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
           </g>
@@ -1121,7 +1134,7 @@ function SliderRuler() {
                 transform="translate(0 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1131,7 +1144,7 @@ function SliderRuler() {
                 transform="translate(6.079 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1141,7 +1154,7 @@ function SliderRuler() {
                 transform="translate(12.159 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1151,7 +1164,7 @@ function SliderRuler() {
                 transform="translate(18.238 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1161,7 +1174,7 @@ function SliderRuler() {
                 transform="translate(30.397 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1171,7 +1184,7 @@ function SliderRuler() {
                 transform="translate(36.476 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1181,7 +1194,7 @@ function SliderRuler() {
                 transform="translate(42.556 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1191,7 +1204,7 @@ function SliderRuler() {
                 transform="translate(24.317)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1201,7 +1214,7 @@ function SliderRuler() {
                 transform="translate(48.635 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
             </g>
@@ -1217,7 +1230,7 @@ function SliderRuler() {
                 transform="translate(0 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1227,7 +1240,7 @@ function SliderRuler() {
                 transform="translate(6.079 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1237,7 +1250,7 @@ function SliderRuler() {
                 transform="translate(12.159 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1247,7 +1260,7 @@ function SliderRuler() {
                 transform="translate(18.238 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1257,7 +1270,7 @@ function SliderRuler() {
                 transform="translate(30.397 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1267,7 +1280,7 @@ function SliderRuler() {
                 transform="translate(36.476 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1277,7 +1290,7 @@ function SliderRuler() {
                 transform="translate(42.556 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1287,7 +1300,7 @@ function SliderRuler() {
                 transform="translate(24.317)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1297,7 +1310,7 @@ function SliderRuler() {
                 transform="translate(48.635 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
             </g>
@@ -1313,7 +1326,7 @@ function SliderRuler() {
                 transform="translate(0 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1323,7 +1336,7 @@ function SliderRuler() {
                 transform="translate(6.079 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1333,7 +1346,7 @@ function SliderRuler() {
                 transform="translate(12.159 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1343,7 +1356,7 @@ function SliderRuler() {
                 transform="translate(18.238 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1353,7 +1366,7 @@ function SliderRuler() {
                 transform="translate(30.397 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1363,7 +1376,7 @@ function SliderRuler() {
                 transform="translate(36.476 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1373,7 +1386,7 @@ function SliderRuler() {
                 transform="translate(42.556 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1383,7 +1396,7 @@ function SliderRuler() {
                 transform="translate(24.317)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1393,7 +1406,7 @@ function SliderRuler() {
                 transform="translate(48.635 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
             </g>
@@ -1409,7 +1422,7 @@ function SliderRuler() {
                 transform="translate(0 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1419,7 +1432,7 @@ function SliderRuler() {
                 transform="translate(6.079 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1429,7 +1442,7 @@ function SliderRuler() {
                 transform="translate(12.159 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1439,7 +1452,7 @@ function SliderRuler() {
                 transform="translate(18.238 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1449,7 +1462,7 @@ function SliderRuler() {
                 transform="translate(30.397 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1459,7 +1472,7 @@ function SliderRuler() {
                 transform="translate(36.476 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1469,7 +1482,7 @@ function SliderRuler() {
                 transform="translate(42.556 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1479,7 +1492,7 @@ function SliderRuler() {
                 transform="translate(24.317)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1489,7 +1502,7 @@ function SliderRuler() {
                 transform="translate(48.635 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
             </g>
@@ -1505,7 +1518,7 @@ function SliderRuler() {
                 transform="translate(0 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1515,7 +1528,7 @@ function SliderRuler() {
                 transform="translate(6.079 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1525,7 +1538,7 @@ function SliderRuler() {
                 transform="translate(12.159 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1535,7 +1548,7 @@ function SliderRuler() {
                 transform="translate(18.238 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1545,7 +1558,7 @@ function SliderRuler() {
                 transform="translate(30.397 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1555,7 +1568,7 @@ function SliderRuler() {
                 transform="translate(36.476 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1565,7 +1578,7 @@ function SliderRuler() {
                 transform="translate(42.556 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1575,7 +1588,7 @@ function SliderRuler() {
                 transform="translate(24.317)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1585,7 +1598,7 @@ function SliderRuler() {
                 transform="translate(48.635 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
             </g>
@@ -1601,7 +1614,7 @@ function SliderRuler() {
                 transform="translate(0 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1611,7 +1624,7 @@ function SliderRuler() {
                 transform="translate(6.079 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1621,7 +1634,7 @@ function SliderRuler() {
                 transform="translate(12.159 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1631,7 +1644,7 @@ function SliderRuler() {
                 transform="translate(18.238 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1641,7 +1654,7 @@ function SliderRuler() {
                 transform="translate(30.397 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1651,7 +1664,7 @@ function SliderRuler() {
                 transform="translate(36.476 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1661,7 +1674,7 @@ function SliderRuler() {
                 transform="translate(42.556 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1671,7 +1684,7 @@ function SliderRuler() {
                 transform="translate(24.317)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
               <line
@@ -1681,7 +1694,7 @@ function SliderRuler() {
                 transform="translate(48.635 3.429)"
                 fill="none"
                 stroke="#505050"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 strokeWidth="0.3"
               />
             </g>
@@ -1698,7 +1711,7 @@ function SliderRuler() {
               transform="translate(0 3.429)"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
             <line
@@ -1708,7 +1721,7 @@ function SliderRuler() {
               transform="translate(6.079 3.429)"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
             <line
@@ -1718,7 +1731,7 @@ function SliderRuler() {
               transform="translate(12.159 3.429)"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
             <line
@@ -1728,7 +1741,7 @@ function SliderRuler() {
               transform="translate(18.238 3.429)"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
             <line
@@ -1738,7 +1751,7 @@ function SliderRuler() {
               transform="translate(30.397 3.429)"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
             <line
@@ -1748,7 +1761,7 @@ function SliderRuler() {
               transform="translate(36.476 3.429)"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
             <line
@@ -1758,7 +1771,7 @@ function SliderRuler() {
               transform="translate(42.556 3.429)"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
             <line
@@ -1768,7 +1781,7 @@ function SliderRuler() {
               transform="translate(24.317)"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
             <line
@@ -1778,7 +1791,7 @@ function SliderRuler() {
               transform="translate(48.635 3.429)"
               fill="none"
               stroke="#505050"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="0.3"
             />
           </g>

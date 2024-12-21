@@ -10,6 +10,9 @@ function CloseIcon({ close }: { close: Function }) {
         right: "20px",
         zIndex: "2000",
         cursor: "pointer",
+        backgroundColor: "#0000004d",
+        padding: "10px",
+        borderRadius: "20px",
       }}
       onClick={() => close()}
     >

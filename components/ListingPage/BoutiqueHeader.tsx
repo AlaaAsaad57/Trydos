@@ -83,13 +83,15 @@ function BoutiqueHeader({ boutique, showFilters }) {
   const dispatch = useDispatch();
   useEffect(() => {
     if (boutique) {
-      Sendevent({
-        event: "viewed_boutique",
-        extra: {
-          boutique_name: boutique.name,
-          boutique_id: boutique.id,
-        },
-      });
+      setTimeout(() => {
+        Sendevent({
+          event: "viewed_boutique",
+          extra: {
+            boutique_name: boutique.name,
+            boutique_id: boutique.id,
+          },
+        });
+      }, 4000);
     }
     dispatch({ type: "enable-handling-filter" });
   }, []);

@@ -5,13 +5,14 @@ import React, { useEffect, useState } from "react";
 import { getConfiguredImage, Sendevent } from "utils/functions";
 import "styles/listing.css";
 import SquareIcon from "public/svg/product/SquareIcon.svg";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import CircleBorder from "public/svg/product/CircleBorder";
 import NormalColorSlider from "./NormalColorSlider";
 import { useDispatch, useSelector } from "react-redux";
-import { useSearchParams } from "next/navigation";
+
 function ProductColors({ colors, ProductColorsArray }) {
   const [extended, setExtended] = useState(false);
 
@@ -26,13 +27,13 @@ function ProductColors({ colors, ProductColorsArray }) {
   //   setActiveColorFunc(e);
   // };
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
   const getSize: (i: number) => number = (i) => {
     return 40;
   };
   useEffect(() => {}, []);
-  const setActive = (e) => {
-    dispatch({ type: "AddToCartColor", payload: colors[0] });
-  };
+
   return (
     <div
       className={`product-colors flex-row align-start relative ${
@@ -67,7 +68,12 @@ function ProductColors({ colors, ProductColorsArray }) {
         colors={colors}
         activeColor={activeColor}
         active={extended}
-        setActiveColor={(e) => setActiveColor(e)}
+        setActiveColor={(e) => {
+          const newParams = new URLSearchParams(searchParams);
+          newParams.set("color", e.color_name);
+          router.push(pathname + `?${newParams.toString()}`);
+          setActiveColor(e);
+        }}
       />
       <div
         className={`colors-row flex-row ${
@@ -98,6 +104,11 @@ function ProductColors({ colors, ProductColorsArray }) {
               event: "button_clicked",
               value: "choose_available_color_button",
             });
+            const newParams = new URLSearchParams(searchParams);
+            newParams.set("color", colors[e.activeIndex].color_name);
+            router.push(pathname + `?${newParams.toString()}`, {
+              scroll: false,
+            });
             setActiveColor(colors[e.activeIndex]);
           }}
           centeredSlides={true}
@@ -106,7 +117,7 @@ function ProductColors({ colors, ProductColorsArray }) {
               colors.findIndex(
                 (s) => s.color_name === searchParams.get("color")
               )) ??
-            Math.round(colors.length / 2) - 1
+            0
           }
           loop={false}
         >

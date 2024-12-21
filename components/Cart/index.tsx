@@ -234,7 +234,11 @@ function CartContainer({ close }) {
                             ? "#"
                             : getURLOfProduct({ product })
                         }
-                        className="flex-row mt-2 w-full relative  min-h-[161px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
+                        className={`flex-row mt-2 w-full relative  ${
+                          product.have_hurry_up_notify || true
+                            ? "min-h-[208px]"
+                            : "min-h-[161px]"
+                        } bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
                         key={key}
                         onClick={(e) => {
                           // @ts-ignore
@@ -319,16 +323,18 @@ function CartContainer({ close }) {
                               {product.count_of_pieces} Piece
                             </span>
                           </div>
-                          <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
-                            <DeleiveryIcon />
-                            <span className="ml-1.5 text-[#8D8D8D] regular">
-                              Shipping:{" "}
-                            </span>
-                            <span className="regular">
-                              3 Days{" "}
-                              <span className="ml-1 underline">Details</span>
-                            </span>
-                          </div>
+                          {product.shipping_days && (
+                            <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                              <DeleiveryIcon />
+                              <span className="ml-1.5 text-[#8D8D8D] regular">
+                                Shipping:{" "}
+                              </span>
+                              <span className="regular">
+                                {product.shipping_days} Days{" "}
+                                <span className="ml-1 underline">Details</span>
+                              </span>
+                            </div>
+                          )}
 
                           {product.quantity > product.available_quantity && (
                             <div className="flex-row items-center text-[12px] light text-[#fd445d]">
@@ -339,7 +345,13 @@ function CartContainer({ close }) {
                           )}
                         </div>
 
-                        <div className="absolute right-4 bottom-3">
+                        <div
+                          className={`${
+                            product.have_hurry_up_notify || true
+                              ? "bottom-14"
+                              : "bottom-3"
+                          } absolute right-4 `}
+                        >
                           <div className="product-info-price">
                             {product.offer_price ? (
                               <>
@@ -439,9 +451,27 @@ function CartContainer({ close }) {
                             className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
                           />
                         </div>
+                        {(true || product.have_hurry_up_notify) && (
+                          <div className="absolute left-2  text-[#A28E5B] text-[12px] bottom-[8px] pl-3 w-[95%] h-[32px] bg-[#FDFDEF] rounded-[5px] flex items-center">
+                            <span className="ml-1">
+                              <HurryIcon />
+                            </span>
+                            <span className="bold ml-1">
+                              {translate("Hurry Up!", GetAppLanguage())}
+                            </span>
+                            <span className="regular ml-1">
+                              {translate(
+                                "Quantity Running Out. ",
+                                GetAppLanguage()
+                              )}
+                            </span>
+                            <span className="bold">-20:00</span>
+                          </div>
+                        )}
                       </NextLink>{" "}
                       <QuantutyInput
                         id={product.id}
+                        isHurry={true || product.have_hurry_up_notify}
                         disabled={false}
                         max={product.available_quantity}
                         setValue={() => {}}
@@ -657,16 +687,18 @@ function CartContainer({ close }) {
                               {product.count_of_pieces} Piece
                             </span>
                           </div>
-                          <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
-                            <DeleiveryIcon />
-                            <span className="ml-1.5 text-[#8D8D8D] regular">
-                              Shipping:{" "}
-                            </span>
-                            <span className="regular">
-                              3 Days{" "}
-                              <span className="ml-1 underline">Details</span>
-                            </span>
-                          </div>
+                          {product.shipping_days && (
+                            <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                              <DeleiveryIcon />
+                              <span className="ml-1.5 text-[#8D8D8D] regular">
+                                Shipping:{" "}
+                              </span>
+                              <span className="regular">
+                                {product.shipping_days} Days{" "}
+                                <span className="ml-1 underline">Details</span>
+                              </span>
+                            </div>
+                          )}
 
                           {product.quantity > product.available_quantity && (
                             <div className="flex-row items-center text-[12px] light text-[#fd445d]">
@@ -863,6 +895,7 @@ function CartContainer({ close }) {
                       <QuantutyInput
                         id={product.id}
                         disabled={true}
+                        isHurry={false}
                         value={product.quantity}
                         max={product.available_quantity}
                         setValue={() => {}}
@@ -949,6 +982,125 @@ function CartContainer({ close }) {
 }
 
 export default CartContainer;
+const HurryIcon = () => {
+  return (
+    <svg
+      id="_15x15_photo_back"
+      data-name="15x15 photo back"
+      xmlns="http://www.w3.org/2000/svg"
+      xmlnsXlink="http://www.w3.org/1999/xlink"
+      width="15"
+      height="15"
+      viewBox="0 0 15 15"
+    >
+      <defs>
+        <clipPath id="clip-path554">
+          <rect
+            id="Rectangle_4561"
+            data-name="Rectangle 4561"
+            width="15"
+            height="15"
+            fill="none"
+          />
+        </clipPath>
+      </defs>
+      <g
+        id="Mask_Group_528"
+        data-name="Mask Group 528"
+        clip-path="url(#clip-path554)"
+      >
+        <g id="Layer1" transform="translate(0 0.768)">
+          <path
+            id="Path_22202"
+            data-name="Path 22202"
+            d="M10.869,2.435,10.65,3.448a.259.259,0,1,0,.507.109l.218-1.013a.259.259,0,0,0-.507-.109Z"
+            transform="translate(-0.648 -1.081)"
+            fill="#fbef57"
+            fill-rule="evenodd"
+          />
+          <path
+            id="Path_22203"
+            data-name="Path 22203"
+            d="M13.913,3.846l-.7.768a.259.259,0,1,0,.384.348l.7-.768a.259.259,0,1,0-.384-.348Z"
+            transform="translate(-0.648 -1.081)"
+            fill="#fbef57"
+            fill-rule="evenodd"
+          />
+          <g
+            id="Group_12717"
+            data-name="Group 12717"
+            transform="translate(0 2.039)"
+          >
+            <path
+              id="Path_22204"
+              data-name="Path 22204"
+              d="M9.716,14.027H.907a.259.259,0,0,0,0,.518H9.716a.259.259,0,0,0,0-.518Z"
+              transform="translate(-0.648 -3.12)"
+              fill="#fbc02a"
+              fill-rule="evenodd"
+            />
+            <path
+              id="Path_22205"
+              data-name="Path 22205"
+              d="M5.83,12.472H1.943a.259.259,0,1,0,0,.518H5.83a.259.259,0,0,0,0-.518Z"
+              transform="translate(-0.648 -3.12)"
+              fill="#fbc02a"
+              fill-rule="evenodd"
+            />
+            <path
+              id="Path_22206"
+              data-name="Path 22206"
+              d="M4.793,10.917H2.721a.259.259,0,0,0,0,.518H4.793a.259.259,0,0,0,0-.518Z"
+              transform="translate(-0.648 -3.12)"
+              fill="#fbc02a"
+              fill-rule="evenodd"
+            />
+            <path
+              id="Path_22207"
+              data-name="Path 22207"
+              d="M15.329,10.023a5.7,5.7,0,1,0-6.774,4.371,5.7,5.7,0,0,0,6.774-4.371Z"
+              transform="translate(-0.648 -3.12)"
+              fill="#fbc02a"
+              fill-rule="evenodd"
+            />
+          </g>
+          <path
+            id="Path_22208"
+            data-name="Path 22208"
+            d="M13.81,9.7a4.146,4.146,0,1,0-4.926,3.179A4.148,4.148,0,0,0,13.81,9.7Z"
+            transform="translate(-0.648 -1.081)"
+            fill="#fbef57"
+            fill-rule="evenodd"
+          />
+          <path
+            id="Path_22209"
+            data-name="Path 22209"
+            d="M11.583,6.932a.259.259,0,0,0-.183-.442h-2a.259.259,0,0,0-.237.153l-.982,2.2a.259.259,0,0,0,.237.365h.6L8.374,10.8a.259.259,0,0,0,.425.278l2.5-2.567a.259.259,0,0,0-.184-.44l-.667,0,1.134-1.133Z"
+            transform="translate(-0.648 -1.081)"
+            fill="#fbc02a"
+            fill-rule="evenodd"
+          />
+          <path
+            id="Path_22210"
+            data-name="Path 22210"
+            d="M11.653,2.869a.7.7,0,0,0,.828-.534l.034-.157a.7.7,0,0,0-.534-.828L10.81,1.1a.7.7,0,0,0-.828.535l-.034.157a.7.7,0,0,0,.535.828Z"
+            transform="translate(-0.648 -1.081)"
+            fill="#fbc02a"
+            fill-rule="evenodd"
+          />
+          <path
+            id="Path_22211"
+            data-name="Path 22211"
+            d="M14.375,4.614a.7.7,0,0,0,.985-.049l.108-.119a.7.7,0,0,0-.049-.985l-.887-.8a.7.7,0,0,0-.984.049l-.108.119a.7.7,0,0,0,.049.984Z"
+            transform="translate(-0.648 -1.081)"
+            fill="#fbc02a"
+            fill-rule="evenodd"
+          />
+        </g>
+      </g>
+    </svg>
+  );
+};
 const OldCartIcon = () => {
   return (
     <svg
@@ -1452,6 +1604,7 @@ const QuantutyInput = ({
   deleteFunction,
   id,
   disabled,
+  isHurry,
 }) => {
   const [inputValue, setInputValue] = useState(parseInt(value));
   const PlusIcon = ({ className }) => {
@@ -1542,7 +1695,7 @@ const QuantutyInput = ({
   return (
     <div
       className={`absolute ${
-        disabled ? "bottom-[64px]" : "bottom-[20px]"
+        disabled || isHurry ? "bottom-[64px]" : "bottom-[20px]"
       } left-[125px]`}
     >
       <div className="flex-row hide-btn relative max-w-[72px] w-[72px] h-[24px] mt-4 z-50">

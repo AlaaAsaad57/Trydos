@@ -153,7 +153,8 @@ export const Sendevent = async (params: {
     let userId = localStorage.getItem("USER")
       ? JSON.parse(localStorage.getItem("USER"))?.id
       : "empty";
-    if (typeof window !== "undefined") {
+    // @ts-ignore
+    if (typeof window !== "undefined" && window.gtag) {
       // @ts-ignore
       (window as any).gtag("event", params.event, {
         executed_event_name: params.value,
@@ -342,7 +343,7 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
     notFound();
   }
 
-  return { ...data.data, image: data.data.banners[0].file_path };
+  return { ...data.data, image: data.data?.banners[0]?.file_path };
 };
 export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
   let start = new Date();
