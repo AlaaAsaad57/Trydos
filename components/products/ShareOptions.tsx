@@ -102,8 +102,6 @@ function ShareOptions({
                   shareSocial("WhatsApp");
                 }}
                 url={window.location.href}
-                title={window.location.href}
-                separator=":: "
               >
                 <WhatsappIcon size={70} borderRadius={20} />
               </WhatsappShareButton>
