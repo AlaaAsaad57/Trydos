@@ -47,11 +47,7 @@ class HomeService {
       let repo = await response.json();
       store.dispatch({ type: "GET_SETTINGS", payload: repo });
       sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
-      if (
-        !localStorage.getItem("customer-info") &&
-        localStorage.getItem("USER")
-      )
-        this.getCustomerInfo();
+      if (!localStorage.getItem("customer-info")) this.getCustomerInfo();
       getCart({
         callback: ([data, res]) => {
           store.dispatch({
@@ -120,19 +116,21 @@ class HomeService {
     if (true) {
       await requestFirebaseNotificationPermission().then(async (token) => {
         // @ts-ignore
-        localStorage.setItem("FB-DEVICE-TOKEN", token);
+        if (token) {
+          localStorage.setItem("FB-DEVICE-TOKEN", token);
 
-        setTimeout(async () => {
-          if (UserToken())
-            await axios.post(
-              process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
-              {
-                device_token: token,
-                user_id: UserID(),
-                auth_token: UserToken(),
-              }
-            );
-        }, 3000);
+          setTimeout(async () => {
+            if (UserToken())
+              await axios.post(
+                process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
+                {
+                  device_token: token,
+                  user_id: UserID(),
+                  auth_token: UserToken(),
+                }
+              );
+          }, 3000);
+        }
       });
     }
   }
@@ -162,16 +160,18 @@ class HomeService {
       localStorage.setItem("guest-user", JSON.stringify(repo.data.user));
       await requestFirebaseNotificationPermission().then(async (token) => {
         // @ts-ignore
-        localStorage.setItem("FB-DEVICE-TOKEN", token);
-        if (localStorage.getItem("MARKET-TOKEN"))
-          await axios.post(
-            process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
-            {
-              device_token: token,
-              user_id: UserID(),
-              auth_token: UserToken(),
-            }
-          );
+        if (token) {
+          localStorage.setItem("FB-DEVICE-TOKEN", token);
+          if (localStorage.getItem("MARKET-TOKEN"))
+            await axios.post(
+              process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
+              {
+                device_token: token,
+                user_id: UserID(),
+                auth_token: UserToken(),
+              }
+            );
+        }
       });
       if (typeof window !== "undefined") {
         _isStoreLastJson() &&
