@@ -297,7 +297,7 @@ export const getProductMeta = async ({ productId, lang }) => {
   if (data.message === "Product Not Found") {
     notFound();
   }
-
+  console.log(data);
   return data.data;
 };
 export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {

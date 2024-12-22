@@ -10,8 +10,10 @@ export const contentType = "image/png";
 export const runtime = "edge";
 export default async function og({
   params,
+  searchParams,
 }: {
   params: { lang: string; productCategory: string };
+  searchParams: any;
 }) {
   let boutique = await getBoutiqueMeta({
     lang: params.lang,

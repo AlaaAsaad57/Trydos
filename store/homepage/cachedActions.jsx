@@ -547,7 +547,7 @@ export async function getProductDetails({ productId, lang }) {
     notFound();
   }
 }
-export async function getProductDataOG({ slug, lang }) {
+export async function getProductDataOG({ slug, lang, color }) {
   let DETAILS_URL = "/web/product/globalDetails";
   console.log(slug);
   const cookies = (await import("next/headers")).cookies;
@@ -588,7 +588,7 @@ export async function getProductDataOG({ slug, lang }) {
     // };
 
     let prod = { ...repo.data };
-
+    conso4.log(prod);
     return prod;
   } catch (e) {
     console.log(e);

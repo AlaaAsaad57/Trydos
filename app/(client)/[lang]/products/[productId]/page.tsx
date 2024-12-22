@@ -12,6 +12,7 @@ export async function generateMetadata({ params }) {
   if (!metaData?.name) {
     notFound();
   }
+  console.log(metaData);
   return {
     title: metaData?.name,
     description: metaData?.description,

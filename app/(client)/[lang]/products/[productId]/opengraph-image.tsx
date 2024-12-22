@@ -11,12 +11,18 @@ export const contentType = "image/png";
 export const runtime = "edge";
 export default async function og({
   params,
+  searchParams,
 }: {
   params: { productId: string; lang: string };
+  searchParams: any;
 }) {
   const slug = params.productId;
-  const product = await getProductDataOG({ slug, lang: params.lang });
-  console.log(product, "productsssssss");
+  const product = await getProductDataOG({
+    slug,
+    lang: params.lang,
+    color: searchParams.color,
+  });
+
   return new ImageResponse(
     (
       <div tw="relative flex w-full h-full flex items-center justify-center">
@@ -25,7 +31,11 @@ export default async function og({
           <img
             tw="flex flex-1 object-fill"
             className="object-fill"
-            src={product?.images[0]}
+            src={
+              product?.sync_color_images.filter(
+                (s) => s.color_name === searchParams.color
+              )[0].images[0] ?? product.images[0]
+            }
             style={{ objectFit: "fill" }}
             alt={product?.name}
           />
