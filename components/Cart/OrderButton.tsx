@@ -709,7 +709,7 @@ function OrderButton({ close }) {
       {expanded && (
         <div className="fixed min-w-[100vw] min-h-[100vh] opacity-40 bg-[black]" />
       )}
-      <div className="flex-col z-50 fixed bottom-0 left-0 bg-white min-h-[100px] w-full">
+      <div className="flex-col z-50 fixed bottom-1 left-0 bg-white min-h-[100px] w-full">
         {cart.cart.length > 0 && (
           <div
             className={`flex-col w-full ${

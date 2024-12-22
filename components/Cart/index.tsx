@@ -973,10 +973,10 @@ function CartContainer({ close }) {
                 </>
               )}
             </div>
-            {!loading && <OrderButton close={() => close()} />}
           </div>
         )}
       </div>
+      {!loading && <OrderButton close={() => close()} />}
     </div>
   );
 }

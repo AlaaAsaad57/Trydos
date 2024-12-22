@@ -7,9 +7,8 @@ function Init() {
   useEffect(() => {
     if (bool) {
       bool = false;
-      setTimeout(() => {
-        HomeService.CheckLogin();
-      }, 1000);
+
+      HomeService.CheckLogin();
     }
     // @ts-ignore
     window.store = store;

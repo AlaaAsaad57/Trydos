@@ -1,27 +1,15 @@
 "use client";
-import { Provider, useDispatch, useSelector } from "react-redux";
+import { Provider } from "react-redux";
 import { store } from "./index";
 import GAComponent from "components/global/GAComponent";
-import {
-  expandView,
-  normalizeView,
-  Sendevent,
-  SSRDetect,
-} from "utils/functions";
-import { ReactQueryClientProvider } from "components/Providers/ReactQueryClientProvider";
+import { SSRDetect } from "utils/functions";
 import Init from "components/Home/Init";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.min.css";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/scss/main.scss";
 import { useEffect } from "react";
-import CartContainer from "components/Cart";
-import {
-  AppProgressBar as ProgressBar,
-  stopProgress,
-} from "next-nprogress-bar";
-import { usePathname, useSearchParams } from "node_modules/next/navigation";
-import { useRouter } from "node_modules/next/router";
+import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 import CartProvider from "components/Cart/CartProvider";
 export default function Providers({ children }) {
   useEffect(() => {
@@ -72,7 +60,7 @@ export default function Providers({ children }) {
   }, []);
 
   return (
-    <ReactQueryClientProvider>
+    <>
       <ProgressBar
         color="#f53d3d"
         height="4px"
@@ -84,6 +72,6 @@ export default function Providers({ children }) {
         {children}
       </Provider>
       {SSRDetect() && <GAComponent />}
-    </ReactQueryClientProvider>
+    </>
   );
 }

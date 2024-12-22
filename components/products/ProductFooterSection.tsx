@@ -20,6 +20,7 @@ import {
 import auth from "services/auth";
 import { toast } from "react-toastify";
 import chat from "services/chat";
+import home from "services/home";
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
     return {
@@ -99,6 +100,7 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
   const [sharedContacts, setShareContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const getData = async () => {
+    await home.CheckLogin();
     try {
       let req = await axios
         .get(
@@ -183,6 +185,7 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
   };
   useEffect(() => {
     dispatchStore({ type: "LOADED-CART", payload: false });
+
     getData();
   }, []);
   const decimal_point_settings = useSelector(

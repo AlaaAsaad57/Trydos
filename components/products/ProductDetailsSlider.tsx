@@ -24,7 +24,11 @@ function ProductDetailsSlider({ product }: { product: ProductInterface }) {
     if (!searchParams.get("color") && productData?.sync_color_images) {
       newParams.set("color", productData?.sync_color_images[0].color_name);
     }
-    if (!searchParams.get("size") && productData?.choice_options) {
+    if (
+      !searchParams.get("size") &&
+      productData?.choice_options &&
+      productData?.choice_options?.filter((s) => s.title == "Size").length
+    ) {
       newParams.set(
         "size",
         productData?.choice_options?.filter((s) => s.title == "Size")[0]
