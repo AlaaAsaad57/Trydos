@@ -1,5 +1,5 @@
-import { dispatchRouteChangeEvent } from "Hooks/events";
-import NextLink from "Hooks/NextLink";
+import { dispatchRouteChangeEvent } from "utils/events";
+import NextLink from "components/global/NextLink";
 import React from "react";
 import { getConfiguredImage, Sendevent } from "utils/functions";
 

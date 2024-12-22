@@ -54,7 +54,7 @@ class AuthService {
   async SendOtp(
     mobilePhone: string,
     is_via_whatsapp: number | string,
-    step: Function,
+
     errorCallback: Function
   ) {
     let msg = "";
@@ -82,8 +82,6 @@ class AuthService {
       } else throw new Error(msg);
       return repo;
     } catch (e) {
-      step(282);
-
       errorCallback();
       store.dispatch({
         type: "WRONG-NUMBER",

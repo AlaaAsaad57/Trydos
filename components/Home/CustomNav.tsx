@@ -4,9 +4,9 @@ import Logo from "./Logo";
 import UserNavTopSection from "./UserNavTopSection";
 import { useDispatch, useSelector } from "react-redux";
 import { changeAppLanguage } from "store/homepage/actions";
-import NextLink from "Hooks/NextLink";
+import NextLink from "components/global/NextLink";
 
-import { dispatchRouteChangeEvent } from "Hooks/events";
+import { dispatchRouteChangeEvent } from "utils/events";
 import { ToastContainer } from "react-toastify";
 import AuthSections from "./AuthSections";
 import { useRouter } from "next/navigation";

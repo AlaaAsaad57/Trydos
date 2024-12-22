@@ -18,14 +18,14 @@ import {
   UpdateFilter,
 } from "utils/functions";
 import FloatingInfoBar from "./filterComponents/FloatingInfoBar";
-import { dispatchRouteChangeEvent } from "Hooks/events";
+import { dispatchRouteChangeEvent } from "utils/events";
 import {
   useParams,
   usePathname,
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import NextLink from "Hooks/NextLink";
+import NextLink from "components/global/NextLink";
 function FilterBar({ boutique, filters, productsServer }) {
   const selectedFilter = useSelector(
     (state: any) => state.details.selectedFilter

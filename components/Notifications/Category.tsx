@@ -1,4 +1,4 @@
-import NextLink from "Hooks/NextLink";
+import NextLink from "components/global/NextLink";
 import React from "react";
 
 function Category({ data }) {

@@ -10,7 +10,7 @@ import {
 import { store } from "../index";
 import { getUserChat, translate } from "utils/functions";
 import { FetchApi } from "store/homepage/cachedActions";
-import { AxiosGet } from "utils/constants";
+import { AxiosGet } from "utils/AxiosApi";
 
 export const ChatConroller = (payload) => {
   if (payload) document.documentElement.style.overflow = "hidden";

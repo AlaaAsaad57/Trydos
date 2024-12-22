@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";
 import homeService from "services/home";
-import { dispatchRouteChangeEvent } from "Hooks/events";
+import { dispatchRouteChangeEvent } from "utils/events";
 import Product from "./Product";
 import { filterProducts } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";

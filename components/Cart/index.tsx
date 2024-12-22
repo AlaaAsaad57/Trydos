@@ -18,7 +18,7 @@ import ErrorIcon from "public/svg/cart/Error.svg";
 import Skeleton from "react-loading-skeleton";
 
 import "styles/productDetails.css";
-import NextLink from "Hooks/NextLink";
+import NextLink from "components/global/NextLink";
 import { useParams, useSearchParams } from "next/navigation";
 import home from "services/home";
 

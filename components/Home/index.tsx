@@ -16,7 +16,7 @@ import StoriesContainer from "./Stories/NewStories";
 import { getUserStories } from "../../utils/functions";
 import StoryServiceClass from "services/story";
 // import LandingPage from "./LandingPage";
-import { dispatchRouteChangeEvent } from "Hooks/events";
+import { dispatchRouteChangeEvent } from "utils/events";
 // const SearchContainer = dynamic(() => import("./Search/SearchContainer"), {
 //   ssr: false,
 // });

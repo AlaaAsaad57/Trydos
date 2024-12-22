@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { getThumb } from "utils/functions";
-import { errorPNG } from "utils/constants";
+import { errorPNG } from "utils/AxiosApi";
 import Loader from "components/global/Loader";
 import Image from "next/image";
 function Story({

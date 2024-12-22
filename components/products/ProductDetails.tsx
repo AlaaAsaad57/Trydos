@@ -1,5 +1,5 @@
 "use client";
-import { dispatchRouteChangeEvent } from "Hooks/events";
+import { dispatchRouteChangeEvent } from "utils/events";
 import React, { useEffect } from "react";
 
 export default function ProductDetails() {

@@ -12,7 +12,6 @@ import LogInPins from "./LogInPins";
 import SignSteps from "./SignSteps";
 import InputName from "./InputName";
 import AuthService from "services/auth";
-import { useAuthHooks } from "Hooks/AuthHooks";
 
 import LoginMethods from "./LoginMethods";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
@@ -35,9 +34,50 @@ function NewLoginWidget() {
   const [wrongNumberVar, setWrongNumber] = useState(false);
   const wrongNumber = useSelector((state: any) => state.auth.wrongNumber);
   const language = useSelector((state: any) => state.homepage.language);
-  const { VerifyOtpHook, SendOtpHook } = useAuthHooks();
+
   const verficationID = useSelector((state: any) => state.auth.verficationID);
   const user = useSelector((state: any) => state.auth.Tempuser);
+  const VerifyOtpHook = async ({
+    code,
+    verificationID,
+    Username,
+    EditPhoneFunc,
+    successCallback,
+    errorCallback,
+  }) => {
+    try {
+      let [exists, name] = await AuthService.VerifyOtp(
+        code,
+        verificationID,
+        Username,
+        EditPhoneFunc
+      );
+      successCallback(exists, name);
+    } catch (error) {
+      errorCallback(error);
+      console.error("VerifyOtp failed:", error);
+    }
+  };
+  const SendOtpHook = async ({
+    errorCallback,
+    mobilePhone,
+    is_via_whatsapp,
+    successCallback,
+  }) => {
+    try {
+      let errorCallbackFunc = (e) => errorCallback(e);
+      await AuthService.SendOtp(
+        mobilePhone,
+        is_via_whatsapp,
+        errorCallbackFunc
+      );
+      successCallback();
+    } catch (error) {
+      console.log(error);
+      errorCallback();
+      console.error("SendOtp failed:", error);
+    }
+  };
   useEffect(() => {
     if (loginOpen) {
       Sendevent({
@@ -360,7 +400,7 @@ function NewLoginWidget() {
               SendOtpHook({
                 mobilePhone: inputValue,
                 is_via_whatsapp: MessageMethod === "WA" ? "1" : "0",
-                step: () => {},
+
                 successCallback: function () {},
                 errorCallback: function (msg) {
                   setStepIndicator(3);

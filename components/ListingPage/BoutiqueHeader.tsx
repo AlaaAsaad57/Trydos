@@ -20,7 +20,7 @@ import {
 import FilterButton from "./FilterButton";
 import BoutiqueColorsFilter from "./filterComponents/BoutiqueColorsFilter";
 import BoutiquePriceSelect from "./BoutiquePriceSelect";
-import { AxiosCacheApi } from "utils/constants";
+import { AxiosCacheApi } from "utils/AxiosApi";
 const PrefetchingFilters = () => {
   const filters = useSelector((state: any) => state.details.filters);
   let params = useParams();

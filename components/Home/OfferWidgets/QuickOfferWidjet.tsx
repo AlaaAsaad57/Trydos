@@ -7,8 +7,8 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import OfferSlideItem from "./OfferSlideItem";
 import OfferAvatars from "./OfferAvatars";
-import NextLink from "Hooks/NextLink";
-import { dispatchRouteChangeEvent } from "Hooks/events";
+import NextLink from "components/global/NextLink";
+import { dispatchRouteChangeEvent } from "utils/events";
 interface QuickOfferWidjetProps {
   offer: { photos: string[] };
   onClick: Function;

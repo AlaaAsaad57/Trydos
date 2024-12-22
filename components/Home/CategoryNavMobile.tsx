@@ -1,11 +1,11 @@
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
-import { dispatchRouteChangeEvent } from "Hooks/events";
+import { dispatchRouteChangeEvent } from "utils/events";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import { useSelector } from "react-redux";
 import { Sendevent, translate } from "utils/functions";
-import NextLink from "Hooks/NextLink";
+import NextLink from "components/global/NextLink";
 interface CategoryNavMobileProps {
   name: string;
   icon: string;

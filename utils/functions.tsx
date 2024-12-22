@@ -6,7 +6,7 @@ import Cookies from "js-cookie";
 import { HOME_DATA_URL } from "./endpointConfig";
 import { notFound } from "next/navigation";
 import { LogData } from "store/homepage/actions";
-import { AxiosCacheApi, AxiosGet } from "./constants";
+import { AxiosCacheApi, AxiosGet } from "./AxiosApi";
 import home from "services/home";
 export const SSRDetect = () => {
   return typeof window !== "undefined";

@@ -8,7 +8,7 @@ import { Boutique } from "models/offer";
 import { useRouter } from "next-nprogress-bar";
 import { useEffect } from "react";
 import OfferPhotosSlider from "./OfferPhotosSlider";
-import NextLink from "Hooks/NextLink";
+import NextLink from "components/global/NextLink";
 
 interface NormalWidgetProps {
   boutique: Boutique;

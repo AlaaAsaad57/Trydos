@@ -1,5 +1,5 @@
 import { configureStory, getThumb } from "../../../utils/functions";
-import { errorPNG } from "utils/constants";
+import { errorPNG } from "utils/AxiosApi";
 import Image from "next/image";
 function StoryChatRow({ story, index, viewedStory, stories, select }) {
   return (

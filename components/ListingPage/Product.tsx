@@ -2,7 +2,7 @@ import React, { useReducer } from "react";
 import ImageSlider from "./ImageSlider";
 
 import BuyButton from "./BuyButton";
-import NextLink from "Hooks/NextLink";
+import NextLink from "components/global/NextLink";
 import { ProductInterface } from "models/product";
 import { useDispatch, useSelector } from "react-redux";
 import { RoundPrice, Sendevent } from "utils/functions";

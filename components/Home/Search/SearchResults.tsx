@@ -8,7 +8,7 @@ import { onClickSearchHistory, Sendevent } from "utils/functions";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next-nprogress-bar";
 
-import { dispatchRouteChangeEvent } from "Hooks/events";
+import { dispatchRouteChangeEvent } from "utils/events";
 import home from "services/home";
 import Spinner from "components/global/Spinner";
 import FilterInfoBar from "components/ListingPage/FilterInfoBar";

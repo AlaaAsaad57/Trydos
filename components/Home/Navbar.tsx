@@ -7,7 +7,7 @@ import { changeAppLanguage, LogData } from "store/homepage/actions";
 import { Category } from "models/Category";
 import MobileNavigation from "./MobileNavigation";
 import CategoriesBar from "./CategoriesBar";
-import NextLink from "Hooks/NextLink";
+import NextLink from "components/global/NextLink";
 import { usePathname, useRouter } from "next/navigation";
 
 import AuthSections from "./AuthSections";

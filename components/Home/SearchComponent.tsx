@@ -6,7 +6,7 @@ import { ChangeEvent, useEffect } from "react";
 import { caseCheck, onClickSearchHistory, Sendevent } from "utils/functions";
 import home from "services/home";
 import { DebounceInput } from "react-debounce-input";
-import { dispatchRouteChangeEvent } from "Hooks/events";
+import { dispatchRouteChangeEvent } from "utils/events";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next-nprogress-bar";
 import SearchVoice from "./Search/SearchVoice";

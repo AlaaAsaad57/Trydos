@@ -1,9 +1,9 @@
 import { Sendevent, translate } from "utils/functions";
 import { useSelector } from "react-redux";
 import { useParams, useRouter } from "next/navigation";
-import { dispatchRouteChangeEvent } from "Hooks/events";
+import { dispatchRouteChangeEvent } from "utils/events";
 import Image from "next/image";
-import NextLink from "Hooks/NextLink";
+import NextLink from "components/global/NextLink";
 
 interface CategoryNavItemProps {
   name: string;

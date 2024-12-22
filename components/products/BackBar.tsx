@@ -2,10 +2,10 @@
 import React, { useEffect } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import { useRouter } from "next/navigation";
-import { dispatchRouteChangeEvent } from "Hooks/events";
+import { dispatchRouteChangeEvent } from "utils/events";
 import { useSelector } from "react-redux";
 import { LogData } from "store/homepage/actions";
-import NextLink from "Hooks/NextLink";
+import NextLink from "components/global/NextLink";
 function BackBar({
   close,
   link,

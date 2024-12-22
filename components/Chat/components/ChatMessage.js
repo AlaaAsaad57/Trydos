@@ -23,7 +23,7 @@ import Spinner from "../../global/Spinner";
 import { SSRDetect, getUserChat, translate } from "utils/functions";
 import Image from "next/image";
 import { DeleteMessageApi } from "store/chat/actions";
-import NextLink from "Hooks/NextLink";
+import NextLink from "components/global/NextLink";
 function ChatMessage(props) {
   const { setImg, setVid } = props;
   const message_ref = useRef();

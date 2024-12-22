@@ -3,9 +3,8 @@ import { useSelector } from "react-redux";
 import { Sendevent, translate } from "utils/functions";
 import WAIcon from "public/svg/WAIcon.svg";
 import MessageIcon from "public/svg/MessageIcon.svg";
-import { useAuthHooks } from "Hooks/AuthHooks";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
-import Transition from "react-motion-ui-pack";
+import AuthService from "services/auth";
 
 function SendMethod({
   inputValue,
@@ -21,12 +20,30 @@ function SendMethod({
   setMessageMethod: Function;
 }) {
   const language = useSelector((state: any) => state.homepage.language);
-  const { SendOtpHook } = useAuthHooks();
+  const SendOtpHook = async ({
+    errorCallback,
+    mobilePhone,
+    is_via_whatsapp,
+    successCallback,
+  }) => {
+    try {
+      let errorCallbackFunc = (e) => errorCallback(e);
+      await AuthService.SendOtp(
+        mobilePhone,
+        is_via_whatsapp,
+        errorCallbackFunc
+      );
+      successCallback();
+    } catch (error) {
+      console.log(error);
+      errorCallback();
+      console.error("SendOtp failed:", error);
+    }
+  };
   const SendCodeRequest = (method: string) => {
     SendOtpHook({
       mobilePhone: inputValue,
       is_via_whatsapp: method,
-      step: () => {},
       successCallback: function () {},
       errorCallback: function (e) {
         setStepIndicator(3);
