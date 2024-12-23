@@ -133,11 +133,14 @@ class AuthService {
         },
       });
       StoryService.loginStories();
-      ChatService.loginChat();
+      await ChatService.loginChat();
 
       if (typeof window !== "undefined") {
         localStorage.setItem("LAST_JSON", JSON.stringify(repo));
       }
+      setTimeout(() => {
+        home.getClientData();
+      }, 2000);
       return [repo.data.already_exists, repo.data.user.name];
     } catch (e) {
       if (e.message === "user not found") {

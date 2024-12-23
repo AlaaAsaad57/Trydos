@@ -107,9 +107,6 @@ class HomeService {
           avatar: JSON.parse(localStorage.getItem("USER")).avatar || userImage,
         },
       });
-      setTimeout(() => {
-        this.getClientData();
-      }, 10);
     } else {
       this.RegisterDevice();
     }
@@ -178,10 +175,6 @@ class HomeService {
           localStorage.setItem("LAST_JSON", JSON.stringify(repo));
       }
     }
-
-    setTimeout(() => {
-      this.getClientData();
-    }, 10);
   }
   async GetBoutiques(slug) {
     const response = await fetch(

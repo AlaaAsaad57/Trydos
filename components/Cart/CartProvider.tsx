@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { expandView, normalizeView, Sendevent } from "utils/functions";
 import CartContainer from ".";
+import home from "services/home";
 
 const CartProvider = () => {
   const dispatch = useDispatch();
@@ -32,6 +33,9 @@ const CartProvider = () => {
     }
   };
   useEffect(() => {
+    setTimeout(() => {
+      home.getClientData();
+    }, 10);
     window.addEventListener("popstate", (event) => {
       if (event.state?.isPopup) {
         dispatch({ type: "STORY-SELECTED", payload: null });

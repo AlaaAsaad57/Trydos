@@ -61,7 +61,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
         {user && <NotificationsTest />}
       </div> */}
       <div
-        className="nav-question-item cart-icon-selector"
+        className="nav-question-item cart-icon-selector cursor-pointer"
         style={{ marginRight: "30px", marginLeft: "0px" }}
         onClick={() => {
           // dispatch(ChatConroller(true));

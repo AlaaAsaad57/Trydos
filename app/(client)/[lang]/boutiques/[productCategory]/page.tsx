@@ -25,7 +25,7 @@ export async function generateMetadata({ params, searchParams }) {
   }
   return {
     title: `Trydos - ${metaData?.name} `,
-    description: `${metaData?.description} `,
+    description: `${metaData?.name} - ${metaData?.description} `,
   };
 }
 
