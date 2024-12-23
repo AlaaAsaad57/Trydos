@@ -808,7 +808,7 @@ function OrderButton({ close }) {
                 <div className="flex-col pl-4 text-[#1D1D1D]">
                   <span className="bold text-[13px] text-[#1D1D1D]">Total</span>
                   <span className="medium text-[11px] text-[#8D8D8D]">
-                    All Inclusive Without Additions
+                    {translate("All Inclusive Without Additions")}
                   </span>
                 </div>
               </div>

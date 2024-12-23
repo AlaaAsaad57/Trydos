@@ -7,6 +7,7 @@ import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { useSwipeable } from "react-swipeable";
 import GalleryItem from "./GalleryItem";
+import { translate } from "utils/functions";
 function CameraShotGallery({ images, close }) {
   const [extended, setExtended] = useState(false);
   const activeCameraGallery = useSelector(
@@ -72,7 +73,7 @@ function CameraShotGallery({ images, close }) {
         <div className="gallery-label pl-5 pr-5 flex-row items-center justify-start ">
           <CameraShotIcon />
           <span className="regular text-[13px] text-[#8D8D8D] ml-1">
-            Buyers Camera 12 Shot
+            {translate("Buyers Camera")} 12 {translate("Shot")}
           </span>
           <ColorsInfo
             className="ml-1 cursor-pointer"
@@ -81,7 +82,9 @@ function CameraShotGallery({ images, close }) {
                 type: "SHOW-INFO-MESSAGE",
                 payload: {
                   showInfoMessage: true,
-                  title: "Buyers Camera 12 Shot",
+                  title: ` ${translate("Buyers Camera")} 12 ${translate(
+                    "Shot"
+                  )}`,
                   text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
                   icon: "/svg/product/CameraShotIcon.svg",
                   value: ["Birthday", "Casual", "Business"],

@@ -6,7 +6,7 @@ import FastIcon from "public/svg/product/FastIcon.svg";
 import PlaneIcon from "public/svg/product/PlaneIcon.svg";
 import PackingIcon from "public/svg/product/PackingIcon.svg";
 import MarkerIcon from "public/svg/product/MarkerIcon.svg";
-import { Sendevent } from "utils/functions";
+import { Sendevent, translate } from "utils/functions";
 function ProductShippingOption() {
   const [extended, setExtended] = useState(false);
   return (
@@ -21,7 +21,9 @@ function ProductShippingOption() {
     >
       <div className="colors-label flex-row align-center">
         <ShippingIcon />
-        <span style={{ marginLeft: "5px" }}>Product Shipping & Delivery</span>
+        <span style={{ marginLeft: "5px" }}>
+          {translate("Product Shipping & Delivery")}
+        </span>
       </div>
       <div className="address-container flex-row justify-center align-center">
         <div className="address-info flex-row align-center justify-center">

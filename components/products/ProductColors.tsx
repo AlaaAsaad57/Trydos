@@ -2,7 +2,7 @@
 import ColorsIcon from "public/svg/product/colors.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import React, { useEffect, useState } from "react";
-import { getConfiguredImage, Sendevent } from "utils/functions";
+import { getConfiguredImage, Sendevent, translate } from "utils/functions";
 import "styles/listing.css";
 import SquareIcon from "public/svg/product/SquareIcon.svg";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -44,7 +44,7 @@ function ProductColors({ colors, ProductColorsArray }) {
       <div className="colors-label flex-row align-center">
         <ColorsIcon />
         <span style={{ marginLeft: "5px" }}>
-          Available {colors?.length || 0} Color
+          {translate("Available ")} {colors?.length || 0} {translate("Color")}
         </span>
         <ColorsInfo
           style={{ marginLeft: "9px" }}

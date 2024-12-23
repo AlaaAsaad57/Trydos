@@ -4,7 +4,7 @@ import CameraShotIcon from "public/svg/product/CameraShotIcon.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { getConfiguredImage, Sendevent } from "utils/functions";
+import { getConfiguredImage, Sendevent, translate } from "utils/functions";
 
 import CameraShotGallery from "./CameraShotGallery";
 import { useDispatch } from "react-redux";
@@ -35,7 +35,9 @@ function CameraShots({ images }) {
       >
         <div className="colors-label flex-row align-center">
           <CameraShotIcon />
-          <span style={{ marginLeft: "5px" }}>Buyers Camera {12} Shot</span>
+          <span style={{ marginLeft: "5px" }}>
+            {translate("Buyers Camera")} {12} {translate("Shot")}
+          </span>
           <ColorsInfo
             style={{ marginLeft: "9px" }}
             onClick={() => {
@@ -43,7 +45,9 @@ function CameraShots({ images }) {
                 type: "SHOW-INFO-MESSAGE",
                 payload: {
                   showInfoMessage: true,
-                  title: "Buyers Camera 12 Shot",
+                  title: ` ${translate("Buyers Camera")} 12 ${translate(
+                    "Shot"
+                  )}`,
                   text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
                   icon: "/svg/product/CameraShotIcon.svg",
                   value: ["Birthday", "Casual", "Business"],

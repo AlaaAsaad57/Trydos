@@ -8,7 +8,7 @@ import NormalSizesSlider from "./NormalSizesSlider";
 import DashedCircleBorder from "public/svg/product/DashedCircleBorder.svg";
 import SizeInfoBox from "./SizeInfoBox";
 import { useDispatch } from "react-redux";
-import { Sendevent } from "utils/functions";
+import { Sendevent, translate } from "utils/functions";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 function ProductSizes({ sizes }) {
@@ -34,7 +34,7 @@ function ProductSizes({ sizes }) {
       <div className="colors-label flex-row align-center">
         <SizesIcon />
         <span style={{ marginLeft: "5px" }}>
-          Available {sizes.length} Sizes
+          {translate("Available ")} {sizes.length} {translate("Sizes")}
         </span>
         <ColorsInfo
           style={{ marginLeft: "9px" }}

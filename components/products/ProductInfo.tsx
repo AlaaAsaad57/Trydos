@@ -96,7 +96,7 @@ function ProductInfo({
             alt="deliveryman"
             src="/svg/deliveryman.svg"
           />
-          <span>{translate("Ship To You Accepted 2 June", language)}</span>
+          <span>{translate("Ship To You Accepted ", language)} 2 June</span>
         </div>
       </div>
     </div>

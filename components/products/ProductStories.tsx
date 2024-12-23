@@ -4,7 +4,7 @@ import StoreisIcon from "public/svg/product/StoreisIcon.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { SelectStory } from "store/homepage/actions";
-import { configureStory, getThumb } from "utils/functions";
+import { configureStory, getThumb, translate } from "utils/functions";
 import StoryServiceClass from "services/story";
 import StoriesContainer from "components/Home/Stories/NewStories";
 import InfoWindow from "./InfoWindow";
@@ -67,7 +67,7 @@ function ProductStories() {
       )}
       <div className="colors-label flex-row align-center">
         <StoreisIcon />
-        <span style={{ marginLeft: "5px" }}>Product Story</span>
+        <span style={{ marginLeft: "5px" }}>{translate("Product Story")}</span>
         <ColorsInfo
           style={{ marginLeft: "9px" }}
           onClick={() => {
@@ -75,7 +75,7 @@ function ProductStories() {
               type: "SHOW-INFO-MESSAGE",
               payload: {
                 showInfoMessage: true,
-                title: `Product Story`,
+                title: `${translate("Product Story")}`,
                 text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
                 icon: "/svg/product/StoreisIcon.svg",
                 value: [],

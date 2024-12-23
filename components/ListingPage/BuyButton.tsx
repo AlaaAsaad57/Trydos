@@ -1,4 +1,7 @@
 "use client";
+
+import { GetAppLanguage, translate } from "utils/functions";
+
 function BuyButton({ buy }) {
   return (
     <div
@@ -8,7 +11,9 @@ function BuyButton({ buy }) {
         buy();
       }}
     >
-      <span className="f-10 flex align-start">Buy</span>
+      <span className="f-10 flex align-start">
+        {translate("Buy", GetAppLanguage())}
+      </span>
       <img
         src={"/svg/BuyButton.svg"}
         width={15}
