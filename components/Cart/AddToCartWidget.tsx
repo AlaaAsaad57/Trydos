@@ -1,13 +1,8 @@
 import SelectSize from "components/products/SelectSize";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import {
-  AddToCartAnimation,
-  getConfiguredImage,
-  getLang,
-  Sendevent,
-} from "utils/functions";
+import { getConfiguredImage, getLang, Sendevent } from "utils/functions";
 import Cookies from "js-cookie";
 import AddToCartButton from "components/products/AddToCartButton";
 
@@ -138,9 +133,6 @@ function AddToCartWidget() {
                 }
                 setOption={() => {}}
                 productVar={product}
-                AddToCartAnimation={(e) => {
-                  AddToCartAnimation(e);
-                }}
                 product={SelectedProduct}
               />
             </>
@@ -194,6 +186,7 @@ const SelectColor = ({ close }) => {
           <BackIcon />
         </div>
         <CartIcon
+          id={"cart-icon"}
           className="cart-icon"
           onClick={() => {
             Sendevent({
@@ -237,6 +230,7 @@ const SelectColor = ({ close }) => {
             </g>
           </svg>
           <img
+            id={"added-to-cart"}
             src={getConfiguredImage({
               src:
                 (AddToCartOption?.selectedColor?.images &&

@@ -56,6 +56,7 @@ function SelectColor({ close }) {
           <BackIcon />
         </div>
         <CartIcon
+          id="cart-icon"
           className="cart-icon"
           onClick={() => {
             dispatch({ type: "AddToCartOptionDisable", payload: false });
@@ -96,6 +97,7 @@ function SelectColor({ close }) {
             </g>
           </svg>
           <img
+            id={"added-to-cart"}
             src={getConfiguredImage({
               height: 400,
               width: 400,

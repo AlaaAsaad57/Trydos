@@ -11,6 +11,21 @@
   .categories-bar-item-name {
   color: #3c3c3c;
 }
+.moving {
+  position: absolute;
+
+  opacity: 0.8;
+
+  pointer-events: none;
+  z-index: 99999999999;
+  transform-origin: top left;
+}
+.image-container-cart {
+  overflow: hidden;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding-right: 50%;
+}
 .categories-bar-item:hover .categories-bar-item-icon svg path,
 .categories-bar-item:hover .categories-bar-item-icon svg circle,
 .categories-bar-item:hover .categories-bar-item-icon svg ellipse,

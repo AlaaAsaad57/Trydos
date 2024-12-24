@@ -5,6 +5,7 @@ import Cookies from "js-cookie";
 import userImage from "public/images/profileNo.png";
 import {
   _isStoreLastJson,
+  AddToCartAnimation,
   getCart,
   getLang,
   UserID,
@@ -384,6 +385,7 @@ class HomeService {
     errCallback?: Function;
     slug: string;
   }) {
+    AddToCartAnimation();
     if (alreadyExist) {
       let dataBody = [];
       let dataObj = { key: alreadyExist, quantity: quantity + 1 || 0 };
@@ -394,6 +396,15 @@ class HomeService {
           dataBody.push(encodedKey + "=" + encodedValue);
         }
       }
+
+      // After the animation, remove the cloned image and update the cart
+      setTimeout(() => {
+        // @ts-ignore
+        clonedImage.remove();
+        // Update cart item count
+      }, 1000);
+
+      // request
       // @ts-ignore
       dataBody = dataBody.join("&");
       const res = await axios.post(

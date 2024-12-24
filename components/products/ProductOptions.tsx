@@ -9,12 +9,7 @@ import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  AddToCartAnimation,
-  Sendevent,
-  UserID,
-  UserToken,
-} from "utils/functions";
+import { Sendevent, UserID, UserToken } from "utils/functions";
 import axios from "axios";
 import home from "services/home";
 function ProductOptions({
@@ -88,9 +83,6 @@ function ProductOptions({
             productVar={product}
             product={SelectedProduct}
             loading={loaded && SelectedProduct.choice_options}
-            AddToCartAnimation={(e) => {
-              AddToCartAnimation(e);
-            }}
           />
           <div className="options-container">
             <div

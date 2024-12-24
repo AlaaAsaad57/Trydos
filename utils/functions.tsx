@@ -816,40 +816,65 @@ export const getCart = async ({ callback }) => {
   });
   callback([data, {}]);
 };
-export const AddToCartAnimation = (e) => {
-  // let shopping_cart = document.querySelector<SVGAElement>(".cart-icon");
-  // let target_parent = document.querySelector<HTMLDivElement>(
-  //   `.image-container-cart`
-  // );
-  // target_parent.style.zIndex = "99999999999";
-  // // Creating separate Image
-  // let imgs = target_parent.querySelectorAll(`#img${e}`);
-  // // @ts-ignore
-  // imgs.forEach((img) => {
-  //   // Finding position of flying image
-  //   // @ts-ignore
-  //   const flying_img_pos = img.getBoundingClientRect();
-  //   // @ts-ignore
-  //   const shopping_cart_pos = shopping_cart.getBoundingClientRect();
-  //   let data = {
-  //     left: shopping_cart_pos.left,
-  //     top: shopping_cart_pos.top,
-  //   };
-  //   // @ts-ignore
-  //   img.style.cssText = `
-  //                                 --left : ${data.left.toFixed(2)}px;
-  //                                 --top : ${data.top.toFixed(2)}px;
-  //                                 left:${flying_img_pos.left}px;
-  //                                 top:${flying_img_pos.top}px;
-  //                                 z-index: 99999999999999;
-  //                                 `;
-  //   // @ts-ignore
-  //   img.classList.add("flying-img");
-  // });
-  // setTimeout(() => {
-  //   store.dispatch({ type: "ANIMATION-END", payload: e });
-  // }, 1300);
-  // @ts-ignoreZ
+export const AddToCartAnimation = () => {
+  let productImage = document.getElementById("added-to-cart");
+  let CartIcon = document.getElementById("cart-icon");
+  const cartPosition = CartIcon.getBoundingClientRect();
+  const productPosition = productImage.getBoundingClientRect();
+  const clonedImage = productImage.cloneNode();
+  // @ts-ignore
+  clonedImage.classList.add("moving");
+  // @ts-ignore
+  clonedImage.classList.remove("h-full");
+  // @ts-ignore
+  document.body.appendChild(clonedImage);
+  // @ts-ignore
+  clonedImage.style.left = `${productPosition.left}px`;
+  // @ts-ignore
+  clonedImage.style.top = `${productPosition.top}px`;
+  // @ts-ignore
+  clonedImage.style.width = `${productPosition.width}px`;
+  // @ts-ignore
+  clonedImage.style.height = `${productPosition.height}px`;
+  // @ts-ignore
+  document.body.appendChild(clonedImage);
+  // @ts-ignore
+  CartIcon.animate(
+    [
+      { scale: "1", transform: "rotate(0deg)" },
+      { scale: "1.2", transform: "rotate(10deg)" },
+      { scale: "1.4", transform: "rotate(-10deg)" },
+      { scale: "1", transform: "rotate(0deg)" },
+    ],
+    {
+      duration: 1500,
+      fill: "forwards",
+    }
+  );
+  // @ts-ignore
+  clonedImage.animate(
+    [
+      {
+        scale: "1",
+        top: `${productPosition.top}px`,
+        left: `${productPosition.left}px`,
+        opacity: 1,
+      },
+      {
+        scale: "0.1",
+        top: `${cartPosition.top}px`,
+        left: `${cartPosition.left}px`,
+        opacity: 0,
+      },
+    ],
+    {
+      duration: 1000,
+      fill: "forwards",
+    }
+  );
+  setTimeout(() => {
+    store.dispatch({ type: "LOADED-CART", payload: true });
+  }, 1500);
 };
 export const AxiosInstaceRequest = async ({ url, method, body }) => {
   let start = new Date().getTime();

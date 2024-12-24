@@ -17,14 +17,13 @@ function AddToCartButton({
   setOption,
   product,
   loading,
-  AddToCartAnimation,
+
   productVar,
 }: {
   setOption: any;
   product: any;
   productVar: any;
   loading?: any;
-  AddToCartAnimation: Function;
 }) {
   const AddToCartOption = useSelector(
     (state: any) => state.cart.AddToCartOption
@@ -418,7 +417,7 @@ function AddToCartButton({
                             event: "button_clicked",
                             value: "added_product_to_bag_event",
                           });
-                          AddToCartAnimation(AddToCartOption?.UID);
+
                           setTimeout(() => {
                             elem.classList.remove("success-add");
                             dispatch({
@@ -558,7 +557,7 @@ function AddToCartButton({
                 )} */}
 
               <div className="button-desc">
-                <div className="flex-row max-w-[30px] justify-end relative image-container-cart">
+                <div className="flex-row  justify-end relative image-container-cart">
                   {AddToCartOption?.enable &&
                     localCart
                       .filter((s) => s.id === product.id)
@@ -656,7 +655,7 @@ function AddToCartButton({
                                 event: "button_clicked",
                                 value: "added_product_to_bag_event",
                               });
-                              AddToCartAnimation(AddToCartOption?.UID);
+
                               setTimeout(() => {
                                 elem.classList.remove("success-add");
                                 dispatch({
@@ -807,7 +806,7 @@ function AddToCartButton({
                 )} */}
 
               <div className="button-desc">
-                <div className="flex-row max-w-[30px] justify-end relative image-container-cart">
+                <div className="flex-row  justify-end relative image-container-cart">
                   {AddToCartOption?.enable &&
                     localCart
                       .filter((s) => s.id === product.id)
