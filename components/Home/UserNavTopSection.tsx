@@ -1,3 +1,4 @@
+"use client";
 import { translate } from "utils/functions";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -30,7 +31,8 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const enableCart = (s) => {
-    window.history.pushState({ isPopup: true }, "open Cart");
+    if (typeof window !== "undefined")
+      window.history.pushState({ isPopup: true }, "open Cart");
     dispatch({ type: "ENABLE-CART", payload: s });
     if (s) {
       const newParams = new URLSearchParams(searchParams);

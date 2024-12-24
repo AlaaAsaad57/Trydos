@@ -260,7 +260,7 @@ export const getBoutiquesUrl = async ({ str }) => {
   return data.data.boutiques;
 };
 
-export const getProductMeta = async ({ productId, lang }) => {
+export const getProductMeta = async ({ productId, lang, color }) => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   let start = new Date();
@@ -268,7 +268,9 @@ export const getProductMeta = async ({ productId, lang }) => {
 
   let resp = await fetch(
     process.env.NEXT_PUBLIC_BACKEND_URL +
-      `/web/product/simpleDetails/${productId}`,
+      `/web/product/simpleDetails/${productId}${
+        color ? `?color=${color}` : ""
+      }`,
     {
       headers: new Headers({
         Accept: "application/json",

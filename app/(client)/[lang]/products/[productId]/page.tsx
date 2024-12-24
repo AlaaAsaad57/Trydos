@@ -3,29 +3,39 @@ import CustomNavbarServer from "components/Server/ServerCustomNav";
 
 import ProductDetailsServer from "components/Server/ProductDetails";
 
-import { getProductMeta } from "utils/functions";
+import { getConfiguredImage, getProductMeta } from "utils/functions";
 import { notFound } from "next/navigation";
+import { metadata } from "../../layout";
 
 export async function generateMetadata({ params, searchParams }) {
   const productId = params.productId;
 
-  const metaData = await getProductMeta({ productId, lang: params.lang });
+  const metaData = await getProductMeta({
+    productId,
+    lang: params.lang,
+    color: searchParams.color,
+  });
+  console.log(metaData);
   if (!metaData?.name) {
     notFound();
   }
   return {
     title: `${metaData?.name} ${
-      searchParams.color && `- ${searchParams.color}`
+      searchParams.color ? `- ${searchParams.color}` : ""
     }`,
-    description: `${metaData?.name} - ${metaData?.description}`,
+    description: `${metaData.details}`,
     openGraph: {
       title: `${metaData?.name} ${
         searchParams.color && `- ${searchParams.color}`
       }`,
-      description: `${metaData?.name} - ${metaData?.description}`,
+      description: `${metaData.details}`,
       images: [
         {
-          url: metaData.photo,
+          url: getConfiguredImage({
+            src: metaData.photo.file_path,
+            width: 300,
+            height: 300,
+          }),
           width: 300,
           height: 300,
         },

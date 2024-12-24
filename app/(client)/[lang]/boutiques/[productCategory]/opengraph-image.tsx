@@ -1,6 +1,6 @@
 import "public/styles/og.css";
 import { ImageResponse } from "next/og";
-import { getBoutiqueMeta } from "utils/functions";
+import { getBoutiqueMeta, getConfiguredImage } from "utils/functions";
 export const size = {
   width: 300,
   height: 300,
@@ -29,7 +29,11 @@ export default async function og({
           <img
             tw="flex flex-1 object-fill"
             className="object-fill"
-            src={boutique.image}
+            src={getConfiguredImage({
+              src: boutique.image,
+              width: 300,
+              height: 300,
+            })}
             style={{ objectFit: "fill" }}
             alt={boutique.image}
           />

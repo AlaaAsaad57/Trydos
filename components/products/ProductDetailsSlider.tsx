@@ -11,6 +11,7 @@ function ProductDetailsSlider({ product }: { product: ProductInterface }) {
   const productData = product;
 
   const [emblaRef] = useEmblaCarousel();
+  const [emblaRef1] = useEmblaCarousel();
   const activeColor = useSelector(
     (state: any) => state.details.product?.activeColor
   );
@@ -96,12 +97,52 @@ function ProductDetailsSlider({ product }: { product: ProductInterface }) {
             {" "}
             <CloseIcon close={() => showImage(null)} />
           </span>
-          <img
-            className="w-auto h-full rounded-md"
-            alt={product.name}
-            // @ts-ignore
-            src={imageShow}
-          />
+          <div className="embla" ref={emblaRef1}>
+            <div className="embla__container">
+              {(
+                activeColor ??
+                (searchParams.get("color") &&
+                  productData?.sync_color_images &&
+                  productData?.sync_color_images?.filter(
+                    (s) => s.color_name === searchParams.get("color")
+                  )[0]) ??
+                (productData?.sync_color_images &&
+                  productData?.sync_color_images[
+                    Math.round(productData.sync_color_images.length / 2) - 1
+                  ]) ??
+                productData
+              )?.images?.map((img, i) => (
+                <div
+                  className="embla__slide"
+                  key={img}
+                  onClick={() => {
+                    showImage(
+                      getConfiguredImage({ src: img, width: 500, height: 700 })
+                    );
+                  }}
+                >
+                  <Image
+                    width={320}
+                    height={464}
+                    style={{
+                      height: "100%",
+                      width: "95%",
+                      borderRadius: "10px",
+                    }}
+                    priority={i === 0}
+                    loading={i === 0 ? "eager" : "lazy"}
+                    alt={productData.name}
+                    src={getConfiguredImage({
+                      src: img,
+                      width: 500,
+                      height: 700,
+                    })}
+                    unoptimized
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </>
