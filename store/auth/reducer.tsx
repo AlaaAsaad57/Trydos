@@ -50,13 +50,13 @@ const AuthReducer = (state = initialState, { type, payload }) => {
         verficationID: payload,
       };
     }
-    case "UPDATE_USER_INFO": {
-      return {
-        ...state,
-        user: { ...payload, already_exists: state.user?.already_exists },
-        Tempuser: { ...payload, already_exists: state.user?.already_exists },
-      };
-    }
+    // case "UPDATE_USER_INFO": {
+    //   return {
+    //     ...state,
+    //     user: { ...payload, already_exists: state.user?.already_exists },
+    //     Tempuser: { ...payload, already_exists: state.user?.already_exists },
+    //   };
+    // }
     case "TEMP-USER": {
       return {
         ...state,

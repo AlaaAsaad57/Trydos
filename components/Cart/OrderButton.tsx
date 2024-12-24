@@ -1,10 +1,12 @@
 import { useSelector } from "react-redux";
 import React, { useState } from "react";
-import { GetAppLanguage, translate } from "utils/functions";
+import { GetAppLanguage, getUser, translate } from "utils/functions";
+import ConfirmMobile from "./ConfirmMobile";
 
 function OrderButton({ close }) {
   const [expanded, setExpanded] = useState(false);
   const cart = useSelector((state: any) => state.cart);
+  const [option, setOption] = useState(false);
   const currency_symbol = useSelector((state: any) => state.homepage.currency);
   const ItemsIcon = () => {
     return (
@@ -827,7 +829,9 @@ function OrderButton({ close }) {
         )}
         <div className="flex-row w-full px-5 pt-3">
           <div
-            className="cursor-pointer  flex-col w-full h-[70px] bg-[#3C3C3C] rounded-[20px] text-center justify-center items-center"
+            className={`cursor-pointer  flex-col w-full  ${
+              option ? "h-[200px]" : "bg-[#3C3C3C] h-[70px]"
+            } rounded-[20px] text-center justify-center items-center`}
             style={{
               boxShadow:
                 "inset 0px 3px 6px rgba(255,255,255,0.16), 0px 3px 6px rgba(0,0,0,0.1)",
@@ -835,26 +839,46 @@ function OrderButton({ close }) {
             onClick={() => {
               if (cart.cart.length === 0) {
                 close();
+              } else {
+                console.log(getUser());
+                if (!getUser()) {
+                  setOption(true);
+                }
               }
             }}
           >
-            {cart.cart.length === 0 ? (
-              <>
-                <span className="text-[#FEFEFE] text-[18px] medium ">
-                  {translate("Back To Home", GetAppLanguage())}
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="text-[#FEFEFE] text-[18px] medium ">
-                  {translate("Confirm And Continue", GetAppLanguage())}
-                </span>
-                <span className="text-[#FEFEFE] text-[14px] medium ">
-                  {cart.cart.length} items {cart.total_cash}{" "}
-                  {currency_symbol?.symbol}
-                </span>
-              </>
-            )}
+            <>
+              {option ? (
+                <>
+                  <ConfirmMobile
+                    closeWindow={() => {
+                      setOption(false);
+                    }}
+                  />
+                </>
+              ) : (
+                <>
+                  {" "}
+                  {cart.cart.length === 0 ? (
+                    <>
+                      <span className="text-[#FEFEFE] text-[18px] medium ">
+                        {translate("Back To Home", GetAppLanguage())}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-[#FEFEFE] text-[18px] medium ">
+                        {translate("Confirm And Continue", GetAppLanguage())}
+                      </span>
+                      <span className="text-[#FEFEFE] text-[14px] medium ">
+                        {cart.cart.length} items {cart.total_cash}{" "}
+                        {currency_symbol?.symbol}
+                      </span>
+                    </>
+                  )}
+                </>
+              )}
+            </>
           </div>
         </div>
       </div>

@@ -37,27 +37,7 @@ function NewLoginWidget() {
 
   const verficationID = useSelector((state: any) => state.auth.verficationID);
   const user = useSelector((state: any) => state.auth.Tempuser);
-  const VerifyOtpHook = async ({
-    code,
-    verificationID,
-    Username,
-    EditPhoneFunc,
-    successCallback,
-    errorCallback,
-  }) => {
-    try {
-      let [exists, name] = await AuthService.VerifyOtp(
-        code,
-        verificationID,
-        Username,
-        EditPhoneFunc
-      );
-      successCallback(exists, name);
-    } catch (error) {
-      errorCallback(error);
-      console.error("VerifyOtp failed:", error);
-    }
-  };
+
   const SendOtpHook = async ({
     errorCallback,
     mobilePhone,
@@ -93,6 +73,27 @@ function NewLoginWidget() {
   }, [loginOpen]);
   const setLoginOpen = (e: boolean) => {
     dispatch({ type: "LOGIN-OPEN", payload: e });
+  };
+  const VerifyOtpHook = async ({
+    code,
+    verificationID,
+    Username,
+    EditPhoneFunc,
+    successCallback,
+    errorCallback,
+  }) => {
+    try {
+      let [exists, name] = await AuthService.VerifyOtp(
+        code,
+        verificationID,
+        Username,
+        EditPhoneFunc
+      );
+      successCallback(exists, name);
+    } catch (error) {
+      errorCallback(error);
+      console.error("VerifyOtp failed:", error);
+    }
   };
   const loginFunc = async (e) => {
     await VerifyOtpHook({
