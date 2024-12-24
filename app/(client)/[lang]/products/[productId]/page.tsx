@@ -33,11 +33,11 @@ export async function generateMetadata({ params, searchParams }) {
         {
           url: getConfiguredImage({
             src: metaData.photo.file_path,
-            width: 300,
-            height: 300,
+            width: 600,
+            height: 315,
           }),
-          width: 300,
-          height: 300,
+          width: 600,
+          height: 315,
         },
       ],
     },
