@@ -1,3 +1,4 @@
+"use client";
 import NextLink from "components/global/NextLink";
 import React, { useEffect } from "react";
 import { encode_utf8 } from "utils/functions";

@@ -1,6 +1,11 @@
 export const translations = {
   en: {
     Buy: "Buy",
+    "Enter Your Phone Number To Complete Order":
+      "Enter Your Phone Number To Complete Order",
+    "Please Select The Appropriate": "Please Select The Appropriate ",
+    Size: "Size",
+    "Add To Bag": "Add To Bag",
     "Free Shipping": "Free Shipping",
     "Good Quality Product": "Good Quality Product",
     "Verified by trydos": "Verified by trydos",
@@ -180,7 +185,12 @@ export const translations = {
   },
 
   ar: {
+    "Please Select The Appropriate": "الرجاء اختيار",
+    "Enter Your Phone Number To Complete Order":
+      "الرجاء ادخال الرقم لاكمال الطلب",
     Buy: "شراء",
+    Size: "القياس المناسب",
+    "Add To Bag": "اضافة للسلة",
     "All Inclusive Without Additions": "شامل جميع الإضافات",
     "Ship To You Accepted ": "تم قبول الشحن إليك في",
     "Free Shipping": "شحن مجاني",
@@ -193,7 +203,7 @@ export const translations = {
     "Product Shipping & Delivery": "شحن المنتج والتوصيل",
     "Product Story": "قصص المنتج",
     Color: "لون",
-    Sizes: "حجم",
+    Sizes: "قياس",
     Shot: "صورة",
     "Buyers Camera": " صور الزبائن ",
     "Available ": " متوفر ",

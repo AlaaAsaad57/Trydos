@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { GetAppLanguage, getUser, translate } from "utils/functions";
 import ConfirmMobile from "./ConfirmMobile";
 
-function OrderButton({ close }) {
+function OrderButton({ close, orderShow, setShowOrder }) {
   const [expanded, setExpanded] = useState(false);
   const cart = useSelector((state: any) => state.cart);
   const [option, setOption] = useState(false);
@@ -837,7 +837,9 @@ function OrderButton({ close }) {
                 "inset 0px 3px 6px rgba(255,255,255,0.16), 0px 3px 6px rgba(0,0,0,0.1)",
             }}
             onClick={() => {
-              if (cart.cart.length === 0) {
+              if (orderShow) {
+                setShowOrder(false);
+              } else if (cart.cart.length === 0) {
                 close();
               } else {
                 console.log(getUser());
@@ -853,6 +855,7 @@ function OrderButton({ close }) {
                   <ConfirmMobile
                     closeWindow={() => {
                       setOption(false);
+                      setShowOrder(true);
                     }}
                   />
                 </>
@@ -862,7 +865,9 @@ function OrderButton({ close }) {
                   {cart.cart.length === 0 ? (
                     <>
                       <span className="text-[#FEFEFE] text-[18px] medium ">
-                        {translate("Back To Home", GetAppLanguage())}
+                        {orderShow
+                          ? translate("Back To Cart")
+                          : translate("Back To Home", GetAppLanguage())}
                       </span>
                     </>
                   ) : (

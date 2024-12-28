@@ -132,9 +132,6 @@ class AuthService {
           is_verified: false,
         },
       });
-      StoryService.loginStories();
-      await ChatService.loginChat();
-
       if (typeof window !== "undefined") {
         localStorage.setItem("LAST_JSON", JSON.stringify(repo));
       }
@@ -150,6 +147,31 @@ class AuthService {
       }
       throw e;
     }
+  }
+  async VerifyGuest(id, success) {
+    let dataBody = [];
+    let dataObj = { id_token: id };
+    for (var property in dataObj) {
+      if (dataObj[property] || dataObj[property] === 0) {
+        var encodedKey = encodeURIComponent(property);
+        var encodedValue = encodeURIComponent(dataObj[property]);
+        dataBody.push(encodedKey + "=" + encodedValue);
+      }
+    }
+    // @ts-ignore
+    dataBody = dataBody.join("&");
+    let data = await axios.post(
+      process.env.NEXT_PUBLIC_BACKEND_URL + "/auth/firebase/verify-guest-phone",
+      dataBody,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("DEVICE-TOKEN")}`,
+          lang: getLang(null, Cookies.get("language")),
+          country: Cookies.get("country"),
+        },
+      }
+    );
+    success;
   }
   async UpdateName(name: string) {
     try {

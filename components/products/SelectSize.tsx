@@ -3,7 +3,7 @@ import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "styles/sizeSlider.css";
 import { useDispatch, useSelector } from "react-redux";
-import { Sendevent } from "utils/functions";
+import { Sendevent, translate } from "utils/functions";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 function SelectSize({ sizes, variants }) {
   const activeSize = useSelector(
@@ -108,8 +108,10 @@ function SelectSize({ sizes, variants }) {
           </g>
         </svg>
 
-        <span className="ml-[10px]">Please Select The Appropriate </span>
-        <span className="medium ml-1"> Size</span>
+        <span className="ml-[10px]">
+          {translate("Please Select The Appropriate")}{" "}
+          <span className="medium ml-1"> {translate("Size")}</span>
+        </span>
       </div>
       <div className="flex-row h-[96px] w-full max-w-[420px] min-w-[420px] relative">
         <SelectSizeSlider

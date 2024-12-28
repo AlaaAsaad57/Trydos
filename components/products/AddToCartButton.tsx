@@ -6,6 +6,7 @@ import {
   getConfiguredImage,
   getUser,
   Sendevent,
+  translate,
   UserToken,
 } from "utils/functions";
 import NotifySVG from "public/svg/cart/NotifyCart.svg";
@@ -236,7 +237,11 @@ function AddToCartButton({
             <NotifySVG className={`plus-icon-button absolute top-0 right-0`} />
 
             <div className="button-desc">
-              <div className="flex-row max-w-[30px] justify-end relative image-container-cart">
+              <div
+                className={`flex-row max-w-[30px] justify-end relative image-container-cart ${
+                  !AddToCartOption.enable && "pr-0"
+                }`}
+              >
                 {isNotified() ? (
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -557,7 +562,11 @@ function AddToCartButton({
                 )} */}
 
               <div className="button-desc">
-                <div className="flex-row  justify-end relative image-container-cart">
+                <div
+                  className={`flex-row  justify-end relative image-container-cart ${
+                    !AddToCartOption.enable && "pr-0"
+                  }`}
+                >
                   {AddToCartOption?.enable &&
                     localCart
                       .filter((s) => s.id === product.id)
@@ -587,7 +596,7 @@ function AddToCartButton({
                   <Spinner isMargen={true} />
                 </div>
                 <span className="mt-1">
-                  Add To Bag{" "}
+                  {translate("Add To Bag")}{" "}
                   {AddToCartOption?.enable &&
                     ` ${
                       AddToCartOption?.selectedColor?.color_name
@@ -806,7 +815,11 @@ function AddToCartButton({
                 )} */}
 
               <div className="button-desc">
-                <div className="flex-row  justify-end relative image-container-cart">
+                <div
+                  className={`flex-row  justify-end relative image-container-cart ${
+                    !AddToCartOption.enable && "pr-0"
+                  }`}
+                >
                   {AddToCartOption?.enable &&
                     localCart
                       .filter((s) => s.id === product.id)
@@ -893,7 +906,7 @@ function AddToCartButton({
                   </svg>
                 </div>
                 <span className="mt-1">
-                  Add To Bag{" "}
+                  {translate("Add To Bag")}{" "}
                   {AddToCartOption?.enable &&
                     ` ${
                       AddToCartOption?.selectedColor?.color_name

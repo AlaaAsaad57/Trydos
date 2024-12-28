@@ -17,6 +17,7 @@ const { flag } = require("country-emoji");
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 function PhoneInput({
   stepIndicator,
+  isForCart,
   setStepIndicator,
   wrongNumber,
   setWrongNumber,
@@ -25,6 +26,7 @@ function PhoneInput({
   setInputValue,
 }: {
   stepIndicator: number;
+  isForCart: boolean;
   setStepIndicator: Function;
   wrongNumber: boolean;
   setWrongNumber: Function;
@@ -146,7 +148,9 @@ function PhoneInput({
 
             <div className="text-login-desc">
               <div className="text-login-item">
-                {translate("Enter Your Phone Number To Login", language)}
+                {isForCart
+                  ? translate("Enter Your Phone Number To Complete Order")
+                  : translate("Enter Your Phone Number To Login", language)}
               </div>
               <div className="icon-detail" style={{ marginTop: "3px" }}>
                 <svg

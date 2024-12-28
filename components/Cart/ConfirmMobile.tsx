@@ -59,8 +59,11 @@ function ConfirmMobile({ closeWindow }) {
       console.error("VerifyOtp failed:", error);
     }
   };
-  const FinaliseLogin = () => {
-    AuthService.ConfirmSignIn();
+  const FinaliseLogin = async () => {
+    let idToken = localStorage.getItem("ID-TOKEN");
+    await AuthService.VerifyGuest(idToken, () => {
+      AuthService.ConfirmSignIn();
+    });
   };
   const [failedLogin, setFailed] = useState(false);
 
@@ -114,6 +117,7 @@ function ConfirmMobile({ closeWindow }) {
   return (
     <div>
       <PhoneInput
+        isForCart={true}
         inputValue={inputValue}
         wrongNumber={wrongNumber}
         setWrongNumber={(e) => {

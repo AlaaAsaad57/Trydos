@@ -8,6 +8,8 @@ import { notFound } from "next/navigation";
 import { LogData } from "store/homepage/actions";
 import { AxiosCacheApi, AxiosGet } from "./AxiosApi";
 import home from "services/home";
+import { analytics } from "./firebaseInitv1";
+import { logEvent } from "@firebase/analytics";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -156,9 +158,11 @@ export const Sendevent = async (params: {
       ? JSON.parse(localStorage.getItem("USER"))?.id
       : "empty";
     // @ts-ignore
-    if (typeof window !== "undefined" && window.gtag) {
+    if (typeof window !== "undefined") {
       // @ts-ignore
-      (window as any).gtag("event", params.event, {
+      let a = analytics;
+      // @ts-ignore
+      logEvent(analytics, params.event, {
         executed_event_name: params.value,
         country_name: Cookies.get("country"),
         userID: userId,
@@ -265,8 +269,7 @@ export const getProductMeta = async ({ productId, lang, color }) => {
   const cookieStore = cookies();
   let start = new Date();
   let [langauge, country] = lang.split("-");
-
-  let resp = await fetch(
+  let data = await fetchWithRetry(
     process.env.NEXT_PUBLIC_BACKEND_URL +
       `/web/product/simpleDetails/${productId}${
         color ? `?color=${color}` : ""
@@ -280,7 +283,7 @@ export const getProductMeta = async ({ productId, lang, color }) => {
       }),
     }
   );
-  let data = await resp.json();
+
   let end = new Date();
   LogData({
     request: "Get Product meta info",
@@ -774,6 +777,33 @@ export const onClickSearchHistory = (searchValue) => {
     localStorage.setItem("search-history", JSON.stringify([searchValue]));
   }
 };
+async function fetchWithRetry(url, options, retries = 2, delay = 200) {
+  let attempt = 0;
+
+  while (attempt <= retries) {
+    try {
+      const response = await fetch(url, options);
+
+      // If the response is successful, return the data
+      if (response.ok) {
+        return await response.json();
+      } else {
+        // Handle HTTP error responses (e.g., 4xx or 5xx)
+        throw new Error(`HTTP Error: ${response.status}`);
+      }
+    } catch (error) {
+      attempt++;
+      console.log(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);
+
+      if (attempt > retries) {
+        throw new Error("Max retries reached. Could not fetch the data.");
+      }
+
+      // Wait before retrying
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
 export const getSearchOptions = async () => {
   let categories = await AxiosGet({
     url:

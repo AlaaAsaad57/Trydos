@@ -10,7 +10,8 @@ import { Id } from "react-toastify";
 import ProductToOldCart from "components/Notifications/ProductToOldCart";
 import Category from "components/Notifications/Category";
 import ProductAvailable from "components/Notifications/ProductAvailable";
-
+import "firebase/analytics";
+import { initializeAnalytics, isSupported } from "firebase/analytics";
 const firebaseConfig = {
   // apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
   // authDomain: "trydos-ce234.firebaseapp.com",
@@ -36,6 +37,10 @@ export const messaging =
   typeof window !== "undefined" &&
   "serviceWorker" in navigator &&
   getMessaging(firebaseApp);
+export const analytics =
+  isSupported && typeof window !== "undefined"
+    ? initializeAnalytics(firebaseApp)
+    : null;
 
 export const requestFirebaseNotificationPermission = async () => {
   return getToken(messaging)
