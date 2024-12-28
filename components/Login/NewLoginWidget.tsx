@@ -368,6 +368,7 @@ function NewLoginWidget() {
           />
 
           <PhoneInput
+            isForCart={false}
             inputValue={inputValue}
             wrongNumber={wrongNumber}
             setWrongNumber={(e) => {
