@@ -102,8 +102,9 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
   const getData = async () => {
     await home.CheckLogin();
     try {
-      let req = await axios
-        .get(
+      let req;
+      try {
+        req = await axios.get(
           process.env.NEXT_PUBLIC_BACKEND_URL +
             "/web/product/likesCommentsSharesDetails/" +
             product.id,
@@ -112,8 +113,24 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
               Authorization: `Bearer ${UserToken()}`,
             },
           }
-        )
-        .catch((e) => {});
+        );
+      } catch (error) {
+        if (error.status === 401) {
+          home.checkExpiration();
+          setTimeout(async () => {
+            req = await axios.get(
+              process.env.NEXT_PUBLIC_BACKEND_URL +
+                "/web/product/likesCommentsSharesDetails/" +
+                product.id,
+              {
+                headers: {
+                  Authorization: `Bearer ${UserToken()}`,
+                },
+              }
+            );
+          }, 2000);
+        }
+      }
       dispatchStore({
         type: "STORE-VARIANTS",
         // @ts-ignore

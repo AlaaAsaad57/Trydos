@@ -122,6 +122,7 @@ class AuthService {
           ...repo.data.user,
           already_exists: repo.data.already_exists,
           is_verified: false,
+          expires_at: repo.data.expires_at,
         })
       );
       store.dispatch({
@@ -171,7 +172,7 @@ class AuthService {
         },
       }
     );
-    success;
+    success();
   }
   async UpdateName(name: string) {
     try {
@@ -257,18 +258,27 @@ class AuthService {
     );
   }
   async getProductNotify({ id }) {
-    if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
-    let data = await axios.get(
-      process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/web/product/likesCommentsSharesDetails/" +
-        id,
+    try {
+      if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
+      let data = await axios.get(
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+          "/web/product/likesCommentsSharesDetails/" +
+          id,
 
-      {
-        ...getHeader(),
+        {
+          ...getHeader(),
+        }
+      );
+
+      return data.data.data;
+    } catch (error) {
+      if (error.status === 401) {
+        home.checkExpiration();
+        setTimeout(() => {
+          this.getProductNotify({ id });
+        }, 2000);
       }
-    );
-
-    return data.data.data;
+    }
   }
 }
 export default new AuthService();

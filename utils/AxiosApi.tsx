@@ -3,6 +3,7 @@ import axios from "axios";
 import pngErr from "public/images/error.png";
 import Cookies from "js-cookie";
 import { setupCache } from "axios-cache-interceptor";
+import home from "services/home";
 export const errorPNG = pngErr.src;
 
 export const AxiosGet = async ({ url }) => {
@@ -18,6 +19,12 @@ export const AxiosGet = async ({ url }) => {
     });
     return res?.data.data;
   } catch (error) {
+    if (error.status === 401) {
+      home.checkExpiration();
+      setTimeout(() => {
+        AxiosGet({ url });
+      }, 2000);
+    }
     console.error(error, url);
   }
 };

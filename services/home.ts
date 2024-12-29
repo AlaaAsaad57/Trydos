@@ -19,7 +19,7 @@ import {
   STARTER_SETTINGS,
 } from "utils/endpointConfig";
 import { SSRDetect } from "utils/functions";
-import { GetMainData, LogData } from "store/homepage/actions";
+import { GetMainData } from "store/homepage/actions";
 import { toast } from "react-toastify";
 import axios from "node_modules/axios";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
@@ -89,6 +89,42 @@ class HomeService {
         localStorage.setItem("LAST_JSON", JSON.stringify(repo));
     }
   }
+  async checkExpiration() {
+    let expired_at;
+
+    if (localStorage.getItem("USER")) {
+      let expired_at_user = JSON.parse(localStorage.getItem("USER")).expires_at;
+      let now = new Date();
+      const [date, time] = expired_at_user.split(" ");
+
+      // Split the date into day, month, year
+      const [day, month, year] = date.split("/");
+      expired_at = new Date(`${year}-${month}-${day}T${time}`);
+      if (now.getTime() >= expired_at.getTime()) {
+        store.dispatch({ type: "CANCEL-AUTH" });
+        Cookies.remove("market-token");
+        localStorage.clear();
+        // store.dispatch({ type: "LOGIN-OPEN", payload: true });
+      }
+    } else if (localStorage.getItem("guest-user")) {
+      Cookies.remove("market-token");
+      let expired_at_user = JSON.parse(
+        localStorage.getItem("guest-user")
+      ).expired_at;
+      let now = new Date();
+      const [date, time] = expired_at_user.split(" ");
+
+      // Split the date into day, month, year
+      const [day, month, year] = date.split("/");
+      expired_at = new Date(`${year}-${month}-${day}T${time}`);
+
+      if (now.getTime() >= expired_at.getTime()) {
+        Cookies.remove("DEVICE-TOKEN");
+        localStorage.clear();
+        this.RegisterDevice();
+      }
+    }
+  }
   async CheckLogin() {
     if (!localStorage.getItem("FB-DEVICE-TOKEN")) await this.RegisterDevice();
     if (
@@ -155,7 +191,10 @@ class HomeService {
       Cookies.set("DEVICE-TOKEN", repo.data.token, {
         expires: 365,
       });
-      localStorage.setItem("guest-user", JSON.stringify(repo.data.user));
+      localStorage.setItem(
+        "guest-user",
+        JSON.stringify({ ...repo.data.user, expired_at: repo.data.expires_at })
+      );
       await requestFirebaseNotificationPermission().then(async (token) => {
         // @ts-ignore
         if (token) {
@@ -407,20 +446,42 @@ class HomeService {
       // request
       // @ts-ignore
       dataBody = dataBody.join("&");
-      const res = await axios.post(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
-        dataBody,
-        {
-          headers: {
-            Authorization: `Bearer ${
-              localStorage.getItem("MARKET-TOKEN") ||
-              localStorage.getItem("DEVICE-TOKEN")
-            }`,
-            lang: getLang(null, Cookies.get("language")),
-            country: Cookies.get("country"),
-          },
+
+      let res;
+      try {
+        res = await axios.post(
+          process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
+          dataBody,
+          {
+            headers: {
+              Authorization: `Bearer ${
+                localStorage.getItem("MARKET-TOKEN") ||
+                localStorage.getItem("DEVICE-TOKEN")
+              }`,
+              lang: getLang(null, Cookies.get("language")),
+              country: Cookies.get("country"),
+            },
+          }
+        );
+      } catch (error) {
+        if (error.status === 401) {
+          this.checkExpiration();
+          setTimeout(() => {
+            this.AddToCart({
+              id,
+              size,
+              color,
+              image,
+              quantity,
+              callback,
+              alreadyExist,
+              errCallback,
+              slug,
+            });
+          }, 2000);
         }
-      );
+        store.dispatch({ type: "LOADED-CART", payload: true });
+      }
 
       store.dispatch({ type: "LOADED-CART", payload: true });
       if (res.data?.data?.qty >= 0 && res.data?.data.status !== 0) {
@@ -443,21 +504,43 @@ class HomeService {
       }
       // @ts-ignore
       formBody = formBody.join("&");
+      let res;
+      try {
+        res = await axios.post(
+          process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/add",
+          formBody,
+          {
+            headers: {
+              Authorization: `Bearer ${
+                localStorage.getItem("MARKET-TOKEN") ||
+                localStorage.getItem("DEVICE-TOKEN")
+              }`,
+              lang: getLang(null, Cookies.get("language")),
+              country: Cookies.get("country"),
+            },
+          }
+        );
+      } catch (error) {
+        if (error.status === 401) {
+          this.checkExpiration();
 
-      const res = await axios.post(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/add",
-        formBody,
-        {
-          headers: {
-            Authorization: `Bearer ${
-              localStorage.getItem("MARKET-TOKEN") ||
-              localStorage.getItem("DEVICE-TOKEN")
-            }`,
-            lang: getLang(null, Cookies.get("language")),
-            country: Cookies.get("country"),
-          },
+          setTimeout(() => {
+            this.AddToCart({
+              id,
+              size,
+              color,
+              image,
+              quantity,
+              callback,
+              alreadyExist,
+              errCallback,
+              slug,
+            });
+          }, 2000);
         }
-      );
+        store.dispatch({ type: "LOADED-CART", payload: true });
+      }
+
       let fbtoken = localStorage.getItem("FB-DEVICE-TOKEN");
 
       store.dispatch({ type: "LOADED-CART", payload: true });
