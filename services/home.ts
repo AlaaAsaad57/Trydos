@@ -89,7 +89,7 @@ class HomeService {
         localStorage.setItem("LAST_JSON", JSON.stringify(repo));
     }
   }
-  async checkExpiration() {
+  async checkExpiration(bool) {
     let expired_at;
 
     if (localStorage.getItem("USER")) {
@@ -100,7 +100,7 @@ class HomeService {
       // Split the date into day, month, year
       const [day, month, year] = date.split("/");
       expired_at = new Date(`${year}-${month}-${day}T${time}`);
-      if (now.getTime() >= expired_at.getTime()) {
+      if (now.getTime() >= expired_at.getTime() || bool) {
         store.dispatch({ type: "CANCEL-AUTH" });
         Cookies.remove("market-token");
         localStorage.clear();
@@ -118,7 +118,7 @@ class HomeService {
       const [day, month, year] = date.split("/");
       expired_at = new Date(`${year}-${month}-${day}T${time}`);
       console.log(now, expired_at);
-      if (now.getTime() >= expired_at.getTime()) {
+      if (now.getTime() >= expired_at.getTime() || bool) {
         Cookies.remove("DEVICE-TOKEN");
 
         localStorage.clear();
@@ -468,7 +468,7 @@ class HomeService {
         );
       } catch (error) {
         if (error.status === 401) {
-          this.checkExpiration();
+          this.checkExpiration(true);
           setTimeout(() => {
             this.AddToCart({
               id,
@@ -525,7 +525,7 @@ class HomeService {
         );
       } catch (error) {
         if (error.status === 401) {
-          this.checkExpiration();
+          this.checkExpiration(true);
 
           setTimeout(() => {
             this.AddToCart({

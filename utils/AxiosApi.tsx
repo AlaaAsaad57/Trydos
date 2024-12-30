@@ -23,7 +23,7 @@ export const AxiosGet = async ({ url }) => {
     return res?.data.data;
   } catch (error) {
     if (error.status === 401) {
-      home.checkExpiration();
+      home.checkExpiration(true);
       setTimeout(() => {
         AxiosGet({ url });
       }, 2000);

@@ -273,7 +273,7 @@ class AuthService {
       return data.data.data;
     } catch (error) {
       if (error.status === 401) {
-        home.checkExpiration();
+        home.checkExpiration(true);
         setTimeout(() => {
           this.getProductNotify({ id });
         }, 2000);
