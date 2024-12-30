@@ -4,6 +4,7 @@ import pngErr from "public/images/error.png";
 import Cookies from "js-cookie";
 import { setupCache } from "axios-cache-interceptor";
 import home from "services/home";
+import { LogError } from "./functions";
 export const errorPNG = pngErr.src;
 
 export const AxiosGet = async ({ url }) => {
@@ -22,6 +23,7 @@ export const AxiosGet = async ({ url }) => {
     });
     return res?.data.data;
   } catch (error) {
+    LogError(error, url, window.location.href);
     if (error.status === 401) {
       await home.registerForExpire();
       setTimeout(() => {

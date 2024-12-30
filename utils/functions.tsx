@@ -10,6 +10,7 @@ import { AxiosCacheApi, AxiosGet } from "./AxiosApi";
 import home from "services/home";
 import { analytics } from "./firebaseInitv1";
 import { logEvent } from "@firebase/analytics";
+import axios from "axios";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -1184,4 +1185,15 @@ export const getListingDataFilters = async ({
       console.log(e);
     }
   }
+};
+const _getUserAgent = async () => {
+  return navigator.userAgent || "";
+};
+export const LogError = (error, url, href) => {
+  axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile_error_log/store`, {
+    error_description: JSON.stringify(error),
+    token: UserToken(),
+    url: href,
+    backend_url: url,
+  });
 };

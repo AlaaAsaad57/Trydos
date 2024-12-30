@@ -1,9 +1,10 @@
 "use client";
 import { useEffect } from "react";
 import Logo from "../components/Home/Logo";
+import LogError from "./../utils/functions";
 import "regenerator-runtime/runtime";
 export default function GlobalError({ error, reset }) {
-  const baseUrl = "https://market_staging.trydos.tech/api/new_v1";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   const _getUserAgent = async () => {
     return navigator.userAgent || "";
   };
@@ -20,13 +21,8 @@ export default function GlobalError({ error, reset }) {
         : null;
     }
     let axios = (await import("axios")).default;
-    axios.post(`${baseUrl}/mobile_error_log/store`, {
-      error_description: error.message,
-      last_json,
-      token,
-      userAgent,
-      url: location.href,
-    });
+
+    LogError(error.message, null, location.href);
   };
   useEffect(() => {
     sendError(error);

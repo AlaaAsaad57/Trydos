@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Logo from "components/Home/Logo";
+import { LogError } from "utils/functions";
 
 export default function Error({
   error,
@@ -27,13 +28,7 @@ export default function Error({
         ? JSON.parse(localStorage.getItem("USER-CHAT")).access_token
         : null;
     }
-    axios.post(`${baseUrl}/mobile_error_log/store`, {
-      error_description: error.message,
-      last_json,
-      token,
-      userAgent,
-      url: location.href,
-    });
+    LogError(error.message, null, location.href);
   };
   useEffect(() => {
     sendError(error);
