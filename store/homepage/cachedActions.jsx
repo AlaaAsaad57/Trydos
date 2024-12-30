@@ -615,11 +615,15 @@ export const getCountriesApi = async () => {
       });
     }, 2000);
   }
-  let end = new Date().getTime();
-  LogData({ repo, desc: "countries" });
-  let data = await repo.json();
+  try {
+    let end = new Date().getTime();
+    LogData({ repo, desc: "countries" });
+    let data = await repo.json();
 
-  return data.data.countries;
+    return data.data.countries;
+  } catch (error) {
+    throw new Error("Countries Request Failed" + error);
+  }
 };
 
 export const FetchApi = async ({ url, method, body, lang, country }) => {

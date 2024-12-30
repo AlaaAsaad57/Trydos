@@ -93,40 +93,45 @@ class HomeService {
     let expired_at;
 
     if (localStorage.getItem("USER")) {
-      let expired_at_user = JSON.parse(localStorage.getItem("USER")).expires_at;
-      let now = new Date();
-      const [date, time] = expired_at_user.split(" ");
-
-      // Split the date into day, month, year
-      const [day, month, year] = date.split("/");
-      expired_at = new Date(`${year}-${month}-${day}T${time}`);
-      if (now.getTime() >= expired_at.getTime() || bool) {
+      if (bool) {
         store.dispatch({ type: "CANCEL-AUTH" });
         Cookies.remove("market-token");
         localStorage.clear();
-        // store.dispatch({ type: "LOGIN-OPEN", payload: true });
+        store.dispatch({ type: "LOGIN-OPEN", payload: true });
       }
-    } else if (localStorage.getItem("guest-user")) {
+    } else if (localStorage.getItem("guest-user") || bool) {
       Cookies.remove("market-token");
-      let expired_at_user = JSON.parse(
-        localStorage.getItem("guest-user")
-      ).expired_at;
-      let now = new Date();
-      const [date, time] = expired_at_user.split(" ");
-
       // Split the date into day, month, year
-      const [day, month, year] = date.split("/");
-      expired_at = new Date(`${year}-${month}-${day}T${time}`);
-      console.log(now, expired_at);
-      if (now.getTime() >= expired_at.getTime() || bool) {
+
+      if (bool) {
         Cookies.remove("DEVICE-TOKEN");
 
-        localStorage.clear();
+        // localStorage.clear();
         setTimeout(async () => {
-          await this.RegisterDevice();
+          await this.registerForExpire();
         }, 2000);
       }
     }
+  }
+  async registerForExpire() {
+    try {
+      let response = await fetch(
+        process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
+        {
+          method: "POST",
+          ...getHeader(),
+        }
+      );
+      let repo = await response.json();
+      localStorage.setItem("DEVICE-TOKEN", repo.data.token);
+      Cookies.set("DEVICE-TOKEN", repo.data.token, {
+        expires: 365,
+      });
+      localStorage.setItem(
+        "guest-user",
+        JSON.stringify({ ...repo.data.user, expired_at: repo.data.expires_at })
+      );
+    } catch (error) {}
   }
   async CheckLogin() {
     if (!localStorage.getItem("FB-DEVICE-TOKEN")) await this.RegisterDevice();
@@ -468,7 +473,8 @@ class HomeService {
         );
       } catch (error) {
         if (error.status === 401) {
-          this.checkExpiration(true);
+          await this.registerForExpire();
+
           setTimeout(() => {
             this.AddToCart({
               id,
@@ -525,7 +531,7 @@ class HomeService {
         );
       } catch (error) {
         if (error.status === 401) {
-          this.checkExpiration(true);
+          await this.registerForExpire();
 
           setTimeout(() => {
             this.AddToCart({

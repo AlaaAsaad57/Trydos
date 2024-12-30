@@ -361,7 +361,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "AddToCartSize": {
-      let variant = (state.variants?.variation || state.variants).filter(
+      let variant = (state.variants?.variation || state.variants || []).filter(
         (s) =>
           s.type.includes(
             state?.AddToCartOption?.selectedColor?.color_name || ""
