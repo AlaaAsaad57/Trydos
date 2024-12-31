@@ -18,6 +18,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 function AddToCartWidget() {
   const dispatch = useDispatch();
+
   const loaded = useSelector((state: any) => state.cart.loaded);
   let QTY_URL = "/web/product/qtyPriceDetails";
   const SelectedProduct = useSelector(
@@ -173,6 +174,8 @@ const SelectColor = ({ close }) => {
     }
     dispatch({ type: "ENABLE-CART", payload: s });
   };
+  const cart = useSelector((state: any) => state.cart?.localCart);
+
   return (
     <>
       <div className="blur-md bg-[#f4f4f480] backdrop-blur-[10px] flex fixed top-0 left-0 h-full w-full z-[99]" />
@@ -185,18 +188,25 @@ const SelectColor = ({ close }) => {
         >
           <BackIcon />
         </div>
-        <CartIcon
-          id={"cart-icon"}
-          className="cart-icon"
-          onClick={() => {
-            Sendevent({
-              event: "button_clicked",
-              value: "cart_nav_bar_button",
-            });
-            close();
-            enableCart(true);
-          }}
-        />
+        <span className="relative">
+          {cart?.length > 0 && (
+            <span className="bg-green-500 z-10 bottom-[-10px] left-[-10px] text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
+              {cart.length}
+            </span>
+          )}
+          <CartIcon
+            id={"cart-icon"}
+            className="cart-icon"
+            onClick={() => {
+              Sendevent({
+                event: "button_clicked",
+                value: "cart_nav_bar_button",
+              });
+              close();
+              enableCart(true);
+            }}
+          />
+        </span>
       </div>
       <div className="flex-col mt-[10px] w-full   top-[103px] items-center z-[9999999999999]">
         <div className="flex-row w-auto justify-center h-available relative rounded-[15px] inset-select-shadow-image image-cart-container">

@@ -116,19 +116,9 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
         );
       } catch (error) {
         if (error.status === 401) {
-          await this.registerForExpire();
-          setTimeout(async () => {
-            req = await axios.get(
-              process.env.NEXT_PUBLIC_BACKEND_URL +
-                "/web/product/likesCommentsSharesDetails/" +
-                product.id,
-              {
-                headers: {
-                  Authorization: `Bearer ${UserToken()}`,
-                },
-              }
-            );
-          }, 2000);
+          await home.registerForExpire();
+          getData();
+          return;
         }
       }
       dispatchStore({

@@ -10,6 +10,8 @@ import BackIcon from "public/svg/listing/backIcon.svg";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 function SelectColor({ close }) {
+  const cart = useSelector((state: any) => state.cart?.localCart);
+
   const AddToCartOption = useSelector(
     (state: any) => state.cart.AddToCartOption
   );
@@ -55,15 +57,22 @@ function SelectColor({ close }) {
         >
           <BackIcon />
         </div>
-        <CartIcon
-          id="cart-icon"
-          className="cart-icon"
-          onClick={() => {
-            dispatch({ type: "AddToCartOptionDisable", payload: false });
-            close();
-            enableCart(true);
-          }}
-        />
+        <span className="relative">
+          {cart?.length > 0 && (
+            <span className="bg-green-500 z-10 bottom-[-10px] left-[-10px] text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
+              {cart.length}
+            </span>
+          )}
+          <CartIcon
+            id="cart-icon"
+            className="cart-icon"
+            onClick={() => {
+              dispatch({ type: "AddToCartOptionDisable", payload: false });
+              close();
+              enableCart(true);
+            }}
+          />
+        </span>
       </div>
       <div className="flex-col mt-[10px] w-full fixed  left-0 z-[9999999999] top-[50px] items-center">
         <div className="flex-row w-auto justify-center moved-min-img relative rounded-[15px] inset-select-shadow-image image-cart-container">

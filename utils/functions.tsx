@@ -24,15 +24,18 @@ export const getStories = async () => {
     return [];
   }
 };
-export function translate(key: string, language?: string) {
-  let url;
+
+export function translate(key: string, language?: string | string[]) {
+  let url, lang;
   if (typeof window !== "undefined") {
     url = window.location.pathname.split("/")[1];
+    lang = url.split("-")[1] ?? "en";
+  } else {
+    lang = Cookies.get("language") ?? "en";
+  }
 
-    let lang = url.split("-")[1] ?? "en";
-    if (translations[lang] && translations[lang][key]) {
-      return translations[lang][key] || key;
-    } else return key;
+  if (translations[lang] && translations[lang][key]) {
+    return translations[lang][key] || key;
   } else return key;
 }
 
@@ -1186,9 +1189,7 @@ export const getListingDataFilters = async ({
     }
   }
 };
-const _getUserAgent = async () => {
-  return navigator.userAgent || "";
-};
+
 export const LogError = (error, url, href) => {
   axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile_error_log/store`, {
     error_description: JSON.stringify(error),
