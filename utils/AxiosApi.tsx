@@ -13,7 +13,10 @@ export const AxiosGet = async ({ url }) => {
         lang: Cookies.get("language"),
         country: Cookies.get("country"),
         Authorization: `Bearer ${
-          Cookies.get("market-token") ?? Cookies.get("DEVICE-TOKEN")
+          localStorage.getItem("MARKET-TOKEN") ??
+          Cookies.get("market-token") ??
+          Cookies.get("DEVICE-TOKEN") ??
+          localStorage.getItem("DEVICE-TOKEN")
         }`,
       },
     });

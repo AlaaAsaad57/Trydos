@@ -27,11 +27,11 @@ export function translate(key: string, language?: string) {
   let url;
   if (typeof window !== "undefined") {
     url = window.location.pathname.split("/")[1];
-  } else {
-  }
-  let lang = url.split("-")[1] ?? "en";
-  if (translations[lang] && translations[lang][key]) {
-    return translations[lang][key] || key;
+
+    let lang = url.split("-")[1] ?? "en";
+    if (translations[lang] && translations[lang][key]) {
+      return translations[lang][key] || key;
+    } else return key;
   } else return key;
 }
 
