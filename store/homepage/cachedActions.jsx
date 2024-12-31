@@ -597,12 +597,24 @@ export async function getProductDataOG({ slug, lang, color }) {
 }
 export const getCountriesApi = async () => {
   let start = new Date().getTime();
-  let repo = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + "/countries", {
-    next: {
-      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-      tags: ["countries"],
-    },
-  });
+  let repo;
+  try {
+    repo = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + "/countries", {
+      next: {
+        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+        tags: ["countries"],
+      },
+    });
+  } catch (error) {
+    setTimeout(async () => {
+      repo = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + "/countries", {
+        next: {
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+          tags: ["countries"],
+        },
+      });
+    }, 2000);
+  }
   let end = new Date().getTime();
   LogData({ repo, desc: "countries" });
   let data = await repo.json();

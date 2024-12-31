@@ -117,11 +117,14 @@ class HomeService {
       // Split the date into day, month, year
       const [day, month, year] = date.split("/");
       expired_at = new Date(`${year}-${month}-${day}T${time}`);
-
+      console.log(now, expired_at);
       if (now.getTime() >= expired_at.getTime()) {
         Cookies.remove("DEVICE-TOKEN");
+
         localStorage.clear();
-        this.RegisterDevice();
+        setTimeout(async () => {
+          await this.RegisterDevice();
+        }, 2000);
       }
     }
   }

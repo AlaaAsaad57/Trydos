@@ -24,8 +24,12 @@ export const getStories = async () => {
   }
 };
 export function translate(key: string, language?: string) {
-  let s = window.location.pathname.split("/")[1];
-  let lang = s.split("-")[1] ?? "en";
+  let url;
+  if (typeof window !== "undefined") {
+    url = window.location.pathname.split("/")[1];
+  } else {
+  }
+  let lang = url.split("-")[1] ?? "en";
   if (translations[lang] && translations[lang][key]) {
     return translations[lang][key] || key;
   } else return key;
