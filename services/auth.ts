@@ -7,7 +7,7 @@ import { _isStoreLastJson, getLang, UserID } from "utils/functions";
 import { SEND_OTP, VERFIY_OTP, VERFIY_OTP_SIGNUP } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
-import { FetchApi } from "store/homepage/cachedActions";
+
 import axios from "axios";
 import home from "./home";
 const getHeader = () => {

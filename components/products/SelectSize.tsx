@@ -7,13 +7,13 @@ import { Sendevent, translate } from "utils/functions";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 function SelectSize({ sizes, variants }) {
   const activeSize = useSelector(
-    (state: any) => state.cart.AddToCartOption.selectedSize
+    (state: StateInterface) => state.cart.AddToCartOption.selectedSize
   );
   const SelectedProduct = useSelector(
-    (state: any) => state.cart.SelectedProduct
+    (state: StateInterface) => state.cart.SelectedProduct
   );
   const activeColor = useSelector(
-    (state: any) => state.cart.AddToCartOption.selectedColor
+    (state: StateInterface) => state.cart.AddToCartOption.selectedColor
   );
   const dispatch = useDispatch();
   const router = useRouter();

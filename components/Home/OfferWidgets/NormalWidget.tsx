@@ -78,7 +78,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
         <div className="offer-blured" id={`blured-${boutique.id}`} /> */}
         <div className="offer-container cursor-pointer">
           <div className="offer-logo">
-            {boutique.icon?.file_path ? (
+            {boutique.icon ? (
               <Image
                 id={"img-" + boutique.id}
                 className="object-contain"
@@ -93,7 +93,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                 }}
                 width={20}
                 height={20}
-                src={boutique?.icon?.file_path?.replace(
+                src={boutique?.icon?.replace(
                   "/upload",
                   `/upload/h_50/f_webp/q_auto`
                 )}
@@ -112,7 +112,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                       e.preventDefault();
                       // dispatchRouteChangeEvent("start", { to: "boutique" });
                       router.push(
-                        `/boutiques/${boutique.slug}?categories=${category.category_id}`
+                        `/boutiques/${boutique.slug}?categories=${category.slug}`
                       );
                     }}
                     key={key}
@@ -126,7 +126,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                       width={12}
                       height={12}
                       // @ts-ignore
-                      src={category.flat_photo_path?.file_path?.replace(
+                      src={category.flat_photo_path?.replace(
                         "/upload",
                         `/upload/h_50/f_webp/q_auto`
                       )}
@@ -136,13 +136,13 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
               } else
                 return (
                   <div
-                    aria-label={`${category.category_name} products page`}
+                    aria-label={`${category.name} products page`}
                     key={key}
                     onClick={(e) => {
                       e.preventDefault();
                       // dispatchRouteChangeEvent("start", { to: "boutique" });
                       router.push(
-                        `/boutiques/${boutique.slug}?categories=${category.category_id}`
+                        `/boutiques/${boutique.slug}?categories=${category.slug}`
                       );
                     }}
                   >

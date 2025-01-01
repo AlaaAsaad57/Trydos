@@ -46,13 +46,18 @@ export async function generateMetadata({ params, searchParams }) {
 
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const runtime = "edge";
-
-async function Page({ params: { productId, lang }, searchParams }) {
+interface Props {
+  params: {
+    lang: string;
+    productId: string;
+  };
+}
+async function Page({ params }: Props) {
   return (
     <>
-      <CustomNavbarServer lang={lang} />
+      <CustomNavbarServer lang={params.lang} />
 
-      <ProductDetailsServer productId={productId} lang={lang} />
+      <ProductDetailsServer productId={params.productId} lang={params.lang} />
     </>
   );
 }

@@ -12,8 +12,11 @@ import { dispatchRouteChangeEvent } from "utils/events";
 import home from "services/home";
 import Spinner from "components/global/Spinner";
 import FilterInfoBar from "components/ListingPage/FilterInfoBar";
+
 function SearchResults() {
-  const loading = useSelector((state: any) => state.Search.partialLoading);
+  const loading = useSelector(
+    (state: StateInterface) => state.Search.partialLoading
+  );
   const setLoading = (e) => {
     dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: e });
   };
@@ -27,11 +30,21 @@ function SearchResults() {
     );
   };
   const router = useRouter();
-  const searchResults = useSelector((state: any) => state.Search.searchResults);
-  const totalProducts = useSelector((state: any) => state.Search.totalProducts);
-  const loadingSearch = useSelector((state: any) => state.Search.loading);
-  const searchFilters = useSelector((state: any) => state.Search.searchFilters);
-  const searchValue = useSelector((state: any) => state.Search.value);
+  const searchResults = useSelector(
+    (state: StateInterface) => state.Search.searchResults
+  );
+  const totalProducts = useSelector(
+    (state: StateInterface) => state.Search.totalProducts
+  );
+  const loadingSearch = useSelector(
+    (state: StateInterface) => state.Search.loading
+  );
+  const searchFilters = useSelector(
+    (state: StateInterface) => state.Search.searchFilters
+  );
+  const searchValue = useSelector(
+    (state: StateInterface) => state.Search.value
+  );
   const dispatch = useDispatch();
   const handleSearch = (data) => {
     const params = new URLSearchParams(searchParams);

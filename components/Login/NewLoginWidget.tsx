@@ -15,12 +15,15 @@ import AuthService from "services/auth";
 
 import LoginMethods from "./LoginMethods";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
+
 function NewLoginWidget() {
   const [stepIndicator, setStepIndicator] = useState(-1);
   const [signStep, setSignStep] = useState("");
   const [operation, setOperation] = useState("login");
   const [showMethods, setShowMethods] = useState(false);
-  const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
+  const loginOpen = useSelector(
+    (state: StateInterface) => state.homepage.loginOpen
+  );
 
   const [Name, setName] = useState("");
   const [success, setSuccess] = useState(false);
@@ -32,11 +35,17 @@ function NewLoginWidget() {
   const [MessageMethod, setMessageMethod] = useState("");
   const [failedLogin, setFailed] = useState(false);
   const [wrongNumberVar, setWrongNumber] = useState(false);
-  const wrongNumber = useSelector((state: any) => state.auth.wrongNumber);
-  const language = useSelector((state: any) => state.homepage.language);
+  const wrongNumber = useSelector(
+    (state: StateInterface) => state.auth.wrongNumber
+  );
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
 
-  const verficationID = useSelector((state: any) => state.auth.verficationID);
-  const user = useSelector((state: any) => state.auth.Tempuser);
+  const verficationID = useSelector(
+    (state: StateInterface) => state.auth.verficationID
+  );
+  const user = useSelector((state: StateInterface) => state.auth.Tempuser);
 
   const SendOtpHook = async ({
     errorCallback,

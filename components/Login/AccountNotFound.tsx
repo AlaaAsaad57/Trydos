@@ -3,6 +3,7 @@ import Animated from "react-mount-animation";
 import { useSelector } from "react-redux";
 import { Sendevent, translate } from "utils/functions";
 import AuthService from "services/auth";
+
 function AccountNotFound({
   inputValue,
   setStepIndicator,
@@ -17,7 +18,9 @@ function AccountNotFound({
   signStep: string;
   setStepIndicator: Function;
 }) {
-  const language = useSelector((state: any) => state.homepage.language);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   const [active, setActive] = useState(false);
   const mountAnim = ` 
   0% {transform:translateX(800px)}

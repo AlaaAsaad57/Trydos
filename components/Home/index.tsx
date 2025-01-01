@@ -22,6 +22,7 @@ import { dispatchRouteChangeEvent } from "utils/events";
 // });
 import SearchContainer from "./Search/SearchContainer";
 import React from "react";
+
 export default function Home() {
   useEffect(() => {
     dispatchRouteChangeEvent("completed");
@@ -75,12 +76,16 @@ export default function Home() {
     }
   };
   const selectedStory = useSelector(
-    (state: any) => state.homepage.selectedStory
+    (state: StateInterface) => state.homepage.selectedStory
   );
 
-  const searchEnabled = useSelector((state: any) => state.Search.enable);
+  const searchEnabled = useSelector(
+    (state: StateInterface) => state.Search.enable
+  );
 
-  const nameModal = useSelector((state: any) => state.chat.nameModal);
+  const nameModal = useSelector(
+    (state: StateInterface) => state.chat.nameModal
+  );
   // useEffect(() => {
   //   if (selectedStory) {
   //     document.documentElement

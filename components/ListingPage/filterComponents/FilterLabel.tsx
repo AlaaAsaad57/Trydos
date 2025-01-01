@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import Spinner from "components/global/Spinner";
 
 function FilterLabel({ text }: { text: string }) {
-  const loading = useSelector((state: any) => state.details.loading);
+  const loading = useSelector((state: StateInterface) => state.details.loading);
   return (
     <div className="filter-label flex-row justify-start align-center">
       <ActiveCategoryIcon />

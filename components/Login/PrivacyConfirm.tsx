@@ -4,8 +4,11 @@ import { Sendevent, translate } from "utils/functions";
 import ConditionIcon from "public/svg/ConditionIcon.svg";
 
 import { useTransition, animated } from "react-spring";
+
 function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
-  const language = useSelector((state: any) => state.homepage.language);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   const [active, setActive] = useState(false);
   const transition = useTransition(active, {
     from: { x: -800 },

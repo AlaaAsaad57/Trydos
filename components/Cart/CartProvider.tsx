@@ -13,7 +13,7 @@ const CartProvider = () => {
 
   const searchParams = useSearchParams();
   const filterEnabled = useSelector(
-    (state: any) => state.listing.filterEnabled
+    (state: StateInterface) => state.listing.filterEnabled
   );
   const enableCart = (s) => {
     window.history.pushState({ isPopup: true }, "open Cart");
@@ -61,7 +61,7 @@ const CartProvider = () => {
       enableCart(true);
     }
   }, []);
-  const cartEnable = useSelector((state: any) => state.cart.enable);
+  const cartEnable = useSelector((state: StateInterface) => state.cart.enable);
   return (
     <>
       {cartEnable ? (

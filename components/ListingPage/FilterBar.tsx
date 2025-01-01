@@ -12,7 +12,6 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   expandView,
   filterProducts,
-  getListingDataFilters,
   normalizeView,
   Sendevent,
   UpdateFilter,
@@ -26,9 +25,10 @@ import {
   useSearchParams,
 } from "next/navigation";
 import NextLink from "components/global/NextLink";
+
 function FilterBar({ boutique, filters, productsServer }) {
   const selectedFilter = useSelector(
-    (state: any) => state.details.selectedFilter
+    (state: StateInterface) => state.details.selectedFilter
   );
 
   const pathName = useParams();
@@ -37,18 +37,22 @@ function FilterBar({ boutique, filters, productsServer }) {
     dispatch({ type: "filterEnabled", payload: e });
   };
   const filterEnabled = useSelector(
-    (state: any) => state.listing.filterEnabled
+    (state: StateInterface) => state.listing.filterEnabled
   );
   const activeFilters = useSelector(
-    (state: any) => state.details.activeFilters
+    (state: StateInterface) => state.details.activeFilters
   );
   const selectedFilters = useSelector(
-    (state: any) => state.details.selectedFilter
+    (state: StateInterface) => state.details.selectedFilter
   );
-  const products = useSelector((state: any) => state.listing.products);
-  const ActiveSearch = useSelector((state: any) => state.details.search);
+  const products = useSelector(
+    (state: StateInterface) => state.listing.products
+  );
+  const ActiveSearch = useSelector(
+    (state: StateInterface) => state.details.search
+  );
   const sizesAttr = useSelector(
-    (state: any) => state.details.filters.sizesAttr
+    (state: StateInterface) => state.details.filters.sizesAttr
   );
   const showFilterInfoBar = () => {
     if (
@@ -266,7 +270,7 @@ function FilterBar({ boutique, filters, productsServer }) {
                     searchText: selectedFilters.searchText,
                   });
                   setEnableFilter(false);
-                  if (selectedFilters.searchText > 0) {
+                  if (selectedFilters.searchText.length > 0) {
                     params.set("searchText", selectedFilters.searchText);
                   } else {
                     params.delete("searchText");

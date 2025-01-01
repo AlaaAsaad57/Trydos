@@ -21,7 +21,9 @@ function BackBar({
     LogData(data);
   }, []);
   const router = useRouter();
-  const activeRoute = useSelector((state: any) => state.homepage.activeRoute);
+  const activeRoute = useSelector(
+    (state: StateInterface) => state.homepage.activeRoute
+  );
   return (
     <div className="back-bar align-center w-100 flex-row">
       <NextLink

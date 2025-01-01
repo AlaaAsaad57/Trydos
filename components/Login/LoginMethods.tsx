@@ -5,9 +5,12 @@ import { translate } from "utils/functions";
 import { useSelector } from "react-redux";
 import Border from "./Border";
 import "styles/methods.css";
+
 const LoginMethods = ({ confirm }) => {
   const [showQr, setShowQr] = useState(false);
-  const language = useSelector((state: any) => state.homepage.language);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   useEffect(() => {
     let e = document.querySelector<HTMLDivElement>(".login-widget-container");
     if (e.classList.contains("qr-extend-comtainer")) {

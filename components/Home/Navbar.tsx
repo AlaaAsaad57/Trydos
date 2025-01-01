@@ -19,12 +19,16 @@ interface NavbarProps {
   response?: any;
 }
 function Navbar({ init, categories, response }: NavbarProps) {
-  const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
+  const loginOpen = useSelector(
+    (state: StateInterface) => state.homepage.loginOpen
+  );
   const setLoginOpen = (e: boolean) => {
     window.history.pushState({ isPopup: true }, "open Login");
     dispatch({ type: "LOGIN-OPEN", payload: e });
   };
-  const language = useSelector((state: any) => state.homepage.language);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   const dispatch = useDispatch();
   const params = usePathname();
   const initFunc = async () => {

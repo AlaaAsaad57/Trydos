@@ -11,18 +11,15 @@ import home from "services/home";
 import { analytics } from "./firebaseInitv1";
 import { logEvent } from "@firebase/analytics";
 import axios from "axios";
+import {
+  CartApi,
+  FilterProductApi,
+  OldCartApi,
+  SimpleBoutiqeApi,
+  SimpleDetailsProductApi,
+} from "models/Api";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
-};
-export const getStories = async () => {
-  try {
-    // hi
-    const res = await StoryServiceClass.getStories();
-    const repo = res;
-    return repo;
-  } catch (e) {
-    return [];
-  }
 };
 
 export function translate(key: string, language?: string | string[]) {
@@ -39,8 +36,9 @@ export function translate(key: string, language?: string | string[]) {
   } else return key;
 }
 
-const token = SSRDetect() && localStorage.getItem("STORIES-TOKEN");
 export const getStoriesHeaders = () => {
+  const token = SSRDetect() && localStorage.getItem("STORIES-TOKEN");
+
   return {
     headers: {
       Authentication: `Bearer ${token}`,
@@ -231,53 +229,13 @@ export const getLang = (lang, cookieLang) => {
     }
   }
 };
-export const getBoutiquesUrl = async ({ str }) => {
-  var details = {
-    slug: str,
-  };
-  let start = new Date();
-  var formBody = [];
-  for (var property in details) {
-    var encodedKey = encodeURIComponent(property);
-    var encodedValue = encodeURIComponent(details[property]);
-    formBody.push(encodedKey + "=" + encodedValue);
-  }
-  // @ts-ignore
-  formBody = formBody.join("&");
-  // @ts-ignore
-  let response = await fetch(
-    process.env.NEXT_PUBLIC_BACKEND_URL + HOME_DATA_URL,
-    {
-      method: "POST",
-      // @ts-ignore
-      body: formBody,
-    }
-  );
-  let data = await response.json();
-  let end = new Date();
-  LogData({
-    request: "Get boutiques by category",
-    url: process.env.NEXT_PUBLIC_BACKEND_URL + HOME_DATA_URL,
-    headers: {
-      Authorization: `Bearer ${
-        typeof localStorage !== "undefined" &&
-        localStorage.getItem("MARKET-TOKEN")
-      }`,
-      lang: getLang(null, Cookies.get("language")),
-      country: Cookies.get("country"),
-    },
-    response: data,
-    time: end.getTime() - start.getTime(),
-  });
-  return data.data.boutiques;
-};
 
 export const getProductMeta = async ({ productId, lang, color }) => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   let start = new Date();
   let [langauge, country] = lang.split("-");
-  let data = await fetchWithRetry(
+  let data: SimpleDetailsProductApi = await fetchWithRetry(
     process.env.NEXT_PUBLIC_BACKEND_URL +
       `/web/product/simpleDetails/${productId}${
         color ? `?color=${color}` : ""
@@ -335,7 +293,7 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
       }),
     }
   );
-  let data = await resp.json();
+  let data: SimpleBoutiqeApi = await resp.json();
   let end = new Date();
   LogData({
     request: "Get Product simple info",
@@ -354,59 +312,13 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
     time: end.getTime() - start.getTime(),
   });
 
-  if (data.code === "boutique_not_found") {
+  if (data.message === "Boutique not found") {
     notFound();
   }
 
   return { ...data.data, image: data.data?.banners[0]?.file_path };
 };
-export const getBoutiqueFilters = async ({ boutiqueId, lang }) => {
-  let start = new Date();
-  const cookies = (await import("next/headers")).cookies;
-  const cookieStore = cookies();
-  let [langauge, country] = lang.split("-");
-  let resp = await fetch(
-    process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-      `/api/products/search?with_products=false${
-        boutiqueId !== "listing" &&
-        boutiqueId &&
-        `&boutique_slugs=${JSON.stringify([boutiqueId])}`
-      }`,
-    {
-      headers: new Headers({
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        lang: await getLang(langauge, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
-      }),
-    }
-  );
 
-  let data = await resp.json();
-  let end = new Date();
-  LogData({
-    request: "Get Boutique Filters",
-    url:
-      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-      `/api/products/search?with_products=false${
-        boutiqueId !== "listing" &&
-        boutiqueId &&
-        `&boutique_slugs=${JSON.stringify([boutiqueId])}`
-      }`,
-    headers: {
-      Authorization: `Bearer ${
-        typeof localStorage !== "undefined" &&
-        localStorage.getItem("MARKET-TOKEN")
-      }`,
-      lang: getLang(null, Cookies.get("language")),
-      country: Cookies.get("country"),
-    },
-    response: data,
-    time: end.getTime() - start.getTime(),
-  });
-
-  return data.data;
-};
 export const caseCheck = (word, value) => {
   let inp = value;
   if (word.substr(0, value.length).toUpperCase() === value.toUpperCase())
@@ -646,7 +558,7 @@ export const filterProducts = async ({
         : ""
     }${filters.colors.length > 0 ? `${JSON.stringify(filters.colors)}` : ``}`;
   }
-  let product = await AxiosCacheApi({
+  let product: FilterProductApi = await AxiosCacheApi({
     url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str,
     params:
       filters.colors.length === 0
@@ -736,7 +648,7 @@ export const UpdateFilter = async ({
         : ""
     }${filters.colors.length > 0 ? `${JSON.stringify(filters.colors)}` : ``}`;
 
-    let product = await AxiosCacheApi({
+    let product: FilterProductApi = await AxiosCacheApi({
       url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str,
       params:
         filters.colors.length === 0
@@ -813,7 +725,7 @@ async function fetchWithRetry(url, options, retries = 2, delay = 200) {
   }
 }
 export const getSearchOptions = async () => {
-  let categories = await AxiosGet({
+  let categories: FilterProductApi["data"] = await AxiosGet({
     url:
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
       "/api/products/search?with_products=false",
@@ -829,22 +741,15 @@ export const getSearchOptions = async () => {
   ];
 };
 export const getCart = async ({ callback }) => {
-  // let [data, response] = await FetchApi({
-  //   url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/cart_shipping",
-  //   method: "GET",
-  //   body: null,
-  //   country: null,
-  //   lang: null,
-  // });
   if (
     !localStorage.getItem("DEVICE-TOKEN") &&
     !localStorage.getItem("MARKET-TOKEN")
   )
     await home.RegisterDevice();
-  let data = await AxiosGet({
+  let data: CartApi["data"] = await AxiosGet({
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/cart_shipping",
   });
-  let oldCartData = await AxiosGet({
+  let oldCartData: OldCartApi["data"] = await AxiosGet({
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/old-cart/get_old_cart",
   });
 
@@ -913,281 +818,6 @@ export const AddToCartAnimation = () => {
   setTimeout(() => {
     store.dispatch({ type: "LOADED-CART", payload: true });
   }, 1500);
-};
-export const AxiosInstaceRequest = async ({ url, method, body }) => {
-  let start = new Date().getTime();
-  let lang = Cookies.get("language");
-  let country = Cookies.get("country");
-  let axios = (await import("axios")).default;
-  if (method === "GET") {
-    let res = await axios.get(url, {
-      headers: {
-        lang: lang,
-        country: country,
-      },
-    });
-    let end = new Date().getTime() - start;
-    let returned_res = {
-      url,
-      method,
-      headers: {
-        lang: lang,
-        country: country,
-      },
-    };
-    return returned_res;
-  } else if (method === "POST") {
-    let res = await axios.post(url, JSON.stringify(body), {
-      headers: {
-        lang: lang,
-        country: country,
-      },
-    });
-    let end = new Date().getTime() - start;
-    let returned_res = {
-      url,
-      method,
-      body,
-      headers: {
-        lang: lang,
-        country: country,
-      },
-    };
-    return returned_res;
-  }
-};
-export const getListingDataFilters = async ({
-  categories,
-  lang,
-  productCategory,
-  searchParams,
-  callback,
-}) => {
-  let start = new Date().getTime();
-
-  if (Object.keys(searchParams).length > 0) {
-    let obj = {
-      categories: ``,
-      brands: ``,
-      sizes: ``,
-      colors: ``,
-      search_text: "",
-      offers: "",
-      sizesAttr: null,
-      prices: "",
-    };
-    if (Object.keys(searchParams).includes("searchText")) {
-      obj = { ...obj, search_text: searchParams.searchText };
-    }
-    if (Object.keys(searchParams).includes("categories"))
-      obj = {
-        ...obj,
-        categories: `${
-          searchParams.categories.includes(",")
-            ? searchParams.categories.split(",")
-            : [searchParams.categories]
-        }`,
-      };
-    if (Object.keys(searchParams).includes("colors"))
-      obj = {
-        ...obj,
-        colors: `${
-          searchParams.colors.includes(",")
-            ? searchParams.colors.split(",")
-            : [searchParams.colors]
-        }`,
-      };
-    if (Object.keys(searchParams).includes("brands"))
-      obj = {
-        ...obj,
-        brands: `${
-          searchParams.brands.includes(",")
-            ? searchParams.brands.split(",")
-            : [searchParams.brands]
-        }`,
-      };
-    if (Object.keys(searchParams).includes("offers"))
-      obj = {
-        ...obj,
-        offers: `${
-          searchParams.offers.includes(",")
-            ? searchParams.offers.split(",")
-            : [searchParams.offers]
-        }`,
-      };
-    if (Object.keys(searchParams).includes("sizes"))
-      obj = {
-        ...obj,
-        sizes: `${
-          searchParams.sizes.includes(",")
-            ? searchParams.sizes.split(",")
-            : [searchParams.sizes]
-        }`,
-        sizesAttr: { id: "1", name: "Size" },
-      };
-    if (
-      Object.keys(searchParams).includes("max-pr") &&
-      Object.keys(searchParams).includes("min-pr")
-    )
-      obj = {
-        ...obj,
-        prices: `${searchParams["min-pr"]}-${searchParams["max-pr"]}`,
-      };
-
-    let filters = {
-      ...obj,
-      boutique_slug: null,
-      lang: lang,
-    };
-    if (!categories.includes("listing")) {
-      filters = {
-        ...filters,
-        boutique_slug: categories,
-      };
-    }
-
-    let str = `/api/products/search?with_products=false${
-      obj.categories?.length > 0
-        ? `&category_slugs=${JSON.stringify(
-            obj.categories.split(",").map((s) => s)
-          )}`
-        : ""
-    }${
-      obj.brands?.length > 0
-        ? `&brand_slugs=${JSON.stringify(obj.brands.split(",").map((s) => s))}`
-        : ""
-    }${
-      obj.sizes?.length > 0
-        ? `&attributes={id:${obj.sizesAttr.id},name:${
-            obj.sizesAttr.name
-          },options:${JSON.stringify(obj.sizes.split(","))}}`
-        : ""
-    }${
-      obj.search_text?.length > 0
-        ? `${`&search_text=${obj.search_text || ""}`}`
-        : ""
-    }${filters.prices ? `&price=[${JSON.stringify(obj.prices)}]` : ""}${
-      filters.boutique_slug
-        ? `&boutique_slugs=${JSON.stringify(categories)}`
-        : ""
-    }`;
-
-    let productRes = await fetch(
-      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        str +
-        (filters.colors
-          ? `&${new URLSearchParams({
-              colors: `[${obj?.colors?.split(",").map((s) => `"${s}"`)}]`,
-            }).toString()}`
-          : ""),
-      {
-        method: "GET",
-
-        next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-          tags: [`listing-data-${str}`, "listing-data"],
-        },
-        headers: new Headers({
-          lang: Cookies.get("language"),
-          country: Cookies.get("country"),
-          Accept: "application/json",
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        }),
-      }
-    );
-    let repo = await productRes.json();
-    let end = new Date().getTime();
-    let time = end - start;
-    let returned_res = {
-      type: productRes.type,
-      headers: new Headers({
-        lang: Cookies.get("language"),
-        country: Cookies.get("country"),
-      }),
-      url: productRes.url,
-      time: time + "ms",
-      response: repo,
-      request: "Get Products with Filters",
-    };
-
-    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-      callback({
-        body: repo,
-      });
-    else
-      callback({
-        body: repo,
-      });
-  } else {
-    let str = categories;
-
-    let url =
-      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-      (productCategory
-        ? "/api/products/search?with_products=false" +
-          `?category=${productCategory}${
-            !str.includes("listing") && str
-              ? `&boutique_slugs=${JSON.stringify(str)}`
-              : ""
-          }`
-        : "/api/products/search?with_products=false" +
-          `${
-            !str.includes("listing") && str
-              ? `&boutique_slugs=${JSON.stringify(str)}`
-              : ""
-          }`);
-    var details = productCategory
-      ? {
-          boutique_slug: [str],
-          category: productCategory,
-        }
-      : {
-          boutique_slug: [str],
-        };
-
-    try {
-      const res = await fetch(url, {
-        method: "GET",
-
-        next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-          tags: [`listing-data-${str}`, "listing-data"],
-        },
-        headers: new Headers({
-          lang: Cookies.get("language"),
-          country: Cookies.get("country"),
-          Accept: "application/json",
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        }),
-      });
-      let end = new Date().getTime();
-      let time = end - start;
-      const repo = await res.json();
-
-      let returned_res = {
-        type: res.type,
-        headers: new Headers({
-          lang: Cookies.get("language"),
-          country: Cookies.get("country"),
-        }),
-        url: res.url,
-        time: time + "ms",
-        response: repo,
-        request: "Get Products with Filters ",
-      };
-
-      if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-        callback({
-          body: repo,
-        });
-      else
-        callback({
-          body: repo,
-        });
-    } catch (e) {
-      console.log(e);
-    }
-  }
 };
 
 export const LogError = (error, url, href) => {

@@ -5,6 +5,7 @@ import CategoryNavItem from "./CategoryNavItem";
 import SearchIcon from "./Search/SearchIcon";
 import { useParams } from "next/navigation";
 import { useDispatch, useSelector } from "node_modules/react-redux/es";
+
 interface CategoriesBarProps {
   forMobile: boolean;
   categories: any[];
@@ -12,7 +13,9 @@ interface CategoriesBarProps {
 function CategoriesBar({ forMobile, categories }: CategoriesBarProps) {
   const searchParams: { lang: string; mainCategory: string } = useParams();
   const [active, setActive] = useState(searchParams.mainCategory ?? false);
-  const searchEnabled = useSelector((state: any) => state.Search.enable);
+  const searchEnabled = useSelector(
+    (state: StateInterface) => state.Search.enable
+  );
   const dispatch = useDispatch();
   const setSearchEnabled = (e) => {
     dispatch({ type: "ENABLE-SEARCH", payload: e });

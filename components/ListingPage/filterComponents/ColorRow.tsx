@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import ColorCircle from "./ColorCircle";
 
 function ColorRow() {
-  const filters = useSelector((state: any) => state.details.filters);
+  const filters = useSelector((state: StateInterface) => state.details.filters);
 
   useEffect(() => {
     if (typeof document !== "undefined") {

@@ -18,7 +18,7 @@ function Comments({
   setRender,
   verifyCommentAction,
 }) {
-  const user = useSelector((state: any) => state.auth.user);
+  const user = useSelector((state: StateInterface) => state.auth.user);
   useEffect(() => {}, [Render, comments]);
   const resendCommentApi = async (mid, s) => {
     try {

@@ -6,6 +6,7 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { Sendevent, translate } from "utils/functions";
 import NextLink from "components/global/NextLink";
+
 interface CategoryNavMobileProps {
   name: string;
   icon: string;
@@ -22,7 +23,9 @@ function CategoryNavMobile({
   active,
   setActive,
 }: CategoryNavMobileProps) {
-  const language = useSelector((state: any) => state.homepage.language);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   const router = useRouter();
   const searchParams: { lang: string; mainCategory: string } = useParams();
 

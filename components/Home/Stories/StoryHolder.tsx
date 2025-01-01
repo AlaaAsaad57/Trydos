@@ -14,7 +14,7 @@ interface Props {
 function StoryHolder({ story, active, isPaused }: Props) {
   const dispatch = useDispatch();
   const selectedStory = useSelector(
-    (state: any) => state.homepage.selectedStory
+    (state: StateInterface) => state.homepage.selectedStory
   );
   const [currentStoryId, setCurrentStoryId] = useState(0);
 

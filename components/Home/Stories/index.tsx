@@ -9,8 +9,11 @@ import { Story } from "models/story";
 import Skeleton from "react-loading-skeleton";
 import { useEffect, useState } from "react";
 import { Sendevent } from "utils/functions";
+
 function Index() {
-  const storiesData = useSelector((state: any) => state.homepage.storiesData);
+  const storiesData = useSelector(
+    (state: StateInterface) => state.homepage.storiesData
+  );
   const [show, setShow] = useState(false);
   const dispatch = useDispatch();
   const setSelectStory = (e: Story) => {
@@ -56,7 +59,7 @@ function Index() {
       });
     });
   }
-  const user = useSelector((state: any) => state.auth.user);
+  const user = useSelector((state: StateInterface) => state.auth.user);
   useEffect(() => {
     setShow(true);
   }, []);

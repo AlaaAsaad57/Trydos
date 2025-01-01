@@ -5,7 +5,9 @@ import { Sendevent, translate } from "utils/functions";
 
 function ShareButton({ onClick }: { onClick: () => void }) {
   let language = "en";
-  const shareLoading = useSelector((state: any) => state.details.shareLoading);
+  const shareLoading = useSelector(
+    (state: StateInterface) => state.details.shareLoading
+  );
   return (
     <div
       onClick={() => {

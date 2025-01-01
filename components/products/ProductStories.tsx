@@ -9,10 +9,12 @@ import StoryServiceClass from "services/story";
 import StoriesContainer from "components/Home/Stories/NewStories";
 import InfoWindow from "./InfoWindow";
 function ProductStories() {
-  const stories = useSelector((state: any) => state.homepage.storiesData);
+  const stories = useSelector(
+    (state: StateInterface) => state.homepage.storiesData
+  );
   const dispatch = useDispatch();
   const selectedStory = useSelector(
-    (state: any) => state.homepage.selectedStory
+    (state: StateInterface) => state.homepage.selectedStory
   );
   const setSelectStory = (e) => {
     dispatch(SelectStory(e));
@@ -52,7 +54,7 @@ function ProductStories() {
     }
   }, []);
   const showInfoMessage = useSelector(
-    (state: any) => state.details.showInfoMessage
+    (state: StateInterface) => state.details.InfoMessage.showInfoMessage
   );
   return (
     <div

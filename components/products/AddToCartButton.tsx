@@ -27,9 +27,11 @@ function AddToCartButton({
   loading?: any;
 }) {
   const AddToCartOption = useSelector(
-    (state: any) => state.cart.AddToCartOption
+    (state: StateInterface) => state.cart.AddToCartOption
   );
-  const localCart = useSelector((state: any) => state.cart.localCart);
+  const localCart = useSelector(
+    (state: StateInterface) => state.cart.localCart
+  );
   const dispatch = useDispatch();
   const AddToCartAction = ({ quantity }) => {
     if (AddToCartOption?.enable)

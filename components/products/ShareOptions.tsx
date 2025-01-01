@@ -23,8 +23,12 @@ function ShareOptions({
   setShareContacts: (e: Array<number>) => void;
   product: ProductInterface;
 }) {
-  const sharesCount = useSelector((state: any) => state.details.sharesCount);
-  const shareLoading = useSelector((state: any) => state.details.shareLoading);
+  const sharesCount = useSelector(
+    (state: StateInterface) => state.details.sharesCount
+  );
+  const shareLoading = useSelector(
+    (state: StateInterface) => state.details.shareLoading
+  );
   const dispatch = useDispatch();
   const shareSocial = async (appName) => {
     await axios.post(
@@ -34,7 +38,7 @@ function ShareOptions({
     );
     dispatch({ type: "SHARE-SOCIAL" });
   };
-  const contacts = useSelector((state: any) => state.chat.contacts);
+  const contacts = useSelector((state: StateInterface) => state.chat.contacts);
   return (
     <div className="share-options">
       {contacts

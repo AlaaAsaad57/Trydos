@@ -2,6 +2,7 @@ export type ProductInterface = {
   id: number;
   name: string;
   slug: string;
+  message: string;
   share_link: string;
   details: string;
   thumbnail: string;

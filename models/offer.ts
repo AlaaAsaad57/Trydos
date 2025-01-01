@@ -4,27 +4,25 @@ export interface Offer {
 export interface Boutique {
   id: number;
   name: string;
-  icon: { file_path: string };
+  icon: string;
   slug: string;
   position: number;
   description: string;
-  banners: Array<string>;
+  banners: Array<{
+    file_path: string;
+  }>;
   mainCategoriesForProductIds: Array<{
-    category_id: number;
-    category_slug: string;
-    category_name: string;
-    category_icon: { file_path: string };
+    id: number;
     slug: string;
+    name: string;
+    flat_photo_path: string;
   }>;
   childCategoriesForProductIds: Array<{
-    category_id: string;
-    category_slug: string;
-    count_products: number;
-    category_name: string;
-    product_name: string;
-    product_thumbnail: string;
-    most_viewed_product_thumbnail: { file_path: string };
-    most_viewed_product_name: string;
+    id: number;
     slug: string;
+    name: string;
+    most_viewed_product_name: string;
+    most_viewed_product_thumbnail: string;
+    num_available_product: number;
   }>;
 }

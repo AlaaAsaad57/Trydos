@@ -44,21 +44,21 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
       onTouchEnd={(e) => handleEnd()}
       onMouseMove={(e) => handleMove(e)}
     >
-      {boutique?.childCategoriesForProductIds.map((product, index) => {
+      {boutique?.mainCategoriesForProductIds.map((product, index) => {
         if (index < 5)
           return (
             <OfferAvatar
-              name={product.most_viewed_product_name}
+              name={product.name}
               linkUrl={`/boutiques/${boutique.slug}?categories=${product.slug}`}
               key={index}
-              category={product.count_products}
-              images={product?.most_viewed_product_thumbnail.file_path}
+              category={product.name}
+              images={product?.flat_photo_path}
               zIndex={index + 1}
               priority={priority}
             />
           );
       })}
-      {boutique?.childCategoriesForProductIds?.length > 5 && (
+      {/* {boutique?.childCategoriesForProductIds?.length > 5 && (
         <MoreOfferAvatar
           priority={false}
           images={
@@ -68,7 +68,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
           zIndex={100}
           viewed={6}
         />
-      )}
+      )} */}
     </div>
   );
 }

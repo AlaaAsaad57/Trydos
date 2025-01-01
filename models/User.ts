@@ -12,7 +12,7 @@ export interface UserInterface {
   avatar: string | null | avatarInterface;
   idToken: string;
   passowrd?: string;
-  already_exists: boolean;
+  already_exists?: boolean;
 }
 
 export interface CheckPhoneInputInterface {

@@ -31,10 +31,12 @@ function ProductOptions({
   product: any;
   loading: boolean;
 }) {
-  const loaded = useSelector((state: any) => state.cart.loaded);
-  const sharesCount = useSelector((state: any) => state.details.sharesCount);
+  const loaded = useSelector((state: StateInterface) => state.cart.loaded);
+  const sharesCount = useSelector(
+    (state: StateInterface) => state.details.sharesCount
+  );
   const SelectedProduct = useSelector(
-    (state: any) => state.cart.SelectedProduct
+    (state: StateInterface) => state.cart.SelectedProduct
   );
   const [shareEnable, setShare] = useState(false);
   const [isLiked, setLiked] = useState(false);
@@ -54,7 +56,7 @@ function ProductOptions({
           },
         }
       );
-      await home.subscribeToTopics(SelectedProduct.slug_en_topic);
+      await home.subscribeToTopics({ slug: SelectedProduct.slug_en_topic });
     } else {
       setLiked(false);
       dispatch({

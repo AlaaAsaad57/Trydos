@@ -1,4 +1,5 @@
 import Spinner from "components/global/Spinner";
+
 import {
   useParams,
   usePathname,
@@ -15,31 +16,31 @@ import {
 } from "utils/functions";
 
 function FilterButtons() {
-  const loading = useSelector((state: any) => state.details.loading);
+  const loading = useSelector((state: StateInterface) => state.details.loading);
   const totalProducts = useSelector(
-    (state: any) => state.details.totalProducts
+    (state: StateInterface) => state.details.totalProducts
   );
 
   const dispatch = useDispatch();
   const selectedFilter = useSelector(
-    (state: any) => state.details.selectedFilter
+    (state: StateInterface) => state.details.selectedFilter
   );
 
   const sizesAttr = useSelector(
-    (state: any) => state.details.filters.sizesAttr
+    (state: StateInterface) => state.details.filters.sizesAttr
   );
 
   const activeFiltersShouldUpdate = useSelector(
-    (state: any) => state.details.activeFiltersShouldUpdate
+    (state: StateInterface) => state.details.activeFiltersShouldUpdate
   );
   const filterEnabled = useSelector(
-    (state: any) => state.listing.filterEnabled
+    (state: StateInterface) => state.listing.filterEnabled
   );
   const activeFilters = useSelector(
-    (state: any) => state.details.activeFilters
+    (state: StateInterface) => state.details.activeFilters
   );
   const isChangedFilter = useSelector(
-    (state: any) => state.details.isChangedFilter
+    (state: StateInterface) => state.details.isChangedFilter
   );
   const searchParams = useSearchParams();
   const pathname = usePathname();

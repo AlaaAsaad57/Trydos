@@ -14,18 +14,18 @@ function SizeCircle({
   text,
 }: {
   text: {
-    min_price: number;
-    max_price: number;
+    min_price?: number;
+    max_price?: number;
   };
 }) {
   const selectedFilter = useSelector(
-    (state: any) => state.details.selectedFilter
+    (state: StateInterface) => state.details.selectedFilter
   );
   const pathName = useParams();
-  const filters = useSelector((state: any) => state.details.filters);
+  const filters = useSelector((state: StateInterface) => state.details.filters);
   const dispatch = useDispatch();
   const filterEnabled = useSelector(
-    (state: any) => state.listing.filterEnabled
+    (state: StateInterface) => state.listing.filterEnabled
   );
   const selectCategory = (e) => {
     let { min_price, max_price } = e;
@@ -108,9 +108,11 @@ function SizeCircle({
     );
   };
   const decimal_point_settings = useSelector(
-    (state: any) => state.homepage.settings
+    (state: StateInterface) => state.homepage.settings
   );
-  const currency = useSelector((state: any) => state.homepage.currency) || 1;
+  const currency = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  ) || { exchange_rate: 1, symbol: "" };
 
   return (
     <div
@@ -139,7 +141,7 @@ function SizeCircle({
             minWidth: "140px",
           }}
         >
-          {currency?.currency_symbol}
+          {currency?.symbol}
           {` ${RoundPrice({
             num: text.min_price,
             points: decimal_point_settings,
@@ -159,7 +161,7 @@ function SizeCircle({
 }
 
 function PricesRow() {
-  const filters = useSelector((state: any) => state.details.filters);
+  const filters = useSelector((state: StateInterface) => state.details.filters);
 
   useEffect(() => {
     if (typeof document !== "undefined") {

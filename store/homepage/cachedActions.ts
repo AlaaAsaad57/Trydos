@@ -1,44 +1,15 @@
 "use server";
 import { notFound } from "next/navigation";
-import {
-  GET_USERS_STORIES,
-  HOME_DATA_CATEGORIES_URL,
-  HOME_DATA_URL,
-} from "utils/endpointConfig";
+import { HOME_DATA_CATEGORIES_URL, HOME_DATA_URL } from "utils/endpointConfig";
 import { LogData } from "./actions";
-
-export const getStories = async ({ lang }) => {
-  const cookies = (await import("next/headers")).cookies;
-  const cookieStore = cookies();
-  try {
-    let time = new Date().getTime();
-    let [headersObj, headers] = await DataApiHeaders(true);
-    const res = await fetch(
-      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + GET_USERS_STORIES,
-      {
-        next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-          tags: [`stories-${cookieStore.get("lang")?.value ?? lang}`],
-        },
-        headers: headers,
-      }
-    );
-    // hi
-    const repo = await res.json();
-    time = new Date().getTime() - time;
-
-    let returned_res = {
-      type: res.type,
-      headers: headers,
-      url: res.url,
-      time: time + "ms",
-      body: repo,
-    };
-    return [repo.data.data, returned_res];
-  } catch (e) {
-    return [[], e.toString()];
-  }
-};
+import {
+  CategoriesApi,
+  CountriesApi,
+  FilterProductApi,
+  GlobalDetailsProductApi,
+  HomeBoutiqueApi,
+  QuantityDetailsProductApi,
+} from "models/Api";
 
 export const getHomeData = async ({ str, lang }) => {
   const cookies = (await import("next/headers")).cookies;
@@ -73,7 +44,7 @@ export const getHomeData = async ({ str, lang }) => {
       credentials: "include",
       mode: "cors",
     });
-    const repo = await res.json();
+    const repo: HomeBoutiqueApi = await res.json();
 
     let end = new Date().getTime();
     let time = end - start;
@@ -98,27 +69,9 @@ export const getHomeData = async ({ str, lang }) => {
   }
 };
 
-export const getHomeDataStatic = async () => {
-  let url = HOME_DATA_URL;
-
-  let method = { method: "GET" };
-
-  const res = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + url, {
-    ...method,
-    next: {
-      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-      tags: [`home-boutiques home-boutiques`],
-    },
-
-    credentials: "include",
-    mode: "cors",
-  });
-  const repo = await res.json();
-
-  return repo.data.boutiques;
-};
-
-export const getMainCategories = async ({ lang }) => {
+export const getMainCategories = async ({
+  lang,
+}): Promise<[CategoriesApi["data"]["mainCategories"], any]> => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   try {
@@ -138,7 +91,7 @@ export const getMainCategories = async ({ lang }) => {
         }),
       }
     );
-    const repo = await res.json();
+    const repo: CategoriesApi = await res.json();
     let end = new Date().getTime();
     let time = end - start;
     let returned_res = {
@@ -160,18 +113,6 @@ export const getMainCategories = async ({ lang }) => {
   }
 };
 
-export const DataApiHeaders = async (forStories) => {
-  const cookies = (await import("next/headers")).cookies;
-  const cookieStore = cookies();
-  return new Headers({
-    lang: await getLang(lang, cookieStore.get("language")?.value),
-    country: cookieStore.get("country") && cookieStore.get("country").value,
-    Authorization:
-      "Bearer " + forStories
-        ? cookieStore.get("stories-token")?.value
-        : cookieStore.get("token")?.value,
-  });
-};
 export const changeAppLanguageServer = async (language) => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
@@ -216,7 +157,17 @@ export const getListingData = async ({
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   if (Object.keys(searchParams).length > 0) {
-    let obj = {};
+    let obj: {
+      search_text?: string;
+      categories?: string;
+      prices?: string;
+      sizes?: string;
+      colors?: string;
+      brands?: string;
+      offers?: string;
+      sizesAttr?: { id: string; name: string };
+      boutique_slug?: string;
+    } = {};
     if (Object.keys(searchParams).includes("searchText")) {
       obj = { ...obj, search_text: searchParams.searchText };
     }
@@ -338,7 +289,7 @@ export const getListingData = async ({
         }),
       }
     );
-    let repo = await productRes.json();
+    let repo: FilterProductApi = await productRes.json();
     let end = new Date().getTime();
     let time = end - start;
     let returned_res = {
@@ -393,7 +344,7 @@ export const getListingData = async ({
       : {
           boutique_slug: [str],
         };
-    var formBody = [];
+    var formBody: any[] | string = [];
     for (var property in details) {
       var encodedKey = encodeURIComponent(property);
       var encodedValue = encodeURIComponent(details[property]);
@@ -420,7 +371,7 @@ export const getListingData = async ({
       });
       let end = new Date().getTime();
       let time = end - start;
-      const repo = await res.json();
+      const repo: FilterProductApi = await res.json();
 
       let returned_res = {
         type: res.type,
@@ -484,7 +435,7 @@ export async function getProductDetails({ productId, lang }) {
         }),
       }
     );
-    const repo = await res.json();
+    const repo: GlobalDetailsProductApi = await res.json();
     let end1 = new Date().getTime() - start1;
     let start2 = new Date().getTime();
     const res1 = await fetch(
@@ -509,9 +460,9 @@ export async function getProductDetails({ productId, lang }) {
         }),
       }
     );
-    const repo1 = await res1.json();
+    const repo1: QuantityDetailsProductApi = await res1.json();
     let end2 = new Date().getTime() - start2;
-    let prod = { ...repo.data, ...repo1.data };
+    let prod = { ...repo.data, ...repo1.data, message: repo1.message };
 
     if (prod.message === "Product not found") {
       notFound();
@@ -572,7 +523,7 @@ export async function getProductDataOG({ slug, lang, color }) {
         }),
       }
     );
-    const repo = await res.json();
+    const repo: GlobalDetailsProductApi = await res.json();
     let end1 = new Date().getTime() - start1;
 
     // let returned_res = {
@@ -588,7 +539,7 @@ export async function getProductDataOG({ slug, lang, color }) {
     // };
 
     let prod = { ...repo.data };
-    conso4.log(prod);
+
     return prod;
   } catch (e) {
     console.log(e);
@@ -606,147 +557,15 @@ export const getCountriesApi = async () => {
       },
     });
   } catch (error) {
-    setTimeout(async () => {
-      repo = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + "/countries", {
-        next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-          tags: ["countries"],
-        },
-      });
-    }, 2000);
+    throw new Error("Countries Request Failed" + error);
   }
   try {
     let end = new Date().getTime();
     LogData({ repo, desc: "countries" });
-    let data = await repo.json();
+    let data: CountriesApi = await repo.json();
 
     return data.data.countries;
   } catch (error) {
     throw new Error("Countries Request Failed" + error);
-  }
-};
-
-export const FetchApi = async ({ url, method, body, lang, country }) => {
-  const cookies = (await import("next/headers")).cookies;
-  const cookieStore = cookies();
-  let start = new Date().getTime();
-  let response = await fetch(url, {
-    method: method,
-
-    next: {
-      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-    },
-    body: body,
-    headers: new Headers({
-      "ssr-req": "true",
-      lang: await getLang(lang, cookieStore.get("language")?.value),
-      country: await getCountry(
-        country,
-        cookieStore.get("country") && cookieStore.get("country").value
-      ),
-      Accept: "application/json",
-      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      Authorization: `Bearer ${
-        cookieStore.get("market-token")?.value ??
-        cookieStore.get("DEVICE-TOKEN")?.value
-      }`,
-    }),
-  });
-  let data = await response.json();
-  let end = new Date().getTime() - start;
-  let returned_res = {
-    url,
-    method,
-    body,
-    response: data,
-    headers: new Headers({
-      lang: await getLang(lang, cookieStore.get("language")?.value),
-      country: await getCountry(
-        country,
-        cookieStore.get("country") && cookieStore.get("country").value
-      ),
-      Accept: "application/json",
-      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      Authorization: `Bearer ${
-        cookieStore.get("market-token")?.value ??
-        cookieStore.get("DEVICE-TOKEN")?.value
-      }`,
-    }),
-    time: `${end}ms`,
-  };
-
-  if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-    return [data, returned_res];
-  else return [data, {}];
-};
-
-export const getListingDataProd = async () => {
-  let str = `/api/products/search?limit=1000`;
-  let res = await fetch(process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str, {
-    method: "GET",
-
-    next: {
-      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-      tags: [`listing-data-${str}`, "listing-data"],
-    },
-  });
-  let repo = await res.json();
-  return repo;
-};
-export const getHomeDataOffset = async ({ str, lang, offset }) => {
-  const cookies = (await import("next/headers")).cookies;
-
-  const cookieStore = cookies();
-  let url =
-    HOME_DATA_URL +
-    (str?.length
-      ? `?slug=${str}&limit=10&offset=${offset}`
-      : `?limit=10&offset=${offset}`);
-
-  let method = { method: "GET" };
-
-  try {
-    let start = new Date().getTime();
-    const res = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + url, {
-      ...method,
-      next: {
-        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-        tags: [
-          `home-boutiques home-boutiques-${
-            cookieStore.get("lang")?.value ?? "en"
-          }`,
-        ],
-      },
-      headers: new Headers({
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        lang: await getLang(lang, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
-      }),
-      credentials: "include",
-      mode: "cors",
-    });
-    const repo = await res.json();
-
-    let end = new Date().getTime();
-    let time = end - start;
-    let returned_res = {
-      type: res.type,
-      headers: new Headers({
-        lang: await getLang(lang, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
-      }),
-      url: res.url,
-      time: time + "ms",
-      response: repo,
-      request: "Get boutiques",
-    };
-
-    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-      return [repo.data.boutiques, returned_res];
-    else return [repo.data.boutiques, {}];
-  } catch (e) {
-    console.log(e);
-    return [[], e.toString()];
   }
 };

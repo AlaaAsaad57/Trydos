@@ -39,7 +39,9 @@ function SearchHistory({ options, setOptions }) {
     }
   }, []);
   const dispatch = useDispatch();
-  const searchFilters = useSelector((state: any) => state.Search.searchFilters);
+  const searchFilters = useSelector(
+    (state: StateInterface) => state.Search.searchFilters
+  );
   const setLoading = (e) => {
     dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: e });
   };

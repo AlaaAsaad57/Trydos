@@ -41,7 +41,9 @@ function InputName({
     } else {
     }
   }, [isKeyboardOpen]);
-  const language = useSelector((state: any) => state.homepage.language);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
 
   return (
     <>

@@ -7,13 +7,13 @@ import { ProductInterface } from "models/product";
 import { useDispatch, useSelector } from "react-redux";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CloseIcon from "components/Home/Stories/CloseIcon";
-function ProductDetailsSlider({ product }: { product: ProductInterface }) {
+function ProductDetailsSlider({ product }) {
   const productData = product;
 
   const [emblaRef] = useEmblaCarousel();
   const [emblaRef1] = useEmblaCarousel();
   const activeColor = useSelector(
-    (state: any) => state.details.product?.activeColor
+    (state: StateInterface) => state.details.product?.activeColor
   );
   const searchParams = useSearchParams();
   const dispatch = useDispatch();

@@ -26,15 +26,21 @@ function ProductsList({
   response?: any;
 }) {
   const dispatch = useDispatch();
-  const products = useSelector((state: any) => state.listing.products);
+  const products = useSelector(
+    (state: StateInterface) => state.listing.products
+  );
   const AddToCartOption = useSelector(
-    (state: any) => state.cart.AddToCartOption
+    (state: StateInterface) => state.cart.AddToCartOption
   );
 
-  const offset = useSelector((state: any) => state.listing.offset);
-  const loading = useSelector((state: any) => state.listing.loading);
-  const skeleton = useSelector((state: any) => state.listing.skeleton);
-  const isReachEnd = useSelector((state: any) => state.listing.isReachEnd);
+  const offset = useSelector((state: StateInterface) => state.listing.offset);
+  const loading = useSelector((state: StateInterface) => state.listing.loading);
+  const skeleton = useSelector(
+    (state: StateInterface) => state.listing.skeleton
+  );
+  const isReachEnd = useSelector(
+    (state: StateInterface) => state.listing.isReachEnd
+  );
   const SearchParams = useSearchParams();
   const GetNextPage = async () => {
     if (!loading && !isReachEnd) {
@@ -70,12 +76,12 @@ function ProductsList({
     });
   };
   const filterEnabled = useSelector(
-    (state: any) => state.listing.filterEnabled
+    (state: StateInterface) => state.listing.filterEnabled
   );
   const selectedFilter = useSelector(
-    (state: any) => state.details.selectedFilter
+    (state: StateInterface) => state.details.selectedFilter
   );
-  const filters = useSelector((state: any) => state.details.filters);
+  const filters = useSelector((state: StateInterface) => state.details.filters);
   const pathName = useParams();
   const filter = () => {
     dispatch({ type: "RESET_LISTING_FILTER" });

@@ -11,7 +11,9 @@ interface TranslationsMenuProps {
   init: string;
 }
 function TranslationsMenu({ init }: TranslationsMenuProps) {
-  const language = useSelector((state: any) => state.homepage.language);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   const dispatch = useDispatch();
   useEffect(() => {
     getCurrency({

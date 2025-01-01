@@ -9,12 +9,15 @@ import OfferSlideItem from "./OfferSlideItem";
 import OfferAvatars from "./OfferAvatars";
 import NextLink from "components/global/NextLink";
 import { dispatchRouteChangeEvent } from "utils/events";
+
 interface QuickOfferWidjetProps {
-  offer: { photos: string[] };
+  offer: { photos: { file_path: string }[] };
   onClick: Function;
 }
 function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
-  const language: string = useSelector((state: any) => state.homepage.language);
+  const language: string = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   const { ref, inView, entry } = useInView({
     /* Optional options */
     threshold: 0.3,

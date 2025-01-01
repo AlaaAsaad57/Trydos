@@ -428,7 +428,7 @@ class HomeService {
     image: string;
     quantity: number;
     callback: Function;
-    alreadyExist: boolean;
+    alreadyExist: boolean | number;
     errCallback?: Function;
     slug: string;
   }) {

@@ -4,15 +4,16 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { useParams, useSearchParams } from "next/navigation";
 import { filterProducts, Sendevent, UpdateFilter } from "utils/functions";
+
 function BrandCircle({ brand }) {
   const selectedFilter = useSelector(
-    (state: any) => state.details.selectedFilter
+    (state: StateInterface) => state.details.selectedFilter
   );
   const pathName = useParams();
   const SearchParams = useSearchParams();
-  const filters = useSelector((state: any) => state.details.filters);
+  const filters = useSelector((state: StateInterface) => state.details.filters);
   const filterEnabled = useSelector(
-    (state: any) => state.listing.filterEnabled
+    (state: StateInterface) => state.listing.filterEnabled
   );
   const dispatch = useDispatch();
   const selectCategory = (e) => {

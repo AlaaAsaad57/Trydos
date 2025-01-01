@@ -1,8 +1,9 @@
 import React, { useEffect } from "react";
 import OfferCircle from "./OfferCircle";
 import { useSelector } from "react-redux";
+
 function OfferRow() {
-  const filters = useSelector((state: any) => state.details.filters);
+  const filters = useSelector((state: StateInterface) => state.details.filters);
 
   useEffect(() => {
     if (typeof document !== "undefined") {

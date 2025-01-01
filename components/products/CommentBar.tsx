@@ -29,7 +29,7 @@ function CommentBar({
     ErrorAccure(mid);
   };
   const [val, setVal] = useState("");
-  const user = useSelector((state: any) => state.auth.user);
+  const user = useSelector((state: StateInterface) => state.auth.user);
   const addComment = async (s) => {
     let mid = Math.round(Math.random() * 1000);
     try {

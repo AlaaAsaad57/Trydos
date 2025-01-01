@@ -1,12 +1,6 @@
 import ProductListServer from "components/Server/ProductList";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
 
-// import ListingSkeleton from "components/skeleton/listing";
-// import NavbarSkeleton from "components/skeleton/navbar";
-// import { notFound } from "next/navigation";
-// import { Suspense } from "react";
-// import { getBoutiqueMeta } from "utils/functions";
-
 // export async function generateMetadata({ params, searchParams }) {
 //   const boutiqueId = params.productCategory;
 //   const metaData =
@@ -36,8 +30,20 @@ import CustomNavbarServer from "components/Server/ServerCustomNav";
 
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const runtime = "edge";
-
-async function Page({ params, searchParams }) {
+interface Props {
+  params: {
+    lang: string;
+    productCategory: string;
+  };
+  searchParams: {
+    categories: string;
+    prices: string;
+    search_text: string;
+    brands: string;
+    colors: string;
+  };
+}
+async function Page({ params, searchParams }: Props) {
   return (
     <>
       <CustomNavbarServer lang={params.lang} />

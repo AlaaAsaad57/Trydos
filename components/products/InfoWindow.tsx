@@ -3,7 +3,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { useSwipeable } from "react-swipeable";
 
 function InfoWindow() {
-  const InfoMessage = useSelector((state: any) => state.details.InfoMessage);
+  const InfoMessage = useSelector(
+    (state: StateInterface) => state.details.InfoMessage
+  );
   let { icon, text, title, showInfoMessage, value } = InfoMessage;
   const dispatch = useDispatch();
   const handlers = useSwipeable({

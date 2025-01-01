@@ -1,4 +1,5 @@
 import { AnimatedComponent } from "components/global/AnimatedComponent";
+
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { translate } from "utils/functions";
@@ -18,7 +19,9 @@ function WelcomingWidget({
 }) {
   const [active, setActive] = useState(false);
 
-  const language = useSelector((state: any) => state.homepage.language);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   useEffect(() => {
     setTimeout(() => {
       if (active) close();

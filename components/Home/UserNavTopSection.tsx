@@ -15,8 +15,10 @@ interface UserNavTopSectionProps {
   openLogin: Function;
 }
 function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
-  const language = useSelector((state: any) => state.homepage.language);
-  const user = useSelector((state: any) => state.auth.user);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
+  const user = useSelector((state: StateInterface) => state.auth.user);
   useEffect(() => {
     setTimeout(() => {
       if (true) {
@@ -48,7 +50,9 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
       router.push(`${pathname}?${newParams.toString()}`);
     }
   };
-  const searchEnabled = useSelector((state: any) => state.Search.enable);
+  const searchEnabled = useSelector(
+    (state: StateInterface) => state.Search.enable
+  );
 
   return (
     <div

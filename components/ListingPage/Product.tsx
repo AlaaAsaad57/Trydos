@@ -91,9 +91,11 @@ function Product({
     renderVar: false,
   });
   const decimal_point_settings = useSelector(
-    (state: any) => state.homepage.settings
+    (state: StateInterface) => state.homepage.settings
   );
-  const currency = useSelector((state: any) => state.homepage.currency) || 1;
+  const currency = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  ) || { exchange_rate: 1 };
   const getPrice = (num) => {
     return RoundPrice({
       num: num,

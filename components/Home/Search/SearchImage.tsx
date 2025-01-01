@@ -4,8 +4,11 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { translate } from "utils/functions";
 import { useSelector } from "react-redux";
 import Spinner from "components/global/Spinner";
+
 function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
-  const language = useSelector((state: any) => state.homepage.language);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 

@@ -74,8 +74,10 @@ function ProductReducer(state, { type, payload }) {
     };
   }
 }
-function ProductFooterSection({ product }: { product: ProductInterface }) {
-  const shareLoading = useSelector((state: any) => state.details.shareLoading);
+function ProductFooterSection({ product }) {
+  const shareLoading = useSelector(
+    (state: StateInterface) => state.details.shareLoading
+  );
   const sizes =
     product?.choice_options?.filter((s) => s.title == "Size")[0]?.options || [];
   const [productState, dispatch] = useReducer(ProductReducer, {
@@ -196,9 +198,11 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
     getData();
   }, []);
   const decimal_point_settings = useSelector(
-    (state: any) => state.homepage.settings
+    (state: StateInterface) => state.homepage.settings
   );
-  const currency = useSelector((state: any) => state.homepage.currency) || 1;
+  const currency = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  ) || { exchange_rate: 1, symbol: "" };
   const getPrice = (num) => {
     if (
       decimal_point_settings &&
@@ -238,7 +242,9 @@ function ProductFooterSection({ product }: { product: ProductInterface }) {
       );
     }
   };
-  const loginOpen = useSelector((state: any) => state.homepage.loginOpen);
+  const loginOpen = useSelector(
+    (state: StateInterface) => state.homepage.loginOpen
+  );
   return (
     <>
       {option === "AddToCart" && <SelectColor close={() => setOption("")} />}

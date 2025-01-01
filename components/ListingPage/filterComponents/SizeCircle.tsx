@@ -7,13 +7,13 @@ import { filterProducts, Sendevent, UpdateFilter } from "utils/functions";
 
 function SizeCircle({ text }: { text: string }) {
   const selectedFilter = useSelector(
-    (state: any) => state.details.selectedFilter
+    (state: StateInterface) => state.details.selectedFilter
   );
   const pathName = useParams();
-  const filters = useSelector((state: any) => state.details.filters);
+  const filters = useSelector((state: StateInterface) => state.details.filters);
   const dispatch = useDispatch();
   const filterEnabled = useSelector(
-    (state: any) => state.listing.filterEnabled
+    (state: StateInterface) => state.listing.filterEnabled
   );
   const selectCategory = (e) => {
     dispatch({ type: "FILTER-LOADING", payload: true });

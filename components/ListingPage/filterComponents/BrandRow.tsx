@@ -4,7 +4,7 @@ import BrandCircle from "./BrandCircle";
 import { useSelector } from "react-redux";
 
 function BrandRow() {
-  const filters = useSelector((state: any) => state.details.filters);
+  const filters = useSelector((state: StateInterface) => state.details.filters);
 
   useEffect(() => {
     if (typeof document !== "undefined") {

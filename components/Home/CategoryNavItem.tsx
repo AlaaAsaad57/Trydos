@@ -28,7 +28,9 @@ const CategoryNavItem = ({
   active,
 }: CategoryNavItemProps) => {
   const searchParams: { lang: string; mainCategory: string } = useParams();
-  const language = useSelector((state: any) => state.homepage.language);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   const router = useRouter();
   const clickItem = () => {
     if (name === "Search") {

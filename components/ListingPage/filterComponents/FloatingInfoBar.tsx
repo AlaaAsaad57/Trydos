@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 
 function FloatingInfoBar() {
   const selectedFilter = useSelector(
-    (state: any) => state.details.selectedFilter
+    (state: StateInterface) => state.details.selectedFilter
   );
 
   return (

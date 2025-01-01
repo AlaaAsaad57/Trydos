@@ -18,9 +18,9 @@ import Skeleton from "react-loading-skeleton";
 import { Sendevent } from "utils/functions";
 import CameraShots from "./CameraShots";
 
-function ProuctDetailsBody({ product }: { product: ProductInterface }) {
+function ProuctDetailsBody({ product }) {
   const SelectedProduct = useSelector(
-    (state: any) => state.cart.SelectedProduct
+    (state: StateInterface) => state.cart.SelectedProduct
   );
   useEffect(() => {
     setTimeout(() => {

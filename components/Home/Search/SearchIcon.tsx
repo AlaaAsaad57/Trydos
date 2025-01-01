@@ -5,8 +5,11 @@ import "styles/search.css";
 import SearchComponent from "../SearchComponent";
 import { useDispatch, useSelector } from "react-redux";
 import { normalizeView, Sendevent } from "utils/functions";
+
 function SearchIcon() {
-  const searchEnabled = useSelector((state: any) => state.Search.enable);
+  const searchEnabled = useSelector(
+    (state: StateInterface) => state.Search.enable
+  );
   const [focuse, setFocus] = useState(false);
   const [rendered, setRendered] = useState(false);
   const dispatch = useDispatch();

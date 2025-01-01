@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import SearchResults from "./SearchResults";
 import { getSearchOptions } from "utils/functions";
 import { LogData } from "store/homepage/actions";
+
 function SearchContainer({ active }) {
   const [searchHistoryItems, setSearchHistory] = useState([]);
   const [searchTrendItems, setSearchTrend] = useState([
@@ -25,7 +26,9 @@ function SearchContainer({ active }) {
   0% {transform:translateX(0px)}
   100% {transform:translateX(-800px)}
   `;
-  const searchValue = useSelector((state: any) => state.Search.value);
+  const searchValue = useSelector(
+    (state: StateInterface) => state.Search.value
+  );
   const dispatch = useDispatch();
   useEffect(() => {
     if (localStorage.getItem("search-history")) {

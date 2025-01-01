@@ -4,14 +4,15 @@ import SubCategoryCircle from "./SubCategoryCircle";
 import { useDispatch, useSelector } from "react-redux";
 import { filterProducts, Sendevent, UpdateFilter } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
+
 function CategoryCircle({ category }) {
   const selectedFilter = useSelector(
-    (state: any) => state.details.selectedFilter
+    (state: StateInterface) => state.details.selectedFilter
   );
   const filterEnabled = useSelector(
-    (state: any) => state.listing.filterEnabled
+    (state: StateInterface) => state.listing.filterEnabled
   );
-  const filters = useSelector((state: any) => state.details.filters);
+  const filters = useSelector((state: StateInterface) => state.details.filters);
   const dispatch = useDispatch();
   const pathName = useParams();
   const params = useSearchParams();

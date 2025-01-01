@@ -6,14 +6,14 @@ import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 
 function ColorCircle({ color }) {
   const selectedFilter = useSelector(
-    (state: any) => state.details.selectedFilter
+    (state: StateInterface) => state.details.selectedFilter
   );
   const pathName = useParams();
-  const filters = useSelector((state: any) => state.details.filters);
+  const filters = useSelector((state: StateInterface) => state.details.filters);
   const dispatch = useDispatch();
 
   const filterEnabled = useSelector(
-    (state: any) => state.listing.filterEnabled
+    (state: StateInterface) => state.listing.filterEnabled
   );
   const selectCategory = (e) => {
     dispatch({ type: "FILTER-COLOR", payload: e });

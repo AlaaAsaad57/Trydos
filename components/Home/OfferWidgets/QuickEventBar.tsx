@@ -3,8 +3,11 @@ import BarDescribtion from "../Bars/BarDescribtion";
 import StopWatch from "./StopWatch";
 import { translate } from "utils/functions";
 import { useSelector } from "react-redux";
+
 function QuickEventBar() {
-  const language: string = useSelector((state: any) => state.homepage.language);
+  const language: string = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   return (
     <div className="quick-event-bar">
       <BarDescribtion

@@ -11,6 +11,7 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "next-nprogress-bar";
 import SearchVoice from "./Search/SearchVoice";
 import SearchImage from "./Search/SearchImage";
+
 interface SearchComponentProps {
   searchEnabled: boolean;
   close: Function;
@@ -23,10 +24,16 @@ function SearchComponent({
   focus,
   setFocuse,
 }: SearchComponentProps) {
-  const searchValue = useSelector((state: any) => state.Search.value);
+  const searchValue = useSelector(
+    (state: StateInterface) => state.Search.value
+  );
 
-  const searchFilters = useSelector((state: any) => state.Search.searchFilters);
-  const words = useSelector((state: any) => state.Search.searchWords);
+  const searchFilters = useSelector(
+    (state: StateInterface) => state.Search.searchFilters
+  );
+  const words = useSelector(
+    (state: StateInterface) => state.Search.searchWords
+  );
   const dispatch = useDispatch();
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.value.length === 0) {

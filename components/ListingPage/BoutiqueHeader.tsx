@@ -21,8 +21,9 @@ import FilterButton from "./FilterButton";
 import BoutiqueColorsFilter from "./filterComponents/BoutiqueColorsFilter";
 import BoutiquePriceSelect from "./BoutiquePriceSelect";
 import { AxiosCacheApi } from "utils/AxiosApi";
+
 const PrefetchingFilters = () => {
-  const filters = useSelector((state: any) => state.details.filters);
+  const filters = useSelector((state: StateInterface) => state.details.filters);
   let params = useParams();
   let boutique = params.productCategory;
   let arr = [];
@@ -63,21 +64,23 @@ const PrefetchingFilters = () => {
 
 function BoutiqueHeader({ boutique, showFilters }) {
   const filterEnabled = useSelector(
-    (state: any) => state.listing.filterEnabled
+    (state: StateInterface) => state.listing.filterEnabled
   );
-  const showedFilter = useSelector((state: any) => state.listing.showedFilter);
+  const showedFilter = useSelector(
+    (state: StateInterface) => state.listing.showedFilter
+  );
   const filterLoading = useSelector(
-    (state: any) => state.details.filterLoading
+    (state: StateInterface) => state.details.filterLoading
   );
-  const loading = useSelector((state: any) => state.details.loading);
+  const loading = useSelector((state: StateInterface) => state.details.loading);
 
   const sizesAttr = useSelector(
-    (state: any) => state.details.filters.sizesAttr
+    (state: StateInterface) => state.details.filters.sizesAttr
   );
 
-  const filters = useSelector((state: any) => state.details.filters);
+  const filters = useSelector((state: StateInterface) => state.details.filters);
   const activeFilters = useSelector(
-    (state: any) => state.details.activeFilters
+    (state: StateInterface) => state.details.activeFilters
   );
 
   const dispatch = useDispatch();
@@ -96,7 +99,7 @@ function BoutiqueHeader({ boutique, showFilters }) {
     dispatch({ type: "enable-handling-filter" });
   }, []);
   const activeFiltersShouldUpdate = useSelector(
-    (state: any) => state.details.activeFiltersShouldUpdate
+    (state: StateInterface) => state.details.activeFiltersShouldUpdate
   );
   const searchParams = useSearchParams();
   const pathname = usePathname();

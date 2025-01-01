@@ -17,7 +17,7 @@ function ProductColors({ colors, ProductColorsArray }) {
   const [extended, setExtended] = useState(false);
 
   const activeColor = useSelector(
-    (state: any) => state.details.product?.activeColor
+    (state: StateInterface) => state.details.product?.activeColor
   );
   const setActiveColor = (e) => {
     dispatch({ type: "SET-ACTIVE-COLOR-DETAILS", payload: e });

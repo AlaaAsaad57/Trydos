@@ -2,6 +2,7 @@ import Image from "next/image";
 
 import { translate } from "utils/functions";
 import { useSelector } from "react-redux";
+
 interface MoreOfferAvatarProps {
   images: string;
   zIndex: number;
@@ -14,7 +15,9 @@ function MoreOfferAvatar({
   viewed,
   priority,
 }: MoreOfferAvatarProps) {
-  const language: string = useSelector((state: any) => state.homepage.language);
+  const language: string = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
 
   return (
     <div

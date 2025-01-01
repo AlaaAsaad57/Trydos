@@ -15,6 +15,7 @@ import { Sendevent, translate } from "utils/functions";
 const { flag } = require("country-emoji");
 
 import { AnimatedComponent } from "components/global/AnimatedComponent";
+
 function PhoneInput({
   stepIndicator,
   isForCart,
@@ -28,7 +29,7 @@ function PhoneInput({
   stepIndicator: number;
   isForCart: boolean;
   setStepIndicator: Function;
-  wrongNumber: boolean;
+  wrongNumber: boolean | string;
   setWrongNumber: Function;
   operation: string;
   inputValue: string;
@@ -100,7 +101,9 @@ function PhoneInput({
           (text || inputValue).startsWith(countryItem.dialCode)
         )[0];
   };
-  const language = useSelector((state: any) => state.homepage.language);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   const isKeyboardOpen = useDetectKeyboardOpen(200);
   useEffect(() => {
     if (isKeyboardOpen) {

@@ -4,8 +4,11 @@ import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
 import { useSelector } from "react-redux";
+
 function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
-  const language = useSelector((state: any) => state.homepage.language);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   const {
     finalTranscript,
     listening,

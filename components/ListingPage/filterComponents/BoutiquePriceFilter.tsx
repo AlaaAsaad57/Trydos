@@ -8,18 +8,21 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { RoundPrice, Sendevent, UpdateFilter } from "utils/functions";
+
 const PriceChart = dynamic(() => import("./PriceChart"), {
   ssr: false,
 });
 function BoutiquePriceFilter() {
   const dispatch = useDispatch();
   const selectedFilter = useSelector(
-    (state: any) => state.details.selectedFilter
+    (state: StateInterface) => state.details.selectedFilter
   );
-  const filters = useSelector((state: any) => state.details.filters);
-  const loading = useSelector((state: any) => state.details.loading);
+  const filters = useSelector((state: StateInterface) => state.details.filters);
+  const loading = useSelector((state: StateInterface) => state.details.loading);
   const pathName = useParams();
-  const currency_symbol = useSelector((state: any) => state.homepage.currency);
+  const currency_symbol = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  );
 
   const set_Value = (e) => {
     if (
@@ -62,9 +65,11 @@ function BoutiquePriceFilter() {
     }
   };
   const decimal_point_settings = useSelector(
-    (state: any) => state.homepage.settings
+    (state: StateInterface) => state.homepage.settings
   );
-  const currency = useSelector((state: any) => state.homepage.currency) || 1;
+  const currency = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  ) || { exchange_rate: 1 };
   const getPrice = (num) => {
     return RoundPrice({
       num: num,

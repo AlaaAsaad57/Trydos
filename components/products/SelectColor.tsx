@@ -10,13 +10,13 @@ import BackIcon from "public/svg/listing/backIcon.svg";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 function SelectColor({ close }) {
-  const cart = useSelector((state: any) => state.cart?.localCart);
+  const cart = useSelector((state: StateInterface) => state.cart?.localCart);
 
   const AddToCartOption = useSelector(
-    (state: any) => state.cart.AddToCartOption
+    (state: StateInterface) => state.cart.AddToCartOption
   );
   const SelectedProduct = useSelector(
-    (state: any) => state.cart.SelectedProduct
+    (state: StateInterface) => state.cart.SelectedProduct
   );
 
   const dispatch = useDispatch();
@@ -113,8 +113,6 @@ function SelectColor({ close }) {
               src:
                 (AddToCartOption?.selectedColor?.images &&
                   AddToCartOption?.selectedColor?.images[0]) ||
-                (SelectedProduct?.images &&
-                  SelectedProduct?.images[0]?.file_path) ||
                 (SelectedProduct?.images && SelectedProduct?.images[0]),
             })}
             className={"h-full object-top rounded-[15px] moved-img "}

@@ -7,13 +7,16 @@ import AuthService from "services/auth";
 import { Sendevent } from "utils/functions";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
+
 function ConfirmMobile({ closeWindow }) {
   const [stepIndicator, setStepIndicator] = useState(3);
   const [inputValue, setInputValue] = useState("");
   const dispatch = useDispatch();
   const [MessageMethod, setMessageMethod] = useState("");
   const [pins, setPins] = useState("");
-  const verficationID = useSelector((state: any) => state.auth.verficationID);
+  const verficationID = useSelector(
+    (state: StateInterface) => state.auth.verficationID
+  );
   const [disabled, setDisabled] = useState(false);
   const [expired, setExpired] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -112,7 +115,9 @@ function ConfirmMobile({ closeWindow }) {
       },
     });
   };
-  const wrongNumber = useSelector((state: any) => state.auth.wrongNumber);
+  const wrongNumber = useSelector(
+    (state: StateInterface) => state.auth.wrongNumber
+  );
 
   return (
     <div>

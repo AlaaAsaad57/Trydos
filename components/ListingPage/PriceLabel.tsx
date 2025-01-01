@@ -1,4 +1,5 @@
 "use client";
+
 import { useSelector } from "react-redux";
 
 function PriceLabel({
@@ -8,7 +9,9 @@ function PriceLabel({
   price_formatted: number;
   offer_price: number;
 }) {
-  const currency = useSelector((state: any) => state.homepage.currency);
+  const currency = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  );
   return (
     <div className="price-label flex">
       {offer_price >= 0 && (

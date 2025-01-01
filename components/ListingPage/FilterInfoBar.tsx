@@ -17,9 +17,11 @@ function FilterInfoBar({
   searchValue?: string;
 }) {
   const decimal_point_settings = useSelector(
-    (state: any) => state.homepage.settings
+    (state: StateInterface) => state.homepage.settings
   );
-  const currency = useSelector((state: any) => state.homepage.currency) || 1;
+  const currency = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  ) || { exchange_rate: 1 };
   const getPrice = (num) => {
     if (
       decimal_point_settings &&
@@ -36,12 +38,14 @@ function FilterInfoBar({
           0,
       });
   };
-  const currency_symbol = useSelector((state: any) => state.homepage.currency);
+  const currency_symbol = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  );
   const sizesAttr = useSelector(
-    (state: any) => state.details.filters.sizesAttr
+    (state: StateInterface) => state.details.filters.sizesAttr
   );
   const dispatch = useDispatch();
-  const filters = useSelector((state: any) => state.details.filters);
+  const filters = useSelector((state: StateInterface) => state.details.filters);
   useEffect(() => {
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement =

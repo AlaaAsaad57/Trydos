@@ -1,14 +1,25 @@
 import ProductListServer from "components/Server/ProductList";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
-import { getHomeDataStatic } from "store/homepage/cachedActions";
 
 // import ListingSkeleton from "components/skeleton/listing";
 // import NavbarSkeleton from "components/skeleton/navbar";
 import { notFound } from "next/navigation";
 // import { Suspense } from "react";
 import { getBoutiqueMeta } from "utils/functions";
-
-export async function generateMetadata({ params, searchParams }) {
+interface Props {
+  params: {
+    lang: string;
+    productCategory: string;
+  };
+  searchParams: {
+    categories: string;
+    prices: string;
+    search_text: string;
+    brands: string;
+    colors: string;
+  };
+}
+export async function generateMetadata({ params, searchParams }: Props) {
   const boutiqueId = params.productCategory;
   const metaData =
     boutiqueId === "listing"
@@ -22,11 +33,12 @@ export async function generateMetadata({ params, searchParams }) {
       title: `Trydos - ${searchParams.search_text} `,
       description: ``,
     };
-  }
-  return {
-    title: `Trydos - ${metaData?.name} `,
-    description: `${metaData?.name} - ${metaData?.description} `,
-  };
+  } else
+    return {
+      title: `Trydos - ${metaData?.name} `,
+      // @ts-ignore
+      description: `${metaData?.name} - ${metaData?.description} `,
+    };
 }
 
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);

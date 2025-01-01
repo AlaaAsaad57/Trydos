@@ -5,9 +5,11 @@ import ConfirmMobile from "./ConfirmMobile";
 
 function OrderButton({ close, orderShow, setShowOrder }) {
   const [expanded, setExpanded] = useState(false);
-  const cart = useSelector((state: any) => state.cart);
+  const cart = useSelector((state: StateInterface) => state.cart);
   const [option, setOption] = useState(false);
-  const currency_symbol = useSelector((state: any) => state.homepage.currency);
+  const currency_symbol = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  );
   const ItemsIcon = () => {
     return (
       <svg

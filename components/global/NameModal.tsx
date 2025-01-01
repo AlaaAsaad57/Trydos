@@ -6,9 +6,12 @@ import ManIcon from "public/svg/manIcon.svg";
 import Border from "./Border";
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
 import "styles/Modal.css";
+
 function NameModal() {
-  const Open = useSelector((state: any) => state.chat.nameModal);
-  const language = useSelector((state: any) => state.homepage.language);
+  const Open = useSelector((state: StateInterface) => state.chat.nameModal);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   const [value, setValue] = useState("");
   const dispatch = useDispatch();
   const close = () => {

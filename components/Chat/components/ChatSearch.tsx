@@ -8,17 +8,26 @@ import Spinner from "components/global/Spinner";
 import axios from "node_modules/axios";
 import { getMessagesBetweenMessage } from "store/chat/actions";
 import { getUserChat } from "utils/functions";
+
 function ChatSearch({ close }) {
   const searchValue = useSelector(
-    (state: any) => state.chat.search.searchValue
+    (state: StateInterface) => state.chat.search.searchValue
   );
-  const loading = useSelector((state: any) => state.chat.search.loading);
-  const offset = useSelector((state: any) => state.chat.search.offset);
+  const loading = useSelector(
+    (state: StateInterface) => state.chat.search.loading
+  );
+  const offset = useSelector(
+    (state: StateInterface) => state.chat.search.offset
+  );
   const activeMessage = useSelector(
-    (state: any) => state.chat.search.activeMessage
+    (state: StateInterface) => state.chat.search.activeMessage
   );
-  const messages = useSelector((state: any) => state.chat.search.messages);
-  const activeChat = useSelector((state: any) => state.chat.activeChat);
+  const messages = useSelector(
+    (state: StateInterface) => state.chat.search.messages
+  );
+  const activeChat = useSelector(
+    (state: StateInterface) => state.chat.activeChat
+  );
 
   const dispatch = useDispatch();
   const onChange = (e) => {

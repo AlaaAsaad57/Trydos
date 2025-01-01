@@ -7,11 +7,13 @@ import { getNew } from "components/Chat/chatsFunctions";
 import ChatNotification from "./ChatNotification";
 
 function AuthNavSection() {
-  const language = useSelector((state: any) => state.homepage.language);
-  const chatVar = useSelector((state: any) => state.chat.chatVar);
-  const user = useSelector((state: any) => state.auth.user);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
+  const chatVar = useSelector((state: StateInterface) => state.chat.chatVar);
+  const user = useSelector((state: StateInterface) => state.auth.user);
 
-  const chats = useSelector((state: any) => state.chat.data);
+  const chats = useSelector((state: StateInterface) => state.chat.data);
   const dispatch = useDispatch();
 
   return (
@@ -61,7 +63,7 @@ function AuthNavSection() {
           localStorage.clear();
           window.location.reload();
         }}
-        avatar={user?.avatar}
+        avatar={user?.avatar?.src ?? user.avatar}
       />
     </>
   );

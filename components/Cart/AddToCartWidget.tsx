@@ -19,12 +19,12 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 function AddToCartWidget() {
   const dispatch = useDispatch();
 
-  const loaded = useSelector((state: any) => state.cart.loaded);
+  const loaded = useSelector((state: StateInterface) => state.cart.loaded);
   let QTY_URL = "/web/product/qtyPriceDetails";
   const SelectedProduct = useSelector(
-    (state: any) => state.cart.SelectedProduct
+    (state: StateInterface) => state.cart.SelectedProduct
   );
-  const product = useSelector((state: any) => state.details.product);
+  const product = useSelector((state: StateInterface) => state.details.product);
   const getDetails = async () => {
     if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
     let start = new Date();
@@ -147,10 +147,10 @@ function AddToCartWidget() {
 export default AddToCartWidget;
 const SelectColor = ({ close }) => {
   const AddToCartOption = useSelector(
-    (state: any) => state.cart.AddToCartOption
+    (state: StateInterface) => state.cart.AddToCartOption
   );
   const SelectedProduct = useSelector(
-    (state: any) => state.cart.SelectedProduct
+    (state: StateInterface) => state.cart.SelectedProduct
   );
   const dispatch = useDispatch();
   const pathname = usePathname();
@@ -174,7 +174,7 @@ const SelectColor = ({ close }) => {
     }
     dispatch({ type: "ENABLE-CART", payload: s });
   };
-  const cart = useSelector((state: any) => state.cart?.localCart);
+  const cart = useSelector((state: StateInterface) => state.cart?.localCart);
 
   return (
     <>
@@ -245,7 +245,7 @@ const SelectColor = ({ close }) => {
               src:
                 (AddToCartOption?.selectedColor?.images &&
                   AddToCartOption?.selectedColor?.images[0]) ||
-                SelectedProduct.images[0]?.file_path,
+                SelectedProduct.images[0],
               width: 400,
               height: 400,
             })}

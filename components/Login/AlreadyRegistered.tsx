@@ -3,6 +3,7 @@ import Animated from "react-mount-animation";
 import { useSelector } from "react-redux";
 import { Sendevent, translate } from "utils/functions";
 import AuthService from "services/auth";
+
 function AlreadyRegistered({
   inputValue,
   setStepIndicator,
@@ -20,8 +21,10 @@ function AlreadyRegistered({
   close: Function;
   setStepSign: Function;
 }) {
-  const language = useSelector((state: any) => state.homepage.language);
-  const user = useSelector((state: any) => state.auth.Tempuser);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
+  const user = useSelector((state: StateInterface) => state.auth.Tempuser);
   const [active, setActive] = useState(false);
   const mountAnim = ` 
   0% {transform:translateX(800px)}

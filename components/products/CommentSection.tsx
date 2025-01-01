@@ -16,7 +16,7 @@ function CommentSection({
   resendComment,
   verifyCommentAction,
 }) {
-  const user = useSelector((state: any) => state.auth.user);
+  const user = useSelector((state: StateInterface) => state.auth.user);
 
   var language = "en";
 

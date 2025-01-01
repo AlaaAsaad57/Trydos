@@ -8,8 +8,13 @@ import OfferListServer from "components/Server/OfferListServer";
 
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const runtime = "edge";
-
-async function page({ params }) {
+interface Props {
+  params: {
+    lang: string;
+    mainCategory: string;
+  };
+}
+async function page({ params }: Props) {
   return (
     <>
       <NavbarServer lang={params.lang} />

@@ -35,13 +35,15 @@ function LogInPins({
   Submit: Function;
   pin: string;
   MessageMethod: string;
-  wrongNumber: boolean;
+  wrongNumber: boolean | string;
   failedLogin: boolean;
   successLogin: boolean;
   disabled: boolean;
 }) {
-  const user = useSelector((state: any) => state.auth.Tempuser);
-  const language = useSelector((state: any) => state.homepage.language);
+  const user = useSelector((state: StateInterface) => state.auth.Tempuser);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   const isKeyboardOpen = useDetectKeyboardOpen(200);
 
   useEffect(() => {

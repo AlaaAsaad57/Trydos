@@ -5,7 +5,7 @@ import { translate } from "utils/functions";
 
 function MoreOptionsSection() {
   const SelectedProduct = useSelector(
-    (state: any) => state.cart.SelectedProduct
+    (state: StateInterface) => state.cart.SelectedProduct
   );
   useEffect(() => {
     if (typeof document !== "undefined") {

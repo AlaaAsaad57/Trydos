@@ -18,7 +18,9 @@ import { Sendevent } from "utils/functions";
 
 function AddStory() {
   const [uploaded, setUpload] = useState(0);
-  const language: string = useSelector((state: any) => state.homepage.language);
+  const language: string = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   const [openMenu, setOpenMenu] = useState(false);
   const [OpenCamera, setOpenCamera] = useState(false);
   const [isSelected, setIsSelected] = useState(null);

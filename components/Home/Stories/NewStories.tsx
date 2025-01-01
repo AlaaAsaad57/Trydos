@@ -9,7 +9,9 @@ import StoryHolder from "./StoryHolder";
 import { useSwipeable } from "react-swipeable";
 
 function StoriesContainer({ activeId, selectedStory }) {
-  const storiesData = useSelector((state: any) => state.homepage.storiesData);
+  const storiesData = useSelector(
+    (state: StateInterface) => state.homepage.storiesData
+  );
   const dispatch = useDispatch();
   var dir = 0;
   const [isTop, setIsTop] = useState("");

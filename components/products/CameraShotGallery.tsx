@@ -11,7 +11,7 @@ import { translate } from "utils/functions";
 function CameraShotGallery({ images, close }) {
   const [extended, setExtended] = useState(false);
   const activeCameraGallery = useSelector(
-    (state: any) => state.details.activeCameraGallery
+    (state: StateInterface) => state.details.activeCameraGallery
   );
   const dispatch = useDispatch();
   var dir = 0;

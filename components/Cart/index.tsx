@@ -25,13 +25,18 @@ import home from "services/home";
 import { toast } from "react-toastify";
 import axios from "node_modules/axios";
 import OrderButton from "./OrderButton";
-function CartContainer({ close }) {
-  const language = useSelector((state: any) => state.homepage.language);
-  const oldCart = useSelector((state: any) => state.cart.oldCart);
 
-  const loading = useSelector((state: any) => state.cart.loading);
-  const cart = useSelector((state: any) => state.cart?.cart);
-  const total_cash = useSelector((state: any) => state.cart?.total_cash);
+function CartContainer({ close }) {
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
+  const oldCart = useSelector((state: StateInterface) => state.cart.oldCart);
+
+  const loading = useSelector((state: StateInterface) => state.cart.loading);
+  const cart = useSelector((state: StateInterface) => state.cart?.cart);
+  const total_cash = useSelector(
+    (state: StateInterface) => state.cart?.total_cash
+  );
   const getURLOfProduct = ({ product }) => {
     let productUrl;
     if (product.variations[0]?.color && !product.variations[0]?.Size)
@@ -50,9 +55,11 @@ function CartContainer({ close }) {
       }${`?size=${product?.variations[0]?.Size}&color=${product?.variations[0]?.color}`}`;
     return productUrl;
   };
-  const currency = useSelector((state: any) => state.homepage.currency) || 1;
+  const currency = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  ) || { exchange_rate: 1, symbol: "" };
   const decimal_point_settings = useSelector(
-    (state: any) => state.homepage.settings
+    (state: StateInterface) => state.homepage.settings
   );
   const dispatch = useDispatch();
   useEffect(() => {
@@ -67,7 +74,9 @@ function CartContainer({ close }) {
 
   const sarchParams = useSearchParams();
   const [orderShow, setShowOrder] = useState(false);
-  const ProductDetails = useSelector((state: any) => state.details.product);
+  const ProductDetails = useSelector(
+    (state: StateInterface) => state.details.product
+  );
   const searchParams = useSearchParams();
   return (
     <div
@@ -715,7 +724,8 @@ function CartContainer({ close }) {
                               </div>
                             )}
 
-                            {product.quantity > product.available_quantity && (
+                            {parseInt(product.quantity) >
+                              product.available_quantity && (
                               <div className="flex-row items-center text-[12px] light text-[#fd445d]">
                                 <ErrorIcon />
                                 <span className="ml-1.5">Availabilty,</span>

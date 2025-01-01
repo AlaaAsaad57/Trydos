@@ -5,15 +5,7 @@ import { configureStory } from "utils/functions";
 import { GetUnviewedStory } from "store/homepage/actions";
 import { Story as StoryInterface } from "models/story";
 
-function StoryElement({
-  index,
-  story,
-  select,
-}: {
-  index: number;
-  story: StoryInterface;
-  select: Function;
-}) {
+function StoryElement({ index, story, select }) {
   return (
     <div className="story-element-container">
       <StoryAvatar

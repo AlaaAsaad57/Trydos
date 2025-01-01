@@ -14,7 +14,7 @@ function SubCategoryCircle({
     setExpanded(active);
   }, [active]);
   const selectedFilter = useSelector(
-    (state: any) => state.details.selectedFilter
+    (state: StateInterface) => state.details.selectedFilter
   );
   const isSelected = (sub) => {
     return (

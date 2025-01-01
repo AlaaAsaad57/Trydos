@@ -19,7 +19,9 @@ function SendMethod({
   setWrongNumber: Function;
   setMessageMethod: Function;
 }) {
-  const language = useSelector((state: any) => state.homepage.language);
+  const language = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   const SendOtpHook = async ({
     errorCallback,
     mobilePhone,

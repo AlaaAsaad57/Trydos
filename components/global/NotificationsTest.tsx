@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import NotifyIcon from "public/svg/cart/NotifyCart.svg";
 import home from "services/home";
 import { useSelector } from "node_modules/react-redux/es";
+
 function NotificationsTest() {
   const [enable, setEnable] = useState(false);
-  const starttingSetting = useSelector((state: any) => state.homepage.settings);
+  const starttingSetting = useSelector(
+    (state: StateInterface) => state.homepage.settings
+  );
   return (
     <div className="flex">
       <NotifyIcon onClick={() => setEnable(true)} />

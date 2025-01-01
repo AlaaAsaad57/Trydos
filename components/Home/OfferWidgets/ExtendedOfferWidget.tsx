@@ -11,8 +11,9 @@ import { translate } from "utils/functions";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import dynamic from "next/dynamic";
+
 interface ExtendedOfferWidgetProps {
-  offer: { photos: string[] };
+  offer: { file_path: string }[];
   myKey: number | string;
   onClick: Function;
 }
@@ -21,7 +22,9 @@ function ExtendedOfferWidget({
   myKey,
   onClick,
 }: ExtendedOfferWidgetProps) {
-  const language: string = useSelector((state: any) => state.homepage.language);
+  const language: string = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
   const { ref, inView, entry } = useInView({
     /* Optional options */
     threshold: 0.3,
@@ -101,7 +104,7 @@ function ExtendedOfferWidget({
               boutique={null}
               extended={true}
               priority={false}
-              OfferPhotos={offer.photos}
+              OfferPhotos={offer}
             />
           </div>
         </>

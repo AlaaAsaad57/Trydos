@@ -5,7 +5,7 @@ export const changeAppLanguage = (language) => {
   Cookies.set("language", language, {
     expires: 365,
   });
-  // changeAppLanguageServer(language);
+  changeAppLanguageServer(language);
   return { type: "APP-LANGUAGE", payload: language };
 };
 export const GetMainData = (data) => {

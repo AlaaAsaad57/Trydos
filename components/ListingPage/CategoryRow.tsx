@@ -4,7 +4,7 @@ import CategoryCircle from "./CategoryCircle";
 import { useSelector } from "react-redux";
 
 function CategoryRow() {
-  const filters = useSelector((state: any) => state.details.filters);
+  const filters = useSelector((state: StateInterface) => state.details.filters);
 
   return (
     <div className="category-row-container flex-row">
