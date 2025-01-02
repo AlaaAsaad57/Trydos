@@ -52,7 +52,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
               linkUrl={`/boutiques/${boutique.slug}?categories=${product.slug}`}
               key={index}
               category={product.name}
-              images={product?.flat_photo_path}
+              images={product?.most_viewed_product_thumbnail.file_path}
               zIndex={index + 1}
               priority={priority}
             />

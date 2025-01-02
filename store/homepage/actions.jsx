@@ -1,6 +1,7 @@
 import StoryService from "services/story";
 import Cookies from "js-cookie";
 import { Sendevent } from "utils/functions";
+import { changeAppLanguageServer } from "./cachedActions";
 export const changeAppLanguage = (language) => {
   Cookies.set("language", language, {
     expires: 365,

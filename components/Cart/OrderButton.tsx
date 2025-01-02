@@ -711,7 +711,12 @@ function OrderButton({ close, orderShow, setShowOrder }) {
   return (
     <>
       {expanded && (
-        <div className="fixed min-w-[100vw] min-h-[100vh] opacity-40 bg-[black]" />
+        <div
+          className="fixed min-w-[100vw] min-h-[100vh] opacity-40 bg-[black]"
+          onClick={() => {
+            setExpanded(false);
+          }}
+        />
       )}
       <div className="flex-col z-50 fixed bottom-1 left-0 bg-white min-h-[100px] w-full">
         {cart.cart.length > 0 && (
@@ -802,31 +807,35 @@ function OrderButton({ close, orderShow, setShowOrder }) {
                 </div>
               </>
             )}
-            <div
-              onClick={() => {
-                setExpanded(!expanded);
-              }}
-              className=" cursor-pointer flex-row items-center h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1 bg-[#F8F8F8]"
-            >
-              <div className="flex-row pl-[12px]">
-                <div className="flex-col pl-4 text-[#1D1D1D]">
-                  <span className="bold text-[13px] text-[#1D1D1D]">Total</span>
-                  <span className="medium text-[11px] text-[#8D8D8D]">
-                    {translate("All Inclusive Without Additions")}
-                  </span>
+            {!orderShow && (
+              <div
+                onClick={() => {
+                  setExpanded(!expanded);
+                }}
+                className=" cursor-pointer flex-row items-center h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1 bg-[#F8F8F8]"
+              >
+                <div className="flex-row pl-[12px]">
+                  <div className="flex-col pl-4 text-[#1D1D1D]">
+                    <span className="bold text-[13px] text-[#1D1D1D]">
+                      Total
+                    </span>
+                    <span className="medium text-[11px] text-[#8D8D8D]">
+                      {translate("All Inclusive Without Additions")}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <span className="flex-row justify-center items-center ml-[5px] bold  text-[16px] pr-[13px] text-[#1D1D1D]">
-                <span className="line-through regular mr-2">
-                  {cart.sub_total}
-                </span>{" "}
-                {cart.total_cash} {currency_symbol.symbol}
-                <span className="ml-2">
-                  <MenuIcon className={expanded && "rotate-180"} />
+                <span className="flex-row justify-center items-center ml-[5px] bold  text-[16px] pr-[13px] text-[#1D1D1D]">
+                  <span className="line-through regular mr-2">
+                    {cart.sub_total}
+                  </span>{" "}
+                  {cart.total_cash} {currency_symbol.symbol}
+                  <span className="ml-2">
+                    <MenuIcon className={expanded && "rotate-180"} />
+                  </span>
                 </span>
-              </span>
-            </div>
+              </div>
+            )}
           </div>
         )}
         <div className="flex-row w-full px-5 pt-3">
@@ -844,7 +853,6 @@ function OrderButton({ close, orderShow, setShowOrder }) {
               } else if (cart.cart.length === 0) {
                 close();
               } else {
-                console.log(getUser());
                 if (!getUser()) {
                   setOption(true);
                 }
@@ -864,7 +872,7 @@ function OrderButton({ close, orderShow, setShowOrder }) {
               ) : (
                 <>
                   {" "}
-                  {cart.cart.length === 0 ? (
+                  {cart.cart.length === 0 || orderShow ? (
                     <>
                       <span className="text-[#FEFEFE] text-[18px] medium ">
                         {orderShow

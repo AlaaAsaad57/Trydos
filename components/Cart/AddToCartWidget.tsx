@@ -190,7 +190,7 @@ const SelectColor = ({ close }) => {
         </div>
         <span className="relative">
           {cart?.length > 0 && (
-            <span className="bg-green-500 z-10 bottom-[-10px] left-[-10px] text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
+            <span className="bg-green-500 right-[-8px] top-[-4px] text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
               {cart.length}
             </span>
           )}

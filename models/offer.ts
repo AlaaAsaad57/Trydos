@@ -4,7 +4,9 @@ export interface Offer {
 export interface Boutique {
   id: number;
   name: string;
-  icon: string;
+  icon: {
+    file_path: string;
+  };
   slug: string;
   position: number;
   description: string;
@@ -15,7 +17,12 @@ export interface Boutique {
     id: number;
     slug: string;
     name: string;
-    flat_photo_path: string;
+    flat_photo_path: {
+      file_path: string;
+    };
+    most_viewed_product_thumbnail: {
+      file_path: string;
+    };
   }>;
   childCategoriesForProductIds: Array<{
     id: number;
