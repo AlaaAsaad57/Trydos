@@ -3,7 +3,13 @@ import { ReInitialise } from "store/auth/actions";
 import userImage from "public/images/profileNo.png";
 import Cookies from "js-cookie";
 
-import { _isStoreLastJson, getLang, UserID } from "utils/functions";
+import {
+  _isStoreLastJson,
+  ExpiredUser,
+  getLang,
+  getUser,
+  UserID,
+} from "utils/functions";
 import { SEND_OTP, VERFIY_OTP, VERFIY_OTP_SIGNUP } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
@@ -273,6 +279,10 @@ class AuthService {
       return data.data.data;
     } catch (error) {
       if (error.status === 401) {
+        if (getUser()) {
+          ExpiredUser();
+          return;
+        }
         await home.registerForExpire();
         setTimeout(() => {
           this.getProductNotify({ id });

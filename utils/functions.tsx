@@ -828,3 +828,6 @@ export const LogError = (error, url, href) => {
     backend_url: url,
   });
 };
+export const ExpiredUser = () => {
+  store.dispatch({ type: "INFO_EXPIRED_TOKEN", payload: true });
+};

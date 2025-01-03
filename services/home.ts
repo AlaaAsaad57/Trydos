@@ -6,8 +6,10 @@ import userImage from "public/images/profileNo.png";
 import {
   _isStoreLastJson,
   AddToCartAnimation,
+  ExpiredUser,
   getCart,
   getLang,
+  getUser,
   UserID,
   UserToken,
 } from "utils/functions";
@@ -473,6 +475,10 @@ class HomeService {
         );
       } catch (error) {
         if (error.status === 401) {
+          if (getUser()) {
+            ExpiredUser();
+            return;
+          }
           await this.registerForExpire();
 
           setTimeout(() => {
@@ -531,6 +537,10 @@ class HomeService {
         );
       } catch (error) {
         if (error.status === 401) {
+          if (getUser()) {
+            ExpiredUser();
+            return;
+          }
           await this.registerForExpire();
 
           setTimeout(() => {

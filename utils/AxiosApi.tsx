@@ -4,7 +4,7 @@ import pngErr from "public/images/error.png";
 import Cookies from "js-cookie";
 import { setupCache } from "axios-cache-interceptor";
 import home from "services/home";
-import { LogError } from "./functions";
+import { ExpiredUser, getUser, LogError } from "./functions";
 export const errorPNG = pngErr.src;
 
 export const AxiosGet = async ({ url }) => {
@@ -25,6 +25,10 @@ export const AxiosGet = async ({ url }) => {
   } catch (error) {
     LogError(error, url, window.location.href);
     if (error.status === 401) {
+      if (getUser()) {
+        ExpiredUser();
+        return;
+      }
       await home.registerForExpire();
       setTimeout(() => {
         AxiosGet({ url });

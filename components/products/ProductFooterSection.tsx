@@ -11,7 +11,9 @@ import axios from "axios";
 import SelectColor from "./SelectColor";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  ExpiredUser,
   GetAppLanguage,
+  getUser,
   RoundPrice,
   translate,
   UserID,
@@ -118,6 +120,10 @@ function ProductFooterSection({ product }) {
         );
       } catch (error) {
         if (error.status === 401) {
+          if (getUser()) {
+            ExpiredUser();
+            return;
+          }
           await home.registerForExpire();
           getData();
           return;

@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { expandView, normalizeView, Sendevent } from "utils/functions";
 import CartContainer from ".";
 import home from "services/home";
+import ShowMessageAuth from "components/global/ShowMessageAuth";
 
 const CartProvider = () => {
   const dispatch = useDispatch();
@@ -62,8 +63,12 @@ const CartProvider = () => {
     }
   }, []);
   const cartEnable = useSelector((state: StateInterface) => state.cart.enable);
+  const showMessage = useSelector(
+    (state: StateInterface) => state.homepage.showMessage
+  );
   return (
     <>
+      {showMessage && <ShowMessageAuth />}
       {cartEnable ? (
         <CartContainer
           close={() => {

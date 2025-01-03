@@ -3,6 +3,7 @@ declare global {
     homepage: {
       language: string;
       loading: boolean;
+      showMessage: boolean;
       loadingStories: boolean;
       selectedStory: any;
       renderStories: boolean;

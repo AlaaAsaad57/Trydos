@@ -1,6 +1,9 @@
 export const translations = {
   en: {
     Buy: "Buy",
+    "your session has expired please login again or continue as guest":
+      "your session has expired please login again or continue as guest",
+    "Continue as Guest": "Continue as Guest",
     "Enter Your Phone Number To Complete Order":
       "Enter Your Phone Number To Complete Order",
     "Please Select The Appropriate": "Please Select The Appropriate ",
@@ -185,6 +188,9 @@ export const translations = {
   },
 
   ar: {
+    "Continue as Guest": "الاستمرار كـ ضيف",
+    "your session has expired please login again or continue as guest":
+      "لقد انتهت جلستك، يرجى تسجيل الدخول مرة أخرى أو الاستمرار كضيف",
     "Please Select The Appropriate": "الرجاء اختيار",
     "Enter Your Phone Number To Complete Order":
       "الرجاء ادخال الرقم لاكمال الطلب",

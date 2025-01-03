@@ -17,6 +17,7 @@ const initialState = {
   session_id: uuidv4(),
   previous_event_button_name: null,
   activeRoute: "/",
+  showMessage: false,
   currency: null,
 };
 
@@ -55,6 +56,13 @@ const HomeReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         loginOpen: payload,
+        showMessage: false,
+      };
+    }
+    case "INFO_EXPIRED_TOKEN": {
+      return {
+        ...state,
+        showMessage: payload,
       };
     }
     case "WATCH-STORY": {
