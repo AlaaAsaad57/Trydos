@@ -17,12 +17,12 @@ const CartProvider = () => {
     (state: StateInterface) => state.listing.filterEnabled
   );
   const enableCart = (s) => {
+    dispatch({ type: "AddToCartOptionDisable", payload: false });
     window.history.pushState({ isPopup: true }, "open Cart");
     dispatch({ type: "ENABLE-CART", payload: s });
     if (s) {
       const newParams = new URLSearchParams(searchParams);
       newParams.set("cart", "true");
-
       // Use router.push with pathname and updated query
       router.push(`${pathname}?${newParams.toString()}`);
     } else {

@@ -478,7 +478,7 @@ class HomeService {
       // After the animation, remove the cloned image and update the cart
       setTimeout(() => {
         // @ts-ignore
-        clonedImage.remove();
+        // clonedImage.remove();
         // Update cart item count
       }, 1000);
 
@@ -523,12 +523,13 @@ class HomeService {
               slug,
             });
           }, 2000);
+          return;
         }
         store.dispatch({ type: "LOADED-CART", payload: true });
       }
 
       store.dispatch({ type: "LOADED-CART", payload: true });
-      if (res.data?.data?.qty >= 0 && res.data?.data.status !== 0) {
+      if (res?.data?.data?.qty >= 0 && res?.data?.data?.status !== 0) {
         callback({ id: alreadyExist });
       } else {
         errCallback();

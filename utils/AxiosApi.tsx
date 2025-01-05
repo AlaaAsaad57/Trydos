@@ -34,7 +34,6 @@ export const AxiosGet = async ({ url }) => {
         AxiosGet({ url });
       }, 100);
     }
-    console.error(error, url);
   }
 };
 

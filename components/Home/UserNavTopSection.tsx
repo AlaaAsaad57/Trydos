@@ -33,6 +33,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const enableCart = (s) => {
+    dispatch({ type: "AddToCartOptionDisable", payload: false });
     if (typeof window !== "undefined")
       window.history.pushState({ isPopup: true }, "open Cart");
     dispatch({ type: "ENABLE-CART", payload: s });

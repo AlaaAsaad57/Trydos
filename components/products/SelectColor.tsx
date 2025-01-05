@@ -24,6 +24,7 @@ function SelectColor({ close }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const enableCart = (s) => {
+    dispatch({ type: "AddToCartOptionDisable", payload: false });
     window.history.pushState({ isPopup: true }, "open Cart");
     dispatch({ type: "ENABLE-CART", payload: s });
     if (s) {

@@ -50,10 +50,10 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         return {
           ...state,
           localCart: arr,
-          enable: false,
+
           AddToCartOption: {
             ...state.AddToCartOption,
-            enable: true,
+
             quantity: 0,
             selectedOptions: selectedOptions,
           },

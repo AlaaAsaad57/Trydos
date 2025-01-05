@@ -203,6 +203,7 @@ const SelectColor = ({ close }) => {
                 value: "cart_nav_bar_button",
               });
               close();
+              dispatch({ type: "AddToCartOptionDisable", payload: false });
               enableCart(true);
             }}
           />

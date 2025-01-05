@@ -1730,25 +1730,27 @@ const QuantutyInput = ({
         }
       );
     } catch (error) {
-      if (getUser()) {
-        ExpiredUser();
-        return;
-      }
-      await home.registerForExpire();
-      const res = await axios.post(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
-        dataBody,
-        {
-          headers: {
-            Authorization: `Bearer ${
-              localStorage.getItem("MARKET-TOKEN") ||
-              localStorage.getItem("DEVICE-TOKEN")
-            }`,
-            lang: getLang(null, Cookies.get("language")),
-            country: Cookies.get("country"),
-          },
+      if (error.status === 401) {
+        if (getUser()) {
+          ExpiredUser();
+          return;
         }
-      );
+        await home.registerForExpire();
+        const res = await axios.post(
+          process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
+          dataBody,
+          {
+            headers: {
+              Authorization: `Bearer ${
+                localStorage.getItem("MARKET-TOKEN") ||
+                localStorage.getItem("DEVICE-TOKEN")
+              }`,
+              lang: getLang(null, Cookies.get("language")),
+              country: Cookies.get("country"),
+            },
+          }
+        );
+      }
     }
   };
   return (
