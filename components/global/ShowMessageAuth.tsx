@@ -54,14 +54,14 @@ function ShowMessageAuth() {
           >
             {translate("Login")}
           </div>
-          <div
+          {/* <div
             className="bg-[#5d5d5d] text-[#fafafa] regular p-3 rounded-md cursor-pointer"
             onClick={() => {
               loginGuest();
             }}
           >
             {translate("Continue as Guest")}
-          </div>
+          </div> */}
         </div>
       </div>
     </>
