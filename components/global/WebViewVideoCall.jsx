@@ -65,7 +65,7 @@ function WebViewVideoCall(props) {
     let init = async (name) => {
       client.on("user-joined", async (user) => {
         reset();
-        console.log("reset");
+
         start();
         setUsers((prevUsers) => {
           return [...prevUsers, user];

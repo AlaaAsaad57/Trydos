@@ -15,7 +15,7 @@ export async function generateMetadata({ params, searchParams }) {
     lang: params.lang,
     color: searchParams.color,
   });
-  console.log(metaData);
+
   if (!metaData?.name) {
     notFound();
   }

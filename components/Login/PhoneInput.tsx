@@ -77,7 +77,7 @@ function PhoneInput({
       disallowCharacters: [/[a-z]/],
     });
     setInputValue(data.plaintext);
-    console.log(data.plaintext, pattern);
+
     if (
       data.plaintext.length ===
       pattern?.split("").filter((letter) => letter === "x").length
