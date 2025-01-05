@@ -13,6 +13,8 @@ import {
   UserID,
   UserToken,
 } from "utils/functions";
+import Smartlook from "smartlook-client";
+
 import {
   CUSTOMER_INFO_URL,
   HOME_DATA_URL,
@@ -133,6 +135,13 @@ class HomeService {
         "guest-user",
         JSON.stringify({ ...repo.data.user, expired_at: repo.data.expires_at })
       );
+      if (repo.data.user) {
+        Smartlook.identify(repo.data.user.id, {
+          name: repo.data.user.name,
+          phone: "guest",
+          // other custom properties
+        });
+      }
     } catch (error) {}
   }
   async CheckLogin() {
@@ -145,6 +154,12 @@ class HomeService {
       localStorage.getItem("MARKET-TOKEN")
     ) {
       Cookies.set("market-token", localStorage.getItem("MARKET-TOKEN"));
+
+      Smartlook.identify(JSON.parse(localStorage.getItem("USER")).id, {
+        name: JSON.parse(localStorage.getItem("USER")).name,
+        phone: JSON.parse(localStorage.getItem("USER")).mobilePhone,
+        // other custom properties
+      });
       store.dispatch({
         type: "LOGIN_SUCCESS",
         payload: {
@@ -155,6 +170,13 @@ class HomeService {
         },
       });
     } else {
+      if (localStorage.getItem("guest-user")) {
+        Smartlook.identify(JSON.parse(localStorage.getItem("guest-user")).id, {
+          name: JSON.parse(localStorage.getItem("guest-user")).name,
+          phone: JSON.parse(localStorage.getItem("guest-user")).mobilePhone,
+          // other custom properties
+        });
+      }
       this.RegisterDevice();
     }
     if (true) {
@@ -205,6 +227,13 @@ class HomeService {
         "guest-user",
         JSON.stringify({ ...repo.data.user, expired_at: repo.data.expires_at })
       );
+      if (repo.data.user) {
+        Smartlook.identify(repo.data.user.id, {
+          name: repo.data.user.name,
+          phone: "guest",
+          // other custom properties
+        });
+      }
       await requestFirebaseNotificationPermission().then(async (token) => {
         // @ts-ignore
         if (token) {

@@ -2,6 +2,7 @@ import { store } from "store";
 import { ReInitialise } from "store/auth/actions";
 import userImage from "public/images/profileNo.png";
 import Cookies from "js-cookie";
+import Smartlook from "smartlook-client";
 
 import {
   _isStoreLastJson,
@@ -220,6 +221,13 @@ class AuthService {
   }
   async ConfirmSignIn() {
     let userLocal = JSON.parse(localStorage.getItem("USER"));
+    if (userLocal) {
+      Smartlook.identify(userLocal.id, {
+        name: userLocal.name,
+        phone: userLocal.mobilePhone,
+        // other custom properties
+      });
+    }
     store.dispatch({
       type: "LOGIN_SUCCESS",
       payload: {

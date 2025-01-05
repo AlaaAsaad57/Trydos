@@ -9,7 +9,13 @@ import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
 import { useDispatch, useSelector } from "react-redux";
-import { Sendevent, UserID, UserToken } from "utils/functions";
+import {
+  ExpiredUser,
+  getUser,
+  Sendevent,
+  UserID,
+  UserToken,
+} from "utils/functions";
 import axios from "axios";
 import home from "services/home";
 function ProductOptions({
@@ -47,31 +53,78 @@ function ProductOptions({
         type: "EDIT-INFO",
         payload: { likes: SelectedProduct?.likes + 1, is_liked: true },
       });
-      await axios.post(
-        process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/store`,
-        { product_id: product.id, user_id: UserID() },
-        {
-          headers: {
-            Authorization: `Bearer ${UserToken()}`,
-          },
+      try {
+        await axios.post(
+          process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/store`,
+          { product_id: product.id, user_id: UserID() },
+          {
+            headers: {
+              Authorization: `Bearer ${UserToken()}`,
+            },
+          }
+        );
+        await home.subscribeToTopics({ slug: SelectedProduct.slug_en_topic });
+      } catch (error) {
+        dispatch({
+          type: "EDIT-INFO",
+          payload: { likes: SelectedProduct?.likes - 1, is_liked: true },
+        });
+        if (error.status === 401) {
+          if (getUser()) {
+            ExpiredUser();
+            return;
+          }
+          await home.registerForExpire();
+          await axios.post(
+            process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/store`,
+            { product_id: product.id, user_id: UserID() },
+            {
+              headers: {
+                Authorization: `Bearer ${UserToken()}`,
+              },
+            }
+          );
+          await home.subscribeToTopics({ slug: SelectedProduct.slug_en_topic });
         }
-      );
-      await home.subscribeToTopics({ slug: SelectedProduct.slug_en_topic });
+      }
     } else {
       setLiked(false);
       dispatch({
         type: "EDIT-INFO",
         payload: { likes: SelectedProduct?.likes - 1, is_liked: false },
       });
-      axios.post(
-        process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/delete`,
-        { product_id: product.id, user_id: UserID() },
-        {
-          headers: {
-            Authorization: `Bearer ${UserToken()}`,
-          },
+      try {
+        axios.post(
+          process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/delete`,
+          { product_id: product.id, user_id: UserID() },
+          {
+            headers: {
+              Authorization: `Bearer ${UserToken()}`,
+            },
+          }
+        );
+      } catch (error) {
+        dispatch({
+          type: "EDIT-INFO",
+          payload: { likes: SelectedProduct?.likes + 1, is_liked: false },
+        });
+        if (error.status === 401) {
+          if (getUser()) {
+            ExpiredUser();
+            return;
+          }
+          await home.registerForExpire();
+          axios.post(
+            process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/delete`,
+            { product_id: product.id, user_id: UserID() },
+            {
+              headers: {
+                Authorization: `Bearer ${UserToken()}`,
+              },
+            }
+          );
         }
-      );
+      }
     }
   };
   return (

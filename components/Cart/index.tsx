@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  ExpiredUser,
   GetAppLanguage,
   getCart,
   getConfiguredImage,
   getLang,
+  getUser,
   RoundPrice,
   Sendevent,
   translate,
@@ -1712,20 +1714,42 @@ const QuantutyInput = ({
     }
     // @ts-ignore
     dataBody = dataBody.join("&");
-    const res = await axios.post(
-      process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
-      dataBody,
-      {
-        headers: {
-          Authorization: `Bearer ${
-            localStorage.getItem("MARKET-TOKEN") ||
-            localStorage.getItem("DEVICE-TOKEN")
-          }`,
-          lang: getLang(null, Cookies.get("language")),
-          country: Cookies.get("country"),
-        },
+    try {
+      const res = await axios.post(
+        process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
+        dataBody,
+        {
+          headers: {
+            Authorization: `Bearer ${
+              localStorage.getItem("MARKET-TOKEN") ||
+              localStorage.getItem("DEVICE-TOKEN")
+            }`,
+            lang: getLang(null, Cookies.get("language")),
+            country: Cookies.get("country"),
+          },
+        }
+      );
+    } catch (error) {
+      if (getUser()) {
+        ExpiredUser();
+        return;
       }
-    );
+      await home.registerForExpire();
+      const res = await axios.post(
+        process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
+        dataBody,
+        {
+          headers: {
+            Authorization: `Bearer ${
+              localStorage.getItem("MARKET-TOKEN") ||
+              localStorage.getItem("DEVICE-TOKEN")
+            }`,
+            lang: getLang(null, Cookies.get("language")),
+            country: Cookies.get("country"),
+          },
+        }
+      );
+    }
   };
   return (
     <div

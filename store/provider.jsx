@@ -11,12 +11,13 @@ import "react-toastify/scss/main.scss";
 import { useEffect } from "react";
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 import CartProvider from "components/Cart/CartProvider";
+import Smartlook from "smartlook-client";
 export default function Providers({ children }) {
   useEffect(() => {
     if (!navigator.cookieEnabled) {
       toast.info("Cookies Is Not Enabled");
     }
-
+    Smartlook.init(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
     let images = document.querySelectorAll("img");
     images.forEach((img) => {
       img.onerror = function () {

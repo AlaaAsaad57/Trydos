@@ -186,7 +186,6 @@ export const translations = {
     "I have Already Account": "I have Already Account",
     "Terms Of Services ": "Terms Of Services",
   },
-
   ar: {
     "Continue as Guest": "الاستمرار كـ ضيف",
     "your session has expired please login again or continue as guest":
