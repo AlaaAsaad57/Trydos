@@ -119,8 +119,8 @@ class HomeService {
   }
   async registerForExpire() {
     let body = localStorage.getItem("guest-user")
-      ? { user_id: JSON.parse(localStorage.getItem("guest-user")).id }
-      : { user_id: null };
+      ? { old_cart_user_id: JSON.parse(localStorage.getItem("guest-user")).id }
+      : { old_cart_user_id: null };
 
     try {
       let response = await fetch(
@@ -207,8 +207,8 @@ class HomeService {
   }
   async RegisterDevice() {
     let body = localStorage.getItem("guest-user")
-      ? { user_id: JSON.parse(localStorage.getItem("guest-user")).id }
-      : { user_id: null };
+      ? { old_cart_user_id: JSON.parse(localStorage.getItem("guest-user")).id }
+      : { old_cart_user_id: null };
     if (!Cookies.get("DEVICE-TOKEN") && localStorage.getItem("DEVICE-TOKEN")) {
       Cookies.set("DEVICE-TOKEN", localStorage.getItem("DEVICE-TOKEN"), {
         expires: 365,
