@@ -33,6 +33,8 @@ function ShowMessageAuth() {
     await home.registerForExpire();
   };
   useEffect(() => {
+    dispatch({ type: "ENABLE-CART", payload: false });
+
     document.documentElement.scrollTo({ top: 0 });
     document.documentElement.style.overflow = "hidden";
   }, []);
