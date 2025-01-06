@@ -132,6 +132,7 @@ class AuthService {
           expires_at: repo.data.expires_at,
         })
       );
+      localStorage.removeItem("guest-user");
       store.dispatch({
         type: "TEMP-USER",
         payload: {
@@ -243,6 +244,9 @@ class AuthService {
       "USER",
       JSON.stringify({ ...userLocal, is_verified: true })
     );
+    if (localStorage.getItem("guest-user"))
+      localStorage.removeItem("guest-user");
+
     StoryService.loginStories();
     ChatService.loginChat();
   }

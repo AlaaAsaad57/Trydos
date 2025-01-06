@@ -118,11 +118,16 @@ class HomeService {
     }
   }
   async registerForExpire() {
+    let body = localStorage.getItem("guest-user")
+      ? { id: JSON.parse(localStorage.getItem("guest-user")).id }
+      : { id: null };
+
     try {
       let response = await fetch(
         process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
         {
           method: "POST",
+          body: JSON.stringify(body),
           ...getHeader(),
         }
       );
@@ -201,6 +206,9 @@ class HomeService {
     }
   }
   async RegisterDevice() {
+    let body = localStorage.getItem("guest-user")
+      ? { id: JSON.parse(localStorage.getItem("guest-user")).id }
+      : { id: null };
     if (!Cookies.get("DEVICE-TOKEN") && localStorage.getItem("DEVICE-TOKEN")) {
       Cookies.set("DEVICE-TOKEN", localStorage.getItem("DEVICE-TOKEN"), {
         expires: 365,
@@ -215,6 +223,7 @@ class HomeService {
         process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
         {
           method: "POST",
+          body: JSON.stringify(body),
           ...getHeader(),
         }
       );
