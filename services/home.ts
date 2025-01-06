@@ -52,7 +52,7 @@ class HomeService {
       let repo = await response.json();
       store.dispatch({ type: "GET_SETTINGS", payload: repo });
       sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
-      if (!localStorage.getItem("customer-info")) this.getCustomerInfo();
+      this.getCustomerInfo();
       getCart({
         callback: ([data, res]) => {
           store.dispatch({

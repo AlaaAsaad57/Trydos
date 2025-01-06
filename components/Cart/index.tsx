@@ -311,7 +311,7 @@ function CartContainer({ close }) {
                               />
                             </div>
                             <div className="text-xs mt-1 text-[#505050] flex regular">
-                              {product.name}
+                              {product.name.substring(0, 30)}
                             </div>
 
                             <div className="flex-row flex-wrap">
@@ -677,7 +677,7 @@ function CartContainer({ close }) {
                               />
                             </div>
                             <div className="text-xs mt-1 text-[#505050] flex regular">
-                              {product.name}
+                              {product.name.substring(0, 30)}
                             </div>
                             <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
                               <span className="ml-1.5"></span>

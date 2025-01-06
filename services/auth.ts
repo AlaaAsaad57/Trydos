@@ -133,6 +133,7 @@ class AuthService {
         })
       );
       localStorage.removeItem("guest-user");
+      localStorage.removeItem("customer-info");
       store.dispatch({
         type: "TEMP-USER",
         payload: {
@@ -244,8 +245,10 @@ class AuthService {
       "USER",
       JSON.stringify({ ...userLocal, is_verified: true })
     );
-    if (localStorage.getItem("guest-user"))
+    if (localStorage.getItem("guest-user")) {
       localStorage.removeItem("guest-user");
+      localStorage.removeItem("customer-info");
+    }
 
     StoryService.loginStories();
     ChatService.loginChat();
