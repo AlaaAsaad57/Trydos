@@ -6,7 +6,13 @@ img {
   user-select: none;
   -webkit-user-drag: none;
 }
+.filter-listing-bar.fixedAlign {
+  top: 98px !important;
+}
 @media only screen and (min-width: 912px) {
+  .filter-listing-bar.fixedAlign {
+    top: 80px !important;
+  }
   .search-input-parent {
     background-color: #f2f2f2 !important;
   }

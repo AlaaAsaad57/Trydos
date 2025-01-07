@@ -129,9 +129,11 @@ class HomeService {
         process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
         {
           method: "POST",
-          body: new URLSearchParams({
-            old_guest_user_id: body.old_guest_user_id,
-          }),
+          body: body.old_guest_user_id
+            ? new URLSearchParams({
+                old_guest_user_id: body.old_guest_user_id,
+              })
+            : "old_guset_user_id=null",
           ...getHeader(),
           cache: "no-cache",
         }
@@ -231,9 +233,11 @@ class HomeService {
         process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
         {
           method: "POST",
-          body: new URLSearchParams({
-            old_guest_user_id: body.old_guest_user_id,
-          }),
+          body: body.old_guest_user_id
+            ? new URLSearchParams({
+                old_guest_user_id: body.old_guest_user_id,
+              })
+            : "old_guset_user_id=null",
           ...getHeader(),
         }
       );

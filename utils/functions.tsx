@@ -362,8 +362,9 @@ export const expandView = ({ filter }) => {
     ).style.paddingRight = "5px";
     document.querySelector<HTMLElement>(".filter-listing-bar").style.zIndex =
       "999999";
-    document.querySelector<HTMLElement>(".filter-listing-bar").style.top =
-      "98px";
+    document
+      .querySelector<HTMLElement>(".filter-listing-bar")
+      .classList.add("fixedAlign");
     document.querySelector<HTMLElement>(".filter-listing-bar").style.left =
       "0px";
   }
@@ -430,6 +431,10 @@ export const normalizeView = () => {
     ).style.paddingRight = "20px";
     document.querySelector<HTMLElement>(".filter-listing-bar").style.top =
       "initial";
+    document
+      .querySelector<HTMLElement>(".filter-listing-bar")
+      .classList.remove("fixedAlign");
+
     document
       .querySelector<HTMLElement>(".filter-listing-bar")
       .classList.add("relative");
