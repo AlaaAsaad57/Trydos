@@ -479,7 +479,7 @@ function AddToCartButton({
                         }
                       },
                       errCallback: () => {
-                        // setOption("AddToCart");
+                        setOption("");
                       },
                       id: product?.id,
                       color:
@@ -722,7 +722,7 @@ function AddToCartButton({
                             }
                           },
                           errCallback: () => {
-                            // setOption("AddToCart");
+                            setOption("");
                           },
                           id: product?.id,
                           color:

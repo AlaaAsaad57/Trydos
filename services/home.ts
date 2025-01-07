@@ -529,8 +529,7 @@ class HomeService {
         callback({ id: alreadyExist });
       } else {
         errCallback();
-        // store.dispatch({ type: "AddToCartOptionDisable" });
-        toast.info(res?.message || "Failed");
+        store.dispatch({ type: "AddToCartOptionDisable" });
       }
     } else {
       const imageVar = image.split("/")[image.split("/").length - 1];
@@ -547,7 +546,7 @@ class HomeService {
       formBody = formBody.join("&");
       let res;
       try {
-        await AxiosPost({
+        res = await AxiosPost({
           url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/add",
           body: formBody,
           title: "Add  Product to Cart",

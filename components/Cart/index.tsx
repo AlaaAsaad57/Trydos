@@ -1772,7 +1772,10 @@ const QuantutyInput = ({
           className="absolute hide-btn h-[24px] flex items-center right-[6px]  cursor-pointer"
           onClick={() => {
             if (disabled) return false;
-            if (inputValue === max) return false;
+            if (inputValue === max) {
+              toast.error(translate("stock is limited"));
+              return false;
+            }
             // @ts-ignore
             else {
               setInputValue(parseInt(inputValue.toString()) + 1);

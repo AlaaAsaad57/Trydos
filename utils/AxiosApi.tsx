@@ -10,7 +10,7 @@ export const errorPNG = pngErr.src;
 const getHeader = () => {
   return {
     headers: {
-      lang: Cookies.get("language"),
+      lang: Cookies.get("language") || Cookies.get("lang"),
       country: Cookies.get("country"),
       Authorization: `Bearer ${
         localStorage.getItem("MARKET-TOKEN") ??
@@ -82,6 +82,14 @@ export const AxiosPost = async ({
       if (url.includes(`/api/products/view`)) {
         if (res.data.view_count) {
           return res.data;
+        }
+      }
+      if (url.includes("cart/")) {
+        if (res.data.data.status === 1) {
+          return res.data.data;
+        } else {
+          toast.error(res.data.message);
+          return;
         }
       }
       if (res?.data.data) {

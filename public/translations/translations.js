@@ -1,6 +1,7 @@
 export const translations = {
   en: {
     Buy: "Buy",
+    "stock is limited": "stock is limited",
     "your session has expired please login again or continue as guest":
       "your session has expired please login again or continue as guest",
     "Continue as Guest": "Continue as Guest",
@@ -187,6 +188,7 @@ export const translations = {
     "Terms Of Services ": "Terms Of Services",
   },
   ar: {
+    "stock is limited": "لا يوجد كمية اضافية من المنتج",
     "Continue as Guest": "الاستمرار كـ ضيف",
     "your session has expired please login again or continue as guest":
       "لقد انتهت جلستك، يرجى تسجيل الدخول مرة أخرى أو الاستمرار كضيف",

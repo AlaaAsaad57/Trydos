@@ -247,7 +247,8 @@ export const getProductMeta = async ({ productId, lang, color }) => {
         lang: await getLang(langauge, cookieStore.get("language")?.value),
         country: cookieStore.get("country") && cookieStore.get("country").value,
       }),
-    }
+    },
+    "Product SimpleDetails"
   );
 
   let end = new Date();
@@ -702,9 +703,10 @@ export const onClickSearchHistory = (searchValue) => {
     localStorage.setItem("search-history", JSON.stringify([searchValue]));
   }
 };
-async function fetchWithRetry(url, options, retries = 2, delay = 200) {
+async function fetchWithRetry(url, options, title) {
   let attempt = 0;
-
+  let retries = 2;
+  let delay = 200;
   while (attempt <= retries) {
     try {
       const response = await fetch(url, options);
@@ -720,7 +722,9 @@ async function fetchWithRetry(url, options, retries = 2, delay = 200) {
       attempt++;
       console.log(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);
       if (attempt > retries) {
-        throw new Error("Max retries reached. Could not fetch the data.");
+        throw new Error(
+          `${title} : Max retries reached. Could not fetch the data.`
+        );
       }
       // Wait before retrying
       await new Promise((resolve) => setTimeout(resolve, delay));
