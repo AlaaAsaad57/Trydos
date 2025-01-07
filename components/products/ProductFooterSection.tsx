@@ -23,6 +23,7 @@ import auth from "services/auth";
 import { toast } from "react-toastify";
 import chat from "services/chat";
 import home from "services/home";
+import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
     return {
@@ -106,74 +107,59 @@ function ProductFooterSection({ product }) {
   const getData = async () => {
     await home.CheckLogin();
     try {
-      let req;
-      try {
-        req = await axios.get(
+      let req = await AxiosGet({
+        url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
-            "/web/product/likesCommentsSharesDetails/" +
-            product.id,
-          {
-            headers: {
-              Authorization: `Bearer ${UserToken()}`,
-            },
-          }
-        );
-      } catch (error) {
-        if (error.status === 401) {
-          if (getUser()) {
-            ExpiredUser();
-            return;
-          }
-          await home.registerForExpire();
-          getData();
-          return;
-        }
-      }
+          "/web/product/likesCommentsSharesDetails/" +
+          product.id,
+        title: "Like & Comments Data Request",
+      });
+
       dispatchStore({
         type: "STORE-VARIANTS",
         // @ts-ignore
         payload: {
           // @ts-ignore
-          variation: req?.data?.data?.variation,
+          variation: req?.variation,
           // @ts-ignore
-          slug_en_topic: req?.data?.data?.slug_en_topic,
+          slug_en_topic: req?.slug_en_topic,
         },
       });
-      const viewsReq = await axios.post(
-        process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + `/api/products/view`,
-        {
+
+      const viewsReq = await AxiosPost({
+        url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + `/api/products/view`,
+        title: "get Views For Product",
+        body: {
           user_id: UserID(),
           product_id: product.id,
-        }
-      );
-      let reqShares = await axios.get(
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+        },
+      });
+      let reqShares = await AxiosGet({
+        url:
+          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
           `/api/v2/elastic/shared_count/${product.id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${UserToken()}`,
-          },
-        }
-      );
+        title: "Share Count Request",
+      });
+
       dispatchStore({
         type: "shares",
-        payload: reqShares.data.data.shared_count,
+        payload: reqShares.shared_count,
       });
       // @ts-ignore
-      let likesNum = req?.data?.data?.count_of_likes || 0;
+      let likesNum = req?.count_of_likes || 0;
       // @ts-ignore
-      let isLiked = req?.data?.data?.is_liked || 0;
+      let isLiked = req?.is_liked || 0;
       setProductData({
         ...productState.productDetails,
         // @ts-ignore
-        comment_count: req?.data?.data?.comments_count || 0,
+        comment_count: req?.comments_count || 0,
         // @ts-ignore
-        comments: req?.data?.data?.comments || [],
+        comments: req?.comments || [],
       });
       let arr = [];
       // @ts-ignore
-      if (req?.data?.data?.variation?.length) {
-        req?.data.data.variation.map((s) => {
+      if (req?.variation?.length) {
+        req.variation.map((s) => {
           let d = product.variation.filter((w) => w.type === s.type)[0];
           arr.push({ ...s, ...d });
         });
@@ -183,18 +169,17 @@ function ProductFooterSection({ product }) {
         payload: {
           ...product,
           // @ts-ignore
-          is_product_notify_for_user: req?.data.data.is_product_notify_for_user,
+          is_product_notify_for_user: req?.is_product_notify_for_user,
           variation: arr,
           likes: likesNum,
           is_liked: isLiked,
-          views_count: viewsReq?.data?.view_count || 0,
+          views_count: viewsReq?.view_count || 0,
         },
       });
       // @ts-ignore
 
       setLoading(false);
     } catch (error) {
-      toast.error(translate("Failed To Get Product details", GetAppLanguage()));
       setLoading(false);
     }
   };

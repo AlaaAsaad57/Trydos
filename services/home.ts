@@ -27,6 +27,7 @@ import { GetMainData } from "store/homepage/actions";
 import { toast } from "react-toastify";
 import axios from "node_modules/axios";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
+import { AxiosPost } from "utils/AxiosApi";
 const getHeader = () => {
   return {
     next: {
@@ -78,15 +79,16 @@ class HomeService {
       getHeader()
     );
     let repo = await response.json();
-
-    store.dispatch({
-      type: "UPDATE_USER_INFO",
-      payload: repo.data.customer_info,
-    });
-    localStorage.setItem(
-      "customer-info",
-      JSON.stringify(repo.data.customer_info)
-    );
+    if (repo.data) {
+      store.dispatch({
+        type: "UPDATE_USER_INFO",
+        payload: repo.data?.customer_info,
+      });
+      // localStorage.setItem(
+      //   "customer-info",
+      //   JSON.stringify(repo.data.customer_info)
+      // );
+    }
 
     if (typeof window !== "undefined") {
       _isStoreLastJson() &&
@@ -119,16 +121,19 @@ class HomeService {
   }
   async registerForExpire() {
     let body = localStorage.getItem("guest-user")
-      ? { old_cart_user_id: JSON.parse(localStorage.getItem("guest-user")).id }
-      : { old_cart_user_id: null };
+      ? { old_guest_user_id: JSON.parse(localStorage.getItem("guest-user")).id }
+      : { old_guest_user_id: null };
 
     try {
       let response = await fetch(
         process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
         {
           method: "POST",
-          body: JSON.stringify(body),
+          body: new URLSearchParams({
+            old_guest_user_id: body.old_guest_user_id,
+          }),
           ...getHeader(),
+          cache: "no-cache",
         }
       );
       let repo = await response.json();
@@ -192,14 +197,17 @@ class HomeService {
 
           setTimeout(async () => {
             if (UserToken())
-              await axios.post(
-                process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
-                {
+              await AxiosPost({
+                url:
+                  process.env.NEXT_PUBLIC_BACKEND_URL +
+                  "/firebase_device_tokens",
+                body: {
                   device_token: token,
                   user_id: UserID(),
                   auth_token: UserToken(),
-                }
-              );
+                },
+                title: "register firebase token",
+              });
           }, 3000);
         }
       });
@@ -207,8 +215,8 @@ class HomeService {
   }
   async RegisterDevice() {
     let body = localStorage.getItem("guest-user")
-      ? { old_cart_user_id: JSON.parse(localStorage.getItem("guest-user")).id }
-      : { old_cart_user_id: null };
+      ? { old_guest_user_id: JSON.parse(localStorage.getItem("guest-user")).id }
+      : { old_guest_user_id: null };
     if (!Cookies.get("DEVICE-TOKEN") && localStorage.getItem("DEVICE-TOKEN")) {
       Cookies.set("DEVICE-TOKEN", localStorage.getItem("DEVICE-TOKEN"), {
         expires: 365,
@@ -223,7 +231,9 @@ class HomeService {
         process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
         {
           method: "POST",
-          body: JSON.stringify(body),
+          body: new URLSearchParams({
+            old_guest_user_id: body.old_guest_user_id,
+          }),
           ...getHeader(),
         }
       );
@@ -236,6 +246,7 @@ class HomeService {
         "guest-user",
         JSON.stringify({ ...repo.data.user, expired_at: repo.data.expires_at })
       );
+      localStorage.removeItem("customer-info");
       if (repo.data.user) {
         Smartlook.identify(repo.data.user.id, {
           name: repo.data.user.name,
@@ -248,14 +259,16 @@ class HomeService {
         if (token) {
           localStorage.setItem("FB-DEVICE-TOKEN", token);
           if (localStorage.getItem("MARKET-TOKEN"))
-            await axios.post(
-              process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
-              {
+            await AxiosPost({
+              url:
+                process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
+              body: {
                 device_token: token,
                 user_id: UserID(),
                 auth_token: UserToken(),
-              }
-            );
+              },
+              title: "register firebase token",
+            });
         }
       });
       if (typeof window !== "undefined") {
@@ -497,53 +510,23 @@ class HomeService {
 
       let res;
       try {
-        res = await axios.post(
-          process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
-          dataBody,
-          {
-            headers: {
-              Authorization: `Bearer ${
-                localStorage.getItem("MARKET-TOKEN") ||
-                localStorage.getItem("DEVICE-TOKEN")
-              }`,
-              lang: getLang(null, Cookies.get("language")),
-              country: Cookies.get("country"),
-            },
-          }
-        );
+        res = await AxiosPost({
+          url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
+          body: dataBody,
+          title: "Update  Quantity For Product in Cart",
+        });
       } catch (error) {
-        if (error.status === 401) {
-          if (getUser()) {
-            ExpiredUser();
-            return;
-          }
-          await this.registerForExpire();
-
-          setTimeout(() => {
-            this.AddToCart({
-              id,
-              size,
-              color,
-              image,
-              quantity,
-              callback,
-              alreadyExist,
-              errCallback,
-              slug,
-            });
-          }, 2000);
-          return;
-        }
         store.dispatch({ type: "LOADED-CART", payload: true });
+        return;
       }
 
       store.dispatch({ type: "LOADED-CART", payload: true });
-      if (res?.data?.data?.qty >= 0 && res?.data?.data?.status !== 0) {
+      if (res?.qty >= 0 && res?.status !== 0) {
         callback({ id: alreadyExist });
       } else {
         errCallback();
         // store.dispatch({ type: "AddToCartOptionDisable" });
-        toast.info(res.data?.message || "Failed");
+        toast.info(res?.message || "Failed");
       }
     } else {
       const imageVar = image.split("/")[image.split("/").length - 1];
@@ -560,57 +543,28 @@ class HomeService {
       formBody = formBody.join("&");
       let res;
       try {
-        res = await axios.post(
-          process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/add",
-          formBody,
-          {
-            headers: {
-              Authorization: `Bearer ${
-                localStorage.getItem("MARKET-TOKEN") ||
-                localStorage.getItem("DEVICE-TOKEN")
-              }`,
-              lang: getLang(null, Cookies.get("language")),
-              country: Cookies.get("country"),
-            },
-          }
-        );
+        await AxiosPost({
+          url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/add",
+          body: formBody,
+          title: "Add  Product to Cart",
+        });
       } catch (error) {
-        if (error.status === 401) {
-          if (getUser()) {
-            ExpiredUser();
-            return;
-          }
-          await this.registerForExpire();
-
-          setTimeout(() => {
-            this.AddToCart({
-              id,
-              size,
-              color,
-              image,
-              quantity,
-              callback,
-              alreadyExist,
-              errCallback,
-              slug,
-            });
-          }, 2000);
-        }
         store.dispatch({ type: "LOADED-CART", payload: true });
+        return;
       }
 
       let fbtoken = localStorage.getItem("FB-DEVICE-TOKEN");
 
       store.dispatch({ type: "LOADED-CART", payload: true });
-      if (res.data?.data?.id_cart) {
-        callback({ id: res.data?.data?.id_cart });
+      if (res?.id_cart) {
+        callback({ id: res?.id_cart });
         await fetch("/api/subscribeToTopic", {
           cache: "no-cache",
           method: "POST",
           // @ts-ignore
           body: JSON.stringify({
             token: fbtoken,
-            topic: `product_hurry_up_${res.data?.data?.id_cart}`,
+            topic: `product_hurry_up_${res?.id_cart}`,
           }),
         });
         await this.subscribeToTopics({
@@ -621,7 +575,7 @@ class HomeService {
       } else {
         errCallback();
         // store.dispatch({ type: "AddToCartOptionDisable", payload: true });
-        toast.info(res.data?.message || "Failed");
+        toast.info(res?.message || "Failed");
       }
     }
   }
@@ -657,20 +611,11 @@ class HomeService {
   }
   async hideOldCart({ id }: { id?: number }) {
     try {
-      let response = await axios.post(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/old-cart/hide",
-        { id: id },
-        {
-          headers: {
-            Authorization: `Bearer ${
-              localStorage.getItem("MARKET-TOKEN") ||
-              localStorage.getItem("DEVICE-TOKEN")
-            }`,
-            lang: getLang(null, Cookies.get("language")),
-            country: Cookies.get("country"),
-          },
-        }
-      );
+      await AxiosPost({
+        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/old-cart/hide",
+        body: { id: id },
+        title: "Hide Old Cart",
+      });
     } catch (error) {
       toast.info("Error hiding old Cart");
     }
@@ -735,11 +680,11 @@ class HomeService {
   }
   async RemoveFromCart({ key }) {
     try {
-      await axios.post(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/remove",
-        { key: key },
-        { ...getHeader() }
-      );
+      AxiosPost({
+        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/remove",
+        body: { key: key },
+        title: "Remove From Cart",
+      });
     } catch (error) {}
   }
   async StoreNotificationProduct({ type_id, variant, product_id }) {

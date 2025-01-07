@@ -3,7 +3,7 @@ import profilePicture from "public/images/profileNo.png";
 import StoryServiceClass from "services/story";
 import { store } from "store";
 import Cookies from "js-cookie";
-import { HOME_DATA_URL } from "./endpointConfig";
+
 import { notFound } from "next/navigation";
 import { LogData } from "store/homepage/actions";
 import { AxiosCacheApi, AxiosGet } from "./AxiosApi";
@@ -714,11 +714,9 @@ async function fetchWithRetry(url, options, retries = 2, delay = 200) {
     } catch (error) {
       attempt++;
       console.log(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);
-
       if (attempt > retries) {
         throw new Error("Max retries reached. Could not fetch the data.");
       }
-
       // Wait before retrying
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
@@ -729,6 +727,7 @@ export const getSearchOptions = async () => {
     url:
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
       "/api/products/search?with_products=false",
+    title: "get Search Filter Options Request",
   });
 
   return [
@@ -748,9 +747,11 @@ export const getCart = async ({ callback }) => {
     await home.RegisterDevice();
   let data: CartApi["data"] = await AxiosGet({
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/cart_shipping",
+    title: "Cart Request",
   });
   let oldCartData: OldCartApi["data"] = await AxiosGet({
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/old-cart/get_old_cart",
+    title: "Old Cart Request",
   });
 
   store.dispatch({

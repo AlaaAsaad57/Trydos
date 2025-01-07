@@ -5,6 +5,7 @@ import Skeleton from "react-loading-skeleton";
 import axios from "axios";
 
 import { useSelector } from "react-redux";
+import { AxiosPost } from "utils/AxiosApi";
 
 function Comments({
   comments,
@@ -22,24 +23,16 @@ function Comments({
   useEffect(() => {}, [Render, comments]);
   const resendCommentApi = async (mid, s) => {
     try {
-      let req = await axios.post(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/product_comment",
-        {
+      let req = await AxiosPost({
+        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/product_comment",
+        title: "resend add Comment For Product",
+        body: {
           customer_id: user?.id,
           product_id: productId,
           comment: s,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${
-              localStorage.getItem("MARKET-TOKEN") ||
-              localStorage.getItem("DEVICE-TOKEN")
-            }`,
-          },
-        }
-      );
-      if (req.data?.data?.comment) {
-        let newComment = req.data.data.comment;
+      });
+      if (req?.comment) {
         let s = CommentsData.filter((m) => m.mid === mid)[0];
         verifyCommentAction(mid);
         increase_comments();

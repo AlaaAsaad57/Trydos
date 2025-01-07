@@ -14,6 +14,7 @@ import {
 import axios from "axios";
 import { ProductInterface } from "models/product";
 import { Sendevent } from "utils/functions";
+import { AxiosPost } from "utils/AxiosApi";
 function ShareOptions({
   setShareContacts,
   sharedContacts,
@@ -31,11 +32,18 @@ function ShareOptions({
   );
   const dispatch = useDispatch();
   const shareSocial = async (appName) => {
-    await axios.post(
-      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+    await AxiosPost({
+      url:
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
         "/api/v2/elastic/share_product_on_apps",
-      { app_name: appName, product_id: product.id, shared_count: sharesCount }
-    );
+      body: {
+        app_name: appName,
+        product_id: product.id,
+        shared_count: sharesCount,
+      },
+      title: "Share Product on Social",
+    });
+
     dispatch({ type: "SHARE-SOCIAL" });
   };
   const contacts = useSelector((state: StateInterface) => state.chat.contacts);

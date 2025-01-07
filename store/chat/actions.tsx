@@ -881,8 +881,7 @@ export const GetChatDetails = async (id) => {
 export const getCurrency = async ({ lang, country, callback }) => {
   let currency = await AxiosGet({
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile/home/currency",
-  }).catch((e) => {
-    console.error("currency-error");
+    title: "Currency Request",
   });
   //
   callback({ currency: currency?.currency, res: {} });

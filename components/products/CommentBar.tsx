@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
+import { AxiosPost } from "utils/AxiosApi";
 import { Sendevent } from "utils/functions";
 
 function CommentBar({
@@ -41,24 +42,18 @@ function CommentBar({
         created_at: new Date().toISOString(),
         mid: mid,
       });
-      let req = await axios.post(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/product_comment",
-        {
+
+      let req = await AxiosPost({
+        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/product_comment",
+        title: "add comment For Product",
+        body: {
           customer_id: user?.id,
           product_id: product?.id,
           comment: s,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${
-              localStorage.getItem("MARKET-TOKEN") ||
-              localStorage.getItem("DEVICE-TOKEN")
-            }`,
-          },
-        }
-      );
-      if (req.data?.data?.comment) {
-        let newComment = req.data.data.comment;
+      });
+      if (req?.comment) {
+        let newComment = req.comment;
         verifyComment(mid, newComment);
       } else {
         isError(mid);

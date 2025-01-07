@@ -18,6 +18,7 @@ import {
 } from "utils/functions";
 import axios from "axios";
 import home from "services/home";
+import { AxiosPost } from "utils/AxiosApi";
 function ProductOptions({
   activeOption,
   setOption,
@@ -54,38 +55,17 @@ function ProductOptions({
         payload: { likes: SelectedProduct?.likes + 1, is_liked: true },
       });
       try {
-        await axios.post(
-          process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/store`,
-          { product_id: product.id, user_id: UserID() },
-          {
-            headers: {
-              Authorization: `Bearer ${UserToken()}`,
-            },
-          }
-        );
-        await home.subscribeToTopics({ slug: SelectedProduct.slug_en_topic });
+        await AxiosPost({
+          url: process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/store`,
+          title: "like For Product",
+          body: { product_id: product.id, user_id: UserID() },
+        });
+        home.subscribeToTopics({ slug: SelectedProduct.slug_en_topic });
       } catch (error) {
         dispatch({
           type: "EDIT-INFO",
           payload: { likes: SelectedProduct?.likes - 1, is_liked: true },
         });
-        if (error.status === 401) {
-          if (getUser()) {
-            ExpiredUser();
-            return;
-          }
-          await home.registerForExpire();
-          await axios.post(
-            process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/store`,
-            { product_id: product.id, user_id: UserID() },
-            {
-              headers: {
-                Authorization: `Bearer ${UserToken()}`,
-              },
-            }
-          );
-          await home.subscribeToTopics({ slug: SelectedProduct.slug_en_topic });
-        }
       }
     } else {
       setLiked(false);
@@ -94,36 +74,16 @@ function ProductOptions({
         payload: { likes: SelectedProduct?.likes - 1, is_liked: false },
       });
       try {
-        axios.post(
-          process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/delete`,
-          { product_id: product.id, user_id: UserID() },
-          {
-            headers: {
-              Authorization: `Bearer ${UserToken()}`,
-            },
-          }
-        );
+        AxiosPost({
+          url: process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/delete`,
+          title: "unlike For Product",
+          body: { product_id: product.id, user_id: UserID() },
+        });
       } catch (error) {
         dispatch({
           type: "EDIT-INFO",
           payload: { likes: SelectedProduct?.likes + 1, is_liked: false },
         });
-        if (error.status === 401) {
-          if (getUser()) {
-            ExpiredUser();
-            return;
-          }
-          await home.registerForExpire();
-          axios.post(
-            process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/delete`,
-            { product_id: product.id, user_id: UserID() },
-            {
-              headers: {
-                Authorization: `Bearer ${UserToken()}`,
-              },
-            }
-          );
-        }
       }
     }
   };

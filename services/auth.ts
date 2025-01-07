@@ -17,6 +17,7 @@ import StoryService from "services/story";
 
 import axios from "axios";
 import home from "./home";
+import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 const getHeader = () => {
   return {
     headers: {
@@ -133,7 +134,9 @@ class AuthService {
         })
       );
       localStorage.removeItem("guest-user");
-      localStorage.removeItem("customer-info");
+      if (localStorage.getItem("customer-info")) {
+        localStorage.removeItem("customer-info");
+      }
       store.dispatch({
         type: "TEMP-USER",
         payload: {
@@ -170,17 +173,14 @@ class AuthService {
     }
     // @ts-ignore
     dataBody = dataBody.join("&");
-    let data = await axios.post(
-      process.env.NEXT_PUBLIC_BACKEND_URL + "/auth/firebase/verify-guest-phone",
-      dataBody,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("DEVICE-TOKEN")}`,
-          lang: getLang(null, Cookies.get("language")),
-          country: Cookies.get("country"),
-        },
-      }
-    );
+    await AxiosPost({
+      url:
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/auth/firebase/verify-guest-phone",
+      body: dataBody,
+      title: "Verify Guest",
+    });
+
     success();
   }
   async UpdateName(name: string) {
@@ -201,11 +201,12 @@ class AuthService {
       );
       store.dispatch({ type: "UPDATE-NAME", payload: name });
       let axios = (await import("axios")).default;
-      axios.post(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-name",
-        { name: name },
-        getHeader()
-      );
+      await AxiosPost({
+        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-name",
+        body: { name: name },
+        title: "Verify Guest",
+      });
+
       axios.post(
         process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + "/api/v1/users/update",
         { name: name },
@@ -247,13 +248,17 @@ class AuthService {
     );
     if (localStorage.getItem("guest-user")) {
       localStorage.removeItem("guest-user");
+    }
+    if (localStorage.getItem("customer-info")) {
       localStorage.removeItem("customer-info");
     }
-
     StoryService.loginStories();
     ChatService.loginChat();
   }
   async cancelAuth() {
+    if (!localStorage.getItem("guest-user")) {
+      home.registerForExpire();
+    }
     store.dispatch({ type: "CANCEL-AUTH" });
   }
   async NotifyForProducts({ id, variant }) {
@@ -270,40 +275,25 @@ class AuthService {
       formBody.push(encodedKey + "=" + encodedValue);
     }
     formBody = formBody.join("&");
-    let data = await axios.post(
-      process.env.NEXT_PUBLIC_BACKEND_URL + "/product_notification/store",
-      formBody,
-      {
-        ...getHeader(),
-      }
-    );
+    await AxiosPost({
+      url: process.env.NEXT_PUBLIC_BACKEND_URL + "/product_notification/store",
+      body: formBody,
+      title: "Verify Guest",
+    });
   }
   async getProductNotify({ id }) {
     try {
       if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
-      let data = await axios.get(
-        process.env.NEXT_PUBLIC_BACKEND_URL +
+      let data = await AxiosGet({
+        url:
+          process.env.NEXT_PUBLIC_BACKEND_URL +
           "/web/product/likesCommentsSharesDetails/" +
           id,
+        title: "Get Notify Data for product",
+      });
 
-        {
-          ...getHeader(),
-        }
-      );
-
-      return data.data.data;
-    } catch (error) {
-      if (error.status === 401) {
-        if (getUser()) {
-          ExpiredUser();
-          return;
-        }
-        await home.registerForExpire();
-        setTimeout(() => {
-          this.getProductNotify({ id });
-        }, 2000);
-      }
-    }
+      return data;
+    } catch (error) {}
   }
 }
 export default new AuthService();

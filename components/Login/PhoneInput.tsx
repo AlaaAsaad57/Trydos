@@ -148,7 +148,6 @@ function PhoneInput({
         {operation === "login" && (
           <div className="phone-input-desc mb-4v" id="phone-desc">
             <LoginIcon style={{ marginTop: "2px" }} className="show-logo" />
-
             <div className="text-login-desc">
               <div className="text-login-item">
                 {isForCart

@@ -27,6 +27,7 @@ import home from "services/home";
 import { toast } from "react-toastify";
 import axios from "node_modules/axios";
 import OrderButton from "./OrderButton";
+import { AxiosPost } from "utils/AxiosApi";
 
 function CartContainer({ close }) {
   const language = useSelector(
@@ -1702,7 +1703,7 @@ const QuantutyInput = ({
       </svg>
     );
   };
-  const updateQuantity = async (quantity) => {
+  const updateQuantity = async (quantity, bool) => {
     let dataBody = [];
     let dataObj = { key: id, quantity: quantity };
     for (var property in dataObj) {
@@ -1715,41 +1716,16 @@ const QuantutyInput = ({
     // @ts-ignore
     dataBody = dataBody.join("&");
     try {
-      const res = await axios.post(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
-        dataBody,
-        {
-          headers: {
-            Authorization: `Bearer ${
-              localStorage.getItem("MARKET-TOKEN") ||
-              localStorage.getItem("DEVICE-TOKEN")
-            }`,
-            lang: getLang(null, Cookies.get("language")),
-            country: Cookies.get("country"),
-          },
-        }
-      );
+      await AxiosPost({
+        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
+        title: "Update Quantity For Product In cart",
+        body: dataBody,
+      });
     } catch (error) {
-      if (error.status === 401) {
-        if (getUser()) {
-          ExpiredUser();
-          return;
-        }
-        await home.registerForExpire();
-        const res = await axios.post(
-          process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
-          dataBody,
-          {
-            headers: {
-              Authorization: `Bearer ${
-                localStorage.getItem("MARKET-TOKEN") ||
-                localStorage.getItem("DEVICE-TOKEN")
-              }`,
-              lang: getLang(null, Cookies.get("language")),
-              country: Cookies.get("country"),
-            },
-          }
-        );
+      if (bool) {
+        setInputValue(inputValue);
+      } else {
+        setInputValue(inputValue);
       }
     }
   };
@@ -1800,7 +1776,7 @@ const QuantutyInput = ({
             // @ts-ignore
             else {
               setInputValue(parseInt(inputValue.toString()) + 1);
-              updateQuantity(parseInt(inputValue.toString()) + 1);
+              updateQuantity(parseInt(inputValue.toString()) + 1, true);
             }
           }}
         >
@@ -1815,7 +1791,7 @@ const QuantutyInput = ({
               if (inputValue > 1) {
                 // @ts-ignore
                 setInputValue(parseInt(inputValue) - 1);
-                updateQuantity(parseInt(inputValue.toString()) - 1);
+                updateQuantity(parseInt(inputValue.toString()) - 1, false);
               }
             }}
           >
