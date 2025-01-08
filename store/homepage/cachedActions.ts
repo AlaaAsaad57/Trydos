@@ -283,7 +283,7 @@ export const getListingData = async ({
         },
         headers: new Headers({
           "ssr-req": "true",
-          lang: await getLang(language, cookieStore.get("language")?.value),
+          lang: getLang(language, cookieStore.get("language")?.value),
           country:
             cookieStore.get("country") && cookieStore.get("country").value,
           Accept: "application/json",
@@ -291,8 +291,10 @@ export const getListingData = async ({
         }),
       }
     );
+
     let repo: FilterProductApi = await productRes.json();
     let end = new Date().getTime();
+
     let time = end - start;
     let returned_res = {
       type: productRes.type,
@@ -305,7 +307,6 @@ export const getListingData = async ({
       response: repo,
       request: "Get Products with Filters",
     };
-
     if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
       return [
         {
@@ -357,14 +358,10 @@ export const getListingData = async ({
     try {
       const res = await fetch(url, {
         method: "GET",
+        cache: "no-cache",
 
-        next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-          tags: [`listing-data-${str}`, "listing-data"],
-        },
         headers: new Headers({
-          "ssr-req": "true",
-          lang: await getLang(language, cookieStore.get("language")?.value),
+          lang: getLang(language, cookieStore.get("language")?.value),
           country:
             cookieStore.get("country") && cookieStore.get("country").value,
           Accept: "application/json",
@@ -374,7 +371,6 @@ export const getListingData = async ({
       let end = new Date().getTime();
       let time = end - start;
       const repo: FilterProductApi = await res.json();
-
       let returned_res = {
         type: res.type,
         headers: new Headers({
@@ -451,7 +447,7 @@ export async function getProductDetails({ productId, lang }) {
           tags: [`product-data-${productId}`, "listing-data"],
         },
         headers: new Headers({
-          lang: await getLang(language, cookieStore.get("language")?.value),
+          lang: getLang(language, cookieStore.get("language")?.value),
           country:
             cookieStore.get("country") && cookieStore.get("country").value,
           Accept: "application/json",
@@ -466,7 +462,6 @@ export async function getProductDetails({ productId, lang }) {
     const repo1: QuantityDetailsProductApi = await res1.json();
     let end2 = new Date().getTime() - start2;
     let prod = { ...repo.data, ...repo1.data, message: repo1.message };
-
     if (prod.message === "Product not found") {
       notFound();
     }

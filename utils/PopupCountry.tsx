@@ -28,6 +28,9 @@ const PopupCountry = ({ options, countries }) => {
       Cookies.set("language", localization.language, {
         expires: 365,
       });
+      Cookies.set("lang", localization.language, {
+        expires: 365,
+      });
       Cookies.set("country", selectedCountry, {
         expires: 365,
       });

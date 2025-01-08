@@ -67,6 +67,11 @@ function AddToCartWidget() {
       id: SelectedProduct.slug,
     });
     dispatch({ type: "GET-PRODUCT-DETAILS-FOR-CART", payload: data.data });
+    if (data.data.choice_options) {
+      let a = data.data?.choice_options?.filter((s) => s.title == "Size")[0]
+        ?.options[0];
+      dispatch({ type: "AddToCartSize", payload: a });
+    }
     dispatch({ type: "GET-PRODUCT-VARIATION", payload: additionalData });
   };
   useEffect(() => {

@@ -13,6 +13,7 @@ const PriceLabel = dynamic(() => import("./PriceLabel"), {
 });
 import ColorSlider from "./ColorSlider";
 import TopSlider from "./TopSlider";
+import { useParams } from "node_modules/next/navigation";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
@@ -62,6 +63,7 @@ function Product({
   i: number;
 }) {
   const dispatchStore = useDispatch();
+  const { lang } = useParams();
   const addToCart = () => {
     document.documentElement.style.overflow = "hidden";
     document.documentElement.scrollTop = 0;
@@ -134,7 +136,7 @@ function Product({
             }, 1000);
           }
         }}
-        href={`/products/${product.slug}`}
+        href={`/${lang}/products/${product.slug}`}
         className="product-container  align-center flex-col relative"
         onMouseLeave={() => {
           if (productState?.isActiveTopSlide || productState?.isColorSelected) {

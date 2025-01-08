@@ -142,7 +142,9 @@ export const CartReducer = (state = initialState, { type, payload }) => {
             size: s.choices?.length > 0 ? s.choices[0]?.choice_1 : null,
             color: "",
             sku: `${s.product_id}${
-              s.variations?.length > 0 ? `-${s.variations[0].color}` : ""
+              s.variations?.length > 0 && s?.variations[0]?.color
+                ? `-${s.variations[0].color}`
+                : ""
             }${s.choices?.length > 0 ? `-${s.choices[0].choice_1}` : ""}`,
           })),
         ],
@@ -167,20 +169,22 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "GET-PRODUCT-DETAILS-FOR-CART": {
+      let a = payload?.choice_options?.filter((s) => s.title == "Size")[0]
+        ?.options[0];
+      console.log(a);
       if (
         state.AddToCartOption.enable &&
         state.SelectedProduct.id === payload?.id
       )
         return {
           ...state,
-          SelectedProduct: { ...state.SelectedProduct, ...payload },
-          variants: payload.variation,
           AddToCartOption: {
             ...state.AddToCartOption,
-            selectedSize: payload?.choice_options?.filter(
-              (s) => s.title == "Size"
-            )[0]?.options[0],
+            selectedSize: a || null,
           },
+          SelectedProduct: { ...state.SelectedProduct, ...payload },
+          variants: payload.variation,
+
           loaded: true,
         };
     }
@@ -189,9 +193,6 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         ...state,
         SelectedProduct: { ...state.SelectedProduct, ...payload },
         variants: payload.variation,
-        AddToCartOption: {
-          ...state.AddToCartOption,
-        },
         loaded: true,
       };
     }

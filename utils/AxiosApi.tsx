@@ -88,6 +88,7 @@ export const AxiosPost = async ({
       }
       if (url.includes("cart/")) {
         if (res.data.data.status === 1) {
+          toast.success(res.data.message);
           return res.data.data;
         } else {
           toast.error(res.data.message);

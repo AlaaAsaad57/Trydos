@@ -94,7 +94,7 @@ function AddToCartButton({
       let selectedVariant = AddToCartOption.selectedOptions.filter(
         (s) => s.selectedSize?.name === AddToCartOption.selectedSize?.name
       )[0];
-      qty = selectedVariant.quantity - 1;
+      qty = selectedVariant?.quantity - 1;
     }
 
     return 1 + qty;
@@ -584,7 +584,7 @@ function AddToCartButton({
                                   height: 50,
                                 })}
                                 id={`img${s.UID}`}
-                                key={key}
+                                key={`${key}${s.id}`}
                                 className="rounded-md w-8 h-8 static"
                               />
                             );
@@ -837,7 +837,7 @@ function AddToCartButton({
                                   height: 50,
                                 })}
                                 id={`img${s.UID}`}
-                                key={key}
+                                key={`${key}${s.id}`}
                                 className="rounded-md w-8 h-8 static"
                               />
                             );
