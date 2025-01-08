@@ -7,7 +7,7 @@ const languagesString = '["en", "ar", "tr"]' || "[]";
 const languages = JSON.parse(languagesString);
 
 // Get the preferred locale, similar to the above or using a library
-function getLocale(request) {
+async function getLocale(request) {
   const cookieStore = cookies();
   const localization = {
     language: cookieStore.get("language")?.value?.toLowerCase(),
@@ -46,22 +46,28 @@ function getDefaultLocale(countryByIp, countries) {
 }
 
 export async function middleware(request) {
+  const cookieStore = cookies();
+  const url = request.nextUrl.clone();
+  const languageUrl =
+    url.pathname?.split("/")[1]?.split("-")[1] ??
+    cookieStore.get("language")?.value?.toLowerCase() ??
+    "en";
+
+  request.cookies.set("language", languageUrl, {
+    exoires: new Date(7467743843902 * 10000),
+  });
+
   const start = new Date().getTime();
   const data = await getCountriesApi();
   LogData(data);
   let countries = data.map((s) => s.iso.toLowerCase());
   const { pathname, searchParams, search, host, protocol } = request.nextUrl;
-  let isFilter =
-    pathname.includes("/boutiques") &&
-    searchParams.size > 0 &&
-    !pathname.includes("/filters");
 
   let countryByIp = request?.geo?.country?.toLowerCase();
   const response = NextResponse.next();
-  const cookieStore = cookies();
+
   const localization = cookieStore.get("country")?.value;
   //without country cookies
-  const countryVar = getLocale()?.country ?? "";
 
   if (!localization && countryByIp) {
     const countryByIpp = countryByIp || "jp";
@@ -95,8 +101,8 @@ export async function middleware(request) {
     countries.some((country) =>
       routePath.toLowerCase().startsWith(`${country.toLowerCase()}-`)
     );
-  const lang = getLocale()?.language ?? "";
-  const country = getLocale()?.country ?? "";
+  const lang = (await getLocale(request))?.language ?? "";
+  const country = (await getLocale(request))?.country ?? "";
   const preferredLang = languages.includes(lang.toLowerCase())
     ? lang
     : getDefaultLocale(countryByIp, countries).language;
@@ -105,8 +111,8 @@ export async function middleware(request) {
     : getDefaultLocale(countryByIp, countries).country;
   if (!hasSeparator) {
     //url dosen't includes language-country
-    const lang = getLocale()?.language;
-    const country = getLocale()?.country;
+    const lang = (await getLocale(request))?.language;
+    const country = (await getLocale(request))?.country;
     //check for country cookie
     if (country) {
       const preferredLang = languages.includes(lang)

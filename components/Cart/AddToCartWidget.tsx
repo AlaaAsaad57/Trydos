@@ -29,7 +29,9 @@ function AddToCartWidget() {
     if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
     let start = new Date();
     let repo = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + QTY_URL + `/${SelectedProduct.id}`,
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+        QTY_URL +
+        `/${SelectedProduct.slug}`,
       {
         headers: {
           "ssr-req": "true",
@@ -49,7 +51,7 @@ function AddToCartWidget() {
       url:
         process.env.NEXT_PUBLIC_BACKEND_URL +
         QTY_URL +
-        `/${SelectedProduct.id}`,
+        `/${SelectedProduct.slug}`,
       headers: {
         Authorization: `Bearer ${
           typeof localStorage !== "undefined" &&
@@ -62,7 +64,7 @@ function AddToCartWidget() {
       time: end.getTime() - start.getTime(),
     });
     let additionalData = await auth.getProductNotify({
-      id: SelectedProduct.id,
+      id: SelectedProduct.slug,
     });
     dispatch({ type: "GET-PRODUCT-DETAILS-FOR-CART", payload: data.data });
     dispatch({ type: "GET-PRODUCT-VARIATION", payload: additionalData });

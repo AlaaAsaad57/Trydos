@@ -25,6 +25,7 @@ export async function generateMetadata({ params, searchParams }: Props) {
     boutiqueId === "listing"
       ? { name: "listing" }
       : await getBoutiqueMeta({ boutiqueId, lang: params.lang });
+
   if (!metaData?.name) {
     notFound();
   }

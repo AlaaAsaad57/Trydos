@@ -23,16 +23,16 @@ export const SSRDetect = () => {
 };
 
 export function translate(key: string, language?: string | string[]) {
-  let url, lang;
+  let url, languageUrl;
+
   if (typeof window !== "undefined") {
-    url = window.location.pathname.split("/")[1];
-    lang = url.split("-")[1] ?? "en";
+    languageUrl = window.location.pathname.split("/")[1].split("-")[1];
   } else {
-    lang = Cookies.get("language") ?? "en";
+    languageUrl = "en";
   }
 
-  if (translations[lang] && translations[lang][key]) {
-    return translations[lang][key] || key;
+  if (translations[languageUrl] && translations[languageUrl][key]) {
+    return translations[languageUrl][key] || key;
   } else return key;
 }
 
@@ -235,6 +235,7 @@ export const getProductMeta = async ({ productId, lang, color }) => {
   const cookieStore = cookies();
   let start = new Date();
   let [langauge, country] = lang.split("-");
+
   let data: SimpleDetailsProductApi = await fetchWithRetry(
     process.env.NEXT_PUBLIC_BACKEND_URL +
       `/web/product/simpleDetails/${productId}${
@@ -245,7 +246,8 @@ export const getProductMeta = async ({ productId, lang, color }) => {
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         lang: await getLang(langauge, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
+        country:
+          cookieStore.get("country") && cookieStore.get("country")?.value,
       }),
     },
     "Product SimpleDetails"
@@ -262,8 +264,8 @@ export const getProductMeta = async ({ productId, lang, color }) => {
         typeof localStorage !== "undefined" &&
         localStorage.getItem("MARKET-TOKEN")
       }`,
-      lang: getLang(null, Cookies.get("language")),
-      country: Cookies.get("country"),
+      lang: getLang(null, cookieStore.get("language")?.value),
+      country: cookieStore.get("country")?.value,
     },
     response: data,
     time: end.getTime() - start.getTime(),
@@ -290,12 +292,14 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         lang: await getLang(langauge, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
+        country:
+          cookieStore.get("country") && cookieStore.get("country")?.value,
       }),
     }
   );
   let data: SimpleBoutiqeApi = await resp.json();
   let end = new Date();
+
   LogData({
     request: "Get Product simple info",
     url:
@@ -303,11 +307,12 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
       `/web/boutique/simpleDetails/${boutiqueId}`,
     headers: {
       Authorization: `Bearer ${
-        typeof localStorage !== "undefined" &&
-        localStorage.getItem("MARKET-TOKEN")
+        typeof localStorage !== "undefined"
+          ? localStorage.getItem("MARKET-TOKEN")
+          : cookieStore.get("token")?.value
       }`,
-      lang: getLang(null, Cookies.get("language")),
-      country: Cookies.get("country"),
+      lang: getLang(null, cookieStore.get("language")?.value),
+      country: cookieStore.get("country")?.value,
     },
     response: data,
     time: end.getTime() - start.getTime(),

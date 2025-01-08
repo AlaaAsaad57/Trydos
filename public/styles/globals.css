@@ -182,7 +182,7 @@ span[aria-live="polite"] {
   background-color: #f4f4f4;
   justify-content: space-around;
   min-width: 100vw;
-  min-height: 68vh;
+  min-height: 80vh;
 }
 .listing-container > div {
   margin-top: 20px;

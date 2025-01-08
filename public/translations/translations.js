@@ -1,6 +1,10 @@
 export const translations = {
   en: {
     Buy: "Buy",
+    "Shopping Bag": "Shopping Bag",
+    "Name Should be atleast 8 characters":
+      "Name Should be atleast 8 characters",
+    Items: "Items",
     "stock is limited": "stock is limited",
     "your session has expired please login again or continue as guest":
       "your session has expired please login again or continue as guest",
@@ -190,6 +194,11 @@ export const translations = {
   ar: {
     "stock is limited": "لا يوجد كمية اضافية من المنتج",
     "Continue as Guest": "الاستمرار كـ ضيف",
+
+    "Name Should be atleast 8 characters":
+      "الاسم يجب ان يتالف من 8محارف على الاقل",
+    Items: "عناصر",
+    "Shopping Bag": "سلة التسوق",
     "your session has expired please login again or continue as guest":
       "لقد انتهت جلستك، يرجى تسجيل الدخول مرة أخرى أو الاستمرار كضيف",
     "Please Select The Appropriate": "الرجاء اختيار",

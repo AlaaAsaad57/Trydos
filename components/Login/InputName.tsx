@@ -257,7 +257,7 @@ function InputName({
           }}
           placeholder={translate("Enter Your Name", language)}
         />
-        {value.length > 4 && (
+        {value.length > 7 && (
           <span
             className="phone-arrow"
             onClick={() => {
@@ -276,6 +276,9 @@ function InputName({
             <LeftArrowIcon />
           </span>
         )}
+        <div className="flex light text-[11px] text-[#5d5d5d] mt-2">
+          {translate("Name Should be atleast 8 characters")}
+        </div>
       </div>
     </>
   );

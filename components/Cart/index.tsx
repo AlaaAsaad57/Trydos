@@ -12,8 +12,6 @@ import {
   translate,
 } from "utils/functions";
 import BackIcon from "public/svg/listing/backIcon.svg";
-import Cookies from "js-cookie";
-
 import ShareIcon from "public/svg/listing/shareIcon.svg";
 import CartLabel from "public/svg/cart/cartLabel.svg";
 import ErrorIcon from "public/svg/cart/Error.svg";

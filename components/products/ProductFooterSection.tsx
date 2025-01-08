@@ -111,7 +111,7 @@ function ProductFooterSection({ product }) {
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
           "/web/product/likesCommentsSharesDetails/" +
-          product.id,
+          product.slug,
         title: "Like & Comments Data Request",
       });
 
