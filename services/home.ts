@@ -317,11 +317,19 @@ class HomeService {
     if (categories && categories !== "listing")
       filters = { ...filters, boutique_slug: [categories] };
 
-    let str = `category_slugs=${JSON.stringify(
-      filters.categories
-    )}&brand_slugs=${JSON.stringify(
-      filters.brands
-    )}&attributes=${JSON.stringify(filters.attributes)}${
+    let str = `${
+      filters.categories?.length > 0
+        ? `category_slugs=${JSON.stringify(filters.categories)}`
+        : ""
+    }${
+      filters.brands?.length > 0
+        ? `&brand_slugs=${JSON.stringify(filters.brands)}`
+        : ""
+    }${
+      filters.attributes?.options?.length > 0
+        ? `&attributes=${JSON.stringify(filters.attributes)}`
+        : ""
+    }${
       filters.prices !== null ? `&price=${JSON.stringify(filters.prices)}` : ""
     }${
       filters.boutique_slug

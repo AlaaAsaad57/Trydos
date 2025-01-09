@@ -279,11 +279,9 @@ export const getListingData = async ({
 
         next: {
           revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-          tags: [`listing-data-${str}`, "listing-data"],
         },
         headers: new Headers({
-          "ssr-req": "true",
-          lang: getLang(language, cookieStore.get("language")?.value),
+          lang: await getLang(language, cookieStore.get("language")?.value),
           country:
             cookieStore.get("country") && cookieStore.get("country").value,
           Accept: "application/json",
@@ -294,7 +292,6 @@ export const getListingData = async ({
 
     let repo: FilterProductApi = await productRes.json();
     let end = new Date().getTime();
-
     let time = end - start;
     let returned_res = {
       type: productRes.type,
@@ -361,7 +358,7 @@ export const getListingData = async ({
         cache: "no-cache",
 
         headers: new Headers({
-          lang: getLang(language, cookieStore.get("language")?.value),
+          lang: await getLang(language, cookieStore.get("language")?.value),
           country:
             cookieStore.get("country") && cookieStore.get("country").value,
           Accept: "application/json",
@@ -447,7 +444,7 @@ export async function getProductDetails({ productId, lang }) {
           tags: [`product-data-${productId}`, "listing-data"],
         },
         headers: new Headers({
-          lang: getLang(language, cookieStore.get("language")?.value),
+          lang: await getLang(language, cookieStore.get("language")?.value),
           country:
             cookieStore.get("country") && cookieStore.get("country").value,
           Accept: "application/json",
