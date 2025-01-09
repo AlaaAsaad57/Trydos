@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import Comments from "./Comments";
-import { useSelector } from "react-redux";
 import CommentBar from "./CommentBar";
+import { useParams } from "next/navigation";
 
 function CommentSection({
   comments,
@@ -16,7 +16,12 @@ function CommentSection({
   resendComment,
   verifyCommentAction,
 }) {
-  const user = useSelector((state: StateInterface) => state.auth.user);
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
 
   var language = "en";
 

@@ -4,9 +4,8 @@ import { useDispatch, useSelector } from "react-redux";
 import home from "services/home";
 import {
   getConfiguredImage,
-  getUser,
   Sendevent,
-  translate,
+  translateFunction,
   UserToken,
 } from "utils/functions";
 import NotifySVG from "public/svg/cart/NotifyCart.svg";
@@ -14,6 +13,7 @@ import auth from "services/auth";
 import ChatService from "services/chat";
 import Spinner from "components/global/Spinner";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
+import { useParams } from "next/navigation";
 function AddToCartButton({
   setOption,
   product,
@@ -26,6 +26,12 @@ function AddToCartButton({
   productVar: any;
   loading?: any;
 }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang?) => {
+    return translateFunction(key, languageVariable);
+  };
   const AddToCartOption = useSelector(
     (state: StateInterface) => state.cart.AddToCartOption
   );

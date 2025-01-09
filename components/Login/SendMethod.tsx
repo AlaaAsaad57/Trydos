@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { Sendevent, translate } from "utils/functions";
+import { Sendevent, translateFunction } from "utils/functions";
 import WAIcon from "public/svg/WAIcon.svg";
 import MessageIcon from "public/svg/MessageIcon.svg";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 import AuthService from "services/auth";
+import { useParams } from "next/navigation";
 
 function SendMethod({
   inputValue,
@@ -19,6 +20,12 @@ function SendMethod({
   setWrongNumber: Function;
   setMessageMethod: Function;
 }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const language = useSelector(
     (state: StateInterface) => state.homepage.language
   );

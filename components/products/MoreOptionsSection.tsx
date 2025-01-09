@@ -1,9 +1,16 @@
-import { useSelector } from "node_modules/react-redux/es";
+import { useParams } from "next/navigation";
+import { useSelector } from "react-redux";
 import React, { useEffect } from "react";
 import home from "services/home";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 
 function MoreOptionsSection() {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const SelectedProduct = useSelector(
     (state: StateInterface) => state.cart.SelectedProduct
   );

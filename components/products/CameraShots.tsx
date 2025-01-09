@@ -4,13 +4,24 @@ import CameraShotIcon from "public/svg/product/CameraShotIcon.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { getConfiguredImage, Sendevent, translate } from "utils/functions";
+import {
+  getConfiguredImage,
+  Sendevent,
+  translateFunction,
+} from "utils/functions";
 
 import CameraShotGallery from "./CameraShotGallery";
 import { useDispatch } from "react-redux";
 import CircleBorder from "public/svg/product/CircleBorder";
+import { useParams } from "next/navigation";
 
 function CameraShots({ images }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang?) => {
+    return translateFunction(key, languageVariable);
+  };
   const dispatch = useDispatch();
   return (
     <>

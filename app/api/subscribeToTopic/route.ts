@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "node_modules/next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getMessaging } from "firebase-admin/messaging";
 const serviceAccount = require("./trydos-2e2b2-firebase-adminsdk-3us2s-45fbfe0153.json");

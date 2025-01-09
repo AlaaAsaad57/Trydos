@@ -6,8 +6,15 @@ import FastIcon from "public/svg/product/FastIcon.svg";
 import PlaneIcon from "public/svg/product/PlaneIcon.svg";
 import PackingIcon from "public/svg/product/PackingIcon.svg";
 import MarkerIcon from "public/svg/product/MarkerIcon.svg";
-import { Sendevent, translate } from "utils/functions";
+import { Sendevent, translateFunction } from "utils/functions";
+import { useParams } from "next/navigation";
 function ProductShippingOption() {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang?) => {
+    return translateFunction(key, languageVariable);
+  };
   const [extended, setExtended] = useState(false);
   return (
     <div

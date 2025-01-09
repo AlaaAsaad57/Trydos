@@ -1,8 +1,15 @@
 "use client";
 
-import { GetAppLanguage, translate } from "utils/functions";
+import { useParams } from "next/navigation";
+import { GetAppLanguage, translateFunction } from "utils/functions";
 
 function BuyButton({ buy }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   return (
     <div
       className="buy-button light-text flex align-start justify-start cursor-pointer"

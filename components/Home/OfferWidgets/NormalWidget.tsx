@@ -9,7 +9,7 @@ import { useRouter } from "next-nprogress-bar";
 import { useEffect } from "react";
 import OfferPhotosSlider from "./OfferPhotosSlider";
 import NextLink from "components/global/NextLink";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 
 interface NormalWidgetProps {
   boutique: Boutique;

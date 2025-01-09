@@ -3,27 +3,21 @@ import React, { useEffect, useReducer, useState } from "react";
 import ProductInfo from "./ProductInfo";
 import ExtendedAreaInfo from "./ExtendedAreaInfo";
 import ProductOptions from "./ProductOptions";
-import { ProductInterface } from "models/product";
-
 import ProductDetails from "./ProductDetails";
-import axios from "axios";
-
 import SelectColor from "./SelectColor";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  ExpiredUser,
   GetAppLanguage,
-  getUser,
   RoundPrice,
-  translate,
+  translateFunction,
   UserID,
-  UserToken,
 } from "utils/functions";
-import auth from "services/auth";
+
 import { toast } from "react-toastify";
 import chat from "services/chat";
 import home from "services/home";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
+import { useParams } from "next/navigation";
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
     return {
@@ -78,6 +72,12 @@ function ProductReducer(state, { type, payload }) {
   }
 }
 function ProductFooterSection({ product }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const shareLoading = useSelector(
     (state: StateInterface) => state.details.shareLoading
   );

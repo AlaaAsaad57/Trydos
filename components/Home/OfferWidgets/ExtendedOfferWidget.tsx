@@ -7,10 +7,11 @@ import SaleIcon from "public/svg/saleIcon.svg";
 import DiscountIcon from "public/svg/discountIcon.svg";
 import GiftIcon from "public/svg/giftIcon.svg";
 import { useSelector } from "react-redux";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import dynamic from "next/dynamic";
+import { useParams } from "next/navigation";
 
 interface ExtendedOfferWidgetProps {
   offer: { file_path: string }[];
@@ -22,6 +23,12 @@ function ExtendedOfferWidget({
   myKey,
   onClick,
 }: ExtendedOfferWidgetProps) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const language: string = useSelector(
     (state: StateInterface) => state.homepage.language
   );

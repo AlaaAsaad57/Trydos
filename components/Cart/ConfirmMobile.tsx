@@ -1,7 +1,7 @@
 import LogInPins from "components/Login/LogInPins";
 import PhoneInput from "components/Login/PhoneInput";
 import SendMethod from "components/Login/SendMethod";
-import { useDispatch, useSelector } from "node_modules/react-redux/es";
+import { useDispatch, useSelector } from "react-redux";
 import React, { useState } from "react";
 import AuthService from "services/auth";
 import { Sendevent } from "utils/functions";

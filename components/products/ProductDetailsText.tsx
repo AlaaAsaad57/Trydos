@@ -1,9 +1,9 @@
 "use client";
 import { ProductInterface } from "models/product";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { encode_utf8, Sendevent, translate } from "utils/functions";
+import { encode_utf8, Sendevent, translateFunction } from "utils/functions";
 
 function ProductDetailsText({
   details,
@@ -12,6 +12,12 @@ function ProductDetailsText({
   details: string;
   product: ProductInterface;
 }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang?) => {
+    return translateFunction(key, languageVariable);
+  };
   const searchParams = useSearchParams();
   const dispatch = useDispatch();
   useEffect(() => {

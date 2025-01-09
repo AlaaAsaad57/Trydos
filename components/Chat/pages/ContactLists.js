@@ -2,7 +2,7 @@ import ChatItem from "components/Chat/components/ChatItem";
 import { useDispatch, useSelector } from "react-redux";
 import { forwardMessage } from "../chatsFunctions";
 import SearchResult from "components/Chat/components/SearchResult";
-import { getUserChat, translate } from "utils/functions";
+import { getUserChat, translateFunction } from "utils/functions";
 
 function ContactLists(props) {
   const chats = useSelector((state) => state.chat.data);
@@ -23,9 +23,12 @@ function ContactLists(props) {
     <div className="chat-list-items">
       {contacts.length === 0 ? (
         <div className="notification-enable">
-          <div>{translate("No Contacts", language)}</div>
+          <div>{translateFunction("No Contacts", language)}</div>
           <div>
-            {translate("Log in Through our App to access contacts", language)}
+            {translateFunction(
+              "Log in Through our App to access contacts",
+              language
+            )}
           </div>
         </div>
       ) : (

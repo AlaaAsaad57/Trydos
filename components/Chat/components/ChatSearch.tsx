@@ -2,10 +2,10 @@ import React, { useEffect } from "react";
 import DownArrow from "public/svg/arrow-down.svg";
 import UpArrow from "public/svg/arrow-up.svg";
 import XIcon from "public/svg/Xicon.svg";
-import { DebounceInput } from "node_modules/react-debounce-input/src";
-import { useDispatch, useSelector } from "node_modules/react-redux/es";
+import { DebounceInput } from "react-debounce-input";
+import { useDispatch, useSelector } from "react-redux";
 import Spinner from "components/global/Spinner";
-import axios from "node_modules/axios";
+import axios from "axios";
 import { getMessagesBetweenMessage } from "store/chat/actions";
 import { getUserChat } from "utils/functions";
 

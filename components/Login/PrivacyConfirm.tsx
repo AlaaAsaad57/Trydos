@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { Sendevent, translate } from "utils/functions";
+import { Sendevent, translateFunction } from "utils/functions";
 import ConditionIcon from "public/svg/ConditionIcon.svg";
 
 import { useTransition, animated } from "react-spring";
+import { useParams } from "next/navigation";
 
 function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const language = useSelector(
     (state: StateInterface) => state.homepage.language
   );

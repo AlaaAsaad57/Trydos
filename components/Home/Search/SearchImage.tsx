@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import SearchCamIcon from "public/svg/SearchCamIcon.svg";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import { useSelector } from "react-redux";
 import Spinner from "components/global/Spinner";
+import { useParams } from "next/navigation";
 
 function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
   const language = useSelector(
@@ -11,7 +12,12 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
   );
   const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const [loading, setLoading] = useState(false);
   const GemeniFunc = async (file) => {
     let image_result = await fileToGenerativePart(file);

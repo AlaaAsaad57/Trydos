@@ -3,9 +3,20 @@ import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "styles/sizeSlider.css";
 import { useDispatch, useSelector } from "react-redux";
-import { Sendevent, translate } from "utils/functions";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Sendevent, translateFunction } from "utils/functions";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 function SelectSize({ sizes, variants }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang?) => {
+    return translateFunction(key, languageVariable);
+  };
   const activeSize = useSelector(
     (state: StateInterface) => state.cart.AddToCartOption.selectedSize
   );

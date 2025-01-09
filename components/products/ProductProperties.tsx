@@ -2,8 +2,15 @@ import React from "react";
 import QualityIcon from "public/svg/product/QualityIcon.svg";
 import VerifiedIcon from "public/svg/product/Verified.svg";
 import Flag from "public/svg/product/flag.svg";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
+import { useParams } from "next/navigation";
 function ProductProperties() {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang?) => {
+    return translateFunction(key, languageVariable);
+  };
   return (
     <div className="flex-row product-properties w-100">
       <div className="flex-row product-property-row">

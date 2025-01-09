@@ -8,10 +8,21 @@ import NormalSizesSlider from "./NormalSizesSlider";
 import DashedCircleBorder from "public/svg/product/DashedCircleBorder.svg";
 import SizeInfoBox from "./SizeInfoBox";
 import { useDispatch } from "react-redux";
-import { Sendevent, translate } from "utils/functions";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Sendevent, translateFunction } from "utils/functions";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 
 function ProductSizes({ sizes }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang?) => {
+    return translateFunction(key, languageVariable);
+  };
   const [extended, setExtended] = useState(false);
   const [activeColor, setActiveColorFunc] = useState([]);
   const dispatch = useDispatch();

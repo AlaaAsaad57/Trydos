@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
 import { useSelector } from "react-redux";
-import { Sendevent, translate } from "utils/functions";
+import { Sendevent, translateFunction } from "utils/functions";
 import AuthService from "services/auth";
+import { useParams } from "next/navigation";
 
 function AccountNotFound({
   inputValue,
@@ -18,6 +19,12 @@ function AccountNotFound({
   signStep: string;
   setStepIndicator: Function;
 }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const language = useSelector(
     (state: StateInterface) => state.homepage.language
   );

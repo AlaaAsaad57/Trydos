@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { getCountriesApi } from "./store/homepage/cachedActions";
-import { LogData } from "./store/homepage/actions";
 
 const languagesString = '["en", "ar", "tr"]' || "[]";
 const languages = JSON.parse(languagesString);

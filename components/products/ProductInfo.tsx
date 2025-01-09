@@ -1,7 +1,8 @@
 "use client";
+import { useParams } from "next/navigation";
 import React from "react";
 import Skeleton from "react-loading-skeleton";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 
 function ProductInfo({
   oldPrice,
@@ -12,7 +13,12 @@ function ProductInfo({
   newPrice: number;
   currency: string;
 }) {
-  const language = "en";
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang?) => {
+    return translateFunction(key, languageVariable);
+  };
   return (
     <div className="product-info-container">
       <div className="product-info-price">
@@ -80,15 +86,15 @@ function ProductInfo({
       </div>
       <div className="product-info-properties">
         <div className="product-prop-item">
-          {translate("All Inclusive Without Additions", language)}
+          {translate("All Inclusive Without Additions")}
         </div>
         <div className="product-prop-item">
           <img width={15} height={15} alt="truck" src="/svg/greentruck.svg" />
-          <span>{translate("Free Shipping", language)}</span>
+          <span>{translate("Free Shipping")}</span>
         </div>
         <div className="product-prop-item">
           <img width={15} height={15} alt="truck" src="/svg/redtruck.svg" />
-          <span>{translate("Free Return", language)}</span>
+          <span>{translate("Free Return")}</span>
         </div>
         <div className="product-prop-item">
           <img
@@ -97,7 +103,7 @@ function ProductInfo({
             alt="deliveryman"
             src="/svg/deliveryman.svg"
           />
-          <span>{translate("Ship To You Accepted ", language)} 2 June</span>
+          <span>{translate("Ship To You Accepted ")} 2 June</span>
         </div>
       </div>
     </div>

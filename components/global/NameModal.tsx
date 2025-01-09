@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import AuthService from "services/auth";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import ManIcon from "public/svg/manIcon.svg";
 import Border from "./Border";
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
@@ -46,7 +46,7 @@ function NameModal() {
           className="flex regular"
           style={{ fontSize: "12px", color: "#5d5d5d" }}
         >
-          {translate("Enter Your Name", language)}
+          {translateFunction("Enter Your Name", language)}
         </div>
         <div
           className="phone-input-element mt-3"

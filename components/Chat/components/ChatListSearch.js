@@ -1,8 +1,15 @@
+import { useParams } from "next/navigation";
 import Mignifier from "../svg/Mignifier.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { SearchContact } from "store/chat/actions";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 function ChatListSearch(props) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   let filterTimeout;
   let dispatch = useDispatch();
   const SearchContacts = (query) => {

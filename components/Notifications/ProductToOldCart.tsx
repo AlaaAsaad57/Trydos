@@ -1,9 +1,7 @@
 "use client";
-import NextLink from "components/global/NextLink";
-import React, { useEffect } from "react";
-import { encode_utf8 } from "utils/functions";
-import CartIcon from "public/svg/CartIcon.svg";
-import { useDispatch } from "node_modules/react-redux/es";
+
+import React from "react";
+import { useDispatch } from "react-redux/es";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 function ProductToOldCart({ data }) {
   const dispatch = useDispatch();

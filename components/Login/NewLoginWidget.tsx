@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import LogoAuth from "public/svg/LogoAuth.svg";
 import { useDispatch, useSelector } from "react-redux";
-import { Sendevent, translate } from "utils/functions";
+import { Sendevent, translateFunction } from "utils/functions";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
 import PrivacyConfirm from "./PrivacyConfirm";
@@ -15,8 +15,15 @@ import AuthService from "services/auth";
 
 import LoginMethods from "./LoginMethods";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
+import { useParams } from "next/navigation";
 
 function NewLoginWidget() {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const [stepIndicator, setStepIndicator] = useState(-1);
   const [signStep, setSignStep] = useState("");
   const [operation, setOperation] = useState("login");

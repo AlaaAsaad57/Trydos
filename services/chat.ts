@@ -2,7 +2,11 @@ import { LOG_IN_CHAT } from "utils/endpointConfig";
 import HomeService from "services/home";
 import Cookies from "js-cookie";
 import { store } from "store";
-import { _isStoreLastJson, getLang, translate } from "utils/functions";
+import {
+  _isStoreLastJson,
+  getLang,
+  translateFunction as translate,
+} from "utils/functions";
 import axios from "axios";
 import { GetChats } from "store/chat/actions";
 import { toast } from "react-toastify";

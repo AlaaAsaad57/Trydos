@@ -7,8 +7,15 @@ import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { useSwipeable } from "react-swipeable";
 import GalleryItem from "./GalleryItem";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
+import { useParams } from "next/navigation";
 function CameraShotGallery({ images, close }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang?) => {
+    return translateFunction(key, languageVariable);
+  };
   const [extended, setExtended] = useState(false);
   const activeCameraGallery = useSelector(
     (state: StateInterface) => state.details.activeCameraGallery

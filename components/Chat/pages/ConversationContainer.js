@@ -29,7 +29,7 @@ import {
   makeVideoCall,
   makeVoiceCall,
 } from "store/chat/actions";
-import { SSRDetect, getUserChat, translate } from "utils/functions";
+import { SSRDetect, getUserChat, translateFunction } from "utils/functions";
 import dynamic from "next/dynamic";
 import { push, ref, set } from "firebase/database";
 import { db } from "utils/firebaseInitv1";
@@ -675,13 +675,13 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
   const language = useSelector((state) => state.homepage.language);
   const showDate = (d) => {
     var days = [
-      translate("Sunday", language),
-      translate("Monday", language),
-      translate("Tuesday", language),
-      translate("Wednesday", language),
-      translate("Thursday", language),
-      translate("Friday", language),
-      translate("Saturday", language),
+      translateFunction("Sunday", language),
+      translateFunction("Monday", language),
+      translateFunction("Tuesday", language),
+      translateFunction("Wednesday", language),
+      translateFunction("Thursday", language),
+      translateFunction("Friday", language),
+      translateFunction("Saturday", language),
     ];
     let now = new Date();
     let nowString = `${now.getFullYear()}-${
@@ -704,9 +704,9 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
 
     let day = new Date(d);
     day = days[day.getDay()];
-    if (d === nowString) return translate("Today", language);
+    if (d === nowString) return translateFunction("Today", language);
     else if (new Date(nowString) - new Date(d) === 86400000) {
-      return translate("Yesterday", language);
+      return translateFunction("Yesterday", language);
     } else if (new Date(nowString) - new Date(d) < 86400000 * 6) return day;
     else return language === "ar" ? d.toLocaleString("ar-EG") : d;
   };
@@ -913,13 +913,13 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
                 <g
                   id="Group_10676"
                   data-name="Group 10676"
-                  transform="translate(-67.032 -2460.283)"
+                  transform="translateFunction(-67.032 -2460.283)"
                 >
                   <line
                     id="Line_879"
                     data-name="Line 879"
                     y2="21.213"
-                    transform="translate(83.447 2461.697) rotate(45)"
+                    transform="translateFunction(83.447 2461.697) rotate(45)"
                     fill="none"
                     stroke="#555"
                     strokeLinecap="round"
@@ -929,7 +929,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
                     id="Line_880"
                     data-name="Line 880"
                     y2="21.213"
-                    transform="translate(83.447 2476.697) rotate(135)"
+                    transform="translateFunction(83.447 2476.697) rotate(135)"
                     fill="none"
                     stroke="#555"
                     strokeLinecap="round"
@@ -955,13 +955,13 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
               <g
                 id="Group_10676"
                 data-name="Group 10676"
-                transform="translate(-67.032 -2460.283)"
+                transform="translateFunction(-67.032 -2460.283)"
               >
                 <line
                   id="Line_879"
                   data-name="Line 879"
                   y2="21.213"
-                  transform="translate(83.447 2461.697) rotate(45)"
+                  transform="translateFunction(83.447 2461.697) rotate(45)"
                   fill="none"
                   stroke="#555"
                   strokeLinecap="round"
@@ -971,7 +971,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
                   id="Line_880"
                   data-name="Line 880"
                   y2="21.213"
-                  transform="translate(83.447 2476.697) rotate(135)"
+                  transform="translateFunction(83.447 2476.697) rotate(135)"
                   fill="none"
                   stroke="#555"
                   strokeLinecap="round"

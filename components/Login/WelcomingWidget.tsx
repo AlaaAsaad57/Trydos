@@ -1,8 +1,9 @@
 import { AnimatedComponent } from "components/global/AnimatedComponent";
+import { useParams } from "next/navigation";
 
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 
 function WelcomingWidget({
   inputValue,
@@ -17,6 +18,12 @@ function WelcomingWidget({
   Name: string;
   close: Function;
 }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const [active, setActive] = useState(false);
 
   const language = useSelector(

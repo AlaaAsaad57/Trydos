@@ -1,5 +1,5 @@
 "use client";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
@@ -8,7 +8,12 @@ import AuthNavSection from "./AuthNavSection";
 import CartIcon from "public/svg/CartIcon.svg";
 import React from "react";
 import NotificationsTest from "components/global/NotificationsTest";
-import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import {
+  usePathname,
+  useSearchParams,
+  useRouter,
+  useParams,
+} from "next/navigation";
 
 interface UserNavTopSectionProps {
   loginOpen: boolean;
@@ -18,6 +23,12 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
   const language = useSelector(
     (state: StateInterface) => state.homepage.language
   );
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang?) => {
+    return translateFunction(key, languageVariable);
+  };
   const user = useSelector((state: StateInterface) => state.auth.user);
   useEffect(() => {
     setTimeout(() => {

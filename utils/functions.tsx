@@ -22,7 +22,7 @@ export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
 
-export function translate(key: string, language?: string | string[]) {
+export function translateFunction(key: string, language?: string | string[]) {
   let url, languageUrl;
 
   if (typeof window !== "undefined") {

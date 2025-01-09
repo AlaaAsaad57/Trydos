@@ -59,12 +59,13 @@ function ProductOptions({
           url: process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/store`,
           title: "like For Product",
           body: { product_id: product.id, user_id: UserID() },
+          hasMessageOnly: true,
         });
         home.subscribeToTopics({ slug: SelectedProduct.slug_en_topic });
       } catch (error) {
         dispatch({
           type: "EDIT-INFO",
-          payload: { likes: SelectedProduct?.likes - 1, is_liked: true },
+          payload: { likes: SelectedProduct?.likes, is_liked: true },
         });
       }
     } else {

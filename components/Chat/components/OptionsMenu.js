@@ -6,9 +6,16 @@ import DeleteIcon from "../svg/delt.svg";
 import EditIcon from "../svg/edit.svg";
 import ForwardIcon from "../svg/forward.svg";
 import RemindIcon from "../svg/remind.svg";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import { useSelector } from "react-redux";
+import { useParams } from "next/navigation";
 function OptionsMenu(props) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const language = useSelector((state) => state.homepage.language);
   const { DeleteModal, setDelete } = props;
   return (

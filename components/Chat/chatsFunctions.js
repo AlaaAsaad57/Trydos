@@ -7,7 +7,7 @@ import OutgoingCall from "./svg/outgoingCall.svg";
 import { store } from "store";
 
 import { SendMessage } from "store/chat/actions";
-import { getUserChat, translate } from "utils/functions";
+import { getUserChat, translateFunction } from "utils/functions";
 export const FILE_SERVER = process.env.NEXT_PUBLIC_CHAT_BACKEND_URL;
 export const getUser = () => {
   return (
@@ -87,6 +87,9 @@ export const isNew = (ch) => {
   return a;
 };
 export const getCallType = (type) => {
+  const translate = (key, lang) => {
+    return translateFunction(key, lang);
+  };
   if (
     parseInt(type.sender) !== parseInt(getUserChat().id) &&
     type.duration === -1

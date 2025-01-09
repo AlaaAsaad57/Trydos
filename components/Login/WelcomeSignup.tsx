@@ -1,7 +1,8 @@
+import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
 import { useSelector } from "react-redux";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 interface Props {
   stepIndicator: number;
   Name: string | null;
@@ -9,6 +10,12 @@ interface Props {
   close: Function;
 }
 function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const language = useSelector(
     (state: StateInterface) => state.homepage.language
   );

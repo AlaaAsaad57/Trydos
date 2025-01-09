@@ -2,10 +2,19 @@
 import ColorsIcon from "public/svg/product/colors.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import React, { useEffect, useState } from "react";
-import { getConfiguredImage, Sendevent, translate } from "utils/functions";
+import {
+  getConfiguredImage,
+  Sendevent,
+  translateFunction,
+} from "utils/functions";
 import "styles/listing.css";
 import SquareIcon from "public/svg/product/SquareIcon.svg";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -14,6 +23,12 @@ import NormalColorSlider from "./NormalColorSlider";
 import { useDispatch, useSelector } from "react-redux";
 
 function ProductColors({ colors, ProductColorsArray }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang?) => {
+    return translateFunction(key, languageVariable);
+  };
   const [extended, setExtended] = useState(false);
 
   const activeColor = useSelector(

@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import PinInput from "react-pin-input";
 import { useSelector } from "react-redux";
-import { Sendevent, translate } from "utils/functions";
+import { Sendevent, translateFunction } from "utils/functions";
 import Timer from "./Timer";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
-import Transition, { type } from "react-motion-ui-pack";
+import { useParams } from "next/navigation";
 
 function LogInPins({
   setPin,
@@ -40,6 +40,12 @@ function LogInPins({
   successLogin: boolean;
   disabled: boolean;
 }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const user = useSelector((state: StateInterface) => state.auth.Tempuser);
   const language = useSelector(
     (state: StateInterface) => state.homepage.language

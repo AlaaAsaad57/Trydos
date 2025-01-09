@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
 import Qr from "public/svg/qr.svg";
 import LoginCall from "public/svg/loginCall.svg";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import { useSelector } from "react-redux";
 import Border from "./Border";
 import "styles/methods.css";
+import { useParams } from "next/navigation";
 
 const LoginMethods = ({ confirm }) => {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const [showQr, setShowQr] = useState(false);
   const language = useSelector(
     (state: StateInterface) => state.homepage.language

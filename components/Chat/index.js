@@ -6,9 +6,16 @@ const ConversationContainer = dynamic(() =>
   import("./pages/ConversationContainer", { ssr: false })
 );
 import NewChatsSide from "components/Chat/components/NewChatsSide";
-import { SSRDetect, translate } from "utils/functions";
+import { SSRDetect, translateFunction } from "utils/functions";
 import dynamic from "next/dynamic";
+import { useParams } from "next/navigation";
 function Chat(props) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const dispatch = useDispatch();
   const ViewedScreen = useSelector((state) => state.chat.main);
   const first = useSelector((state) => state.chat.first);

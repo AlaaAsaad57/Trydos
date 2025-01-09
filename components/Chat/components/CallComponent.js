@@ -3,10 +3,17 @@ import { useSelector, useDispatch } from "react-redux";
 import { AnswerCall, RefuseCall } from "store/chat/actions";
 import profilePng from "public/images/profileNo.png";
 import { getTwoLetters } from "../chatsFunctions";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import "styles/chat.css";
 import Image from "next/image";
+import { useParams } from "next/navigation";
 function CallComponent(props) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const caller = useSelector((state) => state.chat.caller);
   const incomeCallData = useSelector((state) => state.chat.incomeCallData);
   const MessageActiveCall = useSelector(

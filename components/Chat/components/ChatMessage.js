@@ -20,11 +20,18 @@ import DownIcon from "../svg/down.svg";
 import fil from "../svg/output.png";
 
 import Spinner from "../../global/Spinner";
-import { SSRDetect, getUserChat, translate } from "utils/functions";
+import { SSRDetect, getUserChat, translateFunction } from "utils/functions";
 import Image from "next/image";
 import { DeleteMessageApi } from "store/chat/actions";
 import NextLink from "components/global/NextLink";
+import { useParams } from "next/navigation";
 function ChatMessage(props) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const { setImg, setVid } = props;
   const message_ref = useRef();
   const [width, setWidth] = useState(0);

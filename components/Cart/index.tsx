@@ -9,11 +9,10 @@ import {
   getUser,
   RoundPrice,
   Sendevent,
-  translate,
+  translateFunction,
 } from "utils/functions";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import ShareIcon from "public/svg/listing/shareIcon.svg";
-import CartLabel from "public/svg/cart/cartLabel.svg";
 import ErrorIcon from "public/svg/cart/Error.svg";
 import Skeleton from "react-loading-skeleton";
 
@@ -23,11 +22,16 @@ import { useParams, useSearchParams } from "next/navigation";
 import home from "services/home";
 
 import { toast } from "react-toastify";
-import axios from "node_modules/axios";
 import OrderButton from "./OrderButton";
 import { AxiosPost } from "utils/AxiosApi";
 
 function CartContainer({ close }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key: string, lang?: string) => {
+    return translateFunction(key, languageVariable);
+  };
   const language = useSelector(
     (state: StateInterface) => state.homepage.language
   );
@@ -1726,6 +1730,12 @@ const QuantutyInput = ({
         setInputValue(inputValue);
       }
     }
+  };
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key: string, lang?: string) => {
+    return translateFunction(key, languageVariable);
   };
   return (
     <div

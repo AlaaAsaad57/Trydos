@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
-import { Sendevent, translate } from "utils/functions";
+import { Sendevent, translateFunction } from "utils/functions";
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
+import { useParams } from "next/navigation";
 
 function InputName({
   value,
@@ -13,6 +14,12 @@ function InputName({
   submit: Function;
   setName: Function;
 }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang?) => {
+    return translateFunction(key, languageVariable);
+  };
   const isKeyboardOpen = useDetectKeyboardOpen(200);
   useEffect(() => {
     if (isKeyboardOpen) {

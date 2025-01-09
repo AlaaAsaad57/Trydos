@@ -1,5 +1,4 @@
 import Script from "next/script";
-import { useDispatch } from "node_modules/react-redux/es";
 
 function GAComponent() {
   return (

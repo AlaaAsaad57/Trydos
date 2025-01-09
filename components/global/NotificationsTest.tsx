@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import NotifyIcon from "public/svg/cart/NotifyCart.svg";
 import home from "services/home";
-import { useSelector } from "node_modules/react-redux/es";
+import { useSelector } from "react-redux";
 
 function NotificationsTest() {
   const [enable, setEnable] = useState(false);

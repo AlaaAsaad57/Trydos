@@ -13,7 +13,7 @@ const PriceLabel = dynamic(() => import("./PriceLabel"), {
 });
 import ColorSlider from "./ColorSlider";
 import TopSlider from "./TopSlider";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {

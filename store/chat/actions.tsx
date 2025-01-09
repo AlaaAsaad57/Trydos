@@ -8,7 +8,7 @@ import {
   SET_CHANNEL_OPT_UTL,
 } from "utils/endpointConfig";
 import { store } from "../index";
-import { getUserChat, translate } from "utils/functions";
+import { getUserChat, translateFunction } from "utils/functions";
 
 import { AxiosGet } from "utils/AxiosApi";
 
@@ -715,7 +715,7 @@ export const AnswerCall = async (channelId, messageId) => {
 
     const { toast } = await import("react-toastify");
     toast.info(
-      translate(
+      translateFunction(
         "Initialize Call please wait..",
         store.getState().homepage.language
       )
@@ -765,7 +765,7 @@ export const AnswerCall = async (channelId, messageId) => {
     } else {
       const { toast } = await import("react-toastify");
       toast.info(
-        translate(
+        translateFunction(
           "Call Answered from another account",
           store.getState().homepage.language
         )

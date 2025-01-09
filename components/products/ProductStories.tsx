@@ -4,11 +4,18 @@ import StoreisIcon from "public/svg/product/StoreisIcon.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { SelectStory } from "store/homepage/actions";
-import { configureStory, getThumb, translate } from "utils/functions";
+import { configureStory, getThumb, translateFunction } from "utils/functions";
 import StoryServiceClass from "services/story";
 import StoriesContainer from "components/Home/Stories/NewStories";
 import InfoWindow from "./InfoWindow";
+import { useParams } from "next/navigation";
 function ProductStories() {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang?) => {
+    return translateFunction(key, languageVariable);
+  };
   const stories = useSelector(
     (state: StateInterface) => state.homepage.storiesData
   );

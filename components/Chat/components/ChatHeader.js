@@ -7,8 +7,15 @@ import { getNew, getTwoLetters, showDate } from "../chatsFunctions";
 import Image from "next/image";
 import { getUserChat } from "utils/functions";
 import { makeVideoCall, makeVoiceCall } from "store/chat/actions";
-import { translate } from "../../../utils/functions";
+import { translateFunction } from "../../../utils/functions";
+import { useParams } from "next/navigation";
 function ChatHeader({ chats, activeChat, openDetails }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const dispatch = useDispatch();
   const callLoading = useSelector((state) => state.chat.callLoading);
   const Server_time = useSelector((state) => state.chat.Server_time);

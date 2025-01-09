@@ -1,5 +1,5 @@
 import BarDescribtion from "./BarDescribtion";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import { ReactElement } from "react";
 import { cookies } from "next/headers";
 function CategoryBar(): ReactElement {
@@ -9,8 +9,8 @@ function CategoryBar(): ReactElement {
     <div className={`home-bar`}>
       <img src={"/svg/categoryIcon.svg"} alt="category offer icon" />
       <BarDescribtion
-        name={translate("Category", language)}
-        desc={translate(
+        name={translateFunction("Category", language)}
+        desc={translateFunction(
           "Enjoy Shopping From All Categories & Products From Various Brands",
           language
         )}

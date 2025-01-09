@@ -5,7 +5,7 @@ import { forwardMessage } from "../chatsFunctions";
 import SearchResult from "components/Chat/components/SearchResult";
 import { getUserChat } from "utils/functions";
 import { GetLastSeen } from "store/chat/actions";
-import Skeleton from "node_modules/react-loading-skeleton/dist";
+import Skeleton from "react-loading-skeleton";
 function ChatLists(props) {
   const chats = useSelector((state) => state.chat.data);
   const loading = useSelector((state) => state.chat.loading);

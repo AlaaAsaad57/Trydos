@@ -69,10 +69,12 @@ export const AxiosPost = async ({
   url,
   title,
   body,
+  hasMessageOnly,
 }: {
   url: string;
   title?: string;
   body: any;
+  hasMessageOnly?: boolean;
 }) => {
   let attempt = 0;
   let retries = 2;
@@ -94,6 +96,11 @@ export const AxiosPost = async ({
           toast.error(res.data.message);
           return;
         }
+      }
+      if (url.includes("product_likes")) {
+        toast.success(res.data.message);
+
+        return;
       }
       if (res?.data.data) {
         if (res.data.message) {

@@ -1,7 +1,8 @@
 import Image from "next/image";
 
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import { useSelector } from "react-redux";
+import { useParams } from "next/navigation";
 
 interface MoreOfferAvatarProps {
   images: string;
@@ -15,6 +16,12 @@ function MoreOfferAvatar({
   viewed,
   priority,
 }: MoreOfferAvatarProps) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const language: string = useSelector(
     (state: StateInterface) => state.homepage.language
   );

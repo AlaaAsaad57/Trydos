@@ -16,7 +16,7 @@ import { RefuseCall } from "store/chat/actions";
 import { getTwoLetters } from "../chatsFunctions";
 import axios from "axios";
 
-import { getUserChat, translate } from "utils/functions";
+import { getUserChat, translateFunction } from "utils/functions";
 const config = {
   mode: "rtc",
   codec: "h264",
@@ -270,7 +270,7 @@ function VideoCall(props) {
         }}
       >
         <EndCallIcon></EndCallIcon>
-        <span>{translate("End Call", language)}</span>
+        <span>{translateFunction("End Call", language)}</span>
       </div>
       <div
         className="cancel-call-icon"
@@ -319,7 +319,7 @@ function VideoCall(props) {
           ) : callStatus ? (
             <span>{callStatus}</span>
           ) : (
-            <span>{translate("Calling ...", language)}</span>
+            <span>{translateFunction("Calling ...", language)}</span>
           )}
         </div>
       )}

@@ -10,7 +10,7 @@ import StoriesList from "./StoriesList";
 
 import { useDispatch, useSelector } from "react-redux";
 import ContactLists from "./ContactLists";
-import { getUserChat, translate } from "utils/functions";
+import { getUserChat, translateFunction } from "utils/functions";
 import { GetLastSeen, setLastSeen } from "store/chat/actions";
 function ChatWindow(props) {
   const Tabs = ["Chats", "Calls", "Stories"];
@@ -70,7 +70,7 @@ function ChatWindow(props) {
                   <ArrowIcon />
                 </div>
                 <div className="forward-text">
-                  {translate("Contacts List", language)}
+                  {translateFunction("Contacts List", language)}
                 </div>
               </div>
             </>

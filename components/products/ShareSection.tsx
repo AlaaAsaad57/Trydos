@@ -1,8 +1,9 @@
 import React from "react";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import ShareOptions from "./ShareOptions";
-import SearchContact from "./SearchContact";
+
 import { ProductInterface } from "models/product";
+import { useParams } from "next/navigation";
 
 function ShareSection({
   setShareContacts,
@@ -15,7 +16,12 @@ function ShareSection({
   setShareContacts: (e: Array<number>) => void;
 }) {
   var language = "en";
-
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang?) => {
+    return translateFunction(key, languageVariable);
+  };
   return (
     <div className="extended-section">
       <div className="extended-bar-top share-bar-top">

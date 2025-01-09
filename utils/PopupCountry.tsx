@@ -7,7 +7,6 @@ import { useSearchParams } from "next/navigation";
 import "styles/popup.css";
 import Link from "next/link";
 import { Sendevent } from "./functions";
-import { event } from "node_modules/cypress/types/jquery";
 
 const PopupCountry = ({ options, countries }) => {
   const [localization, setLocalization] = useState({

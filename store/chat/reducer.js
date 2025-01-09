@@ -1,4 +1,4 @@
-import { getUserChat, translate } from "utils/functions";
+import { getUserChat, translateFunction as translate } from "utils/functions";
 import {
   MuteChat,
   PinnChat,

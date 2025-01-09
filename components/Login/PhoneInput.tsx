@@ -10,11 +10,12 @@ import LoginIcon from "public/svg/LoginIcon.svg";
 import BlueCall from "public/svg/BlueCall.svg";
 import PrivacyIcon from "public/svg/privacyicon.svg";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
-import { Sendevent, translate } from "utils/functions";
+import { Sendevent, translateFunction } from "utils/functions";
 
 const { flag } = require("country-emoji");
 
 import { AnimatedComponent } from "components/global/AnimatedComponent";
+import { useParams } from "next/navigation";
 
 function PhoneInput({
   stepIndicator,
@@ -35,6 +36,12 @@ function PhoneInput({
   inputValue: string;
   setInputValue: Function;
 }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang?) => {
+    return translateFunction(key, languageVariable);
+  };
   useEffect(() => {
     document.querySelector<HTMLInputElement>(".login-phone-input")?.focus();
   }, []);

@@ -1,12 +1,16 @@
 import { useSelector } from "react-redux";
 import React, { useState } from "react";
-import { GetAppLanguage, getUser, translate } from "utils/functions";
+import { GetAppLanguage, getUser, translateFunction } from "utils/functions";
 import ConfirmMobile from "./ConfirmMobile";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 
 function OrderButton({ close, orderShow, setShowOrder }) {
   let { lang } = useParams();
-  let language = lang;
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key: string, lang?: string) => {
+    return translateFunction(key, languageVariable);
+  };
   const [expanded, setExpanded] = useState(false);
   const cart = useSelector((state: StateInterface) => state.cart);
   const [option, setOption] = useState(false);

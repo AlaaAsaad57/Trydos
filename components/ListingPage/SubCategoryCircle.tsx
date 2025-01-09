@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
-import { useSelector } from "node_modules/react-redux/es";
+import { useSelector } from "react-redux";
 
 function SubCategoryCircle({
   index,

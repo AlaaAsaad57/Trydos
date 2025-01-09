@@ -25,7 +25,7 @@ import {
 import { SSRDetect } from "utils/functions";
 import { GetMainData } from "store/homepage/actions";
 import { toast } from "react-toastify";
-import axios from "node_modules/axios";
+import axios from "axios";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 import { AxiosPost } from "utils/AxiosApi";
 const getHeader = () => {

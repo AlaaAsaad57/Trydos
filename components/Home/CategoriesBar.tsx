@@ -4,7 +4,7 @@ import { Category } from "models/Category";
 import CategoryNavItem from "./CategoryNavItem";
 import SearchIcon from "./Search/SearchIcon";
 import { useParams } from "next/navigation";
-import { useDispatch, useSelector } from "node_modules/react-redux/es";
+import { useDispatch, useSelector } from "react-redux";
 
 interface CategoriesBarProps {
   forMobile: boolean;

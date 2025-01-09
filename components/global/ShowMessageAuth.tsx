@@ -1,9 +1,10 @@
 import React, { useEffect } from "react";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import Cookies from "js-cookie";
-import { useDispatch } from "node_modules/react-redux/es";
+import { useDispatch } from "react-redux";
 
 import home from "services/home";
+import { useParams } from "next/navigation";
 function ShowMessageAuth() {
   const dispatch = useDispatch();
   const loginAction = () => {
@@ -38,6 +39,12 @@ function ShowMessageAuth() {
     document.documentElement.scrollTo({ top: 0 });
     document.documentElement.style.overflow = "hidden";
   }, []);
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang?) => {
+    return translateFunction(key, languageVariable);
+  };
   return (
     <>
       <div className="fixed min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]" />

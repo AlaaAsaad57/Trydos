@@ -1,7 +1,7 @@
 const OfferPhotosSlider = dynamic(() => import("./OfferPhotosSlider"));
 const QuickEventBar = dynamic(() => import("./QuickEventBar"));
 import { useSelector } from "react-redux";
-import { translate } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -9,6 +9,7 @@ import OfferSlideItem from "./OfferSlideItem";
 import OfferAvatars from "./OfferAvatars";
 import NextLink from "components/global/NextLink";
 import { dispatchRouteChangeEvent } from "utils/events";
+import { useParams } from "next/navigation";
 
 interface QuickOfferWidjetProps {
   offer: { photos: { file_path: string }[] };
@@ -18,6 +19,12 @@ function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
   const language: string = useSelector(
     (state: StateInterface) => state.homepage.language
   );
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
   const { ref, inView, entry } = useInView({
     /* Optional options */
     threshold: 0.3,
