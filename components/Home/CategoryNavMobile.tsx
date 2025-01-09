@@ -43,8 +43,8 @@ function CategoryNavMobile({
       key={myKey}
       href={
         decodeURI(searchParams.mainCategory) === slug
-          ? "/"
-          : `/categories/${slug}`
+          ? `/${lang}`
+          : `/${lang}/categories/${slug}`
       }
       onClick={() => {
         setActive(slug);

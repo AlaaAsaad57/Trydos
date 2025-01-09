@@ -55,7 +55,7 @@ function CustomNavbar({ init }: NavbarProps) {
       <AuthSections />
       <div className="home-navbar">
         <NextLink
-          href={"/"}
+          href={`/`}
           aria-label="TryDos Home"
           onClick={(e) => {
             dispatch({ type: "ENABLE-SEARCH", payload: false });

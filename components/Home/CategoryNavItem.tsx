@@ -95,8 +95,8 @@ const CategoryNavItem = ({
             <NextLink
               href={
                 decodeURI(searchParams.mainCategory) === slug
-                  ? "/"
-                  : `/categories/${slug}`
+                  ? `/${lang}`
+                  : `/${lang}/categories/${slug}`
               }
               className={`categories-bar-item ${
                 (decodeURI(searchParams.mainCategory) === slug || active) &&
