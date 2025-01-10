@@ -80,7 +80,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
         <div className="offer-blured" id={`blured-${boutique.id}`} /> */}
         <div className="offer-container cursor-pointer">
           <div className="offer-logo">
-            {boutique.icon ? (
+            {boutique.icon?.file_path ? (
               <Image
                 id={"img-" + boutique.id}
                 className="object-contain"
@@ -105,66 +105,70 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
             )}
           </div>
           <div className="offer-category">
-            {boutique.mainCategoriesForProductIds.map((category, key) => {
-              // @ts-ignore
-              if (category?.flat_photo_path?.file_path?.includes(".svg")) {
-                return (
-                  <div
-                    onClick={(e) => {
-                      e.preventDefault();
-                      // dispatchRouteChangeEvent("start", { to: "boutique" });
-                      router.push(
-                        `/boutiques/${boutique.slug}?categories=${category.slug}`
-                      );
-                    }}
-                    key={key}
-                  >
-                    <Image
-                      id={"img-" + boutique.id}
-                      alt={boutique.name}
-                      loading={myKey < 2 ? "eager" : "lazy"}
-                      fetchPriority={myKey < 2 ? "high" : "low"}
-                      priority={myKey < 2}
-                      width={12}
-                      height={12}
-                      // @ts-ignore
-                      src={category.flat_photo_path?.file_path?.replace(
-                        "/upload",
-                        `/upload/h_50/f_webp/q_auto`
-                      )}
-                    />
-                  </div>
-                );
-              } else
-                return (
-                  <div
-                    aria-label={`${category.name} products page`}
-                    key={key}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      // dispatchRouteChangeEvent("start", { to: "boutique" });
-                      router.push(
-                        `/boutiques/${boutique.slug}?categories=${category.slug}`
-                      );
-                    }}
-                  >
-                    <Image
-                      id={"img-" + boutique.id}
-                      alt={boutique.name}
-                      loading={myKey < 2 ? "eager" : "lazy"}
-                      fetchPriority={myKey < 2 ? "high" : "low"}
-                      priority={myKey < 2}
-                      width={12}
-                      height={12}
-                      // @ts-ignore
-                      src={category?.flat_photo_path?.file_path?.replace(
-                        "/upload",
-                        `/upload/h_50/f_webp/q_auto`
-                      )}
-                    />
-                  </div>
-                );
-            })}
+            {boutique.mainCategoriesForProductIds
+              .slice(0, 5)
+              .map((category, key) => {
+                // @ts-ignore
+                if (category?.flat_photo_path?.file_path?.includes(".svg")) {
+                  return (
+                    <div
+                      onClick={(e) => {
+                        e.preventDefault();
+                        // dispatchRouteChangeEvent("start", { to: "boutique" });
+                        router.push(
+                          `/boutiques/${boutique.slug}?categories=${category.slug}`
+                        );
+                      }}
+                      key={key}
+                    >
+                      <Image
+                        id={"img-" + boutique.id}
+                        alt={boutique.name}
+                        loading={myKey < 2 ? "eager" : "lazy"}
+                        fetchPriority={myKey < 2 ? "high" : "low"}
+                        priority={myKey < 2}
+                        width={12}
+                        height={12}
+                        // @ts-ignore
+                        src={category.flat_photo_path?.file_path?.replace(
+                          "/upload",
+                          `/upload/h_50/f_webp/q_auto`
+                        )}
+                      />
+                    </div>
+                  );
+                } else {
+                  if (category?.flat_photo_path?.file_path)
+                    return (
+                      <div
+                        aria-label={`${category.name} products page`}
+                        key={key}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          // dispatchRouteChangeEvent("start", { to: "boutique" });
+                          router.push(
+                            `/boutiques/${boutique.slug}?categories=${category.slug}`
+                          );
+                        }}
+                      >
+                        <Image
+                          id={"img-" + boutique.id}
+                          alt={boutique.name}
+                          loading={myKey < 2 ? "eager" : "lazy"}
+                          fetchPriority={myKey < 2 ? "high" : "low"}
+                          priority={myKey < 2}
+                          width={12}
+                          height={12}
+                          // @ts-ignore
+                          src={category?.flat_photo_path?.file_path?.replace(
+                            "/upload",
+                            `/upload/h_50/f_webp/q_auto`
+                          )}
+                        />
+                      </div>
+                    );
+                }
+              })}
           </div>
           <div className="offer-desc" id={`boutique-${boutique.id}`}></div>
           {boutique?.banners?.length > 1 ? (

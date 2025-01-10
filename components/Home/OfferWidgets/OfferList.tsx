@@ -54,14 +54,15 @@ function OfferList({
       )} */}
 
       {[...boutiques, ...nextBoutieues].map((boutique: Boutique, index) => {
-        return (
-          <NormalWidget
-            onClick={() => {}}
-            myKey={index}
-            key={boutique.id}
-            boutique={boutique}
-          />
-        );
+        if (boutique.banners?.length > 0)
+          return (
+            <NormalWidget
+              onClick={() => {}}
+              myKey={index}
+              key={index}
+              boutique={boutique}
+            />
+          );
       })}
 
       <InfinteScroll

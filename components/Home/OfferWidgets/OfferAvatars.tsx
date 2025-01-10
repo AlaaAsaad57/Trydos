@@ -45,18 +45,20 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
       onMouseMove={(e) => handleMove(e)}
     >
       {boutique?.mainCategoriesForProductIds.map((product, index) => {
-        if (index < 5)
-          return (
-            <OfferAvatar
-              name={product.name}
-              linkUrl={`/boutiques/${boutique.slug}?categories=${product.slug}`}
-              key={index}
-              category={product.name}
-              images={product?.most_viewed_product_thumbnail.file_path}
-              zIndex={index + 1}
-              priority={priority}
-            />
-          );
+        if (index < 5) {
+          if (product?.most_viewed_product_thumbnail.file_path)
+            return (
+              <OfferAvatar
+                name={product.name}
+                linkUrl={`/boutiques/${boutique.slug}?categories=${product.slug}`}
+                key={index}
+                category={product.name}
+                images={product?.most_viewed_product_thumbnail.file_path}
+                zIndex={index + 1}
+                priority={priority}
+              />
+            );
+        }
       })}
       {/* {boutique?.childCategoriesForProductIds?.length > 5 && (
         <MoreOfferAvatar

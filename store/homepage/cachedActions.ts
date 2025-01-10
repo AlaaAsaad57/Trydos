@@ -13,13 +13,13 @@ import {
 
 export const getHomeData = async ({ str, lang }) => {
   const cookies = (await import("next/headers")).cookies;
-  const language = lang.split("-")[1];
+  const language = lang;
   const cookieStore = cookies();
   let url =
     HOME_DATA_URL +
     (str?.length
-      ? `?category_slugs=["${str}"]&limit=10`
-      : "?category_slugs=[]&limit=10");
+      ? `?lang=${language}&category_slugs=["${str}"]&limit=10`
+      : `?lang=${language}&category_slugs=[]&limit=10`);
 
   let method = { method: "GET" };
 
@@ -74,24 +74,26 @@ export const getMainCategories = async ({
 }): Promise<[CategoriesApi["data"]["mainCategories"], any]> => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
-  const language = lang.split("-")[1];
+  const language = lang;
+
   try {
     let start = new Date().getTime();
     const res = await fetch(
-      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + HOME_DATA_CATEGORIES_URL,
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+        HOME_DATA_CATEGORIES_URL +
+        `?lang=${language}`,
       {
         next: {
           revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-          tags: [`home-categories-${cookieStore.get("lang")?.value ?? "en"}`],
         },
         headers: new Headers({
-          "ssr-req": "true",
           lang: await getLang(language, cookieStore.get("language")?.value),
           country:
             cookieStore.get("country") && cookieStore.get("country").value,
         }),
       }
     );
+
     const repo: CategoriesApi = await res.json();
     let end = new Date().getTime();
     let time = end - start;
@@ -154,7 +156,7 @@ export const getListingData = async ({
   productCategory,
   searchParams,
 }) => {
-  let language = lang.split("-")[1];
+  let language = lang;
   let start = new Date().getTime();
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
@@ -240,7 +242,7 @@ export const getListingData = async ({
       };
     }
 
-    let str = `/api/products/search?limit=4${
+    let str = `/api/products/search?lang=${language}&limit=4${
       obj.categories?.length > 0
         ? `&category_slugs=${JSON.stringify(
             obj.categories.split(",").map((s) => s)
@@ -324,13 +326,13 @@ export const getListingData = async ({
     let url =
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
       (productCategory
-        ? "/api/products/search?limit=4" +
+        ? `/api/products/search?lang=${language}&limit=4` +
           `&category=${productCategory}${
             !str.includes("listing")
               ? `&boutique_slugs=${JSON.stringify(str)}`
               : ""
           }`
-        : "/api/products/search?limit=4" +
+        : `/api/products/search?lang=${language}&limit=4` +
           `${
             !str.includes("listing")
               ? `&boutique_slugs=${JSON.stringify(str)}`
@@ -410,7 +412,9 @@ export async function getProductDetails({ productId, lang }) {
   const cookieStore = cookies();
   try {
     const res = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + DETAILS_URL + `/${productId}`,
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+        DETAILS_URL +
+        `/${productId}?lang=${language}`,
       {
         method: "GET",
 
@@ -435,7 +439,9 @@ export async function getProductDetails({ productId, lang }) {
     let end1 = new Date().getTime() - start1;
     let start2 = new Date().getTime();
     const res1 = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + QTY_URL + `/${productId}`,
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+        QTY_URL +
+        `/${productId}?lang=${language}`,
       {
         method: "GET",
 
@@ -494,55 +500,7 @@ export async function getProductDetails({ productId, lang }) {
     notFound();
   }
 }
-export async function getProductDataOG({ slug, lang, color }) {
-  let language = lang.split("-")[1];
-  let DETAILS_URL = "/web/product/globalDetails";
 
-  const cookies = (await import("next/headers")).cookies;
-  const cookieStore = cookies();
-  let start1 = new Date().getTime();
-  try {
-    const res = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + DETAILS_URL + `/${slug}`,
-      {
-        method: "GET",
-
-        next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-          tags: [`product-data-${slug}`, "listing-data"],
-        },
-        headers: new Headers({
-          lang: await getLang(language, cookieStore.get("language")?.value),
-          country:
-            cookieStore.get("country") && cookieStore.get("country").value,
-          Accept: "application/json",
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        }),
-      }
-    );
-    const repo: GlobalDetailsProductApi = await res.json();
-    let end1 = new Date().getTime() - start1;
-
-    // let returned_res = {
-    //   type: res.type,
-    //   headers: new Headers({
-    //     lang: await getLang(lang, cookieStore.get("language")?.value),
-    //     country: cookieStore.get("country") && cookieStore.get("country").value,
-    //   }),
-    //   url: res.url,
-    //   time: end1 + "ms",
-    //   response: repo,
-    //   request: "Get Product Global Details For OG Images",
-    // };
-
-    let prod = { ...repo.data };
-
-    return prod;
-  } catch (e) {
-    console.log(e);
-  }
-  return { name: "product" };
-}
 export const getCountriesApi = async () => {
   let start = new Date().getTime();
   let repo;

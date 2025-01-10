@@ -20,6 +20,9 @@ export default function Providers({ children }) {
     Smartlook.init(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
     let images = document.querySelectorAll("img");
     images.forEach((img) => {
+      if (img.complete && img.naturalWidth === 0) {
+        img.src = "/error.png";
+      }
       img.onerror = function () {
         this.src = "/error.png";
         this.onerror = null;

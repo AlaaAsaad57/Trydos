@@ -78,21 +78,27 @@ class HomeService {
       process.env.NEXT_PUBLIC_BACKEND_URL + CUSTOMER_INFO_URL,
       getHeader()
     );
-    let repo = await response.json();
-    if (repo.data) {
-      store.dispatch({
-        type: "UPDATE_USER_INFO",
-        payload: repo.data?.customer_info,
-      });
-      // localStorage.setItem(
-      //   "customer-info",
-      //   JSON.stringify(repo.data.customer_info)
-      // );
-    }
+    if (response.status === 200) {
+      let repo = await response.json();
 
-    if (typeof window !== "undefined") {
-      _isStoreLastJson() &&
-        localStorage.setItem("LAST_JSON", JSON.stringify(repo));
+      if (repo.data) {
+        store.dispatch({
+          type: "UPDATE_USER_INFO",
+          payload: repo.data?.customer_info,
+        });
+        // localStorage.setItem(
+        //   "customer-info",
+        //   JSON.stringify(repo.data.customer_info)
+        // );
+        if (typeof window !== "undefined") {
+          _isStoreLastJson() &&
+            localStorage.setItem("LAST_JSON", JSON.stringify(repo));
+        }
+      }
+    }
+    if (response.status === 302 || response.status === 401) {
+      await this.registerForExpire();
+      this.getCustomerInfo();
     }
   }
   async checkExpiration(bool) {

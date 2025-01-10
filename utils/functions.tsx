@@ -30,7 +30,9 @@ export function translateFunction(key: string, language?: string | string[]) {
   } else {
     languageUrl = "en";
   }
-
+  if (language) {
+    return translations[language][key] || key;
+  }
   if (translations[languageUrl] && translations[languageUrl][key]) {
     return translations[languageUrl][key] || key;
   } else return key;
@@ -234,7 +236,7 @@ export const getProductMeta = async ({ productId, lang, color }) => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
   let start = new Date();
-  let [langauge, country] = lang.split("-");
+  let [country, language] = lang.split("-");
 
   let data: SimpleDetailsProductApi = await fetchWithRetry(
     process.env.NEXT_PUBLIC_BACKEND_URL +
@@ -245,7 +247,7 @@ export const getProductMeta = async ({ productId, lang, color }) => {
       headers: new Headers({
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        lang: await getLang(langauge, cookieStore.get("language")?.value),
+        lang: await getLang(language, cookieStore.get("language")?.value),
         country:
           cookieStore.get("country") && cookieStore.get("country")?.value,
       }),
@@ -279,11 +281,11 @@ export const getProductMeta = async ({ productId, lang, color }) => {
 export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
-  let [langauge, country] = lang.split("-");
+  let [country, language] = lang.split("-");
   let start = new Date();
   let resp = await fetch(
     process.env.NEXT_PUBLIC_BACKEND_URL +
-      `/web/boutique/simpleDetails/${boutiqueId}`,
+      `/web/boutique/simpleDetails/${boutiqueId}?lang=${language}`,
     {
       next: {
         revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
@@ -291,7 +293,7 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
       headers: new Headers({
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        lang: await getLang(langauge, cookieStore.get("language")?.value),
+        lang: await getLang(language, cookieStore.get("language")?.value),
         country:
           cookieStore.get("country") && cookieStore.get("country")?.value,
       }),
