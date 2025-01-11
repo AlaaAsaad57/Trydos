@@ -665,8 +665,9 @@ function AddToCartButton({
                             try {
                               let elem =
                                 document.querySelector(".add-cart-button");
+
                               setTimeout(() => {
-                                elem.classList.add("success-add");
+                                if (elem) elem?.classList.add("success-add");
                               }, 200);
                               Sendevent({
                                 event: "button_clicked",

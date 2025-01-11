@@ -6,7 +6,7 @@ import { ChatConroller } from "store/chat/actions";
 import { getNew } from "components/Chat/chatsFunctions";
 import ChatNotification from "./ChatNotification";
 import { useParams } from "next/navigation";
-
+import Cookies from "js-cookie";
 function AuthNavSection() {
   let { lang } = useParams();
   // @ts-ignore
@@ -68,6 +68,9 @@ function AuthNavSection() {
             value: "me_nav_bar_button",
           });
           localStorage.clear();
+          Cookies.remove("DEVICE-TOKEN");
+          Cookies.remove("market-token");
+          Cookies.remove("token");
           window.location.reload();
         }}
         avatar={user?.avatar?.src ?? user.avatar}

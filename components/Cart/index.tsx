@@ -24,6 +24,7 @@ import home from "services/home";
 import { toast } from "react-toastify";
 import OrderButton from "./OrderButton";
 import { AxiosPost } from "utils/AxiosApi";
+import { dispatchRouteChangeEvent } from "utils/events";
 
 function CartContainer({ close }) {
   let { lang } = useParams();
@@ -631,7 +632,12 @@ function CartContainer({ close }) {
                           style={{ border: "1px solid #ff5f617a" }}
                           onClick={(e) => {
                             // @ts-ignore
-
+                            if (e.target.closest(".hide-btn")) {
+                              setTimeout(() => {
+                                dispatchRouteChangeEvent("completed");
+                              }, 1000);
+                              return false;
+                            }
                             if (params?.productId === product.slug) {
                               if (product.variations[0].color) {
                                 dispatch({
@@ -742,7 +748,7 @@ function CartContainer({ close }) {
                           </div>
                           {
                             <div
-                              className="absolute right-4 bottom-[95px] hide-btn"
+                              className="absolute right-4 bottom-[95px] hide-btn cursor-pointer z-50"
                               onClick={(e) => {
                                 e.preventDefault();
                                 Sendevent({

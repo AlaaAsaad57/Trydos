@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import { dispatchRouteChangeEvent } from "utils/events";
 import { GetAppLanguage, translateFunction } from "utils/functions";
 
 function BuyButton({ buy }) {
@@ -16,6 +17,9 @@ function BuyButton({ buy }) {
       onClick={(e) => {
         e.preventDefault();
         buy();
+        setTimeout(() => {
+          dispatchRouteChangeEvent("completed");
+        }, 1000);
       }}
     >
       <span className="f-10 flex align-start">

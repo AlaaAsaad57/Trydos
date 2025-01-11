@@ -633,9 +633,7 @@ class HomeService {
         body: { id: id },
         title: "Hide Old Cart",
       });
-    } catch (error) {
-      toast.info("Error hiding old Cart");
-    }
+    } catch (error) {}
   }
   async TestNotificationBoutique({ boutique_id }) {
     await axios.post(

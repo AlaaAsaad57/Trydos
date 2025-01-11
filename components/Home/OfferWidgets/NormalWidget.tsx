@@ -80,7 +80,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
         <div className="offer-blured" id={`blured-${boutique.id}`} /> */}
         <div className="offer-container cursor-pointer">
           <div className="offer-logo">
-            {boutique.icon?.file_path ? (
+            {boutique.icon?.file_path && (
               <Image
                 id={"img-" + boutique.id}
                 className="object-contain"
@@ -100,8 +100,6 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
                   `/upload/h_50/f_webp/q_auto`
                 )}
               />
-            ) : (
-              boutique.name
             )}
           </div>
           <div className="offer-category">

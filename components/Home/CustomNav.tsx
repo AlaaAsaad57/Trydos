@@ -15,6 +15,9 @@ interface NavbarProps {
   init: string;
 }
 function CustomNavbar({ init }: NavbarProps) {
+  const AddToCartOption = useSelector(
+    (state: StateInterface) => state.cart.AddToCartOption
+  );
   const loginOpen = useSelector(
     (state: StateInterface) => state.homepage.loginOpen
   );
@@ -48,10 +51,12 @@ function CustomNavbar({ init }: NavbarProps) {
 
   return (
     <>
-      <ToastContainer
-        position="top-right"
-        style={{ zIndex: "9999999999999999" }}
-      />
+      {!AddToCartOption.enable && (
+        <ToastContainer
+          position="top-right"
+          style={{ zIndex: "9999999999999999" }}
+        />
+      )}
       <AuthSections />
       <div className="home-navbar">
         <NextLink

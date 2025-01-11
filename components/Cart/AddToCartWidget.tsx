@@ -15,6 +15,7 @@ import { LogData } from "store/homepage/actions";
 import auth from "services/auth";
 import home from "services/home";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { ToastContainer } from "react-toastify";
 
 function AddToCartWidget() {
   const dispatch = useDispatch();
@@ -77,8 +78,17 @@ function AddToCartWidget() {
   useEffect(() => {
     getDetails();
   }, []);
+  const AddToCartOption = useSelector(
+    (state: StateInterface) => state.cart.AddToCartOption
+  );
   return (
     <div className="flex-col h-[100vh] w-[100vw] flex top-0 left-0 fixed z-[99999999999999999] justify-start ">
+      {AddToCartOption.enable && (
+        <ToastContainer
+          position="top-right"
+          style={{ zIndex: "9999999999999999" }}
+        />
+      )}
       <SelectColor
         close={() => {
           dispatch({ type: "AddToCartOptionDisable" });

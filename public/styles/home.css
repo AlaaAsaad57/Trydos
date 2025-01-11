@@ -11,6 +11,9 @@
   .categories-bar-item-name {
   color: #3c3c3c;
 }
+.Toastify {
+  z-index: 999999999999999;
+}
 .moving {
   position: absolute;
 

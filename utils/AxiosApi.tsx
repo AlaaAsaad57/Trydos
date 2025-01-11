@@ -88,6 +88,11 @@ export const AxiosPost = async ({
           return res.data;
         }
       }
+      if (url.includes("product_likes") || url.includes("old-cart/hide")) {
+        toast.success(res.data.message);
+
+        return;
+      }
       if (url.includes("cart/")) {
         if (res.data.data.status === 1) {
           toast.success(res.data.message);
@@ -97,11 +102,7 @@ export const AxiosPost = async ({
           return;
         }
       }
-      if (url.includes("product_likes") || url.includes("old-cart/hide")) {
-        toast.success(res.data.message);
 
-        return;
-      }
       if (res?.data.data) {
         if (res.data.message) {
           toast.success(res.data.message);
