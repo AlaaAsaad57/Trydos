@@ -279,8 +279,11 @@
   }
 }
 .move-anim {
-  animation: move 0.4s;
-  animation-fill-mode: forwards;
+  top: 111px !important;
+  position: fixed !important;
+  z-index: 999999999999999 !important;
+  left: -10px !important;
+  scale: 1;
 }
 .price-cancel-icon {
   position: absolute;

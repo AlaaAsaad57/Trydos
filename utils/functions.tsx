@@ -709,7 +709,7 @@ export const onClickSearchHistory = (searchValue) => {
     localStorage.setItem("search-history", JSON.stringify([searchValue]));
   }
 };
-async function fetchWithRetry(url, options, title) {
+export async function fetchWithRetry(url, options, title) {
   let attempt = 0;
   let retries = 2;
   let delay = 200;

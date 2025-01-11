@@ -10,6 +10,13 @@ img {
   top: 98px !important;
 }
 @media only screen and (min-width: 912px) {
+  .move-anim {
+    top: 94px !important;
+    position: fixed !important;
+    z-index: 999999999999999;
+    left: -10px !important;
+    scale: 1;
+  }
   .filter-listing-bar.fixedAlign {
     top: 80px !important;
   }
@@ -182,7 +189,8 @@ span[aria-live="polite"] {
   background-color: #f4f4f4;
   justify-content: space-around;
   min-width: 100vw;
-  min-height: 80vh;
+  min-height: 48vh;
+  padding-bottom: 200px;
 }
 .listing-container > div {
   margin-top: 20px;

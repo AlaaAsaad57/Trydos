@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { fetchWithRetry } from "utils/functions";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest) {
       ? `?category_slugs=["${str}"]&limit=10&offset=${offset}`
       : `?category_slugs=[]&limit=10&offset=${offset}`);
 
-  let res = await fetch(
+  let r = await fetchWithRetry(
     process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + BOUTIQUE_URL,
     {
       next: {
@@ -32,8 +33,8 @@ export async function GET(request: NextRequest) {
           cookies().get("country")?.value ??
           request.cookies.get("country")?.value,
       }),
-    }
+    },
+    "Next Boutique Request"
   );
-  let r = await res.json();
   return NextResponse.json(r);
 }

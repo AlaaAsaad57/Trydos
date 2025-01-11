@@ -422,7 +422,8 @@ svg {
   background-color: #f4f4f4;
   justify-content: space-around;
   min-width: 100vw;
-  min-height: 68vh;
+  min-height: 48vh;
+  padding-bottom: 200px;
 }
 g#PNORSSM823IY-BE29_view2 rect {
   width: calc(100% - 0.5px);
