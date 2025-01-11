@@ -7,7 +7,7 @@ import { caseCheck, onClickSearchHistory, Sendevent } from "utils/functions";
 import home from "services/home";
 import { DebounceInput } from "react-debounce-input";
 import { dispatchRouteChangeEvent } from "utils/events";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useRouter } from "next-nprogress-bar";
 import SearchVoice from "./Search/SearchVoice";
 import SearchImage from "./Search/SearchImage";
@@ -95,6 +95,7 @@ function SearchComponent({
   };
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams);
+  const { lang } = useParams();
   const router = useRouter();
   const handleSearch = (data) => {
     const params = new URLSearchParams(searchParams);
@@ -123,7 +124,7 @@ function SearchComponent({
     }
     params.set("searchText", searchValue);
 
-    router.push(`/boutiques/listing?${params.toString()}`);
+    router.push(`${lang}/boutiques/listing?${params.toString()}`);
   };
 
   const onKeyDown = (e) => {

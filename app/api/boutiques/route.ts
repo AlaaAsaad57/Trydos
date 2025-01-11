@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   let str = searchParams.get("str");
   let offset = searchParams.get("offset");
   let lang = searchParams.get("lang");
-  let [language, country] = lang?.split("-") ?? ["", ""];
+  let [country, language] = lang?.split("-");
   let BOUTIQUE_URL =
     "/api/home/boutiques" +
     (str?.length > 0

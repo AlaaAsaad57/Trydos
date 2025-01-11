@@ -14,7 +14,12 @@ import CartIcon from "public/svg/CartIcon.svg";
 import { LogData } from "store/homepage/actions";
 import auth from "services/auth";
 import home from "services/home";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { ToastContainer } from "react-toastify";
 
 function AddToCartWidget() {
@@ -25,6 +30,9 @@ function AddToCartWidget() {
   const SelectedProduct = useSelector(
     (state: StateInterface) => state.cart.SelectedProduct
   );
+  const { lang } = useParams();
+  // @ts-ignore
+  let [country, languageUrl] = lang.split("-");
   const product = useSelector((state: StateInterface) => state.details.product);
   const getDetails = async () => {
     if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
@@ -35,13 +43,12 @@ function AddToCartWidget() {
         `/${SelectedProduct.slug}`,
       {
         headers: {
-          "ssr-req": "true",
           Authorization: `Bearer ${
             localStorage.getItem("MARKET-TOKEN") ||
             localStorage.getItem("DEVICE-TOKEN")
           }`,
-          lang: getLang(null, Cookies.get("language")),
-          country: Cookies.get("country"),
+          lang: getLang(languageUrl, Cookies.get("language")),
+          country: country || Cookies.get("country"),
         },
       }
     );

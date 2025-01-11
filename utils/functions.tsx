@@ -248,8 +248,7 @@ export const getProductMeta = async ({ productId, lang, color }) => {
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         lang: await getLang(language, cookieStore.get("language")?.value),
-        country:
-          cookieStore.get("country") && cookieStore.get("country")?.value,
+        country: country || cookieStore.get("country")?.value,
       }),
     },
     "Product SimpleDetails"

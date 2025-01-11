@@ -11,7 +11,7 @@ export const errorPNG = pngErr.src;
 const getHeader = (token?) => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
-    .split("-")[1];
+    .split("-");
   return {
     headers: {
       lang: languageUrl || Cookies.get("language") || Cookies.get("lang"),

@@ -110,12 +110,16 @@ export async function middleware(request) {
   }
   // 2- for cookies
   else if (countryFromCookies && langFromCookies) {
+    let pahname =
+      url.pathname.split("/")[1].split("-").length === 2
+        ? url.pathname.slice(countryLang.length + 1)
+        : url.pathname;
+
     const countryLangFromCookies = `${countryFromCookies.toLowerCase()}-${langFromCookies}`;
     if (supportedLocales.includes(countryLangFromCookies)) {
       // If valid, redirect to the appropriate `country-lang` in the URL
-      url.pathname = `/${countryLangFromCookies}${url.pathname.slice(
-        countryLang.length + 1
-      )}`;
+
+      url.pathname = `/${countryLangFromCookies}${pahname}`;
       return NextResponse.redirect(url);
     }
   }
@@ -126,7 +130,10 @@ export async function middleware(request) {
       countryLang.length + 1
     )}`;
   } else {
-    url.pathname = "/selectCountry";
+    let params = new URLSearchParams();
+    params.set("path", url.pathname);
+    url.pathname = `/selectCountry`;
+    url.search = params.toString();
     return NextResponse.redirect(url);
   }
 

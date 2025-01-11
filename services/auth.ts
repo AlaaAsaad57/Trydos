@@ -19,6 +19,9 @@ import axios from "axios";
 import home from "./home";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 const getHeader = () => {
+  let [countryUrl, languageUrl] = window.location.pathname
+    .split("/")[1]
+    .split("-");
   return {
     headers: {
       "ssr-req": "true",
@@ -26,8 +29,8 @@ const getHeader = () => {
         localStorage.getItem("MARKET-TOKEN") ||
         localStorage.getItem("DEVICE-TOKEN")
       }`,
-      lang: getLang(null, Cookies.get("language")),
-      country: Cookies.get("country"),
+      lang: getLang(languageUrl, Cookies.get("language")),
+      country: countryUrl || Cookies.get("country"),
     },
   };
 };

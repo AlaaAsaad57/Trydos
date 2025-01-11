@@ -29,6 +29,9 @@ import axios from "axios";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 import { AxiosPost } from "utils/AxiosApi";
 const getHeader = () => {
+  let [countryUrl, languageUrl] = window.location.pathname
+    .split("/")[1]
+    .split("-");
   return {
     next: {
       revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
@@ -38,8 +41,9 @@ const getHeader = () => {
         localStorage.getItem("MARKET-TOKEN") ||
         localStorage.getItem("DEVICE-TOKEN")
       }`,
-      lang: getLang(null, Cookies.get("language")),
-      country: Cookies.get("country"),
+      lang: getLang(languageUrl, Cookies.get("language")),
+      country: countryUrl || Cookies.get("country"),
+      accept: "application/json",
     },
   };
 };

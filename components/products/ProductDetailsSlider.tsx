@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
-import { ProductInterface } from "models/product";
+
 import { useDispatch, useSelector } from "react-redux";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CloseIcon from "components/Home/Stories/CloseIcon";

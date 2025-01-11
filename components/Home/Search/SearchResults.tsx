@@ -5,7 +5,7 @@ import BrandItem from "./Results/BrandItem";
 import CategoryItem from "./Results/CategoryItem";
 import BoutiqueItem from "./Results/BoutiqueItem";
 import { onClickSearchHistory, Sendevent } from "utils/functions";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useRouter } from "next-nprogress-bar";
 
 import { dispatchRouteChangeEvent } from "utils/events";
@@ -45,6 +45,7 @@ function SearchResults() {
   const searchValue = useSelector(
     (state: StateInterface) => state.Search.value
   );
+  const { lang } = useParams();
   const dispatch = useDispatch();
   const handleSearch = (data) => {
     const params = new URLSearchParams(searchParams);
@@ -72,7 +73,7 @@ function SearchResults() {
       }
     }
     if (searchValue) params.set("searchText", searchValue);
-    router.push(`/boutiques/listing?${params.toString()}`);
+    router.push(`${lang}/boutiques/listing?${params.toString()}`);
   };
   const apply = () => {
     Sendevent({

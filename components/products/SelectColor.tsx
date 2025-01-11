@@ -8,6 +8,7 @@ import CartIcon from "public/svg/CartIcon.svg";
 import { getConfiguredImage, Sendevent } from "utils/functions";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { ToastContainer } from "react-toastify";
 
 function SelectColor({ close }) {
   const cart = useSelector((state: StateInterface) => state.cart?.localCart);
@@ -76,6 +77,10 @@ function SelectColor({ close }) {
         </span>
       </div>
       <div className="flex-col mt-[10px] w-full fixed  left-0 z-[9999999999] top-[50px] items-center">
+        <ToastContainer
+          position="top-right"
+          style={{ zIndex: "9999999999999999" }}
+        />
         <div className="flex-row w-auto justify-center moved-min-img relative rounded-[15px] inset-select-shadow-image image-cart-container">
           <svg
             className="absolute  top-0 left-0"

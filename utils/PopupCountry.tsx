@@ -7,13 +7,13 @@ import { useSearchParams } from "next/navigation";
 import "styles/popup.css";
 import Link from "next/link";
 import { Sendevent } from "./functions";
-
+import { useRouter } from "next/navigation";
 const PopupCountry = ({ options, countries }) => {
   const [localization, setLocalization] = useState({
     country: null,
     language: "en",
   });
-
+  const router = useRouter();
   const params = useSearchParams();
   const [selectedCountry, setSelectedCountry] = useState("");
 
@@ -34,7 +34,8 @@ const PopupCountry = ({ options, countries }) => {
         expires: 365,
       });
       if (params.get("path")) {
-        window.location.href = "/" + params.get("path");
+        console.log(`${params.get("path")}`);
+        router.push(`${params.get("path")}`);
       } else window.location.href = "/";
     }
   };
@@ -93,7 +94,9 @@ const PopupCountry = ({ options, countries }) => {
                   value={country.value}
                 >
                   <Link
-                    href={`/${country.value}-${localization.language}`}
+                    href={`/${country.value}-${localization.language}${
+                      params.get("path") ? `/${params.get("path")}` : ""
+                    }`}
                     prefetch={true}
                   >
                     {country.label}

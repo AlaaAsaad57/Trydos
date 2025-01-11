@@ -29,13 +29,20 @@ function InfinteScroll({ SetBoutiques, offsetVariable }) {
   const [loading, setLoading] = useState(false);
   const [isEnd, setEnd] = useState(false);
   const params = useParams();
+  const { lang }: { lang?: string } = params;
   const getNextBoutique = async () => {
     if (!loading && !isEnd) {
       setLoading(true);
       let res = await fetch(
         `/api/boutiques?lang=${params.lang}&offset=${offset}${
           params.mainCategory?.length > 0 ? `&str=${params.mainCategory}` : ""
-        }`
+        }`,
+        {
+          headers: {
+            lang: lang.split("-")[1],
+            country: lang.split("-")[0],
+          },
+        }
       );
 
       let body = await res.json();
