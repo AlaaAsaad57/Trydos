@@ -4,7 +4,7 @@ import pngErr from "public/images/error.png";
 import Cookies from "js-cookie";
 import { setupCache } from "axios-cache-interceptor";
 import home from "services/home";
-import {} from "next/navigation";
+
 import { ExpiredUser, getUser, LogError } from "./functions";
 import { toast } from "react-toastify";
 export const errorPNG = pngErr.src;
