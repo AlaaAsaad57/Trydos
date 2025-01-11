@@ -13,7 +13,7 @@ import {
   UserID,
 } from "utils/functions";
 
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import chat from "services/chat";
 import home from "services/home";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
@@ -238,6 +238,10 @@ function ProductFooterSection({ product }) {
   );
   return (
     <>
+      <ToastContainer
+        position="top-right"
+        style={{ zIndex: "9999999999999999" }}
+      />
       {option === "AddToCart" && <SelectColor close={() => setOption("")} />}
       {!loginOpen && (
         <div className="product-details-footer z-[999999999]">

@@ -28,12 +28,8 @@ export const getHomeData = async ({ str, lang }) => {
     const res = await fetch(process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + url, {
       ...method,
       next: {
-        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-        tags: [
-          `home-boutiques home-boutiques-${
-            cookieStore.get("lang")?.value ?? "en"
-          }`,
-        ],
+        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_BOUTIQUES),
+        tags: [`home-boutiques`],
       },
       headers: new Headers({
         Accept: "application/json",
@@ -84,7 +80,8 @@ export const getMainCategories = async ({
         `?lang=${language}`,
       {
         next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CATEGORIES),
+          tags: ["home-categories"],
         },
         headers: new Headers({
           lang: await getLang(language, cookieStore.get("language")?.value),
@@ -280,7 +277,12 @@ export const getListingData = async ({
         method: "GET",
 
         next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
+          tags: [
+            `listing listing${
+              productCategory?.length > 0 ? `-${productCategory}` : ""
+            }`,
+          ],
         },
         headers: new Headers({
           lang: await getLang(language, cookieStore.get("language")?.value),
@@ -357,7 +359,14 @@ export const getListingData = async ({
     try {
       const res = await fetch(url, {
         method: "GET",
-        cache: "no-cache",
+        next: {
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
+          tags: [
+            `listing listing${
+              productCategory?.length > 0 ? `-${productCategory}` : ""
+            }`,
+          ],
+        },
 
         headers: new Headers({
           lang: await getLang(language, cookieStore.get("language")?.value),
@@ -419,8 +428,10 @@ export async function getProductDetails({ productId, lang }) {
         method: "GET",
 
         next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-          tags: [`product-data-${productId}`, "listing-data"],
+          revalidate: parseInt(
+            process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS
+          ),
+          tags: [`product-details product-details-${productId}`],
         },
         headers: new Headers({
           lang: await getLang(language, cookieStore.get("language")?.value),
@@ -446,8 +457,10 @@ export async function getProductDetails({ productId, lang }) {
         method: "GET",
 
         next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-          tags: [`product-data-${productId}`, "listing-data"],
+          revalidate: parseInt(
+            process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS
+          ),
+          tags: [`product-details product-details-${productId}`],
         },
         headers: new Headers({
           lang: await getLang(language, cookieStore.get("language")?.value),
@@ -507,7 +520,7 @@ export const getCountriesApi = async () => {
   try {
     repo = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + "/countries", {
       next: {
-        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
         tags: ["countries"],
       },
     });
