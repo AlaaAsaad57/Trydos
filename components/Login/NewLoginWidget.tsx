@@ -566,7 +566,7 @@ function NewLoginWidget() {
                   transform="matrix(0.695, -0.719, 0.719, 0.695, 1294.105, 113.345)"
                   fill="none"
                   stroke="#ff5f61"
-                  stroke-linecap="round"
+                  strokeLinecap="round"
                   strokeWidth="1"
                 />
                 <line
@@ -576,7 +576,7 @@ function NewLoginWidget() {
                   transform="matrix(0.719, 0.695, -0.695, 0.719, 1293.849, 98.605)"
                   fill="none"
                   stroke="#ff5f61"
-                  stroke-linecap="round"
+                  strokeLinecap="round"
                   strokeWidth="1"
                 />
               </g>

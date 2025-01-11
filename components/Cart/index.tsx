@@ -112,7 +112,7 @@ function CartContainer({ close }) {
               viewBox="0 0 20 20"
             >
               <defs>
-                <clipPath id="clip-path">
+                <clipPath id="clipPath">
                   <rect
                     id="Rectangle_4612"
                     data-name="Rectangle 4612"
@@ -129,15 +129,15 @@ function CartContainer({ close }) {
                   x2="0.5"
                   gradientUnits="objectBoundingBox"
                 >
-                  <stop offset="0" stop-color="#f53c3c" />
-                  <stop offset="1" stop-color="#ff9696" />
+                  <stop offset="0" stopColor="#f53c3c" />
+                  <stop offset="1" stopColor="#ff9696" />
                 </linearGradient>
               </defs>
               <g
                 id="Mask_Group_388"
                 data-name="Mask Group 388"
                 transform="translate(-385 -60)"
-                clip-path="url(#clip-path)"
+                clipPath="url(#clipPath)"
               >
                 <g
                   id="Group_10817"
@@ -181,8 +181,8 @@ function CartContainer({ close }) {
                         transform="translate(3.377 10.89)"
                         fill="none"
                         stroke="#fce66e"
-                        stroke-linecap="round"
-                        stroke-width="0.5"
+                        strokeLinecap="round"
+                        strokeWidth="0.5"
                       />
                     </g>
                   </g>
@@ -281,6 +281,15 @@ function CartContainer({ close }) {
                                     ],
                                 });
                               }
+                            } else {
+                              setTimeout(() => {
+                                if (document.querySelector("#nprogress"))
+                                  // @ts-ignore
+                                  document.querySelector(
+                                    "#nprogress"
+                                    // @ts-ignore
+                                  ).style.opacity = "1";
+                              }, 1000);
                             }
                             close();
                           }}
@@ -652,6 +661,15 @@ function CartContainer({ close }) {
                                     ],
                                 });
                               }
+                            } else {
+                              setTimeout(() => {
+                                if (document.querySelector("#nprogress"))
+                                  // @ts-ignore
+                                  document.querySelector(
+                                    "#nprogress"
+                                    // @ts-ignore
+                                  ).style.opacity = "1";
+                              }, 1000);
                             }
                             close();
                           }}
@@ -1040,7 +1058,7 @@ const HurryIcon = () => {
       viewBox="0 0 15 15"
     >
       <defs>
-        <clipPath id="clip-path554">
+        <clipPath id="clipPath554">
           <rect
             id="Rectangle_4561"
             data-name="Rectangle 4561"
@@ -1053,7 +1071,7 @@ const HurryIcon = () => {
       <g
         id="Mask_Group_528"
         data-name="Mask Group 528"
-        clip-path="url(#clip-path554)"
+        clipPath="url(#clipPath554)"
       >
         <g id="Layer1" transform="translate(0 0.768)">
           <path
@@ -1062,7 +1080,7 @@ const HurryIcon = () => {
             d="M10.869,2.435,10.65,3.448a.259.259,0,1,0,.507.109l.218-1.013a.259.259,0,0,0-.507-.109Z"
             transform="translate(-0.648 -1.081)"
             fill="#fbef57"
-            fill-rule="evenodd"
+            fillRule="evenodd"
           />
           <path
             id="Path_22203"
@@ -1070,7 +1088,7 @@ const HurryIcon = () => {
             d="M13.913,3.846l-.7.768a.259.259,0,1,0,.384.348l.7-.768a.259.259,0,1,0-.384-.348Z"
             transform="translate(-0.648 -1.081)"
             fill="#fbef57"
-            fill-rule="evenodd"
+            fillRule="evenodd"
           />
           <g
             id="Group_12717"
@@ -1083,7 +1101,7 @@ const HurryIcon = () => {
               d="M9.716,14.027H.907a.259.259,0,0,0,0,.518H9.716a.259.259,0,0,0,0-.518Z"
               transform="translate(-0.648 -3.12)"
               fill="#fbc02a"
-              fill-rule="evenodd"
+              fillRule="evenodd"
             />
             <path
               id="Path_22205"
@@ -1091,7 +1109,7 @@ const HurryIcon = () => {
               d="M5.83,12.472H1.943a.259.259,0,1,0,0,.518H5.83a.259.259,0,0,0,0-.518Z"
               transform="translate(-0.648 -3.12)"
               fill="#fbc02a"
-              fill-rule="evenodd"
+              fillRule="evenodd"
             />
             <path
               id="Path_22206"
@@ -1099,7 +1117,7 @@ const HurryIcon = () => {
               d="M4.793,10.917H2.721a.259.259,0,0,0,0,.518H4.793a.259.259,0,0,0,0-.518Z"
               transform="translate(-0.648 -3.12)"
               fill="#fbc02a"
-              fill-rule="evenodd"
+              fillRule="evenodd"
             />
             <path
               id="Path_22207"
@@ -1107,7 +1125,7 @@ const HurryIcon = () => {
               d="M15.329,10.023a5.7,5.7,0,1,0-6.774,4.371,5.7,5.7,0,0,0,6.774-4.371Z"
               transform="translate(-0.648 -3.12)"
               fill="#fbc02a"
-              fill-rule="evenodd"
+              fillRule="evenodd"
             />
           </g>
           <path
@@ -1116,7 +1134,7 @@ const HurryIcon = () => {
             d="M13.81,9.7a4.146,4.146,0,1,0-4.926,3.179A4.148,4.148,0,0,0,13.81,9.7Z"
             transform="translate(-0.648 -1.081)"
             fill="#fbef57"
-            fill-rule="evenodd"
+            fillRule="evenodd"
           />
           <path
             id="Path_22209"
@@ -1124,7 +1142,7 @@ const HurryIcon = () => {
             d="M11.583,6.932a.259.259,0,0,0-.183-.442h-2a.259.259,0,0,0-.237.153l-.982,2.2a.259.259,0,0,0,.237.365h.6L8.374,10.8a.259.259,0,0,0,.425.278l2.5-2.567a.259.259,0,0,0-.184-.44l-.667,0,1.134-1.133Z"
             transform="translate(-0.648 -1.081)"
             fill="#fbc02a"
-            fill-rule="evenodd"
+            fillRule="evenodd"
           />
           <path
             id="Path_22210"
@@ -1132,7 +1150,7 @@ const HurryIcon = () => {
             d="M11.653,2.869a.7.7,0,0,0,.828-.534l.034-.157a.7.7,0,0,0-.534-.828L10.81,1.1a.7.7,0,0,0-.828.535l-.034.157a.7.7,0,0,0,.535.828Z"
             transform="translate(-0.648 -1.081)"
             fill="#fbc02a"
-            fill-rule="evenodd"
+            fillRule="evenodd"
           />
           <path
             id="Path_22211"
@@ -1140,7 +1158,7 @@ const HurryIcon = () => {
             d="M14.375,4.614a.7.7,0,0,0,.985-.049l.108-.119a.7.7,0,0,0-.049-.985l-.887-.8a.7.7,0,0,0-.984.049l-.108.119a.7.7,0,0,0,.049.984Z"
             transform="translate(-0.648 -1.081)"
             fill="#fbc02a"
-            fill-rule="evenodd"
+            fillRule="evenodd"
           />
         </g>
       </g>
@@ -1157,7 +1175,7 @@ const OldCartIcon = () => {
       viewBox="0 0 19 19"
     >
       <defs>
-        <clipPath id="clip-path22">
+        <clipPath id="clipPath22">
           <rect
             id="Rectangle_5771"
             data-name="Rectangle 5771"
@@ -1174,15 +1192,15 @@ const OldCartIcon = () => {
           x2="0.5"
           gradientUnits="objectBoundingBox"
         >
-          <stop offset="0" stop-color="#d3d3d3" />
-          <stop offset="1" stop-color="#c4c2c2" />
+          <stop offset="0" stopColor="#d3d3d3" />
+          <stop offset="1" stopColor="#c4c2c2" />
         </linearGradient>
       </defs>
       <g
         id="Mask_Group_538"
         data-name="Mask Group 538"
         transform="translate(-385 -60)"
-        clip-path="url(#clip-path22)"
+        clipPath="url(#clipPath22)"
       >
         <g
           id="Group_10817"
@@ -1226,8 +1244,8 @@ const OldCartIcon = () => {
                 transform="translate(3.208 10.345)"
                 fill="none"
                 stroke="#fce66e"
-                stroke-linecap="round"
-                stroke-width="0.5"
+                strokeLinecap="round"
+                strokeWidth="0.5"
               />
             </g>
           </g>
@@ -1466,10 +1484,10 @@ const CartColorIcon = () => {
           y2="1"
           gradientUnits="objectBoundingBox"
         >
-          <stop offset="0" stop-color="#f46eff" />
-          <stop offset="0.34" stop-color="#61f8ec" />
-          <stop offset="0.69" stop-color="#ffe943" />
-          <stop offset="1" stop-color="#ff6767" />
+          <stop offset="0" stopColor="#f46eff" />
+          <stop offset="0.34" stopColor="#61f8ec" />
+          <stop offset="0.69" stopColor="#ffe943" />
+          <stop offset="1" stopColor="#ff6767" />
         </linearGradient>
       </defs>
       <g id="Exclusion_5" data-name="Exclusion 5" fill="url(#linear-gradient1)">
@@ -1497,7 +1515,7 @@ const PiecesIcon = () => {
       viewBox="0 0 10 10"
     >
       <defs>
-        <clipPath id="clip-path1">
+        <clipPath id="clipPath1">
           <rect
             id="Rectangle_4751"
             data-name="Rectangle 4751"
@@ -1512,7 +1530,7 @@ const PiecesIcon = () => {
         id="Mask_Group_329"
         data-name="Mask Group 329"
         transform="translate(0 0.36)"
-        clip-path="url(#clip-path1)"
+        clipPath="url(#clipPath1)"
       >
         <g id="dress" transform="translate(1.424 -0.36)">
           <path
@@ -1546,7 +1564,7 @@ export const DeleiveryIcon = () => {
       viewBox="0 0 10 10"
     >
       <defs>
-        <clipPath id="clip-path2">
+        <clipPath id="clipPath2">
           <rect
             id="Rectangle_4561"
             data-name="Rectangle 4561"
@@ -1559,14 +1577,14 @@ export const DeleiveryIcon = () => {
       <g
         id="Mask_Group_497"
         data-name="Mask Group 497"
-        clip-path="url(#clip-path2)"
+        clipPath="url(#clipPath2)"
       >
         <path
           id="courier-services"
           d="M10.145,5.084a.4.4,0,0,1-.4.39h-1.6A1.085,1.085,0,0,1,7.655,5.3L6.525,4.207a.382.382,0,0,1,0-.551.413.413,0,0,1,.569,0L8.167,4.694H9.743a.4.4,0,0,1,.4.39ZM3.354,4.992a.413.413,0,0,0,.569-.006l1.06-1.05.386,0,.206-.781-.625.007a1.084,1.084,0,0,0-.487.178L3.347,4.441a.382.382,0,0,0,.007.551ZM8.095,7.273l-1.184-.93.289-1.1L6.326,4.4a.649.649,0,0,1,0-.937.7.7,0,0,1,.968,0l.3.291.032-.121a.535.535,0,0,0-.4-.65l-.7-.174a.555.555,0,0,0-.671.385l-.162.614L5.1,6.067,4.37,7.435,2.893,7.353a.281.281,0,0,0-.3.262l-.018.361a.28.28,0,0,0,.271.289l1.994.093c.081,0,.252-.025.288-.095L5.9,6.775l.131.075,1.249.941L7.358,9.51a.282.282,0,0,0,.3.264l.373-.015A.28.28,0,0,0,8.3,9.473L8.218,7.542a.455.455,0,0,0-.123-.269Zm1.991-4.845H9.633v.564a.139.139,0,0,1-.141.136H8.9a.138.138,0,0,1-.141-.136V2.428H8.308a.139.139,0,0,0-.141.136V4.285a.139.139,0,0,0,.141.136h1.778a.139.139,0,0,0,.141-.136V2.565A.139.139,0,0,0,10.085,2.428Zm-.734,0h-.31v.427h.31ZM7.981,1.592h.493a.136.136,0,1,0,0-.273H7.919a.98.98,0,0,0-.078-.157A1.015,1.015,0,0,0,7.216.709a1.046,1.046,0,0,0-.773.108.989.989,0,0,0-.467.6l0,.011a.961.961,0,0,0-.028.165H7.981ZM.645,5.779a.136.136,0,1,0,0,.273H3.157a.136.136,0,1,0,0-.273ZM1.983,7.267H.588a.136.136,0,1,0,0,.273H1.983a.136.136,0,1,0,0-.273ZM3.368,1.586h1.62a.136.136,0,1,0,0-.273H3.368a.136.136,0,1,0,0,.273ZM2.731,4.427a.139.139,0,0,0-.141-.136H.367a.136.136,0,1,0,0,.273H2.59a.139.139,0,0,0,.141-.136Zm-.96-1.352H3.6a.136.136,0,1,0,0-.273H1.771a.136.136,0,1,0,0,.273Zm4.974-.418a.882.882,0,0,0,1.07-.614.83.83,0,0,0,.027-.178H6.084a.858.858,0,0,0,.661.793Z"
           transform="translate(-0.226 -0.227)"
           fill="#8d8d8d"
-          fill-rule="evenodd"
+          fillRule="evenodd"
         />
       </g>
     </svg>
@@ -1584,7 +1602,7 @@ const SavedIcon = () => {
       viewBox="0 0 10 10"
     >
       <defs>
-        <clipPath id="clip-path3">
+        <clipPath id="clipPath3">
           <rect
             id="Rectangle_4644"
             data-name="Rectangle 4644"
@@ -1597,7 +1615,7 @@ const SavedIcon = () => {
       <g
         id="Mask_Group_530"
         data-name="Mask Group 530"
-        clip-path="url(#clip-path3)"
+        clipPath="url(#clipPath3)"
       >
         <g id="Line_color" transform="translate(-0.118 -0.121)">
           <g id="Group_12726" data-name="Group 12726">
@@ -1768,7 +1786,7 @@ const QuantutyInput = ({
               transform="translate(140 277)"
               fill="none"
               stroke="#d3d3d3"
-              stroke-width="0.5"
+              strokeWidth="0.5"
             >
               <rect width="72" height="24" rx="5" stroke="none" />
               <rect

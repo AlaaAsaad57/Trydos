@@ -259,7 +259,7 @@ function AddToCartButton({
                     viewBox="0 0 30 30"
                   >
                     <defs>
-                      <clipPath id="clip-path">
+                      <clipPath id="clipPath">
                         <rect
                           id="Rectangle_4830"
                           data-name="Rectangle 4830"
@@ -274,7 +274,7 @@ function AddToCartButton({
                       id="Mask_Group_372"
                       data-name="Mask Group 372"
                       transform="translate(-200 -852)"
-                      clip-path="url(#clip-path)"
+                      clipPath="url(#clipPath)"
                     >
                       <g id="ringing-2" transform="translate(200 852)">
                         <g id="Group_11216" data-name="Group 11216">
@@ -322,7 +322,7 @@ function AddToCartButton({
                       id="Mask_Group_371"
                       data-name="Mask Group 371"
                       transform="translate(-200 -852)"
-                      clip-path="url(#clip-path)"
+                      clipPath="url(#clipPath)"
                     >
                       <g id="ringing" transform="translate(200 852)">
                         <g id="Group_11211" data-name="Group 11211">

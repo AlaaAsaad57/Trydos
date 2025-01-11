@@ -27,7 +27,7 @@ function OrderButton({ close, orderShow, setShowOrder }) {
         viewBox="0 0 12 12"
       >
         <defs>
-          <clipPath id="clip-path4">
+          <clipPath id="clipPath4">
             <rect
               id="Rectangle_5757"
               data-name="Rectangle 5757"
@@ -42,7 +42,7 @@ function OrderButton({ close, orderShow, setShowOrder }) {
           id="Mask_Group_531"
           data-name="Mask Group 531"
           transform="translate(-20 -438)"
-          clip-path="url(#clip-path4)"
+          clipPath="url(#clipPath4)"
         >
           <g id="Line_color" transform="translate(19.858 437.855)">
             <g id="Group_12774" data-name="Group 12774">
@@ -98,7 +98,7 @@ function OrderButton({ close, orderShow, setShowOrder }) {
         viewBox="0 0 12 12"
       >
         <defs>
-          <clipPath id="clip-path6">
+          <clipPath id="clipPath6">
             <rect
               id="Rectangle_5758"
               data-name="Rectangle 5758"
@@ -116,8 +116,8 @@ function OrderButton({ close, orderShow, setShowOrder }) {
             y2="-4.604"
             gradientUnits="objectBoundingBox"
           >
-            <stop offset="0" stop-color="#f5fbff" />
-            <stop offset="1" stop-color="#dbd5ef" />
+            <stop offset="0" stopColor="#f5fbff" />
+            <stop offset="1" stopColor="#dbd5ef" />
           </linearGradient>
           <linearGradient
             id="linear-gradient-2"
@@ -127,13 +127,13 @@ function OrderButton({ close, orderShow, setShowOrder }) {
             y2="0.646"
             gradientUnits="objectBoundingBox"
           >
-            <stop offset="0" stop-color="#dbd5ef" stop-opacity="0" />
-            <stop offset="0.285" stop-color="#d9d2ee" stop-opacity="0.286" />
-            <stop offset="0.474" stop-color="#d4c9e9" stop-opacity="0.475" />
-            <stop offset="0.635" stop-color="#cbbae2" stop-opacity="0.635" />
-            <stop offset="0.78" stop-color="#bfa5d7" stop-opacity="0.78" />
-            <stop offset="0.913" stop-color="#af8aca" stop-opacity="0.914" />
-            <stop offset="1" stop-color="#a274bf" />
+            <stop offset="0" stopColor="#dbd5ef" stop-opacity="0" />
+            <stop offset="0.285" stopColor="#d9d2ee" stop-opacity="0.286" />
+            <stop offset="0.474" stopColor="#d4c9e9" stop-opacity="0.475" />
+            <stop offset="0.635" stopColor="#cbbae2" stop-opacity="0.635" />
+            <stop offset="0.78" stopColor="#bfa5d7" stop-opacity="0.78" />
+            <stop offset="0.913" stopColor="#af8aca" stop-opacity="0.914" />
+            <stop offset="1" stopColor="#a274bf" />
           </linearGradient>
           <linearGradient
             id="linear-gradient-3"
@@ -143,8 +143,8 @@ function OrderButton({ close, orderShow, setShowOrder }) {
             y2="0.503"
             gradientUnits="objectBoundingBox"
           >
-            <stop offset="0" stop-color="#ffa1ae" />
-            <stop offset="1" stop-color="#ff4565" />
+            <stop offset="0" stopColor="#ffa1ae" />
+            <stop offset="1" stopColor="#ff4565" />
           </linearGradient>
           <linearGradient
             id="linear-gradient-4"
@@ -154,11 +154,11 @@ function OrderButton({ close, orderShow, setShowOrder }) {
             y2="0.895"
             gradientUnits="objectBoundingBox"
           >
-            <stop offset="0" stop-color="#fe0364" stop-opacity="0" />
-            <stop offset="0.234" stop-color="#f90362" stop-opacity="0.235" />
-            <stop offset="0.517" stop-color="#ea035b" stop-opacity="0.518" />
-            <stop offset="0.824" stop-color="#d20250" stop-opacity="0.824" />
-            <stop offset="1" stop-color="#c00148" />
+            <stop offset="0" stopColor="#fe0364" stop-opacity="0" />
+            <stop offset="0.234" stopColor="#f90362" stop-opacity="0.235" />
+            <stop offset="0.517" stopColor="#ea035b" stop-opacity="0.518" />
+            <stop offset="0.824" stopColor="#d20250" stop-opacity="0.824" />
+            <stop offset="1" stopColor="#c00148" />
           </linearGradient>
           <linearGradient
             id="linear-gradient-5"
@@ -365,7 +365,7 @@ function OrderButton({ close, orderShow, setShowOrder }) {
           id="Mask_Group_532"
           data-name="Mask Group 532"
           transform="translate(-8 -531)"
-          clip-path="url(#clip-path6)"
+          clipPath="url(#clipPath6)"
         >
           <g
             id="_3d-discount"
@@ -623,7 +623,7 @@ function OrderButton({ close, orderShow, setShowOrder }) {
         viewBox="0 0 12 12"
       >
         <defs>
-          <clipPath id="clip-path66">
+          <clipPath id="clipPath66">
             <rect
               id="Rectangle_5764"
               data-name="Rectangle 5764"
@@ -638,7 +638,7 @@ function OrderButton({ close, orderShow, setShowOrder }) {
           id="Mask_Group_534"
           data-name="Mask Group 534"
           transform="translate(-28 -566)"
-          clip-path="url(#clip-path66)"
+          clipPath="url(#clipPath66)"
         >
           <g id="money-9" transform="translate(28 566)">
             <g id="Group_12791" data-name="Group 12791">
