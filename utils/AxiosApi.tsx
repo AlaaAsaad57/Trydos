@@ -7,7 +7,7 @@ import home from "services/home";
 import { ExpiredUser, getUser, LogError } from "./functions";
 import { toast } from "react-toastify";
 export const errorPNG = pngErr.src;
-const getHeader = () => {
+const getHeader = (token?) => {
   let languageUrl = window.location.pathname.split("/")[1].split("-")[1];
 
   return {
@@ -15,6 +15,7 @@ const getHeader = () => {
       lang: languageUrl || Cookies.get("language") || Cookies.get("lang"),
       country: Cookies.get("country"),
       Authorization: `Bearer ${
+        token ??
         localStorage.getItem("MARKET-TOKEN") ??
         Cookies.get("market-token") ??
         Cookies.get("DEVICE-TOKEN") ??
@@ -70,18 +71,20 @@ export const AxiosPost = async ({
   title,
   body,
   hasMessageOnly,
+  token,
 }: {
   url: string;
   title?: string;
   body: any;
   hasMessageOnly?: boolean;
+  token?: string;
 }) => {
   let attempt = 0;
   let retries = 2;
   let delay = 2000;
   while (attempt <= retries) {
     try {
-      let res = await axios.post(url, body, getHeader());
+      let res = await axios.post(url, body, getHeader(token));
       // If the response is successful, return the data
       if (url.includes(`/api/products/view`)) {
         if (res.data.view_count) {
