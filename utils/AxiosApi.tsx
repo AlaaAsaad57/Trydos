@@ -9,12 +9,13 @@ import { ExpiredUser, getUser, LogError } from "./functions";
 import { toast } from "react-toastify";
 export const errorPNG = pngErr.src;
 const getHeader = (token?) => {
-  let languageUrl = window.location.pathname.split("/")[1].split("-")[1];
-
+  let [countryUrl, languageUrl] = window.location.pathname
+    .split("/")[1]
+    .split("-")[1];
   return {
     headers: {
       lang: languageUrl || Cookies.get("language") || Cookies.get("lang"),
-      country: Cookies.get("country"),
+      country: countryUrl || Cookies.get("country"),
       Authorization: `Bearer ${
         token ??
         localStorage.getItem("MARKET-TOKEN") ??
