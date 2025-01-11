@@ -97,8 +97,12 @@ class HomeService {
       }
     }
     if (response.status === 302 || response.status === 401) {
-      await this.registerForExpire();
-      this.getCustomerInfo();
+      if (getUser()) {
+        ExpiredUser();
+      } else {
+        await this.registerForExpire();
+        this.getCustomerInfo();
+      }
     }
   }
   async checkExpiration(bool) {

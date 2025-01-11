@@ -27,7 +27,6 @@ function TranslationsMenu({ init }: TranslationsMenuProps) {
   }, []);
   return (
     <div className="translations-container">
-      {language === "ar" && <ArabicCss />}
       {false && (
         <div className="translations-container-inner">
           <div className="translation-icon">
