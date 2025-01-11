@@ -46,17 +46,17 @@ function CartContainer({ close }) {
   const getURLOfProduct = ({ product }) => {
     let productUrl;
     if (product.variations[0]?.color && !product.variations[0]?.Size)
-      productUrl = `${lang}/products/${
+      productUrl = `/${lang}/products/${
         product.slug
       }${`?color=${product?.variations[0]?.color}`}`;
     else if (!product.variations[0]?.color && product.variations[0]?.Size)
-      productUrl = `${lang}/products/${
+      productUrl = `/${lang}/products/${
         product.slug
       }${`?size=${product?.variations[0]?.Size}`}`;
     else if (!product.variations[0]?.color && !product.variations[0]?.Size)
-      productUrl = `${lang}/products/${product.slug}`;
+      productUrl = `/${lang}/products/${product.slug}`;
     else if (product.variations[0]?.color && product.variations[0]?.Size)
-      productUrl = `${lang}/products/${
+      productUrl = `/${lang}/products/${
         product.slug
       }${`?size=${product?.variations[0]?.Size}&color=${product?.variations[0]?.color}`}`;
     return productUrl;
@@ -635,7 +635,7 @@ function CartContainer({ close }) {
                             if (e.target.closest(".hide-btn")) {
                               setTimeout(() => {
                                 dispatchRouteChangeEvent("completed");
-                              }, 1000);
+                              }, 1500);
                               return false;
                             }
                             if (params?.productId === product.slug) {

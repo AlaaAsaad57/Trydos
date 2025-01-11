@@ -124,7 +124,7 @@ function SearchComponent({
     }
     params.set("searchText", searchValue);
 
-    router.push(`${lang}/boutiques/listing?${params.toString()}`);
+    router.push(`/${lang}/boutiques/listing?${params.toString()}`);
   };
 
   const onKeyDown = (e) => {
