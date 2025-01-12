@@ -845,7 +845,7 @@ function OrderButton({ close, orderShow, setShowOrder }) {
             )}
           </div>
         )}
-        <div className="flex-row w-full px-5 pt-3">
+        <div className={`flex-row w-full px-5 pt-3 pb-28 sm:pb-1`}>
           <div
             className={`cursor-pointer  flex-col w-full  ${
               option ? "h-[200px]" : "bg-[#3C3C3C] h-[70px]"
