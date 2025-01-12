@@ -7,7 +7,7 @@ export const size = {
 };
 export const alt = "TryDos";
 export const contentType = "image/png";
-export const runtime = "edge";
+
 export default async function og({
   params,
   searchParams,

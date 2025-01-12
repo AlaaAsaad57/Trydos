@@ -29,7 +29,7 @@ import CustomNavbarServer from "components/Server/ServerCustomNav";
 // }
 
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-export const runtime = "edge";
+
 interface Props {
   params: {
     lang: string;

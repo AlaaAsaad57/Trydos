@@ -45,7 +45,7 @@ export async function generateMetadata({ params, searchParams }) {
 }
 
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-export const runtime = "edge";
+
 interface Props {
   params: {
     lang: string;

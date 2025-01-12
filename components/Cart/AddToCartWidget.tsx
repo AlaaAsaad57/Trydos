@@ -21,6 +21,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import { ToastContainer } from "react-toastify";
+import { AxiosGet } from "utils/AxiosApi";
 
 function AddToCartWidget() {
   const dispatch = useDispatch();
@@ -37,22 +38,14 @@ function AddToCartWidget() {
   const getDetails = async () => {
     if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
     let start = new Date();
-    let repo = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL +
+    let data = await AxiosGet({
+      url:
+        process.env.NEXT_PUBLIC_BACKEND_URL +
         QTY_URL +
         `/${SelectedProduct.slug}`,
-      {
-        headers: {
-          Authorization: `Bearer ${
-            localStorage.getItem("MARKET-TOKEN") ||
-            localStorage.getItem("DEVICE-TOKEN")
-          }`,
-          lang: getLang(languageUrl, Cookies.get("language")),
-          country: country || Cookies.get("country"),
-        },
-      }
-    );
-    let data = await repo.json();
+      title: "Get Product",
+    });
+
     let end = new Date();
     LogData({
       request: "Get Product Quantity info",

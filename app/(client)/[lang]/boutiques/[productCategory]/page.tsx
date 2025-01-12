@@ -43,7 +43,7 @@ export async function generateMetadata({ params, searchParams }: Props) {
 }
 
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-export const runtime = "edge";
+
 interface ParamsType {
   lang: string;
   productCategory: string;

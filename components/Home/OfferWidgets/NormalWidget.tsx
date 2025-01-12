@@ -29,7 +29,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
   const { lang } = useParams();
   return (
     <NextLink
-      href={`${lang}/boutiques/${boutique.slug}`}
+      href={`/${lang}/boutiques/${boutique.slug}`}
       onClick={(e) => {
         // @ts-ignore: Unreachable code error
         if (

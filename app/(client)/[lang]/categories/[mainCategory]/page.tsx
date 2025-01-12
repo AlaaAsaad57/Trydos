@@ -7,7 +7,7 @@ import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
 
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-export const runtime = "edge";
+
 interface Props {
   params: {
     lang: string;
