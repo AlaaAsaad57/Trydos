@@ -50,7 +50,7 @@ export async function middleware(request) {
   let data = await getCountriesApi();
   const response = NextResponse.next();
   let countries = data.map((s) => s.iso.toLowerCase());
-  let defaultLocale = `$${countries[0]}-en`;
+  let defaultLocale = `${countries[0]}-en`;
 
   countries.map((s) => {
     languages.map((l) => {
@@ -130,15 +130,13 @@ export async function middleware(request) {
       countryLang.length + 1
     )}`;
   } else {
-    let params = new URLSearchParams();
-    params.set("path", url.pathname);
-    url.pathname = `/selectCountry`;
-    url.search = params.toString();
+    url.pathname = `/${defaultLocale}/${url.pathname}`;
+    url.searchParams.set("no-country", true);
     return NextResponse.redirect(url);
   }
 
   //4- select country
-  if (url.pathname === "/selectCountry") {
+  if (url.searchParams.get("no-contry")) {
     return response;
   }
 

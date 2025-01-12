@@ -6,6 +6,7 @@ import localFont from "next/font/local";
 import TranslationsMenu from "components/global/TranslationsMenu";
 import React from "react";
 import "regenerator-runtime/runtime";
+import { NextRequest } from "node_modules/next/server";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",

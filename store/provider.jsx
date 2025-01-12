@@ -8,11 +8,15 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.min.css";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/scss/main.scss";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 import CartProvider from "components/Cart/CartProvider";
 import Smartlook from "smartlook-client";
+import { useSearchParams } from "node_modules/next/navigation";
+import PopupCountry from "utils/PopupCountry";
+import { getCountriesApi } from "./homepage/cachedActions";
 export default function Providers({ children }) {
+  const [dataCountries, setCountriesData] = useState([]);
   useEffect(() => {
     if (!navigator.cookieEnabled) {
       toast.info("Cookies Is Not Enabled");
@@ -62,9 +66,26 @@ export default function Providers({ children }) {
       observer.disconnect();
     };
   }, []);
-
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("no-country")) {
+      getCountries();
+    }
+  }, []);
+  const getCountries = async () => {
+    let data = await getCountriesApi();
+    setCountriesData(data);
+  };
   return (
     <>
+      {searchParams.get("no-country") && (
+        <PopupCountry
+          countries={dataCountries.map((s) => s.iso)}
+          options={dataCountries.map((s) => {
+            return { label: s.nicename, value: s.iso };
+          })}
+        />
+      )}
       <ProgressBar
         color="#f53d3d"
         height="4px"
