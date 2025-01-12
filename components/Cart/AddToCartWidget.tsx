@@ -131,13 +131,31 @@ function AddToCartWidget() {
           </div>
         ) : (
           <div className="Extended-area-product p-3">
-            <div className="flex-row">
-              <Skeleton className="w-20 h-20 rounded-full ml-2" />
-              <Skeleton className="w-20 h-20 rounded-full ml-2" />
-              <Skeleton className="w-20 h-20 rounded-full ml-2" />
-              <Skeleton className="w-20 h-20 rounded-full ml-2" />
-              <Skeleton className="w-20 h-20 rounded-full ml-2" />
-              <Skeleton className="w-20 h-20 rounded-full ml-2" />
+            <div className="flex-row justify-center w-full">
+              <Skeleton
+                containerClassName="h-20 items-center flex-row"
+                className="w-20 h-20 rounded-full ml-2 items-center flex-row"
+              />
+              <Skeleton
+                containerClassName="h-20 items-center flex-row"
+                className="w-20 h-20 rounded-full ml-2 flex-row"
+              />
+              <Skeleton
+                containerClassName="h-20 items-center flex-row"
+                className="w-20 h-20 rounded-full ml-2 flex-row"
+              />
+              <Skeleton
+                containerClassName="h-20 items-center flex-row"
+                className="w-20 h-20 rounded-full ml-2 flex-row"
+              />
+              <Skeleton
+                containerClassName="h-20 items-center flex-row"
+                className="w-20 h-20 rounded-full ml-2 flex-row"
+              />
+              <Skeleton
+                containerClassName="h-20 items-center flex-row"
+                className="w-20 h-20 rounded-full ml-2 flex-row"
+              />
             </div>
           </div>
         )}
@@ -145,6 +163,12 @@ function AddToCartWidget() {
           {
             <>
               <AddToCartButton
+                showLoading={
+                  !(
+                    loaded &&
+                    (SelectedProduct.choice_options || product.choice_options)
+                  )
+                }
                 loading={
                   loaded &&
                   (SelectedProduct.choice_options || product.choice_options)
@@ -226,7 +250,7 @@ const SelectColor = ({ close }) => {
           />
         </span>
       </div>
-      <div className="flex-col mt-[10px] w-full   top-[103px] items-center z-[9999999999999]">
+      <div className="flex-col mt-[10px] w-full   top-[103px] items-center z-[999999999]">
         <div className="flex-row w-auto justify-center h-available relative rounded-[15px] inset-select-shadow-image image-cart-container">
           <svg
             className="absolute  top-0 left-0"

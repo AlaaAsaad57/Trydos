@@ -535,16 +535,12 @@ class HomeService {
       dataBody = dataBody.join("&");
 
       let res;
-      try {
-        res = await AxiosPost({
-          url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
-          body: dataBody,
-          title: "Update  Quantity For Product in Cart",
-        });
-      } catch (error) {
-        store.dispatch({ type: "LOADED-CART", payload: true });
-        return;
-      }
+
+      res = await AxiosPost({
+        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
+        body: dataBody,
+        title: "Update  Quantity For Product in Cart",
+      });
 
       store.dispatch({ type: "LOADED-CART", payload: true });
       if (res?.qty >= 0 && res?.status !== 0) {

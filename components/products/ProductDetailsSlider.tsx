@@ -59,9 +59,7 @@ function ProductDetailsSlider({ product }) {
                   (s) => s.color_name === searchParams.get("color")
                 )[0]) ??
               (productData?.sync_color_images &&
-                productData?.sync_color_images[
-                  Math.round(productData.sync_color_images.length / 2) - 1
-                ]) ??
+                productData?.sync_color_images[0]) ??
               productData
             )?.images?.map((img, i) => (
               <div
@@ -107,9 +105,7 @@ function ProductDetailsSlider({ product }) {
                     (s) => s.color_name === searchParams.get("color")
                   )[0]) ??
                 (productData?.sync_color_images &&
-                  productData?.sync_color_images[
-                    Math.round(productData.sync_color_images.length / 2) - 1
-                  ]) ??
+                  productData?.sync_color_images[0]) ??
                 productData
               )?.images?.map((img, i) => (
                 <div
