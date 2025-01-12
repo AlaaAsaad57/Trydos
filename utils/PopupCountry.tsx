@@ -76,7 +76,6 @@ const PopupCountry = ({ options, countries }) => {
 
               if (e.target.value === Defaultcountry) {
                 window.location.search = a.toString();
-                // window.location.reload();
               } else {
                 init(e.target.value);
                 setTimeout(() => {
