@@ -5,7 +5,7 @@ import Providers from "store/provider";
 import localFont from "next/font/local";
 import TranslationsMenu from "components/global/TranslationsMenu";
 import React from "react";
-
+import "regenerator-runtime/runtime";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
