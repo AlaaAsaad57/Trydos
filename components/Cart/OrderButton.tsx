@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { GetAppLanguage, getUser, translateFunction } from "utils/functions";
 import ConfirmMobile from "./ConfirmMobile";
 import { useParams } from "next/navigation";
-
+import { useSwipeable } from "react-swipeable";
 function OrderButton({ close, orderShow, setShowOrder }) {
   let { lang } = useParams();
   // @ts-ignore
@@ -715,6 +715,18 @@ function OrderButton({ close, orderShow, setShowOrder }) {
     );
     return a;
   };
+  const handlers = useSwipeable({
+    onSwipedDown: (e) => {
+      setExpanded(false);
+    },
+    delta: 10,
+    trackMouse: true,
+    trackTouch: true,
+
+    touchEventOptions: {
+      passive: false,
+    },
+  });
   return (
     <>
       {expanded && (
@@ -728,6 +740,7 @@ function OrderButton({ close, orderShow, setShowOrder }) {
       <div className="flex-col z-50 fixed bottom-1 left-0 bg-white min-h-[100px] w-full">
         {cart.cart.length > 0 && (
           <div
+            {...handlers}
             className={`flex-col w-full ${
               expanded
                 ? "h-[336px] pt-[20px] px-[12px] pb-[10x] rounded-t-[30x]"

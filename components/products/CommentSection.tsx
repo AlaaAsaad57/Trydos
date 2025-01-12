@@ -3,6 +3,7 @@ import { translateFunction } from "utils/functions";
 import Comments from "./Comments";
 import CommentBar from "./CommentBar";
 import { useParams } from "next/navigation";
+import { useSelector } from "react-redux";
 
 function CommentSection({
   comments,
@@ -32,7 +33,7 @@ function CommentSection({
       );
     }
   }, [comments]);
-
+  const user = useSelector((state: StateInterface) => state.auth.user);
   return (
     <div className="extended-section">
       <div className="extended-bar-top">
@@ -70,7 +71,7 @@ function CommentSection({
         resendComment={(s) => resendComment(s)}
         verifyCommentAction={(mid) => verifyCommentAction(mid)}
       />
-      {false && (
+      {user && (
         <CommentBar
           CommentsData={CommentsData}
           verifyCommentAction={(mid) => verifyCommentAction(mid)}

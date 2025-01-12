@@ -29,6 +29,8 @@ function ShowMessageAuth() {
       };
       Cookies.remove(cookieName, neededAttributes);
     });
+    dispatch({ type: "CANCEL-AUTH" });
+
     dispatch({ type: "INFO_EXPIRED_TOKEN", payload: false });
     document.documentElement.style.overflow = "initial";
     await home.registerForExpire();
@@ -47,7 +49,12 @@ function ShowMessageAuth() {
   };
   return (
     <>
-      <div className="fixed min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]" />
+      <div
+        className="fixed min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]"
+        onClick={() => {
+          loginGuest();
+        }}
+      />
       <div className="absolute top-16 left-0 right-0 mx-auto my-0 bg-[#fafafa] rounded-md p-3 flex-col w-[300px] z-[999999999]">
         <div className="regular pb-4 text-[#5d5d5d]">
           {translate(
