@@ -766,7 +766,7 @@ function CartContainer({ close }) {
                           </div>
                           {
                             <div
-                              className="absolute right-4 bottom-[95px] hide-btn cursor-pointer z-50"
+                              className="absolute right-4 bottom-[95px] hide-btn cursor-pointer z-40"
                               onClick={(e) => {
                                 e.preventDefault();
                                 Sendevent({
