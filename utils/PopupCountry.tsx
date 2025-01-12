@@ -84,7 +84,7 @@ const PopupCountry = ({ options, countries }) => {
                       pathname.split(`/${lang}`)[1]
                     }`
                   );
-                }, 1000);
+                }, 200);
               }
             }}
             className={`w-full disabled:bg-gray-300 py-3.5 flex items-center justify-start bg-white text-sm text-gray-500
