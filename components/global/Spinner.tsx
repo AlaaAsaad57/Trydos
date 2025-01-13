@@ -8,7 +8,7 @@ function Spinner(props: SpinnerProps) {
   return (
     <div
       className={
-        "spin-cont " +
+        "spin-cont min-w-4 " +
         (props.no && " no-tran ") +
         props.className +
         `${props.isMargen && "flex items-center justify-center ml-4"}`

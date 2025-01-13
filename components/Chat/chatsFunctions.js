@@ -649,13 +649,13 @@ export function blobToDataURL(blob, callback) {
 export const showDate = (d) => {
   const language = store.getState().homepage.language;
   var days = [
-    translate("Sunday", language),
-    translate("Monday", language),
-    translate("Tuesday", language),
-    translate("Wednesday", language),
-    translate("Thursday", language),
-    translate("Friday", language),
-    translate("Saturday", language),
+    translateFunction("Sunday", language),
+    translateFunction("Monday", language),
+    translateFunction("Tuesday", language),
+    translateFunction("Wednesday", language),
+    translateFunction("Thursday", language),
+    translateFunction("Friday", language),
+    translateFunction("Saturday", language),
   ];
   let now = new Date();
   let nowString = `${now.getFullYear()}-${

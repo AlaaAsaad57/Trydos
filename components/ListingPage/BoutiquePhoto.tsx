@@ -10,7 +10,7 @@ function BoutiquePhoto({ photo }) {
     Autoplay({ delay: 3000 }),
   ]);
   return (
-    <div className="boutique-photo-holder overflow-hidden">
+    <div className="boutique-photo-holder ">
       <div className="offer-slider-container">
         <div className="embla" ref={emblaRef}>
           <div className="embla__container">

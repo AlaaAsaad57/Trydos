@@ -225,6 +225,7 @@ img.flying-img {
 }
 .extended-add-to-cart {
   width: calc(100vw - 20px);
+  overflow: hidden;
 }
 .extended-add-to-cart + .options-container {
   min-width: 0px;

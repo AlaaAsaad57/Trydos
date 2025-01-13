@@ -99,6 +99,7 @@ function ProductOptions({
             productVar={product}
             product={SelectedProduct}
             loading={loaded && SelectedProduct.choice_options}
+            showLoading={loading}
           />
           <div className="options-container">
             <div
