@@ -4,7 +4,6 @@ import "styles/unused-onload.css";
 import Providers from "store/provider";
 import localFont from "next/font/local";
 import TranslationsMenu from "components/global/TranslationsMenu";
-import React from "react";
 import "regenerator-runtime/runtime";
 export const metadata = {
   title: "TryDos",
@@ -67,7 +66,7 @@ export default async function RootLayout({ params, children }) {
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
 
-      <body>
+      <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <Providers>
           <div className="site-container">
             <div className="home-page-container">

@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import React, { useState } from "react";
+import { useState } from "react";
 import { GetAppLanguage, getUser, translateFunction } from "utils/functions";
 import ConfirmMobile from "./ConfirmMobile";
 import { useParams } from "next/navigation";
@@ -741,11 +741,10 @@ function OrderButton({ close, orderShow, setShowOrder }) {
         {cart.cart.length > 0 && (
           <div
             {...handlers}
-            className={`flex-col w-full ${
-              expanded
+            className={`flex-col w-full ${expanded
                 ? "h-[336px] pt-[20px] px-[12px] pb-[10x] rounded-t-[30x]"
                 : "h-[76px] pt-[20px] px-[12px] pb-[10x] rounded-t-[30x]"
-            }  transition-all`}
+              }  transition-all`}
           >
             {expanded && (
               <>
@@ -860,9 +859,8 @@ function OrderButton({ close, orderShow, setShowOrder }) {
         )}
         <div className={`flex-row w-full px-5 pt-3 pb-28 sm:pb-1`}>
           <div
-            className={`cursor-pointer  flex-col w-full  ${
-              option ? "h-[200px]" : "bg-[#3C3C3C] h-[70px]"
-            } rounded-[20px] text-center justify-center items-center`}
+            className={`cursor-pointer  flex-col w-full  ${option ? "h-[200px]" : "bg-[#3C3C3C] h-[70px]"
+              } rounded-[20px] text-center justify-center items-center`}
             style={{
               boxShadow:
                 "inset 0px 3px 6px rgba(255,255,255,0.16), 0px 3px 6px rgba(0,0,0,0.1)",
@@ -906,7 +904,7 @@ function OrderButton({ close, orderShow, setShowOrder }) {
                         {translate("Confirm And Continue", GetAppLanguage())}
                       </span>
                       <span className="text-[#FEFEFE] text-[14px] medium ">
-                        {cart.cart.length} items {cart.total_cash}{" "}
+                        {cart.cart.length} {translate("items")} {cart.total_cash}{" "}
                         {currency_symbol?.symbol}
                       </span>
                     </>
