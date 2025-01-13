@@ -117,17 +117,19 @@ export const AxiosPost = async ({
         throw new Error(res.data.message);
       }
     } catch (error) {
+      if (error.status === 401) {
+        if (getUser()) {
+          ExpiredUser();
+          return;
+        }
+        await home.registerForExpire();
+      }
       attempt++;
       console.log(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);
+
       if (attempt > retries) {
         LogError(error, url, window.location.href);
-        if (error.status === 401) {
-          if (getUser()) {
-            ExpiredUser();
-            return;
-          }
-          await home.registerForExpire();
-        }
+
         toast.error(`${title} : ${error.message ?? "Failed"}`);
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
