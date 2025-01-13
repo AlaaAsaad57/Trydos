@@ -121,6 +121,7 @@ function SelectColor({ close }) {
                   AddToCartOption?.selectedColor?.images[0]) ||
                 (SelectedProduct?.images && SelectedProduct?.images[0]),
             })}
+            alt="add to cart icon"
             className={"h-full object-top rounded-[15px] moved-img "}
           />
         </div>

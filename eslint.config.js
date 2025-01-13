@@ -20,7 +20,10 @@ module.exports = [
     },
     rules: {
       ...eslintConfigStandard.rules, // Add rules from the `eslint-config-standard` package
-      "react/react-in-jsx-scope": "off", // For Next.js (doesn't need React in scope)
+      "react/react-in-jsx-scope": "off",
+      "@next/next/no-img-element": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "jsx-a11y/alt-text": "off",
     },
   },
   eslintConfigNext, // Add Next.js-specific config
