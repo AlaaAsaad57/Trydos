@@ -1,6 +1,6 @@
 import { useParams } from "next/navigation";
 import { useSelector } from "react-redux";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import home from "services/home";
 import { translateFunction } from "utils/functions";
 
@@ -115,6 +115,7 @@ function MoreOptionsSection() {
             </svg>
             <span>
               {translate("Notify Me About The Product When", language)}
+
             </span>
           </div>
           <div id="slider-options" className="notify-row">

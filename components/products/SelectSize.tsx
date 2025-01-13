@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "styles/sizeSlider.css";
@@ -41,16 +41,16 @@ function SelectSize({ sizes, variants }) {
   const getVariants = (e?: any | undefined | null) => {
     let variant = (e
       ? variants.filter((s) => {
-          let size = s.type.split("-")[1] || s.type.split("-")[0];
-          return s.type.includes(activeColor?.color_name || "") && size === e;
-        })[0]
+        let size = s.type.split("-")[1] || s.type.split("-")[0];
+        return s.type.includes(activeColor?.color_name || "") && size === e;
+      })[0]
       : variants.filter((s) => {
-          let size = s.type.split("-")[1] || s.type.split("-")[0];
-          return (
-            s.type.includes(activeColor?.color_name || "") &&
-            activeSize?.name === size
-          );
-        })[0]) || { qty: SelectedProduct.Left_stock };
+        let size = s.type.split("-")[1] || s.type.split("-")[0];
+        return (
+          s.type.includes(activeColor?.color_name || "") &&
+          activeSize?.name === size
+        );
+      })[0]) || { qty: SelectedProduct.Left_stock };
 
     if (variant) {
       if (variant.qty === 0) return 0;
@@ -136,11 +136,11 @@ function SelectSize({ sizes, variants }) {
           <span>Not Available Now, Stock Is Sold Out </span>
         </div>
       ) : (
-        <div className="flex-row items-center text-[12px] text-[#404040] mt-[9px] regular [&>span]:ml-1">
+        <div className={languageVariable === "ar" ? "flex-row-rev items-center text-[12px] text-[#404040] mt-[9px] regular [&>span]:ml-1" : "flex-row items-center text-[12px] text-[#404040] mt-[9px] regular [&>span]:ml-1"}>
           <span className="bold">M</span>
-          <span>Recommended </span>
-          <span className="bold">Size </span>
-          <span>For You </span>
+          <span> {translate("Recommended")} </span>
+          <span className="bold">{translate("Size")} </span>
+          <span> {translate("For You")} </span>
           {getVariants() < 10 && (
             <>
               <span className="text-[#FFAF5F]">Last </span>
@@ -306,7 +306,7 @@ function SelectSize({ sizes, variants }) {
             </g>
           </svg>
 
-          <span className="ml-[10px]">Need Help Finding Your Size?</span>
+          <span className="ml-[10px]">{translate("Need Help Finding Your Size?")}</span>
         </div>
         <div className="flex bg-[#F8F8F8] rounded-[20px] ml-[10px] h-[50px] items-center justify-center w-[69px]">
           <svg
@@ -427,13 +427,12 @@ const SelectSizeSlider = ({ sizes, setActive, getVariants }) => {
               minWidth: "70px",
               height: "70px",
             }}
-            className={`${
-              getVariants(size.name) === 0
-                ? "red-bg"
-                : getVariants(size.name) < 10
+            className={`${getVariants(size.name) === 0
+              ? "red-bg"
+              : getVariants(size.name) < 10
                 ? "yellow-bg"
                 : ""
-            } flex-row items-center justify-center text-[30px] bold select-none flex`}
+              } flex-row items-center justify-center text-[30px] bold select-none flex`}
           >
             {size.name}
           </SwiperSlide>

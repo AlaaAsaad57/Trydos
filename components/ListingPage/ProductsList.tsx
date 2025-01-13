@@ -8,7 +8,7 @@ import Spinner from "../global/Spinner";
 import homeService from "services/home";
 import { dispatchRouteChangeEvent } from "utils/events";
 import Product from "./Product";
-import { filterProducts } from "utils/functions";
+import { filterProducts, translateFunction } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
 import ListingSkeleton from "components/skeleton/listing";
 import AddToCartWidget from "components/Cart/AddToCartWidget";
@@ -26,6 +26,12 @@ function ProductsList({
   response?: any;
 }) {
   const dispatch = useDispatch();
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang?) => {
+    return translateFunction(key, languageVariable);
+  };
   const products = useSelector(
     (state: StateInterface) => state.listing.products
   );
@@ -103,7 +109,7 @@ function ProductsList({
             payload: { products },
           });
       },
-      storeCallback: () => {},
+      storeCallback: () => { },
       offset: offset,
       newFiltersCallback: ({ filtersVar }) => {
         dispatch({ type: "EDIT-FILTER", payload: filtersVar });
@@ -146,37 +152,37 @@ function ProductsList({
                 {products.length === 0 &&
                   Listing_Data_res?.body?.data?.products?.length === 0 && (
                     <div className="flex p-3 h-10 justify-center items-center light text-[#5d5d5d] text-[14px]">
-                      No Results Found
+                      {translate("No Results Found")}
                     </div>
                   )}
               </div>
               {(products.length > 0 ||
                 Listing_Data_res?.body?.data?.products?.length > 0) && (
-                <div className="get-next-product regular-text color-dark-gray">
-                  {!isReachEnd ? (
-                    <>
-                      {" "}
-                      {!loading ? (
-                        <InView
-                          className="spinner-container"
-                          as="div"
-                          onChange={(inView) => {
-                            if (inView && !loading) {
-                              GetNextPage();
-                            }
-                          }}
-                        ></InView>
-                      ) : (
-                        <h2>
-                          {loading && <Spinner no={false} className="" />}
-                        </h2>
-                      )}
-                    </>
-                  ) : (
-                    <>Reach End</>
-                  )}
-                </div>
-              )}
+                  <div className="get-next-product regular-text color-dark-gray">
+                    {!isReachEnd ? (
+                      <>
+                        {" "}
+                        {!loading ? (
+                          <InView
+                            className="spinner-container"
+                            as="div"
+                            onChange={(inView) => {
+                              if (inView && !loading) {
+                                GetNextPage();
+                              }
+                            }}
+                          ></InView>
+                        ) : (
+                          <h2>
+                            {loading && <Spinner no={false} className="" />}
+                          </h2>
+                        )}
+                      </>
+                    ) : (
+                      <>{translate("Reach End")}</>
+                    )}
+                  </div>
+                )}
             </>
           )}
         </>

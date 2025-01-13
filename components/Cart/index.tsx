@@ -1,12 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  ExpiredUser,
   GetAppLanguage,
   getCart,
   getConfiguredImage,
-  getLang,
-  getUser,
   RoundPrice,
   Sendevent,
   translateFunction,
@@ -46,19 +43,16 @@ function CartContainer({ close }) {
   const getURLOfProduct = ({ product }) => {
     let productUrl;
     if (product.variations[0]?.color && !product.variations[0]?.Size)
-      productUrl = `/${lang}/products/${
-        product.slug
-      }${`?color=${product?.variations[0]?.color}`}`;
+      productUrl = `/${lang}/products/${product.slug
+        }${`?color=${product?.variations[0]?.color}`}`;
     else if (!product.variations[0]?.color && product.variations[0]?.Size)
-      productUrl = `/${lang}/products/${
-        product.slug
-      }${`?size=${product?.variations[0]?.Size}`}`;
+      productUrl = `/${lang}/products/${product.slug
+        }${`?size=${product?.variations[0]?.Size}`}`;
     else if (!product.variations[0]?.color && !product.variations[0]?.Size)
       productUrl = `/${lang}/products/${product.slug}`;
     else if (product.variations[0]?.color && product.variations[0]?.Size)
-      productUrl = `/${lang}/products/${
-        product.slug
-      }${`?size=${product?.variations[0]?.Size}&color=${product?.variations[0]?.color}`}`;
+      productUrl = `/${lang}/products/${product.slug
+        }${`?size=${product?.variations[0]?.Size}&color=${product?.variations[0]?.color}`}`;
     return productUrl;
   };
   const currency = useSelector(
@@ -86,9 +80,8 @@ function CartContainer({ close }) {
   const searchParams = useSearchParams();
   return (
     <div
-      className={`${
-        cart.length > 0 ? "pb-[145px]" : "pb-[90px]"
-      } flex-col  fixed top-0 left-0 min-h-[100vh] max-h-[100vh] h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
+      className={`${cart.length > 0 ? "pb-[145px]" : "pb-[90px]"
+        } flex-col  fixed top-0 left-0 min-h-[100vh] max-h-[100vh] h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
     >
       <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
         <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
@@ -253,16 +246,15 @@ function CartContainer({ close }) {
                         <NextLink
                           href={
                             params?.productId === product.slug &&
-                            product?.variations[0]?.color ===
+                              product?.variations[0]?.color ===
                               sarchParams.get("color")
                               ? "#"
                               : getURLOfProduct({ product })
                           }
-                          className={`flex-row mt-2 w-full relative  ${
-                            product.have_hurry_up_notify || true
-                              ? "min-h-[208px]"
-                              : "min-h-[161px]"
-                          } bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
+                          className={`flex-row mt-2 w-full relative  ${product.have_hurry_up_notify || true
+                            ? "min-h-[208px]"
+                            : "min-h-[161px]"
+                            } bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
                           key={key}
                           onClick={(e) => {
                             // @ts-ignore
@@ -273,11 +265,11 @@ function CartContainer({ close }) {
                                   type: "SET-ACTIVE-COLOR-DETAILS",
                                   payload:
                                     ProductDetails.sync_color_images[
-                                      ProductDetails.sync_color_images.findIndex(
-                                        (s) =>
-                                          s.color_name ===
-                                          product?.variations[0]?.color
-                                      )
+                                    ProductDetails.sync_color_images.findIndex(
+                                      (s) =>
+                                        s.color_name ===
+                                        product?.variations[0]?.color
+                                    )
                                     ],
                                 });
                               }
@@ -331,7 +323,7 @@ function CartContainer({ close }) {
                               {product.variations[0]?.color && (
                                 <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
                                   <CartColorIcon />
-                                  <span className="ml-1.5">color,</span>
+                                  <span className="ml-1.5">{translate("color,")}</span>
                                   <span className="regular">
                                     {product.variations[0].color}
                                   </span>
@@ -340,7 +332,7 @@ function CartContainer({ close }) {
                               {product.variations[0]?.Size && (
                                 <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
                                   <CartSizeIcon />
-                                  <span className="ml-1.5">Size,</span>
+                                  <span className="ml-1.5">{translate("Size,")}</span>
                                   <span className="regular">
                                     {product.variations[0].Size}
                                   </span>
@@ -350,22 +342,22 @@ function CartContainer({ close }) {
                             <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
                               <PiecesIcon />
                               <span className="ml-1.5 text-[#8D8D8D] regular">
-                                Composed Of:{" "}
+                                {translate("Composed Of:")}{" "}
                               </span>
                               <span className="regular">
-                                {product.count_of_pieces} Piece
+                                {product.count_of_pieces} {translate("Piece")}
                               </span>
                             </div>
                             {product.shipping_days && (
                               <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
                                 <DeleiveryIcon />
                                 <span className="ml-1.5 text-[#8D8D8D] regular">
-                                  Shipping:{" "}
+                                  {translate("Shipping:")}{" "}
                                 </span>
-                                <span className="regular">
-                                  {product.shipping_days} Days{" "}
+                                <span className="regular flex-row">
+                                  {product.shipping_days} {translate("Days")}{" "}
                                   <span className="ml-1 underline">
-                                    Details
+                                    {translate("Details")}
                                   </span>
                                 </span>
                               </div>
@@ -383,11 +375,10 @@ function CartContainer({ close }) {
                           </div>
 
                           <div
-                            className={`${
-                              product.have_hurry_up_notify || true
-                                ? "bottom-14"
-                                : "bottom-3"
-                            } absolute right-4 `}
+                            className={`${product.have_hurry_up_notify || true
+                              ? "bottom-14"
+                              : "bottom-3"
+                              } absolute right-4 `}
                           >
                             <div className="product-info-price">
                               {product.offer_price ? (
@@ -440,8 +431,8 @@ function CartContainer({ close }) {
                                     </div>
                                     <div className="flex-row">
                                       <SavedIcon />
-                                      <span className="text-[8px] text-[#388CFF]">
-                                        Saved{" "}
+                                      <span className="text-[8px] text-[#388CFF]  need-row-rev">
+                                        {translate("Saved")}{" "}
                                         <span className="bold">
                                           {parseInt(
                                             (
@@ -511,7 +502,7 @@ function CartContainer({ close }) {
                           isHurry={true || product.have_hurry_up_notify}
                           disabled={false}
                           max={product.available_quantity}
-                          setValue={() => {}}
+                          setValue={() => { }}
                           value={product.quantity}
                           deleteFunction={() => {
                             dispatch({
@@ -631,7 +622,7 @@ function CartContainer({ close }) {
                         <NextLink
                           href={
                             params?.productId === product.slug &&
-                            product?.variations[0]?.color ===
+                              product?.variations[0]?.color ===
                               sarchParams.get("color")
                               ? "#"
                               : getURLOfProduct({ product })
@@ -653,11 +644,11 @@ function CartContainer({ close }) {
                                   type: "SET-ACTIVE-COLOR-DETAILS",
                                   payload:
                                     ProductDetails.sync_color_images[
-                                      ProductDetails.sync_color_images.findIndex(
-                                        (s) =>
-                                          s.color_name ===
-                                          product?.variations[0]?.color
-                                      )
+                                    ProductDetails.sync_color_images.findIndex(
+                                      (s) =>
+                                        s.color_name ===
+                                        product?.variations[0]?.color
+                                    )
                                     ],
                                 });
                               }
@@ -732,22 +723,22 @@ function CartContainer({ close }) {
                             <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
                               <PiecesIcon />
                               <span className="ml-1.5 text-[#8D8D8D] regular">
-                                Composed Of:{" "}
+                                {translate("Composed Of:")}{" "}
                               </span>
                               <span className="regular">
-                                {product.count_of_pieces} Piece
+                                {product.count_of_pieces} {translate("Piece")}
                               </span>
                             </div>
                             {product.shipping_days && (
                               <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
                                 <DeleiveryIcon />
                                 <span className="ml-1.5 text-[#8D8D8D] regular">
-                                  Shipping:{" "}
+                                  {translate("Shipping:")}{" "}
                                 </span>
-                                <span className="regular">
-                                  {product.shipping_days} Days{" "}
+                                <span className="regular flex-row">
+                                  {product.shipping_days} {translate("Days")}{" "}
                                   <span className="ml-1 underline">
-                                    Details
+                                    {translate("Details")}
                                   </span>
                                 </span>
                               </div>
@@ -755,14 +746,14 @@ function CartContainer({ close }) {
 
                             {parseInt(product.quantity) >
                               product.available_quantity && (
-                              <div className="flex-row items-center text-[12px] light text-[#fd445d]">
-                                <ErrorIcon />
-                                <span className="ml-1.5">Availabilty,</span>
-                                <span className="regular ml-1">
-                                  Out Of Stock
-                                </span>
-                              </div>
-                            )}
+                                <div className="flex-row items-center text-[12px] light text-[#fd445d]">
+                                  <ErrorIcon />
+                                  <span className="ml-1.5">Availabilty,</span>
+                                  <span className="regular ml-1">
+                                    Out Of Stock
+                                  </span>
+                                </div>
+                              )}
                           </div>
                           {
                             <div
@@ -838,8 +829,8 @@ function CartContainer({ close }) {
                                     </div>
                                     <div className="flex-row">
                                       <SavedIcon />
-                                      <span className="text-[8px] text-[#388CFF]">
-                                        Saved{" "}
+                                      <span className="text-[8px] text-[#388CFF] need-row-rev">
+                                        {translate("Saved")}{" "}
                                         <span className="bold">
                                           {parseInt(
                                             (
@@ -897,11 +888,10 @@ function CartContainer({ close }) {
                               <OldCartIcon />
                             </span>
                             <span className="text-[#8D8D8D] bold text-[12px] ml-1">
-                              Out Of Bag!{" "}
+                              {translate("Out Of Bag!", GetAppLanguage())}{" "}
                               <span className="regular">
-                                Time Running Out.{" "}
-                                <span className="bold">-30:00</span> | Add
-                                Again?
+                                {translate("Time Running Out.")}{" "}
+                                <span className="bold">-30:00</span> | {translate("Add Again?")}
                               </span>
                             </span>
                             <span className="ml-auto">
@@ -955,8 +945,8 @@ function CartContainer({ close }) {
                           isHurry={false}
                           value={product.quantity}
                           max={product.available_quantity}
-                          setValue={() => {}}
-                          deleteFunction={() => {}}
+                          setValue={() => { }}
+                          deleteFunction={() => { }}
                         />
                       </div>
                     ))}
@@ -1763,9 +1753,8 @@ const QuantutyInput = ({
   };
   return (
     <div
-      className={`absolute ${
-        disabled || isHurry ? "bottom-[64px]" : "bottom-[20px]"
-      } left-[125px]`}
+      className={`absolute ${disabled || isHurry ? "bottom-[64px]" : "bottom-[20px]"
+        } left-[125px]`}
     >
       <div className="flex-row hide-btn relative max-w-[72px] w-[72px] h-[24px] mt-4 z-50">
         <svg
@@ -1847,7 +1836,7 @@ const QuantutyInput = ({
           value={parseInt(inputValue)}
           max={max}
           disabled
-          onChange={(e) => {}}
+          onChange={(e) => { }}
           className="outline-none hide-btn text-[14px] medium text-[#1D1D1D] text-center max-w-[72px] border-none py-1  w-[72px] h-[24px]"
         />
       </div>

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import { useState } from "react";
 import ShippingIcon from "public/svg/product/ShippingIcon.svg";
 import ShippingDollar from "public/svg/product/ShippingDollar.svg";
 import FastIcon from "public/svg/product/FastIcon.svg";
@@ -18,9 +18,8 @@ function ProductShippingOption() {
   const [extended, setExtended] = useState(false);
   return (
     <div
-      className={`product-shipping product-colors product-sizes flex-col align-start relative ${
-        extended && "extended-address-bar"
-      }`}
+      className={`product-shipping product-colors product-sizes flex-col align-start relative ${extended && "extended-address-bar"
+        }`}
       onClick={() => {
         Sendevent({ event: "button_clicked", value: "at_your_address_button" });
         setExtended(!extended);
@@ -33,15 +32,14 @@ function ProductShippingOption() {
         </span>
       </div>
       <div className="address-container flex-row justify-center align-center">
-        <div className="address-info flex-row align-center justify-center">
-          At Your Address In <span> Lebanon </span> Expected Within
-          <span> 4 Days </span>
+        <div className={languageVariable === "ar" ? "address-info flex-row-rev align-center justify-center" : "address-info flex-row align-center justify-center"}>
+          {translate("At Your Address In")}<span>{translate("Lebanon")}</span>{translate("Expected Within")}<span>4</span>
+          <span>{translate("Days")}</span>
         </div>
       </div>
       <div
-        className={`extended-address-info flex-col ${
-          extended && "enable-address-info"
-        }`}
+        className={`extended-address-info flex-col ${extended && "enable-address-info"
+          }`}
       >
         <div className="address-info-row flex-row align-center">
           <PackingIcon />
@@ -49,11 +47,12 @@ function ProductShippingOption() {
             <div className="flex-row align-center">
               <FastIcon />{" "}
               <span className="blue-address">
-                Fast Packing & Start Shipping
+                {translate("Fast Packing & Start Shipping")}
               </span>
             </div>
             <span className="gray-address">
-              Same Day Packing & Ship If Buy Before <span>13:00</span> Today
+              {translate("Same Day Packing & Ship If Buy Before")}
+              <span> 13:00 </span> {translate("Today")}
             </span>
           </div>
         </div>
@@ -61,10 +60,10 @@ function ProductShippingOption() {
           <PlaneIcon />
           <div className="flex-col address-row-desc justify-center">
             <div className="flex-row align-center">
-              <span className="blue-address">12. Jun. In Lebanon</span>
+              <span className="blue-address">12. Jun. {translate("In Lebanon")}</span>
             </div>
             <span className="gray-address">
-              Time Is Expected, It May Take More Or Less Than 2 Days
+              {translate("Time Is Expected, It May Take More Or Less Than 2 Days")}
             </span>
           </div>
         </div>
@@ -72,10 +71,10 @@ function ProductShippingOption() {
           <MarkerIcon />
           <div className="flex-col address-row-desc justify-center">
             <div className="flex-row align-center">
-              <span className="blue-address">14. Jun. In Your Address</span>
+              <span className="blue-address">14. Jun. {translate("In Your Address")}</span>
             </div>
             <span className="gray-address">
-              Specify Your Address To Calculate The Delivery Time
+              {translate("Specify Your Address To Calculate The Delivery Time")}
             </span>
           </div>
         </div>
@@ -83,10 +82,9 @@ function ProductShippingOption() {
       <div className="green-label flex-row align-center">
         <div className="colors-label flex-row align-center ">
           <ShippingDollar />
-
           <span style={{ marginLeft: "20px" }}>
-            You Will Get A <span>25% Refund</span> Of The Product Price If
-            Shipping Is Delayed
+            {translate("You Will Get A")}
+            <span> 25% </span> <span>{translate("Refund")}</span>  {translate("Of The Product Price If Shipping Is Delayed")}
           </span>
         </div>
       </div>
