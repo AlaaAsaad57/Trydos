@@ -742,8 +742,8 @@ function OrderButton({ close, orderShow, setShowOrder }) {
           <div
             {...handlers}
             className={`flex-col w-full ${expanded
-                ? "h-[336px] pt-[20px] px-[12px] pb-[10x] rounded-t-[30x]"
-                : "h-[76px] pt-[20px] px-[12px] pb-[10x] rounded-t-[30x]"
+              ? "h-[336px] pt-[20px] px-[12px] pb-[10x] rounded-t-[30x]"
+              : "h-[76px] pt-[20px] px-[12px] pb-[10x] rounded-t-[30x]"
               }  transition-all`}
           >
             {expanded && (
@@ -751,13 +751,13 @@ function OrderButton({ close, orderShow, setShowOrder }) {
                 <div className="flex-row items-center">
                   <ItemsIcon />
                   <span className="ml-[5px] medium text-[#1D1D1D] text-[13px]">
-                    Item <span className="mt-1 bold">{cart.cart.length}</span>{" "}
+                    {translate("Item")} <span className="mt-1 bold">{cart.cart.length}</span>{" "}
                   </span>
                 </div>
                 <div className="flex-row items-start h-[50px] w-full justify-between mt-2">
                   <div className="flex-col pl-[28px] text-[#1D1D1D]">
-                    <span className="medium text-[13px]">Price</span>
-                    <span className="regular text-[11px]">Normal Price</span>
+                    <span className="medium text-[13px]">{translate("Price")}</span>
+                    <span className="regular text-[11px]">{translate("Normal Price")}</span>
                   </div>
                   <span className="ml-[5px] medium text-[#1D1D1D] text-[13px] pr-[13px]">
                     {cart.sub_total} {currency_symbol.symbol}
@@ -767,16 +767,16 @@ function OrderButton({ close, orderShow, setShowOrder }) {
                   <div className="flex-row pl-[12px]">
                     <span className="flex-row translate-y-[3px]">
                       <DiscoutIcon />
-                    </span>{" "}
+                    </span>
                     <div className="flex-col pl-1 text-[#A28E5B]">
-                      <span className="medium text-[13px] text-[#A28E5B]">
-                        Total Discount{" "}
-                        <span className="bold text-[#A28E5B] ">
+                      <span className="medium text-[13px] text-[#A28E5B] need-row-rev">
+                        {translate("Total Discount")}
+                        <span className="bold text-[#A28E5B] mr-[3px] ml-[3px]">
                           {getDiscount()}%
                         </span>
                       </span>
                       <span className="regular text-[11px] text-[#A28E5B]">
-                        Click To Show All Discount
+                        {translate("Click To Show All Discount")}
                       </span>
                     </div>
                   </div>
@@ -792,10 +792,10 @@ function OrderButton({ close, orderShow, setShowOrder }) {
                     </span>{" "}
                     <div className="flex-col pl-1 text-[#5BA260]">
                       <span className="medium text-[13px] text-[#5BA260]">
-                        Gift
+                        {translate("Gift")}
                       </span>
                       <span className="regular text-[11px] text-[#5BA260]">
-                        First Shopping
+                        {translate("First Shopping")}
                       </span>
                     </div>
                   </div>
@@ -811,10 +811,10 @@ function OrderButton({ close, orderShow, setShowOrder }) {
                     </span>{" "}
                     <div className="flex-col pl-1 text-[#5BA260]">
                       <span className="medium text-[13px] text-[#5BA260]">
-                        Shipping
+                        {translate("Shipping")}
                       </span>
                       <span className="regular text-[11px] text-[#5BA260]">
-                        Shipping Is Completely Free Without Any Extras
+                        {translate("Shipping Is Completely Free Without Any Extras")}
                       </span>
                     </div>
                   </div>
@@ -836,7 +836,7 @@ function OrderButton({ close, orderShow, setShowOrder }) {
                 <div className="flex-row pl-[12px]">
                   <div className="flex-col pl-4 text-[#1D1D1D]">
                     <span className="bold text-[13px] text-[#1D1D1D]">
-                      Total
+                      {translate("Total")}
                     </span>
                     <span className="medium text-[11px] text-[#8D8D8D]">
                       {translate("All Inclusive Without Additions")}
@@ -900,12 +900,14 @@ function OrderButton({ close, orderShow, setShowOrder }) {
                     </>
                   ) : (
                     <>
-                      <span className="text-[#FEFEFE] text-[18px] medium ">
+                      <span className="text-[#FEFEFE] text-[18px] medium need-row-rev">
                         {translate("Confirm And Continue", GetAppLanguage())}
                       </span>
-                      <span className="text-[#FEFEFE] text-[14px] medium ">
-                        {cart.cart.length} {translate("items")} {cart.total_cash}{" "}
-                        {currency_symbol?.symbol}
+                      <span className="text-[#FEFEFE] text-[14px] medium need-row-rev have-arabic">
+                        <span className="mr-[3px]">{cart.cart.length}</span>
+                        <span className="mr-[3px]"> {translate("items")}</span>
+                        <span className="mr-[3px]">{cart.total_cash}</span>
+                        <span className="mr-[3px]">{currency_symbol?.symbol}</span>
                       </span>
                     </>
                   )}
