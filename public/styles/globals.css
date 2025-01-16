@@ -246,6 +246,11 @@ span[aria-live="polite"] {
   padding-bottom: 200px;
 }
 
+.listing-container-empty {
+  height: 50px;
+  min-width: 100vw;
+}
+
 .listing-container>div {
   margin-top: 20px;
 }

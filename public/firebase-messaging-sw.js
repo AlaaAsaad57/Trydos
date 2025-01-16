@@ -36,11 +36,11 @@ messaging.onBackgroundMessage(async function (payload) {
       if (JSON.parse(payload.data.body).type === "boutique created") {
         notificationOptions = {
           body: JSON.parse(payload?.data.body)?.description,
-          icon: JSON.parse(payload?.data.body)?.boutique_icon.file_path,
-          image: JSON.parse(payload?.data.body)?.banner[0].file_path,
+          icon: JSON.parse(payload?.data.body)?.boutique_icon?.file_path,
+          image: JSON.parse(payload?.data.body)?.banner[0]?.file_path,
           data: {
             url:
-              url + `/boutiques/${JSON.parse(payload?.data.body).boutique_slug}`,
+              url + `/boutiques/${JSON.parse(payload?.data.body)?.boutique_slug}`,
           }, // The URL which we are going to use later
         };
         self.registration.showNotification("New Boutique", notificationOptions);
