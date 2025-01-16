@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react";
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import BorderImage from "./BorderImage";
-import Image from "next/image";
+
 import { getConfiguredImage } from "utils/functions";
 function ColorSlider({
   active,

@@ -40,7 +40,7 @@ img {
     top: 80px !important;
   }
 
-  .home-navbar+.search-nav-holder {
+  .home-navbar + .search-nav-holder {
     display: none;
   }
 
@@ -246,7 +246,7 @@ span[aria-live="polite"] {
   padding-bottom: 200px;
 }
 
-.listing-container>div {
+.listing-container > div {
   margin-top: 20px;
 }
 
@@ -311,7 +311,6 @@ span[aria-live="polite"] {
 }
 
 @keyframes opa {
-
   0%,
   to {
     opacity: 0;
@@ -405,10 +404,12 @@ span[aria-live="polite"] {
   right: 0;
   height: 100%;
   background-repeat: no-repeat;
-  background-image: linear-gradient(90deg,
-      var(--base-color),
-      var(--highlight-color),
-      var(--base-color));
+  background-image: linear-gradient(
+    90deg,
+    var(--base-color),
+    var(--highlight-color),
+    var(--base-color)
+  );
   transform: translateX(-100%);
   animation-name: react-loading-skeleton;
   animation-direction: var(--animation-direction);
@@ -447,9 +448,12 @@ img {
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(to bottom,
+  background: linear-gradient(
+      to bottom,
       transparent,
-      rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
   background: 0 0 !important;
   min-height: 100vh;
 }
@@ -834,7 +838,9 @@ a {
   height: calc(100% - 0.5px);
 }
 
-.mobile-bar.categories-bar-container .categories-bar-item .categories-bar-item-description {
+.mobile-bar.categories-bar-container
+  .categories-bar-item
+  .categories-bar-item-description {
   justify-content: center;
   width: auto;
 }
@@ -1165,4 +1171,82 @@ input[type="number"] {
 .text-rtl .need-row-rev {
   display: flex;
   flex-direction: row-reverse !important;
+}
+.marquee-slide {
+  animation: sidescroll 15s alternate infinite;
+  animation-timing-function: linear;
+}
+@keyframes sidescroll {
+  0% {
+    /* left side of the element */
+    transform: translateX(0);
+    /* on the right of the parent */
+  }
+  100% {
+    /* right side of the element */
+    transform: translateX(-100%);
+    /* on the left of the parent */
+  }
+}
+.shake-anim {
+  animation: shake-p 1000ms linear 0s 1 forwards;
+}
+@keyframes shake-p {
+  0% {
+    border-color: #f64f65;
+    transform: translate(2px, 0px) rotate(0deg);
+  }
+  10% {
+    transform: translate(-2px, 0px) rotate(0deg);
+  }
+  20% {
+    transform: translate(-4px, 0px) rotate(0deg);
+  }
+  30% {
+    transform: translate(4px, 0px) rotate(0deg);
+  }
+  40% {
+    transform: translate(2px, 0px) rotate(0deg);
+  }
+  50% {
+    transform: translate(-2px, 0px) rotate(0deg);
+  }
+  60% {
+    transform: translate(-1px, 0px) rotate(0deg);
+  }
+  70% {
+    transform: translate(1px, 0px) rotate(0deg);
+  }
+  80% {
+    transform: translate(-1px, 0px) rotate(0deg);
+  }
+  90% {
+    transform: translate(1px, 0px) rotate(0deg);
+  }
+  100% {
+    transform: translate(0px, 0px) rotate(0deg);
+  }
+}
+.select-animation-in {
+  transform: translateY(100vh);
+  animation: select-in 200ms ease-in 0s 1 forwards;
+}
+@keyframes select-in {
+  0% {
+    transform: translateY(100vh);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+.select-animation-out {
+  animation: select-out 200ms ease-in 0s 1 forwards;
+}
+@keyframes select-out {
+  0% {
+    transform: translateY(0px);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
 }

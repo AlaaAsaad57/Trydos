@@ -1,12 +1,14 @@
 "use client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { expandView, normalizeView, Sendevent } from "utils/functions";
 import CartContainer from ".";
 import home from "services/home";
 import ShowMessageAuth from "components/global/ShowMessageAuth";
-
+import { Swiper, SwiperSlide } from "swiper/react";
+import OrdersPage from "./OrdersPage";
+import { Swiper as SwiperType } from "node_modules/swiper/types";
 const CartProvider = () => {
   const dispatch = useDispatch();
   const pathname = usePathname();
@@ -68,9 +70,35 @@ const CartProvider = () => {
   );
   return (
     <>
-      {showMessage && <ShowMessageAuth />}
-      {cartEnable ? (
+      {false && <ShowMessageAuth />}
+      {cartEnable ? <StepSlider enableCart={(e) => enableCart(e)} /> : <></>}
+    </>
+  );
+};
+export default CartProvider;
+export const StepSlider = ({ enableCart }) => {
+  const [step, setStep] = useState(0);
+  const ref = useRef<SwiperType | null>();
+  return (
+    <Swiper
+      initialSlide={step}
+      navigation={false}
+      draggable={false}
+      className="w-full h-[100vh] fixed z-[9999999999]"
+      wrapperClass="flex flex-row"
+      noSwiping={false}
+      allowTouchMove={false}
+      slidesPerView={1}
+      onInit={(swiper) => {
+        ref.current = swiper;
+      }}
+    >
+      <SwiperSlide className="w-full h-[100vh] cart-widget">
         <CartContainer
+          toOrders={() => {
+            ref.current.slideNext();
+            setStep(1);
+          }}
           close={() => {
             Sendevent({
               event: "button_clicked",
@@ -79,10 +107,15 @@ const CartProvider = () => {
             enableCart(false);
           }}
         />
-      ) : (
-        <></>
-      )}
-    </>
+      </SwiperSlide>
+      <SwiperSlide className="w-full h-[100vh] cart-widget">
+        <OrdersPage
+          setStep={(e) => {
+            setStep(0);
+            ref.current.slidePrev();
+          }}
+        />
+      </SwiperSlide>
+    </Swiper>
   );
 };
-export default CartProvider;

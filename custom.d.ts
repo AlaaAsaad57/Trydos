@@ -824,6 +824,25 @@ declare global {
     cart: {
       cart: Array<any>;
       enable: boolean;
+      addressDetails: {
+        geolocation: { lat: any; lng: any };
+        Country: { name: string; code: string };
+        location: string;
+        detailes_Address: string;
+        title: string;
+        ContactInfo: {
+          name: string;
+          phone: string;
+          alternatePhone: string;
+        };
+        region: "";
+        regionDetails: {
+          country: string;
+          province: string;
+          town: string;
+          suburb: string;
+        };
+      };
       AddToCartOption: {
         enable: boolean;
         selectedSize: any;

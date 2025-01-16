@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getCountriesApi } from "./store/homepage/cachedActions";
+import axios from "axios";
 
 const languagesString = '["en", "ar", "tr"]' || "[]";
 const languages = JSON.parse(languagesString);
@@ -45,10 +46,15 @@ function getDefaultLocale(countryByIp, countries) {
 }
 
 export async function middleware(request) {
+  const response = NextResponse.next();
+  const ip = request.headers.get("x-forwarded-for") || request.ip;
+
+  // Define the geolocation API endpoint (you can replace with ipinfo, ipstack, or any other geolocation service)
+
   let countryByIp = request?.geo?.country?.toLowerCase();
   let supportedLocales = [];
   let data = await getCountriesApi();
-  const response = NextResponse.next();
+
   let countries = data.map((s) => s.iso.toLowerCase());
   let defaultLocale = `${countries[0]}-en`;
 
@@ -126,9 +132,7 @@ export async function middleware(request) {
   // 3- for ip
   else if (countryByIp && countries.includes(countryByIp)) {
     defaultLocale = `${countryByIp}-en`;
-    url.pathname = `/${defaultLocale}${url.pathname.slice(
-      countryLang.length + 1
-    )}`;
+    url.pathname = countryLang`/${defaultLocale}${url.pathname}`;
   } else {
     url.pathname = `/${defaultLocale}/${url.pathname}`;
     url.searchParams.set("no-country", true);
@@ -141,124 +145,6 @@ export async function middleware(request) {
   }
 
   return NextResponse.redirect(url);
-  // const cookieStore = cookies();
-  // const url = request.nextUrl.clone();
-  // const languageUrl =
-  //   url.pathname?.split("/")[1]?.split("-")[1] ??
-  //   cookieStore.get("language")?.value?.toLowerCase() ??
-  //   "en";
-
-  // request.cookies.set("language", languageUrl, {
-  //   exoires: new Date(7467743843902 * 10000),
-  // });
-
-  // const start = new Date().getTime();
-  // const data = await getCountriesApi();
-
-  // let countries = data.map((s) => s.iso.toLowerCase());
-  // const { pathname, searchParams, search, host, protocol } = request.nextUrl;
-
-  // let countryByIp = request?.geo?.country?.toLowerCase();
-  // const response = NextResponse.next();
-
-  // const localization = cookieStore.get("country")?.value;
-  // //without country cookies
-
-  // if (!localization && countryByIp) {
-  //   const countryByIpp = countryByIp || "jp";
-  //   // const countryName = await _getCountryNameByIp(Ip);
-  //   const originCountryJSON = {
-  //     country: countryByIpp,
-  //     isSupported: countries.some(
-  //       (country) => countryByIp?.toLowerCase() === `${country.toLowerCase()}`
-  //     ),
-  //   };
-  //   response.cookies.set({
-  //     name: "origin-country",
-  //     value: originCountryJSON,
-  //   });
-  // }
-
-  // const routePath = pathname.split("/")[1];
-  // const pathN = pathname.replace(routePath, "");
-  // const hasSeparator =
-  //   routePath.includes("-") &&
-  //   routePath.split("-")[0].length === 2 &&
-  //   routePath.split("-")[1].length === 2;
-  // const hasLanguage =
-  //   hasSeparator &&
-  //   languages.some((lang) =>
-  //     routePath.toLowerCase().endsWith(`-${lang.toLowerCase()}`)
-  //   );
-
-  // const hasCountry =
-  //   hasSeparator &&
-  //   countries.some((country) =>
-  //     routePath.toLowerCase().startsWith(`${country.toLowerCase()}-`)
-  //   );
-  // const lang = (await getLocale(request))?.language ?? "";
-  // const country = (await getLocale(request))?.country ?? "";
-  // const preferredLang = languages.includes(lang.toLowerCase())
-  //   ? lang
-  //   : getDefaultLocale(countryByIp, countries).language;
-  // const preferredCountry = countries.includes(country.toLowerCase())
-  //   ? country
-  //   : getDefaultLocale(countryByIp, countries).country;
-  // if (!hasSeparator) {
-  //   //url dosen't includes language-country
-  //   const lang = (await getLocale(request))?.language;
-  //   const country = (await getLocale(request))?.country;
-  //   //check for country cookie
-  //   if (country) {
-  //     const preferredLang = languages.includes(lang)
-  //       ? lang
-  //       : getDefaultLocale(countryByIp, countries).language;
-  //     const preferredCountry = countries.includes(country)
-  //       ? country
-  //       : getDefaultLocale(countryByIp, countries).country;
-  //     response.cookies.set("lang", preferredLang);
-  //     response.cookies.set("country", preferredCountry);
-  //     request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathname}`;
-  //     return response;
-  //   } else {
-  //     if (countries.includes(countryByIp)) {
-  //       response.cookies.set("lang", preferredLang);
-  //       response.cookies.set("country", preferredCountry);
-  //       request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}${pathname}`;
-  //     } else {
-  //       request.nextUrl.pathname = `/selectCountry`;
-  //     }
-  //     if (pathN.length > 1) request.nextUrl.searchParams.set("path", pathN);
-  //     {
-  //       return response;
-  //     }
-  //   }
-  // } else if (!hasLanguage || !hasCountry) {
-  //   if (!hasLanguage && !hasCountry) {
-  //     // request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}/${pathN}`;
-  //     request.nextUrl.pathname = `/selectCountry`;
-  //     if (pathN.length > 1) request.nextUrl.searchParams.set("path", pathN);
-  //     //
-  //   } else if (!hasLanguage && hasCountry) {
-  //     const countryRoute = routePath?.split("-")[0];
-  //     request.nextUrl.pathname = `/${countryRoute}-${preferredLang}/${pathN}`;
-  //     response.cookies.set("lang", preferredLang);
-  //     response.cookies.set("country", countryRoute);
-  //   } else if (!hasCountry && hasLanguage) {
-  //     //  request.nextUrl.pathname = `/${preferredCountry}-${preferredLang}/${pathN}`;
-  //     request.nextUrl.pathname = `/selectCountry`;
-  //     if (pathN.length > 1) request.nextUrl.searchParams.set("path", pathN);
-  //     //
-  //   } else return response;
-  // }
-  // if (hasLanguage) {
-  //   const languageroute = routePath?.split("-")[1];
-  //   setLocaleCookies(request, languageroute, preferredCountry);
-  // } else {
-  //   setLocaleCookies(request, preferredLang, preferredCountry);
-  // }
-
-  // return response;
 }
 function setLocaleCookies(request, lang, country) {
   request.cookies.set("language", lang, {

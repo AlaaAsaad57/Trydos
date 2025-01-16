@@ -67,7 +67,7 @@
   border-radius: 15px;
   position: relative;
 }
-.swiper-slide svg {
+.swiper-slide:not(.cart-widget) svg {
   position: absolute;
   top: 0px;
   left: 0px;
