@@ -129,7 +129,7 @@ function MoreOptionsSection() {
               className="button-option"
               onClick={async () => {
                 await home.subscribeToTopics({
-                  slug: SelectedProduct.slug_en_topic,
+                  id: SelectedProduct.id,
                   discount: true,
                 });
               }}
@@ -140,7 +140,7 @@ function MoreOptionsSection() {
               className="button-option"
               onClick={async () => {
                 await home.subscribeToTopics({
-                  slug: SelectedProduct.slug_en_topic,
+                  id: SelectedProduct.id,
                   comments: true,
                 });
               }}
