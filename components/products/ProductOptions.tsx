@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import AddToCartButton from "./AddToCartButton";
 import Heart from "public/svg/Heart.svg";
 import HeartFill from "public/svg/HeartFill.svg";
@@ -9,14 +9,7 @@ import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  ExpiredUser,
-  getUser,
-  Sendevent,
-  UserID,
-  UserToken,
-} from "utils/functions";
-import axios from "axios";
+import { Sendevent, UserID } from "utils/functions";
 import home from "services/home";
 import { AxiosPost } from "utils/AxiosApi";
 function ProductOptions({
@@ -61,7 +54,7 @@ function ProductOptions({
           body: { product_id: product.id, user_id: UserID() },
           hasMessageOnly: true,
         });
-        home.subscribeToTopics({ slug: SelectedProduct.slug_en_topic });
+        home.subscribeToTopics({ id: SelectedProduct.id });
       } catch (error) {
         dispatch({
           type: "EDIT-INFO",
@@ -103,9 +96,8 @@ function ProductOptions({
           />
           <div className="options-container">
             <div
-              className={`product-option-item ${
-                activeOption === "Like" && "active-option"
-              }`}
+              className={`product-option-item ${activeOption === "Like" && "active-option"
+                }`}
               onClick={() => {
                 Sendevent({
                   event: "button_clicked",
@@ -144,9 +136,8 @@ function ProductOptions({
               </span>
             </div>
             <div
-              className={`product-option-item relative ${
-                activeOption === "Share" && "active-option"
-              }`}
+              className={`product-option-item relative ${activeOption === "Share" && "active-option"
+                }`}
               onClick={() => {
                 Sendevent({
                   event: "button_clicked",
