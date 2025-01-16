@@ -35,12 +35,12 @@ messaging.onBackgroundMessage(async function (payload) {
     if (payload.data.title === "market") {
       if (JSON.parse(payload.data.body).type === "boutique created") {
         notificationOptions = {
-          body: "New Boutique",
+          body: JSON.parse(payload?.data.body)?.description,
           icon: JSON.parse(payload?.data.body)?.boutique_icon.file_path,
           image: JSON.parse(payload?.data.body)?.banner[0].file_path,
           data: {
             url:
-              url + `boutiques/${JSON.parse(payload?.data.body).boutique_slug}`,
+              url + `/boutiques/${JSON.parse(payload?.data.body).boutique_slug}`,
           }, // The URL which we are going to use later
         };
         self.registration.showNotification("New Boutique", notificationOptions);
@@ -53,8 +53,7 @@ messaging.onBackgroundMessage(async function (payload) {
           data: {
             url:
               url +
-              `boutiques/listing?categories=${
-                JSON.parse(payload?.data.body).category_slug
+              `boutiques/listing?categories=${JSON.parse(payload?.data.body).category_slug
               }`,
           }, // The URL which we are going to use later
         };
@@ -62,9 +61,8 @@ messaging.onBackgroundMessage(async function (payload) {
       }
       if (JSON.parse(payload.data.body).type === "product cart expiration") {
         notificationOptions = {
-          body: `${
-            JSON.parse(payload.data.body)?.product_name
-          } has turned to Old Cart`,
+          body: `${JSON.parse(payload.data.body)?.product_name
+            } has turned to Old Cart`,
 
           data: {
             url: url + `?cart=true`,
@@ -77,9 +75,8 @@ messaging.onBackgroundMessage(async function (payload) {
       }
       if (JSON.parse(payload.data.body).type === "product availability") {
         notificationOptions = {
-          body: `${
-            JSON.parse(payload.data.body)?.product_name
-          } is Now Available`,
+          body: `${JSON.parse(payload.data.body)?.product_name
+            } is Now Available`,
           image: JSON.parse(payload.data.body).image,
           data: {
             url: url + `products/${JSON.parse(payload.data.body).product_slug}`,
@@ -105,9 +102,8 @@ messaging.onBackgroundMessage(async function (payload) {
       }
       if (JSON.parse(payload.data.body).type === "product comment") {
         notificationOptions = {
-          body: `${
-            JSON.parse(payload.data.body)?.product_name
-          } has new Comments`,
+          body: `${JSON.parse(payload.data.body)?.product_name
+            } has new Comments`,
           image: JSON.parse(payload.data.body).image,
           data: {
             url: url + `products/${JSON.parse(payload.data.body).product_slug}`,

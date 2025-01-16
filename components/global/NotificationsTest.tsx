@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import NotifyIcon from "public/svg/cart/NotifyCart.svg";
 import home from "services/home";
 import { useSelector } from "react-redux";
 
 function NotificationsTest() {
-  const [enable, setEnable] = useState(false);
+  const [enable, setEnable] = useState(true);
   const starttingSetting = useSelector(
     (state: StateInterface) => state.homepage.settings
   );
@@ -20,7 +20,7 @@ function NotificationsTest() {
           <div className="app bg-slate-100 top-[110px] right-8">
             <div className="flex-col">
               <div className="flex-row justify-between p-3">
-                <span className="test">
+                <span className="test text-[#000000]">
                   new boutique added (should open boutique page product listing
                   filtered by boutique) (done)
                 </span>
@@ -34,7 +34,7 @@ function NotificationsTest() {
                 </div>
               </div>
               <div className="flex-row justify-between p-3">
-                <span className="test">
+                <span className="test text-[#000000]">
                   product QTy or variant or products available in wanted
                   products or old carts (should open product details) (done)
                 </span>
@@ -56,7 +56,7 @@ function NotificationsTest() {
                 </div>
               </div>
               <div className="flex-row justify-between p-3">
-                <span className="test">
+                <span className="test text-[#000000]">
                   product in cart removed and converted to old card(shoul open
                   cartpage) (done)
                 </span>
@@ -68,7 +68,7 @@ function NotificationsTest() {
                 </div>
               </div>
               <div className="flex-row justify-between p-3">
-                <span className="test">
+                <span className="test text-[#000000]">
                   wishlist products has discount (should open product details
                   page)
                 </span>

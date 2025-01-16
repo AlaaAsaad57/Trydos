@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getCountriesApi } from "./store/homepage/cachedActions";
 
 const languagesString = '["en", "ar", "tr"]' || "[]";
@@ -32,9 +32,9 @@ function getDefaultLocale(countryByIp, countries) {
   const localeENV = {
     country:
       countryByIp &&
-      countries.some(
-        (country) => countryByIp.toLowerCase() == `${country.toLowerCase()}`
-      )
+        countries.some(
+          (country) => countryByIp.toLowerCase() == `${country.toLowerCase()}`
+        )
         ? countryByIp
         : process.env.NEXT_PUBLIC_DEFAULT_COUNTRY,
     language: countryByIp
@@ -126,9 +126,7 @@ export async function middleware(request) {
   // 3- for ip
   else if (countryByIp && countries.includes(countryByIp)) {
     defaultLocale = `${countryByIp}-en`;
-    url.pathname = `/${defaultLocale}${url.pathname.slice(
-      countryLang.length + 1
-    )}`;
+    url.pathname = `/${defaultLocale}${url.pathname}`;
   } else {
     url.pathname = `/${defaultLocale}/${url.pathname}`;
     url.searchParams.set("no-country", true);
