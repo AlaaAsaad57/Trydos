@@ -224,6 +224,19 @@ class HomeService {
                 title: "register firebase token",
               });
           }, 3000);
+          fetch("/api/subscribeToTopic", {
+            cache: "no-cache",
+            method: "POST",
+            // @ts-ignore
+            body: JSON.stringify({ token, topic: "boutique_created" }),
+          });
+
+          fetch("/api/subscribeToTopic", {
+            cache: "no-cache",
+            method: "POST",
+            // @ts-ignore
+            body: JSON.stringify({ token, topic: "category_created" }),
+          });
         }
       });
     }
