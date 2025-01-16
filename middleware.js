@@ -132,7 +132,7 @@ export async function middleware(request) {
   // 3- for ip
   else if (countryByIp && countries.includes(countryByIp)) {
     defaultLocale = `${countryByIp}-en`;
-    url.pathname = countryLang`/${defaultLocale}${url.pathname}`;
+    url.pathname = `/${defaultLocale}${url.pathname}`;
   } else {
     url.pathname = `/${defaultLocale}/${url.pathname}`;
     url.searchParams.set("no-country", true);

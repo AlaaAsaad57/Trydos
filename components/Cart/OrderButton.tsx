@@ -221,10 +221,10 @@ function OrderButton({ close, toOrders }) {
                   <ItemsIcon />
                   <div className="flex-col ml-[5px]">
                     <span className=" medium text-[#1D1D1D] text-[13px]">
-                      Item
+                      {translate("Item")}
                     </span>
                     <span className="regular text-[11px]">
-                      Total Items
+                      {translate("Total Items")}
                       <span className="ml-1 bold">{cart.cart.length}</span>
                     </span>
                   </div>
@@ -245,13 +245,13 @@ function OrderButton({ close, toOrders }) {
                     </span>{" "}
                     <div className="flex-col pl-1 text-[#A28E5B]">
                       <span className="medium text-[13px] text-[#A28E5B]">
-                        Total Discount{" "}
+                        {translate("Total Discount")}{" "}
                         <span className="bold text-[#A28E5B] ">
                           {getDiscount()}%
                         </span>
                       </span>
                       <span className="regular text-[11px] text-[#A28E5B]">
-                        Click To Show All Discount
+                        {translate("Click To Show All Discount")}
                       </span>
                     </div>
                   </div>
@@ -267,10 +267,10 @@ function OrderButton({ close, toOrders }) {
                     </span>{" "}
                     <div className="flex-col pl-1 text-[#5BA260]">
                       <span className="medium text-[13px] text-[#5BA260]">
-                        Gift
+                        {translate("Gift")}
                       </span>
                       <span className="regular text-[11px] text-[#5BA260]">
-                        First Shopping
+                        {translate("First Shopping")}
                       </span>
                     </div>
                   </div>
@@ -286,10 +286,12 @@ function OrderButton({ close, toOrders }) {
                     </span>{" "}
                     <div className="flex-col pl-1 text-[#5BA260]">
                       <span className="medium text-[13px] text-[#5BA260]">
-                        Shipping
+                        {translate("Shipping")}
                       </span>
                       <span className="regular text-[11px] text-[#5BA260]">
-                        Shipping Is Completely Free Without Any Extras
+                        {translate(
+                          " Shipping Is Completely Free Without Any Extras"
+                        )}
                       </span>
                     </div>
                   </div>
@@ -310,7 +312,9 @@ function OrderButton({ close, toOrders }) {
             >
               <div className="flex-row pl-[12px]">
                 <div className="flex-col pl-4 text-[#1D1D1D]">
-                  <span className="bold text-[13px] text-[#1D1D1D]">Total</span>
+                  <span className="bold text-[13px] text-[#1D1D1D]">
+                    {translate("Total")}
+                  </span>
                   <span className="medium text-[11px] text-[#8D8D8D]">
                     {translate("All Inclusive Without Additions")}
                   </span>
