@@ -49,7 +49,7 @@ export async function middleware(request) {
   let supportedLocales = [];
   let data = await getCountriesApi();
   const response = NextResponse.next();
-  let countries = data.map((s) => s.iso.toLowerCase());
+  let countries = data?.map((s) => s.iso.toLowerCase());
   let defaultLocale = `${countries[0]}-en`;
 
   countries.map((s) => {

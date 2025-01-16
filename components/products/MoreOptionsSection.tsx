@@ -131,6 +131,7 @@ function MoreOptionsSection() {
                 await home.subscribeToTopics({
                   id: SelectedProduct.id,
                   discount: true,
+                  language_code: languageVariable
                 });
               }}
             >
@@ -142,6 +143,7 @@ function MoreOptionsSection() {
                 await home.subscribeToTopics({
                   id: SelectedProduct.id,
                   comments: true,
+                  language_code: languageVariable
                 });
               }}
             >

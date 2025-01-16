@@ -206,6 +206,7 @@ class HomeService {
     }
     if (true) {
       await requestFirebaseNotificationPermission().then(async (token) => {
+        let language_code = window.location.pathname.split("/")[1].split("-")[1]
         // @ts-ignore
         if (token) {
           localStorage.setItem("FB-DEVICE-TOKEN", token);
@@ -224,18 +225,21 @@ class HomeService {
                 title: "register firebase token",
               });
           }, 3000);
+
           fetch("/api/subscribeToTopic", {
             cache: "no-cache",
             method: "POST",
             // @ts-ignore
-            body: JSON.stringify({ token, topic: "boutique_created" }),
+            body: JSON.stringify({ token, topic: `boutique_created_${getLang(language_code, Cookies.get("language"))}` }),
           });
 
           fetch("/api/subscribeToTopic", {
             cache: "no-cache",
             method: "POST",
             // @ts-ignore
-            body: JSON.stringify({ token, topic: "category_created" }),
+            body: JSON.stringify({
+              token, topic: `category_created_${getLang(language_code, Cookies.get("language"))}`
+            }),
           });
         }
       });
@@ -514,6 +518,9 @@ class HomeService {
     errCallback?: Function;
     slug: string;
   }) {
+    let [countryUrl, languageUrl] = window.location.pathname
+      .split("/")[1]
+      .split("-");
     AddToCartAnimation();
     if (alreadyExist) {
       let dataBody = [];
@@ -595,6 +602,7 @@ class HomeService {
           id: id,
           discount: true,
           comments: true,
+          language_code: getLang(languageUrl, Cookies.get("language"))
         });
       } else {
         errCallback();
@@ -607,10 +615,12 @@ class HomeService {
     id,
     discount,
     comments,
+    language_code
   }: {
     id: number;
     discount?: boolean;
     comments?: boolean;
+    language_code: string;
   }) {
     let fbtoken = localStorage.getItem("FB-DEVICE-TOKEN");
     if (discount)
@@ -619,7 +629,7 @@ class HomeService {
         // @ts-ignore
         body: JSON.stringify({
           token: fbtoken,
-          topic: `product_discount_${id}`,
+          topic: `product_discount_${id}_${language_code}`,
         }),
       });
     if (comments)
@@ -629,7 +639,7 @@ class HomeService {
         // @ts-ignore
         body: JSON.stringify({
           token: fbtoken,
-          topic: `product_comment_${id}`,
+          topic: `product_comment_${id}_${language_code}`,
         }),
       });
   }

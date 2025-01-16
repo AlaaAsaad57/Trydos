@@ -9,9 +9,11 @@ import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
 import { useDispatch, useSelector } from "react-redux";
-import { Sendevent, UserID } from "utils/functions";
+import { getLang, Sendevent, UserID } from "utils/functions";
 import home from "services/home";
 import { AxiosPost } from "utils/AxiosApi";
+import Cookies from "js-cookie";
+
 function ProductOptions({
   activeOption,
   setOption,
@@ -42,6 +44,9 @@ function ProductOptions({
   const [isLiked, setLiked] = useState(false);
   const dispatch = useDispatch();
   const LikeProduct = async (bool) => {
+    let [countryUrl, languageUrl] = window.location.pathname
+      .split("/")[1]
+      .split("-");
     if (bool) {
       dispatch({
         type: "EDIT-INFO",
@@ -54,7 +59,7 @@ function ProductOptions({
           body: { product_id: product.id, user_id: UserID() },
           hasMessageOnly: true,
         });
-        home.subscribeToTopics({ id: SelectedProduct.id });
+        home.subscribeToTopics({ id: SelectedProduct.id, language_code: getLang(languageUrl, Cookies.get("language")) });
       } catch (error) {
         dispatch({
           type: "EDIT-INFO",

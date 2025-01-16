@@ -1,4 +1,4 @@
-"use client";
+"use client";;
 import { translateFunction } from "utils/functions";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -6,7 +6,6 @@ import Image from "next/image";
 import AuthNavSection from "./AuthNavSection";
 
 import CartIcon from "public/svg/CartIcon.svg";
-import React from "react";
 import NotificationsTest from "components/global/NotificationsTest";
 import {
   usePathname,
@@ -68,16 +67,15 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
 
   return (
     <div
-      className={`${
-        searchEnabled && "hidden"
-      } user-nav-container md:min-w-[400px]`}
+      className={`${searchEnabled && "hidden"
+        } user-nav-container md:min-w-[400px]`}
     >
-      {/* <div
+      <div
         className="nav-question-item"
         style={{ marginRight: "30px", marginLeft: "0px" }}
       >
         {user && <NotificationsTest />}
-      </div> */}
+      </div>
       <div
         className="nav-question-item cart-icon-selector cursor-pointer"
         style={{ marginRight: "30px", marginLeft: "0px" }}
