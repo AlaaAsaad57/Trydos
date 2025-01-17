@@ -4,7 +4,11 @@ import ProductItem from "./Results/ProductItem";
 import BrandItem from "./Results/BrandItem";
 import CategoryItem from "./Results/CategoryItem";
 import BoutiqueItem from "./Results/BoutiqueItem";
-import { onClickSearchHistory, Sendevent } from "utils/functions";
+import {
+  onClickSearchHistory,
+  Sendevent,
+  translateFunction,
+} from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
 import { useRouter } from "next-nprogress-bar";
 
@@ -46,6 +50,8 @@ function SearchResults() {
     (state: StateInterface) => state.Search.value
   );
   const { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
   const dispatch = useDispatch();
   const handleSearch = (data) => {
     const params = new URLSearchParams(searchParams);
@@ -163,7 +169,8 @@ function SearchResults() {
         {(searchResults?.products?.length > 0 || loading) && (
           <div className="products-results flex-col max-h-[60%] overflow-auto">
             <div className="result-label flex-row">
-              Find Products {loadingSearch && <Spinner className="ml-3" no />}
+              {translateFunction("Find Products", languageVariable)}{" "}
+              {loadingSearch && <Spinner className="ml-3" no />}
             </div>
             {searchValue?.length > 0 &&
               searchResults?.products?.map((product, index) => {
@@ -180,7 +187,8 @@ function SearchResults() {
         {(searchResults?.brands?.length > 0 || loading) && (
           <div className="products-results brand-results">
             <div className="result-label flex-row">
-              Find Brands {loading && <Spinner className="ml-3" no />}
+              {translateFunction("Find Brands", languageVariable)}{" "}
+              {loading && <Spinner className="ml-3" no />}
             </div>
             <div className="brands-results-row flex-row overflow-auto">
               {searchResults?.brands?.map((brand, index) => (
@@ -211,7 +219,8 @@ function SearchResults() {
         {(searchResults?.categories?.length > 0 || loading) && (
           <div className="products-results brand-results">
             <div className="result-label flex-row">
-              Find Categories {loading && <Spinner className="ml-3" no />}
+              {translateFunction("Find Categories", languageVariable)}{" "}
+              {loading && <Spinner className="ml-3" no />}
             </div>
             <div className="brands-results-row flex-row overflow-auto">
               {searchResults?.categories?.map((category, index) => (
@@ -244,7 +253,8 @@ function SearchResults() {
         {(searchResults?.boutiques?.length > 0 || loading) && (
           <div className="products-results brand-results">
             <div className="result-label flex-row">
-              Find Boutiques {loading && <Spinner className="ml-3" no />}
+              {translateFunction("Find Boutiques", languageVariable)}{" "}
+              {loading && <Spinner className="ml-3" no />}
             </div>
             <div className="brands-results-row flex-row overflow-auto">
               {searchResults?.boutiques?.map((boutique, index) => (

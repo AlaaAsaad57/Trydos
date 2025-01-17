@@ -1242,6 +1242,9 @@ input[type="number"] {
 .select-animation-out {
   animation: select-out 200ms ease-in 0s 1 forwards;
 }
+.dir-rtl {
+  direction: rtl;
+}
 @keyframes select-out {
   0% {
     transform: translateY(0px);

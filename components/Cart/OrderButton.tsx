@@ -231,8 +231,12 @@ function OrderButton({ close, toOrders }) {
                 </div>
                 <div className="flex-row items-start h-[50px] w-full justify-between mt-4">
                   <div className="flex-col pl-[28px] text-[#1D1D1D]">
-                    <span className="medium text-[13px]">Price</span>
-                    <span className="regular text-[11px]">Normal Price</span>
+                    <span className="medium text-[13px]">
+                      {translateFunction("Price")}
+                    </span>
+                    <span className="regular text-[11px]">
+                      {translateFunction("Normal Price")}
+                    </span>
                   </div>
                   <span className="ml-[5px] medium text-[#1D1D1D] text-[13px] pr-[13px]">
                     {cart.sub_total} {currency_symbol.symbol}
@@ -244,7 +248,11 @@ function OrderButton({ close, toOrders }) {
                       <DiscoutIcon />
                     </span>{" "}
                     <div className="flex-col pl-1 text-[#A28E5B]">
-                      <span className="medium text-[13px] text-[#A28E5B]">
+                      <span
+                        className={`medium ${
+                          languageVariable === "ar" && "dir-rtl"
+                        } text-[13px] text-[#A28E5B] flex whitespace-nowrap `}
+                      >
                         {translate("Total Discount")}{" "}
                         <span className="bold text-[#A28E5B] ">
                           {getDiscount()}%
@@ -290,7 +298,7 @@ function OrderButton({ close, toOrders }) {
                       </span>
                       <span className="regular text-[11px] text-[#5BA260]">
                         {translate(
-                          " Shipping Is Completely Free Without Any Extras"
+                          "Shipping Is Completely Free Without Any Extras"
                         )}
                       </span>
                     </div>
@@ -384,7 +392,11 @@ function OrderButton({ close, toOrders }) {
                       <span className="text-[#FEFEFE] text-[18px] medium ">
                         {translate("Confirm And Continue", GetAppLanguage())}
                       </span>
-                      <span className="text-[#FEFEFE] text-[14px] medium ">
+                      <span
+                        className={`text-[#FEFEFE] text-[14px] medium ${
+                          GetAppLanguage() === "ar" && "dir-rtl"
+                        } `}
+                      >
                         {cart.cart.length} {translate("items")}{" "}
                         {cart.total_cash} {currency_symbol?.symbol}
                       </span>

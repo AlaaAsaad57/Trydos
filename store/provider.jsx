@@ -12,9 +12,10 @@ import { useEffect, useState } from "react";
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 import CartProvider from "components/Cart/CartProvider";
 import Smartlook from "smartlook-client";
-import { useSearchParams } from "node_modules/next/navigation";
+import { useSearchParams } from "next/navigation";
 import PopupCountry from "utils/PopupCountry";
-import { getCountriesApi } from "./homepage/cachedActions";
+// import { getCountriesApi } from "./homepage/cachedActions";
+import axios from "axios";
 export default function Providers({ children }) {
   const [dataCountries, setCountriesData] = useState([]);
   useEffect(() => {
@@ -73,8 +74,10 @@ export default function Providers({ children }) {
     }
   }, []);
   const getCountries = async () => {
-    let data = await getCountriesApi();
-    setCountriesData(data);
+    let data = await axios.get(
+      process.env.NEXT_PUBLIC_BACKEND_URL + "/countries"
+    );
+    setCountriesData(data.data.data.countries);
   };
   return (
     <>

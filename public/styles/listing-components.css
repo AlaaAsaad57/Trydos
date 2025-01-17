@@ -180,53 +180,7 @@
 .filter-info-bar.active-category-icon {
   transform: scale(0.75) translateY(2px);
 }
-.main-category-icon,
-.main-category-icon img {
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  position: relative;
-  object-position: top;
-}
-.main-category-icon svg,
-.sub-category-icon svg {
-  position: absolute;
-}
-.filter-bar-main-title {
-  font-size: 12px;
-  font-family: var(--Quicksand-Regular);
-  margin-left: 5px;
-}
-.main-category-icon {
-  margin-left: 6px;
-}
-.sub-category-icon {
-  margin-left: 5px;
-}
-.sub-category-icon,
-.sub-category-icon img {
-  width: 10px;
-  height: 10px;
-  object-position: top;
-  border-radius: 50%;
-  position: relative;
-}
-.filter-icon-enabled path {
-  fill: #ff5f61;
-}
-.filter-label-text {
-  margin-left: 10px;
-  color: #505050;
-  font-style: 12px;
-  font-family: var(--Quicksand-Regular);
-}
-.filter-info-icon {
-  margin-left: 12px;
-}
-.filter-container {
-  width: 100%;
-  margin-top: 10px;
-}
+
 .filter-container::-webkit-scrollbar {
   display: none;
 }

@@ -240,87 +240,12 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "CART-INIT": {
-      let payloadVa = {
-        sub_total: 1000,
-        total_tax: 0,
-        total_discount_on_product: 200,
-        total_shipping_cost: 0,
-        coupon_discount: 0,
-        cod_cost: 0,
-        limitFree: 4.9504950495049,
-        estimated_tax: 40,
-        total: 800,
-        rest_for_free_shipping: -795.0495049504951,
-        total_cash: 800,
-        has_cod: true,
-        show_message_reset_for_shipping_free: false,
-        available_payment_method: ["COD", "Wallet", "Telr", "Postpay"],
-        cart: [
-          {
-            id: 2173,
-            customer_id: 370,
-            cart_group_id: "370-UJqtP-1736851458",
-            product_id: 7650,
-            choices: [],
-            variations: [
-              {
-                color: "Aqua",
-              },
-            ],
-            variant: "Aqua",
-            available_quantity: 1000,
-            max_allowed_qty: "0",
-            vendor_name: "",
-            quantity: 1,
-            discount: 200,
-            price: 1000,
-            offer_price: 800,
-            tax: 0,
-            slug: "control-future-crawling-crab-baby-55",
-            name: "Control Future Crawling Crab Baby",
-            count_of_pieces: 1,
-            shop: {
-              image:
-                "https://market-under-dev-backend.trydos.dev/assets/front-end/img/image-place-holder.png",
-              name: "Clearance",
-            },
-            brand: {
-              id: 762,
-              name: "kerastase",
-              slug: "kerastase-762",
-              image:
-                "https://res.cloudinary.com/dtcmozf4d/image/upload/v1/brand/2024-05-19-664a09be4e74f.svg",
-            },
-            boutique: {
-              id: 133,
-              icon: {
-                file_path:
-                  "https://res.cloudinary.com/dtcmozf4d/image/upload/v1/boutiques/boutiques/icon/2025-01-13-6784ea96bb93d.svg",
-                original_width: "800px",
-                original_height: "800px",
-              },
-            },
-            thumbnail:
-              "https://res.cloudinary.com/dtcmozf4d/image/upload/v1/product/thumbnail/2024-12-23-67687c9e3d4a1.png",
-            image:
-              "https://res.cloudinary.com/dtcmozf4d/image/upload/v1/product/2024-12-23-67687c91382b4.png",
-            created_at: "2025-01-14 16:44:18",
-            flash_deal_details: null,
-            flash_deal_max_allowed_quantity: null,
-            shipping_days: 1,
-            have_hurry_up_notify_time_left: false,
-            have_hurry_up_notify_qty: false,
-            qty_left: 1000,
-            time_left_in_minutes: 10,
-          },
-        ],
-      };
       return {
         ...state,
-        ...payloadVa,
+        ...payload,
         loading: false,
         localCart: [
-          ...payloadVa.cart.map((s) => ({
+          ...payload.cart.map((s) => ({
             id: s.product_id,
             item_id: s.id,
             image: s.image,

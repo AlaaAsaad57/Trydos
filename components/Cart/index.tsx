@@ -322,45 +322,61 @@ function CartContainer({ close, toOrders }) {
                             {product.variations[0]?.color && (
                               <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                                 <CartColorIcon />
-                                <span className="ml-1.5">
-                                  {translateFunction("Color")}:
-                                </span>
-                                <span className="regular">
-                                  {product.variations[0].color}
+                                <span
+                                  className={`${
+                                    language === "ar" && "dir-rtl"
+                                  } ml-1.5`}
+                                >
+                                  {translateFunction("Color")}:{" "}
+                                  <span className="regular">
+                                    {product.variations[0].color}
+                                  </span>
                                 </span>
                               </div>
                             )}
                             {product.variations[0]?.Size && (
                               <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
                                 <CartSizeIcon />
-                                <span className="ml-1.5">
+                                <span
+                                  className={`ml-1.5 ${
+                                    language === "ar" && "dir-rtl"
+                                  }`}
+                                >
                                   {translateFunction("Size")}:
-                                </span>
-                                <span className="regular">
-                                  {product.variations[0].Size}
+                                  <span className="regular">
+                                    {product.variations[0].Size}
+                                  </span>
                                 </span>
                               </div>
                             )}
                           </div>
                           <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                             <PiecesIcon />
-                            <span className="ml-1.5 text-[#8D8D8D] regular">
+                            <span
+                              className={`ml-1.5 ${
+                                language === "ar" && "dir-rtl"
+                              } text-[#8D8D8D] regular `}
+                            >
                               {translate("Composed Of:")}{" "}
-                            </span>
-                            <span className="regular">
-                              {product.count_of_pieces} {translate("Piece")}
+                              <span className="regular">
+                                {product.count_of_pieces} {translate("Piece")}
+                              </span>
                             </span>
                           </div>
                           {product.shipping_days && (
                             <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
                               <DeleiveryIcon />
-                              <span className="ml-1.5 text-[#8D8D8D] regular">
-                                {translate("Shipping:")}{" "}
-                              </span>
-                              <span className="regular flex-row">
-                                {product.shipping_days} {translate("Days")}{" "}
-                                <span className="ml-1 underline">
-                                  {translate("Details")}
+                              <span
+                                className={`ml-1.5 whitespace-nowrap ${
+                                  language === "ar" && "dir-rtl"
+                                } text-[#8D8D8D] regular`}
+                              >
+                                {translate("Shipping")}:{" "}
+                                <span className="regular">
+                                  {product.shipping_days} {translate("Days")}{" "}
+                                  <span className="ml-1 underline">
+                                    {translate("Details")}
+                                  </span>
                                 </span>
                               </span>
                             </div>
@@ -706,45 +722,61 @@ function CartContainer({ close, toOrders }) {
                             {product.variations[0]?.color && (
                               <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                                 <CartColorIcon />
-                                <span className="ml-1.5">
+                                <span
+                                  className={`ml-1.5 ${
+                                    language === "ar" && "dir-rtl"
+                                  }`}
+                                >
                                   {translateFunction("Color")}:
-                                </span>
-                                <span className="regular">
-                                  {product.variations[0].color}
+                                  <span className="regular">
+                                    {product.variations[0].color}
+                                  </span>
                                 </span>
                               </div>
                             )}
                             {product.variations[0]?.Size && (
                               <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1">
                                 <CartSizeIcon />
-                                <span className="ml-1.5">
+                                <span
+                                  className={`ml-1.5 ${
+                                    language === "ar" && "dir-rtl"
+                                  }`}
+                                >
                                   {translateFunction("Size")}:
-                                </span>
-                                <span className="regular">
-                                  {product.variations[0].Size}
+                                  <span className="regular">
+                                    {product.variations[0].Size}
+                                  </span>
                                 </span>
                               </div>
                             )}
                           </div>
                           <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                             <PiecesIcon />
-                            <span className="ml-1.5 text-[#8D8D8D] regular">
+                            <span
+                              className={`ml-1.5 text-[#8D8D8D] regular ${
+                                language === "ar" && "dir-rtl"
+                              }`}
+                            >
                               {translate("Composed Of:")}{" "}
-                            </span>
-                            <span className="regular">
-                              {product.count_of_pieces} {translate("Piece")}
+                              <span className="regular">
+                                {product.count_of_pieces} {translate("Piece")}
+                              </span>
                             </span>
                           </div>
                           {product.shipping_days && (
                             <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                               <DeleiveryIcon />
-                              <span className="ml-1.5 text-[#8D8D8D] regular">
+                              <span
+                                className={`ml-1.5 text-[#8D8D8D] regular ${
+                                  language === "ar" && "dir-rtl"
+                                }`}
+                              >
                                 {translate("Shipping:")}{" "}
-                              </span>
-                              <span className="regular flex-row">
-                                {product.shipping_days} {translate("Days")}{" "}
-                                <span className="ml-1 underline">
-                                  {translate("Details")}
+                                <span className="regular flex-row">
+                                  {product.shipping_days} {translate("Days")}{" "}
+                                  <span className="ml-1 underline">
+                                    {translate("Details")}
+                                  </span>
                                 </span>
                               </span>
                             </div>
@@ -754,8 +786,16 @@ function CartContainer({ close, toOrders }) {
                             product.available_quantity && (
                             <div className="flex-row items-center text-[12px] light text-[#fd445d]">
                               <ErrorIcon />
-                              <span className="ml-1.5">Availabilty,</span>
-                              <span className="regular ml-1">Out Of Stock</span>
+                              <div
+                                className={`${language === "ar" && "dir-rtl"}`}
+                              >
+                                <span className="ml-1.5">
+                                  {translateFunction("Availabilty")}:
+                                </span>
+                                <span className="regular ml-1">
+                                  {translateFunction("Out Of Stock")}
+                                </span>
+                              </div>
                             </div>
                           )}
                         </div>

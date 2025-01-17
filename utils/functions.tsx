@@ -28,7 +28,7 @@ export function translateFunction(key: string, language?: string | string[]) {
   if (typeof window !== "undefined") {
     languageUrl = window.location.pathname.split("/")[1].split("-")[1];
   } else {
-    languageUrl = "en";
+    languageUrl = GetAppLanguage();
   }
   if (language) {
     return translations[language][key] || key;

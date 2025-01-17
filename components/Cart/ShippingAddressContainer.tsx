@@ -60,9 +60,11 @@ const CartItemSelect = ({ items }) => {
         <OrderCartIcon />
         <div className="regular text-[#1D1D1D] text-[14px] ml-2">
           {translateFunction("Your Shopping Bag", language)}
-          <span className="bold ml-1">
+          <span className={language === "ar" ? "mr-1 bold" : "ml-1 bold"}>
             {items.length}
-            <span className="ml-1">{translateFunction("items", language)}</span>
+            <span className={"ml-1"}>
+              {translateFunction("items", language)}
+            </span>
           </span>
         </div>
       </div>
@@ -219,7 +221,12 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
       />
       {addressLists.length > 0 ? (
         <>
-          <div className="flex-row w-full justify-center items-center cursor-pointer mt-[11px]">
+          <div
+            onClick={() => {
+              openAddressList(true);
+            }}
+            className="flex-row w-full justify-center items-center cursor-pointer mt-[11px]"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               xmlnsXlink="http://www.w3.org/1999/xlink"

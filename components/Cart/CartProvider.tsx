@@ -70,7 +70,7 @@ const CartProvider = () => {
   );
   return (
     <>
-      {false && <ShowMessageAuth />}
+      {showMessage && <ShowMessageAuth />}
       {cartEnable ? <StepSlider enableCart={(e) => enableCart(e)} /> : <></>}
     </>
   );
