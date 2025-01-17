@@ -1,8 +1,8 @@
 import { useRef } from "react";
 import OfferAvatar from "./OfferAvatar";
-import MoreOfferAvatar from "./MoreOfferAvatar";
 import { Boutique } from "models/offer";
 import { useRouter } from "next-nprogress-bar";
+import MoreOfferAvatar from "./MoreOfferAvatar";
 
 interface OfferAvatarsProps {
   priority: boolean;
@@ -16,8 +16,8 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
     let clientX = e.clientX || e.touches[0]?.clientX;
     let Xmove: number = Math.abs(
       ((clientX - ref.current.getBoundingClientRect().left) * 100) /
-        ref.current.clientWidth +
-        5
+      ref.current.clientWidth +
+      5
     );
     elemnts.forEach((element: Element) => {
       element.classList.remove("active-hover");
@@ -45,7 +45,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
       onMouseMove={(e) => handleMove(e)}
     >
       {boutique?.mainCategoriesForProductIds.map((product, index) => {
-        if (index < 5) {
+        if (index < 7) {
           if (product?.most_viewed_product_thumbnail.file_path)
             return (
               <OfferAvatar
@@ -60,17 +60,17 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
             );
         }
       })}
-      {/* {boutique?.childCategoriesForProductIds?.length > 5 && (
+      {boutique?.mainCategoriesForProductIds?.length > 7 && (
         <MoreOfferAvatar
           priority={false}
           images={
-            boutique?.childCategoriesForProductIds[5]
+            boutique?.mainCategoriesForProductIds[7]
               .most_viewed_product_thumbnail.file_path
           }
           zIndex={100}
           viewed={6}
         />
-      )} */}
+      )}
     </div>
   );
 }

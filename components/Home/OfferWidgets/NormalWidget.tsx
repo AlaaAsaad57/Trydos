@@ -1,6 +1,6 @@
 "use client";
 import OfferSlideItem from "./OfferSlideItem";
-import { encode_utf8, getConfiguredImage, Sendevent } from "utils/functions";
+import { encode_utf8, Sendevent } from "utils/functions";
 import OfferAvatars from "./OfferAvatars";
 
 import Image from "next/image";
@@ -104,7 +104,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           </div>
           <div className="offer-category">
             {boutique.mainCategoriesForProductIds
-              .slice(0, 5)
+              .slice(0, 3)
               .map((category, key) => {
                 // @ts-ignore
                 if (category?.flat_photo_path?.file_path?.includes(".svg")) {

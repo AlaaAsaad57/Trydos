@@ -1,5 +1,5 @@
-import React from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
+import { getConfiguredImage } from "utils/functions";
 function BrandItem({ brand, onClick, isActive }) {
   return (
     <div
@@ -12,7 +12,7 @@ function BrandItem({ brand, onClick, isActive }) {
           className="absolute"
         />
       )}
-      <img src={brand.icon?.file_path} className="h-full max-h-[30px]" />
+      <img src={getConfiguredImage(brand.icon?.file_path)} className="h-full max-h-[30px]" />
     </div>
   );
 }

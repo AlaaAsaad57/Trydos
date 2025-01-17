@@ -8,6 +8,7 @@ import {
   AddToCartAnimation,
   ExpiredUser,
   getCart,
+  getOldCart,
   getLang,
   getUser,
   UserID,
@@ -64,6 +65,8 @@ class HomeService {
             payload: data ?? { cart: [] },
           });
         },
+      }).then(() => {
+        getOldCart()
       });
       if (typeof window !== "undefined") {
         _isStoreLastJson() &&

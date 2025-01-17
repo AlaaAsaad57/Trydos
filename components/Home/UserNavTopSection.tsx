@@ -6,7 +6,6 @@ import Image from "next/image";
 import AuthNavSection from "./AuthNavSection";
 
 import CartIcon from "public/svg/CartIcon.svg";
-import NotificationsTest from "components/global/NotificationsTest";
 import {
   usePathname,
   useSearchParams,
@@ -70,12 +69,12 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
       className={`${searchEnabled && "hidden"
         } user-nav-container md:min-w-[400px]`}
     >
-      <div
+      {/* <div
         className="nav-question-item"
         style={{ marginRight: "30px", marginLeft: "0px" }}
       >
         {user && <NotificationsTest />}
-      </div>
+      </div> */}
       <div
         className="nav-question-item cart-icon-selector cursor-pointer"
         style={{ marginRight: "30px", marginLeft: "0px" }}
