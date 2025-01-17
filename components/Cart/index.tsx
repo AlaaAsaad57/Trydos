@@ -233,13 +233,13 @@ function CartContainer({ close, toOrders }) {
       </div>
 
       <div className="flex-col overflow-auto">
-        <div className="flex-col  w-full h-auto mt-10">
+        <div className="flex-col  w-full h-auto mt-10 pb-[20px]">
           {!loading ? (
             <>
               {cart.length > 0 ? (
                 <>
                   {cart?.map((product, key) => (
-                    <div className="relative" key={key}>
+                    <div className="relative px-[12px]" key={key}>
                       {" "}
                       <NextLink
                         href={
@@ -314,16 +314,16 @@ function CartContainer({ close, toOrders }) {
                               className="object-contain h-4 max-w-[90px] w-auto"
                             />
                           </div>
-                          <div className="text-xs mt-1 text-[#505050] flex regular">
+                          <div className="text-[12px] mt-1 text-[#505050] flex regular">
                             {product.name.substring(0, 30)}
                           </div>
 
                           <div className="flex-row flex-wrap">
                             {product.variations[0]?.color && (
-                              <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                              <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                                 <CartColorIcon />
                                 <span className="ml-1.5">
-                                  {translate("color,")}
+                                  {translateFunction("Color")}:
                                 </span>
                                 <span className="regular">
                                   {product.variations[0].color}
@@ -334,7 +334,7 @@ function CartContainer({ close, toOrders }) {
                               <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
                                 <CartSizeIcon />
                                 <span className="ml-1.5">
-                                  {translate("Size,")}
+                                  {translateFunction("Size")}:
                                 </span>
                                 <span className="regular">
                                   {product.variations[0].Size}
@@ -342,7 +342,7 @@ function CartContainer({ close, toOrders }) {
                               </div>
                             )}
                           </div>
-                          <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                          <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                             <PiecesIcon />
                             <span className="ml-1.5 text-[#8D8D8D] regular">
                               {translate("Composed Of:")}{" "}
@@ -433,7 +433,7 @@ function CartContainer({ close, toOrders }) {
                                   </div>
                                   <div className="flex-row">
                                     <SavedIcon />
-                                    <span className="text-[8px] text-[#388CFF]  need-row-rev">
+                                    <span className="text-[8px] text-[#388CFF]  need-row-rev mx-[4px]">
                                       {translate("Saved")}{" "}
                                       <span className="bold">
                                         {parseInt(
@@ -616,11 +616,11 @@ function CartContainer({ close, toOrders }) {
                 {translate("Hide All", GetAppLanguage())}
               </span>
             </div>
-            <div className="flex-col  w-full h-auto mt-3">
+            <div className="flex-col  w-full h-auto mt-3 pb-[20px]">
               {!loading ? (
                 <>
                   {oldCart?.oldCart.map((product, key) => (
-                    <div className="relative px-1" key={key}>
+                    <div className="relative px-[12px]" key={key}>
                       <NextLink
                         href={
                           params?.productId === product.slug &&
@@ -696,7 +696,7 @@ function CartContainer({ close, toOrders }) {
                               className="object-contain h-4 max-w-[90px] w-auto"
                             />
                           </div>
-                          <div className="text-xs mt-1 text-[#505050] flex regular">
+                          <div className="text-[12px] mt-1 text-[#505050] flex regular">
                             {product.name.substring(0, 30)}
                           </div>
                           <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
@@ -704,25 +704,29 @@ function CartContainer({ close, toOrders }) {
                           </div>
                           <div className="flex-row flex-wrap">
                             {product.variations[0]?.color && (
-                              <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                              <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                                 <CartColorIcon />
-                                <span className="ml-1.5">color,</span>
+                                <span className="ml-1.5">
+                                  {translateFunction("Color")}:
+                                </span>
                                 <span className="regular">
                                   {product.variations[0].color}
                                 </span>
                               </div>
                             )}
                             {product.variations[0]?.Size && (
-                              <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
+                              <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1">
                                 <CartSizeIcon />
-                                <span className="ml-1.5">Size,</span>
+                                <span className="ml-1.5">
+                                  {translateFunction("Size")}:
+                                </span>
                                 <span className="regular">
                                   {product.variations[0].Size}
                                 </span>
                               </div>
                             )}
                           </div>
-                          <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                          <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                             <PiecesIcon />
                             <span className="ml-1.5 text-[#8D8D8D] regular">
                               {translate("Composed Of:")}{" "}
@@ -732,7 +736,7 @@ function CartContainer({ close, toOrders }) {
                             </span>
                           </div>
                           {product.shipping_days && (
-                            <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                            <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                               <DeleiveryIcon />
                               <span className="ml-1.5 text-[#8D8D8D] regular">
                                 {translate("Shipping:")}{" "}
@@ -829,7 +833,7 @@ function CartContainer({ close, toOrders }) {
                                   </div>
                                   <div className="flex-row">
                                     <SavedIcon />
-                                    <span className="text-[8px] text-[#388CFF] need-row-rev">
+                                    <span className="text-[8px] text-[#388CFF] need-row-rev mx-[4px]">
                                       {translate("Saved")}{" "}
                                       <span className="bold">
                                         {parseInt(
@@ -1752,7 +1756,7 @@ const QuantutyInput = ({
     <div
       className={`absolute ${
         disabled || isHurry ? "bottom-[64px]" : "bottom-[20px]"
-      } left-[125px]`}
+      } left-[137px]`}
     >
       <div className="flex-row hide-btn relative max-w-[72px] w-[72px] h-[24px] mt-4 z-50">
         <svg

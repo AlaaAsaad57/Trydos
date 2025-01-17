@@ -22,15 +22,12 @@ function AddAddressForm({ setAddressDetails, slidePrev, setOpenSelect }) {
     (state: StateInterface) => state.cart.addressDetails
   );
   const getCenter = async () => {
-    let a = await axios.get("http://ip-api.com/json/");
+    let a = await axios.get("http://ip-api.com/json");
     setCenter({ lat: a.data.lat, lng: a.data.lon });
   };
   const isValid = () => {
     let valid = false;
-    if (
-      addressDetails.geolocation.lat?.length > 0 &&
-      addressDetails.geolocation.lng?.length > 0
-    ) {
+    if (addressDetails.geolocation.lat && addressDetails.geolocation.lng) {
       valid = true;
     } else {
       valid = false;
@@ -115,7 +112,7 @@ function AddAddressForm({ setAddressDetails, slidePrev, setOpenSelect }) {
               fill="#388cff"
             />
           </svg>
-          <div className="regular text-[10px] ml-[8px]">
+          <div className="regular text-[10px] ml-[8px] text-[#8D8D8D]">
             {translateFunction(
               "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster."
             )}
@@ -203,6 +200,9 @@ const CountryLabel = () => {
 };
 
 const SelectRegion = ({ setOpenSelect }) => {
+  const addressDetails = useSelector(
+    (state: StateInterface) => state.cart.addressDetails
+  );
   return (
     <div
       onClick={() => {
@@ -219,8 +219,13 @@ const SelectRegion = ({ setOpenSelect }) => {
       <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] ">
         <TargetIcon className="&>path:fill" />
 
-        <div className="medium flex text-[#D3D3D3] text-[14px] ml-[8px]">
-          {translateFunction("Province | District | Town | Street")}
+        <div
+          className={`medium flex ${
+            addressDetails.region ? "text-[#505050]" : "text-[#D3D3D3] "
+          } text-[14px] ml-[8px]`}
+        >
+          {(addressDetails.region?.length > 0 && addressDetails.region) ??
+            translateFunction("Province | District | Town | Street")}
         </div>
       </div>
     </div>
@@ -302,7 +307,7 @@ const ContactInfo = () => {
   );
   const dispatch = useDispatch();
   return (
-    <div className="flex-col w-full mt-[30px] px-[12px]">
+    <div className="flex-col w-full mt-[30px] px-[12px] pb-[110px]">
       <div className="flex-row px-[12px] items-center">
         <ContactInfoIcon />
         <div className="flex ml-[6px] text-[#404040] text-[12px] medium">
@@ -411,6 +416,7 @@ const ContactInfo = () => {
   );
 };
 export const AddAddressButtons = ({ valid, slidePrev }) => {
+  const dispatch = useDispatch();
   const addressDetails = useSelector(
     (state: StateInterface) => state.cart.addressDetails
   );
@@ -430,10 +436,20 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
     if (addressDetails.ContactInfo?.phone?.length === 0) shake("phone-border");
   };
   return (
-    <div className="absolute text-center bottom-2 left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]">
+    <div
+      style={{
+        boxShadow: "0px -3px 20px #0000001a",
+      }}
+      className="absolute  text-center bottom-2 left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]"
+    >
       <div
         onClick={() => {
           if (valid) {
+            if (addressDetails?.id) {
+              dispatch({ type: "UPDATE-ADDRESS", payload: addressDetails });
+            } else {
+              dispatch({ type: "ADD-ADDRESS", payload: addressDetails });
+            }
             slidePrev();
             return;
           }
@@ -443,7 +459,9 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
           valid ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
         } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
       >
-        {translateFunction("Add & Save")}
+        {addressDetails?.id
+          ? translateFunction("Edit & Save")
+          : translateFunction("Add & Save")}
       </div>
     </div>
   );

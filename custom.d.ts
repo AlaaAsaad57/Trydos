@@ -824,7 +824,8 @@ declare global {
     cart: {
       cart: Array<any>;
       enable: boolean;
-      addressDetails: {
+      addressLists: Array<{
+        id: number;
         geolocation: { lat: any; lng: any };
         Country: { name: string; code: string };
         location: string;
@@ -835,7 +836,27 @@ declare global {
           phone: string;
           alternatePhone: string;
         };
-        region: "";
+        region: string;
+        regionDetails: {
+          country: string;
+          province: string;
+          town: string;
+          suburb: string;
+        };
+      }>;
+      addressDetails: {
+        id?: number;
+        geolocation: { lat: any; lng: any };
+        Country: { name: string; code: string };
+        location: string;
+        detailes_Address: string;
+        title: string;
+        ContactInfo: {
+          name: string;
+          phone: string;
+          alternatePhone: string;
+        };
+        region: string;
         regionDetails: {
           country: string;
           province: string;

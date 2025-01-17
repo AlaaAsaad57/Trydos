@@ -148,7 +148,7 @@ function OrderButton({ close, toOrders }) {
     <>
       {expanded && (
         <div
-          className="fixed min-w-[100vw] min-h-[100vh] opacity-40 bg-[black] z-50"
+          className="fixed top-[50px] min-w-[100vw] min-h-[100vh] opacity-40 bg-[black] z-50"
           onClick={() => {
             setExpanded(false);
           }}
@@ -167,8 +167,8 @@ function OrderButton({ close, toOrders }) {
             {...handlers}
             className={`flex-col w-full overflow-hidden ${
               expanded
-                ? "h-[383px] pt-[10px] px-[12px] pb-[10x]"
-                : "h-[116px] pt-[10px] px-[12px] pb-[10x] "
+                ? "h-[397px] pt-[10px] px-[12px] pb-[10px]"
+                : "h-[116px] pt-[10px] px-[12px] pb-[10px] "
             }  transition-all`}
           >
             <div className="flex-row w-full justify-center">
@@ -216,7 +216,7 @@ function OrderButton({ close, toOrders }) {
             </div>
             <OrderMarquee />
             {expanded && (
-              <div className="flex-col bg-[#F8F8F8] rounded-[12px] mt-3 pt-[15px]">
+              <div className="flex-col bg-[#F8F8F8] rounded-t-[12px]  mt-3 pt-[15px]">
                 <div className="flex-row items-start pl-[12px]">
                   <ItemsIcon />
                   <div className="flex-col ml-[5px]">
@@ -308,7 +308,9 @@ function OrderButton({ close, toOrders }) {
               onClick={() => {
                 setExpanded(!expanded);
               }}
-              className=" cursor-pointer flex-row items-center h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1 bg-[#F8F8F8]"
+              className={`${
+                expanded ? "rounded-t-none" : ""
+              } cursor-pointer flex-row items-center min-h-[50px] w-full justify-between  rounded-[12px] pt-1 bg-[#F8F8F8]`}
             >
               <div className="flex-row pl-[12px]">
                 <div className="flex-col pl-4 text-[#1D1D1D]">
@@ -333,7 +335,12 @@ function OrderButton({ close, toOrders }) {
             </div>
           </div>
         )}
-        <div className={`flex-row w-full px-5 pt-3 pb-28 sm:pb-1`}>
+        <div
+          className={`flex-row w-full px-5 pt-3 pb-28 sm:pb-1`}
+          style={{
+            boxShadow: "#0000001a 0px -3px 10px",
+          }}
+        >
           <div
             className={`cursor-pointer  flex-col w-full  ${
               option ? "h-[200px]" : "bg-[#3C3C3C] h-[70px]"

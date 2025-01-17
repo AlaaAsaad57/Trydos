@@ -44,10 +44,13 @@ const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
                 cursor: "pointer",
                 top: "35px",
               }}
-              className="absolute regular left-0 right-0 mx-auto my-0 h-[31px] w-[214px] flex-row justify-between items-center pl-[12px] pr-[12px] rounded-[10px]"
+              className="absolute regular left-0 right-0 mx-auto my-0 h-[31px] min-w-[214px] w-fit flex-row justify-between items-center pl-[12px] pr-[12px] rounded-[10px]"
             >
-              <span>{translateFunction("Locate Your Location On Map")}</span>
+              <span className="whitespace-nowrap">
+                {translateFunction("Locate Your Location On Map")}
+              </span>
               <svg
+                className="ml-[10px]"
                 xmlns="http://www.w3.org/2000/svg"
                 width="15"
                 height="15"

@@ -4,7 +4,7 @@ import TargetIcon from "public/svg/cart/Target.svg";
 import { useParams } from "next/navigation";
 import { allCountries } from "country-telephone-data";
 import Flag from "react-world-flags";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 import axios from "node_modules/axios";
@@ -63,7 +63,7 @@ function SelectRegion({ closeSelect }) {
   return (
     <>
       <div
-        className="absolute top-0 left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]"
+        className="absolute top-[50px]  left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]"
         onClick={() => {
           closeSelect();
         }}
@@ -82,7 +82,11 @@ function SelectRegion({ closeSelect }) {
 
           <div className="flex-row ml-[8px]">{showRegion()}</div>
         </div>
-        <SearchLocations />
+        <SearchLocations
+          closeSelect={() => {
+            closeSelect();
+          }}
+        />
       </div>
     </>
   );
@@ -90,7 +94,7 @@ function SelectRegion({ closeSelect }) {
 
 export default SelectRegion;
 
-const SearchLocations = () => {
+const SearchLocations = ({ closeSelect }) => {
   const { lang } = useParams();
   // @ts-ignore
   const [country, language] = lang.split("-");
@@ -163,6 +167,9 @@ const SearchLocations = () => {
         />
       </div>
       <SearchResults
+        closeSelect={() => {
+          closeSelect();
+        }}
         searchResults={searchResults?.filter(
           (s) => s.address.country_code === country
         )}
@@ -171,7 +178,7 @@ const SearchLocations = () => {
   );
 };
 
-const SearchResults = ({ searchResults }) => {
+const SearchResults = ({ searchResults, closeSelect }) => {
   const showLocationText = (location) => {
     let str = "";
     if (location.address.country) str += location.address.country;
@@ -202,10 +209,25 @@ const SearchResults = ({ searchResults }) => {
 
     return str;
   };
+  const dispatch = useDispatch();
+  const select = (s) => {
+    dispatch({
+      type: "set-address-details",
+      payload: {
+        region: s.display_name,
+      },
+    });
+    closeSelect();
+  };
   return (
     <div className="flex-col w-full h-auto max-h-[290px] overflow-auto mt-[2px]">
       {searchResults.map((s) => (
-        <div className="flex min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]">
+        <div
+          className="flex min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]"
+          onClick={() => {
+            select(s);
+          }}
+        >
           {showLocationText(s)}
         </div>
       ))}
