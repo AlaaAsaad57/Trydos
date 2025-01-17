@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   GetAppLanguage,
   getCart,
+  getOldCart,
   getConfiguredImage,
   RoundPrice,
   Sendevent,
@@ -71,7 +72,9 @@ function CartContainer({ close, toOrders }) {
       callback: ([data, res]) => {
         dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
       },
-    });
+    }).then(() => {
+      getOldCart()
+    })
   }, []);
   const params = useParams();
 
