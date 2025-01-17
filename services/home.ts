@@ -595,13 +595,23 @@ class HomeService {
           // @ts-ignore
           body: JSON.stringify({
             token: fbtoken,
-            topic: `product_hurry_up_${res?.id_cart}`,
+            topic: `product_hurry_up_quantity_${res?.id_cart}_${getLang(languageUrl, Cookies.get("language"))}`,
+          }),
+        });
+        await fetch("/api/subscribeToTopic", {
+          cache: "no-cache",
+          method: "POST",
+          // @ts-ignore
+          body: JSON.stringify({
+            token: fbtoken,
+            topic: `product_hurry_up_time_left_${res?.id_cart}_${getLang(languageUrl, Cookies.get("language"))}`,
           }),
         });
         await this.subscribeToTopics({
           id: id,
           discount: true,
           comments: true,
+          availibility: true,
           language_code: getLang(languageUrl, Cookies.get("language"))
         });
       } else {
@@ -615,14 +625,25 @@ class HomeService {
     id,
     discount,
     comments,
+    availibility,
     language_code
   }: {
     id: number;
     discount?: boolean;
     comments?: boolean;
+    availibility?: boolean;
     language_code: string;
   }) {
     let fbtoken = localStorage.getItem("FB-DEVICE-TOKEN");
+    if (availibility)
+      await fetch("/api/subscribeToTopic", {
+        method: "POST",
+        // @ts-ignore
+        body: JSON.stringify({
+          token: fbtoken,
+          topic: `product_availability_${id}_${language_code}`,
+        }),
+      });
     if (discount)
       await fetch("/api/subscribeToTopic", {
         method: "POST",

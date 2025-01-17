@@ -119,7 +119,15 @@ function MoreOptionsSection() {
             </span>
           </div>
           <div id="slider-options" className="notify-row">
-            <div className="button-option">
+            <div className="button-option"
+              onClick={async () => {
+                await home.subscribeToTopics({
+                  id: SelectedProduct.id,
+                  availibility: true,
+                  language_code: languageVariable
+                });
+              }}
+            >
               {translate("Before Stock Out", language)}
             </div>
             <div className="button-option">

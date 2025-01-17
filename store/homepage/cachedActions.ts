@@ -579,7 +579,7 @@ export const getCountriesApi = async () => {
     let end = new Date().getTime();
     LogData({ repo, desc: "countries" });
     let data: CountriesApi = await repo.json();
-    console.log(data.data.countries)
+
     return data.data.countries;
   } catch (error) {
     console.log("Countries Request Failed" + error);
