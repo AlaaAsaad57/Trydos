@@ -37,7 +37,8 @@ function ProductDetailsSlider({ product }) {
       );
     }
     if (newParams.size) {
-      router.push(pathname + `?${newParams.toString()}`);
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+      router.push(pathname + `?${newParams.toString()}`, { shallow: true });
     }
     dispatch({ type: "EDIT-INFO", payload: { ...product } });
     dispatch({

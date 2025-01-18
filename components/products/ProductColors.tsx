@@ -86,7 +86,8 @@ function ProductColors({ colors, ProductColorsArray }) {
         setActiveColor={(e) => {
           const newParams = new URLSearchParams(searchParams);
           newParams.set("color", e.color_name);
-          router.push(pathname + `?${newParams.toString()}`);
+          // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+          router.push(pathname + `?${newParams.toString()}`, { shallow: true });
           setActiveColor(e);
         }}
       />
@@ -123,6 +124,8 @@ function ProductColors({ colors, ProductColorsArray }) {
             newParams.set("color", colors[e.activeIndex].color_name);
             router.push(pathname + `?${newParams.toString()}`, {
               scroll: false,
+              // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+              shallow: true,
             });
             setActiveColor(colors[e.activeIndex]);
           }}

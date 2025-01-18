@@ -152,10 +152,10 @@ export const _isStoreLastJson = () => {
 };
 export const Sendevent = async (params: {
   event:
-  | "programming_event"
-  | "button_clicked"
-  | "viewed_product"
-  | "viewed_boutique";
+    | "programming_event"
+    | "button_clicked"
+    | "viewed_product"
+    | "viewed_boutique";
   value?: string;
   extra?: any;
   category?: any;
@@ -239,8 +239,9 @@ export const getProductMeta = async ({ productId, lang, color }) => {
 
   let data: SimpleDetailsProductApi = await fetchWithRetry(
     process.env.NEXT_PUBLIC_BACKEND_URL +
-    `/web/product/simpleDetails/${productId}${color ? `?color=${color}` : ""
-    }`,
+      `/web/product/simpleDetails/${productId}${
+        color ? `?color=${color}` : ""
+      }`,
     {
       headers: new Headers({
         Accept: "application/json",
@@ -259,9 +260,10 @@ export const getProductMeta = async ({ productId, lang, color }) => {
       process.env.NEXT_PUBLIC_BACKEND_URL +
       `/web/product/simpleDetails/${productId}`,
     headers: {
-      Authorization: `Bearer ${typeof localStorage !== "undefined" &&
+      Authorization: `Bearer ${
+        typeof localStorage !== "undefined" &&
         localStorage.getItem("MARKET-TOKEN")
-        }`,
+      }`,
       lang: getLang(null, cookieStore.get("language")?.value),
       country: cookieStore.get("country")?.value,
     },
@@ -281,7 +283,7 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
   let start = new Date();
   let resp = await fetch(
     process.env.NEXT_PUBLIC_BACKEND_URL +
-    `/web/boutique/simpleDetails/${boutiqueId}?lang=${language}`,
+      `/web/boutique/simpleDetails/${boutiqueId}?lang=${language}`,
     {
       next: {
         revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
@@ -304,10 +306,11 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
       process.env.NEXT_PUBLIC_BACKEND_URL +
       `/web/boutique/simpleDetails/${boutiqueId}`,
     headers: {
-      Authorization: `Bearer ${typeof localStorage !== "undefined"
+      Authorization: `Bearer ${
+        typeof localStorage !== "undefined"
           ? localStorage.getItem("MARKET-TOKEN")
           : cookieStore.get("token")?.value
-        }`,
+      }`,
       lang: getLang(null, cookieStore.get("language")?.value),
       country: cookieStore.get("country")?.value,
     },
@@ -514,15 +517,15 @@ export const filterProducts = async ({
   serachTrigger?: boolean;
 }) => {
   const filterObj = store.getState().details.selectedFilter;
-  const PriceFiltered = store.getState().details.PriceFiltered;
+
   storeCallback(filterObj);
 
   let filters = {
     categories: filterObj.categories.map((s) => s.slug),
     prices: filterObj.prices?.pricesWord
       ? [
-        `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
-      ]
+          `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
+        ]
       : null,
     brands: filterObj.brands.map((brand) => brand.slug),
     attributes: { ...sizesAttr, options: filterObj.sizes },
@@ -534,30 +537,14 @@ export const filterProducts = async ({
   };
   let str = "";
   if (reset) {
-    str = `/api/products/search?limit=4&${boutiqueId !== "listing" &&
+    str = `/api/products/search?limit=4&${
+      boutiqueId !== "listing" &&
       boutiqueId &&
       `boutique_slugs=${JSON.stringify([boutiqueId])}`
-      }`;
+    }`;
   } else {
-    str = `/api/products/search?${filters.categories.length > 0
-        ? `category_slugs=${JSON.stringify(filters.categories)}`
-        : ""
-      }${filters.brands.length > 0
-        ? `&brand_slugs=${JSON.stringify(filters.brands)}`
-        : ""
-      }${filters?.attributes?.options?.length > 0
-        ? `&attributes=${JSON.stringify(filters.attributes)}`
-        : ""
-      }${filters.prices !== null && PriceFiltered
-        ? `&price=${JSON.stringify(filters.prices)}`
-        : ""
-      }${filters.boutique_slug !== "listing" && filters.boutique_slug
-        ? `&boutique_slugs=${JSON.stringify([filters.boutique_slug])}`
-        : ""
-      }${filters?.searchText?.length > 0
-        ? `&search_text=${filters.searchText}`
-        : ""
-      }${filters.colors.length > 0 ? `${JSON.stringify(filters.colors)}` : ``}`;
+    let urlParam = urlParams({ filters: filters, noProducts: false });
+    str = `/api/products/search?${urlParam}`;
   }
   let product: FilterProductApi = await AxiosCacheApi({
     url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str,
@@ -585,7 +572,36 @@ export const filterProducts = async ({
     // });
     callback(product.data.products);
 };
-
+const urlParams = ({ filters, noProducts }) => {
+  const PriceFiltered = store.getState().details.PriceFiltered;
+  let urlParams = new URLSearchParams();
+  if (filters.categories.length > 0) {
+    urlParams.set("category_slugs", JSON.stringify(filters.categories));
+  }
+  if (filters.brands.length > 0) {
+    urlParams.set("brand_slugs", JSON.stringify(filters.brands));
+  }
+  if (filters.boutique_slug.length > 0 && filters.boutique_slug !== "listing") {
+    urlParams.set("boutique_slugs", JSON.stringify([filters.boutique_slug]));
+  }
+  if (filters?.attributes?.options?.length > 0) {
+    urlParams.set("attributes", JSON.stringify(filters.attributes));
+  }
+  if (filters.prices !== null && PriceFiltered) {
+    urlParams.set("price", JSON.stringify(filters.prices));
+  }
+  if (filters?.searchText?.length > 0) {
+    urlParams.set("search_text", filters.searchText);
+  }
+  if (noProducts) {
+    urlParams.set("with_products", "false");
+  }
+  if (filters.colors) {
+    urlParams.set("colors", JSON.stringify(filters.colors));
+  }
+  console.log(urlParams.toString());
+  return urlParams.toString();
+};
 export const UpdateFilter = async ({
   sizesAttr,
   boutiqueId,
@@ -605,15 +621,14 @@ export const UpdateFilter = async ({
 }) => {
   try {
     const filterObj = filtersVar || store.getState().details.selectedFilter;
-    const PriceFiltered = store.getState().details.PriceFiltered;
 
     let filters = {
       categories: filterObj.categories.map((s) => s.slug),
       prices:
         filterObj.prices?.min >= 0
           ? [
-            `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
-          ]
+              `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
+            ]
           : null,
       brands: filterObj.brands.map((brand) => brand.slug),
       attributes: { ...sizesAttr, options: filterObj.sizes },
@@ -623,25 +638,8 @@ export const UpdateFilter = async ({
       searchText: searchText || filterObj.searchText,
       colors: filterObj.colors.map((s) => s),
     };
-    let str = `/api/products/search?with_products=false${filters.categories.length > 0
-        ? `&category_slugs=${JSON.stringify(filters.categories)}`
-        : ""
-      }${filters.brands.length > 0
-        ? `&brand_slugs=${JSON.stringify(filters.brands)}`
-        : ""
-      }${filters?.attributes?.options?.length > 0
-        ? `&attributes=${JSON.stringify(filters.attributes)}`
-        : ""
-      }${filters.prices !== null && PriceFiltered
-        ? `&price=${JSON.stringify(filters.prices)}`
-        : ""
-      }${filters.boutique_slug !== "listing" && filters.boutique_slug
-        ? `&boutique_slugs=${JSON.stringify([filters.boutique_slug])}`
-        : ""
-      }${filters?.searchText?.length > 0
-        ? `&search_text=${filters.searchText}`
-        : ""
-      }${filters.colors.length > 0 ? `${JSON.stringify(filters.colors)}` : ``}`;
+    let urlParam = urlParams({ filters: filters, noProducts: true });
+    let str = `/api/products/search?${urlParam}`;
 
     let product: FilterProductApi = await AxiosCacheApi({
       url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str,
@@ -650,6 +648,7 @@ export const UpdateFilter = async ({
           ? null
           : { colors: `${JSON.stringify(filters.colors)}` },
     });
+    console.log(str, filters);
     newFiltersCallback({
       filtersVar: {
         categories: product.data?.categories || [],

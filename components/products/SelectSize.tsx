@@ -33,7 +33,11 @@ function SelectSize({ sizes, variants }) {
   const setActive = (e) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set("size", e.name);
-    router.push(pathname + `?${newParams.toString()}`, { scroll: false });
+    router.push(pathname + `?${newParams.toString()}`, {
+      scroll: false,
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+      shallow: true,
+    });
     dispatch({ type: "AddToCartSize", payload: e });
     Sendevent({ event: "button_clicked", value: "slide_choose_size_event" });
   };
@@ -413,7 +417,10 @@ const SelectSizeSlider = ({ sizes, setActive, getVariants }) => {
             ...searchParams,
             size: sizes[e.activeIndex].name,
           };
-          router.push(pathname + `?${searchParamsVar.toString()}`);
+          router.push(pathname + `?${searchParamsVar.toString()}`, {
+            // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+            shallow: true,
+          });
 
           setActive(sizes[e.activeIndex]);
         }}

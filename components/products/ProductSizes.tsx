@@ -71,7 +71,8 @@ function ProductSizes({ sizes }) {
         setActiveColor={(e) => {
           const newParams = new URLSearchParams(searchParams);
           newParams.set("size", e);
-          router.push(pathname + `?${newParams.toString()}`);
+          // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+          router.push(pathname + `?${newParams.toString()}`, { shallow: true });
           setActiveColor(e);
         }}
       />
@@ -100,6 +101,8 @@ function ProductSizes({ sizes }) {
             newParams.set("size", sizes[swiper.activeIndex].name);
             router.push(pathname + `?${newParams.toString()}`, {
               scroll: false,
+              // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+              shallow: true,
             });
           }}
           coverflowEffect={{

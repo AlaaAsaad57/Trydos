@@ -26,13 +26,16 @@ const CartProvider = () => {
       const newParams = new URLSearchParams(searchParams);
       newParams.set("cart", "true");
       // Use router.push with pathname and updated query
-      router.push(`${pathname}?${newParams.toString()}`);
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     } else {
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("cart");
 
       // Use router.push with pathname and updated query
-      router.push(`${pathname}?${newParams.toString()}`);
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+
+      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     }
   };
   useEffect(() => {

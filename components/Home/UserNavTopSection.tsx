@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import { translateFunction } from "utils/functions";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -52,13 +52,15 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
       newParams.set("cart", "true");
 
       // Use router.push with pathname and updated query
-      router.push(`${pathname}?${newParams.toString()}`);
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     } else {
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("cart");
 
       // Use router.push with pathname and updated query
-      router.push(`${pathname}?${newParams.toString()}`);
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     }
   };
   const searchEnabled = useSelector(
@@ -67,8 +69,9 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
 
   return (
     <div
-      className={`${searchEnabled && "hidden"
-        } user-nav-container md:min-w-[400px]`}
+      className={`${
+        searchEnabled && "hidden"
+      } user-nav-container md:min-w-[400px]`}
     >
       <div
         className="nav-question-item"

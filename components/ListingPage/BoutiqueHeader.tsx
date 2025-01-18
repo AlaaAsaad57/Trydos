@@ -181,7 +181,8 @@ function BoutiqueHeader({ boutique, showFilters }) {
       type: "ACTIVE-ROUTE",
       payload: `${pathname}?${params.toString()}`,
     });
-    replace(`${pathname}?${params.toString()}`);
+    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+    replace(`${pathname}?${params.toString()}`, { shallow: true });
   };
   useEffect(() => {
     if (activeFiltersShouldUpdate) {
