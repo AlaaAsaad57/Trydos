@@ -125,11 +125,11 @@ function AddAddressForm({ setAddressDetails, slidePrev, setOpenSelect }) {
             expanded={expanded}
             setExpanded={(e) => setExpanded(e)}
             center={
-              center ||
               (addressDetails.geolocation.lat && {
                 lat: addressDetails.geolocation.lat,
                 lng: addressDetails.geolocation.lng,
-              })
+              }) ||
+              center
             }
             setAddressDetails={(e) => setAddressDetails(e)}
           />

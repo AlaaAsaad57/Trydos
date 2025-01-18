@@ -25,8 +25,7 @@ type MapProps = {
 
 const SelectedLocation = ({ center }: { center: LatLngLiteral }) => {
   const map = useMap();
-
-  map.panTo(center, { animate: true });
+  if (center) map.panTo(center, { animate: true });
   return null;
 };
 
@@ -48,6 +47,12 @@ export const MapElement: React.FC<MapProps> = memo(
     };
 
     const HandlClick = () => {
+      const map = useMap();
+
+      useEffect(() => {
+        if (center) map.panTo(center, { animate: true });
+      }, [center, expanded]);
+
       useMapEvent("click", (e) => {
         setLocation({
           lat: e.latlng.lat,
@@ -79,6 +84,7 @@ export const MapElement: React.FC<MapProps> = memo(
       shadowAnchor: null,
       iconSize: new Point(30, 30),
     });
+
     return (
       <>
         <div
