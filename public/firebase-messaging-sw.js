@@ -43,7 +43,7 @@ messaging.onBackgroundMessage(async function (payload) {
               url + `/boutiques/${JSON.parse(payload?.data.body)?.boutique_slug}`,
           }, // The URL which we are going to use later
         };
-        self.registration.showNotification("New Boutique", notificationOptions);
+        self.registration.showNotification(JSON.parse(payload?.data.body)?.showed_type ?? "New Boutique", notificationOptions);
       }
       if (JSON.parse(payload.data.body).type === "category created") {
         notificationOptions = {
@@ -57,7 +57,7 @@ messaging.onBackgroundMessage(async function (payload) {
               }`,
           }, // The URL which we are going to use later
         };
-        self.registration.showNotification("New Category", notificationOptions);
+        self.registration.showNotification(JSON.parse(payload?.data.body)?.showed_type ?? "New Category", notificationOptions);
       }
       if (JSON.parse(payload.data.body).type === "product cart expiration") {
         notificationOptions = {
@@ -69,7 +69,7 @@ messaging.onBackgroundMessage(async function (payload) {
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
-          "product cart expiration",
+          JSON.parse(payload?.data.body)?.showed_type ?? "product cart expiration",
           notificationOptions
         );
       }
@@ -83,7 +83,7 @@ messaging.onBackgroundMessage(async function (payload) {
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
-          JSON.parse(payload.data.body).description,
+          JSON.parse(payload?.data.body)?.showed_type ?? JSON.parse(payload.data.body).description,
           notificationOptions
         );
       }
@@ -96,7 +96,7 @@ messaging.onBackgroundMessage(async function (payload) {
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
-          JSON.parse(payload.data.body).description,
+          JSON.parse(payload?.data.body)?.showed_type ?? JSON.parse(payload.data.body).description,
           notificationOptions
         );
       }
@@ -110,7 +110,7 @@ messaging.onBackgroundMessage(async function (payload) {
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
-          JSON.parse(payload.data.body).description,
+          JSON.parse(payload?.data.body)?.showed_type ?? JSON.parse(payload.data.body).description,
           notificationOptions
         );
       }
