@@ -23,6 +23,7 @@ function AddAddressForm({ setAddressDetails, slidePrev, setOpenSelect }) {
   );
   const getCenter = async () => {
     let a = await axios.get("http://ip-api.com/json");
+    console.log(a.data);
     setCenter({ lat: a.data?.lat, lng: a.data?.lon });
   };
   const isValid = () => {
