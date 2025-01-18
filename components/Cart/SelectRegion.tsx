@@ -221,8 +221,9 @@ const SearchResults = ({ searchResults, closeSelect }) => {
   };
   return (
     <div className="flex-col w-full h-auto max-h-[290px] overflow-auto mt-[2px]">
-      {searchResults.map((s) => (
+      {searchResults.map((s, i) => (
         <div
+          key={i}
           className="flex min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]"
           onClick={() => {
             select(s);

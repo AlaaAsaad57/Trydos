@@ -4,6 +4,7 @@ module.exports = {
     "react/react-in-jsx-scope": "off",
     "@next/next/no-img-element": "off",
     "react-hooks/exhaustive-deps": "off",
-    "jsx-a11y/alt-text": "off", // Disable this specific rule globally
+    "jsx-a11y/alt-text": "off",
+    "react/display-name": "off", // Disable this specific rule globally
   },
 };
