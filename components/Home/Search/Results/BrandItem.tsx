@@ -12,8 +12,9 @@ function BrandItem({ brand, onClick, isActive }) {
           className="absolute"
         />
       )}
+
       <img
-        src={getConfiguredImage(brand.icon?.file_path)}
+        src={brand.icon?.file_path}
         className="h-full max-h-[30px] object-contain"
       />
     </div>
