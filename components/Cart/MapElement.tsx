@@ -91,7 +91,7 @@ export const MapElement: React.FC<MapProps> = memo(
           }}
         >
           <MapContainer
-            center={center}
+            center={(center.lat && center) || { lat: 39.1667, lng: 35.6667 }}
             zoom={13}
             ref={ref}
             trackResize={true}
