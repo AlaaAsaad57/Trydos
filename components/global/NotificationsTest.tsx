@@ -4,7 +4,7 @@ import home from "services/home";
 import { useSelector } from "react-redux";
 
 function NotificationsTest() {
-  const [enable, setEnable] = useState(true);
+  const [enable, setEnable] = useState(false);
   const starttingSetting = useSelector(
     (state: StateInterface) => state.homepage.settings
   );
