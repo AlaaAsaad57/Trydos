@@ -12,6 +12,7 @@ import {
   useRouter,
   useParams,
 } from "next/navigation";
+import NotificationsTest from "components/global/NotificationsTest";
 
 interface UserNavTopSectionProps {
   loginOpen: boolean;
@@ -69,12 +70,12 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
       className={`${searchEnabled && "hidden"
         } user-nav-container md:min-w-[400px]`}
     >
-      {/* <div
+      <div
         className="nav-question-item"
         style={{ marginRight: "30px", marginLeft: "0px" }}
       >
         {user && <NotificationsTest />}
-      </div> */}
+      </div>
       <div
         className="nav-question-item cart-icon-selector cursor-pointer"
         style={{ marginRight: "30px", marginLeft: "0px" }}
