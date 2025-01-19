@@ -8,8 +8,6 @@
 // commands please read more here:
 // https://on.cypress.io/custom-commands
 // ***********************************************
-//
-//
 // -- This is a parent command --
 // Cypress.Commands.add('login', (email, password) => { ... })
 //
@@ -34,7 +32,7 @@
 //       visit(originalFn: CommandOriginalFn, url: string, options: Partial<VisitOptions>): Chainable<Element>
 //     }
 //   }
-// }
+// }// Custom command to visit a URL with overridden Notification permissions
 Cypress.Commands.add("Visit", function (url: string) {
   cy.visit(url, {
     onBeforeLoad(win) {
@@ -43,7 +41,15 @@ Cypress.Commands.add("Visit", function (url: string) {
       cy.stub(win, "Notification").as("Notification");
     },
   });
+  cy.wait(5000);
+  cy.Exist("#country").then((exists) => {
+    if (exists) {
+      cy.get("#country").select("TR");
+    } else {
+    }
+  });
 });
+
 Cypress.Commands.add("Exist", (selector) => {
   cy.get("body")
     .should("exist")
@@ -58,4 +64,176 @@ Cypress.Commands.add("Exist", (selector) => {
         }
       });
     });
+});
+
+Cypress.Commands.add("clearAllData", () => {
+  cy.clearAllCookies();
+  cy.clearAllLocalStorage();
+  cy.clearAllSessionStorage();
+});
+Cypress.Commands.add("clearAllDataWithoutCookies", () => {
+  cy.clearAllLocalStorage();
+  cy.clearAllSessionStorage();
+});
+Cypress.Commands.add("clearAllDataWithoutSessionStorage", () => {
+  cy.clearAllLocalStorage();
+  cy.clearAllCookies();
+});
+Cypress.Commands.add("typePincode", (pincode: string) => {
+  const digits = pincode.split(""); // Split the pincode into individual digits
+  digits.forEach((digit, index) => {
+    cy.get(`.pincode-input-text:nth-child(${index + 1})`).type(digit, {
+      scrollBehavior: false,
+    });
+  });
+});
+Cypress.Commands.add("enterPhoneNumber", (phoneNumber: string) => {
+  cy.get("#phoneInput").click({ scrollBehavior: false });
+  cy.get("#phoneInput").type(`${phoneNumber}{enter}`, {
+    scrollBehavior: false,
+  });
+  cy.get(".phone-arrow").click({ scrollBehavior: false });
+  cy.get(".message-recieve-option:nth-child(1)").click({
+    scrollBehavior: false,
+  });
+});
+Cypress.Commands.add("performLogin", () => {
+  cy.clearAllData;
+  cy.viewport(783, 824);
+  cy.wait(5000);
+  cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
+  cy.wait(3000);
+  cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false }); //have account
+  cy.Exist("[data-cy=login-methods-container]").then((exist) => {
+    if (exist) {
+      cy.get("[data-cy=login-method-phone]").click();
+    }
+  });
+  cy.enterPhoneNumber("963937288307");
+  cy.wait(5000);
+  cy.typePincode("999999");
+});
+Cypress.Commands.add("Performloginfailure", () => {
+  cy.clearAllData();
+  cy.viewport(783, 824);
+  cy.wait(10000);
+  cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
+  cy.wait(8000);
+  cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false });
+  cy.enterPhoneNumber("963937288307");
+  cy.wait(6000);
+  cy.typePincode("999999");
+  cy.wait("@verifyOtpSignin", { timeout: 20000 }).then((s) => {
+    console.log(s);
+  });
+  cy.wait(6000);
+  cy.wait(5000).then(() => {
+    cy.get(".not-registered").should("be.visible");
+  });
+});
+Cypress.Commands.add("performErrorLogin", () => {
+  cy.viewport(783, 824);
+  cy.wait(5000);
+  cy.Exist(".en-regular:nth-child(2)").then((exists) => {
+    if (exists) {
+      cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
+    } else {
+      cy.clearAllDataWithoutSessionStorage();
+      cy.reload();
+      cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
+    }
+  });
+  cy.wait(8000);
+  cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false });
+  cy.enterPhoneNumber("963937288307");
+  cy.wait(5000);
+  cy.typePincode("499999");
+  cy.get(".input-failed", { timeout: 10000 }).should("be.visible");
+});
+Cypress.Commands.add("performExpireOtpLogin", () => {
+  cy.clearAllCookies();
+  cy.viewport(783, 824);
+  cy.wait(60000);
+  cy.Exist(".en-regular:nth-child(2)").then((exists) => {
+    if (exists) {
+      cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
+    } else {
+      cy.clearAllLocalStorage();
+      cy.clearAllCookies();
+      cy.reload();
+      cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
+    }
+  });
+  cy.wait(8000);
+  cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false });
+  cy.enterPhoneNumber("963937288307");
+  cy.wait(130000);
+  cy.Exist(".resend-code-button").then((s) => {
+    if (s) {
+      cy.get(".resend-code-button").click();
+      cy.wait(5000);
+      cy.typePincode("999999");
+    } else {
+      expect(1).to.equal(2);
+    }
+  });
+});
+// **************************Sign up*************************** *//
+Cypress.Commands.add("signupProcess", () => {
+  cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
+    req.continue((res) => {
+      res.body.data.already_exists = false;
+    });
+  }).as("verifyOtpSignin");
+  cy.clearAllData();
+  cy.viewport(783, 824);
+  cy.wait(6000);
+  cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
+  cy.wait(3000);
+  cy.get(".login-button:nth-child(2)").click({ scrollBehavior: false });
+  cy.get(".agree-terms").click({ scrollBehavior: false });
+  cy.enterPhoneNumber("963937288307");
+  cy.wait(5000);
+  cy.typePincode("999999");
+});
+Cypress.Commands.add("failedSignupProcess", () => {
+  cy.viewport(783, 824);
+  cy.wait(5000);
+  cy.Exist(".en-regular:nth-child(2)").then((exists) => {
+    if (exists) {
+      cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
+    } else {
+      cy.clearAllDataWithoutSessionStorage();
+      cy.reload();
+      cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
+    }
+  });
+  cy.wait(8000);
+  cy.get(".login-button:nth-child(2)").click({ scrollBehavior: false });
+  cy.get(".agree-terms").click({ scrollBehavior: false });
+  cy.enterPhoneNumber("963937288307");
+  cy.wait(5000);
+  cy.typePincode("499999");
+  cy.get(".input-failed", { timeout: 10000 }).should("be.visible");
+});
+Cypress.Commands.add("alreadyRegisteredSignup", () => {
+  cy.clearAllData();
+  cy.viewport(783, 824);
+  cy.wait(10000);
+  cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
+    req.continue((res) => {
+      res.body.data.already_exists = true;
+    });
+  }).as("verifyOtpSignin");
+  cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
+  cy.wait(8000);
+  cy.get(".login-button:nth-child(2)").click({ scrollBehavior: false });
+  cy.get("[data-cy=agree-terms]").click({ scrollBehavior: false });
+  cy.enterPhoneNumber("963937288307");
+  cy.wait(6000);
+  cy.typePincode("999999");
+  cy.wait("@verifyOtpSignin", { timeout: 20000 }).then((s) => {
+    console.log(s);
+  });
+  cy.wait(6000);
 });
