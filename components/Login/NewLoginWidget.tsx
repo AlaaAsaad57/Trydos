@@ -529,7 +529,7 @@ function NewLoginWidget() {
             id="login-close-icon"
             data-testid="login-close-icon"
             onClick={() => {
-              AuthService.cancelAuth();
+              if (stepIndicator < 6) AuthService.cancelAuth();
               setLoginOpen(false);
               Sendevent({
                 event: "button_clicked",
@@ -546,7 +546,7 @@ function NewLoginWidget() {
                   category: "button_clicked",
                   value: "later_take_look_button",
                 });
-                AuthService.cancelAuth();
+                if (stepIndicator < 6) AuthService.cancelAuth();
                 setLoginOpen(false);
               }}
               xmlns="http://www.w3.org/2000/svg"

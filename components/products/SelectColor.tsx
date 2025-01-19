@@ -33,13 +33,15 @@ function SelectColor({ close }) {
       newParams.set("cart", "true");
 
       // Use router.push with pathname and updated query
-      router.push(`${pathname}?${newParams.toString()}`);
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     } else {
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("cart");
 
       // Use router.push with pathname and updated query
-      router.push(`${pathname}?${newParams.toString()}`);
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     }
   };
 
@@ -121,6 +123,7 @@ function SelectColor({ close }) {
                   AddToCartOption?.selectedColor?.images[0]) ||
                 (SelectedProduct?.images && SelectedProduct?.images[0]),
             })}
+            alt="add to cart icon"
             className={"h-full object-top rounded-[15px] moved-img "}
           />
         </div>
@@ -142,7 +145,11 @@ export const SelectColorsSlider = ({ colors }) => {
   const setActive = (e) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set("color", e.color_name);
-    router.push(pathname + `?${newParams.toString()}`, { scroll: false });
+    router.push(pathname + `?${newParams.toString()}`, {
+      scroll: false,
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+      shallow: true,
+    });
     dispatch({ type: "AddToCartColor", payload: e });
     Sendevent({ event: "button_clicked", value: "slide_choose_color_event" });
   };

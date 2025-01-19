@@ -8,7 +8,7 @@ import { Category } from "models/Category";
 import MobileNavigation from "./MobileNavigation";
 import CategoriesBar from "./CategoriesBar";
 import NextLink from "components/global/NextLink";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import AuthSections from "./AuthSections";
 import { ToastContainer } from "react-toastify";
@@ -31,12 +31,15 @@ function Navbar({ init, categories, response }: NavbarProps) {
   );
   const dispatch = useDispatch();
   const params = usePathname();
+  const searchParams = useSearchParams();
+
   const initFunc = async () => {
     const Cookies = (await import("js-cookie")).default;
     let languageCookies = Cookies.get("language");
-    Cookies.set("country", init.split("-")[0], {
-      expires: 365,
-    });
+    if (!searchParams.get("no-country"))
+      Cookies.set("country", init.split("-")[0], {
+        expires: 365,
+      });
     dispatch(
       changeAppLanguage(
         init.split("-")[1] ||
@@ -78,7 +81,7 @@ function Navbar({ init, categories, response }: NavbarProps) {
       <AuthSections />
       <div className="home-navbar">
         <NextLink
-          href={"/"}
+          href={`/${init}`}
           aria-label="TryDos Home"
           onClick={(e) => {
             dispatch({ type: "ENABLE-SEARCH", payload: false });

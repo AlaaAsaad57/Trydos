@@ -123,7 +123,8 @@ function FilterBar({ boutique, filters, productsServer }) {
       } else {
         params.delete("searchText");
       }
-      router.replace(`${pathname}?${params.toString()}`);
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+      router.replace(`${pathname}?${params.toString()}`, { shallow: true });
     }
   };
 
@@ -275,7 +276,11 @@ function FilterBar({ boutique, filters, productsServer }) {
                   } else {
                     params.delete("searchText");
                   }
-                  router.replace(`${pathname}?${params.toString()}`);
+                  router.replace(`${pathname}?${params.toString()}`, {
+                    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+
+                    shallow: true,
+                  });
                   // @ts-ignore
                   e.target.blur();
                 }

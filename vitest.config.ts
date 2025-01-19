@@ -4,9 +4,13 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import svgr from "vite-plugin-svgr";
 
 export default defineConfig({
+  // @ts-ignore
   plugins: [
-    react(),
+    // @ts-ignore
+    ...react(),
+    // @ts-ignore
     tsconfigPaths(),
+    // @ts-ignore
     svgr({
       // Vite plugin for handling SVG files
       include: "**/**/*.svg",

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "styles/sizeSlider.css";
@@ -33,7 +33,11 @@ function SelectSize({ sizes, variants }) {
   const setActive = (e) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set("size", e.name);
-    router.push(pathname + `?${newParams.toString()}`, { scroll: false });
+    router.push(pathname + `?${newParams.toString()}`, {
+      scroll: false,
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+      shallow: true,
+    });
     dispatch({ type: "AddToCartSize", payload: e });
     Sendevent({ event: "button_clicked", value: "slide_choose_size_event" });
   };
@@ -136,11 +140,17 @@ function SelectSize({ sizes, variants }) {
           <span>Not Available Now, Stock Is Sold Out </span>
         </div>
       ) : (
-        <div className="flex-row items-center text-[12px] text-[#404040] mt-[9px] regular [&>span]:ml-1">
+        <div
+          className={
+            languageVariable === "ar"
+              ? "flex-row-rev items-center text-[12px] text-[#404040] mt-[9px] regular [&>span]:ml-1"
+              : "flex-row items-center text-[12px] text-[#404040] mt-[9px] regular [&>span]:ml-1"
+          }
+        >
           <span className="bold">M</span>
-          <span>Recommended </span>
-          <span className="bold">Size </span>
-          <span>For You </span>
+          <span> {translate("Recommended")} </span>
+          <span className="bold">{translate("Size")} </span>
+          <span> {translate("For You")} </span>
           {getVariants() < 10 && (
             <>
               <span className="text-[#FFAF5F]">Last </span>
@@ -306,7 +316,9 @@ function SelectSize({ sizes, variants }) {
             </g>
           </svg>
 
-          <span className="ml-[10px]">Need Help Finding Your Size?</span>
+          <span className="ml-[10px]">
+            {translate("Need Help Finding Your Size?")}
+          </span>
         </div>
         <div className="flex bg-[#F8F8F8] rounded-[20px] ml-[10px] h-[50px] items-center justify-center w-[69px]">
           <svg
@@ -372,7 +384,7 @@ const SelectSizeSlider = ({ sizes, setActive, getVariants }) => {
       let size = sizes.filter((s) => s.name === searchParams.get("size"))[0];
       if (size) dispatch({ type: "AddToCartSize", payload: size });
     }
-  }, []);
+  });
   const getInitial = () => {
     if (searchParams.get("size")) {
       let index = 0;
@@ -405,7 +417,10 @@ const SelectSizeSlider = ({ sizes, setActive, getVariants }) => {
             ...searchParams,
             size: sizes[e.activeIndex].name,
           };
-          router.push(pathname + `?${searchParamsVar.toString()}`);
+          router.push(pathname + `?${searchParamsVar.toString()}`, {
+            // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+            shallow: true,
+          });
 
           setActive(sizes[e.activeIndex]);
         }}

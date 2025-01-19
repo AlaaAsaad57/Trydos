@@ -3,7 +3,12 @@ import CloseIcon from "public/svg/CloseIcon.svg";
 import SearchCloseIcon from "public/svg/SearchCloseIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { ChangeEvent, useEffect } from "react";
-import { caseCheck, onClickSearchHistory, Sendevent } from "utils/functions";
+import {
+  caseCheck,
+  onClickSearchHistory,
+  Sendevent,
+  translateFunction,
+} from "utils/functions";
 import home from "services/home";
 import { DebounceInput } from "react-debounce-input";
 import { dispatchRouteChangeEvent } from "utils/events";
@@ -164,7 +169,7 @@ function SearchComponent({
         <DebounceInput
           minLength={2}
           className="search-input"
-          placeholder="Search"
+          placeholder={translateFunction("Search")}
           onFocus={() => setFocuse(true)}
           onInput={(e) => {
             onInput(e);

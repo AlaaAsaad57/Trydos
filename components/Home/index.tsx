@@ -1,4 +1,4 @@
-"use client";
+"use client";;
 import "styles/home.css";
 import { useDispatch, useSelector } from "react-redux";
 import dynamic from "next/dynamic";
@@ -21,7 +21,6 @@ import { dispatchRouteChangeEvent } from "utils/events";
 //   ssr: false,
 // });
 import SearchContainer from "./Search/SearchContainer";
-import React from "react";
 
 export default function Home() {
   useEffect(() => {
@@ -31,7 +30,7 @@ export default function Home() {
     StoryServiceClass.getStories();
     try {
       initFB();
-    } catch (e) {}
+    } catch (e) { }
   }, []);
   const dispatch = useDispatch();
   const initFB = async () => {
@@ -52,27 +51,13 @@ export default function Home() {
               token: fbtoken,
               user: getUserChat(),
             });
-
-          fetch("/api/subscribeToTopic", {
-            cache: "no-cache",
-            method: "POST",
-            // @ts-ignore
-            body: JSON.stringify({ token: fbtoken, topic: "boutique_created" }),
-          });
-
-          fetch("/api/subscribeToTopic", {
-            cache: "no-cache",
-            method: "POST",
-            // @ts-ignore
-            body: JSON.stringify({ token: fbtoken, topic: "category_created" }),
-          });
         }
       });
       typeof window !== "undefined" &&
         "serviceWorker" in navigator &&
         onMessageListener()
-          .then((payload) => {})
-          .catch((err) => {});
+          .then((payload) => { })
+          .catch((err) => { });
     }
   };
   const selectedStory = useSelector(

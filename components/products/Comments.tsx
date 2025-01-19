@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import CommentItem from "./CommentItem";
 import { showDate } from "components/Chat/chatsFunctions";
 import Skeleton from "react-loading-skeleton";
-import axios from "axios";
 
 import { useSelector } from "react-redux";
 import { AxiosPost } from "utils/AxiosApi";

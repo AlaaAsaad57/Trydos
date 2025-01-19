@@ -249,6 +249,7 @@ function ProductFooterSection({ product }) {
           />
           {
             <ExtendedAreaInfo
+              loading={loading}
               Render={productState?.Render}
               colors={product.sync_color_images}
               verifyCommentAction={(mid) =>

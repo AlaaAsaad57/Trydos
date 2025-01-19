@@ -16,7 +16,8 @@ function ProductToOldCart({ data }) {
     newParams.set("cart", "true");
 
     // Use router.push with pathname and updated query
-    router.push(`${pathname}?${newParams.toString()}`);
+    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+    router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
   };
   return (
     <div className="flex-col" onClick={() => openCart()}>

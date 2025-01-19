@@ -1,5 +1,52 @@
 const initialState = {
   cart: [],
+  addressLists: [
+    {
+      id: parseInt(Math.random() * 1000),
+      geolocation: {
+        lat: 33.50444295570695,
+        lng: 36.29793030614546,
+      },
+      Country: {
+        name: "Turkey",
+        code: "TR",
+      },
+      location: "",
+      detailes_Address:
+        "LA, 1608. Cd., Üniversiteler Mahallesi, Çankaya, Ankara, Central Anatolia Region, 06800, Turkey",
+      title: "My Home",
+      ContactInfo: {
+        name: "Alaa Asaad",
+        phone: "+963937288307",
+        alternatePhone: "+963937288307",
+      },
+      region:
+        "LA, 1608. Cd., Üniversiteler Mahallesi, Çankaya, Ankara, Central Anatolia Region, 06800, Turkey",
+      regionDetails: {
+        province: null,
+        town: null,
+        suburb: null,
+      },
+    },
+  ],
+  addressDetails: {
+    geolocation: { lat: null, lng: null },
+    Country: { name: "Turkey", code: "TR" },
+    location: "",
+    detailes_Address: "",
+    title: "",
+    ContactInfo: {
+      name: "",
+      phone: "",
+      alternatePhone: "",
+    },
+    region: "",
+    regionDetails: {
+      province: null,
+      town: null,
+      suburb: null,
+    },
+  },
   enable: false,
   AddToCartOption: {
     enable: false,
@@ -20,6 +67,70 @@ const initialState = {
 
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "INIT-ADDRESS-FORM": {
+      return {
+        ...state,
+        addressDetails: {
+          geolocation: { lat: null, lng: null },
+          Country: { name: "Turkey", code: "TR" },
+          location: "",
+          detailes_Address: "",
+          title: "",
+          ContactInfo: {
+            name: "",
+            phone: "",
+            alternatePhone: "",
+          },
+          region: "",
+          regionDetails: {
+            province: null,
+            town: null,
+            suburb: null,
+          },
+        },
+      };
+    }
+    case "ADD-ADDRESS": {
+      return {
+        ...state,
+        addressLists: state.addressLists.push({
+          ...state.addressDetails,
+          id: parseInt(Math.random() * 1000),
+        }),
+      };
+    }
+    case "START-UPDATE-ADDRESS": {
+      return {
+        ...state,
+        addressDetails: payload,
+      };
+    }
+    case "UPDATE-ADDRESS": {
+      let arr = [];
+      state.addressLists.map((s) => {
+        if (s.id === payload.id) arr.push(payload);
+        else arr.push(s);
+      });
+      return {
+        ...state,
+        addressLists: arr,
+      };
+    }
+    case "DELETE-ADDRESS": {
+      return {
+        ...state,
+        addressLists: state.addressLists.filter((s) => s.id !== payload),
+      };
+    }
+    case "set-address-details": {
+      return {
+        ...state,
+        addressDetails: {
+          ...state.addressDetails,
+          ...payload,
+        },
+      };
+    }
     case "LOADED-CART": {
       return {
         ...state,
@@ -367,7 +478,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         (s) =>
           s.type.includes(
             state?.AddToCartOption?.selectedColor?.color_name || ""
-          ) && s.type.includes(payload.name || "")
+          ) && s.type.includes(payload?.name || "")
       )[0];
       return {
         ...state,

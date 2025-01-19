@@ -1,6 +1,6 @@
 import { useParams } from "next/navigation";
 import { useSelector } from "react-redux";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import home from "services/home";
 import { translateFunction } from "utils/functions";
 
@@ -115,10 +115,19 @@ function MoreOptionsSection() {
             </svg>
             <span>
               {translate("Notify Me About The Product When", language)}
+
             </span>
           </div>
           <div id="slider-options" className="notify-row">
-            <div className="button-option">
+            <div className="button-option"
+              onClick={async () => {
+                await home.subscribeToTopics({
+                  id: SelectedProduct.id,
+                  availibility: true,
+                  language_code: languageVariable
+                });
+              }}
+            >
               {translate("Before Stock Out", language)}
             </div>
             <div className="button-option">
@@ -128,8 +137,9 @@ function MoreOptionsSection() {
               className="button-option"
               onClick={async () => {
                 await home.subscribeToTopics({
-                  slug: SelectedProduct.slug_en_topic,
+                  id: SelectedProduct.id,
                   discount: true,
+                  language_code: languageVariable
                 });
               }}
             >
@@ -139,8 +149,9 @@ function MoreOptionsSection() {
               className="button-option"
               onClick={async () => {
                 await home.subscribeToTopics({
-                  slug: SelectedProduct.slug_en_topic,
+                  id: SelectedProduct.id,
                   comments: true,
+                  language_code: languageVariable
                 });
               }}
             >

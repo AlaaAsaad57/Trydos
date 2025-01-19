@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import AddToCartButton from "./AddToCartButton";
 import Heart from "public/svg/Heart.svg";
 import HeartFill from "public/svg/HeartFill.svg";
@@ -9,16 +9,11 @@ import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  ExpiredUser,
-  getUser,
-  Sendevent,
-  UserID,
-  UserToken,
-} from "utils/functions";
-import axios from "axios";
+import { getLang, Sendevent, UserID } from "utils/functions";
 import home from "services/home";
 import { AxiosPost } from "utils/AxiosApi";
+import Cookies from "js-cookie";
+
 function ProductOptions({
   activeOption,
   setOption,
@@ -49,6 +44,9 @@ function ProductOptions({
   const [isLiked, setLiked] = useState(false);
   const dispatch = useDispatch();
   const LikeProduct = async (bool) => {
+    let [countryUrl, languageUrl] = window.location.pathname
+      .split("/")[1]
+      .split("-");
     if (bool) {
       dispatch({
         type: "EDIT-INFO",
@@ -61,7 +59,7 @@ function ProductOptions({
           body: { product_id: product.id, user_id: UserID() },
           hasMessageOnly: true,
         });
-        home.subscribeToTopics({ slug: SelectedProduct.slug_en_topic });
+        home.subscribeToTopics({ id: SelectedProduct.id, language_code: getLang(languageUrl, Cookies.get("language")) });
       } catch (error) {
         dispatch({
           type: "EDIT-INFO",
@@ -99,12 +97,12 @@ function ProductOptions({
             productVar={product}
             product={SelectedProduct}
             loading={loaded && SelectedProduct.choice_options}
+            showLoading={loading}
           />
           <div className="options-container">
             <div
-              className={`product-option-item ${
-                activeOption === "Like" && "active-option"
-              }`}
+              className={`product-option-item ${activeOption === "Like" && "active-option"
+                }`}
               onClick={() => {
                 Sendevent({
                   event: "button_clicked",
@@ -143,9 +141,8 @@ function ProductOptions({
               </span>
             </div>
             <div
-              className={`product-option-item relative ${
-                activeOption === "Share" && "active-option"
-              }`}
+              className={`product-option-item relative ${activeOption === "Share" && "active-option"
+                }`}
               onClick={() => {
                 Sendevent({
                   event: "button_clicked",

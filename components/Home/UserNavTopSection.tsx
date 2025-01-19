@@ -6,14 +6,13 @@ import Image from "next/image";
 import AuthNavSection from "./AuthNavSection";
 
 import CartIcon from "public/svg/CartIcon.svg";
-import React from "react";
-import NotificationsTest from "components/global/NotificationsTest";
 import {
   usePathname,
   useSearchParams,
   useRouter,
   useParams,
 } from "next/navigation";
+import NotificationsTest from "components/global/NotificationsTest";
 
 interface UserNavTopSectionProps {
   loginOpen: boolean;
@@ -53,13 +52,15 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
       newParams.set("cart", "true");
 
       // Use router.push with pathname and updated query
-      router.push(`${pathname}?${newParams.toString()}`);
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     } else {
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("cart");
 
       // Use router.push with pathname and updated query
-      router.push(`${pathname}?${newParams.toString()}`);
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     }
   };
   const searchEnabled = useSelector(
@@ -72,12 +73,12 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
         searchEnabled && "hidden"
       } user-nav-container md:min-w-[400px]`}
     >
-      {/* <div
+      <div
         className="nav-question-item"
         style={{ marginRight: "30px", marginLeft: "0px" }}
       >
         {user && <NotificationsTest />}
-      </div> */}
+      </div>
       <div
         className="nav-question-item cart-icon-selector cursor-pointer"
         style={{ marginRight: "30px", marginLeft: "0px" }}

@@ -35,15 +35,15 @@ messaging.onBackgroundMessage(async function (payload) {
     if (payload.data.title === "market") {
       if (JSON.parse(payload.data.body).type === "boutique created") {
         notificationOptions = {
-          body: "New Boutique",
-          icon: JSON.parse(payload?.data.body)?.boutique_icon.file_path,
-          image: JSON.parse(payload?.data.body)?.banner[0].file_path,
+          body: JSON.parse(payload?.data.body)?.description,
+          icon: JSON.parse(payload?.data.body)?.boutique_icon?.file_path,
+          image: JSON.parse(payload?.data.body)?.banner[0]?.file_path,
           data: {
             url:
-              url + `boutiques/${JSON.parse(payload?.data.body).boutique_slug}`,
+              url + `/boutiques/${JSON.parse(payload?.data.body)?.boutique_slug}`,
           }, // The URL which we are going to use later
         };
-        self.registration.showNotification("New Boutique", notificationOptions);
+        self.registration.showNotification(JSON.parse(payload?.data.body)?.showed_type ?? "New Boutique", notificationOptions);
       }
       if (JSON.parse(payload.data.body).type === "category created") {
         notificationOptions = {
@@ -53,40 +53,37 @@ messaging.onBackgroundMessage(async function (payload) {
           data: {
             url:
               url +
-              `boutiques/listing?categories=${
-                JSON.parse(payload?.data.body).category_slug
+              `boutiques/listing?categories=${JSON.parse(payload?.data.body).category_slug
               }`,
           }, // The URL which we are going to use later
         };
-        self.registration.showNotification("New Category", notificationOptions);
+        self.registration.showNotification(JSON.parse(payload?.data.body)?.showed_type ?? "New Category", notificationOptions);
       }
       if (JSON.parse(payload.data.body).type === "product cart expiration") {
         notificationOptions = {
-          body: `${
-            JSON.parse(payload.data.body)?.product_name
-          } has turned to Old Cart`,
+          body: `${JSON.parse(payload.data.body)?.product_name
+            } has turned to Old Cart`,
 
           data: {
             url: url + `?cart=true`,
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
-          "product cart expiration",
+          JSON.parse(payload?.data.body)?.showed_type ?? "product cart expiration",
           notificationOptions
         );
       }
       if (JSON.parse(payload.data.body).type === "product availability") {
         notificationOptions = {
-          body: `${
-            JSON.parse(payload.data.body)?.product_name
-          } is Now Available`,
+          body: `${JSON.parse(payload.data.body)?.product_name
+            } is Now Available`,
           image: JSON.parse(payload.data.body).image,
           data: {
             url: url + `products/${JSON.parse(payload.data.body).product_slug}`,
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
-          JSON.parse(payload.data.body).description,
+          JSON.parse(payload?.data.body)?.showed_type ?? JSON.parse(payload.data.body).description,
           notificationOptions
         );
       }
@@ -99,22 +96,21 @@ messaging.onBackgroundMessage(async function (payload) {
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
-          JSON.parse(payload.data.body).description,
+          JSON.parse(payload?.data.body)?.showed_type ?? JSON.parse(payload.data.body).description,
           notificationOptions
         );
       }
       if (JSON.parse(payload.data.body).type === "product comment") {
         notificationOptions = {
-          body: `${
-            JSON.parse(payload.data.body)?.product_name
-          } has new Comments`,
+          body: `${JSON.parse(payload.data.body)?.product_name
+            } has new Comments`,
           image: JSON.parse(payload.data.body).image,
           data: {
             url: url + `products/${JSON.parse(payload.data.body).product_slug}`,
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
-          JSON.parse(payload.data.body).description,
+          JSON.parse(payload?.data.body)?.showed_type ?? JSON.parse(payload.data.body).description,
           notificationOptions
         );
       }

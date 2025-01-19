@@ -1,5 +1,6 @@
 import React from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
+import { getConfiguredImage } from "utils/functions";
 
 function BoutiqueItem({ boutique, onClick, isActive }) {
   return (
@@ -13,7 +14,14 @@ function BoutiqueItem({ boutique, onClick, isActive }) {
           className="absolute"
         />
       )}
-      <img src={boutique?.banner?.file_path} className="rounded-xl min-w-20" />
+      <img
+        src={getConfiguredImage({
+          src: boutique?.banner?.file_path,
+          width: "80",
+          height: "30",
+        })}
+        className="rounded-xl min-w-[80px]"
+      />
     </div>
   );
 }

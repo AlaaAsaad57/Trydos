@@ -1,7 +1,7 @@
 "use client";
 import { ProductInterface } from "models/product";
 import { useParams, useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { encode_utf8, Sendevent, translateFunction } from "utils/functions";
 
@@ -40,7 +40,7 @@ function ProductDetailsText({
   }, []);
   return (
     <div className="product-details-text">
-      <div id="details"></div>
+      <div id="details" className="have-arabic"></div>
       {!show ? (
         <span
           className="read-more"

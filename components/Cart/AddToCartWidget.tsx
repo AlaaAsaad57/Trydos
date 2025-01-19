@@ -21,6 +21,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import { ToastContainer } from "react-toastify";
+import { AxiosGet } from "utils/AxiosApi";
 
 function AddToCartWidget() {
   const dispatch = useDispatch();
@@ -37,22 +38,14 @@ function AddToCartWidget() {
   const getDetails = async () => {
     if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
     let start = new Date();
-    let repo = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL +
+    let data = await AxiosGet({
+      url:
+        process.env.NEXT_PUBLIC_BACKEND_URL +
         QTY_URL +
         `/${SelectedProduct.slug}`,
-      {
-        headers: {
-          Authorization: `Bearer ${
-            localStorage.getItem("MARKET-TOKEN") ||
-            localStorage.getItem("DEVICE-TOKEN")
-          }`,
-          lang: getLang(languageUrl, Cookies.get("language")),
-          country: country || Cookies.get("country"),
-        },
-      }
-    );
-    let data = await repo.json();
+      title: "Get Product",
+    });
+
     let end = new Date();
     LogData({
       request: "Get Product Quantity info",
@@ -74,9 +67,9 @@ function AddToCartWidget() {
     let additionalData = await auth.getProductNotify({
       id: SelectedProduct.slug,
     });
-    dispatch({ type: "GET-PRODUCT-DETAILS-FOR-CART", payload: data.data });
-    if (data.data.choice_options) {
-      let a = data.data?.choice_options?.filter((s) => s.title == "Size")[0]
+    dispatch({ type: "GET-PRODUCT-DETAILS-FOR-CART", payload: data });
+    if (data.choice_options) {
+      let a = data?.choice_options?.filter((s) => s.title == "Size")[0]
         ?.options[0];
       dispatch({ type: "AddToCartSize", payload: a });
     }
@@ -138,13 +131,31 @@ function AddToCartWidget() {
           </div>
         ) : (
           <div className="Extended-area-product p-3">
-            <div className="flex-row">
-              <Skeleton className="w-20 h-20 rounded-full ml-2" />
-              <Skeleton className="w-20 h-20 rounded-full ml-2" />
-              <Skeleton className="w-20 h-20 rounded-full ml-2" />
-              <Skeleton className="w-20 h-20 rounded-full ml-2" />
-              <Skeleton className="w-20 h-20 rounded-full ml-2" />
-              <Skeleton className="w-20 h-20 rounded-full ml-2" />
+            <div className="flex-row justify-center w-full">
+              <Skeleton
+                containerClassName="h-20 items-center flex-row"
+                className="w-20 h-20 rounded-full ml-2 items-center flex-row"
+              />
+              <Skeleton
+                containerClassName="h-20 items-center flex-row"
+                className="w-20 h-20 rounded-full ml-2 flex-row"
+              />
+              <Skeleton
+                containerClassName="h-20 items-center flex-row"
+                className="w-20 h-20 rounded-full ml-2 flex-row"
+              />
+              <Skeleton
+                containerClassName="h-20 items-center flex-row"
+                className="w-20 h-20 rounded-full ml-2 flex-row"
+              />
+              <Skeleton
+                containerClassName="h-20 items-center flex-row"
+                className="w-20 h-20 rounded-full ml-2 flex-row"
+              />
+              <Skeleton
+                containerClassName="h-20 items-center flex-row"
+                className="w-20 h-20 rounded-full ml-2 flex-row"
+              />
             </div>
           </div>
         )}
@@ -152,6 +163,12 @@ function AddToCartWidget() {
           {
             <>
               <AddToCartButton
+                showLoading={
+                  !(
+                    loaded &&
+                    (SelectedProduct.choice_options || product.choice_options)
+                  )
+                }
                 loading={
                   loaded &&
                   (SelectedProduct.choice_options || product.choice_options)
@@ -188,13 +205,15 @@ const SelectColor = ({ close }) => {
       newParams.set("cart", "true");
 
       // Use router.push with pathname and updated query
-      router.push(`${pathname}?${newParams.toString()}`);
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     } else {
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("cart");
 
       // Use router.push with pathname and updated query
-      router.push(`${pathname}?${newParams.toString()}`);
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     }
     dispatch({ type: "ENABLE-CART", payload: s });
   };
@@ -233,7 +252,7 @@ const SelectColor = ({ close }) => {
           />
         </span>
       </div>
-      <div className="flex-col mt-[10px] w-full   top-[103px] items-center z-[9999999999999]">
+      <div className="flex-col mt-[10px] w-full   top-[103px] items-center z-[999999999]">
         <div className="flex-row w-auto justify-center h-available relative rounded-[15px] inset-select-shadow-image image-cart-container">
           <svg
             className="absolute  top-0 left-0"

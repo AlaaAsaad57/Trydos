@@ -1,5 +1,6 @@
 "use client";
 import NextLink from "components/global/NextLink";
+import { useParams } from "next/navigation";
 import React, { useEffect } from "react";
 import { encode_utf8 } from "utils/functions";
 
@@ -12,17 +13,19 @@ function Boutique({ data }) {
       s: data.boutique_description,
     });
   }, []);
-
+  const { lang } = useParams();
   return (
     <NextLink
       className="flex-col"
-      href={`/boutiques/${data.boutique_slug}`}
+      href={`/${lang}/boutiques/${data.boutique_slug}`}
       prefetch
     >
       <div className="regular p-2">New Boutique Added Check it Out</div>
       <div className="flex-row items-center">
         <div className="b-icon">
-          <img width={20} height={20} src={data.boutique_icon.file_path} />
+          {data.boutique_icon?.file_path && (
+            <img width={20} height={20} src={data.boutique_icon?.file_path} />
+          )}
         </div>
         <div
           className={`regular flex ml-2 boutique-desc-notification-${data.boutique_slug}`}
