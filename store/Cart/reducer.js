@@ -115,7 +115,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       });
       return {
         ...state,
-        addressLists: arr,
+        addressLists: arr.reverse(),
       };
     }
     case "DELETE-ADDRESS": {
@@ -476,25 +476,39 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "AddToCartSize": {
-      let variant = (state.variants?.variation || state.variants || []).filter(
-        (s) =>
-          s.type.includes(
-            state?.AddToCartOption?.selectedColor?.color_name || ""
-          ) && s.type.includes(payload?.name || "")
-      )[0];
-      return {
-        ...state,
-        AddToCartOption: {
-          ...state.AddToCartOption,
-          selectedSize: payload,
-          price: {
-            offer_price_formated: variant?.offer_price_formated,
-            price: variant?.price,
-            offer_price: variant.offer_price,
-            price_formated: variant.price_formated,
+      if ((state.variants?.variation || state.variants || [])?.length > 0) {
+        let variant = (
+          state.variants?.variation ||
+          state.variants ||
+          []
+        ).filter(
+          (s) =>
+            s.type.includes(
+              state?.AddToCartOption?.selectedColor?.color_name || ""
+            ) && s.type.includes(payload?.name || "")
+        )[0];
+        return {
+          ...state,
+          AddToCartOption: {
+            ...state.AddToCartOption,
+            selectedSize: payload,
+            price: {
+              offer_price_formated: variant?.offer_price_formated,
+              price: variant?.price,
+              offer_price: variant?.offer_price,
+              price_formated: variant?.price_formated,
+            },
           },
-        },
-      };
+        };
+      } else {
+        return {
+          ...state,
+          AddToCartOption: {
+            ...state.AddToCartOption,
+            selectedSize: payload,
+          },
+        };
+      }
     }
     case "AddToCartColor": {
       // let variant = ( state.variants.variation||state.variants).filter(

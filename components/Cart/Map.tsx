@@ -1,18 +1,40 @@
 "use client";
 import dynamic from "next/dynamic";
 import { useSelector } from "react-redux";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 const MapElement = dynamic(
   () => import("./MapElement").then((mod) => mod.MapElement),
   { ssr: false }
 );
 
-const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
+const Map = ({
+  setAddressDetails,
+  center,
+  expanded,
+  setExpanded,
+  setCenter,
+}) => {
   const addressDetails = useSelector(
     (state: StateInterface) => state.cart.addressDetails
   );
-
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        function (position) {
+          if (!addressDetails.id) {
+            setCenter({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            });
+          }
+        },
+        function (error) {
+          console.error("Error occurred. Error code: " + error.code);
+        }
+      );
+    }
+  }, [expanded]);
   return (
     <>
       <div

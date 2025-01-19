@@ -30,7 +30,7 @@ export default function GlobalError({ error, reset }) {
   return (
     <html lang="en" className="">
       <body>
-        <div className="flex justify-start flex-col items-center p-[50px]">
+        <div className="flex justify-start flex-col items-center p-[50px] min-h-screen">
           <div>
             <Logo style={true} />
           </div>

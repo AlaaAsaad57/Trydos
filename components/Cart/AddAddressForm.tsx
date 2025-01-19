@@ -12,7 +12,12 @@ import Flag from "react-world-flags";
 import TargetIcon from "public/svg/cart/Target.svg";
 import ContactInfoIcon from "public/svg/cart/ContactInfoIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
-function AddAddressForm({ setAddressDetails, slidePrev, setOpenSelect }) {
+function AddAddressForm({
+  setAddressDetails,
+  slidePrev,
+  setOpenSelect,
+  activeIndex,
+}) {
   const [expanded, setExpanded] = useState(false);
   const [center, setCenter] = useState(null);
   useEffect(() => {
@@ -62,7 +67,7 @@ function AddAddressForm({ setAddressDetails, slidePrev, setOpenSelect }) {
   };
   return (
     <>
-      <div className="flex-col h-full max-h-full overflow-auto w-full relative pb-[100px]">
+      <div className="flex-col h-full max-h-full overflow-auto w-full relative pb-[160px]">
         <div
           className="bg-[#F8F8F8] min-h-[50px] flex-row items-center pl-[24px] pr-[20px] "
           style={{
@@ -120,9 +125,10 @@ function AddAddressForm({ setAddressDetails, slidePrev, setOpenSelect }) {
           </div>
         </div>
 
-        {
+        {activeIndex && (
           <Map
             expanded={expanded}
+            setCenter={(e) => setCenter(e)}
             setExpanded={(e) => setExpanded(e)}
             center={
               (addressDetails.geolocation.lat && {
@@ -133,7 +139,7 @@ function AddAddressForm({ setAddressDetails, slidePrev, setOpenSelect }) {
             }
             setAddressDetails={(e) => setAddressDetails(e)}
           />
-        }
+        )}
         <AddressSection
           setOpenSelect={() => {
             setOpenSelect();
@@ -309,10 +315,24 @@ const AddressTitle = () => {
   );
 };
 const ContactInfo = () => {
+  const user = useSelector((state: StateInterface) => state.auth.user);
   const addressDetails = useSelector(
     (state: StateInterface) => state.cart.addressDetails
   );
   const dispatch = useDispatch();
+  useEffect(() => {
+    if (!addressDetails.id) {
+      dispatch({
+        type: "set-address-details",
+        payload: {
+          ContactInfo: {
+            ...addressDetails.ContactInfo,
+            name: user.name,
+          },
+        },
+      });
+    }
+  }, [addressDetails?.id]);
   return (
     <div className="flex-col w-full mt-[30px] px-[12px] pb-[110px]">
       <div className="flex-row px-[12px] items-center">

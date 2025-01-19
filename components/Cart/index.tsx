@@ -87,7 +87,7 @@ function CartContainer({ close, toOrders }) {
   return (
     <div
       className={`flex-col ${
-        cart.length > 0 ? "pb-[220px]" : "100px"
+        cart.length > 0 ? "pb-[283px]" : "100px"
       }   top-0 left-0 min-h-full max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
     >
       <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
@@ -402,7 +402,7 @@ function CartContainer({ close, toOrders }) {
                           } absolute right-4 `}
                         >
                           <div className="product-info-price">
-                            {product.offer_price ? (
+                            {product?.offer_price ? (
                               <>
                                 <div className="flex-col">
                                   <div className="flex-row">
@@ -436,7 +436,7 @@ function CartContainer({ close, toOrders }) {
                                     </div>
                                     <div className="product-new-price text-[18px] bold">
                                       {RoundPrice({
-                                        num: product.offer_price,
+                                        num: product?.offer_price,
                                         rate: currency.exchange_rate,
                                         points:
                                           (decimal_point_settings &&
@@ -458,7 +458,7 @@ function CartContainer({ close, toOrders }) {
                                         {parseInt(
                                           (
                                             ((product.price -
-                                              product.offer_price) /
+                                              product?.offer_price) /
                                               product.price) *
                                             100
                                           ).toString()
@@ -826,7 +826,7 @@ function CartContainer({ close, toOrders }) {
                         }
                         <div className="absolute right-4 bottom-[57px]">
                           <div className="product-info-price">
-                            {product.offer_price ? (
+                            {product?.offer_price ? (
                               <>
                                 <div className="flex-col">
                                   <div className="flex-row">
@@ -860,7 +860,7 @@ function CartContainer({ close, toOrders }) {
                                     </div>
                                     <div className="product-new-price text-[18px] bold">
                                       {RoundPrice({
-                                        num: product.offer_price,
+                                        num: product?.offer_price,
                                         rate: currency.exchange_rate,
                                         points:
                                           (decimal_point_settings &&
@@ -882,7 +882,7 @@ function CartContainer({ close, toOrders }) {
                                         {parseInt(
                                           (
                                             ((product.price -
-                                              product.offer_price) /
+                                              product?.offer_price) /
                                               product.price) *
                                             100
                                           ).toString()

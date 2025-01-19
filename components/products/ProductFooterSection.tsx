@@ -244,7 +244,7 @@ function ProductFooterSection({ product }) {
           <ProductDetails />
           <ProductInfo
             currency={currency?.symbol}
-            newPrice={getPrice(product.offer_price)}
+            newPrice={getPrice(product?.offer_price)}
             oldPrice={getPrice(product.price)}
           />
           {

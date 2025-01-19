@@ -475,7 +475,9 @@ body {
   justify-content: space-around;
   height: 100%;
 }
-
+input[type="search"]::-webkit-search-cancel-button {
+  display: none;
+}
 .logo-container {
   display: flex;
   min-width: 136px;

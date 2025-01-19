@@ -298,50 +298,55 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
           />
         </SwiperSlide>
         <SwiperSlide className="min-w-[100vw] relative max-h-[100vh]  h-[100vh] cart-widget overflow-hidden">
-          <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
-            <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
-              <BackIcon
-                className="cursor-pointer z-50"
-                onClick={() => {
-                  Sendevent({
-                    event: "button_clicked",
-                    value: "appbar_backicon_button",
-                  });
+          {({ isActive }) => (
+            <>
+              <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
+                <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
+                  <BackIcon
+                    className="cursor-pointer z-50"
+                    onClick={() => {
+                      Sendevent({
+                        event: "button_clicked",
+                        value: "appbar_backicon_button",
+                      });
+                      ref.current.slidePrev();
+                    }}
+                  />
+                  <span className="text-[13px] text-[#505050] regular flex-row items-center ">
+                    <AddAddressIcon />
+                    <span className="regular ml-[8px]">
+                      <>
+                        {addressDetails.id
+                          ? translate("Edit Shipping Address")
+                          : translate("Add Shipping Address")}
+                      </>
+                    </span>
+                  </span>
+                  <span
+                    onClick={() => {
+                      if (addressDetails.id) {
+                        setDeleteModal(addressDetails);
+                      }
+                    }}
+                  >
+                    {addressDetails.id && <DeleteIcon />}
+                  </span>
+                </div>
+              </div>
+              <AddAddressForm
+                activeIndex={isActive}
+                setOpenSelect={() => {
+                  setOpenSelect(true);
+                }}
+                slidePrev={() => {
                   ref.current.slidePrev();
                 }}
-              />
-              <span className="text-[13px] text-[#505050] regular flex-row items-center ">
-                <AddAddressIcon />
-                <span className="regular ml-[8px]">
-                  <>
-                    {addressDetails.id
-                      ? translate("Edit Shipping Address")
-                      : translate("Add Shipping Address")}
-                  </>
-                </span>
-              </span>
-              <span
-                onClick={() => {
-                  if (addressDetails.id) {
-                    setDeleteModal(addressDetails);
-                  }
+                setAddressDetails={(e) => {
+                  setAddressDetails(e);
                 }}
-              >
-                {addressDetails.id && <DeleteIcon />}
-              </span>
-            </div>
-          </div>
-          <AddAddressForm
-            setOpenSelect={() => {
-              setOpenSelect(true);
-            }}
-            slidePrev={() => {
-              ref.current.slidePrev();
-            }}
-            setAddressDetails={(e) => {
-              setAddressDetails(e);
-            }}
-          />
+              />
+            </>
+          )}
         </SwiperSlide>
       </Swiper>
     </div>

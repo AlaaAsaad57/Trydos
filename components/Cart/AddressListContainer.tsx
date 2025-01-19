@@ -30,7 +30,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
           </span>
         </div>
         <div className="flex-col justify-between pb-[25px] h-full">
-          <div className="flex-row  mt-[20px] h-auto max-h-[290px] overflow-auto">
+          <div className="flex-col  mt-[20px] h-auto max-h-[290px] overflow-auto">
             {addressLists.map((s, i) => (
               <div
                 key={i}
@@ -78,11 +78,11 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                     </svg>
 
                     <span className="regular ml-[4px] text-[12px] text-[#8D8D8D]">
-                      {addressLists[0].title}
+                      {s.title}
                     </span>
                   </div>
                   <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]">
-                    {addressLists[0].region}
+                    {s.region}
                   </div>
                   <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]">
                     <svg
@@ -122,7 +122,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                     </svg>
 
                     <div className="flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D]">
-                      {addressLists[0].ContactInfo.phone}
+                      {s.ContactInfo.phone}
                     </div>
                     <div className="flex-row ml-[17px]  items-center">
                       <svg
@@ -179,7 +179,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                       </svg>
 
                       <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]">
-                        {addressLists[0].ContactInfo.name}
+                        {s.ContactInfo.name}
                       </div>
                     </div>
                   </div>
