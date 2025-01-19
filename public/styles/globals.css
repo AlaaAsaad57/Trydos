@@ -459,7 +459,7 @@ body {
     )
     rgb(var(--background-start-rgb));
   background: 0 0 !important;
-  min-height: 100vh;
+  min-height: 100%;
 }
 
 * {
@@ -471,7 +471,7 @@ body {
   width: 100%;
   min-width: 100vw;
   display: flex;
-  min-height: 100vh;
+  min-height: 100%;
   justify-content: space-around;
   height: 100%;
 }

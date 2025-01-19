@@ -11,12 +11,18 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
   return (
     <>
       <div
-        className="absolute top-[50px] left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]"
+        className="absolute top-[50px] left-0 min-w-[100vw] z-[999999998] min-h-full opacity-40 bg-[black]"
         onClick={() => {
           closeSelect();
         }}
       />
-      <div className="flex-col items-center px-[12px] bottom-0 select-animation-in fixed z-[999999999] rounded-t-[30px] bg-[#fff] h-[441px] w-full pt-[11px]">
+      <div
+        style={{
+          bottom: "0px",
+          paddingBottom: "calc(env(safe-area-inset-bottom) + 40px)",
+        }}
+        className="flex-col items-center px-[12px]  select-animation-in fixed z-[999999999] rounded-t-[30px] bg-[#fff] h-[481px] w-full pt-[11px]"
+      >
         <div className="flex-row items-center w-full justify-center">
           <MiniDeliveryIcon />
           <span className="flex regular ml-[6px] text-[#1D1D1D] text-[14px]">

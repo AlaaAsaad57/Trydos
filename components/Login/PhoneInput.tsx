@@ -426,9 +426,24 @@ function PhoneInput({
               width: "100%",
             }}
             disabled={false}
-            type="number"
+            type="search"
             autoFocus={true}
             inputMode="numeric"
+            onKeyDown={(e) => {
+              if (
+                e.key === "Enter" ||
+                // @ts-ignore
+
+                e.key === "Tab"
+              ) {
+                e.preventDefault();
+                // @ts-ignore
+                e.target.blur();
+              }
+            }}
+            // @ts-ignore
+            enterkeyhint="done"
+            tabindex="-1"
             onChange={(e) => handleInput(e)}
             className="login-phone-input"
           />

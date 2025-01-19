@@ -82,7 +82,7 @@ function AddToCartWidget() {
     (state: StateInterface) => state.cart.AddToCartOption
   );
   return (
-    <div className="flex-col h-[100vh] w-[100vw] flex top-0 left-0 fixed z-[99999999999999999] justify-start ">
+    <div className="flex-col h-full w-[100vw] flex top-0 left-0 fixed z-[99999999999999999] justify-start ">
       {AddToCartOption.enable && (
         <ToastContainer
           position="top-right"

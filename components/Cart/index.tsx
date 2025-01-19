@@ -73,8 +73,8 @@ function CartContainer({ close, toOrders }) {
         dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
       },
     }).then(() => {
-      getOldCart()
-    })
+      getOldCart();
+    });
   }, []);
   const params = useParams();
 
@@ -86,9 +86,9 @@ function CartContainer({ close, toOrders }) {
   const searchParams = useSearchParams();
   return (
     <div
-      className={`${
-        cart.length > 0 ? "pb-[145px]" : "pb-[90px]"
-      } flex-col   top-0 left-0 min-h-[100vh] max-h-[100vh] h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
+      className={`flex-col ${
+        cart.length > 0 ? "pb-[220px]" : "100px"
+      }   top-0 left-0 min-h-full max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
     >
       <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
         <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
@@ -235,7 +235,7 @@ function CartContainer({ close, toOrders }) {
         </div>
       </div>
 
-      <div className="flex-col overflow-auto">
+      <div className="flex-col overflow-auto max-h-full">
         <div className="flex-col  w-full h-auto mt-10 pb-[20px]">
           {!loading ? (
             <>
@@ -367,15 +367,15 @@ function CartContainer({ close, toOrders }) {
                             </span>
                           </div>
                           {product.shipping_days && (
-                            <div className="flex-row items-center text-[12px] light text-[#505050] mt-1 mr-3">
+                            <div className="flex-row whitespace-nowrap items-center text-[12px] light text-[#505050] mt-1 mr-3">
                               <DeleiveryIcon />
                               <span
-                                className={`ml-1.5 whitespace-nowrap ${
+                                className={`ml-1.5 flex whitespace-nowrap ${
                                   language === "ar" && "dir-rtl"
                                 } text-[#8D8D8D] regular`}
                               >
                                 {translate("Shipping")}:{" "}
-                                <span className="regular">
+                                <span className="regular whitespace-nowrap">
                                   {product.shipping_days} {translate("Days")}{" "}
                                   <span className="ml-1 underline">
                                     {translate("Details")}
@@ -635,7 +635,7 @@ function CartContainer({ close, toOrders }) {
                 {translate("Hide All", GetAppLanguage())}
               </span>
             </div>
-            <div className="flex-col  w-full h-auto mt-3 pb-[20px]">
+            <div className="flex-col  w-full h-auto mt-3">
               {!loading ? (
                 <>
                   {oldCart?.oldCart.map((product, key) => (
@@ -767,15 +767,15 @@ function CartContainer({ close, toOrders }) {
                             </span>
                           </div>
                           {product.shipping_days && (
-                            <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
+                            <div className="flex-row whitespace-nowrap items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                               <DeleiveryIcon />
                               <span
-                                className={`ml-1.5 text-[#8D8D8D] regular ${
+                                className={`ml-1.5 whitespace-nowrap text-[#8D8D8D] regular ${
                                   language === "ar" && "dir-rtl"
                                 }`}
                               >
-                                {translate("Shipping:")}{" "}
-                                <span className="regular flex-row">
+                                {translate("Shipping")}{" "}
+                                <span className="regular whitespace-nowrap">
                                   {product.shipping_days} {translate("Days")}{" "}
                                   <span className="ml-1 underline">
                                     {translate("Details")}

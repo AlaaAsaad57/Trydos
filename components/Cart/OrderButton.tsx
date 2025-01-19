@@ -148,7 +148,7 @@ function OrderButton({ close, toOrders }) {
     <>
       {expanded && (
         <div
-          className="fixed top-[50px] min-w-[100vw] min-h-[100vh] opacity-40 bg-[black] z-50"
+          className="fixed top-[50px] min-w-[100vw] min-h-full opacity-40 bg-[black] z-50"
           onClick={() => {
             setExpanded(false);
           }}
@@ -159,15 +159,16 @@ function OrderButton({ close, toOrders }) {
           borderTopLeftRadius: "30px",
           borderTopRightRadius: "30px",
           boxShadow: "0px -3px 20px #0000001a",
+          bottom: "calc(env(safe-area-inset-bottom) + 40px)",
         }}
-        className="flex-col z-50 fixed bottom-1 left-0 bg-white min-h-[100px] w-full"
+        className="flex-col z-50 fixed  left-0 bg-white min-h-[100px] w-full"
       >
         {cart.cart.length > 0 && (
           <div
             {...handlers}
             className={`flex-col w-full overflow-hidden ${
               expanded
-                ? "h-[397px] pt-[10px] px-[12px] pb-[10px]"
+                ? "h-[405px] pt-[10px] px-[12px] pb-[10px]"
                 : "h-[116px] pt-[10px] px-[12px] pb-[10px] "
             }  transition-all`}
           >
@@ -344,9 +345,10 @@ function OrderButton({ close, toOrders }) {
           </div>
         )}
         <div
-          className={`flex-row w-full px-5 pt-3 pb-28 sm:pb-1`}
+          className={`flex-row w-full px-5 `}
           style={{
             boxShadow: "#0000001a 0px -3px 10px",
+            paddingBlock: "calc(20px + env(safe-area-inset-bottom))",
           }}
         >
           <div

@@ -19,6 +19,17 @@ import axios from "axios";
 export default function Providers({ children }) {
   const [dataCountries, setCountriesData] = useState([]);
   useEffect(() => {
+    window.addEventListener("resize", function () {
+      var windowHeight = window.innerHeight;
+      var outerHeight = window.outerHeight;
+
+      if (windowHeight < outerHeight) {
+        document.body.style.paddingBottom = "60px"; // Adjust accordingly
+      } else {
+        document.body.style.paddingBottom = "0px";
+      }
+    });
+
     if (!navigator.cookieEnabled) {
       toast.info("Cookies Is Not Enabled");
     }

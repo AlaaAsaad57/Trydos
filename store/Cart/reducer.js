@@ -91,12 +91,14 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "ADD-ADDRESS": {
+      let arr = state.addressLists;
+      arr.push({
+        ...state.addressDetails,
+        id: parseInt(Math.random() * 1000),
+      });
       return {
         ...state,
-        addressLists: state.addressLists.push({
-          ...state.addressDetails,
-          id: parseInt(Math.random() * 1000),
-        }),
+        addressLists: arr,
       };
     }
     case "START-UPDATE-ADDRESS": {

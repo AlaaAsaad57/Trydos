@@ -62,7 +62,7 @@ function AddAddressForm({ setAddressDetails, slidePrev, setOpenSelect }) {
   };
   return (
     <>
-      <div className="flex-col h-full max-h-full overflow-auto w-full relative">
+      <div className="flex-col h-full max-h-full overflow-auto w-full relative pb-[100px]">
         <div
           className="bg-[#F8F8F8] min-h-[50px] flex-row items-center pl-[24px] pr-[20px] "
           style={{
@@ -446,8 +446,9 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
     <div
       style={{
         boxShadow: "0px -3px 20px #0000001a",
+        bottom: "calc(70px + env(safe-area-inset-bottom))",
       }}
-      className="absolute  text-center bottom-2 left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]"
+      className={`absolute text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
     >
       <div
         onClick={() => {

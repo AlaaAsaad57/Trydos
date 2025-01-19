@@ -86,6 +86,9 @@ export const StepSlider = ({ enableCart }) => {
     <Swiper
       initialSlide={step}
       navigation={false}
+      keyboard={{
+        enabled: false,
+      }}
       draggable={false}
       className="w-full h-[100vh] fixed z-[9999999999]"
       wrapperClass="flex flex-row"
@@ -96,7 +99,7 @@ export const StepSlider = ({ enableCart }) => {
         ref.current = swiper;
       }}
     >
-      <SwiperSlide className="w-full h-[100vh] cart-widget">
+      <SwiperSlide className="w-full h-full cart-widget">
         <CartContainer
           toOrders={() => {
             ref.current.slideNext();
@@ -111,7 +114,7 @@ export const StepSlider = ({ enableCart }) => {
           }}
         />
       </SwiperSlide>
-      <SwiperSlide className="w-full h-[100vh] cart-widget">
+      <SwiperSlide className="w-full h-full cart-widget">
         <OrdersPage
           setStep={(e) => {
             setStep(0);

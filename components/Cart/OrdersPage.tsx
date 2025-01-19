@@ -150,6 +150,9 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
       )}
       <Swiper
         initialSlide={orderStep}
+        keyboard={{
+          enabled: false,
+        }}
         navigation={false}
         onInit={(swiper) => {
           ref.current = swiper;
@@ -158,7 +161,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
         draggable={false}
         className="w-full"
         slidesPerView={1}
-        wrapperClass="flex  h-[100vh]"
+        wrapperClass="flex  h-full"
       >
         <SwiperSlide className="min-w-[100vw] h-[100vh] relative cart-widget">
           {AddressListsOpen && (
@@ -294,7 +297,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
             }}
           />
         </SwiperSlide>
-        <SwiperSlide className="min-w-[100vw] relative max-h-[100vh]  h-[100vh] cart-widget overflow-hidden pb-[100px]">
+        <SwiperSlide className="min-w-[100vw] relative max-h-[100vh]  h-[100vh] cart-widget overflow-hidden">
           <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
             <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
               <BackIcon
