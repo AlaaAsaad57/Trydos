@@ -6,6 +6,7 @@ import localFont from "next/font/local";
 import TranslationsMenu from "components/global/TranslationsMenu";
 import "regenerator-runtime/runtime";
 import { NextRequest } from "node_modules/next/server";
+import PageTransition from "components/global/PageTransition";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -70,13 +71,10 @@ export default async function RootLayout({ params, children }) {
       <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <Providers>
           <div className="site-container">
-            <div className="home-page-container">
-              <>
-                <TranslationsMenu init={params.lang} />
-              </>
-
-              {children}
-            </div>
+            <>
+              <TranslationsMenu init={params.lang} />
+            </>
+            <PageTransition>{children}</PageTransition>
           </div>
         </Providers>
       </body>
