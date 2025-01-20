@@ -29,6 +29,8 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 import { AxiosPost } from "utils/AxiosApi";
+import { getCountriesApi } from "store/homepage/cachedActions";
+import { useSearchParams } from "next/navigation";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -48,6 +50,7 @@ const getHeader = () => {
   };
 };
 class HomeService {
+
   async getClientData() {
     try {
       const response = await fetch(
@@ -230,21 +233,16 @@ class HomeService {
               });
           }, 3000);
 
-          fetch("/api/subscribeToTopic", {
-            cache: "no-cache",
-            method: "POST",
-            // @ts-ignore
-            body: JSON.stringify({ token, topic: `boutique_created_${country_code}_${getLang(language_code, Cookies.get("language"))}` }),
-          });
+          const searchParams = useSearchParams();
+          if (!(searchParams.get("changed-country") || searchParams.get("no-country"))) {
+            await this.subscribeToTopic({
+              topic: `boutique_created_${country_code}_${getLang(language_code, Cookies.get("language"))}`
+            })
+            await this.subscribeToTopic({
+              topic: `category_created_${country_code}_${getLang(language_code, Cookies.get("language"))}`
+            })
+          }
 
-          fetch("/api/subscribeToTopic", {
-            cache: "no-cache",
-            method: "POST",
-            // @ts-ignore
-            body: JSON.stringify({
-              token, topic: `category_created_${country_code}_${getLang(language_code, Cookies.get("language"))}`
-            }),
-          });
         }
       });
     }
@@ -522,9 +520,8 @@ class HomeService {
     errCallback?: Function;
     slug: string;
   }) {
-    let [countryUrl, languageUrl] = window.location.pathname
-      .split("/")[1]
-      .split("-");
+    let language_code = window.location.pathname.split("/")[1].split("-")[1]
+    let country_code = window.location.pathname.split("/")[1].split("-")[0]
     AddToCartAnimation();
     if (alreadyExist) {
       let dataBody = [];
@@ -593,30 +590,20 @@ class HomeService {
       store.dispatch({ type: "LOADED-CART", payload: true });
       if (res?.id_cart) {
         callback({ id: res?.id_cart });
-        await fetch("/api/subscribeToTopic", {
-          cache: "no-cache",
-          method: "POST",
-          // @ts-ignore
-          body: JSON.stringify({
-            token: fbtoken,
-            topic: `product_hurry_up_quantity_${res?.id_cart}_${getLang(languageUrl, Cookies.get("language"))}`,
-          }),
+        await this.subscribeToTopic({
+          topic: `product_hurry_up_quantity_${res?.id_cart}_${country_code}_${language_code}`
         });
-        await fetch("/api/subscribeToTopic", {
-          cache: "no-cache",
-          method: "POST",
-          // @ts-ignore
-          body: JSON.stringify({
-            token: fbtoken,
-            topic: `product_hurry_up_time_left_${res?.id_cart}_${getLang(languageUrl, Cookies.get("language"))}`,
-          }),
+        await this.subscribeToTopic({
+          topic: `product_hurry_up_time_left_${res?.id_cart}_${country_code}_${language_code}`
         });
-        await this.subscribeToTopics({
-          id: id,
-          discount: true,
-          comments: true,
-          availibility: true,
-          language_code: getLang(languageUrl, Cookies.get("language"))
+        await this.subscribeToTopic({
+          topic: `product_availability_${id}_${country_code}_${language_code}`
+        });
+        await this.subscribeToTopic({
+          topic: `product_discount_${id}_${country_code}_${language_code}`
+        });
+        await this.subscribeToTopic({
+          topic: `product_comment_${id}_${country_code}_${language_code}`
         });
       } else {
         errCallback();
@@ -625,48 +612,144 @@ class HomeService {
       }
     }
   }
-  async subscribeToTopics({
-    id,
-    discount,
-    comments,
-    availibility,
-    language_code
-  }: {
-    id: number;
-    discount?: boolean;
-    comments?: boolean;
-    availibility?: boolean;
-    language_code: string;
+  filterTopics({ inputTopic, countries, languages, topics }: {
+    inputTopic: string;
+    countries: Array<string>;
+    languages: Array<string>;
+    topics: Array<string>;
   }) {
-    let fbtoken = localStorage.getItem("FB-DEVICE-TOKEN");
-    if (availibility)
+    // Extract country and language from the end of the input topic
+    const countryLanguageRegex = new RegExp(`_(${countries.join('|')})_(${languages.join('|')})$`);
+    const match = inputTopic.match(countryLanguageRegex);
+
+    if (!match) {
+      throw new Error("Invalid input topic format");
+    }
+
+    const [_, inputCountry, inputLanguage] = match;
+
+    // Extract the name by removing the country and language part
+    const name = inputTopic.slice(0, inputTopic.lastIndexOf(`_${inputCountry}_${inputLanguage}`));
+
+    return topics.filter(topic => {
+      const topicMatch = topic.match(countryLanguageRegex);
+
+      if (!topicMatch) return false;
+
+      const [__, country, language] = topicMatch;
+      const topicName = topic.slice(0, topic.lastIndexOf(`_${country}_${language}`));
+
+      return (
+        topicName === name && // Match the name
+        (country !== inputCountry || language !== inputLanguage) // Exclude the same country-language pair
+      );
+    });
+  }
+  async subscribeToTopic({
+    topic
+  }: {
+    topic: string
+  }) {
+    let token = localStorage.getItem("FB-DEVICE-TOKEN");
+    let storageTopics = JSON.parse(localStorage.getItem("topics")) || []
+    if (token && !storageTopics?.includes(topic)) {
+      if (storageTopics?.length) {
+        let data = await getCountriesApi();
+        let countries = data.map((s) => s.iso.toLowerCase());
+        const languages = ["en", "ar", "tr"];
+        let filteredTopics = this.filterTopics({ inputTopic: topic, countries, languages, topics: storageTopics })
+        if (filteredTopics.length > 0) {
+          filteredTopics.forEach(async (one) => {
+            await fetch("/api/unsubscribeFromTopic", {
+              method: "POST",
+              // @ts-ignore
+              body: JSON.stringify({
+                token,
+                topic: one
+              }),
+            });
+            storageTopics = storageTopics?.filter(item => item !== one);
+          })
+        }
+      }
       await fetch("/api/subscribeToTopic", {
         method: "POST",
         // @ts-ignore
         body: JSON.stringify({
-          token: fbtoken,
-          topic: `product_availability_${id}_${language_code}`,
+          token,
+          topic
         }),
       });
-    if (discount)
-      await fetch("/api/subscribeToTopic", {
+      storageTopics.push(topic)
+      localStorage.setItem("topics", JSON.stringify(storageTopics))
+    }
+  }
+  async handleTopicsOnPageRefresh() {
+    // Extract country and language from the URL
+    const [countryCode, languageCode] = window.location.pathname
+      .split("/")[1]
+      .split("-");
+
+    if (!countryCode || !languageCode) {
+      throw new Error("Invalid URL format for country-language pair");
+    }
+
+    const token = localStorage.getItem("FB-DEVICE-TOKEN");
+    let storageTopics = JSON.parse(localStorage.getItem("topics")) || [];
+
+    if (!token) return;
+
+    // Get the list of valid countries and languages
+    const countries = await getCountriesApi().then((data) => data.map((s) => s.iso.toLowerCase()));
+    const languages = ["en", "ar", "tr"];
+
+    // Generate new topics with the current country-language pair
+    const updatedTopics = storageTopics.map((storedTopic) => {
+      const match = storedTopic.match(/_([a-z]{2})_([a-z]{2})$/);
+
+      if (!match) return null;
+
+      const [_, oldCountry, oldLanguage] = match;
+      const name = storedTopic.slice(0, storedTopic.lastIndexOf(`_${oldCountry}_${oldLanguage}`));
+
+      // Replace with the new country-language pair
+      return `${name}_${countryCode}_${languageCode}`;
+    }).filter(Boolean);
+
+    // Detect topics that need to be unsubscribed
+    const topicsToUnsubscribe = storageTopics.filter(
+      (storedTopic) => !updatedTopics.includes(storedTopic)
+    );
+
+    // Unsubscribe from outdated topics
+    for (const topic of topicsToUnsubscribe) {
+      await fetch("/api/unsubscribeFromTopic", {
         method: "POST",
-        // @ts-ignore
         body: JSON.stringify({
-          token: fbtoken,
-          topic: `product_discount_${id}_${language_code}`,
+          token,
+          topic,
         }),
       });
-    if (comments)
-      await fetch("/api/subscribeToTopic", {
-        cache: "no-cache",
-        method: "POST",
-        // @ts-ignore
-        body: JSON.stringify({
-          token: fbtoken,
-          topic: `product_comment_${id}_${language_code}`,
-        }),
-      });
+    }
+
+    // Subscribe to updated topics
+    for (const newTopic of updatedTopics) {
+      if (!storageTopics.includes(newTopic)) {
+        await fetch("/api/subscribeToTopic", {
+          method: "POST",
+          body: JSON.stringify({
+            token,
+            topic: newTopic,
+          }),
+        });
+      }
+    }
+
+    // Remove duplicates by using a Set
+    const uniqueTopics = Array.from(new Set(updatedTopics));
+
+    // Update localStorage with unique topics
+    localStorage.setItem("topics", JSON.stringify(uniqueTopics));
   }
   async hideOldCart({ id }: { id?: number }) {
     try {

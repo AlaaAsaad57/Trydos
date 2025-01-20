@@ -5,7 +5,6 @@ import Providers from "store/provider";
 import localFont from "next/font/local";
 import TranslationsMenu from "components/global/TranslationsMenu";
 import "regenerator-runtime/runtime";
-import { NextRequest } from "node_modules/next/server";
 import PageTransition from "components/global/PageTransition";
 export const metadata = {
   title: "TryDos",

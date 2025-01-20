@@ -121,10 +121,10 @@ function MoreOptionsSection() {
           <div id="slider-options" className="notify-row">
             <div className="button-option"
               onClick={async () => {
-                await home.subscribeToTopics({
-                  id: SelectedProduct.id,
-                  availibility: true,
-                  language_code: languageVariable
+                let language_code = window.location.pathname.split("/")[1].split("-")[1]
+                let country_code = window.location.pathname.split("/")[1].split("-")[0]
+                await home.subscribeToTopic({
+                  topic: `product_availability_${SelectedProduct.id}_${country_code}_${language_code}`
                 });
               }}
             >
@@ -136,10 +136,10 @@ function MoreOptionsSection() {
             <div
               className="button-option"
               onClick={async () => {
-                await home.subscribeToTopics({
-                  id: SelectedProduct.id,
-                  discount: true,
-                  language_code: languageVariable
+                let language_code = window.location.pathname.split("/")[1].split("-")[1]
+                let country_code = window.location.pathname.split("/")[1].split("-")[0]
+                await home.subscribeToTopic({
+                  topic: `product_discount_${SelectedProduct.id}_${country_code}_${language_code}`
                 });
               }}
             >
@@ -148,10 +148,10 @@ function MoreOptionsSection() {
             <div
               className="button-option"
               onClick={async () => {
-                await home.subscribeToTopics({
-                  id: SelectedProduct.id,
-                  comments: true,
-                  language_code: languageVariable
+                let language_code = window.location.pathname.split("/")[1].split("-")[1]
+                let country_code = window.location.pathname.split("/")[1].split("-")[0]
+                await home.subscribeToTopic({
+                  topic: `product_comment_${SelectedProduct.id}_${country_code}_${language_code}`
                 });
               }}
             >
