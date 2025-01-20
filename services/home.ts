@@ -210,6 +210,7 @@ class HomeService {
     if (true) {
       await requestFirebaseNotificationPermission().then(async (token) => {
         let language_code = window.location.pathname.split("/")[1].split("-")[1]
+        let country_code = window.location.pathname.split("/")[1].split("-")[0]
         // @ts-ignore
         if (token) {
           localStorage.setItem("FB-DEVICE-TOKEN", token);
@@ -233,7 +234,7 @@ class HomeService {
             cache: "no-cache",
             method: "POST",
             // @ts-ignore
-            body: JSON.stringify({ token, topic: `boutique_created_${getLang(language_code, Cookies.get("language"))}` }),
+            body: JSON.stringify({ token, topic: `boutique_created_${country_code}_${getLang(language_code, Cookies.get("language"))}` }),
           });
 
           fetch("/api/subscribeToTopic", {
@@ -241,7 +242,7 @@ class HomeService {
             method: "POST",
             // @ts-ignore
             body: JSON.stringify({
-              token, topic: `category_created_${getLang(language_code, Cookies.get("language"))}`
+              token, topic: `category_created_${country_code}_${getLang(language_code, Cookies.get("language"))}`
             }),
           });
         }
