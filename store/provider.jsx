@@ -80,7 +80,7 @@ export default function Providers({ children }) {
   }, []);
   const searchParams = useSearchParams();
   useEffect(() => {
-    if (searchParams.get("no-country")) {
+    if (shouldShowBluredInfo()) {
       getCountries();
     }
   }, []);
@@ -90,10 +90,19 @@ export default function Providers({ children }) {
     );
     setCountriesData(data.data.data.countries);
   };
+  const shouldShowBluredInfo = () => {
+    if (searchParams.get("changed-country") || searchParams.get("no-country")) {
+      return true;
+    } else {
+      return false;
+    }
+  };
   return (
     <>
-      {searchParams.get("no-country") && (
+      {shouldShowBluredInfo() && (
         <PopupCountry
+          forChanged={searchParams.get("changed-country")}
+          noCountry={searchParams.get("no-country")}
           countries={dataCountries.map((s) => s.iso)}
           options={dataCountries.map((s) => {
             return { label: s.nicename, value: s.iso };
