@@ -224,7 +224,7 @@ const SearchResults = ({ searchResults, closeSelect }) => {
       {searchResults.map((s, i) => (
         <div
           key={i}
-          className="flex min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]"
+          className="flex text-[#1D1D1D] min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]"
           onClick={() => {
             select(s);
           }}

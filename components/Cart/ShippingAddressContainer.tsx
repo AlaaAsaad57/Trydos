@@ -483,7 +483,9 @@ const AddressContainer = ({ openAddressList }) => {
                 </svg>
 
                 <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]">
-                  {addressLists[0].contact_info.contact_person_name}
+                  {addressLists[0].contact_info.contact_person_name ||
+                    // @ts-ignore
+                    addressLists[0].contact_info.name}
                 </div>
               </div>
             </div>

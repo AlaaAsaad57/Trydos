@@ -1,4 +1,5 @@
 const initialState = {
+  orderLoading: false,
   cart: [],
   addressLists: [],
   addressDetails: {
@@ -40,10 +41,17 @@ const initialState = {
 
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "ORDER-LOADING": {
+      return {
+        ...state,
+        orderLoading: payload,
+      };
+    }
     case "GET-ADRRESS-LIST": {
       return {
         ...state,
         addressLists: payload,
+        orderLoading: false,
       };
     }
     case "INIT-ADDRESS-FORM": {

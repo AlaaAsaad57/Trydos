@@ -366,7 +366,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
         }}
       />
       <div
-        className="flex-col h-full px-[24px] absolute z-[999999999]  justify-between"
+        className="flex-col w-full h-full px-[24px] absolute z-[999999999]  justify-between"
         style={{
           backdropFilter: "blur(7px) brightness(1.3)",
         }}
@@ -381,7 +381,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
             style={{
               border: "#D3D3D38c 1px solid",
             }}
-            className={`flex-col pl-[24px] relative  h-[90px] items-center justify-center  mt-[12px] rounded-[15px] bg-[#f8f8f800] w-full `}
+            className={`flex-col pl-[24px] relative h-auto max-w-[600px]  min-h-[90px] items-center justify-center  mt-[12px] rounded-[15px] bg-[#f8f8f800] w-full `}
           >
             <div className="flex-col">
               <div className="flex-row items-center">

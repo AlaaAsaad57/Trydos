@@ -29,7 +29,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
             {translateFunction("Your Address List")}
           </span>
         </div>
-        <div className="flex-col justify-between pb-[25px] h-full">
+        <div className="flex-col justify-between pb-[25px] h-full w-full max-w-[650px]">
           <div className="flex-col  mt-[20px] h-auto max-h-[290px] overflow-auto">
             {addressLists.map((s, i) => (
               <div
@@ -179,7 +179,9 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                       </svg>
 
                       <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]">
-                        {s.contact_info.contact_person_name}
+                        {s.contact_info.contact_person_name ||
+                          // @ts-ignore
+                          s.contact_info?.name}
                       </div>
                     </div>
                   </div>

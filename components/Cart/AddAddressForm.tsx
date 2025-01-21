@@ -66,9 +66,16 @@ function AddAddressForm({
     }
     return valid;
   };
+  const orderLoading = useSelector(
+    (state: StateInterface) => state.cart.orderLoading
+  );
   return (
     <>
-      <div className="flex-col h-full max-h-full overflow-auto w-full relative pb-[160px]">
+      <div
+        className={`${
+          orderLoading ? "opacity-50 scale-[.99]" : ""
+        } flex-col h-full max-h-full overflow-auto w-full relative pb-[160px]`}
+      >
         <div
           className="bg-[#F8F8F8] min-h-[50px] flex-row items-center pl-[24px] pr-[20px] "
           style={{
@@ -362,7 +369,12 @@ const ContactInfo = () => {
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
           <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
             <input
-              value={addressDetails.contact_info.contact_person_name}
+              value={
+                addressDetails.contact_info.contact_person_name ||
+                // @ts-ignore
+                addressDetails.contact_info.name ||
+                ""
+              }
               onChange={(e) => {
                 dispatch({
                   type: "set-address-details",
@@ -456,20 +468,44 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
     (state: StateInterface) => state.cart.addressDetails
   );
   const shake = (v) => {
+    document.querySelector(`.${v}`).scrollIntoView({ block: "end" });
     document.querySelector(`.${v}`).classList.add("shake-anim");
     setTimeout(() => {
       document.querySelector(`.${v}`).classList.remove("shake-anim");
     }, 1300);
   };
   const validate = () => {
-    if (!addressDetails.location.latitude && !addressDetails.location.longitude)
+    if (
+      !addressDetails.location.latitude &&
+      !addressDetails.location.longitude
+    ) {
       shake("map-border");
-    if (addressDetails.address_detail?.length === 0) shake("details-border");
-    if (addressDetails.address?.length === 0) shake("title-border");
-    if (addressDetails.region?.length === 0) shake("region-border");
-    if (addressDetails.contact_info?.contact_person_name?.length === 0)
+    }
+    if (addressDetails.address_detail?.length === 0) {
+      shake("details-border");
+    }
+    if (addressDetails.address?.length === 0) {
+      shake("title-border");
+    }
+    if (addressDetails.region?.length === 0) {
+      shake("region-border");
+    }
+    if (addressDetails.contact_info?.contact_person_name?.length === 0) {
       shake("name-border");
-    if (addressDetails.contact_info?.phone?.length === 0) shake("phone-border");
+    }
+    if (addressDetails.contact_info?.phone?.length === 0) {
+      shake("phone-border");
+    }
+  };
+  const orderLoading = useSelector(
+    (state: StateInterface) => state.cart.orderLoading
+  );
+  const { lang } = useParams();
+  // @ts-ignore
+  let country = lang.split("-")[0];
+  country = {
+    name: allCountries.filter((s) => s.iso2 === country)[0].name,
+    iso: country,
   };
   return (
     <div
@@ -477,19 +513,31 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
         boxShadow: "0px -3px 20px #0000001a",
         bottom: "calc(70px + env(safe-area-inset-bottom))",
       }}
-      className={`absolute text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
+      className={`${
+        orderLoading && "opacity-55"
+      } absolute text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
     >
       <div
         onClick={() => {
-          if (valid) {
+          if (valid && !orderLoading) {
             if (addressDetails?.id) {
-              order.UpdateAddressList({ address: addressDetails });
+              order.UpdateAddressList({
+                address: { ...addressDetails, Country: country },
+                callback: () => {
+                  slidePrev();
+                },
+              });
               dispatch({ type: "UPDATE-ADDRESS", payload: addressDetails });
             } else {
-              order.AddAddressList({ address: addressDetails });
+              order.AddAddressList({
+                address: addressDetails,
+                callback: () => {
+                  slidePrev();
+                },
+              });
               dispatch({ type: "ADD-ADDRESS", payload: addressDetails });
             }
-            slidePrev();
+
             return;
           }
           validate();

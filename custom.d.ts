@@ -822,6 +822,7 @@ declare global {
       sharesCount: number;
     };
     cart: {
+      orderLoading: boolean;
       cart: Array<any>;
       enable: boolean;
       addressLists: Array<{

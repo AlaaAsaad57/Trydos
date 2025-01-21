@@ -11,12 +11,12 @@ class OrderService {
         title: "Get Address List",
       });
       store.dispatch({ type: "GET-ADRRESS-LIST", payload: data });
-      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
     } catch (error) {
-      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
     }
   }
-  async AddAddressList({ address }) {
+  async AddAddressList({ address, callback }) {
     let body = {
       latitude: address.location.latitude,
       longitude: address.location.longitude,
@@ -28,7 +28,7 @@ class OrderService {
       town: "Ba`bda",
       street: "23",
       zip: "123123",
-      contact_person_name: address.contact_info.name,
+      contact_person_name: address.contact_info.contact_person_name,
       phone: address.contact_info.phone,
       alternative_phone: address.contact_info.alternative_phone,
     };
@@ -46,13 +46,15 @@ class OrderService {
         title: "Add Address",
         body: formBody,
       });
+      await this.GetAddressList();
+      callback();
       store.dispatch({ type: "ADD-ADRRESS-LIST", payload: data });
-      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
     } catch (error) {
-      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
     }
   }
-  async UpdateAddressList({ address }) {
+  async UpdateAddressList({ address, callback }) {
     let body = {
       latitude: address.location.latitude,
       longitude: address.location.longitude,
@@ -63,8 +65,9 @@ class OrderService {
       district: "Jableh",
       town: "Ba`bda",
       street: "23",
+      id: address.id,
       zip: "123123",
-      contact_person_name: address.contact_info.name,
+      contact_person_name: address.contact_info.contact_person_name,
       phone: address.contact_info.phone,
       alternative_phone: address.contact_info.alternative_phone,
     };
@@ -82,10 +85,11 @@ class OrderService {
         title: "Update Address",
         body: formBody,
       });
+      callback();
       store.dispatch({ type: "UPDATE-ADRRESS-LIST", payload: data });
-      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
     } catch (error) {
-      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
     }
   }
   async DeleteAddressList({ address }) {
@@ -97,11 +101,12 @@ class OrderService {
           `/customer/address/delete?address_id=${address}`,
         title: "Delete Address",
         body: "",
+        hasMessageOnly: true,
       });
       store.dispatch({ type: "DELETE-ADRRESS-LIST", payload: data });
-      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
     } catch (error) {
-      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
     }
   }
 }

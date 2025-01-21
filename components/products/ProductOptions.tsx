@@ -43,8 +43,8 @@ function ProductOptions({
   const [isLiked, setLiked] = useState(false);
   const dispatch = useDispatch();
   const LikeProduct = async (bool) => {
-    let language_code = window.location.pathname.split("/")[1].split("-")[1]
-    let country_code = window.location.pathname.split("/")[1].split("-")[0]
+    let language_code = window.location.pathname.split("/")[1].split("-")[1];
+    let country_code = window.location.pathname.split("/")[1].split("-")[0];
     if (bool) {
       dispatch({
         type: "EDIT-INFO",
@@ -55,16 +55,15 @@ function ProductOptions({
           url: process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/store`,
           title: "like For Product",
           body: { product_id: product.id, user_id: UserID() },
-          hasMessageOnly: true,
         });
         home.subscribeToTopic({
-          topic: `product_availability_${SelectedProduct?.id}_${country_code}_${language_code}`
+          topic: `product_availability_${SelectedProduct?.id}_${country_code}_${language_code}`,
         });
         home.subscribeToTopic({
-          topic: `product_discount_${SelectedProduct?.id}_${country_code}_${language_code}`
+          topic: `product_discount_${SelectedProduct?.id}_${country_code}_${language_code}`,
         });
         home.subscribeToTopic({
-          topic: `product_comment_${SelectedProduct?.id}_${country_code}_${language_code}`
+          topic: `product_comment_${SelectedProduct?.id}_${country_code}_${language_code}`,
         });
       } catch (error) {
         dispatch({
@@ -107,8 +106,9 @@ function ProductOptions({
           />
           <div className="options-container">
             <div
-              className={`product-option-item ${activeOption === "Like" && "active-option"
-                }`}
+              className={`product-option-item ${
+                activeOption === "Like" && "active-option"
+              }`}
               onClick={() => {
                 Sendevent({
                   event: "button_clicked",
@@ -147,8 +147,9 @@ function ProductOptions({
               </span>
             </div>
             <div
-              className={`product-option-item relative ${activeOption === "Share" && "active-option"
-                }`}
+              className={`product-option-item relative ${
+                activeOption === "Share" && "active-option"
+              }`}
               onClick={() => {
                 Sendevent({
                   event: "button_clicked",
