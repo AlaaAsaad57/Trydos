@@ -12,6 +12,7 @@ import Flag from "react-world-flags";
 import TargetIcon from "public/svg/cart/Target.svg";
 import ContactInfoIcon from "public/svg/cart/ContactInfoIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
+import order from "services/order";
 function AddAddressForm({
   setAddressDetails,
   slidePrev,
@@ -28,20 +29,20 @@ function AddAddressForm({
   );
   const getCenter = async () => {
     let a = await axios.get("http://ip-api.com/json");
-    console.log(a.data);
+
     setCenter({ lat: a.data?.lat, lng: a.data?.lon });
   };
   const isValid = () => {
     let valid = false;
-    if (addressDetails.geolocation.lat && addressDetails.geolocation.lng) {
+    if (addressDetails.location.latitude && addressDetails.location.longitude) {
       valid = true;
     } else {
       valid = false;
       return;
     }
     if (
-      addressDetails.ContactInfo.name?.length > 0 &&
-      addressDetails.ContactInfo.phone?.length > 0
+      addressDetails.contact_info.contact_person_name?.length > 0 &&
+      addressDetails.contact_info.phone?.length > 0
     ) {
       valid = true;
     } else {
@@ -49,8 +50,8 @@ function AddAddressForm({
       return;
     }
     if (
-      addressDetails?.detailes_Address.length > 0 &&
-      addressDetails?.title.length > 0
+      addressDetails?.address_detail?.length > 0 &&
+      addressDetails?.address.length > 0
     ) {
       valid = true;
     } else {
@@ -131,9 +132,9 @@ function AddAddressForm({
             setCenter={(e) => setCenter(e)}
             setExpanded={(e) => setExpanded(e)}
             center={
-              (addressDetails.geolocation.lat && {
-                lat: addressDetails.geolocation.lat,
-                lng: addressDetails.geolocation.lng,
+              (addressDetails.location.latitude && {
+                lat: addressDetails.location.latitude,
+                lng: addressDetails.location.longitude,
               }) ||
               center
             }
@@ -190,6 +191,13 @@ const CountryLabel = () => {
     name: allCountries.filter((s) => s.iso2 === country)[0].name,
     iso: country,
   };
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch({
+      type: "set-address-details",
+      payload: { Country: { name: country.name, code: country.iso } },
+    });
+  }, []);
   return (
     <div
       className="flex-col rounded-[15px] w-full mt-[12px] py-[7px] pl-[12px] items-start justify-center"
@@ -263,11 +271,11 @@ const DetailsAddress = () => {
       <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
         <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
           <textarea
-            value={addressDetails.detailes_Address}
+            value={addressDetails.address_detail}
             onChange={(e) => {
               dispatch({
                 type: "set-address-details",
-                payload: { detailes_Address: e.target.value },
+                payload: { address_detail: e.target.value },
               });
             }}
             placeholder={translateFunction(
@@ -299,11 +307,11 @@ const AddressTitle = () => {
       <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
         <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
           <input
-            value={addressDetails.title}
+            value={addressDetails.address}
             onChange={(e) => {
               dispatch({
                 type: "set-address-details",
-                payload: { title: e.target.value },
+                payload: { address: e.target.value },
               });
             }}
             placeholder={translateFunction("Ex: Home, My Office, 2 Home Ect.")}
@@ -321,18 +329,18 @@ const ContactInfo = () => {
   );
   const dispatch = useDispatch();
   useEffect(() => {
-    if (!addressDetails.id) {
+    if (!addressDetails.id && user) {
       dispatch({
         type: "set-address-details",
         payload: {
-          ContactInfo: {
-            ...addressDetails.ContactInfo,
-            name: user.name,
+          contact_info: {
+            ...addressDetails.contact_info,
+            contact_person_name: user.name,
           },
         },
       });
     }
-  }, [addressDetails?.id]);
+  }, [addressDetails?.id, user]);
   return (
     <div className="flex-col w-full mt-[30px] px-[12px] pb-[110px]">
       <div className="flex-row px-[12px] items-center">
@@ -354,14 +362,14 @@ const ContactInfo = () => {
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
           <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
             <input
-              value={addressDetails.ContactInfo.name}
+              value={addressDetails.contact_info.contact_person_name}
               onChange={(e) => {
                 dispatch({
                   type: "set-address-details",
                   payload: {
-                    ContactInfo: {
-                      ...addressDetails.ContactInfo,
-                      name: e.target.value,
+                    contact_info: {
+                      ...addressDetails.contact_info,
+                      contact_person_name: e.target.value,
                     },
                   },
                 });
@@ -385,13 +393,13 @@ const ContactInfo = () => {
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
           <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
             <input
-              value={addressDetails.ContactInfo.phone}
+              value={addressDetails.contact_info.phone}
               onChange={(e) => {
                 dispatch({
                   type: "set-address-details",
                   payload: {
-                    ContactInfo: {
-                      ...addressDetails.ContactInfo,
+                    contact_info: {
+                      ...addressDetails.contact_info,
                       phone: e.target.value,
                     },
                   },
@@ -419,14 +427,14 @@ const ContactInfo = () => {
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
           <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
             <input
-              value={addressDetails.ContactInfo.alternatePhone}
+              value={addressDetails.contact_info.alternative_phone}
               onChange={(e) => {
                 dispatch({
                   type: "set-address-details",
                   payload: {
-                    ContactInfo: {
-                      ...addressDetails.ContactInfo,
-                      alternatePhone: e.target.value,
+                    contact_info: {
+                      ...addressDetails.contact_info,
+                      alternative_phone: e.target.value,
                     },
                   },
                 });
@@ -454,13 +462,14 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
     }, 1300);
   };
   const validate = () => {
-    if (!addressDetails.geolocation.lat && !addressDetails.geolocation.lng)
+    if (!addressDetails.location.latitude && !addressDetails.location.longitude)
       shake("map-border");
-    if (addressDetails.detailes_Address?.length === 0) shake("details-border");
-    if (addressDetails.title?.length === 0) shake("title-border");
+    if (addressDetails.address_detail?.length === 0) shake("details-border");
+    if (addressDetails.address?.length === 0) shake("title-border");
     if (addressDetails.region?.length === 0) shake("region-border");
-    if (addressDetails.ContactInfo?.name?.length === 0) shake("name-border");
-    if (addressDetails.ContactInfo?.phone?.length === 0) shake("phone-border");
+    if (addressDetails.contact_info?.contact_person_name?.length === 0)
+      shake("name-border");
+    if (addressDetails.contact_info?.phone?.length === 0) shake("phone-border");
   };
   return (
     <div
@@ -474,8 +483,10 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
         onClick={() => {
           if (valid) {
             if (addressDetails?.id) {
+              order.UpdateAddressList({ address: addressDetails });
               dispatch({ type: "UPDATE-ADDRESS", payload: addressDetails });
             } else {
+              order.AddAddressList({ address: addressDetails });
               dispatch({ type: "ADD-ADDRESS", payload: addressDetails });
             }
             slidePrev();

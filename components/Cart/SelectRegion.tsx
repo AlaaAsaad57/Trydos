@@ -28,33 +28,33 @@ function SelectRegion({ closeSelect }) {
 
         <div
           className={`flex ${
-            !addressDetails.regionDetails.province
+            !addressDetails.region_details.city
               ? "text-[#D3D3D3]"
               : "text-[#1D1D1D]"
           }  text-[14px] regular`}
         >
           <span className="px-1">|</span>
-          {addressDetails.regionDetails.province || "Province"}
+          {addressDetails.region_details.city || "Province"}
         </div>
         <div
           className={`flex ${
-            !addressDetails.regionDetails.town
+            !addressDetails.region_details.town
               ? "text-[#D3D3D3]"
               : "text-[#1D1D1D]"
           }  text-[14px] regular`}
         >
           <span className="px-1">|</span>
-          {addressDetails.regionDetails.town || "Town"}
+          {addressDetails.region_details.town || "Town"}
         </div>
         <div
           className={`flex ${
-            !addressDetails.regionDetails.suburb
+            !addressDetails.region_details.street
               ? "text-[#D3D3D3]"
               : "text-[#1D1D1D]"
           }  text-[14px] regular`}
         >
           <span className="px-1">|</span>
-          {addressDetails.regionDetails.suburb || "Suburb"}
+          {addressDetails.region_details.street || "Suburb"}
         </div>
       </>
     );

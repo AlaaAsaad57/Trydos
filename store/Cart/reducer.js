@@ -1,50 +1,23 @@
 const initialState = {
   cart: [],
-  addressLists: [
-    {
-      id: parseInt(Math.random() * 1000),
-      geolocation: {
-        lat: 33.50444295570695,
-        lng: 36.29793030614546,
-      },
-      Country: {
-        name: "Turkey",
-        code: "TR",
-      },
-      location: "",
-      detailes_Address:
-        "LA, 1608. Cd., Üniversiteler Mahallesi, Çankaya, Ankara, Central Anatolia Region, 06800, Turkey",
-      title: "My Home",
-      ContactInfo: {
-        name: "Alaa Asaad",
-        phone: "+963937288307",
-        alternatePhone: "+963937288307",
-      },
-      region:
-        "LA, 1608. Cd., Üniversiteler Mahallesi, Çankaya, Ankara, Central Anatolia Region, 06800, Turkey",
-      regionDetails: {
-        province: null,
-        town: null,
-        suburb: null,
-      },
-    },
-  ],
+  addressLists: [],
   addressDetails: {
-    geolocation: { lat: null, lng: null },
+    location: { latitude: null, longitude: null },
     Country: { name: "Turkey", code: "TR" },
-    location: "",
-    detailes_Address: "",
-    title: "",
-    ContactInfo: {
-      name: "",
+
+    address_detail: "",
+    address: "",
+    contact_info: {
+      contact_person_name: "",
       phone: "",
-      alternatePhone: "",
+      alternative_phone: "",
     },
     region: "",
-    regionDetails: {
-      province: null,
-      town: null,
-      suburb: null,
+    region_details: {
+      city: "",
+      district: "",
+      town: "",
+      street: "",
     },
   },
   enable: false,
@@ -67,25 +40,31 @@ const initialState = {
 
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "GET-ADRRESS-LIST": {
+      return {
+        ...state,
+        addressLists: payload,
+      };
+    }
     case "INIT-ADDRESS-FORM": {
       return {
         ...state,
         addressDetails: {
-          geolocation: { lat: null, lng: null },
+          location: { latitude: null, longitude: null },
           Country: { name: "Turkey", code: "TR" },
-          location: "",
-          detailes_Address: "",
-          title: "",
-          ContactInfo: {
-            name: "",
+          address_detail: "",
+          address: "",
+          contact_info: {
+            contact_person_name: "",
             phone: "",
-            alternatePhone: "",
+            alternative_phone: "",
           },
           region: "",
-          regionDetails: {
-            province: null,
-            town: null,
-            suburb: null,
+          region_details: {
+            city: "",
+            district: "",
+            town: "",
+            street: "",
           },
         },
       };
