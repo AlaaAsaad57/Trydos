@@ -30,7 +30,7 @@ import axios from "axios";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 import { AxiosPost } from "utils/AxiosApi";
 import { getCountriesApi } from "store/homepage/cachedActions";
-import { useSearchParams } from "next/navigation";
+
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -40,9 +40,10 @@ const getHeader = () => {
       revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
     },
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("MARKET-TOKEN") ||
+      Authorization: `Bearer ${
+        localStorage.getItem("MARKET-TOKEN") ||
         localStorage.getItem("DEVICE-TOKEN")
-        }`,
+      }`,
       lang: getLang(languageUrl, Cookies.get("language")),
       country: countryUrl || Cookies.get("country"),
       accept: "application/json",
@@ -50,7 +51,6 @@ const getHeader = () => {
   };
 };
 class HomeService {
-
   async getClientData() {
     try {
       const response = await fetch(
@@ -69,7 +69,7 @@ class HomeService {
           });
         },
       }).then(() => {
-        getOldCart()
+        getOldCart();
       });
       if (typeof window !== "undefined") {
         _isStoreLastJson() &&
@@ -150,8 +150,8 @@ class HomeService {
           method: "POST",
           body: body.old_guest_user_id
             ? new URLSearchParams({
-              old_guest_user_id: body.old_guest_user_id,
-            })
+                old_guest_user_id: body.old_guest_user_id,
+              })
             : "old_guset_user_id=null",
           ...getHeader(),
           cache: "no-cache",
@@ -173,7 +173,7 @@ class HomeService {
           // other custom properties
         });
       }
-    } catch (error) { }
+    } catch (error) {}
   }
   async CheckLogin() {
     if (!localStorage.getItem("FB-DEVICE-TOKEN")) await this.RegisterDevice();
@@ -212,8 +212,10 @@ class HomeService {
     }
     if (true) {
       await requestFirebaseNotificationPermission().then(async (token) => {
-        let language_code = window.location.pathname.split("/")[1].split("-")[1]
-        let country_code = window.location.pathname.split("/")[1].split("-")[0]
+        let language_code = window.location.pathname
+          .split("/")[1]
+          .split("-")[1];
+        let country_code = window.location.pathname.split("/")[1].split("-")[0];
         // @ts-ignore
         if (token) {
           localStorage.setItem("FB-DEVICE-TOKEN", token);
@@ -233,16 +235,26 @@ class HomeService {
               });
           }, 3000);
 
-          const searchParams = useSearchParams();
-          if (!(searchParams.get("changed-country") || searchParams.get("no-country"))) {
+          const searchParams = new URLSearchParams(window.location.search);
+          if (
+            !(
+              searchParams.get("changed-country") ||
+              searchParams.get("no-country")
+            )
+          ) {
             await this.subscribeToTopic({
-              topic: `boutique_created_${country_code}_${getLang(language_code, Cookies.get("language"))}`
-            })
+              topic: `boutique_created_${country_code}_${getLang(
+                language_code,
+                Cookies.get("language")
+              )}`,
+            });
             await this.subscribeToTopic({
-              topic: `category_created_${country_code}_${getLang(language_code, Cookies.get("language"))}`
-            })
+              topic: `category_created_${country_code}_${getLang(
+                language_code,
+                Cookies.get("language")
+              )}`,
+            });
           }
-
         }
       });
     }
@@ -267,8 +279,8 @@ class HomeService {
           method: "POST",
           body: body.old_guest_user_id
             ? new URLSearchParams({
-              old_guest_user_id: body.old_guest_user_id,
-            })
+                old_guest_user_id: body.old_guest_user_id,
+              })
             : "old_guset_user_id=null",
           ...getHeader(),
         }
@@ -337,8 +349,8 @@ class HomeService {
       categories: filterObj.categories.map((s) => s.slug),
       prices: filterObj.prices?.pricesWord
         ? [
-          `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
-        ]
+            `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
+          ]
         : null,
       brands: filterObj.brands.map((brand) => brand.slug),
       attributes: { ...sizesAttr, options: filterObj.sizes },
@@ -349,32 +361,38 @@ class HomeService {
     if (categories && categories !== "listing")
       filters = { ...filters, boutique_slug: [categories] };
 
-    let str = `${filters.categories?.length > 0
-      ? `category_slugs=${JSON.stringify(filters.categories)}`
-      : ""
-      }${filters.brands?.length > 0
+    let str = `${
+      filters.categories?.length > 0
+        ? `category_slugs=${JSON.stringify(filters.categories)}`
+        : ""
+    }${
+      filters.brands?.length > 0
         ? `&brand_slugs=${JSON.stringify(filters.brands)}`
         : ""
-      }${filters.attributes?.options?.length > 0
+    }${
+      filters.attributes?.options?.length > 0
         ? `&attributes=${JSON.stringify(filters.attributes)}`
         : ""
-      }${filters.prices !== null ? `&price=${JSON.stringify(filters.prices)}` : ""
-      }${filters.boutique_slug
+    }${
+      filters.prices !== null ? `&price=${JSON.stringify(filters.prices)}` : ""
+    }${
+      filters.boutique_slug
         ? `&boutique_slugs=${JSON.stringify(filters.boutique_slug)}`
         : ""
-      }${filters?.searchText?.length > 0
+    }${
+      filters?.searchText?.length > 0
         ? `&search_text=${filters.searchText}`
         : ""
-      }`;
+    }`;
     var details =
       boutiqueCategory !== "undefined"
         ? {
-          boutique_slug: [categories],
-          category: boutiqueCategory,
-        }
+            boutique_slug: [categories],
+            category: boutiqueCategory,
+          }
         : {
-          boutique_slug: [categories],
-        };
+            boutique_slug: [categories],
+          };
     var formBody: any = [];
     for (var property in details) {
       var encodedKey = encodeURIComponent(property);
@@ -386,7 +404,7 @@ class HomeService {
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
       (categories
         ? "/api/products/search" +
-        `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
+          `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
         : LISTING_INFO_URL + `?${str}`);
     await fetch(
       url + `${offset ? `&offset=${offset}` : ""}&limit=${4}`,
@@ -434,9 +452,10 @@ class HomeService {
     try {
       let rep = await fetch(
         process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        "/api/products/search" +
-        `?search_text=${search_text}${urlParams.size > 0 ? `&` + urlParams.toString() : ""
-        }&limit=4&with_filter=false`,
+          "/api/products/search" +
+          `?search_text=${search_text}${
+            urlParams.size > 0 ? `&` + urlParams.toString() : ""
+          }&limit=4&with_filter=false`,
         {
           headers: {
             ...getHeader().headers,
@@ -476,9 +495,11 @@ class HomeService {
     try {
       let rep = await fetch(
         process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        `/api/products/search?${search_text?.length > 0 ? `search_text=${search_text}` : ""
-        }${urlParams.toString()?.length > 0 ? `&${urlParams.toString()}` : ""
-        }`,
+          `/api/products/search?${
+            search_text?.length > 0 ? `search_text=${search_text}` : ""
+          }${
+            urlParams.toString()?.length > 0 ? `&${urlParams.toString()}` : ""
+          }`,
         {
           headers: {
             ...getHeader().headers,
@@ -520,8 +541,8 @@ class HomeService {
     errCallback?: Function;
     slug: string;
   }) {
-    let language_code = window.location.pathname.split("/")[1].split("-")[1]
-    let country_code = window.location.pathname.split("/")[1].split("-")[0]
+    let language_code = window.location.pathname.split("/")[1].split("-")[1];
+    let country_code = window.location.pathname.split("/")[1].split("-")[0];
     AddToCartAnimation();
     if (alreadyExist) {
       let dataBody = [];
@@ -591,19 +612,19 @@ class HomeService {
       if (res?.id_cart) {
         callback({ id: res?.id_cart });
         await this.subscribeToTopic({
-          topic: `product_hurry_up_quantity_${res?.id_cart}_${country_code}_${language_code}`
+          topic: `product_hurry_up_quantity_${res?.id_cart}_${country_code}_${language_code}`,
         });
         await this.subscribeToTopic({
-          topic: `product_hurry_up_time_left_${res?.id_cart}_${country_code}_${language_code}`
+          topic: `product_hurry_up_time_left_${res?.id_cart}_${country_code}_${language_code}`,
         });
         await this.subscribeToTopic({
-          topic: `product_availability_${id}_${country_code}_${language_code}`
+          topic: `product_availability_${id}_${country_code}_${language_code}`,
         });
         await this.subscribeToTopic({
-          topic: `product_discount_${id}_${country_code}_${language_code}`
+          topic: `product_discount_${id}_${country_code}_${language_code}`,
         });
         await this.subscribeToTopic({
-          topic: `product_comment_${id}_${country_code}_${language_code}`
+          topic: `product_comment_${id}_${country_code}_${language_code}`,
         });
       } else {
         errCallback();
@@ -612,14 +633,21 @@ class HomeService {
       }
     }
   }
-  filterTopics({ inputTopic, countries, languages, topics }: {
+  filterTopics({
+    inputTopic,
+    countries,
+    languages,
+    topics,
+  }: {
     inputTopic: string;
     countries: Array<string>;
     languages: Array<string>;
     topics: Array<string>;
   }) {
     // Extract country and language from the end of the input topic
-    const countryLanguageRegex = new RegExp(`_(${countries.join('|')})_(${languages.join('|')})$`);
+    const countryLanguageRegex = new RegExp(
+      `_(${countries.join("|")})_(${languages.join("|")})$`
+    );
     const match = inputTopic.match(countryLanguageRegex);
 
     if (!match) {
@@ -629,15 +657,21 @@ class HomeService {
     const [_, inputCountry, inputLanguage] = match;
 
     // Extract the name by removing the country and language part
-    const name = inputTopic.slice(0, inputTopic.lastIndexOf(`_${inputCountry}_${inputLanguage}`));
+    const name = inputTopic.slice(
+      0,
+      inputTopic.lastIndexOf(`_${inputCountry}_${inputLanguage}`)
+    );
 
-    return topics.filter(topic => {
+    return topics.filter((topic) => {
       const topicMatch = topic.match(countryLanguageRegex);
 
       if (!topicMatch) return false;
 
       const [__, country, language] = topicMatch;
-      const topicName = topic.slice(0, topic.lastIndexOf(`_${country}_${language}`));
+      const topicName = topic.slice(
+        0,
+        topic.lastIndexOf(`_${country}_${language}`)
+      );
 
       return (
         topicName === name && // Match the name
@@ -645,19 +679,20 @@ class HomeService {
       );
     });
   }
-  async subscribeToTopic({
-    topic
-  }: {
-    topic: string
-  }) {
+  async subscribeToTopic({ topic }: { topic: string }) {
     let token = localStorage.getItem("FB-DEVICE-TOKEN");
-    let storageTopics = JSON.parse(localStorage.getItem("topics")) || []
+    let storageTopics = JSON.parse(localStorage.getItem("topics")) || [];
     if (token && !storageTopics?.includes(topic)) {
       if (storageTopics?.length) {
         let data = await getCountriesApi();
         let countries = data.map((s) => s.iso.toLowerCase());
         const languages = ["en", "ar", "tr"];
-        let filteredTopics = this.filterTopics({ inputTopic: topic, countries, languages, topics: storageTopics })
+        let filteredTopics = this.filterTopics({
+          inputTopic: topic,
+          countries,
+          languages,
+          topics: storageTopics,
+        });
         if (filteredTopics.length > 0) {
           filteredTopics.forEach(async (one) => {
             await fetch("/api/unsubscribeFromTopic", {
@@ -665,11 +700,11 @@ class HomeService {
               // @ts-ignore
               body: JSON.stringify({
                 token,
-                topic: one
+                topic: one,
               }),
             });
-            storageTopics = storageTopics?.filter(item => item !== one);
-          })
+            storageTopics = storageTopics?.filter((item) => item !== one);
+          });
         }
       }
       await fetch("/api/subscribeToTopic", {
@@ -677,11 +712,11 @@ class HomeService {
         // @ts-ignore
         body: JSON.stringify({
           token,
-          topic
+          topic,
         }),
       });
-      storageTopics.push(topic)
-      localStorage.setItem("topics", JSON.stringify(storageTopics))
+      storageTopics.push(topic);
+      localStorage.setItem("topics", JSON.stringify(storageTopics));
     }
   }
   async handleTopicsOnPageRefresh() {
@@ -700,21 +735,28 @@ class HomeService {
     if (!token) return;
 
     // Get the list of valid countries and languages
-    const countries = await getCountriesApi().then((data) => data.map((s) => s.iso.toLowerCase()));
+    const countries = await getCountriesApi().then((data) =>
+      data.map((s) => s.iso.toLowerCase())
+    );
     const languages = ["en", "ar", "tr"];
 
     // Generate new topics with the current country-language pair
-    const updatedTopics = storageTopics.map((storedTopic) => {
-      const match = storedTopic.match(/_([a-z]{2})_([a-z]{2})$/);
+    const updatedTopics = storageTopics
+      .map((storedTopic) => {
+        const match = storedTopic.match(/_([a-z]{2})_([a-z]{2})$/);
 
-      if (!match) return null;
+        if (!match) return null;
 
-      const [_, oldCountry, oldLanguage] = match;
-      const name = storedTopic.slice(0, storedTopic.lastIndexOf(`_${oldCountry}_${oldLanguage}`));
+        const [_, oldCountry, oldLanguage] = match;
+        const name = storedTopic.slice(
+          0,
+          storedTopic.lastIndexOf(`_${oldCountry}_${oldLanguage}`)
+        );
 
-      // Replace with the new country-language pair
-      return `${name}_${countryCode}_${languageCode}`;
-    }).filter(Boolean);
+        // Replace with the new country-language pair
+        return `${name}_${countryCode}_${languageCode}`;
+      })
+      .filter(Boolean);
 
     // Detect topics that need to be unsubscribed
     const topicsToUnsubscribe = storageTopics.filter(
@@ -758,12 +800,12 @@ class HomeService {
         body: { id: id },
         title: "Hide Old Cart",
       });
-    } catch (error) { }
+    } catch (error) {}
   }
   async TestNotificationBoutique({ boutique_id }) {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_boutique_created",
+        "/firebase_device_tokens/send_boutique_created",
       { boutique_id: 66, topic: "boutique_created", language_code: "ar" },
       { ...getHeader() }
     );
@@ -771,7 +813,7 @@ class HomeService {
   async TestNotificationProductToOldCart() {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_product_cart_expiration",
+        "/firebase_device_tokens/send_product_cart_expiration",
       { product_id: 5566 },
       { ...getHeader() }
     );
@@ -780,7 +822,7 @@ class HomeService {
     await axios
       .post(
         process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/firebase_device_tokens/send_product_availability",
+          "/firebase_device_tokens/send_product_availability",
         { product_id: 5550, variant: "Gold-XXL" },
         { ...getHeader() }
       )
@@ -791,7 +833,7 @@ class HomeService {
   async TestNotificationProductComment() {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_product_comment",
+        "/firebase_device_tokens/send_product_comment",
       {
         product_id: 5550,
         topic: "product_comment_mixit-solid-bangle-bracelet-RhqqPZ",
@@ -802,7 +844,7 @@ class HomeService {
   async TestNotificationProductDiscount() {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_product_discount",
+        "/firebase_device_tokens/send_product_discount",
       {
         product_id: 5550,
         topic: "product_discount_mixit-solid-bangle-bracelet-RhqqPZ",
@@ -813,7 +855,7 @@ class HomeService {
   async TestNotificationCategoryCreated() {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_category_created",
+        "/firebase_device_tokens/send_category_created",
       { category_id: 368, topic: "category_created" },
       { ...getHeader() }
     );
@@ -825,7 +867,7 @@ class HomeService {
         body: { key: key },
         title: "Remove From Cart",
       });
-    } catch (error) { }
+    } catch (error) {}
   }
   async StoreNotificationProduct({ type_id, variant, product_id }) {
     let detail = {
@@ -847,7 +889,7 @@ class HomeService {
         formBody,
         { ...getHeader() }
       )
-      .catch((e) => { });
+      .catch((e) => {});
   }
 }
 
