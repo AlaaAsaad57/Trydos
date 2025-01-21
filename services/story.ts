@@ -49,10 +49,9 @@ class StoryService {
       }
     );
     let repo = response.data;
-    Cookies.set("token", repo.data.access_token);
     localStorage.setItem("USER-STORIES", JSON.stringify(repo.data));
-    Cookies.set("stories-token", repo.data.access_token);
-    localStorage.setItem("STORIES-TOKEN", repo.data.access_token);
+    Cookies.set("stories-token", repo.data?.access_token);
+    localStorage.setItem("STORIES-TOKEN", repo.data?.access_token);
 
     if (typeof window !== "undefined") {
       _isStoreLastJson() &&

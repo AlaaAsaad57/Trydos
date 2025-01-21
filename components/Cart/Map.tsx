@@ -91,7 +91,7 @@ const Map = ({
           <MapElement
             setLocation={(e) => {
               setAddressDetails({
-                geolocation: e,
+                location: e,
               });
             }}
             expanded={expanded}
@@ -112,11 +112,12 @@ const Map = ({
           closeMap={() => {
             setExpanded(false);
             setAddressDetails({
-              geolocation: { lat: null, lng: null },
+              location: { latitude: null, longitude: null },
             });
           }}
           locationSelected={
-            addressDetails.geolocation.lat && addressDetails.geolocation.lng
+            addressDetails.location.latitude &&
+            addressDetails.location.longitude
           }
           selectLocation={() => {
             setExpanded(false);

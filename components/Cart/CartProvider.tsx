@@ -115,12 +115,20 @@ export const StepSlider = ({ enableCart }) => {
         />
       </SwiperSlide>
       <SwiperSlide className="w-full h-full cart-widget">
-        <OrdersPage
-          setStep={(e) => {
-            setStep(0);
-            ref.current.slidePrev();
-          }}
-        />
+        {({ isActive }) =>
+          isActive ? (
+            <>
+              <OrdersPage
+                setStep={(e) => {
+                  setStep(0);
+                  ref.current.slidePrev();
+                }}
+              />
+            </>
+          ) : (
+            <></>
+          )
+        }
       </SwiperSlide>
     </Swiper>
   );

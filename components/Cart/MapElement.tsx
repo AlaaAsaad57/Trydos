@@ -55,8 +55,8 @@ export const MapElement: React.FC<MapProps> = memo(
 
       useMapEvent("click", (e) => {
         setLocation({
-          lat: e.latlng.lat,
-          lng: e.latlng.lng,
+          latitude: e.latlng.lat,
+          longitude: e.latlng.lng,
         });
       });
       return <></>;
@@ -109,13 +109,13 @@ export const MapElement: React.FC<MapProps> = memo(
             <TileLayer url={getUrl()} />
 
             <HandlClick />
-            {addressDetails.geolocation.lat &&
-              addressDetails.geolocation.lng && (
+            {addressDetails.location.latitude &&
+              addressDetails.location.longitude && (
                 <Marker
                   icon={iconPerson}
                   position={{
-                    lat: addressDetails.geolocation.lat,
-                    lng: addressDetails.geolocation.lng,
+                    lat: addressDetails.location.latitude,
+                    lng: addressDetails.location.longitude,
                   }}
                 ></Marker>
               )}

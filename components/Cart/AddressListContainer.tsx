@@ -78,7 +78,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                     </svg>
 
                     <span className="regular ml-[4px] text-[12px] text-[#8D8D8D]">
-                      {s.title}
+                      {s.address}
                     </span>
                   </div>
                   <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]">
@@ -122,7 +122,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                     </svg>
 
                     <div className="flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D]">
-                      {s.ContactInfo.phone}
+                      {s.contact_info.phone}
                     </div>
                     <div className="flex-row ml-[17px]  items-center">
                       <svg
@@ -179,7 +179,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                       </svg>
 
                       <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]">
-                        {s.ContactInfo.name}
+                        {s.contact_info.contact_person_name}
                       </div>
                     </div>
                   </div>

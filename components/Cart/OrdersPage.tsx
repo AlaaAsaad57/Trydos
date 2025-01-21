@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "node_modules/react-redux/es";
 import SelectRegion from "./SelectRegion";
 import AddressListContainer from "./AddressListContainer";
 import TrashIcon from "public/svg/cart/TrashIcon.svg";
+import order from "services/order";
 const DeleteIcon = () => {
   return (
     <svg
@@ -399,7 +400,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
                 </svg>
 
                 <span className="regular ml-[4px] text-[12px] text-[#D3D3D3]">
-                  {deletedAddress.title}
+                  {deletedAddress.address}
                 </span>
               </div>
               <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#D3D3D3]">
@@ -443,7 +444,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
                 </svg>
 
                 <div className="flex-row ml-[4px]   items-center regular text-[12px] text-[#D3D3D3]">
-                  {deletedAddress.ContactInfo.phone}
+                  {deletedAddress.contact_info.phone}
                 </div>
                 <div className="flex-row ml-[17px]  items-center">
                   <svg
@@ -500,7 +501,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
                   </svg>
 
                   <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#D3D3D3]">
-                    {deletedAddress.ContactInfo.name}
+                    {deletedAddress.contact_info.name}
                   </div>
                 </div>
               </div>
@@ -512,6 +513,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
             onClick={() => {
               slidePrev();
               closeModal();
+              order.DeleteAddressList({ address: deletedAddress.id });
               dispatch({ type: "DELETE-ADDRESS", payload: deletedAddress.id });
             }}
             className="w-full cursor-pointer flex justify-center items-center rounded-[15px] h-[50px] bg-[#F8F8F8] bold text-[16px] text-[#FF5F61]"

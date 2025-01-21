@@ -336,7 +336,7 @@ function OrderButton({ close, toOrders }) {
                 <span className="line-through regular mr-2">
                   {cart.sub_total}
                 </span>{" "}
-                {cart.total_cash} {currency_symbol.symbol}
+                {cart.total_cash} {currency_symbol?.symbol}
                 <span className="ml-2">
                   <MenuIcon className={expanded && "rotate-180"} />
                 </span>

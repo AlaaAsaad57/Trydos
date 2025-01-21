@@ -826,42 +826,40 @@ declare global {
       enable: boolean;
       addressLists: Array<{
         id: number;
-        geolocation: { lat: any; lng: any };
+        location: { latitude: any; longitude: any };
         Country: { name: string; code: string };
-        location: string;
-        detailes_Address: string;
-        title: string;
-        ContactInfo: {
-          name: string;
+        address_detail: string;
+        address: string;
+        contact_info: {
+          contact_person_name: string;
           phone: string;
-          alternatePhone: string;
+          alternative_phone: string;
         };
         region: string;
-        regionDetails: {
-          country: string;
-          province: string;
+        region_details: {
+          city: string;
+          district: string;
           town: string;
-          suburb: string;
+          street: string;
         };
       }>;
       addressDetails: {
         id?: number;
-        geolocation: { lat: any; lng: any };
+        location: { latitude: any; longitude: any };
         Country: { name: string; code: string };
-        location: string;
-        detailes_Address: string;
-        title: string;
-        ContactInfo: {
-          name: string;
+        address_detail: string;
+        address: string;
+        contact_info: {
+          contact_person_name: string;
           phone: string;
-          alternatePhone: string;
+          alternative_phone: string;
         };
         region: string;
-        regionDetails: {
-          country: string;
-          province: string;
+        region_details: {
+          city: string;
+          district: string;
           town: string;
-          suburb: string;
+          street: string;
         };
       };
       AddToCartOption: {

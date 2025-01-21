@@ -1,13 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import OrderCartIcon from "public/svg/cart/orderCartIcon.svg";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import FreeShippingIcon from "public/svg/product/FreeShipping.svg";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
+import order from "services/order";
 function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   const cart = useSelector((state: StateInterface) => state.cart?.cart);
   const dispatch = useDispatch();
+  const user = useSelector((state: StateInterface) => state.auth.user);
+  useEffect(() => {
+    order.GetAddressList();
+  }, [user]);
   return (
     <div className="flex flex-col w-full p-3">
       <CartItemSelect items={cart} />
@@ -219,7 +224,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
           openAddressList(e);
         }}
       />
-      {addressLists.length > 0 ? (
+      {addressLists?.length > 0 ? (
         <>
           <div
             onClick={() => {
@@ -345,20 +350,20 @@ const AddressContainer = ({ openAddressList }) => {
   return (
     <div
       onClick={() => {
-        if (addressLists.length > 0) {
+        if (addressLists?.length > 0) {
           openAddressList(true);
         }
       }}
       style={{
-        border: addressLists.length === 0 ? "" : "#388bff8c 1px solid",
+        border: addressLists?.length === 0 ? "" : "#388bff8c 1px solid",
       }}
       className={`flex-col  ${
-        addressLists.length === 0
+        addressLists?.length === 0
           ? "items-center h-[84px]   py-[12px]"
           : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
       } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
     >
-      {addressLists.length > 0 ? (
+      {addressLists?.length > 0 ? (
         <>
           <div className="flex-col">
             <div className="flex-row items-center">
@@ -377,11 +382,11 @@ const AddressContainer = ({ openAddressList }) => {
               </svg>
 
               <span className="regular ml-[4px] text-[12px] text-[#8D8D8D]">
-                {addressLists[0].title}
+                {addressLists[0].address}
               </span>
             </div>
             <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]">
-              {addressLists[0].region}
+              {addressLists[0].address_detail}
             </div>
             <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]">
               <svg
@@ -421,7 +426,7 @@ const AddressContainer = ({ openAddressList }) => {
               </svg>
 
               <div className="flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D]">
-                {addressLists[0].ContactInfo.phone}
+                {addressLists[0].contact_info.phone}
               </div>
               <div className="flex-row ml-[17px]  items-center">
                 <svg
@@ -478,7 +483,7 @@ const AddressContainer = ({ openAddressList }) => {
                 </svg>
 
                 <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]">
-                  {addressLists[0].ContactInfo.name}
+                  {addressLists[0].contact_info.contact_person_name}
                 </div>
               </div>
             </div>
