@@ -234,7 +234,7 @@ class HomeService {
                 title: "register firebase token",
               });
           }, 3000);
-
+          // ininit
           const searchParams = new URLSearchParams(window.location.search);
           if (
             !(
