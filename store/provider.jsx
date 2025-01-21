@@ -16,6 +16,7 @@ import { useSearchParams } from "next/navigation";
 import PopupCountry from "utils/PopupCountry";
 // import { getCountriesApi } from "./homepage/cachedActions";
 import axios from "axios";
+import home from "services/home";
 export default function Providers({ children }) {
   const [dataCountries, setCountriesData] = useState([]);
   useEffect(() => {
@@ -45,6 +46,19 @@ export default function Providers({ children }) {
       };
     });
   }, []);
+  useEffect(() => {
+    if (!shouldShowBluredInfo()) {
+      const handlePageRefresh = async () => {
+        try {
+          await home.handleTopicsOnPageRefresh(); // Call the function on refresh
+        } catch (error) {
+          console.error("Error handling topics on page refresh:", error);
+        }
+      };
+
+      handlePageRefresh(); // Run the function on initial load
+    }
+  }, []); // Runs once when the app initializes
   useEffect(() => {
     const fallbackImage = "/error.png"; // Replace with your fallback image path
 
