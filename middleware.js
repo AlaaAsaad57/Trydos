@@ -70,7 +70,7 @@ export async function middleware(request) {
   let countries = data.map((s) => s.iso.toLowerCase());
   let defaultLocale = `${countries[0]}-en`;
 
-  countries.map((s) => {
+  [...countries, "gb"].map((s) => {
     languages.map((l) => {
       supportedLocales.push(`${s}-${l}`);
     });
@@ -136,7 +136,9 @@ export async function middleware(request) {
       secure: false,
       sameSite: "Strict",
     });
-
+    if (countryFromCookies === "gb") {
+      return response;
+    }
     if (url.searchParams.get("changed-country")) {
       if (isChangedLocalizationByUrl) {
         console.log(isChangedLocalizationByUrl);
@@ -177,7 +179,7 @@ export async function middleware(request) {
     defaultLocale = `${countryByIp}-en`;
     url.pathname = `/${defaultLocale}${url.pathname}`;
   } else {
-    url.pathname = `/${defaultLocale}/${url.pathname}`;
+    url.pathname = `/gb-en/${url.pathname}`;
     url.searchParams.set("no-country", true);
     return NextResponse.redirect(url);
   }
