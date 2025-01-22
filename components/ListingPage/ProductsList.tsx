@@ -130,10 +130,10 @@ function ProductsList({
             <>
               <div
                 className={
-                  (products.length === 0 && products) ||
+                  products?.length === 0 &&
                   Listing_Data_res?.body?.data?.products?.length === 0
                     ? "listing-container-empty"
-                    : "listing-container flex"
+                    : "listing-container flex pb-[350px] max-w-[1310px]"
                 }
                 onWheelCapture={() => {
                   if (!selectedFilter.filtered) GetNextPage();

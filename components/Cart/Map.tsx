@@ -18,7 +18,7 @@ const Map = ({
   const addressDetails = useSelector(
     (state: StateInterface) => state.cart.addressDetails
   );
-  useEffect(() => {
+  const setLocationBasedOnUserLocation = () => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         function (position) {
@@ -27,6 +27,12 @@ const Map = ({
               lat: position.coords.latitude,
               lng: position.coords.longitude,
             });
+            setAddressDetails({
+              location: {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              },
+            });
           }
         },
         function (error) {
@@ -34,7 +40,7 @@ const Map = ({
         }
       );
     }
-  }, [expanded]);
+  };
   return (
     <>
       <div
@@ -53,6 +59,33 @@ const Map = ({
             border: "1px solid rgb(211 211 211 / 51%)",
           }}
         >
+          {expanded && (
+            <span
+              onClick={() => {
+                setLocationBasedOnUserLocation();
+              }}
+              className=" cursor-pointer bottom-[30px] right-[30px] absolute z-[999] w-[50px] h-[50px] rounded-[50%] flex justify-center items-center bg-blue-500"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="35px"
+                height="35px"
+                viewBox="0 0 16 16"
+                fill="none"
+              >
+                <path
+                  d="M8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10Z"
+                  fill="#fff"
+                />
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M2.08296 7C2.50448 4.48749 4.48749 2.50448 7 2.08296V0H9V2.08296C11.5125 2.50448 13.4955 4.48749 13.917 7H16V9H13.917C13.4955 11.5125 11.5125 13.4955 9 13.917V16H7V13.917C4.48749 13.4955 2.50448 11.5125 2.08296 9H0V7H2.08296ZM4 8C4 5.79086 5.79086 4 8 4C10.2091 4 12 5.79086 12 8C12 10.2091 10.2091 12 8 12C5.79086 12 4 10.2091 4 8Z"
+                  fill="#fff"
+                />
+              </svg>
+            </span>
+          )}
           {!expanded && (
             <div
               onClick={() => {
