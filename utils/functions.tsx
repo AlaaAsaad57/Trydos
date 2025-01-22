@@ -554,23 +554,23 @@ export const filterProducts = async ({
         : { colors: `${JSON.stringify(filters.colors)}` },
   });
 
-  if (!serachTrigger)
-    // newFiltersCallback({
-    //   filtersVar: {
-    //     categories: product.data.categories,
-    //     brands: product.data.brands,
-    //     sizes:
-    //       product.data.attributes.filter((s) => s.name === "Size")[0]
-    //         ?.options || [],
-    //     prices: product.data.prices || null,
-    //     offers:
-    //       product.data.attributes.filter((s) => s.name === "Offer")[0]
-    //         ?.options || [],
-    //     reset: reset,
-    //     colors: product.data.colors || [],
-    //   },
-    // });
-    callback(product.data.products);
+  // if (!serachTrigger)
+  // newFiltersCallback({
+  //   filtersVar: {
+  //     categories: product.data.categories,
+  //     brands: product.data.brands,
+  //     sizes:
+  //       product.data.attributes.filter((s) => s.name === "Size")[0]
+  //         ?.options || [],
+  //     prices: product.data.prices || null,
+  //     offers:
+  //       product.data.attributes.filter((s) => s.name === "Offer")[0]
+  //         ?.options || [],
+  //     reset: reset,
+  //     colors: product.data.colors || [],
+  //   },
+  // });
+  callback(product.data.products);
 };
 const urlParams = ({ filters, noProducts }) => {
   const PriceFiltered = store.getState().details.PriceFiltered;
