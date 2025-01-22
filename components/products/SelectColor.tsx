@@ -1,8 +1,8 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { EffectCoverflow } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { Swiper, SwiperRef, SwiperSlide } from "swiper/react";
 import CartIcon from "public/svg/CartIcon.svg";
 
 import { getConfiguredImage, Sendevent } from "utils/functions";
@@ -173,6 +173,7 @@ export const SelectColorsSlider = ({ colors }) => {
 
     return 0;
   };
+  const ref = useRef<SwiperRef>();
   return (
     <Swiper
       modules={[EffectCoverflow]}
@@ -199,9 +200,14 @@ export const SelectColorsSlider = ({ colors }) => {
       threshold={1}
       centeredSlides={true}
       loop={false}
+      ref={ref}
     >
       {colors?.map((color, i) => (
         <SwiperSlide
+          onClick={() => {
+            ref.current.swiper.slideTo(i, 400, false);
+            setActive(color);
+          }}
           key={i}
           style={{
             overflow: "visible",
