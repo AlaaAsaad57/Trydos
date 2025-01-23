@@ -876,6 +876,7 @@ a {
   width: auto !important;
 }
 .home-navbar {
+  flex-direction: row !important;
   min-height: 98px;
   align-items: flex-start !important;
   padding: 52px 20px 0;
@@ -923,6 +924,12 @@ svg {
 .nav-question-item:hover span {
   opacity: 1;
 }
+.home-page-container {
+  align-items: center;
+  max-width: 1200px;
+  flex-direction: column;
+  padding: 0 !important;
+}
 @media only screen and (max-width: 912px) {
   #stories-border2 {
     display: none;
@@ -965,11 +972,6 @@ svg {
   .categories-bar-container,
   .welcome-user {
     display: none !important;
-  }
-
-  .home-page-container {
-    align-items: center;
-    padding: 0 !important;
   }
 
   .stories-bar,
@@ -1031,7 +1033,6 @@ svg {
   width: 100%;
   justify-content: flex-start;
   align-items: center;
-  flex-direction: column;
 }
 svg {
   overflow: visible;

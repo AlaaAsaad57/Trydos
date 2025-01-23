@@ -16,9 +16,10 @@ const initialState = {
     region: "",
     region_details: {
       city: "",
-      district: "",
+      province: "",
       town: "",
       street: "",
+      building: "",
     },
   },
   enable: false,
@@ -38,7 +39,15 @@ const initialState = {
   loaded: false,
   oldCart: null,
 };
-
+const showLocationText = (location) => {
+  let str = "";
+  if (location.province) str += ` | ${location.province}`;
+  if (location.city) str += ` | ${location.city}`;
+  if (location.town) str += ` | ${location.town}`;
+  if (location.street) str += ` | ${location.street}`;
+  if (location.building) str += ` | ${location.building}`;
+  return str;
+};
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
     case "ORDER-LOADING": {
@@ -70,9 +79,10 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           region: "",
           region_details: {
             city: "",
-            district: "",
+            province: "",
             town: "",
             street: "",
+            building: "",
           },
         },
       };
@@ -89,9 +99,14 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "START-UPDATE-ADDRESS": {
+      let temp = {
+        ...payload,
+        region: showLocationText(payload.region_details),
+      };
+
       return {
         ...state,
-        addressDetails: payload,
+        addressDetails: temp,
       };
     }
     case "UPDATE-ADDRESS": {
@@ -264,6 +279,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "ENABLE-CART": {
+      document.documentElement.scrollTop = 0;
       return {
         ...state,
         enable: payload,

@@ -28,13 +28,23 @@ function SelectRegion({ closeSelect }) {
 
         <div
           className={`flex ${
+            !addressDetails.region_details.province
+              ? "text-[#D3D3D3]"
+              : "text-[#1D1D1D]"
+          }  text-[14px] regular`}
+        >
+          <span className="px-1">|</span>
+          {addressDetails.region_details.province || "Province"}
+        </div>
+        <div
+          className={`flex ${
             !addressDetails.region_details.city
               ? "text-[#D3D3D3]"
               : "text-[#1D1D1D]"
           }  text-[14px] regular`}
         >
           <span className="px-1">|</span>
-          {addressDetails.region_details.city || "Province"}
+          {addressDetails.region_details.city || "Town"}
         </div>
         <div
           className={`flex ${
@@ -44,17 +54,7 @@ function SelectRegion({ closeSelect }) {
           }  text-[14px] regular`}
         >
           <span className="px-1">|</span>
-          {addressDetails.region_details.town || "Town"}
-        </div>
-        <div
-          className={`flex ${
-            !addressDetails.region_details.street
-              ? "text-[#D3D3D3]"
-              : "text-[#1D1D1D]"
-          }  text-[14px] regular`}
-        >
-          <span className="px-1">|</span>
-          {addressDetails.region_details.street || "Suburb"}
+          {addressDetails.region_details.town || "Suburb"}
         </div>
       </>
     );
@@ -182,15 +182,11 @@ const SearchResults = ({ searchResults, closeSelect }) => {
   const showLocationText = (location) => {
     let str = "";
     if (location.country) str += location.country;
-    if (location.region) str += ` | ${location.region}`;
+    if (location.province) str += ` | ${location.province}`;
     if (location.city) str += ` | ${location.city}`;
-    if (location.neighbourhood) str += ` | ${location.neighbourhood}`;
-    if (location.building) {
-      str += ` | ${location.neighbourhood}`;
-    }
-    if (location.street) {
-      str += ` | ${location.street}`;
-    }
+    if (location.town) str += ` | ${location.town}`;
+    if (location.street) str += ` | ${location.street}`;
+    if (location.building) str += ` | ${location.building}`;
     return str;
   };
   const dispatch = useDispatch();
@@ -200,11 +196,12 @@ const SearchResults = ({ searchResults, closeSelect }) => {
       payload: {
         region_details: {
           city: s.city,
-          district: s.region,
-          town: s.neighbourhood,
-          suburb: s.street,
+          province: s.province,
+          town: s.town,
+          street: s.street,
+          building: s.building,
         },
-        region: s.display_name,
+        region: showLocationText(s),
       },
     });
     closeSelect();

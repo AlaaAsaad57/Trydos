@@ -11,7 +11,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
   return (
     <>
       <div
-        className="absolute top-[50px] left-0 min-w-[100vw] z-[999999998] min-h-full opacity-40 bg-[black]"
+        className="absolute top-[50px] left-0 min-w-[100vw] z-[999999998] min-h-screen opacity-40 bg-[black]"
         onClick={() => {
           closeSelect();
         }}

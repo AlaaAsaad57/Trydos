@@ -839,9 +839,10 @@ declare global {
         region: string;
         region_details: {
           city: string;
-          district: string;
+          province: string;
           town: string;
           street: string;
+          building: string;
         };
       }>;
       addressDetails: {
@@ -858,9 +859,10 @@ declare global {
         region: string;
         region_details: {
           city: string;
-          district: string;
+          province: string;
           town: string;
           street: string;
+          building: string;
         };
       };
       AddToCartOption: {

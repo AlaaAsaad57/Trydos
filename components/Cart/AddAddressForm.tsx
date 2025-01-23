@@ -343,6 +343,7 @@ const ContactInfo = () => {
           contact_info: {
             ...addressDetails.contact_info,
             contact_person_name: user.name,
+            name: user.name,
           },
         },
       });
