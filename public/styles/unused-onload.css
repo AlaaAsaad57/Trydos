@@ -28,9 +28,7 @@ svg {
   .nav-question-item svg {
     transform: scale(1);
   }
-  .nav-question-item:hover span {
-    opacity: 1;
-  }
+
   .nav-img-item.nav-question-item,
   .user-nav-container .nav-question-item.nav-img-item:nth-child(4) {
     width: 30px;

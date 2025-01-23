@@ -42,7 +42,7 @@ const DeleteIcon = () => {
           id="Mask_Group_510"
           data-name="Mask Group 510"
           transform="translate(386 240)"
-          clip-path="url(#clip-path918)"
+          clipPath="url(#clip-path918)"
         >
           <g id="trash-can" transform="translate(2.023 0.386)">
             <path
@@ -212,7 +212,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                   <g
                     id="Mask_Group_380"
                     data-name="Mask Group 380"
-                    clip-path="url(#clip-path22)"
+                    clipPath="url(#clip-path22)"
                   >
                     <g
                       id="delivery_location"
@@ -430,7 +430,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
                     id="Mask_Group_646"
                     data-name="Mask Group 646"
                     transform="translate(0.245)"
-                    clip-path="url(#clip-path1213)"
+                    clipPath="url(#clip-path1213)"
                   >
                     <g id="XMLID_7_" transform="translate(0.202 0.583)">
                       <path
@@ -468,7 +468,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
                     <g
                       id="Mask_Group_647"
                       data-name="Mask Group 647"
-                      clip-path="url(#clip-path232323)"
+                      clipPath="url(#clip-path232323)"
                     >
                       <g
                         id="Group_13"

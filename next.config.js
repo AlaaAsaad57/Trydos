@@ -53,6 +53,7 @@ let nextConfig = withSvgr({
     minimumCacheTTL: 300,
   },
   experimental: {
+    instrumentationHook: true,
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
     staleTimes: {
@@ -77,11 +78,18 @@ const sentryWebpackPluginOptions = {
   // the following options are set automatically, and overriding them is not
   // recommended:
   //   release, url, configFile, stripPrefix, urlPrefix, include, ignore
-  // org: "example-org",
-  // project: "duttip",
+  org: "ramaaz-fm",
+  project: "javascript-nextjs",
   // // An auth token is required for uploading source maps.
-  // authToken: process.env.SENTRY_AUTH_TOKEN,
-  // silent: true, // Suppresses all logs
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: true, // Suppresses all logs
+  include: "./.next", // The build output directory
+  ignore: [
+    "node_modules", // Ignore node_modules
+    ".next/cache", // Explicitly ignore the cache folder
+    ".next/server/chunks", // Optional: Ignore server-side chunks
+  ],
+
   // For all available options, see:
   // https://github.com/getsentry/sentry-webpack-plugin#options.
 };
@@ -95,5 +103,7 @@ if (process.env.ENABLE_SENTRY === "false") {
   module.exports = withBundleAnalyzer(nextConfig);
 } else {
   const { withSentryConfig } = require("@sentry/nextjs");
-  module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);
+  module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions, {
+    hideSourceMaps: true,
+  });
 }

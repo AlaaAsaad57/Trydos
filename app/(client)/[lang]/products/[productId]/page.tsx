@@ -5,7 +5,7 @@ import ProductDetailsServer from "components/Server/ProductDetails";
 
 import { getConfiguredImage, getProductMeta } from "utils/functions";
 import { notFound } from "next/navigation";
-import { metadata } from "../../layout";
+export const runtime = "nodejs";
 
 export async function generateMetadata({ params, searchParams }) {
   const productId = params.productId;

@@ -6,6 +6,8 @@ import CustomNavbarServer from "components/Server/ServerCustomNav";
 import { notFound } from "next/navigation";
 // import { Suspense } from "react";
 import { getBoutiqueMeta } from "utils/functions";
+export const runtime = "nodejs";
+
 interface Props {
   params: {
     lang: string;
@@ -19,6 +21,7 @@ interface Props {
     colors: string;
   };
 }
+
 export async function generateMetadata({ params, searchParams }: Props) {
   const boutiqueId = params.productCategory;
   try {

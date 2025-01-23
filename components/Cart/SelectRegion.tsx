@@ -102,10 +102,12 @@ const SearchLocations = ({ closeSelect }) => {
   const [searchResults, setSearchResults] = useState([]);
   const searchAction = async (val) => {
     setLoading(true);
-    let data = await axios.get(
-      `https://nominatim.openstreetmap.org/search?q=${val}&format=json&addressdetails=1&accept-language=${language}&countrycodes=${country}`
+    let data = await axios.post(
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+        `/api/addresses/get-address-by-text`,
+      { query: val }
     );
-    setSearchResults(data.data || []);
+    setSearchResults(data.data.results || []);
     setLoading(false);
   };
   return (
@@ -135,7 +137,7 @@ const SearchLocations = ({ closeSelect }) => {
           <g
             id="Mask_Group_165"
             data-name="Mask Group 165"
-            clip-path="url(#clip-path)"
+            clipPath="url(#clip-path)"
           >
             <g id="_x32_-Magnifying_Glass">
               <path
@@ -170,9 +172,7 @@ const SearchLocations = ({ closeSelect }) => {
         closeSelect={() => {
           closeSelect();
         }}
-        searchResults={searchResults?.filter(
-          (s) => s.address.country_code === country
-        )}
+        searchResults={searchResults}
       />
     </>
   );
@@ -181,32 +181,16 @@ const SearchLocations = ({ closeSelect }) => {
 const SearchResults = ({ searchResults, closeSelect }) => {
   const showLocationText = (location) => {
     let str = "";
-    if (location.address.country) str += location.address.country;
-    if (
-      location.address.city ||
-      location.address.province ||
-      location.address.region
-    )
-      str += ` | ${
-        location.address.city ||
-        location.address.province ||
-        location.address.region
-      }`;
-    if (location.address.town || location.address.quarter)
-      str += ` | ${location.address.town || location.address.quarter}`;
-    if (
-      location.address.suburb ||
-      location.address.road ||
-      location.address.neighbourhood ||
-      location.address.city_district
-    )
-      str += ` | ${
-        location.address.suburb ||
-        location.address.road ||
-        location.address.neighbourhood ||
-        location.address.city_district
-      }`;
-
+    if (location.country) str += location.country;
+    if (location.region) str += ` | ${location.region}`;
+    if (location.city) str += ` | ${location.city}`;
+    if (location.neighbourhood) str += ` | ${location.neighbourhood}`;
+    if (location.building) {
+      str += ` | ${location.neighbourhood}`;
+    }
+    if (location.street) {
+      str += ` | ${location.street}`;
+    }
     return str;
   };
   const dispatch = useDispatch();
@@ -214,6 +198,12 @@ const SearchResults = ({ searchResults, closeSelect }) => {
     dispatch({
       type: "set-address-details",
       payload: {
+        region_details: {
+          city: s.city,
+          district: s.region,
+          town: s.neighbourhood,
+          suburb: s.street,
+        },
         region: s.display_name,
       },
     });

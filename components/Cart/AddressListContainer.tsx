@@ -108,7 +108,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                         id="Mask_Group_646"
                         data-name="Mask Group 646"
                         transform="translate(0.245)"
-                        clip-path="url(#clip-path1213)"
+                        clipPath="url(#clip-path1213)"
                       >
                         <g id="XMLID_7_" transform="translate(0.202 0.583)">
                           <path
@@ -146,7 +146,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                         <g
                           id="Mask_Group_647"
                           data-name="Mask Group 647"
-                          clip-path="url(#clip-path232323)"
+                          clipPath="url(#clip-path232323)"
                         >
                           <g
                             id="Group_13"
@@ -251,7 +251,7 @@ const EditIcon = ({ address, onClick }) => {
             id="Mask_Group_64"
             data-name="Mask Group 64"
             transform="translate(363.131 240)"
-            clip-path="url(#clip-path884477)"
+            clipPath="url(#clip-path884477)"
           >
             <g
               id="Group_4665"
@@ -325,7 +325,7 @@ const DeleteIcon = ({ address, onClick }) => {
             id="Mask_Group_510"
             data-name="Mask Group 510"
             transform="translate(386 240)"
-            clip-path="url(#clip-path883763)"
+            clipPath="url(#clip-path883763)"
           >
             <g id="trash-can" transform="translate(1.348 -0.001)">
               <path
@@ -408,7 +408,7 @@ const MiniDeliveryIcon = () => {
           id="Mask_Group_380"
           data-name="Mask Group 380"
           transform="translate(0 0.389)"
-          clip-path="url(#clip-path9273)"
+          clipPath="url(#clip-path9273)"
         >
           <g id="delivery_location" transform="translate(1.163 -0.036)">
             <g id="Group_11335" data-name="Group 11335">

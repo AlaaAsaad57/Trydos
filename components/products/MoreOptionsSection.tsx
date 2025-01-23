@@ -115,16 +115,20 @@ function MoreOptionsSection() {
             </svg>
             <span>
               {translate("Notify Me About The Product When", language)}
-
             </span>
           </div>
           <div id="slider-options" className="notify-row">
-            <div className="button-option"
+            <div
+              className="button-option"
               onClick={async () => {
-                let language_code = window.location.pathname.split("/")[1].split("-")[1]
-                let country_code = window.location.pathname.split("/")[1].split("-")[0]
+                let language_code = window.location.pathname
+                  .split("/")[1]
+                  .split("-")[1];
+                let country_code = window.location.pathname
+                  .split("/")[1]
+                  .split("-")[0];
                 await home.subscribeToTopic({
-                  topic: `product_availability_${SelectedProduct.id}_${country_code}_${language_code}`
+                  topic: `product_availability_${SelectedProduct.id}_${country_code}_${language_code}`,
                 });
               }}
             >
@@ -136,10 +140,14 @@ function MoreOptionsSection() {
             <div
               className="button-option"
               onClick={async () => {
-                let language_code = window.location.pathname.split("/")[1].split("-")[1]
-                let country_code = window.location.pathname.split("/")[1].split("-")[0]
+                let language_code = window.location.pathname
+                  .split("/")[1]
+                  .split("-")[1];
+                let country_code = window.location.pathname
+                  .split("/")[1]
+                  .split("-")[0];
                 await home.subscribeToTopic({
-                  topic: `product_discount_${SelectedProduct.id}_${country_code}_${language_code}`
+                  topic: `product_discount_${SelectedProduct.id}_${country_code}_${language_code}`,
                 });
               }}
             >
@@ -148,10 +156,14 @@ function MoreOptionsSection() {
             <div
               className="button-option"
               onClick={async () => {
-                let language_code = window.location.pathname.split("/")[1].split("-")[1]
-                let country_code = window.location.pathname.split("/")[1].split("-")[0]
+                let language_code = window.location.pathname
+                  .split("/")[1]
+                  .split("-")[1];
+                let country_code = window.location.pathname
+                  .split("/")[1]
+                  .split("-")[0];
                 await home.subscribeToTopic({
-                  topic: `product_comment_${SelectedProduct.id}_${country_code}_${language_code}`
+                  topic: `product_comment_${SelectedProduct.id}_${country_code}_${language_code}`,
                 });
               }}
             >

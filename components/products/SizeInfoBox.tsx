@@ -25,7 +25,7 @@ function SizeInfoBox() {
             fill="none"
             stroke="#707070"
             strokeLinecap="round"
-            stroke-linejoin="round"
+            strokeLinejoin="round"
             strokeWidth="0.5"
             strokeDasharray="3 3"
           >
