@@ -631,7 +631,7 @@ html {
 
 .stories-bar-container {
   transform: translateX(0);
-  width: 100vw;
+  width: 100%;
   z-index: 99999999;
   max-width: 1365px;
   top: 95px;
@@ -639,9 +639,12 @@ html {
 }
 
 .offers-list {
-  align-items: flex-start;
+  align-items: center;
   justify-content: flex-start;
-  margin-top: 25px;
+
+  margin-top: 30px;
+  padding-left: 15px;
+  padding-right: 15px;
 }
 
 .offer-widget,
@@ -652,9 +655,10 @@ html {
 }
 
 .offer-widget {
-  height: 54vw;
+  height: calc((100vw - 30px) * 235 / 400);
   max-height: 476px;
   min-height: 235px;
+
   position: relative;
   background-position: 50%;
   background-repeat: no-repeat;
@@ -755,7 +759,7 @@ a {
   margin-top: 9px;
   position: relative;
   justify-content: center;
-  height: 31.4vw;
+  height: calc((100vw - 50px) * 135 / 380);
   width: 100%;
 }
 
@@ -926,32 +930,30 @@ svg {
 }
 .home-page-container {
   align-items: center;
-  max-width: 1200px;
+  max-width: 1366px;
   flex-direction: column;
   padding: 0 !important;
+}
+.home-page-container .categories-bar-container.mobile-bar {
+  margin: 0 !important;
+  max-width: 900px !important;
+  display: flex !important;
+  width: 100% !important;
+  justify-content: flex-start;
+  padding-left: 15px;
+  padding-right: 5px;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  min-height: 47px;
+  background-color: #fff;
+  padding-top: 7px !important;
+  z-index: 8;
+  white-space: nowrap;
 }
 @media only screen and (max-width: 912px) {
   #stories-border2 {
     display: none;
   }
-
-  .home-page-container .categories-bar-container.mobile-bar {
-    margin: 0 !important;
-    max-width: 900px !important;
-    display: flex !important;
-    width: 100% !important;
-    justify-content: flex-start;
-    padding-left: 15px;
-    padding-right: 5px;
-    overflow-x: scroll;
-    overflow-y: hidden;
-    min-height: 47px;
-    background-color: #fff;
-    padding-top: 7px !important;
-    z-index: 8;
-    white-space: nowrap;
-  }
-
   .categories-bar-item-name {
     font-size: 10px;
     color: #c4c2c2;
@@ -993,40 +995,7 @@ svg {
   .home-bar {
     display: none !important;
   }
-
-  .offers-list {
-    margin-top: 30px;
-    padding-left: 15px;
-    padding-right: 15px;
-  }
 }
-
-@media only screen and (max-width: 430px) {
-  .offer-slider-container {
-    height: 31.4vw;
-  }
-
-  .offer-widget {
-    height: 54vw;
-    max-height: 476px;
-  }
-}
-
-@media only screen and (min-width: 500px) {
-  .offer-slider-container {
-    height: 34.4vw;
-  }
-
-  .offer-widget {
-    height: 54vw;
-    max-height: 476px;
-  }
-}
-
-.home-page-container .categories-bar-container.mobile-bar {
-  display: none;
-}
-
 .home-navbar,
 .home-page-container {
   display: flex;
