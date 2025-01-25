@@ -60,7 +60,7 @@ class HomeService {
       let repo = await response.json();
       store.dispatch({ type: "GET_SETTINGS", payload: repo });
       sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
-      this.getCustomerInfo();
+      await this.getCustomerInfo();
       getCart({
         callback: ([data, res]) => {
           store.dispatch({
@@ -110,7 +110,7 @@ class HomeService {
         ExpiredUser();
       } else {
         await this.registerForExpire();
-        this.getCustomerInfo();
+        await this.getCustomerInfo();
       }
     }
   }
