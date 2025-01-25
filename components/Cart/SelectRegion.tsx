@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 import axios from "node_modules/axios";
+import { GetAddressByTextApi } from "models/Api";
 function SelectRegion({ closeSelect }) {
   const { lang } = useParams();
   // @ts-ignore
@@ -28,13 +29,23 @@ function SelectRegion({ closeSelect }) {
 
         <div
           className={`flex ${
+            !addressDetails.region_details.province
+              ? "text-[#D3D3D3]"
+              : "text-[#1D1D1D]"
+          }  text-[14px] regular`}
+        >
+          <span className="px-1">|</span>
+          {addressDetails.region_details.province || "Province"}
+        </div>
+        <div
+          className={`flex ${
             !addressDetails.region_details.city
               ? "text-[#D3D3D3]"
               : "text-[#1D1D1D]"
           }  text-[14px] regular`}
         >
           <span className="px-1">|</span>
-          {addressDetails.region_details.city || "Province"}
+          {addressDetails.region_details.city || "Town"}
         </div>
         <div
           className={`flex ${
@@ -44,17 +55,7 @@ function SelectRegion({ closeSelect }) {
           }  text-[14px] regular`}
         >
           <span className="px-1">|</span>
-          {addressDetails.region_details.town || "Town"}
-        </div>
-        <div
-          className={`flex ${
-            !addressDetails.region_details.street
-              ? "text-[#D3D3D3]"
-              : "text-[#1D1D1D]"
-          }  text-[14px] regular`}
-        >
-          <span className="px-1">|</span>
-          {addressDetails.region_details.street || "Suburb"}
+          {addressDetails.region_details.town || "Suburb"}
         </div>
       </>
     );
@@ -102,10 +103,12 @@ const SearchLocations = ({ closeSelect }) => {
   const [searchResults, setSearchResults] = useState([]);
   const searchAction = async (val) => {
     setLoading(true);
-    let data = await axios.get(
-      `https://nominatim.openstreetmap.org/search?q=${val}&format=json&addressdetails=1&accept-language=${language}&countrycodes=${country}`
+    let data: GetAddressByTextApi = await axios.post(
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+        `/api/addresses/get-address-by-text`,
+      { query: val }
     );
-    setSearchResults(data.data || []);
+    setSearchResults(data.data.results || []);
     setLoading(false);
   };
   return (
@@ -135,7 +138,7 @@ const SearchLocations = ({ closeSelect }) => {
           <g
             id="Mask_Group_165"
             data-name="Mask Group 165"
-            clip-path="url(#clip-path)"
+            clipPath="url(#clip-path)"
           >
             <g id="_x32_-Magnifying_Glass">
               <path
@@ -170,9 +173,7 @@ const SearchLocations = ({ closeSelect }) => {
         closeSelect={() => {
           closeSelect();
         }}
-        searchResults={searchResults?.filter(
-          (s) => s.address.country_code === country
-        )}
+        searchResults={searchResults}
       />
     </>
   );
@@ -181,32 +182,12 @@ const SearchLocations = ({ closeSelect }) => {
 const SearchResults = ({ searchResults, closeSelect }) => {
   const showLocationText = (location) => {
     let str = "";
-    if (location.address.country) str += location.address.country;
-    if (
-      location.address.city ||
-      location.address.province ||
-      location.address.region
-    )
-      str += ` | ${
-        location.address.city ||
-        location.address.province ||
-        location.address.region
-      }`;
-    if (location.address.town || location.address.quarter)
-      str += ` | ${location.address.town || location.address.quarter}`;
-    if (
-      location.address.suburb ||
-      location.address.road ||
-      location.address.neighbourhood ||
-      location.address.city_district
-    )
-      str += ` | ${
-        location.address.suburb ||
-        location.address.road ||
-        location.address.neighbourhood ||
-        location.address.city_district
-      }`;
-
+    if (location.country) str += location.country;
+    if (location.province) str += ` | ${location.province}`;
+    if (location.city) str += ` | ${location.city}`;
+    if (location.town) str += ` | ${location.town}`;
+    if (location.street) str += ` | ${location.street}`;
+    if (location.building) str += ` | ${location.building}`;
     return str;
   };
   const dispatch = useDispatch();
@@ -214,7 +195,14 @@ const SearchResults = ({ searchResults, closeSelect }) => {
     dispatch({
       type: "set-address-details",
       payload: {
-        region: s.display_name,
+        region_details: {
+          city: s.city,
+          province: s.province,
+          town: s.town,
+          street: s.street,
+          building: s.building,
+        },
+        region: showLocationText(s),
       },
     });
     closeSelect();
@@ -224,7 +212,7 @@ const SearchResults = ({ searchResults, closeSelect }) => {
       {searchResults.map((s, i) => (
         <div
           key={i}
-          className="flex min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]"
+          className="flex text-[#1D1D1D] min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]"
           onClick={() => {
             select(s);
           }}

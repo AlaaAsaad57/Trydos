@@ -14,10 +14,9 @@ import {
 import { SEND_OTP, VERFIY_OTP, VERFIY_OTP_SIGNUP } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
-
-import axios from "axios";
 import home from "./home";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
+import { LikesSharesCommentsApi } from "models/Api";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -77,7 +76,12 @@ class AuthService {
         getHeader()
       );
 
-      let repo = await response.json();
+      let repo: {
+        message: string;
+        data: {
+          verificationId: string;
+        };
+      } = await response.json();
 
       msg = repo.message;
       if (repo.data?.verificationId) {
@@ -116,7 +120,25 @@ class AuthService {
           }`,
         getHeader()
       );
-      let repo = await response.json();
+      let repo: {
+        data: {
+          already_exists: boolean;
+          message: string;
+          Logged_in_from_another_device: boolean;
+          id_token: string;
+          user_type: number;
+          token: string;
+          expires_at: string;
+          user: {
+            id: number;
+            name: string;
+            phone: string;
+            is_phone_verified: number;
+            last_otp_id_token: string;
+          };
+        };
+        isSuccessful: boolean;
+      } = await response.json();
 
       if (repo?.data?.message === "user not found") {
         throw new Error("user not found");
@@ -288,7 +310,7 @@ class AuthService {
   async getProductNotify({ id }) {
     try {
       if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
-      let data = await AxiosGet({
+      let data: LikesSharesCommentsApi = await AxiosGet({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
           "/web/product/likesCommentsSharesDetails/" +

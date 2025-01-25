@@ -27,10 +27,20 @@ import { SSRDetect } from "utils/functions";
 import { GetMainData } from "store/homepage/actions";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
+import {
+  onMessageListener,
+  requestFirebaseNotificationPermission,
+} from "utils/firebaseInitv1";
 import { AxiosPost } from "utils/AxiosApi";
 import { getCountriesApi } from "store/homepage/cachedActions";
-
+import {
+  CustomerInfoApi,
+  GetBoutiqueApi,
+  GetProductApi,
+  RegisterGuestApi,
+  StarttingSettingApi,
+  UpdateCartApi,
+} from "models/Api";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -57,10 +67,10 @@ class HomeService {
         process.env.NEXT_PUBLIC_BACKEND_URL + STARTER_SETTINGS,
         getHeader()
       );
-      let repo = await response.json();
+      let repo: { data: StarttingSettingApi } = await response.json();
       store.dispatch({ type: "GET_SETTINGS", payload: repo });
       sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
-      this.getCustomerInfo();
+      await this.getCustomerInfo();
       getCart({
         callback: ([data, res]) => {
           store.dispatch({
@@ -88,7 +98,9 @@ class HomeService {
       getHeader()
     );
     if (response.status === 200) {
-      let repo = await response.json();
+      let repo: {
+        data: CustomerInfoApi;
+      } = await response.json();
 
       if (repo.data) {
         store.dispatch({
@@ -110,7 +122,7 @@ class HomeService {
         ExpiredUser();
       } else {
         await this.registerForExpire();
-        this.getCustomerInfo();
+        await this.getCustomerInfo();
       }
     }
   }
@@ -157,7 +169,7 @@ class HomeService {
           cache: "no-cache",
         }
       );
-      let repo = await response.json();
+      let repo: RegisterGuestApi = await response.json();
       localStorage.setItem("DEVICE-TOKEN", repo.data.token);
       Cookies.set("DEVICE-TOKEN", repo.data.token, {
         expires: 365,
@@ -219,9 +231,8 @@ class HomeService {
         // @ts-ignore
         if (token) {
           localStorage.setItem("FB-DEVICE-TOKEN", token);
-
           setTimeout(async () => {
-            if (UserToken())
+            if (UserToken()) {
               await AxiosPost({
                 url:
                   process.env.NEXT_PUBLIC_BACKEND_URL +
@@ -233,6 +244,7 @@ class HomeService {
                 },
                 title: "register firebase token",
               });
+            }
           }, 3000);
           // ininit
           const searchParams = new URLSearchParams(window.location.search);
@@ -257,6 +269,11 @@ class HomeService {
           }
         }
       });
+      typeof window !== "undefined" &&
+        "serviceWorker" in navigator &&
+        onMessageListener()
+          .then((payload) => {})
+          .catch((err) => {});
     }
   }
   async RegisterDevice() {
@@ -285,7 +302,7 @@ class HomeService {
           ...getHeader(),
         }
       );
-      let repo = await response.json();
+      let repo: RegisterGuestApi = await response.json();
       localStorage.setItem("DEVICE-TOKEN", repo.data.token);
       Cookies.set("DEVICE-TOKEN", repo.data.token, {
         expires: 365,
@@ -339,7 +356,7 @@ class HomeService {
         },
       }
     );
-    let repo = await response.json();
+    let repo: GetBoutiqueApi = await response.json();
     store.dispatch(GetMainData(repo.data.boutiques));
   }
   async getNextProduct({ offset, categories, boutiqueCategory }) {
@@ -419,7 +436,7 @@ class HomeService {
         },
       }
     ).then(async (data) => {
-      let repo = await data.json();
+      let repo: GetProductApi = await data.json();
       if (repo.data?.products)
         store.dispatch({ type: "GET_NEXT_PRODUCT", payload: repo.data });
       else {
@@ -464,7 +481,7 @@ class HomeService {
           },
         }
       );
-      let repo = await rep.json();
+      let repo: GetProductApi = await rep.json();
       callback(repo.data.products);
     } catch (error) {
       console.log(error);
@@ -508,7 +525,7 @@ class HomeService {
           },
         }
       );
-      let repo = await rep.json();
+      let repo: GetProductApi = await rep.json();
 
       callback({
         brands: repo.data.brands,
@@ -566,7 +583,7 @@ class HomeService {
       // @ts-ignore
       dataBody = dataBody.join("&");
 
-      let res;
+      let res: UpdateCartApi;
 
       res = await AxiosPost({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
@@ -594,7 +611,7 @@ class HomeService {
       }
       // @ts-ignore
       formBody = formBody.join("&");
-      let res;
+      let res: UpdateCartApi;
       try {
         res = await AxiosPost({
           url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/add",

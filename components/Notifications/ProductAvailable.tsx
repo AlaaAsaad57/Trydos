@@ -1,5 +1,4 @@
 import NextLink from "components/global/NextLink";
-import React from "react";
 
 function ProductAvailable({ data }) {
   return (
@@ -13,11 +12,6 @@ function ProductAvailable({ data }) {
       </div>
       <div className="flex-col m-2">
         <div className="regular p-2">{data.description}</div>
-        <div className="flex-row items-center">
-          <div className={`regular flex ml-2 boutique-desc-notification`}>
-            {data.product_name}
-          </div>
-        </div>
       </div>
     </NextLink>
   );

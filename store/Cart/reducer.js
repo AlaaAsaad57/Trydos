@@ -1,4 +1,5 @@
 const initialState = {
+  orderLoading: false,
   cart: [],
   addressLists: [],
   addressDetails: {
@@ -15,9 +16,10 @@ const initialState = {
     region: "",
     region_details: {
       city: "",
-      district: "",
+      province: "",
       town: "",
       street: "",
+      building: "",
     },
   },
   enable: false,
@@ -37,13 +39,48 @@ const initialState = {
   loaded: false,
   oldCart: null,
 };
+const showLocationText = (location) => {
+  let str = "";
+  if (location.province) str += ` | ${location.province}`;
+  if (location.city) str += ` | ${location.city}`;
+  if (location.town) str += ` | ${location.town}`;
+  if (location.street) str += ` | ${location.street}`;
+  if (location.building) str += ` | ${location.building}`;
+  return str;
+};
+const openCart = (val) => {
+  document.documentElement.scrollTop = 0;
+  if (val) {
+    document.querySelector(".site-container").classList.add("scale-95");
+    document.documentElement.style.overflow = "hidden";
+    return val;
+  } else {
+    document.querySelector(".cart-provider")?.classList.add("slideDown-cart");
+    document.querySelector(".site-container")?.classList.remove("scale-95");
+    document.documentElement.style.overflow = "initial";
 
+    // setTimeout(() => {
+    //   document
+    //     .querySelector(".cart-provider")
+    //     .classList.remove("slideDown-cart");
+    // }, 400);
+    // await new Promise((resolve) => setTimeout(resolve, 400));
+    return val;
+  }
+};
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "ORDER-LOADING": {
+      return {
+        ...state,
+        orderLoading: payload,
+      };
+    }
     case "GET-ADRRESS-LIST": {
       return {
         ...state,
         addressLists: payload,
+        orderLoading: false,
       };
     }
     case "INIT-ADDRESS-FORM": {
@@ -62,9 +99,10 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           region: "",
           region_details: {
             city: "",
-            district: "",
+            province: "",
             town: "",
             street: "",
+            building: "",
           },
         },
       };
@@ -81,9 +119,14 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "START-UPDATE-ADDRESS": {
+      let temp = {
+        ...payload,
+        region: showLocationText(payload.region_details),
+      };
+
       return {
         ...state,
-        addressDetails: payload,
+        addressDetails: temp,
       };
     }
     case "UPDATE-ADDRESS": {
@@ -256,6 +299,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "ENABLE-CART": {
+      openCart(payload);
       return {
         ...state,
         enable: payload,
@@ -287,6 +331,12 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         SelectedProduct: { ...state.SelectedProduct, ...payload },
         variants: payload.variation,
         loaded: true,
+      };
+    }
+    case "VIEWS-PRODUCTS": {
+      return {
+        ...state,
+        SelectedProduct: { ...state.SelectedProduct, ...payload },
       };
     }
     case "EDIT-INFO": {

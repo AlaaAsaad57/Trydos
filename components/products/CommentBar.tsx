@@ -1,4 +1,4 @@
-import axios from "axios";
+import { AddComment } from "models/Api";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { AxiosPost } from "utils/AxiosApi";
@@ -43,7 +43,7 @@ function CommentBar({
         mid: mid,
       });
 
-      let req = await AxiosPost({
+      let req: AddComment = await AxiosPost({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/product_comment",
         title: "add comment For Product",
         body: {

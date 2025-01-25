@@ -272,7 +272,7 @@ function NewLoginWidget() {
                 fill="none"
                 stroke="#5d5d5d"
                 strokeLinecap="round"
-                stroke-linejoin="round"
+                strokeLinejoin="round"
                 strokeWidth="3"
               />
             </svg>

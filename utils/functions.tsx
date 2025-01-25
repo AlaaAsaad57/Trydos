@@ -554,23 +554,23 @@ export const filterProducts = async ({
         : { colors: `${JSON.stringify(filters.colors)}` },
   });
 
-  if (!serachTrigger)
-    // newFiltersCallback({
-    //   filtersVar: {
-    //     categories: product.data.categories,
-    //     brands: product.data.brands,
-    //     sizes:
-    //       product.data.attributes.filter((s) => s.name === "Size")[0]
-    //         ?.options || [],
-    //     prices: product.data.prices || null,
-    //     offers:
-    //       product.data.attributes.filter((s) => s.name === "Offer")[0]
-    //         ?.options || [],
-    //     reset: reset,
-    //     colors: product.data.colors || [],
-    //   },
-    // });
-    callback(product.data.products);
+  // if (!serachTrigger)
+  // newFiltersCallback({
+  //   filtersVar: {
+  //     categories: product.data.categories,
+  //     brands: product.data.brands,
+  //     sizes:
+  //       product.data.attributes.filter((s) => s.name === "Size")[0]
+  //         ?.options || [],
+  //     prices: product.data.prices || null,
+  //     offers:
+  //       product.data.attributes.filter((s) => s.name === "Offer")[0]
+  //         ?.options || [],
+  //     reset: reset,
+  //     colors: product.data.colors || [],
+  //   },
+  // });
+  callback(product.data.products);
 };
 const urlParams = ({ filters, noProducts }) => {
   const PriceFiltered = store.getState().details.PriceFiltered;
@@ -766,27 +766,30 @@ export const getCart = async ({ callback }) => {
 export const AddToCartAnimation = () => {
   let productImage = document.getElementById("added-to-cart");
   let CartIcon = document.getElementById("cart-icon");
-  const cartPosition = CartIcon.getBoundingClientRect();
-  const productPosition = productImage.getBoundingClientRect();
-  const clonedImage = productImage.cloneNode();
+  const cartPosition = CartIcon?.getBoundingClientRect();
+  const productPosition = productImage?.getBoundingClientRect();
+  const clonedImage = productImage?.cloneNode();
+
+  if (clonedImage) {
+    // @ts-ignore
+    clonedImage?.classList.add("moving");
+    // @ts-ignore
+    clonedImage?.classList.remove("h-full");
+    // @ts-ignore
+    document.body.appendChild(clonedImage);
+    // @ts-ignore
+    clonedImage.style.left = `${productPosition.left}px`;
+    // @ts-ignore
+    clonedImage.style.top = `${productPosition.top}px`;
+    // @ts-ignore
+    clonedImage.style.width = `${productPosition.width}px`;
+    // @ts-ignore
+    clonedImage.style.height = `${productPosition.height}px`;
+  }
   // @ts-ignore
-  clonedImage.classList.add("moving");
+  document.body?.appendChild(clonedImage);
   // @ts-ignore
-  clonedImage.classList.remove("h-full");
-  // @ts-ignore
-  document.body.appendChild(clonedImage);
-  // @ts-ignore
-  clonedImage.style.left = `${productPosition.left}px`;
-  // @ts-ignore
-  clonedImage.style.top = `${productPosition.top}px`;
-  // @ts-ignore
-  clonedImage.style.width = `${productPosition.width}px`;
-  // @ts-ignore
-  clonedImage.style.height = `${productPosition.height}px`;
-  // @ts-ignore
-  document.body.appendChild(clonedImage);
-  // @ts-ignore
-  CartIcon.animate(
+  CartIcon?.animate(
     [
       { scale: "1", transform: "rotate(0deg)" },
       { scale: "1.2", transform: "rotate(10deg)" },
@@ -799,7 +802,7 @@ export const AddToCartAnimation = () => {
     }
   );
   // @ts-ignore
-  clonedImage.animate(
+  clonedImage?.animate(
     [
       {
         scale: "1",

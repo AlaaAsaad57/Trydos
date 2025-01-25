@@ -93,10 +93,15 @@ export const AxiosPost = async ({
           return res.data;
         }
       }
-      if (url.includes("product_likes") || url.includes("old-cart/hide")) {
-        toast.success(res.data.message);
 
-        return;
+      if (
+        url.includes("product_likes") ||
+        url.includes("old-cart/hide") ||
+        url.includes("/cart/remove") ||
+        hasMessageOnly
+      ) {
+        toast.success(res.data.message);
+        return res.data.message;
       }
       if (url.includes("cart/")) {
         if (res.data.data.status === 1) {

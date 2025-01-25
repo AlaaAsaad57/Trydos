@@ -68,11 +68,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
   );
 
   return (
-    <div
-      className={`${
-        searchEnabled && "hidden"
-      } user-nav-container md:min-w-[400px]`}
-    >
+    <div className={`${searchEnabled && "hidden"} user-nav-container`}>
       <div
         className="nav-question-item"
         style={{ marginRight: "30px", marginLeft: "0px" }}

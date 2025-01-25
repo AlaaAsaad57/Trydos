@@ -513,7 +513,7 @@ function LogInPins({
                       fill={wrongNumber ? "#fff5f5" : "none"}
                       stroke="#4d84ff"
                       strokeLinecap="round"
-                      stroke-linejoin="round"
+                      strokeLinejoin="round"
                       strokeWidth="0.5"
                       strokeDasharray="3 3"
                     >

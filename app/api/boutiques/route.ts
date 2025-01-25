@@ -1,3 +1,4 @@
+import { GetBoutiqueApi } from "models/Api";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { fetchWithRetry } from "utils/functions";
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
       ? `?category_slugs=["${str}"]&limit=10&offset=${offset}`
       : `?category_slugs=[]&limit=10&offset=${offset}`);
 
-  let r = await fetchWithRetry(
+  let boutiques_response: GetBoutiqueApi = await fetchWithRetry(
     process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + BOUTIQUE_URL,
     {
       next: {
@@ -36,5 +37,5 @@ export async function GET(request: NextRequest) {
     },
     "Next Boutique Request"
   );
-  return NextResponse.json(r);
+  return NextResponse.json(boutiques_response);
 }

@@ -93,9 +93,9 @@ function Navbar({ init, categories, response }: NavbarProps) {
         >
           <Logo animated={false} style={false} key={1} />
         </NextLink>
-        {showNavbar() && (
+        {/* {showNavbar() && (
           <CategoriesBar categories={categories} key={2} forMobile={false} />
-        )}
+        )} */}
         {
           <UserNavTopSection
             loginOpen={loginOpen}
@@ -103,7 +103,7 @@ function Navbar({ init, categories, response }: NavbarProps) {
           />
         }
       </div>
-      {showNavbar() && <MobileNavigation categories={categories} />}
+      {<MobileNavigation categories={categories} />}
     </>
   );
 }
