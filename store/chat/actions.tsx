@@ -11,6 +11,7 @@ import { store } from "../index";
 import { getUserChat, translateFunction } from "utils/functions";
 
 import { AxiosGet } from "utils/AxiosApi";
+import { GetChatsApi, GetContactsApi } from "models/Api";
 
 export const ChatConroller = (payload) => {
   if (payload) document.documentElement.style.overflow = "hidden";
@@ -25,7 +26,7 @@ export const GetChats = async (payload) => {
     if (!payload) {
       store.dispatch({ type: "CHAT_LOADING" });
     }
-    let resp = await axios.post(
+    let resp: GetChatsApi = await axios.post(
       process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + GET_CHATS_URL,
       { role_id: 116 },
       {
@@ -90,7 +91,7 @@ export const GetChats = async (payload) => {
     store.dispatch({ type: "CHAT_DONE" });
     if (payload !== "share") {
       getCalls(null);
-      let response = await axios.get(
+      let response: GetContactsApi = await axios.get(
         process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + GET_CONTATCS_URL,
         {
           headers: {

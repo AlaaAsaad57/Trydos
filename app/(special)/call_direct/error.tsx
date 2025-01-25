@@ -27,7 +27,7 @@ export default function Error({
         ? JSON.parse(localStorage.getItem("USER-CHAT")).access_token
         : null;
     }
-    let axios = (await import("axios")).default;
+
     LogError(error.message, null, location.href);
   };
   useEffect(() => {

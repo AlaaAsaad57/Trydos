@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getCountriesApi } from "./store/homepage/cachedActions";
-import axios from "axios";
 
 const languagesString = '["en", "ar", "tr"]' || "[]";
 const languages = JSON.parse(languagesString);

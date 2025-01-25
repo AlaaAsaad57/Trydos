@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 import axios from "node_modules/axios";
+import { GetAddressByTextApi } from "models/Api";
 function SelectRegion({ closeSelect }) {
   const { lang } = useParams();
   // @ts-ignore
@@ -102,7 +103,7 @@ const SearchLocations = ({ closeSelect }) => {
   const [searchResults, setSearchResults] = useState([]);
   const searchAction = async (val) => {
     setLoading(true);
-    let data = await axios.post(
+    let data: GetAddressByTextApi = await axios.post(
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
         `/api/addresses/get-address-by-text`,
       { query: val }

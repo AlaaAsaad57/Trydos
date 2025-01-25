@@ -1,15 +1,17 @@
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { _isStoreLastJson, getLang } from "utils/functions";
 import { store } from "store";
+import { GetAddressListApi } from "models/Api";
 
 class OrderService {
   async GetAddressList() {
     try {
       store.dispatch({ type: "ORDER-LOADING", payload: true });
-      let data = await AxiosGet({
+      let data: GetAddressListApi = await AxiosGet({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/address/list",
         title: "Get Address List",
       });
+
       store.dispatch({ type: "GET-ADRRESS-LIST", payload: data });
       store.dispatch({ type: "ORDER-LOADING", payload: false });
     } catch (error) {
@@ -88,7 +90,7 @@ class OrderService {
         body: formBody,
       });
       callback();
-      store.dispatch({ type: "UPDATE-ADRRESS-LIST", payload: data });
+
       store.dispatch({ type: "ORDER-LOADING", payload: false });
     } catch (error) {
       store.dispatch({ type: "ORDER-LOADING", payload: false });
@@ -105,7 +107,7 @@ class OrderService {
         body: "",
         hasMessageOnly: true,
       });
-      store.dispatch({ type: "DELETE-ADRRESS-LIST", payload: data });
+
       store.dispatch({ type: "ORDER-LOADING", payload: false });
     } catch (error) {
       store.dispatch({ type: "ORDER-LOADING", payload: false });

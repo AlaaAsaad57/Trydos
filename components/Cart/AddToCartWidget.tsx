@@ -22,6 +22,7 @@ import {
 } from "next/navigation";
 import { ToastContainer } from "react-toastify";
 import { AxiosGet } from "utils/AxiosApi";
+import { QuantityDetailsProductApi } from "models/Api";
 
 function AddToCartWidget() {
   const dispatch = useDispatch();
@@ -38,7 +39,7 @@ function AddToCartWidget() {
   const getDetails = async () => {
     if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
     let start = new Date();
-    let data = await AxiosGet({
+    let data: QuantityDetailsProductApi["data"] = await AxiosGet({
       url:
         process.env.NEXT_PUBLIC_BACKEND_URL +
         QTY_URL +

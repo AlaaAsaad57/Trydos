@@ -8,6 +8,7 @@ import Spinner from "components/global/Spinner";
 import axios from "axios";
 import { getMessagesBetweenMessage } from "store/chat/actions";
 import { getUserChat } from "utils/functions";
+import { GetMessageSearchApi } from "models/Api";
 
 function ChatSearch({ close }) {
   const searchValue = useSelector(
@@ -36,7 +37,7 @@ function ChatSearch({ close }) {
     getMessagesForSearch(e.target.value);
   };
   const getMessagesForSearch = async (value) => {
-    let response = await axios.post(
+    let response: GetMessageSearchApi = await axios.post(
       process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
         "/api/v2/elastic/channelSearch",
       {
@@ -78,12 +79,15 @@ function ChatSearch({ close }) {
         second:
           parseInt(activeChat.messages[activeChat.messages.length - 1]?.id) -
           parseInt(
-            response.data.messages_ids[response.data.messages_ids.length - 1]
+            response.data.messages_ids[
+              response.data.messages_ids.length - 1
+            ].toString()
           ),
       });
     var numb = response.data.messages_ids[response.data.messages_ids.length - 1]
       ?.toString()
       ?.match(/\d/g);
+    // @ts-ignore
     numb = numb?.join("");
     let el = document.querySelector(
       `#main-container-${
