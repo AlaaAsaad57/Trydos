@@ -219,9 +219,8 @@ class HomeService {
         // @ts-ignore
         if (token) {
           localStorage.setItem("FB-DEVICE-TOKEN", token);
-
           setTimeout(async () => {
-            if (UserToken())
+            if (UserToken()) {
               await AxiosPost({
                 url:
                   process.env.NEXT_PUBLIC_BACKEND_URL +
@@ -233,6 +232,7 @@ class HomeService {
                 },
                 title: "register firebase token",
               });
+            }
           }, 3000);
           // ininit
           const searchParams = new URLSearchParams(window.location.search);
