@@ -331,7 +331,7 @@ export const translations = {
     "Add To My Checklist": "إضافة إلى قائمتي",
     "Add To Compare": "إضافة إلى المقارنة",
     Recommended: "مقترح",
-    Size: "كقياس",
+    Size: "قياس",
     "For You": "لك",
     "No Results Found": "لا يوجد نتائج",
     "Need Help Finding Your Size?": "هل تحتاج مساعدة في إيجاد قياسك؟",
