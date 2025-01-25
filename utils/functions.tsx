@@ -769,20 +769,23 @@ export const AddToCartAnimation = () => {
   const cartPosition = CartIcon?.getBoundingClientRect();
   const productPosition = productImage?.getBoundingClientRect();
   const clonedImage = productImage?.cloneNode();
-  // @ts-ignore
-  clonedImage?.classList.add("moving");
-  // @ts-ignore
-  clonedImage?.classList.remove("h-full");
-  // @ts-ignore
-  document.body.appendChild(clonedImage);
-  // @ts-ignore
-  clonedImage?.style.left = `${productPosition.left}px`;
-  // @ts-ignore
-  clonedImage?.style.top = `${productPosition.top}px`;
-  // @ts-ignore
-  clonedImage?.style.width = `${productPosition.width}px`;
-  // @ts-ignore
-  clonedImage?.style.height = `${productPosition.height}px`;
+
+  if (clonedImage) {
+    // @ts-ignore
+    clonedImage?.classList.add("moving");
+    // @ts-ignore
+    clonedImage?.classList.remove("h-full");
+    // @ts-ignore
+    document.body.appendChild(clonedImage);
+    // @ts-ignore
+    clonedImage.style.left = `${productPosition.left}px`;
+    // @ts-ignore
+    clonedImage.style.top = `${productPosition.top}px`;
+    // @ts-ignore
+    clonedImage.style.width = `${productPosition.width}px`;
+    // @ts-ignore
+    clonedImage.style.height = `${productPosition.height}px`;
+  }
   // @ts-ignore
   document.body?.appendChild(clonedImage);
   // @ts-ignore

@@ -23,7 +23,7 @@ class StoryService {
             "Bearer " +
             (typeof localStorage !== "undefined" &&
               localStorage.getItem("USER-STORIES") &&
-              JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
+              JSON.parse(localStorage.getItem("USER-STORIES"))?.access_token),
           language: Cookies.get("language"),
 
           country: Cookies.get("country"),

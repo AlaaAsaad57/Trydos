@@ -55,8 +55,8 @@ const openCart = (val) => {
     document.documentElement.style.overflow = "hidden";
     return val;
   } else {
-    document.querySelector(".cart-provider").classList.add("slideDown-cart");
-    document.querySelector(".site-container").classList.remove("scale-95");
+    document.querySelector(".cart-provider")?.classList.add("slideDown-cart");
+    document.querySelector(".site-container")?.classList.remove("scale-95");
     document.documentElement.style.overflow = "initial";
 
     // setTimeout(() => {

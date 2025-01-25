@@ -97,6 +97,7 @@ export const AxiosPost = async ({
       if (
         url.includes("product_likes") ||
         url.includes("old-cart/hide") ||
+        url.includes("/cart/remove") ||
         hasMessageOnly
       ) {
         toast.success(res.data.message);
