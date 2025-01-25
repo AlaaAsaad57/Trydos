@@ -766,27 +766,27 @@ export const getCart = async ({ callback }) => {
 export const AddToCartAnimation = () => {
   let productImage = document.getElementById("added-to-cart");
   let CartIcon = document.getElementById("cart-icon");
-  const cartPosition = CartIcon.getBoundingClientRect();
-  const productPosition = productImage.getBoundingClientRect();
-  const clonedImage = productImage.cloneNode();
+  const cartPosition = CartIcon?.getBoundingClientRect();
+  const productPosition = productImage?.getBoundingClientRect();
+  const clonedImage = productImage?.cloneNode();
   // @ts-ignore
-  clonedImage.classList.add("moving");
+  clonedImage?.classList.add("moving");
   // @ts-ignore
-  clonedImage.classList.remove("h-full");
-  // @ts-ignore
-  document.body.appendChild(clonedImage);
-  // @ts-ignore
-  clonedImage.style.left = `${productPosition.left}px`;
-  // @ts-ignore
-  clonedImage.style.top = `${productPosition.top}px`;
-  // @ts-ignore
-  clonedImage.style.width = `${productPosition.width}px`;
-  // @ts-ignore
-  clonedImage.style.height = `${productPosition.height}px`;
+  clonedImage?.classList.remove("h-full");
   // @ts-ignore
   document.body.appendChild(clonedImage);
   // @ts-ignore
-  CartIcon.animate(
+  clonedImage?.style.left = `${productPosition.left}px`;
+  // @ts-ignore
+  clonedImage?.style.top = `${productPosition.top}px`;
+  // @ts-ignore
+  clonedImage?.style.width = `${productPosition.width}px`;
+  // @ts-ignore
+  clonedImage?.style.height = `${productPosition.height}px`;
+  // @ts-ignore
+  document.body?.appendChild(clonedImage);
+  // @ts-ignore
+  CartIcon?.animate(
     [
       { scale: "1", transform: "rotate(0deg)" },
       { scale: "1.2", transform: "rotate(10deg)" },
@@ -799,7 +799,7 @@ export const AddToCartAnimation = () => {
     }
   );
   // @ts-ignore
-  clonedImage.animate(
+  clonedImage?.animate(
     [
       {
         scale: "1",
