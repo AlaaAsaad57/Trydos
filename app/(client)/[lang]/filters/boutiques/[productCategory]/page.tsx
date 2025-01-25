@@ -29,7 +29,6 @@ import CustomNavbarServer from "components/Server/ServerCustomNav";
 // }
 
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-export const runtime = "nodejs";
 
 interface Props {
   params: {

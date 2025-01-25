@@ -6,7 +6,6 @@ import CustomNavbarServer from "components/Server/ServerCustomNav";
 import { notFound } from "next/navigation";
 // import { Suspense } from "react";
 import { getBoutiqueMeta } from "utils/functions";
-export const runtime = "nodejs";
 
 interface Props {
   params: {

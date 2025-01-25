@@ -3,7 +3,7 @@ import Home from "components/Home";
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-export const runtime = "nodejs";
+
 async function HomePage({ params }) {
   return (
     <>

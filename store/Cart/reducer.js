@@ -48,6 +48,26 @@ const showLocationText = (location) => {
   if (location.building) str += ` | ${location.building}`;
   return str;
 };
+const openCart = (val) => {
+  document.documentElement.scrollTop = 0;
+  if (val) {
+    document.querySelector(".site-container").classList.add("scale-95");
+    document.documentElement.style.overflow = "hidden";
+    return val;
+  } else {
+    document.querySelector(".cart-provider").classList.add("slideDown-cart");
+    document.querySelector(".site-container").classList.remove("scale-95");
+    document.documentElement.style.overflow = "initial";
+
+    // setTimeout(() => {
+    //   document
+    //     .querySelector(".cart-provider")
+    //     .classList.remove("slideDown-cart");
+    // }, 400);
+    // await new Promise((resolve) => setTimeout(resolve, 400));
+    return val;
+  }
+};
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
     case "ORDER-LOADING": {
@@ -279,7 +299,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "ENABLE-CART": {
-      document.documentElement.scrollTop = 0;
+      openCart(payload);
       return {
         ...state,
         enable: payload,

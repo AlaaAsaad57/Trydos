@@ -7,7 +7,6 @@ import localFont from "next/font/local";
 import TranslationsMenu from "components/global/TranslationsMenu";
 import "regenerator-runtime/runtime";
 import PageTransition from "components/global/PageTransition";
-export const runtime = "nodejs";
 
 export const metadata = {
   title: "TryDos",

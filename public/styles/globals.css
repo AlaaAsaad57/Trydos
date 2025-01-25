@@ -473,6 +473,7 @@ body {
 }
 
 .site-container {
+  transition: transform 0.4s;
   transform-origin: top center;
   background-color: #fafafa;
   width: 100%;
@@ -646,7 +647,32 @@ html {
   padding-left: 15px;
   padding-right: 15px;
 }
-
+.cart-provider {
+  animation: slideUp 400ms ease 0.1s 1 forwards;
+  bottom: -100vh;
+}
+.cart-provider.slideDown-cart {
+  animation: slideDown 400ms ease 0.1s 1 forwards;
+}
+@keyframes slideDown {
+  0% {
+    bottom: 0px;
+  }
+  100% {
+    bottom: -100vh;
+  }
+}
+@keyframes slideUp {
+  0% {
+    bottom: -100vh;
+  }
+  100% {
+    bottom: 0px;
+  }
+}
+.scale-95 {
+  transform: scale(0.95);
+}
 .offer-widget,
 .offers-list {
   width: 100%;
