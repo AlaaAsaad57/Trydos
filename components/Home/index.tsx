@@ -41,7 +41,7 @@ export default function Home() {
     }
 
     if (getUserChat()?.id) {
-      const { requestFirebaseNotificationPermission, onMessageListener } =
+      const { requestFirebaseNotificationPermission } =
         await import("utils/firebaseInitv1");
       requestFirebaseNotificationPermission().then(async (fbtoken) => {
         if (fbtoken) {
@@ -53,11 +53,6 @@ export default function Home() {
             });
         }
       });
-      typeof window !== "undefined" &&
-        "serviceWorker" in navigator &&
-        onMessageListener()
-          .then((payload) => { })
-          .catch((err) => { });
     }
   };
   const selectedStory = useSelector(
