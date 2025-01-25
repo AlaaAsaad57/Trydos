@@ -333,6 +333,12 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         loaded: true,
       };
     }
+    case "VIEWS-PRODUCTS": {
+      return {
+        ...state,
+        SelectedProduct: { ...state.SelectedProduct, ...payload },
+      };
+    }
     case "EDIT-INFO": {
       return {
         ...state,

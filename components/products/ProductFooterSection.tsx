@@ -126,25 +126,6 @@ function ProductFooterSection({ product }) {
         },
       });
 
-      const viewsReq = await AxiosPost({
-        url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + `/api/products/view`,
-        title: "get Views For Product",
-        body: {
-          user_id: UserID(),
-          product_id: product.id,
-        },
-      });
-      let reqShares = await AxiosGet({
-        url:
-          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-          `/api/v2/elastic/shared_count/${product.id}`,
-        title: "Share Count Request",
-      });
-
-      dispatchStore({
-        type: "shares",
-        payload: reqShares.shared_count,
-      });
       // @ts-ignore
       let likesNum = req?.count_of_likes || 0;
       // @ts-ignore
@@ -173,11 +154,35 @@ function ProductFooterSection({ product }) {
           variation: arr,
           likes: likesNum,
           is_liked: isLiked,
+        },
+      });
+      setLoading(false);
+      // @ts-ignore
+      let reqShares = await AxiosGet({
+        url:
+          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+          `/api/v2/elastic/shared_count/${product.id}`,
+        title: "Share Count Request",
+      });
+
+      dispatchStore({
+        type: "shares",
+        payload: reqShares.shared_count,
+      });
+      const viewsReq = await AxiosPost({
+        url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + `/api/products/view`,
+        title: "get Views For Product",
+        body: {
+          user_id: UserID(),
+          product_id: product.id,
+        },
+      });
+      dispatchStore({
+        type: "VIEWS-PRODUCTS",
+        payload: {
           views_count: viewsReq?.view_count || 0,
         },
       });
-      // @ts-ignore
-
       setLoading(false);
     } catch (error) {
       setLoading(false);

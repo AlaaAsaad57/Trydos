@@ -28,7 +28,7 @@ class OrderService {
       town: address.region_details.town,
       street: address.region_details.street,
       building: address.region_details.building,
-      zip: "123123",
+      // zip: "123123",
       contact_person_name: address.contact_info.contact_person_name,
       phone: address.contact_info.phone,
       alternative_phone: address.contact_info.alternative_phone,

@@ -195,14 +195,14 @@ const CountryLabel = () => {
   // @ts-ignore
   let country = lang.split("-")[0];
   country = {
-    name: allCountries.filter((s) => s.iso2 === country)[0].name,
+    name: allCountries.filter((s) => s.iso2 === country)[0]?.name,
     iso: country,
   };
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch({
       type: "set-address-details",
-      payload: { Country: { name: country.name, code: country.iso } },
+      payload: { Country: { name: country?.name, code: country.iso } },
     });
   }, []);
   return (
@@ -220,7 +220,7 @@ const CountryLabel = () => {
           <Flag height={"15"} code={country.iso} />
         </span>
         <div className="medium flex text-[#1D1D1D] text-[14px] ml-[8px]">
-          {country.name}
+          {country?.name}
         </div>
       </div>
     </div>
@@ -342,8 +342,8 @@ const ContactInfo = () => {
         payload: {
           contact_info: {
             ...addressDetails.contact_info,
-            contact_person_name: user.name,
-            name: user.name,
+            contact_person_name: user?.name,
+            name: user?.name,
           },
         },
       });
@@ -373,7 +373,7 @@ const ContactInfo = () => {
               value={
                 addressDetails.contact_info.contact_person_name ||
                 // @ts-ignore
-                addressDetails.contact_info.name ||
+                addressDetails.contact_info?.name ||
                 ""
               }
               onChange={(e) => {
@@ -505,7 +505,7 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
   // @ts-ignore
   let country = lang.split("-")[0];
   country = {
-    name: allCountries.filter((s) => s.iso2 === country)[0].name,
+    name: allCountries.filter((s) => s.iso2 === country)[0]?.name,
     iso: country,
   };
   return (
