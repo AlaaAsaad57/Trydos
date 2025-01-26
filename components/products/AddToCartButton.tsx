@@ -115,13 +115,13 @@ function AddToCartButton({
   };
   const isQuantityEmpty = () => {
     if (getSelectedVariantofProduct() === "")
-      return product?.Left_stock - 1 === 0;
+      return product?.Left_stock - 1 <= 0;
     else
       return (
         product?.variation?.filter(
           (s) => s.type === getSelectedVariantofProduct()
         )[0]?.qty -
-          1 ===
+          1 <=
         0
       );
   };
