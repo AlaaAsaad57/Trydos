@@ -17,6 +17,7 @@ import StoryService from "services/story";
 import home from "./home";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { LikesSharesCommentsApi } from "models/Api";
+import { changeToken } from "store/homepage/cachedActions";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -147,8 +148,9 @@ class AuthService {
         throw new Error("Wrong Code");
       }
       localStorage.setItem("ID-TOKEN", repo.data.id_token);
-      Cookies.set("market-token", repo.data.token);
+      Cookies.set("MARKET-TOKEN", repo.data.token);
       localStorage.setItem("MARKET-TOKEN", repo.data.token);
+      changeToken({ key: "MARKET-TOKEN", value: repo.data.token });
       localStorage.setItem(
         "USER",
         JSON.stringify({

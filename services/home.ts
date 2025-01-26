@@ -32,7 +32,7 @@ import {
   requestFirebaseNotificationPermission,
 } from "utils/firebaseInitv1";
 import { AxiosPost } from "utils/AxiosApi";
-import { getCountriesApi } from "store/homepage/cachedActions";
+import { changeToken, getCountriesApi } from "store/homepage/cachedActions";
 import {
   CustomerInfoApi,
   GetBoutiqueApi,
@@ -117,6 +117,9 @@ class HomeService {
         }
       }
     }
+    if (response.status === 500 || response.status === 422) {
+      toast.error("Customer Info Error");
+    }
     if (response.status === 302 || response.status === 401) {
       if (getUser()) {
         ExpiredUser();
@@ -132,12 +135,12 @@ class HomeService {
     if (localStorage.getItem("USER")) {
       if (bool) {
         store.dispatch({ type: "CANCEL-AUTH" });
-        Cookies.remove("market-token");
+        Cookies.remove("MARKET-TOKEN");
         localStorage.clear();
         store.dispatch({ type: "LOGIN-OPEN", payload: true });
       }
     } else if (localStorage.getItem("guest-user") || bool) {
-      Cookies.remove("market-token");
+      Cookies.remove("MARKET-TOKEN");
       // Split the date into day, month, year
 
       if (bool) {
@@ -170,6 +173,7 @@ class HomeService {
         }
       );
       let repo: RegisterGuestApi = await response.json();
+      changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
       localStorage.setItem("DEVICE-TOKEN", repo.data.token);
       Cookies.set("DEVICE-TOKEN", repo.data.token, {
         expires: 365,
@@ -196,7 +200,11 @@ class HomeService {
       localStorage.getItem("ID-TOKEN") &&
       localStorage.getItem("MARKET-TOKEN")
     ) {
-      Cookies.set("market-token", localStorage.getItem("MARKET-TOKEN"));
+      Cookies.set("MARKET-TOKEN", localStorage.getItem("MARKET-TOKEN"));
+      changeToken({
+        key: "MARKET-TOKEN",
+        value: localStorage.getItem("MARKET-TOKEN"),
+      });
 
       Smartlook.identify(JSON.parse(localStorage.getItem("USER")).id, {
         name: JSON.parse(localStorage.getItem("USER")).name,
@@ -281,6 +289,10 @@ class HomeService {
       ? { old_guest_user_id: JSON.parse(localStorage.getItem("guest-user")).id }
       : { old_guest_user_id: null };
     if (!Cookies.get("DEVICE-TOKEN") && localStorage.getItem("DEVICE-TOKEN")) {
+      changeToken({
+        key: "DEVICE-TOKEN",
+        value: localStorage.getItem("DEVICE-TOKEN"),
+      });
       Cookies.set("DEVICE-TOKEN", localStorage.getItem("DEVICE-TOKEN"), {
         expires: 365,
       });
@@ -304,6 +316,8 @@ class HomeService {
       );
       let repo: RegisterGuestApi = await response.json();
       localStorage.setItem("DEVICE-TOKEN", repo.data.token);
+      changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
+
       Cookies.set("DEVICE-TOKEN", repo.data.token, {
         expires: 365,
       });

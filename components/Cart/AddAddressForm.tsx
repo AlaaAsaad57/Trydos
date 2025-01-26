@@ -513,9 +513,8 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
     <div
       style={{
         boxShadow: "0px -3px 20px #0000001a",
-        bottom: "calc(70px + env(safe-area-inset-bottom))",
       }}
-      className={`${
+      className={`add-address-button ${
         orderLoading && "opacity-55"
       } absolute text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
     >

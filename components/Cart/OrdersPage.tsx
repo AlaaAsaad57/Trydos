@@ -508,7 +508,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
             </div>
           </div>
         </div>
-        <div className="flex-col w-full pb-[25px]">
+        <div className="flex-col w-full  delete-button-address">
           <div
             onClick={() => {
               slidePrev();

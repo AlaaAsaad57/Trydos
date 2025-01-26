@@ -119,6 +119,22 @@ export const changeAppLanguageServer = async (language) => {
   cookieStore.set("language", language);
   cookieStore.set("lang", language);
 };
+export const changeToken = async ({
+  key,
+  value,
+  deleteOption,
+}: {
+  key: string;
+  value?: string;
+  deleteOption?: boolean;
+}) => {
+  const cookies = (await import("next/headers")).cookies;
+  const cookieStore = cookies();
+  if (deleteOption) {
+    cookieStore.delete(key);
+  } else cookieStore.set(key, value);
+};
+
 export const changeAppCountryServer = async (value) => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
@@ -444,7 +460,7 @@ export async function getProductDetails({ productId, lang }) {
           Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
           Authorization: `Bearer ${
-            cookieStore.get("market-token")?.value ||
+            cookieStore.get("MARKET-TOKEN")?.value ||
             cookieStore.get("DEVICE-TOKEN")?.value
           }`,
         }),
@@ -473,7 +489,7 @@ export async function getProductDetails({ productId, lang }) {
           Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
           Authorization: `Bearer ${
-            cookieStore.get("market-token")?.value ||
+            cookieStore.get("MARKET-TOKEN")?.value ||
             cookieStore.get("DEVICE-TOKEN")?.value
           }`,
         }),
