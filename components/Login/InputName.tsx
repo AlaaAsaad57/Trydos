@@ -198,7 +198,7 @@ function InputName({
         className="login-button-group"
         style={{
           position: "relative",
-          backgroundColor: "#fafafa",
+          backgroundColor: "transparent",
           marginBottom: "40px",
           padding: "0",
           maxWidth: "calc(100% - 40px)",
@@ -283,7 +283,7 @@ function InputName({
             <LeftArrowIcon />
           </span>
         )}
-        <div className="flex light text-[11px] text-[#5d5d5d] mt-2">
+        <div className="flex light text-[11px] text-[#5d5d5d] mt-[20px]">
           {translate("Name Should be atleast 8 characters")}
         </div>
       </div>
