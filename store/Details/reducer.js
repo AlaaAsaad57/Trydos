@@ -82,6 +82,12 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
         sharesCount: null,
       };
     }
+    case "STORE-PRODUCT-Boutique": {
+      return {
+        ...state,
+        product: payload,
+      };
+    }
     case "shares": {
       return {
         ...state,

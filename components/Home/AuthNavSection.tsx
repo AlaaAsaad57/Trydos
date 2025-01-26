@@ -7,6 +7,7 @@ import { getNew } from "components/Chat/chatsFunctions";
 import ChatNotification from "./ChatNotification";
 import { useParams } from "next/navigation";
 import Cookies from "js-cookie";
+import { changeToken } from "store/homepage/cachedActions";
 function AuthNavSection() {
   let { lang } = useParams();
   // @ts-ignore
@@ -68,8 +69,11 @@ function AuthNavSection() {
             value: "me_nav_bar_button",
           });
           localStorage.clear();
+          changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
+          changeToken({ key: "MARKET-TOKEN", deleteOption: true });
+          changeToken({ key: "token", deleteOption: true });
           Cookies.remove("DEVICE-TOKEN");
-          Cookies.remove("market-token");
+          Cookies.remove("MARKET-TOKEN");
           Cookies.remove("token");
           window.location.reload();
         }}

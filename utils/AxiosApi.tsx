@@ -19,7 +19,7 @@ const getHeader = (token?) => {
       Authorization: `Bearer ${
         token ??
         localStorage.getItem("MARKET-TOKEN") ??
-        Cookies.get("market-token") ??
+        Cookies.get("MARKET-TOKEN") ??
         Cookies.get("DEVICE-TOKEN") ??
         localStorage.getItem("DEVICE-TOKEN")
       }`,
@@ -46,6 +46,12 @@ export const AxiosGet = async ({
         throw new Error(res.data.message);
       }
     } catch (error) {
+      if (error.status === 422 || error.status === 500) {
+        throw new Error(
+          `${title} : Max retries reached. Could not fetch the data. ${error.message}`
+        );
+        return;
+      }
       if (error.status === 401) {
         if (getUser()) {
           ExpiredUser();
@@ -122,6 +128,12 @@ export const AxiosPost = async ({
         throw new Error(res.data.message);
       }
     } catch (error) {
+      if (error.status === 422 || error.status === 500) {
+        throw new Error(
+          `${title} : Max retries reached. Could not fetch the data. ${error.message}`
+        );
+        return;
+      }
       if (error.status === 401) {
         if (getUser()) {
           ExpiredUser();
@@ -160,7 +172,7 @@ export const AxiosCacheApi = async ({
       lang: Cookies.get("language"),
       country: Cookies.get("country"),
       Authorization: `Bearer ${
-        Cookies.get("market-token") ?? Cookies.get("DEVICE-TOKEN")
+        Cookies.get("MARKET-TOKEN") ?? Cookies.get("DEVICE-TOKEN")
       }`,
     },
     cache: {

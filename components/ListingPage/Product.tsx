@@ -67,6 +67,10 @@ function Product({
   const addToCart = () => {
     document.documentElement.style.overflow = "hidden";
     document.documentElement.scrollTop = 0;
+    dispatchStore({
+      type: "STORE-PRODUCT-Boutique",
+      payload: { ...product },
+    });
     dispatchStore({ type: "AddToCartOptionEnable", payload: product });
   };
 

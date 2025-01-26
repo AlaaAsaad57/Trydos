@@ -69,6 +69,10 @@ function AddToCartWidget() {
       id: SelectedProduct.slug,
     });
     dispatch({ type: "GET-PRODUCT-DETAILS-FOR-CART", payload: data });
+    dispatch({
+      type: "STORE-PRODUCT-Boutique",
+      payload: { ...product, ...data },
+    });
     if (data.choice_options) {
       let a = data?.choice_options?.filter((s) => s.title == "Size")[0]
         ?.options[0];
