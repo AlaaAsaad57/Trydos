@@ -145,7 +145,7 @@ function CategoryCircle({ category }) {
           <img
             width={70}
             height={70}
-            className="object-cover object-center"
+            className="object-center"
             src={
               category.most_viewed_product_thumbnail?.file_path ??
               category.flat_photo_path?.file_path ??

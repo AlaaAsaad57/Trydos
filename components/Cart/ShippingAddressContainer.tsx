@@ -142,7 +142,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
           <g
             id="Mask_Group_380"
             data-name="Mask Group 380"
-            clip-path="url(#clip-path22)"
+            clipPath="url(#clip-path22)"
           >
             <g id="delivery_location" transform="translate(1.163 -0.036)">
               <g id="Group_11335" data-name="Group 11335">
@@ -260,7 +260,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
                   id="Mask_Group_380"
                   data-name="Mask Group 380"
                   transform="translate(0 0.389)"
-                  clip-path="url(#clip-path8780)"
+                  clipPath="url(#clip-path8780)"
                 >
                   <g id="delivery_location" transform="translate(0.969 -0.03)">
                     <g id="Group_11335" data-name="Group 11335">
@@ -412,7 +412,7 @@ const AddressContainer = ({ openAddressList }) => {
                   id="Mask_Group_646"
                   data-name="Mask Group 646"
                   transform="translate(0.245)"
-                  clip-path="url(#clip-path1213)"
+                  clipPath="url(#clip-path1213)"
                 >
                   <g id="XMLID_7_" transform="translate(0.202 0.583)">
                     <path
@@ -450,7 +450,7 @@ const AddressContainer = ({ openAddressList }) => {
                   <g
                     id="Mask_Group_647"
                     data-name="Mask Group 647"
-                    clip-path="url(#clip-path232323)"
+                    clipPath="url(#clip-path232323)"
                   >
                     <g
                       id="Group_13"
@@ -483,7 +483,9 @@ const AddressContainer = ({ openAddressList }) => {
                 </svg>
 
                 <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]">
-                  {addressLists[0].contact_info.contact_person_name}
+                  {addressLists[0].contact_info.contact_person_name ||
+                    // @ts-ignore
+                    addressLists[0].contact_info.name}
                 </div>
               </div>
             </div>

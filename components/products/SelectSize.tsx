@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { EffectCoverflow } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { Swiper, SwiperRef, SwiperSlide } from "swiper/react";
 import "styles/sizeSlider.css";
 import { useDispatch, useSelector } from "react-redux";
 import { Sendevent, translateFunction } from "utils/functions";
@@ -10,6 +10,7 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
+import { Swiper as SwiperType } from "node_modules/swiper/types";
 function SelectSize({ sizes, variants }) {
   let { lang } = useParams();
   // @ts-ignore
@@ -384,7 +385,7 @@ const SelectSizeSlider = ({ sizes, setActive, getVariants }) => {
       let size = sizes.filter((s) => s.name === searchParams.get("size"))[0];
       if (size) dispatch({ type: "AddToCartSize", payload: size });
     }
-  });
+  }, []);
   const getInitial = () => {
     if (searchParams.get("size")) {
       let index = 0;
@@ -396,6 +397,7 @@ const SelectSizeSlider = ({ sizes, setActive, getVariants }) => {
 
     return 0;
   };
+  const ref = useRef<SwiperRef>();
   return (
     <>
       <SliderRuler />
@@ -403,6 +405,7 @@ const SelectSizeSlider = ({ sizes, setActive, getVariants }) => {
         modules={[EffectCoverflow]}
         className=" size-slider-coverflow"
         speed={100}
+        ref={ref}
         effect="coverflow"
         coverflowEffect={{
           rotate: 0,
@@ -437,6 +440,11 @@ const SelectSizeSlider = ({ sizes, setActive, getVariants }) => {
         {sizes.map((size, i) => (
           <SwiperSlide
             key={i}
+            onClick={() => {
+              // @ts-ignore
+              ref.current.swiper.slideTo(i, 400, false);
+              setActive(size);
+            }}
             style={{
               overflow: "visible",
               minWidth: "70px",

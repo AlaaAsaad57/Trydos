@@ -126,16 +126,10 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
-  overflow-x: hidden !important;
 }
 .loading-svg path {
   fill: #969696;
   stroke: #969696;
-}
-.home-page-container {
-  max-width: 1366px;
-  flex-direction: column;
-  padding: 30px;
 }
 
 .home-navbar {

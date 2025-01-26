@@ -44,7 +44,7 @@ function OrderButton({ close, toOrders }) {
         <g
           id="Mask_Group_531"
           data-name="Mask Group 531"
-          clip-path="url(#clip-path23221)"
+          clipPath="url(#clip-path23221)"
         >
           <g id="Line_color" transform="translate(1.932 0)">
             <g id="Group_12774" data-name="Group 12774">
@@ -148,7 +148,7 @@ function OrderButton({ close, toOrders }) {
     <>
       {expanded && (
         <div
-          className="fixed top-[50px] min-w-[100vw] min-h-full opacity-40 bg-[black] z-50"
+          className="fixed top-[50px] min-w-[100vw] min-h-screen opacity-40 bg-[black] z-50"
           onClick={() => {
             setExpanded(false);
           }}

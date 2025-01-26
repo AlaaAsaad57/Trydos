@@ -88,7 +88,7 @@ function CartContainer({ close, toOrders }) {
     <div
       className={`flex-col ${
         cart.length > 0 ? "pb-[283px]" : "100px"
-      }   top-0 left-0 min-h-full max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
+      }   top-0 left-0 min-h-screen max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
     >
       <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
         <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">

@@ -52,7 +52,7 @@ function ListingSkeleton({ forProducts }: { forProducts?: boolean }) {
           </div>
         </>
       )}
-      <div className="listing-container flex">
+      <div className="listing-container flex pb-[350px] max-w-[1310px]">
         <div className="product-container rounded-15 align-center flex-col relative">
           <Skeleton
             width={"100%"}

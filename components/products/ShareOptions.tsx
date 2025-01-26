@@ -11,7 +11,7 @@ import {
   WhatsappIcon,
   WhatsappShareButton,
 } from "react-share";
-import axios from "axios";
+
 import { ProductInterface } from "models/product";
 import { Sendevent } from "utils/functions";
 import { AxiosPost } from "utils/AxiosApi";

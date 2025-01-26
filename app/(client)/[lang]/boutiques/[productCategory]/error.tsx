@@ -16,7 +16,6 @@ export default function Error({
     return navigator.userAgent || "";
   };
   const sendError = async (error: Error & { digest?: string }) => {
-    let axios = (await import("axios")).default;
     const userAgent = await _getUserAgent();
     let last_json;
     let token;

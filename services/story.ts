@@ -10,6 +10,7 @@ import {
 import { getUserStories } from "utils/functions";
 import Cookies from "js-cookie";
 import axios from "axios";
+import { GetStoriesApi, LoginStoreisApi, UploadStoryApi } from "models/Api";
 
 class StoryService {
   /* get stories */
@@ -23,14 +24,14 @@ class StoryService {
             "Bearer " +
             (typeof localStorage !== "undefined" &&
               localStorage.getItem("USER-STORIES") &&
-              JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
+              JSON.parse(localStorage.getItem("USER-STORIES"))?.access_token),
           language: Cookies.get("language"),
 
           country: Cookies.get("country"),
         },
       }
     );
-    let repo = await res.json();
+    let repo: GetStoriesApi = await res.json();
 
     const data: StoriesInterface[] = repo.data.data;
     store.dispatch({ type: "STORY-DATA", payload: data });
@@ -41,7 +42,7 @@ class StoryService {
     return data;
   }
   async loginStories() {
-    const response = await axios.post(
+    const response: LoginStoreisApi = await axios.post(
       process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + LOG_IN_STORIES,
       {
         otp_id_token: localStorage.getItem("ID-TOKEN"),
@@ -80,10 +81,10 @@ class StoryService {
             },
           }
         );
-
+        let repo = await response.json();
         if (typeof window !== "undefined") {
           _isStoreLastJson() &&
-            localStorage.setItem("LAST_JSON", JSON.stringify(response));
+            localStorage.setItem("LAST_JSON", JSON.stringify(repo));
         }
       }
     } catch (e) {}
@@ -99,7 +100,7 @@ class StoryService {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("is_video", is_video);
-      const response = await axios.post(
+      const response: UploadStoryApi = await axios.post(
         process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + UPLOAD_STORY_URL,
         formData,
         {

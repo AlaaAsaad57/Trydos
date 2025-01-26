@@ -27,10 +27,20 @@ import { SSRDetect } from "utils/functions";
 import { GetMainData } from "store/homepage/actions";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { onMessageListener, requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
+import {
+  onMessageListener,
+  requestFirebaseNotificationPermission,
+} from "utils/firebaseInitv1";
 import { AxiosPost } from "utils/AxiosApi";
 import { getCountriesApi } from "store/homepage/cachedActions";
-
+import {
+  CustomerInfoApi,
+  GetBoutiqueApi,
+  GetProductApi,
+  RegisterGuestApi,
+  StarttingSettingApi,
+  UpdateCartApi,
+} from "models/Api";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -40,9 +50,10 @@ const getHeader = () => {
       revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
     },
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("MARKET-TOKEN") ||
+      Authorization: `Bearer ${
+        localStorage.getItem("MARKET-TOKEN") ||
         localStorage.getItem("DEVICE-TOKEN")
-        }`,
+      }`,
       lang: getLang(languageUrl, Cookies.get("language")),
       country: countryUrl || Cookies.get("country"),
       accept: "application/json",
@@ -56,10 +67,10 @@ class HomeService {
         process.env.NEXT_PUBLIC_BACKEND_URL + STARTER_SETTINGS,
         getHeader()
       );
-      let repo = await response.json();
+      let repo: { data: StarttingSettingApi } = await response.json();
       store.dispatch({ type: "GET_SETTINGS", payload: repo });
       sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
-      this.getCustomerInfo();
+      await this.getCustomerInfo();
       getCart({
         callback: ([data, res]) => {
           store.dispatch({
@@ -87,7 +98,9 @@ class HomeService {
       getHeader()
     );
     if (response.status === 200) {
-      let repo = await response.json();
+      let repo: {
+        data: CustomerInfoApi;
+      } = await response.json();
 
       if (repo.data) {
         store.dispatch({
@@ -109,7 +122,7 @@ class HomeService {
         ExpiredUser();
       } else {
         await this.registerForExpire();
-        this.getCustomerInfo();
+        await this.getCustomerInfo();
       }
     }
   }
@@ -149,14 +162,14 @@ class HomeService {
           method: "POST",
           body: body.old_guest_user_id
             ? new URLSearchParams({
-              old_guest_user_id: body.old_guest_user_id,
-            })
+                old_guest_user_id: body.old_guest_user_id,
+              })
             : "old_guset_user_id=null",
           ...getHeader(),
           cache: "no-cache",
         }
       );
-      let repo = await response.json();
+      let repo: RegisterGuestApi = await response.json();
       localStorage.setItem("DEVICE-TOKEN", repo.data.token);
       Cookies.set("DEVICE-TOKEN", repo.data.token, {
         expires: 365,
@@ -172,7 +185,7 @@ class HomeService {
           // other custom properties
         });
       }
-    } catch (error) { }
+    } catch (error) {}
   }
   async CheckLogin() {
     if (!localStorage.getItem("FB-DEVICE-TOKEN")) await this.RegisterDevice();
@@ -218,9 +231,8 @@ class HomeService {
         // @ts-ignore
         if (token) {
           localStorage.setItem("FB-DEVICE-TOKEN", token);
-
           setTimeout(async () => {
-            if (UserToken())
+            if (UserToken()) {
               await AxiosPost({
                 url:
                   process.env.NEXT_PUBLIC_BACKEND_URL +
@@ -232,6 +244,7 @@ class HomeService {
                 },
                 title: "register firebase token",
               });
+            }
           }, 3000);
           // ininit
           const searchParams = new URLSearchParams(window.location.search);
@@ -259,8 +272,8 @@ class HomeService {
       typeof window !== "undefined" &&
         "serviceWorker" in navigator &&
         onMessageListener()
-          .then((payload) => { })
-          .catch((err) => { });
+          .then((payload) => {})
+          .catch((err) => {});
     }
   }
   async RegisterDevice() {
@@ -283,13 +296,13 @@ class HomeService {
           method: "POST",
           body: body.old_guest_user_id
             ? new URLSearchParams({
-              old_guest_user_id: body.old_guest_user_id,
-            })
+                old_guest_user_id: body.old_guest_user_id,
+              })
             : "old_guset_user_id=null",
           ...getHeader(),
         }
       );
-      let repo = await response.json();
+      let repo: RegisterGuestApi = await response.json();
       localStorage.setItem("DEVICE-TOKEN", repo.data.token);
       Cookies.set("DEVICE-TOKEN", repo.data.token, {
         expires: 365,
@@ -343,7 +356,7 @@ class HomeService {
         },
       }
     );
-    let repo = await response.json();
+    let repo: GetBoutiqueApi = await response.json();
     store.dispatch(GetMainData(repo.data.boutiques));
   }
   async getNextProduct({ offset, categories, boutiqueCategory }) {
@@ -353,8 +366,8 @@ class HomeService {
       categories: filterObj.categories.map((s) => s.slug),
       prices: filterObj.prices?.pricesWord
         ? [
-          `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
-        ]
+            `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
+          ]
         : null,
       brands: filterObj.brands.map((brand) => brand.slug),
       attributes: { ...sizesAttr, options: filterObj.sizes },
@@ -365,32 +378,38 @@ class HomeService {
     if (categories && categories !== "listing")
       filters = { ...filters, boutique_slug: [categories] };
 
-    let str = `${filters.categories?.length > 0
+    let str = `${
+      filters.categories?.length > 0
         ? `category_slugs=${JSON.stringify(filters.categories)}`
         : ""
-      }${filters.brands?.length > 0
+    }${
+      filters.brands?.length > 0
         ? `&brand_slugs=${JSON.stringify(filters.brands)}`
         : ""
-      }${filters.attributes?.options?.length > 0
+    }${
+      filters.attributes?.options?.length > 0
         ? `&attributes=${JSON.stringify(filters.attributes)}`
         : ""
-      }${filters.prices !== null ? `&price=${JSON.stringify(filters.prices)}` : ""
-      }${filters.boutique_slug
+    }${
+      filters.prices !== null ? `&price=${JSON.stringify(filters.prices)}` : ""
+    }${
+      filters.boutique_slug
         ? `&boutique_slugs=${JSON.stringify(filters.boutique_slug)}`
         : ""
-      }${filters?.searchText?.length > 0
+    }${
+      filters?.searchText?.length > 0
         ? `&search_text=${filters.searchText}`
         : ""
-      }`;
+    }`;
     var details =
       boutiqueCategory !== "undefined"
         ? {
-          boutique_slug: [categories],
-          category: boutiqueCategory,
-        }
+            boutique_slug: [categories],
+            category: boutiqueCategory,
+          }
         : {
-          boutique_slug: [categories],
-        };
+            boutique_slug: [categories],
+          };
     var formBody: any = [];
     for (var property in details) {
       var encodedKey = encodeURIComponent(property);
@@ -402,7 +421,7 @@ class HomeService {
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
       (categories
         ? "/api/products/search" +
-        `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
+          `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
         : LISTING_INFO_URL + `?${str}`);
     await fetch(
       url + `${offset ? `&offset=${offset}` : ""}&limit=${4}`,
@@ -417,7 +436,7 @@ class HomeService {
         },
       }
     ).then(async (data) => {
-      let repo = await data.json();
+      let repo: GetProductApi = await data.json();
       if (repo.data?.products)
         store.dispatch({ type: "GET_NEXT_PRODUCT", payload: repo.data });
       else {
@@ -450,9 +469,10 @@ class HomeService {
     try {
       let rep = await fetch(
         process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        "/api/products/search" +
-        `?search_text=${search_text}${urlParams.size > 0 ? `&` + urlParams.toString() : ""
-        }&limit=4&with_filter=false`,
+          "/api/products/search" +
+          `?search_text=${search_text}${
+            urlParams.size > 0 ? `&` + urlParams.toString() : ""
+          }&limit=4&with_filter=false`,
         {
           headers: {
             ...getHeader().headers,
@@ -461,7 +481,7 @@ class HomeService {
           },
         }
       );
-      let repo = await rep.json();
+      let repo: GetProductApi = await rep.json();
       callback(repo.data.products);
     } catch (error) {
       console.log(error);
@@ -492,9 +512,11 @@ class HomeService {
     try {
       let rep = await fetch(
         process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        `/api/products/search?${search_text?.length > 0 ? `search_text=${search_text}` : ""
-        }${urlParams.toString()?.length > 0 ? `&${urlParams.toString()}` : ""
-        }`,
+          `/api/products/search?${
+            search_text?.length > 0 ? `search_text=${search_text}` : ""
+          }${
+            urlParams.toString()?.length > 0 ? `&${urlParams.toString()}` : ""
+          }`,
         {
           headers: {
             ...getHeader().headers,
@@ -503,7 +525,7 @@ class HomeService {
           },
         }
       );
-      let repo = await rep.json();
+      let repo: GetProductApi = await rep.json();
 
       callback({
         brands: repo.data.brands,
@@ -561,7 +583,7 @@ class HomeService {
       // @ts-ignore
       dataBody = dataBody.join("&");
 
-      let res;
+      let res: UpdateCartApi;
 
       res = await AxiosPost({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
@@ -589,7 +611,7 @@ class HomeService {
       }
       // @ts-ignore
       formBody = formBody.join("&");
-      let res;
+      let res: UpdateCartApi;
       try {
         res = await AxiosPost({
           url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/add",
@@ -795,12 +817,12 @@ class HomeService {
         body: { id: id },
         title: "Hide Old Cart",
       });
-    } catch (error) { }
+    } catch (error) {}
   }
   async TestNotificationBoutique({ boutique_id }) {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_boutique_created",
+        "/firebase_device_tokens/send_boutique_created",
       { boutique_id: 66, topic: "boutique_created", language_code: "ar" },
       { ...getHeader() }
     );
@@ -808,7 +830,7 @@ class HomeService {
   async TestNotificationProductToOldCart() {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_product_cart_expiration",
+        "/firebase_device_tokens/send_product_cart_expiration",
       { product_id: 5566 },
       { ...getHeader() }
     );
@@ -817,7 +839,7 @@ class HomeService {
     await axios
       .post(
         process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/firebase_device_tokens/send_product_availability",
+          "/firebase_device_tokens/send_product_availability",
         { product_id: 5550, variant: "Gold-XXL" },
         { ...getHeader() }
       )
@@ -828,7 +850,7 @@ class HomeService {
   async TestNotificationProductComment() {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_product_comment",
+        "/firebase_device_tokens/send_product_comment",
       {
         product_id: 5550,
         topic: "product_comment_mixit-solid-bangle-bracelet-RhqqPZ",
@@ -839,7 +861,7 @@ class HomeService {
   async TestNotificationProductDiscount() {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_product_discount",
+        "/firebase_device_tokens/send_product_discount",
       {
         product_id: 5550,
         topic: "product_discount_mixit-solid-bangle-bracelet-RhqqPZ",
@@ -850,7 +872,7 @@ class HomeService {
   async TestNotificationCategoryCreated() {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_category_created",
+        "/firebase_device_tokens/send_category_created",
       { category_id: 368, topic: "category_created" },
       { ...getHeader() }
     );
@@ -862,7 +884,7 @@ class HomeService {
         body: { key: key },
         title: "Remove From Cart",
       });
-    } catch (error) { }
+    } catch (error) {}
   }
   async StoreNotificationProduct({ type_id, variant, product_id }) {
     let detail = {
@@ -884,7 +906,7 @@ class HomeService {
         formBody,
         { ...getHeader() }
       )
-      .catch((e) => { });
+      .catch((e) => {});
   }
 }
 

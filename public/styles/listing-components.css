@@ -18,6 +18,7 @@
   width: 30px;
 }
 .boutique-header {
+  overflow: hidden;
   padding-top: 15px;
   height: auto;
   background-color: #fff;
