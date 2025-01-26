@@ -74,7 +74,26 @@ function AddToCartWidget() {
         ?.options[0];
       dispatch({ type: "AddToCartSize", payload: a });
     }
-    dispatch({ type: "GET-PRODUCT-VARIATION", payload: additionalData });
+    let arr = [];
+    if (additionalData?.variation?.length) {
+      additionalData.variation.map((s) => {
+        let d = (product.variation || data.variation).filter(
+          (w) => w.type === s.type
+        )[0];
+        arr.push({ ...s, ...d });
+      });
+    }
+    dispatch({
+      type: "GET-PRODUCT-VARIATION",
+      payload: {
+        ...product,
+        // @ts-ignore
+        is_product_notify_for_user: additionalData?.is_product_notify_for_user,
+        variation: arr,
+        likes: null,
+        is_liked: null,
+      },
+    });
   };
   useEffect(() => {
     getDetails();
