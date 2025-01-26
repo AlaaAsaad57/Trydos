@@ -69,12 +69,14 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
 
   return (
     <div className={`${searchEnabled && "hidden"} user-nav-container`}>
-      <div
-        className="nav-question-item"
-        style={{ marginRight: "30px", marginLeft: "0px" }}
-      >
-        {user && <NotificationsTest />}
-      </div>
+      {user && (
+        <div
+          className="nav-question-item"
+          style={{ marginRight: "30px", marginLeft: "0px" }}
+        >
+          <NotificationsTest />
+        </div>
+      )}
       <div
         className="nav-question-item cart-icon-selector cursor-pointer"
         style={{ marginRight: "30px", marginLeft: "0px" }}

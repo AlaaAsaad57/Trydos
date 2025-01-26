@@ -317,7 +317,7 @@ const SelectColor = ({ close }) => {
               width: 400,
               height: 400,
             })}
-            className={"h-full object-top rounded-[15px]"}
+            className={`min-h-[80px] h-full object-top rounded-[15px]`}
           />
         </div>
         {SelectedProduct.sync_color_images && (

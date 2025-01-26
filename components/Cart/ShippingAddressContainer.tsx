@@ -8,7 +8,7 @@ import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import order from "services/order";
 function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   const cart = useSelector((state: StateInterface) => state.cart?.cart);
-  const dispatch = useDispatch();
+
   const user = useSelector((state: StateInterface) => state.auth.user);
   useEffect(() => {
     order.GetAddressList();
@@ -346,7 +346,15 @@ const AddressContainer = ({ openAddressList }) => {
   const addressLists = useSelector(
     (state: StateInterface) => state.cart.addressLists
   );
-
+  const GetAddressString = (location) => {
+    let str = "";
+    if (location.province) str += ` | ${location.province}`;
+    if (location.city) str += ` | ${location.city}`;
+    if (location.town) str += ` | ${location.town}`;
+    if (location.street) str += ` | ${location.street}`;
+    if (location.building) str += ` | ${location.building}`;
+    return str;
+  };
   return (
     <div
       onClick={() => {
@@ -382,7 +390,7 @@ const AddressContainer = ({ openAddressList }) => {
               </svg>
 
               <span className="regular ml-[4px] text-[12px] text-[#8D8D8D]">
-                {addressLists[0].address}
+                {GetAddressString(addressLists[0].region_details)}
               </span>
             </div>
             <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]">
