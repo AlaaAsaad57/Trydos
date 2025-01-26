@@ -1249,3 +1249,25 @@ input[type="number"] {
     transform: translateY(100vh);
   }
 }
+@media only screen and (max-width: 786px) {
+  .order-bottom-button {
+    bottom: calc(env(safe-area-inset-bottom) + 40px);
+  }
+  .add-address-button {
+    bottom: calc(50px + env(safe-area-inset-bottom));
+  }
+  .delete-button-address {
+    padding-bottom: calc(70px + env(safe-area-inset-bottom));
+  }
+}
+@media only screen and (min-width: 786px) {
+  .order-bottom-button {
+    bottom: calc(env(safe-area-inset-bottom) + 40px);
+  }
+  .delete-button-address {
+    padding-bottom: calc(25px + env(safe-area-inset-bottom));
+  }
+  .add-address-button {
+    bottom: calc(50px + env(safe-area-inset-bottom));
+  }
+}

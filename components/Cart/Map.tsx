@@ -52,8 +52,8 @@ const Map = ({
               setExpanded(true);
             }
           }}
-          className={`flex-col map-border max-h-[calc(100vh-274px)] relative pt-[12px] pb-[7px]  pl-[12px] pr-[12px] items-center mt-[12px] justify-center  w-full ${
-            expanded ? "h-[calc(100%-90px)" : " h-[120px]"
+          className={`flex-col map-border max-h-[calc(100vh-234px)] relative pt-[12px] pb-[7px]  pl-[12px] pr-[12px] items-center mt-[12px] justify-center  w-full ${
+            expanded ? "h-[calc(100vh-274px)]" : " h-[120px]"
           } rounded-[15px]`}
           style={{
             border: "1px solid rgb(211 211 211 / 51%)",

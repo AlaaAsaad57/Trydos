@@ -69,12 +69,35 @@ function AddToCartWidget() {
       id: SelectedProduct.slug,
     });
     dispatch({ type: "GET-PRODUCT-DETAILS-FOR-CART", payload: data });
+    dispatch({
+      type: "STORE-PRODUCT-Boutique",
+      payload: { ...product, ...data },
+    });
     if (data.choice_options) {
       let a = data?.choice_options?.filter((s) => s.title == "Size")[0]
         ?.options[0];
       dispatch({ type: "AddToCartSize", payload: a });
     }
-    dispatch({ type: "GET-PRODUCT-VARIATION", payload: additionalData });
+    let arr = [];
+    if (additionalData?.variation?.length) {
+      additionalData.variation.map((s) => {
+        let d = (product.variation || data.variation).filter(
+          (w) => w.type === s.type
+        )[0];
+        arr.push({ ...s, ...d });
+      });
+    }
+    dispatch({
+      type: "GET-PRODUCT-VARIATION",
+      payload: {
+        ...product,
+        // @ts-ignore
+        is_product_notify_for_user: additionalData?.is_product_notify_for_user,
+        variation: arr,
+        likes: null,
+        is_liked: null,
+      },
+    });
   };
   useEffect(() => {
     getDetails();
