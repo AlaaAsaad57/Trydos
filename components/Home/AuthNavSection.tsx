@@ -6,8 +6,7 @@ import { ChatConroller } from "store/chat/actions";
 import { getNew } from "components/Chat/chatsFunctions";
 import ChatNotification from "./ChatNotification";
 import { useParams } from "next/navigation";
-import Cookies from "js-cookie";
-import { changeToken } from "store/homepage/cachedActions";
+
 function AuthNavSection() {
   let { lang } = useParams();
   // @ts-ignore
@@ -34,7 +33,7 @@ function AuthNavSection() {
               (!chatVar && getNew(chats).length === 0) || chatVar
                 ? "30px"
                 : "20px",
-            marginLeft: "0px",
+            marginLeft: "30px",
             transform:
               !chatVar && getNew(chats).length > 0 && "translateY(-1px)",
           }}
@@ -63,20 +62,6 @@ function AuthNavSection() {
         <span className={`${language + "-light"}`}>{user?.name}</span>
       </div>
       <UserAvatar
-        onClick={() => {
-          Sendevent({
-            event: "button_clicked",
-            value: "me_nav_bar_button",
-          });
-          localStorage.clear();
-          changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
-          changeToken({ key: "MARKET-TOKEN", deleteOption: true });
-          changeToken({ key: "token", deleteOption: true });
-          Cookies.remove("DEVICE-TOKEN");
-          Cookies.remove("MARKET-TOKEN");
-          Cookies.remove("token");
-          window.location.reload();
-        }}
         avatar={user?.avatar?.src ?? user.avatar}
       />
     </>
