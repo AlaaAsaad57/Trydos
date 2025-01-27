@@ -155,7 +155,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     {activeTab === "notifications" && (
                         <div className="notifications-tab">
                             {topics.length > 0 ? (
-                                <ul className="space-y-2">
+                                <ul className="space-y-2 max-h-[200px] overflow-scroll">
                                     {topics.map((topic, index) => (
                                         <li
                                             key={index}
@@ -180,7 +180,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             {unsubscribedTopics.length > 0 && (
                                 <div className="mt-4">
                                     <p className="text-gray-500">Unsubscribed Topics:</p>
-                                    <ul className="space-y-2">
+                                    <ul className="space-y-2 max-h-[200px] overflow-scroll">
                                         {unsubscribedTopics.map((topic, index) => (
                                             <li
                                                 key={index}
