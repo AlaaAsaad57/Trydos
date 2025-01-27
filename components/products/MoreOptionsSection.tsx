@@ -128,13 +128,23 @@ function MoreOptionsSection() {
                   .split("/")[1]
                   .split("-")[0];
                 await home.subscribeToTopic({
-                  topic: `product_availability_${SelectedProduct.id}_${country_code}_${language_code}`,
+                  topic: `before_stock_out_${SelectedProduct.id}_${country_code}_${language_code}`,
                 });
               }}
             >
               {translate("Before Stock Out", language)}
             </div>
-            <div className="button-option">
+            <div className="button-option" onClick={async () => {
+              let language_code = window.location.pathname
+                .split("/")[1]
+                .split("-")[1];
+              let country_code = window.location.pathname
+                .split("/")[1]
+                .split("-")[0];
+              await home.subscribeToTopic({
+                topic: `change_in_price_${SelectedProduct.id}_${country_code}_${language_code}`,
+              });
+            }}>
               {translate("Change In Price", language)}
             </div>
             <div

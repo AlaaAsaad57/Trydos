@@ -1,10 +1,9 @@
 "use client";
 import { translateFunction } from "utils/functions";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Image from "next/image";
 import AuthNavSection from "./AuthNavSection";
-
 import CartIcon from "public/svg/CartIcon.svg";
 import {
   usePathname,
@@ -12,6 +11,7 @@ import {
   useRouter,
   useParams,
 } from "next/navigation";
+import Menu from "./Menu";
 import NotificationsTest from "components/global/NotificationsTest";
 
 interface UserNavTopSectionProps {
@@ -32,9 +32,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
   useEffect(() => {
     setTimeout(() => {
       if (true) {
-        // getStories().then((d) => {
-        //   dispatch({ type: "STORY-DATA", payload: d });
-        // });
+        // Placeholder for any async actions
       }
     }, 1000);
   }, [user]);
@@ -42,6 +40,8 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [menuOpen, setMenuOpen] = useState(false);
+
   const enableCart = (s) => {
     dispatch({ type: "AddToCartOptionDisable", payload: false });
     if (typeof window !== "undefined")
@@ -51,14 +51,12 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
       const newParams = new URLSearchParams(searchParams);
       newParams.set("cart", "true");
 
-      // Use router.push with pathname and updated query
       // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
       router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     } else {
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("cart");
 
-      // Use router.push with pathname and updated query
       // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
       router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     }
@@ -69,22 +67,20 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
 
   return (
     <div className={`${searchEnabled && "hidden"} user-nav-container`}>
-      {user && (
+      {/* {user && (
         <div
           className="nav-question-item"
           style={{ marginRight: "30px", marginLeft: "0px" }}
         >
           <NotificationsTest />
         </div>
-      )}
+      )} */}
       <div
         className="nav-question-item cart-icon-selector cursor-pointer"
         style={{ marginRight: "30px", marginLeft: "0px" }}
-        onClick={() => {
-          // dispatch(ChatConroller(true));
-        }}
+        onClick={() => enableCart(true)}
       >
-        <CartIcon onClick={() => enableCart(true)} />
+        <CartIcon />
       </div>
       {!user && (
         <>
@@ -124,12 +120,9 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
           <div
             data-testid="login-text"
             className="nav-question-item"
-            onClick={() => {
-              openLogin(true);
-            }}
+            onClick={() => openLogin(true)}
           >
             <img src="/svg/login.svg" width={15} height={15} alt="login" />
-
             <span
               className={`${language + "-regular"}`}
               style={{
@@ -144,6 +137,16 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
               {translate("Login", language)}
             </span>
           </div>
+        </>
+      )}
+      <div
+        className=""
+        onClick={() => setMenuOpen(!menuOpen)}
+        style={{ marginLeft: "10px", cursor: "pointer" }}
+      >
+        {user ? (
+          <AuthNavSection />
+        ) : (
           <div className="nav-question-item">
             <Image
               src="/svg/userIcon.svg"
@@ -152,9 +155,9 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
               alt="user-icon"
             />
           </div>
-        </>
-      )}
-      {user && <AuthNavSection />}
+        )}
+      </div>
+      {menuOpen && <Menu user={user} />}
     </div>
   );
 }
