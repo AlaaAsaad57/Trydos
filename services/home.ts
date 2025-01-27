@@ -238,6 +238,7 @@ class HomeService {
         let country_code = window.location.pathname.split("/")[1].split("-")[0];
         // @ts-ignore
         if (token) {
+          console.log(token);
           localStorage.setItem("FB-DEVICE-TOKEN", token);
           setTimeout(async () => {
             if (UserToken()) {
@@ -333,23 +334,7 @@ class HomeService {
           // other custom properties
         });
       }
-      await requestFirebaseNotificationPermission().then(async (token) => {
-        // @ts-ignore
-        if (token) {
-          localStorage.setItem("FB-DEVICE-TOKEN", token);
-          if (localStorage.getItem("MARKET-TOKEN"))
-            await AxiosPost({
-              url:
-                process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
-              body: {
-                device_token: token,
-                user_id: UserID(),
-                auth_token: UserToken(),
-              },
-              title: "register firebase token",
-            });
-        }
-      });
+
       if (typeof window !== "undefined") {
         _isStoreLastJson() &&
           localStorage.setItem("LAST_JSON", JSON.stringify(repo));
