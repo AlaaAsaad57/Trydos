@@ -324,7 +324,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
               setNextStep(true);
               setTimeout(() => {
                 ref.current.slideNext();
-              }, 3000);
+              }, 600);
             }}
             orderLoading={false}
           />
