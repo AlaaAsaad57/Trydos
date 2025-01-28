@@ -392,11 +392,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                       <span className="text-[13px] text-[#505050] regular flex-row items-center ">
                         <AddAddressIcon />
                         <span className="regular ml-[8px]">
-                          <>
-                            {addressDetails.id
-                              ? translate("Edit Shipping Address")
-                              : translate("Add Shipping Address")}
-                          </>
+                          <>{translateFunction("Shipping & Payment")}</>
                         </span>
                       </span>
                       <span

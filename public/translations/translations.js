@@ -219,6 +219,7 @@ export const translations = {
   },
   ar: {
     "Payment Method": "طرق الدفع",
+    "Shipping & Payment": "الدفع والتوصيل",
     Done: "تم",
     "These Shots Are Made By Users Who Have Already Purchased And Received The Product":
       "هذه الصور تم التقاطها من قبل مستخدمين قاموا بشراء المنتج واستلامه",
