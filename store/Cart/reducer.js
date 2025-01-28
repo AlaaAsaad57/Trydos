@@ -22,6 +22,14 @@ const initialState = {
       building: "",
     },
   },
+  orderData: {
+    payment: "",
+    coupon: false,
+    agree: false,
+    coupon_number: "",
+    loading: false,
+    success: false,
+  },
   enable: false,
   AddToCartOption: {
     enable: false,
@@ -70,6 +78,15 @@ const openCart = (val) => {
 };
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "ORDER-DATA": {
+      return {
+        ...state,
+        orderData: {
+          ...state.orderData,
+          ...payload,
+        },
+      };
+    }
     case "ORDER-LOADING": {
       return {
         ...state,

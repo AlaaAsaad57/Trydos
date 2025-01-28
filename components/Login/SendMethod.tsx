@@ -266,8 +266,8 @@ function SendMethod({
         </div>
         <div className="phone-send-options">
           <div
-            data-testid={`${loading && "opacity-70"} message-whatsapp-option`}
-            className="message-recieve-option"
+            data-testid={`message-whatsapp-option`}
+            className={`${loading && "opacity-55"} message-recieve-option`}
             onClick={() => {
               setMessageMethod("WA");
               SendCodeRequest("1");
@@ -321,7 +321,7 @@ function SendMethod({
           </div>
           <div
             data-testid="message-sms-option"
-            className={`${loading && "opacity-70"} message-recieve-option`}
+            className={`${loading && "opacity-55"} message-recieve-option`}
             onClick={() => {
               setMessageMethod("SMS");
 

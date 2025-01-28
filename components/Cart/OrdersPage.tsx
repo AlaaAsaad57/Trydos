@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
-import { Sendevent, translateFunction } from "utils/functions";
+import { GetAppLanguage, Sendevent, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import ShippingAddressContainer from "./ShippingAddressContainer";
@@ -12,6 +12,7 @@ import SelectRegion from "./SelectRegion";
 import AddressListContainer from "./AddressListContainer";
 import TrashIcon from "public/svg/cart/TrashIcon.svg";
 import order from "services/order";
+import PaymentMethod from "./PaymentMethod";
 const DeleteIcon = () => {
   return (
     <svg
@@ -128,6 +129,19 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
     }, 300);
   };
   const [deleteModal, setDeleteModal] = useState<any>(false);
+  const setOrderSuccess = (e) => {
+    setLoading(true);
+    setTimeout(() => {
+      dispatch({ type: "ORDER-DATA", payload: { success: true } });
+      setLoading(false);
+    }, 3000);
+  };
+  const setLoading = (e) => {
+    dispatch({ type: "ORDER-DATA", payload: { loading: e } });
+  };
+  const orderData = useSelector(
+    (state: StateInterface) => state.cart.orderData
+  );
   return (
     <div
       className={`pb-[10px]
@@ -164,7 +178,9 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
         slidesPerView={1}
         wrapperClass="flex  h-full"
       >
-        <SwiperSlide className="min-w-[100vw] h-[100vh] relative cart-widget">
+        <SwiperSlide
+          className={` min-w-[100vw] h-[100vh] relative cart-widget`}
+        >
           {AddressListsOpen && (
             <AddressListContainer
               Delete={(e) => {
@@ -178,7 +194,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
               }}
             />
           )}
-          <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
+          <div className="flex-col pl-2 pr-2 bg-[#fff] p-1 ">
             <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
               <BackIcon
                 className="cursor-pointer z-50"
@@ -286,16 +302,23 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
               <span />
             </div>
           </div>
-          <ShippingAddressContainer
-            openAddressList={(e) => {
-              openAddressList(e);
-            }}
-            slideNext={() => {
-              ref.current.slideNext();
-            }}
-            slidePrev={() => {
-              ref.current.slidePrev();
-            }}
+          <div className="flex-col overflow-auto pb-[292px] max-h-full">
+            <ShippingAddressContainer
+              openAddressList={(e) => {
+                openAddressList(e);
+              }}
+              slideNext={() => {
+                ref.current.slideNext();
+              }}
+              slidePrev={() => {
+                ref.current.slidePrev();
+              }}
+            />
+            <PaymentMethod />
+          </div>
+          <OrderButtons
+            orderLoading={false}
+            successOrder={() => setOrderSuccess(true)}
           />
         </SwiperSlide>
         <SwiperSlide className="min-w-[100vw] relative max-h-[100vh]  h-[100vh] cart-widget overflow-hidden">
@@ -533,6 +556,242 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
           </div>
         </div>
       </div>
+    </>
+  );
+};
+const OrderButtons = ({ orderLoading, successOrder }) => {
+  const cart = useSelector((state: StateInterface) => state.cart);
+  const currency_symbol = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  );
+  const dispatch = useDispatch();
+
+  const orderData = useSelector(
+    (state: StateInterface) => state.cart.orderData
+  );
+  const setAgree = (e) => {
+    dispatch({ type: "ORDER-DATA", payload: { agree: e } });
+  };
+  const address = useSelector(
+    (state: StateInterface) => state.cart.addressLists
+  );
+  const shake = (v) => {
+    document.querySelector(`.${v}`).scrollIntoView({ block: "end" });
+    document.querySelector(`.${v}`).classList.add("shake-anim");
+    setTimeout(() => {
+      document.querySelector(`.${v}`).classList.remove("shake-anim");
+    }, 1300);
+  };
+  const isValid = () => {
+    if (address[0]?.id && orderData.payment.length > 0 && orderData.agree) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+  const Validate = () => {
+    if (!address[0]?.id) {
+      shake("address-valid-border");
+    }
+    if (orderData.payment?.length === 0) {
+      shake("payment-valid-border");
+    }
+    if (!orderData.agree) {
+      shake("agree-valid-border");
+    }
+  };
+  return (
+    <div className="absolute flex-col items-center payment-order-bottom left-0 w-full">
+      <div className="px-[24px] mb-[12px] w-full">
+        <div
+          className={`${
+            orderData.agree ? "bg-[#F5FFF8]" : "bg-[#F8F8F8]"
+          } w-full agree-valid-border pl-[26px] h-[40px] rounded-[15px] regular flex-row items-center text-[12px] text-[#1D1D1D]`}
+          style={{
+            border: "1px solid rgb(56 144 255 / 51%)",
+          }}
+        >
+          <span
+            className="cursor-pointer"
+            onClick={() => {
+              setAgree(!orderData.agree);
+            }}
+          >
+            <CheckBoxElement active={orderData.agree} />
+          </span>
+          <span className="ml-[34px]">
+            {translateFunction("I read and agree to the")}
+          </span>
+          <span className="underline ml-[4px] text-[#388CFF]">
+            {translateFunction("policies")}
+          </span>
+          <span className="ml-[4px]">{translateFunction("and")}</span>
+          <span className="underline  ml-[4px] text-[#388CFF]">
+            {translateFunction("terms")}
+          </span>
+        </div>
+      </div>
+      <div
+        style={{
+          boxShadow: "0px -3px 20px #0000001a",
+        }}
+        className={` ${
+          orderLoading && "opacity-55"
+        }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
+      >
+        <div
+          onClick={() => {
+            Validate();
+            if (isValid() && !orderLoading) {
+              successOrder();
+            }
+          }}
+          className={` ${
+            orderData.loading && "opacity-65 scale-95"
+          } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${
+            isValid() ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
+          } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
+        >
+          <span>{translateFunction("Confirm Shipping & Payment")}</span>
+          <span
+            className={`text-[#FEFEFE] text-[14px] medium ${
+              GetAppLanguage() === "ar" && "dir-rtl"
+            } `}
+          >
+            {cart.cart.length} {translateFunction("items")} {cart.total_cash}{" "}
+            {currency_symbol?.symbol}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+const CheckBoxElement = ({ active }) => {
+  return (
+    <>
+      {active ? (
+        <>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            xmlnsXlink="http://www.w3.org/1999/xlink"
+            width="15"
+            height="15"
+            viewBox="0 0 15 15"
+          >
+            <defs>
+              <clipPath id="clip-pathCheck">
+                <rect
+                  id="Rectangle_5479"
+                  data-name="Rectangle 5479"
+                  width="15"
+                  height="15"
+                  transform="translate(50 243.139)"
+                  fill="none"
+                />
+              </clipPath>
+            </defs>
+            <g
+              id="Mask_Group_434"
+              data-name="Mask Group 434"
+              transform="translate(-50 -243.139)"
+              clip-path="url(#clip-pathCheck)"
+            >
+              <g
+                id="Group_11944"
+                data-name="Group 11944"
+                transform="translate(50 243.139)"
+              >
+                <g
+                  id="Group_11943"
+                  data-name="Group 11943"
+                  transform="translate(0 0)"
+                >
+                  <g
+                    id="Ellipse_427"
+                    data-name="Ellipse 427"
+                    fill="none"
+                    stroke="#388cff"
+                    stroke-width="0.5"
+                  >
+                    <circle cx="7.5" cy="7.5" r="7.5" stroke="none" />
+                    <circle cx="7.5" cy="7.5" r="7.25" fill="none" />
+                  </g>
+                  <circle
+                    id="Ellipse_428"
+                    data-name="Ellipse 428"
+                    cx="4.5"
+                    cy="4.5"
+                    r="4.5"
+                    transform="translate(3 3)"
+                    fill="#388cff"
+                  />
+                </g>
+              </g>
+            </g>
+          </svg>
+        </>
+      ) : (
+        <>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            xmlnsXlink="http://www.w3.org/1999/xlink"
+            width="15"
+            height="15"
+            viewBox="0 0 15 15"
+          >
+            <defs>
+              <clipPath id="clip-pathCheck">
+                <rect
+                  id="Rectangle_5479"
+                  data-name="Rectangle 5479"
+                  width="15"
+                  height="15"
+                  transform="translate(50 243.139)"
+                  fill="none"
+                />
+              </clipPath>
+            </defs>
+            <g
+              id="Mask_Group_434"
+              data-name="Mask Group 434"
+              transform="translate(-50 -243.139)"
+              clip-path="url(#clip-pathCheck)"
+            >
+              <g
+                id="Group_11944"
+                data-name="Group 11944"
+                transform="translate(50 243.139)"
+              >
+                <g
+                  id="Group_11943"
+                  data-name="Group 11943"
+                  transform="translate(0 0)"
+                >
+                  <g
+                    id="Ellipse_427"
+                    data-name="Ellipse 427"
+                    fill="none"
+                    stroke="#8e8e8e"
+                    stroke-width="0.5"
+                  >
+                    <circle cx="7.5" cy="7.5" r="7.5" stroke="none" />
+                    <circle cx="7.5" cy="7.5" r="7.25" fill="none" />
+                  </g>
+                  <circle
+                    id="Ellipse_428"
+                    data-name="Ellipse 428"
+                    cx="4.5"
+                    cy="4.5"
+                    r="4.5"
+                    transform="translate(3 3)"
+                    fill="#e8e8e8"
+                  />
+                </g>
+              </g>
+            </g>
+          </svg>
+        </>
+      )}
     </>
   );
 };

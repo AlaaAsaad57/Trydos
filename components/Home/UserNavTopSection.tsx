@@ -140,7 +140,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
         </>
       )}
       <div
-        className=""
+        className="flex"
         onClick={() => setMenuOpen(!menuOpen)}
         style={{ marginLeft: "10px", cursor: "pointer" }}
       >

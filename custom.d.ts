@@ -825,6 +825,14 @@ declare global {
       orderLoading: boolean;
       cart: Array<any>;
       enable: boolean;
+      orderData: {
+        agree: boolean;
+        payment: string;
+        coupon: boolean;
+        coupon_number: string;
+        loading: boolean;
+        success: boolean;
+      };
       addressLists: Array<{
         id: number;
         location: { latitude: any; longitude: any };

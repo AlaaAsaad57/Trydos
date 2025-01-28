@@ -118,7 +118,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
         border: "1px solid rgb(196 194 194 / 51%)",
         borderRadius: "15px",
       }}
-      className={`flex-col mt-[11px] pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full min-h-[203px] `}
+      className={`address-valid-border flex-col mt-[11px] pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full min-h-[203px] `}
     >
       <div className="flex-row ">
         <svg
