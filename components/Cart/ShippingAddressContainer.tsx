@@ -34,6 +34,7 @@ const CartItemSelect = ({ items }) => {
   // @ts-ignore
   const language = lang.split("-")[1];
   const [openCart, setOpenCart] = useState(false);
+
   return (
     <div
       style={{
@@ -43,7 +44,9 @@ const CartItemSelect = ({ items }) => {
       className={`flex-col ${
         openCart && "pt-[15px]"
       } relative pl-[12px] justify-center w-full min-h-[50px] cursor-pointer`}
-      onClick={() => setOpenCart(!openCart)}
+      onClick={() => {
+        setOpenCart(!openCart);
+      }}
     >
       <span className={` absolute top-[22px] right-[12px] `}>
         <svg
@@ -118,7 +121,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
         border: "1px solid rgb(196 194 194 / 51%)",
         borderRadius: "15px",
       }}
-      className={`address-valid-border flex-col mt-[11px] pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full min-h-[203px] `}
+      className={`address-valid-border flex-col mt-[11px] pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full ${" min-h-[203px]"}`}
     >
       <div className="flex-row ">
         <svg
@@ -348,7 +351,7 @@ const AddressContainer = ({ openAddressList }) => {
   );
   const GetAddressString = (location) => {
     let str = "";
-    if (location.province) str += ` | ${location.province}`;
+    if (location.province) str += ` ${location.province}`;
     if (location.city) str += ` | ${location.city}`;
     if (location.town) str += ` | ${location.town}`;
     if (location.street) str += ` | ${location.street}`;
@@ -363,7 +366,7 @@ const AddressContainer = ({ openAddressList }) => {
         }
       }}
       style={{
-        border: addressLists?.length === 0 ? "" : "#388bff8c 1px solid",
+        border: addressLists?.length === 0 && "#388bff8c 1px solid",
       }}
       className={`flex-col  ${
         addressLists?.length === 0
@@ -390,11 +393,11 @@ const AddressContainer = ({ openAddressList }) => {
               </svg>
 
               <span className="regular ml-[4px] text-[12px] text-[#8D8D8D]">
-                {GetAddressString(addressLists[0].region_details)}
+                {addressLists[0].address}
               </span>
             </div>
             <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]">
-              {addressLists[0].address_detail}
+              {GetAddressString(addressLists[0].region_details)}
             </div>
             <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]">
               <svg

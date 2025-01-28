@@ -386,7 +386,7 @@ function OrderButton({ close, toOrders }) {
                   {cart.cart.length === 0 ? (
                     <>
                       <span className="text-[#FEFEFE] text-[18px] medium ">
-                        {translate("Back To Home", GetAppLanguage())}
+                        {translate("Back To HomePage", GetAppLanguage())}
                       </span>
                     </>
                   ) : (

@@ -10,7 +10,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
   const dispatch = useDispatch();
   const GetAddressString = (location) => {
     let str = "";
-    if (location.province) str += ` | ${location.province}`;
+    if (location.province) str += `${location.province}`;
     if (location.city) str += ` | ${location.city}`;
     if (location.town) str += ` | ${location.town}`;
     if (location.street) str += ` | ${location.street}`;
@@ -87,11 +87,11 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                     </svg>
 
                     <span className="regular ml-[4px] text-[12px] text-[#8D8D8D]">
-                      {GetAddressString(s.region_details)}
+                      {s.address}
                     </span>
                   </div>
                   <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]">
-                    {s.region}
+                    {GetAddressString(s.region_details)}
                   </div>
                   <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]">
                     <svg

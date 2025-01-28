@@ -1320,17 +1320,17 @@ input[type="number"] {
 
 @media only screen and (min-width: 786px) {
   .payment-order-bottom {
-    bottom: calc(env(safe-area-inset-bottom) + 40px);
+    bottom: calc(env(safe-area-inset-bottom) + 10px);
   }
   .order-bottom-button {
-    bottom: calc(env(safe-area-inset-bottom) + 40px);
+    bottom: calc(env(safe-area-inset-bottom) + 10px);
   }
 
   .delete-button-address {
-    padding-bottom: calc(25px + env(safe-area-inset-bottom));
+    padding-bottom: calc(15px + env(safe-area-inset-bottom));
   }
 
   .add-address-button {
-    bottom: calc(50px + env(safe-area-inset-bottom));
+    bottom: calc(20px + env(safe-area-inset-bottom));
   }
 }

@@ -13,6 +13,8 @@ import AddressListContainer from "./AddressListContainer";
 import TrashIcon from "public/svg/cart/TrashIcon.svg";
 import order from "services/order";
 import PaymentMethod from "./PaymentMethod";
+import PlaceOrderWidget from "./PlaceOrderWidget";
+import PlaceOrderButtons from "./PlaceOrderButtons";
 const DeleteIcon = () => {
   return (
     <svg
@@ -142,6 +144,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
   const orderData = useSelector(
     (state: StateInterface) => state.cart.orderData
   );
+  const [nextStep, setNextStep] = useState(false);
   return (
     <div
       className={`pb-[10px]
@@ -317,58 +320,110 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
             <PaymentMethod />
           </div>
           <OrderButtons
+            setNext={() => {
+              setNextStep(true);
+              setTimeout(() => {
+                ref.current.slideNext();
+              }, 3000);
+            }}
             orderLoading={false}
-            successOrder={() => setOrderSuccess(true)}
           />
         </SwiperSlide>
         <SwiperSlide className="min-w-[100vw] relative max-h-[100vh]  h-[100vh] cart-widget overflow-hidden">
           {({ isActive }) => (
             <>
-              <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
-                <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
-                  <BackIcon
-                    className="cursor-pointer z-50"
-                    onClick={() => {
-                      Sendevent({
-                        event: "button_clicked",
-                        value: "appbar_backicon_button",
-                      });
+              {nextStep ? (
+                <>
+                  <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
+                    {!orderData.success && (
+                      <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
+                        <BackIcon
+                          className="cursor-pointer z-50"
+                          onClick={() => {
+                            Sendevent({
+                              event: "button_clicked",
+                              value: "appbar_backicon_button",
+                            });
+                            ref.current.slidePrev();
+                          }}
+                        />
+                        <span className="text-[13px] text-[#505050] regular flex-row items-center ">
+                          <AddAddressIcon />
+                          <span className="regular ml-[8px]">
+                            <>
+                              {addressDetails.id
+                                ? translate("Edit Shipping Address")
+                                : translate("Add Shipping Address")}
+                            </>
+                          </span>
+                        </span>
+                        <span
+                          onClick={() => {
+                            if (addressDetails.id) {
+                              setDeleteModal(addressDetails);
+                            }
+                          }}
+                        >
+                          {addressDetails.id && <DeleteIcon />}
+                        </span>
+                      </div>
+                    )}
+                    <PlaceOrderWidget />
+                  </div>
+                  <PlaceOrderButtons
+                    orderLoading={false}
+                    successOrder={() => setOrderSuccess(true)}
+                  />
+                </>
+              ) : (
+                <>
+                  <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
+                    <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
+                      <BackIcon
+                        className="cursor-pointer z-50"
+                        onClick={() => {
+                          Sendevent({
+                            event: "button_clicked",
+                            value: "appbar_backicon_button",
+                          });
+                          ref.current.slidePrev();
+                        }}
+                      />
+                      <span className="text-[13px] text-[#505050] regular flex-row items-center ">
+                        <AddAddressIcon />
+                        <span className="regular ml-[8px]">
+                          <>
+                            {addressDetails.id
+                              ? translate("Edit Shipping Address")
+                              : translate("Add Shipping Address")}
+                          </>
+                        </span>
+                      </span>
+                      <span
+                        onClick={() => {
+                          if (addressDetails.id) {
+                            setDeleteModal(addressDetails);
+                          }
+                        }}
+                      >
+                        {addressDetails.id && <DeleteIcon />}
+                      </span>
+                    </div>
+                  </div>
+                  <AddAddressForm
+                    activeIndex={isActive}
+                    setOpenSelect={() => {
+                      setOpenSelect(true);
+                    }}
+                    slidePrev={() => {
                       ref.current.slidePrev();
                     }}
-                  />
-                  <span className="text-[13px] text-[#505050] regular flex-row items-center ">
-                    <AddAddressIcon />
-                    <span className="regular ml-[8px]">
-                      <>
-                        {addressDetails.id
-                          ? translate("Edit Shipping Address")
-                          : translate("Add Shipping Address")}
-                      </>
-                    </span>
-                  </span>
-                  <span
-                    onClick={() => {
-                      if (addressDetails.id) {
-                        setDeleteModal(addressDetails);
-                      }
+                    setAddressDetails={(e) => {
+                      setAddressDetails(e);
                     }}
-                  >
-                    {addressDetails.id && <DeleteIcon />}
-                  </span>
-                </div>
-              </div>
-              <AddAddressForm
-                activeIndex={isActive}
-                setOpenSelect={() => {
-                  setOpenSelect(true);
-                }}
-                slidePrev={() => {
-                  ref.current.slidePrev();
-                }}
-                setAddressDetails={(e) => {
-                  setAddressDetails(e);
-                }}
-              />
+                  />
+                </>
+              )}
             </>
           )}
         </SwiperSlide>
@@ -559,7 +614,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
     </>
   );
 };
-const OrderButtons = ({ orderLoading, successOrder }) => {
+const OrderButtons = ({ orderLoading, setNext }) => {
   const cart = useSelector((state: StateInterface) => state.cart);
   const currency_symbol = useSelector(
     (state: StateInterface) => state.homepage.currency
@@ -569,21 +624,21 @@ const OrderButtons = ({ orderLoading, successOrder }) => {
   const orderData = useSelector(
     (state: StateInterface) => state.cart.orderData
   );
-  const setAgree = (e) => {
-    dispatch({ type: "ORDER-DATA", payload: { agree: e } });
-  };
+
   const address = useSelector(
     (state: StateInterface) => state.cart.addressLists
   );
   const shake = (v) => {
-    document.querySelector(`.${v}`).scrollIntoView({ block: "end" });
-    document.querySelector(`.${v}`).classList.add("shake-anim");
-    setTimeout(() => {
-      document.querySelector(`.${v}`).classList.remove("shake-anim");
-    }, 1300);
+    if (document.querySelector(`.${v}`)) {
+      document.querySelector(`.${v}`).scrollIntoView({ block: "end" });
+      document.querySelector(`.${v}`).classList.add("shake-anim");
+      setTimeout(() => {
+        document.querySelector(`.${v}`).classList.remove("shake-anim");
+      }, 1300);
+    }
   };
   const isValid = () => {
-    if (address[0]?.id && orderData.payment.length > 0 && orderData.agree) {
+    if (address && address[0]?.id && orderData.payment.length > 0) {
       return true;
     } else {
       return false;
@@ -596,41 +651,9 @@ const OrderButtons = ({ orderLoading, successOrder }) => {
     if (orderData.payment?.length === 0) {
       shake("payment-valid-border");
     }
-    if (!orderData.agree) {
-      shake("agree-valid-border");
-    }
   };
   return (
     <div className="absolute flex-col items-center payment-order-bottom left-0 w-full">
-      <div className="px-[24px] mb-[12px] w-full">
-        <div
-          className={`${
-            orderData.agree ? "bg-[#F5FFF8]" : "bg-[#F8F8F8]"
-          } w-full agree-valid-border pl-[26px] h-[40px] rounded-[15px] regular flex-row items-center text-[12px] text-[#1D1D1D]`}
-          style={{
-            border: "1px solid rgb(56 144 255 / 51%)",
-          }}
-        >
-          <span
-            className="cursor-pointer"
-            onClick={() => {
-              setAgree(!orderData.agree);
-            }}
-          >
-            <CheckBoxElement active={orderData.agree} />
-          </span>
-          <span className="ml-[34px]">
-            {translateFunction("I read and agree to the")}
-          </span>
-          <span className="underline ml-[4px] text-[#388CFF]">
-            {translateFunction("policies")}
-          </span>
-          <span className="ml-[4px]">{translateFunction("and")}</span>
-          <span className="underline  ml-[4px] text-[#388CFF]">
-            {translateFunction("terms")}
-          </span>
-        </div>
-      </div>
       <div
         style={{
           boxShadow: "0px -3px 20px #0000001a",
@@ -643,7 +666,7 @@ const OrderButtons = ({ orderLoading, successOrder }) => {
           onClick={() => {
             Validate();
             if (isValid() && !orderLoading) {
-              successOrder();
+              setNext();
             }
           }}
           className={` ${
@@ -664,134 +687,5 @@ const OrderButtons = ({ orderLoading, successOrder }) => {
         </div>
       </div>
     </div>
-  );
-};
-const CheckBoxElement = ({ active }) => {
-  return (
-    <>
-      {active ? (
-        <>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            xmlnsXlink="http://www.w3.org/1999/xlink"
-            width="15"
-            height="15"
-            viewBox="0 0 15 15"
-          >
-            <defs>
-              <clipPath id="clip-pathCheck">
-                <rect
-                  id="Rectangle_5479"
-                  data-name="Rectangle 5479"
-                  width="15"
-                  height="15"
-                  transform="translate(50 243.139)"
-                  fill="none"
-                />
-              </clipPath>
-            </defs>
-            <g
-              id="Mask_Group_434"
-              data-name="Mask Group 434"
-              transform="translate(-50 -243.139)"
-              clip-path="url(#clip-pathCheck)"
-            >
-              <g
-                id="Group_11944"
-                data-name="Group 11944"
-                transform="translate(50 243.139)"
-              >
-                <g
-                  id="Group_11943"
-                  data-name="Group 11943"
-                  transform="translate(0 0)"
-                >
-                  <g
-                    id="Ellipse_427"
-                    data-name="Ellipse 427"
-                    fill="none"
-                    stroke="#388cff"
-                    stroke-width="0.5"
-                  >
-                    <circle cx="7.5" cy="7.5" r="7.5" stroke="none" />
-                    <circle cx="7.5" cy="7.5" r="7.25" fill="none" />
-                  </g>
-                  <circle
-                    id="Ellipse_428"
-                    data-name="Ellipse 428"
-                    cx="4.5"
-                    cy="4.5"
-                    r="4.5"
-                    transform="translate(3 3)"
-                    fill="#388cff"
-                  />
-                </g>
-              </g>
-            </g>
-          </svg>
-        </>
-      ) : (
-        <>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            xmlnsXlink="http://www.w3.org/1999/xlink"
-            width="15"
-            height="15"
-            viewBox="0 0 15 15"
-          >
-            <defs>
-              <clipPath id="clip-pathCheck">
-                <rect
-                  id="Rectangle_5479"
-                  data-name="Rectangle 5479"
-                  width="15"
-                  height="15"
-                  transform="translate(50 243.139)"
-                  fill="none"
-                />
-              </clipPath>
-            </defs>
-            <g
-              id="Mask_Group_434"
-              data-name="Mask Group 434"
-              transform="translate(-50 -243.139)"
-              clip-path="url(#clip-pathCheck)"
-            >
-              <g
-                id="Group_11944"
-                data-name="Group 11944"
-                transform="translate(50 243.139)"
-              >
-                <g
-                  id="Group_11943"
-                  data-name="Group 11943"
-                  transform="translate(0 0)"
-                >
-                  <g
-                    id="Ellipse_427"
-                    data-name="Ellipse 427"
-                    fill="none"
-                    stroke="#8e8e8e"
-                    stroke-width="0.5"
-                  >
-                    <circle cx="7.5" cy="7.5" r="7.5" stroke="none" />
-                    <circle cx="7.5" cy="7.5" r="7.25" fill="none" />
-                  </g>
-                  <circle
-                    id="Ellipse_428"
-                    data-name="Ellipse 428"
-                    cx="4.5"
-                    cy="4.5"
-                    r="4.5"
-                    transform="translate(3 3)"
-                    fill="#e8e8e8"
-                  />
-                </g>
-              </g>
-            </g>
-          </svg>
-        </>
-      )}
-    </>
   );
 };

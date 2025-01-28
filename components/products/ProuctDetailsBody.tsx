@@ -81,7 +81,7 @@ function ProuctDetailsBody({ product }) {
           colors={product.sync_color_images || []}
           ProductColorsArray={product.colors}
         />
-        <CameraShots images={product.images} />
+        <CameraShots images={product?.images || []} />
         <ProductStories />
         <ProductSizes
           sizes={

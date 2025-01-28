@@ -50,9 +50,10 @@ const getHeader = () => {
       revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
     },
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("MARKET-TOKEN") ||
+      Authorization: `Bearer ${
+        localStorage.getItem("MARKET-TOKEN") ||
         localStorage.getItem("DEVICE-TOKEN")
-        }`,
+      }`,
       lang: getLang(languageUrl, Cookies.get("language")),
       country: countryUrl || Cookies.get("country"),
       accept: "application/json",
@@ -129,8 +130,6 @@ class HomeService {
     }
   }
   async checkExpiration(bool) {
-    let expired_at;
-
     if (localStorage.getItem("USER")) {
       if (bool) {
         store.dispatch({ type: "CANCEL-AUTH" });
@@ -164,8 +163,8 @@ class HomeService {
           method: "POST",
           body: body.old_guest_user_id
             ? new URLSearchParams({
-              old_guest_user_id: body.old_guest_user_id,
-            })
+                old_guest_user_id: body.old_guest_user_id,
+              })
             : "old_guset_user_id=null",
           ...getHeader(),
           cache: "no-cache",
@@ -188,7 +187,7 @@ class HomeService {
           // other custom properties
         });
       }
-    } catch (error) { }
+    } catch (error) {}
   }
   async CheckLogin() {
     if (!localStorage.getItem("FB-DEVICE-TOKEN")) await this.RegisterDevice();
@@ -280,8 +279,8 @@ class HomeService {
       typeof window !== "undefined" &&
         "serviceWorker" in navigator &&
         onMessageListener()
-          .then((payload) => { })
-          .catch((err) => { });
+          .then((payload) => {})
+          .catch((err) => {});
     }
   }
   async RegisterDevice() {
@@ -308,8 +307,8 @@ class HomeService {
           method: "POST",
           body: body.old_guest_user_id
             ? new URLSearchParams({
-              old_guest_user_id: body.old_guest_user_id,
-            })
+                old_guest_user_id: body.old_guest_user_id,
+              })
             : "old_guset_user_id=null",
           ...getHeader(),
         }
@@ -364,8 +363,8 @@ class HomeService {
       categories: filterObj.categories.map((s) => s.slug),
       prices: filterObj.prices?.pricesWord
         ? [
-          `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
-        ]
+            `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
+          ]
         : null,
       brands: filterObj.brands.map((brand) => brand.slug),
       attributes: { ...sizesAttr, options: filterObj.sizes },
@@ -376,32 +375,38 @@ class HomeService {
     if (categories && categories !== "listing")
       filters = { ...filters, boutique_slug: [categories] };
 
-    let str = `${filters.categories?.length > 0
-      ? `category_slugs=${JSON.stringify(filters.categories)}`
-      : ""
-      }${filters.brands?.length > 0
+    let str = `${
+      filters.categories?.length > 0
+        ? `category_slugs=${JSON.stringify(filters.categories)}`
+        : ""
+    }${
+      filters.brands?.length > 0
         ? `&brand_slugs=${JSON.stringify(filters.brands)}`
         : ""
-      }${filters.attributes?.options?.length > 0
+    }${
+      filters.attributes?.options?.length > 0
         ? `&attributes=${JSON.stringify(filters.attributes)}`
         : ""
-      }${filters.prices !== null ? `&price=${JSON.stringify(filters.prices)}` : ""
-      }${filters.boutique_slug
+    }${
+      filters.prices !== null ? `&price=${JSON.stringify(filters.prices)}` : ""
+    }${
+      filters.boutique_slug
         ? `&boutique_slugs=${JSON.stringify(filters.boutique_slug)}`
         : ""
-      }${filters?.searchText?.length > 0
+    }${
+      filters?.searchText?.length > 0
         ? `&search_text=${filters.searchText}`
         : ""
-      }`;
+    }`;
     var details =
       boutiqueCategory !== "undefined"
         ? {
-          boutique_slug: [categories],
-          category: boutiqueCategory,
-        }
+            boutique_slug: [categories],
+            category: boutiqueCategory,
+          }
         : {
-          boutique_slug: [categories],
-        };
+            boutique_slug: [categories],
+          };
     var formBody: any = [];
     for (var property in details) {
       var encodedKey = encodeURIComponent(property);
@@ -413,7 +418,7 @@ class HomeService {
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
       (categories
         ? "/api/products/search" +
-        `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
+          `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
         : LISTING_INFO_URL + `?${str}`);
     await fetch(
       url + `${offset ? `&offset=${offset}` : ""}&limit=${4}`,
@@ -461,9 +466,10 @@ class HomeService {
     try {
       let rep = await fetch(
         process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        "/api/products/search" +
-        `?search_text=${search_text}${urlParams.size > 0 ? `&` + urlParams.toString() : ""
-        }&limit=4&with_filter=false`,
+          "/api/products/search" +
+          `?search_text=${search_text}${
+            urlParams.size > 0 ? `&` + urlParams.toString() : ""
+          }&limit=4&with_filter=false`,
         {
           headers: {
             ...getHeader().headers,
@@ -503,9 +509,11 @@ class HomeService {
     try {
       let rep = await fetch(
         process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        `/api/products/search?${search_text?.length > 0 ? `search_text=${search_text}` : ""
-        }${urlParams.toString()?.length > 0 ? `&${urlParams.toString()}` : ""
-        }`,
+          `/api/products/search?${
+            search_text?.length > 0 ? `search_text=${search_text}` : ""
+          }${
+            urlParams.toString()?.length > 0 ? `&${urlParams.toString()}` : ""
+          }`,
         {
           headers: {
             ...getHeader().headers,
@@ -688,7 +696,8 @@ class HomeService {
   async subscribeToTopic({ topic }: { topic: string }) {
     let token = localStorage.getItem("FB-DEVICE-TOKEN");
     let storageTopics = JSON.parse(localStorage.getItem("topics")) || [];
-    let unsubscribedTopics = JSON.parse(localStorage.getItem("unsubscribedTopics")) || [];
+    let unsubscribedTopics =
+      JSON.parse(localStorage.getItem("unsubscribedTopics")) || [];
 
     // Check if topic is in unsubscribedTopics
     if (unsubscribedTopics.includes(topic)) {
@@ -747,7 +756,8 @@ class HomeService {
 
     const token = localStorage.getItem("FB-DEVICE-TOKEN");
     let storageTopics = JSON.parse(localStorage.getItem("topics")) || [];
-    let unsubscribedTopics = JSON.parse(localStorage.getItem("unsubscribedTopics")) || [];
+    let unsubscribedTopics =
+      JSON.parse(localStorage.getItem("unsubscribedTopics")) || [];
 
     if (!token) return;
 
@@ -795,11 +805,16 @@ class HomeService {
 
     // Remove duplicates by using a Set
     const uniqueUpdatedTopics = Array.from(new Set(updatedTopics));
-    const uniqueUpdatedUnsubscribedTopics = Array.from(new Set(updatedUnsubscribedTopics));
+    const uniqueUpdatedUnsubscribedTopics = Array.from(
+      new Set(updatedUnsubscribedTopics)
+    );
 
     // Update localStorage with the new topics and unsubscribed topics
     localStorage.setItem("topics", JSON.stringify(uniqueUpdatedTopics));
-    localStorage.setItem("unsubscribedTopics", JSON.stringify(uniqueUpdatedUnsubscribedTopics));
+    localStorage.setItem(
+      "unsubscribedTopics",
+      JSON.stringify(uniqueUpdatedUnsubscribedTopics)
+    );
 
     // Detect topics that need to be unsubscribed (from both storageTopics and unsubscribedTopics)
     const topicsToUnsubscribe = storageTopics.filter(
@@ -819,7 +834,10 @@ class HomeService {
 
     // Subscribe to updated topics
     for (const newTopic of updatedTopics) {
-      if (!storageTopics.includes(newTopic) && !unsubscribedTopics.includes(newTopic)) {
+      if (
+        !storageTopics.includes(newTopic) &&
+        !unsubscribedTopics.includes(newTopic)
+      ) {
         await fetch("/api/subscribeToTopic", {
           method: "POST",
           body: JSON.stringify({
@@ -838,12 +856,12 @@ class HomeService {
         body: { id: id },
         title: "Hide Old Cart",
       });
-    } catch (error) { }
+    } catch (error) {}
   }
   async TestNotificationBoutique({ boutique_id }) {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_boutique_created",
+        "/firebase_device_tokens/send_boutique_created",
       { boutique_id: 66, topic: "boutique_created", language_code: "ar" },
       { ...getHeader() }
     );
@@ -851,7 +869,7 @@ class HomeService {
   async TestNotificationProductToOldCart() {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_product_cart_expiration",
+        "/firebase_device_tokens/send_product_cart_expiration",
       { product_id: 5566 },
       { ...getHeader() }
     );
@@ -860,7 +878,7 @@ class HomeService {
     await axios
       .post(
         process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/firebase_device_tokens/send_product_availability",
+          "/firebase_device_tokens/send_product_availability",
         { product_id: 5550, variant: "Gold-XXL" },
         { ...getHeader() }
       )
@@ -871,7 +889,7 @@ class HomeService {
   async TestNotificationProductComment() {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_product_comment",
+        "/firebase_device_tokens/send_product_comment",
       {
         product_id: 5550,
         topic: "product_comment_mixit-solid-bangle-bracelet-RhqqPZ",
@@ -882,7 +900,7 @@ class HomeService {
   async TestNotificationProductDiscount() {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_product_discount",
+        "/firebase_device_tokens/send_product_discount",
       {
         product_id: 5550,
         topic: "product_discount_mixit-solid-bangle-bracelet-RhqqPZ",
@@ -893,7 +911,7 @@ class HomeService {
   async TestNotificationCategoryCreated() {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_category_created",
+        "/firebase_device_tokens/send_category_created",
       { category_id: 368, topic: "category_created" },
       { ...getHeader() }
     );
@@ -905,7 +923,7 @@ class HomeService {
         body: { key: key },
         title: "Remove From Cart",
       });
-    } catch (error) { }
+    } catch (error) {}
   }
   async StoreNotificationProduct({ type_id, variant, product_id }) {
     let detail = {
@@ -927,7 +945,7 @@ class HomeService {
         formBody,
         { ...getHeader() }
       )
-      .catch((e) => { });
+      .catch((e) => {});
   }
 }
 

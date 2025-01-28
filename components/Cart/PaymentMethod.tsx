@@ -35,7 +35,7 @@ function PaymentMethod() {
             border: "1px solid rgb(196 194 194 / 51%)",
             borderRadius: "15px",
           }}
-          className={`flex-col payment-valid-border mt-[30px] pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full min-h-[203px] `}
+          className={`flex-col payment-valid-border ${"mt-[30px] min-h-[203px]"} pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full  `}
         >
           <div className="flex-row ">
             <svg
@@ -137,15 +137,17 @@ function PaymentMethod() {
             }}
           />
         </div>
-        <CouponElement
-          active={orderData.coupon}
-          setActive={() => {
-            setOrderData({ coupon: true });
-          }}
-          close={() => {
-            setOrderData({ coupon: false });
-          }}
-        />
+        {
+          <CouponElement
+            active={orderData.coupon}
+            setActive={() => {
+              setOrderData({ coupon: true });
+            }}
+            close={() => {
+              setOrderData({ coupon: false });
+            }}
+          />
+        }
       </div>
     </>
   );
@@ -154,7 +156,7 @@ function PaymentMethod() {
 export default PaymentMethod;
 const CouponElement = ({ active, setActive, close }) => {
   const dispatch = useDispatch();
-  const value = useSelector(
+  const coupon_number = useSelector(
     (state: StateInterface) => state.cart.orderData.coupon_number
   );
   const onChange = (e) => {
@@ -168,6 +170,7 @@ const CouponElement = ({ active, setActive, close }) => {
       }, 200);
     }
   }, [active]);
+  const [coupon, setCoupon] = useState("");
   return (
     <div
       onClick={(e) => {
@@ -186,8 +189,8 @@ const CouponElement = ({ active, setActive, close }) => {
         border: active && "1px solid rgb(56 144 255 / 51%)",
       }}
       className={`w-full cursor-pointer pt-[12px] ite mt-[30px] ${
-        active ? "h-[111px]" : " h-[42px]"
-      } rounded-[15px] bg-[#f8f8f8] flex-col items-start px-[12px]`}
+        active ? "h-[111px] bg-[#fff]" : " h-[42px] bg-[#f8f8f8]"
+      } rounded-[15px]  flex-col items-start px-[12px]`}
     >
       <div className="flex-row ">
         <svg
@@ -269,32 +272,38 @@ const CouponElement = ({ active, setActive, close }) => {
           <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
             {translateFunction("Please Enter Coupon Information")}
           </div>
-          <div className="w-full items-center  justify-between flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative">
+          <div className="mt-[10px] w-full items-center  justify-between flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative">
             <div className="flex-row items-center w-full">
               <WalletIcon className="absolute left-[26px] top-[12px]" />
 
-              <input
-                placeholder="Coupon No"
-                onChange={(e) => {
-                  onChange(e.target.value);
-                }}
-                onBlur={(e) => {
-                  if (e.target.value?.length === 0) {
-                    close();
-                  }
-                }}
-                className={`coupon-element-input pl-[49px]  bg-transparent w-full h-[42px] border-none outline-none  text-[#1D1D1D] regular text-[12px] placeholder:text-[#C4C2C2]`}
-              />
+              {!coupon && (
+                <input
+                  placeholder="Coupon No"
+                  onChange={(e) => {
+                    onChange(e.target.value);
+                  }}
+                  onBlur={(e) => {
+                    if (e.target.value?.length === 0) {
+                      close();
+                    }
+                  }}
+                  className={`coupon-element-input pl-[49px]  bg-transparent w-full h-[42px] border-none outline-none  text-[#1D1D1D] regular text-[12px] placeholder:text-[#C4C2C2]`}
+                />
+              )}
               <div
-                className="apply-button min-w-[100px]  flex items-center justify-center h-[40px] rounded-[15px] bg-white"
+                className={`transition-all  apply-button ${
+                  coupon ? "min-w-full " : "min-w-[100px] "
+                } flex items-center justify-center h-[40px] rounded-[15px] bg-white`}
                 style={{
                   border: "1px solid rgb(56 144 255 / 51%)",
                 }}
                 onClick={() => {
-                  close();
+                  if (coupon_number.length > 0) {
+                    setCoupon("- 100 USD");
+                  }
                 }}
               >
-                {translateFunction("Apply")}
+                {coupon?.length > 0 ? coupon : translateFunction("Apply")}
               </div>
             </div>
           </div>
