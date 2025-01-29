@@ -431,6 +431,15 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
 export default OrdersPage;
 const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
   const dispatch = useDispatch();
+  const GetAddressString = (location) => {
+    let str = "";
+    if (location.province) str += `${location.province}`;
+    if (location.city) str += ` | ${location.city}`;
+    if (location.town) str += ` | ${location.town}`;
+    if (location.street) str += ` | ${location.street}`;
+    if (location.building) str += ` | ${location.building}`;
+    return str;
+  };
   return (
     <>
       <div
@@ -478,7 +487,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
                 </span>
               </div>
               <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#D3D3D3]">
-                {deletedAddress.region}
+                {GetAddressString(deletedAddress.region_details)}
               </div>
               <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#D3D3D3]">
                 <svg

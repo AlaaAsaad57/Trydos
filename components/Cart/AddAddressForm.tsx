@@ -336,20 +336,20 @@ const ContactInfo = () => {
     (state: StateInterface) => state.cart.addressDetails
   );
   const dispatch = useDispatch();
-  useEffect(() => {
-    if (!addressDetails.id && user) {
-      dispatch({
-        type: "set-address-details",
-        payload: {
-          contact_info: {
-            ...addressDetails.contact_info,
-            contact_person_name: user?.name,
-            name: user?.name,
-          },
-        },
-      });
-    }
-  }, [addressDetails?.id, user]);
+  // useEffect(() => {
+  //   if (!addressDetails.id && user) {
+  //     dispatch({
+  //       type: "set-address-details",
+  //       payload: {
+  //         contact_info: {
+  //           ...addressDetails.contact_info,
+  //           contact_person_name: user?.name,
+  //           name: user?.name,
+  //         },
+  //       },
+  //     });
+  //   }
+  // }, [addressDetails?.id, user]);
   return (
     <div className="flex-col w-full mt-[30px] px-[12px] pb-[110px]">
       <div className="flex-row px-[12px] items-center">
@@ -371,12 +371,7 @@ const ContactInfo = () => {
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
           <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
             <input
-              value={
-                addressDetails.contact_info.contact_person_name ||
-                // @ts-ignore
-                addressDetails.contact_info?.name ||
-                ""
-              }
+              value={addressDetails.contact_info.contact_person_name}
               onChange={(e) => {
                 dispatch({
                   type: "set-address-details",

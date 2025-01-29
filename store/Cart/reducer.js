@@ -139,6 +139,10 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       let temp = {
         ...payload,
         region: showLocationText(payload.region_details),
+        contact_info: {
+          ...payload.contact_info,
+          contact_person_name: payload.contact_info.name,
+        },
       };
 
       return {
