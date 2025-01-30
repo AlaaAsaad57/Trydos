@@ -27,11 +27,13 @@ describe("Login Scenario Test", () => {
     });
     cy.performErrorLogin();
     cy.wait(5000).then(() => {
-      cy.get('[data-testid="login-close-icon"]').click();
+      cy.get('[data-testid="login-close-icon"]').click({
+        scrollBehavior: false,
+      });
       expect(count).to.be.equal(0);
     });
   });
-  it.only("Login UnSuccessful Attempt when otp code expired should show button for resend otp and resend code and continue to login", () => {
+  it("Login UnSuccessful Attempt when otp code expired should show button for resend otp and resend code and continue to login", () => {
     let count = 0;
     cy.clearAllDataWithoutCookies();
     cy.intercept("**/login", () => {

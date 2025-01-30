@@ -698,6 +698,7 @@ function AddToCartButton({
                 AddToCartOption?.enable &&
                 `extended-add-to-cart  ${!loading && "opacity-45"}`
               }  `}
+              data-cy="AddToCartButton-data-cy"
               onClick={(e) => {
                 Sendevent({
                   event: "button_clicked",

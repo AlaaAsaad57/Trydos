@@ -73,8 +73,8 @@ function CartContainer({ close, toOrders }) {
         dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
       },
     }).then(() => {
-      getOldCart()
-    })
+      getOldCart();
+    });
   }, []);
   const params = useParams();
 
@@ -94,6 +94,7 @@ function CartContainer({ close, toOrders }) {
         <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
           <BackIcon
             className="cursor-pointer z-50"
+            data-cy="CartBackIcon"
             onClick={() => {
               Sendevent({
                 event: "button_clicked",
@@ -103,7 +104,7 @@ function CartContainer({ close, toOrders }) {
               close();
             }}
           />
-          <span className="text-[13px] text-[#505050] regular flex-row items-center ">
+          <span className="text-[13px] text-[#505050] regular flex-row items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -242,7 +243,9 @@ function CartContainer({ close, toOrders }) {
               {cart.length > 0 ? (
                 <>
                   {cart?.map((product, key) => (
-                    <div className="relative px-[12px]" key={key}>
+                    <div className="relative px-[12px]" key={key}
+                    
+                    >
                       {" "}
                       <NextLink
                         href={
@@ -317,7 +320,10 @@ function CartContainer({ close, toOrders }) {
                               className="object-contain h-4 max-w-[90px] w-auto"
                             />
                           </div>
-                          <div className="text-[12px] mt-1 text-[#505050] flex regular">
+                          <div
+                            className="text-[12px] mt-1 text-[#505050] flex regular"
+                            data-cy="productNameInCart"
+                          >
                             {product.name.substring(0, 30)}
                           </div>
 
@@ -1836,6 +1842,7 @@ const QuantutyInput = ({
         </svg>
         <div
           className="absolute hide-btn h-[24px] flex items-center right-[6px]  cursor-pointer"
+          data-cy="PlusIcon_CartPage"
           onClick={() => {
             if (disabled) return false;
             if (inputValue === max) {
@@ -1855,6 +1862,7 @@ const QuantutyInput = ({
         {inputValue > 1 ? (
           <div
             className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
+            data-cy="MinusIcon_CartPage"
             onClick={() => {
               if (disabled) return false;
               if (inputValue > 1) {
@@ -1869,6 +1877,7 @@ const QuantutyInput = ({
         ) : (
           <div
             className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
+            data-cy="DeleteIcon_CartPage"
             onClick={() => {
               deleteFunction();
             }}
@@ -1879,6 +1888,7 @@ const QuantutyInput = ({
         <input
           // @ts-ignore
           value={parseInt(inputValue)}
+          data-cy="QuantityInCart"
           max={max}
           disabled
           onChange={(e) => {}}

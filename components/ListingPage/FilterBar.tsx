@@ -192,7 +192,7 @@ function FilterBar({ boutique, filters, productsServer }) {
             }
           }}
         >
-          <BackIcon />
+          <BackIcon data-cy="back_icon_boutique_page" />
         </NextLink>
         <div
           className={`filter-bar-options flex-row align-center ${

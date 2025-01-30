@@ -88,6 +88,7 @@ Cypress.Commands.add("typePincode", (pincode: string) => {
   });
 });
 Cypress.Commands.add("enterPhoneNumber", (phoneNumber: string) => {
+  cy.wait(10000);
   cy.get("#phoneInput").click({ scrollBehavior: false });
   cy.get("#phoneInput").type(`${phoneNumber}{enter}`, {
     scrollBehavior: false,
@@ -106,7 +107,7 @@ Cypress.Commands.add("performLogin", () => {
   cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false }); //have account
   cy.Exist("[data-cy=login-methods-container]").then((exist) => {
     if (exist) {
-      cy.get("[data-cy=login-method-phone]").click();
+      cy.get("[data-cy=login-method-phone]").click({ scrollBehavior: false });
     }
   });
   cy.enterPhoneNumber("963937288307");
@@ -114,8 +115,13 @@ Cypress.Commands.add("performLogin", () => {
   cy.typePincode("999999");
 });
 Cypress.Commands.add("Performloginfailure", () => {
+  cy.wait(60000);
+  cy.reload();
+  cy.wait(5000);
   cy.clearAllData();
   cy.viewport(783, 824);
+  cy.reload();
+  cy.wait(3000);
   cy.wait(10000);
   cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
   cy.wait(8000);
@@ -170,7 +176,7 @@ Cypress.Commands.add("performExpireOtpLogin", () => {
   cy.wait(130000);
   cy.Exist(".resend-code-button").then((s) => {
     if (s) {
-      cy.get(".resend-code-button").click();
+      cy.get(".resend-code-button").click({ scrollBehavior: false });
       cy.wait(5000);
       cy.typePincode("999999");
     } else {
@@ -230,10 +236,22 @@ Cypress.Commands.add("alreadyRegisteredSignup", () => {
   cy.get(".login-button:nth-child(2)").click({ scrollBehavior: false });
   cy.get("[data-cy=agree-terms]").click({ scrollBehavior: false });
   cy.enterPhoneNumber("963937288307");
-  cy.wait(6000);
+  cy.wait(5000);
   cy.typePincode("999999");
   cy.wait("@verifyOtpSignin", { timeout: 20000 }).then((s) => {
     console.log(s);
   });
   cy.wait(6000);
+});
+
+// ************************ Open Cart **************************************
+Cypress.Commands.add("interceptAndWait", (routes) => {
+  // Iterate through the provided routes and set up intercepts
+  routes.forEach((route) => {
+    cy.intercept(route.method || "GET", route.url).as(route.alias);
+  });
+
+  // Wait for any of the provided aliases, not necessarily all
+  const aliases = routes.map((route) => `@${route.alias}`);
+  cy.wait(aliases, { timeout: 30000 }); // Adjust timeout as needed
 });

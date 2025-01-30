@@ -69,6 +69,7 @@ function SelectColor({ close }) {
           )}
           <CartIcon
             id="cart-icon"
+            data-cy="CartIcon_Productpage"
             className="cart-icon"
             onClick={() => {
               dispatch({ type: "AddToCartOptionDisable", payload: false });

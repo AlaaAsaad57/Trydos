@@ -86,7 +86,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
           // dispatch(ChatConroller(true));
         }}
       >
-        <CartIcon onClick={() => enableCart(true)} />
+        <CartIcon onClick={() => enableCart(true)} data-cy="cartIcon_mainPage"/>
       </div>
       {!user && (
         <>

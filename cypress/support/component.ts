@@ -44,6 +44,9 @@ declare global {
       signupProcess(): Chainable<void>;
       failedSignupProcess(): Chainable<void>;
       alreadyRegisteredSignup(): Chainable<void>;
+      interceptAndWait(
+        routes: { method?: string; url: string; alias: string }[]
+      ): Chainable<void>;
     }
   }
 }

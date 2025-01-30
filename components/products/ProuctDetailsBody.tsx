@@ -58,7 +58,7 @@ function ProuctDetailsBody({ product }) {
           )}
         </div>
         <div className="product-text-section flex-row align-center">
-          <div className="product-name">{product.name}</div>
+          <div className="product-name" data-cy="productName_productPage">{product.name}</div>
           <div className="product-category">
             {product?.category?.icon && (
               <img

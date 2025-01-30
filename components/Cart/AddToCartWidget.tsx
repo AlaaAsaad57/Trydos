@@ -229,7 +229,7 @@ const SelectColor = ({ close }) => {
             close();
           }}
         >
-          <BackIcon />
+          <BackIcon/>
         </div>
         <span className="relative">
           {cart?.length > 0 && (
@@ -240,6 +240,7 @@ const SelectColor = ({ close }) => {
           <CartIcon
             id={"cart-icon"}
             className="cart-icon"
+            data-cy="CartIcon"
             onClick={() => {
               Sendevent({
                 event: "button_clicked",
