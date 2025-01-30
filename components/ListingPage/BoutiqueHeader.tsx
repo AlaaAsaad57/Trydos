@@ -8,7 +8,7 @@ import BoutiqueBrandFilter from "./filterComponents/BoutiqueBrandFilter";
 import BoutiqueOfferFilter from "./filterComponents/BoutiqueOfferFilter";
 import BoutiquePriceFilter from "./filterComponents/BoutiquePriceFilter";
 import BoutiqueSizeFilter from "./filterComponents/BoutiqueSizeFilter";
-import { expandView, normalizeView, Sendevent } from "utils/functions";
+import { Sendevent } from "utils/functions";
 import FilterButtons from "./filterComponents/FilterButtons";
 import FilterComponentLoader from "./filterComponents/FilterComponentLoader";
 import {

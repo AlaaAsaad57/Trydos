@@ -36,7 +36,7 @@ export default function Error({
   return (
     <html>
       <body>
-        <div className="flex justify-start flex-col items-center p-[50px]">
+        <div className="flex justify-start flex-col items-center p-[50px] min-h-screen">
           <div>
             <Logo style={true} animated={false} />
           </div>

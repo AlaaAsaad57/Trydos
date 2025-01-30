@@ -19,7 +19,7 @@ const getHeader = (token?) => {
       Authorization: `Bearer ${
         token ??
         localStorage.getItem("MARKET-TOKEN") ??
-        Cookies.get("market-token") ??
+        Cookies.get("MARKET-TOKEN") ??
         Cookies.get("DEVICE-TOKEN") ??
         localStorage.getItem("DEVICE-TOKEN")
       }`,
@@ -46,12 +46,19 @@ export const AxiosGet = async ({
         throw new Error(res.data.message);
       }
     } catch (error) {
+      if (error.status === 422 || error.status === 500) {
+        toast.error(`${title} : ${error.message ?? "Failed"}`);
+        throw new Error(
+          `${title} : Max retries reached. Could not fetch the data. ${error.message}`
+        );
+        return;
+      }
       if (error.status === 401) {
         if (getUser()) {
-          ExpiredUser();
-          return;
+          await ExpiredUser();
+        } else {
+          await home.registerForExpire();
         }
-        await home.registerForExpire();
       }
       attempt++;
       console.log(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);
@@ -93,10 +100,15 @@ export const AxiosPost = async ({
           return res.data;
         }
       }
-      if (url.includes("product_likes") || url.includes("old-cart/hide")) {
-        toast.success(res.data.message);
 
-        return;
+      if (
+        url.includes("product_likes") ||
+        url.includes("old-cart/hide") ||
+        url.includes("/cart/remove") ||
+        hasMessageOnly
+      ) {
+        toast.success(res.data.message);
+        return res.data.message;
       }
       if (url.includes("cart/")) {
         if (res.data.data.status === 1) {
@@ -117,12 +129,19 @@ export const AxiosPost = async ({
         throw new Error(res.data.message);
       }
     } catch (error) {
+      if (error.status === 422 || error.status === 500) {
+        toast.error(`${title} : ${error.message ?? "Failed"}`);
+        throw new Error(
+          `${title} : Max retries reached. Could not fetch the data. ${error.message}`
+        );
+        return;
+      }
       if (error.status === 401) {
         if (getUser()) {
-          ExpiredUser();
-          return;
+          await ExpiredUser();
+        } else {
+          await home.registerForExpire();
         }
-        await home.registerForExpire();
       }
       attempt++;
       console.log(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);
@@ -155,7 +174,7 @@ export const AxiosCacheApi = async ({
       lang: Cookies.get("language"),
       country: Cookies.get("country"),
       Authorization: `Bearer ${
-        Cookies.get("market-token") ?? Cookies.get("DEVICE-TOKEN")
+        Cookies.get("MARKET-TOKEN") ?? Cookies.get("DEVICE-TOKEN")
       }`,
     },
     cache: {

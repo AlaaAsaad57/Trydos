@@ -1,51 +1,35 @@
 const initialState = {
+  orderLoading: false,
   cart: [],
-  addressLists: [
-    {
-      id: parseInt(Math.random() * 1000),
-      geolocation: {
-        lat: 33.50444295570695,
-        lng: 36.29793030614546,
-      },
-      Country: {
-        name: "Turkey",
-        code: "TR",
-      },
-      location: "",
-      detailes_Address:
-        "LA, 1608. Cd., Üniversiteler Mahallesi, Çankaya, Ankara, Central Anatolia Region, 06800, Turkey",
-      title: "My Home",
-      ContactInfo: {
-        name: "Alaa Asaad",
-        phone: "+963937288307",
-        alternatePhone: "+963937288307",
-      },
-      region:
-        "LA, 1608. Cd., Üniversiteler Mahallesi, Çankaya, Ankara, Central Anatolia Region, 06800, Turkey",
-      regionDetails: {
-        province: null,
-        town: null,
-        suburb: null,
-      },
-    },
-  ],
+  addressLists: [],
+  center: null,
   addressDetails: {
-    geolocation: { lat: null, lng: null },
+    location: { latitude: null, longitude: null },
     Country: { name: "Turkey", code: "TR" },
-    location: "",
-    detailes_Address: "",
-    title: "",
-    ContactInfo: {
-      name: "",
+
+    address_detail: "",
+    address: "",
+    contact_info: {
+      contact_person_name: "",
       phone: "",
-      alternatePhone: "",
+      alternative_phone: "",
     },
     region: "",
-    regionDetails: {
-      province: null,
-      town: null,
-      suburb: null,
+    region_details: {
+      city: "",
+      province: "",
+      town: "",
+      street: "",
+      building: "",
     },
+  },
+  orderData: {
+    payment: "",
+    coupon: false,
+    agree: false,
+    coupon_number: "",
+    loading: false,
+    success: false,
   },
   enable: false,
   AddToCartOption: {
@@ -64,45 +48,113 @@ const initialState = {
   loaded: false,
   oldCart: null,
 };
+const showLocationText = (location) => {
+  let str = "";
+  if (location.province) str += ` | ${location.province}`;
+  if (location.city) str += ` | ${location.city}`;
+  if (location.town) str += ` | ${location.town}`;
+  if (location.street) str += ` | ${location.street}`;
+  if (location.building) str += ` | ${location.building}`;
+  return str;
+};
+const openCart = (val) => {
+  document.documentElement.scrollTop = 0;
+  if (val) {
+    document.querySelector(".site-container").classList.add("scale-95");
+    document.documentElement.style.overflow = "hidden";
+    return val;
+  } else {
+    document.querySelector(".cart-provider")?.classList.add("slideDown-cart");
+    document.querySelector(".site-container")?.classList.remove("scale-95");
+    document.documentElement.style.overflow = "initial";
 
+    // setTimeout(() => {
+    //   document
+    //     .querySelector(".cart-provider")
+    //     .classList.remove("slideDown-cart");
+    // }, 400);
+    // await new Promise((resolve) => setTimeout(resolve, 400));
+    return val;
+  }
+};
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "MAP-CENTER": {
+      return {
+        ...state,
+        center: payload,
+      };
+    }
+    case "ORDER-DATA": {
+      return {
+        ...state,
+        orderData: {
+          ...state.orderData,
+          ...payload,
+        },
+      };
+    }
+    case "ORDER-LOADING": {
+      return {
+        ...state,
+        orderLoading: payload,
+      };
+    }
+    case "GET-ADRRESS-LIST": {
+      return {
+        ...state,
+        addressLists: payload,
+        orderLoading: false,
+      };
+    }
     case "INIT-ADDRESS-FORM": {
       return {
         ...state,
         addressDetails: {
-          geolocation: { lat: null, lng: null },
+          location: { latitude: null, longitude: null },
           Country: { name: "Turkey", code: "TR" },
-          location: "",
-          detailes_Address: "",
-          title: "",
-          ContactInfo: {
-            name: "",
+          address_detail: "",
+          address: "",
+          contact_info: {
+            contact_person_name: "",
             phone: "",
-            alternatePhone: "",
+            alternative_phone: "",
           },
           region: "",
-          regionDetails: {
-            province: null,
-            town: null,
-            suburb: null,
+          region_details: {
+            city: "",
+            province: "",
+            town: "",
+            street: "",
+            building: "",
           },
         },
       };
     }
     case "ADD-ADDRESS": {
+      let arr = state.addressLists;
+      arr.push({
+        ...state.addressDetails,
+        id: parseInt(Math.random() * 1000),
+      });
       return {
         ...state,
-        addressLists: state.addressLists.push({
-          ...state.addressDetails,
-          id: parseInt(Math.random() * 1000),
-        }),
+        addressLists: arr,
       };
     }
     case "START-UPDATE-ADDRESS": {
+      let temp = {
+        ...payload,
+        region: showLocationText(payload.region_details),
+        contact_info: {
+          ...payload.contact_info,
+          contact_person_name: payload.contact_info.name,
+        },
+      };
+
       return {
         ...state,
-        addressDetails: payload,
+        addressDetails: temp,
       };
     }
     case "UPDATE-ADDRESS": {
@@ -113,7 +165,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       });
       return {
         ...state,
-        addressLists: arr,
+        addressLists: arr.reverse(),
       };
     }
     case "DELETE-ADDRESS": {
@@ -275,6 +327,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "ENABLE-CART": {
+      openCart(payload);
       return {
         ...state,
         enable: payload,
@@ -306,6 +359,12 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         SelectedProduct: { ...state.SelectedProduct, ...payload },
         variants: payload.variation,
         loaded: true,
+      };
+    }
+    case "VIEWS-PRODUCTS": {
+      return {
+        ...state,
+        SelectedProduct: { ...state.SelectedProduct, ...payload },
       };
     }
     case "EDIT-INFO": {
@@ -474,25 +533,39 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "AddToCartSize": {
-      let variant = (state.variants?.variation || state.variants || []).filter(
-        (s) =>
-          s.type.includes(
-            state?.AddToCartOption?.selectedColor?.color_name || ""
-          ) && s.type.includes(payload?.name || "")
-      )[0];
-      return {
-        ...state,
-        AddToCartOption: {
-          ...state.AddToCartOption,
-          selectedSize: payload,
-          price: {
-            offer_price_formated: variant?.offer_price_formated,
-            price: variant?.price,
-            offer_price: variant.offer_price,
-            price_formated: variant.price_formated,
+      if ((state.variants?.variation || state.variants || [])?.length > 0) {
+        let variant = (
+          state.variants?.variation ||
+          state.variants ||
+          []
+        ).filter(
+          (s) =>
+            s.type.includes(
+              state?.AddToCartOption?.selectedColor?.color_name || ""
+            ) && s.type.includes(payload?.name || "")
+        )[0];
+        return {
+          ...state,
+          AddToCartOption: {
+            ...state.AddToCartOption,
+            selectedSize: payload,
+            price: {
+              offer_price_formated: variant?.offer_price_formated,
+              price: variant?.price,
+              offer_price: variant?.offer_price,
+              price_formated: variant?.price_formated,
+            },
           },
-        },
-      };
+        };
+      } else {
+        return {
+          ...state,
+          AddToCartOption: {
+            ...state.AddToCartOption,
+            selectedSize: payload,
+          },
+        };
+      }
     }
     case "AddToCartColor": {
       // let variant = ( state.variants.variation||state.variants).filter(

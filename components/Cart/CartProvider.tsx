@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { expandView, normalizeView, Sendevent } from "utils/functions";
 import CartContainer from ".";
 import home from "services/home";
-import ShowMessageAuth from "components/global/ShowMessageAuth";
 import { Swiper, SwiperSlide } from "swiper/react";
 import OrdersPage from "./OrdersPage";
 import { Swiper as SwiperType } from "node_modules/swiper/types";
@@ -71,9 +70,10 @@ const CartProvider = () => {
   const showMessage = useSelector(
     (state: StateInterface) => state.homepage.showMessage
   );
+
   return (
     <>
-      {showMessage && <ShowMessageAuth />}
+      {/* {showMessage && <ShowMessageAuth />} */}
       {cartEnable ? <StepSlider enableCart={(e) => enableCart(e)} /> : <></>}
     </>
   );
@@ -83,42 +83,56 @@ export const StepSlider = ({ enableCart }) => {
   const [step, setStep] = useState(0);
   const ref = useRef<SwiperType | null>();
   return (
-    <Swiper
-      initialSlide={step}
-      navigation={false}
-      draggable={false}
-      className="w-full h-[100vh] fixed z-[9999999999]"
-      wrapperClass="flex flex-row"
-      noSwiping={false}
-      allowTouchMove={false}
-      slidesPerView={1}
-      onInit={(swiper) => {
-        ref.current = swiper;
-      }}
-    >
-      <SwiperSlide className="w-full h-[100vh] cart-widget">
-        <CartContainer
-          toOrders={() => {
-            ref.current.slideNext();
-            setStep(1);
-          }}
-          close={() => {
-            Sendevent({
-              event: "button_clicked",
-              value: "appbar_backicon_button",
-            });
-            enableCart(false);
-          }}
-        />
-      </SwiperSlide>
-      <SwiperSlide className="w-full h-[100vh] cart-widget">
-        <OrdersPage
-          setStep={(e) => {
-            setStep(0);
-            ref.current.slidePrev();
-          }}
-        />
-      </SwiperSlide>
-    </Swiper>
+    <div className="w-full h-[100vh] fixed z-[9999999999] cart-provider">
+      {" "}
+      <Swiper
+        initialSlide={step}
+        navigation={false}
+        keyboard={{
+          enabled: false,
+        }}
+        draggable={false}
+        className="w-full h-full"
+        wrapperClass="flex flex-row"
+        noSwiping={false}
+        allowTouchMove={false}
+        slidesPerView={1}
+        onInit={(swiper) => {
+          ref.current = swiper;
+        }}
+      >
+        <SwiperSlide className="w-full h-full cart-widget">
+          <CartContainer
+            toOrders={() => {
+              ref.current.slideNext();
+              setStep(1);
+            }}
+            close={() => {
+              Sendevent({
+                event: "button_clicked",
+                value: "appbar_backicon_button",
+              });
+              enableCart(false);
+            }}
+          />
+        </SwiperSlide>
+        <SwiperSlide className="w-full h-full cart-widget">
+          {({ isActive }) =>
+            isActive ? (
+              <>
+                <OrdersPage
+                  setStep={(e) => {
+                    setStep(0);
+                    ref.current.slidePrev();
+                  }}
+                />
+              </>
+            ) : (
+              <></>
+            )
+          }
+        </SwiperSlide>
+      </Swiper>
+    </div>
   );
 };

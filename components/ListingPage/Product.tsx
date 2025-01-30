@@ -67,6 +67,10 @@ function Product({
   const addToCart = () => {
     document.documentElement.style.overflow = "hidden";
     document.documentElement.scrollTop = 0;
+    dispatchStore({
+      type: "STORE-PRODUCT-Boutique",
+      payload: { ...product },
+    });
     dispatchStore({ type: "AddToCartOptionEnable", payload: product });
   };
 
@@ -316,7 +320,7 @@ function Product({
         </div>
         <div className="product-footer w-100 flex-row align-center max-h-[30px]">
           <PriceLabel
-            offer_price={getPrice(product.offer_price)}
+            offer_price={getPrice(product?.offer_price)}
             price_formatted={getPrice(product.price)}
           />
           <BuyButton

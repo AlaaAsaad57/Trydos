@@ -1,10 +1,10 @@
-"use server";
 import dynamic from "next/dynamic";
-const WebviewCall = dynamic(() =>
-  import("components/global/WebviewCall", { ssr: false })
-);
+const WebviewCall = dynamic(() => import("components/global/WebviewCall"), {
+  ssr: false,
+});
+export const runtime = "nodejs";
 
-async function page() {
+function page() {
   return (
     <div>
       <WebviewCall />

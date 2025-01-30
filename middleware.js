@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getCountriesApi } from "./store/homepage/cachedActions";
-import axios from "axios";
 
 const languagesString = '["en", "ar", "tr"]' || "[]";
 const languages = JSON.parse(languagesString);
@@ -44,7 +43,19 @@ function getDefaultLocale(countryByIp, countries) {
   };
   return localeENV;
 }
-
+const CheckLocalaization = ({
+  countryFromCookies,
+  langFromCookies,
+  lang,
+  country,
+}) => {
+  if (countryFromCookies && langFromCookies) {
+    if (countryFromCookies !== country) {
+      return true;
+    }
+  }
+  return false;
+};
 export async function middleware(request) {
   const response = NextResponse.next();
   const ip = request.headers.get("x-forwarded-for") || request.ip;
@@ -58,7 +69,7 @@ export async function middleware(request) {
   let countries = data.map((s) => s.iso.toLowerCase());
   let defaultLocale = `${countries[0]}-en`;
 
-  countries.map((s) => {
+  [...countries, "gb"].map((s) => {
     languages.map((l) => {
       supportedLocales.push(`${s}-${l}`);
     });
@@ -69,12 +80,24 @@ export async function middleware(request) {
   const cookies = request.cookies;
   const countryFromCookies = cookies.get("country")?.value;
   const langFromCookies = cookies.get("lang")?.value;
+
   // 1- for url
   if (
     countryLang.split("-").length > 1 &&
     supportedLocales.includes(countryLang)
   ) {
+    if (url.searchParams.get("selected")) {
+      url.searchParams.delete("changed-country");
+
+      return NextResponse.redirect(url);
+    }
     let [country, lang] = countryLang.split("-");
+    let isChangedLocalizationByUrl = CheckLocalaization({
+      countryFromCookies,
+      langFromCookies,
+      lang,
+      country,
+    });
     response.cookies.set("country", country, {
       path: "/",
       httpOnly: true,
@@ -112,7 +135,28 @@ export async function middleware(request) {
       secure: false,
       sameSite: "Strict",
     });
-    return response; // If valid, continue with the request
+    if (countryFromCookies === "gb") {
+      return response;
+    }
+    if (url.searchParams.get("changed-country")) {
+      if (isChangedLocalizationByUrl) {
+        console.log(isChangedLocalizationByUrl);
+        return response;
+      } else {
+        url.searchParams.delete("changed-country");
+        return NextResponse.redirect(url);
+      }
+    }
+    if (isChangedLocalizationByUrl) {
+      url.searchParams.set(
+        "changed-country",
+        `${country},${countryFromCookies}`
+      );
+      return NextResponse.redirect(url);
+    } else {
+      return response;
+    }
+    // If valid, continue with the request
   }
   // 2- for cookies
   else if (countryFromCookies && langFromCookies) {
@@ -134,7 +178,7 @@ export async function middleware(request) {
     defaultLocale = `${countryByIp}-en`;
     url.pathname = `/${defaultLocale}${url.pathname}`;
   } else {
-    url.pathname = `/${defaultLocale}/${url.pathname}`;
+    url.pathname = `/gb-en/${url.pathname}`;
     url.searchParams.set("no-country", true);
     return NextResponse.redirect(url);
   }

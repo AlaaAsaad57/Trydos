@@ -27,7 +27,7 @@ function BoutiquePhoto({ photo }) {
                       loading={"eager"}
                       fetchPriority={"high"}
                       style={{ borderRadius: "15px" }}
-                      className="OfferImage"
+                      className="OfferImage object-cover"
                       src={getConfiguredImage({
                         src: s.file_path,
                         height: 342,

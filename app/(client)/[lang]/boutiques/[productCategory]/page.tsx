@@ -6,6 +6,7 @@ import CustomNavbarServer from "components/Server/ServerCustomNav";
 import { notFound } from "next/navigation";
 // import { Suspense } from "react";
 import { getBoutiqueMeta } from "utils/functions";
+
 interface Props {
   params: {
     lang: string;
@@ -19,27 +20,32 @@ interface Props {
     colors: string;
   };
 }
+
 export async function generateMetadata({ params, searchParams }: Props) {
   const boutiqueId = params.productCategory;
-  const metaData =
-    boutiqueId === "listing"
-      ? { name: "listing" }
-      : await getBoutiqueMeta({ boutiqueId, lang: params.lang });
+  try {
+    const metaData =
+      boutiqueId === "listing"
+        ? { name: "listing" }
+        : await getBoutiqueMeta({ boutiqueId, lang: params.lang });
 
-  if (!metaData?.name) {
+    if (!metaData?.name) {
+      notFound();
+    }
+    if (boutiqueId === "listing") {
+      return {
+        title: `Trydos - ${searchParams.search_text} `,
+        description: ``,
+      };
+    } else
+      return {
+        title: `Trydos - ${metaData?.name} `,
+        // @ts-ignore
+        description: `${metaData?.name} - ${metaData?.description} `,
+      };
+  } catch (error) {
     notFound();
   }
-  if (boutiqueId === "listing") {
-    return {
-      title: `Trydos - ${searchParams.search_text} `,
-      description: ``,
-    };
-  } else
-    return {
-      title: `Trydos - ${metaData?.name} `,
-      // @ts-ignore
-      description: `${metaData?.name} - ${metaData?.description} `,
-    };
 }
 
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);

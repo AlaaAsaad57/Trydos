@@ -822,46 +822,56 @@ declare global {
       sharesCount: number;
     };
     cart: {
+      orderLoading: boolean;
       cart: Array<any>;
+      center: any;
       enable: boolean;
+      orderData: {
+        agree: boolean;
+        payment: string;
+        coupon: boolean;
+        coupon_number: string;
+        loading: boolean;
+        success: boolean;
+      };
       addressLists: Array<{
         id: number;
-        geolocation: { lat: any; lng: any };
+        location: { latitude: any; longitude: any };
         Country: { name: string; code: string };
-        location: string;
-        detailes_Address: string;
-        title: string;
-        ContactInfo: {
-          name: string;
+        address_detail: string;
+        address: string;
+        contact_info: {
+          contact_person_name: string;
           phone: string;
-          alternatePhone: string;
+          alternative_phone: string;
         };
         region: string;
-        regionDetails: {
-          country: string;
+        region_details: {
+          city: string;
           province: string;
           town: string;
-          suburb: string;
+          street: string;
+          building: string;
         };
       }>;
       addressDetails: {
         id?: number;
-        geolocation: { lat: any; lng: any };
+        location: { latitude: any; longitude: any };
         Country: { name: string; code: string };
-        location: string;
-        detailes_Address: string;
-        title: string;
-        ContactInfo: {
-          name: string;
+        address_detail: string;
+        address: string;
+        contact_info: {
+          contact_person_name: string;
           phone: string;
-          alternatePhone: string;
+          alternative_phone: string;
         };
         region: string;
-        regionDetails: {
-          country: string;
+        region_details: {
+          city: string;
           province: string;
           town: string;
-          suburb: string;
+          street: string;
+          building: string;
         };
       };
       AddToCartOption: {

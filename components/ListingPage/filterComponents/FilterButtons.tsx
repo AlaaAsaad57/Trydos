@@ -201,7 +201,7 @@ function FilterButtons() {
               )}
             </div>
           ) : (
-            <div className={`apply-button flex-row opacity-0`}></div>
+            <></>
           )}
           {isSelectFilter() && (
             <div

@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import Logo from "../components/Home/Logo";
 import { LogError } from "./../utils/functions";
 import "regenerator-runtime/runtime";
+import * as Sentry from "@sentry/nextjs";
 export default function GlobalError({ error, reset }) {
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   const _getUserAgent = async () => {
@@ -20,7 +21,7 @@ export default function GlobalError({ error, reset }) {
         ? JSON.parse(localStorage.getItem("USER-CHAT")).access_token
         : null;
     }
-    let axios = (await import("axios")).default;
+    Sentry.captureException(error);
 
     LogError(error.message, null, location.href);
   };
@@ -30,7 +31,7 @@ export default function GlobalError({ error, reset }) {
   return (
     <html lang="en" className="">
       <body>
-        <div className="flex justify-start flex-col items-center p-[50px]">
+        <div className="flex justify-start flex-col items-center p-[50px] min-h-screen">
           <div>
             <Logo style={true} />
           </div>

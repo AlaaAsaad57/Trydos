@@ -115,31 +115,49 @@ function MoreOptionsSection() {
             </svg>
             <span>
               {translate("Notify Me About The Product When", language)}
-
             </span>
           </div>
           <div id="slider-options" className="notify-row">
-            <div className="button-option"
+            <div
+              className="button-option"
               onClick={async () => {
-                await home.subscribeToTopics({
-                  id: SelectedProduct.id,
-                  availibility: true,
-                  language_code: languageVariable
+                let language_code = window.location.pathname
+                  .split("/")[1]
+                  .split("-")[1];
+                let country_code = window.location.pathname
+                  .split("/")[1]
+                  .split("-")[0];
+                await home.subscribeToTopic({
+                  topic: `before_stock_out_${SelectedProduct.id}_${country_code}_${language_code}`,
                 });
               }}
             >
               {translate("Before Stock Out", language)}
             </div>
-            <div className="button-option">
+            <div className="button-option" onClick={async () => {
+              let language_code = window.location.pathname
+                .split("/")[1]
+                .split("-")[1];
+              let country_code = window.location.pathname
+                .split("/")[1]
+                .split("-")[0];
+              await home.subscribeToTopic({
+                topic: `change_in_price_${SelectedProduct.id}_${country_code}_${language_code}`,
+              });
+            }}>
               {translate("Change In Price", language)}
             </div>
             <div
               className="button-option"
               onClick={async () => {
-                await home.subscribeToTopics({
-                  id: SelectedProduct.id,
-                  discount: true,
-                  language_code: languageVariable
+                let language_code = window.location.pathname
+                  .split("/")[1]
+                  .split("-")[1];
+                let country_code = window.location.pathname
+                  .split("/")[1]
+                  .split("-")[0];
+                await home.subscribeToTopic({
+                  topic: `product_discount_${SelectedProduct.id}_${country_code}_${language_code}`,
                 });
               }}
             >
@@ -148,10 +166,14 @@ function MoreOptionsSection() {
             <div
               className="button-option"
               onClick={async () => {
-                await home.subscribeToTopics({
-                  id: SelectedProduct.id,
-                  comments: true,
-                  language_code: languageVariable
+                let language_code = window.location.pathname
+                  .split("/")[1]
+                  .split("-")[1];
+                let country_code = window.location.pathname
+                  .split("/")[1]
+                  .split("-")[0];
+                await home.subscribeToTopic({
+                  topic: `product_comment_${SelectedProduct.id}_${country_code}_${language_code}`,
                 });
               }}
             >

@@ -12,9 +12,20 @@ import Flag from "react-world-flags";
 import TargetIcon from "public/svg/cart/Target.svg";
 import ContactInfoIcon from "public/svg/cart/ContactInfoIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
-function AddAddressForm({ setAddressDetails, slidePrev, setOpenSelect }) {
+import order from "services/order";
+import { IpDataApi } from "models/Api";
+function AddAddressForm({
+  setAddressDetails,
+  slidePrev,
+  setOpenSelect,
+  activeIndex,
+}) {
   const [expanded, setExpanded] = useState(false);
-  const [center, setCenter] = useState(null);
+  const dispatch = useDispatch();
+  const center = useSelector((state: StateInterface) => state.cart.center);
+  const setCenter = (e) => {
+    dispatch({ type: "MAP-CENTER", payload: e });
+  };
   useEffect(() => {
     getCenter();
   }, []);
@@ -22,21 +33,21 @@ function AddAddressForm({ setAddressDetails, slidePrev, setOpenSelect }) {
     (state: StateInterface) => state.cart.addressDetails
   );
   const getCenter = async () => {
-    let a = await axios.get("http://ip-api.com/json");
-    console.log(a.data);
-    setCenter({ lat: a.data?.lat, lng: a.data?.lon });
+    let ipData: IpDataApi = await axios.get("http://ip-api.com/json");
+
+    setCenter({ lat: ipData.data?.lat, lng: ipData.data?.lon });
   };
   const isValid = () => {
     let valid = false;
-    if (addressDetails.geolocation.lat && addressDetails.geolocation.lng) {
+    if (addressDetails.location.latitude && addressDetails.location.longitude) {
       valid = true;
     } else {
       valid = false;
       return;
     }
     if (
-      addressDetails.ContactInfo.name?.length > 0 &&
-      addressDetails.ContactInfo.phone?.length > 0
+      addressDetails.contact_info.contact_person_name?.length > 0 &&
+      addressDetails.contact_info.phone?.length > 0
     ) {
       valid = true;
     } else {
@@ -44,8 +55,8 @@ function AddAddressForm({ setAddressDetails, slidePrev, setOpenSelect }) {
       return;
     }
     if (
-      addressDetails?.detailes_Address.length > 0 &&
-      addressDetails?.title.length > 0
+      addressDetails?.address_detail?.length > 0 &&
+      addressDetails?.address.length > 0
     ) {
       valid = true;
     } else {
@@ -60,9 +71,16 @@ function AddAddressForm({ setAddressDetails, slidePrev, setOpenSelect }) {
     }
     return valid;
   };
+  const orderLoading = useSelector(
+    (state: StateInterface) => state.cart.orderLoading
+  );
   return (
     <>
-      <div className="flex-col h-full max-h-full overflow-auto w-full relative">
+      <div
+        className={`${
+          orderLoading ? "opacity-50 scale-[.99]" : ""
+        } flex-col h-full max-h-full overflow-auto w-full relative pb-[160px]`}
+      >
         <div
           className="bg-[#F8F8F8] min-h-[50px] flex-row items-center pl-[24px] pr-[20px] "
           style={{
@@ -120,20 +138,21 @@ function AddAddressForm({ setAddressDetails, slidePrev, setOpenSelect }) {
           </div>
         </div>
 
-        {
+        {activeIndex && (
           <Map
             expanded={expanded}
+            setCenter={(e) => setCenter(e)}
             setExpanded={(e) => setExpanded(e)}
             center={
-              (addressDetails.geolocation.lat && {
-                lat: addressDetails.geolocation.lat,
-                lng: addressDetails.geolocation.lng,
+              (addressDetails.location.latitude && {
+                lat: addressDetails.location.latitude,
+                lng: addressDetails.location.longitude,
               }) ||
               center
             }
             setAddressDetails={(e) => setAddressDetails(e)}
           />
-        }
+        )}
         <AddressSection
           setOpenSelect={() => {
             setOpenSelect();
@@ -181,9 +200,16 @@ const CountryLabel = () => {
   // @ts-ignore
   let country = lang.split("-")[0];
   country = {
-    name: allCountries.filter((s) => s.iso2 === country)[0].name,
+    name: allCountries.filter((s) => s.iso2 === country)[0]?.name,
     iso: country,
   };
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch({
+      type: "set-address-details",
+      payload: { Country: { name: country?.name, code: country.iso } },
+    });
+  }, []);
   return (
     <div
       className="flex-col rounded-[15px] w-full mt-[12px] py-[7px] pl-[12px] items-start justify-center"
@@ -199,7 +225,7 @@ const CountryLabel = () => {
           <Flag height={"15"} code={country.iso} />
         </span>
         <div className="medium flex text-[#1D1D1D] text-[14px] ml-[8px]">
-          {country.name}
+          {country?.name}
         </div>
       </div>
     </div>
@@ -257,11 +283,11 @@ const DetailsAddress = () => {
       <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
         <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
           <textarea
-            value={addressDetails.detailes_Address}
+            value={addressDetails.address_detail}
             onChange={(e) => {
               dispatch({
                 type: "set-address-details",
-                payload: { detailes_Address: e.target.value },
+                payload: { address_detail: e.target.value },
               });
             }}
             placeholder={translateFunction(
@@ -293,11 +319,11 @@ const AddressTitle = () => {
       <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
         <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
           <input
-            value={addressDetails.title}
+            value={addressDetails.address}
             onChange={(e) => {
               dispatch({
                 type: "set-address-details",
-                payload: { title: e.target.value },
+                payload: { address: e.target.value },
               });
             }}
             placeholder={translateFunction("Ex: Home, My Office, 2 Home Ect.")}
@@ -309,10 +335,25 @@ const AddressTitle = () => {
   );
 };
 const ContactInfo = () => {
+  const user = useSelector((state: StateInterface) => state.auth.user);
   const addressDetails = useSelector(
     (state: StateInterface) => state.cart.addressDetails
   );
   const dispatch = useDispatch();
+  // useEffect(() => {
+  //   if (!addressDetails.id && user) {
+  //     dispatch({
+  //       type: "set-address-details",
+  //       payload: {
+  //         contact_info: {
+  //           ...addressDetails.contact_info,
+  //           contact_person_name: user?.name,
+  //           name: user?.name,
+  //         },
+  //       },
+  //     });
+  //   }
+  // }, [addressDetails?.id, user]);
   return (
     <div className="flex-col w-full mt-[30px] px-[12px] pb-[110px]">
       <div className="flex-row px-[12px] items-center">
@@ -334,14 +375,14 @@ const ContactInfo = () => {
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
           <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
             <input
-              value={addressDetails.ContactInfo.name}
+              value={addressDetails.contact_info.contact_person_name}
               onChange={(e) => {
                 dispatch({
                   type: "set-address-details",
                   payload: {
-                    ContactInfo: {
-                      ...addressDetails.ContactInfo,
-                      name: e.target.value,
+                    contact_info: {
+                      ...addressDetails.contact_info,
+                      contact_person_name: e.target.value,
                     },
                   },
                 });
@@ -365,13 +406,21 @@ const ContactInfo = () => {
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
           <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
             <input
-              value={addressDetails.ContactInfo.phone}
+              aria-autocomplete="both"
+              aria-haspopup="false"
+              type="number"
+              spellCheck="false"
+              autoCapitalize="off"
+              autoComplete="off"
+              autoCorrect="off"
+              inputMode="numeric"
+              value={addressDetails.contact_info.phone}
               onChange={(e) => {
                 dispatch({
                   type: "set-address-details",
                   payload: {
-                    ContactInfo: {
-                      ...addressDetails.ContactInfo,
+                    contact_info: {
+                      ...addressDetails.contact_info,
                       phone: e.target.value,
                     },
                   },
@@ -399,14 +448,22 @@ const ContactInfo = () => {
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
           <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
             <input
-              value={addressDetails.ContactInfo.alternatePhone}
+              aria-autocomplete="both"
+              aria-haspopup="false"
+              spellCheck="false"
+              autoCapitalize="off"
+              autoComplete="off"
+              autoCorrect="off"
+              inputMode="numeric"
+              type="number"
+              value={addressDetails.contact_info.alternative_phone}
               onChange={(e) => {
                 dispatch({
                   type: "set-address-details",
                   payload: {
-                    ContactInfo: {
-                      ...addressDetails.ContactInfo,
-                      alternatePhone: e.target.value,
+                    contact_info: {
+                      ...addressDetails.contact_info,
+                      alternative_phone: e.target.value,
                     },
                   },
                 });
@@ -428,36 +485,75 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
     (state: StateInterface) => state.cart.addressDetails
   );
   const shake = (v) => {
+    document.querySelector(`.${v}`).scrollIntoView({ block: "end" });
     document.querySelector(`.${v}`).classList.add("shake-anim");
     setTimeout(() => {
       document.querySelector(`.${v}`).classList.remove("shake-anim");
     }, 1300);
   };
   const validate = () => {
-    if (!addressDetails.geolocation.lat && !addressDetails.geolocation.lng)
+    if (
+      !addressDetails.location.latitude &&
+      !addressDetails.location.longitude
+    ) {
       shake("map-border");
-    if (addressDetails.detailes_Address?.length === 0) shake("details-border");
-    if (addressDetails.title?.length === 0) shake("title-border");
-    if (addressDetails.region?.length === 0) shake("region-border");
-    if (addressDetails.ContactInfo?.name?.length === 0) shake("name-border");
-    if (addressDetails.ContactInfo?.phone?.length === 0) shake("phone-border");
+    }
+    if (addressDetails.address_detail?.length === 0) {
+      shake("details-border");
+    }
+    if (addressDetails.address?.length === 0) {
+      shake("title-border");
+    }
+    if (addressDetails.region?.length === 0) {
+      shake("region-border");
+    }
+    if (addressDetails.contact_info?.contact_person_name?.length === 0) {
+      shake("name-border");
+    }
+    if (addressDetails.contact_info?.phone?.length === 0) {
+      shake("phone-border");
+    }
+  };
+  const orderLoading = useSelector(
+    (state: StateInterface) => state.cart.orderLoading
+  );
+  const { lang } = useParams();
+  // @ts-ignore
+  let country = lang.split("-")[0];
+  country = {
+    name: allCountries.filter((s) => s.iso2 === country)[0]?.name,
+    iso: country,
   };
   return (
     <div
       style={{
         boxShadow: "0px -3px 20px #0000001a",
       }}
-      className="absolute  text-center bottom-2 left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]"
+      className={`add-address-button ${
+        orderLoading && "opacity-55"
+      } absolute text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
     >
       <div
         onClick={() => {
-          if (valid) {
+          if (valid && !orderLoading) {
             if (addressDetails?.id) {
+              order.UpdateAddressList({
+                address: { ...addressDetails, Country: country },
+                callback: () => {
+                  slidePrev();
+                },
+              });
               dispatch({ type: "UPDATE-ADDRESS", payload: addressDetails });
             } else {
+              order.AddAddressList({
+                address: addressDetails,
+                callback: () => {
+                  slidePrev();
+                },
+              });
               dispatch({ type: "ADD-ADDRESS", payload: addressDetails });
             }
-            slidePrev();
+
             return;
           }
           validate();

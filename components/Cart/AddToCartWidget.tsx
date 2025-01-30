@@ -22,6 +22,7 @@ import {
 } from "next/navigation";
 import { ToastContainer } from "react-toastify";
 import { AxiosGet } from "utils/AxiosApi";
+import { QuantityDetailsProductApi } from "models/Api";
 
 function AddToCartWidget() {
   const dispatch = useDispatch();
@@ -38,7 +39,7 @@ function AddToCartWidget() {
   const getDetails = async () => {
     if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
     let start = new Date();
-    let data = await AxiosGet({
+    let data: QuantityDetailsProductApi["data"] = await AxiosGet({
       url:
         process.env.NEXT_PUBLIC_BACKEND_URL +
         QTY_URL +
@@ -68,12 +69,35 @@ function AddToCartWidget() {
       id: SelectedProduct.slug,
     });
     dispatch({ type: "GET-PRODUCT-DETAILS-FOR-CART", payload: data });
+    dispatch({
+      type: "STORE-PRODUCT-Boutique",
+      payload: { ...product, ...data },
+    });
     if (data.choice_options) {
       let a = data?.choice_options?.filter((s) => s.title == "Size")[0]
         ?.options[0];
       dispatch({ type: "AddToCartSize", payload: a });
     }
-    dispatch({ type: "GET-PRODUCT-VARIATION", payload: additionalData });
+    let arr = [];
+    if (additionalData?.variation?.length) {
+      additionalData.variation.map((s) => {
+        let d = (product.variation || data.variation).filter(
+          (w) => w.type === s.type
+        )[0];
+        arr.push({ ...s, ...d });
+      });
+    }
+    dispatch({
+      type: "GET-PRODUCT-VARIATION",
+      payload: {
+        ...product,
+        // @ts-ignore
+        is_product_notify_for_user: additionalData?.is_product_notify_for_user,
+        variation: arr,
+        likes: null,
+        is_liked: null,
+      },
+    });
   };
   useEffect(() => {
     getDetails();
@@ -82,7 +106,7 @@ function AddToCartWidget() {
     (state: StateInterface) => state.cart.AddToCartOption
   );
   return (
-    <div className="flex-col h-[100vh] w-[100vw] flex top-0 left-0 fixed z-[99999999999999999] justify-start ">
+    <div className="flex-col h-full w-[100vw] flex top-0 left-0 fixed z-[99999999999999999] justify-start ">
       {AddToCartOption.enable && (
         <ToastContainer
           position="top-right"
@@ -229,28 +253,26 @@ const SelectColor = ({ close }) => {
             close();
           }}
         >
-          <BackIcon/>
+          <BackIcon />
         </div>
-        <span className="relative">
+        <span
+          className="relative"
+          onClick={() => {
+            Sendevent({
+              event: "button_clicked",
+              value: "cart_nav_bar_button",
+            });
+            close();
+            dispatch({ type: "AddToCartOptionDisable", payload: false });
+            enableCart(true);
+          }}
+        >
           {cart?.length > 0 && (
             <span className="bg-green-500 right-[-8px] top-[-4px] text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
               {cart.length}
             </span>
           )}
-          <CartIcon
-            id={"cart-icon"}
-            className="cart-icon"
-            data-cy="CartIcon"
-            onClick={() => {
-              Sendevent({
-                event: "button_clicked",
-                value: "cart_nav_bar_button",
-              });
-              close();
-              dispatch({ type: "AddToCartOptionDisable", payload: false });
-              enableCart(true);
-            }}
-          />
+          <CartIcon id={"cart-icon"} className="cart-icon" data-cy="CartIcon" />
         </span>
       </div>
       <div className="flex-col mt-[10px] w-full   top-[103px] items-center z-[999999999]">
@@ -294,7 +316,7 @@ const SelectColor = ({ close }) => {
               width: 400,
               height: 400,
             })}
-            className={"h-full object-top rounded-[15px]"}
+            className={`min-h-[80px] h-full object-top rounded-[15px]`}
           />
         </div>
         {SelectedProduct.sync_color_images && (

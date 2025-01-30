@@ -5,6 +5,7 @@ import Skeleton from "react-loading-skeleton";
 
 import { useSelector } from "react-redux";
 import { AxiosPost } from "utils/AxiosApi";
+import { AddComment } from "models/Api";
 
 function Comments({
   comments,
@@ -22,7 +23,7 @@ function Comments({
   useEffect(() => {}, [Render, comments]);
   const resendCommentApi = async (mid, s) => {
     try {
-      let req = await AxiosPost({
+      let req: AddComment = await AxiosPost({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/product_comment",
         title: "resend add Comment For Product",
         body: {
