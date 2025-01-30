@@ -16,13 +16,12 @@ const getHeader = (token?) => {
     headers: {
       lang: languageUrl || Cookies.get("language") || Cookies.get("lang"),
       country: countryUrl || Cookies.get("country"),
-      Authorization: `Bearer ${
-        token ??
+      Authorization: `Bearer ${token ??
         localStorage.getItem("MARKET-TOKEN") ??
         Cookies.get("MARKET-TOKEN") ??
         Cookies.get("DEVICE-TOKEN") ??
         localStorage.getItem("DEVICE-TOKEN")
-      }`,
+        }`,
     },
   };
 };
@@ -99,7 +98,15 @@ export const AxiosPost = async ({
           return res.data;
         }
       }
-
+      if (url.includes(`change_country_language`)) {
+        console.log(res.data)
+        if (res.data) {
+          return res.data.data.firebase_settings;
+        }
+      }
+      if (url.includes("store_firebase_settings") || url.includes("subscribe_topic")) {
+        return true
+      }
       if (
         url.includes("product_likes") ||
         url.includes("old-cart/hide") ||
@@ -171,9 +178,8 @@ export const AxiosCacheApi = async ({
     headers: {
       lang: Cookies.get("language"),
       country: Cookies.get("country"),
-      Authorization: `Bearer ${
-        Cookies.get("MARKET-TOKEN") ?? Cookies.get("DEVICE-TOKEN")
-      }`,
+      Authorization: `Bearer ${Cookies.get("MARKET-TOKEN") ?? Cookies.get("DEVICE-TOKEN")
+        }`,
     },
     cache: {
       ttl: parseInt(process.env.NEXT_PUBLIC_REVALIDATE) * 1000,

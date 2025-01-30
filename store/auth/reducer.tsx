@@ -6,6 +6,7 @@ const initialState = {
   wrongNumber: "",
   loading: false,
   verficationID: null,
+  firebaseSettings: {}
 };
 
 const AuthReducer = (state = initialState, { type, payload }) => {
@@ -57,6 +58,12 @@ const AuthReducer = (state = initialState, { type, payload }) => {
     //     Tempuser: { ...payload, already_exists: state.user?.already_exists },
     //   };
     // }
+    case "GET_FIREBASE_SETTINGS": {
+      return {
+        ...state,
+        firebaseSettings: payload
+      };
+    }
     case "TEMP-USER": {
       return {
         ...state,

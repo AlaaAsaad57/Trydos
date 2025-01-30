@@ -18,6 +18,7 @@ import Smartlook from "smartlook-client";
 
 import {
   CUSTOMER_INFO_URL,
+  FIREBASE_SETTINGS_URL,
   HOME_DATA_URL,
   LISTING_INFO_URL,
   REGISTER_DEVICE_URL,
@@ -31,8 +32,8 @@ import {
   onMessageListener,
   requestFirebaseNotificationPermission,
 } from "utils/firebaseInitv1";
-import { AxiosPost } from "utils/AxiosApi";
-import { changeToken, getCountriesApi } from "store/homepage/cachedActions";
+import { AxiosGet, AxiosPost } from "utils/AxiosApi";
+import { changeToken } from "store/homepage/cachedActions";
 import {
   CustomerInfoApi,
   GetBoutiqueApi,
@@ -70,6 +71,12 @@ class HomeService {
       store.dispatch({ type: "GET_SETTINGS", payload: repo });
       sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
       await this.getCustomerInfo();
+
+      const response2 = await AxiosGet({
+        url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
+        title: "get firebase settings request"
+      });
+      store.dispatch({ type: "GET_FIREBASE_SETTINGS", payload: response2?.firebase_settings });
       getCart({
         callback: ([data, res]) => {
           store.dispatch({
@@ -229,59 +236,57 @@ class HomeService {
       }
       this.RegisterDevice();
     }
-    if (true) {
-      await requestFirebaseNotificationPermission().then(async (token) => {
-        let language_code = window.location.pathname
-          .split("/")[1]
-          .split("-")[1];
-        let country_code = window.location.pathname.split("/")[1].split("-")[0];
-        // @ts-ignore
-        if (token) {
-          localStorage.setItem("FB-DEVICE-TOKEN", token);
-          setTimeout(async () => {
-            if (UserToken()) {
-              await AxiosPost({
-                url:
-                  process.env.NEXT_PUBLIC_BACKEND_URL +
-                  "/firebase_device_tokens",
-                body: {
-                  device_token: token,
-                  user_id: UserID(),
-                  auth_token: UserToken(),
-                },
-                title: "register firebase token",
-              });
-            }
-          }, 3000);
-          // ininit
-          const searchParams = new URLSearchParams(window.location.search);
-          if (
-            !(
-              searchParams.get("changed-country") ||
-              searchParams.get("no-country")
-            )
-          ) {
-            await this.subscribeToTopic({
-              topic: `boutique_created_${country_code}_${getLang(
-                language_code,
-                Cookies.get("language")
-              )}`,
-            });
-            await this.subscribeToTopic({
-              topic: `category_created_${country_code}_${getLang(
-                language_code,
-                Cookies.get("language")
-              )}`,
+    await requestFirebaseNotificationPermission().then(async (token) => {
+      let language_code = window.location.pathname
+        .split("/")[1]
+        .split("-")[1];
+      let country_code = window.location.pathname.split("/")[1].split("-")[0];
+      // @ts-ignore
+      if (token) {
+        localStorage.setItem("FB-DEVICE-TOKEN", token);
+        setTimeout(async () => {
+          if (UserToken()) {
+            await AxiosPost({
+              url:
+                process.env.NEXT_PUBLIC_BACKEND_URL +
+                "/firebase_device_tokens",
+              body: {
+                device_token: token,
+                user_id: UserID(),
+                auth_token: UserToken(),
+              },
+              title: "register firebase token",
             });
           }
+        }, 3000);
+        // ininit
+        const response2 = await AxiosGet({
+          url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
+          title: "get firebase settings request"
+        });
+        store.dispatch({ type: "GET_FIREBASE_SETTINGS", payload: response2?.firebase_settings });
+
+        const searchParams = new URLSearchParams(window.location.search);
+        if (
+          !(
+            searchParams.get("changed-country") ||
+            searchParams.get("no-country")
+          )
+        ) {
+          await this.subscribeToTopic({
+            topic: `boutique_created`,
+          });
+          await this.subscribeToTopic({
+            topic: `category_created`,
+          });
         }
-      });
-      typeof window !== "undefined" &&
-        "serviceWorker" in navigator &&
-        onMessageListener()
-          .then((payload) => { })
-          .catch((err) => { });
-    }
+      }
+    });
+    typeof window !== "undefined" &&
+      "serviceWorker" in navigator &&
+      onMessageListener()
+        .then((payload) => { })
+        .catch((err) => { });
   }
   async RegisterDevice() {
     let body = localStorage.getItem("guest-user")
@@ -633,19 +638,19 @@ class HomeService {
       if (res?.id_cart) {
         callback({ id: res?.id_cart });
         await this.subscribeToTopic({
-          topic: `product_hurry_up_quantity_${res?.id_cart}_${country_code}_${language_code}`,
+          topic: `product_hurry_up_quantity_${res?.id_cart}`,
         });
         await this.subscribeToTopic({
-          topic: `product_hurry_up_time_left_${res?.id_cart}_${country_code}_${language_code}`,
+          topic: `product_hurry_up_time_left_${res?.id_cart}`,
         });
         await this.subscribeToTopic({
-          topic: `product_availability_${id}_${country_code}_${language_code}`,
+          topic: `product_availability_${id}`,
         });
         await this.subscribeToTopic({
-          topic: `product_discount_${id}_${country_code}_${language_code}`,
+          topic: `product_discount_${id}`,
         });
         await this.subscribeToTopic({
-          topic: `product_comment_${id}_${country_code}_${language_code}`,
+          topic: `product_comment_${id}`,
         });
       } else {
         errCallback();
@@ -654,195 +659,50 @@ class HomeService {
       }
     }
   }
-  filterTopics({
-    inputTopic,
-    countries,
-    languages,
-    topics,
-  }: {
-    inputTopic: string;
-    countries: Array<string>;
-    languages: Array<string>;
-    topics: Array<string>;
-  }) {
-    // Extract country and language from the end of the input topic
-    const countryLanguageRegex = new RegExp(
-      `_(${countries.join("|")})_(${languages.join("|")})$`
-    );
-    const match = inputTopic.match(countryLanguageRegex);
 
-    if (!match) {
-      throw new Error("Invalid input topic format");
-    }
-
-    const [_, inputCountry, inputLanguage] = match;
-
-    // Extract the name by removing the country and language part
-    const name = inputTopic.slice(
-      0,
-      inputTopic.lastIndexOf(`_${inputCountry}_${inputLanguage}`)
-    );
-
-    return topics.filter((topic) => {
-      const topicMatch = topic.match(countryLanguageRegex);
-
-      if (!topicMatch) return false;
-
-      const [__, country, language] = topicMatch;
-      const topicName = topic.slice(
-        0,
-        topic.lastIndexOf(`_${country}_${language}`)
-      );
-
-      return (
-        topicName === name && // Match the name
-        (country !== inputCountry || language !== inputLanguage) // Exclude the same country-language pair
-      );
-    });
-  }
   async subscribeToTopic({ topic }: { topic: string }) {
     let token = localStorage.getItem("FB-DEVICE-TOKEN");
-    let storageTopics = JSON.parse(localStorage.getItem("topics")) || [];
-    let unsubscribedTopics = JSON.parse(localStorage.getItem("unsubscribedTopics")) || [];
+    const { subscribed_topics } = store.getState().auth.firebaseSettings
 
-    // Check if topic is in unsubscribedTopics
-    if (unsubscribedTopics.includes(topic)) {
-      //console.log("This topic has been unsubscribed by the user.");
-      return; // Don't proceed if topic is in unsubscribedTopics
-    }
-
-    if (token && !storageTopics.includes(topic)) {
-      if (storageTopics.length) {
-        let data = await getCountriesApi();
-        let countries = data.map((s) => s.iso.toLowerCase());
-        const languages = ["en", "ar", "tr"];
-        let filteredTopics = this.filterTopics({
-          inputTopic: topic,
-          countries,
-          languages,
-          topics: storageTopics,
-        });
-
-        if (filteredTopics.length > 0) {
-          filteredTopics.forEach(async (one) => {
-            await fetch("/api/unsubscribeFromTopic", {
-              method: "POST",
-              body: JSON.stringify({
-                token,
-                topic: one,
-              }),
-            });
-            storageTopics = storageTopics.filter((item) => item !== one);
-          });
-        }
-      }
-
-      await fetch("/api/subscribeToTopic", {
-        method: "POST",
-        body: JSON.stringify({
-          token,
-          topic,
-        }),
+    if (token && !subscribed_topics.includes(topic)) {
+      AxiosPost({
+        url:
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+          "/firebase_device_tokens/subscribe_topic",
+        body: {
+          topic
+        },
+        title: "store firebase topic",
       });
-
-      storageTopics.push(topic);
-      localStorage.setItem("topics", JSON.stringify(storageTopics));
     }
   }
 
-  async handleTopicsOnPageRefresh() {
+  async handleTopicsOnPageRefresh(token: string) {
     // Extract country and language from the URL
     const [countryCode, languageCode] = window.location.pathname
       .split("/")[1]
       .split("-");
-
+    const lastPair = localStorage.getItem("lastPair")
     if (!countryCode || !languageCode) {
       throw new Error("Invalid URL format for country-language pair");
     }
 
-    const token = localStorage.getItem("FB-DEVICE-TOKEN");
-    let storageTopics = JSON.parse(localStorage.getItem("topics")) || [];
-    let unsubscribedTopics = JSON.parse(localStorage.getItem("unsubscribedTopics")) || [];
-
     if (!token) return;
 
-    // Get the list of valid countries and languages
-    const countries = await getCountriesApi().then((data) =>
-      data.map((s) => s.iso.toLowerCase())
-    );
-    const languages = ["en", "ar", "tr"];
-
-    // Generate new topics with the current country-language pair
-    const updatedTopics = storageTopics
-      .map((storedTopic) => {
-        const match = storedTopic.match(/_([a-z]{2})_([a-z]{2})$/);
-
-        if (!match) return null;
-
-        const [_, oldCountry, oldLanguage] = match;
-        const name = storedTopic.slice(
-          0,
-          storedTopic.lastIndexOf(`_${oldCountry}_${oldLanguage}`)
-        );
-
-        // Replace with the new country-language pair
-        return `${name}_${countryCode}_${languageCode}`;
-      })
-      .filter(Boolean);
-
-    // Update unsubscribed topics with the new country-language pair
-    const updatedUnsubscribedTopics = unsubscribedTopics
-      .map((storedTopic) => {
-        const match = storedTopic.match(/_([a-z]{2})_([a-z]{2})$/);
-
-        if (!match) return null;
-
-        const [_, oldCountry, oldLanguage] = match;
-        const name = storedTopic.slice(
-          0,
-          storedTopic.lastIndexOf(`_${oldCountry}_${oldLanguage}`)
-        );
-
-        // Replace with the new country-language pair
-        return `${name}_${countryCode}_${languageCode}`;
-      })
-      .filter(Boolean);
-
-    // Remove duplicates by using a Set
-    const uniqueUpdatedTopics = Array.from(new Set(updatedTopics));
-    const uniqueUpdatedUnsubscribedTopics = Array.from(new Set(updatedUnsubscribedTopics));
-
-    // Update localStorage with the new topics and unsubscribed topics
-    localStorage.setItem("topics", JSON.stringify(uniqueUpdatedTopics));
-    localStorage.setItem("unsubscribedTopics", JSON.stringify(uniqueUpdatedUnsubscribedTopics));
-
-    // Detect topics that need to be unsubscribed (from both storageTopics and unsubscribedTopics)
-    const topicsToUnsubscribe = storageTopics.filter(
-      (storedTopic) => !updatedTopics.includes(storedTopic)
-    );
-
-    // Unsubscribe from outdated topics
-    for (const topic of topicsToUnsubscribe) {
-      await fetch("/api/unsubscribeFromTopic", {
-        method: "POST",
-        body: JSON.stringify({
-          token,
-          topic,
-        }),
+    if (lastPair !== countryCode + languageCode) {
+      AxiosPost({
+        url:
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+          "/firebase_device_tokens/change_country_language",
+        body: {
+          country: countryCode,
+          language_code: languageCode
+        },
+        title: "change firebase country-language pair",
+      }).then((firebase_settings) => {
+        store.dispatch({ type: "GET_FIREBASE_SETTINGS", payload: firebase_settings });
       });
-    }
-
-    // Subscribe to updated topics
-    for (const newTopic of updatedTopics) {
-      if (!storageTopics.includes(newTopic) && !unsubscribedTopics.includes(newTopic)) {
-        await fetch("/api/subscribeToTopic", {
-          method: "POST",
-          body: JSON.stringify({
-            token,
-            topic: newTopic,
-          }),
-        });
-      }
+      localStorage.setItem("lastPair", countryCode + languageCode)
     }
   }
 

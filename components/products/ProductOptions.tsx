@@ -57,13 +57,13 @@ function ProductOptions({
           body: { product_id: product.id, user_id: UserID() },
         });
         home.subscribeToTopic({
-          topic: `product_availability_${SelectedProduct?.id}_${country_code}_${language_code}`,
+          topic: `product_availability_${SelectedProduct?.id}`,
         });
         home.subscribeToTopic({
-          topic: `product_discount_${SelectedProduct?.id}_${country_code}_${language_code}`,
+          topic: `product_discount_${SelectedProduct?.id}`,
         });
         home.subscribeToTopic({
-          topic: `product_comment_${SelectedProduct?.id}_${country_code}_${language_code}`,
+          topic: `product_comment_${SelectedProduct?.id}`,
         });
       } catch (error) {
         dispatch({
@@ -106,9 +106,8 @@ function ProductOptions({
           />
           <div className="options-container">
             <div
-              className={`product-option-item ${
-                activeOption === "Like" && "active-option"
-              }`}
+              className={`product-option-item ${activeOption === "Like" && "active-option"
+                }`}
               onClick={() => {
                 Sendevent({
                   event: "button_clicked",
@@ -147,9 +146,8 @@ function ProductOptions({
               </span>
             </div>
             <div
-              className={`product-option-item relative ${
-                activeOption === "Share" && "active-option"
-              }`}
+              className={`product-option-item relative ${activeOption === "Share" && "active-option"
+                }`}
               onClick={() => {
                 Sendevent({
                   event: "button_clicked",
