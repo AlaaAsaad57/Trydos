@@ -138,7 +138,7 @@ export default function Providers({ children }) {
           noCountry={searchParams.get("no-country")}
           countries={dataCountries.map((s) => s.iso)}
           options={dataCountries.map((s) => {
-            return { label: s.nicename, value: s.iso };
+            return { label: s.name, value: s.iso };
           })}
         />
       )}
