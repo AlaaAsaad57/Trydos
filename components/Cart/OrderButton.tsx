@@ -375,6 +375,7 @@ function OrderButton({ close, toOrders }) {
               {option ? (
                 <>
                   <ConfirmMobile
+                    hasMobile={localStorage.getItem("has-phone")}
                     closeWindow={() => {
                       setOption(false);
                     }}

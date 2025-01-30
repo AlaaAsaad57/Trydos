@@ -824,6 +824,7 @@ declare global {
     cart: {
       orderLoading: boolean;
       cart: Array<any>;
+      center: any;
       enable: boolean;
       orderData: {
         agree: boolean;

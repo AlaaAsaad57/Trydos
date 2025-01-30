@@ -192,6 +192,8 @@ const SearchResults = ({ searchResults, closeSelect }) => {
   };
   const dispatch = useDispatch();
   const select = (s) => {
+    let a = { lat: s.coordinates?.lat, lng: s.coordinates?.lon };
+    if (a.lat && a.lng) dispatch({ type: "MAP-CENTER", payload: a });
     dispatch({
       type: "set-address-details",
       payload: {

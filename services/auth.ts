@@ -206,7 +206,9 @@ class AuthService {
         "/auth/firebase/verify-guest-phone",
       body: dataBody,
       title: "Verify Guest",
-      token: localStorage.getItem("DEVICE-TOKEN"),
+      token: localStorage.getItem("has-phone")
+        ? null
+        : localStorage.getItem("DEVICE-TOKEN"),
     });
 
     success();

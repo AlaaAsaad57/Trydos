@@ -2,6 +2,7 @@ const initialState = {
   orderLoading: false,
   cart: [],
   addressLists: [],
+  center: null,
   addressDetails: {
     location: { latitude: null, longitude: null },
     Country: { name: "Turkey", code: "TR" },
@@ -78,6 +79,12 @@ const openCart = (val) => {
 };
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "MAP-CENTER": {
+      return {
+        ...state,
+        center: payload,
+      };
+    }
     case "ORDER-DATA": {
       return {
         ...state,

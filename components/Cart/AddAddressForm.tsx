@@ -21,7 +21,11 @@ function AddAddressForm({
   activeIndex,
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [center, setCenter] = useState(null);
+  const dispatch = useDispatch();
+  const center = useSelector((state: StateInterface) => state.cart.center);
+  const setCenter = (e) => {
+    dispatch({ type: "MAP-CENTER", payload: e });
+  };
   useEffect(() => {
     getCenter();
   }, []);
@@ -402,6 +406,14 @@ const ContactInfo = () => {
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
           <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
             <input
+              aria-autocomplete="both"
+              aria-haspopup="false"
+              type="number"
+              spellCheck="false"
+              autoCapitalize="off"
+              autoComplete="off"
+              autoCorrect="off"
+              inputMode="numeric"
               value={addressDetails.contact_info.phone}
               onChange={(e) => {
                 dispatch({
@@ -436,6 +448,14 @@ const ContactInfo = () => {
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
           <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
             <input
+              aria-autocomplete="both"
+              aria-haspopup="false"
+              spellCheck="false"
+              autoCapitalize="off"
+              autoComplete="off"
+              autoCorrect="off"
+              inputMode="numeric"
+              type="number"
               value={addressDetails.contact_info.alternative_phone}
               onChange={(e) => {
                 dispatch({

@@ -255,25 +255,24 @@ const SelectColor = ({ close }) => {
         >
           <BackIcon />
         </div>
-        <span className="relative">
+        <span
+          className="relative"
+          onClick={() => {
+            Sendevent({
+              event: "button_clicked",
+              value: "cart_nav_bar_button",
+            });
+            close();
+            dispatch({ type: "AddToCartOptionDisable", payload: false });
+            enableCart(true);
+          }}
+        >
           {cart?.length > 0 && (
             <span className="bg-green-500 right-[-8px] top-[-4px] text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
               {cart.length}
             </span>
           )}
-          <CartIcon
-            id={"cart-icon"}
-            className="cart-icon"
-            onClick={() => {
-              Sendevent({
-                event: "button_clicked",
-                value: "cart_nav_bar_button",
-              });
-              close();
-              dispatch({ type: "AddToCartOptionDisable", payload: false });
-              enableCart(true);
-            }}
-          />
+          <CartIcon id={"cart-icon"} className="cart-icon" />
         </span>
       </div>
       <div className="flex-col mt-[10px] w-full   top-[103px] items-center z-[999999999]">

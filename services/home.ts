@@ -122,7 +122,7 @@ class HomeService {
     }
     if (response.status === 302 || response.status === 401) {
       if (getUser()) {
-        ExpiredUser();
+        await ExpiredUser();
       } else {
         await this.registerForExpire();
         await this.getCustomerInfo();
@@ -151,8 +151,10 @@ class HomeService {
       }
     }
   }
-  async registerForExpire() {
-    let body = localStorage.getItem("guest-user")
+  async registerForExpire(id?: number) {
+    let body = id
+      ? { old_guest_user_id: id }
+      : localStorage.getItem("guest-user")
       ? { old_guest_user_id: JSON.parse(localStorage.getItem("guest-user")).id }
       : { old_guest_user_id: null };
 

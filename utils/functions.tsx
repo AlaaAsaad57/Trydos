@@ -17,6 +17,7 @@ import {
   SimpleBoutiqeApi,
   SimpleDetailsProductApi,
 } from "models/Api";
+import auth from "services/auth";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -835,6 +836,13 @@ export const LogError = (error, url, href) => {
     backend_url: url,
   });
 };
-export const ExpiredUser = () => {
-  store.dispatch({ type: "INFO_EXPIRED_TOKEN", payload: true });
+export const ExpiredUser = async () => {
+  await home.registerForExpire(getUser().id);
+  localStorage.setItem("has-phone", getUser()?.phone);
+  auth.cancelAuth();
+  localStorage.removeItem("MARKET-TOKEN");
+  localStorage.removeItem("USER");
+  Cookies.remove("MARKET-TOKEN");
+
+  // store.dispatch({ type: "INFO_EXPIRED_TOKEN", payload: true });
 };

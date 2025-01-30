@@ -47,6 +47,7 @@ export const AxiosGet = async ({
       }
     } catch (error) {
       if (error.status === 422 || error.status === 500) {
+        toast.error(`${title} : ${error.message ?? "Failed"}`);
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
         );
@@ -54,10 +55,10 @@ export const AxiosGet = async ({
       }
       if (error.status === 401) {
         if (getUser()) {
-          ExpiredUser();
-          return;
+          await ExpiredUser();
+        } else {
+          await home.registerForExpire();
         }
-        await home.registerForExpire();
       }
       attempt++;
       console.log(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);
@@ -129,6 +130,7 @@ export const AxiosPost = async ({
       }
     } catch (error) {
       if (error.status === 422 || error.status === 500) {
+        toast.error(`${title} : ${error.message ?? "Failed"}`);
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
         );
@@ -136,10 +138,10 @@ export const AxiosPost = async ({
       }
       if (error.status === 401) {
         if (getUser()) {
-          ExpiredUser();
-          return;
+          await ExpiredUser();
+        } else {
+          await home.registerForExpire();
         }
-        await home.registerForExpire();
       }
       attempt++;
       console.log(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);

@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { expandView, normalizeView, Sendevent } from "utils/functions";
 import CartContainer from ".";
 import home from "services/home";
-import ShowMessageAuth from "components/global/ShowMessageAuth";
 import { Swiper, SwiperSlide } from "swiper/react";
 import OrdersPage from "./OrdersPage";
 import { Swiper as SwiperType } from "node_modules/swiper/types";
@@ -74,7 +73,7 @@ const CartProvider = () => {
 
   return (
     <>
-      {showMessage && <ShowMessageAuth />}
+      {/* {showMessage && <ShowMessageAuth />} */}
       {cartEnable ? <StepSlider enableCart={(e) => enableCart(e)} /> : <></>}
     </>
   );
