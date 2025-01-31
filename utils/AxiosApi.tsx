@@ -105,6 +105,7 @@ export const AxiosPost = async ({
         url.includes("product_likes") ||
         url.includes("old-cart/hide") ||
         url.includes("/cart/remove") ||
+        url.includes("customer/update-name") ||
         hasMessageOnly
       ) {
         toast.success(res.data.message);

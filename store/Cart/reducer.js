@@ -404,6 +404,8 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "AddToCartOptionEnable": {
+      document.documentElement.style.overflow = "hidden";
+      document.documentElement.scrollTop = 0;
       if (payload)
         return {
           ...state,
@@ -458,6 +460,8 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "AddToCartOptionDisable": {
+      document.documentElement.style.overflow = "initial";
+      document.documentElement.scrollTop = 0;
       return {
         ...state,
         AddToCartOption: {

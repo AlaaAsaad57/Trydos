@@ -86,11 +86,28 @@ const OrderCartItem = () => {
 const AddressOrder = () => {
   const GetAddressString = (location) => {
     let str = "";
-    if (location.province) str += `${location.province}`;
-    if (location.city) str += ` | ${location.city}`;
-    if (location.town) str += ` | ${location.town}`;
-    if (location.street) str += ` | ${location.street}`;
-    if (location.building) str += ` | ${location.building}`;
+    if (
+      location.province &&
+      location.province.length > 0 &&
+      location.province !== "null"
+    )
+      str += `${location.province}`;
+    if (location.city && location.city.length > 0 && location.city !== "null")
+      str += ` | ${location.city}`;
+    if (location.town && location.town.length > 0 && location.town !== "null")
+      str += ` | ${location.town}`;
+    if (
+      location.street &&
+      location.street.length > 0 &&
+      location.street !== "null"
+    )
+      str += ` | ${location.street}`;
+    if (
+      location.building &&
+      location.building.length > 0 &&
+      location.building !== "null"
+    )
+      str += ` | ${location.building}`;
     return str;
   };
   const addressLists = useSelector(

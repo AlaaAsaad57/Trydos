@@ -412,6 +412,7 @@ const ContactInfo = () => {
               spellCheck="false"
               autoCapitalize="off"
               autoComplete="off"
+              pattern="[0-9]*"
               autoCorrect="off"
               inputMode="numeric"
               value={addressDetails.contact_info.phone}
@@ -452,6 +453,7 @@ const ContactInfo = () => {
               aria-haspopup="false"
               spellCheck="false"
               autoCapitalize="off"
+              pattern="[0-9]*"
               autoComplete="off"
               autoCorrect="off"
               inputMode="numeric"
