@@ -341,23 +341,7 @@ class HomeService {
       }
     }
   }
-  async GetBoutiques(slug) {
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + HOME_DATA_URL + `ByCategory`,
 
-      {
-        method: "POST",
-        body: JSON.stringify({ slug: slug }),
-        headers: {
-          ...getHeader().headers,
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-          Accept: "application/json",
-        },
-      }
-    );
-    let repo: GetBoutiqueApi = await response.json();
-    store.dispatch(GetMainData(repo.data.boutiques));
-  }
   async getNextProduct({ offset, categories, boutiqueCategory }) {
     const filterObj = store.getState().details.activeFilters;
     const sizesAttr = store.getState().details.filters.sizesAttr;
