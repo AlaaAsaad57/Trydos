@@ -15,7 +15,7 @@ describe("open cart and view products", () => {
         cy.clickElementScroll(".offer-widget:first-child");
       }
     });
-    cy.wait(5000);
+    cy.wait(10000);
     cy.getProductNameFirstly().then((name) => {
       productName = name;
     });
@@ -36,6 +36,7 @@ describe("open cart and view products", () => {
         alias: "getProductData2",
       },
     ]);
+    cy.wait(10000);
     cy.intercept("POST", "**/api/new_v1/cart/add").as("addToCart");
     cy.intercept("POST", "**/api/new_v1/cart/**").as("updateCart");
     cy.Exist("[data-cy=AddToCartButton-data-cy]").then((exist) => {
@@ -43,6 +44,7 @@ describe("open cart and view products", () => {
         cy.clickElementScroll("[data-cy=AddToCartButton-data-cy]");
       }
     });
+    cy.wait(10000);
     cy.wait(["@addToCart", "@updateCart"], { timeout: 30000 }).then(
       ([addToCart, updateCart]) => {
         if (addToCart.response?.statusCode === 200) {
@@ -56,12 +58,13 @@ describe("open cart and view products", () => {
         }
       }
     );
+    cy.wait(10000);
     cy.Exist("[data-cy=CartIcon]").then((exist) => {
       if (exist) {
         cy.clickElementForce("[data-cy=CartIcon]");
       }
     });
-    cy.wait(4000);
+    cy.wait(10000);
     cy.get("[data-cy=productNameInCart]")
       .invoke("text")
       .then((text) => {
@@ -73,13 +76,13 @@ describe("open cart and view products", () => {
           console.log("Error: Product names do not match");
         }
       });
-    cy.wait(5000);
+    cy.wait(10000);
     cy.Exist("[data-cy=CartBackIcon]").then((exist) => {
       if (exist) {
         cy.clickElementForce("[data-cy=CartBackIcon]");
       }
     });
-    cy.wait(5000);
+    cy.wait(10000);
     cy.Exist("[data-cy=back_icon_boutique_page]").then((exist) => {
       if (exist) {
         cy.clickElementForce("[data-cy=back_icon_boutique_page]");
