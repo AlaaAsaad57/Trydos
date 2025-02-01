@@ -62,6 +62,7 @@ function SendMethod({
         setStepIndicator(5);
       },
       errorCallback: function (e) {
+        setLoading(false);
         setStepIndicator(3);
       },
     });
@@ -269,13 +270,16 @@ function SendMethod({
             data-testid={`message-whatsapp-option`}
             className={`${loading && "opacity-55"} message-recieve-option`}
             onClick={() => {
-              setMessageMethod("WA");
-              SendCodeRequest("1");
+              if (!loading) {
+                setLoading(true);
+                setMessageMethod("WA");
+                SendCodeRequest("1");
 
-              Sendevent({
-                event: "button_clicked",
-                value: "choose_whatsapp_button",
-              });
+                Sendevent({
+                  event: "button_clicked",
+                  value: "choose_whatsapp_button",
+                });
+              }
               // AuthService.SendOtp(inputValue, 1, (e) => {
               //   setStepHeight(e);
               // });
@@ -323,13 +327,16 @@ function SendMethod({
             data-testid="message-sms-option"
             className={`${loading && "opacity-55"} message-recieve-option`}
             onClick={() => {
-              setMessageMethod("SMS");
+              if (!loading) {
+                setLoading(true);
+                setMessageMethod("SMS");
 
-              SendCodeRequest("0");
-              Sendevent({
-                event: "button_clicked",
-                value: "choose_sms_button",
-              });
+                SendCodeRequest("0");
+                Sendevent({
+                  event: "button_clicked",
+                  value: "choose_sms_button",
+                });
+              }
               // AuthService.SendOtp(inputValue, 0, (e) => {
               //   setStepHeight(e);
               // });
