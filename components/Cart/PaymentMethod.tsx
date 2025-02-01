@@ -15,17 +15,32 @@ import AmericanExpressIcon from "assets/svg/cart/Payment/AmericanExpress.svg";
 import ApplePayIcon from "assets/svg/cart/Payment/ApplePay.svg";
 import GooglePayIcon from "assets/svg/cart/Payment/GooglePay.svg";
 import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
+import Spinner from "components/global/Spinner";
 function PaymentMethod() {
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
   const dispatch = useDispatch();
-
+  const orderLoading = useSelector(
+    (state: StateInterface) => state.cart.orderLoading
+  );
   const orderData = useSelector(
     (state: StateInterface) => state.cart.orderData
   );
+  const cart = useSelector((state: StateInterface) => state.cart);
+  const wallet = useSelector((state: StateInterface) => state.cart.wallet);
   const setOrderData = (e) => {
     dispatch({ type: "ORDER-DATA", payload: e });
+  };
+  const totalBalance = () => {
+    let val = 0;
+    orderData.payment.map((s) => {
+      val += s.balance;
+    });
+    return val;
+  };
+  const isBalanceEnough = () => {
+    return totalBalance() >= cart.total_cash;
   };
   return (
     <>
@@ -119,21 +134,83 @@ function PaymentMethod() {
             )}
           </div>
           <TryDosWalletInput
-            active={orderData.payment === "TryDos Wallet"}
+            active={orderData.payment.filter((s) => s.id === 1).length > 0}
             setActive={() => {
-              setOrderData({ payment: "TryDos Wallet" });
+              if (isBalanceEnough()) {
+                if (!orderLoading) {
+                  if (orderData.payment.filter((s) => s.id === 1).length > 0) {
+                    setOrderData({
+                      payment: orderData.payment.filter((s) => s.id !== 1),
+                    });
+                  } else {
+                    dispatch({ type: "WALLET_BALANCE-USER", payload: false });
+                    setOrderData({
+                      payment: [
+                        ...orderData.payment,
+                        { id: 1, balance: wallet?.total_wallet_balance },
+                      ],
+                    });
+                  }
+                }
+              } else {
+                alert(
+                  translateFunction("Your Balance Is suit Purchase Requirement")
+                );
+              }
             }}
           />
           <CreditInput
-            active={orderData.payment === "Credit"}
+            active={orderData.payment.filter((s) => s.id === 2).length > 0}
             setActive={() => {
-              setOrderData({ payment: "Credit" });
+              if (isBalanceEnough()) {
+                if (!orderLoading) {
+                  if (orderData.payment.filter((s) => s.id === 2).length > 0) {
+                    dispatch({ type: "CREDIT-USER", payload: false });
+                    setOrderData({
+                      payment: orderData.payment.filter((s) => s.id !== 2),
+                    });
+                  } else {
+                    dispatch({ type: "CREDIT-USER", payload: true });
+                    setOrderData({
+                      payment: [
+                        ...orderData.payment,
+                        { id: 2, balance: cart.total_cash },
+                      ],
+                    });
+                  }
+                }
+              } else {
+                alert(
+                  translateFunction("Your Balance Is suit Purchase Requirement")
+                );
+              }
             }}
           />
           <CryptoInput
-            active={orderData.payment === "Crypto"}
+            active={orderData.payment.filter((s) => s.id === 2).length > 0}
             setActive={() => {
-              setOrderData({ payment: "Crypto" });
+              if (isBalanceEnough()) {
+                if (!orderLoading) {
+                  if (orderData.payment.filter((s) => s.id === 2).length > 0) {
+                    dispatch({ type: "CRYPTO-USER", payload: false });
+                    setOrderData({
+                      payment: orderData.payment.filter((s) => s.id !== 3),
+                    });
+                  } else {
+                    dispatch({ type: "CRYPTO-USER", payload: true });
+                    setOrderData({
+                      payment: [
+                        ...orderData.payment,
+                        { id: 3, balance: cart.total_cash },
+                      ],
+                    });
+                  }
+                }
+              } else {
+                alert(
+                  translateFunction("Your Balance Is suit Purchase Requirement")
+                );
+              }
             }}
           />
         </div>
@@ -313,6 +390,11 @@ const CouponElement = ({ active, setActive, close }) => {
   );
 };
 const TryDosWalletInput = ({ active, setActive }) => {
+  const orderLoading = useSelector(
+    (state: StateInterface) => state.cart.orderLoading
+  );
+  const wallet = useSelector((state: StateInterface) => state.cart.wallet);
+
   return (
     <div
       onClick={() => {
@@ -332,13 +414,18 @@ const TryDosWalletInput = ({ active, setActive }) => {
         >
           {translateFunction("Trydos Wallet")}
         </span>
+        {orderLoading && (
+          <span className="bold ml-[11px]">
+            <Spinner />
+          </span>
+        )}
       </div>
       <div className="flex-row items-center">
         <span className="text-[#D3D3D3] regular text-[12px]">
           {translateFunction("Your Balance")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          788 USD
+          {wallet.total_wallet_balance_formatted}
         </span>
       </div>
     </div>

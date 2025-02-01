@@ -837,8 +837,9 @@ export const LogError = (error, url, href) => {
   });
 };
 export const ExpiredUser = async () => {
+  if (getUser()?.phone) localStorage.setItem("has-phone", getUser()?.phone);
   await home.registerForExpire(getUser().id);
-  localStorage.setItem("has-phone", getUser()?.phone);
+
   auth.cancelAuth();
   localStorage.removeItem("MARKET-TOKEN");
   localStorage.removeItem("USER");

@@ -68,14 +68,16 @@ function CartContainer({ close, toOrders }) {
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch({ type: "CART-LOADING" });
-    getCart({
+    getData();
+  }, []);
+  const getData = async () => {
+    await getCart({
       callback: ([data, res]) => {
         dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
       },
-    }).then(() => {
-      getOldCart();
     });
-  }, []);
+    await getOldCart();
+  };
   const params = useParams();
 
   const sarchParams = useSearchParams();
@@ -243,9 +245,7 @@ function CartContainer({ close, toOrders }) {
               {cart.length > 0 ? (
                 <>
                   {cart?.map((product, key) => (
-                    <div className="relative px-[12px]" key={key}
-                    
-                    >
+                    <div className="relative px-[12px]" key={key}>
                       {" "}
                       <NextLink
                         href={

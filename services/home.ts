@@ -71,16 +71,15 @@ class HomeService {
       store.dispatch({ type: "GET_SETTINGS", payload: repo });
       sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
       await this.getCustomerInfo();
-      getCart({
+      await getCart({
         callback: ([data, res]) => {
           store.dispatch({
             type: "CART-INIT",
             payload: data ?? { cart: [] },
           });
         },
-      }).then(() => {
-        getOldCart();
       });
+      await getOldCart();
       if (typeof window !== "undefined") {
         _isStoreLastJson() &&
           localStorage.setItem("LAST_JSON", JSON.stringify(repo));

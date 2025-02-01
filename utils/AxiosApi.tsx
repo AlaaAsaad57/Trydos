@@ -40,6 +40,9 @@ export const AxiosGet = async ({
     try {
       let res = await axios.get(url, getHeader());
       // If the response is successful, return the data
+      if (url.includes("customer/wallet")) {
+        return res.data;
+      }
       if (res?.data.data) {
         return res?.data.data;
       } else {

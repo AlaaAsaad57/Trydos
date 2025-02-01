@@ -24,7 +24,7 @@ const initialState = {
     },
   },
   orderData: {
-    payment: "",
+    payment: [],
     coupon: false,
     agree: false,
     coupon_number: "",
@@ -47,6 +47,10 @@ const initialState = {
   localCart: [],
   loaded: false,
   oldCart: null,
+  wallet: null,
+  balance: 0,
+  crypto: 0,
+  credit: 0,
 };
 const showLocationText = (location) => {
   let str = "";
@@ -77,8 +81,39 @@ const openCart = (val) => {
     return val;
   }
 };
+
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "ORDER-SUCCESS": {
+      return {
+        ...state,
+        orderData: { ...state.orderData, orderPaylod: payload },
+      };
+    }
+    case "WALLET_BALANCE-USER": {
+      return {
+        ...state,
+        balance: state?.wallet?.total_wallet_balance || 0,
+      };
+    }
+    case "CRYPTO-USER": {
+      return {
+        ...state,
+        crypto: state.total_cash || 0,
+      };
+    }
+    case "CREDIT-USER": {
+      return {
+        ...state,
+        credit: state.total_cash || 0,
+      };
+    }
+    case "WALLET-USER": {
+      return {
+        ...state,
+        wallet: payload,
+      };
+    }
     case "MAP-CENTER": {
       return {
         ...state,

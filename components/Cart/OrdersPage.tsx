@@ -7,7 +7,7 @@ import ShippingAddressContainer from "./ShippingAddressContainer";
 import { Swiper as SwiperType } from "node_modules/swiper/types";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import AddAddressForm from "./AddAddressForm";
-import { useDispatch, useSelector } from "node_modules/react-redux/es";
+import { useDispatch, useSelector } from "react-redux";
 import SelectRegion from "./SelectRegion";
 import AddressListContainer from "./AddressListContainer";
 import TrashIcon from "public/svg/cart/TrashIcon.svg";
@@ -15,6 +15,7 @@ import order from "services/order";
 import PaymentMethod from "./PaymentMethod";
 import PlaceOrderWidget from "./PlaceOrderWidget";
 import PlaceOrderButtons from "./PlaceOrderButtons";
+import { toast, ToastContainer } from "react-toastify";
 const DeleteIcon = () => {
   return (
     <svg
@@ -131,12 +132,11 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
     }, 300);
   };
   const [deleteModal, setDeleteModal] = useState<any>(false);
-  const setOrderSuccess = (e) => {
+  const setOrderSuccess = async (e) => {
     setLoading(true);
-    setTimeout(() => {
-      dispatch({ type: "ORDER-DATA", payload: { success: true } });
-      setLoading(false);
-    }, 3000);
+    await order.PlaceOrder();
+    dispatch({ type: "ORDER-DATA", payload: { success: true } });
+    setLoading(false);
   };
   const setLoading = (e) => {
     dispatch({ type: "ORDER-DATA", payload: { loading: e } });
@@ -150,6 +150,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
       className={`pb-[10px]
      flex-col relative  top-0 left-0 min-h-[100vh] max-h-[100vh] h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
     >
+      <ToastContainer position="top-right" />
       {deleteModal && (
         <DeleteModalComponent
           slidePrev={() => {
@@ -641,8 +642,6 @@ const OrderButtons = ({ orderLoading, setNext }) => {
   const currency_symbol = useSelector(
     (state: StateInterface) => state.homepage.currency
   );
-  const dispatch = useDispatch();
-
   const orderData = useSelector(
     (state: StateInterface) => state.cart.orderData
   );
@@ -659,14 +658,34 @@ const OrderButtons = ({ orderLoading, setNext }) => {
       }, 1300);
     }
   };
+  const wallet = useSelector((state: StateInterface) => state.cart.wallet);
+  const totalBalance = () => {
+    let val = 0;
+    orderData.payment.map((s) => {
+      val += s.balance;
+    });
+    return val;
+  };
+  const isBalanceEnough = () => {
+    return totalBalance() >= cart.total_cash;
+  };
   const isValid = () => {
-    if (address && address[0]?.id && orderData.payment.length > 0) {
+    if (
+      address &&
+      address[0]?.id &&
+      orderData.payment.length > 0 &&
+      isBalanceEnough()
+    ) {
       return true;
     } else {
       return false;
     }
   };
   const Validate = () => {
+    if (!isBalanceEnough()) {
+      shake("payment-valid-border");
+      alert(translateFunction("Your Balance Not meet purchase value"));
+    }
     if (!address[0]?.id) {
       shake("address-valid-border");
     }

@@ -6,12 +6,16 @@ import { useDispatch, useSelector } from "react-redux";
 import FreeShippingIcon from "public/svg/product/FreeShipping.svg";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import order from "services/order";
+import Spinner from "components/global/Spinner";
 function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   const cart = useSelector((state: StateInterface) => state.cart?.cart);
 
   const user = useSelector((state: StateInterface) => state.auth.user);
   useEffect(() => {
-    order.GetAddressList();
+    if (user) {
+      order.GetWallet();
+      order.GetAddressList();
+    }
   }, [user]);
   return (
     <div className="flex flex-col w-full p-3">
@@ -115,6 +119,9 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
   // @ts-ignore
   const language = lang.split("-")[1];
   const dispatch = useDispatch();
+  const orderLoading = useSelector(
+    (state: StateInterface) => state.cart.orderLoading
+  );
   return (
     <div
       style={{
@@ -215,6 +222,11 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
         <span className="bold ml-[11px]">
           <FreeShippingIcon />
         </span>
+        {orderLoading && (
+          <span className="bold ml-[11px]">
+            <Spinner />
+          </span>
+        )}
       </div>
       <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
         {translateFunction(
