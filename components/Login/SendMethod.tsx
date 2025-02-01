@@ -29,6 +29,7 @@ function SendMethod({
   const language = useSelector(
     (state: StateInterface) => state.homepage.language
   );
+  const [loading, setLoading] = useState(false);
   const SendOtpHook = async ({
     errorCallback,
     mobilePhone,
@@ -36,14 +37,17 @@ function SendMethod({
     successCallback,
   }) => {
     try {
+      setLoading(true);
       let errorCallbackFunc = (e) => errorCallback(e);
       await AuthService.SendOtp(
         mobilePhone,
         is_via_whatsapp,
         errorCallbackFunc
       );
+
       successCallback();
     } catch (error) {
+      setLoading(false);
       console.log(error);
       errorCallback();
       console.error("SendOtp failed:", error);
@@ -53,7 +57,10 @@ function SendMethod({
     SendOtpHook({
       mobilePhone: inputValue,
       is_via_whatsapp: method,
-      successCallback: function () {},
+      successCallback: function () {
+        setLoading(false);
+        setStepIndicator(5);
+      },
       errorCallback: function (e) {
         setStepIndicator(3);
       },
@@ -259,12 +266,12 @@ function SendMethod({
         </div>
         <div className="phone-send-options">
           <div
-            data-testid="message-whatsapp-option"
-            className="message-recieve-option"
+            data-testid={`message-whatsapp-option`}
+            className={`${loading && "opacity-55"} message-recieve-option`}
             onClick={() => {
               setMessageMethod("WA");
               SendCodeRequest("1");
-              setStepIndicator(5);
+
               Sendevent({
                 event: "button_clicked",
                 value: "choose_whatsapp_button",
@@ -287,7 +294,7 @@ function SendMethod({
                   fill="none"
                   stroke="#4d84ff"
                   strokeLinecap="round"
-                  stroke-linejoin="round"
+                  strokeLinejoin="round"
                   strokeWidth="0.5"
                   strokeDasharray="3 3"
                 >
@@ -314,10 +321,10 @@ function SendMethod({
           </div>
           <div
             data-testid="message-sms-option"
-            className="message-recieve-option"
+            className={`${loading && "opacity-55"} message-recieve-option`}
             onClick={() => {
               setMessageMethod("SMS");
-              setStepIndicator(5);
+
               SendCodeRequest("0");
               Sendevent({
                 event: "button_clicked",
@@ -341,7 +348,7 @@ function SendMethod({
                   fill="none"
                   stroke="#4d84ff"
                   strokeLinecap="round"
-                  stroke-linejoin="round"
+                  strokeLinejoin="round"
                   strokeWidth="0.5"
                   strokeDasharray="3 3"
                 >

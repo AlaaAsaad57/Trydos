@@ -1,18 +1,46 @@
 "use client";
 import dynamic from "next/dynamic";
 import { useSelector } from "react-redux";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 const MapElement = dynamic(
   () => import("./MapElement").then((mod) => mod.MapElement),
   { ssr: false }
 );
 
-const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
+const Map = ({
+  setAddressDetails,
+  center,
+  expanded,
+  setExpanded,
+  setCenter,
+}) => {
   const addressDetails = useSelector(
     (state: StateInterface) => state.cart.addressDetails
   );
-
+  const setLocationBasedOnUserLocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        function (position) {
+          if (!addressDetails.id) {
+            setCenter({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            });
+            setAddressDetails({
+              location: {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              },
+            });
+          }
+        },
+        function (error) {
+          console.error("Error occurred. Error code: " + error.code);
+        }
+      );
+    }
+  };
   return (
     <>
       <div
@@ -24,13 +52,40 @@ const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
               setExpanded(true);
             }
           }}
-          className={`flex-col map-border max-h-[calc(100vh-254px)] relative pt-[12px] pb-[7px]  pl-[12px] pr-[12px] items-center mt-[12px] justify-center  w-full ${
-            expanded ? "h-full" : " h-[120px]"
+          className={`flex-col map-border max-h-[calc(100vh-234px)] relative pt-[12px] pb-[7px]  pl-[12px] pr-[12px] items-center mt-[12px] justify-center  w-full ${
+            expanded ? "h-[calc(100vh-274px)]" : " h-[120px]"
           } rounded-[15px]`}
           style={{
             border: "1px solid rgb(211 211 211 / 51%)",
           }}
         >
+          {expanded && (
+            <span
+              onClick={() => {
+                setLocationBasedOnUserLocation();
+              }}
+              className=" cursor-pointer bottom-[30px] right-[30px] absolute z-[999] w-[50px] h-[50px] rounded-[50%] flex justify-center items-center bg-blue-500"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="35px"
+                height="35px"
+                viewBox="0 0 16 16"
+                fill="none"
+              >
+                <path
+                  d="M8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10Z"
+                  fill="#fff"
+                />
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M2.08296 7C2.50448 4.48749 4.48749 2.50448 7 2.08296V0H9V2.08296C11.5125 2.50448 13.4955 4.48749 13.917 7H16V9H13.917C13.4955 11.5125 11.5125 13.4955 9 13.917V16H7V13.917C4.48749 13.4955 2.50448 11.5125 2.08296 9H0V7H2.08296ZM4 8C4 5.79086 5.79086 4 8 4C10.2091 4 12 5.79086 12 8C12 10.2091 10.2091 12 8 12C5.79086 12 4 10.2091 4 8Z"
+                  fill="#fff"
+                />
+              </svg>
+            </span>
+          )}
           {!expanded && (
             <div
               onClick={() => {
@@ -69,7 +124,7 @@ const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
           <MapElement
             setLocation={(e) => {
               setAddressDetails({
-                geolocation: e,
+                location: e,
               });
             }}
             expanded={expanded}
@@ -90,11 +145,12 @@ const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
           closeMap={() => {
             setExpanded(false);
             setAddressDetails({
-              geolocation: { lat: null, lng: null },
+              location: { latitude: null, longitude: null },
             });
           }}
           locationSelected={
-            addressDetails.geolocation.lat && addressDetails.geolocation.lng
+            addressDetails.location.latitude &&
+            addressDetails.location.longitude
           }
           selectLocation={() => {
             setExpanded(false);

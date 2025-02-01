@@ -115,13 +115,13 @@ function AddToCartButton({
   };
   const isQuantityEmpty = () => {
     if (getSelectedVariantofProduct() === "")
-      return product?.Left_stock - 1 === 0;
+      return product?.Left_stock - 1 <= 0;
     else
       return (
         product?.variation?.filter(
           (s) => s.type === getSelectedVariantofProduct()
         )[0]?.qty -
-          1 ===
+          1 <=
         0
       );
   };
@@ -137,12 +137,12 @@ function AddToCartButton({
       Sendevent({ event: "button_clicked", value: "notify_me_button" });
       setNotify();
       requestFirebaseNotificationPermission().then((fbtoken) => {
-        if (fbtoken) {
-          fbtoken &&
-            ChatService.StoreToken({
-              token: fbtoken,
-            });
-        }
+        // if (fbtoken) {
+        //   fbtoken &&
+        //     ChatService.StoreToken({
+        //       token: fbtoken,
+        //     });
+        // }
       });
       auth.NotifyForProducts({
         id: product?.id,
@@ -249,7 +249,7 @@ function AddToCartButton({
 
             <div className="button-desc">
               <div
-                className={`flex-row max-w-[30px] justify-end relative image-container-cart ${
+                className={`flex-row max-w-[30px] justify-end relative  ${
                   !AddToCartOption.enable && "pr-0"
                 }`}
               >

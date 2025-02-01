@@ -14,10 +14,10 @@ import {
 import { SEND_OTP, VERFIY_OTP, VERFIY_OTP_SIGNUP } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
-
-import axios from "axios";
 import home from "./home";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
+import { LikesSharesCommentsApi } from "models/Api";
+import { changeToken } from "store/homepage/cachedActions";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -77,7 +77,12 @@ class AuthService {
         getHeader()
       );
 
-      let repo = await response.json();
+      let repo: {
+        message: string;
+        data: {
+          verificationId: string;
+        };
+      } = await response.json();
 
       msg = repo.message;
       if (repo.data?.verificationId) {
@@ -116,7 +121,25 @@ class AuthService {
           }`,
         getHeader()
       );
-      let repo = await response.json();
+      let repo: {
+        data: {
+          already_exists: boolean;
+          message: string;
+          Logged_in_from_another_device: boolean;
+          id_token: string;
+          user_type: number;
+          token: string;
+          expires_at: string;
+          user: {
+            id: number;
+            name: string;
+            phone: string;
+            is_phone_verified: number;
+            last_otp_id_token: string;
+          };
+        };
+        isSuccessful: boolean;
+      } = await response.json();
 
       if (repo?.data?.message === "user not found") {
         throw new Error("user not found");
@@ -125,8 +148,9 @@ class AuthService {
         throw new Error("Wrong Code");
       }
       localStorage.setItem("ID-TOKEN", repo.data.id_token);
-      Cookies.set("market-token", repo.data.token);
+      Cookies.set("MARKET-TOKEN", repo.data.token);
       localStorage.setItem("MARKET-TOKEN", repo.data.token);
+      changeToken({ key: "MARKET-TOKEN", value: repo.data.token });
       localStorage.setItem(
         "USER",
         JSON.stringify({
@@ -182,7 +206,9 @@ class AuthService {
         "/auth/firebase/verify-guest-phone",
       body: dataBody,
       title: "Verify Guest",
-      token: localStorage.getItem("DEVICE-TOKEN"),
+      token: localStorage.getItem("has-phone")
+        ? null
+        : localStorage.getItem("DEVICE-TOKEN"),
     });
 
     success();
@@ -208,7 +234,7 @@ class AuthService {
       await AxiosPost({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-name",
         body: { name: name },
-        title: "Verify Guest",
+        title: "Update Name",
       });
 
       axios.post(
@@ -282,13 +308,13 @@ class AuthService {
     await AxiosPost({
       url: process.env.NEXT_PUBLIC_BACKEND_URL + "/product_notification/store",
       body: formBody,
-      title: "Verify Guest",
+      title: "store Notification For Product",
     });
   }
   async getProductNotify({ id }) {
     try {
       if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
-      let data = await AxiosGet({
+      let data: LikesSharesCommentsApi = await AxiosGet({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
           "/web/product/likesCommentsSharesDetails/" +

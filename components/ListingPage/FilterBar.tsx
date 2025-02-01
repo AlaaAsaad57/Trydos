@@ -25,6 +25,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import NextLink from "components/global/NextLink";
+import { DebounceInput } from "node_modules/react-debounce-input/src";
 
 function FilterBar({ boutique, filters, productsServer }) {
   const selectedFilter = useSelector(
@@ -223,8 +224,9 @@ function FilterBar({ boutique, filters, productsServer }) {
               dispatch({ type: "FILTER-SEARCH-ENABLE", payload: true });
             }}
           >
-            <input
+            <DebounceInput
               id="filter-search"
+              debounceTimeout={400}
               value={selectedFilters.searchText}
               onBlur={() => {
                 if (selectedFilters?.searchText.length === 0) {

@@ -1,13 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import OrderCartIcon from "public/svg/cart/orderCartIcon.svg";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import FreeShippingIcon from "public/svg/product/FreeShipping.svg";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
+import order from "services/order";
 function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   const cart = useSelector((state: StateInterface) => state.cart?.cart);
-  const dispatch = useDispatch();
+
+  const user = useSelector((state: StateInterface) => state.auth.user);
+  useEffect(() => {
+    order.GetAddressList();
+  }, [user]);
   return (
     <div className="flex flex-col w-full p-3">
       <CartItemSelect items={cart} />
@@ -29,6 +34,7 @@ const CartItemSelect = ({ items }) => {
   // @ts-ignore
   const language = lang.split("-")[1];
   const [openCart, setOpenCart] = useState(false);
+
   return (
     <div
       style={{
@@ -38,7 +44,9 @@ const CartItemSelect = ({ items }) => {
       className={`flex-col ${
         openCart && "pt-[15px]"
       } relative pl-[12px] justify-center w-full min-h-[50px] cursor-pointer`}
-      onClick={() => setOpenCart(!openCart)}
+      onClick={() => {
+        setOpenCart(!openCart);
+      }}
     >
       <span className={` absolute top-[22px] right-[12px] `}>
         <svg
@@ -113,7 +121,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
         border: "1px solid rgb(196 194 194 / 51%)",
         borderRadius: "15px",
       }}
-      className={`flex-col mt-[11px] pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full min-h-[203px] `}
+      className={`address-valid-border flex-col mt-[11px] pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full ${" min-h-[203px]"}`}
     >
       <div className="flex-row ">
         <svg
@@ -137,7 +145,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
           <g
             id="Mask_Group_380"
             data-name="Mask Group 380"
-            clip-path="url(#clip-path22)"
+            clipPath="url(#clip-path22)"
           >
             <g id="delivery_location" transform="translate(1.163 -0.036)">
               <g id="Group_11335" data-name="Group 11335">
@@ -219,7 +227,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
           openAddressList(e);
         }}
       />
-      {addressLists.length > 0 ? (
+      {addressLists?.length > 0 ? (
         <>
           <div
             onClick={() => {
@@ -255,7 +263,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
                   id="Mask_Group_380"
                   data-name="Mask Group 380"
                   transform="translate(0 0.389)"
-                  clip-path="url(#clip-path8780)"
+                  clipPath="url(#clip-path8780)"
                 >
                   <g id="delivery_location" transform="translate(0.969 -0.03)">
                     <g id="Group_11335" data-name="Group 11335">
@@ -341,24 +349,49 @@ const AddressContainer = ({ openAddressList }) => {
   const addressLists = useSelector(
     (state: StateInterface) => state.cart.addressLists
   );
-
+  const GetAddressString = (location) => {
+    let str = "";
+    if (
+      location.province &&
+      location.province.length > 0 &&
+      location.province !== "null"
+    )
+      str += `${location.province}`;
+    if (location.city && location.city.length > 0 && location.city !== "null")
+      str += ` | ${location.city}`;
+    if (location.town && location.town.length > 0 && location.town !== "null")
+      str += ` | ${location.town}`;
+    if (
+      location.street &&
+      location.street.length > 0 &&
+      location.street !== "null"
+    )
+      str += ` | ${location.street}`;
+    if (
+      location.building &&
+      location.building.length > 0 &&
+      location.building !== "null"
+    )
+      str += ` | ${location.building}`;
+    return str;
+  };
   return (
     <div
       onClick={() => {
-        if (addressLists.length > 0) {
+        if (addressLists?.length > 0) {
           openAddressList(true);
         }
       }}
       style={{
-        border: addressLists.length === 0 ? "" : "#388bff8c 1px solid",
+        border: addressLists?.length === 0 && "#388bff8c 1px solid",
       }}
       className={`flex-col  ${
-        addressLists.length === 0
+        addressLists?.length === 0
           ? "items-center h-[84px]   py-[12px]"
           : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
       } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
     >
-      {addressLists.length > 0 ? (
+      {addressLists?.length > 0 ? (
         <>
           <div className="flex-col">
             <div className="flex-row items-center">
@@ -377,11 +410,11 @@ const AddressContainer = ({ openAddressList }) => {
               </svg>
 
               <span className="regular ml-[4px] text-[12px] text-[#8D8D8D]">
-                {addressLists[0].title}
+                {addressLists[0].address}
               </span>
             </div>
             <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]">
-              {addressLists[0].region}
+              {GetAddressString(addressLists[0].region_details)}
             </div>
             <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]">
               <svg
@@ -407,7 +440,7 @@ const AddressContainer = ({ openAddressList }) => {
                   id="Mask_Group_646"
                   data-name="Mask Group 646"
                   transform="translate(0.245)"
-                  clip-path="url(#clip-path1213)"
+                  clipPath="url(#clip-path1213)"
                 >
                   <g id="XMLID_7_" transform="translate(0.202 0.583)">
                     <path
@@ -421,7 +454,7 @@ const AddressContainer = ({ openAddressList }) => {
               </svg>
 
               <div className="flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D]">
-                {addressLists[0].ContactInfo.phone}
+                {addressLists[0].contact_info.phone}
               </div>
               <div className="flex-row ml-[17px]  items-center">
                 <svg
@@ -445,7 +478,7 @@ const AddressContainer = ({ openAddressList }) => {
                   <g
                     id="Mask_Group_647"
                     data-name="Mask Group 647"
-                    clip-path="url(#clip-path232323)"
+                    clipPath="url(#clip-path232323)"
                   >
                     <g
                       id="Group_13"
@@ -478,7 +511,9 @@ const AddressContainer = ({ openAddressList }) => {
                 </svg>
 
                 <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]">
-                  {addressLists[0].ContactInfo.name}
+                  {addressLists[0].contact_info.contact_person_name ||
+                    // @ts-ignore
+                    addressLists[0].contact_info.name}
                 </div>
               </div>
             </div>

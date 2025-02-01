@@ -1,5 +1,5 @@
 import Border from "components/global/Border";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SolidPhoneIcon from "public/svg/SolidPhoneIcon.svg";
 import { allCountries } from "country-telephone-data";
 import replaceString from "replace-string";
@@ -66,6 +66,7 @@ function PhoneInput({
       }, 50);
     }
   }, [stepIndicator]);
+  const ref = useRef();
   const handleInput = (e) => {
     setWrongNumber(false);
     let pattern = null;
@@ -93,7 +94,8 @@ function PhoneInput({
     } else {
       setValidNumber(false);
     }
-
+    // @ts-ignore
+    ref.current.value = data.marshaltext;
     e.target.value = data.marshaltext;
   };
   const [validNumber, setValidNumber] = useState(false);
@@ -136,6 +138,15 @@ function PhoneInput({
     } else {
     }
   }, [isKeyboardOpen]);
+  useEffect(() => {
+    console.log(inputValue);
+    if (inputValue) {
+      console.log(inputValue);
+      // @ts-ignore
+      ref.current.value = inputValue;
+    }
+  }, []);
+
   return (
     // <Animated.div
     //   unmountTime={0.5}
@@ -393,6 +404,8 @@ function PhoneInput({
             Search
           </label>
           <input
+            ref={ref}
+            value={inputValue}
             data-testid="phone-number-input"
             id="phoneInput"
             aria-autocomplete="both"
@@ -426,9 +439,24 @@ function PhoneInput({
               width: "100%",
             }}
             disabled={false}
-            type="number"
+            type="search"
             autoFocus={true}
             inputMode="numeric"
+            onKeyDown={(e) => {
+              if (
+                e.key === "Enter" ||
+                // @ts-ignore
+
+                e.key === "Tab"
+              ) {
+                e.preventDefault();
+                // @ts-ignore
+                e.target.blur();
+              }
+            }}
+            // @ts-ignore
+            enterkeyhint="done"
+            tabindex="-1"
             onChange={(e) => handleInput(e)}
             className="login-phone-input"
           />

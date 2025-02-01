@@ -39,7 +39,18 @@ class ChatService {
           }),
         }
       );
-      let repo = await response.json();
+      let repo: {
+        data: {
+          id: number;
+          name: string;
+          username: any;
+          mobile_phone: string;
+          photo_path: any;
+          created_at: string;
+          access_token: string;
+          contact_user: any;
+        };
+      } = await response.json();
       localStorage.setItem("USER-CHAT", JSON.stringify(repo.data));
       localStorage.setItem("CHAT-TOKEN", repo.data.access_token);
       if (repo.data?.id) {

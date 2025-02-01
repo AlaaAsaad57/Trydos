@@ -16,7 +16,6 @@ export default function Error({
     return navigator.userAgent || "";
   };
   const sendError = async (error: Error & { digest?: string }) => {
-    let axios = (await import("axios")).default;
     const userAgent = await _getUserAgent();
     let last_json;
     let token;
@@ -34,21 +33,25 @@ export default function Error({
     sendError(error);
   }, [error]);
   return (
-    <div className="flex justify-start flex-col items-center p-[50px]">
-      <div>
-        <Logo style={true} animated={false} />
-      </div>
-      <div className="flex flex-row items-center;">
-        <h1 className="text-[red]">Error:</h1>
-        <h2 className="p-5 text-[#5d5d5d]">{error.message}</h2>
-      </div>
+    <html>
+      <body>
+        <div className="flex justify-start flex-col items-center p-[50px] ">
+          <div>
+            <Logo style={true} animated={false} />
+          </div>
+          <div className="flex flex-row items-center;">
+            <h1 className="text-[red]">Error:</h1>
+            <h2 className="p-5 text-[#5d5d5d]">{error.message}</h2>
+          </div>
 
-      <button
-        className="w-[300px] flex text-center justify-center items-center bg-[aliceblue] p-5 rounded-[15px]"
-        onClick={() => (window.location.href = "/")}
-      >
-        Go Back
-      </button>
-    </div>
+          <button
+            className="w-[300px] flex text-center justify-center items-center bg-[aliceblue] p-5 rounded-[15px]"
+            onClick={() => (window.location.href = "/")}
+          >
+            Go Back
+          </button>
+        </div>
+      </body>
+    </html>
   );
 }

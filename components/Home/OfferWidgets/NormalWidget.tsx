@@ -104,7 +104,7 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
           </div>
           <div className="offer-category">
             {boutique.mainCategoriesForProductIds
-              .slice(0, 3)
+              .slice(0, 5)
               .map((category, key) => {
                 // @ts-ignore
                 if (category?.flat_photo_path?.file_path?.includes(".svg")) {

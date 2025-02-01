@@ -44,7 +44,7 @@ function OrderButton({ close, toOrders }) {
         <g
           id="Mask_Group_531"
           data-name="Mask Group 531"
-          clip-path="url(#clip-path23221)"
+          clipPath="url(#clip-path23221)"
         >
           <g id="Line_color" transform="translate(1.932 0)">
             <g id="Group_12774" data-name="Group 12774">
@@ -148,7 +148,7 @@ function OrderButton({ close, toOrders }) {
     <>
       {expanded && (
         <div
-          className="fixed top-[50px] min-w-[100vw] min-h-[100vh] opacity-40 bg-[black] z-50"
+          className="fixed top-[50px] min-w-[100vw] min-h-screen opacity-40 bg-[black] z-50"
           onClick={() => {
             setExpanded(false);
           }}
@@ -159,15 +159,16 @@ function OrderButton({ close, toOrders }) {
           borderTopLeftRadius: "30px",
           borderTopRightRadius: "30px",
           boxShadow: "0px -3px 20px #0000001a",
+          bottom: "calc(env(safe-area-inset-bottom) + 40px)",
         }}
-        className="flex-col z-50 fixed bottom-1 left-0 bg-white min-h-[100px] w-full"
+        className="order-bottom-button flex-col z-50 fixed  left-0 bg-white min-h-[100px] w-full"
       >
         {cart.cart.length > 0 && (
           <div
             {...handlers}
             className={`flex-col w-full overflow-hidden ${
               expanded
-                ? "h-[397px] pt-[10px] px-[12px] pb-[10px]"
+                ? "h-[405px] pt-[10px] px-[12px] pb-[10px]"
                 : "h-[116px] pt-[10px] px-[12px] pb-[10px] "
             }  transition-all`}
           >
@@ -335,7 +336,7 @@ function OrderButton({ close, toOrders }) {
                 <span className="line-through regular mr-2">
                   {cart.sub_total}
                 </span>{" "}
-                {cart.total_cash} {currency_symbol.symbol}
+                {cart.total_cash} {currency_symbol?.symbol}
                 <span className="ml-2">
                   <MenuIcon className={expanded && "rotate-180"} />
                 </span>
@@ -344,9 +345,10 @@ function OrderButton({ close, toOrders }) {
           </div>
         )}
         <div
-          className={`flex-row w-full px-5 pt-3 pb-28 sm:pb-1`}
+          className={`flex-row w-full px-5 `}
           style={{
             boxShadow: "#0000001a 0px -3px 10px",
+            paddingBlock: "calc(20px + env(safe-area-inset-bottom))",
           }}
         >
           <div
@@ -373,6 +375,7 @@ function OrderButton({ close, toOrders }) {
               {option ? (
                 <>
                   <ConfirmMobile
+                    hasMobile={localStorage.getItem("has-phone")}
                     closeWindow={() => {
                       setOption(false);
                     }}
@@ -384,7 +387,7 @@ function OrderButton({ close, toOrders }) {
                   {cart.cart.length === 0 ? (
                     <>
                       <span className="text-[#FEFEFE] text-[18px] medium ">
-                        {translate("Back To Home", GetAppLanguage())}
+                        {translate("Back To HomePage", GetAppLanguage())}
                       </span>
                     </>
                   ) : (

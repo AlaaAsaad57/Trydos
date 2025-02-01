@@ -22,7 +22,7 @@ function OfferSlideItem({
             fetchPriority={mykey < 2 ? "high" : "low"}
             priority={mykey < 2}
             style={{ borderRadius: "15px" }}
-            className="OfferImage"
+            className="OfferImage object-cover"
             src={offerPhoto?.file_path.replace(
               "/upload",
               `/upload/h_342/f_avif/q_auto`

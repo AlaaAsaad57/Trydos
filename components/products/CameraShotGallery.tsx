@@ -101,15 +101,16 @@ function CameraShotGallery({ images, close }) {
           />
         </div>
         <span className="pl-12 regular text-[11px] text-[#C4C2C2]">
-          These Shots Are Made By Users Who Have Already Purchased And Received
-          The Product
+          {translateFunction(
+            "These Shots Are Made By Users Who Have Already Purchased And Received The Product"
+          )}
         </span>
         <div
           className={`flex-row flex-wrap w-full h-auto mt-1 container-gallery ${
             extended ? "pl-[10px] pr-[10px]" : "pl-5 pr-5"
           } max-h-[100vh] pb-[200px] overflow-auto`}
         >
-          {images.map((s, index) => {
+          {images?.map((s, index) => {
             return (
               <GalleryItem
                 key={index}

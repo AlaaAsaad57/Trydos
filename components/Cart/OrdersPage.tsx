@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
-import { Sendevent, translateFunction } from "utils/functions";
+import { GetAppLanguage, Sendevent, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import ShippingAddressContainer from "./ShippingAddressContainer";
@@ -11,6 +11,10 @@ import { useDispatch, useSelector } from "node_modules/react-redux/es";
 import SelectRegion from "./SelectRegion";
 import AddressListContainer from "./AddressListContainer";
 import TrashIcon from "public/svg/cart/TrashIcon.svg";
+import order from "services/order";
+import PaymentMethod from "./PaymentMethod";
+import PlaceOrderWidget from "./PlaceOrderWidget";
+import PlaceOrderButtons from "./PlaceOrderButtons";
 const DeleteIcon = () => {
   return (
     <svg
@@ -41,7 +45,7 @@ const DeleteIcon = () => {
           id="Mask_Group_510"
           data-name="Mask Group 510"
           transform="translate(386 240)"
-          clip-path="url(#clip-path918)"
+          clipPath="url(#clip-path918)"
         >
           <g id="trash-can" transform="translate(2.023 0.386)">
             <path
@@ -127,6 +131,20 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
     }, 300);
   };
   const [deleteModal, setDeleteModal] = useState<any>(false);
+  const setOrderSuccess = (e) => {
+    setLoading(true);
+    setTimeout(() => {
+      dispatch({ type: "ORDER-DATA", payload: { success: true } });
+      setLoading(false);
+    }, 3000);
+  };
+  const setLoading = (e) => {
+    dispatch({ type: "ORDER-DATA", payload: { loading: e } });
+  };
+  const orderData = useSelector(
+    (state: StateInterface) => state.cart.orderData
+  );
+  const [nextStep, setNextStep] = useState(false);
   return (
     <div
       className={`pb-[10px]
@@ -150,6 +168,9 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
       )}
       <Swiper
         initialSlide={orderStep}
+        keyboard={{
+          enabled: false,
+        }}
         navigation={false}
         onInit={(swiper) => {
           ref.current = swiper;
@@ -158,9 +179,11 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
         draggable={false}
         className="w-full"
         slidesPerView={1}
-        wrapperClass="flex  h-[100vh]"
+        wrapperClass="flex  h-full"
       >
-        <SwiperSlide className="min-w-[100vw] h-[100vh] relative cart-widget">
+        <SwiperSlide
+          className={` min-w-[100vw] h-[100vh] relative cart-widget`}
+        >
           {AddressListsOpen && (
             <AddressListContainer
               Delete={(e) => {
@@ -174,7 +197,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
               }}
             />
           )}
-          <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
+          <div className="flex-col pl-2 pr-2 bg-[#fff] p-1 ">
             <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
               <BackIcon
                 className="cursor-pointer z-50"
@@ -208,7 +231,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                   <g
                     id="Mask_Group_380"
                     data-name="Mask Group 380"
-                    clip-path="url(#clip-path22)"
+                    clipPath="url(#clip-path22)"
                   >
                     <g
                       id="delivery_location"
@@ -282,63 +305,123 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
               <span />
             </div>
           </div>
-          <ShippingAddressContainer
-            openAddressList={(e) => {
-              openAddressList(e);
+          <div className="flex-col overflow-auto pb-[292px] max-h-full">
+            <ShippingAddressContainer
+              openAddressList={(e) => {
+                openAddressList(e);
+              }}
+              slideNext={() => {
+                ref.current.slideNext();
+              }}
+              slidePrev={() => {
+                ref.current.slidePrev();
+              }}
+            />
+            <PaymentMethod />
+          </div>
+          <OrderButtons
+            setNext={() => {
+              setNextStep(true);
+              setTimeout(() => {
+                ref.current.slideNext();
+              }, 600);
             }}
-            slideNext={() => {
-              ref.current.slideNext();
-            }}
-            slidePrev={() => {
-              ref.current.slidePrev();
-            }}
+            orderLoading={false}
           />
         </SwiperSlide>
-        <SwiperSlide className="min-w-[100vw] relative max-h-[100vh]  h-[100vh] cart-widget overflow-hidden pb-[100px]">
-          <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
-            <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
-              <BackIcon
-                className="cursor-pointer z-50"
-                onClick={() => {
-                  Sendevent({
-                    event: "button_clicked",
-                    value: "appbar_backicon_button",
-                  });
-                  ref.current.slidePrev();
-                }}
-              />
-              <span className="text-[13px] text-[#505050] regular flex-row items-center ">
-                <AddAddressIcon />
-                <span className="regular ml-[8px]">
-                  <>
-                    {addressDetails.id
-                      ? translate("Edit Shipping Address")
-                      : translate("Add Shipping Address")}
-                  </>
-                </span>
-              </span>
-              <span
-                onClick={() => {
-                  if (addressDetails.id) {
-                    setDeleteModal(addressDetails);
-                  }
-                }}
-              >
-                {addressDetails.id && <DeleteIcon />}
-              </span>
-            </div>
-          </div>
-          <AddAddressForm
-            setOpenSelect={() => {
-              setOpenSelect(true);
-            }}
-            slidePrev={() => {
-              ref.current.slidePrev();
-            }}
-            setAddressDetails={(e) => {
-              setAddressDetails(e);
-            }}
-          />
+        <SwiperSlide className="min-w-[100vw] relative max-h-[100vh]  h-[100vh] cart-widget overflow-hidden">
+          {({ isActive }) => (
+            <>
+              {nextStep ? (
+                <>
+                  <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
+                    {!orderData.success && (
+                      <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
+                        <BackIcon
+                          className="cursor-pointer z-50"
+                          onClick={() => {
+                            Sendevent({
+                              event: "button_clicked",
+                              value: "appbar_backicon_button",
+                            });
+                            ref.current.slidePrev();
+                          }}
+                        />
+                        <span className="text-[13px] text-[#505050] regular flex-row items-center ">
+                          <AddAddressIcon />
+                          <span className="regular ml-[8px]">
+                            <>
+                              {addressDetails.id
+                                ? translate("Edit Shipping Address")
+                                : translate("Add Shipping Address")}
+                            </>
+                          </span>
+                        </span>
+                        <span
+                          onClick={() => {
+                            if (addressDetails.id) {
+                              setDeleteModal(addressDetails);
+                            }
+                          }}
+                        >
+                          {addressDetails.id && <DeleteIcon />}
+                        </span>
+                      </div>
+                    )}
+                    <PlaceOrderWidget />
+                  </div>
+                  <PlaceOrderButtons
+                    orderLoading={false}
+                    successOrder={() => setOrderSuccess(true)}
+                  />
+                </>
+              ) : (
+                <>
+                  <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
+                    <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
+                      <BackIcon
+                        className="cursor-pointer z-50"
+                        onClick={() => {
+                          Sendevent({
+                            event: "button_clicked",
+                            value: "appbar_backicon_button",
+                          });
+                          ref.current.slidePrev();
+                        }}
+                      />
+                      <span className="text-[13px] text-[#505050] regular flex-row items-center ">
+                        <AddAddressIcon />
+                        <span className="regular ml-[8px]">
+                          <>{translateFunction("Shipping & Payment")}</>
+                        </span>
+                      </span>
+                      <span
+                        onClick={() => {
+                          if (addressDetails.id) {
+                            setDeleteModal(addressDetails);
+                          }
+                        }}
+                      >
+                        {addressDetails.id && <DeleteIcon />}
+                      </span>
+                    </div>
+                  </div>
+                  <AddAddressForm
+                    activeIndex={isActive}
+                    setOpenSelect={() => {
+                      setOpenSelect(true);
+                    }}
+                    slidePrev={() => {
+                      ref.current.slidePrev();
+                    }}
+                    setAddressDetails={(e) => {
+                      setAddressDetails(e);
+                    }}
+                  />
+                </>
+              )}
+            </>
+          )}
         </SwiperSlide>
       </Swiper>
     </div>
@@ -348,6 +431,32 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
 export default OrdersPage;
 const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
   const dispatch = useDispatch();
+  const GetAddressString = (location) => {
+    let str = "";
+    if (
+      location.province &&
+      location.province.length > 0 &&
+      location.province !== "null"
+    )
+      str += `${location.province}`;
+    if (location.city && location.city.length > 0 && location.city !== "null")
+      str += ` | ${location.city}`;
+    if (location.town && location.town.length > 0 && location.town !== "null")
+      str += ` | ${location.town}`;
+    if (
+      location.street &&
+      location.street.length > 0 &&
+      location.street !== "null"
+    )
+      str += ` | ${location.street}`;
+    if (
+      location.building &&
+      location.building.length > 0 &&
+      location.building !== "null"
+    )
+      str += ` | ${location.building}`;
+    return str;
+  };
   return (
     <>
       <div
@@ -357,7 +466,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
         }}
       />
       <div
-        className="flex-col h-full px-[24px] absolute z-[999999999]  justify-between"
+        className="flex-col w-full h-full px-[24px] absolute z-[999999999]  justify-between"
         style={{
           backdropFilter: "blur(7px) brightness(1.3)",
         }}
@@ -372,7 +481,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
             style={{
               border: "#D3D3D38c 1px solid",
             }}
-            className={`flex-col pl-[24px] relative  h-[90px] items-center justify-center  mt-[12px] rounded-[15px] bg-[#f8f8f800] w-full `}
+            className={`flex-col pl-[24px] relative h-auto max-w-[600px]  min-h-[90px] items-center justify-center  mt-[12px] rounded-[15px] bg-[#f8f8f800] w-full `}
           >
             <div className="flex-col">
               <div className="flex-row items-center">
@@ -391,11 +500,11 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
                 </svg>
 
                 <span className="regular ml-[4px] text-[12px] text-[#D3D3D3]">
-                  {deletedAddress.title}
+                  {deletedAddress.address}
                 </span>
               </div>
               <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#D3D3D3]">
-                {deletedAddress.region}
+                {GetAddressString(deletedAddress.region_details)}
               </div>
               <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#D3D3D3]">
                 <svg
@@ -421,7 +530,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
                     id="Mask_Group_646"
                     data-name="Mask Group 646"
                     transform="translate(0.245)"
-                    clip-path="url(#clip-path1213)"
+                    clipPath="url(#clip-path1213)"
                   >
                     <g id="XMLID_7_" transform="translate(0.202 0.583)">
                       <path
@@ -435,7 +544,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
                 </svg>
 
                 <div className="flex-row ml-[4px]   items-center regular text-[12px] text-[#D3D3D3]">
-                  {deletedAddress.ContactInfo.phone}
+                  {deletedAddress.contact_info.phone}
                 </div>
                 <div className="flex-row ml-[17px]  items-center">
                   <svg
@@ -459,7 +568,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
                     <g
                       id="Mask_Group_647"
                       data-name="Mask Group 647"
-                      clip-path="url(#clip-path232323)"
+                      clipPath="url(#clip-path232323)"
                     >
                       <g
                         id="Group_13"
@@ -492,18 +601,19 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
                   </svg>
 
                   <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#D3D3D3]">
-                    {deletedAddress.ContactInfo.name}
+                    {deletedAddress.contact_info.name}
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div className="flex-col w-full pb-[25px]">
+        <div className="flex-col w-full  delete-button-address">
           <div
             onClick={() => {
               slidePrev();
               closeModal();
+              order.DeleteAddressList({ address: deletedAddress.id });
               dispatch({ type: "DELETE-ADDRESS", payload: deletedAddress.id });
             }}
             className="w-full cursor-pointer flex justify-center items-center rounded-[15px] h-[50px] bg-[#F8F8F8] bold text-[16px] text-[#FF5F61]"
@@ -524,5 +634,80 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
         </div>
       </div>
     </>
+  );
+};
+const OrderButtons = ({ orderLoading, setNext }) => {
+  const cart = useSelector((state: StateInterface) => state.cart);
+  const currency_symbol = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  );
+  const dispatch = useDispatch();
+
+  const orderData = useSelector(
+    (state: StateInterface) => state.cart.orderData
+  );
+
+  const address = useSelector(
+    (state: StateInterface) => state.cart.addressLists
+  );
+  const shake = (v) => {
+    if (document.querySelector(`.${v}`)) {
+      document.querySelector(`.${v}`).scrollIntoView({ block: "end" });
+      document.querySelector(`.${v}`).classList.add("shake-anim");
+      setTimeout(() => {
+        document.querySelector(`.${v}`).classList.remove("shake-anim");
+      }, 1300);
+    }
+  };
+  const isValid = () => {
+    if (address && address[0]?.id && orderData.payment.length > 0) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+  const Validate = () => {
+    if (!address[0]?.id) {
+      shake("address-valid-border");
+    }
+    if (orderData.payment?.length === 0) {
+      shake("payment-valid-border");
+    }
+  };
+  return (
+    <div className="absolute flex-col items-center payment-order-bottom left-0 w-full">
+      <div
+        style={{
+          boxShadow: "0px -3px 20px #0000001a",
+        }}
+        className={` ${
+          orderLoading && "opacity-55"
+        }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
+      >
+        <div
+          onClick={() => {
+            Validate();
+            if (isValid() && !orderLoading) {
+              setNext();
+            }
+          }}
+          className={` ${
+            orderData.loading && "opacity-65 scale-95"
+          } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${
+            isValid() ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
+          } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
+        >
+          <span>{translateFunction("Confirm Shipping & Payment")}</span>
+          <span
+            className={`text-[#FEFEFE] text-[14px] medium ${
+              GetAppLanguage() === "ar" && "dir-rtl"
+            } `}
+          >
+            {cart.cart.length} {translateFunction("items")} {cart.total_cash}{" "}
+            {currency_symbol?.symbol}
+          </span>
+        </div>
+      </div>
+    </div>
   );
 };

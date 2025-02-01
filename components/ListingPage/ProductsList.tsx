@@ -109,7 +109,7 @@ function ProductsList({
             payload: { products },
           });
       },
-      storeCallback: () => { },
+      storeCallback: () => {},
       offset: offset,
       newFiltersCallback: ({ filtersVar }) => {
         dispatch({ type: "EDIT-FILTER", payload: filtersVar });
@@ -129,7 +129,12 @@ function ProductsList({
           ) : (
             <>
               <div
-                className={products.length === 0 ? "listing-container-empty" : "listing-container flex"}
+                className={
+                  products?.length === 0 &&
+                  Listing_Data_res?.body?.data?.products?.length === 0
+                    ? "listing-container-empty"
+                    : "listing-container flex pb-[350px] max-w-[1310px]"
+                }
                 onWheelCapture={() => {
                   if (!selectedFilter.filtered) GetNextPage();
                   else if (!loading && !isReachEnd) {
@@ -149,13 +154,15 @@ function ProductsList({
                   />
                 ))}
 
-                {products.length === 0 && !(Listing_Data_res?.body?.data?.products?.length > 0) && (
-                  <div className="flex p-3 h-10 justify-center items-center light text-[#5d5d5d] text-[14px]">
-                    {translate("No Results Found")}
-                  </div>
-                )}
+                {products.length === 0 &&
+                  !(Listing_Data_res?.body?.data?.products?.length > 0) && (
+                    <div className="flex p-3 h-10 justify-center items-center light text-[#5d5d5d] text-[14px]">
+                      {translate("No Results Found")}
+                    </div>
+                  )}
               </div>
-              {(products.length > 0 || Listing_Data_res?.body?.data?.products?.length > 0) && (
+              {(products.length > 0 ||
+                Listing_Data_res?.body?.data?.products?.length > 0) && (
                 <div className="get-next-product regular-text color-dark-gray">
                   {!isReachEnd ? (
                     <>

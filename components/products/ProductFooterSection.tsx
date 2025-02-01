@@ -18,6 +18,7 @@ import chat from "services/chat";
 import home from "services/home";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { useParams } from "next/navigation";
+import { LikesSharesCommentsApi, ProductViews, SharesCount } from "models/Api";
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
     return {
@@ -105,9 +106,9 @@ function ProductFooterSection({ product }) {
   const [sharedContacts, setShareContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const getData = async () => {
-    await home.CheckLogin();
+    // await home.CheckLogin();
     try {
-      let req = await AxiosGet({
+      let req: LikesSharesCommentsApi = await AxiosGet({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
           "/web/product/likesCommentsSharesDetails/" +
@@ -126,25 +127,6 @@ function ProductFooterSection({ product }) {
         },
       });
 
-      const viewsReq = await AxiosPost({
-        url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + `/api/products/view`,
-        title: "get Views For Product",
-        body: {
-          user_id: UserID(),
-          product_id: product.id,
-        },
-      });
-      let reqShares = await AxiosGet({
-        url:
-          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-          `/api/v2/elastic/shared_count/${product.id}`,
-        title: "Share Count Request",
-      });
-
-      dispatchStore({
-        type: "shares",
-        payload: reqShares.shared_count,
-      });
       // @ts-ignore
       let likesNum = req?.count_of_likes || 0;
       // @ts-ignore
@@ -173,11 +155,35 @@ function ProductFooterSection({ product }) {
           variation: arr,
           likes: likesNum,
           is_liked: isLiked,
+        },
+      });
+      setLoading(false);
+      // @ts-ignore
+      let reqShares: SharesCount = await AxiosGet({
+        url:
+          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+          `/api/v2/elastic/shared_count/${product.id}`,
+        title: "Share Count Request",
+      });
+
+      dispatchStore({
+        type: "shares",
+        payload: reqShares.shared_count,
+      });
+      const viewsReq: ProductViews = await AxiosPost({
+        url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + `/api/products/view`,
+        title: "get Views For Product",
+        body: {
+          user_id: UserID(),
+          product_id: product.id,
+        },
+      });
+      dispatchStore({
+        type: "VIEWS-PRODUCTS",
+        payload: {
           views_count: viewsReq?.view_count || 0,
         },
       });
-      // @ts-ignore
-
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -244,7 +250,7 @@ function ProductFooterSection({ product }) {
           <ProductDetails />
           <ProductInfo
             currency={currency?.symbol}
-            newPrice={getPrice(product.offer_price)}
+            newPrice={getPrice(product?.offer_price)}
             oldPrice={getPrice(product.price)}
           />
           {

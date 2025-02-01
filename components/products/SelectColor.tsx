@@ -1,8 +1,8 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { EffectCoverflow } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { Swiper, SwiperRef, SwiperSlide } from "swiper/react";
 import CartIcon from "public/svg/CartIcon.svg";
 
 import { getConfiguredImage, Sendevent } from "utils/functions";
@@ -61,7 +61,14 @@ function SelectColor({ close }) {
         >
           <BackIcon />
         </div>
-        <span className="relative">
+        <span
+          className="relative"
+          onClick={() => {
+            dispatch({ type: "AddToCartOptionDisable", payload: false });
+            close();
+            enableCart(true);
+          }}
+        >
           {cart?.length > 0 && (
             <span className="bg-green-500 right-[-8px] top-[-4px] text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
               {cart.length}
@@ -69,13 +76,8 @@ function SelectColor({ close }) {
           )}
           <CartIcon
             id="cart-icon"
-            data-cy="CartIcon_Productpage"
             className="cart-icon"
-            onClick={() => {
-              dispatch({ type: "AddToCartOptionDisable", payload: false });
-              close();
-              enableCart(true);
-            }}
+            data-cy="CartIcon_Productpage"
           />
         </span>
       </div>
@@ -125,7 +127,9 @@ function SelectColor({ close }) {
                 (SelectedProduct?.images && SelectedProduct?.images[0]),
             })}
             alt="add to cart icon"
-            className={"h-full object-top rounded-[15px] moved-img "}
+            className={
+              "min-h-[80px] h-full object-top rounded-[15px] moved-img "
+            }
           />
         </div>
         {SelectedProduct?.sync_color_images && (
@@ -174,6 +178,7 @@ export const SelectColorsSlider = ({ colors }) => {
 
     return 0;
   };
+  const ref = useRef<SwiperRef>();
   return (
     <Swiper
       modules={[EffectCoverflow]}
@@ -200,9 +205,14 @@ export const SelectColorsSlider = ({ colors }) => {
       threshold={1}
       centeredSlides={true}
       loop={false}
+      ref={ref}
     >
       {colors?.map((color, i) => (
         <SwiperSlide
+          onClick={() => {
+            ref.current.swiper.slideTo(i, 400, false);
+            setActive(color);
+          }}
           key={i}
           style={{
             overflow: "visible",
