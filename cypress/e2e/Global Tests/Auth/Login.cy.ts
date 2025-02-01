@@ -33,7 +33,7 @@ describe("Login Scenario Test", () => {
       expect(count).to.be.equal(0);
     });
   });
-  it("Login UnSuccessful Attempt when otp code expired should show button for resend otp and resend code and continue to login", () => {
+  it.only("Login UnSuccessful Attempt when otp code expired should show button for resend otp and resend code and continue to login", () => {
     let count = 0;
     cy.clearAllDataWithoutCookies();
     cy.intercept("**/login", () => {

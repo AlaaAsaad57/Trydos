@@ -47,6 +47,10 @@ declare global {
       interceptAndWait(
         routes: { method?: string; url: string; alias: string }[]
       ): Chainable<void>;
+      clickElementScroll(selector: string): Chainable<Element>;
+      clickElementForce(selector: string): Chainable<Element>;
+      getProductNameFirstly(selector?: string): Chainable<string>;
+      verifyProductInCart(productName: string): Chainable<void>;
     }
   }
 }

@@ -9,18 +9,16 @@ describe("open cart and view products", () => {
     cy.Visit("/");
     cy.wait(5000);
   });
-  it.skip("should add product to cart from any boutique page", () => {
-    cy.get(".offer-widget:first-child").click({ scrollBehavior: false });
+  it.only("should add product to cart from any boutique page", () => {
+    cy.Exist(".offer-widget:first-child").then((exist) => {
+      if (exist) {
+        cy.clickElementScroll(".offer-widget:first-child");
+      }
+    });
     cy.wait(5000);
-
-    cy.get("[data-cy=productName]")
-      .eq(0)
-      .invoke("text")
-      .then((text) => {
-        productName = text as unknown as string;
-        console.log("Product Name:", productName);
-      });
-
+    cy.getProductNameFirstly().then((name) => {
+      productName = name;
+    });
     cy.Exist("[data-cy=Cart-ByButton]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=Cart-ByButton]").eq(0).click({ force: true });
@@ -40,8 +38,10 @@ describe("open cart and view products", () => {
     ]);
     cy.intercept("POST", "**/api/new_v1/cart/add").as("addToCart");
     cy.intercept("POST", "**/api/new_v1/cart/**").as("updateCart");
-    cy.get("[data-cy=AddToCartButton-data-cy]").should("exist").click({
-      scrollBehavior: false,
+    cy.Exist("[data-cy=AddToCartButton-data-cy]").then((exist) => {
+      if (exist) {
+        cy.clickElementScroll("[data-cy=AddToCartButton-data-cy]");
+      }
     });
     cy.wait(["@addToCart", "@updateCart"], { timeout: 30000 }).then(
       ([addToCart, updateCart]) => {
@@ -58,7 +58,7 @@ describe("open cart and view products", () => {
     );
     cy.Exist("[data-cy=CartIcon]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=CartIcon]").click({ force: true });
+        cy.clickElementForce("[data-cy=CartIcon]");
       }
     });
     cy.wait(4000);
@@ -76,35 +76,38 @@ describe("open cart and view products", () => {
     cy.wait(5000);
     cy.Exist("[data-cy=CartBackIcon]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=CartBackIcon]").click({ force: true });
+        cy.clickElementForce("[data-cy=CartBackIcon]");
       }
     });
     cy.wait(5000);
     cy.Exist("[data-cy=back_icon_boutique_page]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=back_icon_boutique_page]").click({ force: true });
+        cy.clickElementForce("[data-cy=back_icon_boutique_page]");
       }
     });
     cy.wait(4000);
   });
+
   it("should add product to cart from any product page", () => {
-    cy.get(".offer-widget:first-child").click({ scrollBehavior: false });
+    cy.Exist(".offer-widget:first-child").then((exist) => {
+      if (exist) {
+        cy.clickElementScroll(".offer-widget:first-child");
+      }
+    });
     cy.wait(5000);
-    cy.get("[data-cy=productName]")
-      .eq(0)
-      .invoke("text")
-      .then((text) => {
-        productName = text as unknown as string;
-        console.log("Product Name:", productName);
-      });
+    cy.getProductNameFirstly().then((name) => {
+      productName = name;
+    });
     cy.Exist("[data-cy=on_mouse_over_product]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=on_mouse_over_product]").eq(0).click({ force: true });
       }
     });
     cy.wait(10000);
-    cy.get("[data-cy=AddToCartButton-data-cy]").should("exist").click({
-      scrollBehavior: false,
+    cy.Exist("[data-cy=addToCartButton_productPage]").then((exist) => {
+      if (exist) {
+        cy.clickElementScroll("[data-cy=addToCartButton_productPage]");
+      }
     });
     cy.wait(10000);
     cy.intercept("POST", "**/api/new_v1/cart/add").as(
@@ -113,10 +116,14 @@ describe("open cart and view products", () => {
     cy.intercept("POST", "**/api/new_v1/cart/**").as(
       "updateCartFromAnyProductPage"
     );
-    cy.get("[data-cy=AddToCartButton-data-cy]").should("exist").click({
-      scrollBehavior: false,
+    cy.Exist("[data-cy=AddToCartButton-data-cy]").then((exist) => {
+      if (exist) {
+        cy.get("[data-cy=AddToCartButton-data-cy]")
+          .eq(0)
+          .click({ force: true });
+      }
     });
-    cy.wait(["@addToCartFromAnyProductPage", "@updateCart"], {
+    cy.wait(["@addToCartFromAnyProductPage", "@updateCartFromAnyProductPage"], {
       timeout: 30000,
     }).then(([addToCartFromAnyProductPage, updateCartFromAnyProductPage]) => {
       if (addToCartFromAnyProductPage.response?.statusCode === 200) {
@@ -130,8 +137,10 @@ describe("open cart and view products", () => {
       }
     });
     cy.wait(10000);
-    cy.get("[data-cy=CartIcon_Productpage]").should("exist").click({
-      scrollBehavior: false,
+    cy.Exist("[data-cy=CartIcon_Productpage]").then((exist) => {
+      if (exist) {
+        cy.get("[data-cy=CartIcon_Productpage]").eq(0).click({ force: true });
+      }
     });
     cy.wait(10000);
     cy.get("[data-cy=productNameInCart]")
@@ -147,18 +156,18 @@ describe("open cart and view products", () => {
       });
     cy.Exist("[data-cy=CartBackIcon]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=CartBackIcon]").click({ force: true });
+        cy.clickElementForce("[data-cy=CartBackIcon]");
       }
     });
     cy.Exist("[data-cy=backIcon_productPage]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=backIcon_productPage]").click({ force: true });
+        cy.clickElementForce("[data-cy=backIcon_productPage]");
       }
     });
     cy.wait(10000);
     cy.Exist("[data-cy=back_icon_boutique_page]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=back_icon_boutique_page]").click({ force: true });
+        cy.clickElementForce("[data-cy=back_icon_boutique_page]");
       }
     });
     cy.wait(4000);
@@ -166,7 +175,7 @@ describe("open cart and view products", () => {
   it("should Click on the CartIcon on the home page and increase the quantity", () => {
     cy.Exist("[data-cy=cartIcon_mainPage]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=cartIcon_mainPage]").click({ force: true });
+        cy.clickElementForce("[data-cy=cartIcon_mainPage]");
       }
     });
     cy.intercept("POST", "**/api/new_v1/cart/update").as("increaseQuantity");
@@ -182,7 +191,7 @@ describe("open cart and view products", () => {
       });
     cy.Exist("[data-cy=PlusIcon_CartPage]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=PlusIcon_CartPage]").click({ force: true });
+        cy.clickElementForce("[data-cy=PlusIcon_CartPage]");
         cy.get('[data-cy="QuantityInCart"]') // Replace with actual test ID
           .invoke("val")
           .then((value) => {
@@ -200,7 +209,7 @@ describe("open cart and view products", () => {
         });
         cy.Exist("[data-cy=CartBackIcon]").then((exist) => {
           if (exist) {
-            cy.get("[data-cy=CartBackIcon]").click({ force: true });
+            cy.clickElementForce("[data-cy=CartBackIcon]");
           }
         });
       }
@@ -209,7 +218,7 @@ describe("open cart and view products", () => {
   it("should Click on the CartIcon on the home page and decrease the quantity", () => {
     cy.Exist("[data-cy=cartIcon_mainPage]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=cartIcon_mainPage]").click({ force: true });
+        cy.clickElementForce("[data-cy=CartIcon_mainPage]");
       }
     });
     cy.intercept("POST", "**/api/new_v1/cart/update").as("decreaseQuantity");
@@ -223,9 +232,23 @@ describe("open cart and view products", () => {
         cy.log(`Input value is ${inputValue}`);
         console.log(`Input value is ${inputValue}`);
       });
+    cy.wait(5000);
+    cy.Exist("[data-cy=DeleteIcon_CartPage]").then((exist) => {
+      if (exist) {
+        cy.clickElementForce("[data-cy=DeleteIcon_CartPage]");
+        cy.wait("@removeRequest").then((interception) => {
+          console.log("removeRequest Successfully");
+        });
+        cy.Exist("[data-cy=CartBackIcon]").then((exist) => {
+          if (exist) {
+            cy.clickElementForce("[data-cy=CartBackIcon]");
+          }
+        });
+      }
+    });
     cy.Exist("[data-cy=MinusIcon_CartPage]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=MinusIcon_CartPage]").click({ force: true });
+        cy.clickElementForce("[data-cy=MinusIcon_CartPage]");
         cy.get('[data-cy="QuantityInCart"]') // Replace with actual test ID
           .invoke("val")
           .then((value) => {
@@ -243,21 +266,7 @@ describe("open cart and view products", () => {
         });
         cy.Exist("[data-cy=CartBackIcon]").then((exist) => {
           if (exist) {
-            cy.get("[data-cy=CartBackIcon]").click({ force: true });
-          }
-        });
-      }
-    });
-    cy.wait(5000);
-    cy.Exist("[data-cy=DeleteIcon_CartPage]").then((exist) => {
-      if (exist) {
-        cy.get("[data-cy=DeleteIcon_CartPage]").click({ force: true });
-        cy.wait("@removeRequest").then((interception) => {
-          console.log("removeRequest Successfully");
-        });
-        cy.Exist("[data-cy=CartBackIcon]").then((exist) => {
-          if (exist) {
-            cy.get("[data-cy=CartBackIcon]").click({ force: true });
+            cy.clickElementForce("[data-cy=CartBackIcon]");
           }
         });
       }

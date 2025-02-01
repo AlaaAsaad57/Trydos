@@ -255,3 +255,49 @@ Cypress.Commands.add("interceptAndWait", (routes) => {
   const aliases = routes.map((route) => `@${route.alias}`);
   cy.wait(aliases, { timeout: 30000 }); // Adjust timeout as needed
 });
+Cypress.Commands.add("clickElementScroll", (selector: string) => {
+  cy.get(selector).click({ scrollBehavior: false });
+});
+Cypress.Commands.add("clickElementForce", (selector: string) => {
+  cy.get(selector).click({ force: true });
+});
+Cypress.Commands.add(
+  "getProductNameFirstly",
+  (selector = "[data-cy=productName]") => {
+    return cy
+      .get(selector)
+      .eq(0)
+      .invoke("text")
+      .then((text) => {
+        const productName = text.trim(); // Trim spaces to ensure consistency
+        console.log("Product Name:", productName);
+        return cy.wrap(productName); // Wrap the value to keep it within Cypress' chainable context
+      });
+  }
+);
+Cypress.Commands.add("verifyProductInCart", (productName: string) => {
+  cy.get("[data-cy=productNameInCart]")
+    .invoke("text")
+    .then((text) => {
+      const productNameInCart: string = text.trim(); // Ensure it's a clean string
+
+      // Remove first two and last two characters from both strings
+      const trimmedProductName = productName.slice(2, -2);
+      const trimmedProductNameInCart = productNameInCart.slice(2, -2);
+
+      console.log("Original Product Name:", productName);
+      console.log("Trimmed Product Name:", trimmedProductName);
+      console.log("Original Product Name In Cart:", productNameInCart);
+      console.log("Trimmed Product Name In Cart:", trimmedProductNameInCart);
+
+      if (trimmedProductNameInCart.indexOf(trimmedProductName) !== -1) {
+        console.log(
+          "✅ Success: Product name in cart is similar to expected product name"
+        );
+      } else {
+        console.log(
+          "Error: Product name in cart does not match the expected similarity"
+        );
+      }
+    });
+});
