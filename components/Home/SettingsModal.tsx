@@ -50,7 +50,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         process.env.NEXT_PUBLIC_BACKEND_URL +
                         "/firebase_device_tokens/unsubscribe_topic",
                     body: {
-                        topic
+                        topic: topic.replace(/_[a-z]{2}_[a-z]{2}$/, "")
                     },
                     title: "store firebase unsubscribe topic",
                 });
@@ -81,7 +81,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         process.env.NEXT_PUBLIC_BACKEND_URL +
                         "/firebase_device_tokens/subscribe_topic",
                     body: {
-                        topic
+                        topic: topic.replace(/_[a-z]{2}_[a-z]{2}$/, "")
                     },
                     title: "store firebase topic",
                 });
