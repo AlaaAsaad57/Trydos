@@ -38,11 +38,6 @@ img {
     display: flex;
   }
 
-  .search-container {
-    height: calc(100vh - 80px) !important;
-    top: 80px !important;
-  }
-
   .active-serach .search-component-container {
     width: 100%;
   }
