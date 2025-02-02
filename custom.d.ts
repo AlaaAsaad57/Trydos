@@ -2,6 +2,29 @@ declare global {
   interface StateInterface {
     homepage: {
       language: string;
+      countries: Array<{
+        id: number;
+        parent_id: number;
+        position: number;
+        iso: string;
+        name: any;
+        nicename: string;
+        iso3: string;
+        numcode?: number;
+        phonecode: number;
+        flat_photo_path: any;
+        outline_photo_path: any;
+        flag_photo_path: any;
+        map_photo_path: any;
+        status: number;
+        isAccess: number;
+        otp_by_whatsapp: number;
+        otp_by_sms: number;
+        created_at: any;
+        updated_at: string;
+        longitude: string;
+        latitude: string;
+      }>;
       loading: boolean;
       showMessage: boolean;
       loadingStories: boolean;
@@ -826,9 +849,44 @@ declare global {
       cart: Array<any>;
       center: any;
       enable: boolean;
+      wallet: {
+        limit: number;
+        offset: number;
+        total_wallet_balance: number;
+        total_wallet_balance_formatted: string;
+        total_wallet_transaction: number;
+        wallet_transaction_list: Array<{
+          id: number;
+          user_id: number;
+          order_id: any;
+          transaction_id: number;
+          credit: number;
+          debit: number;
+          admin_bonus: number;
+          balance: number;
+          transaction_type: string;
+          reference: string;
+          payment_method_customer: any;
+          returned_to_credit_cart: number;
+          created_at: string;
+          updated_at: string;
+          deleted_at: any;
+          return_request_id: any;
+          destination_id: any;
+          converted_wallet_transaction_id: any;
+          status_payment: string;
+          credit_formatted: string;
+          debit_formatted: string;
+          balance_formatted: string;
+          destination_name: string;
+        }>;
+      };
       orderData: {
         agree: boolean;
-        payment: string;
+        payment: Array<{
+          id: number;
+          balance: number;
+        }>;
         coupon: boolean;
         coupon_number: string;
         loading: boolean;

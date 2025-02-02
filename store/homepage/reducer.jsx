@@ -19,10 +19,17 @@ const initialState = {
   activeRoute: "/",
   showMessage: false,
   currency: null,
+  countries: [],
 };
 
 const HomeReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "COUNTRIES-DATA": {
+      return {
+        ...state,
+        countries: payload,
+      };
+    }
     case "CURRENCY": {
       return {
         ...state,

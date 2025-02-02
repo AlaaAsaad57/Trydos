@@ -1,9 +1,40 @@
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { _isStoreLastJson, getLang } from "utils/functions";
 import { store } from "store";
-import { GetAddressListApi } from "models/Api";
+import { GetAddressListApi, GetWalletApi, PlaceOrderApi } from "models/Api";
 
 class OrderService {
+  async PlaceOrder() {
+    let addressId = store.getState().cart.addressLists[0]?.id;
+    try {
+      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      let data: PlaceOrderApi = await AxiosGet({
+        url:
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+          `/customer/order/wallet-pay?order_note=order note&address_id=${addressId}`,
+        title: "pay Wallet",
+      });
+      store.dispatch({ type: "ORDER-SUCCESS", payload: data });
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
+    } catch (error) {
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
+    }
+  }
+  async GetWallet() {
+    try {
+      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      let data: GetWalletApi = await AxiosGet({
+        url:
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+          "/customer/wallet/list?limit=10&offset=1",
+        title: "Get Wallet",
+      });
+      store.dispatch({ type: "WALLET-USER", payload: data });
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
+    } catch (error) {
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
+    }
+  }
   async GetAddressList() {
     try {
       store.dispatch({ type: "ORDER-LOADING", payload: true });

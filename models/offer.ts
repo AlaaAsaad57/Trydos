@@ -29,7 +29,9 @@ export interface Boutique {
     slug: string;
     name: string;
     most_viewed_product_name: string;
-    most_viewed_product_thumbnail: string;
+    most_viewed_product_thumbnail: {
+      file_path: string;
+    };
     num_available_product: number;
   }>;
 }

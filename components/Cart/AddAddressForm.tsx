@@ -20,6 +20,7 @@ function AddAddressForm({
   setOpenSelect,
   activeIndex,
 }) {
+  const { lang } = useParams();
   const [expanded, setExpanded] = useState(false);
   const dispatch = useDispatch();
   const center = useSelector((state: StateInterface) => state.cart.center);
@@ -32,10 +33,22 @@ function AddAddressForm({
   const addressDetails = useSelector(
     (state: StateInterface) => state.cart.addressDetails
   );
+  const countries = useSelector(
+    (state: StateInterface) => state.homepage.countries
+  );
   const getCenter = async () => {
-    let ipData: IpDataApi = await axios.get("http://ip-api.com/json");
+    // to do
+    // let ipData: IpDataApi = await axios.get("http://ip-api.com/json");
+    // @ts-ignore
+    let UserCountries = countries.filter(
+      // @ts-ignore
 
-    setCenter({ lat: ipData.data?.lat, lng: ipData.data?.lon });
+      (s) => s.iso.toLowerCase() === lang.split("-")[0].toLowerCase()
+    )[0];
+    setCenter({
+      lat: parseFloat(UserCountries.latitude),
+      lng: parseFloat(UserCountries.longitude),
+    });
   };
   const isValid = () => {
     let valid = false;

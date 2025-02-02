@@ -1,6 +1,11 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
-import { GetAppLanguage, getUser, translateFunction } from "utils/functions";
+import {
+  GetAppLanguage,
+  getCart,
+  getUser,
+  translateFunction,
+} from "utils/functions";
 import ConfirmMobile from "./ConfirmMobile";
 import { useParams } from "next/navigation";
 import { useSwipeable } from "react-swipeable";
@@ -16,6 +21,7 @@ function OrderButton({ close, toOrders }) {
     return translateFunction(key, languageVariable);
   };
   const [expanded, setExpanded] = useState(false);
+  const [loading, setLoading] = useState(false);
   const cart = useSelector((state: StateInterface) => state.cart);
   const [option, setOption] = useState(false);
   const currency_symbol = useSelector(
@@ -102,6 +108,7 @@ function OrderButton({ close, toOrders }) {
       </svg>
     );
   };
+  const user = useSelector((state: StateInterface) => state.auth.user);
 
   const MenuIcon = ({ className }) => {
     return (
@@ -131,6 +138,24 @@ function OrderButton({ close, toOrders }) {
       ((cart.total_discount_on_product / cart.sub_total) * 100).toString()
     );
     return a;
+  };
+  const dispatch = useDispatch();
+  const GoToOrders = async () => {
+    try {
+      setLoading(true);
+      await getCart({
+        callback: ([data, res]) => {
+          dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+        },
+      });
+      if (user) toOrders();
+      else {
+        setOption(true);
+      }
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+    }
   };
   const handlers = useSwipeable({
     onSwipedDown: (e) => {
@@ -352,7 +377,9 @@ function OrderButton({ close, toOrders }) {
           }}
         >
           <div
-            className={`cursor-pointer  flex-col w-full  ${
+            className={`${
+              loading && "opacity-55"
+            } cursor-pointer  flex-col w-full  ${
               option ? "h-[200px]" : "bg-[#3C3C3C] h-[70px]"
             } rounded-[20px] text-center justify-center items-center`}
             style={{
@@ -366,7 +393,7 @@ function OrderButton({ close, toOrders }) {
                 if (!getUser()) {
                   setOption(true);
                 } else {
-                  toOrders();
+                  GoToOrders();
                 }
               }
             }}

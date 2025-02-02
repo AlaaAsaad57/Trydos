@@ -63,7 +63,7 @@ function SendMethod({
       },
       errorCallback: function (e) {
         setLoading(false);
-        setStepIndicator(3);
+        setStepIndicator(4);
       },
     });
   };
