@@ -128,7 +128,7 @@ function MoreOptionsSection() {
                   .split("/")[1]
                   .split("-")[0];
                 await home.subscribeToTopic({
-                  topic: `before_stock_out_${SelectedProduct.id}`,
+                  topic: `product_before_stock_out_${SelectedProduct.id}`,
                 });
               }}
             >
@@ -142,7 +142,7 @@ function MoreOptionsSection() {
                 .split("/")[1]
                 .split("-")[0];
               await home.subscribeToTopic({
-                topic: `change_in_price_${SelectedProduct.id}`,
+                topic: `product_when_change_in_price_${SelectedProduct.id}`,
               });
             }}>
               {translate("Change In Price", language)}

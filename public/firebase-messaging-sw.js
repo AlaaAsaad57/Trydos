@@ -110,6 +110,32 @@ messaging.onBackgroundMessage(async function (payload) {
           notificationOptions
         );
       }
+      if (JSON.parse(payload.data.body).type === "product before stock out") {
+        notificationOptions = {
+          body: JSON.parse(payload.data.body)?.description,
+          image: JSON.parse(payload.data.body).image,
+          data: {
+            url: url + `products/${JSON.parse(payload.data.body).product_slug}`,
+          }, // The URL which we are going to use later
+        };
+        self.registration.showNotification(
+          JSON.parse(payload?.data.body)?.showed_type ?? JSON.parse(payload.data.body).description,
+          notificationOptions
+        );
+      }
+      if (JSON.parse(payload.data.body).type === "product when change in price") {
+        notificationOptions = {
+          body: JSON.parse(payload.data.body)?.description,
+          image: JSON.parse(payload.data.body).image,
+          data: {
+            url: url + `products/${JSON.parse(payload.data.body).product_slug}`,
+          }, // The URL which we are going to use later
+        };
+        self.registration.showNotification(
+          JSON.parse(payload?.data.body)?.showed_type ?? JSON.parse(payload.data.body).description,
+          notificationOptions
+        );
+      }
     } else if (payload.data.message) {
       const notificationTitle = JSON.parse(payload.data.message).sender_user
         .name;

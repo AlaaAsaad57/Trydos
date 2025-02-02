@@ -662,9 +662,8 @@ class HomeService {
 
   async subscribeToTopic({ topic }: { topic: string }) {
     let token = localStorage.getItem("FB-DEVICE-TOKEN");
-    const { subscribed_topics } = store.getState().auth.firebaseSettings
 
-    if (token && !subscribed_topics.includes(topic)) {
+    if (token) {
       AxiosPost({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
