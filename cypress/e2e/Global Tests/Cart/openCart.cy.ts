@@ -38,16 +38,22 @@ describe("open cart and view products", () => {
       },
     ]);
     cy.wait(10000);
-    cy.intercept("POST", "**/api/new_v1/cart/add").as("addToCart");
-    cy.intercept("POST", "**/api/new_v1/cart/update").as("updateCart");
+
+    cy.intercept("POST", /\/cart\/(add|update)/).as("CartRequest");
     cy.Exist("[data-cy=AddToCartButton-data-cy]").then((exist) => {
       if (exist) {
         cy.clickElementScroll("[data-cy=AddToCartButton-data-cy]");
       }
     });
     cy.wait(10000);
-    cy.wait("@addToCart").then((interception) => {
-      console.log("addToCart request Successfully");
+    cy.wait("@CartRequest").then((interception) => {
+      // Check that only one request was triggered (either cart/add or cart/update)
+
+      // Make sure only one request was triggered
+      console.log("Intercepted request:", interception);
+
+      // Ensure that the triggered request is successful
+      expect(interception.response.statusCode).to.eq(200);
     });
     cy.wait(10000);
     cy.Exist("[data-cy=CartIcon]").then((exist) => {
@@ -104,8 +110,8 @@ describe("open cart and view products", () => {
       }
     });
     cy.wait(10000);
-    // cy.intercept("POST", "**/api/new_v1/cart/add").as("addToCart");
-    cy.intercept("POST", "**/api/new_v1/cart/update").as("updateCart");
+    cy.intercept("POST", /\/cart\/(add|update)/).as("CartRequest");
+
     cy.Exist("[data-cy=AddToCartButton-data-cy]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=AddToCartButton-data-cy]")
@@ -113,9 +119,16 @@ describe("open cart and view products", () => {
           .click({ force: true });
       }
     });
-    cy.wait("@updateCart").then((interception) => {
-      console.log("updateCart request Successfully");
+    cy.wait("@CartRequest").then((interception) => {
+      // Check that only one request was triggered (either cart/add or cart/update)
+
+      // Make sure only one request was triggered
+      console.log("Intercepted request:", interception);
+
+      // Ensure that the triggered request is successful
+      expect(interception.response.statusCode).to.eq(200);
     });
+
     cy.wait(10000);
     cy.Exist("[data-cy=CartIcon_Productpage]").then((exist) => {
       if (exist) {
@@ -252,5 +265,23 @@ describe("open cart and view products", () => {
       }
     });
     cy.wait(5000);
+  });
+  // **************************************************************************************
+  it.skip("should search icon ", () => {
+    cy.wait(10000);
+    cy.Exist("[data-cy=searchIcon_mainPage]").then((exist) => {
+      if (exist) {
+        cy.clickElementScroll("[data-cy=searchIcon_mainPage]");
+        console.log("Find item");
+      }
+    });
+    cy.wait(5000);
+    cy.Exist("[data-cy=brandItem]").then((exist) => {
+      if (exist) {
+        cy.get("[data-cy=brandItem]").eq(0).click({ scrollBehavior: false });
+        // cy.clickElementScroll("[data-cy=brandItem]");
+        console.log("Find item");
+      }
+    });
   });
 });

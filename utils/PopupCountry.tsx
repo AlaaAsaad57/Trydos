@@ -29,7 +29,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
       await Cookies.set("lang", localization.language, {
         expires: 365,
       });
-      await Cookies.set("country", e, {
+      await Cookies.set("country", e?.toLowerCase(), {
         expires: 365,
       });
     }
