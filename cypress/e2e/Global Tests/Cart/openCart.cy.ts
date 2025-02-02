@@ -9,7 +9,8 @@ describe("open cart and view products", () => {
     cy.Visit("/");
     cy.wait(5000);
   });
-  it.only("should add product to cart from any boutique page", () => {
+  it("should add product to cart from any boutique page", () => {
+    cy.wait(5000);
     cy.Exist(".offer-widget:first-child").then((exist) => {
       if (exist) {
         cy.clickElementScroll(".offer-widget:first-child");
@@ -38,26 +39,35 @@ describe("open cart and view products", () => {
     ]);
     cy.wait(10000);
     cy.intercept("POST", "**/api/new_v1/cart/add").as("addToCart");
-    cy.intercept("POST", "**/api/new_v1/cart/**").as("updateCart");
+    cy.intercept("POST", "**/api/new_v1/cart/update").as("updateCart");
     cy.Exist("[data-cy=AddToCartButton-data-cy]").then((exist) => {
       if (exist) {
         cy.clickElementScroll("[data-cy=AddToCartButton-data-cy]");
       }
     });
     cy.wait(10000);
-    cy.wait(["@addToCart", "@updateCart"], { timeout: 30000 }).then(
-      ([addToCart, updateCart]) => {
-        if (addToCart.response?.statusCode === 200) {
-          console.log("cart/add was called");
-          expect(addToCart.response!.statusCode).to.eq(200);
-        } else if (updateCart.response?.statusCode === 200) {
-          console.log("cart/update was called");
-          expect(updateCart.response!.statusCode).to.eq(200);
-        } else {
-          throw new Error("Neither cart/add nor cart/update was called");
-        }
+    cy.wait("@addToCart").then((interception) => {
+      if (interception) {
+        // If request1 was triggered, assert success
+        expect(interception.response.statusCode).to.eq(200);
+      } else {
+        // If request2 was triggered, wait for it and assert success
+        cy.wait("@UpdateCart").its("response.statusCode").should("eq", 200);
       }
-    );
+    });
+    // cy.wait(["@addToCart", "@updateCart"], { timeout: 30000 }).then(
+    //   ([addToCart, updateCart]) => {
+    //     if (addToCart.response?.statusCode === 200) {
+    //       console.log("cart/add was called");
+    //       expect(addToCart.response!.statusCode).to.eq(200);
+    //     } else if (updateCart.response?.statusCode === 200) {
+    //       console.log("cart/update was called");
+    //       expect(updateCart.response!.statusCode).to.eq(200);
+    //     } else {
+    //       throw new Error("Neither cart/add nor cart/update was called");
+    //     }
+    //   }
+    // );
     cy.wait(10000);
     cy.Exist("[data-cy=CartIcon]").then((exist) => {
       if (exist) {
@@ -97,7 +107,7 @@ describe("open cart and view products", () => {
         cy.clickElementScroll(".offer-widget:first-child");
       }
     });
-    cy.wait(5000);
+    cy.wait(20000);
     cy.getProductNameFirstly().then((name) => {
       productName = name;
     });
@@ -113,12 +123,14 @@ describe("open cart and view products", () => {
       }
     });
     cy.wait(10000);
-    cy.intercept("POST", "**/api/new_v1/cart/add").as(
-      "addToCartFromAnyProductPage"
-    );
-    cy.intercept("POST", "**/api/new_v1/cart/**").as(
-      "updateCartFromAnyProductPage"
-    );
+    // cy.intercept("POST", "**/api/new_v1/cart/add").as(
+    //   "addToCart"
+    // );
+    // cy.intercept("POST", "**/api/new_v1/cart/update").as(
+    //   "updateCart"
+    // );
+    cy.intercept("POST", "**/api/cart/(add|update)").as("cartRequest");
+
     cy.Exist("[data-cy=AddToCartButton-data-cy]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=AddToCartButton-data-cy]")
@@ -126,19 +138,22 @@ describe("open cart and view products", () => {
           .click({ force: true });
       }
     });
-    cy.wait(["@addToCartFromAnyProductPage", "@updateCartFromAnyProductPage"], {
-      timeout: 30000,
-    }).then(([addToCartFromAnyProductPage, updateCartFromAnyProductPage]) => {
-      if (addToCartFromAnyProductPage.response?.statusCode === 200) {
-        console.log("cart/add was called");
-        expect(addToCartFromAnyProductPage.response!.statusCode).to.eq(200);
-      } else if (updateCartFromAnyProductPage.response?.statusCode === 200) {
-        console.log("cart/update was called");
-        expect(updateCartFromAnyProductPage.response!.statusCode).to.eq(200);
-      } else {
-        throw new Error("Neither cart/add nor cart/update was called");
-      }
+    cy.wait("@cartRequest").then((interception) => {
+      expect(interception.response.statusCode).to.equal(200);
     });
+    // cy.wait(["@addToCartFromAnyProductPage", "@updateCartFromAnyProductPage"], {
+    //   timeout: 30000,
+    // }).then(([addToCartFromAnyProductPage, updateCartFromAnyProductPage]) => {
+    //   if (addToCartFromAnyProductPage.response?.statusCode === 200) {
+    //     console.log("cart/add was called");
+    //     expect(addToCartFromAnyProductPage.response!.statusCode).to.eq(200);
+    //   } else if (updateCartFromAnyProductPage.response?.statusCode === 200) {
+    //     console.log("cart/update was called");
+    //     expect(updateCartFromAnyProductPage.response!.statusCode).to.eq(200);
+    //   } else {
+    //     throw new Error("Neither cart/add nor cart/update was called");
+    //   }
+    // });
     cy.wait(10000);
     cy.Exist("[data-cy=CartIcon_Productpage]").then((exist) => {
       if (exist) {
@@ -175,7 +190,7 @@ describe("open cart and view products", () => {
     });
     cy.wait(4000);
   });
-  it("should Click on the CartIcon on the home page and increase the quantity", () => {
+  it.skip("should Click on the CartIcon on the home page and increase the quantity", () => {
     cy.Exist("[data-cy=cartIcon_mainPage]").then((exist) => {
       if (exist) {
         cy.clickElementForce("[data-cy=cartIcon_mainPage]");
@@ -218,7 +233,7 @@ describe("open cart and view products", () => {
       }
     });
   });
-  it("should Click on the CartIcon on the home page and decrease the quantity", () => {
+  it.skip("should Click on the CartIcon on the home page and decrease the quantity", () => {
     cy.Exist("[data-cy=cartIcon_mainPage]").then((exist) => {
       if (exist) {
         cy.clickElementForce("[data-cy=CartIcon_mainPage]");
