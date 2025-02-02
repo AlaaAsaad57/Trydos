@@ -33,6 +33,7 @@ function SearchIcon() {
       {rendered && (
         <div
           className={`search-icon ${searchEnabled && "active-serach"}`}
+          data-cy="searchIcon_mainPage"
           onClick={() => {
             if (!searchEnabled) {
               Sendevent({

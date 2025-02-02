@@ -80,7 +80,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
         style={{ marginRight: "30px", marginLeft: "0px" }}
         onClick={() => enableCart(true)}
       >
-        <CartIcon />
+        <CartIcon data-cy="cartIcon_mainPage"/>
       </div>
       {!user && (
         <>
