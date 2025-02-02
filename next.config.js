@@ -1,89 +1,80 @@
 /** @type {import('next').NextConfig} */
 const withSvgr = require("next-svgr");
-const withPWA = require("next-pwa");
-let nextConfig = withSvgr(
-  withPWA({
-    swcMinify: true,
-    reactStrictMode: false,
-    compress: true,
-    logging: {
-      fetches: {
-        hmrRefreshes: true,
-        fullUrl: true,
-      },
-    },
-    async headers() {
-      return [
-        {
-          source: "/:lang",
-          headers: [
-            {
-              key: "Cache-Control",
-              value: "s-maxage=36000, stale-while-revalidate=36000",
-            },
-          ],
-        },
-        {
-          source: "/:lang/boutiques/:productCategory",
-          headers: [
-            {
-              key: "Cache-Control",
-              value: "s-maxage=36000, stale-while-revalidate=36000",
-            },
-          ],
-        },
-        {
-          source: "/:lang/products/:productId",
-          headers: [
-            {
-              key: "Cache-Control",
-              value: "s-maxage=36000, stale-while-revalidate=36000",
-            },
-          ],
-        },
-      ];
-    },
-    images: {
-      domains: [
-        "res.cloudinary.com",
-        "eu.ui-avatars.com",
-        "trydos.s3.ap-south-1.amazonaws.com",
-        "market_staging.trydos.tech",
-        "s3.ap-south-1.amazonaws.com",
-      ],
-      minimumCacheTTL: 300,
-    },
-    experimental: {
-      instrumentationHook: true,
-      externalDir: true,
-      webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
-      staleTimes: {
-        dynamic: 36000,
-        static: 36000,
-      },
-    },
-    pwa: {
-      dest: "public", // location to store service worker and PWA assets
-      disable: process.env.NODE_ENV === "development", // disable PWA in development mode
-      register: true,
-      skipWaiting: true,
-    },
 
-    webpack(config, { dev }) {
-      config.module.rules.push({
-        test: /\.mp3$/,
-        use: {
-          loader: "file-loader",
-        },
-      });
-      if (!dev) {
-        config.devtool = false;
-      }
-      return config;
+let nextConfig = withSvgr({
+  swcMinify: true,
+  reactStrictMode: false,
+  compress: true,
+  logging: {
+    fetches: {
+      hmrRefreshes: true,
+      fullUrl: true,
     },
-    // your config for other plugins or the general next.js here...
-  })
-);
+  },
+  async headers() {
+    return [
+      {
+        source: "/:lang",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "s-maxage=36000, stale-while-revalidate=36000",
+          },
+        ],
+      },
+      {
+        source: "/:lang/boutiques/:productCategory",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "s-maxage=36000, stale-while-revalidate=36000",
+          },
+        ],
+      },
+      {
+        source: "/:lang/products/:productId",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "s-maxage=36000, stale-while-revalidate=36000",
+          },
+        ],
+      },
+    ];
+  },
+  images: {
+    domains: [
+      "res.cloudinary.com",
+      "eu.ui-avatars.com",
+      "trydos.s3.ap-south-1.amazonaws.com",
+      "market_staging.trydos.tech",
+      "s3.ap-south-1.amazonaws.com",
+    ],
+    minimumCacheTTL: 300,
+  },
+  experimental: {
+    instrumentationHook: true,
+    externalDir: true,
+    webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
+    staleTimes: {
+      dynamic: 36000,
+      static: 36000,
+    },
+  },
+  webpack(config, { dev }) {
+    config.module.rules.push({
+      test: /\.mp3$/,
+      use: {
+        loader: "file-loader",
+      },
+    });
+    if (!dev) {
+      config.devtool = false;
+    }
+    return config;
+  },
+  // your config for other plugins or the general next.js here...
+});
 
 const sentryWebpackPluginOptions = {
   // Additional config options for the Sentry webpack plugin. Keep in mind that
