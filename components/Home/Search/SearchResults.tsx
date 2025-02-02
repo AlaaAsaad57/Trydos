@@ -190,10 +190,7 @@ function SearchResults() {
               {translateFunction("Find Brands", languageVariable)}{" "}
               {loading && <Spinner className="ml-3" no />}
             </div>
-            <div
-              className="brands-results-row flex-row overflow-auto"
-              data-cy="brandItem"
-            >
+            <div className="brands-results-row flex-row overflow-auto">
               {searchResults?.brands?.map((brand, index) => (
                 <BrandItem
                   brand={brand}

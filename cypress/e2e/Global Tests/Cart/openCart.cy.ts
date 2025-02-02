@@ -9,7 +9,7 @@ describe("open cart and view products", () => {
     cy.Visit("/");
     cy.wait(5000);
   });
-  it.skip("should add product to cart from any boutique page", () => {
+  it("should add product to cart from any boutique page", () => {
     cy.wait(5000);
     cy.Exist(".offer-widget:first-child").then((exist) => {
       if (exist) {
@@ -82,7 +82,7 @@ describe("open cart and view products", () => {
     cy.wait(4000);
   });
 
-  it.skip("should add product to cart from any product page", () => {
+  it("should add product to cart from any product page", () => {
     cy.Exist(".offer-widget:first-child").then((exist) => {
       if (exist) {
         cy.clickElementScroll(".offer-widget:first-child");
@@ -152,7 +152,7 @@ describe("open cart and view products", () => {
     });
     cy.wait(4000);
   });
-  it.skip("should Click on the CartIcon on the home page and increase the quantity", () => {
+  it("should Click on the CartIcon on the home page and increase the quantity", () => {
     cy.Exist("[data-cy=cartIcon_mainPage]").then((exist) => {
       if (exist) {
         cy.clickElementForce("[data-cy=cartIcon_mainPage]");
@@ -195,7 +195,7 @@ describe("open cart and view products", () => {
       }
     });
   });
-  it.skip("should Click on the CartIcon on the home page and decrease the quantity", () => {
+  it("should Click on the CartIcon on the home page and decrease the quantity", () => {
     cy.Exist("[data-cy=cartIcon_mainPage]").then((exist) => {
       if (exist) {
         cy.clickElementForce("[data-cy=cartIcon_mainPage]");
@@ -252,23 +252,5 @@ describe("open cart and view products", () => {
       }
     });
     cy.wait(5000);
-  });
-  // **************************************************************************************
-  it("should search icon ", () => {
-    cy.wait(10000);
-    cy.Exist("[data-cy=searchIcon_mainPage]").then((exist) => {
-      if (exist) {
-        cy.clickElementScroll("[data-cy=searchIcon_mainPage]");
-        console.log("Find item");
-      }
-    });
-    cy.wait(5000);
-    cy.Exist("[data-cy=brandItem]").then((exist) => {
-      if (exist) {
-        cy.get("[data-cy=brandItem]").eq(0).click({ scrollBehavior: false });
-        // cy.clickElementScroll("[data-cy=brandItem]");
-        console.log("Find item");
-      }
-    });
   });
 });
