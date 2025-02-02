@@ -50,7 +50,7 @@ const CheckLocalaization = ({
   country,
 }) => {
   if (countryFromCookies && langFromCookies) {
-    if (countryFromCookies !== country) {
+    if (countryFromCookies.toLowerCase() !== country.toLowerCase()) {
       return true;
     }
   }
@@ -76,10 +76,10 @@ export async function middleware(request) {
   });
 
   const url = request.nextUrl.clone();
-  const countryLang = url.pathname.split("/")[1];
+  const countryLang = url.pathname.split("/")[1]?.toLowerCase();
   const cookies = request.cookies;
-  const countryFromCookies = cookies.get("country")?.value;
-  const langFromCookies = cookies.get("lang")?.value;
+  const countryFromCookies = cookies.get("country")?.value?.toLowerCase();
+  const langFromCookies = cookies.get("lang")?.value?.toLowerCase();
 
   // 1- for url
   if (
@@ -91,45 +91,45 @@ export async function middleware(request) {
 
       return NextResponse.redirect(url);
     }
-    let [country, lang] = countryLang.split("-");
+    let [country, lang] = countryLang.toLowerCase().split("-");
     let isChangedLocalizationByUrl = CheckLocalaization({
       countryFromCookies,
       langFromCookies,
       lang,
       country,
     });
-    response.cookies.set("country", country, {
+    response.cookies.set("country", country.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
       sameSite: "Strict",
     });
-    response.cookies.set("lang", lang, {
+    response.cookies.set("lang", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
       sameSite: "Strict",
     });
-    response.cookies.set("languge", lang, {
+    response.cookies.set("languge", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
       sameSite: "Strict",
     });
     response.headers.set("set-cookie", true);
-    request.cookies.set("country", country, {
+    request.cookies.set("country", country.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
       sameSite: "Strict",
     });
-    request.cookies.set("lang", lang, {
+    request.cookies.set("lang", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
       sameSite: "Strict",
     });
-    request.cookies.set("languge", lang, {
+    request.cookies.set("languge", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
@@ -161,8 +161,8 @@ export async function middleware(request) {
   // 2- for cookies
   else if (countryFromCookies && langFromCookies) {
     let pahname =
-      url.pathname.split("/")[1].split("-").length === 2
-        ? url.pathname.slice(countryLang.length + 1)
+      url.pathname.split("/")[1].toLowerCase()?.split("-").length === 2
+        ? url.pathname?.toLowerCase()?.slice(countryLang.length + 1)
         : url.pathname;
 
     const countryLangFromCookies = `${countryFromCookies.toLowerCase()}-${langFromCookies}`;
