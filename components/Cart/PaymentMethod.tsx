@@ -136,80 +136,62 @@ function PaymentMethod() {
           <TryDosWalletInput
             active={orderData.payment.filter((s) => s.id === 1).length > 0}
             setActive={() => {
-              if (isBalanceEnough()) {
-                if (!orderLoading) {
-                  if (orderData.payment.filter((s) => s.id === 1).length > 0) {
-                    setOrderData({
-                      payment: orderData.payment.filter((s) => s.id !== 1),
-                    });
-                  } else {
-                    dispatch({ type: "WALLET_BALANCE-USER", payload: false });
-                    setOrderData({
-                      payment: [
-                        ...orderData.payment,
-                        { id: 1, balance: wallet?.total_wallet_balance },
-                      ],
-                    });
-                  }
+              if (!orderLoading) {
+                if (orderData.payment.filter((s) => s.id === 1).length > 0) {
+                  setOrderData({
+                    payment: orderData.payment.filter((s) => s.id !== 1),
+                  });
+                } else {
+                  dispatch({ type: "WALLET_BALANCE-USER", payload: false });
+                  setOrderData({
+                    payment: [
+                      ...orderData.payment,
+                      { id: 1, balance: wallet?.total_wallet_balance },
+                    ],
+                  });
                 }
-              } else {
-                alert(
-                  translateFunction("Your Balance Is suit Purchase Requirement")
-                );
               }
             }}
           />
           <CreditInput
             active={orderData.payment.filter((s) => s.id === 2).length > 0}
             setActive={() => {
-              if (isBalanceEnough()) {
-                if (!orderLoading) {
-                  if (orderData.payment.filter((s) => s.id === 2).length > 0) {
-                    dispatch({ type: "CREDIT-USER", payload: false });
-                    setOrderData({
-                      payment: orderData.payment.filter((s) => s.id !== 2),
-                    });
-                  } else {
-                    dispatch({ type: "CREDIT-USER", payload: true });
-                    setOrderData({
-                      payment: [
-                        ...orderData.payment,
-                        { id: 2, balance: cart.total_cash },
-                      ],
-                    });
-                  }
+              if (!orderLoading) {
+                if (orderData.payment.filter((s) => s.id === 2).length > 0) {
+                  dispatch({ type: "CREDIT-USER", payload: false });
+                  setOrderData({
+                    payment: orderData.payment.filter((s) => s.id !== 2),
+                  });
+                } else {
+                  dispatch({ type: "CREDIT-USER", payload: true });
+                  setOrderData({
+                    payment: [
+                      ...orderData.payment,
+                      { id: 2, balance: cart.total_cash },
+                    ],
+                  });
                 }
-              } else {
-                alert(
-                  translateFunction("Your Balance Is suit Purchase Requirement")
-                );
               }
             }}
           />
           <CryptoInput
-            active={orderData.payment.filter((s) => s.id === 2).length > 0}
+            active={orderData.payment.filter((s) => s.id === 3).length > 0}
             setActive={() => {
-              if (isBalanceEnough()) {
-                if (!orderLoading) {
-                  if (orderData.payment.filter((s) => s.id === 2).length > 0) {
-                    dispatch({ type: "CRYPTO-USER", payload: false });
-                    setOrderData({
-                      payment: orderData.payment.filter((s) => s.id !== 3),
-                    });
-                  } else {
-                    dispatch({ type: "CRYPTO-USER", payload: true });
-                    setOrderData({
-                      payment: [
-                        ...orderData.payment,
-                        { id: 3, balance: cart.total_cash },
-                      ],
-                    });
-                  }
+              if (!orderLoading) {
+                if (orderData.payment.filter((s) => s.id === 3).length > 0) {
+                  dispatch({ type: "CRYPTO-USER", payload: false });
+                  setOrderData({
+                    payment: orderData.payment.filter((s) => s.id !== 3),
+                  });
+                } else {
+                  dispatch({ type: "CRYPTO-USER", payload: true });
+                  setOrderData({
+                    payment: [
+                      ...orderData.payment,
+                      { id: 3, balance: cart.total_cash - 500 },
+                    ],
+                  });
                 }
-              } else {
-                alert(
-                  translateFunction("Your Balance Is suit Purchase Requirement")
-                );
               }
             }}
           />
@@ -247,7 +229,10 @@ const CouponElement = ({ active, setActive, close }) => {
       }, 200);
     }
   }, [active]);
-  const [coupon, setCoupon] = useState("");
+  const [coupon, setCoupon] = useState(false);
+  const currency = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  ) || { exchange_rate: 1, symbol: "" };
   return (
     <div
       onClick={(e) => {
@@ -257,7 +242,7 @@ const CouponElement = ({ active, setActive, close }) => {
         }, 200);
         // @ts-ignore
         if (e.target.closest(".apply-button")) {
-          close();
+          // close();
         } else {
           setActive();
         }
@@ -368,19 +353,22 @@ const CouponElement = ({ active, setActive, close }) => {
                 />
               )}
               <div
-                className={`transition-all  apply-button ${
-                  coupon ? "min-w-full " : "min-w-[100px] "
+                className={`transition-all text-[#1d1d1d] apply-button ${
+                  coupon ? "min-w-full " : "w-[100px] min-w-[100px] "
                 } flex items-center justify-center h-[40px] rounded-[15px] bg-white`}
                 style={{
                   border: "1px solid rgb(56 144 255 / 51%)",
                 }}
                 onClick={() => {
                   if (coupon_number.length > 0) {
-                    setCoupon("- 100 USD");
+                    // @ts-ignore
+                    setCoupon(100);
                   }
                 }}
               >
-                {coupon?.length > 0 ? coupon : translateFunction("Apply")}
+                {coupon
+                  ? `- ${coupon} ${currency.symbol}`
+                  : translateFunction("Apply")}
               </div>
             </div>
           </div>
@@ -425,7 +413,7 @@ const TryDosWalletInput = ({ active, setActive }) => {
           {translateFunction("Your Balance")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {wallet.total_wallet_balance_formatted}
+          {wallet?.total_wallet_balance_formatted}
         </span>
       </div>
     </div>

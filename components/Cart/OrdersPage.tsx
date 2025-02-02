@@ -107,6 +107,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
   const translate = (key: string, lang?: string) => {
     return translateFunction(key, languageVariable);
   };
+
   const [orderStep, setOrderStep] = useState(0);
   const [AddressListsOpen, openAddressList] = useState(false);
   const ref = useRef<SwiperType>();

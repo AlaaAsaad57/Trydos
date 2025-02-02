@@ -16,8 +16,8 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
     let clientX = e.clientX || e.touches[0]?.clientX;
     let Xmove: number = Math.abs(
       ((clientX - ref.current.getBoundingClientRect().left) * 100) /
-      ref.current.clientWidth +
-      5
+        ref.current.clientWidth +
+        5
     );
     elemnts.forEach((element: Element) => {
       element.classList.remove("active-hover");
@@ -44,7 +44,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
       onTouchEnd={(e) => handleEnd()}
       onMouseMove={(e) => handleMove(e)}
     >
-      {boutique?.mainCategoriesForProductIds.map((product, index) => {
+      {boutique?.childCategoriesForProductIds.map((product, index) => {
         if (index < 7) {
           if (product?.most_viewed_product_thumbnail.file_path)
             return (
@@ -60,11 +60,11 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
             );
         }
       })}
-      {boutique?.mainCategoriesForProductIds?.length > 7 && (
+      {boutique?.childCategoriesForProductIds?.length > 7 && (
         <MoreOfferAvatar
           priority={false}
           images={
-            boutique?.mainCategoriesForProductIds[7]
+            boutique?.childCategoriesForProductIds[7]
               .most_viewed_product_thumbnail.file_path
           }
           zIndex={100}

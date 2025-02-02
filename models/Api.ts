@@ -20,6 +20,8 @@ export interface CountriesApi {
       otp_by_sms: number;
       created_at: any;
       updated_at: string;
+      longitude: string;
+      latitude: string;
     }>;
   };
 }

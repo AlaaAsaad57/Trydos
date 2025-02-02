@@ -7,14 +7,20 @@ import FreeShippingIcon from "public/svg/product/FreeShipping.svg";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
+import { getCountriesApi } from "store/homepage/cachedActions";
 function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   const cart = useSelector((state: StateInterface) => state.cart?.cart);
-
+  const dispatch = useDispatch();
   const user = useSelector((state: StateInterface) => state.auth.user);
+  const getOrderData = async () => {
+    order.GetWallet();
+    order.GetAddressList();
+    const countries = await getCountriesApi();
+    dispatch({ type: "COUNTRIES-DATA", payload: countries });
+  };
   useEffect(() => {
     if (user) {
-      order.GetWallet();
-      order.GetAddressList();
+      getOrderData();
     }
   }, [user]);
   return (

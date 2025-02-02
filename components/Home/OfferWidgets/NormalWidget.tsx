@@ -19,6 +19,7 @@ interface NormalWidgetProps {
 const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
   const router = useRouter();
   useEffect(() => {
+    console.log(boutique);
     if (boutique.description) {
       encode_utf8({
         element: document.querySelectorAll(`#boutique-${boutique.id}`),

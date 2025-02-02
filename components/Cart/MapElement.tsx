@@ -23,12 +23,6 @@ type MapProps = {
   setLocation: (e: any) => void;
 };
 
-const SelectedLocation = ({ center }: { center: LatLngLiteral }) => {
-  const map = useMap();
-  if (center) map.panTo(center, { animate: true });
-  return null;
-};
-
 export const MapElement: React.FC<MapProps> = memo(
   ({ center, expanded, setLocation }) => {
     const addressDetails = useSelector(
@@ -50,14 +44,18 @@ export const MapElement: React.FC<MapProps> = memo(
       const map = useMap();
 
       useEffect(() => {
-        if (center) map.panTo(center, { animate: true });
+        if (center) {
+          map.panTo(center, { animate: true });
+          map.setZoom(3, { animate: true });
+        }
       }, [center, expanded]);
 
       useMapEvent("click", (e) => {
-        setLocation({
-          latitude: e.latlng.lat,
-          longitude: e.latlng.lng,
-        });
+        if (expanded)
+          setLocation({
+            latitude: e.latlng.lat,
+            longitude: e.latlng.lng,
+          });
       });
       return <></>;
     };
