@@ -284,4 +284,5 @@ describe("open cart and view products", () => {
       }
     });
   });
+  //delete this or move it to search file 
 });
