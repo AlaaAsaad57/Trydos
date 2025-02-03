@@ -23,6 +23,7 @@ import { toast } from "react-toastify";
 import OrderButton from "./OrderButton";
 import { AxiosPost } from "utils/AxiosApi";
 import { dispatchRouteChangeEvent } from "utils/events";
+import Spinner from "components/global/Spinner";
 
 function CartContainer({ close, toOrders }) {
   let { lang } = useParams();
@@ -1629,26 +1630,42 @@ const QuantutyInput = ({
     (state: StateInterface) => state.homepage.currency
   ) || { exchange_rate: 1, symbol: "" };
   const decreaseQuantity = async (i) => {
-    await updateQuantity(parseInt(i.toString()) - 1, false);
-    getCart({
-      callback: ([data, res]) => {
-        dispatch({ type: "CART-INIT", payload: data });
-      },
-    });
+    if (!loading) {
+      setInputValue(parseInt(i) - 1);
+      setLoading(true);
+
+      await updateQuantity(parseInt(i.toString()) - 1, false);
+      await getCart({
+        callback: ([data, res]) => {
+          dispatch({ type: "CART-INIT", payload: data });
+        },
+      });
+      setLoading(false);
+    }
   };
+  const [loading, setLoading] = useState(false);
   const increaseQuantity = async (i) => {
-    await updateQuantity(parseInt(i.toString()) + 1, true);
-    getCart({
-      callback: ([data, res]) => {
-        dispatch({ type: "CART-INIT", payload: data });
-      },
-    });
+    if (!loading) {
+      setInputValue(parseInt(i.toString()) + 1);
+      setLoading(true);
+      await updateQuantity(parseInt(i.toString()) + 1, true);
+      await getCart({
+        callback: ([data, res]) => {
+          dispatch({ type: "CART-INIT", payload: data });
+        },
+      });
+      setLoading(false);
+    }
   };
   return (
     <div
       className={`absolute flex-wrap ${"top-[115px]"} left-[137px] flex-row items-center justify-between max-w-[calc(100%-152px)] w-full`}
     >
-      <div className="flex-row hide-btn relative max-w-[72px] w-[72px] h-[24px] mt-4 z-50">
+      <div
+        className={`${
+          loading && "opacity-40"
+        } flex-row hide-btn relative max-w-[72px] w-[72px] h-[24px] mt-4 z-50`}
+      >
         <svg
           className="absolute hide-btn"
           xmlns="http://www.w3.org/2000/svg"
@@ -1692,7 +1709,6 @@ const QuantutyInput = ({
             }
             // @ts-ignore
             else {
-              setInputValue(parseInt(inputValue.toString()) + 1);
               increaseQuantity(inputValue);
             }
           }}
@@ -1708,7 +1724,7 @@ const QuantutyInput = ({
               if (disabled) return false;
               if (inputValue > 1) {
                 // @ts-ignore
-                setInputValue(parseInt(inputValue) - 1);
+
                 decreaseQuantity(inputValue);
               }
             }}
@@ -1735,6 +1751,7 @@ const QuantutyInput = ({
           onChange={(e) => {}}
           className="outline-none hide-btn text-[14px] medium text-[#1D1D1D] text-center max-w-[72px] border-none py-1  w-[72px] h-[24px]"
         />
+        {loading && <Spinner />}
       </div>
       <div className={``}>
         <div className="product-info-price">

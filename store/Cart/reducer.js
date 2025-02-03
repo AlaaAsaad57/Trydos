@@ -270,7 +270,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           AddToCartOption: {
             ...state.AddToCartOption,
             quantity: 0,
-            enable: true,
+
             selectedOptions: selectedOptions,
           },
         };
