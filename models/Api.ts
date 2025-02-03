@@ -1244,7 +1244,9 @@ export interface CustomerInfoApi {
     last_otp_id_token: string;
   };
 }
-
+export interface FireBaseSettingsApi {
+  firebase_settings: string
+}
 export interface RegisterGuestApi {
   data: {
     token: string;

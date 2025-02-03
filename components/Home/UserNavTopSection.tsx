@@ -80,7 +80,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
         style={{ marginRight: "30px", marginLeft: "0px" }}
         onClick={() => enableCart(true)}
       >
-        <CartIcon data-cy="cartIcon_mainPage"/>
+        <CartIcon data-cy="cartIcon_mainPage" />
       </div>
       {!user && (
         <>
@@ -140,7 +140,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
         </>
       )}
       <div
-        className="flex"
+        className="flex flex-row"
         onClick={() => setMenuOpen(!menuOpen)}
         style={{ marginLeft: "10px", cursor: "pointer" }}
       >

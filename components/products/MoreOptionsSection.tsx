@@ -128,7 +128,7 @@ function MoreOptionsSection() {
                   .split("/")[1]
                   .split("-")[0];
                 await home.subscribeToTopic({
-                  topic: `before_stock_out_${SelectedProduct.id}_${country_code}_${language_code}`,
+                  topic: `product_before_stock_out_${SelectedProduct.id}`,
                 });
               }}
             >
@@ -142,7 +142,7 @@ function MoreOptionsSection() {
                 .split("/")[1]
                 .split("-")[0];
               await home.subscribeToTopic({
-                topic: `change_in_price_${SelectedProduct.id}_${country_code}_${language_code}`,
+                topic: `product_when_change_in_price_${SelectedProduct.id}`,
               });
             }}>
               {translate("Change In Price", language)}
@@ -157,7 +157,7 @@ function MoreOptionsSection() {
                   .split("/")[1]
                   .split("-")[0];
                 await home.subscribeToTopic({
-                  topic: `product_discount_${SelectedProduct.id}_${country_code}_${language_code}`,
+                  topic: `product_discount_${SelectedProduct.id}`,
                 });
               }}
             >
@@ -173,7 +173,7 @@ function MoreOptionsSection() {
                   .split("/")[1]
                   .split("-")[0];
                 await home.subscribeToTopic({
-                  topic: `product_comment_${SelectedProduct.id}_${country_code}_${language_code}`,
+                  topic: `product_comment_${SelectedProduct.id}`,
                 });
               }}
             >

@@ -528,7 +528,7 @@ export const getCountriesApi = async () => {
       },
     });
   } catch (error) {
-    console.log("Countries Request Failed" + error);
+    console.log("Countries Request Failed1" + error);
     return [
       {
         id: 219,
@@ -603,7 +603,7 @@ export const getCountriesApi = async () => {
 
     return data.data.countries;
   } catch (error) {
-    console.log("Countries Request Failed" + error);
+    console.log("Countries Request Failed2" + error);
     return [
       {
         id: 219,
