@@ -40,11 +40,14 @@ export const AxiosGet = async ({
     try {
       let res = await axios.get(url, getHeader());
       // If the response is successful, return the data
-      if (url.includes("customer/wallet")) {
-        return res.data;
-      }
-      if (res?.data.data) {
-        return res?.data.data;
+      // if (url.includes("customer/wallet")) {
+      //   return res.data;
+      // }
+      // if (res.data.message !== "Data Got!") {
+      //   toast.success(res.data.message);
+      // }
+      if (res?.data.isSuccessful) {
+        return res?.data?.data;
       } else {
         throw new Error(res.data.message);
       }
@@ -66,7 +69,7 @@ export const AxiosGet = async ({
       attempt++;
       console.log(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);
       if (attempt > retries) {
-        toast.error(`${title} : ${error.message ?? "Failed"}`);
+        // toast.error(`${title} : ${error.message ?? "Failed"}`);
         LogError(error, url, window.location.href);
 
         throw new Error(
@@ -97,36 +100,21 @@ export const AxiosPost = async ({
   while (attempt <= retries) {
     try {
       let res = await axios.post(url, body, getHeader(token));
-      // If the response is successful, return the data
-      if (url.includes(`/api/products/view`)) {
-        if (res.data.view_count) {
-          return res.data;
-        }
+      if (url.includes("products/view")) {
+        return res.data;
       }
-
-      if (
-        url.includes("product_likes") ||
-        url.includes("old-cart/hide") ||
-        url.includes("/cart/remove") ||
-        url.includes("customer/update-name") ||
-        hasMessageOnly
-      ) {
-        toast.success(res.data.message);
-        return res.data.message;
-      }
-      if (url.includes("cart/")) {
-        if (res.data.data.status === 1) {
+      if (res?.data.isSuccessful) {
+        if (
+          url.includes("product_likes") ||
+          url.includes("old-cart/hide") ||
+          url.includes("/cart/remove") ||
+          url.includes("/cart/update") ||
+          url.includes("/cart/add") ||
+          url.includes("customer/update-name") ||
+          hasMessageOnly
+        ) {
           toast.success(res.data.message);
           return res.data.data;
-        } else {
-          toast.error(res.data.message);
-          return;
-        }
-      }
-
-      if (res?.data.data) {
-        if (res.data.message) {
-          toast.success(res.data.message);
         }
         return res?.data.data;
       } else {
@@ -153,7 +141,7 @@ export const AxiosPost = async ({
       if (attempt > retries) {
         LogError(error, url, window.location.href);
 
-        toast.error(`${title} : ${error.message ?? "Failed"}`);
+        // toast.error(`${title} : ${error.message ?? "Failed"}`);
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
         );

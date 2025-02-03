@@ -113,7 +113,7 @@ function OrderButton({ close, toOrders }) {
   const MenuIcon = ({ className }) => {
     return (
       <svg
-        className={className}
+        className={className || ""}
         xmlns="http://www.w3.org/2000/svg"
         width="10"
         height="6"

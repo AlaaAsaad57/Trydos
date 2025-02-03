@@ -501,7 +501,7 @@ const SafePaymentIcon = () => {
           d="M2,6.75A.75.75,0,0,1,2.75,6h5.5A.75.75,0,0,1,9,6.75V7H2ZM2,7.5H9v2.751a.75.75,0,0,1-.75.75H2.75a.75.75,0,0,1-.75-.75ZM6,9.251a.25.25,0,1,0,0,.5H7.5a.25.25,0,1,0,0-.5Z"
           transform="translate(1.498 -1.5)"
           fill="#1d1d1d"
-          fill-rule="evenodd"
+          fillRule="evenodd"
         />
       </g>
     </svg>

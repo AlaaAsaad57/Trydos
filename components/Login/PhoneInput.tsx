@@ -455,8 +455,9 @@ function PhoneInput({
               }
             }}
             // @ts-ignore
-            enterkeyhint="done"
-            tabindex="-1"
+            enterKeyHint="done"
+            // @ts-ignore
+            tabIndex="-1"
             onChange={(e) => handleInput(e)}
             className="login-phone-input"
           />
