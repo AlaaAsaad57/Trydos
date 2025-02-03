@@ -355,6 +355,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         localCart: state.localCart.filter((s) => s.item_id !== payload),
       };
     }
+
     case "CART-LOADING": {
       return {
         ...state,

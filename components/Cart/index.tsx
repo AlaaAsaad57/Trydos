@@ -38,9 +38,7 @@ function CartContainer({ close, toOrders }) {
 
   const loading = useSelector((state: StateInterface) => state.cart.loading);
   const cart = useSelector((state: StateInterface) => state.cart?.cart);
-  const total_cash = useSelector(
-    (state: StateInterface) => state.cart?.total_cash
-  );
+
   const getURLOfProduct = ({ product }) => {
     let productUrl;
     if (product.variations[0]?.color && !product.variations[0]?.Size)
@@ -1587,6 +1585,7 @@ const QuantutyInput = ({
       </svg>
     );
   };
+  const dispatch = useDispatch();
   const updateQuantity = async (quantity, bool) => {
     let dataBody = [];
     let dataObj = { key: id, quantity: quantity };
@@ -1604,6 +1603,10 @@ const QuantutyInput = ({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
         title: "Update Quantity For Product In cart",
         body: dataBody,
+      });
+      dispatch({
+        type: "UPDATE-CART-QUANTITY",
+        payload: { key: id, quantity: quantity },
       });
     } catch (error) {
       if (bool) {
@@ -1625,6 +1628,22 @@ const QuantutyInput = ({
   const currency = useSelector(
     (state: StateInterface) => state.homepage.currency
   ) || { exchange_rate: 1, symbol: "" };
+  const decreaseQuantity = async (i) => {
+    await updateQuantity(parseInt(i.toString()) - 1, false);
+    getCart({
+      callback: ([data, res]) => {
+        dispatch({ type: "CART-INIT", payload: data });
+      },
+    });
+  };
+  const increaseQuantity = async (i) => {
+    await updateQuantity(parseInt(i.toString()) + 1, true);
+    getCart({
+      callback: ([data, res]) => {
+        dispatch({ type: "CART-INIT", payload: data });
+      },
+    });
+  };
   return (
     <div
       className={`absolute flex-wrap ${"top-[115px]"} left-[137px] flex-row items-center justify-between max-w-[calc(100%-152px)] w-full`}
@@ -1674,7 +1693,7 @@ const QuantutyInput = ({
             // @ts-ignore
             else {
               setInputValue(parseInt(inputValue.toString()) + 1);
-              updateQuantity(parseInt(inputValue.toString()) + 1, true);
+              increaseQuantity(inputValue);
             }
           }}
         >
@@ -1690,7 +1709,7 @@ const QuantutyInput = ({
               if (inputValue > 1) {
                 // @ts-ignore
                 setInputValue(parseInt(inputValue) - 1);
-                updateQuantity(parseInt(inputValue.toString()) - 1, false);
+                decreaseQuantity(inputValue);
               }
             }}
           >

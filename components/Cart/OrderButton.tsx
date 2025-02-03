@@ -359,7 +359,7 @@ function OrderButton({ close, toOrders }) {
 
               <span className="flex-row justify-center items-center ml-[5px] bold  text-[16px] pr-[13px] text-[#1D1D1D]">
                 <span className="line-through regular mr-2">
-                  {cart.sub_total}
+                  {cart.total_cash + cart.total_discount_on_product}
                 </span>{" "}
                 {cart.total_cash} {currency_symbol?.symbol}
                 <span className="ml-2">
