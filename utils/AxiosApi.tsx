@@ -190,7 +190,7 @@ export const AxiosCacheApi = async ({
       }`,
     },
     cache: {
-      ttl: parseInt(process.env.NEXT_PUBLIC_REVALIDATE) * 1000,
+      ttl: parseInt(process.env.NEXT_PUBLIC_REVALIDATE) * 10000,
       interpretHeader: false,
       methods: ["post", "get"],
     },
