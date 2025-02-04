@@ -847,3 +847,20 @@ export const ExpiredUser = async () => {
 
   // store.dispatch({ type: "INFO_EXPIRED_TOKEN", payload: true });
 };
+export const WaitForCondition = async () => {
+  return new Promise((resolve, reject) => {
+    const interval = setInterval(() => {
+      const isReady = store.getState().homepage.isRegisteringReady;
+      if (isReady) {
+        clearInterval(interval);
+        resolve("Ready, now performing the request!");
+      }
+    }, 1000); // Check every second
+
+    // Optional: timeout in case it's taking too long
+    setTimeout(() => {
+      clearInterval(interval);
+      reject("Timeout: 'isReady' didn't become true in time.");
+    }, 10000); // Wait for 10 seconds
+  });
+};

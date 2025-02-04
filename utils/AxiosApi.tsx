@@ -5,7 +5,7 @@ import Cookies from "js-cookie";
 import { setupCache } from "axios-cache-interceptor";
 import home from "services/home";
 
-import { ExpiredUser, getUser, LogError } from "./functions";
+import { ExpiredUser, getUser, LogError, WaitForCondition } from "./functions";
 import { toast } from "react-toastify";
 export const errorPNG = pngErr.src;
 const getHeader = (token?) => {
@@ -19,9 +19,9 @@ const getHeader = (token?) => {
       Authorization: `Bearer ${
         token ??
         localStorage.getItem("MARKET-TOKEN") ??
+        localStorage.getItem("DEVICE-TOKEN") ??
         Cookies.get("MARKET-TOKEN") ??
-        Cookies.get("DEVICE-TOKEN") ??
-        localStorage.getItem("DEVICE-TOKEN")
+        Cookies.get("DEVICE-TOKEN")
       }`,
     },
   };
@@ -33,6 +33,7 @@ export const AxiosGet = async ({
   url: string;
   title?: string;
 }) => {
+  await WaitForCondition();
   let attempt = 0;
   let retries = 2;
   let delay = 2000;
@@ -94,6 +95,7 @@ export const AxiosPost = async ({
   hasMessageOnly?: boolean;
   token?: string;
 }) => {
+  await WaitForCondition();
   let attempt = 0;
   let retries = 2;
   let delay = 2000;

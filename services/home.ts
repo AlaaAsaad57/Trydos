@@ -13,6 +13,7 @@ import {
   getUser,
   UserID,
   UserToken,
+  WaitForCondition,
 } from "utils/functions";
 import Smartlook from "smartlook-client";
 
@@ -102,6 +103,7 @@ class HomeService {
     }
   }
   async getCustomerInfo() {
+    await WaitForCondition();
     const response = await fetch(
       process.env.NEXT_PUBLIC_BACKEND_URL + CUSTOMER_INFO_URL,
       getHeader()
@@ -161,44 +163,57 @@ class HomeService {
     }
   }
   async registerForExpire(id?: number) {
-    let body = id
-      ? { old_guest_user_id: id }
-      : localStorage.getItem("guest-user")
-      ? { old_guest_user_id: JSON.parse(localStorage.getItem("guest-user")).id }
-      : { old_guest_user_id: null };
+    let isReady = store.getState().homepage.isRegisteringReady;
+    if (isReady) {
+      let body = id
+        ? { old_guest_user_id: id }
+        : localStorage.getItem("guest-user")
+        ? {
+            old_guest_user_id: JSON.parse(localStorage.getItem("guest-user"))
+              .id,
+          }
+        : { old_guest_user_id: null };
 
-    try {
-      let response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
-        {
-          method: "POST",
-          body: body.old_guest_user_id
-            ? new URLSearchParams({
-                old_guest_user_id: body.old_guest_user_id,
-              })
-            : "old_guset_user_id=null",
-          ...getHeader(),
-          cache: "no-cache",
-        }
-      );
-      let repo: RegisterGuestApi = await response.json();
-      changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
-      localStorage.setItem("DEVICE-TOKEN", repo.data.token);
-      Cookies.set("DEVICE-TOKEN", repo.data.token, {
-        expires: 365,
-      });
-      localStorage.setItem(
-        "guest-user",
-        JSON.stringify({ ...repo.data.user, expired_at: repo.data.expires_at })
-      );
-      if (repo.data.user) {
-        Smartlook.identify(repo.data.user.id, {
-          name: repo.data.user.name,
-          phone: "guest",
-          // other custom properties
+      try {
+        store.dispatch({ type: "IS-REGISTERING", payload: false });
+        let response = await fetch(
+          process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
+          {
+            method: "POST",
+            body: body.old_guest_user_id
+              ? new URLSearchParams({
+                  old_guest_user_id: body.old_guest_user_id,
+                })
+              : "old_guset_user_id=null",
+            ...getHeader(),
+            cache: "no-cache",
+          }
+        );
+        let repo: RegisterGuestApi = await response.json();
+        changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
+        localStorage.setItem("DEVICE-TOKEN", repo.data.token);
+        Cookies.set("DEVICE-TOKEN", repo.data.token, {
+          expires: 365,
         });
+        localStorage.setItem(
+          "guest-user",
+          JSON.stringify({
+            ...repo.data.user,
+            expired_at: repo.data.expires_at,
+          })
+        );
+        if (repo.data.user) {
+          Smartlook.identify(repo.data.user.id, {
+            name: repo.data.user.name,
+            phone: "guest",
+            // other custom properties
+          });
+        }
+        store.dispatch({ type: "IS-REGISTERING", payload: true });
+      } catch (error) {
+        store.dispatch({ type: "IS-REGISTERING", payload: true });
       }
-    } catch (error) {}
+    }
   }
   async CheckLogin() {
     if (!localStorage.getItem("FB-DEVICE-TOKEN")) await this.RegisterDevice();
@@ -260,14 +275,14 @@ class HomeService {
           }
         }, 3000);
         // ininit
-        const response2 = await AxiosGet({
-          url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
-          title: "get firebase settings request",
-        });
-        store.dispatch({
-          type: "GET_FIREBASE_SETTINGS",
-          payload: response2?.firebase_settings,
-        });
+        // const response2 = await AxiosGet({
+        //   url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
+        //   title: "get firebase settings request",
+        // });
+        // store.dispatch({
+        //   type: "GET_FIREBASE_SETTINGS",
+        //   payload: response2?.firebase_settings,
+        // });
 
         const searchParams = new URLSearchParams(window.location.search);
         if (
@@ -292,58 +307,71 @@ class HomeService {
         .catch((err) => {});
   }
   async RegisterDevice() {
-    let body = localStorage.getItem("guest-user")
-      ? { old_guest_user_id: JSON.parse(localStorage.getItem("guest-user")).id }
-      : { old_guest_user_id: null };
-    if (!Cookies.get("DEVICE-TOKEN") && localStorage.getItem("DEVICE-TOKEN")) {
-      changeToken({
-        key: "DEVICE-TOKEN",
-        value: localStorage.getItem("DEVICE-TOKEN"),
-      });
-      Cookies.set("DEVICE-TOKEN", localStorage.getItem("DEVICE-TOKEN"), {
-        expires: 365,
-      });
-    }
-    if (
-      SSRDetect() &&
-      !localStorage.getItem("DEVICE-TOKEN") &&
-      !localStorage.getItem("USER")
-    ) {
-      let response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
-        {
-          method: "POST",
-          body: body.old_guest_user_id
-            ? new URLSearchParams({
-                old_guest_user_id: body.old_guest_user_id,
-              })
-            : "old_guset_user_id=null",
-          ...getHeader(),
-        }
-      );
-      let repo: RegisterGuestApi = await response.json();
-      localStorage.setItem("DEVICE-TOKEN", repo.data.token);
-      changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
-
-      Cookies.set("DEVICE-TOKEN", repo.data.token, {
-        expires: 365,
-      });
-      localStorage.setItem(
-        "guest-user",
-        JSON.stringify({ ...repo.data.user, expired_at: repo.data.expires_at })
-      );
-      localStorage.removeItem("customer-info");
-      if (repo.data.user) {
-        Smartlook.identify(repo.data.user.id, {
-          name: repo.data.user.name,
-          phone: "guest",
-          // other custom properties
+    let isReady = store.getState().homepage.isRegisteringReady;
+    if (isReady) {
+      let body = localStorage.getItem("guest-user")
+        ? {
+            old_guest_user_id: JSON.parse(localStorage.getItem("guest-user"))
+              .id,
+          }
+        : { old_guest_user_id: null };
+      if (
+        !Cookies.get("DEVICE-TOKEN") &&
+        localStorage.getItem("DEVICE-TOKEN")
+      ) {
+        changeToken({
+          key: "DEVICE-TOKEN",
+          value: localStorage.getItem("DEVICE-TOKEN"),
+        });
+        Cookies.set("DEVICE-TOKEN", localStorage.getItem("DEVICE-TOKEN"), {
+          expires: 365,
         });
       }
+      if (
+        SSRDetect() &&
+        !localStorage.getItem("DEVICE-TOKEN") &&
+        !localStorage.getItem("USER")
+      ) {
+        store.dispatch({ type: "IS-REGISTERING", payload: false });
+        let response = await fetch(
+          process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
+          {
+            method: "POST",
+            body: body.old_guest_user_id
+              ? new URLSearchParams({
+                  old_guest_user_id: body.old_guest_user_id,
+                })
+              : "old_guset_user_id=null",
+            ...getHeader(),
+          }
+        );
+        let repo: RegisterGuestApi = await response.json();
+        localStorage.setItem("DEVICE-TOKEN", repo.data.token);
+        changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
 
-      if (typeof window !== "undefined") {
-        _isStoreLastJson() &&
-          localStorage.setItem("LAST_JSON", JSON.stringify(repo));
+        Cookies.set("DEVICE-TOKEN", repo.data.token, {
+          expires: 365,
+        });
+        localStorage.setItem(
+          "guest-user",
+          JSON.stringify({
+            ...repo.data.user,
+            expired_at: repo.data.expires_at,
+          })
+        );
+        localStorage.removeItem("customer-info");
+        if (repo.data.user) {
+          Smartlook.identify(repo.data.user.id, {
+            name: repo.data.user.name,
+            phone: "guest",
+            // other custom properties
+          });
+        }
+        store.dispatch({ type: "IS-REGISTERING", payload: true });
+        if (typeof window !== "undefined") {
+          _isStoreLastJson() &&
+            localStorage.setItem("LAST_JSON", JSON.stringify(repo));
+        }
       }
     }
   }
