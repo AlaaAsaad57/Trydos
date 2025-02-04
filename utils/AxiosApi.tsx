@@ -47,7 +47,7 @@ export const AxiosGet = async ({
       // if (res.data.message !== "Data Got!") {
       //   toast.success(res.data.message);
       // }
-      if (res?.data.isSuccessful) {
+      if (res?.data.isSuccessful || res.data.data) {
         return res?.data?.data;
       } else {
         throw new Error(res.data.message);
