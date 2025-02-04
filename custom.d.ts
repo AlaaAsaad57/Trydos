@@ -953,10 +953,10 @@ declare global {
         details: string;
         thumbnail: string;
         images:
-          | Array<string>
-          | Array<{
-              file_path?: string;
-            }>;
+        | Array<string>
+        | Array<{
+          file_path?: string;
+        }>;
         categories: Array<{
           id: number;
           name: string;

@@ -4,6 +4,7 @@ export const UPLOAD_STORY_URL = "/api/v1/stories/upload_story";
 export const LOG_IN_STORIES = "/api/v1/users/login";
 export const REGISTER_DEVICE_URL = "/auth/register-guest";
 export const CUSTOMER_INFO_URL = "/customer/info";
+export const FIREBASE_SETTINGS_URL = "/firebase_device_tokens/my_firebase_settings";
 
 export const VERFIY_OTP = "/phone/verify_otp_singin";
 export const VERFIY_OTP_SIGNUP = "/phone/verify_otp_signup";

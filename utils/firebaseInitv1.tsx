@@ -114,6 +114,22 @@ export const onMessageListener = async () => {
             toast.info(<ProductAvailable {...myProps} />, { ...toastProps });
           toaster.info({ data: data }, { data: data });
         }
+        if (JSON.parse(payload.data.body).type === "product when change in price") {
+          const toaster = (myProps, toastProps): Id =>
+            toast(<ProductAvailable {...myProps} />, { ...toastProps });
+
+          toaster.info = (myProps, toastProps): Id =>
+            toast.info(<ProductAvailable {...myProps} />, { ...toastProps });
+          toaster.info({ data: data }, { data: data });
+        }
+        if (JSON.parse(payload.data.body).type === "product before stock out") {
+          const toaster = (myProps, toastProps): Id =>
+            toast(<ProductAvailable {...myProps} />, { ...toastProps });
+
+          toaster.info = (myProps, toastProps): Id =>
+            toast.info(<ProductAvailable {...myProps} />, { ...toastProps });
+          toaster.info({ data: data }, { data: data });
+        }
       } else {
         if (payload.data.type === "InAnotherCallEvent") {
           // store.dispatch({ type: "USER_END_CALL" });

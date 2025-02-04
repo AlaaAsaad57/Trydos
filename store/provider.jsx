@@ -1,4 +1,4 @@
-"use client";
+"use client";;
 import { Provider } from "react-redux";
 import { store } from "./index";
 import GAComponent from "components/global/GAComponent";
@@ -14,9 +14,12 @@ import CartProvider from "components/Cart/CartProvider";
 import Smartlook from "smartlook-client";
 import { useSearchParams } from "next/navigation";
 import PopupCountry from "utils/PopupCountry";
+import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 // import { getCountriesApi } from "./homepage/cachedActions";
 import axios from "axios";
 import home from "services/home";
+import { AxiosGet } from "utils/AxiosApi";
+import { FIREBASE_SETTINGS_URL } from "utils/endpointConfig";
 export default function Providers({ children }) {
   const [dataCountries, setCountriesData] = useState([]);
   useEffect(() => {
@@ -46,11 +49,19 @@ export default function Providers({ children }) {
       };
     });
   }, []);
+
   useEffect(() => {
     if (!shouldShowBluredInfo()) {
       const handlePageRefresh = async () => {
         try {
-          await home.handleTopicsOnPageRefresh(); // Call the function on refresh
+          const response2 = await AxiosGet({
+            url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
+            title: "get firebase settings request"
+          });
+          store.dispatch({ type: "GET_FIREBASE_SETTINGS", payload: response2?.firebase_settings });
+          requestFirebaseNotificationPermission().then((fbtoken) => {
+            home.handleTopicsOnPageRefresh(fbtoken)
+          });
         } catch (error) {
           console.error("Error handling topics on page refresh:", error);
         }
@@ -59,6 +70,7 @@ export default function Providers({ children }) {
       handlePageRefresh(); // Run the function on initial load
     }
   }, []); // Runs once when the app initializes
+
   useEffect(() => {
     const fallbackImage = "/error.png"; // Replace with your fallback image path
 

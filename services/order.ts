@@ -1,5 +1,5 @@
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
-import { _isStoreLastJson, getLang } from "utils/functions";
+import { _isStoreLastJson } from "utils/functions";
 import { store } from "store";
 import { GetAddressListApi, GetWalletApi, PlaceOrderApi } from "models/Api";
 
