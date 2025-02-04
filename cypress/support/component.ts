@@ -51,6 +51,7 @@ declare global {
       clickElementForce(selector: string): Chainable<Element>;
       getProductNameFirstly(selector?: string): Chainable<string>;
       verifyProductInCart(productName: string): Chainable<void>;
+      // openSearchPage(): Chainable<void>;
     }
   }
 }

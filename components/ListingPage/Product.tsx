@@ -113,7 +113,7 @@ function Product({
     });
   };
   return (
-    <div className="max-h-[362px]">
+    <div className="max-h-[362px]" data-cy="countProduct">
       <NextLink
         suppressHydrationWarning
         // @ts-ignore

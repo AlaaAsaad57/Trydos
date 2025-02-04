@@ -307,6 +307,7 @@ function SearchComponent({
       {!focus && (
         <div className="search-colse-icon flex-row">
           <CloseIcon
+            data-cy="closeIcon_searchPage"
             onClick={() => {
               if (searchValue.length > 0) {
                 dispatch({ type: "SEARCH-WORD", payload: "" });

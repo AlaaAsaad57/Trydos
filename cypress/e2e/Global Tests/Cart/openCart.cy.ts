@@ -47,12 +47,8 @@ describe("open cart and view products", () => {
     });
     cy.wait(10000);
     cy.wait("@CartRequest").then((interception) => {
-      // Check that only one request was triggered (either cart/add or cart/update)
-
-      // Make sure only one request was triggered
       console.log("Intercepted request:", interception);
-
-      // Ensure that the triggered request is successful
+      console.log("Intercepted request addToCart");
       expect(interception.response.statusCode).to.eq(200);
     });
     cy.wait(10000);
@@ -120,11 +116,8 @@ describe("open cart and view products", () => {
       }
     });
     cy.wait("@CartRequest").then((interception) => {
-      // Check that only one request was triggered (either cart/add or cart/update)
-
-      // Make sure only one request was triggered
       console.log("Intercepted request:", interception);
-
+      console.log("Intercepted request updateCart");
       // Ensure that the triggered request is successful
       expect(interception.response.statusCode).to.eq(200);
     });
@@ -166,13 +159,14 @@ describe("open cart and view products", () => {
     cy.wait(4000);
   });
   it("should Click on the CartIcon on the home page and increase the quantity", () => {
+    cy.wait(10000);
     cy.Exist("[data-cy=cartIcon_mainPage]").then((exist) => {
       if (exist) {
         cy.clickElementForce("[data-cy=cartIcon_mainPage]");
       }
     });
     cy.intercept("POST", "**/api/new_v1/cart/update").as("increaseQuantity");
-    cy.wait(5000);
+    cy.wait(10000);
     cy.get('[data-cy="QuantityInCart"]')
       .eq(0) // Replace with actual test ID
       .invoke("val")
@@ -180,8 +174,8 @@ describe("open cart and view products", () => {
         inputValue = parseInt(value as string, 10);
         cy.log(`Input value is ${inputValue}`);
         console.log(`Input value is ${inputValue}`);
-        // cy.wrap(inputValue).as("storedInputValue");
       });
+    cy.wait(10000);
     cy.Exist("[data-cy=PlusIcon_CartPage]").then((exist) => {
       if (exist) {
         cy.clickElementForce("[data-cy=PlusIcon_CartPage]");
@@ -197,6 +191,7 @@ describe("open cart and view products", () => {
               console.log("Error: Quantity did not increaseded in cart");
             }
           });
+        cy.wait(10000);
         cy.wait("@increaseQuantity").then((interception) => {
           console.log("increaseQuantity request Successfully");
         });
@@ -209,11 +204,13 @@ describe("open cart and view products", () => {
     });
   });
   it("should Click on the CartIcon on the home page and decrease the quantity", () => {
+    cy.wait(10000);
     cy.Exist("[data-cy=cartIcon_mainPage]").then((exist) => {
       if (exist) {
         cy.clickElementForce("[data-cy=cartIcon_mainPage]");
       }
     });
+    cy.wait(10000);
     cy.intercept("POST", "**/api/new_v1/cart/update").as("decreaseQuantity");
     cy.intercept("POST", "**/api/new_v1/cart/remove").as("removeRequest");
     cy.wait(10000);
@@ -225,7 +222,7 @@ describe("open cart and view products", () => {
         cy.log(`Input value is ${inputValue}`);
         console.log(`Input value is ${inputValue}`);
       });
-    cy.wait(5000);
+    cy.wait(10000);
     cy.Exist("[data-cy=DeleteIcon_CartPage]").then((exist) => {
       if (exist) {
         cy.clickElementForce("[data-cy=DeleteIcon_CartPage]");
@@ -239,6 +236,7 @@ describe("open cart and view products", () => {
         });
       }
     });
+    cy.wait(10000);
     cy.Exist("[data-cy=MinusIcon_CartPage]").then((exist) => {
       if (exist) {
         cy.clickElementForce("[data-cy=MinusIcon_CartPage]");
@@ -254,6 +252,7 @@ describe("open cart and view products", () => {
               console.log("Error: Quantity did not decreaseded in cart");
             }
           });
+        cy.wait(10000);
         cy.wait("@decreaseQuantity").then((interception) => {
           console.log("decreaseQuantity request Successfully");
         });
@@ -266,23 +265,4 @@ describe("open cart and view products", () => {
     });
     cy.wait(5000);
   });
-  // **************************************************************************************
-  it.skip("should search icon ", () => {
-    cy.wait(10000);
-    cy.Exist("[data-cy=searchIcon_mainPage]").then((exist) => {
-      if (exist) {
-        cy.clickElementScroll("[data-cy=searchIcon_mainPage]");
-        console.log("Find item");
-      }
-    });
-    cy.wait(5000);
-    cy.Exist("[data-cy=brandItem]").then((exist) => {
-      if (exist) {
-        cy.get("[data-cy=brandItem]").eq(0).click({ scrollBehavior: false });
-        // cy.clickElementScroll("[data-cy=brandItem]");
-        console.log("Find item");
-      }
-    });
-  });
-  //delete this or move it to search file 
 });

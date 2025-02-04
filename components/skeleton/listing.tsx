@@ -8,7 +8,7 @@ function ListingSkeleton({ forProducts }: { forProducts?: boolean }) {
       {forProducts !== true && (
         <>
           <div className="filter-listing-bar relative flex-row align-center">
-            <div className="back-icon" >
+            <div className="back-icon">
               <Skeleton width={20} height={20} borderRadius={"50%"} />
             </div>
             <div className="filter-bar-options flex-row align-center">

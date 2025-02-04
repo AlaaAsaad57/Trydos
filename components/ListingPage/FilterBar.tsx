@@ -148,6 +148,7 @@ function FilterBar({ boutique, filters, productsServer }) {
         <NextLink
           href={filterEnabled ? "#" : "/"}
           className="back-icon"
+          data-cy="backIcon_pageAfterClickSearchTotal"
           onClick={() => {
             if (!filterEnabled) {
               // router.push(`/`);

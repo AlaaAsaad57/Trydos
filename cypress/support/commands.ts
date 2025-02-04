@@ -301,3 +301,5 @@ Cypress.Commands.add("verifyProductInCart", (productName: string) => {
       }
     });
 });
+// ************************ Search **************************************
+// Cypress.Commands.add("failedSignupProcess", () => { })
