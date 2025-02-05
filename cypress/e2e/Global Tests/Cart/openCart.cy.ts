@@ -10,7 +10,7 @@ describe("open cart and view products", () => {
     cy.wait(5000);
   });
   it("should add product to cart from any boutique page", () => {
-    cy.wait(5000);
+    cy.wait(10000);
     cy.Exist(".offer-widget:first-child").then((exist) => {
       if (exist) {
         cy.clickElementScroll(".offer-widget:first-child");
@@ -38,7 +38,6 @@ describe("open cart and view products", () => {
       },
     ]);
     cy.wait(10000);
-
     cy.intercept("POST", /\/cart\/(add|update)/).as("CartRequest");
     cy.Exist("[data-cy=AddToCartButton-data-cy]").then((exist) => {
       if (exist) {
@@ -81,10 +80,11 @@ describe("open cart and view products", () => {
         cy.clickElementForce("[data-cy=back_icon_boutique_page]");
       }
     });
-    cy.wait(4000);
+    cy.wait(10000);
   });
 
   it("should add product to cart from any product page", () => {
+    cy.wait(10000);
     cy.Exist(".offer-widget:first-child").then((exist) => {
       if (exist) {
         cy.clickElementScroll(".offer-widget:first-child");
@@ -94,6 +94,7 @@ describe("open cart and view products", () => {
     cy.getProductNameFirstly().then((name) => {
       productName = name;
     });
+    cy.wait(10000);
     cy.Exist("[data-cy=on_mouse_over_product]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=on_mouse_over_product]").eq(0).click({ force: true });
@@ -107,7 +108,6 @@ describe("open cart and view products", () => {
     });
     cy.wait(10000);
     cy.intercept("POST", /\/cart\/(add|update)/).as("CartRequest");
-
     cy.Exist("[data-cy=AddToCartButton-data-cy]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=AddToCartButton-data-cy]")
@@ -115,13 +115,13 @@ describe("open cart and view products", () => {
           .click({ force: true });
       }
     });
+    cy.wait(10000);
     cy.wait("@CartRequest").then((interception) => {
       console.log("Intercepted request:", interception);
       console.log("Intercepted request updateCart");
       // Ensure that the triggered request is successful
       expect(interception.response.statusCode).to.eq(200);
     });
-
     cy.wait(10000);
     cy.Exist("[data-cy=CartIcon_Productpage]").then((exist) => {
       if (exist) {
@@ -140,11 +140,13 @@ describe("open cart and view products", () => {
           console.log("Error: Product names do not match");
         }
       });
+    cy.wait(10000);
     cy.Exist("[data-cy=CartBackIcon]").then((exist) => {
       if (exist) {
         cy.clickElementForce("[data-cy=CartBackIcon]");
       }
     });
+    cy.wait(10000);
     cy.Exist("[data-cy=backIcon_productPage]").then((exist) => {
       if (exist) {
         cy.clickElementForce("[data-cy=backIcon_productPage]");
@@ -156,7 +158,7 @@ describe("open cart and view products", () => {
         cy.clickElementForce("[data-cy=back_icon_boutique_page]");
       }
     });
-    cy.wait(4000);
+    cy.wait(10000);
   });
   it("should Click on the CartIcon on the home page and increase the quantity", () => {
     cy.wait(10000);
@@ -263,6 +265,6 @@ describe("open cart and view products", () => {
         });
       }
     });
-    cy.wait(5000);
+    cy.wait(10000);
   });
 });

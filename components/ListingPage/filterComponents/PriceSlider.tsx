@@ -21,7 +21,10 @@ function PriceSlider({
   };
 
   return (
-    <div className="price-slider-container mt-10 w-full pr-9 pl-5 z-10">
+    <div
+      className="price-slider-container mt-10 w-full pr-9 pl-5 z-10"
+      data-cy="slider"
+    >
       <Slider
         defaultValue={[min, max]}
         range

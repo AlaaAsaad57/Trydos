@@ -8,12 +8,13 @@ describe("Login Scenario Test", () => {
     cy.wait(5000);
   });
   it("Login Successful Attempt should login to 3 servers", () => {
+    cy.wait(10000);
     let count = 0;
     cy.intercept("**/login", () => {
       count += 1;
     });
     cy.performLogin();
-    cy.wait(5000).then(() => {
+    cy.wait(10000).then(() => {
       cy.clearAllDataWithoutCookies();
       expect(count).to.be.greaterThan(1);
     });
@@ -26,7 +27,7 @@ describe("Login Scenario Test", () => {
       count += 1;
     });
     cy.performErrorLogin();
-    cy.wait(5000).then(() => {
+    cy.wait(10000).then(() => {
       cy.get('[data-testid="login-close-icon"]').click({
         scrollBehavior: false,
       });
@@ -34,20 +35,24 @@ describe("Login Scenario Test", () => {
     });
   });
   it.only("Login UnSuccessful Attempt when otp code expired should show button for resend otp and resend code and continue to login", () => {
+    cy.wait(10000);
     let count = 0;
     cy.clearAllDataWithoutCookies();
     cy.intercept("**/login", () => {
       count += 1;
     });
+    cy.wait(10000);
     cy.performExpireOtpLogin();
   });
   it("Should show user not found when registering with non registered number", () => {
+    cy.wait(10000);
     cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
       req.continue((res) => {
         // Modify the response body
         res.body.data.already_exists = false; // Fake email field
       });
     }).as("verifyOtpSignin");
+    cy.wait(10000);
     cy.Performloginfailure();
   });
 });
