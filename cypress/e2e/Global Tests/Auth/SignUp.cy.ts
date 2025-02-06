@@ -42,25 +42,20 @@ describe.only("SignUp Scenario Test", () => {
     cy.wait(10000);
     cy.clearAllData();
     cy.viewport(783, 824);
-    cy.wait(10000);
     cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
       req.continue((res) => {
         res.body.data.already_exists = true;
       });
     }).as("verifyOtpSignin");
-    cy.wait(10000);
     cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-    cy.wait(10000);
     cy.get(".login-button:nth-child(2)").click({ scrollBehavior: false });
     cy.get("[data-cy=agree-terms]").click({ scrollBehavior: false });
     cy.wait(60000);
     cy.enterPhoneNumber("963937288307");
-    cy.wait(10000);
     cy.typePincode("999999");
     cy.wait("@verifyOtpSignin", { timeout: 20000 }).then((s) => {
       console.log(s);
     });
-    cy.wait(10000);
     cy.wait(6000).then(() => {
       cy.get(".already-registered").should("be.visible");
     });

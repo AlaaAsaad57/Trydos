@@ -1,4 +1,4 @@
-describe("open cart and view products", () => {
+describe("search and filter in search page", () => {
   before(() => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
@@ -287,7 +287,7 @@ describe("open cart and view products", () => {
     cy.wait(10000);
   });
   // *****************************************************************************************
-  it.only("should search about any boutique and view the filtering and search result", () => {
+  it("should search about any boutique and view the filtering and search result", () => {
     cy.wait(10000);
     let totalProductsFound;
     cy.Exist("[data-cy=searchIcon_mainPage]").then((exist) => {

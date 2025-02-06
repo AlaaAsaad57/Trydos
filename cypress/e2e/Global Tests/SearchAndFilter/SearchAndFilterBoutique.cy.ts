@@ -1,4 +1,4 @@
-describe("open cart and view products", () => {
+describe("Search and Filter in Boutique page", () => {
   before(() => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
@@ -64,7 +64,7 @@ describe("open cart and view products", () => {
     });
   });
   // ***********************************************************************************
-  it("The user clicks on any boutique and then filters by category brand", () => {
+  it("The user clicks on any boutique and then filters by brand", () => {
     cy.wait(10000);
     cy.Exist(".offer-widget:nth-child(2)").then((exist) => {
       if (exist) {
@@ -121,7 +121,7 @@ describe("open cart and view products", () => {
     });
   });
   // ***********************************************************************************
-  it("The user clicks on any boutique and then filters by category color", () => {
+  it("The user clicks on any boutique and then filters by color", () => {
     cy.wait(10000);
     cy.Exist(".offer-widget:nth-child(2)").then((exist) => {
       if (exist) {
@@ -178,7 +178,7 @@ describe("open cart and view products", () => {
     });
   });
   // ***********************************************************************************
-  it("The user clicks on any boutique and then filters by category price", () => {
+  it("The user clicks on any boutique and then filters by price", () => {
     cy.wait(10000);
     cy.Exist(".offer-widget:nth-child(2)").then((exist) => {
       if (exist) {
@@ -735,7 +735,7 @@ describe("open cart and view products", () => {
     });
     cy.wait(10000);
   });
-  it.only("The user clicks on settings icon and filter as category or brand or color or price and reset after any choice", () => {
+  it("The user clicks on settings icon and filter as category or brand or color or price and reset after any choice", () => {
     cy.wait(10000);
     cy.Exist(".offer-widget:nth-child(2)").then((exist) => {
       if (exist) {

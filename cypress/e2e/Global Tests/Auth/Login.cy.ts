@@ -8,13 +8,13 @@ describe("Login Scenario Test", () => {
     cy.wait(5000);
   });
   it("Login Successful Attempt should login to 3 servers", () => {
-    cy.wait(10000);
     let count = 0;
     cy.intercept("**/login", () => {
       count += 1;
     });
+    cy.wait(5000);
     cy.performLogin();
-    cy.wait(10000).then(() => {
+    cy.wait(5000).then(() => {
       cy.clearAllDataWithoutCookies();
       expect(count).to.be.greaterThan(1);
     });
@@ -34,7 +34,7 @@ describe("Login Scenario Test", () => {
       expect(count).to.be.equal(0);
     });
   });
-  it.only("Login UnSuccessful Attempt when otp code expired should show button for resend otp and resend code and continue to login", () => {
+  it("Login UnSuccessful Attempt when otp code expired should show button for resend otp and resend code and continue to login", () => {
     cy.wait(10000);
     let count = 0;
     cy.clearAllDataWithoutCookies();
