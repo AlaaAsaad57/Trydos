@@ -1,5 +1,5 @@
 import { defineConfig } from "cypress";
-
+import TS from "@cypress/code-coverage/task";
 export default defineConfig({
   projectId: "d1rk7o",
   chromeWebSecurity: false,
@@ -21,7 +21,9 @@ export default defineConfig({
     experimentalStudio: true,
 
     setupNodeEvents(on, config) {
+      TS(on, config);
       require("cypress-mochawesome-reporter/plugin")(on);
+      return config;
       // implement node event listeners here
     },
     // baseUrl:

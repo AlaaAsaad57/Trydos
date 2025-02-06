@@ -34,11 +34,13 @@ import dynamic from "next/dynamic";
 import { push, ref, set } from "firebase/database";
 import { db } from "utils/firebaseInitv1";
 import ChatSearch from "../components/ChatSearch";
-const VideoCall = dynamic(() =>
-  import("components/Chat/components/VideoCall", { ssr: false })
+const VideoCall = dynamic(
+  () => import("components/Chat/components/VideoCall"),
+  { ssr: false }
 );
-const VoiceCall = dynamic(() =>
-  import("components/Chat/components/VoiceCall", { ssr: false })
+const VoiceCall = dynamic(
+  () => import("components/Chat/components/VoiceCall"),
+  { ssr: false }
 );
 
 function ConversationContainer({ ViewedScreen, active, loading, first }) {
