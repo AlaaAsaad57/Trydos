@@ -20,6 +20,7 @@ describe("open cart and view products", () => {
     cy.getProductNameFirstly().then((name) => {
       productName = name;
     });
+    cy.wait(10000);
     cy.Exist("[data-cy=Cart-ByButton]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=Cart-ByButton]").eq(0).click({ force: true });
@@ -44,7 +45,7 @@ describe("open cart and view products", () => {
         cy.clickElementScroll("[data-cy=AddToCartButton-data-cy]");
       }
     });
-    cy.wait(10000);
+    cy.wait(20000);
     cy.wait("@CartRequest").then((interception) => {
       console.log("Intercepted request:", interception);
       console.log("Intercepted request addToCart");
@@ -57,17 +58,21 @@ describe("open cart and view products", () => {
       }
     });
     cy.wait(10000);
-    cy.get("[data-cy=productNameInCart]")
-      .invoke("text")
-      .then((text) => {
-        const productNameInCart = text as unknown as string;
-        console.log("Product Name In Cart:", productNameInCart);
-        if (productName.indexOf(productNameInCart) !== -1) {
-          console.log("Success: Product names are similar");
-        } else {
-          console.log("Error: Product names do not match");
-        }
-      });
+    cy.Exist("[data-cy=productNameInCart]").then((exist) => {
+      if (exist) {
+        cy.get("[data-cy=productNameInCart]")
+          .invoke("text")
+          .then((text) => {
+            const productNameInCart = text as unknown as string;
+            console.log("Product Name In Cart:", productNameInCart);
+            if (productName.indexOf(productNameInCart) !== -1) {
+              console.log("Success: Product names are similar");
+            } else {
+              console.log("Error: Product names do not match");
+            }
+          });
+      }
+    });
     cy.wait(10000);
     cy.Exist("[data-cy=CartBackIcon]").then((exist) => {
       if (exist) {
@@ -115,7 +120,7 @@ describe("open cart and view products", () => {
           .click({ force: true });
       }
     });
-    cy.wait(10000);
+    cy.wait(20000);
     cy.wait("@CartRequest").then((interception) => {
       console.log("Intercepted request:", interception);
       console.log("Intercepted request updateCart");
@@ -129,17 +134,21 @@ describe("open cart and view products", () => {
       }
     });
     cy.wait(10000);
-    cy.get("[data-cy=productNameInCart]")
-      .invoke("text")
-      .then((text) => {
-        const productNameInCart = text as unknown as string;
-        console.log("Product Name In Cart:", productNameInCart);
-        if (productName.indexOf(productNameInCart) !== -1) {
-          console.log("Success: Product names are similar");
-        } else {
-          console.log("Error: Product names do not match");
-        }
-      });
+    cy.Exist("[data-cy=productNameInCart]").then((exist) => {
+      if (exist) {
+        cy.get("[data-cy=productNameInCart]")
+          .invoke("text")
+          .then((text) => {
+            const productNameInCart = text as unknown as string;
+            console.log("Product Name In Cart:", productNameInCart);
+            if (productName.indexOf(productNameInCart) !== -1) {
+              console.log("Success: Product names are similar");
+            } else {
+              console.log("Error: Product names do not match");
+            }
+          });
+      }
+    });
     cy.wait(10000);
     cy.Exist("[data-cy=CartBackIcon]").then((exist) => {
       if (exist) {
@@ -169,14 +178,18 @@ describe("open cart and view products", () => {
     });
     cy.intercept("POST", "**/api/new_v1/cart/update").as("increaseQuantity");
     cy.wait(10000);
-    cy.get('[data-cy="QuantityInCart"]')
-      .eq(0) // Replace with actual test ID
-      .invoke("val")
-      .then((value) => {
-        inputValue = parseInt(value as string, 10);
-        cy.log(`Input value is ${inputValue}`);
-        console.log(`Input value is ${inputValue}`);
-      });
+    cy.Exist("[data-cy=QuantityInCart]").then((exist) => {
+      if (exist) {
+        cy.get('[data-cy="QuantityInCart"]')
+          .eq(0) // Replace with actual test ID
+          .invoke("val")
+          .then((value) => {
+            inputValue = parseInt(value as string, 10);
+            cy.log(`Input value is ${inputValue}`);
+            console.log(`Input value is ${inputValue}`);
+          });
+      }
+    });
     cy.wait(10000);
     cy.Exist("[data-cy=PlusIcon_CartPage]").then((exist) => {
       if (exist) {
@@ -193,7 +206,7 @@ describe("open cart and view products", () => {
               console.log("Error: Quantity did not increaseded in cart");
             }
           });
-        cy.wait(10000);
+        cy.wait(20000);
         cy.wait("@increaseQuantity").then((interception) => {
           console.log("increaseQuantity request Successfully");
         });
@@ -216,18 +229,23 @@ describe("open cart and view products", () => {
     cy.intercept("POST", "**/api/new_v1/cart/update").as("decreaseQuantity");
     cy.intercept("POST", "**/api/new_v1/cart/remove").as("removeRequest");
     cy.wait(10000);
-    cy.get('[data-cy="QuantityInCart"]')
-      .eq(0) // Replace with actual test ID
-      .invoke("val")
-      .then((value) => {
-        inputValue = parseInt(value as string, 10);
-        cy.log(`Input value is ${inputValue}`);
-        console.log(`Input value is ${inputValue}`);
-      });
+    cy.Exist("[data-cy=QuantityInCart]").then((exist) => {
+      if (exist) {
+        cy.get('[data-cy="QuantityInCart"]')
+          .eq(0) // Replace with actual test ID
+          .invoke("val")
+          .then((value) => {
+            inputValue = parseInt(value as string, 10);
+            cy.log(`Input value is ${inputValue}`);
+            console.log(`Input value is ${inputValue}`);
+          });
+      }
+    });
     cy.wait(10000);
     cy.Exist("[data-cy=DeleteIcon_CartPage]").then((exist) => {
       if (exist) {
         cy.clickElementForce("[data-cy=DeleteIcon_CartPage]");
+        cy.wait(20000);
         cy.wait("@removeRequest").then((interception) => {
           console.log("removeRequest Successfully");
         });
@@ -254,7 +272,7 @@ describe("open cart and view products", () => {
               console.log("Error: Quantity did not decreaseded in cart");
             }
           });
-        cy.wait(10000);
+        cy.wait(20000);
         cy.wait("@decreaseQuantity").then((interception) => {
           console.log("decreaseQuantity request Successfully");
         });

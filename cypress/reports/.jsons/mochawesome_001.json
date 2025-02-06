@@ -1,0 +1,166 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 4,
+    "passes": 4,
+    "pending": 0,
+    "failures": 0,
+    "start": "2025-02-06T11:35:55.716Z",
+    "end": "2025-02-06T11:43:28.156Z",
+    "duration": 452440,
+    "testsRegistered": 4,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "4bc4e85c-284d-4de9-927f-dda02396d6ad",
+      "title": "",
+      "fullFile": "cypress\\e2e\\Global Tests\\Cart\\openCart.cy.ts",
+      "file": "cypress\\e2e\\Global Tests\\Cart\\openCart.cy.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "b7489a37-6596-4d76-8b4a-870b264caa29",
+          "title": "open cart and view products",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "should add product to cart from any boutique page",
+              "fullTitle": "open cart and view products should add product to cart from any boutique page",
+              "timedOut": null,
+              "duration": 150481,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.wait(10000);\ncy.Exist(\".offer-widget:first-child\").then(function (exist) {\n    if (exist) {\n        cy.clickElementScroll(\".offer-widget:first-child\");\n    }\n});\ncy.wait(10000);\ncy.getProductNameFirstly().then(function (name) {\n    productName = name;\n});\ncy.Exist(\"[data-cy=Cart-ByButton]\").then(function (exist) {\n    if (exist) {\n        cy.get(\"[data-cy=Cart-ByButton]\").eq(0).click({ force: true });\n    }\n});\ncy.interceptAndWait([\n    {\n        method: \"GET\",\n        url: \"**/product/qtyPriceDetails/**\",\n        alias: \"getProductData1\",\n    },\n    {\n        method: \"GET\",\n        url: \"**/product/likesCommentsSharesDetails/**\",\n        alias: \"getProductData2\",\n    },\n]);\ncy.wait(10000);\ncy.intercept(\"POST\", /\\/cart\\/(add|update)/).as(\"CartRequest\");\ncy.Exist(\"[data-cy=AddToCartButton-data-cy]\").then(function (exist) {\n    if (exist) {\n        cy.clickElementScroll(\"[data-cy=AddToCartButton-data-cy]\");\n    }\n});\ncy.wait(10000);\ncy.wait(\"@CartRequest\").then(function (interception) {\n    console.log(\"Intercepted request:\", interception);\n    console.log(\"Intercepted request addToCart\");\n    expect(interception.response.statusCode).to.eq(200);\n});\ncy.wait(10000);\ncy.Exist(\"[data-cy=CartIcon]\").then(function (exist) {\n    if (exist) {\n        cy.clickElementForce(\"[data-cy=CartIcon]\");\n    }\n});\ncy.wait(10000);\ncy.Exist(\"[data-cy=productNameInCart]\").then(function (exist) {\n    if (exist) {\n        cy.get(\"[data-cy=productNameInCart]\")\n            .invoke(\"text\")\n            .then(function (text) {\n            var productNameInCart = text;\n            console.log(\"Product Name In Cart:\", productNameInCart);\n            if (productName.indexOf(productNameInCart) !== -1) {\n                console.log(\"Success: Product names are similar\");\n            }\n            else {\n                console.log(\"Error: Product names do not match\");\n            }\n        });\n    }\n});\ncy.wait(10000);\ncy.Exist(\"[data-cy=CartBackIcon]\").then(function (exist) {\n    if (exist) {\n        cy.clickElementForce(\"[data-cy=CartBackIcon]\");\n    }\n});\ncy.wait(10000);\ncy.Exist(\"[data-cy=back_icon_boutique_page]\").then(function (exist) {\n    if (exist) {\n        cy.clickElementForce(\"[data-cy=back_icon_boutique_page]\");\n    }\n});\ncy.wait(10000);",
+              "err": {},
+              "uuid": "c8553cbb-7149-42f6-ae7a-ce1926e03df0",
+              "parentUUID": "b7489a37-6596-4d76-8b4a-870b264caa29",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should add product to cart from any product page",
+              "fullTitle": "open cart and view products should add product to cart from any product page",
+              "timedOut": null,
+              "duration": 166439,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.wait(10000);\ncy.Exist(\".offer-widget:first-child\").then(function (exist) {\n    if (exist) {\n        cy.clickElementScroll(\".offer-widget:first-child\");\n    }\n});\ncy.wait(20000);\ncy.getProductNameFirstly().then(function (name) {\n    productName = name;\n});\ncy.wait(10000);\ncy.Exist(\"[data-cy=on_mouse_over_product]\").then(function (exist) {\n    if (exist) {\n        cy.get(\"[data-cy=on_mouse_over_product]\").eq(0).click({ force: true });\n    }\n});\ncy.wait(20000);\ncy.Exist(\"[data-cy=addToCartButton_productPage]\").then(function (exist) {\n    if (exist) {\n        cy.clickElementScroll(\"[data-cy=addToCartButton_productPage]\");\n    }\n});\ncy.wait(10000);\ncy.intercept(\"POST\", /\\/cart\\/(add|update)/).as(\"CartRequest\");\ncy.Exist(\"[data-cy=AddToCartButton-data-cy]\").then(function (exist) {\n    if (exist) {\n        cy.get(\"[data-cy=AddToCartButton-data-cy]\")\n            // .eq(0)\n            .click({ force: true });\n    }\n});\ncy.wait(10000);\ncy.wait(\"@CartRequest\").then(function (interception) {\n    console.log(\"Intercepted request:\", interception);\n    console.log(\"Intercepted request updateCart\");\n    // Ensure that the triggered request is successful\n    expect(interception.response.statusCode).to.eq(200);\n});\ncy.wait(10000);\ncy.Exist(\"[data-cy=CartIcon_Productpage]\").then(function (exist) {\n    if (exist) {\n        cy.get(\"[data-cy=CartIcon_Productpage]\").eq(0).click({ force: true });\n    }\n});\ncy.wait(10000);\ncy.Exist(\"[data-cy=productNameInCart]\").then(function (exist) {\n    if (exist) {\n        cy.get(\"[data-cy=productNameInCart]\")\n            .invoke(\"text\")\n            .then(function (text) {\n            var productNameInCart = text;\n            console.log(\"Product Name In Cart:\", productNameInCart);\n            if (productName.indexOf(productNameInCart) !== -1) {\n                console.log(\"Success: Product names are similar\");\n            }\n            else {\n                console.log(\"Error: Product names do not match\");\n            }\n        });\n    }\n});\ncy.wait(10000);\ncy.Exist(\"[data-cy=CartBackIcon]\").then(function (exist) {\n    if (exist) {\n        cy.clickElementForce(\"[data-cy=CartBackIcon]\");\n    }\n});\ncy.wait(10000);\ncy.Exist(\"[data-cy=backIcon_productPage]\").then(function (exist) {\n    if (exist) {\n        cy.clickElementForce(\"[data-cy=backIcon_productPage]\");\n    }\n});\ncy.wait(10000);\ncy.Exist(\"[data-cy=back_icon_boutique_page]\").then(function (exist) {\n    if (exist) {\n        cy.clickElementForce(\"[data-cy=back_icon_boutique_page]\");\n    }\n});\ncy.wait(10000);",
+              "err": {},
+              "uuid": "2b48b3e9-3880-48fa-a037-0ff21a90d100",
+              "parentUUID": "b7489a37-6596-4d76-8b4a-870b264caa29",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should Click on the CartIcon on the home page and increase the quantity",
+              "fullTitle": "open cart and view products should Click on the CartIcon on the home page and increase the quantity",
+              "timedOut": null,
+              "duration": 55711,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.wait(10000);\ncy.Exist(\"[data-cy=cartIcon_mainPage]\").then(function (exist) {\n    if (exist) {\n        cy.clickElementForce(\"[data-cy=cartIcon_mainPage]\");\n    }\n});\ncy.intercept(\"POST\", \"**/api/new_v1/cart/update\").as(\"increaseQuantity\");\ncy.wait(10000);\ncy.Exist(\"[data-cy=QuantityInCart]\").then(function (exist) {\n    if (exist) {\n        cy.get('[data-cy=\"QuantityInCart\"]')\n            .eq(0) // Replace with actual test ID\n            .invoke(\"val\")\n            .then(function (value) {\n            inputValue = parseInt(value, 10);\n            cy.log(\"Input value is \".concat(inputValue));\n            console.log(\"Input value is \".concat(inputValue));\n        });\n    }\n});\ncy.wait(10000);\ncy.Exist(\"[data-cy=PlusIcon_CartPage]\").then(function (exist) {\n    if (exist) {\n        cy.clickElementForce(\"[data-cy=PlusIcon_CartPage]\");\n        cy.get('[data-cy=\"QuantityInCart\"]') // Replace with actual test ID\n            .invoke(\"val\")\n            .then(function (value) {\n            var inputValueAfterUpdate = parseInt(value, 10);\n            cy.log(\"Input value is \".concat(inputValueAfterUpdate));\n            console.log(\"Input value is \".concat(inputValueAfterUpdate));\n            if (inputValueAfterUpdate > inputValue) {\n                console.log(\"Success: Quantity increaseded in cart\");\n            }\n            else {\n                console.log(\"Error: Quantity did not increaseded in cart\");\n            }\n        });\n        cy.wait(10000);\n        cy.wait(\"@increaseQuantity\").then(function (interception) {\n            console.log(\"increaseQuantity request Successfully\");\n        });\n        cy.Exist(\"[data-cy=CartBackIcon]\").then(function (exist) {\n            if (exist) {\n                cy.clickElementForce(\"[data-cy=CartBackIcon]\");\n            }\n        });\n    }\n});",
+              "err": {},
+              "uuid": "5379f29d-a3a2-4718-bc92-8ca37efbc63a",
+              "parentUUID": "b7489a37-6596-4d76-8b4a-870b264caa29",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should Click on the CartIcon on the home page and decrease the quantity",
+              "fullTitle": "open cart and view products should Click on the CartIcon on the home page and decrease the quantity",
+              "timedOut": null,
+              "duration": 79542,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.wait(10000);\ncy.Exist(\"[data-cy=cartIcon_mainPage]\").then(function (exist) {\n    if (exist) {\n        cy.clickElementForce(\"[data-cy=cartIcon_mainPage]\");\n    }\n});\ncy.wait(10000);\ncy.intercept(\"POST\", \"**/api/new_v1/cart/update\").as(\"decreaseQuantity\");\ncy.intercept(\"POST\", \"**/api/new_v1/cart/remove\").as(\"removeRequest\");\ncy.wait(10000);\ncy.Exist(\"[data-cy=QuantityInCart]\").then(function (exist) {\n    if (exist) {\n        cy.get('[data-cy=\"QuantityInCart\"]')\n            .eq(0) // Replace with actual test ID\n            .invoke(\"val\")\n            .then(function (value) {\n            inputValue = parseInt(value, 10);\n            cy.log(\"Input value is \".concat(inputValue));\n            console.log(\"Input value is \".concat(inputValue));\n        });\n    }\n});\ncy.wait(10000);\ncy.Exist(\"[data-cy=DeleteIcon_CartPage]\").then(function (exist) {\n    if (exist) {\n        cy.clickElementForce(\"[data-cy=DeleteIcon_CartPage]\");\n        cy.wait(\"@removeRequest\").then(function (interception) {\n            console.log(\"removeRequest Successfully\");\n        });\n        cy.Exist(\"[data-cy=CartBackIcon]\").then(function (exist) {\n            if (exist) {\n                cy.clickElementForce(\"[data-cy=CartBackIcon]\");\n            }\n        });\n    }\n});\ncy.wait(10000);\ncy.Exist(\"[data-cy=MinusIcon_CartPage]\").then(function (exist) {\n    if (exist) {\n        cy.clickElementForce(\"[data-cy=MinusIcon_CartPage]\");\n        cy.get('[data-cy=\"QuantityInCart\"]') // Replace with actual test ID\n            .invoke(\"val\")\n            .then(function (value) {\n            var inputValueAfterUpdate = parseInt(value, 10);\n            cy.log(\"Input value is \".concat(inputValueAfterUpdate));\n            console.log(\"Input value is \".concat(inputValueAfterUpdate));\n            if (inputValueAfterUpdate < inputValue) {\n                console.log(\"Success: Quantity decreaseded in cart\");\n            }\n            else {\n                console.log(\"Error: Quantity did not decreaseded in cart\");\n            }\n        });\n        cy.wait(10000);\n        cy.wait(\"@decreaseQuantity\").then(function (interception) {\n            console.log(\"decreaseQuantity request Successfully\");\n        });\n        cy.Exist(\"[data-cy=CartBackIcon]\").then(function (exist) {\n            if (exist) {\n                cy.clickElementForce(\"[data-cy=CartBackIcon]\");\n            }\n        });\n    }\n});\ncy.wait(10000);",
+              "err": {},
+              "uuid": "5629ee3f-c12b-46b2-9be5-0c76ef27fc89",
+              "parentUUID": "b7489a37-6596-4d76-8b4a-870b264caa29",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "c8553cbb-7149-42f6-ae7a-ce1926e03df0",
+            "2b48b3e9-3880-48fa-a037-0ff21a90d100",
+            "5379f29d-a3a2-4718-bc92-8ca37efbc63a",
+            "5629ee3f-c12b-46b2-9be5-0c76ef27fc89"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 452173,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "embeddedScreenshots": true,
+        "html": false,
+        "inlineAssets": true,
+        "reportDir": "cypress\\reports\\.jsons",
+        "charts": true,
+        "reportPageTitle": "My Test Suite",
+        "overwrite": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

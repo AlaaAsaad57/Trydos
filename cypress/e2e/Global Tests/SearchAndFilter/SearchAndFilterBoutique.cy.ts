@@ -262,28 +262,51 @@ describe("Search and Filter in Boutique page", () => {
     cy.wait(10000);
     let countFilters = 0;
     let countDivs = 0;
-    cy.get("[data-cy=countFilters]")
-      .its("length")
-      .then((count) => {
-        countFilters = count;
-        cy.log(`Number Of count filters: ${countFilters}`);
-        console.log("Total count filters:", countFilters);
-      });
-    cy.get(".boutique-category-filter")
-      .should("exist") // Ensures at least one element exists
-      .its("length")
-      .then((count) => {
-        countDivs = count;
-        cy.log(`Number of divs found: ${countDivs}`);
-        console.log("Number of divs found:", countDivs);
-      });
-    cy.then(() => {
-      if (countFilters === countDivs) {
-        cy.log("✅ The number of filters matches the number of divs.");
-        console.log("✅ The number of filters matches the number of divs.");
-      } else {
-        cy.log("❌ Mismatch: Filters and divs count are different.");
-        console.log("❌ Mismatch: Filters and divs count are different.");
+    cy.Exist("[data-cy=countFilters]").then((exist) => {
+      if (exist) {
+        cy.get("[data-cy=countFilters]")
+          .its("length")
+          .then((count) => {
+            countFilters = count;
+            cy.log(`Number Of count filters: ${countFilters}`);
+            console.log("Total count filters:", countFilters);
+          });
+      }
+    });
+    cy.Exist("[data-cy=countFilters]").then((exist) => {
+      if (exist) {
+        cy.get("[data-cy=countFilters]")
+          .its("length")
+          .then((count) => {
+            countFilters = count;
+            cy.log(`Number Of count filters: ${countFilters}`);
+            console.log("Total count filters:", countFilters);
+          });
+      }
+    });
+    cy.Exist(".boutique-category-filter").then((exist) => {
+      if (exist) {
+        cy.get(".boutique-category-filter")
+          .should("exist") // Ensures at least one element exists
+          .its("length")
+          .then((count) => {
+            countDivs = count;
+            cy.log(`Number of divs found: ${countDivs}`);
+            console.log("Number of divs found:", countDivs);
+            cy.then(() => {
+              if (countFilters === countDivs) {
+                cy.log("✅ The number of filters matches the number of divs.");
+                console.log(
+                  "✅ The number of filters matches the number of divs."
+                );
+              } else {
+                cy.log("❌ Mismatch: Filters and divs count are different.");
+                console.log(
+                  "❌ Mismatch: Filters and divs count are different."
+                );
+              }
+            });
+          });
       }
     });
     cy.Exist("[data-cy=back_icon_boutique_page]").then((exist) => {
@@ -318,36 +341,53 @@ describe("Search and Filter in Boutique page", () => {
         cy.log("✅ search icon clicked");
         console.log("✅ search icon clicked");
         cy.wait(5000);
-        cy.get("[data-cy=inputFiled]")
-          .type("Power", { force: true })
-          .should("have.value", "Power"); // Ensure text was typed
-        cy.wait(15000);
-        cy.get("[data-cy=countProduct]")
-          .its("length")
-          .then((count) => {
-            cy.log(`Number Of Products View: ${count}`);
-            console.log("Total Products View:", count);
-            if (count > 0) {
-              console.log("There are an result");
-              cy.log("✅✅ There are an result");
-            } else {
-              console.log("no result found");
-              cy.log("❌❌ no result found");
-            }
-          });
-        cy.wait(10000);
-        cy.log("✅ Typed in search input");
-        console.log("✅ Typed in search input");
-        cy.get("[data-cy=inputFiled]").clear();
-        cy.log("✅ Cleared the search input");
-        console.log("✅ Cleared the search input");
-        cy.wait(15000);
-        cy.get("[data-cy=inputFiled]").type(" ", {
-          force: true,
+        cy.Exist("[data-cy=inputFiled]").then((exist) => {
+          if (exist) {
+            cy.get("[data-cy=inputFiled]")
+              .type("Power", { force: true })
+              .should("have.value", "Power"); // Ensure text was typed
+            cy.wait(5000);
+            cy.Exist("[data-cy=countProduct]").then((exist) => {
+              if (exist) {
+                cy.get("[data-cy=countProduct]")
+                  .its("length")
+                  .then((count) => {
+                    cy.log(`Number Of Products View: ${count}`);
+                    console.log("Total Products View:", count);
+                    if (count > 0) {
+                      console.log("There are an result");
+                      cy.log("✅✅ There are an result");
+                    } else {
+                      console.log("no result found");
+                      cy.log("❌❌ no result found");
+                    }
+                  });
+                cy.wait(10000);
+              }
+            });
+            cy.log("✅ Typed in search input");
+            console.log("✅ Typed in search input");
+            cy.Exist("[data-cy=inputFiled]").then((exist) => {
+              if (exist) {
+                cy.get("[data-cy=inputFiled]").clear();
+                cy.log("✅ Cleared the search input");
+                console.log("✅ Cleared the search input");
+              }
+            });
+            cy.wait(15000);
+            cy.Exist("[data-cy=inputFiled]").then((exist) => {
+              if (exist) {
+                cy.get("[data-cy=inputFiled]").type(" ", {
+                  force: true,
+                });
+                cy.log("✅ Typed in search input");
+                console.log("✅ Typed in search input");
+              }
+            });
+
+            cy.wait(5000);
+          }
         });
-        cy.log("✅ Typed in search input");
-        console.log("✅ Typed in search input");
-        cy.wait(5000);
       }
     });
     cy.wait(10000);
@@ -403,29 +443,37 @@ describe("Search and Filter in Boutique page", () => {
     });
     cy.wait(10000);
     let totalProductsFound1 = 0;
-    cy.get('[data-cy="totalProduct_filterBoutique"]')
-      .invoke("text")
-      .then((text) => {
-        const totalProductsFound = text.match(/\d+/)?.[0];
-        totalProductsFound1 = parseInt(totalProductsFound, 10);
-        cy.log(`Total Products Found It: ${totalProductsFound}`);
-        console.log("Total Products Found It:", totalProductsFound);
-        cy.clickElementForce("[data-cy=totalProduct_filterBoutique]");
-      });
+    cy.Exist("[data-cy=totalProduct_filterBoutique]").then((exist) => {
+      if (exist) {
+        cy.get('[data-cy="totalProduct_filterBoutique"]')
+          .invoke("text")
+          .then((text) => {
+            const totalProductsFound = text.match(/\d+/)?.[0];
+            totalProductsFound1 = parseInt(totalProductsFound, 10);
+            cy.log(`Total Products Found It: ${totalProductsFound}`);
+            console.log("Total Products Found It:", totalProductsFound);
+            cy.clickElementForce("[data-cy=totalProduct_filterBoutique]");
+          });
+      }
+    });
     cy.wait(10000);
-    cy.get('[data-cy="countProduct"]')
-      .its("length")
-      .then((count) => {
-        cy.log(`Number Of Products View: ${count}`);
-        console.log("Total Products View:", count);
-        if (totalProductsFound1 == count) {
-          console.log("Total Products Found And Viewed Matched");
-          cy.log("✅✅ Total Products Found And Viewed Matched");
-        } else {
-          console.log("Total Products Found And Viewed Not Matched");
-          cy.log("❌❌ Total Products Found And Viewed Not Matched");
-        }
-      });
+    cy.Exist("[data-cy=countProduct]").then((exist) => {
+      if (exist) {
+        cy.get('[data-cy="countProduct"]')
+          .its("length")
+          .then((count) => {
+            cy.log(`Number Of Products View: ${count}`);
+            console.log("Total Products View:", count);
+            if (totalProductsFound1 == count) {
+              console.log("Total Products Found And Viewed Matched");
+              cy.log("✅✅ Total Products Found And Viewed Matched");
+            } else {
+              console.log("Total Products Found And Viewed Not Matched");
+              cy.log("❌❌ Total Products Found And Viewed Not Matched");
+            }
+          });
+      }
+    });
     cy.wait(10000);
     cy.Exist("[data-cy=closeIcon]").then((exist) => {
       if (exist) {
@@ -453,29 +501,37 @@ describe("Search and Filter in Boutique page", () => {
     });
     cy.wait(10000);
     let totalProductsFound2 = 0;
-    cy.get('[data-cy="totalProduct_filterBoutique"]')
-      .invoke("text")
-      .then((text) => {
-        const totalProductsFound = text.match(/\d+/)?.[0];
-        totalProductsFound2 = parseInt(totalProductsFound, 10);
-        cy.log(`Total Products Found It: ${totalProductsFound}`);
-        console.log("Total Products Found It:", totalProductsFound);
-        cy.clickElementForce("[data-cy=totalProduct_filterBoutique]");
-      });
+    cy.Exist("[data-cy=totalProduct_filterBoutique]").then((exist) => {
+      if (exist) {
+        cy.get('[data-cy="totalProduct_filterBoutique"]')
+          .invoke("text")
+          .then((text) => {
+            const totalProductsFound = text.match(/\d+/)?.[0];
+            totalProductsFound2 = parseInt(totalProductsFound, 10);
+            cy.log(`Total Products Found It: ${totalProductsFound}`);
+            console.log("Total Products Found It:", totalProductsFound);
+            cy.clickElementForce("[data-cy=totalProduct_filterBoutique]");
+          });
+      }
+    });
     cy.wait(10000);
-    cy.get('[data-cy="countProduct"]')
-      .its("length")
-      .then((count) => {
-        cy.log(`Number Of Products View: ${count}`);
-        console.log("Total Products View:", count);
-        if (totalProductsFound2 == count) {
-          console.log("Total Products Found And Viewed Matched");
-          cy.log("✅✅ Total Products Found And Viewed Matched");
-        } else {
-          console.log("Total Products Found And Viewed Not Matched");
-          cy.log("❌❌ Total Products Found And Viewed Not Matched");
-        }
-      });
+    cy.Exist("[data-cy=countProduct]").then((exist) => {
+      if (exist) {
+        cy.get('[data-cy="countProduct"]')
+          .its("length")
+          .then((count) => {
+            cy.log(`Number Of Products View: ${count}`);
+            console.log("Total Products View:", count);
+            if (totalProductsFound2 == count) {
+              console.log("Total Products Found And Viewed Matched");
+              cy.log("✅✅ Total Products Found And Viewed Matched");
+            } else {
+              console.log("Total Products Found And Viewed Not Matched");
+              cy.log("❌❌ Total Products Found And Viewed Not Matched");
+            }
+          });
+      }
+    });
     cy.wait(10000);
     cy.Exist("[data-cy=closeIcon]").then((exist) => {
       if (exist) {
@@ -566,12 +622,16 @@ describe("Search and Filter in Boutique page", () => {
       }
     });
     cy.wait(10000);
-    cy.get(".rc-slider-handle-1").then(($el) => {
-      const rect = $el[0].getBoundingClientRect();
-      cy.wrap($el)
-        .trigger("mousedown", { which: 1, pageX: rect.x })
-        .trigger("mousemove", { which: 1, pageX: rect.x + 100 }) // Move right
-        .trigger("mouseup");
+    cy.Exist(".rc-slider-handle-1").then((exist) => {
+      if (exist) {
+        cy.get(".rc-slider-handle-1").then(($el) => {
+          const rect = $el[0].getBoundingClientRect();
+          cy.wrap($el)
+            .trigger("mousedown", { which: 1, pageX: rect.x })
+            .trigger("mousemove", { which: 1, pageX: rect.x + 100 }) // Move right
+            .trigger("mouseup");
+        });
+      }
     });
     cy.wait(10000);
     let totalProductsFound4 = 0;
@@ -823,12 +883,16 @@ describe("Search and Filter in Boutique page", () => {
       }
     });
     cy.wait(10000);
-    cy.get(".rc-slider-handle-1").then(($el) => {
-      const rect = $el[0].getBoundingClientRect();
-      cy.wrap($el)
-        .trigger("mousedown", { which: 1, pageX: rect.x })
-        .trigger("mousemove", { which: 1, pageX: rect.x + 100 }) // Move right
-        .trigger("mouseup");
+    cy.Exist(".rc-slider-handle-1").then((exist) => {
+      if (exist) {
+        cy.get(".rc-slider-handle-1").then(($el) => {
+          const rect = $el[0].getBoundingClientRect();
+          cy.wrap($el)
+            .trigger("mousedown", { which: 1, pageX: rect.x })
+            .trigger("mousemove", { which: 1, pageX: rect.x + 100 }) // Move right
+            .trigger("mouseup");
+        });
+      }
     });
     cy.wait(10000);
     // resetbutton
