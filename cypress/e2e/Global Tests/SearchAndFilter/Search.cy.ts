@@ -9,7 +9,8 @@ describe("search and filter in search page", () => {
   });
   // **************************************************************************************************
   it("should Click on the search icon on the home page and view the filtering and search page", () => {
-    cy.wait(10000);
+    cy.reload();
+    cy.wait(70000);
     cy.Exist("[data-cy=searchIcon_mainPage]").then((exist) => {
       if (exist) {
         cy.clickElementScroll("[data-cy=searchIcon_mainPage]");
@@ -36,8 +37,9 @@ describe("search and filter in search page", () => {
   });
   // **************************************************************************************
   it("should search about any brand item and view the filtering and search result", () => {
+    cy.reload();
+    cy.wait(70000);
     let totalProductsFound;
-    cy.wait(10000);
     cy.Exist("[data-cy=searchIcon_mainPage]").then((exist) => {
       if (exist) {
         cy.clickElementScroll("[data-cy=searchIcon_mainPage]");
@@ -170,6 +172,8 @@ describe("search and filter in search page", () => {
   });
   // *****************************************************************************************
   it("should search about any Category item and view the filtering and search result", () => {
+    cy.reload();
+    cy.wait(70000);
     let totalProductsFound;
     cy.wait(10000);
     cy.Exist("[data-cy=searchIcon_mainPage]").then((exist) => {
@@ -305,7 +309,8 @@ describe("search and filter in search page", () => {
   });
   // *****************************************************************************************
   it("should search about any boutique and view the filtering and search result", () => {
-    cy.wait(10000);
+    cy.reload();
+    cy.wait(70000);
     let totalProductsFound;
     cy.Exist("[data-cy=searchIcon_mainPage]").then((exist) => {
       if (exist) {

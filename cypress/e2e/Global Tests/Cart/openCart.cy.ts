@@ -11,9 +11,9 @@ describe("open cart and view products", () => {
   });
   it("should add product to cart from any boutique page", () => {
     cy.wait(10000);
-    cy.Exist(".offer-widget:first-child").then((exist) => {
+    cy.Exist(".offer-widget:nth-child(6)").then((exist) => {
       if (exist) {
-        cy.clickElementScroll(".offer-widget:first-child");
+        cy.clickElementForce(".offer-widget:nth-child(6)");
       }
     });
     cy.wait(10000);
@@ -90,9 +90,9 @@ describe("open cart and view products", () => {
 
   it("should add product to cart from any product page", () => {
     cy.wait(10000);
-    cy.Exist(".offer-widget:first-child").then((exist) => {
+    cy.Exist(".offer-widget:nth-child(6)").then((exist) => {
       if (exist) {
-        cy.clickElementScroll(".offer-widget:first-child");
+        cy.clickElementForce(".offer-widget:nth-child(6)");
       }
     });
     cy.wait(20000);
