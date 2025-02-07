@@ -120,6 +120,7 @@ function SizeCircle({
       className={`category-circle flex-col align-center ${
         true && "extended-circle"
       }`}
+      data-cy="categoryPrice"
     >
       {" "}
       <div className="relative w-[140px] h-[70px]">

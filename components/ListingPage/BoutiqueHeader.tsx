@@ -278,7 +278,10 @@ function BoutiqueHeader({ boutique, showFilters }) {
     }
   }, []);
   return (
-    <div className={`boutique-header ${"flex-col"} align-center`}>
+    <div
+      className={`boutique-header ${"flex-col"} align-center`}
+      data-cy="boutiqueOpen"
+    >
       {(filters.categories.length > 0 || filters.brands.length > 0) && (
         <PrefetchingFilters />
       )}

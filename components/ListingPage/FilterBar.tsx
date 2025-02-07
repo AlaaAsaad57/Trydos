@@ -206,6 +206,7 @@ function FilterBar({ boutique, filters, productsServer }) {
               ActiveSearch &&
               "w-[75%] [&>input]:w-full [&>input]:bg-[#f8f8f8] [&>input]:h-[40px]"
             }`}
+            data-cy="searchIcon_boutiquePage"
             onClick={() => {
               Sendevent({
                 event: "button_clicked",
@@ -226,6 +227,7 @@ function FilterBar({ boutique, filters, productsServer }) {
             }}
           >
             <DebounceInput
+              data-cy="inputFiled"
               id="filter-search"
               debounceTimeout={400}
               value={selectedFilters.searchText}
@@ -299,10 +301,11 @@ function FilterBar({ boutique, filters, productsServer }) {
             />
           </div>
           <div className="filter-option">
-            <SortIcon />
+            <SortIcon data-cy="closeSearchInput" />
           </div>
           <div
             className="filter-option"
+            data-cy="settingsIcon"
             onClick={() => {
               setEnableFilter(!filterEnabled);
 

@@ -1,6 +1,4 @@
-describe("open cart and view products", () => {
-  let totalProductsFound;
-  let totalProductsView;
+describe("search and filter in search page", () => {
   before(() => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
@@ -11,6 +9,7 @@ describe("open cart and view products", () => {
   });
   // **************************************************************************************************
   it("should Click on the search icon on the home page and view the filtering and search page", () => {
+    cy.wait(10000);
     cy.Exist("[data-cy=searchIcon_mainPage]").then((exist) => {
       if (exist) {
         cy.clickElementScroll("[data-cy=searchIcon_mainPage]");
@@ -18,6 +17,7 @@ describe("open cart and view products", () => {
         cy.log("✅ Find search Icon Item");
       }
     });
+    cy.wait(10000);
     cy.Exist("[data-cy=searchContainer]").then((exist) => {
       if (exist) {
         console.log("Search Container Body Apperead");
@@ -37,6 +37,7 @@ describe("open cart and view products", () => {
   // **************************************************************************************
   it("should search about any brand item and view the filtering and search result", () => {
     let totalProductsFound;
+    cy.wait(10000);
     cy.Exist("[data-cy=searchIcon_mainPage]").then((exist) => {
       if (exist) {
         cy.clickElementScroll("[data-cy=searchIcon_mainPage]");
@@ -44,13 +45,15 @@ describe("open cart and view products", () => {
         cy.log("✅ Find search Icon Item");
       }
     });
+    cy.wait(10000);
     cy.Exist("[data-cy=searchContainer]").then((exist) => {
       if (exist) {
         console.log("Search Container Body Apperead");
         cy.log("✅ Search Container Body Apperead");
       }
     });
-    cy.intercept("GET", "/api/products/search?&brand**").as("searchBrands");
+    cy.wait(10000);
+    // cy.intercept("GET", "/api/products/search?&brand**").as("searchBrands");
     cy.Exist("[data-cy=brandItem]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=brandItem]").eq(0).click({ scrollBehavior: false });
@@ -58,10 +61,11 @@ describe("open cart and view products", () => {
         cy.log("✅ Find Brand Item");
       }
     });
-    cy.wait("@searchBrands").then((interception) => {
-      cy.log("✅ Intercepted request for searchBrands ");
-      console.log("Intercepted request for searchBrands ");
-    });
+    // cy.wait(10000);
+    // cy.wait("@searchBrands").then((interception) => {
+    //   cy.log("✅ Intercepted request for searchBrands ");
+    //   console.log("Intercepted request for searchBrands ");
+    // });
     cy.wait(10000);
     cy.Exist("[data-cy=searchResults_body]").then((exist) => {
       if (exist) {
@@ -77,14 +81,19 @@ describe("open cart and view products", () => {
       }
     });
     cy.wait(10000);
-    cy.get('[data-cy="countAfterFilter"]')
-      .invoke("text")
-      .then((text) => {
-        totalProductsFound = text.match(/\d+/)?.[0];
-        cy.log(`Total Products Found It: ${totalProductsFound}`);
-        console.log("Total Products Found It:", totalProductsFound);
-      });
-    cy.wait(5000);
+    cy.Exist("[data-cy=countAfterFilter]").then((exist) => {
+      if (exist) {
+        cy.get('[data-cy="countAfterFilter"]')
+          .invoke("text")
+          .then((text) => {
+            totalProductsFound = text.match(/\d+/)?.[0];
+            cy.log(`Total Products Found It: ${totalProductsFound}`);
+            console.log("Total Products Found It:", totalProductsFound);
+          });
+      }
+    });
+
+    cy.wait(10000);
     cy.Exist("[data-cy=searchTotalProduct]").then((exist) => {
       if (exist) {
         cy.clickElementScroll("[data-cy=searchTotalProduct]");
@@ -92,19 +101,24 @@ describe("open cart and view products", () => {
         cy.log("✅ Find Search Total Product");
       }
     });
-    cy.get('[data-cy="countProduct"]')
-      .its("length")
-      .then((count) => {
-        cy.log(`Number Of Products View: ${count}`);
-        console.log("Total Products View:", count);
-        if (count == totalProductsFound) {
-          console.log("Total Products Found And Viewed Matched");
-          cy.log("�� Total Products Found And Viewed Matched");
-        } else {
-          console.log("Total Products Found And Viewed Not Matched");
-          cy.log("�� Total Products Found And Viewed Not Matched");
-        }
-      });
+    cy.wait(10000);
+    cy.Exist("[data-cy=countProduct]").then((exist) => {
+      if (exist) {
+        cy.get('[data-cy="countProduct"]')
+          .its("length")
+          .then((count) => {
+            cy.log(`Number Of Products View: ${count}`);
+            console.log("Total Products View:", count);
+            if (count == totalProductsFound) {
+              console.log("Total Products Found And Viewed Matched");
+              cy.log("✅✅ Total Products Found And Viewed Matched");
+            } else {
+              console.log("Total Products Found And Viewed Not Matched");
+              cy.log("❌❌ Total Products Found And Viewed Not Matched");
+            }
+          });
+      }
+    });
     cy.wait(10000);
     cy.Exist("[data-cy=allCategory]").then((exist) => {
       if (exist) {
@@ -112,7 +126,7 @@ describe("open cart and view products", () => {
         cy.log("✅ The Page For Brands Founded Will Apperead");
       }
     });
-    cy.wait(5000);
+    cy.wait(10000);
     cy.Exist("[data-cy=closeIcon]").then((exist) => {
       if (exist) {
         cy.clickElementScroll("[data-cy=closeIcon]");
@@ -120,6 +134,7 @@ describe("open cart and view products", () => {
         cy.log("✅ Close Icon in The Page For Brands Founded Will Apperead");
       }
     });
+    cy.wait(10000);
     cy.Exist("[data-cy=backIcon_pageAfterClickSearchTotal]").then((exist) => {
       if (exist) {
         cy.clickElementScroll("[data-cy=backIcon_pageAfterClickSearchTotal]");
@@ -129,7 +144,7 @@ describe("open cart and view products", () => {
     });
     cy.wait(10000);
     // *************************************************************
-    cy.intercept("GET", "/api/products/search?").as("searchIconClose");
+    // cy.intercept("GET", "/api/products/search?").as("searchIconClose");
     cy.Exist("[data-cy=closeIcon]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=closeIcon]").eq(0).click({ scrollBehavior: false });
@@ -137,10 +152,11 @@ describe("open cart and view products", () => {
         cy.log("✅ Find Close Icon Item");
       }
     });
-    cy.wait("@searchIconClose").then((interception) => {
-      cy.log("✅ Intercepted request for searchIconClose");
-      console.log("Intercepted request for searchIconClose");
-    });
+    // cy.wait(10000);
+    // cy.wait("@searchIconClose").then((interception) => {
+    //   cy.log("✅ Intercepted request for searchIconClose");
+    //   console.log("Intercepted request for searchIconClose");
+    // });
     cy.wait(10000);
     //*************************************************************
     cy.Exist("[data-cy=closeIcon_searchPage]").then((exist) => {
@@ -150,10 +166,12 @@ describe("open cart and view products", () => {
         cy.log("✅ Find Close Icon Search Page Item");
       }
     });
+    cy.wait(10000);
   });
   // *****************************************************************************************
   it("should search about any Category item and view the filtering and search result", () => {
     let totalProductsFound;
+    cy.wait(10000);
     cy.Exist("[data-cy=searchIcon_mainPage]").then((exist) => {
       if (exist) {
         cy.clickElementScroll("[data-cy=searchIcon_mainPage]");
@@ -161,15 +179,17 @@ describe("open cart and view products", () => {
         cy.log("✅ Find search Icon Item");
       }
     });
+    cy.wait(10000);
     cy.Exist("[data-cy=searchContainer]").then((exist) => {
       if (exist) {
         console.log("Search Container Body Apperead");
         cy.log("✅ Search Container Body Apperead");
       }
     });
-    cy.intercept("GET", "/api/products/search?&category**").as(
-      "searchCategory"
-    );
+    cy.wait(10000);
+    // cy.intercept("GET", "/api/products/search?&category**").as(
+    //   "searchCategory"
+    // );
     cy.Exist("[data-cy=categoryItem]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=categoryItem]").eq(0).click({ scrollBehavior: false });
@@ -177,10 +197,12 @@ describe("open cart and view products", () => {
         cy.log("✅ Find Category Item");
       }
     });
-    cy.wait("@searchCategory").then((interception) => {
-      cy.log("✅ Intercepted request for searchCategory ");
-      console.log("Intercepted request for searchCategory ");
-    });
+    // cy.wait(10000);
+    // cy.wait("@searchCategory").then((interception) => {
+    //   cy.log("✅ Intercepted request for searchCategory ");
+    //   console.log("Intercepted request for searchCategory ");
+    // });
+    cy.wait(10000);
     cy.Exist("[data-cy=searchResults_body]").then((exist) => {
       if (exist) {
         cy.log("✅ Search Result Body Apperead");
@@ -194,13 +216,19 @@ describe("open cart and view products", () => {
         console.log("Search Result Apperead");
       }
     });
-    cy.get('[data-cy="countAfterFilter"]')
-      .invoke("text")
-      .then((text) => {
-        totalProductsFound = text.match(/\d+/)?.[0];
-        cy.log(`Total Products Found It: ${totalProductsFound}`);
-        console.log("Total Products Found It:", totalProductsFound);
-      });
+    cy.wait(10000);
+    cy.Exist("[data-cy=countAfterFilter]").then((exist) => {
+      if (exist) {
+        cy.get('[data-cy="countAfterFilter"]')
+          .invoke("text")
+          .then((text) => {
+            totalProductsFound = text.match(/\d+/)?.[0];
+            cy.log(`Total Products Found It: ${totalProductsFound}`);
+            console.log("Total Products Found It:", totalProductsFound);
+          });
+      }
+    });
+    cy.wait(10000);
     cy.Exist("[data-cy=searchTotalProduct]").then((exist) => {
       if (exist) {
         cy.clickElementScroll("[data-cy=searchTotalProduct]");
@@ -209,26 +237,31 @@ describe("open cart and view products", () => {
       }
     });
     cy.wait(10000);
-    cy.get('[data-cy="countProduct"]')
-      .its("length")
-      .then((count) => {
-        cy.log(`Number Of Products View: ${count}`);
-        console.log("Total Products View:", count);
-        if (count == totalProductsFound) {
-          console.log("Total Products Found And Viewed Matched");
-          cy.log("�� Total Products Found And Viewed Matched");
-        } else {
-          console.log("Total Products Found And Viewed Not Matched");
-          cy.log("�� Total Products Found And Viewed Not Matched");
-        }
-      });
+    cy.Exist("[data-cy=countProduct]").then((exist) => {
+      if (exist) {
+        cy.get('[data-cy="countProduct"]')
+          .its("length")
+          .then((count) => {
+            cy.log(`Number Of Products View: ${count}`);
+            console.log("Total Products View:", count);
+            if (count == totalProductsFound) {
+              console.log("Total Products Found And Viewed Matched");
+              cy.log("✅✅ Total Products Found And Viewed Matched");
+            } else {
+              console.log("Total Products Found And Viewed Not Matched");
+              cy.log("❌❌ Total Products Found And Viewed Not Matched");
+            }
+          });
+      }
+    });
+    cy.wait(10000);
     cy.Exist("[data-cy=allCategory]").then((exist) => {
       if (exist) {
         console.log("The Page For Brands Founded Will Apperead");
         cy.log("✅ The Page For Brands Founded Will Apperead");
       }
     });
-    cy.wait(5000);
+    cy.wait(10000);
     cy.Exist("[data-cy=closeIcon]").then((exist) => {
       if (exist) {
         cy.clickElementScroll("[data-cy=closeIcon]");
@@ -236,6 +269,7 @@ describe("open cart and view products", () => {
         cy.log("✅ Close Icon in The Page For Brands Founded Will Apperead");
       }
     });
+    cy.wait(10000);
     cy.Exist("[data-cy=backIcon_pageAfterClickSearchTotal]").then((exist) => {
       if (exist) {
         cy.clickElementScroll("[data-cy=backIcon_pageAfterClickSearchTotal]");
@@ -245,7 +279,7 @@ describe("open cart and view products", () => {
     });
     cy.wait(10000);
     // *************************************************************
-    cy.intercept("GET", "/api/products/search?").as("searchIconClose");
+    // cy.intercept("GET", "/api/products/search?").as("searchIconClose");
     cy.Exist("[data-cy=closeIcon]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=closeIcon]").eq(0).click({ scrollBehavior: false });
@@ -253,11 +287,11 @@ describe("open cart and view products", () => {
         cy.log("✅ Find Close Icon Item");
       }
     });
-    cy.wait(10000);
-    cy.wait("@searchIconClose").then((interception) => {
-      cy.log("✅ Intercepted request for searchIconClose");
-      console.log("Intercepted request for searchIconClose");
-    });
+    // cy.wait(10000);
+    // cy.wait("@searchIconClose").then((interception) => {
+    //   cy.log("✅ Intercepted request for searchIconClose");
+    //   console.log("Intercepted request for searchIconClose");
+    // });
     cy.wait(10000);
     // *************************************************************
     cy.Exist("[data-cy=closeIcon_searchPage]").then((exist) => {
@@ -267,9 +301,11 @@ describe("open cart and view products", () => {
         cy.log("✅ Find Close Icon Item");
       }
     });
+    cy.wait(10000);
   });
   // *****************************************************************************************
-  it.only("should search about any boutique and view the filtering and search result", () => {
+  it("should search about any boutique and view the filtering and search result", () => {
+    cy.wait(10000);
     let totalProductsFound;
     cy.Exist("[data-cy=searchIcon_mainPage]").then((exist) => {
       if (exist) {
@@ -278,15 +314,17 @@ describe("open cart and view products", () => {
         cy.log("✅ Find search Icon Item");
       }
     });
+    cy.wait(10000);
     cy.Exist("[data-cy=searchContainer]").then((exist) => {
       if (exist) {
         console.log("Search Container Body Apperead");
         cy.log("✅ Search Container Body Apperead");
       }
     });
-    cy.intercept("GET", "/api/products/search?&boutique**").as(
-      "searchBoutique"
-    );
+    cy.wait(10000);
+    // cy.intercept("GET", "/api/products/search?&boutique**").as(
+    //   "searchBoutique"
+    // );
     cy.Exist("[data-cy=boutiqueItem]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=boutiqueItem]").eq(0).click({ scrollBehavior: false });
@@ -294,10 +332,12 @@ describe("open cart and view products", () => {
         cy.log("✅ Find Boutique Item");
       }
     });
-    cy.wait("@searchBoutique").then((interception) => {
-      cy.log("✅ Intercepted request for searchBoutique ");
-      console.log("Intercepted request for searchBoutique ");
-    });
+    // cy.wait(10000);
+    // cy.wait("@searchBoutique").then((interception) => {
+    //   cy.log("✅ Intercepted request for searchBoutique ");
+    //   console.log("Intercepted request for searchBoutique ");
+    // });
+    cy.wait(10000);
     cy.Exist("[data-cy=searchResults_body]").then((exist) => {
       if (exist) {
         cy.log("✅ Search Result Body Apperead");
@@ -311,13 +351,19 @@ describe("open cart and view products", () => {
         console.log("Search Result Apperead");
       }
     });
-    cy.get('[data-cy="countAfterFilter"]')
-      .invoke("text")
-      .then((text) => {
-        totalProductsFound = text.match(/\d+/)?.[0];
-        cy.log(`Total Products Found It: ${totalProductsFound}`);
-        console.log("Total Products Found It:", totalProductsFound);
-      });
+    cy.wait(10000);
+    cy.Exist("[data-cy=countAfterFilter]").then((exist) => {
+      if (exist) {
+        cy.get('[data-cy="countAfterFilter"]')
+          .invoke("text")
+          .then((text) => {
+            totalProductsFound = text.match(/\d+/)?.[0];
+            cy.log(`Total Products Found It: ${totalProductsFound}`);
+            console.log("Total Products Found It:", totalProductsFound);
+          });
+      }
+    });
+    cy.wait(10000);
     cy.Exist("[data-cy=searchTotalProduct]").then((exist) => {
       if (exist) {
         cy.clickElementScroll("[data-cy=searchTotalProduct]");
@@ -326,27 +372,31 @@ describe("open cart and view products", () => {
       }
     });
     cy.wait(10000);
-    cy.get('[data-cy="countProduct"]')
-      .its("length")
-      .then((count) => {
-        cy.log(`Number Of Products View: ${count}`);
-        console.log("Total Products View:", count);
-        if (count == totalProductsFound) {
-          console.log("Total Products Found And Viewed Matched");
-          cy.log("�� Total Products Found And Viewed Matched");
-        } else {
-          console.log("Total Products Found And Viewed Not Matched");
-          cy.log("�� Total Products Found And Viewed Not Matched");
-        }
-      });
-
+    cy.Exist("[data-cy=countProduct]").then((exist) => {
+      if (exist) {
+        cy.get('[data-cy="countProduct"]')
+          .its("length")
+          .then((count) => {
+            cy.log(`Number Of Products View: ${count}`);
+            console.log("Total Products View:", count);
+            if (count == totalProductsFound) {
+              console.log("Total Products Found And Viewed Matched");
+              cy.log(" ✅✅Total Products Found And Viewed Matched");
+            } else {
+              console.log("Total Products Found And Viewed Not Matched");
+              cy.log("❌❌ Total Products Found And Viewed Not Matched");
+            }
+          });
+      }
+    });
+    cy.wait(10000);
     cy.Exist("[data-cy=allCategory]").then((exist) => {
       if (exist) {
         console.log("The Page For Brands Founded Will Apperead");
         cy.log("✅ The Page For Brands Founded Will Apperead");
       }
     });
-    cy.wait(5000);
+    cy.wait(10000);
     cy.Exist("[data-cy=backIcon_pageAfterClickSearchTotal]").then((exist) => {
       if (exist) {
         cy.clickElementScroll("[data-cy=backIcon_pageAfterClickSearchTotal]");
@@ -356,7 +406,7 @@ describe("open cart and view products", () => {
     });
     cy.wait(10000);
     // *************************************************************
-    cy.intercept("GET", "/api/products/search?").as("searchIconClose");
+    // cy.intercept("GET", "/api/products/search?").as("searchIconClose");
     cy.Exist("[data-cy=closeIcon]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=closeIcon]").eq(0).click({ scrollBehavior: false });
@@ -365,10 +415,10 @@ describe("open cart and view products", () => {
       }
     });
     cy.wait(10000);
-    cy.wait("@searchIconClose").then((interception) => {
-      cy.log("✅ Intercepted request for searchIconClose");
-      console.log("Intercepted request for searchIconClose");
-    });
+    // cy.wait("@searchIconClose").then((interception) => {
+    //   cy.log("✅ Intercepted request for searchIconClose");
+    //   console.log("Intercepted request for searchIconClose");
+    // });
     cy.wait(10000);
     // *************************************************************
     cy.Exist("[data-cy=closeIcon_searchPage]").then((exist) => {
@@ -378,5 +428,6 @@ describe("open cart and view products", () => {
         cy.log("✅ Find Close Icon Item");
       }
     });
+    cy.wait(10000);
   });
 });

@@ -83,6 +83,7 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
       </div>
       <div
         className="blue-text skip-text"
+        data-cy="skipForNow"
         style={{ fontFamily: `var(--Quicksand-Regular)`, fontSize: "14px" }}
         onClick={() => {
           close();

@@ -196,6 +196,7 @@ function InputName({
       </div>
       <div
         className="login-button-group"
+        data-cy="inputToWriteName"
         style={{
           position: "relative",
           backgroundColor: "transparent",
@@ -232,6 +233,7 @@ function InputName({
 
         <input
           className="login-button"
+          data-cy="InputFiledForName"
           onChange={(e) => {
             setName(e.target.value);
           }}
