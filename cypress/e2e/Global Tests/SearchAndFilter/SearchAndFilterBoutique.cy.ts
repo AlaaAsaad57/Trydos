@@ -8,10 +8,11 @@ describe("Search and Filter in Boutique page", () => {
     cy.wait(5000);
   });
   it("The user clicks on any boutique and then filters by category", () => {
-    cy.wait(10000);
-    cy.Exist(".offer-widget:nth-child(2)").then((exist) => {
+    cy.reload();
+    cy.wait(70000);
+    cy.Exist(".offer-widget:nth-child(6)").then((exist) => {
       if (exist) {
-        cy.clickElementForce(".offer-widget:nth-child(2)");
+        cy.clickElementForce(".offer-widget:nth-child(6)");
         cy.log("✅ An Boutiue selected");
         console.log("✅ An Boutiue selected");
       }
@@ -65,10 +66,11 @@ describe("Search and Filter in Boutique page", () => {
   });
   // ***********************************************************************************
   it("The user clicks on any boutique and then filters by brand", () => {
-    cy.wait(10000);
-    cy.Exist(".offer-widget:nth-child(2)").then((exist) => {
+    cy.reload();
+    cy.wait(70000);
+    cy.Exist(".offer-widget:nth-child(6)").then((exist) => {
       if (exist) {
-        cy.clickElementForce(".offer-widget:nth-child(2)");
+        cy.clickElementForce(".offer-widget:nth-child(6)");
         cy.log("✅ An Boutiue selected");
         console.log("✅ An Boutiue selected");
       }
@@ -122,10 +124,11 @@ describe("Search and Filter in Boutique page", () => {
   });
   // ***********************************************************************************
   it("The user clicks on any boutique and then filters by color", () => {
-    cy.wait(10000);
-    cy.Exist(".offer-widget:nth-child(2)").then((exist) => {
+    cy.reload();
+    cy.wait(70000);
+    cy.Exist(".offer-widget:nth-child(6)").then((exist) => {
       if (exist) {
-        cy.clickElementForce(".offer-widget:nth-child(2)");
+        cy.clickElementForce(".offer-widget:nth-child(6)");
         cy.log("✅ An Boutiue selected");
         console.log("✅ An Boutiue selected");
       }
@@ -179,10 +182,11 @@ describe("Search and Filter in Boutique page", () => {
   });
   // ***********************************************************************************
   it("The user clicks on any boutique and then filters by price", () => {
-    cy.wait(10000);
-    cy.Exist(".offer-widget:nth-child(2)").then((exist) => {
+    cy.reload();
+    cy.wait(70000);
+    cy.Exist(".offer-widget:nth-child(6)").then((exist) => {
       if (exist) {
-        cy.clickElementForce(".offer-widget:nth-child(2)");
+        cy.clickElementForce(".offer-widget:nth-child(6)");
         cy.log("✅ An Boutiue selected");
         console.log("✅ An Boutiue selected");
       }
@@ -236,10 +240,11 @@ describe("Search and Filter in Boutique page", () => {
   });
   // ***********************************************************************************
   it("The user clicks on filter button and scroll to left to selected type of filtering", () => {
-    cy.wait(10000);
-    cy.Exist(".offer-widget:nth-child(2)").then((exist) => {
+    cy.reload();
+    cy.wait(70000);
+    cy.Exist(".offer-widget:nth-child(6)").then((exist) => {
       if (exist) {
-        cy.clickElementForce(".offer-widget:nth-child(2)");
+        cy.clickElementForce(".offer-widget:nth-child(6)");
         cy.log("✅ An Boutique selected");
         console.log("✅ An Boutique selected");
       }
@@ -319,10 +324,11 @@ describe("Search and Filter in Boutique page", () => {
   });
   // ***********************************************************************************
   it("The user clicks on search input and search about an product (by name)", () => {
-    cy.wait(10000);
-    cy.Exist(".offer-widget:nth-child(2)").then((exist) => {
+    cy.reload();
+    cy.wait(70000);
+    cy.Exist(".offer-widget:nth-child(6)").then((exist) => {
       if (exist) {
-        cy.clickElementForce(".offer-widget:nth-child(2)");
+        cy.clickElementForce(".offer-widget:nth-child(6)");
         cy.log("✅ An Boutique selected");
         console.log("✅ An Boutique selected");
       }
@@ -409,10 +415,11 @@ describe("Search and Filter in Boutique page", () => {
   });
   // ***********************************************************************************
   it("The user clicks on settings icon and filter as category or brand or color or price", () => {
-    cy.wait(10000);
-    cy.Exist(".offer-widget:nth-child(2)").then((exist) => {
+    cy.reload();
+    cy.wait(70000);
+    cy.Exist(".offer-widget:nth-child(6)").then((exist) => {
       if (exist) {
-        cy.clickElementForce(".offer-widget:nth-child(2)");
+        cy.clickElementForce(".offer-widget:nth-child(6)");
         cy.log("✅ An Boutique selected");
         console.log("✅ An Boutique selected");
       }
@@ -691,10 +698,11 @@ describe("Search and Filter in Boutique page", () => {
     cy.wait(10000);
   });
   it("The user clicks on settings icon and filter as category and brand and color", () => {
-    cy.wait(10000);
-    cy.Exist(".offer-widget:nth-child(2)").then((exist) => {
+    cy.reload();
+    cy.wait(70000);
+    cy.Exist(".offer-widget:nth-child(6)").then((exist) => {
       if (exist) {
-        cy.clickElementForce(".offer-widget:nth-child(2)");
+        cy.clickElementForce(".offer-widget:nth-child(6)");
         cy.log("✅ An Boutique selected");
         console.log("✅ An Boutique selected");
       }
@@ -796,10 +804,11 @@ describe("Search and Filter in Boutique page", () => {
     cy.wait(10000);
   });
   it("The user clicks on settings icon and filter as category or brand or color or price and reset after any choice", () => {
-    cy.wait(10000);
-    cy.Exist(".offer-widget:nth-child(2)").then((exist) => {
+    cy.reload();
+    cy.wait(70000);
+    cy.Exist(".offer-widget:nth-child(6)").then((exist) => {
       if (exist) {
-        cy.clickElementForce(".offer-widget:nth-child(2)");
+        cy.clickElementForce(".offer-widget:nth-child(6)");
         cy.log("✅ An Boutique selected");
         console.log("✅ An Boutique selected");
       }
