@@ -538,8 +538,6 @@ Cypress.Commands.add("interceptAndWait", (routes) => {
   routes.forEach((route) => {
     cy.intercept(route.method || "GET", route.url).as(route.alias);
   });
-
-  // Wait for any of the provided aliases, not necessarily all
   const aliases = routes.map((route) => `@${route.alias}`);
   cy.wait(aliases, { timeout: 30000 }); // Adjust timeout as needed
 });
