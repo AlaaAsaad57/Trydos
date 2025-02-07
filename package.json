@@ -11,7 +11,8 @@
     "cypress": "cypress open",
     "test": "nyc cypress run --headless",
     "start-server": "next build --no-lint & next start",
-    "start-all-test-with-coverage": "start-server-and-test start-server http://localhost:3000 test"
+    "start-all-test-with-coverage": "start-server-and-test start-server http://localhost:3000 test",
+    "open-coverage": "cd coverage/lcov-report/ & index.html"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
