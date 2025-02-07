@@ -74,14 +74,14 @@ class HomeService {
       sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
       await this.getCustomerInfo();
 
-      const response2 = await AxiosGet({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
-        title: "get firebase settings request",
-      });
-      store.dispatch({
-        type: "GET_FIREBASE_SETTINGS",
-        payload: response2?.firebase_settings,
-      });
+      // const response2 = await AxiosGet({
+      //   url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
+      //   title: "get firebase settings request",
+      // });
+      // store.dispatch({
+      //   type: "GET_FIREBASE_SETTINGS",
+      //   payload: response2?.firebase_settings,
+      // });
       getCart({
         callback: ([data, res]) => {
           store.dispatch({

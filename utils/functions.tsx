@@ -858,9 +858,6 @@ export const WaitForCondition = async () => {
     }, 1000); // Check every second
 
     // Optional: timeout in case it's taking too long
-    setTimeout(() => {
-      clearInterval(interval);
-      reject("Timeout: 'isReady' didn't become true in time.");
-    }, 10000); // Wait for 10 seconds
+    // Wait for 10 seconds
   });
 };

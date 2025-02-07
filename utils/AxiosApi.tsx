@@ -47,7 +47,7 @@ export const AxiosGet = async ({
       // if (res.data.message !== "Data Got!") {
       //   toast.success(res.data.message);
       // }
-      if (res?.data.isSuccessful) {
+      if (res?.data.isSuccessful || res.data.data) {
         return res?.data?.data;
       } else {
         throw new Error(res.data.message);
@@ -190,7 +190,7 @@ export const AxiosCacheApi = async ({
       }`,
     },
     cache: {
-      ttl: parseInt(process.env.NEXT_PUBLIC_REVALIDATE) * 1000,
+      ttl: parseInt(process.env.NEXT_PUBLIC_REVALIDATE) * 10000,
       interpretHeader: false,
       methods: ["post", "get"],
     },

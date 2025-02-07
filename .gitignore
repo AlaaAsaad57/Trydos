@@ -7,7 +7,9 @@
 
 # testing
 /coverage
+/.nyc_output/*
 /cypress/reports/videos/*
+/cypress/reports
 /cypress/videos
 /cypress/screenshots
 /public/reports/videos
