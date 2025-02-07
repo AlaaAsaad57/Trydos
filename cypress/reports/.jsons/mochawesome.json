@@ -1,23 +1,80 @@
 {
   "stats": {
-    "suites": 0,
-    "tests": 0,
-    "passes": 0,
+    "suites": 1,
+    "tests": 1,
+    "passes": 1,
     "pending": 0,
     "failures": 0,
-    "start": "2025-02-06T11:35:53.376Z",
-    "end": "2025-02-06T11:35:53.376Z",
-    "duration": 0,
-    "testsRegistered": 0,
-    "passPercent": null,
-    "pendingPercent": null,
+    "start": "2025-02-07T18:07:15.857Z",
+    "end": "2025-02-07T18:09:14.974Z",
+    "duration": 119117,
+    "testsRegistered": 1,
+    "passPercent": 100,
+    "pendingPercent": 0,
     "other": 0,
     "hasOther": false,
     "skipped": 0,
     "hasSkipped": false
   },
   "results": [
-    false
+    {
+      "uuid": "c7f0019f-f4fb-44fd-9b3b-3f22c9b2b687",
+      "title": "",
+      "fullFile": "cypress\\e2e\\test.cy.ts",
+      "file": "cypress\\e2e\\test.cy.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "a139c506-57c4-49c9-b940-11681f65948e",
+          "title": "Navigations Test",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "it should visit home page and navigate to listing/filter page correctly",
+              "fullTitle": "Navigations Test it should visit home page and navigate to listing/filter page correctly",
+              "timedOut": null,
+              "duration": 88021,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.wait(5000);\ncy.get(\".offer-widget:first-child\").click();",
+              "err": {},
+              "uuid": "6497095e-27e8-462e-958c-3dc5ee42e320",
+              "parentUUID": "a139c506-57c4-49c9-b940-11681f65948e",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "6497095e-27e8-462e-958c-3dc5ee42e320"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 88021,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
   ],
   "meta": {
     "mocha": {
