@@ -10,17 +10,21 @@ build-app:
     - npx next build --no-lint
     - npx next start &
     - npx wait-on http://localhost:3000
-    - npx cypress run --browser chrome --config baseUrl=http://localhost:3000
+    - npx nyc cypress run --browser chrome --config baseUrl=http://localhost:3000
+    - npx codecov --token=$CODECOV_TOKEN
   artifacts:
     when: always
     paths:
       - cypress/screenshots
       - cypress/reports
+      - coverage
     expire_in: 1 week
   cache:
     paths:
       - node_modules/
   allow_failure: true
+  only:
+    - development
 deploy:
   image: node:20.9.0
   stage: deploy
