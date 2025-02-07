@@ -27,10 +27,7 @@ const LoginMethods = ({ confirm }) => {
     }
   }, [showQr]);
   return (
-    <div
-      data-testid="login-methods-container"
-      className="login-method-container"
-    >
+    <div data-cy="login-methods-container" className="login-method-container">
       <div
         data-testid="login-method-qr"
         className={`${showQr ? "qr-extended" : ""} login-method-qr`}
@@ -4678,7 +4675,7 @@ const LoginMethods = ({ confirm }) => {
       </div>
       {!showQr && (
         <div
-          data-testid="login-method-phone"
+          data-cy="login-method-phone"
           className="login-method-phone"
           onClick={() => confirm()}
         >

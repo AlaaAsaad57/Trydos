@@ -113,7 +113,7 @@ function Product({
     });
   };
   return (
-    <div className="max-h-[362px]">
+    <div className="max-h-[362px]" data-cy="countProduct">
       <NextLink
         suppressHydrationWarning
         // @ts-ignore
@@ -142,6 +142,7 @@ function Product({
         }}
         href={`/${lang}/products/${product.slug}`}
         className="product-container  align-center flex-col relative"
+        data-cy="on_mouse_over_product"
         onMouseLeave={() => {
           if (productState?.isActiveTopSlide || productState?.isColorSelected) {
             dispatch({ type: "setActiveTopSlide", payload: false });
@@ -268,7 +269,10 @@ function Product({
             dispatch({ type: "setActiveTopSlide", payload: false });
           }}
         >
-          <p className="prouct-details overflow-hidden w-100 regular-text color-dark-gray f-10">
+          <p
+            className="prouct-details overflow-hidden w-100 regular-text color-dark-gray f-10"
+            data-cy="productName"
+          >
             {product?.brand?.icon && typeof product.brand.icon === "string" && (
               <img
                 loading={priority ? "eager" : "lazy"}

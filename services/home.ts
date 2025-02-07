@@ -13,6 +13,7 @@ import {
   getUser,
   UserID,
   UserToken,
+  WaitForCondition,
 } from "utils/functions";
 import Smartlook from "smartlook-client";
 
@@ -51,9 +52,10 @@ const getHeader = () => {
       revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
     },
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("MARKET-TOKEN") ||
+      Authorization: `Bearer ${
+        localStorage.getItem("MARKET-TOKEN") ||
         localStorage.getItem("DEVICE-TOKEN")
-        }`,
+      }`,
       lang: getLang(languageUrl, Cookies.get("language")),
       country: countryUrl || Cookies.get("country"),
       accept: "application/json",
@@ -72,11 +74,14 @@ class HomeService {
       sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
       await this.getCustomerInfo();
 
-      const response2 = await AxiosGet({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
-        title: "get firebase settings request"
-      });
-      store.dispatch({ type: "GET_FIREBASE_SETTINGS", payload: response2?.firebase_settings });
+      // const response2 = await AxiosGet({
+      //   url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
+      //   title: "get firebase settings request",
+      // });
+      // store.dispatch({
+      //   type: "GET_FIREBASE_SETTINGS",
+      //   payload: response2?.firebase_settings,
+      // });
       getCart({
         callback: ([data, res]) => {
           store.dispatch({
@@ -84,9 +89,8 @@ class HomeService {
             payload: data ?? { cart: [] },
           });
         },
-      }).then(() => {
-        getOldCart();
       });
+      await getOldCart();
       if (typeof window !== "undefined") {
         _isStoreLastJson() &&
           localStorage.setItem("LAST_JSON", JSON.stringify(repo));
@@ -99,6 +103,7 @@ class HomeService {
     }
   }
   async getCustomerInfo() {
+    await WaitForCondition();
     const response = await fetch(
       process.env.NEXT_PUBLIC_BACKEND_URL + CUSTOMER_INFO_URL,
       getHeader()
@@ -128,7 +133,7 @@ class HomeService {
     }
     if (response.status === 302 || response.status === 401) {
       if (getUser()) {
-        ExpiredUser();
+        await ExpiredUser();
       } else {
         await this.registerForExpire();
         await this.getCustomerInfo();
@@ -136,8 +141,6 @@ class HomeService {
     }
   }
   async checkExpiration(bool) {
-    let expired_at;
-
     if (localStorage.getItem("USER")) {
       if (bool) {
         store.dispatch({ type: "CANCEL-AUTH" });
@@ -159,43 +162,58 @@ class HomeService {
       }
     }
   }
-  async registerForExpire() {
-    let body = localStorage.getItem("guest-user")
-      ? { old_guest_user_id: JSON.parse(localStorage.getItem("guest-user")).id }
-      : { old_guest_user_id: null };
+  async registerForExpire(id?: number) {
+    let isReady = store.getState().homepage.isRegisteringReady;
+    if (isReady) {
+      let body = id
+        ? { old_guest_user_id: id }
+        : localStorage.getItem("guest-user")
+        ? {
+            old_guest_user_id: JSON.parse(localStorage.getItem("guest-user"))
+              .id,
+          }
+        : { old_guest_user_id: null };
 
-    try {
-      let response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
-        {
-          method: "POST",
-          body: body.old_guest_user_id
-            ? new URLSearchParams({
-              old_guest_user_id: body.old_guest_user_id,
-            })
-            : "old_guset_user_id=null",
-          ...getHeader(),
-          cache: "no-cache",
-        }
-      );
-      let repo: RegisterGuestApi = await response.json();
-      changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
-      localStorage.setItem("DEVICE-TOKEN", repo.data.token);
-      Cookies.set("DEVICE-TOKEN", repo.data.token, {
-        expires: 365,
-      });
-      localStorage.setItem(
-        "guest-user",
-        JSON.stringify({ ...repo.data.user, expired_at: repo.data.expires_at })
-      );
-      if (repo.data.user) {
-        Smartlook.identify(repo.data.user.id, {
-          name: repo.data.user.name,
-          phone: "guest",
-          // other custom properties
+      try {
+        store.dispatch({ type: "IS-REGISTERING", payload: false });
+        let response = await fetch(
+          process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
+          {
+            method: "POST",
+            body: body.old_guest_user_id
+              ? new URLSearchParams({
+                  old_guest_user_id: body.old_guest_user_id,
+                })
+              : "old_guset_user_id=null",
+            ...getHeader(),
+            cache: "no-cache",
+          }
+        );
+        let repo: RegisterGuestApi = await response.json();
+        changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
+        localStorage.setItem("DEVICE-TOKEN", repo.data.token);
+        Cookies.set("DEVICE-TOKEN", repo.data.token, {
+          expires: 365,
         });
+        localStorage.setItem(
+          "guest-user",
+          JSON.stringify({
+            ...repo.data.user,
+            expired_at: repo.data.expires_at,
+          })
+        );
+        if (repo.data.user) {
+          Smartlook.identify(repo.data.user.id, {
+            name: repo.data.user.name,
+            phone: "guest",
+            // other custom properties
+          });
+        }
+        store.dispatch({ type: "IS-REGISTERING", payload: true });
+      } catch (error) {
+        store.dispatch({ type: "IS-REGISTERING", payload: true });
       }
-    } catch (error) { }
+    }
   }
   async CheckLogin() {
     if (!localStorage.getItem("FB-DEVICE-TOKEN")) await this.RegisterDevice();
@@ -237,9 +255,7 @@ class HomeService {
       this.RegisterDevice();
     }
     await requestFirebaseNotificationPermission().then(async (token) => {
-      let language_code = window.location.pathname
-        .split("/")[1]
-        .split("-")[1];
+      let language_code = window.location.pathname.split("/")[1].split("-")[1];
       let country_code = window.location.pathname.split("/")[1].split("-")[0];
       // @ts-ignore
       if (token) {
@@ -248,8 +264,7 @@ class HomeService {
           if (UserToken()) {
             await AxiosPost({
               url:
-                process.env.NEXT_PUBLIC_BACKEND_URL +
-                "/firebase_device_tokens",
+                process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
               body: {
                 device_token: token,
                 user_id: UserID(),
@@ -260,11 +275,14 @@ class HomeService {
           }
         }, 3000);
         // ininit
-        const response2 = await AxiosGet({
-          url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
-          title: "get firebase settings request"
-        });
-        store.dispatch({ type: "GET_FIREBASE_SETTINGS", payload: response2?.firebase_settings });
+        // const response2 = await AxiosGet({
+        //   url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
+        //   title: "get firebase settings request",
+        // });
+        // store.dispatch({
+        //   type: "GET_FIREBASE_SETTINGS",
+        //   payload: response2?.firebase_settings,
+        // });
 
         const searchParams = new URLSearchParams(window.location.search);
         if (
@@ -285,98 +303,79 @@ class HomeService {
     typeof window !== "undefined" &&
       "serviceWorker" in navigator &&
       onMessageListener()
-        .then((payload) => { })
-        .catch((err) => { });
+        .then((payload) => {})
+        .catch((err) => {});
   }
   async RegisterDevice() {
-    let body = localStorage.getItem("guest-user")
-      ? { old_guest_user_id: JSON.parse(localStorage.getItem("guest-user")).id }
-      : { old_guest_user_id: null };
-    if (!Cookies.get("DEVICE-TOKEN") && localStorage.getItem("DEVICE-TOKEN")) {
-      changeToken({
-        key: "DEVICE-TOKEN",
-        value: localStorage.getItem("DEVICE-TOKEN"),
-      });
-      Cookies.set("DEVICE-TOKEN", localStorage.getItem("DEVICE-TOKEN"), {
-        expires: 365,
-      });
-    }
-    if (
-      SSRDetect() &&
-      !localStorage.getItem("DEVICE-TOKEN") &&
-      !localStorage.getItem("USER")
-    ) {
-      let response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
-        {
-          method: "POST",
-          body: body.old_guest_user_id
-            ? new URLSearchParams({
-              old_guest_user_id: body.old_guest_user_id,
-            })
-            : "old_guset_user_id=null",
-          ...getHeader(),
-        }
-      );
-      let repo: RegisterGuestApi = await response.json();
-      localStorage.setItem("DEVICE-TOKEN", repo.data.token);
-      changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
-
-      Cookies.set("DEVICE-TOKEN", repo.data.token, {
-        expires: 365,
-      });
-      localStorage.setItem(
-        "guest-user",
-        JSON.stringify({ ...repo.data.user, expired_at: repo.data.expires_at })
-      );
-      localStorage.removeItem("customer-info");
-      if (repo.data.user) {
-        Smartlook.identify(repo.data.user.id, {
-          name: repo.data.user.name,
-          phone: "guest",
-          // other custom properties
+    let isReady = store.getState().homepage.isRegisteringReady;
+    if (isReady) {
+      let body = localStorage.getItem("guest-user")
+        ? {
+            old_guest_user_id: JSON.parse(localStorage.getItem("guest-user"))
+              .id,
+          }
+        : { old_guest_user_id: null };
+      if (
+        !Cookies.get("DEVICE-TOKEN") &&
+        localStorage.getItem("DEVICE-TOKEN")
+      ) {
+        changeToken({
+          key: "DEVICE-TOKEN",
+          value: localStorage.getItem("DEVICE-TOKEN"),
+        });
+        Cookies.set("DEVICE-TOKEN", localStorage.getItem("DEVICE-TOKEN"), {
+          expires: 365,
         });
       }
-      await requestFirebaseNotificationPermission().then(async (token) => {
-        // @ts-ignore
-        if (token) {
-          localStorage.setItem("FB-DEVICE-TOKEN", token);
-          if (localStorage.getItem("MARKET-TOKEN"))
-            await AxiosPost({
-              url:
-                process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
-              body: {
-                device_token: token,
-                user_id: UserID(),
-                auth_token: UserToken(),
-              },
-              title: "register firebase token",
-            });
+      if (
+        SSRDetect() &&
+        !localStorage.getItem("DEVICE-TOKEN") &&
+        !localStorage.getItem("USER")
+      ) {
+        store.dispatch({ type: "IS-REGISTERING", payload: false });
+        let response = await fetch(
+          process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
+          {
+            method: "POST",
+            body: body.old_guest_user_id
+              ? new URLSearchParams({
+                  old_guest_user_id: body.old_guest_user_id,
+                })
+              : "old_guset_user_id=null",
+            ...getHeader(),
+          }
+        );
+        let repo: RegisterGuestApi = await response.json();
+        localStorage.setItem("DEVICE-TOKEN", repo.data.token);
+        changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
+
+        Cookies.set("DEVICE-TOKEN", repo.data.token, {
+          expires: 365,
+        });
+        localStorage.setItem(
+          "guest-user",
+          JSON.stringify({
+            ...repo.data.user,
+            expired_at: repo.data.expires_at,
+          })
+        );
+        localStorage.removeItem("customer-info");
+        if (repo.data.user) {
+          Smartlook.identify(repo.data.user.id, {
+            name: repo.data.user.name,
+            phone: "guest",
+            // other custom properties
+          });
         }
-      });
-      if (typeof window !== "undefined") {
-        _isStoreLastJson() &&
-          localStorage.setItem("LAST_JSON", JSON.stringify(repo));
+        store.dispatch({ type: "IS-REGISTERING", payload: true });
+        if (typeof window !== "undefined") {
+          _isStoreLastJson() &&
+            localStorage.setItem("LAST_JSON", JSON.stringify(repo));
+        }
       }
     }
   }
-  async GetBoutiques(slug) {
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + HOME_DATA_URL + `ByCategory`,
 
-      {
-        method: "POST",
-        body: JSON.stringify({ slug: slug }),
-        headers: {
-          ...getHeader().headers,
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-          Accept: "application/json",
-        },
-      }
-    );
-    let repo: GetBoutiqueApi = await response.json();
-    store.dispatch(GetMainData(repo.data.boutiques));
-  }
   async getNextProduct({ offset, categories, boutiqueCategory }) {
     const filterObj = store.getState().details.activeFilters;
     const sizesAttr = store.getState().details.filters.sizesAttr;
@@ -384,8 +383,8 @@ class HomeService {
       categories: filterObj.categories.map((s) => s.slug),
       prices: filterObj.prices?.pricesWord
         ? [
-          `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
-        ]
+            `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
+          ]
         : null,
       brands: filterObj.brands.map((brand) => brand.slug),
       attributes: { ...sizesAttr, options: filterObj.sizes },
@@ -396,32 +395,38 @@ class HomeService {
     if (categories && categories !== "listing")
       filters = { ...filters, boutique_slug: [categories] };
 
-    let str = `${filters.categories?.length > 0
-      ? `category_slugs=${JSON.stringify(filters.categories)}`
-      : ""
-      }${filters.brands?.length > 0
+    let str = `${
+      filters.categories?.length > 0
+        ? `category_slugs=${JSON.stringify(filters.categories)}`
+        : ""
+    }${
+      filters.brands?.length > 0
         ? `&brand_slugs=${JSON.stringify(filters.brands)}`
         : ""
-      }${filters.attributes?.options?.length > 0
+    }${
+      filters.attributes?.options?.length > 0
         ? `&attributes=${JSON.stringify(filters.attributes)}`
         : ""
-      }${filters.prices !== null ? `&price=${JSON.stringify(filters.prices)}` : ""
-      }${filters.boutique_slug
+    }${
+      filters.prices !== null ? `&price=${JSON.stringify(filters.prices)}` : ""
+    }${
+      filters.boutique_slug
         ? `&boutique_slugs=${JSON.stringify(filters.boutique_slug)}`
         : ""
-      }${filters?.searchText?.length > 0
+    }${
+      filters?.searchText?.length > 0
         ? `&search_text=${filters.searchText}`
         : ""
-      }`;
+    }`;
     var details =
       boutiqueCategory !== "undefined"
         ? {
-          boutique_slug: [categories],
-          category: boutiqueCategory,
-        }
+            boutique_slug: [categories],
+            category: boutiqueCategory,
+          }
         : {
-          boutique_slug: [categories],
-        };
+            boutique_slug: [categories],
+          };
     var formBody: any = [];
     for (var property in details) {
       var encodedKey = encodeURIComponent(property);
@@ -433,7 +438,7 @@ class HomeService {
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
       (categories
         ? "/api/products/search" +
-        `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
+          `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
         : LISTING_INFO_URL + `?${str}`);
     await fetch(
       url + `${offset ? `&offset=${offset}` : ""}&limit=${4}`,
@@ -481,9 +486,10 @@ class HomeService {
     try {
       let rep = await fetch(
         process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        "/api/products/search" +
-        `?search_text=${search_text}${urlParams.size > 0 ? `&` + urlParams.toString() : ""
-        }&limit=4&with_filter=false`,
+          "/api/products/search" +
+          `?search_text=${search_text}${
+            urlParams.size > 0 ? `&` + urlParams.toString() : ""
+          }&limit=4&with_filter=false`,
         {
           headers: {
             ...getHeader().headers,
@@ -523,9 +529,11 @@ class HomeService {
     try {
       let rep = await fetch(
         process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        `/api/products/search?${search_text?.length > 0 ? `search_text=${search_text}` : ""
-        }${urlParams.toString()?.length > 0 ? `&${urlParams.toString()}` : ""
-        }`,
+          `/api/products/search?${
+            search_text?.length > 0 ? `search_text=${search_text}` : ""
+          }${
+            urlParams.toString()?.length > 0 ? `&${urlParams.toString()}` : ""
+          }`,
         {
           headers: {
             ...getHeader().headers,
@@ -669,7 +677,7 @@ class HomeService {
           process.env.NEXT_PUBLIC_BACKEND_URL +
           "/firebase_device_tokens/subscribe_topic",
         body: {
-          topic
+          topic,
         },
         title: "store firebase topic",
       });
@@ -681,7 +689,7 @@ class HomeService {
     const [countryCode, languageCode] = window.location.pathname
       .split("/")[1]
       .split("-");
-    const lastPair = localStorage.getItem("lastPair")
+    const lastPair = localStorage.getItem("lastPair");
     if (!countryCode || !languageCode) {
       throw new Error("Invalid URL format for country-language pair");
     }
@@ -695,13 +703,16 @@ class HomeService {
           "/firebase_device_tokens/change_country_language",
         body: {
           country: countryCode,
-          language_code: languageCode
+          language_code: languageCode,
         },
         title: "change firebase country-language pair",
       }).then((firebase_settings) => {
-        store.dispatch({ type: "GET_FIREBASE_SETTINGS", payload: firebase_settings });
+        store.dispatch({
+          type: "GET_FIREBASE_SETTINGS",
+          payload: firebase_settings,
+        });
       });
-      localStorage.setItem("lastPair", countryCode + languageCode)
+      localStorage.setItem("lastPair", countryCode + languageCode);
     }
   }
 
@@ -712,12 +723,12 @@ class HomeService {
         body: { id: id },
         title: "Hide Old Cart",
       });
-    } catch (error) { }
+    } catch (error) {}
   }
   async TestNotificationBoutique({ boutique_id }) {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_boutique_created",
+        "/firebase_device_tokens/send_boutique_created",
       { boutique_id: 66, topic: "boutique_created", language_code: "ar" },
       { ...getHeader() }
     );
@@ -725,7 +736,7 @@ class HomeService {
   async TestNotificationProductToOldCart() {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_product_cart_expiration",
+        "/firebase_device_tokens/send_product_cart_expiration",
       { product_id: 5566 },
       { ...getHeader() }
     );
@@ -734,7 +745,7 @@ class HomeService {
     await axios
       .post(
         process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/firebase_device_tokens/send_product_availability",
+          "/firebase_device_tokens/send_product_availability",
         { product_id: 5550, variant: "Gold-XXL" },
         { ...getHeader() }
       )
@@ -745,7 +756,7 @@ class HomeService {
   async TestNotificationProductComment() {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_product_comment",
+        "/firebase_device_tokens/send_product_comment",
       {
         product_id: 5550,
         topic: "product_comment_mixit-solid-bangle-bracelet-RhqqPZ",
@@ -756,7 +767,7 @@ class HomeService {
   async TestNotificationProductDiscount() {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_product_discount",
+        "/firebase_device_tokens/send_product_discount",
       {
         product_id: 5550,
         topic: "product_discount_mixit-solid-bangle-bracelet-RhqqPZ",
@@ -767,7 +778,7 @@ class HomeService {
   async TestNotificationCategoryCreated() {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      "/firebase_device_tokens/send_category_created",
+        "/firebase_device_tokens/send_category_created",
       { category_id: 368, topic: "category_created" },
       { ...getHeader() }
     );
@@ -779,7 +790,7 @@ class HomeService {
         body: { key: key },
         title: "Remove From Cart",
       });
-    } catch (error) { }
+    } catch (error) {}
   }
   async StoreNotificationProduct({ type_id, variant, product_id }) {
     let detail = {
@@ -801,7 +812,7 @@ class HomeService {
         formBody,
         { ...getHeader() }
       )
-      .catch((e) => { });
+      .catch((e) => {});
   }
 }
 

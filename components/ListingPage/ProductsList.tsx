@@ -135,6 +135,7 @@ function ProductsList({
                     ? "listing-container-empty"
                     : "listing-container flex pb-[350px] max-w-[1310px]"
                 }
+                data-cy="allCategory"
                 onWheelCapture={() => {
                   if (!selectedFilter.filtered) GetNextPage();
                   else if (!loading && !isReachEnd) {

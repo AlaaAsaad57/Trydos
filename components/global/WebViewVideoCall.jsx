@@ -18,7 +18,6 @@ AgoraRTC.setLogLevel(4);
 
 const useClient = createClient(config);
 const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
-let cameras = await AgoraRTC.getCameras();
 
 const appId = "0af959943ff542df8f2cb1b925ec0cc4";
 function WebViewVideoCall(props) {

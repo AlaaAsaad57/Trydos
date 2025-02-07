@@ -34,7 +34,7 @@ function CustomNavbar({ init }: NavbarProps) {
     const Cookies = (await import("js-cookie")).default;
     let languageCookies = Cookies.get("language");
     if (!searchParams.get("no-country"))
-      Cookies.set("country", init.split("-")[0], {
+      Cookies.set("country", init.split("-")[0]?.toLowerCase(), {
         expires: 365,
       });
     dispatch(

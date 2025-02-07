@@ -1,6 +1,11 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
-import { GetAppLanguage, getUser, translateFunction } from "utils/functions";
+import {
+  GetAppLanguage,
+  getCart,
+  getUser,
+  translateFunction,
+} from "utils/functions";
 import ConfirmMobile from "./ConfirmMobile";
 import { useParams } from "next/navigation";
 import { useSwipeable } from "react-swipeable";
@@ -16,6 +21,7 @@ function OrderButton({ close, toOrders }) {
     return translateFunction(key, languageVariable);
   };
   const [expanded, setExpanded] = useState(false);
+  const [loading, setLoading] = useState(false);
   const cart = useSelector((state: StateInterface) => state.cart);
   const [option, setOption] = useState(false);
   const currency_symbol = useSelector(
@@ -102,11 +108,12 @@ function OrderButton({ close, toOrders }) {
       </svg>
     );
   };
+  const user = useSelector((state: StateInterface) => state.auth.user);
 
   const MenuIcon = ({ className }) => {
     return (
       <svg
-        className={className}
+        className={className || ""}
         xmlns="http://www.w3.org/2000/svg"
         width="10"
         height="6"
@@ -131,6 +138,24 @@ function OrderButton({ close, toOrders }) {
       ((cart.total_discount_on_product / cart.sub_total) * 100).toString()
     );
     return a;
+  };
+  const dispatch = useDispatch();
+  const GoToOrders = async () => {
+    try {
+      setLoading(true);
+      await getCart({
+        callback: ([data, res]) => {
+          dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+        },
+      });
+      if (user) toOrders();
+      else {
+        setOption(true);
+      }
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+    }
   };
   const handlers = useSwipeable({
     onSwipedDown: (e) => {
@@ -334,7 +359,7 @@ function OrderButton({ close, toOrders }) {
 
               <span className="flex-row justify-center items-center ml-[5px] bold  text-[16px] pr-[13px] text-[#1D1D1D]">
                 <span className="line-through regular mr-2">
-                  {cart.sub_total}
+                  {cart.total_cash + cart.total_discount_on_product}
                 </span>{" "}
                 {cart.total_cash} {currency_symbol?.symbol}
                 <span className="ml-2">
@@ -352,7 +377,9 @@ function OrderButton({ close, toOrders }) {
           }}
         >
           <div
-            className={`cursor-pointer  flex-col w-full  ${
+            className={`${
+              loading && "opacity-55"
+            } cursor-pointer  flex-col w-full  ${
               option ? "h-[200px]" : "bg-[#3C3C3C] h-[70px]"
             } rounded-[20px] text-center justify-center items-center`}
             style={{
@@ -366,7 +393,7 @@ function OrderButton({ close, toOrders }) {
                 if (!getUser()) {
                   setOption(true);
                 } else {
-                  toOrders();
+                  GoToOrders();
                 }
               }
             }}
@@ -375,6 +402,7 @@ function OrderButton({ close, toOrders }) {
               {option ? (
                 <>
                   <ConfirmMobile
+                    hasMobile={localStorage.getItem("has-phone")}
                     closeWindow={() => {
                       setOption(false);
                     }}
@@ -386,7 +414,7 @@ function OrderButton({ close, toOrders }) {
                   {cart.cart.length === 0 ? (
                     <>
                       <span className="text-[#FEFEFE] text-[18px] medium ">
-                        {translate("Back To Home", GetAppLanguage())}
+                        {translate("Back To HomePage", GetAppLanguage())}
                       </span>
                     </>
                   ) : (

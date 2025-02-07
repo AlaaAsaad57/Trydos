@@ -23,6 +23,7 @@ import { toast } from "react-toastify";
 import OrderButton from "./OrderButton";
 import { AxiosPost } from "utils/AxiosApi";
 import { dispatchRouteChangeEvent } from "utils/events";
+import Spinner from "components/global/Spinner";
 
 function CartContainer({ close, toOrders }) {
   let { lang } = useParams();
@@ -38,9 +39,7 @@ function CartContainer({ close, toOrders }) {
 
   const loading = useSelector((state: StateInterface) => state.cart.loading);
   const cart = useSelector((state: StateInterface) => state.cart?.cart);
-  const total_cash = useSelector(
-    (state: StateInterface) => state.cart?.total_cash
-  );
+
   const getURLOfProduct = ({ product }) => {
     let productUrl;
     if (product.variations[0]?.color && !product.variations[0]?.Size)
@@ -68,14 +67,16 @@ function CartContainer({ close, toOrders }) {
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch({ type: "CART-LOADING" });
-    getCart({
+    getData();
+  }, []);
+  const getData = async () => {
+    await getCart({
       callback: ([data, res]) => {
         dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
       },
-    }).then(() => {
-      getOldCart();
     });
-  }, []);
+    await getOldCart();
+  };
   const params = useParams();
 
   const sarchParams = useSearchParams();
@@ -94,6 +95,7 @@ function CartContainer({ close, toOrders }) {
         <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
           <BackIcon
             className="cursor-pointer z-50"
+            data-cy="CartBackIcon"
             onClick={() => {
               Sendevent({
                 event: "button_clicked",
@@ -103,7 +105,7 @@ function CartContainer({ close, toOrders }) {
               close();
             }}
           />
-          <span className="text-[13px] text-[#505050] regular flex-row items-center ">
+          <span className="text-[13px] text-[#505050] regular flex-row items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -254,7 +256,7 @@ function CartContainer({ close, toOrders }) {
                         }
                         className={`flex-row mt-2 w-full relative  ${
                           product.have_hurry_up_notify || true
-                            ? "min-h-[208px]"
+                            ? "min-h-[230px]"
                             : "min-h-[161px]"
                         } bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
                         key={key}
@@ -317,7 +319,10 @@ function CartContainer({ close, toOrders }) {
                               className="object-contain h-4 max-w-[90px] w-auto"
                             />
                           </div>
-                          <div className="text-[12px] mt-1 text-[#505050] flex regular">
+                          <div
+                            className="text-[12px] mt-1 text-[#505050] flex regular"
+                            data-cy="productNameInCart"
+                          >
                             {product.name.substring(0, 30)}
                           </div>
 
@@ -394,102 +399,6 @@ function CartContainer({ close, toOrders }) {
                           )}
                         </div>
 
-                        <div
-                          className={`${
-                            product.have_hurry_up_notify || true
-                              ? "bottom-14"
-                              : "bottom-3"
-                          } absolute right-4 `}
-                        >
-                          <div className="product-info-price">
-                            {product?.offer_price ? (
-                              <>
-                                <div className="flex-col">
-                                  <div className="flex-row">
-                                    <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
-                                      {RoundPrice({
-                                        num: product.price,
-                                        rate: currency?.exchange_rate,
-                                        points:
-                                          (decimal_point_settings &&
-                                            decimal_point_settings[
-                                              "starting-setting"
-                                            ]?.decimal_point_settings) ||
-                                          0,
-                                      })}
-                                      <svg
-                                        className="bottom-3"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="100%"
-                                        height="2"
-                                      >
-                                        <line
-                                          id="Line_1104"
-                                          data-name="Line 1104"
-                                          x2="100%"
-                                          transform="translate(0 1)"
-                                          fill="none"
-                                          stroke="#C4C2C2"
-                                          strokeWidth="2"
-                                        />
-                                      </svg>
-                                    </div>
-                                    <div className="product-new-price text-[18px] bold">
-                                      {RoundPrice({
-                                        num: product?.offer_price,
-                                        rate: currency.exchange_rate,
-                                        points:
-                                          (decimal_point_settings &&
-                                            decimal_point_settings[
-                                              "starting-setting"
-                                            ]?.decimal_point_settings) ||
-                                          0,
-                                      })}
-                                    </div>
-                                    <div className="product-currency text-[8px] light text-[#1D1D1D]">
-                                      {currency?.symbol}
-                                    </div>
-                                  </div>
-                                  <div className="flex-row">
-                                    <SavedIcon />
-                                    <span className="text-[8px] text-[#388CFF]  need-row-rev mx-[4px]">
-                                      {translate("Saved")}{" "}
-                                      <span className="bold">
-                                        {parseInt(
-                                          (
-                                            ((product.price -
-                                              product?.offer_price) /
-                                              product.price) *
-                                            100
-                                          ).toString()
-                                        )}
-                                        %
-                                      </span>
-                                    </span>
-                                  </div>
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                <div className="product-new-price text-[14px] light text-[#1D1D1D]">
-                                  {RoundPrice({
-                                    num: product.price,
-                                    rate: currency.exchange_rate,
-                                    points:
-                                      (decimal_point_settings &&
-                                        decimal_point_settings[
-                                          "starting-setting"
-                                        ]?.decimal_point_settings) ||
-                                      0,
-                                  })}
-                                </div>
-                              </>
-                            )}
-                            <div className="product-currency text-[8px] text-[#C4C2C2] regular">
-                              {currency?.symbol}
-                            </div>
-                          </div>
-                        </div>
                         <div className="absolute top-1 right-1">
                           <input
                             defaultValue={key + 1}
@@ -517,9 +426,10 @@ function CartContainer({ close, toOrders }) {
                             <span className="bold">-20:00</span>
                           </div>
                         )}
-                      </NextLink>{" "}
+                      </NextLink>
                       <QuantutyInput
                         id={product.id}
+                        product={product}
                         isHurry={true || product.have_hurry_up_notify}
                         disabled={false}
                         max={product.available_quantity}
@@ -648,7 +558,7 @@ function CartContainer({ close, toOrders }) {
                             ? "#"
                             : getURLOfProduct({ product })
                         }
-                        className="flex-row mt-2 w-full relative  min-h-[208px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
+                        className="flex-row mt-2 w-full relative  min-h-[230px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
                         key={key}
                         style={{ border: "1px solid #ff5f617a" }}
                         onClick={(e) => {
@@ -804,7 +714,7 @@ function CartContainer({ close, toOrders }) {
                         </div>
                         {
                           <div
-                            className="absolute right-4 bottom-[95px] hide-btn cursor-pointer z-40"
+                            className="absolute right-4 top-[35px] hide-btn cursor-pointer z-40"
                             onClick={(e) => {
                               e.preventDefault();
                               Sendevent({
@@ -824,96 +734,7 @@ function CartContainer({ close, toOrders }) {
                             </span>
                           </div>
                         }
-                        <div className="absolute right-4 bottom-[57px]">
-                          <div className="product-info-price">
-                            {product?.offer_price ? (
-                              <>
-                                <div className="flex-col">
-                                  <div className="flex-row">
-                                    <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
-                                      {RoundPrice({
-                                        num: product.price,
-                                        rate: currency?.exchange_rate,
-                                        points:
-                                          (decimal_point_settings &&
-                                            decimal_point_settings[
-                                              "starting-setting"
-                                            ]?.decimal_point_settings) ||
-                                          0,
-                                      })}
-                                      <svg
-                                        className="bottom-3"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="100%"
-                                        height="2"
-                                      >
-                                        <line
-                                          id="Line_1104"
-                                          data-name="Line 1104"
-                                          x2="100%"
-                                          transform="translate(0 1)"
-                                          fill="none"
-                                          stroke="#C4C2C2"
-                                          strokeWidth="2"
-                                        />
-                                      </svg>
-                                    </div>
-                                    <div className="product-new-price text-[18px] bold">
-                                      {RoundPrice({
-                                        num: product?.offer_price,
-                                        rate: currency.exchange_rate,
-                                        points:
-                                          (decimal_point_settings &&
-                                            decimal_point_settings[
-                                              "starting-setting"
-                                            ]?.decimal_point_settings) ||
-                                          0,
-                                      })}
-                                    </div>
-                                    <div className="product-currency text-[8px] light text-[#1D1D1D]">
-                                      {currency?.symbol}
-                                    </div>
-                                  </div>
-                                  <div className="flex-row">
-                                    <SavedIcon />
-                                    <span className="text-[8px] text-[#388CFF] need-row-rev mx-[4px]">
-                                      {translate("Saved")}{" "}
-                                      <span className="bold">
-                                        {parseInt(
-                                          (
-                                            ((product.price -
-                                              product?.offer_price) /
-                                              product.price) *
-                                            100
-                                          ).toString()
-                                        )}
-                                        %
-                                      </span>
-                                    </span>
-                                  </div>
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                <div className="product-new-price text-[14px] bold">
-                                  {RoundPrice({
-                                    num: product.price,
-                                    rate: currency.exchange_rate,
-                                    points:
-                                      (decimal_point_settings &&
-                                        decimal_point_settings[
-                                          "starting-setting"
-                                        ]?.decimal_point_settings) ||
-                                      0,
-                                  })}
-                                </div>
-                                <div className="product-currency text-[8px] light text-[#1D1D1D]">
-                                  {currency?.symbol}
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        </div>
+
                         <div className="absolute top-1 right-1">
                           <input
                             defaultValue={key + 1}
@@ -989,6 +810,7 @@ function CartContainer({ close, toOrders }) {
                       </NextLink>
                       <QuantutyInput
                         id={product.id}
+                        product={product}
                         disabled={true}
                         isHurry={false}
                         value={product.quantity}
@@ -1703,6 +1525,7 @@ const QuantutyInput = ({
   id,
   disabled,
   isHurry,
+  product,
 }) => {
   const [inputValue, setInputValue] = useState(parseInt(value));
   const PlusIcon = ({ className }) => {
@@ -1763,6 +1586,7 @@ const QuantutyInput = ({
       </svg>
     );
   };
+  const dispatch = useDispatch();
   const updateQuantity = async (quantity, bool) => {
     let dataBody = [];
     let dataObj = { key: id, quantity: quantity };
@@ -1781,6 +1605,10 @@ const QuantutyInput = ({
         title: "Update Quantity For Product In cart",
         body: dataBody,
       });
+      dispatch({
+        type: "UPDATE-CART-QUANTITY",
+        payload: { key: id, quantity: quantity },
+      });
     } catch (error) {
       if (bool) {
         setInputValue(inputValue);
@@ -1789,19 +1617,55 @@ const QuantutyInput = ({
       }
     }
   };
+  const decimal_point_settings = useSelector(
+    (state: StateInterface) => state.homepage.settings
+  );
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key: string, lang?: string) => {
     return translateFunction(key, languageVariable);
   };
+  const currency = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  ) || { exchange_rate: 1, symbol: "" };
+  const decreaseQuantity = async (i) => {
+    if (!loading) {
+      setInputValue(parseInt(i) - 1);
+      setLoading(true);
+
+      await updateQuantity(parseInt(i.toString()) - 1, false);
+      await getCart({
+        callback: ([data, res]) => {
+          dispatch({ type: "CART-INIT", payload: data });
+        },
+      });
+      setLoading(false);
+    }
+  };
+  const [loading, setLoading] = useState(false);
+  const increaseQuantity = async (i) => {
+    if (!loading) {
+      setInputValue(parseInt(i.toString()) + 1);
+      setLoading(true);
+      await updateQuantity(parseInt(i.toString()) + 1, true);
+      await getCart({
+        callback: ([data, res]) => {
+          dispatch({ type: "CART-INIT", payload: data });
+        },
+      });
+      setLoading(false);
+    }
+  };
   return (
     <div
-      className={`absolute ${
-        disabled || isHurry ? "bottom-[64px]" : "bottom-[20px]"
-      } left-[137px]`}
+      className={`absolute flex-wrap ${"top-[115px]"} left-[137px] flex-row items-center justify-between max-w-[calc(100%-152px)] w-full`}
     >
-      <div className="flex-row hide-btn relative max-w-[72px] w-[72px] h-[24px] mt-4 z-50">
+      <div
+        className={`${
+          loading && "opacity-40"
+        } flex-row hide-btn relative max-w-[72px] w-[72px] h-[24px] mt-4 z-50`}
+      >
         <svg
           className="absolute hide-btn"
           xmlns="http://www.w3.org/2000/svg"
@@ -1836,6 +1700,7 @@ const QuantutyInput = ({
         </svg>
         <div
           className="absolute hide-btn h-[24px] flex items-center right-[6px]  cursor-pointer"
+          data-cy="PlusIcon_CartPage"
           onClick={() => {
             if (disabled) return false;
             if (inputValue === max) {
@@ -1844,8 +1709,7 @@ const QuantutyInput = ({
             }
             // @ts-ignore
             else {
-              setInputValue(parseInt(inputValue.toString()) + 1);
-              updateQuantity(parseInt(inputValue.toString()) + 1, true);
+              increaseQuantity(inputValue);
             }
           }}
         >
@@ -1855,12 +1719,13 @@ const QuantutyInput = ({
         {inputValue > 1 ? (
           <div
             className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
+            data-cy="MinusIcon_CartPage"
             onClick={() => {
               if (disabled) return false;
               if (inputValue > 1) {
                 // @ts-ignore
-                setInputValue(parseInt(inputValue) - 1);
-                updateQuantity(parseInt(inputValue.toString()) - 1, false);
+
+                decreaseQuantity(inputValue);
               }
             }}
           >
@@ -1869,6 +1734,7 @@ const QuantutyInput = ({
         ) : (
           <div
             className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
+            data-cy="DeleteIcon_CartPage"
             onClick={() => {
               deleteFunction();
             }}
@@ -1879,11 +1745,96 @@ const QuantutyInput = ({
         <input
           // @ts-ignore
           value={parseInt(inputValue)}
+          data-cy="QuantityInCart"
           max={max}
           disabled
           onChange={(e) => {}}
           className="outline-none hide-btn text-[14px] medium text-[#1D1D1D] text-center max-w-[72px] border-none py-1  w-[72px] h-[24px]"
         />
+        {loading && <Spinner />}
+      </div>
+      <div className={``}>
+        <div className="product-info-price">
+          {product?.offer_price ? (
+            <>
+              <div className="flex-col">
+                <div className="flex-row">
+                  <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
+                    {RoundPrice({
+                      num: product.price,
+                      rate: currency?.exchange_rate,
+                      points:
+                        (decimal_point_settings &&
+                          decimal_point_settings["starting-setting"]
+                            ?.decimal_point_settings) ||
+                        0,
+                    })}
+                    <svg
+                      className="bottom-3"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="100%"
+                      height="2"
+                    >
+                      <line
+                        id="Line_1104"
+                        data-name="Line 1104"
+                        x2="100%"
+                        transform="translate(0 1)"
+                        fill="none"
+                        stroke="#C4C2C2"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                  </div>
+                  <div className="product-new-price text-[18px] bold">
+                    {RoundPrice({
+                      num: product?.offer_price,
+                      rate: currency.exchange_rate,
+                      points:
+                        (decimal_point_settings &&
+                          decimal_point_settings["starting-setting"]
+                            ?.decimal_point_settings) ||
+                        0,
+                    })}
+                  </div>
+                  <div className="product-currency text-[8px] light text-[#1D1D1D]">
+                    {currency?.symbol}
+                  </div>
+                </div>
+                <div className="flex-row">
+                  <SavedIcon />
+                  <span className="text-[8px] text-[#388CFF]  need-row-rev mx-[4px]">
+                    {translate("Saved")}{" "}
+                    <span className="bold">
+                      {parseInt(
+                        (
+                          ((product.price - product?.offer_price) /
+                            product.price) *
+                          100
+                        ).toString()
+                      )}
+                      %
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="product-new-price text-[14px] light text-[#1D1D1D]">
+                {RoundPrice({
+                  num: product.price,
+                  rate: currency.exchange_rate,
+                  points:
+                    (decimal_point_settings &&
+                      decimal_point_settings["starting-setting"]
+                        ?.decimal_point_settings) ||
+                    0,
+                })}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

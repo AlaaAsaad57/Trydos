@@ -19,10 +19,24 @@ const initialState = {
   activeRoute: "/",
   showMessage: false,
   currency: null,
+  countries: [],
+  isRegisteringReady: true,
 };
 
 const HomeReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "IS-REGISTERING": {
+      return {
+        ...state,
+        isRegisteringReady: payload,
+      };
+    }
+    case "COUNTRIES-DATA": {
+      return {
+        ...state,
+        countries: payload,
+      };
+    }
     case "CURRENCY": {
       return {
         ...state,

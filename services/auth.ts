@@ -206,7 +206,9 @@ class AuthService {
         "/auth/firebase/verify-guest-phone",
       body: dataBody,
       title: "Verify Guest",
-      token: localStorage.getItem("DEVICE-TOKEN"),
+      token: localStorage.getItem("has-phone")
+        ? null
+        : localStorage.getItem("DEVICE-TOKEN"),
     });
 
     success();
@@ -232,7 +234,7 @@ class AuthService {
       await AxiosPost({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-name",
         body: { name: name },
-        title: "Verify Guest",
+        title: "Update Name",
       });
 
       axios.post(
@@ -306,7 +308,7 @@ class AuthService {
     await AxiosPost({
       url: process.env.NEXT_PUBLIC_BACKEND_URL + "/product_notification/store",
       body: formBody,
-      title: "Verify Guest",
+      title: "store Notification For Product",
     });
   }
   async getProductNotify({ id }) {

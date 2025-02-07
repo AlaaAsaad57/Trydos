@@ -196,9 +196,10 @@ function InputName({
       </div>
       <div
         className="login-button-group"
+        data-cy="inputToWriteName"
         style={{
           position: "relative",
-          backgroundColor: "#fafafa",
+          backgroundColor: "transparent",
           marginBottom: "40px",
           padding: "0",
           maxWidth: "calc(100% - 40px)",
@@ -232,6 +233,7 @@ function InputName({
 
         <input
           className="login-button"
+          data-cy="InputFiledForName"
           onChange={(e) => {
             setName(e.target.value);
           }}
@@ -283,7 +285,7 @@ function InputName({
             <LeftArrowIcon />
           </span>
         )}
-        <div className="flex light text-[11px] text-[#5d5d5d] mt-2">
+        <div className="flex light text-[11px] text-[#ff5858] mt-[20px]">
           {translate("Name Should be atleast 8 characters")}
         </div>
       </div>

@@ -698,6 +698,7 @@ function AddToCartButton({
                 AddToCartOption?.enable &&
                 `extended-add-to-cart  ${!loading && "opacity-45"}`
               }  `}
+              data-cy="AddToCartButton-data-cy"
               onClick={(e) => {
                 Sendevent({
                   event: "button_clicked",
@@ -898,7 +899,7 @@ function AddToCartButton({
                   </span>
                 )} */}
 
-              <div className="button-desc">
+              <div className="button-desc" data-cy="addToCartButton_productPage">
                 <div
                   className={`flex-row  justify-end relative image-container-cart ${
                     !AddToCartOption.enable && "pr-0"

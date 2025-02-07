@@ -2,6 +2,7 @@ const initialState = {
   orderLoading: false,
   cart: [],
   addressLists: [],
+  center: null,
   addressDetails: {
     location: { latitude: null, longitude: null },
     Country: { name: "Turkey", code: "TR" },
@@ -22,6 +23,14 @@ const initialState = {
       building: "",
     },
   },
+  orderData: {
+    payment: [],
+    coupon: false,
+    agree: false,
+    coupon_number: "",
+    loading: false,
+    success: false,
+  },
   enable: false,
   AddToCartOption: {
     enable: false,
@@ -38,6 +47,10 @@ const initialState = {
   localCart: [],
   loaded: false,
   oldCart: null,
+  wallet: null,
+  balance: 0,
+  crypto: 0,
+  credit: 0,
 };
 const showLocationText = (location) => {
   let str = "";
@@ -68,8 +81,54 @@ const openCart = (val) => {
     return val;
   }
 };
+
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "ORDER-SUCCESS": {
+      return {
+        ...state,
+        orderData: { ...state.orderData, orderPaylod: payload },
+      };
+    }
+    case "WALLET_BALANCE-USER": {
+      return {
+        ...state,
+        balance: state?.wallet?.total_wallet_balance || 0,
+      };
+    }
+    case "CRYPTO-USER": {
+      return {
+        ...state,
+        crypto: state.total_cash || 0,
+      };
+    }
+    case "CREDIT-USER": {
+      return {
+        ...state,
+        credit: state.total_cash || 0,
+      };
+    }
+    case "WALLET-USER": {
+      return {
+        ...state,
+        wallet: payload,
+      };
+    }
+    case "MAP-CENTER": {
+      return {
+        ...state,
+        center: payload,
+      };
+    }
+    case "ORDER-DATA": {
+      return {
+        ...state,
+        orderData: {
+          ...state.orderData,
+          ...payload,
+        },
+      };
+    }
     case "ORDER-LOADING": {
       return {
         ...state,
@@ -122,6 +181,10 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       let temp = {
         ...payload,
         region: showLocationText(payload.region_details),
+        contact_info: {
+          ...payload.contact_info,
+          contact_person_name: payload.contact_info.name,
+        },
       };
 
       return {
@@ -207,7 +270,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           AddToCartOption: {
             ...state.AddToCartOption,
             quantity: 0,
-            enable: true,
+
             selectedOptions: selectedOptions,
           },
         };
@@ -292,6 +355,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         localCart: state.localCart.filter((s) => s.item_id !== payload),
       };
     }
+
     case "CART-LOADING": {
       return {
         ...state,
@@ -376,6 +440,8 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "AddToCartOptionEnable": {
+      document.documentElement.style.overflow = "hidden";
+      document.documentElement.scrollTop = 0;
       if (payload)
         return {
           ...state,
@@ -430,6 +496,8 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "AddToCartOptionDisable": {
+      document.documentElement.style.overflow = "initial";
+      document.documentElement.scrollTop = 0;
       return {
         ...state,
         AddToCartOption: {

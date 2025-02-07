@@ -2,13 +2,13 @@ import LogInPins from "components/Login/LogInPins";
 import PhoneInput from "components/Login/PhoneInput";
 import SendMethod from "components/Login/SendMethod";
 import { useDispatch, useSelector } from "react-redux";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import AuthService from "services/auth";
 import { Sendevent } from "utils/functions";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
 
-function ConfirmMobile({ closeWindow }) {
+function ConfirmMobile({ closeWindow, hasMobile }) {
   const [stepIndicator, setStepIndicator] = useState(3);
   const [inputValue, setInputValue] = useState("");
   const dispatch = useDispatch();
@@ -64,6 +64,7 @@ function ConfirmMobile({ closeWindow }) {
   };
   const FinaliseLogin = async () => {
     let idToken = localStorage.getItem("ID-TOKEN");
+
     await AuthService.VerifyGuest(idToken, () => {
       AuthService.ConfirmSignIn();
     });
@@ -118,7 +119,13 @@ function ConfirmMobile({ closeWindow }) {
   const wrongNumber = useSelector(
     (state: StateInterface) => state.auth.wrongNumber
   );
-
+  useEffect(() => {
+    if (hasMobile) {
+      let phone = localStorage.getItem("has-phone");
+      setInputValue(phone);
+      setStepIndicator(4);
+    }
+  }, []);
   return (
     <div>
       <PhoneInput

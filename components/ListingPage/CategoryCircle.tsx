@@ -118,6 +118,7 @@ function CategoryCircle({ category }) {
         className={`category-circle flex-col align-center ${
           category?.categories_sub?.length > 0 && "extended-circle"
         }`}
+        data-cy="category_botiquePage"
       >
         <div className="relative w-[70px] h-[70px] z-10">
           {isSelected() && (

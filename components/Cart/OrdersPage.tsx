@@ -1,17 +1,21 @@
 import React, { useRef, useState } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
-import { Sendevent, translateFunction } from "utils/functions";
+import { GetAppLanguage, Sendevent, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import ShippingAddressContainer from "./ShippingAddressContainer";
 import { Swiper as SwiperType } from "node_modules/swiper/types";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import AddAddressForm from "./AddAddressForm";
-import { useDispatch, useSelector } from "node_modules/react-redux/es";
+import { useDispatch, useSelector } from "react-redux";
 import SelectRegion from "./SelectRegion";
 import AddressListContainer from "./AddressListContainer";
 import TrashIcon from "public/svg/cart/TrashIcon.svg";
 import order from "services/order";
+import PaymentMethod from "./PaymentMethod";
+import PlaceOrderWidget from "./PlaceOrderWidget";
+import PlaceOrderButtons from "./PlaceOrderButtons";
+import { toast, ToastContainer } from "react-toastify";
 const DeleteIcon = () => {
   return (
     <svg
@@ -103,6 +107,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
   const translate = (key: string, lang?: string) => {
     return translateFunction(key, languageVariable);
   };
+
   const [orderStep, setOrderStep] = useState(0);
   const [AddressListsOpen, openAddressList] = useState(false);
   const ref = useRef<SwiperType>();
@@ -128,11 +133,25 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
     }, 300);
   };
   const [deleteModal, setDeleteModal] = useState<any>(false);
+  const setOrderSuccess = async (e) => {
+    setLoading(true);
+    await order.PlaceOrder();
+    dispatch({ type: "ORDER-DATA", payload: { success: true } });
+    setLoading(false);
+  };
+  const setLoading = (e) => {
+    dispatch({ type: "ORDER-DATA", payload: { loading: e } });
+  };
+  const orderData = useSelector(
+    (state: StateInterface) => state.cart.orderData
+  );
+  const [nextStep, setNextStep] = useState(false);
   return (
     <div
       className={`pb-[10px]
      flex-col relative  top-0 left-0 min-h-[100vh] max-h-[100vh] h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
     >
+      <ToastContainer position="top-right" />
       {deleteModal && (
         <DeleteModalComponent
           slidePrev={() => {
@@ -164,7 +183,9 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
         slidesPerView={1}
         wrapperClass="flex  h-full"
       >
-        <SwiperSlide className="min-w-[100vw] h-[100vh] relative cart-widget">
+        <SwiperSlide
+          className={` min-w-[100vw] h-[100vh] relative cart-widget`}
+        >
           {AddressListsOpen && (
             <AddressListContainer
               Delete={(e) => {
@@ -178,7 +199,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
               }}
             />
           )}
-          <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
+          <div className="flex-col pl-2 pr-2 bg-[#fff] p-1 ">
             <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
               <BackIcon
                 className="cursor-pointer z-50"
@@ -286,66 +307,121 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
               <span />
             </div>
           </div>
-          <ShippingAddressContainer
-            openAddressList={(e) => {
-              openAddressList(e);
+          <div className="flex-col overflow-auto pb-[292px] max-h-full">
+            <ShippingAddressContainer
+              openAddressList={(e) => {
+                openAddressList(e);
+              }}
+              slideNext={() => {
+                ref.current.slideNext();
+              }}
+              slidePrev={() => {
+                ref.current.slidePrev();
+              }}
+            />
+            <PaymentMethod />
+          </div>
+          <OrderButtons
+            setNext={() => {
+              setNextStep(true);
+              setTimeout(() => {
+                ref.current.slideNext();
+              }, 600);
             }}
-            slideNext={() => {
-              ref.current.slideNext();
-            }}
-            slidePrev={() => {
-              ref.current.slidePrev();
-            }}
+            orderLoading={false}
           />
         </SwiperSlide>
         <SwiperSlide className="min-w-[100vw] relative max-h-[100vh]  h-[100vh] cart-widget overflow-hidden">
           {({ isActive }) => (
             <>
-              <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
-                <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
-                  <BackIcon
-                    className="cursor-pointer z-50"
-                    onClick={() => {
-                      Sendevent({
-                        event: "button_clicked",
-                        value: "appbar_backicon_button",
-                      });
+              {nextStep ? (
+                <>
+                  <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
+                    {!orderData.success && (
+                      <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
+                        <BackIcon
+                          className="cursor-pointer z-50"
+                          onClick={() => {
+                            Sendevent({
+                              event: "button_clicked",
+                              value: "appbar_backicon_button",
+                            });
+                            ref.current.slidePrev();
+                          }}
+                        />
+                        <span className="text-[13px] text-[#505050] regular flex-row items-center ">
+                          <AddAddressIcon />
+                          <span className="regular ml-[8px]">
+                            <>{translateFunction("Shipping & Payment")}</>
+                          </span>
+                        </span>
+                        <span
+                          onClick={() => {
+                            if (addressDetails.id) {
+                              setDeleteModal(addressDetails);
+                            }
+                          }}
+                        >
+                          {addressDetails.id && <DeleteIcon />}
+                        </span>
+                      </div>
+                    )}
+                    <PlaceOrderWidget />
+                  </div>
+                  <PlaceOrderButtons
+                    orderLoading={false}
+                    successOrder={() => setOrderSuccess(true)}
+                  />
+                </>
+              ) : (
+                <>
+                  <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
+                    <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
+                      <BackIcon
+                        className="cursor-pointer z-50"
+                        onClick={() => {
+                          Sendevent({
+                            event: "button_clicked",
+                            value: "appbar_backicon_button",
+                          });
+                          ref.current.slidePrev();
+                        }}
+                      />
+                      <span className="text-[13px] text-[#505050] regular flex-row items-center ">
+                        <AddAddressIcon />
+                        <span className="regular ml-[8px]">
+                          <>
+                            {addressDetails.id
+                              ? translate("Edit Shipping Address")
+                              : translate("Add Shipping Address")}
+                          </>
+                        </span>
+                      </span>
+                      <span
+                        onClick={() => {
+                          if (addressDetails.id) {
+                            setDeleteModal(addressDetails);
+                          }
+                        }}
+                      >
+                        {addressDetails.id && <DeleteIcon />}
+                      </span>
+                    </div>
+                  </div>
+                  <AddAddressForm
+                    activeIndex={isActive}
+                    setOpenSelect={() => {
+                      setOpenSelect(true);
+                    }}
+                    slidePrev={() => {
                       ref.current.slidePrev();
                     }}
-                  />
-                  <span className="text-[13px] text-[#505050] regular flex-row items-center ">
-                    <AddAddressIcon />
-                    <span className="regular ml-[8px]">
-                      <>
-                        {addressDetails.id
-                          ? translate("Edit Shipping Address")
-                          : translate("Add Shipping Address")}
-                      </>
-                    </span>
-                  </span>
-                  <span
-                    onClick={() => {
-                      if (addressDetails.id) {
-                        setDeleteModal(addressDetails);
-                      }
+                    setAddressDetails={(e) => {
+                      setAddressDetails(e);
                     }}
-                  >
-                    {addressDetails.id && <DeleteIcon />}
-                  </span>
-                </div>
-              </div>
-              <AddAddressForm
-                activeIndex={isActive}
-                setOpenSelect={() => {
-                  setOpenSelect(true);
-                }}
-                slidePrev={() => {
-                  ref.current.slidePrev();
-                }}
-                setAddressDetails={(e) => {
-                  setAddressDetails(e);
-                }}
-              />
+                  />
+                </>
+              )}
             </>
           )}
         </SwiperSlide>
@@ -357,6 +433,32 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
 export default OrdersPage;
 const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
   const dispatch = useDispatch();
+  const GetAddressString = (location) => {
+    let str = "";
+    if (
+      location.province &&
+      location.province.length > 0 &&
+      location.province !== "null"
+    )
+      str += `${location.province}`;
+    if (location.city && location.city.length > 0 && location.city !== "null")
+      str += ` | ${location.city}`;
+    if (location.town && location.town.length > 0 && location.town !== "null")
+      str += ` | ${location.town}`;
+    if (
+      location.street &&
+      location.street.length > 0 &&
+      location.street !== "null"
+    )
+      str += ` | ${location.street}`;
+    if (
+      location.building &&
+      location.building.length > 0 &&
+      location.building !== "null"
+    )
+      str += ` | ${location.building}`;
+    return str;
+  };
   return (
     <>
       <div
@@ -404,7 +506,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
                 </span>
               </div>
               <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#D3D3D3]">
-                {deletedAddress.region}
+                {GetAddressString(deletedAddress.region_details)}
               </div>
               <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#D3D3D3]">
                 <svg
@@ -534,5 +636,98 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
         </div>
       </div>
     </>
+  );
+};
+const OrderButtons = ({ orderLoading, setNext }) => {
+  const cart = useSelector((state: StateInterface) => state.cart);
+  const currency_symbol = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  );
+  const orderData = useSelector(
+    (state: StateInterface) => state.cart.orderData
+  );
+
+  const address = useSelector(
+    (state: StateInterface) => state.cart.addressLists
+  );
+  const shake = (v) => {
+    if (document.querySelector(`.${v}`)) {
+      document.querySelector(`.${v}`).scrollIntoView({ block: "end" });
+      document.querySelector(`.${v}`).classList.add("shake-anim");
+      setTimeout(() => {
+        document.querySelector(`.${v}`).classList.remove("shake-anim");
+      }, 1300);
+    }
+  };
+  const wallet = useSelector((state: StateInterface) => state.cart.wallet);
+  const totalBalance = () => {
+    let val = 0;
+    orderData.payment.map((s) => {
+      val += s.balance;
+    });
+    return val;
+  };
+  const isBalanceEnough = () => {
+    return totalBalance() >= cart.total_cash;
+  };
+  const isValid = () => {
+    if (
+      address &&
+      address[0]?.id &&
+      orderData.payment.length > 0 &&
+      isBalanceEnough()
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+  const Validate = () => {
+    if (!isBalanceEnough()) {
+      shake("payment-valid-border");
+      alert(translateFunction("Your Balance Not meet purchase value"));
+    }
+    if (!address[0]?.id) {
+      shake("address-valid-border");
+    }
+    if (orderData.payment?.length === 0) {
+      shake("payment-valid-border");
+    }
+  };
+  return (
+    <div className="absolute flex-col items-center payment-order-bottom left-0 w-full">
+      <div
+        style={{
+          boxShadow: "0px -3px 20px #0000001a",
+        }}
+        className={` ${
+          orderLoading && "opacity-55"
+        }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
+      >
+        <div
+          onClick={() => {
+            Validate();
+            if (isValid() && !orderLoading) {
+              setNext();
+            }
+          }}
+          className={` ${
+            orderData.loading && "opacity-65 scale-95"
+          } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${
+            isValid() ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
+          } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
+        >
+          <span>{translateFunction("Confirm Shipping & Payment")}</span>
+          <span
+            className={`text-[#FEFEFE] text-[14px] medium ${
+              GetAppLanguage() === "ar" && "dir-rtl"
+            } `}
+          >
+            {cart.cart.length} {translateFunction("items")} {cart.total_cash}{" "}
+            {currency_symbol?.symbol}
+          </span>
+        </div>
+      </div>
+    </div>
   );
 };

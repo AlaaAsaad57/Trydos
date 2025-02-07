@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import "styles/chat.css";
 import ChatWindow from "./pages/ChatWindow";
 import { useDispatch, useSelector } from "react-redux";
-const ConversationContainer = dynamic(() =>
-  import("./pages/ConversationContainer", { ssr: false })
+const ConversationContainer = dynamic(
+  () => import("./pages/ConversationContainer"),
+  { ssr: false }
 );
 import NewChatsSide from "components/Chat/components/NewChatsSide";
 import { SSRDetect, translateFunction } from "utils/functions";

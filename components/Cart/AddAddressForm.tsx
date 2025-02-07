@@ -20,18 +20,35 @@ function AddAddressForm({
   setOpenSelect,
   activeIndex,
 }) {
+  const { lang } = useParams();
   const [expanded, setExpanded] = useState(false);
-  const [center, setCenter] = useState(null);
+  const dispatch = useDispatch();
+  const center = useSelector((state: StateInterface) => state.cart.center);
+  const setCenter = (e) => {
+    dispatch({ type: "MAP-CENTER", payload: e });
+  };
   useEffect(() => {
     getCenter();
   }, []);
   const addressDetails = useSelector(
     (state: StateInterface) => state.cart.addressDetails
   );
+  const countries = useSelector(
+    (state: StateInterface) => state.homepage.countries
+  );
   const getCenter = async () => {
-    let ipData: IpDataApi = await axios.get("http://ip-api.com/json");
+    // to do
+    // let ipData: IpDataApi = await axios.get("http://ip-api.com/json");
+    // @ts-ignore
+    let UserCountries = countries.filter(
+      // @ts-ignore
 
-    setCenter({ lat: ipData.data?.lat, lng: ipData.data?.lon });
+      (s) => s.iso.toLowerCase() === lang.split("-")[0].toLowerCase()
+    )[0];
+    setCenter({
+      lat: parseFloat(UserCountries.latitude),
+      lng: parseFloat(UserCountries.longitude),
+    });
   };
   const isValid = () => {
     let valid = false;
@@ -336,20 +353,20 @@ const ContactInfo = () => {
     (state: StateInterface) => state.cart.addressDetails
   );
   const dispatch = useDispatch();
-  useEffect(() => {
-    if (!addressDetails.id && user) {
-      dispatch({
-        type: "set-address-details",
-        payload: {
-          contact_info: {
-            ...addressDetails.contact_info,
-            contact_person_name: user?.name,
-            name: user?.name,
-          },
-        },
-      });
-    }
-  }, [addressDetails?.id, user]);
+  // useEffect(() => {
+  //   if (!addressDetails.id && user) {
+  //     dispatch({
+  //       type: "set-address-details",
+  //       payload: {
+  //         contact_info: {
+  //           ...addressDetails.contact_info,
+  //           contact_person_name: user?.name,
+  //           name: user?.name,
+  //         },
+  //       },
+  //     });
+  //   }
+  // }, [addressDetails?.id, user]);
   return (
     <div className="flex-col w-full mt-[30px] px-[12px] pb-[110px]">
       <div className="flex-row px-[12px] items-center">
@@ -371,12 +388,7 @@ const ContactInfo = () => {
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
           <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
             <input
-              value={
-                addressDetails.contact_info.contact_person_name ||
-                // @ts-ignore
-                addressDetails.contact_info?.name ||
-                ""
-              }
+              value={addressDetails.contact_info.contact_person_name}
               onChange={(e) => {
                 dispatch({
                   type: "set-address-details",
@@ -407,6 +419,15 @@ const ContactInfo = () => {
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
           <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
             <input
+              aria-autocomplete="both"
+              aria-haspopup="false"
+              type="number"
+              spellCheck="false"
+              autoCapitalize="off"
+              autoComplete="off"
+              pattern="[0-9]*"
+              autoCorrect="off"
+              inputMode="numeric"
               value={addressDetails.contact_info.phone}
               onChange={(e) => {
                 dispatch({
@@ -441,6 +462,15 @@ const ContactInfo = () => {
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
           <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
             <input
+              aria-autocomplete="both"
+              aria-haspopup="false"
+              spellCheck="false"
+              autoCapitalize="off"
+              pattern="[0-9]*"
+              autoComplete="off"
+              autoCorrect="off"
+              inputMode="numeric"
+              type="number"
               value={addressDetails.contact_info.alternative_phone}
               onChange={(e) => {
                 dispatch({

@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import { Provider } from "react-redux";
 import { store } from "./index";
 import GAComponent from "components/global/GAComponent";
@@ -54,13 +54,13 @@ export default function Providers({ children }) {
     if (!shouldShowBluredInfo()) {
       const handlePageRefresh = async () => {
         try {
-          const response2 = await AxiosGet({
-            url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
-            title: "get firebase settings request"
-          });
-          store.dispatch({ type: "GET_FIREBASE_SETTINGS", payload: response2?.firebase_settings });
+          // const response2 = await AxiosGet({
+          //   url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
+          //   title: "get firebase settings request"
+          // });
+          // store.dispatch({ type: "GET_FIREBASE_SETTINGS", payload: response2?.firebase_settings });
           requestFirebaseNotificationPermission().then((fbtoken) => {
-            home.handleTopicsOnPageRefresh(fbtoken)
+            home.handleTopicsOnPageRefresh(fbtoken);
           });
         } catch (error) {
           console.error("Error handling topics on page refresh:", error);
@@ -150,7 +150,7 @@ export default function Providers({ children }) {
           noCountry={searchParams.get("no-country")}
           countries={dataCountries.map((s) => s.iso)}
           options={dataCountries.map((s) => {
-            return { label: s.nicename, value: s.iso };
+            return { label: s.name, value: s.iso };
           })}
         />
       )}

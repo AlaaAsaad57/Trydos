@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import { translateFunction } from "utils/functions";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,6 +12,7 @@ import {
   useParams,
 } from "next/navigation";
 import Menu from "./Menu";
+import NotificationsTest from "components/global/NotificationsTest";
 
 interface UserNavTopSectionProps {
   loginOpen: boolean;
@@ -66,18 +67,20 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
 
   return (
     <div className={`${searchEnabled && "hidden"} user-nav-container`}>
-      {/* <div
-        className="nav-question-item"
-        style={{ marginRight: "30px", marginLeft: "0px" }}
-      >
-        {user && <NotificationsTest />}
-      </div> */}
+      {/* {user && (
+        <div
+          className="nav-question-item"
+          style={{ marginRight: "30px", marginLeft: "0px" }}
+        >
+          <NotificationsTest />
+        </div>
+      )} */}
       <div
         className="nav-question-item cart-icon-selector cursor-pointer"
         style={{ marginRight: "30px", marginLeft: "0px" }}
         onClick={() => enableCart(true)}
       >
-        <CartIcon />
+        <CartIcon data-cy="cartIcon_mainPage" />
       </div>
       {!user && (
         <>
@@ -141,17 +144,20 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
         onClick={() => setMenuOpen(!menuOpen)}
         style={{ marginLeft: "10px", cursor: "pointer" }}
       >
-        {user ? <AuthNavSection /> : <div className="nav-question-item">
-          <Image
-            src="/svg/userIcon.svg"
-            width={30}
-            height={30}
-            alt="user-icon"
-          />
-        </div>}
+        {user ? (
+          <AuthNavSection />
+        ) : (
+          <div className="nav-question-item">
+            <Image
+              src="/svg/userIcon.svg"
+              width={30}
+              height={30}
+              alt="user-icon"
+            />
+          </div>
+        )}
       </div>
       {menuOpen && <Menu user={user} />}
-
     </div>
   );
 }

@@ -62,6 +62,7 @@ function AccountNotFound({
       unmountAnim={unmountAnim}
     >
       <div
+        data-cy="already-registered-phone"
         className="phone-input-desc already-registered"
         style={{ paddingInline: "20px" }}
       >

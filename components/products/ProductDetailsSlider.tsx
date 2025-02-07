@@ -9,9 +9,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CloseIcon from "components/Home/Stories/CloseIcon";
 function ProductDetailsSlider({ product }) {
   const productData = product;
-
+  const [imageShow, showImage] = useState(0);
   const [emblaRef] = useEmblaCarousel();
-  const [emblaRef1] = useEmblaCarousel();
+  const [emblaRef1] = useEmblaCarousel({ startIndex: imageShow || 0 });
   const activeColor = useSelector(
     (state: StateInterface) => state.details.product?.activeColor
   );
@@ -46,7 +46,7 @@ function ProductDetailsSlider({ product }) {
       payload: { ...product, colorFrom: searchParams.get("color") },
     });
   }, []);
-  const [imageShow, showImage] = useState(false);
+
   return (
     <>
       <div className="product-details-slider">
@@ -67,9 +67,7 @@ function ProductDetailsSlider({ product }) {
                 className="embla__slide"
                 key={img}
                 onClick={() => {
-                  showImage(
-                    getConfiguredImage({ src: img, width: 500, height: 700 })
-                  );
+                  showImage(i);
                 }}
               >
                 <Image
@@ -113,9 +111,7 @@ function ProductDetailsSlider({ product }) {
                   className="embla__slide"
                   key={img}
                   onClick={() => {
-                    showImage(
-                      getConfiguredImage({ src: img, width: 500, height: 700 })
-                    );
+                    showImage(i);
                   }}
                 >
                   <Image

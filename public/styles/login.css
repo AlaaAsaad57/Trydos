@@ -171,9 +171,10 @@
   position: absolute;
   cursor: pointer;
   z-index: 100;
+  padding-right: 20px;
   top: 0px;
-  right: 20px;
-  width: 50px;
+  right: 0px;
+  width: 70px;
   display: flex;
   justify-content: flex-end;
   align-items: center;

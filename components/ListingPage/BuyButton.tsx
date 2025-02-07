@@ -14,6 +14,7 @@ function BuyButton({ buy }) {
   return (
     <div
       className="buy-button light-text flex align-start justify-start cursor-pointer"
+      data-cy="Cart-ByButton"
       onClick={(e) => {
         e.preventDefault();
         buy();

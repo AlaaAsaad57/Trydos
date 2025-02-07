@@ -195,17 +195,20 @@ function FilterButtons() {
                   <Spinner />
                 </span>
               ) : (
-                <span className="text-[#fafafa] regular ml-2">
+                  <span className="text-[#fafafa] regular ml-2"
+                  data-cy="totalProduct_filterBoutique"
+                  >
                   (Total Products: {totalProducts})
                 </span>
               )}
             </div>
           ) : (
-            <div className={`apply-button flex-row opacity-0`}></div>
+            <></>
           )}
           {isSelectFilter() && (
             <div
               className="reset-button flex-row"
+              data-cy="resetButton"
               onClick={() => {
                 Sendevent({
                   event: "button_clicked",

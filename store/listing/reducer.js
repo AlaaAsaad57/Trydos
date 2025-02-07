@@ -22,9 +22,13 @@ const ListingReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "GET_PRODUCT": {
+      let arr = [];
+      payload?.products?.map((s) => {
+        arr.push({ ...s, id: s.product_id });
+      });
       return {
         ...state,
-        products: payload?.products ?? [],
+        products: arr ?? [],
         offset: payload?.offset,
         limit: 4,
         loading: false,
@@ -44,11 +48,15 @@ const ListingReducer = (state = initialState, { type, payload }) => {
       };
     }
     case "GET_NEXT_PRODUCT": {
+      let arr = [];
+      payload?.products?.map((s) => {
+        arr.push({ ...s, id: s.product_id });
+      });
       return {
         ...state,
         products: [
           ...state.products,
-          ...payload.products.filter(
+          ...arr.filter(
             (s) => state.products.filter((d) => d.id === s.id).length === 0
           ),
         ],

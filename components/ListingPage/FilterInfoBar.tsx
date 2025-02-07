@@ -95,6 +95,7 @@ function FilterInfoBar({
   return (
     <div className="filter-info-bar flex-row cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none ">
       <CloseIcon
+        data-cy="closeIcon"
         className="mr-2 ml-2"
         onClick={() => {
           dispatch({ type: "RESET-FILTER" });

@@ -58,7 +58,7 @@ function ProuctDetailsBody({ product }) {
           )}
         </div>
         <div className="product-text-section flex-row align-center">
-          <div className="product-name">{product.name}</div>
+          <div className="product-name" data-cy="productName_productPage">{product.name}</div>
           <div className="product-category">
             {product?.category?.icon && (
               <img
@@ -81,7 +81,7 @@ function ProuctDetailsBody({ product }) {
           colors={product.sync_color_images || []}
           ProductColorsArray={product.colors}
         />
-        <CameraShots images={product.images} />
+        <CameraShots images={product?.images || []} />
         <ProductStories />
         <ProductSizes
           sizes={

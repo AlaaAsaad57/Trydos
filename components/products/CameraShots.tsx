@@ -89,10 +89,10 @@ function CameraShots({ images }) {
             slidesPerView={"auto"}
             threshold={1}
             centeredSlides={true}
-            initialSlide={Math.round(images.length / 2) - 1}
+            initialSlide={Math.round(images?.length / 2) - 1}
             loop={false}
           >
-            {images.map((image, index) => (
+            {images?.map((image, index) => (
               <SwiperSlide
                 key={index}
                 style={{
