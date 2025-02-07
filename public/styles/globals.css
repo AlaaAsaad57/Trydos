@@ -11,7 +11,8 @@ img {
   top: 98px !important;
 }
 
-@media only screen and (min-width: 430px) {}
+@media only screen and (min-width: 430px) {
+}
 
 @media only screen and (min-width: 912px) {
   .move-anim {
@@ -249,7 +250,7 @@ span[aria-live="polite"] {
   min-width: 100vw;
 }
 
-.listing-container>div {
+.listing-container > div {
   margin-top: 20px;
 }
 
@@ -314,7 +315,6 @@ span[aria-live="polite"] {
 }
 
 @keyframes opa {
-
   0%,
   to {
     opacity: 0;
@@ -408,10 +408,12 @@ span[aria-live="polite"] {
   right: 0;
   height: 100%;
   background-repeat: no-repeat;
-  background-image: linear-gradient(90deg,
-      var(--base-color),
-      var(--highlight-color),
-      var(--base-color));
+  background-image: linear-gradient(
+    90deg,
+    var(--base-color),
+    var(--highlight-color),
+    var(--base-color)
+  );
   transform: translateX(-100%);
   animation-name: react-loading-skeleton;
   animation-direction: var(--animation-direction);
@@ -459,9 +461,12 @@ body {
   justify-content: center;
   align-items: start;
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(to bottom,
+  background: linear-gradient(
+      to bottom,
       transparent,
-      rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
   background: 0 0 !important;
   min-height: 100%;
   max-width: 100%;
@@ -894,7 +899,9 @@ a {
   height: calc(100% - 0.5px);
 }
 
-.mobile-bar.categories-bar-container .categories-bar-item .categories-bar-item-description {
+.mobile-bar.categories-bar-container
+  .categories-bar-item
+  .categories-bar-item-description {
   justify-content: center;
   width: auto;
 }
