@@ -63,8 +63,11 @@ const HomeReducer = (state = initialState, { type, payload }) => {
     }
     case "LOGIN-OPEN": {
       if (payload) {
+        document.documentElement.scrollTo({ top: 0 });
         document.documentElement.style.overflow = "hidden";
       } else {
+        document.documentElement.scrollTo({ top: 0 });
+
         document.documentElement.style.overflow = "initial";
       }
       return {
