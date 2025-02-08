@@ -187,7 +187,6 @@ export async function middleware(request) {
     defaultLocale = `${countryByIp}-en`;
     url.pathname = `/${defaultLocale}${url.pathname}`;
   } else {
-    console.log(url.pathname.split("/"));
     if (url.pathname.split("/")[1].includes("-")) {
       url.pathname = url.pathname.replace(url.pathname.split("/")[1], "gb-en");
       url.searchParams.set("no-country", true);
