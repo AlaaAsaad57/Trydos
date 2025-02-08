@@ -8,7 +8,7 @@ import { Sendevent } from "utils/functions";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
 
-function ConfirmMobile({ closeWindow, hasMobile }) {
+function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   const [stepIndicator, setStepIndicator] = useState(3);
   const [inputValue, setInputValue] = useState("");
   const dispatch = useDispatch();
@@ -56,7 +56,7 @@ function ConfirmMobile({ closeWindow, hasMobile }) {
         Username,
         EditPhoneFunc
       );
-      successCallback(exists, name);
+      await successCallback(exists, name);
     } catch (error) {
       errorCallback(error);
       console.error("VerifyOtp failed:", error);
@@ -65,9 +65,8 @@ function ConfirmMobile({ closeWindow, hasMobile }) {
   const FinaliseLogin = async () => {
     let idToken = localStorage.getItem("ID-TOKEN");
 
-    await AuthService.VerifyGuest(idToken, () => {
-      AuthService.ConfirmSignIn();
-    });
+    await AuthService.VerifyGuest(idToken, async () => {});
+    await AuthService.ConfirmSignIn();
   };
   const [failedLogin, setFailed] = useState(false);
 
@@ -101,17 +100,17 @@ function ConfirmMobile({ closeWindow, hasMobile }) {
           setStepIndicator(6);
         }
       },
-      successCallback: (exists, name) => {
-        setTimeout(() => {
-          {
-            Sendevent({
-              event: "programming_event",
+      successCallback: async (exists, name) => {
+        Sendevent({
+          event: "programming_event",
 
-              value: "verify_otp_signin_success_event",
-            });
-            closeWindow();
-            FinaliseLogin();
-          }
+          value: "verify_otp_signin_success_event",
+        });
+
+        await FinaliseLogin();
+        setTimeout(() => {
+          closeWindow();
+          goToOrders();
         }, 2000);
       },
     });

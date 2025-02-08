@@ -39,7 +39,9 @@ function MobileNavigation({ categories }: { categories: any[] }) {
   }
   return (
     <div className="flex-row search-nav-holder">
-      <SearchIcon />
+      <div className="flex min-w-[45px]">
+        <SearchIcon />
+      </div>
       <div className={`categories-bar-container ${"mobile-bar"}`}>
         {categories.map((category, key) => (
           <CategoryNavMobile

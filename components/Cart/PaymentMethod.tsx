@@ -76,7 +76,7 @@ function PaymentMethod() {
               <g
                 id="Mask_Group_658"
                 data-name="Mask Group 658"
-                clip-path="url(#clip-path)"
+                clipPath="url(#clip-path)"
               >
                 <g id="money-9">
                   <g id="Group_13431" data-name="Group 13431">
@@ -278,7 +278,7 @@ const CouponElement = ({ active, setActive, close }) => {
           <g
             id="Mask_Group_658"
             data-name="Mask Group 658"
-            clip-path="url(#clip-path)"
+            clipPath="url(#clip-path)"
           >
             <g id="money-9">
               <g id="Group_13431" data-name="Group 13431">

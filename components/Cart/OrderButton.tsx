@@ -406,6 +406,9 @@ function OrderButton({ close, toOrders }) {
                     closeWindow={() => {
                       setOption(false);
                     }}
+                    goToOrders={() => {
+                      toOrders();
+                    }}
                   />
                 </>
               ) : (

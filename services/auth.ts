@@ -211,7 +211,7 @@ class AuthService {
         : localStorage.getItem("DEVICE-TOKEN"),
     });
 
-    success();
+    await success();
   }
   async UpdateName(name: string) {
     try {
