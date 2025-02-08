@@ -14,6 +14,9 @@ function MoreOptionsSection() {
   const SelectedProduct = useSelector(
     (state: StateInterface) => state.cart.SelectedProduct
   );
+  const firebasSettings = useSelector(
+    (state: StateInterface) => state.auth.firebasSettings
+  );
   useEffect(() => {
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector("#slider-options");
@@ -134,17 +137,20 @@ function MoreOptionsSection() {
             >
               {translate("Before Stock Out", language)}
             </div>
-            <div className="button-option" onClick={async () => {
-              let language_code = window.location.pathname
-                .split("/")[1]
-                .split("-")[1];
-              let country_code = window.location.pathname
-                .split("/")[1]
-                .split("-")[0];
-              await home.subscribeToTopic({
-                topic: `product_when_change_in_price_${SelectedProduct.id}`,
-              });
-            }}>
+            <div
+              className="button-option"
+              onClick={async () => {
+                let language_code = window.location.pathname
+                  .split("/")[1]
+                  .split("-")[1];
+                let country_code = window.location.pathname
+                  .split("/")[1]
+                  .split("-")[0];
+                await home.subscribeToTopic({
+                  topic: `product_when_change_in_price_${SelectedProduct.id}`,
+                });
+              }}
+            >
               {translate("Change In Price", language)}
             </div>
             <div

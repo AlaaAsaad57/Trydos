@@ -40,6 +40,7 @@ const CartProvider = () => {
   useEffect(() => {
     setTimeout(() => {
       home.getClientData();
+      home.GetFireBaseSettings();
     }, 10);
     window.addEventListener("popstate", (event) => {
       if (event.state?.isPopup) {

@@ -183,6 +183,7 @@ declare global {
           blurHeight: number;
         };
       };
+      firebasSettings: any;
       Tempuser: {
         id: number;
         idToken: string;
@@ -953,10 +954,10 @@ declare global {
         details: string;
         thumbnail: string;
         images:
-        | Array<string>
-        | Array<{
-          file_path?: string;
-        }>;
+          | Array<string>
+          | Array<{
+              file_path?: string;
+            }>;
         categories: Array<{
           id: number;
           name: string;

@@ -74,14 +74,6 @@ class HomeService {
       sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
       await this.getCustomerInfo();
 
-      // const response2 = await AxiosGet({
-      //   url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
-      //   title: "get firebase settings request",
-      // });
-      // store.dispatch({
-      //   type: "GET_FIREBASE_SETTINGS",
-      //   payload: response2?.firebase_settings,
-      // });
       getCart({
         callback: ([data, res]) => {
           store.dispatch({
@@ -101,6 +93,16 @@ class HomeService {
     } catch (e) {
       console.error(e);
     }
+  }
+  async GetFireBaseSettings() {
+    const response2 = await AxiosGet({
+      url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
+      title: "get firebase settings request",
+    });
+    store.dispatch({
+      type: "GET_FIREBASE_SETTINGS",
+      payload: response2?.firebase_settings,
+    });
   }
   async getCustomerInfo() {
     await WaitForCondition();
@@ -275,14 +277,6 @@ class HomeService {
           }
         }, 3000);
         // ininit
-        // const response2 = await AxiosGet({
-        //   url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
-        //   title: "get firebase settings request",
-        // });
-        // store.dispatch({
-        //   type: "GET_FIREBASE_SETTINGS",
-        //   payload: response2?.firebase_settings,
-        // });
 
         const searchParams = new URLSearchParams(window.location.search);
         if (
@@ -672,7 +666,7 @@ class HomeService {
     let token = localStorage.getItem("FB-DEVICE-TOKEN");
 
     if (token) {
-      AxiosPost({
+      let response = AxiosPost({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
           "/firebase_device_tokens/subscribe_topic",
@@ -681,6 +675,7 @@ class HomeService {
         },
         title: "store firebase topic",
       });
+      console.log(response);
     }
   }
 
