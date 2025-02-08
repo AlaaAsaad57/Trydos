@@ -6,7 +6,13 @@ const initialState = {
   wrongNumber: "",
   loading: false,
   verficationID: null,
-  firebaseSettings: {}
+  firebaseSettings: {
+    subscribed_topics: [],
+    unsubscribed_topics: [],
+    email: 0,
+    whatsapp: 0,
+    firebase: 0,
+  },
 };
 
 const AuthReducer = (state = initialState, { type, payload }) => {
@@ -61,7 +67,30 @@ const AuthReducer = (state = initialState, { type, payload }) => {
     case "GET_FIREBASE_SETTINGS": {
       return {
         ...state,
-        firebaseSettings: payload
+        firebaseSettings: payload,
+      };
+    }
+    case "DISABLE-NOTIFICATION": {
+      return {
+        ...state,
+        firebaseSettings: {
+          ...state.firebaseSettings,
+          subscribed_topics: state.firebaseSettings.subscribed_topics.filter(
+            (s) => s.topic !== payload
+          ),
+        },
+      };
+    }
+    case "ENABLE-NOTIFICATION": {
+      return {
+        ...state,
+        firebaseSettings: {
+          ...state.firebaseSettings,
+          subscribed_topics: [
+            ...state.firebaseSettings.subscribed_topics,
+            { topic: payload },
+          ],
+        },
       };
     }
     case "TEMP-USER": {

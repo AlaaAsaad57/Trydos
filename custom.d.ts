@@ -183,7 +183,7 @@ declare global {
           blurHeight: number;
         };
       };
-      firebasSettings: any;
+      firebaseSettings: any;
       Tempuser: {
         id: number;
         idToken: string;

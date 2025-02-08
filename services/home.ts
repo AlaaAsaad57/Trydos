@@ -648,12 +648,12 @@ class HomeService {
         await this.subscribeToTopic({
           topic: `product_availability_${id}`,
         });
-        await this.subscribeToTopic({
-          topic: `product_discount_${id}`,
-        });
-        await this.subscribeToTopic({
-          topic: `product_comment_${id}`,
-        });
+        // await this.subscribeToTopic({
+        //   topic: `product_discount_${id}`,
+        // });
+        // await this.subscribeToTopic({
+        //   topic: `product_comment_${id}`,
+        // });
       } else {
         errCallback();
         // store.dispatch({ type: "AddToCartOptionDisable", payload: true });
@@ -666,19 +666,36 @@ class HomeService {
     let token = localStorage.getItem("FB-DEVICE-TOKEN");
 
     if (token) {
-      let response = AxiosPost({
+      let response = await AxiosPost({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
           "/firebase_device_tokens/subscribe_topic",
         body: {
           topic,
         },
-        title: "store firebase topic",
+        title: "store firebase tsubscribe opic",
       });
-      console.log(response);
+      store.dispatch({
+        type: "GET_FIREBASE_SETTINGS",
+        payload: response.firebase_settings,
+      });
     }
   }
-
+  async UnsubscripeFromTopic({ topic }) {
+    let response = await AxiosPost({
+      url:
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/firebase_device_tokens/unsubscribe_topic",
+      body: {
+        topic,
+      },
+      title: "store firebase unsubscribe topic",
+    });
+    store.dispatch({
+      type: "GET_FIREBASE_SETTINGS",
+      payload: response.firebase_settings,
+    });
+  }
   async handleTopicsOnPageRefresh(token: string) {
     // Extract country and language from the URL
     const [countryCode, languageCode] = window.location.pathname

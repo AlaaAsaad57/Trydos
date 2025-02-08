@@ -122,13 +122,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
       ...payload,
     });
   };
+  const [SelectValue, setSelectValue] = useState("");
   return (
     <div
-      className="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+      className="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start pt-[50px]"
       onClick={handleOutsideClick}
     >
       <div
-        className="modal-content bg-white rounded-lg shadow-lg w-96 p-4"
+        className="modal-content bg-white rounded-lg shadow-lg w-[288] p-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Tabs */}
@@ -223,7 +224,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                 <div
                   className="flex-row items-center p-2 cursor-pointer"
                   onClick={() => {
-                    if (fbSettings.email === 0) {
+                    if (fbSettings?.email === 0) {
                       changeNotificationPreferences({ email: 1 });
                     } else {
                       changeNotificationPreferences({ email: 0 });
@@ -246,7 +247,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                 <div
                   className="flex-row items-center p-2 cursor-pointer"
                   onClick={() => {
-                    if (fbSettings.firebase === 0) {
+                    if (fbSettings?.firebase === 0) {
                       changeNotificationPreferences({ firebase: 1 });
                     } else {
                       changeNotificationPreferences({ firebase: 0 });
@@ -271,7 +272,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                 <div
                   className="flex-row items-center p-2 cursor-pointer"
                   onClick={() => {
-                    if (fbSettings.whatsapp === 0) {
+                    if (fbSettings?.whatsapp === 0) {
                       changeNotificationPreferences({ whatsapp: 1 });
                     } else {
                       changeNotificationPreferences({ whatsapp: 0 });
@@ -280,8 +281,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                 >
                   <input
                     id="helper-checkbox"
-                    defaultChecked={fbSettings.whatsapp === 1}
-                    checked={fbSettings.whatsapp === 1}
+                    defaultChecked={fbSettings?.whatsapp === 1}
+                    checked={fbSettings?.whatsapp === 1}
                     aria-describedby="helper-checkbox-text"
                     value=""
                     type="checkbox"
@@ -290,6 +291,31 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                   <span className="ml-2">
                     {translateFunction("Enable WhatsApp Notifications")}
                   </span>
+                </div>
+                <div className="flex-row items-center">
+                  {translateFunction("notifications Receiving Preference:")}
+                  <div className="ml-2">
+                    <select
+                      className=""
+                      value={SelectValue}
+                      onChange={(e) => {
+                        setSelectValue(e.target.value);
+                      }}
+                    >
+                      <option className="">
+                        {translateFunction("Select An Option")}
+                      </option>
+                      <option className="" value={"daily"}>
+                        {translateFunction("daily")}
+                      </option>
+                      <option className="" value={"weekly"}>
+                        {translateFunction("weekly")}
+                      </option>
+                      <option className="" value={"monthly"}>
+                        {translateFunction("monthly")}
+                      </option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
