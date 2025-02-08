@@ -46,11 +46,6 @@ describe("open cart and view products", () => {
       }
     });
     cy.wait(20000);
-    // cy.wait("@CartRequest").then((interception) => {
-    //   console.log("Intercepted request:", interception);
-    //   console.log("Intercepted request addToCart");
-    //   expect(interception.response.statusCode).to.eq(200);
-    // });
     cy.wait("@CartRequest", { timeout: 20000 }).then((interception) => {
       if (interception?.response) {
         console.log("✅ Intercepted request:", interception);
@@ -138,12 +133,6 @@ describe("open cart and view products", () => {
         console.warn("⚠️ @CartRequest was not intercepted or has no response.");
       }
     });
-    // cy.wait("@CartRequest").then((interception) => {
-    //   console.log("Intercepted request:", interception);
-    //   console.log("Intercepted request updateCart");
-    //   // Ensure that the triggered request is successful
-    //   expect(interception.response.statusCode).to.eq(200);
-    // });
     cy.wait(10000);
     cy.Exist("[data-cy=CartIcon_Productpage]").then((exist) => {
       if (exist) {
@@ -226,9 +215,6 @@ describe("open cart and view products", () => {
       }
     });
     cy.wait(20000);
-    // cy.wait("@increaseQuantity").then((interception) => {
-    //   console.log("increaseQuantity request Successfully");
-    // });
     cy.wait("@increaseQuantity", { timeout: 20000 }).then((interception) => {
       if (interception) {
         console.log("✅ increaseQuantity request successfully intercepted");
@@ -270,17 +256,13 @@ describe("open cart and view products", () => {
       if (exist) {
         cy.clickElementForce("[data-cy=DeleteIcon_CartPage]");
         cy.wait(20000);
-        // cy.wait("@removeRequest").then((interception) => {
-        //   console.log("removeRequest Successfully");
-        // });
-        cy.wait("@removeRequest").then((interception) => {
-          console.log("removeRequest Successfully");
+        cy.wait("@removeRequest", { timeout: 20000 }).then((interception) => {
+          if (interception) {
+            console.log("✅ removeRequest successfully intercepted");
+          } else {
+            console.warn("⚠️ removeRequest did not arrive.");
+          }
         });
-      }
-    });
-    cy.Exist("[data-cy=CartBackIcon]").then((exist) => {
-      if (exist) {
-        cy.clickElementForce("[data-cy=CartBackIcon]");
       }
     });
     cy.wait(10000);
@@ -309,9 +291,6 @@ describe("open cart and view products", () => {
         }
       });
     });
-    // cy.wait("@decreaseQuantity").then((interception) => {
-    //   console.log("decreaseQuantity request Successfully");
-    // });
     cy.Exist("[data-cy=CartBackIcon]").then((exist) => {
       if (exist) {
         cy.clickElementForce("[data-cy=CartBackIcon]");

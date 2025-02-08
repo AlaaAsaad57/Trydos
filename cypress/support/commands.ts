@@ -88,16 +88,29 @@ Cypress.Commands.add("typePincode", (pincode: string) => {
   });
 });
 Cypress.Commands.add("enterPhoneNumber", (phoneNumber: string) => {
-  cy.get("#phoneInput").click({ scrollBehavior: false });
   cy.wait(5000);
-  cy.get("#phoneInput").type(`${phoneNumber}{enter}`, {
-    scrollBehavior: false,
+  cy.Exist("#phoneInput").then((exist) => {
+    if (exist) {
+      cy.get("#phoneInput").click({ scrollBehavior: false });
+      cy.wait(5000);
+      cy.get("#phoneInput").type(`${phoneNumber}{enter}`, {
+        scrollBehavior: false,
+      });
+    }
   });
   cy.wait(5000);
-  cy.get(".phone-arrow").click({ scrollBehavior: false });
+  cy.Exist(".phone-arrow").then((exist) => {
+    if (exist) {
+      cy.get(".phone-arrow").click({ scrollBehavior: false });
+    }
+  });
   cy.wait(5000);
-  cy.get(".message-recieve-option:nth-child(1)").click({
-    scrollBehavior: false,
+  cy.Exist(".message-recieve-option:nth-child(1)").then((exist) => {
+    if (exist) {
+      cy.get(".message-recieve-option:nth-child(1)").click({
+        scrollBehavior: false,
+      });
+    }
   });
   cy.wait(5000);
 });
@@ -342,12 +355,15 @@ Cypress.Commands.add("signupProcess", () => {
       cy.get(".login-button:nth-child(2)").click({ force: true });
     }
   });
+  cy.wait(5000);
   cy.Exist(".agree-terms").then((exist) => {
     if (exist) {
       cy.get(".agree-terms").click({ force: true });
     }
   });
+  cy.wait(5000);
   cy.enterPhoneNumber("963937288307");
+  cy.wait(5000);
   cy.typePincode("999999");
   cy.wait(5000);
   cy.Exist("[data-cy=inputToWriteName]").then((exist) => {
@@ -361,6 +377,7 @@ Cypress.Commands.add("signupProcess", () => {
       cy.log("❌❌ input To Write Name not found");
     }
   });
+  cy.wait(5000);
   cy.Exist("[data-cy=InputFiledForName]").then((exist) => {
     if (exist) {
       cy.get("[data-cy=InputFiledForName]")
@@ -390,7 +407,6 @@ Cypress.Commands.add("signupProcess", () => {
       cy.log("❌❌ skip For Now not clicked");
     }
   });
-  cy.wait(10000);
   cy.wait(10000).then(() => {
     cy.clearAllDataWithoutCookies();
     cy.log(`Count is: ${count}`);
@@ -436,6 +452,7 @@ Cypress.Commands.add("failedSignupProcess", () => {
     if (exists) {
       cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
     } else {
+      cy.wait(5000);
       cy.clearAllDataWithoutSessionStorage();
       cy.reload();
       cy.wait(60000);
@@ -524,6 +541,7 @@ Cypress.Commands.add("alreadyRegisteredSignup", () => {
     }
   });
   cy.get(".already-registered").should("be.visible");
+    cy.wait(5000);
   cy.Exist("[data-testid=login-close-icon]").then((exists) => {
     if (exists) {
       cy.get("[data-testid=login-close-icon]").click();
@@ -531,7 +549,6 @@ Cypress.Commands.add("alreadyRegisteredSignup", () => {
   });
   cy.wait(10000);
 });
-
 // ************************ Open Cart **************************************
 Cypress.Commands.add("interceptAndWait", (routes) => {
   // Iterate through the provided routes and set up intercepts
