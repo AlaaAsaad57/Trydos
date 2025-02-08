@@ -188,7 +188,7 @@ const CheckBoxElement = ({ active }) => {
               id="Mask_Group_434"
               data-name="Mask Group 434"
               transform="translate(-50 -243.139)"
-              clip-path="url(#clip-pathCheck)"
+              clipPath="url(#clip-pathCheck)"
             >
               <g
                 id="Group_11944"
@@ -249,7 +249,7 @@ const CheckBoxElement = ({ active }) => {
               id="Mask_Group_434"
               data-name="Mask Group 434"
               transform="translate(-50 -243.139)"
-              clip-path="url(#clip-pathCheck)"
+              clipPath="url(#clip-pathCheck)"
             >
               <g
                 id="Group_11944"

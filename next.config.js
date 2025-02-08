@@ -67,7 +67,7 @@ let nextConfig = withSvgr({
         loader: "file-loader",
       },
     });
-    if (!isServer) {
+    if (!isServer && !dev) {
       console.log("instrumenting....");
       config.module.rules.push({
         test: /\.(js|jsx|ts|tsx)$/,

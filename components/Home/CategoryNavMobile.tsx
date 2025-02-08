@@ -2,7 +2,7 @@ import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { dispatchRouteChangeEvent } from "utils/events";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Sendevent, translateFunction } from "utils/functions";
 import NextLink from "components/global/NextLink";
@@ -34,7 +34,13 @@ function CategoryNavMobile({
   );
   const router = useRouter();
   const searchParams: { lang: string; mainCategory: string } = useParams();
-
+  useEffect(() => {
+    if (active) {
+      document.querySelector(".active-nav-category").scrollIntoView({
+        behavior: "smooth",
+      });
+    }
+  }, []);
   return (
     <NextLink
       className={`categories-bar-item ${
