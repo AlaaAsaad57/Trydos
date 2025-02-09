@@ -1610,6 +1610,7 @@ const QuantutyInput = ({
         payload: { key: id, quantity: quantity },
       });
     } catch (error) {
+      setLoading(false);
       if (bool) {
         setInputValue(inputValue);
       } else {

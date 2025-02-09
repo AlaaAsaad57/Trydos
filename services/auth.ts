@@ -90,7 +90,10 @@ class AuthService {
           type: "SET-VERFICATION-ID",
           payload: repo.data.verificationId,
         });
-
+        store.dispatch({
+          type: "WRONG-NUMBER",
+          payload: msg,
+        });
         if (typeof window !== "undefined") {
           _isStoreLastJson() &&
             localStorage.setItem("LAST_JSON", JSON.stringify(repo));

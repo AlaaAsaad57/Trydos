@@ -1,6 +1,11 @@
 import React, { useRef, useState } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
-import { GetAppLanguage, Sendevent, translateFunction } from "utils/functions";
+import {
+  GetAppLanguage,
+  RoundPrice,
+  Sendevent,
+  translateFunction,
+} from "utils/functions";
 import { useParams } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import ShippingAddressContainer from "./ShippingAddressContainer";
@@ -668,7 +673,10 @@ const OrderButtons = ({ orderLoading, setNext }) => {
     return val;
   };
   const isBalanceEnough = () => {
-    return totalBalance() >= cart.total_cash;
+    return (
+      RoundPrice({ num: totalBalance() }) >=
+      RoundPrice({ num: cart.total_cash })
+    );
   };
   const isValid = () => {
     if (
@@ -723,8 +731,8 @@ const OrderButtons = ({ orderLoading, setNext }) => {
               GetAppLanguage() === "ar" && "dir-rtl"
             } `}
           >
-            {cart.cart.length} {translateFunction("items")} {cart.total_cash}{" "}
-            {currency_symbol?.symbol}
+            {cart.cart.length} {translateFunction("items")}{" "}
+            {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}
           </span>
         </div>
       </div>

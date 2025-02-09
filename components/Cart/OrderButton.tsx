@@ -4,6 +4,7 @@ import {
   GetAppLanguage,
   getCart,
   getUser,
+  RoundPrice,
   translateFunction,
 } from "utils/functions";
 import ConfirmMobile from "./ConfirmMobile";
@@ -291,7 +292,8 @@ function OrderButton({ close, toOrders }) {
                   </div>
 
                   <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#A28E5B]">
-                    {cart.total_discount_on_product} {currency_symbol.symbol}
+                    {RoundPrice({ num: cart.total_discount_on_product })}{" "}
+                    {currency_symbol.symbol}
                   </span>
                 </div>
                 <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
@@ -332,7 +334,8 @@ function OrderButton({ close, toOrders }) {
 
                   <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]">
                     <span className="line-through">10</span>
-                    {cart.total_shipping_cost} {currency_symbol.symbol}
+                    {RoundPrice({ num: cart.total_shipping_cost })}{" "}
+                    {currency_symbol.symbol}
                   </span>
                 </div>
               </div>
@@ -359,9 +362,10 @@ function OrderButton({ close, toOrders }) {
 
               <span className="flex-row justify-center items-center ml-[5px] bold  text-[16px] pr-[13px] text-[#1D1D1D]">
                 <span className="line-through regular mr-2">
-                  {cart.total_cash + cart.total_discount_on_product}
+                  {RoundPrice({ num: cart.total_cash }) +
+                    RoundPrice({ num: cart.total_discount_on_product })}
                 </span>{" "}
-                {cart.total_cash} {currency_symbol?.symbol}
+                {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}
                 <span className="ml-2">
                   <MenuIcon className={expanded && "rotate-180"} />
                 </span>
@@ -431,7 +435,8 @@ function OrderButton({ close, toOrders }) {
                         } `}
                       >
                         {cart.cart.length} {translate("items")}{" "}
-                        {cart.total_cash} {currency_symbol?.symbol}
+                        {RoundPrice({ num: cart.total_cash })}{" "}
+                        {currency_symbol?.symbol}
                       </span>
                     </>
                   )}
