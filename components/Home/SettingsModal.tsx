@@ -2,7 +2,12 @@ import React, { useState, useEffect } from "react";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { FIREBASE_SETTINGS_URL } from "utils/endpointConfig";
 import { translateFunction } from "utils/functions";
-
+import FirebasIcon from "public/svg/FireBase.svg";
+import MailIcon from "public/svg/mail.svg";
+import WhatsIcon from "public/svg/whatsappNotification.svg";
+import CalenderIcon from "public/svg/CalenderIcon.svg";
+import home from "services/home";
+import NotificationsTest from "components/global/NotificationsTest";
 interface SettingsModalProps {
   onClose: () => void;
 }
@@ -24,7 +29,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
       title: "get firebase settings request",
     });
     setFBSetting(firebase_settings);
-
+    setSelectValue(firebase_settings?.notification_frequency || "");
     if (firebase_settings.subscribed_topics) {
       setTopics(firebase_settings.subscribed_topics.map((s) => s.topic));
     }
@@ -48,66 +53,70 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   };
 
   const handleUnsubscribe = async (topic: string) => {
-    setLoading(true);
-    try {
-      let token = localStorage.getItem("FB-DEVICE-TOKEN");
+    if (!loading) {
+      setLoading(true);
+      try {
+        let token = localStorage.getItem("FB-DEVICE-TOKEN");
 
-      if (token) {
-        await AxiosPost({
-          url:
-            process.env.NEXT_PUBLIC_BACKEND_URL +
-            "/firebase_device_tokens/unsubscribe_topic",
-          body: {
-            topic: topic.replace(/_[a-z]{2}_[a-z]{2}$/, ""),
-          },
-          title: "store firebase unsubscribe topic",
-        });
-        // Remove topic from localStorage after unsubscribing
-        const updatedTopics = topics.filter((t) => t !== topic);
-        const updatedUnsubscribedTopics = [...unsubscribedTopics, topic];
+        if (token) {
+          await AxiosPost({
+            url:
+              process.env.NEXT_PUBLIC_BACKEND_URL +
+              "/firebase_device_tokens/unsubscribe_topic",
+            body: {
+              topic: topic.replace(/_[a-z]{2}_[a-z]{2}$/, ""),
+            },
+            title: "store firebase unsubscribe topic",
+          });
+          // Remove topic from localStorage after unsubscribing
+          const updatedTopics = topics.filter((t) => t !== topic);
+          const updatedUnsubscribedTopics = [...unsubscribedTopics, topic];
 
-        setTopics(updatedTopics); // Update the state
-        setUnsubscribedTopics(updatedUnsubscribedTopics); // Update unsubscribed topics state
-      } else {
-        console.error("Failed to unsubscribe from topic");
+          setTopics(updatedTopics); // Update the state
+          setUnsubscribedTopics(updatedUnsubscribedTopics); // Update unsubscribed topics state
+        } else {
+          console.error("Failed to unsubscribe from topic");
+        }
+      } catch (error) {
+        console.error("Error unsubscribing from topic:", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error unsubscribing from topic:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleSubscribe = async (topic: string) => {
-    setLoading(true);
-    try {
-      let token = localStorage.getItem("FB-DEVICE-TOKEN");
+    if (!loading) {
+      setLoading(true);
+      try {
+        let token = localStorage.getItem("FB-DEVICE-TOKEN");
 
-      if (token) {
-        await AxiosPost({
-          url:
-            process.env.NEXT_PUBLIC_BACKEND_URL +
-            "/firebase_device_tokens/subscribe_topic",
-          body: {
-            topic: topic.replace(/_[a-z]{2}_[a-z]{2}$/, ""),
-          },
-          title: "store firebase topic",
-        });
-        // Add the topic back to the subscribed list
-        const updatedTopics = [...topics, topic];
-        const updatedUnsubscribedTopics = unsubscribedTopics.filter(
-          (t: string) => t !== topic
-        );
+        if (token) {
+          await AxiosPost({
+            url:
+              process.env.NEXT_PUBLIC_BACKEND_URL +
+              "/firebase_device_tokens/subscribe_topic",
+            body: {
+              topic: topic.replace(/_[a-z]{2}_[a-z]{2}$/, ""),
+            },
+            title: "store firebase topic",
+          });
+          // Add the topic back to the subscribed list
+          const updatedTopics = [...topics, topic];
+          const updatedUnsubscribedTopics = unsubscribedTopics.filter(
+            (t: string) => t !== topic
+          );
 
-        setTopics(updatedTopics); // Update the state
-        setUnsubscribedTopics(updatedUnsubscribedTopics); // Update unsubscribed topics state
-      } else {
-        console.error("Failed to subscribe to topic");
+          setTopics(updatedTopics); // Update the state
+          setUnsubscribedTopics(updatedUnsubscribedTopics); // Update unsubscribed topics state
+        } else {
+          console.error("Failed to subscribe to topic");
+        }
+      } catch (error) {
+        console.error("Error subscribing to topic:", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error subscribing to topic:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -122,14 +131,26 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
       ...payload,
     });
   };
-  const [SelectValue, setSelectValue] = useState("");
+  const changeSetting = async ({ url, body }) => {
+    if (!loading) {
+      setLoading(true);
+      await home.EditNotificationSettings({ url, body });
+      setLoading(false);
+    }
+  };
+  const [SelectValue, setSelectValue] = useState(
+    fbSettings?.notification_frequency || ""
+  );
+
   return (
     <div
-      className="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start pt-[50px]"
+      className={`${
+        loading && "opacity-30 cursor-wait"
+      } bg-opacity-50 flex justify-center items-start px-[20px] w-full`}
       onClick={handleOutsideClick}
     >
       <div
-        className="modal-content bg-white rounded-lg shadow-lg w-[288] p-4"
+        className="modal-content bg-white rounded-lg shadow-lg w-full p-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Tabs */}
@@ -142,7 +163,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             } py-2 px-4`}
             onClick={() => setActiveTab("notifications")}
           >
-            Notifications
+            Notifications Settings
           </button>
           <button
             className={`tab ${
@@ -152,34 +173,39 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             } py-2 px-4`}
             onClick={() => setActiveTab("preferences")}
           >
-            Preferences
+            Notification Test
           </button>
         </div>
 
         {/* Content */}
         <div className="tab-content">
           {activeTab === "notifications" && (
-            <div className="notifications-tab">
+            <div className="notifications-tab mt-2">
               {topics?.length > 0 ? (
-                <ul className="space-y-2 max-h-[200px] overflow-scroll">
-                  {topics.map((topic, index) => (
-                    <li
-                      key={index}
-                      className="flex justify-between items-center bg-gray-100 p-2 rounded"
-                    >
-                      <span className="text-gray-700">
-                        {formatTopicName(topic)}
-                      </span>
-                      <button
-                        className="text-red-500 hover:text-red-700"
-                        disabled={loading}
-                        onClick={() => handleUnsubscribe(topic)}
+                <>
+                  <span className="w-full flex text-[#1d1d1d] medium py-3 px-1 bg-gray-100 rounded-md">
+                    {translateFunction("Enabled Notifications Topic:")}
+                  </span>
+                  <ul className="space-y-2 max-h-[280px] overflow-scroll p-2  ">
+                    {topics.map((topic, index) => (
+                      <li
+                        key={index}
+                        className="flex justify-between items-center  p-2 rounded"
                       >
-                        {loading ? "Unsubscribing..." : "Unsubscribe"}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                        <span className="text-gray-700">
+                          {formatTopicName(topic)}
+                        </span>
+                        <button
+                          className="text-red-500 hover:text-red-700"
+                          disabled={loading}
+                          onClick={() => handleUnsubscribe(topic)}
+                        >
+                          {loading ? "Unsubscribing..." : "Unsubscribe"}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               ) : (
                 <p className="text-gray-500">
                   {loadingTopics
@@ -191,12 +217,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
               {/* Unsubscribed topics */}
               {unsubscribedTopics?.length > 0 && (
                 <div className="mt-4">
-                  <p className="text-gray-500">Unsubscribed Topics:</p>
-                  <ul className="space-y-2 max-h-[200px] overflow-scroll">
+                  <p className="w-full flex text-[#1d1d1d] medium py-3 px-1 bg-gray-100 rounded-md">
+                    {translateFunction("Disabled Notifications Topic:")}
+                  </p>
+                  <ul className="space-y-2 max-h-[280px] overflow-scroll">
                     {unsubscribedTopics.map((topic, index) => (
                       <li
                         key={index}
-                        className="flex justify-between items-center bg-gray-100 p-2 rounded"
+                        className="flex justify-between items-center  p-2 rounded"
                       >
                         <span className="text-gray-700">
                           {formatTopicName(topic)}
@@ -213,48 +241,68 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                   </ul>
                 </div>
               )}
-            </div>
-          )}
-          {activeTab === "preferences" && (
-            <div className="preferences-tab">
-              <div className="flex-col w-full text-[#1d1d1d]">
-                <div className="flex">
-                  {translateFunction("notifications subscription:")}
-                </div>
-                <div
-                  className="flex-row items-center p-2 cursor-pointer"
-                  onClick={() => {
-                    if (fbSettings?.email === 0) {
-                      changeNotificationPreferences({ email: 1 });
-                    } else {
-                      changeNotificationPreferences({ email: 0 });
-                    }
-                  }}
-                >
-                  <input
-                    defaultChecked={fbSettings?.email === 1}
-                    checked={fbSettings?.email === 1}
-                    value=""
-                    id="helper-checkbox"
-                    aria-describedby="helper-checkbox-text"
-                    type="checkbox"
-                    className="appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-sm"
-                  />
-                  <span className="ml-2">
-                    {translateFunction("Enable Email Notifications")}
-                  </span>
-                </div>
-                <div
-                  className="flex-row items-center p-2 cursor-pointer"
-                  onClick={() => {
-                    if (fbSettings?.firebase === 0) {
-                      changeNotificationPreferences({ firebase: 1 });
-                    } else {
-                      changeNotificationPreferences({ firebase: 0 });
-                    }
-                  }}
-                >
-                  <label>
+              <div className="preferences-tab py-2 rounded-md mt-2">
+                <div className="flex-col w-full text-[#1d1d1d]">
+                  <div className="w-full flex text-[#1d1d1d] medium py-3 px-1 bg-gray-100 rounded-md">
+                    {translateFunction("notifications subscription:")}
+                  </div>
+                  <div
+                    className="flex-row my-1 items-center p-2 cursor-pointer bg-gray-100 rounded-md h-[50px]"
+                    onClick={() => {
+                      if (fbSettings?.email === 0) {
+                        changeNotificationPreferences({ email: 1 });
+                        changeSetting({
+                          url: "update_email",
+                          body: { email: 1 },
+                        });
+                      } else {
+                        changeSetting({
+                          url: "update_email",
+                          body: { email: 0 },
+                        });
+                        changeNotificationPreferences({ email: 0 });
+                      }
+                    }}
+                  >
+                    <MailIcon className="h-[30px]" />
+
+                    <span className="ml-2">
+                      {translateFunction("Enable Email Notifications")}
+                    </span>
+
+                    <input
+                      defaultChecked={fbSettings?.email === 1}
+                      checked={fbSettings?.email === 1}
+                      value=""
+                      id="helper-checkbox"
+                      aria-describedby="helper-checkbox-text"
+                      type="checkbox"
+                      className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-sm"
+                    />
+                  </div>
+                  <div
+                    className="flex-row my-1 items-center p-2 cursor-pointer bg-gray-100 rounded-md h-[50px]"
+                    onClick={() => {
+                      if (fbSettings?.firebase === 0) {
+                        changeSetting({
+                          url: "update_firebase",
+                          body: { firebase: 1 },
+                        });
+
+                        changeNotificationPreferences({ firebase: 1 });
+                      } else {
+                        changeSetting({
+                          url: "update_firebase",
+                          body: { firebase: 0 },
+                        });
+                        changeNotificationPreferences({ firebase: 0 });
+                      }
+                    }}
+                  >
+                    <FirebasIcon className="h-[30px]" />
+                    <span className="ml-2">
+                      {translateFunction("Enable FireBase Notifications")}
+                    </span>
                     <input
                       id="helper-checkbox"
                       defaultChecked={fbSettings?.firebase === 1}
@@ -262,64 +310,78 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                       value=""
                       aria-describedby="helper-checkbox-text"
                       type="checkbox"
-                      className="appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100  rounded-sm "
+                      className="ml-3  appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100  rounded-sm "
                     />
-                  </label>
-                  <span className="ml-2">
-                    {translateFunction("Enable FireBase Notifications")}
-                  </span>
-                </div>
-                <div
-                  className="flex-row items-center p-2 cursor-pointer"
-                  onClick={() => {
-                    if (fbSettings?.whatsapp === 0) {
-                      changeNotificationPreferences({ whatsapp: 1 });
-                    } else {
-                      changeNotificationPreferences({ whatsapp: 0 });
-                    }
-                  }}
-                >
-                  <input
-                    id="helper-checkbox"
-                    defaultChecked={fbSettings?.whatsapp === 1}
-                    checked={fbSettings?.whatsapp === 1}
-                    aria-describedby="helper-checkbox-text"
-                    value=""
-                    type="checkbox"
-                    className="appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100  rounded-sm  "
-                  />
-                  <span className="ml-2">
-                    {translateFunction("Enable WhatsApp Notifications")}
-                  </span>
-                </div>
-                <div className="flex-row items-center">
-                  {translateFunction("notifications Receiving Preference:")}
-                  <div className="ml-2">
-                    <select
-                      className=""
-                      value={SelectValue}
-                      onChange={(e) => {
-                        setSelectValue(e.target.value);
-                      }}
-                    >
-                      <option className="">
-                        {translateFunction("Select An Option")}
-                      </option>
-                      <option className="" value={"daily"}>
-                        {translateFunction("daily")}
-                      </option>
-                      <option className="" value={"weekly"}>
-                        {translateFunction("weekly")}
-                      </option>
-                      <option className="" value={"monthly"}>
-                        {translateFunction("monthly")}
-                      </option>
-                    </select>
+                  </div>
+                  <div
+                    className="flex-row my-1 items-center p-2 cursor-pointer bg-gray-100 rounded-md h-[50px]"
+                    onClick={() => {
+                      if (fbSettings?.whatsapp === 0) {
+                        changeSetting({
+                          url: "update_whatsapp",
+                          body: { whatsapp: 1 },
+                        });
+                        changeNotificationPreferences({ whatsapp: 1 });
+                      } else {
+                        changeSetting({
+                          url: "update_whatsapp",
+                          body: { whatsapp: 0 },
+                        });
+
+                        changeNotificationPreferences({ whatsapp: 0 });
+                      }
+                    }}
+                  >
+                    <WhatsIcon className="h-[30px]" />
+                    <span className="ml-2">
+                      {translateFunction("Enable WhatsApp Notifications")}
+                    </span>
+                    <input
+                      id="helper-checkbox"
+                      defaultChecked={fbSettings?.whatsapp === 1}
+                      checked={fbSettings?.whatsapp === 1}
+                      value=""
+                      aria-describedby="helper-checkbox-text"
+                      type="checkbox"
+                      className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100  rounded-sm "
+                    />
+                  </div>
+                  <div className="flex-row items-center bg-gray-100  rounded-md p-3 h-[50px]">
+                    <CalenderIcon />
+
+                    <div className="ml-3">
+                      {translateFunction("notifications Receiving Preference:")}
+                      <select
+                        className="ml-2"
+                        value={SelectValue}
+                        onChange={(e) => {
+                          changeSetting({
+                            url: "update_notification_frequency",
+                            body: { notification_frequency: e.target.value },
+                          });
+                          setSelectValue(e.target.value);
+                        }}
+                      >
+                        <option className="">
+                          {translateFunction("Select An Option")}
+                        </option>
+                        <option className="" value={"daily"}>
+                          {translateFunction("daily")}
+                        </option>
+                        <option className="" value={"weekly"}>
+                          {translateFunction("weekly")}
+                        </option>
+                        <option className="" value={"monthly"}>
+                          {translateFunction("monthly")}
+                        </option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           )}
+          {activeTab === "preferences" && <NotificationsTest />}
         </div>
       </div>
     </div>

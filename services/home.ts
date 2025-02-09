@@ -277,23 +277,8 @@ class HomeService {
               title: "register firebase token",
             });
           }
-        }, 3000);
+        }, 2000);
         // ininit
-
-        const searchParams = new URLSearchParams(window.location.search);
-        if (
-          !(
-            searchParams.get("changed-country") ||
-            searchParams.get("no-country")
-          )
-        ) {
-          await this.subscribeToTopic({
-            topic: `boutique_created`,
-          });
-          await this.subscribeToTopic({
-            topic: `category_created`,
-          });
-        }
       }
     });
     typeof window !== "undefined" &&
@@ -899,6 +884,17 @@ class HomeService {
         { ...getHeader() }
       )
       .catch((e) => {});
+  }
+  async EditNotificationSettings({ url, body }) {
+    try {
+      await AxiosPost({
+        url:
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+          `/firebase_device_tokens/${url}`,
+        body: body,
+        title: "Remove From Cart",
+      });
+    } catch (error) {}
   }
 }
 
