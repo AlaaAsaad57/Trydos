@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import Cookies from "js-cookie";
 import { changeToken } from "store/homepage/cachedActions";
 import { Sendevent } from "utils/functions";
-import SettingsModal from "./SettingsModal"; // Import the SettingsModal component
+import NextLink from "components/global/NextLink";
+import { useParams } from "node_modules/next/navigation";
+// import SettingsModal from "./SettingsModal"; // Import the SettingsModal component
 
 interface MenuProps {
   user: any;
@@ -29,7 +31,7 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
     Cookies.remove("token");
     window.location.reload();
   };
-
+  const { lang } = useParams();
   return (
     <div
       style={{
@@ -45,16 +47,16 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
     >
       {user ? (
         <>
-          <div
+          <NextLink
             style={{
               padding: "10px 15px",
               cursor: "pointer",
               color: "#333",
             }}
-            onClick={handleSettingsClick} // Open settings modal
+            href={`/${lang}/settings`} // Open settings modal for non-logged-in users
           >
             Settings
-          </div>
+          </NextLink>
           <div
             style={{
               padding: "10px 15px",
@@ -67,20 +69,20 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
           </div>
         </>
       ) : (
-        <div
+        <NextLink
           style={{
             padding: "10px 15px",
             cursor: "pointer",
             color: "#333",
           }}
-          onClick={handleSettingsClick} // Open settings modal for non-logged-in users
+          href={`/${lang}/settings`} // Open settings modal for non-logged-in users
+          // Open settings modal for non-logged-in users
         >
           Settings
-        </div>
+        </NextLink>
       )}
 
       {/* Settings Modal */}
-      {isModalOpen && <SettingsModal onClose={() => setIsModalOpen(false)} />}
     </div>
   );
 };
