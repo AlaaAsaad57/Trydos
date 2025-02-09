@@ -750,7 +750,11 @@ class HomeService {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_boutique_created",
-      { boutique_id: 66, topic: "boutique_created", language_code: "ar" },
+      {
+        boutique_id: 66,
+        topic: "boutique_created",
+        language_code: GetAppLanguage(),
+      },
       { ...getHeader() }
     );
   }
