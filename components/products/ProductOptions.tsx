@@ -56,15 +56,15 @@ function ProductOptions({
           title: "like For Product",
           body: { product_id: product.id, user_id: UserID() },
         });
-        home.subscribeToTopic({
-          topic: `product_availability_${SelectedProduct?.id}`,
-        });
-        home.subscribeToTopic({
-          topic: `product_discount_${SelectedProduct?.id}`,
-        });
-        home.subscribeToTopic({
-          topic: `product_comment_${SelectedProduct?.id}`,
-        });
+        // home.subscribeToTopic({
+        //   topic: `product_availability_${SelectedProduct?.id}`,
+        // });
+        // home.subscribeToTopic({
+        //   topic: `product_discount_${SelectedProduct?.id}`,
+        // });
+        // home.subscribeToTopic({
+        //   topic: `product_comment_${SelectedProduct?.id}`,
+        // });
       } catch (error) {
         dispatch({
           type: "EDIT-INFO",

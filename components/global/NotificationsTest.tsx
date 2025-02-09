@@ -41,14 +41,14 @@ function NotificationsTest() {
                 <div
                   className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md"
                   onClick={async () => {
-                    let type = starttingSetting.notificationTypes.filter(
-                      (s) => s.name === "product availability"
-                    )[0]?.id;
-                    await home.StoreNotificationProduct({
-                      type_id: type,
-                      product_id: 5550,
-                      variant: "Gold-XXL",
-                    });
+                    // let type = starttingSetting.notificationTypes.filter(
+                    //   (s) => s.name === "product availability"
+                    // )[0]?.id;
+                    // await home.StoreNotificationProduct({
+                    //   type_id: type,
+                    //   product_id: 5550,
+                    //   variant: "Gold-XXL",
+                    // });
                     home.TestNotificationProductAvailable();
                   }}
                 >
@@ -113,6 +113,28 @@ function NotificationsTest() {
                   className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md"
                   onClick={() => {
                     home.TestNotificationCategoryCreated();
+                  }}
+                >
+                  Test
+                </div>
+              </div>
+              <div className="flex-row justify-between p-3">
+                <span className="test">before stock out product</span>
+                <div
+                  className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md"
+                  onClick={() => {
+                    home.TestNotificationBeforeStockOut();
+                  }}
+                >
+                  Test
+                </div>
+              </div>
+              <div className="flex-row justify-between p-3">
+                <span className="test">if Product Change In Price</span>
+                <div
+                  className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md"
+                  onClick={() => {
+                    home.TestNotificationChangeInPrice();
                   }}
                 >
                   Test

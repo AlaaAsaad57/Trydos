@@ -14,6 +14,7 @@ import {
   UserID,
   UserToken,
   WaitForCondition,
+  GetAppLanguage,
 } from "utils/functions";
 import Smartlook from "smartlook-client";
 
@@ -662,7 +663,13 @@ class HomeService {
     }
   }
 
-  async subscribeToTopic({ topic }: { topic: string }) {
+  async subscribeToTopic({
+    topic,
+    variant,
+  }: {
+    topic: string;
+    variant?: string;
+  }) {
     let token = localStorage.getItem("FB-DEVICE-TOKEN");
 
     if (token) {
@@ -672,6 +679,7 @@ class HomeService {
           "/firebase_device_tokens/subscribe_topic",
         body: {
           topic,
+          variant,
         },
         title: "store firebase tsubscribe opic",
       });
@@ -738,6 +746,7 @@ class HomeService {
     } catch (error) {}
   }
   async TestNotificationBoutique({ boutique_id }) {
+    await this.subscribeToTopic({ topic: "boutique_created" });
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_boutique_created",
@@ -749,16 +758,27 @@ class HomeService {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_product_cart_expiration",
-      { product_id: 5566 },
+
+      { product_id: 7681, language_code: GetAppLanguage() },
       { ...getHeader() }
     );
   }
   async TestNotificationProductAvailable() {
+    await this.subscribeToTopic({
+      topic: "product_availability_7681",
+      variant: "Blue-XXL",
+    });
+
     await axios
       .post(
         process.env.NEXT_PUBLIC_BACKEND_URL +
           "/firebase_device_tokens/send_product_availability",
-        { product_id: 5550, variant: "Gold-XXL" },
+        {
+          product_id: 7681,
+          variant: "Blue-XXL",
+          topic: "product_availability_7681",
+          language_code: GetAppLanguage(),
+        },
         { ...getHeader() }
       )
       .catch((s) => {
@@ -766,32 +786,74 @@ class HomeService {
       });
   }
   async TestNotificationProductComment() {
+    await this.subscribeToTopic({ topic: "product_comment_7681" });
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_product_comment",
       {
-        product_id: 5550,
-        topic: "product_comment_mixit-solid-bangle-bracelet-RhqqPZ",
+        product_id: 7681,
+        topic: "product_comment_7681",
+        language_code: GetAppLanguage(),
       },
       { ...getHeader() }
     );
   }
   async TestNotificationProductDiscount() {
+    await this.subscribeToTopic({ topic: "product_discount_7681" });
+
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_product_discount",
       {
-        product_id: 5550,
-        topic: "product_discount_mixit-solid-bangle-bracelet-RhqqPZ",
+        product_id: 7681,
+        topic: "product_discount_7681",
+        language_code: GetAppLanguage(),
       },
       { ...getHeader() }
     );
   }
   async TestNotificationCategoryCreated() {
+    await this.subscribeToTopic({ topic: "category_created" });
+
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_category_created",
-      { category_id: 368, topic: "category_created" },
+      {
+        category_id: 368,
+        topic: "category_created",
+        language_code: GetAppLanguage(),
+      },
+      { ...getHeader() }
+    );
+  }
+  //before stock out and change in price
+  async TestNotificationBeforeStockOut() {
+    await this.subscribeToTopic({ topic: "product_before_stock_out_7681" });
+
+    await axios.post(
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/firebase_device_tokens/send_product_before_stock_out",
+      {
+        user_id: UserID(),
+        product_id: 7681,
+        topic: "product_before_stock_out_7681",
+        language_code: GetAppLanguage(),
+      },
+      { ...getHeader() }
+    );
+  }
+  async TestNotificationChangeInPrice() {
+    await this.subscribeToTopic({ topic: "product_when_change_in_price_7681" });
+
+    await axios.post(
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/firebase_device_tokens/send_product_when_change_in_price",
+      {
+        user_id: UserID(),
+        product_id: 7681,
+        topic: "product_when_change_in_price_7681",
+        language_code: GetAppLanguage(),
+      },
       { ...getHeader() }
     );
   }
