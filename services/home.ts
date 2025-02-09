@@ -823,7 +823,7 @@ class HomeService {
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_category_created",
       {
-        category_id: 368,
+        category_id: 392,
         topic: "category_created",
         language_code: GetAppLanguage(),
       },
