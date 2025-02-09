@@ -2,6 +2,7 @@ declare global {
   interface StateInterface {
     homepage: {
       language: string;
+      country: string;
       countries: Array<{
         id: number;
         parent_id: number;

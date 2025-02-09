@@ -15,6 +15,7 @@ import {
   UserToken,
   WaitForCondition,
   GetAppLanguage,
+  GetAppCountry,
 } from "utils/functions";
 import Smartlook from "smartlook-client";
 
@@ -754,6 +755,7 @@ class HomeService {
         boutique_id: 66,
         topic: "boutique_created",
         language_code: GetAppLanguage(),
+        country_iso: GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -782,6 +784,7 @@ class HomeService {
           variant: "Blue-XXL",
           topic: "product_availability_7681",
           language_code: GetAppLanguage(),
+          country_iso: GetAppCountry(),
         },
         { ...getHeader() }
       )
@@ -798,6 +801,7 @@ class HomeService {
         product_id: 7681,
         topic: "product_comment_7681",
         language_code: GetAppLanguage(),
+        country_iso: GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -812,6 +816,7 @@ class HomeService {
         product_id: 7681,
         topic: "product_discount_7681",
         language_code: GetAppLanguage(),
+        country_iso: GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -826,6 +831,7 @@ class HomeService {
         category_id: 392,
         topic: "category_created",
         language_code: GetAppLanguage(),
+        country_iso: GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -842,6 +848,7 @@ class HomeService {
         product_id: 7681,
         topic: "product_before_stock_out_7681",
         language_code: GetAppLanguage(),
+        country_iso: GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -857,6 +864,7 @@ class HomeService {
         product_id: 7681,
         topic: "product_when_change_in_price_7681",
         language_code: GetAppLanguage(),
+        country_iso: GetAppCountry(),
       },
       { ...getHeader() }
     );

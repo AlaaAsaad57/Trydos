@@ -191,6 +191,9 @@ export const Sendevent = async (params: {
 export const GetAppLanguage = () => {
   return store.getState().homepage.language;
 };
+export const GetAppCountry = () => {
+  return store.getState().homepage.country;
+};
 export function encode_utf8(params: {
   s: string;
   element: NodeListOf<Element>;

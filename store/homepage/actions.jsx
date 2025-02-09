@@ -1,13 +1,20 @@
 import StoryService from "services/story";
 import Cookies from "js-cookie";
 import { Sendevent } from "utils/functions";
-import { changeAppLanguageServer } from "./cachedActions";
+import { changeAppLanguageServer, changeToken } from "./cachedActions";
 export const changeAppLanguage = (language) => {
   Cookies.set("language", language, {
     expires: 365,
   });
   changeAppLanguageServer(language);
   return { type: "APP-LANGUAGE", payload: language };
+};
+export const changeAppCountry = (iso) => {
+  Cookies.set("country", iso, {
+    expires: 365,
+  });
+  changeToken({ key: "country", value: iso });
+  return { type: "APP-COUNTRY", payload: iso };
 };
 export const GetMainData = (data) => {
   return { type: "SITE-MAIN-DATA", payload: data };
