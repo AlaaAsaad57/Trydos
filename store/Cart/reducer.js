@@ -105,6 +105,12 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         balance: state?.wallet?.total_wallet_balance || 0,
       };
     }
+    case "COD-USER": {
+      return {
+        ...state,
+        balance: state.total_cash || 0,
+      };
+    }
     case "CRYPTO-USER": {
       return {
         ...state,

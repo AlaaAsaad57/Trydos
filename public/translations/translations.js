@@ -229,6 +229,7 @@ export const translations = {
     "Credit Cards": "بطاقات الائتمان",
     Crypto: "عملة مشفرة",
     "Your Balance": "رصيدك",
+    "Cash On Delivery": "دفع بعد التوصيل",
     "I Have Discount Coupon": "عندي قسيمة خصم",
     Apply: "موافق",
     "Coupon No": "رقم القسيمة",

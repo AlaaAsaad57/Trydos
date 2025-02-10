@@ -133,6 +133,25 @@ function PaymentMethod() {
               language
             )}
           </div>
+          <CODInput
+            active={orderData.payment.filter((s) => s.id === 0).length > 0}
+            setActive={() => {
+              if (!orderLoading) {
+                if (orderData.payment.filter((s) => s.id === 0).length > 0) {
+                  setOrderData({
+                    payment: orderData.payment.filter((s) => s.id !== 0),
+                  });
+                } else {
+                  dispatch({ type: "COD-USER", payload: false });
+                  setOrderData({
+                    payment: [
+                      { id: 0, balance: cart.total_cash },
+                    ],
+                  });
+                }
+              }
+            }}
+          />
           <TryDosWalletInput
             active={orderData.payment.filter((s) => s.id === 1).length > 0}
             setActive={() => {
@@ -145,7 +164,6 @@ function PaymentMethod() {
                   dispatch({ type: "WALLET_BALANCE-USER", payload: false });
                   setOrderData({
                     payment: [
-                      ...orderData.payment,
                       { id: 1, balance: wallet?.total_wallet_balance },
                     ],
                   });
@@ -166,7 +184,6 @@ function PaymentMethod() {
                   dispatch({ type: "CREDIT-USER", payload: true });
                   setOrderData({
                     payment: [
-                      ...orderData.payment,
                       { id: 2, balance: cart.total_cash },
                     ],
                   });
@@ -187,7 +204,6 @@ function PaymentMethod() {
                   dispatch({ type: "CRYPTO-USER", payload: true });
                   setOrderData({
                     payment: [
-                      ...orderData.payment,
                       { id: 3, balance: cart.total_cash },
                     ],
                   });
@@ -372,6 +388,44 @@ const CouponElement = ({ active, setActive, close }) => {
           </div>
         </>
       )}
+    </div>
+  );
+};
+const CODInput = ({ active, setActive }) => {
+  const orderLoading = useSelector(
+    (state: StateInterface) => state.cart.orderLoading
+  );
+  const total = useSelector((state: StateInterface) => state.cart.total_cash);
+  const currency_symbol = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  );
+  return (
+    <div
+      onClick={() => {
+        setActive();
+      }}
+      className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
+      style={{
+        border: active && "1px solid rgb(56 144 255 / 51%)",
+      }}
+    >
+      <div className="flex-row items-center">
+        <WalletIcon />
+        <span
+          className={`ml-[8px]  ${active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+            } regular text-[12px]`}
+        >
+          {translateFunction("Cash On Delivery")}
+        </span>
+      </div>
+      <div className="flex-row items-center">
+        <span className="text-[#D3D3D3] regular text-[12px]">
+          {translateFunction("Total")}
+        </span>
+        <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
+          {total}    {currency_symbol?.symbol}
+        </span>
+      </div>
     </div>
   );
 };

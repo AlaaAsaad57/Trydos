@@ -16,6 +16,7 @@ class OrderService {
       });
       if (!data.url) {
         store.dispatch({ type: "ORDER-SUCCESS", payload: data });
+        store.dispatch({ type: "ORDER-DATA", payload: { success: true } });
       } else {
         store.dispatch({ type: "CRYPTO_CARD_PAYMENT", payload: data });
       }
