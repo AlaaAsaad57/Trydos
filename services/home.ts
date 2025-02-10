@@ -737,7 +737,7 @@ class HomeService {
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_boutique_created",
       {
-        boutique_id: 66,
+        boutique_id: 144,
         topic: "boutique_created",
         language_code: GetAppLanguage(),
         country_iso: GetAppCountry(),
