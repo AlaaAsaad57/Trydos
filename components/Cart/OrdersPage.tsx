@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import {
   GetAppLanguage,
@@ -20,7 +20,7 @@ import order from "services/order";
 import PaymentMethod from "./PaymentMethod";
 import PlaceOrderWidget from "./PlaceOrderWidget";
 import PlaceOrderButtons from "./PlaceOrderButtons";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 const DeleteIcon = () => {
   return (
     <svg
@@ -107,6 +107,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
   const addressDetails = useSelector(
     (state: StateInterface) => state.cart.addressDetails
   );
+
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key: string, lang?: string) => {
@@ -139,11 +140,14 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
   };
   const [deleteModal, setDeleteModal] = useState<any>(false);
   const setOrderSuccess = async (e) => {
+    let payment_method = orderData?.payment[0]?.id === 0 ? "COD" : orderData?.payment[0]?.id === 1 ? "TrydosWallet" : orderData?.payment[0]?.id === 2 ? "Card" : "Crypto"
     setLoading(true);
-    await order.PlaceOrder();
-    dispatch({ type: "ORDER-DATA", payload: { success: true } });
+    await order.PlaceOrder({
+      payment_method
+    });
     setLoading(false);
   };
+
   const setLoading = (e) => {
     dispatch({ type: "ORDER-DATA", payload: { loading: e } });
   };
@@ -151,6 +155,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
     (state: StateInterface) => state.cart.orderData
   );
   const [nextStep, setNextStep] = useState(false);
+
   return (
     <div
       className={`pb-[10px]
@@ -708,9 +713,8 @@ const OrderButtons = ({ orderLoading, setNext }) => {
         style={{
           boxShadow: "0px -3px 20px #0000001a",
         }}
-        className={` ${
-          orderLoading && "opacity-55"
-        }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
+        className={` ${orderLoading && "opacity-55"
+          }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
       >
         <div
           onClick={() => {
@@ -719,17 +723,14 @@ const OrderButtons = ({ orderLoading, setNext }) => {
               setNext();
             }
           }}
-          className={` ${
-            orderData.loading && "opacity-65 scale-95"
-          } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${
-            isValid() ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
-          } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
+          className={` ${orderData.loading && "opacity-65 scale-95"
+            } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${isValid() ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
+            } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
         >
           <span>{translateFunction("Confirm Shipping & Payment")}</span>
           <span
-            className={`text-[#FEFEFE] text-[14px] medium ${
-              GetAppLanguage() === "ar" && "dir-rtl"
-            } `}
+            className={`text-[#FEFEFE] text-[14px] medium ${GetAppLanguage() === "ar" && "dir-rtl"
+              } `}
           >
             {cart.cart.length} {translateFunction("items")}{" "}
             {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}

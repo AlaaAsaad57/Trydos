@@ -51,6 +51,8 @@ const initialState = {
   balance: 0,
   crypto: 0,
   credit: 0,
+  openPayIframe: false,
+  payIframeURL: ""
 };
 const showLocationText = (location) => {
   let str = "";
@@ -90,10 +92,23 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         orderData: { ...state.orderData, orderPaylod: payload },
       };
     }
+    case "CRYPTO_CARD_PAYMENT": {
+      return {
+        ...state,
+        openPayIframe: true,
+        payIframeURL: payload.url
+      }
+    }
     case "WALLET_BALANCE-USER": {
       return {
         ...state,
         balance: state?.wallet?.total_wallet_balance || 0,
+      };
+    }
+    case "COD-USER": {
+      return {
+        ...state,
+        balance: state.total_cash || 0,
       };
     }
     case "CRYPTO-USER": {
@@ -339,11 +354,10 @@ export const CartReducer = (state = initialState, { type, payload }) => {
             quantity: s.quantity,
             size: s.choices?.length > 0 ? s.choices[0]?.choice_1 : null,
             color: "",
-            sku: `${s.product_id}${
-              s.variations?.length > 0 && s?.variations[0]?.color
-                ? `-${s.variations[0].color}`
-                : ""
-            }${s.choices?.length > 0 ? `-${s.choices[0].choice_1}` : ""}`,
+            sku: `${s.product_id}${s.variations?.length > 0 && s?.variations[0]?.color
+              ? `-${s.variations[0].color}`
+              : ""
+              }${s.choices?.length > 0 ? `-${s.choices[0].choice_1}` : ""}`,
           })),
         ],
       };
