@@ -754,7 +754,11 @@ class HomeService {
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_product_cart_expiration",
 
-      { product_id: 7681, language_code: GetAppLanguage() },
+      {
+        product_id: 7681,
+        language_code: GetAppLanguage(),
+        country_iso: GetAppCountry(),
+      },
       { ...getHeader() }
     );
   }
