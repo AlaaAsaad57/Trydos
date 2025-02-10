@@ -255,7 +255,7 @@ function NewLoginWidget() {
           overflow: "hidden",
         }}
       >
-        {stepIndicator >= 1 && (
+        {stepIndicator >= 1 && stepIndicator < 6 && (
           <div
             className="absolute top-[64px] left-[12px] cursor-pointer p-2"
             onClick={() => {
