@@ -125,7 +125,7 @@ export const StepSlider = ({ enableCart }) => {
         }}
         draggable={false}
         className="w-full h-full"
-        wrapperClass="flex flex-row"
+        wrapperClass="flex flex-row items-stretch"
         noSwiping={false}
         allowTouchMove={false}
         slidesPerView={1}

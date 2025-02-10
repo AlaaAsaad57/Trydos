@@ -135,12 +135,11 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
   };
   const [deleteModal, setDeleteModal] = useState<any>(false);
   const setOrderSuccess = async (e) => {
-    let payment_method = orderData?.payment[0]?.id === 1 ? "TrydosWallet" : orderData?.payment[0]?.id === 2 ? "Card" : "Crypto"
+    let payment_method = orderData?.payment[0]?.id === 0 ? "COD" : orderData?.payment[0]?.id === 1 ? "TrydosWallet" : orderData?.payment[0]?.id === 2 ? "Card" : "Crypto"
     setLoading(true);
     await order.PlaceOrder({
       payment_method
     });
-    // dispatch({ type: "ORDER-DATA", payload: { success: true } });
     setLoading(false);
   };
 
