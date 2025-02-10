@@ -760,21 +760,19 @@ export interface IpDataApi {
   };
 }
 export interface GetAddressByTextApi {
-  data: {
-    status: string;
-    results: Array<{
-      country: string;
-      province: string;
-      city: string;
-      town: string;
-      street: string;
-      building: string;
-      coordinates: {
-        lat: number;
-        lon: number;
-      };
-    }>;
-  };
+  status: string;
+  results: Array<{
+    country: string;
+    province: string;
+    city: string;
+    town: string;
+    street: string;
+    building: string;
+    coordinates: {
+      lat: number;
+      lon: number;
+    };
+  }>;
 }
 export interface GetMessageSearchApi {
   data: {
@@ -842,7 +840,9 @@ export interface GetWalletApi {
     destination_name: string;
   }>;
 }
-export interface PlaceOrderApi {}
+export interface PlaceOrderApi {
+  url?: string;
+}
 export interface GetChatsApi {
   data: {
     data: {

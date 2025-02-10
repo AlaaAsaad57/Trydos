@@ -1,6 +1,6 @@
 import { useParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 import WalletIcon from "assets/svg/cart/WalletIcon.svg";
 import CreditIcon from "assets/svg/cart/CreditIcon.svg";
@@ -188,7 +188,7 @@ function PaymentMethod() {
                   setOrderData({
                     payment: [
                       ...orderData.payment,
-                      { id: 3, balance: cart.total_cash - 500 },
+                      { id: 3, balance: cart.total_cash },
                     ],
                   });
                 }
@@ -250,9 +250,8 @@ const CouponElement = ({ active, setActive, close }) => {
       style={{
         border: active && "1px solid rgb(56 144 255 / 51%)",
       }}
-      className={`w-full cursor-pointer pt-[12px] ite mt-[30px] ${
-        active ? "h-[111px] bg-[#fff]" : " h-[42px] bg-[#f8f8f8]"
-      } rounded-[15px]  flex-col items-start px-[12px]`}
+      className={`w-full cursor-pointer pt-[12px] ite mt-[30px] ${active ? "h-[111px] bg-[#fff]" : " h-[42px] bg-[#f8f8f8]"
+        } rounded-[15px]  flex-col items-start px-[12px]`}
     >
       <div className="flex-row ">
         <svg
@@ -353,9 +352,8 @@ const CouponElement = ({ active, setActive, close }) => {
                 />
               )}
               <div
-                className={`transition-all text-[#1d1d1d] apply-button ${
-                  coupon ? "min-w-full " : "w-[100px] min-w-[100px] "
-                } flex items-center justify-center h-[40px] rounded-[15px] bg-white`}
+                className={`transition-all text-[#1d1d1d] apply-button ${coupon ? "min-w-full " : "w-[100px] min-w-[100px] "
+                  } flex items-center justify-center h-[40px] rounded-[15px] bg-white`}
                 style={{
                   border: "1px solid rgb(56 144 255 / 51%)",
                 }}
@@ -396,9 +394,8 @@ const TryDosWalletInput = ({ active, setActive }) => {
       <div className="flex-row items-center">
         <WalletIcon />
         <span
-          className={`ml-[8px]  ${
-            active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
-          } regular text-[12px]`}
+          className={`ml-[8px]  ${active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+            } regular text-[12px]`}
         >
           {translateFunction("Trydos Wallet")}
         </span>
@@ -434,9 +431,8 @@ const CreditInput = ({ active, setActive }) => {
       <div className="flex-row items-center">
         <CreditIcon />
         <span
-          className={`ml-[8px] ${
-            active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
-          } regular text-[12px]`}
+          className={`ml-[8px] ${active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+            } regular text-[12px]`}
         >
           {translateFunction("Credit Cards")}
         </span>
@@ -468,9 +464,8 @@ const CryptoInput = ({ active, setActive }) => {
       <div className="flex-row items-center">
         <CryptoIcon />
         <span
-          className={`ml-[8px] ${
-            active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
-          } regular text-[12px]`}
+          className={`ml-[8px] ${active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+            } regular text-[12px]`}
         >
           {translateFunction("Crypto")}
         </span>

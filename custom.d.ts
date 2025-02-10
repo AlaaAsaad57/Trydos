@@ -848,6 +848,8 @@ declare global {
     };
     cart: {
       orderLoading: boolean;
+      payIframeURL: "string";
+      openPayIframe: boolean;
       cart: Array<any>;
       center: any;
       enable: boolean;
@@ -955,10 +957,10 @@ declare global {
         details: string;
         thumbnail: string;
         images:
-          | Array<string>
-          | Array<{
-              file_path?: string;
-            }>;
+        | Array<string>
+        | Array<{
+          file_path?: string;
+        }>;
         categories: Array<{
           id: number;
           name: string;
