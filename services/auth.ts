@@ -215,6 +215,7 @@ class AuthService {
     });
 
     await success();
+    await home.RequestFireBase();
   }
   async UpdateName(name: string) {
     try {
