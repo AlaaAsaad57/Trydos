@@ -27,11 +27,12 @@ function FilterButton({ filters, showedFilter }) {
   return (
     <div
       className="filter-button flex-row items-center h-[25px]"
+      data-cy="rightScrool"
       onClick={() => onClick()}
     >
       {show &&
         filters().map((s, i) => (
-          <span className={`${i > 0 && "ml-[2px]"}`} key={i}>
+          <span className={`${i > 0 && "ml-[2px]"}`} key={i} data-cy="countFilters">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="7.483"

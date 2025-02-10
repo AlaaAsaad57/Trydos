@@ -8,6 +8,32 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
     (state: StateInterface) => state.cart.addressLists
   );
   const dispatch = useDispatch();
+  const GetAddressString = (location) => {
+    let str = "";
+    if (
+      location.province &&
+      location.province.length > 0 &&
+      location.province !== "null"
+    )
+      str += `${location.province}`;
+    if (location.city && location.city.length > 0 && location.city !== "null")
+      str += ` | ${location.city}`;
+    if (location.town && location.town.length > 0 && location.town !== "null")
+      str += ` | ${location.town}`;
+    if (
+      location.street &&
+      location.street.length > 0 &&
+      location.street !== "null"
+    )
+      str += ` | ${location.street}`;
+    if (
+      location.building &&
+      location.building.length > 0 &&
+      location.building !== "null"
+    )
+      str += ` | ${location.building}`;
+    return str;
+  };
   return (
     <>
       <div
@@ -82,7 +108,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                     </span>
                   </div>
                   <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]">
-                    {s.region}
+                    {GetAddressString(s.region_details)}
                   </div>
                   <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]">
                     <svg

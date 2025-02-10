@@ -5,7 +5,7 @@ import Cookies from "js-cookie";
 import { setupCache } from "axios-cache-interceptor";
 import home from "services/home";
 
-import { ExpiredUser, getUser, LogError } from "./functions";
+import { ExpiredUser, getUser, LogError, WaitForCondition } from "./functions";
 import { toast } from "react-toastify";
 export const errorPNG = pngErr.src;
 const getHeader = (token?) => {
@@ -19,9 +19,9 @@ const getHeader = (token?) => {
       Authorization: `Bearer ${
         token ??
         localStorage.getItem("MARKET-TOKEN") ??
+        localStorage.getItem("DEVICE-TOKEN") ??
         Cookies.get("MARKET-TOKEN") ??
-        Cookies.get("DEVICE-TOKEN") ??
-        localStorage.getItem("DEVICE-TOKEN")
+        Cookies.get("DEVICE-TOKEN")
       }`,
     },
   };
@@ -33,6 +33,7 @@ export const AxiosGet = async ({
   url: string;
   title?: string;
 }) => {
+  await WaitForCondition();
   let attempt = 0;
   let retries = 2;
   let delay = 2000;
@@ -40,13 +41,20 @@ export const AxiosGet = async ({
     try {
       let res = await axios.get(url, getHeader());
       // If the response is successful, return the data
-      if (res?.data.data) {
-        return res?.data.data;
+      // if (url.includes("customer/wallet")) {
+      //   return res.data;
+      // }
+      // if (res.data.message !== "Data Got!") {
+      //   toast.success(res.data.message);
+      // }
+      if (res?.data.isSuccessful || res.data.data) {
+        return res?.data?.data;
       } else {
         throw new Error(res.data.message);
       }
     } catch (error) {
       if (error.status === 422 || error.status === 500) {
+        toast.error(`${title} : ${error.message ?? "Failed"}`);
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
         );
@@ -54,15 +62,15 @@ export const AxiosGet = async ({
       }
       if (error.status === 401) {
         if (getUser()) {
-          ExpiredUser();
-          return;
+          await ExpiredUser();
+        } else {
+          await home.registerForExpire();
         }
-        await home.registerForExpire();
       }
       attempt++;
       console.log(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);
       if (attempt > retries) {
-        toast.error(`${title} : ${error.message ?? "Failed"}`);
+        // toast.error(`${title} : ${error.message ?? "Failed"}`);
         LogError(error, url, window.location.href);
 
         throw new Error(
@@ -87,48 +95,49 @@ export const AxiosPost = async ({
   hasMessageOnly?: boolean;
   token?: string;
 }) => {
+  await WaitForCondition();
   let attempt = 0;
   let retries = 2;
   let delay = 2000;
   while (attempt <= retries) {
     try {
       let res = await axios.post(url, body, getHeader(token));
-      // If the response is successful, return the data
-      if (url.includes(`/api/products/view`)) {
-        if (res.data.view_count) {
-          return res.data;
+      if (url.includes("products/view")) {
+        return res.data;
+      }
+      if (url.includes(`change_country_language`)) {
+        console.log(res.data);
+        if (res.data) {
+          return res.data.data.firebase_settings;
         }
       }
 
-      if (
-        url.includes("product_likes") ||
-        url.includes("old-cart/hide") ||
-        url.includes("/cart/remove") ||
-        hasMessageOnly
-      ) {
-        toast.success(res.data.message);
-        return res.data.message;
-      }
-      if (url.includes("cart/")) {
-        if (res.data.data.status === 1) {
+      if (res?.data.isSuccessful) {
+        if (
+          url.includes("product_likes") ||
+          url.includes("old-cart/hide") ||
+          url.includes("/cart/remove") ||
+          url.includes("/cart/update") ||
+          url.includes("/cart/add") ||
+          url.includes("customer/update-name") ||
+          hasMessageOnly
+        ) {
           toast.success(res.data.message);
           return res.data.data;
-        } else {
-          toast.error(res.data.message);
-          return;
-        }
-      }
-
-      if (res?.data.data) {
-        if (res.data.message) {
-          toast.success(res.data.message);
         }
         return res?.data.data;
       } else {
         throw new Error(res.data.message);
       }
     } catch (error) {
-      if (error.status === 422 || error.status === 500) {
+      if (error.status === 422) {
+        attempt = 2;
+        throw new Error(
+          `${title} : Max retries reached. Could not fetch the data. ${error.message}`
+        );
+      }
+      if (error.status === 500) {
+        toast.error(`${title} : ${error.message ?? "Failed"}`);
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
         );
@@ -136,10 +145,10 @@ export const AxiosPost = async ({
       }
       if (error.status === 401) {
         if (getUser()) {
-          ExpiredUser();
-          return;
+          await ExpiredUser();
+        } else {
+          await home.registerForExpire();
         }
-        await home.registerForExpire();
       }
       attempt++;
       console.log(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);
@@ -147,7 +156,7 @@ export const AxiosPost = async ({
       if (attempt > retries) {
         LogError(error, url, window.location.href);
 
-        toast.error(`${title} : ${error.message ?? "Failed"}`);
+        // toast.error(`${title} : ${error.message ?? "Failed"}`);
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
         );
@@ -176,7 +185,7 @@ export const AxiosCacheApi = async ({
       }`,
     },
     cache: {
-      ttl: parseInt(process.env.NEXT_PUBLIC_REVALIDATE) * 1000,
+      ttl: parseInt(process.env.NEXT_PUBLIC_REVALIDATE) * 10000,
       interpretHeader: false,
       methods: ["post", "get"],
     },

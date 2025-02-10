@@ -20,6 +20,8 @@ export interface CountriesApi {
       otp_by_sms: number;
       created_at: any;
       updated_at: string;
+      longitude: string;
+      latitude: string;
     }>;
   };
 }
@@ -758,21 +760,19 @@ export interface IpDataApi {
   };
 }
 export interface GetAddressByTextApi {
-  data: {
-    status: string;
-    results: Array<{
-      country: string;
-      province: string;
-      city: string;
-      town: string;
-      street: string;
-      building: string;
-      coordinates: {
-        lat: number;
-        lon: number;
-      };
-    }>;
-  };
+  status: string;
+  results: Array<{
+    country: string;
+    province: string;
+    city: string;
+    town: string;
+    street: string;
+    building: string;
+    coordinates: {
+      lat: number;
+      lon: number;
+    };
+  }>;
 }
 export interface GetMessageSearchApi {
   data: {
@@ -808,6 +808,41 @@ export type GetAddressListApi = Array<{
     alternative_phone: string;
   };
 }>;
+export interface GetWalletApi {
+  limit: number;
+  offset: number;
+  total_wallet_balance: number;
+  total_wallet_balance_formatted: string;
+  total_wallet_transaction: number;
+  wallet_transaction_list: Array<{
+    id: number;
+    user_id: number;
+    order_id: any;
+    transaction_id: number;
+    credit: number;
+    debit: number;
+    admin_bonus: number;
+    balance: number;
+    transaction_type: string;
+    reference: string;
+    payment_method_customer: any;
+    returned_to_credit_cart: number;
+    created_at: string;
+    updated_at: string;
+    deleted_at: any;
+    return_request_id: any;
+    destination_id: any;
+    converted_wallet_transaction_id: any;
+    status_payment: string;
+    credit_formatted: string;
+    debit_formatted: string;
+    balance_formatted: string;
+    destination_name: string;
+  }>;
+}
+export interface PlaceOrderApi {
+  url?: string;
+}
 export interface GetChatsApi {
   data: {
     data: {
@@ -1209,7 +1244,9 @@ export interface CustomerInfoApi {
     last_otp_id_token: string;
   };
 }
-
+export interface FireBaseSettingsApi {
+  firebase_settings: string
+}
 export interface RegisterGuestApi {
   data: {
     token: string;

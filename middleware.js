@@ -50,7 +50,7 @@ const CheckLocalaization = ({
   country,
 }) => {
   if (countryFromCookies && langFromCookies) {
-    if (countryFromCookies !== country) {
+    if (countryFromCookies.toLowerCase() !== country.toLowerCase()) {
       return true;
     }
   }
@@ -59,7 +59,22 @@ const CheckLocalaization = ({
 export async function middleware(request) {
   const response = NextResponse.next();
   const ip = request.headers.get("x-forwarded-for") || request.ip;
-
+  const url = request.nextUrl.clone();
+  const countryLang = url.pathname.split("/")[1]?.toLowerCase();
+  const countryUrl = url.pathname.split("/")[1]?.toLowerCase()?.split("-")[0];
+  const cookies = request.cookies;
+  const countryFromCookies = cookies.get("country")?.value?.toLowerCase();
+  const langFromCookies = cookies.get("lang")?.value?.toLowerCase();
+  if (
+    countryFromCookies?.length > 0 &&
+    countryUrl?.length > 0 &&
+    countryUrl?.toLowerCase() === countryFromCookies?.toLowerCase() &&
+    countryUrl !== "gb" &&
+    countryFromCookies !== "gb" &&
+    !url.searchParams.get("changed-country")
+  ) {
+    return response;
+  }
   // Define the geolocation API endpoint (you can replace with ipinfo, ipstack, or any other geolocation service)
 
   let countryByIp = request?.geo?.country?.toLowerCase();
@@ -75,12 +90,6 @@ export async function middleware(request) {
     });
   });
 
-  const url = request.nextUrl.clone();
-  const countryLang = url.pathname.split("/")[1];
-  const cookies = request.cookies;
-  const countryFromCookies = cookies.get("country")?.value;
-  const langFromCookies = cookies.get("lang")?.value;
-
   // 1- for url
   if (
     countryLang.split("-").length > 1 &&
@@ -91,45 +100,45 @@ export async function middleware(request) {
 
       return NextResponse.redirect(url);
     }
-    let [country, lang] = countryLang.split("-");
+    let [country, lang] = countryLang.toLowerCase().split("-");
     let isChangedLocalizationByUrl = CheckLocalaization({
       countryFromCookies,
       langFromCookies,
       lang,
       country,
     });
-    response.cookies.set("country", country, {
+    response.cookies.set("country", country.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
       sameSite: "Strict",
     });
-    response.cookies.set("lang", lang, {
+    response.cookies.set("lang", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
       sameSite: "Strict",
     });
-    response.cookies.set("languge", lang, {
+    response.cookies.set("languge", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
       sameSite: "Strict",
     });
     response.headers.set("set-cookie", true);
-    request.cookies.set("country", country, {
+    request.cookies.set("country", country.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
       sameSite: "Strict",
     });
-    request.cookies.set("lang", lang, {
+    request.cookies.set("lang", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
       sameSite: "Strict",
     });
-    request.cookies.set("languge", lang, {
+    request.cookies.set("languge", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
@@ -161,8 +170,8 @@ export async function middleware(request) {
   // 2- for cookies
   else if (countryFromCookies && langFromCookies) {
     let pahname =
-      url.pathname.split("/")[1].split("-").length === 2
-        ? url.pathname.slice(countryLang.length + 1)
+      url.pathname.split("/")[1].toLowerCase()?.split("-").length === 2
+        ? url.pathname?.toLowerCase()?.slice(countryLang.length + 1)
         : url.pathname;
 
     const countryLangFromCookies = `${countryFromCookies.toLowerCase()}-${langFromCookies}`;
@@ -178,6 +187,12 @@ export async function middleware(request) {
     defaultLocale = `${countryByIp}-en`;
     url.pathname = `/${defaultLocale}${url.pathname}`;
   } else {
+    if (url.pathname.split("/")[1].includes("-")) {
+      url.pathname = url.pathname.replace(url.pathname.split("/")[1], "gb-en");
+      url.searchParams.set("no-country", true);
+      return NextResponse.redirect(url);
+    } else {
+    }
     url.pathname = `/gb-en/${url.pathname}`;
     url.searchParams.set("no-country", true);
     return NextResponse.redirect(url);

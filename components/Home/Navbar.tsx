@@ -3,7 +3,11 @@ import { useEffect } from "react";
 import Logo from "./Logo";
 import UserNavTopSection from "./UserNavTopSection";
 import { useDispatch, useSelector } from "react-redux";
-import { changeAppLanguage, LogData } from "store/homepage/actions";
+import {
+  changeAppCountry,
+  changeAppLanguage,
+  LogData,
+} from "store/homepage/actions";
 import { Category } from "models/Category";
 import MobileNavigation from "./MobileNavigation";
 import CategoriesBar from "./CategoriesBar";
@@ -32,12 +36,16 @@ function Navbar({ init, categories, response }: NavbarProps) {
   const dispatch = useDispatch();
   const params = usePathname();
   const searchParams = useSearchParams();
-
+  const country = useSelector(
+    (state: StateInterface) => state.homepage.country
+  );
   const initFunc = async () => {
     const Cookies = (await import("js-cookie")).default;
     let languageCookies = Cookies.get("language");
+    let countryCookies = Cookies.get("country");
+
     if (!searchParams.get("no-country"))
-      Cookies.set("country", init.split("-")[0], {
+      Cookies.set("country", init.split("-")[0]?.toLowerCase(), {
         expires: 365,
       });
     dispatch(
@@ -46,6 +54,14 @@ function Navbar({ init, categories, response }: NavbarProps) {
           languageCookies ||
           language ||
           process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE
+      )
+    );
+    dispatch(
+      changeAppCountry(
+        init.split("-")[0] ||
+          countryCookies ||
+          country ||
+          process.env.NEXT_PUBLIC_DEFAULT_COUNTRY
       )
     );
   };

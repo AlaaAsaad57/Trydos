@@ -167,7 +167,7 @@ function SearchComponent({
     <div className="search-component-container flex-row">
       <div className={`search-input-parent ${focus && "focuse"}`}>
         <DebounceInput
-          minLength={2}
+          minLength={0}
           className="search-input"
           placeholder={translateFunction("Search")}
           onFocus={() => setFocuse(true)}
@@ -307,6 +307,7 @@ function SearchComponent({
       {!focus && (
         <div className="search-colse-icon flex-row">
           <CloseIcon
+            data-cy="closeIcon_searchPage"
             onClick={() => {
               if (searchValue.length > 0) {
                 dispatch({ type: "SEARCH-WORD", payload: "" });

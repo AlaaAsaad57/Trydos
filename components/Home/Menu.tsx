@@ -2,87 +2,89 @@ import React, { useState } from "react";
 import Cookies from "js-cookie";
 import { changeToken } from "store/homepage/cachedActions";
 import { Sendevent } from "utils/functions";
-import SettingsModal from "./SettingsModal"; // Import the SettingsModal component
+import NextLink from "components/global/NextLink";
+import { useParams } from "node_modules/next/navigation";
+// import SettingsModal from "./SettingsModal"; // Import the SettingsModal component
 
 interface MenuProps {
-    user: any;
+  user: any;
 }
 
 const Menu: React.FC<MenuProps> = ({ user }) => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const handleSettingsClick = () => {
-        setIsModalOpen(true); // Open settings modal
-    };
+  const handleSettingsClick = () => {
+    setIsModalOpen(true); // Open settings modal
+  };
 
-    const handleLogout = () => {
-        Sendevent({
-            event: "button_clicked",
-            value: "me_nav_bar_button",
-        });
-        localStorage.clear();
-        changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
-        changeToken({ key: "MARKET-TOKEN", deleteOption: true });
-        changeToken({ key: "token", deleteOption: true });
-        Cookies.remove("DEVICE-TOKEN");
-        Cookies.remove("MARKET-TOKEN");
-        Cookies.remove("token");
-        window.location.reload();
-    };
-
-    return (
-        <div
+  const handleLogout = () => {
+    Sendevent({
+      event: "button_clicked",
+      value: "me_nav_bar_button",
+    });
+    localStorage.clear();
+    changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
+    changeToken({ key: "MARKET-TOKEN", deleteOption: true });
+    changeToken({ key: "token", deleteOption: true });
+    Cookies.remove("DEVICE-TOKEN");
+    Cookies.remove("MARKET-TOKEN");
+    Cookies.remove("token");
+    window.location.reload();
+  };
+  const { lang } = useParams();
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: "50px",
+        right: "10px",
+        background: "#fff",
+        boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+        borderRadius: "8px",
+        padding: "10px",
+        zIndex: 1000,
+      }}
+    >
+      {user ? (
+        <>
+          <NextLink
             style={{
-                position: "absolute",
-                top: "50px",
-                right: "10px",
-                background: "#fff",
-                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
-                borderRadius: "8px",
-                padding: "10px",
-                zIndex: 1000,
+              padding: "10px 15px",
+              cursor: "pointer",
+              color: "#333",
             }}
+            href={`/${lang}/settings`} // Open settings modal for non-logged-in users
+          >
+            Settings
+          </NextLink>
+          <div
+            style={{
+              padding: "10px 15px",
+              cursor: "pointer",
+              color: "#333",
+            }}
+            onClick={handleLogout} // Handle logout
+          >
+            Logout
+          </div>
+        </>
+      ) : (
+        <NextLink
+          style={{
+            padding: "10px 15px",
+            cursor: "pointer",
+            color: "#333",
+          }}
+          href={`/${lang}/settings`} // Open settings modal for non-logged-in users
+          // Open settings modal for non-logged-in users
         >
-            {user ? (
-                <>
-                    <div
-                        style={{
-                            padding: "10px 15px",
-                            cursor: "pointer",
-                            color: "#333",
-                        }}
-                        onClick={handleSettingsClick} // Open settings modal
-                    >
-                        Settings
-                    </div>
-                    <div
-                        style={{
-                            padding: "10px 15px",
-                            cursor: "pointer",
-                            color: "#333",
-                        }}
-                        onClick={handleLogout} // Handle logout
-                    >
-                        Logout
-                    </div>
-                </>
-            ) : (
-                <div
-                    style={{
-                        padding: "10px 15px",
-                        cursor: "pointer",
-                        color: "#333",
-                    }}
-                    onClick={handleSettingsClick} // Open settings modal for non-logged-in users
-                >
-                    Settings
-                </div>
-            )}
+          Settings
+        </NextLink>
+      )}
 
-            {/* Settings Modal */}
-            {isModalOpen && <SettingsModal onClose={() => setIsModalOpen(false)} />}
-        </div>
-    );
+      {/* Settings Modal */}
+    </div>
+  );
 };
 
 export default Menu;

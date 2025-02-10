@@ -6,6 +6,13 @@ const initialState = {
   wrongNumber: "",
   loading: false,
   verficationID: null,
+  firebaseSettings: {
+    subscribed_topics: [],
+    unsubscribed_topics: [],
+    email: 0,
+    whatsapp: 0,
+    firebase: 0,
+  },
 };
 
 const AuthReducer = (state = initialState, { type, payload }) => {
@@ -57,6 +64,35 @@ const AuthReducer = (state = initialState, { type, payload }) => {
     //     Tempuser: { ...payload, already_exists: state.user?.already_exists },
     //   };
     // }
+    case "GET_FIREBASE_SETTINGS": {
+      return {
+        ...state,
+        firebaseSettings: payload,
+      };
+    }
+    case "DISABLE-NOTIFICATION": {
+      return {
+        ...state,
+        firebaseSettings: {
+          ...state.firebaseSettings,
+          subscribed_topics: state.firebaseSettings.subscribed_topics.filter(
+            (s) => s.topic !== payload
+          ),
+        },
+      };
+    }
+    case "ENABLE-NOTIFICATION": {
+      return {
+        ...state,
+        firebaseSettings: {
+          ...state.firebaseSettings,
+          subscribed_topics: [
+            ...state.firebaseSettings.subscribed_topics,
+            { topic: payload },
+          ],
+        },
+      };
+    }
     case "TEMP-USER": {
       return {
         ...state,

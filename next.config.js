@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const withSvgr = require("next-svgr");
-
+const path = require("path");
 let nextConfig = withSvgr({
   swcMinify: true,
   reactStrictMode: false,
@@ -53,7 +53,6 @@ let nextConfig = withSvgr({
     minimumCacheTTL: 300,
   },
   experimental: {
-    instrumentationHook: true,
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
     staleTimes: {
@@ -61,13 +60,33 @@ let nextConfig = withSvgr({
       static: 36000,
     },
   },
-  webpack(config, { dev }) {
+  webpack(config, { dev, isServer }) {
     config.module.rules.push({
       test: /\.mp3$/,
       use: {
         loader: "file-loader",
       },
     });
+    if (!isServer && !dev) {
+      console.log("instrumenting....");
+      config.module.rules.push({
+        test: /\.(js|jsx|ts|tsx)$/,
+        enforce: "post",
+        use: [
+          {
+            loader: "istanbul-instrumenter-loader",
+            options: {
+              esModules: true, // Make sure to handle ES modules
+            },
+          },
+        ],
+        include: [
+          path.resolve(__dirname, "store"),
+          path.resolve(__dirname, "components"),
+          path.resolve(__dirname, "services"),
+        ], // Instrument the pages folder (or your app's code)
+      });
+    }
     if (!dev) {
       config.devtool = false;
     }

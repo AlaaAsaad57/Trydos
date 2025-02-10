@@ -57,6 +57,7 @@ function SearchContainer({ active }) {
       style={{ animationFillMode: "forwards" }}
       unmountAnim={unmountAnim}
       className="search-container"
+      data-cy="searchContainer"
     >
       {searchValue.length === 0 && (
         <>

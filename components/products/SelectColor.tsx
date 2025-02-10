@@ -61,7 +61,14 @@ function SelectColor({ close }) {
         >
           <BackIcon />
         </div>
-        <span className="relative">
+        <span
+          className="relative"
+          onClick={() => {
+            dispatch({ type: "AddToCartOptionDisable", payload: false });
+            close();
+            enableCart(true);
+          }}
+        >
           {cart?.length > 0 && (
             <span className="bg-green-500 right-[-8px] top-[-4px] text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
               {cart.length}
@@ -70,11 +77,7 @@ function SelectColor({ close }) {
           <CartIcon
             id="cart-icon"
             className="cart-icon"
-            onClick={() => {
-              dispatch({ type: "AddToCartOptionDisable", payload: false });
-              close();
-              enableCart(true);
-            }}
+            data-cy="CartIcon_Productpage"
           />
         </span>
       </div>
@@ -124,7 +127,9 @@ function SelectColor({ close }) {
                 (SelectedProduct?.images && SelectedProduct?.images[0]),
             })}
             alt="add to cart icon"
-            className={"h-full object-top rounded-[15px] moved-img "}
+            className={
+              "min-h-[80px] h-full object-top rounded-[15px] moved-img "
+            }
           />
         </div>
         {SelectedProduct?.sync_color_images && (

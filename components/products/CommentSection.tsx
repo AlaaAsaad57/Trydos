@@ -71,7 +71,7 @@ function CommentSection({
         resendComment={(s) => resendComment(s)}
         verifyCommentAction={(mid) => verifyCommentAction(mid)}
       />
-      {user && (
+      {
         <CommentBar
           CommentsData={CommentsData}
           verifyCommentAction={(mid) => verifyCommentAction(mid)}
@@ -82,7 +82,7 @@ function CommentSection({
           product={product}
           ErrorAccure={(s) => ErrorAccure(s)}
         />
-      )}
+      }
     </div>
   );
 }

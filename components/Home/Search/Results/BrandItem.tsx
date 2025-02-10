@@ -4,6 +4,7 @@ function BrandItem({ brand, onClick, isActive }) {
   return (
     <div
       className="brand-item min-w-[81px] p-0 relative ml-2 "
+      data-cy="brandItem"
       onClick={() => onClick()}
     >
       {isActive && (

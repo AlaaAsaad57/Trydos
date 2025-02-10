@@ -46,6 +46,13 @@ const quicksand_medium = localFont({
   preload: false,
   fallback: ["system-ui", "arial"],
 });
+const quicksand_semibold = localFont({
+  src: "../../../public/fonts/Quicksand-SemiBold.woff2",
+  variable: "--Quicksand-SemiBold",
+  display: "swap",
+  preload: false,
+  fallback: ["system-ui", "arial"],
+});
 export const revalidte = 360000;
 export default async function RootLayout({ params, children }) {
   // ${sf_pro_rounded_light.variable}
@@ -61,6 +68,7 @@ export default async function RootLayout({ params, children }) {
       ${quicksand_light.variable}
       ${quicksand_medium.variable}
       ${quicksand_bold.variable}
+      ${quicksand_semibold.variable}
       font-sans`}
       lang={params.lang.split("-")[1] === "ar" ? "ar-AE" : "en-US"}
     >

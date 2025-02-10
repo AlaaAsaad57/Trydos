@@ -67,6 +67,7 @@ function AlreadyRegistered({
     >
       <div
         className="phone-input-desc already-registered"
+        data-cy="already-registered-phone"
         style={{ paddingInline: "20px" }}
       >
         <svg
@@ -112,7 +113,10 @@ function AlreadyRegistered({
         </svg>
 
         <div className="text-login-desc">
-          <div className="text-login-item already-registered">
+          <div
+            className="text-login-item already-registered"
+            data-cy="already-registered-phone"
+          >
             {translate("This Number Already Registered With Us !", language)}
           </div>
           <div className="icon-detail" style={{ marginTop: "1px" }}>

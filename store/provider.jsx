@@ -14,9 +14,12 @@ import CartProvider from "components/Cart/CartProvider";
 import Smartlook from "smartlook-client";
 import { useSearchParams } from "next/navigation";
 import PopupCountry from "utils/PopupCountry";
+import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 // import { getCountriesApi } from "./homepage/cachedActions";
 import axios from "axios";
 import home from "services/home";
+import { AxiosGet } from "utils/AxiosApi";
+import { FIREBASE_SETTINGS_URL } from "utils/endpointConfig";
 export default function Providers({ children }) {
   const [dataCountries, setCountriesData] = useState([]);
   useEffect(() => {
@@ -34,6 +37,7 @@ export default function Providers({ children }) {
     if (!navigator.cookieEnabled) {
       toast.info("Cookies Is Not Enabled");
     }
+
     Smartlook.init(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
     let images = document.querySelectorAll("img");
     images.forEach((img) => {
@@ -46,11 +50,19 @@ export default function Providers({ children }) {
       };
     });
   }, []);
+
   useEffect(() => {
     if (!shouldShowBluredInfo()) {
       const handlePageRefresh = async () => {
         try {
-          await home.handleTopicsOnPageRefresh(); // Call the function on refresh
+          // const response2 = await AxiosGet({
+          //   url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
+          //   title: "get firebase settings request"
+          // });
+          // store.dispatch({ type: "GET_FIREBASE_SETTINGS", payload: response2?.firebase_settings });
+          requestFirebaseNotificationPermission().then((fbtoken) => {
+            home.handleTopicsOnPageRefresh(fbtoken);
+          });
         } catch (error) {
           console.error("Error handling topics on page refresh:", error);
         }
@@ -59,6 +71,7 @@ export default function Providers({ children }) {
       handlePageRefresh(); // Run the function on initial load
     }
   }, []); // Runs once when the app initializes
+
   useEffect(() => {
     const fallbackImage = "/error.png"; // Replace with your fallback image path
 
@@ -111,25 +124,7 @@ export default function Providers({ children }) {
       return false;
     }
   };
-  // useEffect(() => {
-  //   const handleResize = () => {
-  //     console.log(window.innerWidth);
-  //     const container = document.querySelector(".site-container");
-  //     const windowWidth = window.innerWidth / 430;
 
-  //     // Set the container width based on the window size (e.g., scale to 70% of the window width)
-  //     container.style.transform = `scale(${windowWidth})`;
-  //   };
-
-  //   // Initialize resize function
-  //   handleResize();
-
-  //   // Add resize event listener
-  //   window.addEventListener("resize", handleResize);
-
-  //   // Cleanup the event listener on component unmount
-  //   return () => window.removeEventListener("resize", handleResize);
-  // }, []);
   return (
     <>
       {shouldShowBluredInfo() && (
@@ -138,7 +133,7 @@ export default function Providers({ children }) {
           noCountry={searchParams.get("no-country")}
           countries={dataCountries.map((s) => s.iso)}
           options={dataCountries.map((s) => {
-            return { label: s.nicename, value: s.iso };
+            return { label: s.name, value: s.iso };
           })}
         />
       )}

@@ -110,13 +110,13 @@ svg {
     padding-inline: 30px;
     margin-top: 40px;
   }
-  .home-page-container .login-w2-container.login-widget-container {
+  /* .home-page-container .login-w2-container.login-widget-container {
     height: calc(100vh - 92px) !important;
     max-height: 932px;
     right: 20px;
     justify-content: flex-start !important;
     padding-top: 50px;
     top: 82px;
-  }
+  } */
 }
 /* purgecss end ignore */

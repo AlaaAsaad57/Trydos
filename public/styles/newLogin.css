@@ -472,12 +472,12 @@ input {
     padding-bottom: 54px !important;
   }
   .home-page-container .login-w2-container.login-widget-container {
-    height: calc(100vh - 92px) !important;
+    height: calc(100vh - 62px) !important;
     max-height: 932px;
     right: 20px;
     justify-content: flex-start !important;
     padding-top: 50px;
-    top: 82px;
+    top: 50px;
   }
 }
 .step6 {

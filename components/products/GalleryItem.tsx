@@ -30,7 +30,7 @@ function GalleryItem({
       >
         {extended && (
           <>
-            <div className="flex-row  justify-between items-start relative">
+            <div className="flex-row  justify-start items-start relative">
               <div className="flex-row items-start">
                 <div className="w-[20px] h-[20px] rounded-[50%] relative comment-photo">
                   <img
@@ -164,7 +164,7 @@ function GalleryItemFloatingElements() {
           </svg>
         </div>
       </div>
-      <div className="flex-row absolute z-[60] bottom-[17px] right-[10px] w-[45px] h-[16px] text-[12px] regular justify-between text-[#8D8D8D]">
+      <div className="flex-row absolute z-[60] bottom-[17px] right-[10px] w-[55px] h-[16px] text-[12px] regular justify-between text-[#8D8D8D]">
         <Heart className="scale-[0.6]  origin-top-right" />
         <span>110k</span>
       </div>

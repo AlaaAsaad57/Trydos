@@ -5,10 +5,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { expandView, normalizeView, Sendevent } from "utils/functions";
 import CartContainer from ".";
 import home from "services/home";
-import ShowMessageAuth from "components/global/ShowMessageAuth";
 import { Swiper, SwiperSlide } from "swiper/react";
 import OrdersPage from "./OrdersPage";
 import { Swiper as SwiperType } from "node_modules/swiper/types";
+import ModalIframe from "./ModalIframe";
 const CartProvider = () => {
   const dispatch = useDispatch();
   const pathname = usePathname();
@@ -41,6 +41,7 @@ const CartProvider = () => {
   useEffect(() => {
     setTimeout(() => {
       home.getClientData();
+      home.GetFireBaseSettings();
     }, 10);
     window.addEventListener("popstate", (event) => {
       if (event.state?.isPopup) {
@@ -71,11 +72,41 @@ const CartProvider = () => {
   const showMessage = useSelector(
     (state: StateInterface) => state.homepage.showMessage
   );
-
+  const { openPayIframe, payIframeURL } = useSelector(
+    (state: StateInterface) => state.cart
+  );
+  useEffect(() => {
+    if (openPayIframe) {
+      _openIframe(payIframeURL)
+    }
+  }, [openPayIframe, payIframeURL])
+  const [openIframe, setOpenIframe] = useState({ isShow: false, url: '' });
+  const [isLoading, setIsLoading] = useState(false);
+  const modalIframeRef = useRef<HTMLDivElement>(null);
+  const _openIframe = (url: string) => {
+    setIsLoading(true);
+    setOpenIframe({ isShow: true, url: url });
+  };
+  const _closeIframe = () => {
+    setOpenIframe({ isShow: false, url: '' });
+  };
+  const handleIframeLoad = () => {
+    setIsLoading(false);
+    // init();
+  };
   return (
     <>
-      {showMessage && <ShowMessageAuth />}
+      {/* {showMessage && <ShowMessageAuth />} */}
       {cartEnable ? <StepSlider enableCart={(e) => enableCart(e)} /> : <></>}
+      {openIframe.isShow && (
+        <div
+          ref={modalIframeRef}
+          className={` ${openIframe?.isShow ? 'z-[9999999999]' : 'z-0'
+            } flex fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[12px] gap-[10px] p-[1px] text-[#5D5D5D] items-center justify-start rounded-[10px] h-[90vh] w-[90vw] bg-[#FCFCFC] border border-dashed border-[#006AFF5b]`}
+        >
+          <ModalIframe _closeIframe={_closeIframe} handleIframeLoad={handleIframeLoad} isLoading={isLoading} openIframe={openIframe} />{' '}
+        </div>
+      )}
     </>
   );
 };
@@ -134,6 +165,7 @@ export const StepSlider = ({ enableCart }) => {
           }
         </SwiperSlide>
       </Swiper>
+
     </div>
   );
 };

@@ -164,7 +164,10 @@ function SearchResults() {
     else return false;
   };
   return (
-    <div className="search-results-container flex-col">
+    <div
+      className="search-results-container flex-col"
+      data-cy="searchResults_body"
+    >
       <>
         {(searchResults?.products?.length > 0 || loading) && (
           <div className="products-results flex-col max-h-[60%] overflow-auto">
@@ -297,10 +300,14 @@ function SearchResults() {
           />
         )}
         {
-          <div className="flex-row w-full mt-3 justify-center">
+          <div
+            className="flex-row w-full mt-3 justify-center"
+            data-cy="searchResult"
+          >
             {(showButton() || loading) && (
               <div
                 className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
+                data-cy="searchTotalProduct"
                 onClick={() => apply()}
               >
                 Search{" "}
@@ -311,7 +318,7 @@ function SearchResults() {
                 ) : (
                   <>
                     {totalProducts !== null && (
-                      <span className="text-[#fafafa] regular ml-2">
+                      <span className="text-[#fafafa] regular ml-2" data-cy="countAfterFilter">
                         (Total Products: {totalProducts})
                       </span>
                     )}
@@ -322,6 +329,7 @@ function SearchResults() {
             {(showButton() || totalProducts === 0) && (
               <div
                 className="w-16 h-10 ml-4 cursor-pointer p-2 flex bg-[#f8f8f8] text-[#ff5549] justify-center items-center rounded-xl"
+                data-cy="resetIcon"
                 onClick={() => reset()}
               >
                 Reset

@@ -11,6 +11,7 @@ function CategoryItem({ category, onClick, isActive }) {
     <>
       <div
         className="category-item brand-item whitespace-nowrap relative pr-4 z-10"
+        data-cy="categoryItem"
         onClick={() => {
           if (expanded) {
             setExpand(false);

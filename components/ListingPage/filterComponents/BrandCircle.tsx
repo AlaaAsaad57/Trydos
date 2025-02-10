@@ -81,6 +81,7 @@ function BrandCircle({ brand }) {
       className={`category-circle flex-col align-center ${
         true && "extended-circle"
       }`}
+      data-cy="categoryShadow"
     >
       <div className="relative w-[70px] h-[70px]">
         {isSelected() && (

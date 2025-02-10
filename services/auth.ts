@@ -206,10 +206,12 @@ class AuthService {
         "/auth/firebase/verify-guest-phone",
       body: dataBody,
       title: "Verify Guest",
-      token: localStorage.getItem("DEVICE-TOKEN"),
+      token: localStorage.getItem("has-phone")
+        ? null
+        : localStorage.getItem("DEVICE-TOKEN"),
     });
 
-    success();
+    await success();
   }
   async UpdateName(name: string) {
     try {
@@ -232,7 +234,7 @@ class AuthService {
       await AxiosPost({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-name",
         body: { name: name },
-        title: "Verify Guest",
+        title: "Update Name",
       });
 
       axios.post(
@@ -290,23 +292,27 @@ class AuthService {
     store.dispatch({ type: "CANCEL-AUTH" });
   }
   async NotifyForProducts({ id, variant }) {
-    const details = {
-      product_id: id,
-      variant,
-      user_id: UserID(),
-      notification_type_id: 1,
-    };
-    var formBody: any = [];
-    for (var property in details) {
-      var encodedKey = encodeURIComponent(property);
-      var encodedValue = encodeURIComponent(details[property]);
-      formBody.push(encodedKey + "=" + encodedValue);
-    }
-    formBody = formBody.join("&");
-    await AxiosPost({
-      url: process.env.NEXT_PUBLIC_BACKEND_URL + "/product_notification/store",
-      body: formBody,
-      title: "Verify Guest",
+    // const details = {
+    //   product_id: id,
+    //   variant,
+    //   user_id: UserID(),
+    //   notification_type_id: 1,
+    // };
+    // var formBody: any = [];
+    // for (var property in details) {
+    //   var encodedKey = encodeURIComponent(property);
+    //   var encodedValue = encodeURIComponent(details[property]);
+    //   formBody.push(encodedKey + "=" + encodedValue);
+    // }
+    // formBody = formBody.join("&");
+    // await AxiosPost({
+    //   url: process.env.NEXT_PUBLIC_BACKEND_URL + "/product_notification/store",
+    //   body: formBody,
+    //   title: "store Notification For Product",
+    // });
+    await home.subscribeToTopic({
+      topic: `product_availability_${id}`,
+      variant: variant,
     });
   }
   async getProductNotify({ id }) {

@@ -6,12 +6,22 @@ import { useDispatch, useSelector } from "react-redux";
 import FreeShippingIcon from "public/svg/product/FreeShipping.svg";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import order from "services/order";
+import Spinner from "components/global/Spinner";
+import { getCountriesApi } from "store/homepage/cachedActions";
 function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   const cart = useSelector((state: StateInterface) => state.cart?.cart);
   const dispatch = useDispatch();
   const user = useSelector((state: StateInterface) => state.auth.user);
-  useEffect(() => {
+  const getOrderData = async () => {
+    order.GetWallet();
     order.GetAddressList();
+    const countries = await getCountriesApi();
+    dispatch({ type: "COUNTRIES-DATA", payload: countries });
+  };
+  useEffect(() => {
+    if (user) {
+      getOrderData();
+    }
   }, [user]);
   return (
     <div className="flex flex-col w-full p-3">
@@ -34,6 +44,7 @@ const CartItemSelect = ({ items }) => {
   // @ts-ignore
   const language = lang.split("-")[1];
   const [openCart, setOpenCart] = useState(false);
+
   return (
     <div
       style={{
@@ -43,7 +54,9 @@ const CartItemSelect = ({ items }) => {
       className={`flex-col ${
         openCart && "pt-[15px]"
       } relative pl-[12px] justify-center w-full min-h-[50px] cursor-pointer`}
-      onClick={() => setOpenCart(!openCart)}
+      onClick={() => {
+        setOpenCart(!openCart);
+      }}
     >
       <span className={` absolute top-[22px] right-[12px] `}>
         <svg
@@ -112,13 +125,16 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
   // @ts-ignore
   const language = lang.split("-")[1];
   const dispatch = useDispatch();
+  const orderLoading = useSelector(
+    (state: StateInterface) => state.cart.orderLoading
+  );
   return (
     <div
       style={{
         border: "1px solid rgb(196 194 194 / 51%)",
         borderRadius: "15px",
       }}
-      className={`flex-col mt-[11px] pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full min-h-[203px] `}
+      className={`address-valid-border flex-col mt-[11px] pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full ${" min-h-[203px]"}`}
     >
       <div className="flex-row ">
         <svg
@@ -212,6 +228,11 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
         <span className="bold ml-[11px]">
           <FreeShippingIcon />
         </span>
+        {orderLoading && (
+          <span className="bold ml-[11px]">
+            <Spinner />
+          </span>
+        )}
       </div>
       <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
         {translateFunction(
@@ -346,7 +367,32 @@ const AddressContainer = ({ openAddressList }) => {
   const addressLists = useSelector(
     (state: StateInterface) => state.cart.addressLists
   );
-
+  const GetAddressString = (location) => {
+    let str = "";
+    if (
+      location.province &&
+      location.province.length > 0 &&
+      location.province !== "null"
+    )
+      str += `${location.province}`;
+    if (location.city && location.city.length > 0 && location.city !== "null")
+      str += ` | ${location.city}`;
+    if (location.town && location.town.length > 0 && location.town !== "null")
+      str += ` | ${location.town}`;
+    if (
+      location.street &&
+      location.street.length > 0 &&
+      location.street !== "null"
+    )
+      str += ` | ${location.street}`;
+    if (
+      location.building &&
+      location.building.length > 0 &&
+      location.building !== "null"
+    )
+      str += ` | ${location.building}`;
+    return str;
+  };
   return (
     <div
       onClick={() => {
@@ -355,7 +401,7 @@ const AddressContainer = ({ openAddressList }) => {
         }
       }}
       style={{
-        border: addressLists?.length === 0 ? "" : "#388bff8c 1px solid",
+        border: addressLists?.length === 0 && "#388bff8c 1px solid",
       }}
       className={`flex-col  ${
         addressLists?.length === 0
@@ -386,7 +432,7 @@ const AddressContainer = ({ openAddressList }) => {
               </span>
             </div>
             <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]">
-              {addressLists[0].address_detail}
+              {GetAddressString(addressLists[0].region_details)}
             </div>
             <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]">
               <svg

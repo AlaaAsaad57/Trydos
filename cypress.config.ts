@@ -1,5 +1,5 @@
 import { defineConfig } from "cypress";
-
+import TS from "@cypress/code-coverage/task";
 export default defineConfig({
   projectId: "d1rk7o",
   chromeWebSecurity: false,
@@ -14,14 +14,19 @@ export default defineConfig({
     reportPageTitle: "My Test Suite",
     overwrite: true,
   },
-  video: true,
+  video: false,
+  defaultCommandTimeout: 10000,
+  pageLoadTimeout: 120000,
+  requestTimeout: 10000,
+  retries: { runMode: 2 },
   e2e: {
     // @ts-ignore
     hideXHRInCommandLog: true,
     experimentalStudio: true,
-
     setupNodeEvents(on, config) {
+      TS(on, config);
       require("cypress-mochawesome-reporter/plugin")(on);
+      return config;
       // implement node event listeners here
     },
     // baseUrl:

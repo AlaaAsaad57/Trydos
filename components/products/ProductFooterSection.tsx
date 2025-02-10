@@ -106,7 +106,7 @@ function ProductFooterSection({ product }) {
   const [sharedContacts, setShareContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const getData = async () => {
-    await home.CheckLogin();
+    // await home.CheckLogin();
     try {
       let req: LikesSharesCommentsApi = await AxiosGet({
         url:

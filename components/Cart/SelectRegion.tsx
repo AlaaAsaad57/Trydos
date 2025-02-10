@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { translateFunction } from "utils/functions";
+import { useState } from "react";
+import { getLang, translateFunction } from "utils/functions";
 import TargetIcon from "public/svg/cart/Target.svg";
 import { useParams } from "next/navigation";
 import { allCountries } from "country-telephone-data";
@@ -7,8 +7,8 @@ import Flag from "react-world-flags";
 import { useDispatch, useSelector } from "react-redux";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
-import axios from "node_modules/axios";
 import { GetAddressByTextApi } from "models/Api";
+import Cookies from "js-cookie";
 function SelectRegion({ closeSelect }) {
   const { lang } = useParams();
   // @ts-ignore
@@ -28,31 +28,28 @@ function SelectRegion({ closeSelect }) {
         </div>
 
         <div
-          className={`flex ${
-            !addressDetails.region_details.province
-              ? "text-[#D3D3D3]"
-              : "text-[#1D1D1D]"
-          }  text-[14px] regular`}
+          className={`flex ${!addressDetails.region_details.province
+            ? "text-[#D3D3D3]"
+            : "text-[#1D1D1D]"
+            }  text-[14px] regular`}
         >
           <span className="px-1">|</span>
           {addressDetails.region_details.province || "Province"}
         </div>
         <div
-          className={`flex ${
-            !addressDetails.region_details.city
-              ? "text-[#D3D3D3]"
-              : "text-[#1D1D1D]"
-          }  text-[14px] regular`}
+          className={`flex ${!addressDetails.region_details.city
+            ? "text-[#D3D3D3]"
+            : "text-[#1D1D1D]"
+            }  text-[14px] regular`}
         >
           <span className="px-1">|</span>
           {addressDetails.region_details.city || "Town"}
         </div>
         <div
-          className={`flex ${
-            !addressDetails.region_details.town
-              ? "text-[#D3D3D3]"
-              : "text-[#1D1D1D]"
-          }  text-[14px] regular`}
+          className={`flex ${!addressDetails.region_details.town
+            ? "text-[#D3D3D3]"
+            : "text-[#1D1D1D]"
+            }  text-[14px] regular`}
         >
           <span className="px-1">|</span>
           {addressDetails.region_details.town || "Suburb"}
@@ -101,14 +98,42 @@ const SearchLocations = ({ closeSelect }) => {
   const [country, language] = lang.split("-");
   const [loading, setLoading] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const getHeader = () => {
+    let [countryUrl, languageUrl] = window.location.pathname
+      .split("/")[1]
+      .split("-");
+    return {
+      next: {
+        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+      },
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("MARKET-TOKEN") ||
+          localStorage.getItem("DEVICE-TOKEN")
+          }`,
+        lang: getLang(languageUrl, Cookies.get("language")),
+        country: countryUrl || Cookies.get("country"),
+        accept: "application/json",
+      },
+    };
+  };
   const searchAction = async (val) => {
     setLoading(true);
-    let data: GetAddressByTextApi = await axios.post(
+    await fetch(
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        `/api/addresses/get-address-by-text`,
-      { query: val }
-    );
-    setSearchResults(data.data.results || []);
+      `/api/addresses/get-address-by-text`,
+      {
+        method: "POST",
+        headers: {
+          ...getHeader().headers,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ query: val })
+      }
+    ).then(async (data) => {
+      let repo: GetAddressByTextApi = await data.json();
+      setSearchResults(repo.results || []);
+    });
     setLoading(false);
   };
   return (
@@ -161,7 +186,7 @@ const SearchLocations = ({ closeSelect }) => {
           onChange={(e) => {
             searchAction(e.target.value);
           }}
-          onInput={(e) => {}}
+          onInput={(e) => { }}
           placeholder={translateFunction(
             "Search Province | District | Town | Street"
           )}
@@ -192,6 +217,8 @@ const SearchResults = ({ searchResults, closeSelect }) => {
   };
   const dispatch = useDispatch();
   const select = (s) => {
+    let a = { lat: s.coordinates?.lat, lng: s.coordinates?.lon };
+    if (a.lat && a.lng) dispatch({ type: "MAP-CENTER", payload: a });
     dispatch({
       type: "set-address-details",
       payload: {

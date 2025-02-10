@@ -1,9 +1,45 @@
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
-import { _isStoreLastJson, getLang } from "utils/functions";
 import { store } from "store";
-import { GetAddressListApi } from "models/Api";
+import { GetAddressListApi, GetWalletApi, PlaceOrderApi } from "models/Api";
 
 class OrderService {
+  async PlaceOrder({ payment_method }) {
+    let addressId = store.getState().cart.addressLists[0]?.id;
+    try {
+      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      let data: PlaceOrderApi = await AxiosPost({
+        url:
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+          `/customer/order/checkout/${payment_method}?order_note=order note&address_id=${addressId}`,
+        title: "pay Order",
+        body: ""
+      });
+      if (!data.url) {
+        store.dispatch({ type: "ORDER-SUCCESS", payload: data });
+      } else {
+        store.dispatch({ type: "CRYPTO_CARD_PAYMENT", payload: data });
+      }
+
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
+    } catch (error) {
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
+    }
+  }
+  async GetWallet() {
+    try {
+      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      let data: GetWalletApi = await AxiosGet({
+        url:
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+          "/customer/wallet/list?limit=10&offset=1",
+        title: "Get Wallet",
+      });
+      store.dispatch({ type: "WALLET-USER", payload: data });
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
+    } catch (error) {
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
+    }
+  }
   async GetAddressList() {
     try {
       store.dispatch({ type: "ORDER-LOADING", payload: true });
@@ -30,7 +66,7 @@ class OrderService {
       town: address.region_details.town,
       street: address.region_details.street,
       building: address.region_details.building,
-      // zip: "123123",
+      zip: "123123",
       contact_person_name: address.contact_info.contact_person_name,
       phone: address.contact_info.phone,
       alternative_phone: address.contact_info.alternative_phone,

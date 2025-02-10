@@ -17,6 +17,7 @@ import {
   SimpleBoutiqeApi,
   SimpleDetailsProductApi,
 } from "models/Api";
+import auth from "services/auth";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -189,6 +190,9 @@ export const Sendevent = async (params: {
 };
 export const GetAppLanguage = () => {
   return store.getState().homepage.language;
+};
+export const GetAppCountry = () => {
+  return store.getState().homepage.country;
 };
 export function encode_utf8(params: {
   s: string;
@@ -835,6 +839,28 @@ export const LogError = (error, url, href) => {
     backend_url: url,
   });
 };
-export const ExpiredUser = () => {
-  store.dispatch({ type: "INFO_EXPIRED_TOKEN", payload: true });
+export const ExpiredUser = async () => {
+  if (getUser()?.phone) localStorage.setItem("has-phone", getUser()?.phone);
+  await home.registerForExpire(getUser().id);
+
+  auth.cancelAuth();
+  localStorage.removeItem("MARKET-TOKEN");
+  localStorage.removeItem("USER");
+  Cookies.remove("MARKET-TOKEN");
+
+  // store.dispatch({ type: "INFO_EXPIRED_TOKEN", payload: true });
+};
+export const WaitForCondition = async () => {
+  return new Promise((resolve, reject) => {
+    const interval = setInterval(() => {
+      const isReady = store.getState().homepage.isRegisteringReady;
+      if (isReady) {
+        clearInterval(interval);
+        resolve("Ready, now performing the request!");
+      }
+    }, 1000); // Check every second
+
+    // Optional: timeout in case it's taking too long
+    // Wait for 10 seconds
+  });
 };

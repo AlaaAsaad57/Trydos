@@ -79,6 +79,7 @@ function ColorCircle({ color }) {
       className={`category-circle flex-col align-center ${
         true && "extended-circle"
       }`}
+      data-cy="categoryColor"
     >
       {" "}
       <div className="relative w-[70px] h-[70px]">

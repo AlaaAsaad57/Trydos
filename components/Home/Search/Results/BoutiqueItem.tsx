@@ -6,6 +6,7 @@ function BoutiqueItem({ boutique, onClick, isActive }) {
   return (
     <div
       className="brand-item boutique-item relative"
+      data-cy="boutiqueItem"
       onClick={() => onClick()}
     >
       {isActive && (
