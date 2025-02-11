@@ -228,6 +228,7 @@ export const translations = {
     "Trydos Wallet": "محفظة ترايدوس",
     "Credit Cards": "بطاقات الائتمان",
     Crypto: "عملة مشفرة",
+    "Total": "مجموع",
     "Your Balance": "رصيدك",
     "Cash On Delivery": "دفع بعد التوصيل",
     "I Have Discount Coupon": "عندي قسيمة خصم",
