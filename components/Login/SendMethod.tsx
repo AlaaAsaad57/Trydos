@@ -41,6 +41,7 @@ function SendMethod({
   }) => {
     try {
       setLoading(true);
+      setWrongNumber(false);
       let errorCallbackFunc = (e) => errorCallback(e);
       await AuthService.SendOtp(
         mobilePhone,
@@ -51,7 +52,7 @@ function SendMethod({
       successCallback();
     } catch (error) {
       setLoading(false);
-      console.log(error);
+      // console.log(error);
       errorCallback();
       console.error("SendOtp failed:", error);
     }
