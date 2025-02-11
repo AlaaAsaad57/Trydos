@@ -80,19 +80,13 @@ Cypress.Commands.add("clearAllData", () => {
   cy.logout();
 });
 Cypress.Commands.add("logout", () => {
-  cy.get("[data-cy=avatar-options]").click({
-    scrollBehavior: false,
-    force: true,
-  });
+  cy.get("[data-cy=avatar-options]").click({ scrollBehavior: false });
   cy.Exist("[data-cy=logout]").then((exists) => {
     if (exists) {
-      cy.get("[data-cy=logout]").click({ scrollBehavior: false, force: true });
+      cy.get("[data-cy=logout]").click({ scrollBehavior: false });
       cy.wait(3000);
     } else {
-      cy.get("[data-cy=avatar-options]").click({
-        scrollBehavior: false,
-        force: true,
-      });
+      cy.get("[data-cy=avatar-options]").click({ scrollBehavior: false });
     }
   });
 });
@@ -129,7 +123,6 @@ Cypress.Commands.add("enterPhoneNumber", (phoneNumber: string) => {
   cy.wait(5000);
 });
 Cypress.Commands.add("performLogin", () => {
-  cy.clearAllData;
   cy.viewport(783, 824);
 
   cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
@@ -154,12 +147,8 @@ Cypress.Commands.add("performLogin", () => {
   });
 });
 Cypress.Commands.add("Performloginfailure", () => {
-  cy.wait(6000); /////here
-  cy.reload();
   cy.clearAllData();
   cy.viewport(783, 824);
-  cy.reload();
-  cy.wait(10000);
   cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
   cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false });
   cy.enterPhoneNumber("963937288307");
