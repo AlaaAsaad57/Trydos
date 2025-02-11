@@ -3,9 +3,8 @@ describe("Login Scenario Test", () => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
     });
-    cy.clearAllData();
+
     cy.Visit("/");
-    cy.wait(5000);
   });
   it("Login Successful Attempt should login to 3 servers", () => {
     let count = 0;
@@ -13,7 +12,6 @@ describe("Login Scenario Test", () => {
       count += 1;
     }).as("login");
 
-    cy.wait(5000);
     cy.performLogin();
     cy.wait(20000);
     cy.wait("@login").then((interception) => {
@@ -21,14 +19,14 @@ describe("Login Scenario Test", () => {
       console.log("login request arrived");
     });
     cy.wait(5000).then(() => {
-      cy.clearAllDataWithoutCookies();
+      // cy.clearAllDataWithoutCookies();
       cy.log(`Count is: ${count}`);
       console.log("Count is" + count);
       expect(count).to.be.greaterThan(1);
     });
   });
   it("Login UnSuccessful Attempt should show error message to user", () => {
-    cy.wait(10000);
+    cy.clearAllData();
     let count = 0;
     cy.reload();
     cy.intercept("POST", "**/login", () => {
@@ -50,6 +48,7 @@ describe("Login Scenario Test", () => {
   it("Login UnSuccessful Attempt when otp code expired should show button for resend otp and resend code and continue to login", () => {
     cy.wait(10000);
     let count = 0;
+    cy.clearAllData();
     cy.clearAllDataWithoutCookies();
     cy.intercept("POST", "**/login", () => {
       count += 1;

@@ -34,18 +34,25 @@
 //   }
 // }// Custom command to visit a URL with overridden Notification permissions
 Cypress.Commands.add("Visit", function (url: string) {
+  cy.intercept("GET", "**/api/new_v1/countries").as("CountriesApi");
   cy.visit(url, {
     onBeforeLoad(win) {
       // @ts-ignore
       cy.stub(win.Notification, "permission", "granted");
       cy.stub(win, "Notification").as("Notification");
+      console.log(win.location.href);
     },
   });
-  cy.wait(10000);
-  cy.Exist("#country").then((exists) => {
-    if (exists) {
-      cy.get("#country").select("TR");
-    } else {
+  cy.url().then((ur) => {
+    // @ts-ignore
+    if (ur.includes("no-country")) {
+      cy.wait("@CountriesApi").then((i) => {
+        console.log("sahsahj", i);
+        if (i) {
+          cy.log("sd");
+          cy.get("#country").select("TR");
+        }
+      });
     }
   });
 });
@@ -67,17 +74,35 @@ Cypress.Commands.add("Exist", (selector) => {
 });
 
 Cypress.Commands.add("clearAllData", () => {
-  cy.clearAllCookies();
-  cy.clearAllLocalStorage();
-  cy.clearAllSessionStorage();
+  // cy.clearAllCookies();
+  // cy.clearAllLocalStorage();
+  // cy.clearAllSessionStorage();
+  cy.logout();
+});
+Cypress.Commands.add("logout", () => {
+  cy.get("[data-cy=avatar-options]").click({
+    scrollBehavior: false,
+    force: true,
+  });
+  cy.Exist("[data-cy=logout]").then((exists) => {
+    if (exists) {
+      cy.get("[data-cy=logout]").click({ scrollBehavior: false, force: true });
+      cy.wait(3000);
+    } else {
+      cy.get("[data-cy=avatar-options]").click({
+        scrollBehavior: false,
+        force: true,
+      });
+    }
+  });
 });
 Cypress.Commands.add("clearAllDataWithoutCookies", () => {
-  cy.clearAllLocalStorage();
-  cy.clearAllSessionStorage();
+  // cy.clearAllLocalStorage();
+  // cy.clearAllSessionStorage();
 });
 Cypress.Commands.add("clearAllDataWithoutSessionStorage", () => {
-  cy.clearAllLocalStorage();
-  cy.clearAllCookies();
+  // cy.clearAllLocalStorage();
+  // cy.clearAllCookies();
 });
 Cypress.Commands.add("typePincode", (pincode: string) => {
   const digits = pincode.split(""); // Split the pincode into individual digits
@@ -89,12 +114,15 @@ Cypress.Commands.add("typePincode", (pincode: string) => {
   });
 });
 Cypress.Commands.add("enterPhoneNumber", (phoneNumber: string) => {
-  cy.wait(5000);
   cy.get("#phoneInput").click({ scrollBehavior: false });
   cy.get("#phoneInput").type(`${phoneNumber}{enter}`, {
     scrollBehavior: false,
   });
-  cy.get(".phone-arrow").click({ scrollBehavior: false });
+  cy.Exist(".phone-arrow").then((exist) => {
+    if (exist) {
+      cy.get(".phone-arrow").click({ scrollBehavior: false });
+    }
+  });
   cy.get(".message-recieve-option:nth-child(1)").click({
     scrollBehavior: false,
   });
@@ -103,7 +131,7 @@ Cypress.Commands.add("enterPhoneNumber", (phoneNumber: string) => {
 Cypress.Commands.add("performLogin", () => {
   cy.clearAllData;
   cy.viewport(783, 824);
-  cy.wait(10000);
+
   cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
   cy.wait(10000);
   cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false }); //have account
@@ -126,7 +154,7 @@ Cypress.Commands.add("performLogin", () => {
   });
 });
 Cypress.Commands.add("Performloginfailure", () => {
-  cy.wait(6000);/////here
+  cy.wait(6000); /////here
   cy.reload();
   cy.clearAllData();
   cy.viewport(783, 824);
@@ -188,7 +216,7 @@ Cypress.Commands.add("performErrorLogin", () => {
 Cypress.Commands.add("performExpireOtpLogin", () => {
   cy.clearAllCookies();
   cy.viewport(783, 824);
-  cy.wait(6000);////here
+  cy.wait(6000); ////here
   cy.Exist(".en-regular:nth-child(2)").then((exists) => {
     if (exists) {
       cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });

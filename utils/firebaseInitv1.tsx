@@ -12,7 +12,7 @@ import Category from "components/Notifications/Category";
 import ProductAvailable from "components/Notifications/ProductAvailable";
 import "firebase/analytics";
 import { initializeAnalytics, isSupported } from "firebase/analytics";
-import ProductHurryUp from "components/Notifications/ProductHurry.jsx";
+import ProductHurryUp from "components/Notifications/ProductHurry";
 const firebaseConfig = {
   // apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
   // authDomain: "trydos-ce234.firebaseapp.com",
