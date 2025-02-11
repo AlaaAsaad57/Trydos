@@ -676,9 +676,25 @@ export const UpdateFilter = async ({
     console.log(error);
   }
 };
-export const RoundPrice = ({ num, rate, points }): number => {
+export const RoundPrice = ({
+  num,
+  rate,
+  points,
+}: {
+  num?: any;
+  rate?: any;
+  points?: any;
+}): number => {
+  let rateVariable =
+    rate || store.getState().homepage.currency?.exchange_rate || 1;
+  let pointsVariable =
+    points ||
+    (store.getState().homepage?.settings &&
+      store.getState().homepage?.settings["starting-setting"]
+        ?.decimal_point_settings) ||
+    0;
   let a = parseFloat(num);
-  return parseFloat((a * rate).toFixed(points));
+  return parseFloat((a * rateVariable).toFixed(pointsVariable));
 };
 export const onClickSearchHistory = (searchValue) => {
   if (localStorage.getItem("search-history")) {

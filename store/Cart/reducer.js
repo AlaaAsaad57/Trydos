@@ -622,22 +622,23 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       }
     }
     case "AddToCartColor": {
-      // let variant = ( state.variants.variation||state.variants).filter(
-      //   (s) =>
-      //     s.type.includes(payload?.color_name || "") &&
-      //     s.type.includes(state?.AddToCartOption?.selectedSize?.name || "")
-      // )[0];
+      let variant = (state.variants?.variation || state.variants || []).filter(
+        (s) =>
+          s.type.includes(payload?.color_name || "") &&
+          s.type.includes(state?.AddToCartOption?.selectedSize?.name || "")
+      )[0];
+
       return {
         ...state,
         AddToCartOption: {
           ...state.AddToCartOption,
           selectedColor: { ...payload },
-          // price: {
-          //   offer_price_formated: variant?.offer_price_formated,
-          //   price: variant?.price,
-          //   offer_price: variant.offer_price,
-          //   price_formated: variant.price_formated,
-          // },
+          price: {
+            offer_price_formated: variant?.offer_price_formated,
+            price: variant?.price,
+            offer_price: variant?.offer_price,
+            price_formated: variant?.price_formated,
+          },
         },
       };
     }

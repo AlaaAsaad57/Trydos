@@ -439,7 +439,7 @@ function PhoneInput({
               width: "100%",
             }}
             disabled={false}
-            type="search"
+            type="number"
             autoFocus={true}
             inputMode="numeric"
             onKeyDown={(e) => {
@@ -452,6 +452,13 @@ function PhoneInput({
                 e.preventDefault();
                 // @ts-ignore
                 e.target.blur();
+                if (validNumber && stepIndicator <= 3) {
+                  Sendevent({
+                    event: "button_clicked",
+                    value: "confirm_phone_number_button",
+                  });
+                  setStepIndicator(4);
+                }
               }
             }}
             // @ts-ignore

@@ -131,10 +131,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
       ...payload,
     });
   };
-  const changeSetting = async ({ url, body }) => {
+  const changeSetting = async ({ url, body, past }) => {
     if (!loading) {
       setLoading(true);
-      await home.EditNotificationSettings({ url, body });
+      try {
+        await home.EditNotificationSettings({ url, body });
+      } catch (error) {
+        past();
+        setLoading(false);
+      }
       setLoading(false);
     }
   };
@@ -254,11 +259,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         changeSetting({
                           url: "update_email",
                           body: { email: 1 },
+                          past: changeNotificationPreferences({ email: 0 }),
                         });
                       } else {
                         changeSetting({
                           url: "update_email",
                           body: { email: 0 },
+                          past: changeNotificationPreferences({ email: 1 }),
                         });
                         changeNotificationPreferences({ email: 0 });
                       }
@@ -287,6 +294,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         changeSetting({
                           url: "update_firebase",
                           body: { firebase: 1 },
+                          past: changeNotificationPreferences({ firebase: 0 }),
                         });
 
                         changeNotificationPreferences({ firebase: 1 });
@@ -294,6 +302,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         changeSetting({
                           url: "update_firebase",
                           body: { firebase: 0 },
+                          past: changeNotificationPreferences({ firebase: 1 }),
                         });
                         changeNotificationPreferences({ firebase: 0 });
                       }
@@ -320,12 +329,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         changeSetting({
                           url: "update_whatsapp",
                           body: { whatsapp: 1 },
+                          past: changeNotificationPreferences({ whatsapp: 0 }),
                         });
                         changeNotificationPreferences({ whatsapp: 1 });
                       } else {
                         changeSetting({
                           url: "update_whatsapp",
                           body: { whatsapp: 0 },
+                          past: changeNotificationPreferences({ whatsapp: 1 }),
                         });
 
                         changeNotificationPreferences({ whatsapp: 0 });
@@ -358,6 +369,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           changeSetting({
                             url: "update_notification_frequency",
                             body: { notification_frequency: e.target.value },
+                            past: setSelectValue(SelectValue),
                           });
                           setSelectValue(e.target.value);
                         }}
