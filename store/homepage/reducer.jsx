@@ -3,6 +3,7 @@ import { getUserStories } from "utils/functions";
 import { v4 as uuidv4 } from "uuid";
 const initialState = {
   language: "en",
+  country: "",
   loading: false,
   loadingStories: true,
   selectedStory: null,
@@ -63,8 +64,11 @@ const HomeReducer = (state = initialState, { type, payload }) => {
     }
     case "LOGIN-OPEN": {
       if (payload) {
+        document.documentElement.scrollTo({ top: 0 });
         document.documentElement.style.overflow = "hidden";
       } else {
+        document.documentElement.scrollTo({ top: 0 });
+
         document.documentElement.style.overflow = "initial";
       }
       return {
@@ -103,6 +107,12 @@ const HomeReducer = (state = initialState, { type, payload }) => {
     }
     case "APP-LANGUAGE": {
       return { ...state, language: payload };
+    }
+    case "APP-COUNTRY": {
+      return {
+        ...state,
+        country: payload,
+      };
     }
     case "STORY-SELECTED": {
       return {

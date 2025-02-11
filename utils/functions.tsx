@@ -141,6 +141,15 @@ export const UserID = () => {
     false
   );
 };
+export const User = () => {
+  return (
+    (localStorage.getItem("USER") &&
+      JSON.parse(localStorage.getItem("USER"))) ||
+    (localStorage.getItem("guest-user") &&
+      JSON.parse(localStorage.getItem("guest-user"))) ||
+    false
+  );
+};
 export const getUserStories = () => {
   return (
     localStorage.getItem("USER-STORIES") &&
@@ -190,6 +199,9 @@ export const Sendevent = async (params: {
 };
 export const GetAppLanguage = () => {
   return store.getState().homepage.language;
+};
+export const GetAppCountry = () => {
+  return store.getState().homepage.country;
 };
 export function encode_utf8(params: {
   s: string;
@@ -673,9 +685,25 @@ export const UpdateFilter = async ({
     console.log(error);
   }
 };
-export const RoundPrice = ({ num, rate, points }): number => {
+export const RoundPrice = ({
+  num,
+  rate,
+  points,
+}: {
+  num?: any;
+  rate?: any;
+  points?: any;
+}): number => {
+  let rateVariable =
+    rate || store.getState().homepage.currency?.exchange_rate || 1;
+  let pointsVariable =
+    points ||
+    (store.getState().homepage?.settings &&
+      store.getState().homepage?.settings["starting-setting"]
+        ?.decimal_point_settings) ||
+    0;
   let a = parseFloat(num);
-  return parseFloat((a * rate).toFixed(points));
+  return parseFloat((a * rateVariable).toFixed(pointsVariable));
 };
 export const onClickSearchHistory = (searchValue) => {
   if (localStorage.getItem("search-history")) {

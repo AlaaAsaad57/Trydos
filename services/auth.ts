@@ -90,7 +90,10 @@ class AuthService {
           type: "SET-VERFICATION-ID",
           payload: repo.data.verificationId,
         });
-
+        store.dispatch({
+          type: "WRONG-NUMBER",
+          payload: msg,
+        });
         if (typeof window !== "undefined") {
           _isStoreLastJson() &&
             localStorage.setItem("LAST_JSON", JSON.stringify(repo));
@@ -211,7 +214,8 @@ class AuthService {
         : localStorage.getItem("DEVICE-TOKEN"),
     });
 
-    success();
+    await success();
+    await home.RequestFireBase();
   }
   async UpdateName(name: string) {
     try {
@@ -292,23 +296,27 @@ class AuthService {
     store.dispatch({ type: "CANCEL-AUTH" });
   }
   async NotifyForProducts({ id, variant }) {
-    const details = {
-      product_id: id,
-      variant,
-      user_id: UserID(),
-      notification_type_id: 1,
-    };
-    var formBody: any = [];
-    for (var property in details) {
-      var encodedKey = encodeURIComponent(property);
-      var encodedValue = encodeURIComponent(details[property]);
-      formBody.push(encodedKey + "=" + encodedValue);
-    }
-    formBody = formBody.join("&");
-    await AxiosPost({
-      url: process.env.NEXT_PUBLIC_BACKEND_URL + "/product_notification/store",
-      body: formBody,
-      title: "store Notification For Product",
+    // const details = {
+    //   product_id: id,
+    //   variant,
+    //   user_id: UserID(),
+    //   notification_type_id: 1,
+    // };
+    // var formBody: any = [];
+    // for (var property in details) {
+    //   var encodedKey = encodeURIComponent(property);
+    //   var encodedValue = encodeURIComponent(details[property]);
+    //   formBody.push(encodedKey + "=" + encodedValue);
+    // }
+    // formBody = formBody.join("&");
+    // await AxiosPost({
+    //   url: process.env.NEXT_PUBLIC_BACKEND_URL + "/product_notification/store",
+    //   body: formBody,
+    //   title: "store Notification For Product",
+    // });
+    await home.subscribeToTopic({
+      topic: `product_availability_${id}`,
+      variant: variant,
     });
   }
   async getProductNotify({ id }) {

@@ -6,7 +6,9 @@ img {
   user-select: none;
   -webkit-user-drag: none;
 }
-
+.comments-extended {
+  max-height: 200px;
+}
 .filter-listing-bar.fixedAlign {
   top: 98px !important;
 }

@@ -14,6 +14,8 @@ import {
   UserID,
   UserToken,
   WaitForCondition,
+  GetAppLanguage,
+  GetAppCountry,
 } from "utils/functions";
 import Smartlook from "smartlook-client";
 
@@ -74,14 +76,6 @@ class HomeService {
       sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
       await this.getCustomerInfo();
 
-      // const response2 = await AxiosGet({
-      //   url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
-      //   title: "get firebase settings request",
-      // });
-      // store.dispatch({
-      //   type: "GET_FIREBASE_SETTINGS",
-      //   payload: response2?.firebase_settings,
-      // });
       getCart({
         callback: ([data, res]) => {
           store.dispatch({
@@ -101,6 +95,16 @@ class HomeService {
     } catch (e) {
       console.error(e);
     }
+  }
+  async GetFireBaseSettings() {
+    const response2 = await AxiosGet({
+      url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
+      title: "get firebase settings request",
+    });
+    store.dispatch({
+      type: "GET_FIREBASE_SETTINGS",
+      payload: response2?.firebase_settings,
+    });
   }
   async getCustomerInfo() {
     await WaitForCondition();
@@ -215,6 +219,31 @@ class HomeService {
       }
     }
   }
+  async RequestFireBase() {
+    await requestFirebaseNotificationPermission().then(async (token) => {
+      let language_code = window.location.pathname.split("/")[1].split("-")[1];
+      let country_code = window.location.pathname.split("/")[1].split("-")[0];
+      // @ts-ignore
+      if (token) {
+        localStorage.setItem("FB-DEVICE-TOKEN", token);
+        setTimeout(async () => {
+          if (UserToken()) {
+            await AxiosPost({
+              url:
+                process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
+              body: {
+                device_token: token,
+                user_id: UserID(),
+                auth_token: UserToken(),
+              },
+              title: "register firebase token",
+            });
+          }
+        }, 2000);
+        // ininit
+      }
+    });
+  }
   async CheckLogin() {
     if (!localStorage.getItem("FB-DEVICE-TOKEN")) await this.RegisterDevice();
     if (
@@ -254,52 +283,7 @@ class HomeService {
       }
       this.RegisterDevice();
     }
-    await requestFirebaseNotificationPermission().then(async (token) => {
-      let language_code = window.location.pathname.split("/")[1].split("-")[1];
-      let country_code = window.location.pathname.split("/")[1].split("-")[0];
-      // @ts-ignore
-      if (token) {
-        localStorage.setItem("FB-DEVICE-TOKEN", token);
-        setTimeout(async () => {
-          if (UserToken()) {
-            await AxiosPost({
-              url:
-                process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
-              body: {
-                device_token: token,
-                user_id: UserID(),
-                auth_token: UserToken(),
-              },
-              title: "register firebase token",
-            });
-          }
-        }, 3000);
-        // ininit
-        // const response2 = await AxiosGet({
-        //   url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
-        //   title: "get firebase settings request",
-        // });
-        // store.dispatch({
-        //   type: "GET_FIREBASE_SETTINGS",
-        //   payload: response2?.firebase_settings,
-        // });
-
-        const searchParams = new URLSearchParams(window.location.search);
-        if (
-          !(
-            searchParams.get("changed-country") ||
-            searchParams.get("no-country")
-          )
-        ) {
-          await this.subscribeToTopic({
-            topic: `boutique_created`,
-          });
-          await this.subscribeToTopic({
-            topic: `category_created`,
-          });
-        }
-      }
-    });
+    await this.RequestFireBase();
     typeof window !== "undefined" &&
       "serviceWorker" in navigator &&
       onMessageListener()
@@ -366,6 +350,7 @@ class HomeService {
             phone: "guest",
             // other custom properties
           });
+          await this.RequestFireBase();
         }
         store.dispatch({ type: "IS-REGISTERING", payload: true });
         if (typeof window !== "undefined") {
@@ -645,21 +630,21 @@ class HomeService {
       store.dispatch({ type: "LOADED-CART", payload: true });
       if (res?.id_cart) {
         callback({ id: res?.id_cart });
-        await this.subscribeToTopic({
-          topic: `product_hurry_up_quantity_${res?.id_cart}`,
-        });
-        await this.subscribeToTopic({
-          topic: `product_hurry_up_time_left_${res?.id_cart}`,
-        });
+        // await this.subscribeToTopic({
+        //   topic: `product_hurry_up_quantity_${res?.id_cart}`,
+        // });
+        // await this.subscribeToTopic({
+        //   topic: `product_hurry_up_time_left_${res?.id_cart}`,
+        // });
         await this.subscribeToTopic({
           topic: `product_availability_${id}`,
         });
-        await this.subscribeToTopic({
-          topic: `product_discount_${id}`,
-        });
-        await this.subscribeToTopic({
-          topic: `product_comment_${id}`,
-        });
+        // await this.subscribeToTopic({
+        //   topic: `product_discount_${id}`,
+        // });
+        // await this.subscribeToTopic({
+        //   topic: `product_comment_${id}`,
+        // });
       } else {
         errCallback();
         // store.dispatch({ type: "AddToCartOptionDisable", payload: true });
@@ -668,22 +653,47 @@ class HomeService {
     }
   }
 
-  async subscribeToTopic({ topic }: { topic: string }) {
+  async subscribeToTopic({
+    topic,
+    variant,
+  }: {
+    topic: string;
+    variant?: string;
+  }) {
     let token = localStorage.getItem("FB-DEVICE-TOKEN");
 
     if (token) {
-      AxiosPost({
+      let response = await AxiosPost({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
           "/firebase_device_tokens/subscribe_topic",
         body: {
           topic,
+          variant,
         },
-        title: "store firebase topic",
+        title: "store firebase tsubscribe opic",
+      });
+      store.dispatch({
+        type: "GET_FIREBASE_SETTINGS",
+        payload: response.firebase_settings,
       });
     }
   }
-
+  async UnsubscripeFromTopic({ topic }) {
+    let response = await AxiosPost({
+      url:
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/firebase_device_tokens/unsubscribe_topic",
+      body: {
+        topic,
+      },
+      title: "store firebase unsubscribe topic",
+    });
+    store.dispatch({
+      type: "GET_FIREBASE_SETTINGS",
+      payload: response.firebase_settings,
+    });
+  }
   async handleTopicsOnPageRefresh(token: string) {
     // Extract country and language from the URL
     const [countryCode, languageCode] = window.location.pathname
@@ -726,10 +736,16 @@ class HomeService {
     } catch (error) {}
   }
   async TestNotificationBoutique({ boutique_id }) {
+    await this.subscribeToTopic({ topic: "boutique_created" });
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_boutique_created",
-      { boutique_id: 66, topic: "boutique_created", language_code: "ar" },
+      {
+        boutique_id: 144,
+        topic: "boutique_created",
+        language_code: GetAppLanguage(),
+        country_iso: GetAppCountry(),
+      },
       { ...getHeader() }
     );
   }
@@ -737,16 +753,32 @@ class HomeService {
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_product_cart_expiration",
-      { product_id: 5566 },
+
+      {
+        product_id: 7681,
+        language_code: GetAppLanguage(),
+        country_iso: GetAppCountry(),
+      },
       { ...getHeader() }
     );
   }
   async TestNotificationProductAvailable() {
+    await this.subscribeToTopic({
+      topic: "product_availability_7681",
+      variant: "Blue-XXL",
+    });
+
     await axios
       .post(
         process.env.NEXT_PUBLIC_BACKEND_URL +
           "/firebase_device_tokens/send_product_availability",
-        { product_id: 5550, variant: "Gold-XXL" },
+        {
+          product_id: 7681,
+          variant: "Blue-XXL",
+          topic: "product_availability_7681",
+          language_code: GetAppLanguage(),
+          country_iso: GetAppCountry(),
+        },
         { ...getHeader() }
       )
       .catch((s) => {
@@ -754,32 +786,79 @@ class HomeService {
       });
   }
   async TestNotificationProductComment() {
+    await this.subscribeToTopic({ topic: "product_comment_7681" });
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_product_comment",
       {
-        product_id: 5550,
-        topic: "product_comment_mixit-solid-bangle-bracelet-RhqqPZ",
+        product_id: 7681,
+        topic: "product_comment_7681",
+        language_code: GetAppLanguage(),
+        country_iso: GetAppCountry(),
       },
       { ...getHeader() }
     );
   }
   async TestNotificationProductDiscount() {
+    await this.subscribeToTopic({ topic: "product_discount_7681" });
+
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_product_discount",
       {
-        product_id: 5550,
-        topic: "product_discount_mixit-solid-bangle-bracelet-RhqqPZ",
+        product_id: 7681,
+        topic: "product_discount_7681",
+        language_code: GetAppLanguage(),
+        country_iso: GetAppCountry(),
       },
       { ...getHeader() }
     );
   }
   async TestNotificationCategoryCreated() {
+    await this.subscribeToTopic({ topic: "category_created" });
+
     await axios.post(
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_category_created",
-      { category_id: 368, topic: "category_created" },
+      {
+        category_id: 392,
+        topic: "category_created",
+        language_code: GetAppLanguage(),
+        country_iso: GetAppCountry(),
+      },
+      { ...getHeader() }
+    );
+  }
+  //before stock out and change in price
+  async TestNotificationBeforeStockOut() {
+    await this.subscribeToTopic({ topic: "product_before_stock_out_7681" });
+
+    await axios.post(
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/firebase_device_tokens/send_product_before_stock_out",
+      {
+        user_id: UserID(),
+        product_id: 7681,
+        topic: "product_before_stock_out_7681",
+        language_code: GetAppLanguage(),
+        country_iso: GetAppCountry(),
+      },
+      { ...getHeader() }
+    );
+  }
+  async TestNotificationChangeInPrice() {
+    await this.subscribeToTopic({ topic: "product_when_change_in_price_7681" });
+
+    await axios.post(
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/firebase_device_tokens/send_product_when_change_in_price",
+      {
+        user_id: UserID(),
+        product_id: 7681,
+        topic: "product_when_change_in_price_7681",
+        language_code: GetAppLanguage(),
+        country_iso: GetAppCountry(),
+      },
       { ...getHeader() }
     );
   }
@@ -813,6 +892,17 @@ class HomeService {
         { ...getHeader() }
       )
       .catch((e) => {});
+  }
+  async EditNotificationSettings({ url, body }) {
+    try {
+      await AxiosPost({
+        url:
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+          `/firebase_device_tokens/${url}`,
+        body: body,
+        title: "Remove From Cart",
+      });
+    } catch (error) {}
   }
 }
 

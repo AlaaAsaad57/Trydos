@@ -59,7 +59,22 @@ const CheckLocalaization = ({
 export async function middleware(request) {
   const response = NextResponse.next();
   const ip = request.headers.get("x-forwarded-for") || request.ip;
-
+  const url = request.nextUrl.clone();
+  const countryLang = url.pathname.split("/")[1]?.toLowerCase();
+  const countryUrl = url.pathname.split("/")[1]?.toLowerCase()?.split("-")[0];
+  const cookies = request.cookies;
+  const countryFromCookies = cookies.get("country")?.value?.toLowerCase();
+  const langFromCookies = cookies.get("lang")?.value?.toLowerCase();
+  if (
+    countryFromCookies?.length > 0 &&
+    countryUrl?.length > 0 &&
+    countryUrl?.toLowerCase() === countryFromCookies?.toLowerCase() &&
+    countryUrl !== "gb" &&
+    countryFromCookies !== "gb" &&
+    !url.searchParams.get("changed-country")
+  ) {
+    return response;
+  }
   // Define the geolocation API endpoint (you can replace with ipinfo, ipstack, or any other geolocation service)
 
   let countryByIp = request?.geo?.country?.toLowerCase();
@@ -74,12 +89,6 @@ export async function middleware(request) {
       supportedLocales.push(`${s}-${l}`);
     });
   });
-
-  const url = request.nextUrl.clone();
-  const countryLang = url.pathname.split("/")[1]?.toLowerCase();
-  const cookies = request.cookies;
-  const countryFromCookies = cookies.get("country")?.value?.toLowerCase();
-  const langFromCookies = cookies.get("lang")?.value?.toLowerCase();
 
   // 1- for url
   if (
@@ -178,6 +187,12 @@ export async function middleware(request) {
     defaultLocale = `${countryByIp}-en`;
     url.pathname = `/${defaultLocale}${url.pathname}`;
   } else {
+    if (url.pathname.split("/")[1].includes("-")) {
+      url.pathname = url.pathname.replace(url.pathname.split("/")[1], "gb-en");
+      url.searchParams.set("no-country", true);
+      return NextResponse.redirect(url);
+    } else {
+    }
     url.pathname = `/gb-en/${url.pathname}`;
     url.searchParams.set("no-country", true);
     return NextResponse.redirect(url);

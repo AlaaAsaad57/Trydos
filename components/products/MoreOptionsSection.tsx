@@ -1,9 +1,10 @@
 import { useParams } from "next/navigation";
-import { useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState } from "react";
 import home from "services/home";
-import { translateFunction } from "utils/functions";
-
+import { GetAppLanguage, translateFunction } from "utils/functions";
+import CheckIcon from "public/svg/CheckIcon.svg";
+import Spinner from "components/global/Spinner";
 function MoreOptionsSection() {
   let { lang } = useParams();
   // @ts-ignore
@@ -13,6 +14,9 @@ function MoreOptionsSection() {
   };
   const SelectedProduct = useSelector(
     (state: StateInterface) => state.cart.SelectedProduct
+  );
+  const firebasSettings = useSelector(
+    (state: StateInterface) => state.auth.firebaseSettings
   );
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -45,12 +49,40 @@ function MoreOptionsSection() {
       });
     }
   }, []);
-
-  let language = "en";
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
+  let language = GetAppLanguage();
+  const enableNotification = async (payload) => {
+    if (!loading) {
+      setLoading(true);
+      if (firebasSettings?.subscribed_topics.some((s) => s.topic === payload)) {
+        dispatch({ type: "DISABLE-NOTIFICATION", payload: payload });
+        await home.UnsubscripeFromTopic({ topic: payload });
+      } else {
+        dispatch({ type: "ENABLE-NOTIFICATION", payload: payload });
+        await home.subscribeToTopic({ topic: payload });
+      }
+      setLoading(false);
+    }
+  };
+  const checkIfTopicEnabled = (topic) => {
+    console.log(firebasSettings, topic);
+    return firebasSettings?.subscribed_topics.some((s) => {
+      return s.topic === topic;
+    });
+  };
   return (
     <div className="extended-section">
       <div className="extended-bar-top share-bar-top">
-        <span>{translate("More Options", language)}</span>
+        <span className="flex">
+          {translate("More Options", language)}
+
+          {loading && (
+            <span className="ml-1">
+              <Spinner />
+            </span>
+          )}
+        </span>
       </div>
       <div className="content-extended">
         <div className="Notify-button-container">
@@ -119,67 +151,70 @@ function MoreOptionsSection() {
           </div>
           <div id="slider-options" className="notify-row">
             <div
-              className="button-option"
+              className={`button-option ${
+                checkIfTopicEnabled(
+                  `product_before_stock_out_${SelectedProduct.id}`
+                ) && "bg-green-300"
+              }`}
               onClick={async () => {
-                let language_code = window.location.pathname
-                  .split("/")[1]
-                  .split("-")[1];
-                let country_code = window.location.pathname
-                  .split("/")[1]
-                  .split("-")[0];
-                await home.subscribeToTopic({
-                  topic: `product_before_stock_out_${SelectedProduct.id}`,
-                });
+                enableNotification(
+                  `product_before_stock_out_${SelectedProduct.id}`
+                );
               }}
             >
+              {checkIfTopicEnabled(
+                `product_before_stock_out_${SelectedProduct.id}`
+              ) && <CheckIcon className="mx-1" />}
               {translate("Before Stock Out", language)}
             </div>
-            <div className="button-option" onClick={async () => {
-              let language_code = window.location.pathname
-                .split("/")[1]
-                .split("-")[1];
-              let country_code = window.location.pathname
-                .split("/")[1]
-                .split("-")[0];
-              await home.subscribeToTopic({
-                topic: `product_when_change_in_price_${SelectedProduct.id}`,
-              });
-            }}>
+            <div
+              className={`button-option ${
+                checkIfTopicEnabled(
+                  `product_when_change_in_price_${SelectedProduct.id}`
+                ) && "bg-green-300"
+              }`}
+              onClick={() => {
+                enableNotification(
+                  `product_when_change_in_price_${SelectedProduct.id}`
+                );
+              }}
+            >
+              {checkIfTopicEnabled(
+                `product_when_change_in_price_${SelectedProduct.id}`
+              ) && <CheckIcon className="mx-1" />}
               {translate("Change In Price", language)}
             </div>
             <div
-              className="button-option"
-              onClick={async () => {
-                let language_code = window.location.pathname
-                  .split("/")[1]
-                  .split("-")[1];
-                let country_code = window.location.pathname
-                  .split("/")[1]
-                  .split("-")[0];
-                await home.subscribeToTopic({
-                  topic: `product_discount_${SelectedProduct.id}`,
-                });
+              className={`button-option ${
+                checkIfTopicEnabled(`product_discount_${SelectedProduct.id}`) &&
+                "bg-green-300"
+              }`}
+              onClick={() => {
+                enableNotification(`product_discount_${SelectedProduct.id}`);
               }}
             >
+              {checkIfTopicEnabled(
+                `product_discount_${SelectedProduct.id}`
+              ) && <CheckIcon className="mx-1" />}
               {translate("Discounts", language)}
             </div>
             <div
-              className="button-option"
+              className={`button-option ${
+                checkIfTopicEnabled(`product_comment_${SelectedProduct.id}`) &&
+                "bg-green-300"
+              }`}
               onClick={async () => {
-                let language_code = window.location.pathname
-                  .split("/")[1]
-                  .split("-")[1];
-                let country_code = window.location.pathname
-                  .split("/")[1]
-                  .split("-")[0];
-                await home.subscribeToTopic({
-                  topic: `product_comment_${SelectedProduct.id}`,
-                });
+                enableNotification(`product_comment_${SelectedProduct.id}`);
               }}
             >
+              {checkIfTopicEnabled(`product_comment_${SelectedProduct.id}`) && (
+                <CheckIcon className="mx-1" />
+              )}
               {translate("Follow Comments", language)}
             </div>
-            <div className="button-option">{translate("Offers", language)}</div>
+            <div className="button-option">
+              {translate("Offers", language)}( not Coded)
+            </div>
           </div>
         </div>
         <div className="more-options-button">

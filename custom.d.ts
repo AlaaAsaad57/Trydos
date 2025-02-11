@@ -2,6 +2,7 @@ declare global {
   interface StateInterface {
     homepage: {
       language: string;
+      country: string;
       countries: Array<{
         id: number;
         parent_id: number;
@@ -183,6 +184,7 @@ declare global {
           blurHeight: number;
         };
       };
+      firebaseSettings: any;
       Tempuser: {
         id: number;
         idToken: string;
@@ -846,6 +848,8 @@ declare global {
     };
     cart: {
       orderLoading: boolean;
+      payIframeURL: "string";
+      openPayIframe: boolean;
       cart: Array<any>;
       center: any;
       enable: boolean;
@@ -853,7 +857,6 @@ declare global {
         limit: number;
         offset: number;
         total_wallet_balance: number;
-        total_wallet_balance_formatted: string;
         total_wallet_transaction: number;
         wallet_transaction_list: Array<{
           id: number;

@@ -20,6 +20,9 @@ function SendMethod({
   setWrongNumber: Function;
   setMessageMethod: Function;
 }) {
+  const wrongNumber = useSelector(
+    (state: StateInterface) => state.auth.wrongNumber
+  );
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -38,6 +41,7 @@ function SendMethod({
   }) => {
     try {
       setLoading(true);
+      setWrongNumber(false);
       let errorCallbackFunc = (e) => errorCallback(e);
       await AuthService.SendOtp(
         mobilePhone,
@@ -48,7 +52,7 @@ function SendMethod({
       successCallback();
     } catch (error) {
       setLoading(false);
-      console.log(error);
+      // console.log(error);
       errorCallback();
       console.error("SendOtp failed:", error);
     }
@@ -381,6 +385,14 @@ function SendMethod({
             </div>
           </div>
         </div>
+        {wrongNumber && (
+          <div
+            className="blue-text"
+            style={{ color: "#ff5f61", fontSize: "12px", marginTop: "10px" }}
+          >
+            {wrongNumber || translate("Invalid Phone Number", language)}
+          </div>
+        )}
       </>
     </AnimatedComponent>
   );

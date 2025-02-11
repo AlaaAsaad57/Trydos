@@ -111,12 +111,7 @@ export const AxiosPost = async ({
           return res.data.data.firebase_settings;
         }
       }
-      if (
-        url.includes("store_firebase_settings") ||
-        url.includes("subscribe_topic")
-      ) {
-        return true;
-      }
+
       if (res?.data.isSuccessful) {
         if (
           url.includes("product_likes") ||

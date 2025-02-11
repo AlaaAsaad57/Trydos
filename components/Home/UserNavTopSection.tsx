@@ -12,7 +12,6 @@ import {
   useParams,
 } from "next/navigation";
 import Menu from "./Menu";
-import NotificationsTest from "components/global/NotificationsTest";
 
 interface UserNavTopSectionProps {
   loginOpen: boolean;

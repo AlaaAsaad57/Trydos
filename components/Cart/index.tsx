@@ -24,6 +24,7 @@ import OrderButton from "./OrderButton";
 import { AxiosPost } from "utils/AxiosApi";
 import { dispatchRouteChangeEvent } from "utils/events";
 import Spinner from "components/global/Spinner";
+import Timer from "components/Login/Timer";
 
 function CartContainer({ close, toOrders }) {
   let { lang } = useParams();
@@ -85,6 +86,7 @@ function CartContainer({ close, toOrders }) {
     (state: StateInterface) => state.details.product
   );
   const searchParams = useSearchParams();
+
   return (
     <div
       className={`flex-col ${
@@ -409,7 +411,9 @@ function CartContainer({ close, toOrders }) {
                             className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
                           />
                         </div>
-                        {(true || product.have_hurry_up_notify) && (
+                        {(true ||
+                          product.have_hurry_up_notify_time_left ||
+                          product?.have_hurry_up_notify_qty) && (
                           <div className="absolute left-2  text-[#A28E5B] text-[12px] bottom-[8px] pl-3 w-[95%] h-[32px] bg-[#FDFDEF] rounded-[5px] flex items-center">
                             <span className="ml-1">
                               <HurryIcon />
@@ -417,13 +421,43 @@ function CartContainer({ close, toOrders }) {
                             <span className="bold ml-1">
                               {translate("Hurry Up!", GetAppLanguage())}
                             </span>
-                            <span className="regular ml-1">
-                              {translate(
-                                "Quantity Running Out. ",
-                                GetAppLanguage()
-                              )}
-                            </span>
-                            <span className="bold">-20:00</span>
+                            {product?.have_hurry_up_notify_time_left && (
+                              <>
+                                <span className="regular ml-1">
+                                  {product.have_hurry_up_notify_time_left &&
+                                    translate(
+                                      "Quantity Running Out. ",
+                                      GetAppLanguage()
+                                    )}
+                                </span>
+
+                                <span className="bold">
+                                  -
+                                  <Timer
+                                    minutes={
+                                      product.have_hurry_up_notify_time_left
+                                    }
+                                    onFinish={() => {}}
+                                    onResume={() => {}}
+                                  />
+                                </span>
+                              </>
+                            )}
+                            {product?.have_hurry_up_notify_qty && (
+                              <>
+                                <span className="regular ml-1">
+                                  {product.have_hurry_up_notify_qty &&
+                                    translate(
+                                      "Quantity Running Out. ",
+                                      GetAppLanguage()
+                                    )}
+                                </span>
+
+                                <span className="bold">
+                                  -{product?.qty_left}
+                                </span>
+                              </>
+                            )}
                           </div>
                         )}
                       </NextLink>
@@ -1610,6 +1644,7 @@ const QuantutyInput = ({
         payload: { key: id, quantity: quantity },
       });
     } catch (error) {
+      setLoading(false);
       if (bool) {
         setInputValue(inputValue);
       } else {

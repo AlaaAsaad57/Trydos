@@ -122,8 +122,6 @@
   z-index: 2;
 }
 
-.descriptor-border g rect:not(:first-child) {}
-
 .product-descriptors-row {
   margin-top: 15px;
   user-select: none;
@@ -629,7 +627,7 @@
 }
 
 .enable-address-info {
-  height: 115px !important;
+  height: 170px !important;
 }
 
 .gray-address {

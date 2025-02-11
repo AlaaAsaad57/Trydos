@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "node_modules/react-redux/es";
 import React from "react";
-import { GetAppLanguage, translateFunction } from "utils/functions";
+import { GetAppLanguage, RoundPrice, translateFunction } from "utils/functions";
 
 function PlaceOrderButtons({ orderLoading, successOrder }) {
   const cart = useSelector((state: StateInterface) => state.cart);
@@ -149,7 +149,7 @@ function PlaceOrderButtons({ orderLoading, successOrder }) {
                 } `}
               >
                 {cart.cart.length} {translateFunction("items")}{" "}
-                {cart.total_cash} {currency_symbol?.symbol}
+                {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}
               </span>
             </>
           )}
@@ -188,7 +188,7 @@ const CheckBoxElement = ({ active }) => {
               id="Mask_Group_434"
               data-name="Mask Group 434"
               transform="translate(-50 -243.139)"
-              clip-path="url(#clip-pathCheck)"
+              clipPath="url(#clip-pathCheck)"
             >
               <g
                 id="Group_11944"
@@ -249,7 +249,7 @@ const CheckBoxElement = ({ active }) => {
               id="Mask_Group_434"
               data-name="Mask Group 434"
               transform="translate(-50 -243.139)"
-              clip-path="url(#clip-pathCheck)"
+              clipPath="url(#clip-pathCheck)"
             >
               <g
                 id="Group_11944"
