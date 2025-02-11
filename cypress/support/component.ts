@@ -32,6 +32,7 @@ declare global {
       Visit(value: string): void;
       Exist(selector: string): Promise<boolean>;
       clearAllData(): Chainable<void>;
+      logout(): Chainable<void>;
       clearAllDataWithoutCookies(): Chainable<void>;
       clearAllDataWithoutSessionStorage(): Chainable<void>;
       (): Chainable<void>;
