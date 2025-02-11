@@ -6,6 +6,7 @@ import Skeleton from "react-loading-skeleton";
 import { useSelector } from "react-redux";
 import { AxiosPost } from "utils/AxiosApi";
 import { AddComment } from "models/Api";
+import { UserID } from "utils/functions";
 
 function Comments({
   comments,
@@ -27,7 +28,7 @@ function Comments({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/product_comment",
         title: "resend add Comment For Product",
         body: {
-          customer_id: user?.id,
+          customer_id: UserID(),
           product_id: productId,
           comment: s,
         },

@@ -2,7 +2,7 @@ import { AddComment } from "models/Api";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { AxiosPost } from "utils/AxiosApi";
-import { Sendevent } from "utils/functions";
+import { Sendevent, UserID } from "utils/functions";
 
 function CommentBar({
   product,
@@ -34,20 +34,18 @@ function CommentBar({
   const addComment = async (s) => {
     let mid = Math.round(Math.random() * 1000);
     try {
-      setVal("");
-
       addCommentAction({
         comment: s,
         customer: { id: user.id, name: user.name },
         created_at: new Date().toISOString(),
         mid: mid,
       });
-
+      setVal("");
       let req: AddComment = await AxiosPost({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/product_comment",
         title: "add comment For Product",
         body: {
-          customer_id: user?.id,
+          customer_id: UserID(),
           product_id: product?.id,
           comment: s,
         },
