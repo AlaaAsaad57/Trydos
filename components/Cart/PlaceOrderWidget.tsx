@@ -1,5 +1,4 @@
 import { useSelector } from "node_modules/react-redux/es";
-import React from "react";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import OrderCartIcon from "public/svg/cart/orderCartIcon.svg";
 import FreeShippingIcon from "public/svg/product/FreeShipping.svg";
@@ -220,11 +219,10 @@ const AddressOrder = () => {
         style={{
           border: "#C4C2C28c 1px solid",
         }}
-        className={`flex-col  ${
-          addressLists?.length === 0
+        className={`flex-col  ${addressLists?.length === 0
             ? "items-center h-[84px]   py-[12px]"
             : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
-        } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
+          } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
       >
         <>
           <div className="flex-col">
@@ -474,6 +472,7 @@ const PaymentOrder = () => {
   );
 };
 const TryDosWalletInput = () => {
+  const wallet = useSelector((state: StateInterface) => state.cart.wallet);
   return (
     <div
       className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
@@ -492,7 +491,7 @@ const TryDosWalletInput = () => {
           {translateFunction("Your Balance")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          788 USD
+          {wallet?.total_wallet_balance_formatted}
         </span>
       </div>
     </div>
