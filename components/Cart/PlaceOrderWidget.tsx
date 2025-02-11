@@ -523,7 +523,7 @@ const TryDosWalletInput = () => {
           {translateFunction("Your Balance")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {wallet?.total_wallet_balance_formatted}
+          {RoundPrice({ num: wallet?.total_wallet_balance })}
         </span>
       </div>
     </div>
