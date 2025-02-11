@@ -1,7 +1,7 @@
 import { useParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { translateFunction } from "utils/functions";
+import { RoundPrice, translateFunction } from "utils/functions";
 import WalletIcon from "assets/svg/cart/WalletIcon.svg";
 import CreditIcon from "assets/svg/cart/CreditIcon.svg";
 import PaymentIconOne from "assets/svg/cart/Payment/DimondPay.svg";
@@ -453,7 +453,7 @@ const CODInput = ({ active, setActive }) => {
           {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {total}    {currency_symbol?.symbol}
+          {RoundPrice({ num: total })}    {currency_symbol?.symbol}
         </span>
       </div>
     </div>
