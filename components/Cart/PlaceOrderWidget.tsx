@@ -1,6 +1,5 @@
 import { useSelector } from "node_modules/react-redux/es";
-import React from "react";
-import { getConfiguredImage, translateFunction } from "utils/functions";
+import { getConfiguredImage, RoundPrice, translateFunction } from "utils/functions";
 import OrderCartIcon from "public/svg/cart/orderCartIcon.svg";
 import FreeShippingIcon from "public/svg/product/FreeShipping.svg";
 import WalletIcon from "assets/svg/cart/WalletIcon.svg";
@@ -220,11 +219,10 @@ const AddressOrder = () => {
         style={{
           border: "#C4C2C28c 1px solid",
         }}
-        className={`flex-col  ${
-          addressLists?.length === 0
-            ? "items-center h-[84px]   py-[12px]"
-            : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
-        } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
+        className={`flex-col  ${addressLists?.length === 0
+          ? "items-center h-[84px]   py-[12px]"
+          : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
+          } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
       >
         <>
           <div className="flex-col">
@@ -449,6 +447,9 @@ const PaymentOrder = () => {
             "Please Choose Your Payment Method About Your Bag"
           )}
         </div>
+        {orderData.payment.filter((s) => s.id === 0).length > 0 && (
+          <CODInput />
+        )}
         {orderData.payment.filter((s) => s.id === 1).length > 0 && (
           <TryDosWalletInput />
         )}
@@ -473,7 +474,37 @@ const PaymentOrder = () => {
     </div>
   );
 };
+const CODInput = () => {
+  const total = useSelector((state: StateInterface) => state.cart.total_cash);
+  const currency_symbol = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  );
+  return (
+    <div
+      className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
+      style={{
+        border: "#C4C2C28c 1px soild",
+      }}
+    >
+      <div className="flex-row items-center">
+        <WalletIcon />
+        <span className={`ml-[8px]  ${"text-[#1D1D1D]"} regular text-[12px]`}>
+          {translateFunction("Cash On Delivery")}
+        </span>
+      </div>
+      <div className="flex-row items-center">
+        <span className="text-[#D3D3D3] regular text-[12px]">
+          {translateFunction("Total")}
+        </span>
+        <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
+          {RoundPrice({ num: total })}  {currency_symbol?.symbol}
+        </span>
+      </div>
+    </div>
+  );
+};
 const TryDosWalletInput = () => {
+  const wallet = useSelector((state: StateInterface) => state.cart.wallet);
   return (
     <div
       className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
@@ -492,7 +523,7 @@ const TryDosWalletInput = () => {
           {translateFunction("Your Balance")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          788 USD
+          {RoundPrice({ num: wallet?.total_wallet_balance })}
         </span>
       </div>
     </div>

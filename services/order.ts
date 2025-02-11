@@ -3,14 +3,14 @@ import { store } from "store";
 import { GetAddressListApi, GetWalletApi, PlaceOrderApi } from "models/Api";
 
 class OrderService {
-  async PlaceOrder({ payment_method }) {
+  async PlaceOrder({ payment_method, pay_by_wallet }) {
     let addressId = store.getState().cart.addressLists[0]?.id;
     try {
       store.dispatch({ type: "ORDER-LOADING", payload: true });
       let data: PlaceOrderApi = await AxiosPost({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/customer/order/checkout/${payment_method}?order_note=order note&address_id=${addressId}`,
+          `/customer/order/checkout/${payment_method}?order_note=order note&address_id=${addressId}&pay_by_wallet=${pay_by_wallet ? 1 : 0}`,
         title: "pay Order",
         body: ""
       });

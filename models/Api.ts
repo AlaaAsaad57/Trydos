@@ -812,7 +812,6 @@ export interface GetWalletApi {
   limit: number;
   offset: number;
   total_wallet_balance: number;
-  total_wallet_balance_formatted: string;
   total_wallet_transaction: number;
   wallet_transaction_list: Array<{
     id: number;
