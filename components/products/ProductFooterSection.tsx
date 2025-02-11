@@ -200,6 +200,9 @@ function ProductFooterSection({ product }) {
   const currency = useSelector(
     (state: StateInterface) => state.homepage.currency
   ) || { exchange_rate: 1, symbol: "" };
+  let AddToCartOption = useSelector(
+    (state: StateInterface) => state.cart.AddToCartOption
+  );
   const getPrice = (num) => {
     if (
       decimal_point_settings &&
@@ -250,8 +253,16 @@ function ProductFooterSection({ product }) {
           <ProductDetails />
           <ProductInfo
             currency={currency?.symbol}
-            newPrice={getPrice(product?.offer_price)}
-            oldPrice={getPrice(product.price)}
+            newPrice={
+              (AddToCartOption.price?.offer_price &&
+                getPrice(AddToCartOption?.price?.offer_price)) ||
+              getPrice(product?.offer_price)
+            }
+            oldPrice={
+              (AddToCartOption.price?.price &&
+                getPrice(AddToCartOption?.price?.price)) ||
+              getPrice(product.price)
+            }
           />
           {
             <ExtendedAreaInfo

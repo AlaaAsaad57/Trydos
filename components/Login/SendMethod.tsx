@@ -20,6 +20,9 @@ function SendMethod({
   setWrongNumber: Function;
   setMessageMethod: Function;
 }) {
+  const wrongNumber = useSelector(
+    (state: StateInterface) => state.auth.wrongNumber
+  );
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -381,6 +384,14 @@ function SendMethod({
             </div>
           </div>
         </div>
+        {wrongNumber && (
+          <div
+            className="blue-text"
+            style={{ color: "#ff5f61", fontSize: "12px", marginTop: "10px" }}
+          >
+            {wrongNumber || translate("Invalid Phone Number", language)}
+          </div>
+        )}
       </>
     </AnimatedComponent>
   );

@@ -27,9 +27,7 @@ function AddAddressForm({
   const setCenter = (e) => {
     dispatch({ type: "MAP-CENTER", payload: e });
   };
-  useEffect(() => {
-    getCenter();
-  }, []);
+
   const addressDetails = useSelector(
     (state: StateInterface) => state.cart.addressDetails
   );
@@ -46,8 +44,8 @@ function AddAddressForm({
       (s) => s.iso.toLowerCase() === lang.split("-")[0].toLowerCase()
     )[0];
     setCenter({
-      lat: parseFloat(UserCountries.latitude),
-      lng: parseFloat(UserCountries.longitude),
+      lat: parseFloat(UserCountries?.latitude),
+      lng: parseFloat(UserCountries?.longitude),
     });
   };
   const isValid = () => {
@@ -87,6 +85,12 @@ function AddAddressForm({
   const orderLoading = useSelector(
     (state: StateInterface) => state.cart.orderLoading
   );
+  useEffect(() => {
+    if (countries.length > 0) {
+      getCenter();
+    } else {
+    }
+  }, [countries]);
   return (
     <>
       <div

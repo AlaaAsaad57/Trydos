@@ -32,16 +32,16 @@ function PaymentMethod() {
   const setOrderData = (e) => {
     dispatch({ type: "ORDER-DATA", payload: e });
   };
-  const totalBalance = () => {
-    let val = 0;
-    orderData.payment.map((s) => {
-      val += s.balance;
-    });
-    return val;
-  };
-  const isBalanceEnough = () => {
-    return totalBalance() >= cart.total_cash;
-  };
+  // const totalBalance = () => {
+  //   let val = 0;
+  //   orderData.payment.map((s) => {
+  //     val += s.balance;
+  //   });
+  //   return val;
+  // };
+  // const isBalanceEnough = () => {
+  //   return totalBalance() >= cart.total_cash;
+  // };
   return (
     <>
       <div className="px-[12px] flex-col">

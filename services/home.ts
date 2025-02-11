@@ -219,6 +219,31 @@ class HomeService {
       }
     }
   }
+  async RequestFireBase() {
+    await requestFirebaseNotificationPermission().then(async (token) => {
+      let language_code = window.location.pathname.split("/")[1].split("-")[1];
+      let country_code = window.location.pathname.split("/")[1].split("-")[0];
+      // @ts-ignore
+      if (token) {
+        localStorage.setItem("FB-DEVICE-TOKEN", token);
+        setTimeout(async () => {
+          if (UserToken()) {
+            await AxiosPost({
+              url:
+                process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
+              body: {
+                device_token: token,
+                user_id: UserID(),
+                auth_token: UserToken(),
+              },
+              title: "register firebase token",
+            });
+          }
+        }, 2000);
+        // ininit
+      }
+    });
+  }
   async CheckLogin() {
     if (!localStorage.getItem("FB-DEVICE-TOKEN")) await this.RegisterDevice();
     if (
@@ -258,29 +283,7 @@ class HomeService {
       }
       this.RegisterDevice();
     }
-    await requestFirebaseNotificationPermission().then(async (token) => {
-      let language_code = window.location.pathname.split("/")[1].split("-")[1];
-      let country_code = window.location.pathname.split("/")[1].split("-")[0];
-      // @ts-ignore
-      if (token) {
-        localStorage.setItem("FB-DEVICE-TOKEN", token);
-        setTimeout(async () => {
-          if (UserToken()) {
-            await AxiosPost({
-              url:
-                process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
-              body: {
-                device_token: token,
-                user_id: UserID(),
-                auth_token: UserToken(),
-              },
-              title: "register firebase token",
-            });
-          }
-        }, 2000);
-        // ininit
-      }
-    });
+    await this.RequestFireBase();
     typeof window !== "undefined" &&
       "serviceWorker" in navigator &&
       onMessageListener()
@@ -347,6 +350,7 @@ class HomeService {
             phone: "guest",
             // other custom properties
           });
+          await this.RequestFireBase();
         }
         store.dispatch({ type: "IS-REGISTERING", payload: true });
         if (typeof window !== "undefined") {
@@ -737,7 +741,7 @@ class HomeService {
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_boutique_created",
       {
-        boutique_id: 66,
+        boutique_id: 144,
         topic: "boutique_created",
         language_code: GetAppLanguage(),
         country_iso: GetAppCountry(),
@@ -750,7 +754,11 @@ class HomeService {
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_product_cart_expiration",
 
-      { product_id: 7681, language_code: GetAppLanguage() },
+      {
+        product_id: 7681,
+        language_code: GetAppLanguage(),
+        country_iso: GetAppCountry(),
+      },
       { ...getHeader() }
     );
   }
