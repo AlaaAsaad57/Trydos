@@ -25,8 +25,10 @@ function ExtendedAreaInfo({
   verifyCommentAction,
   colors,
   loading,
+  getComments,
 }: {
   option: string;
+  getComments: () => void;
   loading: boolean;
   active: boolean;
   sharedContacts: Array<number>;
@@ -90,6 +92,9 @@ function ExtendedAreaInfo({
         </svg>
         {option === "Comment" && (
           <CommentSection
+            getComments={async () => {
+              await getComments();
+            }}
             increase_comments={() => increase_comments()}
             product={product}
             Render={Render}

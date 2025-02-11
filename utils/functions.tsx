@@ -141,6 +141,15 @@ export const UserID = () => {
     false
   );
 };
+export const User = () => {
+  return (
+    (localStorage.getItem("USER") &&
+      JSON.parse(localStorage.getItem("USER"))) ||
+    (localStorage.getItem("guest-user") &&
+      JSON.parse(localStorage.getItem("guest-user"))) ||
+    false
+  );
+};
 export const getUserStories = () => {
   return (
     localStorage.getItem("USER-STORIES") &&

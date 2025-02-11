@@ -2,7 +2,7 @@ import { AddComment } from "models/Api";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { AxiosPost } from "utils/AxiosApi";
-import { Sendevent, UserID } from "utils/functions";
+import { Sendevent, User, UserID } from "utils/functions";
 
 function CommentBar({
   product,
@@ -30,7 +30,7 @@ function CommentBar({
     ErrorAccure(mid);
   };
   const [val, setVal] = useState("");
-  const user = useSelector((state: StateInterface) => state.auth.user);
+  const user = User();
   const addComment = async (s) => {
     let mid = Math.round(Math.random() * 1000);
     try {
@@ -67,12 +67,14 @@ function CommentBar({
           // @ts-ignore
           if ((e.key === "Enter" || e.keyCode === "13") && !e.shiftKey) {
             e.preventDefault();
+
+            // @ts-ignore
+            addComment(e.target.value);
+            e.currentTarget.style.height = "auto";
             Sendevent({
               event: "button_clicked",
               value: "confirm_comment_button",
             });
-            addComment(val);
-            e.currentTarget.style.height = "auto";
           }
         }}
         onInput={(e) => {

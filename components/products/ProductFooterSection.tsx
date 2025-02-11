@@ -101,7 +101,22 @@ function ProductFooterSection({ product }) {
     dispatch({ type: "setComments", payload: s });
   };
   const [option, setOption] = useState("");
-
+  const getComments = async () => {
+    let req: LikesSharesCommentsApi = await AxiosGet({
+      url:
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/web/product/likesCommentsSharesDetails/" +
+        product.slug,
+      title: "Like & Comments Data Request",
+    });
+    setProductData({
+      ...productState.productDetails,
+      // @ts-ignore
+      comment_count: req?.comments_count || 0,
+      // @ts-ignore
+      comments: req?.comments || [],
+    });
+  };
   const dispatchStore = useDispatch();
   const [sharedContacts, setShareContacts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -267,6 +282,7 @@ function ProductFooterSection({ product }) {
           {
             <ExtendedAreaInfo
               loading={loading}
+              getComments={async () => await getComments()}
               Render={productState?.Render}
               colors={product.sync_color_images}
               verifyCommentAction={(mid) =>

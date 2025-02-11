@@ -45,6 +45,9 @@ function Comments({
       ErrorAccure(mid);
     }
   };
+  // useEffect(() => {
+  //   console.log(CommentsData, comments);
+  // }, []);
   return (
     <div className="content-extended comments-extended">
       {/* <CommentItem
