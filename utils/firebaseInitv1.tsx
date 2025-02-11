@@ -12,6 +12,7 @@ import Category from "components/Notifications/Category";
 import ProductAvailable from "components/Notifications/ProductAvailable";
 import "firebase/analytics";
 import { initializeAnalytics, isSupported } from "firebase/analytics";
+import ProductHurryUp from "components/Notifications/ProductHurry.jsx";
 const firebaseConfig = {
   // apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
   // authDomain: "trydos-ce234.firebaseapp.com",
@@ -66,6 +67,13 @@ export const onMessageListener = async () => {
       console.log(payload);
       if (payload.data.title === "market") {
         const data = JSON.parse(payload.data.body);
+        if (JSON.parse(payload.data.body)?.type?.imcludes("product hurry up")) {
+          const toaster = (myProps, toastProps): Id =>
+            toast(<ProductHurryUp {...myProps} />, { ...toastProps });
+          toaster.info = (myProps, toastProps): Id =>
+            toast.info(<ProductHurryUp {...myProps} />, { ...toastProps });
+          toaster.info({ data: data }, { data: data });
+        }
         if (JSON.parse(payload.data.body).type === "boutique created") {
           const toaster = (myProps, toastProps): Id =>
             toast(<Boutique {...myProps} />, { ...toastProps });

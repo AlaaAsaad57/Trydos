@@ -40,10 +40,14 @@ messaging.onBackgroundMessage(async function (payload) {
           image: JSON.parse(payload?.data.body)?.banner[0]?.file_path,
           data: {
             url:
-              url + `/boutiques/${JSON.parse(payload?.data.body)?.boutique_slug}`,
+              url +
+              `/boutiques/${JSON.parse(payload?.data.body)?.boutique_slug}`,
           }, // The URL which we are going to use later
         };
-        self.registration.showNotification(JSON.parse(payload?.data.body)?.showed_type ?? "New Boutique", notificationOptions);
+        self.registration.showNotification(
+          JSON.parse(payload?.data.body)?.showed_type ?? "New Boutique",
+          notificationOptions
+        );
       }
       if (JSON.parse(payload.data.body).type === "category created") {
         notificationOptions = {
@@ -53,11 +57,15 @@ messaging.onBackgroundMessage(async function (payload) {
           data: {
             url:
               url +
-              `boutiques/listing?categories=${JSON.parse(payload?.data.body).category_slug
+              `boutiques/listing?categories=${
+                JSON.parse(payload?.data.body).category_slug
               }`,
           }, // The URL which we are going to use later
         };
-        self.registration.showNotification(JSON.parse(payload?.data.body)?.showed_type ?? "New Category", notificationOptions);
+        self.registration.showNotification(
+          JSON.parse(payload?.data.body)?.showed_type ?? "New Category",
+          notificationOptions
+        );
       }
       if (JSON.parse(payload.data.body).type === "product cart expiration") {
         notificationOptions = {
@@ -67,7 +75,8 @@ messaging.onBackgroundMessage(async function (payload) {
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
-          JSON.parse(payload?.data.body)?.showed_type ?? "product cart expiration",
+          JSON.parse(payload?.data.body)?.showed_type ??
+            "product cart expiration",
           notificationOptions
         );
       }
@@ -84,6 +93,19 @@ messaging.onBackgroundMessage(async function (payload) {
           notificationOptions
         );
       }
+      if (JSON.parse(payload.data.body).type?.includes("product hurry up")) {
+        notificationOptions = {
+          body: JSON.parse(payload.data.body).description,
+          image: JSON.parse(payload.data.body).image,
+          data: {
+            url: url + `?cart=true`,
+          }, // The URL which we are going to use later
+        };
+        self.registration.showNotification(
+          JSON.parse(payload?.data.body)?.showed_type,
+          notificationOptions
+        );
+      }
       if (JSON.parse(payload.data.body).type === "product discount") {
         notificationOptions = {
           body: JSON.parse(payload.data.body)?.description,
@@ -93,7 +115,8 @@ messaging.onBackgroundMessage(async function (payload) {
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
-          JSON.parse(payload?.data.body)?.showed_type ?? JSON.parse(payload.data.body).description,
+          JSON.parse(payload?.data.body)?.showed_type ??
+            JSON.parse(payload.data.body).description,
           notificationOptions
         );
       }
@@ -106,7 +129,8 @@ messaging.onBackgroundMessage(async function (payload) {
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
-          JSON.parse(payload?.data.body)?.showed_type ?? JSON.parse(payload.data.body).description,
+          JSON.parse(payload?.data.body)?.showed_type ??
+            JSON.parse(payload.data.body).description,
           notificationOptions
         );
       }
@@ -119,11 +143,14 @@ messaging.onBackgroundMessage(async function (payload) {
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
-          JSON.parse(payload?.data.body)?.showed_type ?? JSON.parse(payload.data.body).description,
+          JSON.parse(payload?.data.body)?.showed_type ??
+            JSON.parse(payload.data.body).description,
           notificationOptions
         );
       }
-      if (JSON.parse(payload.data.body).type === "product when change in price") {
+      if (
+        JSON.parse(payload.data.body).type === "product when change in price"
+      ) {
         notificationOptions = {
           body: JSON.parse(payload.data.body)?.description,
           image: JSON.parse(payload.data.body).image,
@@ -132,7 +159,8 @@ messaging.onBackgroundMessage(async function (payload) {
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
-          JSON.parse(payload?.data.body)?.showed_type ?? JSON.parse(payload.data.body).description,
+          JSON.parse(payload?.data.body)?.showed_type ??
+            JSON.parse(payload.data.body).description,
           notificationOptions
         );
       }
