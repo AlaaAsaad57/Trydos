@@ -122,9 +122,6 @@
   z-index: 2;
 }
 
-.descriptor-border g rect:not(:first-child) {
-}
-
 .product-descriptors-row {
   margin-top: 15px;
   user-select: none;
