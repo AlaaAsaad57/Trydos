@@ -52,7 +52,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
       }`;
       window.location.search = "?selected=true";
       window.location.pathname = `/${newPath}`;
-    }, 2000);
+    }, 1000);
   };
   useEffect(() => {
     if (countries?.length > 0) {

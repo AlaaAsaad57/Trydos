@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 import CartProvider from "components/Cart/CartProvider";
 import Smartlook from "smartlook-client";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import PopupCountry from "utils/PopupCountry";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 // import { getCountriesApi } from "./homepage/cachedActions";
@@ -106,6 +106,7 @@ export default function Providers({ children }) {
     };
   }, []);
   const searchParams = useSearchParams();
+  const { lang } = useParams();
   useEffect(() => {
     if (shouldShowBluredInfo()) {
       getCountries();
@@ -118,7 +119,11 @@ export default function Providers({ children }) {
     setCountriesData(data.data.data.countries);
   };
   const shouldShowBluredInfo = () => {
-    if (searchParams.get("changed-country") || searchParams.get("no-country")) {
+    if (
+      lang?.includes("gb") ||
+      searchParams.get("changed-country") ||
+      searchParams.get("no-country")
+    ) {
       return true;
     } else {
       return false;
