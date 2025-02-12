@@ -35,7 +35,7 @@
 // }// Custom command to visit a URL with overridden Notification permissions
 Cypress.Commands.add("Visit", function (url: string) {
   cy.intercept("GET", "**/api/new_v1/countries").as("CountriesApi");
-  cy.intercept("GET", "**/api/new_v1/countries").as("CountriesApi");
+
   cy.visit(url, {
     onBeforeLoad(win) {
       // @ts-ignore
@@ -46,7 +46,7 @@ Cypress.Commands.add("Visit", function (url: string) {
   });
   cy.url().then((ur) => {
     // @ts-ignore
-    if (ur.includes("no-country")) {
+    if (ur.includes("-country")) {
       cy.wait("@CountriesApi").then((i) => {
         console.log("sahsahj", i);
         if (i) {
@@ -59,9 +59,6 @@ Cypress.Commands.add("Visit", function (url: string) {
 });
 
 Cypress.Commands.add("clearAllData", () => {
-  // cy.clearAllCookies();
-  // cy.clearAllLocalStorage();
-  // cy.clearAllSessionStorage();
   cy.logout();
 });
 Cypress.Commands.add("logout", () => {
