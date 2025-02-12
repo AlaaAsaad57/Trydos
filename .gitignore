@@ -6,13 +6,14 @@
 .pnp.js
 
 # testing
-/coverage
-.nyc_output
+/coverage/*
+.nyc_output/*
 /cypress/reports/videos/*
 /cypress/reports
 /cypress/videos
 /cypress/screenshots
-/public/reports/videos
+/public/reports/videos/*
+/public/reports/*
 # next.js
 /.next/
 /out/
