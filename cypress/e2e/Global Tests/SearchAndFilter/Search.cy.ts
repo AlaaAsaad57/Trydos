@@ -3,7 +3,7 @@ describe("search and filter in search page", () => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
     });
-    cy.clearAllData();
+    // cy.clearAllData();
     cy.Visit("/");
     cy.wait(5000);
   });

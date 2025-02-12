@@ -5,7 +5,7 @@ describe("open cart and view products", () => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
     });
-    cy.clearAllData();
+    // cy.clearAllData();
     cy.Visit("/");
     cy.wait(5000);
   });
