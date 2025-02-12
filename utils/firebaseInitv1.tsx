@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
-import { getMessaging, getToken, onMessage } from "firebase/messaging";
+import { deleteToken, getMessaging, getToken, onMessage } from "firebase/messaging";
 import { store } from "../store/index.jsx";
 import { getUserChat } from "./functions";
 import { GetChats, Recive } from "store/chat/actions";
@@ -44,10 +44,24 @@ export const analytics =
     : null;
 
 export const requestFirebaseNotificationPermission = async () => {
+  const tokenExpiry = localStorage.getItem("FBTokenExpiry");
+  const tokenDate = tokenExpiry ? new Date(tokenExpiry) : null;
+  const nowDate = new Date();
+
+  // Check if tokenDate exists and is older than 1 day
+  if (tokenDate && (nowDate.getTime() - tokenDate.getTime()) > 24 * 60 * 60 * 1000) {
+    console.log("FCM token is older than 1 day. Refreshing...");
+    await deleteToken(messaging); // Delete old token
+  }
+
   return getToken(messaging)
     .then((currentToken) => {
       if (currentToken) {
         store.dispatch({ type: "Notification", payload: true });
+
+        // Store the new token expiry date in localStorage
+        localStorage.setItem("FBTokenExpiry", nowDate.toISOString());
+
         return currentToken;
         // Track the token -> client mapping, by sending to backend server
         // show on the UI that permission is secured
@@ -60,6 +74,7 @@ export const requestFirebaseNotificationPermission = async () => {
       console.error(err);
     });
 };
+
 export const onMessageListener = async () => {
   const { toast } = await import("react-toastify");
   return new Promise((resolve) => {
@@ -178,41 +193,41 @@ export const onMessageListener = async () => {
                 (ch) => parseInt(ch.id) === parseInt(data.channelId)
               )[0]
               ? store
-                  .getState()
-                  .chat.data.filter(
-                    (ch) => parseInt(ch.id) === parseInt(data.channelId)
-                  )[0]
+                .getState()
+                .chat.data.filter(
+                  (ch) => parseInt(ch.id) === parseInt(data.channelId)
+                )[0]
               : {
-                  id: JSON.parse(payload.data.data).message.channel.id,
-                  messages: [
-                    {
-                      ...JSON.parse(payload.data.data).message,
-                      message_type: { name: "VoiceCall" },
+                id: JSON.parse(payload.data.data).message.channel.id,
+                messages: [
+                  {
+                    ...JSON.parse(payload.data.data).message,
+                    message_type: { name: "VoiceCall" },
+                  },
+                ],
+                channel_members: [
+                  {
+                    user_id: data.user_id,
+                    user: {
+                      id: data.user_id,
+                      name: JSON.parse(payload.data.data).message.channel
+                        .channel_name,
+                      photo_path: JSON.parse(payload.data.data).message
+                        .channel.photo_path,
                     },
-                  ],
-                  channel_members: [
-                    {
-                      user_id: data.user_id,
-                      user: {
-                        id: data.user_id,
-                        name: JSON.parse(payload.data.data).message.channel
-                          .channel_name,
-                        photo_path: JSON.parse(payload.data.data).message
-                          .channel.photo_path,
-                      },
-                      mute: 0,
-                      pin: 0,
-                      archived: 0,
-                    },
-                    {
-                      mute: 0,
-                      pin: 0,
-                      archived: 0,
-                      user_id: getUserChat()?.id,
-                      user: getUserChat(),
-                    },
-                  ],
-                };
+                    mute: 0,
+                    pin: 0,
+                    archived: 0,
+                  },
+                  {
+                    mute: 0,
+                    pin: 0,
+                    archived: 0,
+                    user_id: getUserChat()?.id,
+                    user: getUserChat(),
+                  },
+                ],
+              };
             let caller = { ...JSON.parse(payload.data.data).message.channel };
 
             if (
@@ -294,41 +309,41 @@ export const onMessageListener = async () => {
                 (ch) => parseInt(ch.id) === parseInt(data.channelId)
               )[0]
               ? store
-                  .getState()
-                  .chat.data.filter(
-                    (ch) => parseInt(ch.id) === parseInt(data.channelId)
-                  )[0]
+                .getState()
+                .chat.data.filter(
+                  (ch) => parseInt(ch.id) === parseInt(data.channelId)
+                )[0]
               : {
-                  id: JSON.parse(payload.data.data).message.channel.id,
-                  messages: [
-                    {
-                      ...JSON.parse(payload.data.data).message,
-                      message_type: { name: "VideoCall" },
+                id: JSON.parse(payload.data.data).message.channel.id,
+                messages: [
+                  {
+                    ...JSON.parse(payload.data.data).message,
+                    message_type: { name: "VideoCall" },
+                  },
+                ],
+                channel_members: [
+                  {
+                    user_id: data.user_id,
+                    user: {
+                      id: data.user_id,
+                      name: JSON.parse(payload.data.data).message.channel
+                        .channel_name,
+                      photo_path: JSON.parse(payload.data.data).message
+                        .channel.photo_path,
                     },
-                  ],
-                  channel_members: [
-                    {
-                      user_id: data.user_id,
-                      user: {
-                        id: data.user_id,
-                        name: JSON.parse(payload.data.data).message.channel
-                          .channel_name,
-                        photo_path: JSON.parse(payload.data.data).message
-                          .channel.photo_path,
-                      },
-                      mute: 0,
-                      pin: 0,
-                      archived: 0,
-                    },
-                    {
-                      mute: 0,
-                      pin: 0,
-                      archived: 0,
-                      user_id: getUserChat()?.id,
-                      user: getUserChat(),
-                    },
-                  ],
-                };
+                    mute: 0,
+                    pin: 0,
+                    archived: 0,
+                  },
+                  {
+                    mute: 0,
+                    pin: 0,
+                    archived: 0,
+                    user_id: getUserChat()?.id,
+                    user: getUserChat(),
+                  },
+                ],
+              };
             let caller = { ...JSON.parse(payload.data.data).message.channel };
             if (
               data.user_id !== getUserChat()?.id &&
