@@ -1,4 +1,3 @@
-import { useState } from "react";
 import home from "services/home";
 import { useSelector } from "react-redux";
 
@@ -18,6 +17,17 @@ function NotificationsTest() {
             <div
               className="p-2 flex justify-center items-center bg-slate-800 cursor-pointer text-[#fafafa] rounded-md"
               onClick={() => home.TestNotificationBoutique({ boutique_id: 66 })}
+            >
+              Test
+            </div>
+          </div>
+          <div className="flex-row justify-between p-3">
+            <span className="test text-[#000000]">
+              product has discount (should open product details) (done)
+            </span>
+            <div
+              className="p-2 flex justify-center items-center bg-slate-800 cursor-pointer text-[#fafafa] rounded-md"
+              onClick={() => home.TestNotificationProductDiscount()}
             >
               Test
             </div>
@@ -78,7 +88,7 @@ function NotificationsTest() {
             </div>
           </div>
           <div className="flex-row justify-between p-3">
-            <span className="test">
+            <span className="test text-[#000000]">
               {" "}
               if products in wishlist or old cart or cart has new comment or
               buyer cammera (should open product details)
@@ -93,7 +103,7 @@ function NotificationsTest() {
             </div>
           </div>
           <div className="flex-row justify-between p-3">
-            <span className="test">
+            <span className="test text-[#000000]">
               new category added(should open category que page product listing
               filtered by category ) (done)
             </span>
@@ -107,7 +117,7 @@ function NotificationsTest() {
             </div>
           </div>
           <div className="flex-row justify-between p-3">
-            <span className="test">before stock out product</span>
+            <span className="test text-[#000000]">before stock out product</span>
             <div
               className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md"
               onClick={() => {
@@ -118,7 +128,7 @@ function NotificationsTest() {
             </div>
           </div>
           <div className="flex-row justify-between p-3">
-            <span className="test">if Product Change In Price</span>
+            <span className="test text-[#000000]">if Product Change In Price</span>
             <div
               className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md"
               onClick={() => {

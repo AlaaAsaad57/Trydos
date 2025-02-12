@@ -447,16 +447,16 @@ const PaymentOrder = () => {
             "Please Choose Your Payment Method About Your Bag"
           )}
         </div>
-        {orderData.payment.filter((s) => s.id === 0).length > 0 && (
+        {orderData?.payment?.filter((s) => s.id === 0).length > 0 && (
           <CODInput />
         )}
-        {orderData.payment.filter((s) => s.id === 1).length > 0 && (
+        {orderData?.payment?.filter((s) => s.id === 1).length > 0 && (
           <TryDosWalletInput />
         )}
-        {orderData.payment.filter((s) => s.id === 2).length > 0 && (
+        {orderData?.payment?.filter((s) => s.id === 2).length > 0 && (
           <CreditInput />
         )}
-        {orderData.payment.filter((s) => s.id === 3).length > 0 && (
+        {orderData?.payment?.filter((s) => s.id === 3).length > 0 && (
           <CryptoInput />
         )}
       </div>
