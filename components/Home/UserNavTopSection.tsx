@@ -140,6 +140,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
       )}
       <div
         className="flex flex-row"
+        data-cy="avatar-options"
         onClick={() => setMenuOpen(!menuOpen)}
         style={{ marginLeft: "10px", cursor: "pointer" }}
       >

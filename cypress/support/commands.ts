@@ -35,6 +35,7 @@
 // }// Custom command to visit a URL with overridden Notification permissions
 Cypress.Commands.add("Visit", function (url: string) {
   cy.intercept("GET", "**/api/new_v1/countries").as("CountriesApi");
+  cy.intercept("GET", "**/api/new_v1/countries").as("CountriesApi");
   cy.visit(url, {
     onBeforeLoad(win) {
       // @ts-ignore
@@ -98,6 +99,31 @@ Cypress.Commands.add("Exist", (selector) => {
     });
 });
 
+Cypress.Commands.add("clearAllData", () => {
+  // cy.clearAllCookies();
+  // cy.clearAllLocalStorage();
+  // cy.clearAllSessionStorage();
+  cy.logout();
+});
+Cypress.Commands.add("logout", () => {
+  cy.get("[data-cy=avatar-options]").click({ scrollBehavior: false });
+  cy.Exist("[data-cy=logout]").then((exists) => {
+    if (exists) {
+      cy.get("[data-cy=logout]").click({ scrollBehavior: false });
+      cy.wait(3000);
+    } else {
+      cy.get("[data-cy=avatar-options]").click({ scrollBehavior: false });
+    }
+  });
+});
+Cypress.Commands.add("clearAllDataWithoutCookies", () => {
+  // cy.clearAllLocalStorage();
+  // cy.clearAllSessionStorage();
+});
+Cypress.Commands.add("clearAllDataWithoutSessionStorage", () => {
+  // cy.clearAllLocalStorage();
+  // cy.clearAllCookies();
+});
 Cypress.Commands.add("typePincode", (pincode: string) => {
   const digits = pincode.split(""); // Split the pincode into individual digits
   digits.forEach((digit, index) => {
@@ -134,7 +160,6 @@ Cypress.Commands.add("enterPhoneNumber", (phoneNumber: string) => {
   cy.wait(5000);
 });
 Cypress.Commands.add("performLogin", () => {
-  cy.clearAllData;
   cy.viewport(783, 824);
   cy.wait(10000);
   let count = 0;

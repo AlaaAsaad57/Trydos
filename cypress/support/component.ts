@@ -35,6 +35,7 @@ declare global {
       logout(): Chainable<void>;
       clearAllDataWithoutCookies(): Chainable<void>;
       clearAllDataWithoutSessionStorage(): Chainable<void>;
+      logout(): Chainable<void>;
       (): Chainable<void>;
       typePincode(pincode: string): Chainable<void>;
       enterPhoneNumber(phoneNumber: string): Chainable<void>;

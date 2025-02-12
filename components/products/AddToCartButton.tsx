@@ -114,6 +114,9 @@ function AddToCartButton({
     return num;
   };
   const isQuantityEmpty = () => {
+    if (product.collected_after_ordering === 1) {
+      return false;
+    }
     if (getSelectedVariantofProduct() === "")
       return product?.Left_stock - 1 <= 0;
     else
@@ -899,7 +902,10 @@ function AddToCartButton({
                   </span>
                 )} */}
 
-              <div className="button-desc" data-cy="addToCartButton_productPage">
+              <div
+                className="button-desc"
+                data-cy="addToCartButton_productPage"
+              >
                 <div
                   className={`flex-row  justify-end relative image-container-cart ${
                     !AddToCartOption.enable && "pr-0"

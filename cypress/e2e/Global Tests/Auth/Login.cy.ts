@@ -3,9 +3,10 @@ describe("Login Scenario Test", () => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
     });
-    cy.clearAllData();
+
     cy.Visit("/");
     cy.wait(5000);
+    cy.clearAllData();
   });
   it("Login Successful Attempt should login to 3 servers", () => {
     cy.performLogin();
