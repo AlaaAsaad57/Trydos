@@ -75,6 +75,7 @@ export async function middleware(request) {
   ) {
     return response;
   }
+
   // Define the geolocation API endpoint (you can replace with ipinfo, ipstack, or any other geolocation service)
 
   let countryByIp = request?.geo?.country?.toLowerCase();

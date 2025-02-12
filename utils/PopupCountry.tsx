@@ -13,6 +13,7 @@ import Spinner from "components/global/Spinner";
 import { changeAppCountryServer } from "store/homepage/cachedActions";
 const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
   const [loading, setLoading] = useState(true);
+  const [loadingWidget, setLoadingWidget] = useState(false);
   const [localization, setLocalization] = useState({
     country: null,
     language: "en",
@@ -41,7 +42,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
   const Defaultcountry = lang.split("-")[0];
   const router = useRouter();
   const UpdateUrl = async (localizationVar) => {
-    setLoading(true);
+    setLoadingWidget(true);
     await init(localizationVar.split("-")[0]);
     setTimeout(() => {
       let params = new URLSearchParams(searchParams);
@@ -67,7 +68,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
       }}
       className={`${"flex"} fixed items-center justify-center  inset-0 bg-slate-700 bg-opacity-50`}
     >
-      {!loading ? (
+      {!loading && !loadingWidget ? (
         countries.length > 0 && (
           <div
             className={`
@@ -105,7 +106,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                   <span
                     className="text-blue-600 cursor-pointer"
                     onClick={() => {
-                      setLoading(true);
+                      setLoadingWidget(true);
                       // @ts-ignore
                       let langFromUrl = lang.split("-")[1];
                       UpdateUrl(
@@ -128,7 +129,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                   <span
                     className="text-blue-600 cursor-pointer"
                     onClick={() => {
-                      setLoading(true);
+                      setLoadingWidget(true);
                       // @ts-ignore
                       let langFromUrl = lang.split("-")[1];
                       UpdateUrl(
@@ -170,7 +171,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                   id="country"
                   value={selectedCountry}
                   onChange={(e) => {
-                    setLoading(true);
+                    setLoadingWidget(true);
                     Sendevent({
                       event: "button_clicked",
                       value: "choose_country_and_continue_button",
