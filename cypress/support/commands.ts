@@ -264,93 +264,36 @@ Cypress.Commands.add("Performloginfailure", () => {
 
 // **************************Sign up*************************** *//
 Cypress.Commands.add("signupProcess", () => {
-  cy.wait(10000);
   let count = 0;
   cy.intercept("POST", "**/login", () => {
     count += 1;
   }).as("login");
-  cy.wait(10000);
   cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
     req.continue((res) => {
       res.body.data.already_exists = false;
     });
   }).as("verifyOtpSignin");
   cy.logout();
-  cy.wait(5000);
   cy.viewport(783, 824);
-  cy.wait(5000);
-  cy.Exist(".en-regular:nth-child(2)").then((exist) => {
-    if (exist) {
-      cy.get(".en-regular:nth-child(2)").click({ force: true });
-    }
-  });
-  cy.wait(5000);
-  cy.Exist(".login-button:nth-child(2)").then((exist) => {
-    if (exist) {
-      cy.get(".login-button:nth-child(2)").click({ force: true });
-    }
-  });
-  cy.wait(5000);
-  cy.Exist(".agree-terms").then((exist) => {
-    if (exist) {
-      cy.get(".agree-terms").click({ force: true });
-    }
-  });
-  cy.wait(5000);
+  cy.get(".en-regular:nth-child(2)").click({ force: true });
+  cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
+  cy.get(".login-button:nth-child(2)").click({ force: true });
+  cy.get(".agree-terms").click({ force: true });
   cy.enterPhoneNumber("963937288307");
-  cy.wait(5000);
   cy.typePincode("999999");
-  cy.wait(5000);
-  cy.Exist("[data-cy=inputToWriteName]").then((exist) => {
-    if (exist) {
-      cy.clickElementForce("[data-cy=inputToWriteName]");
-      console.log("input To Write Name  found");
-      cy.log("✅✅ input To Write Name  found");
-      cy.wait(5000);
-    } else {
-      console.log("input To Write Name not found");
-      cy.log("❌❌ input To Write Name not found");
-    }
-  });
-  cy.wait(5000);
-  cy.Exist("[data-cy=InputFiledForName]").then((exist) => {
-    if (exist) {
-      cy.get("[data-cy=InputFiledForName]")
-        .type("Alaa Asaad", { force: true })
-        .should("have.value", "Alaa Asaad"); // Ensure text was typed
-      console.log("Input Filed For write Name found");
-      cy.log("✅✅ Input Filed For write Name found");
-    } else {
-      console.log("Input Filed For write Name not found");
-      cy.log("❌❌ Input Filed For write Name not found");
-    }
-  });
-  cy.wait(5000);
-  cy.Exist(".phone-arrow").then((exist) => {
-    if (exist) {
-      cy.get(".phone-arrow").click({ scrollBehavior: false });
-    }
-  });
-  cy.wait(5000);
-  cy.Exist("[data-cy=skipForNow]").then((exist) => {
-    if (exist) {
-      cy.clickElementForce("[data-cy=skipForNow]");
-      console.log("skip For Now clicked");
-      cy.log("✅✅ skip For Now clicked");
-    } else {
-      console.log("skip For Now not clicked");
-      cy.log("❌❌ skip For Now not clicked");
-    }
-  });
-  cy.wait(10000).then(() => {
+  cy.clickElementForce("[data-cy=inputToWriteName]");
+  cy.get("[data-cy=InputFiledForName]")
+    .type("Alaa Asaad", { force: true })
+    .should("have.value", "Alaa Asaad"); // Ensure text was typed
+  cy.get(".phone-arrow").click({ scrollBehavior: false });
+  cy.clickElementForce("[data-cy=skipForNow]");
+  cy.wait(5000).then(() => {
     cy.log(`Count is: ${count}`);
-    console.log("Count is" + count);
     expect(count).to.be.greaterThan(1);
   });
-  cy.wait(30000);
-  cy.get("@login").then((alias) => {
+  cy.get("@login", { timeout: 10000 }).then((alias) => {
     if (alias) {
-      cy.wait("@login").then((interception) => {
+      cy.wait("@login", { timeout: 10000 }).then((interception) => {
         cy.log("✅ login request arrived");
         console.log("login request arrived");
       });
@@ -359,10 +302,9 @@ Cypress.Commands.add("signupProcess", () => {
       console.warn("login request did not arrive");
     }
   });
-  cy.wait(30000);
-  cy.get("@verifyOtpSignin", { timeout: 0 }).then((alias) => {
+  cy.get("@verifyOtpSignin", { timeout: 10000 }).then((alias) => {
     if (alias) {
-      cy.wait("@verifyOtpSignin", { timeout: 20000 }).then((interception) => {
+      cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
         console.log(interception);
       });
     } else {
@@ -492,11 +434,9 @@ Cypress.Commands.add("interceptAndWait", (routes) => {
   cy.wait(aliases, { timeout: 30000 }); // Adjust timeout as needed
 });
 Cypress.Commands.add("clickElementScroll", (selector: string) => {
-  cy.wait(5000);
   cy.get(selector).click({ scrollBehavior: false });
 });
 Cypress.Commands.add("clickElementForce", (selector: string) => {
-  cy.wait(5000);
   cy.get(selector).click({ force: true });
 });
 Cypress.Commands.add(
