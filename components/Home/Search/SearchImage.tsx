@@ -80,7 +80,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
     i.click();
   };
   return (
-    <div className="relative ">
+    <div className="relative " data-cy="searchImageIcon">
       {loading ? <Spinner /> : <SearchCamIcon onClick={OpenMenu} />}
     </div>
   );
