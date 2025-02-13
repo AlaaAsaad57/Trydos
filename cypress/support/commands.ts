@@ -431,7 +431,7 @@ Cypress.Commands.add("interceptAndWait", (routes) => {
     cy.intercept(route.method || "GET", route.url).as(route.alias);
   });
   const aliases = routes.map((route) => `@${route.alias}`);
-  cy.wait(aliases, { timeout: 30000 }); // Adjust timeout as needed
+  cy.wait(aliases, { timeout: 20000 }); // Adjust timeout as needed
 });
 Cypress.Commands.add("clickElementScroll", (selector: string) => {
   cy.get(selector).click({ scrollBehavior: false });
@@ -448,7 +448,10 @@ Cypress.Commands.add(
       .invoke("text")
       .then((text) => {
         const productName = text.trim(); // Trim spaces to ensure consistency
-        console.log("Product Name:", productName);
+        cy.log(
+          "✅✅ Product Name Obtained & The Product Name Is:",
+          productName
+        );
         return cy.wrap(productName); // Wrap the value to keep it within Cypress' chainable context
       });
   }

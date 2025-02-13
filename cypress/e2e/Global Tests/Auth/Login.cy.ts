@@ -204,7 +204,7 @@ describe("Login UnSuccessful Attempt when otp code expired should show button fo
     cy.get("@login2", { timeout: 10000 }).then((alias) => {
       if (alias) {
         cy.wait("@login2", { timeout: 10000 }).then((interception) => {
-          cy.log("✅ login request arrived");
+          cy.log("✅✅ login request arrived");
         });
       } else {
         cy.log("❌❌ login request did not arrive");

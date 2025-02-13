@@ -26,7 +26,7 @@ function OfferList({
     setBoutiques([...nextBoutieues, ...arr]);
   };
   return (
-    <div className={`offers-list ${quick && " mt-5"}`}>
+    <div className={`offers-list ${quick && " mt-5"}`} data-cy="boutiques">
       {/* {quick ? (
         <QuickOfferWidjet onClick={() => {}} offer={{ photos: [1] }} />
       ) : (
