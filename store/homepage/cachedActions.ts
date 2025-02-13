@@ -76,8 +76,8 @@ export const getMainCategories = async ({
     let start = new Date().getTime();
     const res = await fetch(
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-      HOME_DATA_CATEGORIES_URL +
-      `?lang=${language}`,
+        HOME_DATA_CATEGORIES_URL +
+        `?lang=${language}`,
       {
         next: {
           revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CATEGORIES),
@@ -195,42 +195,47 @@ export const getListingData = async ({
     if (Object.keys(searchParams).includes("categories"))
       obj = {
         ...obj,
-        categories: `${searchParams.categories.includes(",")
-          ? searchParams.categories.split(",")
-          : [searchParams.categories]
-          }`,
+        categories: `${
+          searchParams.categories.includes(",")
+            ? searchParams.categories.split(",")
+            : [searchParams.categories]
+        }`,
       };
     if (Object.keys(searchParams).includes("colors"))
       obj = {
         ...obj,
-        colors: `${searchParams.colors.includes(",")
-          ? searchParams.colors.split(",")
-          : [searchParams.colors]
-          }`,
+        colors: `${
+          searchParams.colors.includes(",")
+            ? searchParams.colors.split(",")
+            : [searchParams.colors]
+        }`,
       };
     if (Object.keys(searchParams).includes("brands"))
       obj = {
         ...obj,
-        brands: `${searchParams.brands.includes(",")
-          ? searchParams.brands.split(",")
-          : [searchParams.brands]
-          }`,
+        brands: `${
+          searchParams.brands.includes(",")
+            ? searchParams.brands.split(",")
+            : [searchParams.brands]
+        }`,
       };
     if (Object.keys(searchParams).includes("offers"))
       obj = {
         ...obj,
-        offers: `${searchParams.offers.includes(",")
-          ? searchParams.offers.split(",")
-          : [searchParams.offers]
-          }`,
+        offers: `${
+          searchParams.offers.includes(",")
+            ? searchParams.offers.split(",")
+            : [searchParams.offers]
+        }`,
       };
     if (Object.keys(searchParams).includes("sizes"))
       obj = {
         ...obj,
-        sizes: `${searchParams.sizes.includes(",")
-          ? searchParams.sizes.split(",")
-          : [searchParams.sizes]
-          }`,
+        sizes: `${
+          searchParams.sizes.includes(",")
+            ? searchParams.sizes.split(",")
+            : [searchParams.sizes]
+        }`,
         sizesAttr: { id: "1", name: "Size" },
       };
     if (
@@ -254,41 +259,48 @@ export const getListingData = async ({
       };
     }
 
-    let str = `/api/products/search?lang=${language}&limit=4${obj.categories?.length > 0
-      ? `&category_slugs=${JSON.stringify(
-        obj.categories.split(",").map((s) => s)
-      )}`
-      : ""
-      }${obj.brands?.length > 0
+    let str = `/api/products/search?lang=${language}&limit=4${
+      obj.categories?.length > 0
+        ? `&category_slugs=${JSON.stringify(
+            obj.categories.split(",").map((s) => s)
+          )}`
+        : ""
+    }${
+      obj.brands?.length > 0
         ? `&brand_slugs=${JSON.stringify(obj.brands.split(",").map((s) => s))}`
         : ""
-      }${obj.sizes?.length > 0
-        ? `&attributes={id:${obj.sizesAttr.id},name:${obj.sizesAttr.name
-        },options:${JSON.stringify(obj.sizes.split(","))}}`
+    }${
+      obj.sizes?.length > 0
+        ? `&attributes={id:${obj.sizesAttr.id},name:${
+            obj.sizesAttr.name
+          },options:${JSON.stringify(obj.sizes.split(","))}}`
         : ""
-      }${obj.search_text?.length > 0
+    }${
+      obj.search_text?.length > 0
         ? `${`&search_text=${obj.search_text || ""}`}`
         : ""
-      }${filters.prices ? `&price=[${JSON.stringify(obj.prices)}]` : ""}${filters.boutique_slug
+    }${filters.prices ? `&price=[${JSON.stringify(obj.prices)}]` : ""}${
+      filters.boutique_slug
         ? `&boutique_slugs=${JSON.stringify(categories)}`
         : ""
-      }`;
+    }`;
 
     let productRes = await fetch(
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-      str +
-      (filters.colors
-        ? `&${new URLSearchParams({
-          colors: `[${obj?.colors?.split(",").map((s) => `"${s}"`)}]`,
-        }).toString()}`
-        : ""),
+        str +
+        (filters.colors
+          ? `&${new URLSearchParams({
+              colors: `[${obj?.colors?.split(",").map((s) => `"${s}"`)}]`,
+            }).toString()}`
+          : ""),
       {
         method: "GET",
 
         next: {
           revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
           tags: [
-            `listing listing${productCategory?.length > 0 ? `-${productCategory}` : ""
+            `listing listing${
+              productCategory?.length > 0 ? `-${productCategory}` : ""
             }`,
           ],
         },
@@ -337,23 +349,25 @@ export const getListingData = async ({
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
       (productCategory
         ? `/api/products/search?lang=${language}&limit=4` +
-        `&category=${productCategory}${!str.includes("listing")
-          ? `&boutique_slugs=${JSON.stringify(str)}`
-          : ""
-        }`
+          `&category=${productCategory}${
+            !str.includes("listing")
+              ? `&boutique_slugs=${JSON.stringify(str)}`
+              : ""
+          }`
         : `/api/products/search?lang=${language}&limit=4` +
-        `${!str.includes("listing")
-          ? `&boutique_slugs=${JSON.stringify(str)}`
-          : ""
-        }`);
+          `${
+            !str.includes("listing")
+              ? `&boutique_slugs=${JSON.stringify(str)}`
+              : ""
+          }`);
     var details = productCategory
       ? {
-        boutique_slug: [str],
-        category: productCategory,
-      }
+          boutique_slug: [str],
+          category: productCategory,
+        }
       : {
-        boutique_slug: [str],
-      };
+          boutique_slug: [str],
+        };
     var formBody: any[] | string = [];
     for (var property in details) {
       var encodedKey = encodeURIComponent(property);
@@ -368,7 +382,8 @@ export const getListingData = async ({
         next: {
           revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
           tags: [
-            `listing listing${productCategory?.length > 0 ? `-${productCategory}` : ""
+            `listing listing${
+              productCategory?.length > 0 ? `-${productCategory}` : ""
             }`,
           ],
         },
@@ -427,8 +442,8 @@ export async function getProductDetails({ productId, lang }) {
   try {
     const res = await fetch(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      DETAILS_URL +
-      `/${productId}?lang=${language}`,
+        DETAILS_URL +
+        `/${productId}?lang=${language}`,
       {
         method: "GET",
 
@@ -444,9 +459,10 @@ export async function getProductDetails({ productId, lang }) {
             cookieStore.get("country") && cookieStore.get("country").value,
           Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-          Authorization: `Bearer ${cookieStore.get("MARKET-TOKEN")?.value ||
+          Authorization: `Bearer ${
+            cookieStore.get("MARKET-TOKEN")?.value ||
             cookieStore.get("DEVICE-TOKEN")?.value
-            }`,
+          }`,
         }),
       }
     );
@@ -455,8 +471,8 @@ export async function getProductDetails({ productId, lang }) {
     let start2 = new Date().getTime();
     const res1 = await fetch(
       process.env.NEXT_PUBLIC_BACKEND_URL +
-      QTY_URL +
-      `/${productId}?lang=${language}`,
+        QTY_URL +
+        `/${productId}?lang=${language}`,
       {
         method: "GET",
 
@@ -472,9 +488,10 @@ export async function getProductDetails({ productId, lang }) {
             cookieStore.get("country") && cookieStore.get("country").value,
           Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-          Authorization: `Bearer ${cookieStore.get("MARKET-TOKEN")?.value ||
+          Authorization: `Bearer ${
+            cookieStore.get("MARKET-TOKEN")?.value ||
             cookieStore.get("DEVICE-TOKEN")?.value
-            }`,
+          }`,
         }),
       }
     );
