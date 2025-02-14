@@ -37,7 +37,10 @@ function BrandRow() {
     }
   }, []);
   return (
-    <div className="category-row-container brand-row flex-row">
+    <div
+      className="category-row-container brand-row flex-row"
+      data-cy="brandBox"
+    >
       {filters.brands.map((brand, key) => (
         <BrandCircle brand={brand} key={key} />
       ))}

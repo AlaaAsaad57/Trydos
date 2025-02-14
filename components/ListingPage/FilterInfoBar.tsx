@@ -93,7 +93,10 @@ function FilterInfoBar({
     return variable;
   };
   return (
-    <div className="filter-info-bar flex-row cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none ">
+    <div
+      className="filter-info-bar flex-row cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none "
+      data-cy="filterInfo"
+    >
       <CloseIcon
         data-cy="closeIcon"
         className="mr-2 ml-2"

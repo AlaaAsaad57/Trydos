@@ -7,7 +7,7 @@ function CategoryRow() {
   const filters = useSelector((state: StateInterface) => state.details.filters);
 
   return (
-    <div className="category-row-container flex-row">
+    <div className="category-row-container flex-row" data-cy="categoryBox">
       {filters.categories.map((category, key) => (
         <CategoryCircle key={key} category={category} />
       ))}
