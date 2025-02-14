@@ -65,6 +65,13 @@ const ListingReducer = (state = initialState, { type, payload }) => {
         loading: false,
       };
     }
+    case "RESET-BOUTIQUE": {
+      return {
+        ...state,
+        isReachEnd: false,
+        offset: null,
+      };
+    }
     case "GET_NEXT_PRODUCT_ERROR": {
       return {
         ...state,

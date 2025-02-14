@@ -609,10 +609,10 @@ const urlParams = ({ filters, noProducts }) => {
   if (noProducts) {
     urlParams.set("with_products", "false");
   }
-  if (filters.colors) {
+  if (filters.colors && filters?.colors.length > 0) {
     urlParams.set("colors", JSON.stringify(filters.colors));
   }
-  console.log(urlParams.toString());
+
   return urlParams.toString();
 };
 export const UpdateFilter = async ({

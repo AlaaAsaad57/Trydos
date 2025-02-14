@@ -157,7 +157,7 @@ function FilterBar({ boutique, filters, productsServer }) {
                 value: "back_app_button",
               });
               dispatch({ type: "RESET-FILTERS" });
-
+              dispatch({ type: "RESET-BOUTIQUE" });
               // dispatchRouteChangeEvent("start", {
               //   to: "HomePage",
               //   from: "details",

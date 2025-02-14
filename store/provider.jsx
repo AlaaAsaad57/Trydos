@@ -120,7 +120,7 @@ export default function Providers({ children }) {
   };
   const shouldShowBluredInfo = () => {
     if (
-      lang?.includes("gb") ||
+      lang?.includes("gb-") ||
       searchParams.get("changed-country") ||
       searchParams.get("no-country")
     ) {
