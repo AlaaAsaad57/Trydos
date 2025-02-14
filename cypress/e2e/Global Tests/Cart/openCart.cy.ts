@@ -44,7 +44,9 @@ describe("Should Add Product To Cart From Any Boutique Page", () => {
         console.log("✅ Intercepted request addToCart");
         expect(interception.response.statusCode).to.eq(200);
       } else {
-        console.warn("⚠️ @CartRequest was not intercepted or has no response.");
+        console.warn(
+          "❌❌ @CartRequest was not intercepted or has no response."
+        );
       }
     });
     cy.log(
@@ -105,7 +107,9 @@ describe("Should Add Product To Cart From Any Product Page", () => {
         console.log("✅ Intercepted request UpdateCart");
         expect(interception.response.statusCode).to.eq(200);
       } else {
-        console.warn("⚠️ @CartRequest was not intercepted or has no response.");
+        console.warn(
+          "❌❌ @CartRequest was not intercepted or has no response."
+        );
       }
     });
     cy.log(
@@ -165,7 +169,7 @@ describe("Should Click On Cart Icon On The Home Page & Increase The Quantity Of 
       if (interception) {
         console.log("✅ increaseQuantity request successfully intercepted");
       } else {
-        console.warn("⚠️ increaseQuantity request did not arrive");
+        console.warn("❌❌ increaseQuantity request did not arrive");
       }
     });
     cy.log(

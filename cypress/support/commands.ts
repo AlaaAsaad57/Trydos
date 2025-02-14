@@ -149,7 +149,7 @@ Cypress.Commands.add("performLogin", () => {
         console.log("login request arrived");
       });
     } else {
-      cy.log("⚠️ login request did not arrive");
+      cy.log("❌❌ login request did not arrive");
       console.warn("login request did not arrive");
     }
   });
@@ -188,7 +188,7 @@ Cypress.Commands.add("performErrorLogin", () => {
         console.log("login request arrived");
       });
     } else {
-      cy.log("⚠️ login request did not arrive");
+      cy.log("❌❌ login request did not arrive");
       console.warn("login request did not arrive");
     }
   });
@@ -230,7 +230,7 @@ Cypress.Commands.add("performExpireOtpLogin", () => {
         console.log("login request arrived");
       });
     } else {
-      cy.log("⚠️ login request did not arrive");
+      cy.log("❌❌ login request did not arrive");
       console.warn("login request did not arrive");
     }
   });
@@ -256,7 +256,6 @@ Cypress.Commands.add("Performloginfailure", () => {
     console.log(interception);
   });
   cy.get(".not-registered").should("be.visible");
-  cy.wait(8000);
   cy.get("[data-testid=login-close-icon]").click({
     scrollBehavior: false,
   });
@@ -298,7 +297,7 @@ Cypress.Commands.add("signupProcess", () => {
         console.log("login request arrived");
       });
     } else {
-      cy.log("⚠️ login request did not arrive");
+      cy.log("❌❌ login request did not arrive");
       console.warn("login request did not arrive");
     }
   });
@@ -308,74 +307,43 @@ Cypress.Commands.add("signupProcess", () => {
         console.log(interception);
       });
     } else {
-      console.warn("⚠️ verifyOtpSignin alias does not exist");
+      console.warn("❌❌ verifyOtpSignin alias does not exist");
     }
   });
 });
 Cypress.Commands.add("failedSignupProcess", () => {
-  cy.wait(6000);
   let count = 0;
-  cy.wait(10000);
-  cy.reload();
-  cy.wait(10000);
   cy.intercept("POST", "**/login", () => {
     count += 1;
   }).as("login1");
-  cy.wait(10000);
   cy.viewport(783, 824);
-  cy.wait(5000);
-  cy.Exist(".en-regular:nth-child(2)").then((exists) => {
-    if (exists) {
-      cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-    } else {
-      cy.wait(5000);
-      cy.reload();
-      cy.wait(60000);
-      cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-    }
-  });
-  cy.wait(5000);
-  cy.Exist(".login-button:nth-child(2)").then((exist) => {
-    if (exist) {
-      cy.get(".login-button:nth-child(2)").click({ scrollBehavior: false });
-    }
-  });
-  cy.wait(5000);
-  cy.Exist(".agree-terms").then((exist) => {
-    if (exist) {
-      cy.get(".agree-terms").click({ scrollBehavior: false });
-    }
-  });
-  cy.wait(5000);
+  cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
+  cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
+  cy.get(".login-button:nth-child(2)").click({ scrollBehavior: false });
+  cy.get(".agree-terms").click({ scrollBehavior: false });
   cy.enterPhoneNumber("963937288307");
-  cy.wait(5000);
   cy.typePincode("499999");
   cy.get(".input-failed", { timeout: 10000 }).should("be.visible");
-  cy.wait(10000).then(() => {
-    cy.Exist("[data-testid=login-close-icon]").then((exists) => {
-      if (exists) {
-        cy.get("[data-testid=login-close-icon]").click();
-        cy.log(`Count is: ${count}`);
-        console.log("Count is" + count);
-        expect(count).to.be.equal(0);
-      }
-    });
+  cy.get("[data-testid=login-close-icon]").click({
+    scrollBehavior: false,
   });
-  cy.wait(15000);
-  cy.get("@login1").then((alias) => {
+  cy.wait(5000).then(() => {
+    cy.log(`Count is: ${count}`);
+    expect(count).to.be.equal(0);
+  });
+  cy.get("@login1", { timeout: 10000 }).then((alias) => {
     if (alias) {
-      cy.wait("@login").then((interception) => {
+      cy.wait("@login", { timeout: 10000 }).then((interception) => {
         cy.log("✅ login request arrived");
         console.log("login request arrived");
       });
     } else {
-      cy.log("⚠️ login request did not arrive");
+      cy.log("❌❌ login request did not arrive");
       console.warn("login request did not arrive");
     }
   });
 });
 Cypress.Commands.add("alreadyRegisteredSignup", () => {
-  cy.wait(10000);
   cy.logout();
   cy.viewport(783, 824);
   cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
@@ -383,46 +351,22 @@ Cypress.Commands.add("alreadyRegisteredSignup", () => {
       res.body.data.already_exists = true;
     });
   }).as("verifyOtpSignin");
-  cy.wait(5000);
-  cy.Exist(".en-regular:nth-child(2)").then((exist) => {
-    if (exist) {
-      cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-    }
-  });
-  cy.wait(5000);
-  cy.Exist(".login-button:nth-child(2)").then((exist) => {
-    if (exist) {
-      cy.get(".login-button:nth-child(2)").click({ scrollBehavior: false });
-    }
-  });
-  cy.wait(5000);
-  cy.Exist("[data-cy=agree-terms]").then((exist) => {
-    if (exist) {
-      cy.get("[data-cy=agree-terms]").click({ scrollBehavior: false });
-    }
-  });
-  cy.wait(5000);
+  cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
+  cy.get(".login-button:nth-child(2)").click({ scrollBehavior: false });
+  cy.get("[data-cy=agree-terms]").click({ scrollBehavior: false });
   cy.enterPhoneNumber("963937288307");
-  cy.wait(5000);
   cy.typePincode("999999");
-  cy.wait(30000);
-  cy.get("@verifyOtpSignin", { timeout: 0 }).then((alias) => {
+  cy.get("@verifyOtpSignin", { timeout: 10000 }).then((alias) => {
     if (alias) {
-      cy.wait("@verifyOtpSignin", { timeout: 20000 }).then((interception) => {
+      cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
         console.log(interception);
       });
     } else {
-      console.warn("⚠️ verifyOtpSignin alias does not exist");
+      console.warn("❌❌ verifyOtpSignin alias does not exist");
     }
   });
   cy.get(".already-registered").should("be.visible");
-  cy.wait(5000);
-  cy.Exist("[data-testid=login-close-icon]").then((exists) => {
-    if (exists) {
-      cy.get("[data-testid=login-close-icon]").click();
-    }
-  });
-  cy.wait(10000);
+  cy.get("[data-testid=login-close-icon]").click();
 });
 // ************************ Open Cart **************************************
 Cypress.Commands.add("interceptAndWait", (routes) => {

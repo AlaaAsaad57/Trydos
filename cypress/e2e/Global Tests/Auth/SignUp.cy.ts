@@ -53,7 +53,7 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
           console.log(interception);
         });
       } else {
-        console.warn("⚠️ verifyOtpSignin alias does not exist");
+        console.warn("❌❌ verifyOtpSignin alias does not exist");
       }
     });
     cy.wait(5000).then(() => {
@@ -66,7 +66,7 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
           cy.log("✅ login request arrived");
         });
       } else {
-        cy.log("⚠️ login request did not arrive");
+        cy.log("❌❌ login request did not arrive");
       }
     });
   });
@@ -180,7 +180,7 @@ describe("Should show user is already registered when registering with registere
           console.log(interception);
         });
       } else {
-        console.warn("⚠️ verifyOtpSignin alias does not exist");
+        console.warn("❌❌ verifyOtpSignin alias does not exist");
       }
     });
     cy.wait(5000).then(() => {
@@ -192,7 +192,7 @@ describe("Should show user is already registered when registering with registere
           cy.log("✅ login request arrived");
         });
       } else {
-        cy.log("⚠️ login request did not arrive");
+        cy.log("❌❌ login request did not arrive");
       }
     });
   });

@@ -124,7 +124,7 @@ describe("Login UnSuccessful Attempt should show error message to user", () => {
     });
   });
   it("Should Fail Login Request", () => {
-    cy.intercept("POST", "**/login1", () => {
+    cy.intercept("POST", "**/login", () => {
       count += 1;
     }).as("login1");
     expect(count).to.be.equal(0);
@@ -197,7 +197,7 @@ describe("Login UnSuccessful Attempt when otp code expired should show button fo
     });
   });
   it("Should Wait Login Request Until Arrives & Verification LogIn To Three Servers", () => {
-    cy.intercept("POST", "**/login2", () => {
+    cy.intercept("POST", "**/login", () => {
       count += 1;
     }).as("login2");
     expect(count).to.be.equal(0);
@@ -269,7 +269,6 @@ describe("Should show user not found when registering with non registered number
       }
     });
   });
-  // it("Should Wait Verify Otp Signin Request Until Arrives", () => {});
   it("Should Apperead Not Registered Message", () => {
     cy.get(".not-registered", { timeout: 5000 }).should("be.visible");
   });
