@@ -3,7 +3,7 @@ import Skeleton from "react-loading-skeleton";
 
 function OfferListSkeleton() {
   return (
-    <div className={`offers-list`}>
+    <div className={`offers-list`} data-cy="boutiques">
       <div className="offer-widget">
         <Skeleton
           width={"100%"}

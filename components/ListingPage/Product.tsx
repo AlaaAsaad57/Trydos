@@ -91,7 +91,11 @@ function Product({
         }
       : { images: product.images },
     // @ts-ignore
-    activeImage: product.images[0]?.file_path,
+    activeImage: product?.sync_color_images
+      ? // @ts-ignore
+        product?.sync_color_images[0]?.images[0]?.file_path
+      : // @ts-ignore
+        product.images[0]?.file_path,
     isColorSelected: false,
     activeImageIndex: 0,
     renderVar: false,

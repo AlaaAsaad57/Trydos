@@ -247,6 +247,7 @@ function NewLoginWidget() {
       />
       <div
         data-testid="login-widget-container"
+        data-cy="login-widget-container"
         className={`login-widget-container login-w2-container pb-${stepIndicator} step${stepIndicator}`}
         id="widget-auth"
         style={{

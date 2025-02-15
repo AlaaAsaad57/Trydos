@@ -188,7 +188,10 @@ function SearchResults() {
           </div>
         )}
         {(searchResults?.brands?.length > 0 || loading) && (
-          <div className="products-results brand-results">
+          <div
+            className="products-results brand-results"
+            data-cy="ContainerOfBrands"
+          >
             <div className="result-label flex-row">
               {translateFunction("Find Brands", languageVariable)}{" "}
               {loading && <Spinner className="ml-3" no />}
@@ -220,7 +223,10 @@ function SearchResults() {
         )}
 
         {(searchResults?.categories?.length > 0 || loading) && (
-          <div className="products-results brand-results">
+          <div
+            className="products-results brand-results"
+            data-cy="ContainerOfCategories"
+          >
             <div className="result-label flex-row">
               {translateFunction("Find Categories", languageVariable)}{" "}
               {loading && <Spinner className="ml-3" no />}
@@ -254,7 +260,10 @@ function SearchResults() {
           </div>
         )}
         {(searchResults?.boutiques?.length > 0 || loading) && (
-          <div className="products-results brand-results">
+          <div
+            className="products-results brand-results"
+            data-cy="ContainerOfBoutiques"
+          >
             <div className="result-label flex-row">
               {translateFunction("Find Boutiques", languageVariable)}{" "}
               {loading && <Spinner className="ml-3" no />}
@@ -318,7 +327,10 @@ function SearchResults() {
                 ) : (
                   <>
                     {totalProducts !== null && (
-                      <span className="text-[#fafafa] regular ml-2" data-cy="countAfterFilter">
+                      <span
+                        className="text-[#fafafa] regular ml-2"
+                        data-cy="countAfterFilter"
+                      >
                         (Total Products: {totalProducts})
                       </span>
                     )}
