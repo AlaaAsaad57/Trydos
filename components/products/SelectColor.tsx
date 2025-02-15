@@ -81,7 +81,10 @@ function SelectColor({ close }) {
           />
         </span>
       </div>
-      <div className="flex-col mt-[10px] w-full fixed  left-0 z-[9999999999] top-[50px] items-center">
+      <div
+        style={{ height: "calc(100vh - 461px)" }}
+        className="flex-col mt-[10px] w-full fixed  left-0 z-[9999999999] top-[50px] items-center"
+      >
         <ToastContainer
           position="top-right"
           style={{ zIndex: "9999999999999999" }}
