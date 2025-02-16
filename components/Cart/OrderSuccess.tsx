@@ -1,5 +1,4 @@
 import { useSelector } from "node_modules/react-redux/es";
-import React from "react";
 import OrderSuccessIcon from "public/svg/cart/OrderSuccess.svg";
 import { translateFunction } from "utils/functions";
 function OrderSuccess() {
@@ -8,9 +7,8 @@ function OrderSuccess() {
   );
   return (
     <div
-      className={`transition-all justify-center items-center flex-col ${
-        orderData.success ? "min-h-[300px]" : "h-0 overflow-hidden"
-      }`}
+      className={`transition-all justify-center items-center flex-col ${orderData.success ? "min-h-[300px]" : "h-0 overflow-hidden"
+        }`}
     >
       <OrderSuccessIcon />
       <span className="regular text-[14px] text-[#1d1d1d] mt-[11px]">
