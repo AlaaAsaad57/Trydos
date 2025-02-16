@@ -375,7 +375,7 @@ Cypress.Commands.add("interceptAndWait", (routes) => {
     cy.intercept(route.method || "GET", route.url).as(route.alias);
   });
   const aliases = routes.map((route) => `@${route.alias}`);
-  cy.wait(aliases, { timeout: 20000 }); // Adjust timeout as needed
+  cy.wait(aliases, { timeout: 10000 }); // Adjust timeout as needed
 });
 Cypress.Commands.add("clickElementScroll", (selector: string) => {
   cy.get(selector).click({ scrollBehavior: false });

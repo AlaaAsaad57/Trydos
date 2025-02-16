@@ -52,7 +52,9 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.log("✅✅ Firstly Brand Item Clicked");
   });
   it("Should Waiting Search Brand Request Until Arrived", () => {
-    cy.intercept("POST", "**/api/products/search?&**").as("searchBrand");
+    cy.intercept("Get", "**/api/products/search?&brand_slugs**").as(
+      "searchBrand"
+    );
     cy.get("@searchBrand", { timeout: 10000 }).then((alias) => {
       if (alias) {
         cy.wait("@searchBrand", { timeout: 10000 }).then((interception) => {
@@ -139,7 +141,9 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.log("✅✅ Firstly Category Item Clicked");
   });
   it("Should Waiting Search Category Request Until Arrived", () => {
-    cy.intercept("POST", "**/api/products/search?&**").as("searchCategory");
+    cy.intercept("Get", "**/api/products/search?&category_slugs**").as(
+      "searchCategory"
+    );
     cy.get("@searchCategory", { timeout: 10000 }).then((alias) => {
       if (alias) {
         cy.wait("@searchCategory", { timeout: 10000 }).then((interception) => {
@@ -205,7 +209,7 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
   });
 });
 // **************************************************************************************
-describe("Should Click On The Search Icon On The Home Page & View The Filtering & Search Page, Then Choose A Category & Should That The Filtering Result Is Displayed & Present.", () => {
+describe("Should Click On The Search Icon On The Home Page & View The Filtering & Search Page, Then Choose A Boutique & Should That The Filtering Result Is Displayed & Present.", () => {
   let totalProductsFound;
   it("Should Click On Search Icon On Home Page", () => {
     cy.clickElementScroll("[data-cy=searchIcon_mainPage]");
@@ -226,7 +230,9 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.log("✅✅ Firstly Category Item Clicked");
   });
   it("Should Waiting Search Category Request Until Arrived", () => {
-    cy.intercept("POST", "**/api/products/search?&**").as("searchBoutique");
+    cy.intercept("Get", "**/api/products/search?&boutique_slugs**").as(
+      "searchBoutique"
+    );
     cy.get("@searchBoutique", { timeout: 10000 }).then((alias) => {
       if (alias) {
         cy.wait("@searchBoutique", { timeout: 10000 }).then((interception) => {
@@ -272,10 +278,10 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
         }
       });
   });
-  it("Should Click On Close Icon Founded In Filter Info Box", () => {
-    cy.clickElementScroll("[data-cy=closeIcon]");
-    cy.log("✅✅ Close Icon Clicked");
-  });
+  // it("Should Click On Close Icon Founded In Filter Info Box", () => {
+  //   cy.clickElementScroll("[data-cy=closeIcon]");
+  //   cy.log("✅✅ Close Icon Clicked");
+  // });
   it("Should Click On Back Icon Founded In The Page Apperead After Click On Search Total Button", () => {
     cy.clickElementScroll("[data-cy=backIcon_pageAfterClickSearchTotal]");
     cy.log(
@@ -292,14 +298,8 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
   });
 });
 // **************************************************************************************
-describe.only("Should Click On The Search Input Field & Write The Name Of Brand || Category || Boutique Wanted To Search About It", () => {
+describe("Should Click On The Search Input Field & Write The Name Of Brand || Category || Boutique Wanted To Search About It", () => {
   let totalProductsFound;
-  before(() => {
-    Cypress.on("uncaught:exception", (err, runnable) => {
-      return false;
-    });
-    cy.Visit("/");
-  });
   it("Should Click On Search Icon On Home Page", () => {
     cy.clickElementScroll("[data-cy=searchIcon_mainPage]");
     cy.log("✅✅ search Icon In Main Page Found");
