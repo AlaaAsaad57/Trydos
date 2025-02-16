@@ -17,7 +17,11 @@ function Story({
 }) {
   const [load, onLoad] = useState(null);
   return (
-    <div className="story-element-item" onClick={() => onClick()}>
+    <div
+      className="story-element-item"
+      onClick={() => onClick()}
+      data-cy="story-element"
+    >
       <div className="linear-g-image" />
       <div className="story-text overflow-hidden">{Name}</div>
       {<Loader style={{ display: load ? "none" : "flex" }} />}
