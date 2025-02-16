@@ -14,11 +14,11 @@ class OrderService {
         title: "pay Order",
         body: ""
       });
-      if (!data.url) {
+      if (!data[0]?.url) {
         store.dispatch({ type: "ORDER-SUCCESS", payload: data });
         store.dispatch({ type: "ORDER-DATA", payload: { success: true } });
       } else {
-        store.dispatch({ type: "CRYPTO_CARD_PAYMENT", payload: data });
+        store.dispatch({ type: "CRYPTO_CARD_PAYMENT", payload: data[0] });
       }
 
       store.dispatch({ type: "ORDER-LOADING", payload: false });
