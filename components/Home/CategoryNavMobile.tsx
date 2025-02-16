@@ -64,10 +64,13 @@ function CategoryNavMobile({
       }}
     >
       {active && (
-        <ActiveCategoryIcon className="absolute top-[-7px] left-[-13px]" />
+        <ActiveCategoryIcon
+          className="absolute top-[-7px] left-[-13px]"
+          data-cy="activeCategoryIcon"
+        />
       )}
       {
-        <div className="categories-bar-item-icon">
+        <div className="categories-bar-item-icon" data-cy="categoryIcons">
           <Image
             unoptimized
             width={25}
