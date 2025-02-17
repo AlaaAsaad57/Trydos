@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import "styles/home.css";
 import { useDispatch, useSelector } from "react-redux";
 import dynamic from "next/dynamic";
@@ -30,7 +30,7 @@ export default function Home() {
     StoryServiceClass.getStories();
     try {
       initFB();
-    } catch (e) { }
+    } catch (e) {}
   }, []);
   const dispatch = useDispatch();
   const initFB = async () => {
@@ -41,8 +41,9 @@ export default function Home() {
     }
 
     if (getUserChat()?.id) {
-      const { requestFirebaseNotificationPermission } =
-        await import("utils/firebaseInitv1");
+      const { requestFirebaseNotificationPermission } = await import(
+        "utils/firebaseInitv1"
+      );
       requestFirebaseNotificationPermission().then(async (fbtoken) => {
         if (fbtoken) {
           fbtoken &&
@@ -84,7 +85,10 @@ export default function Home() {
       typeof window !== "undefined" &&
       JSON.parse(localStorage.getItem("USER") || "{}")?.name;
     return (
-      getUserChat()?.id && getUser()?.id && name?.length === 0 && nameModal
+      getUserChat()?.id &&
+      getUser()?.id &&
+      (!name || name?.length === 0) &&
+      nameModal
     );
   };
   return (

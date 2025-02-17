@@ -1,16 +1,16 @@
-describe("Open Site And Login If Not", () => {
+describe("Open Stories After Login", () => {
   before(() => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
     });
     cy.Visit("/");
   });
-  it.skip("Should Ensure The User Has Not LogIn Previously", () => {
+  it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.wait(3000);
     cy.logout();
     cy.viewport(783, 824);
   });
-  it.skip("should Login If User Is Not Verified", () => {
+  it("should Login If User Is Not Verified", () => {
     cy.intercept("GET", "**/api/v1/stories/users_stories").as("StoriesApi");
     cy.performLogin();
     cy.wait("@StoriesApi").then((interceptions) => {
@@ -25,48 +25,18 @@ describe("Open Site And Login If Not", () => {
   });
   it("should when swipe right move to next story", () => {
     cy.wait(1000);
-    cy.get(".fixed-layout", { timeout: 5000 }).trigger("mousedown", {
-      button: 0,
-      clientX: 300,
-      clientY: 50,
-      isTrusted: true,
+    // @ts-ignore
+    cy.get(".fixed-layout").realSwipe("toLeft", {
+      length: 500,
     });
-    cy.wait(1000);
-    cy.get(".fixed-layout", { timeout: 5000 }).trigger("mousemove", {
-      clientX: 0,
-      clientY: 50,
-      isTrusted: true,
-    }); // Move the mouse to the right (dragging)
-    cy.wait(1000);
-    cy.get(".fixed-layout", { timeout: 5000 }).trigger("mouseup", {
-      clientX: 0,
-      clientY: 50,
-      isTrusted: true,
-    });
+    cy.wait(2000);
   });
   it("should Move To Previous Stories if Swipe Left if Not Already Closed", () => {
     cy.Exist(".fixed-layout").then((s) => {
       if (s) {
-        cy.get(".fixed-layout", { timeout: 5000 }).trigger("mousedown", {
-          button: 0,
-          clientX: 0,
-          clientY: 50,
-          force: true,
-          isTrusted: true,
-        });
-        cy.wait(100);
-        cy.get(".fixed-layout").trigger("mousemove", {
-          clientX: 400,
-          clientY: 50,
-          force: true,
-          isTrusted: true,
-        });
-        cy.wait(1000);
-        cy.get(".fixed-layout").trigger("mouseup", {
-          clientX: 400,
-          clientY: 50,
-          force: true,
-          isTrusted: true,
+        // @ts-ignore
+        cy.get(".fixed-layout").realSwipe("toRight", {
+          length: 500,
         });
       }
     });
@@ -75,15 +45,10 @@ describe("Open Site And Login If Not", () => {
   it("Should Close Stories if its not Already Closed", () => {
     cy.Exist(".fixed-layout").then((s) => {
       if (s) {
-        cy.get(".fixed-layout", { timeout: 5000 })
-          .trigger("mousedown", {
-            button: 0,
-            clientX: 50,
-            clientY: 0,
-            force: true,
-          }) // Start dragging at the top
-          .trigger("mousemove", { clientX: 50, clientY: 700, force: true }) // Move the mouse down
-          .trigger("mouseup", { clientX: 50, clientY: 700, force: true });
+        // @ts-ignore
+        cy.get(".fixed-layout").realSwipe("toBottom", {
+          length: 500,
+        });
       }
     });
     cy.wait(1000);
@@ -91,6 +56,70 @@ describe("Open Site And Login If Not", () => {
       if (!s) {
         cy.log("Stories Closed Successfully");
       }
+    });
+  });
+});
+describe("Should Upload Stories Successfully", () => {
+  it("should Click On Add Story Button", () => {
+    cy.get("[data-cy=Add-Story-Button]", { timeout: 5000 }).click({
+      scrollBehavior: false,
+      force: true,
+    });
+    cy.wait(1000);
+  });
+  it("should Select Gallery Options", () => {
+    cy.get("[data-cy= Gallery-Photo-Option]", { timeout: 5000 }).click({
+      scrollBehavior: false,
+      force: true,
+    });
+    cy.wait(5000);
+  });
+  it("should Selct File Upload it and Add It To Stories", () => {
+    cy.intercept("POST", "**/api/v1/stories/upload_story").as("UploadApi");
+    // @ts-ignore
+    cy.get("input[type=file]", { timeout: 5000 }).attachFile("images.jpeg");
+    cy.wait("@UploadApi").then((s) => {
+      expect(s.response.body.isSuccessful).to.be.equal(true);
+    });
+  });
+});
+describe("Should Ask For User Name if User Is Not Already Entered", () => {
+  it("Should LogOut Before Procced", () => {
+    cy.wait(1000);
+    cy.logout();
+  });
+  it("should Login But Intercepting Request to Clear Name", () => {
+    cy.intercept("GET", "**/api/new_v1/phone/verify_otp_singin?*", (req) => {
+      req.continue((res) => {
+        res.body.data.user.name = null;
+      });
+    }).as("verifyOtpSignin");
+    cy.performLogin();
+  });
+  it("should when click on Story Upload Button Show A Modal", () => {
+    cy.get("[data-cy=Add-Story-Button]", { timeout: 5000 }).click({
+      scrollBehavior: false,
+      force: true,
+    });
+    cy.Exist("[data-cy= Gallery-Photo-Option]").then((s) => {
+      expect(s).to.be.equal(false);
+    });
+    cy.Exist("[data-cy=Input-Name]").then((s) => {
+      expect(s).to.be.equal(true);
+    });
+  });
+  it("should Enter A Valid Name And Update Name", () => {
+    cy.intercept("POST", "**/customer/update-name").as("UpdateNameMarket");
+    cy.intercept("POST", "**/api/v1/users/update").as("UpdateNameStories");
+    cy.get("[data-cy=Input-Name]").type("Alaa Asaad");
+    cy.get("[data-cy=Input-Name-Submit]").click({
+      scrollBehavior: false,
+      force: true,
+    });
+    cy.wait(["@UpdateNameMarket", "@UpdateNameStories"]).then((s) => {
+      s.forEach((req) => {
+        expect(req.response.statusCode === 200);
+      });
     });
   });
 });

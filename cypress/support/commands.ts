@@ -37,11 +37,9 @@ Cypress.Commands.add("Visit", function (url: string) {
   cy.intercept("GET", "**/api/new_v1/countries").as("CountriesApi");
 
   cy.visit(url, {
-    onBeforeLoad(win) {
+    onLoad(win) {
       // @ts-ignore
-      cy.stub(win.Notification, "permission", "granted");
-      cy.stub(win, "Notification").as("Notification");
-      console.log(win.location.href);
+      cy.stub(win.Notification, "requestPermission").resolves("granted");
     },
   });
   cy.url().then((ur) => {

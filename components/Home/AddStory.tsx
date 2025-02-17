@@ -225,6 +225,7 @@ function AddStory() {
             </div>
             <div
               className="menuItem"
+              data-cy="Gallery-Photo-Option"
               style={{
                 width: "100%",
                 borderBottomRightRadius: "15px",
@@ -243,6 +244,7 @@ function AddStory() {
                 if (!isSelected) {
                   let Image = document.createElement("input");
                   Image.onblur = () => {};
+                  Image["data-cy"] = "Input-Story-File";
                   Image.onchange = async (e) => {
                     handleChange(e);
                   };
@@ -263,6 +265,7 @@ function AddStory() {
         </div>
       )}
       <div
+        data-cy="Add-Story-Button"
         className="story-element-container add-story-container flex align-center justify-center"
         style={{
           borderRadius: "20px",
@@ -273,7 +276,7 @@ function AddStory() {
           justifyContent: "center",
         }}
         onClick={() => {
-          if (JSON.parse(localStorage.getItem("USER")).name.length > 1) {
+          if (JSON.parse(localStorage.getItem("USER"))?.name?.length > 1) {
             Sendevent({
               event: "button_clicked",
               value: "upload_story_button",

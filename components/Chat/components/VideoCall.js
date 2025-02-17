@@ -66,7 +66,7 @@ function VideoCall(props) {
           headers: {
             Authorization:
               "Bearer " +
-              JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
           },
         }
       )
