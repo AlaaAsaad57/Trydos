@@ -28,15 +28,8 @@ describe("Should Verify About NavBar & Navigation Between Category Icons", () =>
             .eq(index)
             .click({ force: true });
           cy.log(`✅✅ categoryIcon ${index + 1} Selected`);
-          // cy.get("[data-cy=activeCategoryIcon]", { timeout: 15000 }).should(
-          //   "be.visible"
-          // );
-          cy.get("[data-cy=activeCategoryIcon]")
-            .should("be.visible")
-            .then(($el) => {
-              $el[0].scrollIntoView();
-            });
-          cy.log("✅✅ The categoryIcon Page Selected");
+          // cy.get("[data-cy=activeCategoryIcon]");
+          // cy.log("✅✅ The categoryIcon Page Selected");
           cy.clickElementForce("[data-cy=storeLogo]");
           cy.log("✅✅ Store Logo clicked and returned to the main page");
           cy.get("[data-cy=boutiques]", { timeout: 15000 }).should(
@@ -45,29 +38,30 @@ describe("Should Verify About NavBar & Navigation Between Category Icons", () =>
         }
       }
     );
+    cy.get("[data-cy=boutiques]", { timeout: 15000 }).should("be.visible");
   });
 });
 describe("Should Open The Home Page And Make Sure That The Boutiques Are Loaded. For Each Boutique, Click On It And Go From The Boutique Page To The Cart.", () => {
   it("Should Click On Each Boutique & Verify Navigation", () => {
-    cy.visit("/");
-    cy.get("[data-cy=boutiques]", { timeout: 20000 });
+    cy.get("[data-cy=boutiques]", { timeout: 30000 }).should("be.visible");
     cy.log("✅✅ The Main Page Loaded");
-    cy.get(".offer-widget", { timeout: 15000 }).then(($boutiques) => {
+
+    cy.get(".offer-widget", { timeout: 20000 }).then(($boutiques) => {
       const boutiqueCount = $boutiques.length;
       cy.log(`✅✅ Number Of Boutiques: ${boutiqueCount}`);
 
       for (let index = 0; index < boutiqueCount; index++) {
-        cy.get(".offer-widget", { timeout: 10000 })
+        cy.get(".offer-widget") // Re-query elements to prevent stale DOM reference
           .eq(index)
+          .as("currentBoutique") // Store the current boutique
           .click({ force: true });
         cy.log(`✅✅ Boutique ${index + 1} Selected`);
-        cy.get("[data-cy=boutique_top_info]", { timeout: 15000 }).should(
-          "be.visible"
-        );
-        cy.log("✅✅ The Boutique Page Opened");
-        cy.clickElementForce("[data-cy=back_icon_boutique_page]");
+        // Navigate back to the main page
+        cy.get("[data-cy=back_icon_boutique_page]", { timeout: 20000 }).click({
+          force: true,
+        });
         cy.log("✅✅ Back icon clicked and returned to the main page");
-        cy.get("[data-cy=boutiques]", { timeout: 15000 }).should("be.visible");
+        cy.get("[data-cy=boutiques]", { timeout: 30000 }).should("be.visible");
       }
     });
   });

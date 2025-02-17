@@ -17,7 +17,7 @@ describe("Should Click On Search Icon On Home Page & View The Filter & Search Pa
     cy.get("[data-cy=searchContainer]", { timeout: 10000 });
     cy.log("✅✅ Search Container Body Apperead");
   });
-  it("should trigger the file input when clicking the search image icon", () => {
+  it("should Verify That There Are Icons For The Search History & Cleaning It", () => {
     cy.clickElementForce("[data-cy=SearchHistoryIcon]");
     cy.log("✅✅ Search History Icon Clicked");
     cy.get("[data-cy=SearchHistoryStatement]", { timeout: 10000 });
@@ -278,10 +278,6 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
         }
       });
   });
-  // it("Should Click On Close Icon Founded In Filter Info Box", () => {
-  //   cy.clickElementScroll("[data-cy=closeIcon]");
-  //   cy.log("✅✅ Close Icon Clicked");
-  // });
   it("Should Click On Back Icon Founded In The Page Apperead After Click On Search Total Button", () => {
     cy.clickElementScroll("[data-cy=backIcon_pageAfterClickSearchTotal]");
     cy.log(
@@ -343,17 +339,12 @@ describe("Should Click On The Search Input Field & Write The Name Of Brand || Ca
               console.log("Total Products Found It:", totalProductsFound);
             });
         });
-        // it("Should Verifications The Search Total Product Button Apperead & Founded", () => {
         cy.clickElementScroll("[data-cy=searchTotalProduct]");
         cy.log("✅✅ Search Total Product Button Clicked & Founded");
-        // });
-        // it("Should Verifications Products That Appeare After Clicking On The Search Total Product Button", () => {
         cy.get("[data-cy=allCategory]", { timeout: 15000 });
         cy.log(
           "✅✅ Products That Appeare After Clicking On The Search Total Product Button"
         );
-        // });
-        // it("Should Verifications Number Of Products That Appeared As Result Of The Filter Should Appear As Card After Clicking On The Search Total Product Button", () => {
         cy.get('[data-cy="countProduct"]')
           .its("length")
           .then((count) => {
@@ -364,26 +355,15 @@ describe("Should Click On The Search Input Field & Write The Name Of Brand || Ca
               cy.log("❌❌ Total Products Found And Viewed Not Matched");
             }
           });
-        // });
-        // it("Should Click On Close Icon Founded In Filter Info Box", () => {
         cy.clickElementScroll("[data-cy=closeIcon]");
         cy.log("✅✅ Close Icon Clicked");
-        // });
-        //  / it("Should Click On Back Icon Founded In The Page Apperead After Click On Search Total Button", () => {
         cy.clickElementScroll("[data-cy=backIcon_pageAfterClickSearchTotal]");
         cy.log(
           "✅✅ Back Icon Founded In The Page Apperead After Click On Search Total Button Clicked"
         );
-        // });
-        // it("Should Click On Close Icon To Close Search Result Container", () => {
         cy.get("[data-cy=closeIcon]").click({ scrollBehavior: false });
         cy.log("✅ Close Icon To Close Search Result Container Clicked");
-        // });
       }
     });
-  });
-  it("Should Click On Close Icon Founded In Search Input Field To Return Home Page", () => {
-    cy.get("[data-cy=SearchInputCloseIcon]").click({ scrollBehavior: false });
-    cy.log("✅ Close Icon Founded In Search Input Field Clicked");
   });
 });

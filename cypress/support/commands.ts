@@ -55,17 +55,6 @@ Cypress.Commands.add("Visit", function (url: string) {
     }
   });
 });
-// Cypress.Commands.add("logout", () => {
-//   cy.get("[data-cy=avatar-options]").click({ scrollBehavior: false });
-//   cy.Exist("[data-cy=logout]").then((exists) => {
-//     if (exists) {
-//       cy.get("[data-cy=logout]").click({ scrollBehavior: false });
-//       cy.wait(3000);
-//     } else {
-//       cy.get("[data-cy=avatar-options]").click({ scrollBehavior: false });
-//     }
-//   });
-// });
 Cypress.Commands.add("Exist", (selector) => {
   cy.wait(3000);
   cy.get("body")
@@ -104,7 +93,6 @@ Cypress.Commands.add("typePincode", (pincode: string) => {
   });
 });
 Cypress.Commands.add("enterPhoneNumber1", (phoneNumber: string) => {
-  // cy.get("#phoneInput").click({ scrollBehavior: false });
   cy.get("#phoneInput").type(`${phoneNumber}{enter}`, {
     scrollBehavior: false,
   });
@@ -424,5 +412,3 @@ Cypress.Commands.add("verifyProductInCart", (productName: string) => {
       }
     });
 });
-// ************************ Search **************************************
-// Cypress.Commands.add("failedSignupProcess", () => { })
