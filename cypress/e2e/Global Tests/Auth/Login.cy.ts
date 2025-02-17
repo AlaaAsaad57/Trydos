@@ -118,7 +118,7 @@ describe("Login UnSuccessful Attempt should show error message to user", () => {
     cy.get(".input-failed", { timeout: 5000 }).should("be.visible");
     cy.log("✅✅ OTP Code Input Fields Be Colored Red");
   });
-  it("Should Click On Close icon When Welcom Message Apperead", () => {
+  it("Should Click On Close icon", () => {
     cy.get("[data-testid=login-close-icon]").click({
       scrollBehavior: false,
     });

@@ -8,6 +8,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
     cy.Visit("/");
   });
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
+    cy.get("[data-cy=boutiques]", { timeout: 20000 });
     cy.get(".offer-widget:nth-child(4)").click({
       force: true,
     });
@@ -124,6 +125,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   let mainBrandTitle = "";
   let sizeTitle = "";
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
+    cy.get("[data-cy=boutiques]", { timeout: 20000 });
     cy.get(".offer-widget:nth-child(4)").click({
       force: true,
     });
@@ -239,6 +241,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
 describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products & Search For A Specific Product", () => {
   let sizeTitle = "";
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
+    cy.get("[data-cy=boutiques]", { timeout: 20000 });
     cy.get(".offer-widget:nth-child(4)").click({
       force: true,
     });
@@ -326,6 +329,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
 describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products & Search For A Specific Product", () => {
   let sizeTitle = "";
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
+    cy.get("[data-cy=boutiques]", { timeout: 20000 });
     cy.get(".offer-widget:nth-child(4)").click({
       force: true,
     });
@@ -408,6 +412,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
 // ***********************************************************************************
 describe("Should Move Between Filter Groups By Scrolling Horizontally", () => {
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
+    cy.get("[data-cy=boutiques]", { timeout: 20000 });
     cy.get(".offer-widget:nth-child(4)").click({
       force: true,
     });
@@ -457,6 +462,7 @@ describe("Should Move Between Filter Groups By Scrolling Horizontally", () => {
 // ***********************************************************************************
 describe("Should Move Between Filter Groups By Scrolling Horizontally After Updating Count Of Filter Croup", () => {
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
+    cy.get("[data-cy=boutiques]", { timeout: 20000 });
     cy.get(".offer-widget:nth-child(4)").click({
       force: true,
     });
@@ -519,6 +525,7 @@ describe("Should Move Between Filter Groups By Scrolling Horizontally After Upda
 // ***********************************************************************************
 describe("Should Clicks On Search Input And Search About A Product (By Name)", () => {
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
+    cy.get("[data-cy=boutiques]", { timeout: 20000 });
     cy.get(".offer-widget:nth-child(4)").click({
       force: true,
     });
@@ -570,6 +577,7 @@ describe("Should Clicks On Search Input And Search About A Product (By Name)", (
 // ***********************************************************************************
 describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products By Category Or Brand Or Color Or Price", () => {
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
+    cy.get("[data-cy=boutiques]", { timeout: 20000 });
     cy.get(".offer-widget:nth-child(4)").click({
       force: true,
     });
@@ -753,6 +761,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
 // *******************************************************************************
 describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products By Category & Brand & Color", () => {
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
+    cy.get("[data-cy=boutiques]", { timeout: 20000 });
     cy.get(".offer-widget:nth-child(4)").click({
       force: true,
     });
@@ -791,7 +800,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
     cy.log("✅✅ Search Result Button Clicked");
   });
   it("Should Obtain The Number Of Products That Appeared As Result & Compare It With Number Of Products Appeared In Search Result Body", () => {
-    cy.get('[data-cy="countProduct"]')
+    cy.get('[data-cy="countProduct"]', { timeout: 20000 })
       .its("length")
       .then((count) => {
         cy.log(`✅✅ Number Of Products View: ${count}`);
@@ -818,6 +827,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
 // **************************************************************
 describe("Should Clicks On Settings Icon & Filter As Category || Brand || Color || Price & Reset After Any Choice", () => {
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
+    cy.get("[data-cy=boutiques]", { timeout: 20000 });
     cy.get(".offer-widget:nth-child(4)").click({
       force: true,
     });

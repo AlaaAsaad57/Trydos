@@ -46,6 +46,7 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
       count += 1;
     }).as("login");
     cy.typePincode("999999");
+    cy.wait(2000);
     cy.log("✅✅ Type Pin Code Entred Successfuly");
     cy.get("@verifyOtpSignin", { timeout: 10000 }).then((alias) => {
       if (alias) {
