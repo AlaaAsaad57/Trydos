@@ -1,6 +1,6 @@
 import { AddComment } from "models/Api";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+
 import { AxiosPost } from "utils/AxiosApi";
 import { Sendevent, User, UserID } from "utils/functions";
 
