@@ -287,7 +287,10 @@ function BoutiqueHeader({ boutique, showFilters }) {
       )} */}
       {boutique && (
         <>
-          <div className="boutique-top-info flex-col items-center">
+          <div
+            className="boutique-top-info flex-col items-center"
+            data-cy="boutique_top_info"
+          >
             <div className="boutique-logo-container flex-row align-center">
               <img width={130} height={20} src={boutique.icon} />
               <VerificationIcon />

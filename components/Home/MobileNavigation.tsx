@@ -41,7 +41,10 @@ function MobileNavigation({ categories }: { categories: any[] }) {
     <div className="flex-row search-nav-holder">
       <SearchIcon />
 
-      <div className={`categories-bar-container ${"mobile-bar"}`}>
+      <div
+        className={`categories-bar-container ${"mobile-bar"}`}
+        data-cy="categoryNavBar"
+      >
         {categories.map((category, key) => (
           <CategoryNavMobile
             name={category.name}

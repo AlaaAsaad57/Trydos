@@ -77,6 +77,7 @@ function SizeCircle({ text }: { text: string }) {
       className={`category-circle flex-col align-center ${
         true && "extended-circle"
       }`}
+      data-cy="sizeBox"
     >
       {" "}
       <div className="relative w-[70px] h-[70px]">
@@ -118,7 +119,9 @@ function SizeCircle({ text }: { text: string }) {
         </div>
       </div>
       <div className="category-text-container flex-col align-center">
-        <span className="category-title">{text}</span>
+        <span className="category-title" data-cy="sizeTitle">
+          {text}
+        </span>
         {/* <span className="category-typo">1100</span> */}
       </div>
     </div>

@@ -65,7 +65,10 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
   );
 
   return (
-    <div className={`${searchEnabled && "hidden"} user-nav-container`}>
+    <div
+      className={`${searchEnabled && "hidden"} user-nav-container`}
+      data-cy="Nav_CartIcon_LogIn"
+    >
       {/* {user && (
         <div
           className="nav-question-item"

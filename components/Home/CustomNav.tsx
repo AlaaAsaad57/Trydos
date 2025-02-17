@@ -75,6 +75,7 @@ function CustomNavbar({ init }: NavbarProps) {
         <NextLink
           href={`/${init}`}
           aria-label="TryDos Home"
+          data-cy="NavLogo"
           onClick={(e) => {
             dispatch({ type: "ENABLE-SEARCH", payload: false });
             dispatchRouteChangeEvent("start", { from: "", to: "HomePage" });

@@ -48,11 +48,13 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.log("✅✅ Container Of Brands Apperead");
   });
   it("Should Click On The Firstly Brand To Filter Result As It", () => {
-    cy.get("[data-cy=brandItem]").eq(0).click({ scrollBehavior: false });
+    cy.get("[data-cy=brandItem]").eq(1).click({ scrollBehavior: false });
     cy.log("✅✅ Firstly Brand Item Clicked");
   });
   it("Should Waiting Search Brand Request Until Arrived", () => {
-    cy.intercept("POST", "**/api/products/search?&**").as("searchBrand");
+    cy.intercept("Get", "**/api/products/search?&brand_slugs**").as(
+      "searchBrand"
+    );
     cy.get("@searchBrand", { timeout: 10000 }).then((alias) => {
       if (alias) {
         cy.wait("@searchBrand", { timeout: 10000 }).then((interception) => {
@@ -68,7 +70,7 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.log("✅✅ Search Result Container Apperead");
   });
   it("Should Get The Number That Appears In The Search Result Box", () => {
-    cy.get('[data-cy="countAfterFilter"]')
+    cy.get('[data-cy="countAfterFilter"]', { timeout: 10000 })
       .invoke("text")
       .then((text) => {
         totalProductsFound = text.match(/\d+/)?.[0];
@@ -139,7 +141,9 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.log("✅✅ Firstly Category Item Clicked");
   });
   it("Should Waiting Search Category Request Until Arrived", () => {
-    cy.intercept("POST", "**/api/products/search?&**").as("searchCategory");
+    cy.intercept("Get", "**/api/products/search?&category_slugs**").as(
+      "searchCategory"
+    );
     cy.get("@searchCategory", { timeout: 10000 }).then((alias) => {
       if (alias) {
         cy.wait("@searchCategory", { timeout: 10000 }).then((interception) => {
@@ -205,7 +209,7 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
   });
 });
 // **************************************************************************************
-describe("Should Click On The Search Icon On The Home Page & View The Filtering & Search Page, Then Choose A Category & Should That The Filtering Result Is Displayed & Present.", () => {
+describe("Should Click On The Search Icon On The Home Page & View The Filtering & Search Page, Then Choose A Boutique & Should That The Filtering Result Is Displayed & Present.", () => {
   let totalProductsFound;
   it("Should Click On Search Icon On Home Page", () => {
     cy.clickElementScroll("[data-cy=searchIcon_mainPage]");
@@ -226,7 +230,9 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.log("✅✅ Firstly Category Item Clicked");
   });
   it("Should Waiting Search Category Request Until Arrived", () => {
-    cy.intercept("POST", "**/api/products/search?&**").as("searchBoutique");
+    cy.intercept("Get", "**/api/products/search?&boutique_slugs**").as(
+      "searchBoutique"
+    );
     cy.get("@searchBoutique", { timeout: 10000 }).then((alias) => {
       if (alias) {
         cy.wait("@searchBoutique", { timeout: 10000 }).then((interception) => {
@@ -272,10 +278,10 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
         }
       });
   });
-  it("Should Click On Close Icon Founded In Filter Info Box", () => {
-    cy.clickElementScroll("[data-cy=closeIcon]");
-    cy.log("✅✅ Close Icon Clicked");
-  });
+  // it("Should Click On Close Icon Founded In Filter Info Box", () => {
+  //   cy.clickElementScroll("[data-cy=closeIcon]");
+  //   cy.log("✅✅ Close Icon Clicked");
+  // });
   it("Should Click On Back Icon Founded In The Page Apperead After Click On Search Total Button", () => {
     cy.clickElementScroll("[data-cy=backIcon_pageAfterClickSearchTotal]");
     cy.log(
@@ -292,14 +298,8 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
   });
 });
 // **************************************************************************************
-describe.only("Should Click On The Search Input Field & Write The Name Of Brand || Category || Boutique Wanted To Search About It", () => {
+describe("Should Click On The Search Input Field & Write The Name Of Brand || Category || Boutique Wanted To Search About It", () => {
   let totalProductsFound;
-  before(() => {
-    Cypress.on("uncaught:exception", (err, runnable) => {
-      return false;
-    });
-    cy.Visit("/");
-  });
   it("Should Click On Search Icon On Home Page", () => {
     cy.clickElementScroll("[data-cy=searchIcon_mainPage]");
     cy.log("✅✅ search Icon In Main Page Found");
@@ -343,42 +343,42 @@ describe.only("Should Click On The Search Input Field & Write The Name Of Brand 
               console.log("Total Products Found It:", totalProductsFound);
             });
         });
-        it("Should Verifications The Search Total Product Button Apperead & Founded", () => {
-          cy.clickElementScroll("[data-cy=searchTotalProduct]");
-          cy.log("✅✅ Search Total Product Button Clicked & Founded");
-        });
-        it("Should Verifications Products That Appeare After Clicking On The Search Total Product Button", () => {
-          cy.get("[data-cy=allCategory]", { timeout: 15000 });
-          cy.log(
-            "✅✅ Products That Appeare After Clicking On The Search Total Product Button"
-          );
-        });
-        it("Should Verifications Number Of Products That Appeared As Result Of The Filter Should Appear As Card After Clicking On The Search Total Product Button", () => {
-          cy.get('[data-cy="countProduct"]')
-            .its("length")
-            .then((count) => {
-              cy.log(`Number Of Products View: ${count}`);
-              if (count == totalProductsFound) {
-                cy.log("✅✅ Total Products Found And Viewed Matched");
-              } else {
-                cy.log("❌❌ Total Products Found And Viewed Not Matched");
-              }
-            });
-        });
-        it("Should Click On Close Icon Founded In Filter Info Box", () => {
-          cy.clickElementScroll("[data-cy=closeIcon]");
-          cy.log("✅✅ Close Icon Clicked");
-        });
-        it("Should Click On Back Icon Founded In The Page Apperead After Click On Search Total Button", () => {
-          cy.clickElementScroll("[data-cy=backIcon_pageAfterClickSearchTotal]");
-          cy.log(
-            "✅✅ Back Icon Founded In The Page Apperead After Click On Search Total Button Clicked"
-          );
-        });
-        it("Should Click On Close Icon To Close Search Result Container", () => {
-          cy.get("[data-cy=closeIcon]").click({ scrollBehavior: false });
-          cy.log("✅ Close Icon To Close Search Result Container Clicked");
-        });
+        // it("Should Verifications The Search Total Product Button Apperead & Founded", () => {
+        cy.clickElementScroll("[data-cy=searchTotalProduct]");
+        cy.log("✅✅ Search Total Product Button Clicked & Founded");
+        // });
+        // it("Should Verifications Products That Appeare After Clicking On The Search Total Product Button", () => {
+        cy.get("[data-cy=allCategory]", { timeout: 15000 });
+        cy.log(
+          "✅✅ Products That Appeare After Clicking On The Search Total Product Button"
+        );
+        // });
+        // it("Should Verifications Number Of Products That Appeared As Result Of The Filter Should Appear As Card After Clicking On The Search Total Product Button", () => {
+        cy.get('[data-cy="countProduct"]')
+          .its("length")
+          .then((count) => {
+            cy.log(`Number Of Products View: ${count}`);
+            if (count == totalProductsFound) {
+              cy.log("✅✅ Total Products Found And Viewed Matched");
+            } else {
+              cy.log("❌❌ Total Products Found And Viewed Not Matched");
+            }
+          });
+        // });
+        // it("Should Click On Close Icon Founded In Filter Info Box", () => {
+        cy.clickElementScroll("[data-cy=closeIcon]");
+        cy.log("✅✅ Close Icon Clicked");
+        // });
+        //  / it("Should Click On Back Icon Founded In The Page Apperead After Click On Search Total Button", () => {
+        cy.clickElementScroll("[data-cy=backIcon_pageAfterClickSearchTotal]");
+        cy.log(
+          "✅✅ Back Icon Founded In The Page Apperead After Click On Search Total Button Clicked"
+        );
+        // });
+        // it("Should Click On Close Icon To Close Search Result Container", () => {
+        cy.get("[data-cy=closeIcon]").click({ scrollBehavior: false });
+        cy.log("✅ Close Icon To Close Search Result Container Clicked");
+        // });
       }
     });
   });

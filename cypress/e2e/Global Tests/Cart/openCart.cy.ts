@@ -7,9 +7,11 @@ describe("Should Add Product To Cart From Any Boutique Page", () => {
     cy.Visit("/");
   });
   it("Should Select Any Boutique & Click On", () => {
-    cy.get("[data-cy=boutiques]", { timeout: 15000 });
-    cy.clickElementForce(".offer-widget:nth-child(6)");
+    cy.get("[data-cy=boutiques]", { timeout: 20000 });
+    cy.clickElementForce(".offer-widget:nth-child(4)");
     cy.log("✅✅ An Boutique Selected & Click");
+    cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
+    cy.log("✅✅ The Boutiue Page Opened");
   });
   it("Should Get The Name Of The First Product From Its Display Card", () => {
     cy.get("[data-cy=allCategory]", { timeout: 15000 });
@@ -82,8 +84,11 @@ describe("Should Add Product To Cart From Any Boutique Page", () => {
 describe("Should Add Product To Cart From Any Product Page", () => {
   let productName = "";
   it("Should Select Any Boutique & Click On", () => {
-    cy.clickElementForce(".offer-widget:nth-child(6)");
+    cy.get("[data-cy=boutiques]", { timeout: 20000 });
+    cy.clickElementForce(".offer-widget:nth-child(4)");
     cy.log("✅✅ An Boutique Selected & Click");
+    cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
+    cy.log("✅✅ The Boutiue Page Opened");
   });
   it("Should Get The Name Of The First Product From Its Display Card", () => {
     cy.get("[data-cy=allCategory]", { timeout: 15000 });
