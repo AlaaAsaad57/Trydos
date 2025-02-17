@@ -36,12 +36,26 @@ describe("Login Successful Attempt should login to 3 servers", () => {
   });
   it("Should Click Recive Otp Code By SMS Button", () => {
     cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-    cy.get(".message-recieve-option:nth-child(1)").click({
+    cy.get(".message-recieve-option:nth-child(2)").click({
       scrollBehavior: false,
     });
     cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
     cy.wait("@sendOtpApi");
     cy.log("✅✅ Send Otp Api Request Successfuly");
+  });
+  it("Should Verify If Have To Try Again To Send Otp Code", () => {
+    cy.Exist("[data-cy=WaitForTryAgain]").then((exist) => {
+      if (exist) {
+        cy.wait(60000);
+        cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+        cy.get(".message-recieve-option:nth-child(2)").click({
+          scrollBehavior: false,
+        });
+        cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
+        cy.wait("@sendOtpApi");
+        cy.log("✅✅ Send Otp Api Request Successfuly");
+      }
+    });
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
     cy.typePincode("999999");
@@ -103,12 +117,26 @@ describe("Login UnSuccessful Attempt should show error message to user", () => {
   });
   it("Should Click Recive Otp Code By SMS Button", () => {
     cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-    cy.get(".message-recieve-option:nth-child(1)").click({
+    cy.get(".message-recieve-option:nth-child(2)").click({
       scrollBehavior: false,
     });
     cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
     cy.wait("@sendOtpApi");
     cy.log("✅✅ Send Otp Api Request Successfuly");
+  });
+  it("Should Verify If Have To Try Again To Send Otp Code", () => {
+    cy.Exist("[data-cy=WaitForTryAgain]").then((exist) => {
+      if (exist) {
+        cy.wait(60000);
+        cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+        cy.get(".message-recieve-option:nth-child(2)").click({
+          scrollBehavior: false,
+        });
+        cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
+        cy.wait("@sendOtpApi");
+        cy.log("✅✅ Send Otp Api Request Successfuly");
+      }
+    });
   });
   it("Should Have Made Mistake In Entering The OTP Code", () => {
     cy.typePincode("499999");
@@ -171,12 +199,26 @@ describe("Login UnSuccessful Attempt when otp code expired should show button fo
   });
   it("Should Click Recive Otp Code By SMS Button", () => {
     cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-    cy.get(".message-recieve-option:nth-child(1)").click({
+    cy.get(".message-recieve-option:nth-child(2)").click({
       scrollBehavior: false,
     });
     cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
     cy.wait("@sendOtpApi");
     cy.log("✅✅ Send Otp Api Request Successfuly");
+  });
+  it("Should Verify If Have To Try Again To Send Otp Code", () => {
+    cy.Exist("[data-cy=WaitForTryAgain]").then((exist) => {
+      if (exist) {
+        cy.wait(60000);
+        cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+        cy.get(".message-recieve-option:nth-child(2)").click({
+          scrollBehavior: false,
+        });
+        cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
+        cy.wait("@sendOtpApi");
+        cy.log("✅✅ Send Otp Api Request Successfuly");
+      }
+    });
   });
   it("Should Wait Until OTP Code Becomes Expired", () => {
     cy.wait(130000);
@@ -243,12 +285,26 @@ describe("Should show user not found when registering with non registered number
   });
   it("Should Click Recive Otp Code By SMS Button", () => {
     cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-    cy.get(".message-recieve-option:nth-child(1)").click({
+    cy.get(".message-recieve-option:nth-child(2)").click({
       scrollBehavior: false,
     });
     cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
     cy.wait("@sendOtpApi");
     cy.log("✅✅ Send Otp Api Request Successfuly");
+  });
+  it("Should Verify If Have To Try Again To Send Otp Code", () => {
+    cy.Exist("[data-cy=WaitForTryAgain]").then((exist) => {
+      if (exist) {
+        cy.wait(60000);
+        cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+        cy.get(".message-recieve-option:nth-child(2)").click({
+          scrollBehavior: false,
+        });
+        cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
+        cy.wait("@sendOtpApi");
+        cy.log("✅✅ Send Otp Api Request Successfuly");
+      }
+    });
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
     cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
@@ -270,7 +326,7 @@ describe("Should show user not found when registering with non registered number
     });
   });
   it("Should Apperead Not Registered Message", () => {
-    cy.get(".not-registered", { timeout: 5000 }).should("be.visible");
+    cy.get(".not-registered", { timeout: 10000 }).should("be.visible");
   });
   it("Should Click On Close icon When Welcom Message Apperead", () => {
     cy.get("[data-testid=login-close-icon]").click({

@@ -30,10 +30,26 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
   });
   it("Should Click Recive Otp Code By SMS Button", () => {
     cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-    cy.clickElementScroll(".message-recieve-option:nth-child(1)");
+    cy.clickElementScroll(".message-recieve-option:nth-child(2)");
     cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
     cy.wait("@sendOtpApi");
     cy.log("✅✅ Send Otp Api Request Successfuly");
+    cy.get("[data-testid=pin-inputs-desc]", { timeout: 20000 });
+  });
+  it("Should Verify If Have To Try Again To Send Otp Code", () => {
+    cy.Exist("[data-cy=WaitForTryAgain]").then((exist) => {
+      if (exist) {
+        cy.wait(60000);
+        cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+        cy.get(".message-recieve-option:nth-child(2)").click({
+          scrollBehavior: false,
+        });
+        cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
+        cy.wait("@sendOtpApi");
+        cy.log("✅✅ Send Otp Api Request Successfuly");
+        cy.get("[data-testid=pin-inputs-desc]", { timeout: 20000 });
+      }
+    });
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
     let count = 0;
@@ -113,10 +129,26 @@ describe("Signup UnSuccessful Attempt should show error message to user", () => 
   });
   it("Should Click Recive Otp Code By SMS Button", () => {
     cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-    cy.clickElementScroll(".message-recieve-option:nth-child(1)");
+    cy.clickElementScroll(".message-recieve-option:nth-child(2)");
     cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
     cy.wait("@sendOtpApi");
     cy.log("✅✅ Send Otp Api Request Successfuly");
+    cy.get("[data-testid=pin-inputs-desc]", { timeout: 20000 });
+  });
+  it("Should Verify If Have To Try Again To Send Otp Code", () => {
+    cy.Exist("[data-cy=WaitForTryAgain]").then((exist) => {
+      if (exist) {
+        cy.wait(60000);
+        cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+        cy.get(".message-recieve-option:nth-child(2)").click({
+          scrollBehavior: false,
+        });
+        cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
+        cy.wait("@sendOtpApi");
+        cy.log("✅✅ Send Otp Api Request Successfuly");
+        cy.get("[data-testid=pin-inputs-desc]", { timeout: 20000 });
+      }
+    });
   });
   it("Should Have Made Mistake In Entering The OTP Code", () => {
     cy.typePincode("499999");
@@ -158,10 +190,26 @@ describe("Should show user is already registered when registering with registere
   });
   it("Should Click Recive Otp Code By SMS Button", () => {
     cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-    cy.clickElementScroll(".message-recieve-option:nth-child(1)");
+    cy.clickElementScroll(".message-recieve-option:nth-child(2)");
     cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
     cy.wait("@sendOtpApi");
     cy.log("✅✅ Send Otp Api Request Successfuly");
+    cy.get("[data-testid=pin-inputs-desc]", { timeout: 20000 });
+  });
+  it("Should Verify If Have To Try Again To Send Otp Code", () => {
+    cy.Exist("[data-cy=WaitForTryAgain]").then((exist) => {
+      if (exist) {
+        cy.wait(60000);
+        cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+        cy.get(".message-recieve-option:nth-child(2)").click({
+          scrollBehavior: false,
+        });
+        cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
+        cy.wait("@sendOtpApi");
+        cy.log("✅✅ Send Otp Api Request Successfuly");
+        cy.get("[data-testid=pin-inputs-desc]", { timeout: 20000 });
+      }
+    });
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
     let count = 0;
