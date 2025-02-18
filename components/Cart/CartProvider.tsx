@@ -9,6 +9,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import OrdersPage from "./OrdersPage";
 import { Swiper as SwiperType } from "node_modules/swiper/types";
 import ModalIframe from "./ModalIframe";
+import { ToastContainer } from "react-toastify";
 const CartProvider = () => {
   const dispatch = useDispatch();
   const pathname = usePathname();
@@ -77,10 +78,10 @@ const CartProvider = () => {
   );
   useEffect(() => {
     if (openPayIframe) {
-      _openIframe(payIframeURL)
+      _openIframe(payIframeURL);
     }
-  }, [openPayIframe, payIframeURL])
-  const [openIframe, setOpenIframe] = useState({ isShow: false, url: '' });
+  }, [openPayIframe, payIframeURL]);
+  const [openIframe, setOpenIframe] = useState({ isShow: false, url: "" });
   const [isLoading, setIsLoading] = useState(false);
   const modalIframeRef = useRef<HTMLDivElement>(null);
   const _openIframe = (url: string) => {
@@ -88,7 +89,7 @@ const CartProvider = () => {
     setOpenIframe({ isShow: true, url: url });
   };
   const _closeIframe = () => {
-    setOpenIframe({ isShow: false, url: '' });
+    setOpenIframe({ isShow: false, url: "" });
   };
   const handleIframeLoad = () => {
     setIsLoading(false);
@@ -101,10 +102,16 @@ const CartProvider = () => {
       {openIframe.isShow && (
         <div
           ref={modalIframeRef}
-          className={` ${openIframe?.isShow ? 'z-[9999999999]' : 'z-0'
-            } flex fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[12px] gap-[10px] p-[1px] text-[#5D5D5D] items-center justify-start rounded-[10px] h-[90vh] w-[90vw] bg-[#FCFCFC] border border-dashed border-[#006AFF5b]`}
+          className={` ${
+            openIframe?.isShow ? "z-[9999999999]" : "z-0"
+          } flex fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[12px] gap-[10px] p-[1px] text-[#5D5D5D] items-center justify-start rounded-[10px] h-[90vh] w-[90vw] bg-[#FCFCFC] border border-dashed border-[#006AFF5b]`}
         >
-          <ModalIframe _closeIframe={_closeIframe} handleIframeLoad={handleIframeLoad} isLoading={isLoading} openIframe={openIframe} />{' '}
+          <ModalIframe
+            _closeIframe={_closeIframe}
+            handleIframeLoad={handleIframeLoad}
+            isLoading={isLoading}
+            openIframe={openIframe}
+          />{" "}
         </div>
       )}
     </>
@@ -116,7 +123,7 @@ export const StepSlider = ({ enableCart }) => {
   const ref = useRef<SwiperType | null>();
   return (
     <div className="w-full h-[100vh] fixed z-[9999999999] cart-provider">
-      {" "}
+      <ToastContainer position="top-right" />
       <Swiper
         initialSlide={step}
         navigation={false}
@@ -165,7 +172,6 @@ export const StepSlider = ({ enableCart }) => {
           }
         </SwiperSlide>
       </Swiper>
-
     </div>
   );
 };

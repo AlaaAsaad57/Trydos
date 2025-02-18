@@ -411,8 +411,7 @@ function CartContainer({ close, toOrders }) {
                             className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
                           />
                         </div>
-                        {(true ||
-                          product.have_hurry_up_notify_time_left ||
+                        {(product.have_hurry_up_notify_time_left ||
                           product?.have_hurry_up_notify_qty) && (
                           <div className="absolute left-2  text-[#A28E5B] text-[12px] bottom-[8px] pl-3 w-[95%] h-[32px] bg-[#FDFDEF] rounded-[5px] flex items-center">
                             <span className="ml-1">
@@ -434,9 +433,7 @@ function CartContainer({ close, toOrders }) {
                                 <span className="bold">
                                   -
                                   <Timer
-                                    minutes={
-                                      product.have_hurry_up_notify_time_left
-                                    }
+                                    minutes={product.time_left_in_minutes}
                                     onFinish={() => {}}
                                     onResume={() => {}}
                                   />
@@ -1752,20 +1749,33 @@ const QuantutyInput = ({
         </div>
 
         {inputValue > 1 ? (
-          <div
-            className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
-            data-cy="MinusIcon_CartPage"
-            onClick={() => {
-              if (disabled) return false;
-              if (inputValue > 1) {
-                // @ts-ignore
+          <>
+            <div
+              className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
+              data-cy="MinusIcon_CartPage"
+              onClick={() => {
+                if (disabled) return false;
+                if (inputValue > 1) {
+                  // @ts-ignore
 
-                decreaseQuantity(inputValue);
-              }
-            }}
-          >
-            <MinusIcon className="" />
-          </div>
+                  decreaseQuantity(inputValue);
+                }
+              }}
+            >
+              <MinusIcon className="" />
+            </div>
+            {!loading && (
+              <div
+                className="absolute h-[24px] flex items-center hide-btn right-[-20px] top-[-1px] scale-125  cursor-pointer"
+                data-cy="DeleteIcon_CartPage"
+                onClick={() => {
+                  deleteFunction();
+                }}
+              >
+                <DeleteIcon />
+              </div>
+            )}
+          </>
         ) : (
           <div
             className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
