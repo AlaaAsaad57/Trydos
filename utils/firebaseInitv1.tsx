@@ -1,6 +1,11 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
-import { deleteToken, getMessaging, getToken, onMessage } from "firebase/messaging";
+import {
+  deleteToken,
+  getMessaging,
+  getToken,
+  onMessage,
+} from "firebase/messaging";
 import { store } from "../store/index.jsx";
 import { getUserChat } from "./functions";
 import { GetChats, Recive } from "store/chat/actions";
@@ -12,6 +17,8 @@ import Category from "components/Notifications/Category";
 import ProductAvailable from "components/Notifications/ProductAvailable";
 import "firebase/analytics";
 import { initializeAnalytics, isSupported } from "firebase/analytics";
+import OrderPlaced from "components/Notifications/OrderPlaced";
+import { AxiosGet } from "./AxiosApi";
 import ProductHurryUp from "components/Notifications/ProductHurry";
 const firebaseConfig = {
   // apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
@@ -49,7 +56,10 @@ export const requestFirebaseNotificationPermission = async () => {
   const nowDate = new Date();
 
   // Check if tokenDate exists and is older than 1 day
-  if (tokenDate && (nowDate.getTime() - tokenDate.getTime()) > 24 * 60 * 60 * 1000) {
+  if (
+    tokenDate &&
+    nowDate.getTime() - tokenDate.getTime() > 24 * 60 * 60 * 1000
+  ) {
     console.log("FCM token is older than 1 day. Refreshing...");
     await deleteToken(messaging); // Delete old token
   }
@@ -137,6 +147,29 @@ export const onMessageListener = async () => {
             toast.info(<ProductAvailable {...myProps} />, { ...toastProps });
           toaster.info({ data: data }, { data: data });
         }
+        if (JSON.parse(payload.data.body).type === "order placed") {
+          let data = await AxiosGet({
+            url:
+              process.env.NEXT_PUBLIC_BACKEND_URL +
+              `/customer/order/getOrdersByOrderGroupID?order_group_id=${
+                JSON.parse(payload.data.body).order_group_id
+              }`,
+            title: "getOrderByOrderGroupID request",
+          });
+
+          if (data && data?.length > 0) {
+            const toaster = (myProps, toastProps): Id =>
+              toast(<OrderPlaced {...myProps} />, { ...toastProps });
+
+            toaster.info = (myProps, toastProps): Id =>
+              toast.info(<OrderPlaced {...myProps} />, { ...toastProps });
+            toaster.info({ data: data }, { data: data });
+            store.dispatch({
+              type: "ORDER-DATA",
+              payload: { ...data[0], success: true },
+            });
+          }
+        }
         if (
           JSON.parse(payload.data.body).type === "product when change in price"
         ) {
@@ -193,41 +226,41 @@ export const onMessageListener = async () => {
                 (ch) => parseInt(ch.id) === parseInt(data.channelId)
               )[0]
               ? store
-                .getState()
-                .chat.data.filter(
-                  (ch) => parseInt(ch.id) === parseInt(data.channelId)
-                )[0]
+                  .getState()
+                  .chat.data.filter(
+                    (ch) => parseInt(ch.id) === parseInt(data.channelId)
+                  )[0]
               : {
-                id: JSON.parse(payload.data.data).message.channel.id,
-                messages: [
-                  {
-                    ...JSON.parse(payload.data.data).message,
-                    message_type: { name: "VoiceCall" },
-                  },
-                ],
-                channel_members: [
-                  {
-                    user_id: data.user_id,
-                    user: {
-                      id: data.user_id,
-                      name: JSON.parse(payload.data.data).message.channel
-                        .channel_name,
-                      photo_path: JSON.parse(payload.data.data).message
-                        .channel.photo_path,
+                  id: JSON.parse(payload.data.data).message.channel.id,
+                  messages: [
+                    {
+                      ...JSON.parse(payload.data.data).message,
+                      message_type: { name: "VoiceCall" },
                     },
-                    mute: 0,
-                    pin: 0,
-                    archived: 0,
-                  },
-                  {
-                    mute: 0,
-                    pin: 0,
-                    archived: 0,
-                    user_id: getUserChat()?.id,
-                    user: getUserChat(),
-                  },
-                ],
-              };
+                  ],
+                  channel_members: [
+                    {
+                      user_id: data.user_id,
+                      user: {
+                        id: data.user_id,
+                        name: JSON.parse(payload.data.data).message.channel
+                          .channel_name,
+                        photo_path: JSON.parse(payload.data.data).message
+                          .channel.photo_path,
+                      },
+                      mute: 0,
+                      pin: 0,
+                      archived: 0,
+                    },
+                    {
+                      mute: 0,
+                      pin: 0,
+                      archived: 0,
+                      user_id: getUserChat()?.id,
+                      user: getUserChat(),
+                    },
+                  ],
+                };
             let caller = { ...JSON.parse(payload.data.data).message.channel };
 
             if (
@@ -309,41 +342,41 @@ export const onMessageListener = async () => {
                 (ch) => parseInt(ch.id) === parseInt(data.channelId)
               )[0]
               ? store
-                .getState()
-                .chat.data.filter(
-                  (ch) => parseInt(ch.id) === parseInt(data.channelId)
-                )[0]
+                  .getState()
+                  .chat.data.filter(
+                    (ch) => parseInt(ch.id) === parseInt(data.channelId)
+                  )[0]
               : {
-                id: JSON.parse(payload.data.data).message.channel.id,
-                messages: [
-                  {
-                    ...JSON.parse(payload.data.data).message,
-                    message_type: { name: "VideoCall" },
-                  },
-                ],
-                channel_members: [
-                  {
-                    user_id: data.user_id,
-                    user: {
-                      id: data.user_id,
-                      name: JSON.parse(payload.data.data).message.channel
-                        .channel_name,
-                      photo_path: JSON.parse(payload.data.data).message
-                        .channel.photo_path,
+                  id: JSON.parse(payload.data.data).message.channel.id,
+                  messages: [
+                    {
+                      ...JSON.parse(payload.data.data).message,
+                      message_type: { name: "VideoCall" },
                     },
-                    mute: 0,
-                    pin: 0,
-                    archived: 0,
-                  },
-                  {
-                    mute: 0,
-                    pin: 0,
-                    archived: 0,
-                    user_id: getUserChat()?.id,
-                    user: getUserChat(),
-                  },
-                ],
-              };
+                  ],
+                  channel_members: [
+                    {
+                      user_id: data.user_id,
+                      user: {
+                        id: data.user_id,
+                        name: JSON.parse(payload.data.data).message.channel
+                          .channel_name,
+                        photo_path: JSON.parse(payload.data.data).message
+                          .channel.photo_path,
+                      },
+                      mute: 0,
+                      pin: 0,
+                      archived: 0,
+                    },
+                    {
+                      mute: 0,
+                      pin: 0,
+                      archived: 0,
+                      user_id: getUserChat()?.id,
+                      user: getUserChat(),
+                    },
+                  ],
+                };
             let caller = { ...JSON.parse(payload.data.data).message.channel };
             if (
               data.user_id !== getUserChat()?.id &&

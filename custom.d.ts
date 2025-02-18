@@ -885,6 +885,7 @@ declare global {
         }>;
       };
       orderData: {
+        order_group_id?: any;
         agree: boolean;
         payment: Array<{
           id: number;
