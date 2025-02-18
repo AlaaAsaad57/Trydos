@@ -1,4 +1,7 @@
 import { useEffect, useRef } from 'react';
+import { AxiosGet } from 'utils/AxiosApi';
+import { useSelector } from "node_modules/react-redux/es";
+import { store } from 'store';
 
 const LoadingColorSvg = ({ w = '14', h = '14', loading = false }) => {
     return (
@@ -47,12 +50,21 @@ interface ModalIframeProps {
 }
 
 const ModalIframe = ({ openIframe, isLoading, handleIframeLoad, _closeIframe }: ModalIframeProps) => {
+    const cart = useSelector(
+        (state: StateInterface) => state.cart.cart
+    );
     const iframeRef = useRef(null);
     useEffect(() => {
-        const handleMessage = (event: any) => {
+        const handleMessage = async (event: any) => {
             if (event.data === 'close-iframe') {
                 if (iframeRef.current) {
                     _closeIframe();
+                    let data = await AxiosGet({
+                        url: process.env.NEXT_PUBLIC_BACKEND_URL + `/customer/order/getOrdersByCartGroupID?cart_group_id=${cart[0].cart_group_id}`
+                    })
+                    if (data && data?.length > 0) {
+                        store.dispatch({ type: "ORDER-DATA", payload: { ...data[0], success: true } });
+                    }
                 }
             }
         };
@@ -67,7 +79,17 @@ const ModalIframe = ({ openIframe, isLoading, handleIframeLoad, _closeIframe }: 
         <div className="relative w-[100%] h-[100%] justify-center content-center ">
             <div className="relative flex w-[100%] h-[100%]  flex-grow flex-col items-center justify-start">
                 <div className="absolute top-0 right-0 p-2 z-[9999]">
-                    <button onClick={_closeIframe} className="text-red-500 text-xl cursor-pointer px-3">
+                    <button onClick={async () => {
+                        if (iframeRef.current) {
+                            _closeIframe();
+                            let data = await AxiosGet({
+                                url: process.env.NEXT_PUBLIC_BACKEND_URL + `/customer/order/getOrdersByCartGroupID?cart_group_id=${cart[0].cart_group_id}`
+                            })
+                            if (data && data?.length > 0) {
+                                store.dispatch({ type: "ORDER-DATA", payload: { ...data[0], success: true } });
+                            }
+                        }
+                    }} className="text-red-500 text-xl cursor-pointer px-3">
                         X
                     </button>
                 </div>

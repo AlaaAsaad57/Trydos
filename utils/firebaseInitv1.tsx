@@ -13,6 +13,7 @@ import ProductAvailable from "components/Notifications/ProductAvailable";
 import "firebase/analytics";
 import { initializeAnalytics, isSupported } from "firebase/analytics";
 import OrderPlaced from "components/Notifications/OrderPlaced";
+import { AxiosGet } from "./AxiosApi";
 const firebaseConfig = {
   // apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
   // authDomain: "trydos-ce234.firebaseapp.com",
@@ -131,13 +132,20 @@ export const onMessageListener = async () => {
           toaster.info({ data: data }, { data: data });
         }
         if (JSON.parse(payload.data.body).type === "order placed") {
-          const toaster = (myProps, toastProps): Id =>
-            toast(<OrderPlaced {...myProps} />, { ...toastProps });
+          let data = await AxiosGet({
+            url: process.env.NEXT_PUBLIC_BACKEND_URL + `/customer/order/getOrdersByOrderGroupID?order_group_id=${JSON.parse(payload.data.body).order_group_id}`,
+            title: "getOrderByOrderGroupID request"
+          })
 
-          toaster.info = (myProps, toastProps): Id =>
-            toast.info(<OrderPlaced {...myProps} />, { ...toastProps });
-          toaster.info({ data: data }, { data: data });
-          store.dispatch({ type: "ORDER-DATA", payload: { success: true } });
+          if (data && data?.length > 0) {
+            const toaster = (myProps, toastProps): Id =>
+              toast(<OrderPlaced {...myProps} />, { ...toastProps });
+
+            toaster.info = (myProps, toastProps): Id =>
+              toast.info(<OrderPlaced {...myProps} />, { ...toastProps });
+            toaster.info({ data: data }, { data: data });
+            store.dispatch({ type: "ORDER-DATA", payload: { ...data[0], success: true } });
+          }
         }
         if (
           JSON.parse(payload.data.body).type === "product when change in price"
