@@ -36,7 +36,7 @@ declare global {
       typePincode(pincode: string): Chainable<void>;
       enterPhoneNumber(phoneNumber: string): Chainable<void>;
       enterPhoneNumber1(phoneNumber: string): Chainable<void>;
-      performLogin(): Chainable<void>;
+      performLogin(s?: string): Chainable<void>;
       Performloginfailure(): Chainable<void>;
       performErrorLogin(): Chainable<void>;
       performExpireOtpLogin(): Chainable<void>;

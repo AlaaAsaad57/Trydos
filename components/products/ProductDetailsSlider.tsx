@@ -9,7 +9,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CloseIcon from "components/Home/Stories/CloseIcon";
 function ProductDetailsSlider({ product }) {
   const productData = product;
-  const [imageShow, showImage] = useState(0);
+  const [imageShow, showImage] = useState(-1);
   const [emblaRef] = useEmblaCarousel();
   const [emblaRef1] = useEmblaCarousel({ startIndex: imageShow || 0 });
   const activeColor = useSelector(
@@ -88,11 +88,11 @@ function ProductDetailsSlider({ product }) {
           </div>
         </div>
       </div>
-      {imageShow && (
+      {imageShow >= 0 && (
         <div className="fixed bg-[#0000004d] flex justify-center items-center h-[100vh] w-[100vw] top-0 left-0 p-4 z-[9999999999]">
           <span className="absolute right-3 top-4 z-50">
             {" "}
-            <CloseIcon close={() => showImage(null)} />
+            <CloseIcon close={() => showImage(-1)} />
           </span>
           <div className="embla" ref={emblaRef1}>
             <div className="embla__container">

@@ -108,7 +108,7 @@ Cypress.Commands.add("enterPhoneNumber", (phoneNumber: string) => {
   });
   cy.wait("@sendOtpApi");
 });
-Cypress.Commands.add("performLogin", () => {
+Cypress.Commands.add("performLogin", (s?: string) => {
   cy.viewport(783, 824);
   let count = 0;
   cy.intercept("POST", "**/login", () => {
@@ -123,7 +123,7 @@ Cypress.Commands.add("performLogin", () => {
     }
   });
   cy.wait(1000);
-  cy.enterPhoneNumber("963937288307");
+  cy.enterPhoneNumber(s || "963937288307");
   cy.typePincode("999999");
   cy.get("[data-testid=login-close-icon]").click({
     scrollBehavior: false,

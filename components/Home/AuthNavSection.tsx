@@ -46,7 +46,7 @@ function AuthNavSection() {
           }}
         >
           {!chatVar && getNew(chats).length === 0 ? (
-            <ChatIcon />
+            <ChatIcon data-cy="Chat-Icon" />
           ) : (
             !chatVar && <ChatNotification num={getNew(chats).length} />
           )}
@@ -61,9 +61,7 @@ function AuthNavSection() {
         {translate("Hello", language)} {user?.name && <span>,</span>}{" "}
         <span className={`${language + "-light"}`}>{user?.name}</span>
       </div>
-      <UserAvatar
-        avatar={user?.avatar?.src ?? user.avatar}
-      />
+      <UserAvatar avatar={user?.avatar?.src ?? user.avatar} />
     </>
   );
 }
