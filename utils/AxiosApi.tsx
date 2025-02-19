@@ -60,7 +60,7 @@ export const AxiosGet = async ({
         );
         return;
       }
-      if (error.status === 401) {
+      if (error.status === 401 || error.status === 403) {
         if (getUser()) {
           await ExpiredUser();
         } else {
@@ -111,14 +111,20 @@ export const AxiosPost = async ({
           return res.data.data.firebase_settings;
         }
       }
-
+      if (url.includes("/cart/update") || url.includes("/cart/add")) {
+        if (res.data.data.status === 1) {
+          toast.success(res.data.message);
+          return res.data.data;
+        } else {
+          toast.error(res.data.message);
+          throw new Error("Failed");
+        }
+      }
       if (res?.data.isSuccessful) {
         if (
           url.includes("product_likes") ||
           url.includes("old-cart/hide") ||
           url.includes("/cart/remove") ||
-          url.includes("/cart/update") ||
-          url.includes("/cart/add") ||
           url.includes("customer/update-name") ||
           hasMessageOnly
         ) {
@@ -130,7 +136,11 @@ export const AxiosPost = async ({
         throw new Error(res.data.message);
       }
     } catch (error) {
-      if (error.status === 422) {
+      if (
+        error.status === 422 ||
+        error === "Failed" ||
+        error?.message === "Failed"
+      ) {
         attempt = 2;
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
@@ -152,7 +162,6 @@ export const AxiosPost = async ({
       }
       attempt++;
       console.log(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);
-
       if (attempt > retries) {
         LogError(error, url, window.location.href);
 

@@ -141,6 +141,15 @@ export const UserID = () => {
     false
   );
 };
+export const User = () => {
+  return (
+    (localStorage.getItem("USER") &&
+      JSON.parse(localStorage.getItem("USER"))) ||
+    (localStorage.getItem("guest-user") &&
+      JSON.parse(localStorage.getItem("guest-user"))) ||
+    false
+  );
+};
 export const getUserStories = () => {
   return (
     localStorage.getItem("USER-STORIES") &&
@@ -600,10 +609,10 @@ const urlParams = ({ filters, noProducts }) => {
   if (noProducts) {
     urlParams.set("with_products", "false");
   }
-  if (filters.colors) {
+  if (filters.colors && filters?.colors.length > 0) {
     urlParams.set("colors", JSON.stringify(filters.colors));
   }
-  console.log(urlParams.toString());
+
   return urlParams.toString();
 };
 export const UpdateFilter = async ({

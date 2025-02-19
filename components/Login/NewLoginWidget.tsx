@@ -149,7 +149,7 @@ function NewLoginWidget() {
 
               value: "verify_otp_signup_success_event",
             });
-            if (exists && name.length > 1) {
+            if (exists && name?.length > 1) {
               Sendevent({
                 event: "programming_event",
 
@@ -157,7 +157,7 @@ function NewLoginWidget() {
               });
               setSignStep("alreadyExists");
               setStepIndicator(6);
-            } else if (exists && !(name.length > 1)) {
+            } else if (exists && !(name?.length > 1)) {
               setStepIndicator(7);
             }
             if (!exists) {
@@ -166,7 +166,7 @@ function NewLoginWidget() {
               setStepIndicator(7);
             }
           } else {
-            if (exists && name.length > 1) {
+            if (exists && name?.length > 1) {
               Sendevent({
                 event: "programming_event",
 
@@ -175,7 +175,8 @@ function NewLoginWidget() {
               FinaliseLogin();
               setSignStep("welcomeLogin");
               setStepIndicator(6);
-            } else if (exists && !(name.length > 1)) {
+            } else if (exists && !(name?.length > 1)) {
+              FinaliseLogin();
               setStepIndicator(7);
             }
             if (!exists) {
@@ -247,6 +248,7 @@ function NewLoginWidget() {
       />
       <div
         data-testid="login-widget-container"
+        data-cy="login-widget-container"
         className={`login-widget-container login-w2-container pb-${stepIndicator} step${stepIndicator}`}
         id="widget-auth"
         style={{

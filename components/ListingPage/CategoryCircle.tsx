@@ -155,7 +155,9 @@ function CategoryCircle({ category }) {
           />
         </div>
         <div className="category-text-container flex-col align-center">
-          <span className="category-title">{category.name}</span>
+          <span className="category-title" data-cy="categoryTitle">
+            {category.name}
+          </span>
           {/* <span className="category-typo">1100</span> */}
         </div>
       </div>

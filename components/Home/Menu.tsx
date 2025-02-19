@@ -58,6 +58,7 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
             Settings
           </NextLink>
           <div
+            data-cy="logout"
             style={{
               padding: "10px 15px",
               cursor: "pointer",

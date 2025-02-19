@@ -43,17 +43,17 @@ const PrefetchingFilters = () => {
         AxiosCacheApi({
           url:
             process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-            `/api/products/search?category_slugs=${JSON.stringify([s.slug])}${
-              boutique ? `&boutique_slugs=["${boutique}"]` : ""
-            }`,
+            `/api/products/search?category_slugs=${decodeURI(
+              JSON.stringify([s.slug])
+            )}${boutique ? `&boutique_slugs=["${boutique}"]` : ""}`,
         });
       } else {
         AxiosCacheApi({
           url:
             process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-            `/api/products/search?&brand_slugs=${JSON.stringify([s.slug])}${
-              boutique ? `&boutique_slugs=["${boutique}"]` : ""
-            }`,
+            `/api/products/search?&brand_slugs=${decodeURI(
+              JSON.stringify([s.slug])
+            )}${boutique ? `&boutique_slugs=["${boutique}"]` : ""}`,
         });
       }
     });
@@ -282,12 +282,15 @@ function BoutiqueHeader({ boutique, showFilters }) {
       className={`boutique-header ${"flex-col"} align-center`}
       data-cy="boutiqueOpen"
     >
-      {(filters.categories.length > 0 || filters.brands.length > 0) && (
+      {/* {(filters.categories.length > 0 || filters.brands.length > 0) && (
         <PrefetchingFilters />
-      )}
+      )} */}
       {boutique && (
         <>
-          <div className="boutique-top-info flex-col items-center">
+          <div
+            className="boutique-top-info flex-col items-center"
+            data-cy="boutique_top_info"
+          >
             <div className="boutique-logo-container flex-row align-center">
               <img width={130} height={20} src={boutique.icon} />
               <VerificationIcon />

@@ -33,7 +33,7 @@ export const GetChats = async (payload) => {
         headers: {
           Authorization:
             `Bearer ` +
-            JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+            JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
         },
       }
     );
@@ -97,7 +97,7 @@ export const GetChats = async (payload) => {
           headers: {
             Authorization:
               `Bearer ` +
-              JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
           },
         }
       );
@@ -121,7 +121,7 @@ export const GetLastSeen = async (chatId, friendID) => {
           headers: {
             Authorization:
               `Bearer ` +
-              JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
           },
         }
       )
@@ -178,7 +178,7 @@ export const setLastSeen = async (MyId) => {
           headers: {
             Authorization:
               `Bearer ` +
-              JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
           },
         }
       )
@@ -209,7 +209,7 @@ export const getCalls = async (id) => {
           headers: {
             Authorization:
               `Bearer ` +
-              JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
           },
         }
       )
@@ -547,7 +547,7 @@ export const getMedia = async (id, media) => {
         headers: {
           Authorization:
             `Bearer ` +
-            JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+            JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
         },
       }
     );
@@ -634,7 +634,7 @@ export const makeVideoCall = async (
           headers: {
             Authorization:
               `Bearer ` +
-              JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
           },
         }
       )
@@ -687,7 +687,7 @@ export const makeVoiceCall = async (
           headers: {
             Authorization:
               `Bearer ` +
-              JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
           },
         }
       )
@@ -729,7 +729,7 @@ export const AnswerCall = async (channelId, messageId) => {
           headers: {
             Authorization:
               "Bearer " +
-              JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
           },
         }
       )
@@ -755,7 +755,7 @@ export const AnswerCall = async (channelId, messageId) => {
             headers: {
               Authorization:
                 `Bearer ` +
-                JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+                JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
             },
           }
         )
@@ -796,7 +796,7 @@ export const InCall = async (channelId, messageId) => {
             headers: {
               Authorization:
                 `Bearer ` +
-                JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+                JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
             },
           }
         )
@@ -825,7 +825,7 @@ export const RefuseCall = async (channelId, messageId, duration) => {
             headers: {
               Authorization:
                 `Bearer ` +
-                JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+                JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
             },
           }
         )
@@ -853,7 +853,7 @@ export const Answer = async (channelId, messageId) => {
           headers: {
             Authorization:
               `Bearer ` +
-              JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
           },
         }
       )
@@ -869,7 +869,7 @@ export const GetChatDetails = async (id) => {
         headers: {
           Authorization:
             `Bearer ` +
-            JSON.parse(localStorage.getItem("USER-CHAT")).access_token,
+            JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
         },
       }
     );

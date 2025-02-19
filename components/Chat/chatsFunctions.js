@@ -684,7 +684,7 @@ export const showDate = (d) => {
         : "0" + date_mes.getMinutes()
     }`;
   else if (new Date(nowString) - new Date(d) === 86400000) {
-    return translate("Yesterday", language);
+    return translateFunction("Yesterday", language);
   } else if (new Date(nowString) - new Date(d) < 86400000 * 6) return day;
   else return language === "ar" ? d.toLocaleString("ar-EG") : d;
 };

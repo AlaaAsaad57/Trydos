@@ -115,7 +115,9 @@ function BrandCircle({ brand }) {
       </div>
 
       <div className="category-text-container flex-col align-center">
-        <span className="category-title">{brand.name}</span>
+        <span className="category-title" data-cy="brandTitle">
+          {brand.name}
+        </span>
         {/* <span className="category-typo">1100</span> */}
       </div>
     </div>

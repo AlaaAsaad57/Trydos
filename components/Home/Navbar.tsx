@@ -99,6 +99,7 @@ function Navbar({ init, categories, response }: NavbarProps) {
         <NextLink
           href={`/${init}`}
           aria-label="TryDos Home"
+          data-cy="NavLogo"
           onClick={(e) => {
             dispatch({ type: "ENABLE-SEARCH", payload: false });
             // if(!showNavbar())

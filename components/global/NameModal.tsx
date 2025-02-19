@@ -30,7 +30,7 @@ function NameModal() {
         className="app max-w-[280px] max-h-[140px] left-0 right-0 mx-auto my-0"
         style={{
           position: "fixed",
-          zIndex: "999999999",
+
           width: "280px",
           height: "140px",
           top: "50%",
@@ -58,6 +58,7 @@ function NameModal() {
             Name
           </label>
           <input
+            data-cy="Input-Name"
             className="login-phone-input absolute top-0 text-[12px] regular"
             style={{
               zIndex: "2",
@@ -79,6 +80,7 @@ function NameModal() {
                 zIndex: "3",
                 cursor: "pointer",
               }}
+              data-cy="Input-Name-Submit"
               onClick={() => {
                 AuthService.UpdateName(value);
                 close();

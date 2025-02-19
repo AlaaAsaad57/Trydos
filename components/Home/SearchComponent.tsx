@@ -168,6 +168,7 @@ function SearchComponent({
       <div className={`search-input-parent ${focus && "focuse"}`}>
         <DebounceInput
           minLength={0}
+          data-cy="inputField"
           className="search-input"
           placeholder={translateFunction("Search")}
           onFocus={() => setFocuse(true)}
@@ -205,6 +206,7 @@ function SearchComponent({
       {focus ? (
         <div className="input-icons flex-row close-search-icon">
           <SearchCloseIcon
+            data-cy="SearchInputCloseIcon"
             onClick={() => {
               if (searchValue.length > 0) {
                 Sendevent({

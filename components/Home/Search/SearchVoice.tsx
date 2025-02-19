@@ -28,6 +28,7 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
     <>
       {browserSupportsSpeechRecognition && (
         <SearchMicIcon
+          data-cy="searchVoiceIcon"
           onTouchStart={handleOnRecord}
           onMouseDown={handleOnRecord}
           className={`${listening ? "listening-icon-mic" : "ggg"}`}

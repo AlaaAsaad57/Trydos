@@ -24,7 +24,7 @@ export default function Error({
         ? JSON.parse(localStorage.getItem("LAST_JSON"))
         : null;
       token = (await localStorage.getItem("USER-CHAT"))
-        ? JSON.parse(localStorage.getItem("USER-CHAT")).access_token
+        ? JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token
         : null;
     }
 

@@ -36,7 +36,10 @@ function ColorRow() {
     }
   }, []);
   return (
-    <div className="category-row-container color-row flex-row">
+    <div
+      className="category-row-container color-row flex-row"
+      data-cy="colorBox"
+    >
       {filters.colors.map((color, key) => (
         <ColorCircle color={color} key={key} />
       ))}

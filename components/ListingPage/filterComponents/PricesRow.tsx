@@ -195,7 +195,10 @@ function PricesRow() {
     }
   }, []);
   return (
-    <div className="category-row-container brand-row prices-row flex-row">
+    <div
+      className="category-row-container brand-row prices-row flex-row"
+      data-cy="priceBox"
+    >
       {filters?.prices?.priceRanges.map(
         (price, key) =>
           price.products_count > 0 && <SizeCircle text={price} key={key} />

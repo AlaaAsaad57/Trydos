@@ -4,16 +4,22 @@ import { useTimer } from "react-timer-and-stopwatch";
 interface TimerProps {
   onFinish: Function;
   onResume: Function;
+  minutes?: number;
 }
-function Timer({ onFinish }: TimerProps) {
+function Timer({ onFinish, minutes }: TimerProps) {
   const timer = useTimer({
     create: {
       timerWithDuration: {
-        time: {
-          // Set a duration of 1 minute and 30 seconds
-          minutes: 1,
-          seconds: 59,
-        },
+        time: minutes
+          ? {
+              minutes: minutes,
+              seconds: 0,
+            }
+          : {
+              // Set a duration of 1 minute and 30 seconds
+              minutes: 1,
+              seconds: 59,
+            },
       },
     },
   });

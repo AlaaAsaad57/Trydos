@@ -65,7 +65,10 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
   );
 
   return (
-    <div className={`${searchEnabled && "hidden"} user-nav-container`}>
+    <div
+      className={`${searchEnabled && "hidden"} user-nav-container`}
+      data-cy="Nav_CartIcon_LogIn"
+    >
       {/* {user && (
         <div
           className="nav-question-item"
@@ -140,6 +143,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
       )}
       <div
         className="flex flex-row"
+        data-cy="avatar-options"
         onClick={() => setMenuOpen(!menuOpen)}
         style={{ marginLeft: "10px", cursor: "pointer" }}
       >

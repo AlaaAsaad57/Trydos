@@ -93,7 +93,10 @@ function FilterInfoBar({
     return variable;
   };
   return (
-    <div className="filter-info-bar flex-row cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none ">
+    <div
+      className="filter-info-bar flex-row cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none "
+      data-cy="filterInfo"
+    >
       <CloseIcon
         data-cy="closeIcon"
         className="mr-2 ml-2"
@@ -199,7 +202,10 @@ function FilterInfoBar({
                       }
                     />
                   </div>
-                  <div className="category-title filter-bar-main-title">
+                  <div
+                    className="category-title filter-bar-main-title"
+                    data-cy="mainFilter"
+                  >
                     {category?.name ||
                       filters.categories.filter(
                         (s) => s.slug === category.slug
@@ -332,7 +338,10 @@ function FilterInfoBar({
                       }
                     />
                   </div>
-                  <div className="category-title filter-bar-main-title">
+                  <div
+                    className="category-title filter-bar-main-title"
+                    data-cy="mainFilterBrand"
+                  >
                     {brand?.name ||
                       filters.brands.filter((sub) => sub.slug === brand.slug)[0]
                         ?.name}
@@ -394,7 +403,10 @@ function FilterInfoBar({
           <ActiveCategoryIcon style={{ height: "21px" }} />
           {filtersVariable?.sizes.map((size, index) => (
             <>
-              <div className="category-title filter-bar-main-title uppercase">
+              <div
+                className="category-title filter-bar-main-title uppercase"
+                data-cy="sizeFilterTitle"
+              >
                 {size}
               </div>
               {index < filtersVariable?.sizes.length - 1 && " - "}

@@ -173,7 +173,7 @@ function AlreadyRegistered({
         <div
           className="login-button"
           onClick={() => {
-            if (user.name.length > 1) {
+            if (user.name?.length > 1) {
               Sendevent({
                 event: "button_clicked",
                 value: "login_continue_button",

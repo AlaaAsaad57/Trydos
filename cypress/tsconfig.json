@@ -2,7 +2,12 @@
   "compilerOptions": {
     "target": "ES5",
     "lib": ["DOM", "ES5"],
-    "types": ["cypress", "./support/component"]
+    "types": [
+      "cypress",
+      "./support/component",
+      "cypress-real-events",
+      "cypress-file-upload"
+    ]
   },
   "include": ["**/*.ts"]
 }

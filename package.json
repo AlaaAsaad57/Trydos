@@ -111,6 +111,8 @@
     "@types/node": "^20.12.7",
     "@vitest/ui": "^1.6.0",
     "autoprefixer": "^10.4.19",
+    "cypress-file-upload": "^5.0.8",
+    "cypress-real-events": "^1.14.0",
     "eslint": "^8.56.0",
     "eslint-config-next": "^15.0.3",
     "eslint-config-standard": "^17.1.0",

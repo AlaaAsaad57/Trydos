@@ -141,27 +141,40 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
   const [deleteModal, setDeleteModal] = useState<any>(false);
   const setOrderSuccess = async (e) => {
     if (orderData?.payment?.length === 1) {
-      let payment_method = orderData?.payment[0]?.id === 0 ? "COD" : orderData?.payment[0]?.id === 1 ? "TrydosWallet" : orderData?.payment[0]?.id === 2 ? "Card" : "Crypto"
+      let payment_method =
+        orderData?.payment[0]?.id === 0
+          ? "COD"
+          : orderData?.payment[0]?.id === 1
+          ? "TrydosWallet"
+          : orderData?.payment[0]?.id === 2
+          ? "Card"
+          : "Crypto";
       setLoading(true);
       await order.PlaceOrder({
         payment_method,
-        pay_by_wallet: false
+        pay_by_wallet: false,
       });
       setLoading(false);
     } else {
-      if (orderData.payment.length && orderData?.payment?.filter((one) => one.id === 2).length) {
+      if (
+        orderData.payment.length &&
+        orderData?.payment?.filter((one) => one.id === 2).length
+      ) {
         setLoading(true);
         await order.PlaceOrder({
           payment_method: "Card",
-          pay_by_wallet: true
+          pay_by_wallet: true,
         });
         setLoading(false);
       }
-      if (orderData.payment.length && orderData?.payment?.filter((one) => one.id === 3).length) {
+      if (
+        orderData.payment.length &&
+        orderData?.payment?.filter((one) => one.id === 3).length
+      ) {
         setLoading(true);
         await order.PlaceOrder({
           payment_method: "Crypto",
-          pay_by_wallet: true
+          pay_by_wallet: true,
         });
         setLoading(false);
       }
@@ -181,7 +194,6 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
       className={`pb-[10px]
      flex-col relative  top-0 left-0 min-h-[100vh] max-h-[100vh] h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
     >
-      <ToastContainer position="top-right" />
       {deleteModal && (
         <DeleteModalComponent
           slidePrev={() => {
@@ -733,8 +745,9 @@ const OrderButtons = ({ orderLoading, setNext }) => {
         style={{
           boxShadow: "0px -3px 20px #0000001a",
         }}
-        className={` ${orderLoading && "opacity-55"
-          }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
+        className={` ${
+          orderLoading && "opacity-55"
+        }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
       >
         <div
           onClick={() => {
@@ -743,14 +756,17 @@ const OrderButtons = ({ orderLoading, setNext }) => {
               setNext();
             }
           }}
-          className={` ${orderData.loading && "opacity-65 scale-95"
-            } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${isValid() ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
-            } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
+          className={` ${
+            orderData.loading && "opacity-65 scale-95"
+          } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${
+            isValid() ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
+          } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
         >
           <span>{translateFunction("Confirm Shipping & Payment")}</span>
           <span
-            className={`text-[#FEFEFE] text-[14px] medium ${GetAppLanguage() === "ar" && "dir-rtl"
-              } `}
+            className={`text-[#FEFEFE] text-[14px] medium ${
+              GetAppLanguage() === "ar" && "dir-rtl"
+            } `}
           >
             {cart.cart.length} {translateFunction("items")}{" "}
             {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}

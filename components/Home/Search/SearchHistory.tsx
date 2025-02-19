@@ -56,9 +56,14 @@ function SearchHistory({ options, setOptions }) {
         className="flex-row align-center cursor-pointer"
         onClick={() => setOpen(!openMenu)}
       >
-        <SearchHistoryIcon />
+        <SearchHistoryIcon data-cy="SearchHistoryIcon" />
         {openMenu && (
-          <span className="filter-label-search">Search History</span>
+          <span
+            className="filter-label-search"
+            data-cy="SearchHistoryStatement"
+          >
+            Search History
+          </span>
         )}
       </div>
       {!openMenu && (
@@ -122,6 +127,7 @@ function SearchHistory({ options, setOptions }) {
       {openMenu && (
         <span
           className="clear-options-button"
+          data-cy="clearAll"
           onClick={(e) => {
             localStorage.setItem("search-history", JSON.stringify([]));
           }}

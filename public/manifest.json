@@ -1,6 +1,7 @@
 {
   "name": "TryDos",
   "short_name": "TRD",
+  "display": "standalone",
   "icons": [
     {
       "src": "assets/icons/icon-36x36.png",
@@ -66,6 +67,6 @@
   "theme_color": "#FFFFFF",
   "background_color": "#FFFFFF",
   "start_url": "/",
-  "display": "standalone",
+
   "orientation": "portrait"
 }

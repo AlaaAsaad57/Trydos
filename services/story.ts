@@ -58,6 +58,7 @@ class StoryService {
       _isStoreLastJson() &&
         localStorage.setItem("LAST_JSON", JSON.stringify(response));
     }
+    await this.getStories();
   }
   async WatchStory(pid: number | string, id: number | string) {
     try {

@@ -202,12 +202,14 @@ export default function (props) {
             onTouchStart={debouncePause}
             onMouseDown={debouncePause}
             onMouseUp={mouseUp("previous")}
+            data-cy="Prev-Story"
           />
           <div
             style={{ width: "50%", zIndex: 999 }}
             onTouchStart={debouncePause}
             onMouseDown={debouncePause}
             onMouseUp={mouseUp("next")}
+            data-cy="Next-Story"
           />
         </div>
       )}

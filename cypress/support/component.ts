@@ -31,13 +31,12 @@ declare global {
       mount: typeof mount;
       Visit(value: string): void;
       Exist(selector: string): Promise<boolean>;
-      clearAllData(): Chainable<void>;
-      clearAllDataWithoutCookies(): Chainable<void>;
-      clearAllDataWithoutSessionStorage(): Chainable<void>;
+      logout(): Chainable<void>;
       (): Chainable<void>;
       typePincode(pincode: string): Chainable<void>;
       enterPhoneNumber(phoneNumber: string): Chainable<void>;
-      performLogin(): Chainable<void>;
+      enterPhoneNumber1(phoneNumber: string): Chainable<void>;
+      performLogin(s?: string): Chainable<void>;
       Performloginfailure(): Chainable<void>;
       performErrorLogin(): Chainable<void>;
       performExpireOtpLogin(): Chainable<void>;
