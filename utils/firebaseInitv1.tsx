@@ -92,7 +92,7 @@ export const onMessageListener = async () => {
       console.log(payload);
       if (payload.data.title === "market") {
         const data = JSON.parse(payload.data.body);
-        if (JSON.parse(payload.data.body)?.type?.imcludes("product hurry up")) {
+        if (JSON.parse(payload.data.body)?.type?.includes("product hurry up")) {
           const toaster = (myProps, toastProps): Id =>
             toast(<ProductHurryUp {...myProps} />, { ...toastProps });
           toaster.info = (myProps, toastProps): Id =>
