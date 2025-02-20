@@ -63,6 +63,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
   const searchEnabled = useSelector(
     (state: StateInterface) => state.Search.enable
   );
+  const cart = useSelector((state: StateInterface) => state.cart?.localCart);
 
   return (
     <div
@@ -78,10 +79,15 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
         </div>
       )} */}
       <div
-        className="nav-question-item cart-icon-selector cursor-pointer"
+        className="nav-question-item cart-icon-selector cursor-pointer relative"
         style={{ marginRight: "30px", marginLeft: "0px" }}
         onClick={() => enableCart(true)}
       >
+        {cart?.length > 0 && (
+          <div className="bg-green-500 right-[-8px] top-[-4px] text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
+            {cart.length}
+          </div>
+        )}
         <CartIcon data-cy="cartIcon_mainPage" />
       </div>
       {!user && (
