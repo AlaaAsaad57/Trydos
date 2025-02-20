@@ -167,13 +167,14 @@ messaging.onBackgroundMessage(async function (payload) {
       if (JSON.parse(payload.data.body).type === "order placed") {
         notificationOptions = {
           body: JSON.parse(payload.data.body)?.description,
-          image: JSON.parse(payload.data.body)?.image,
+          // image: JSON.parse(payload.data.body)?.image,
           data: {
-            url
+            url,
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
-          JSON.parse(payload?.data.body)?.showed_type ?? JSON.parse(payload.data.body).description,
+          JSON.parse(payload?.data.body)?.showed_type ??
+            JSON.parse(payload.data.body).description,
           notificationOptions
         );
       }

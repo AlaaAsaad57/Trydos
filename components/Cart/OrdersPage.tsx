@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import {
   GetAppLanguage,
+  getCart,
   RoundPrice,
   Sendevent,
   translateFunction,
@@ -20,7 +21,7 @@ import order from "services/order";
 import PaymentMethod from "./PaymentMethod";
 import PlaceOrderWidget from "./PlaceOrderWidget";
 import PlaceOrderButtons from "./PlaceOrderButtons";
-import { ToastContainer } from "react-toastify";
+
 const DeleteIcon = () => {
   return (
     <svg
@@ -251,6 +252,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                     value: "appbar_backicon_button",
                   });
                   setStep(0);
+                  setOrderStep(0);
                 }}
               />
               <span className="text-[13px] text-[#505050] regular flex-row items-center ">
@@ -389,6 +391,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                               value: "appbar_backicon_button",
                             });
                             ref.current.slidePrev();
+                            setNextStep(false);
                           }}
                         />
                         <span className="text-[13px] text-[#505050] regular flex-row items-center ">
@@ -412,6 +415,17 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                   </div>
                   <PlaceOrderButtons
                     orderLoading={false}
+                    backToCart={() => {
+                      getCart({
+                        callback: ([data, res]) => {
+                          dispatch({
+                            type: "CART-INIT",
+                            payload: data ?? { cart: [] },
+                          });
+                        },
+                      });
+                      setStep(0);
+                    }}
                     successOrder={() => setOrderSuccess(true)}
                   />
                 </>
@@ -427,6 +441,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                             value: "appbar_backicon_button",
                           });
                           ref.current.slidePrev();
+                          setNextStep(false);
                         }}
                       />
                       <span className="text-[13px] text-[#505050] regular flex-row items-center ">

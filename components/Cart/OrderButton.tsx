@@ -14,6 +14,7 @@ import OrderMarquee from "./OrderMarquee";
 import DiscoutIcon from "public/svg/cart/Disount.svg";
 import GiftIcon from "public/svg/cart/Gift.svg";
 import ShippingIcon from "public/svg/cart/Shipping.svg";
+import { AxiosGet } from "utils/AxiosApi";
 function OrderButton({ close, toOrders }) {
   let { lang } = useParams();
   // @ts-ignore
@@ -141,7 +142,7 @@ function OrderButton({ close, toOrders }) {
     return a;
   };
   const dispatch = useDispatch();
-  const GoToOrders = async () => {
+  const GoToOrders = async (bool?) => {
     try {
       setLoading(true);
       await getCart({
@@ -149,11 +150,20 @@ function OrderButton({ close, toOrders }) {
           dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
         },
       });
-      if (user) toOrders();
-      else {
-        setOption(true);
-      }
-      setLoading(false);
+      // check availableity
+      await AxiosGet({
+        url:
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+          "/cart/check_availability_product_cart",
+        title: "Check Product Availablity",
+      });
+      setTimeout(() => {
+        if (user || bool) toOrders();
+        else {
+          setOption(true);
+        }
+        setLoading(false);
+      }, 300);
     } catch (error) {
       setLoading(false);
     }
@@ -170,6 +180,13 @@ function OrderButton({ close, toOrders }) {
       passive: false,
     },
   });
+  const IsNotAvailable = () => {
+    let a = false;
+    cart.cart.map((product) => {
+      if (parseInt(product.quantity) > product.available_quantity) a = true;
+    });
+    return a;
+  };
   return (
     <>
       {expanded && (
@@ -382,7 +399,7 @@ function OrderButton({ close, toOrders }) {
         >
           <div
             className={`${
-              loading && "opacity-55"
+              (loading || IsNotAvailable()) && "opacity-55"
             } cursor-pointer  flex-col w-full  ${
               option ? "h-[200px]" : "bg-[#3C3C3C] h-[70px]"
             } rounded-[20px] text-center justify-center items-center`}
@@ -394,10 +411,13 @@ function OrderButton({ close, toOrders }) {
               if (cart.cart.length === 0) {
                 close();
               } else {
-                if (!getUser()) {
-                  setOption(true);
+                if (IsNotAvailable()) {
                 } else {
-                  GoToOrders();
+                  if (!getUser()) {
+                    setOption(true);
+                  } else {
+                    GoToOrders();
+                  }
                 }
               }
             }}
@@ -411,7 +431,7 @@ function OrderButton({ close, toOrders }) {
                       setOption(false);
                     }}
                     goToOrders={() => {
-                      toOrders();
+                      GoToOrders(true);
                     }}
                   />
                 </>

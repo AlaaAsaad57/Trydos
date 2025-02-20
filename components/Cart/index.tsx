@@ -1806,7 +1806,7 @@ const QuantutyInput = ({
                 <div className="flex-row">
                   <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
                     {RoundPrice({
-                      num: product.price,
+                      num: product.price * product.quantity,
                       rate: currency?.exchange_rate,
                       points:
                         (decimal_point_settings &&
@@ -1833,7 +1833,7 @@ const QuantutyInput = ({
                   </div>
                   <div className="product-new-price text-[18px] bold">
                     {RoundPrice({
-                      num: product?.offer_price,
+                      num: product?.offer_price * product.quantity,
                       rate: currency.exchange_rate,
                       points:
                         (decimal_point_settings &&
@@ -1868,7 +1868,7 @@ const QuantutyInput = ({
             <>
               <div className="product-new-price text-[14px] light text-[#1D1D1D]">
                 {RoundPrice({
-                  num: product.price,
+                  num: product.price * product.quantity,
                   rate: currency.exchange_rate,
                   points:
                     (decimal_point_settings &&
