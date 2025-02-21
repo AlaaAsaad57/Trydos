@@ -658,7 +658,16 @@ html {
   animation: slideUp 400ms ease 0.1s 1 forwards;
   bottom: -100vh;
 }
-
+@media (prefers-reduced-motion: reduce) {
+  .cart-provider {
+    top: 0px !important;
+    bottom: initial I !important; /* Static position */
+  }
+  .cart-provider.slideDown-cart {
+    top: 100vh !important;
+    bottom: initial I !important;
+  }
+}
 .cart-provider.slideDown-cart {
   animation: slideDown 400ms ease 0.1s 1 forwards;
 }
