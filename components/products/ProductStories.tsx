@@ -66,6 +66,7 @@ function ProductStories() {
   return (
     <div
       className={`product-colors product-stories flex-col  align-start relative`}
+      data-cy="ProductColors_ProductStorie"
     >
       {showInfoMessage && <InfoWindow />}
       {selectedStory?.id && (

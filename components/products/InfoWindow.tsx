@@ -35,6 +35,7 @@ function InfoWindow() {
         className={`flex rounded-tl-[30px] w-full  p-5 pb-[70px] rounded-tr-[30px] bg-[#F4F4F4] min-h-[200px] left-0 fixed transition-all z-[999999999999] ${
           showInfoMessage ? "bottom-[0px]" : "bottom-[-100vh]"
         } `}
+        data-cy="InfoWindow"
       >
         <div className="flex-col w-full pt-[15px] pl-[10px] pb-[10px] pr-[25px] relative">
           <svg

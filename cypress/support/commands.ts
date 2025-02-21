@@ -414,3 +414,57 @@ Cypress.Commands.add("verifyProductInCart", (productName: string) => {
       }
     });
 });
+// ***********************************Products Details******************************
+Cypress.Commands.add("verifyBoxsInBoutiquePage", () => {
+  cy.get("[data-cy=categoryBox", { timeout: 5000 });
+  cy.log("✅✅ Category Box Founded");
+  cy.get("[data-cy=brandBox", { timeout: 5000 });
+  cy.log("✅✅ Category Box Founded");
+  cy.get("[data-cy=colorBox", { timeout: 5000 });
+  cy.log("✅✅ Category Box Founded");
+  cy.get("[data-cy=priceBox", { timeout: 5000 });
+  cy.log("✅✅ Category Box Founded");
+});
+Cypress.Commands.add("verifyComponentsInProductCard", () => {
+  cy.Exist("[data-cy=productPhotoSlider]").then((exist) => {
+    if (exist) {
+      cy.get("[data-cy=productPhotoSlider]", { timeout: 5000 })
+        .eq(0)
+        .as("firstProductPhotoSlider");
+      cy.get("@firstProductPhotoSlider").should("exist");
+      cy.log("✅✅ First Product Photo Slider Exists");
+      cy.get("@firstProductPhotoSlider")
+        .find("[data-cy=wrapperPhotoSlider]", { timeout: 5000 })
+        .as("allWrapperPhotoSliders")
+        .its("length")
+        .then((count) => {
+          cy.log(
+            `✅✅ Found ${count} wrapperPhotoSlider inside First Product Photo Slider`
+          );
+        });
+      let textArray = [];
+      cy.get("@allWrapperPhotoSliders")
+        .eq(0)
+        .trigger("mouseover")
+        .then(() => {
+          cy.get("@allWrapperPhotoSliders")
+            .find("[data-cy=TextAboveImageOnSlider]")
+            .should("exist")
+            .should("be.visible")
+            .invoke("text")
+            .then((text) => {
+              textArray.push(text.trim());
+              cy.log(`✅ TextAboveImageOnSlider : ${text.trim()}`);
+            });
+        })
+        .then(() => {
+          cy.log(
+            "✅✅ All Extracted Texts for First Product Photo Slider:",
+            textArray
+          );
+        });
+    } else {
+      cy.log("❌❌ There aren't any photos slider");
+    }
+  });
+});

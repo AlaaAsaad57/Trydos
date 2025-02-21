@@ -17,6 +17,7 @@ function GalleryItem({
       className={`${
         extended ? "w-full" : "mr-3"
       } transition-all gallery-slider-item mt-3 relative  min-h-[267px] h-auto rounded-[30px] overflow-hidden`}
+      data-cy="GalleryChooseItem"
       onClick={() => {
         onClick();
       }}
@@ -27,11 +28,12 @@ function GalleryItem({
         className={`${
           extended ? "h-[98px] pl-[20px] pr-[30px] pb-[10px] pt-[10px]" : "h-0"
         } transition-all rounded-b-[30px] bg-[#F8F8F8]  gallery-item-desc flex-col relative`}
+        data-cy="ProductsDetail&Info"
       >
         {extended && (
           <>
             <div className="flex-row  justify-start items-start relative">
-              <div className="flex-row items-start">
+              <div className="flex-row items-start" data-cy="ToClose">
                 <div className="w-[20px] h-[20px] rounded-[50%] relative comment-photo">
                   <img
                     className="w-[20px] h-[20px] rounded-[50%]"
@@ -60,7 +62,10 @@ function GalleryItem({
 function GalleryItemFloatingElements() {
   return (
     <>
-      <div className="gallery-item-options flex-col absolute right-[20px] bottom-[118px] h-[110px] w-[20px] justify-between z-[60]">
+      <div
+        className="gallery-item-options flex-col absolute right-[20px] bottom-[118px] h-[110px] w-[20px] justify-between z-[60]"
+        data-cy="UserInteractions"
+      >
         <div className="w-5 flex justify-center items-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -164,7 +169,10 @@ function GalleryItemFloatingElements() {
           </svg>
         </div>
       </div>
-      <div className="flex-row absolute z-[60] bottom-[17px] right-[10px] w-[55px] h-[16px] text-[12px] regular justify-between text-[#8D8D8D]">
+      <div
+        className="flex-row absolute z-[60] bottom-[17px] right-[10px] w-[55px] h-[16px] text-[12px] regular justify-between text-[#8D8D8D]"
+        data-cy="CountOfUserInteractions"
+      >
         <Heart className="scale-[0.6]  origin-top-right" />
         <span>110k</span>
       </div>
