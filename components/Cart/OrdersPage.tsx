@@ -124,17 +124,11 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
   };
   const [openSelect, setOpenSelect] = useState(false);
   const colseSelect = () => {
-    document
-      .querySelector(".select-animation-in")
-      .classList.add("select-animation-out");
     setTimeout(() => {
       setOpenSelect(false);
     }, 300);
   };
   const colseAddressList = () => {
-    document
-      .querySelector(".select-animation-in")
-      .classList.add("select-animation-out");
     setTimeout(() => {
       openAddressList(false);
     }, 300);

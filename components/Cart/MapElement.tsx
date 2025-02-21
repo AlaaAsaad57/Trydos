@@ -46,7 +46,7 @@ export const MapElement: React.FC<MapProps> = memo(
       useEffect(() => {
         if (center) {
           map.panTo(center, { animate: true });
-          map.setZoom(3, { animate: true });
+          map.setZoom(map.getZoom() + 1, { animate: true });
         }
       }, [center, expanded]);
 
