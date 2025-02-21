@@ -69,24 +69,6 @@ function Navbar({ init, categories, response }: NavbarProps) {
     LogData(response);
     initFunc();
   }, []);
-  const showNavbar = () => {
-    if (
-      params.split("/").includes("boutiques") ||
-      params.split("/").includes("products")
-    ) {
-      return false;
-    }
-    if (
-      (params.split("/").includes("categories") &&
-        !params.split("/").includes("boutiques")) ||
-      (!params.split("/").includes("categories") &&
-        !params.split("/").includes("boutiques"))
-    ) {
-      return true;
-    } else {
-      return false;
-    }
-  };
 
   return (
     <>
