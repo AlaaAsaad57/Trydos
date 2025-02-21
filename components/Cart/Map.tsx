@@ -22,21 +22,19 @@ const Map = ({
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         function (position) {
-          if (!addressDetails.id) {
-            setCenter({
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            });
-            setAddressDetails({
-              location: {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-              },
-            });
-          }
+          setCenter({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+          setAddressDetails({
+            location: {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            },
+          });
         },
         function (error) {
-          console.error("Error occurred. Error code: " + error.code);
+          console.error("Error occurred. Error code: " + error.message);
         }
       );
     }

@@ -350,9 +350,11 @@ function OrderButton({ close, toOrders }) {
                   </div>
 
                   <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]">
-                    <span className="line-through">10</span>
-                    {RoundPrice({ num: cart.total_shipping_cost })}{" "}
-                    {currency_symbol.symbol}
+                    <span className="line-through">
+                      {" "}
+                      {RoundPrice({ num: cart.total_shipping_cost })}{" "}
+                      {currency_symbol.symbol}
+                    </span>
                   </span>
                 </div>
               </div>

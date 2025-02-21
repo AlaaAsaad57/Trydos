@@ -28,28 +28,31 @@ function SelectRegion({ closeSelect }) {
         </div>
 
         <div
-          className={`flex ${!addressDetails.region_details.province
-            ? "text-[#D3D3D3]"
-            : "text-[#1D1D1D]"
-            }  text-[14px] regular`}
+          className={`flex ${
+            !addressDetails.region_details.province
+              ? "text-[#D3D3D3]"
+              : "text-[#1D1D1D]"
+          }  text-[14px] regular`}
         >
           <span className="px-1">|</span>
           {addressDetails.region_details.province || "Province"}
         </div>
         <div
-          className={`flex ${!addressDetails.region_details.city
-            ? "text-[#D3D3D3]"
-            : "text-[#1D1D1D]"
-            }  text-[14px] regular`}
+          className={`flex ${
+            !addressDetails.region_details.city
+              ? "text-[#D3D3D3]"
+              : "text-[#1D1D1D]"
+          }  text-[14px] regular`}
         >
           <span className="px-1">|</span>
           {addressDetails.region_details.city || "Town"}
         </div>
         <div
-          className={`flex ${!addressDetails.region_details.town
-            ? "text-[#D3D3D3]"
-            : "text-[#1D1D1D]"
-            }  text-[14px] regular`}
+          className={`flex ${
+            !addressDetails.region_details.town
+              ? "text-[#D3D3D3]"
+              : "text-[#1D1D1D]"
+          }  text-[14px] regular`}
         >
           <span className="px-1">|</span>
           {addressDetails.region_details.town || "Suburb"}
@@ -66,7 +69,7 @@ function SelectRegion({ closeSelect }) {
           closeSelect();
         }}
       />
-      <div className="flex-col items-center px-[12px] bottom-0 select-animation-in fixed z-[999999999] rounded-t-[30px] bg-[#fff] h-[441px] w-full pt-[19px]">
+      <div className="flex-col items-center px-[12px] bottom-0  absolute z-[999999999] rounded-t-[30px] bg-[#fff] h-[441px] w-full pt-[19px]">
         <div className="flex-row items-center w-full justify-center">
           <TargetIcon />
           <span className="flex regular ml-[6px] text-[#1D1D1D] text-[14px]">
@@ -107,9 +110,10 @@ const SearchLocations = ({ closeSelect }) => {
         revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
       },
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("MARKET-TOKEN") ||
+        Authorization: `Bearer ${
+          localStorage.getItem("MARKET-TOKEN") ||
           localStorage.getItem("DEVICE-TOKEN")
-          }`,
+        }`,
         lang: getLang(languageUrl, Cookies.get("language")),
         country: countryUrl || Cookies.get("country"),
         accept: "application/json",
@@ -120,7 +124,7 @@ const SearchLocations = ({ closeSelect }) => {
     setLoading(true);
     await fetch(
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-      `/api/addresses/get-address-by-text`,
+        `/api/addresses/get-address-by-text`,
       {
         method: "POST",
         headers: {
@@ -128,7 +132,7 @@ const SearchLocations = ({ closeSelect }) => {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({ query: val })
+        body: JSON.stringify({ query: val }),
       }
     ).then(async (data) => {
       let repo: GetAddressByTextApi = await data.json();
@@ -186,7 +190,7 @@ const SearchLocations = ({ closeSelect }) => {
           onChange={(e) => {
             searchAction(e.target.value);
           }}
-          onInput={(e) => { }}
+          onInput={(e) => {}}
           placeholder={translateFunction(
             "Search Province | District | Town | Street"
           )}
