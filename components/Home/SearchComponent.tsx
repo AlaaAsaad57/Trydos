@@ -192,7 +192,7 @@ function SearchComponent({
           }}
           debounceTimeout={400}
         />
-        <div className="predicted-word hidden">
+        {/* <div className="predicted-word hidden">
           {searchValue.length > 0 &&
             searchValue.length < 30 &&
             words.filter(
@@ -200,7 +200,7 @@ function SearchComponent({
                 s.substr(0, searchValue.length).toUpperCase() ===
                 searchValue.toUpperCase()
             )[0]}
-        </div>
+        </div> */}
       </div>
 
       {focus ? (
