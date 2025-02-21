@@ -117,15 +117,12 @@ function AddToCartButton({
     if (product.collected_after_ordering === 1) {
       return false;
     }
-    if (getSelectedVariantofProduct() === "")
-      return product?.Left_stock - 1 <= 0;
+    if (getSelectedVariantofProduct() === "") return product?.Left_stock <= 0;
     else
       return (
         product?.variation?.filter(
           (s) => s.type === getSelectedVariantofProduct()
-        )[0]?.qty -
-          1 <=
-        0
+        )[0]?.qty <= 0
       );
   };
   const setNotify = () => {
