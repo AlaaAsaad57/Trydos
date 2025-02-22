@@ -951,16 +951,17 @@ declare global {
       SelectedProduct: {
         id: number;
         name: string;
+        collected_after_ordering: any;
         slug: string;
         slug_en_topic?: string;
         share_link: string;
         details: string;
         thumbnail: string;
         images:
-        | Array<string>
-        | Array<{
-          file_path?: string;
-        }>;
+          | Array<string>
+          | Array<{
+              file_path?: string;
+            }>;
         categories: Array<{
           id: number;
           name: string;
