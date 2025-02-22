@@ -55,7 +55,7 @@ function SelectSize({ sizes, variants }) {
             s.type.includes(activeColor?.color_name || "") &&
             activeSize?.name === size
           );
-        })[0]) || { qty: SelectedProduct.Left_stock };
+        })[0]) || { qty: SelectedProduct.current_stock };
 
     if (variant) {
       if (variant.qty === 0) return 0;
