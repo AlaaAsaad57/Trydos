@@ -392,11 +392,20 @@ function CartContainer({ close, toOrders }) {
                             </div>
                           )}
 
-                          {product.quantity > product.available_quantity && (
+                          {parseInt(product.quantity) >
+                            product.available_quantity && (
                             <div className="flex-row items-center text-[12px] light text-[#fd445d]">
                               <ErrorIcon />
-                              <span className="ml-1.5">Availabilty,</span>
-                              <span className="regular ml-1">Out Of Stock</span>
+                              <div
+                                className={`${language === "ar" && "dir-rtl"}`}
+                              >
+                                <span className="ml-1.5">
+                                  {translateFunction("Availabilty")}:
+                                </span>
+                                <span className="regular ml-1">
+                                  {translateFunction("Out Of Stock")}
+                                </span>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -726,7 +735,7 @@ function CartContainer({ close, toOrders }) {
                             </div>
                           )}
 
-                          {parseInt(product.quantity) >
+                          {/* {parseInt(product.quantity) >
                             product.available_quantity && (
                             <div className="flex-row items-center text-[12px] light text-[#fd445d]">
                               <ErrorIcon />
@@ -741,7 +750,7 @@ function CartContainer({ close, toOrders }) {
                                 </span>
                               </div>
                             </div>
-                          )}
+                          )} */}
                         </div>
                         {
                           <div
