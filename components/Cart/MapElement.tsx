@@ -58,7 +58,7 @@ export const MapElement: React.FC<MapProps> = memo(
               lat: addressDetails.location.latitude,
               lng: addressDetails.location.longitude,
             },
-            { animate: false }
+            { animate: true }
           );
         }
       }, [addressDetails.location?.latitude, expanded]);
