@@ -239,7 +239,7 @@ function CartContainer({ close, toOrders }) {
         </div>
       </div>
 
-      <div className="flex-col overflow-auto max-h-full">
+      <div className="flex-col overflow-auto max-h-screen">
         <div className="flex-col  w-full h-auto mt-10 pb-[20px]">
           {!loading ? (
             <>

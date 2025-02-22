@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
+import { toast } from "node_modules/react-toastify/dist";
 const MapElement = dynamic(
   () => import("./MapElement").then((mod) => mod.MapElement),
   { ssr: false }
@@ -34,6 +35,7 @@ const Map = ({
           });
         },
         function (error) {
+          toast.error("Loacation Error: " + error.message);
           console.error("Error occurred. Error code: " + error.message);
         }
       );
