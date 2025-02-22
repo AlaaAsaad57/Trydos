@@ -113,11 +113,12 @@ function ProductOptions({
             loading={loaded && SelectedProduct.choice_options}
             showLoading={loading}
           />
-          <div className="options-container">
+          <div className="options-container" data-cy="InteraCtionBoX">
             <div
               className={`product-option-item ${
                 activeOption === "Like" && "active-option"
               }`}
+              data-cy="LoveSymbol"
               onClick={() => {
                 Sendevent({
                   event: "button_clicked",

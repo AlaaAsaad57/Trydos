@@ -43,11 +43,12 @@ function ProductSizes({ sizes }) {
       }`}
     >
       <div className="colors-label flex-row align-center">
-        <SizesIcon />
-        <span style={{ marginLeft: "5px" }}>
+        <SizesIcon data-cy="SizeIcon" />
+        <span style={{ marginLeft: "5px" }} data-cy="SizeSpan">
           {translate("Available ")} {sizes.length} {translate("Sizes")}
         </span>
         <ColorsInfo
+          data-cy="QuestionMark"
           style={{ marginLeft: "9px" }}
           onClick={() => {
             dispatch({
@@ -86,6 +87,7 @@ function ProductSizes({ sizes }) {
         }}
       >
         <Swiper
+          data-cy="SizeBox"
           modules={[EffectCoverflow]}
           speed={100}
           effect="coverflow"
@@ -121,6 +123,7 @@ function ProductSizes({ sizes }) {
         >
           {sizes?.map((size, index) => (
             <SwiperSlide
+              data-cy="ElementOnSizeBox"
               key={index}
               style={{
                 overflow: "visible",

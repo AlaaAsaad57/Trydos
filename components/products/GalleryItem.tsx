@@ -174,7 +174,7 @@ function GalleryItemFloatingElements() {
         data-cy="CountOfUserInteractions"
       >
         <Heart className="scale-[0.6]  origin-top-right" />
-        <span>110k</span>
+        <span data-cy="CountOfLoved">110k</span>
       </div>
     </>
   );

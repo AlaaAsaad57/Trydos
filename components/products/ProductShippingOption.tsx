@@ -18,8 +18,10 @@ function ProductShippingOption() {
   const [extended, setExtended] = useState(false);
   return (
     <div
-      className={`product-shipping product-colors product-sizes flex-col align-start relative ${extended && "extended-address-bar"
-        }`}
+      className={`product-shipping product-colors product-sizes flex-col align-start relative ${
+        extended && "extended-address-bar"
+      }`}
+      data-cy="ProductShiping"
       onClick={() => {
         Sendevent({ event: "button_clicked", value: "at_your_address_button" });
         setExtended(!extended);
@@ -32,16 +34,29 @@ function ProductShippingOption() {
         </span>
       </div>
       <div className="address-container flex-row justify-center align-center">
-        <div className={languageVariable === "ar" ? "address-info flex-row-rev align-center justify-center" : "address-info flex-row align-center justify-center"}>
-          {translate("At Your Address In")}<span>{translate("Lebanon")}</span>{translate("Expected Within")}<span>4</span>
+        <div
+          className={
+            languageVariable === "ar"
+              ? "address-info flex-row-rev align-center justify-center"
+              : "address-info flex-row align-center justify-center"
+          }
+        >
+          {translate("At Your Address In")}
+          <span>{translate("Lebanon")}</span>
+          {translate("Expected Within")}
+          <span>4</span>
           <span>{translate("Days")}</span>
         </div>
       </div>
       <div
-        className={`extended-address-info flex-col ${extended && "enable-address-info"
-          }`}
+        className={`extended-address-info flex-col ${
+          extended && "enable-address-info"
+        }`}
       >
-        <div className="address-info-row flex-row align-center">
+        <div
+          className="address-info-row flex-row align-center"
+          data-cy="AddresInfo"
+        >
           <PackingIcon />
           <div className="flex-col address-row-desc justify-center">
             <div className="flex-row align-center">
@@ -56,22 +71,34 @@ function ProductShippingOption() {
             </span>
           </div>
         </div>
-        <div className="address-info-row flex-row align-center">
+        <div
+          className="address-info-row flex-row align-center"
+          data-cy="AddresInfo1"
+        >
           <PlaneIcon />
           <div className="flex-col address-row-desc justify-center">
             <div className="flex-row align-center">
-              <span className="blue-address">12. Jun. {translate("In Lebanon")}</span>
+              <span className="blue-address">
+                12. Jun. {translate("In Lebanon")}
+              </span>
             </div>
             <span className="gray-address">
-              {translate("Time Is Expected, It May Take More Or Less Than 2 Days")}
+              {translate(
+                "Time Is Expected, It May Take More Or Less Than 2 Days"
+              )}
             </span>
           </div>
         </div>
-        <div className="address-info-row flex-row align-center">
+        <div
+          className="address-info-row flex-row align-center"
+          data-cy="AddresInfo2"
+        >
           <MarkerIcon />
           <div className="flex-col address-row-desc justify-center">
             <div className="flex-row align-center">
-              <span className="blue-address">14. Jun. {translate("In Your Address")}</span>
+              <span className="blue-address">
+                14. Jun. {translate("In Your Address")}
+              </span>
             </div>
             <span className="gray-address">
               {translate("Specify Your Address To Calculate The Delivery Time")}
@@ -79,12 +106,13 @@ function ProductShippingOption() {
           </div>
         </div>
       </div>
-      <div className="green-label flex-row align-center">
+      <div className="green-label flex-row align-center" data-cy="GreenLabel">
         <div className="colors-label flex-row align-center ">
           <ShippingDollar />
           <span style={{ marginLeft: "20px" }}>
             {translate("You Will Get A")}
-            <span> 25% </span> <span>{translate("Refund")}</span>  {translate("Of The Product Price If Shipping Is Delayed")}
+            <span> 25% </span> <span>{translate("Refund")}</span>{" "}
+            {translate("Of The Product Price If Shipping Is Delayed")}
           </span>
         </div>
       </div>
