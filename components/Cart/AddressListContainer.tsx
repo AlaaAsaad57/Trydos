@@ -47,7 +47,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
           bottom: "0px",
           paddingBottom: "calc(env(safe-area-inset-bottom) + 40px)",
         }}
-        className="flex-col items-center px-[12px]  select-animation-in fixed z-[999999999] rounded-t-[30px] bg-[#fff] h-[481px] w-full pt-[11px]"
+        className="flex-col items-center px-[12px]   absolute z-[999999999] rounded-t-[30px] bg-[#fff] h-[481px] w-full pt-[11px]"
       >
         <div className="flex-row items-center w-full justify-center">
           <MiniDeliveryIcon />

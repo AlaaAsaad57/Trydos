@@ -45,9 +45,9 @@ function Comments({
       ErrorAccure(mid);
     }
   };
-  // useEffect(() => {
-  //   console.log(CommentsData, comments);
-  // }, []);
+  useEffect(() => {
+    console.log(CommentsData);
+  }, [CommentsData]);
   return (
     <div className="content-extended comments-extended">
       {/* <CommentItem
@@ -59,14 +59,14 @@ function Comments({
       {CommentsData !== null ? (
         CommentsData.map((s, i) => (
           <CommentItem
-            isPending={s.is_verfied}
+            isPending={s?.is_verfied}
             resendComment={() => {
               resendComment(s.mid);
               resendCommentApi(s.mid, s.comment);
             }}
-            isError={s.isError}
+            isError={s?.isError}
             key={i}
-            date={showDate(s.created_at)}
+            date={showDate(s?.created_at)}
             name={s?.customer?.name}
             text={s?.comment}
             photo="https://res.cloudinary.com/dtcmozf4d/image/upload/h_100/f_avif/q_100/v1/product/thumbnail/2024-05-12-663fce81803c3.png"

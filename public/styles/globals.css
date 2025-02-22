@@ -658,7 +658,16 @@ html {
   animation: slideUp 400ms ease 0.1s 1 forwards;
   bottom: -100vh;
 }
-
+@media (prefers-reduced-motion: reduce) {
+  .cart-provider {
+    top: 0px !important;
+    bottom: initial I !important; /* Static position */
+  }
+  .cart-provider.slideDown-cart {
+    top: 100vh !important;
+    bottom: initial I !important;
+  }
+}
 .cart-provider.slideDown-cart {
   animation: slideDown 400ms ease 0.1s 1 forwards;
 }
@@ -1265,10 +1274,10 @@ input[type="number"] {
   }
 }
 
-.select-animation-in {
+/* .select-animation-in {
   transform: translateY(100vh);
-  animation: select-in 200ms ease-in 0s 1 forwards;
-}
+  animation: select-in 200ms ease-in 0s 1 forwards; */
+/* }
 
 @keyframes select-in {
   0% {
@@ -1282,13 +1291,8 @@ input[type="number"] {
 
 .select-animation-out {
   animation: select-out 200ms ease-in 0s 1 forwards;
-}
-
-.dir-rtl {
-  direction: rtl;
-}
-
-@keyframes select-out {
+} */
+/* @keyframes select-out {
   0% {
     transform: translateY(0px);
   }
@@ -1296,6 +1300,9 @@ input[type="number"] {
   100% {
     transform: translateY(100vh);
   }
+} */
+.dir-rtl {
+  direction: rtl;
 }
 
 @media only screen and (max-width: 786px) {

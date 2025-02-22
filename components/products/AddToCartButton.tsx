@@ -118,14 +118,12 @@ function AddToCartButton({
       return false;
     }
     if (getSelectedVariantofProduct() === "")
-      return product?.Left_stock - 1 <= 0;
+      return product?.current_stock <= 0;
     else
       return (
         product?.variation?.filter(
           (s) => s.type === getSelectedVariantofProduct()
-        )[0]?.qty -
-          1 <=
-        0
+        )[0]?.qty <= 0
       );
   };
   const setNotify = () => {
@@ -198,7 +196,7 @@ function AddToCartButton({
 
     if (getSelectedVariantofProduct() === "") {
       return (
-        product?.Left_stock ===
+        product?.current_stock ===
         getQuantity({
           sku: `${product?.id}${
             selectedCartItem?.selectedColor?.color_name

@@ -46,10 +46,22 @@ export const MapElement: React.FC<MapProps> = memo(
       useEffect(() => {
         if (center) {
           map.panTo(center, { animate: true });
-          map.setZoom(3, { animate: true });
         }
       }, [center, expanded]);
-
+      useEffect(() => {
+        if (
+          addressDetails.location.latitude &&
+          addressDetails.location.longitude
+        ) {
+          map.panTo(
+            {
+              lat: addressDetails.location.latitude,
+              lng: addressDetails.location.longitude,
+            },
+            { animate: true }
+          );
+        }
+      }, [addressDetails.location?.latitude, expanded]);
       useMapEvent("click", (e) => {
         if (expanded)
           setLocation({

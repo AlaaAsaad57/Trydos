@@ -55,7 +55,7 @@ function SelectSize({ sizes, variants }) {
             s.type.includes(activeColor?.color_name || "") &&
             activeSize?.name === size
           );
-        })[0]) || { qty: SelectedProduct.Left_stock };
+        })[0]) || { qty: SelectedProduct.current_stock };
 
     if (variant) {
       if (variant.qty === 0) return 0;
@@ -141,24 +141,29 @@ function SelectSize({ sizes, variants }) {
           <span>Not Available Now, Stock Is Sold Out </span>
         </div>
       ) : (
-        <div
-          className={
-            languageVariable === "ar"
-              ? "flex-row-rev items-center text-[12px] text-[#404040] mt-[9px] regular [&>span]:ml-1"
-              : "flex-row items-center text-[12px] text-[#404040] mt-[9px] regular [&>span]:ml-1"
-          }
-        >
-          <span className="bold">M</span>
-          <span> {translate("Recommended")} </span>
-          <span className="bold">{translate("Size")} </span>
-          <span> {translate("For You")} </span>
-          {getVariants() < 10 && (
-            <>
-              <span className="text-[#FFAF5F]">Last </span>
-              <span className="text-[#FFAF5F] meduim">{getVariants()}</span>
-            </>
+        <>
+          {/* @ts-ignore */}
+          {SelectedProduct.collected_after_ordering !== 1 && (
+            <div
+              className={
+                languageVariable === "ar"
+                  ? "flex-row-rev items-center text-[12px] text-[#404040] mt-[9px] regular [&>span]:ml-1"
+                  : "flex-row items-center text-[12px] text-[#404040] mt-[9px] regular [&>span]:ml-1"
+              }
+            >
+              <span className="bold">M</span>
+              <span> {translate("Recommended")} </span>
+              <span className="bold">{translate("Size")} </span>
+              <span> {translate("For You")} </span>
+              {getVariants() < 10 && (
+                <>
+                  <span className="text-[#FFAF5F]">Last </span>
+                  <span className="text-[#FFAF5F] meduim">{getVariants()}</span>
+                </>
+              )}
+            </div>
           )}
-        </div>
+        </>
       )}
       <div className="flex-row w-full mt-[10px]">
         <div className="flex bg-[#F8F8F8] rounded-[20px] h-[50px] text-[12px] text-[#505050] items-center justify-center w-full">

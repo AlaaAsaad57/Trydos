@@ -69,31 +69,16 @@ function Navbar({ init, categories, response }: NavbarProps) {
     LogData(response);
     initFunc();
   }, []);
-  const showNavbar = () => {
-    if (
-      params.split("/").includes("boutiques") ||
-      params.split("/").includes("products")
-    ) {
-      return false;
-    }
-    if (
-      (params.split("/").includes("categories") &&
-        !params.split("/").includes("boutiques")) ||
-      (!params.split("/").includes("categories") &&
-        !params.split("/").includes("boutiques"))
-    ) {
-      return true;
-    } else {
-      return false;
-    }
-  };
+  const cartEnable = useSelector((state: StateInterface) => state.cart.enable);
 
   return (
     <>
-      <ToastContainer
-        position="top-right"
-        style={{ zIndex: "9999999999999999" }}
-      />
+      {!cartEnable && (
+        <ToastContainer
+          position="top-right"
+          style={{ zIndex: "9999999999999999" }}
+        />
+      )}
       <AuthSections />
       <div className="home-navbar">
         <NextLink

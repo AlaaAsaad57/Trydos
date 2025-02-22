@@ -15,6 +15,8 @@ import DiscoutIcon from "public/svg/cart/Disount.svg";
 import GiftIcon from "public/svg/cart/Gift.svg";
 import ShippingIcon from "public/svg/cart/Shipping.svg";
 import { AxiosGet } from "utils/AxiosApi";
+import Spinner from "components/global/Spinner";
+import { toast } from "react-toastify";
 function OrderButton({ close, toOrders }) {
   let { lang } = useParams();
   // @ts-ignore
@@ -165,6 +167,7 @@ function OrderButton({ close, toOrders }) {
         setLoading(false);
       }, 300);
     } catch (error) {
+      toast.error(error);
       setLoading(false);
     }
   };
@@ -350,9 +353,11 @@ function OrderButton({ close, toOrders }) {
                   </div>
 
                   <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]">
-                    <span className="line-through">10</span>
-                    {RoundPrice({ num: cart.total_shipping_cost })}{" "}
-                    {currency_symbol.symbol}
+                    <span className="line-through">
+                      {" "}
+                      {RoundPrice({ num: cart.total_shipping_cost })}{" "}
+                      {currency_symbol.symbol}
+                    </span>
                   </span>
                 </div>
               </div>
@@ -399,7 +404,7 @@ function OrderButton({ close, toOrders }) {
         >
           <div
             className={`${
-              (loading || IsNotAvailable()) && "opacity-55"
+              IsNotAvailable() && "opacity-55"
             } cursor-pointer  flex-col w-full  ${
               option ? "h-[200px]" : "bg-[#3C3C3C] h-[70px]"
             } rounded-[20px] text-center justify-center items-center`}
@@ -422,47 +427,54 @@ function OrderButton({ close, toOrders }) {
               }
             }}
           >
-            <>
-              {option ? (
-                <>
-                  <ConfirmMobile
-                    hasMobile={localStorage.getItem("has-phone")}
-                    closeWindow={() => {
-                      setOption(false);
-                    }}
-                    goToOrders={() => {
-                      GoToOrders(true);
-                    }}
-                  />
-                </>
-              ) : (
-                <>
-                  {" "}
-                  {cart.cart.length === 0 ? (
-                    <>
-                      <span className="text-[#FEFEFE] text-[18px] medium ">
-                        {translate("Back To HomePage", GetAppLanguage())}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-[#FEFEFE] text-[18px] medium ">
-                        {translate("Confirm And Continue", GetAppLanguage())}
-                      </span>
-                      <span
-                        className={`text-[#FEFEFE] text-[14px] medium ${
-                          GetAppLanguage() === "ar" && "dir-rtl"
-                        } `}
-                      >
-                        {cart.cart.length} {translate("items")}{" "}
-                        {RoundPrice({ num: cart.total_cash })}{" "}
-                        {currency_symbol?.symbol}
-                      </span>
-                    </>
-                  )}
-                </>
-              )}
-            </>
+            {loading && (
+              <span className="flex p-1 [&>div>svg>g>path]:fill-[#fafafa] scale-150">
+                <Spinner />
+              </span>
+            )}
+            {!loading && (
+              <>
+                {option ? (
+                  <>
+                    <ConfirmMobile
+                      hasMobile={localStorage.getItem("has-phone")}
+                      closeWindow={() => {
+                        setOption(false);
+                      }}
+                      goToOrders={() => {
+                        GoToOrders(true);
+                      }}
+                    />
+                  </>
+                ) : (
+                  <>
+                    {" "}
+                    {cart.cart.length === 0 ? (
+                      <>
+                        <span className="text-[#FEFEFE] text-[18px] medium ">
+                          {translate("Back To HomePage", GetAppLanguage())}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-[#FEFEFE] text-[18px] medium ">
+                          {translate("Confirm And Continue", GetAppLanguage())}
+                        </span>
+                        <span
+                          className={`text-[#FEFEFE] text-[14px] medium ${
+                            GetAppLanguage() === "ar" && "dir-rtl"
+                          } `}
+                        >
+                          {cart.cart.length} {translate("items")}{" "}
+                          {RoundPrice({ num: cart.total_cash })}{" "}
+                          {currency_symbol?.symbol}
+                        </span>
+                      </>
+                    )}
+                  </>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
