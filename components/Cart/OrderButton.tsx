@@ -15,6 +15,8 @@ import DiscoutIcon from "public/svg/cart/Disount.svg";
 import GiftIcon from "public/svg/cart/Gift.svg";
 import ShippingIcon from "public/svg/cart/Shipping.svg";
 import { AxiosGet } from "utils/AxiosApi";
+import Spinner from "components/global/Spinner";
+import { toast } from "react-toastify";
 function OrderButton({ close, toOrders }) {
   let { lang } = useParams();
   // @ts-ignore
@@ -165,6 +167,7 @@ function OrderButton({ close, toOrders }) {
         setLoading(false);
       }, 300);
     } catch (error) {
+      toast.error(error);
       setLoading(false);
     }
   };
@@ -450,6 +453,11 @@ function OrderButton({ close, toOrders }) {
                     <>
                       <span className="text-[#FEFEFE] text-[18px] medium ">
                         {translate("Confirm And Continue", GetAppLanguage())}
+                        {loading && (
+                          <span className="flex p-1">
+                            <Spinner />
+                          </span>
+                        )}
                       </span>
                       <span
                         className={`text-[#FEFEFE] text-[14px] medium ${
