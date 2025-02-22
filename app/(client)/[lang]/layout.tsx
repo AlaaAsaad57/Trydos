@@ -75,6 +75,7 @@ export default async function RootLayout({ params, children }) {
       <head>
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
+        <meta name="google" content="notranslate" />
       </head>
 
       <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>

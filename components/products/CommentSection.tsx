@@ -31,7 +31,7 @@ function CommentSection({
   useEffect(() => {
     if (comments) {
       setComments(
-        comments.map((s) => ({ ...s, is_verfied: s.is_verfied === undefined }))
+        comments.map((s) => ({ ...s, is_verfied: s?.is_verfied === undefined }))
       );
     }
   }, [comments]);

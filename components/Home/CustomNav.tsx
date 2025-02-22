@@ -61,10 +61,11 @@ function CustomNavbar({ init }: NavbarProps) {
   useEffect(() => {
     initFunc();
   }, []);
+  const cartEnable = useSelector((state: StateInterface) => state.cart.enable);
 
   return (
     <>
-      {!AddToCartOption.enable && (
+      {!AddToCartOption.enable && !cartEnable && (
         <ToastContainer
           position="top-right"
           style={{ zIndex: "9999999999999999" }}

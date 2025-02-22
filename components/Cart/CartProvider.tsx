@@ -121,9 +121,11 @@ export default CartProvider;
 export const StepSlider = ({ enableCart }) => {
   const [step, setStep] = useState(0);
   const ref = useRef<SwiperType | null>();
+  const cartEnable = useSelector((state: StateInterface) => state.cart.enable);
+
   return (
     <div className="w-full h-[100vh] fixed z-[9999999999] cart-provider">
-      <ToastContainer position="top-right" />
+      {cartEnable && <ToastContainer position="top-right" />}
       <Swiper
         initialSlide={step}
         navigation={false}
