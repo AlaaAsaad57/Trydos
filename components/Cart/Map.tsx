@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
-import { toast } from "node_modules/react-toastify/dist";
+import { toast } from "react-toastify";
 const MapElement = dynamic(
   () => import("./MapElement").then((mod) => mod.MapElement),
   { ssr: false }
