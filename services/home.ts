@@ -622,27 +622,12 @@ class HomeService {
         store.dispatch({ type: "LOADED-CART", payload: true });
         return;
       }
-
-      let fbtoken = localStorage.getItem("FB-DEVICE-TOKEN");
-
       store.dispatch({ type: "LOADED-CART", payload: true });
       if (res?.id_cart) {
         callback({ id: res?.id_cart });
-        // await this.subscribeToTopic({
-        //   topic: `product_hurry_up_quantity_${res?.id_cart}`,
-        // });
-        // await this.subscribeToTopic({
-        //   topic: `product_hurry_up_time_left_${res?.id_cart}`,
-        // });
         await this.subscribeToTopic({
           topic: `product_availability_${id}`,
         });
-        // await this.subscribeToTopic({
-        //   topic: `product_discount_${id}`,
-        // });
-        // await this.subscribeToTopic({
-        //   topic: `product_comment_${id}`,
-        // });
       } else {
         errCallback();
         // store.dispatch({ type: "AddToCartOptionDisable", payload: true });
