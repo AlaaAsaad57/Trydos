@@ -531,6 +531,7 @@ class HomeService {
         categories: repo.data.categories,
         boutiques: repo.data.boutiques,
         total_size: repo.data.total_size,
+        products: repo.data.products,
       });
     } catch (error) {
       console.log(error);
