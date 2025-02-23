@@ -88,7 +88,7 @@ function CommentBar({
       />
       {val?.length > 0 && (
         <span
-          className="absolute h-full flex items-center right-[15px] top-0"
+          className="absolute h-full flex items-center right-[30px] top-0"
           onClick={() => {
             // @ts-ignore
             addComment(val);

@@ -359,7 +359,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         return {
           ...state,
           SelectedProduct: {
-            ...SelectedProduct,
+            ...state.SelectedProduct,
             variation: arr,
           },
         };

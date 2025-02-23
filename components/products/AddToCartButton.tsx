@@ -496,11 +496,14 @@ function AddToCartButton({
               }),
               size: AddToCartOption?.selectedSize?.name ?? null,
             });
+            console.log("HIHSIHSIHI");
             dispatch({
               type: "EDIT-QTY",
               payload: getSelectedVariantofProduct(),
             });
-          } catch (error) {}
+          } catch (error) {
+            console.log(error);
+          }
         }
       }
     }
