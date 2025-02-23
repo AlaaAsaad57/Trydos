@@ -98,7 +98,7 @@ export async function middleware(request) {
   ) {
     if (url.searchParams.get("selected")) {
       url.searchParams.delete("changed-country");
-
+      url.searchParams.delete("no-country");
       return NextResponse.redirect(url);
     }
     let [country, lang] = countryLang.toLowerCase().split("-");
