@@ -341,6 +341,30 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         oldCart: { ...state.oldCart, oldCart: oldCart },
       };
     }
+    case "EDIT-QTY": {
+      if (payload === "") {
+        return {
+          ...state,
+          SelectedProduct: {
+            ...state.SelectedProduct,
+            current_stock: state.SelectedProduct.current_stock - 1,
+          },
+        };
+      } else {
+        let arr = [];
+        state.SelectedProduct.variation.map((s) => {
+          if (s.type === payload) arr.push({ ...s, qty: s.qty - 1 });
+          else arr.push(s);
+        });
+        return {
+          ...state,
+          SelectedProduct: {
+            ...SelectedProduct,
+            variation: arr,
+          },
+        };
+      }
+    }
     case "CART-INIT": {
       return {
         ...state,
