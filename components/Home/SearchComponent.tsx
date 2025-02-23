@@ -56,13 +56,13 @@ function SearchComponent({
         dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
       },
     });
-    home.SearchProducts({
-      search_text: e.target.value,
-      searchFilters: searchFilters,
-      callback: (e) => {
-        dispatch({ type: "FIND-PRODUCTS", payload: e || [] });
-      },
-    });
+    // home.SearchProducts({
+    //   search_text: e.target.value,
+    //   searchFilters: searchFilters,
+    //   callback: (e) => {
+    //     dispatch({ type: "FIND-PRODUCTS", payload: e || [] });
+    //   },
+    // });
   };
   const onInput = (e) => {
     let suggestion = document.querySelector<HTMLDivElement>(".predicted-word");
@@ -85,7 +85,7 @@ function SearchComponent({
         break;
       } else {
         // @ts-ignore
-        suggestion.innerText = "";
+        // suggestion.innerText = "";
       }
     }
 
@@ -157,7 +157,7 @@ function SearchComponent({
   };
   const clearSuggestion = () => {
     // @ts-ignore
-    let suggestion = (document.querySelector(".predicted-word").innerText = "");
+    // let suggestion = (document.querySelector(".predicted-word").innerText = "");
   };
   const setLoading = (e) => {
     dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: e });
