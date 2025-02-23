@@ -212,11 +212,10 @@ function OrderButton({ close, toOrders }) {
         {cart.cart.length > 0 && (
           <div
             {...handlers}
-            className={`flex-col w-full overflow-hidden ${
-              expanded
-                ? "h-[405px] pt-[10px] px-[12px] pb-[10px]"
-                : "h-[116px] pt-[10px] px-[12px] pb-[10px] "
-            }  transition-all`}
+            className={`flex-col w-full overflow-hidden ${expanded
+              ? "h-[405px] pt-[10px] px-[12px] pb-[10px]"
+              : "h-[116px] pt-[10px] px-[12px] pb-[10px] "
+              }  transition-all`}
           >
             <div className="flex-row w-full justify-center">
               <svg
@@ -286,7 +285,7 @@ function OrderButton({ close, toOrders }) {
                     </span>
                   </div>
                   <span className="ml-[5px] medium text-[#1D1D1D] text-[13px] pr-[13px]">
-                    {cart.sub_total} {currency_symbol.symbol}
+                    {RoundPrice({ num: cart.sub_total })} {currency_symbol.symbol}
                   </span>
                 </div>
                 <div className="flex-row items-start h-[50px] w-full justify-between mt-2 bg-[#FDFDEF] rounded-[12px] pt-1">
@@ -296,9 +295,8 @@ function OrderButton({ close, toOrders }) {
                     </span>{" "}
                     <div className="flex-col pl-1 text-[#A28E5B]">
                       <span
-                        className={`medium ${
-                          languageVariable === "ar" && "dir-rtl"
-                        } text-[13px] text-[#A28E5B] flex whitespace-nowrap `}
+                        className={`medium ${languageVariable === "ar" && "dir-rtl"
+                          } text-[13px] text-[#A28E5B] flex whitespace-nowrap `}
                       >
                         {translate("Total Discount")}{" "}
                         <span className="bold text-[#A28E5B] ">
@@ -332,7 +330,7 @@ function OrderButton({ close, toOrders }) {
                   </div>
 
                   <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]">
-                    {-10} {currency_symbol.symbol}
+                    {RoundPrice({ num: -10 })} {currency_symbol.symbol}
                   </span>
                 </div>
                 <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
@@ -367,9 +365,8 @@ function OrderButton({ close, toOrders }) {
               onClick={() => {
                 setExpanded(!expanded);
               }}
-              className={`${
-                expanded ? "rounded-t-none" : ""
-              } cursor-pointer flex-row items-center min-h-[50px] w-full justify-between  rounded-[12px] pt-1 bg-[#F8F8F8]`}
+              className={`${expanded ? "rounded-t-none" : ""
+                } cursor-pointer flex-row items-center min-h-[50px] w-full justify-between  rounded-[12px] pt-1 bg-[#F8F8F8]`}
             >
               <div className="flex-row pl-[12px]">
                 <div className="flex-col pl-4 text-[#1D1D1D]">
@@ -403,11 +400,9 @@ function OrderButton({ close, toOrders }) {
           }}
         >
           <div
-            className={`${
-              IsNotAvailable() && "opacity-55"
-            } cursor-pointer  flex-col w-full  ${
-              option ? "h-[200px]" : "bg-[#3C3C3C] h-[70px]"
-            } rounded-[20px] text-center justify-center items-center`}
+            className={`${IsNotAvailable() && "opacity-55"
+              } cursor-pointer  flex-col w-full  ${option ? "h-[200px]" : "bg-[#3C3C3C] h-[70px]"
+              } rounded-[20px] text-center justify-center items-center`}
             style={{
               boxShadow:
                 "inset 0px 3px 6px rgba(255,255,255,0.16), 0px 3px 6px rgba(0,0,0,0.1)",
@@ -461,9 +456,8 @@ function OrderButton({ close, toOrders }) {
                           {translate("Confirm And Continue", GetAppLanguage())}
                         </span>
                         <span
-                          className={`text-[#FEFEFE] text-[14px] medium ${
-                            GetAppLanguage() === "ar" && "dir-rtl"
-                          } `}
+                          className={`text-[#FEFEFE] text-[14px] medium ${GetAppLanguage() === "ar" && "dir-rtl"
+                            } `}
                         >
                           {cart.cart.length} {translate("items")}{" "}
                           {RoundPrice({ num: cart.total_cash })}{" "}
