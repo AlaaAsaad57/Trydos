@@ -10,9 +10,11 @@ class OrderService {
       let data: PlaceOrderApi = await AxiosPost({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/customer/order/checkout/${payment_method}?order_note=order note&address_id=${addressId}&pay_by_wallet=${pay_by_wallet ? 1 : 0}`,
+          `/customer/order/checkout/${payment_method}?order_note=order note&address_id=${addressId}&pay_by_wallet=${
+            pay_by_wallet ? 1 : 0
+          }`,
         title: "pay Order",
-        body: ""
+        body: "",
       });
       if (!data[0]?.url) {
         store.dispatch({ type: "ORDER-SUCCESS", payload: data });
@@ -61,7 +63,8 @@ class OrderService {
       longitude: address.location.longitude,
       address: address.address,
       address_detail: address.address_detail,
-      country: address?.Country?.name,
+      country: address?.Country?.code,
+      iso: address?.Country?.code,
       city: address.region_details.city,
       province: address.region_details.province,
       town: address.region_details.town,
@@ -101,7 +104,8 @@ class OrderService {
       longitude: address.location.longitude,
       address: address.address,
       address_detail: address.address_detail,
-      country: address?.Country?.name,
+      country: address?.Country?.code,
+      iso: address?.Country?.code,
       city: address.region_details.city,
       province: address.region_details.province,
       town: address.region_details.town,
