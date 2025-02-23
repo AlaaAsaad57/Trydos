@@ -54,13 +54,14 @@ export const AxiosGet = async ({
       }
     } catch (error) {
       if (error.status === 422 || error.status === 500) {
+        attempt = 2;
         toast.error(`${title} : ${error.message ?? "Failed"}`);
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
         );
         return;
       }
-      if (error.status === 401 || error.status === 403) {
+      if (error.status === 401) {
         if (getUser()) {
           await ExpiredUser();
         } else {
@@ -138,21 +139,18 @@ export const AxiosPost = async ({
     } catch (error) {
       if (
         error.status === 422 ||
+        error.status === 500 ||
         error === "Failed" ||
         error?.message === "Failed"
       ) {
-        attempt = 2;
-        throw new Error(
-          `${title} : Max retries reached. Could not fetch the data. ${error.message}`
-        );
-      }
-      if (error.status === 500) {
         toast.error(`${title} : ${error.message ?? "Failed"}`);
+        attempt = 2;
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
         );
         return;
       }
+
       if (error.status === 401) {
         if (getUser()) {
           await ExpiredUser();

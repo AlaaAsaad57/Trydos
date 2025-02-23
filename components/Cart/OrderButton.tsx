@@ -153,20 +153,25 @@ function OrderButton({ close, toOrders }) {
         },
       });
       // check availableity
-      await AxiosGet({
+      let a = await AxiosGet({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
           "/cart/check_availability_product_cart",
         title: "Check Product Availablity",
       });
-      setTimeout(() => {
-        if (user || bool) toOrders();
-        else {
-          setOption(true);
-        }
+      if (a?.length === 0) {
+        setTimeout(() => {
+          if (user || bool) toOrders();
+          else {
+            setOption(true);
+          }
+          setLoading(false);
+        }, 300);
+      } else {
         setLoading(false);
-      }, 300);
+      }
     } catch (error) {
+      setOption(true);
       toast.error(error);
       setLoading(false);
     }

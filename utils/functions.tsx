@@ -851,9 +851,9 @@ export const AddToCartAnimation = () => {
       fill: "forwards",
     }
   );
-  setTimeout(() => {
-    store.dispatch({ type: "LOADED-CART", payload: true });
-  }, 1500);
+  // setTimeout(() => {
+  //   store.dispatch({ type: "LOADED-CART", payload: true });
+  // }, 1500);
 };
 
 export const LogError = (error, url, href) => {

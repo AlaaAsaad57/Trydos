@@ -135,44 +135,56 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
   };
   const [deleteModal, setDeleteModal] = useState<any>(false);
   const setOrderSuccess = async (e) => {
-    if (orderData?.payment?.length === 1) {
-      let payment_method =
-        orderData?.payment[0]?.id === 0
-          ? "COD"
-          : orderData?.payment[0]?.id === 1
-          ? "TrydosWallet"
-          : orderData?.payment[0]?.id === 2
-          ? "Card"
-          : "Crypto";
-      setLoading(true);
-      await order.PlaceOrder({
-        payment_method,
-        pay_by_wallet: false,
+    try {
+      if (orderData?.payment?.length === 1) {
+        let payment_method =
+          orderData?.payment[0]?.id === 0
+            ? "COD"
+            : orderData?.payment[0]?.id === 1
+            ? "TrydosWallet"
+            : orderData?.payment[0]?.id === 2
+            ? "Card"
+            : "Crypto";
+        setLoading(true);
+        await order.PlaceOrder({
+          payment_method,
+          pay_by_wallet: false,
+        });
+        setLoading(false);
+      } else {
+        if (
+          orderData.payment.length &&
+          orderData?.payment?.filter((one) => one.id === 2).length
+        ) {
+          setLoading(true);
+          await order.PlaceOrder({
+            payment_method: "Card",
+            pay_by_wallet: true,
+          });
+          setLoading(false);
+        }
+        if (
+          orderData.payment.length &&
+          orderData?.payment?.filter((one) => one.id === 3).length
+        ) {
+          setLoading(true);
+          await order.PlaceOrder({
+            payment_method: "Crypto",
+            pay_by_wallet: true,
+          });
+          setLoading(false);
+        }
+      }
+    } catch (error) {
+      getCart({
+        callback: ([data, res]) => {
+          dispatch({
+            type: "CART-INIT",
+            payload: data ?? { cart: [] },
+          });
+        },
       });
-      setLoading(false);
-    } else {
-      if (
-        orderData.payment.length &&
-        orderData?.payment?.filter((one) => one.id === 2).length
-      ) {
-        setLoading(true);
-        await order.PlaceOrder({
-          payment_method: "Card",
-          pay_by_wallet: true,
-        });
-        setLoading(false);
-      }
-      if (
-        orderData.payment.length &&
-        orderData?.payment?.filter((one) => one.id === 3).length
-      ) {
-        setLoading(true);
-        await order.PlaceOrder({
-          payment_method: "Crypto",
-          pay_by_wallet: true,
-        });
-        setLoading(false);
-      }
+      setStep(0);
     }
   };
 
