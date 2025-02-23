@@ -225,11 +225,11 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.get("[data-cy=ContainerOfBoutiques]", { timeout: 10000 });
     cy.log("✅✅ Container Of Boutiques Apperead");
   });
-  it("Should Click On The Firstly Category To Filter Result As It", () => {
+  it("Should Click On The Firstly Boutique To Filter Result As It", () => {
     cy.get("[data-cy=boutiqueItem]").eq(0).click({ scrollBehavior: false });
-    cy.log("✅✅ Firstly Category Item Clicked");
+    cy.log("✅✅ Firstly Boutique Item Clicked");
   });
-  it("Should Waiting Search Category Request Until Arrived", () => {
+  it("Should Waiting Search Boutique  Request Until Arrived", () => {
     cy.intercept("Get", "**/api/products/search?&boutique_slugs**").as(
       "searchBoutique"
     );
@@ -294,7 +294,8 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
   });
 });
 // **************************************************************************************
-describe("Should Click On The Search Input Field & Write The Name Of Brand || Category || Boutique Wanted To Search About It", () => {
+describe("Should Search About Product By Name", () => {
+  9;
   let totalProductsFound;
   it("Should Click On Search Icon On Home Page", () => {
     cy.clickElementScroll("[data-cy=searchIcon_mainPage]");

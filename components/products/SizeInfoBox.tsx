@@ -4,9 +4,15 @@ import SizeHelp from "public/svg/product/SizeHelp.svg";
 function SizeInfoBox() {
   return (
     <div className="size-box flex-col">
-      <div className="size-recomend flex-row align-center justify-center w-100">
+      <div
+        className="size-recomend flex-row align-center justify-center w-100"
+        data-cy="SizeInfoBoxAboutRecommend"
+      >
         <ColorsInfo />
-        <div className="recomend-text flex-row align-center">
+        <div
+          className="recomend-text flex-row align-center"
+          data-cy="RecommendedSize&Quantity"
+        >
           <span className="recomended-size">L</span> Recommended{" "}
           <span className="recomended-size">Size</span> For You{" "}
           <span className="quantity-size">Last 2</span>
@@ -41,7 +47,9 @@ function SizeInfoBox() {
           </g>
         </svg>
         <SizeHelp />
-        <div className="recomend-text">Need Help Finding Your Size?</div>
+        <div className="recomend-text" data-cy="RecommendedHelp">
+          Need Help Finding Your Size?
+        </div>
       </div>
     </div>
   );

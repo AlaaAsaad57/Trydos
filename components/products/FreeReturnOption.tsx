@@ -13,7 +13,7 @@ function FreeReturnOption() {
     <div
       className={`product-shipping justify-start product-colors product-sizes flex-col align-start relative`}
     >
-      <div className="colors-label flex-row align-center">
+      <div className="colors-label flex-row align-center" data-cy="FreeReturn">
         <FreeReturnIcon />
         <div className="flex-col" style={{ marginLeft: "20px" }}>
           <span>{translate("Free Return")}</span>
@@ -24,10 +24,15 @@ function FreeReturnOption() {
       </div>
       <div className="address-container flex-row justify-center align-center h-[10px] mt-0"></div>
       <div className="yellow-label flex-row align-center">
-        <div className="colors-label flex-row align-center ">
+        <div
+          className="colors-label flex-row align-center "
+          data-cy="CountDaysAfterReciving"
+        >
           <ReturnIcon />
           <span style={{ marginLeft: "20px" }}>
-            {translate("Within 3 Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And Get The Amount Back")}
+            {translate(
+              "Within 3 Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And Get The Amount Back"
+            )}
           </span>
         </div>
       </div>

@@ -59,6 +59,7 @@ function ImageAvatar({
       {isActive && (
         <div
           className="avatar-text-element absolute f-12 align-center justify-center med-text"
+          data-cy="TextAboveImageOnSlider"
           style={{ color: name }}
         >
           {name}

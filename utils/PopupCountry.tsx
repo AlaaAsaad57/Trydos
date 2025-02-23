@@ -76,7 +76,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                 fixed flex-col gap-y-5 rounded-[20px] top-[10%]
                  text-center items-center justify-center px-4 py-8 bg-gray-100`}
           >
-            {forChanged && (
+            {forChanged && !forChanged?.includes("undefined") && (
               <span
                 className="max-w-[350px] capitalize text-center light text-dark text-base px-10"
                 style={{ color: "#000000ff" }}
@@ -156,10 +156,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                 className="capitalize text-center font-bold text-dark text-base px-10"
                 style={{ color: "#000000ff" }}
               >
-                {"Your Country"}
-                <div className="font-medium" style={{ color: "#f85555ff" }}>
-                  Is Not Supported In Our System
-                </div>
+                {"Select Your Country"}
               </span>
             )}
             {!forChanged && (
