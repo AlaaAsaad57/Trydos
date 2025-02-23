@@ -54,14 +54,16 @@ function ProductColors({ colors, ProductColorsArray }) {
       className={`product-colors flex-row align-start relative ${
         extended && "extended-colors-container"
       }`}
+      data-cy="AvailableColor"
     >
       {extended && <SquareIcon className="square-icon" />}
       <div className="colors-label flex-row align-center">
-        <ColorsIcon />
+        <ColorsIcon data-cy="ColorsIcon" />
         <span style={{ marginLeft: "5px" }}>
           {translate("Available ")} {colors?.length || 0} {translate("Color")}
         </span>
         <ColorsInfo
+          data-cy="QuestionMark"
           style={{ marginLeft: "9px" }}
           onClick={() => {
             dispatch({
@@ -141,6 +143,7 @@ function ProductColors({ colors, ProductColorsArray }) {
         >
           {colors?.map((color, index) => (
             <SwiperSlide
+              data-cy="SwiperPhoto"
               key={index}
               style={{
                 overflow: "visible",

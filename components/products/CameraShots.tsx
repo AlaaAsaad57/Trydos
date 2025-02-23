@@ -34,6 +34,7 @@ function CameraShots({ images }) {
       />
       <div
         className={`product-colors flex-row align-start relative`}
+        data-cy="CameraProduct"
         onClick={() => {
           Sendevent({
             event: "button_clicked",
@@ -45,11 +46,12 @@ function CameraShots({ images }) {
         }}
       >
         <div className="colors-label flex-row align-center">
-          <CameraShotIcon />
+          <CameraShotIcon data-cy="CameraIcon" />
           <span style={{ marginLeft: "5px" }}>
             {translate("Buyers Camera")} {12} {translate("Shot")}
           </span>
           <ColorsInfo
+            data-cy="QuestionMark"
             style={{ marginLeft: "9px" }}
             onClick={() => {
               dispatch({
@@ -94,6 +96,7 @@ function CameraShots({ images }) {
           >
             {images?.map((image, index) => (
               <SwiperSlide
+                data-cy="SwiperPhoto1"
                 key={index}
                 style={{
                   overflow: "visible",

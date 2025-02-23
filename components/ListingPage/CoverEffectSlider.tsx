@@ -72,6 +72,7 @@ function CoverEffectSlider({
       className={
         "product-photos-slider overflow-visible flex absolute align-center justify-center max-h[35px]"
       }
+      data-cy="productPhotoSlider"
       onWheel={throttle(callback, 250)}
       style={{ opacity: active ? "1" : "0", zIndex: active ? "10" : "1" }}
       onMouseEnter={() => setColor(true)}
@@ -106,6 +107,7 @@ function CoverEffectSlider({
       >
         {images.map((img, i) => (
           <SwiperSlide
+            data-cy="wrapperPhotoSlider"
             key={i}
             onTouchStart={(swiper) => {
               setActive(i);

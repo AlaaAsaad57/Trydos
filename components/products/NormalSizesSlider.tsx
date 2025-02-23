@@ -43,6 +43,7 @@ function NormalSizesSlider({
       className={`sizes-slider normal-color-slider colors-row colors-row-extended ${
         active && "enable-normal-slider"
       }`}
+      data-cy="SizeSliderBox"
     >
       {sizes.map((size, index) => (
         <div
@@ -50,6 +51,7 @@ function NormalSizesSlider({
           className={`color-circle relative ${
             activeColor.includes(size.name) && "active-color-circle"
           }`}
+          data-cy="SizeCircle"
           onClick={() => {
             setActiveColor(size.name);
           }}
