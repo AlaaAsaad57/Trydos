@@ -28,6 +28,7 @@ function PaymentMethod() {
     (state: StateInterface) => state.cart.orderData
   );
   const cart = useSelector((state: StateInterface) => state.cart);
+  const available_payment_method = useSelector((state: StateInterface) => state.cart.available_payment_method);
   const wallet = useSelector((state: StateInterface) => state.cart.wallet);
   const setOrderData = (e) => {
     dispatch({ type: "ORDER-DATA", payload: e });
@@ -133,114 +134,125 @@ function PaymentMethod() {
               language
             )}
           </div>
-          <CODInput
-            active={orderData?.payment?.filter((s) => s.id === 0).length > 0}
-            setActive={() => {
-              if (!orderLoading) {
-                if (orderData?.payment?.filter((s) => s.id === 0).length > 0) {
-                  setOrderData({
-                    payment: orderData?.payment?.filter((s) => s.id !== 0),
-                  });
-                } else {
-                  dispatch({ type: "COD-USER", payload: false });
-                  setOrderData({
-                    payment: [
-                      { id: 0, balance: cart.total_cash },
-                    ],
-                  });
-                }
-              }
-            }}
-          />
-          <TryDosWalletInput
-            active={orderData?.payment?.filter((s) => s.id === 1).length > 0}
-            setActive={() => {
-              if (!orderLoading) {
-                if (orderData.payment.length === 1 && orderData?.payment?.filter((one) => one.id === 2 || one.id === 3).length === 1 && wallet?.total_wallet_balance < cart.total_cash) {
-                  dispatch({ type: "WALLET_BALANCE-USER", payload: true });
-                  setOrderData({
-                    payment: [
-                      ...orderData.payment,
-                      { id: 1, balance: wallet?.total_wallet_balance }
-                    ],
-                  });
-                } else {
-                  if (orderData?.payment?.filter((s) => s.id === 1).length > 0) {
-                    setOrderData({
-                      payment: orderData?.payment?.filter((s) => s.id !== 1),
-                    });
-                  } else {
-                    dispatch({ type: "WALLET_BALANCE-USER", payload: false });
-                    setOrderData({
-                      payment: [
-                        { id: 1, balance: wallet?.total_wallet_balance },
-                      ],
-                    });
+          {available_payment_method && available_payment_method.length && available_payment_method.map((item) => {
+            if (item === "COD") {
+              return <CODInput
+                active={orderData?.payment?.filter((s) => s.id === 0).length > 0}
+                setActive={() => {
+                  if (!orderLoading) {
+                    if (orderData?.payment?.filter((s) => s.id === 0).length > 0) {
+                      setOrderData({
+                        payment: orderData?.payment?.filter((s) => s.id !== 0),
+                      });
+                    } else {
+                      dispatch({ type: "COD-USER", payload: false });
+                      setOrderData({
+                        payment: [
+                          { id: 0, balance: cart.total_cash },
+                        ],
+                      });
+                    }
                   }
-                }
-              }
-            }}
-          />
-          <CreditInput
-            active={orderData?.payment?.filter((s) => s.id === 2).length > 0}
-            setActive={() => {
-              if (!orderLoading) {
-                if (orderData.payment.length === 1 && orderData?.payment?.filter((one) => one.id === 1).length === 1 && orderData?.payment?.filter((one) => one.id === 1)[0].balance < cart.total_cash) {
-                  dispatch({ type: "CREDIT-USER", payload: true });
-                  setOrderData({
-                    payment: [
-                      ...orderData.payment,
-                      { id: 2, balance: cart.total_cash - orderData?.payment?.filter((one) => one.id === 1)[0].balance },
-                    ],
-                  });
-                } else {
-                  if (orderData?.payment?.filter((s) => s.id === 2).length > 0) {
-                    dispatch({ type: "CREDIT-USER", payload: false });
-                    setOrderData({
-                      payment: orderData?.payment?.filter((s) => s.id !== 2),
-                    });
-                  } else {
-                    dispatch({ type: "CREDIT-USER", payload: true });
-                    setOrderData({
-                      payment: [
-                        { id: 2, balance: cart.total_cash },
-                      ],
-                    });
+                }}
+              />
+            }
+            if (item === "TrydosWallet") {
+              return <TryDosWalletInput
+                active={orderData?.payment?.filter((s) => s.id === 1).length > 0}
+                setActive={() => {
+                  if (!orderLoading) {
+                    if (orderData.payment.length === 1 && orderData?.payment?.filter((one) => one.id === 2 || one.id === 3).length === 1 && wallet?.total_wallet_balance < cart.total_cash) {
+                      dispatch({ type: "WALLET_BALANCE-USER", payload: true });
+                      setOrderData({
+                        payment: [
+                          ...orderData.payment,
+                          { id: 1, balance: wallet?.total_wallet_balance }
+                        ],
+                      });
+                    } else {
+                      if (orderData?.payment?.filter((s) => s.id === 1).length > 0) {
+                        setOrderData({
+                          payment: orderData?.payment?.filter((s) => s.id !== 1),
+                        });
+                      } else {
+                        dispatch({ type: "WALLET_BALANCE-USER", payload: false });
+                        setOrderData({
+                          payment: [
+                            { id: 1, balance: wallet?.total_wallet_balance },
+                          ],
+                        });
+                      }
+                    }
                   }
-                }
-              }
-            }}
-          />
-          <CryptoInput
-            active={orderData?.payment?.filter((s) => s.id === 3).length > 0}
-            setActive={() => {
-              if (!orderLoading) {
-                if (orderData.payment.length === 1 && orderData?.payment?.filter((one) => one.id === 1).length === 1 && orderData?.payment?.filter((one) => one.id === 1)[0].balance < cart.total_cash) {
-                  dispatch({ type: "CRYPTO-USER", payload: true });
-                  setOrderData({
-                    payment: [
-                      ...orderData.payment,
-                      { id: 3, balance: cart.total_cash - orderData?.payment?.filter((one) => one.id === 1)[0].balance },
-                    ],
-                  });
-                } else {
-                  if (orderData?.payment?.filter((s) => s.id === 3).length > 0) {
-                    dispatch({ type: "CRYPTO-USER", payload: false });
-                    setOrderData({
-                      payment: orderData?.payment?.filter((s) => s.id !== 3),
-                    });
-                  } else {
-                    dispatch({ type: "CRYPTO-USER", payload: true });
-                    setOrderData({
-                      payment: [
-                        { id: 3, balance: cart.total_cash },
-                      ],
-                    });
+                }}
+              />
+            }
+            if (item === "Crypto") {
+              return <CryptoInput
+                active={orderData?.payment?.filter((s) => s.id === 3).length > 0}
+                setActive={() => {
+                  if (!orderLoading) {
+                    if (orderData.payment.length === 1 && orderData?.payment?.filter((one) => one.id === 1).length === 1 && orderData?.payment?.filter((one) => one.id === 1)[0].balance < cart.total_cash) {
+                      dispatch({ type: "CRYPTO-USER", payload: true });
+                      setOrderData({
+                        payment: [
+                          ...orderData.payment,
+                          { id: 3, balance: cart.total_cash - orderData?.payment?.filter((one) => one.id === 1)[0].balance },
+                        ],
+                      });
+                    } else {
+                      if (orderData?.payment?.filter((s) => s.id === 3).length > 0) {
+                        dispatch({ type: "CRYPTO-USER", payload: false });
+                        setOrderData({
+                          payment: orderData?.payment?.filter((s) => s.id !== 3),
+                        });
+                      } else {
+                        dispatch({ type: "CRYPTO-USER", payload: true });
+                        setOrderData({
+                          payment: [
+                            { id: 3, balance: cart.total_cash },
+                          ],
+                        });
+                      }
+                    }
                   }
-                }
-              }
-            }}
-          />
+                }}
+              />
+            }
+            if (item === "Card") {
+              return <CreditInput
+                active={orderData?.payment?.filter((s) => s.id === 2).length > 0}
+                setActive={() => {
+                  if (!orderLoading) {
+                    if (orderData.payment.length === 1 && orderData?.payment?.filter((one) => one.id === 1).length === 1 && orderData?.payment?.filter((one) => one.id === 1)[0].balance < cart.total_cash) {
+                      dispatch({ type: "CREDIT-USER", payload: true });
+                      setOrderData({
+                        payment: [
+                          ...orderData.payment,
+                          { id: 2, balance: cart.total_cash - orderData?.payment?.filter((one) => one.id === 1)[0].balance },
+                        ],
+                      });
+                    } else {
+                      if (orderData?.payment?.filter((s) => s.id === 2).length > 0) {
+                        dispatch({ type: "CREDIT-USER", payload: false });
+                        setOrderData({
+                          payment: orderData?.payment?.filter((s) => s.id !== 2),
+                        });
+                      } else {
+                        dispatch({ type: "CREDIT-USER", payload: true });
+                        setOrderData({
+                          payment: [
+                            { id: 2, balance: cart.total_cash },
+                          ],
+                        });
+                      }
+                    }
+                  }
+                }}
+              />
+            }
+            return <></>
+          })}
         </div>
         {
           <CouponElement
@@ -464,7 +476,9 @@ const TryDosWalletInput = ({ active, setActive }) => {
     (state: StateInterface) => state.cart.orderLoading
   );
   const wallet = useSelector((state: StateInterface) => state.cart.wallet);
-
+  const currency_symbol = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  );
   return (
     <div
       onClick={() => {
@@ -494,7 +508,7 @@ const TryDosWalletInput = ({ active, setActive }) => {
           {translateFunction("Your Balance")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: wallet?.total_wallet_balance })}
+          {RoundPrice({ num: wallet?.total_wallet_balance })}  {currency_symbol?.symbol}
         </span>
       </div>
     </div>
