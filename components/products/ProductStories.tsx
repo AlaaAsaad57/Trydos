@@ -75,9 +75,10 @@ function ProductStories() {
         />
       )}
       <div className="colors-label flex-row align-center">
-        <StoreisIcon />
+        <StoreisIcon data-cy="StoriesIcon" />
         <span style={{ marginLeft: "5px" }}>{translate("Product Story")}</span>
         <ColorsInfo
+          data-cy="QuestionMark"
           style={{ marginLeft: "9px" }}
           onClick={() => {
             dispatch({
@@ -99,6 +100,7 @@ function ProductStories() {
           <div
             key={index}
             className="product-story relative"
+            data-cy="Story"
             onClick={() => setSelectStory(configureStory(story))}
           >
             <img

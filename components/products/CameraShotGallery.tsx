@@ -78,6 +78,7 @@ function CameraShotGallery({ images, close }) {
             className={`flex-col pt-4  rounded-t-[20px] bg-[#FEFEFE] fixed w-full camera-shots-gallery-container z-[999999999999] ${
               activeCameraGallery ? "top-16" : "top-[110vh]"
             } left-0`}
+            data-cy="ActiveCaneraGallery"
           >
             <div className="gallery-label pl-5 pr-5 flex-row items-center justify-start ">
               <CameraShotIcon />
@@ -111,6 +112,7 @@ function CameraShotGallery({ images, close }) {
               className={`flex-row flex-wrap w-full h-auto mt-1 container-gallery ${
                 extended ? "pl-[10px] pr-[10px]" : "pl-5 pr-5"
               } max-h-[100vh] pb-[200px] overflow-auto`}
+              data-cy="GalleryItems"
             >
               {images?.map((s, index) => {
                 return (

@@ -44,12 +44,13 @@ function SelectSize({ sizes, variants }) {
   };
 
   const getVariants = (e?: any | undefined | null) => {
+    let variations = SelectedProduct.variation ?? variants;
     let variant = (e
-      ? variants.filter((s) => {
+      ? variations.filter((s) => {
           let size = s.type.split("-")[1] || s.type.split("-")[0];
           return s.type.includes(activeColor?.color_name || "") && size === e;
         })[0]
-      : variants.filter((s) => {
+      : variations.filter((s) => {
           let size = s.type.split("-")[1] || s.type.split("-")[0];
           return (
             s.type.includes(activeColor?.color_name || "") &&

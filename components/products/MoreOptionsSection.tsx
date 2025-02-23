@@ -72,7 +72,7 @@ function MoreOptionsSection() {
     });
   };
   return (
-    <div className="extended-section">
+    <div className="extended-section" data-cy="ExtendThreePointsSection">
       <div className="extended-bar-top share-bar-top">
         <span className="flex">
           {translate("More Options", language)}

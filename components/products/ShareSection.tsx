@@ -23,7 +23,7 @@ function ShareSection({
     return translateFunction(key, languageVariable);
   };
   return (
-    <div className="extended-section">
+    <div className="extended-section" data-cy="ExtendShareSection">
       <div className="extended-bar-top share-bar-top">
         <svg
           xmlns="http://www.w3.org/2000/svg"

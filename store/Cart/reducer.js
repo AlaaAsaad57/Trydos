@@ -90,6 +90,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         orderData: { ...state.orderData, orderPaylod: payload },
+        cart: [],
       };
     }
     case "CRYPTO_CARD_PAYMENT": {
@@ -340,6 +341,34 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         ...state,
         oldCart: { ...state.oldCart, oldCart: oldCart },
       };
+    }
+    case "EDIT-QTY": {
+      if (payload === "") {
+        return {
+          ...state,
+          SelectedProduct: {
+            ...state.SelectedProduct,
+            current_stock:
+              state.SelectedProduct.current_stock === 0
+                ? 0
+                : state.SelectedProduct.current_stock - 1,
+          },
+        };
+      } else {
+        let arr = [];
+        state.SelectedProduct.variation.map((s) => {
+          if (s.type === payload)
+            arr.push({ ...s, qty: s.qty === 0 ? 0 : s.qty - 1 });
+          else arr.push(s);
+        });
+        return {
+          ...state,
+          SelectedProduct: {
+            ...state.SelectedProduct,
+            variation: arr,
+          },
+        };
+      }
     }
     case "CART-INIT": {
       return {

@@ -54,6 +54,7 @@ function NormalColorSlider({
             activeColor?.color_name === color?.color_name &&
             "active-color-circle"
           }`}
+          data-cy="AfterClickOnSwipperPhoto"
           onClick={() => {
             setActiveColor(color);
           }}

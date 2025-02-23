@@ -21,10 +21,11 @@ import home from "services/home";
 
 import { toast } from "react-toastify";
 import OrderButton from "./OrderButton";
-import { AxiosPost } from "utils/AxiosApi";
+import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { dispatchRouteChangeEvent } from "utils/events";
 import Spinner from "components/global/Spinner";
 import Timer from "components/Login/Timer";
+import { QuantityDetailsProductApi } from "models/Api";
 
 function CartContainer({ close, toOrders }) {
   let { lang } = useParams();
@@ -82,8 +83,27 @@ function CartContainer({ close, toOrders }) {
   const ProductDetails = useSelector(
     (state: StateInterface) => state.details.product
   );
-  const searchParams = useSearchParams();
+  const updateDataForProduct = async (slug) => {
+    if (params?.productId === slug) {
+      let data: QuantityDetailsProductApi["data"] = await AxiosGet({
+        url:
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+          "/web/product/qtyPriceDetails" +
+          `/${slug}`,
+        title: "Get Product",
+      });
+      dispatch({ type: "GET-PRODUCT-DETAILS-FOR-CART", payload: data });
+    }
+  };
+  const RemoveFromCart = async (product) => {
+    dispatch({
+      type: "REMOVE-FROM-CART",
+      payload: product.id,
+    });
+    await home.RemoveFromCart({ key: product.id });
 
+    await updateDataForProduct(product.slug);
+  };
   return (
     <div
       className={`flex-col ${cart.length > 0 ? "pb-[283px]" : "100px"
@@ -459,6 +479,9 @@ function CartContainer({ close, toOrders }) {
                       </NextLink>
                       <QuantutyInput
                         id={product.id}
+                        updateData={async () => {
+                          await updateDataForProduct(product.slug);
+                        }}
                         product={product}
                         isHurry={true || product.have_hurry_up_notify}
                         disabled={false}
@@ -466,11 +489,7 @@ function CartContainer({ close, toOrders }) {
                         setValue={() => { }}
                         value={product.quantity}
                         deleteFunction={() => {
-                          dispatch({
-                            type: "REMOVE-FROM-CART",
-                            payload: product.id,
-                          });
-                          home.RemoveFromCart({ key: product.id });
+                          RemoveFromCart(product);
                         }}
                       />
                     </div>
@@ -837,6 +856,7 @@ function CartContainer({ close, toOrders }) {
                       <QuantutyInput
                         id={product.id}
                         product={product}
+                        updateData={async () => {}}
                         disabled={true}
                         isHurry={false}
                         value={product.quantity}
@@ -1550,6 +1570,7 @@ const QuantutyInput = ({
   deleteFunction,
   id,
   disabled,
+  updateData,
   isHurry,
   product,
 }) => {
@@ -1635,6 +1656,7 @@ const QuantutyInput = ({
         type: "UPDATE-CART-QUANTITY",
         payload: { key: id, quantity: quantity },
       });
+      updateData();
     } catch (error) {
       setLoading(false);
       if (bool) {

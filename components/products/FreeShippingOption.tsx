@@ -12,7 +12,10 @@ function FreeShippingOption() {
     <div
       className={`product-colors product-sizes flex-col align-start relative`}
     >
-      <div className="colors-label flex-row align-center">
+      <div
+        className="colors-label flex-row align-center"
+        data-cy="FreeShipping"
+      >
         <FreeShippingIcon />
         <div className="flex-col" style={{ marginLeft: "20px" }}>
           <span>{translate("Free Shipping")}</span>

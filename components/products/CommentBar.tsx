@@ -3,7 +3,7 @@ import React, { useState } from "react";
 
 import { AxiosPost } from "utils/AxiosApi";
 import { Sendevent, User, UserID } from "utils/functions";
-
+import CommentPost from "public/svg/CommentPost.svg";
 function CommentBar({
   product,
   setComments,
@@ -62,7 +62,7 @@ function CommentBar({
     }
   };
   return (
-    <div className="comment-input-holder">
+    <div className="comment-input-holder relative">
       <textarea
         onKeyDown={(e) => {
           // @ts-ignore
@@ -86,6 +86,22 @@ function CommentBar({
         value={val}
         onChange={(e) => setVal(e.target.value)}
       />
+      {val?.length > 0 && (
+        <span
+          className="absolute h-full flex items-center right-[30px] top-0"
+          onClick={() => {
+            // @ts-ignore
+            addComment(val);
+            document.querySelector("textarea").style.height = "auto";
+            Sendevent({
+              event: "button_clicked",
+              value: "confirm_comment_button",
+            });
+          }}
+        >
+          <CommentPost />
+        </span>
+      )}
     </div>
   );
 }

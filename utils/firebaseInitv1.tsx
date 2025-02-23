@@ -148,7 +148,7 @@ export const onMessageListener = async () => {
           toaster.info({ data: data }, { data: data });
         }
         if (JSON.parse(payload.data.body).type === "order placed") {
-          let data = await AxiosGet({
+          let dataReq = await AxiosGet({
             url:
               process.env.NEXT_PUBLIC_BACKEND_URL +
               `/customer/order/getOrdersByOrderGroupID?order_group_id=${
@@ -157,7 +157,7 @@ export const onMessageListener = async () => {
             title: "getOrderByOrderGroupID request",
           });
 
-          if (data && data?.length > 0) {
+          if (dataReq && dataReq?.length > 0) {
             const toaster = (myProps, toastProps): Id =>
               toast(<OrderPlaced {...myProps} />, { ...toastProps });
 
@@ -166,7 +166,7 @@ export const onMessageListener = async () => {
             toaster.info({ data: data }, { data: data });
             store.dispatch({
               type: "ORDER-DATA",
-              payload: { ...data[0], success: true },
+              payload: { ...dataReq[0], success: true },
             });
           }
         }

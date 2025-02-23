@@ -32,38 +32,16 @@ function AddToCartWidget() {
   const SelectedProduct = useSelector(
     (state: StateInterface) => state.cart.SelectedProduct
   );
-  const { lang } = useParams();
-  // @ts-ignore
-  let [country, languageUrl] = lang.split("-");
+
   const product = useSelector((state: StateInterface) => state.details.product);
   const getDetails = async () => {
     if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
-    let start = new Date();
     let data: QuantityDetailsProductApi["data"] = await AxiosGet({
       url:
         process.env.NEXT_PUBLIC_BACKEND_URL +
         QTY_URL +
         `/${SelectedProduct.slug}`,
       title: "Get Product",
-    });
-
-    let end = new Date();
-    LogData({
-      request: "Get Product Quantity info",
-      url:
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-        QTY_URL +
-        `/${SelectedProduct.slug}`,
-      headers: {
-        Authorization: `Bearer ${
-          typeof localStorage !== "undefined" &&
-          localStorage.getItem("MARKET-TOKEN")
-        }`,
-        lang: getLang(null, Cookies.get("language")),
-        country: Cookies.get("country"),
-      },
-      response: data,
-      time: end.getTime() - start.getTime(),
     });
     let additionalData = await auth.getProductNotify({
       id: SelectedProduct.slug,
