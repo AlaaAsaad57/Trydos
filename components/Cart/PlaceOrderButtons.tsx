@@ -41,16 +41,21 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
   const VerifyCart = async () => {
     try {
       setLoading(true);
-      await AxiosGet({
+      let a = await AxiosGet({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
           "/cart/check_availability_product_cart",
         title: "Check Product Availablity",
       });
-      setLoading(false);
-      successOrder();
+
+      if (a?.length === 0) {
+        setLoading(false);
+        successOrder();
+      } else {
+        throw Error("Please Review Your Cart Info");
+      }
     } catch (error) {
-      toast.error("Please Review Your Cart Info");
+      toast.error("Please Review Your Cart Info Some Items Not Available");
       backToCart();
       setLoading(false);
     }
@@ -138,7 +143,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
             }
           }}
           className={` ${
-            orderData.loading && "opacity-65 scale-95"
+            (orderData.loading || loading) && "opacity-65 scale-95"
           } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${
             orderData.success
               ? "bg-[#1D1D1D]"

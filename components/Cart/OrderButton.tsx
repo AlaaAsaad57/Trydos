@@ -159,6 +159,7 @@ function OrderButton({ close, toOrders }) {
           "/cart/check_availability_product_cart",
         title: "Check Product Availablity",
       });
+
       if (a?.length === 0) {
         setTimeout(() => {
           if (user || bool) toOrders();

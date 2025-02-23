@@ -21,6 +21,7 @@ import order from "services/order";
 import PaymentMethod from "./PaymentMethod";
 import PlaceOrderWidget from "./PlaceOrderWidget";
 import PlaceOrderButtons from "./PlaceOrderButtons";
+import { AxiosGet } from "utils/AxiosApi";
 
 const DeleteIcon = () => {
   return (
@@ -378,6 +379,19 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                 ref.current.slideNext();
               }, 600);
             }}
+            setPrev={() => {
+              setNextStep(false);
+              getCart({
+                callback: ([data, res]) => {
+                  dispatch({
+                    type: "CART-INIT",
+                    payload: data ?? { cart: [] },
+                  });
+                },
+              });
+              ref.current.slidePrev();
+              setStep(0);
+            }}
             orderLoading={false}
           />
         </SwiperSlide>
@@ -701,7 +715,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
     </>
   );
 };
-const OrderButtons = ({ orderLoading, setNext }) => {
+const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
   const cart = useSelector((state: StateInterface) => state.cart);
   const currency_symbol = useSelector(
     (state: StateInterface) => state.homepage.currency
@@ -760,6 +774,23 @@ const OrderButtons = ({ orderLoading, setNext }) => {
       shake("payment-valid-border");
     }
   };
+  const [loading, setLoading] = useState(false);
+  const VerifyCart = async () => {
+    setLoading(true);
+    let a = await AxiosGet({
+      url:
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/cart/check_availability_product_cart",
+      title: "Check Product Availablity",
+    });
+
+    if (a?.length === 0) {
+      setNext();
+    } else {
+      setPrev();
+    }
+    setLoading(false);
+  };
   return (
     <div className="absolute flex-col items-center payment-order-bottom left-0 w-full">
       <div
@@ -767,14 +798,14 @@ const OrderButtons = ({ orderLoading, setNext }) => {
           boxShadow: "0px -3px 20px #0000001a",
         }}
         className={` ${
-          orderLoading && "opacity-55"
+          (orderLoading || loading) && "opacity-55"
         }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
       >
         <div
           onClick={() => {
             Validate();
             if (isValid() && !orderLoading) {
-              setNext();
+              VerifyCart();
             }
           }}
           className={` ${
