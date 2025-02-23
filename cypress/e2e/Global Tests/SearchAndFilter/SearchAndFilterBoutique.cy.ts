@@ -393,10 +393,6 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
     cy.clickElementForce("[data-cy=back_icon_boutique_page]");
     cy.log("✅✅ back icon clicked and back to main page");
   });
-  it("Should Click On Back Icon Found In Boutique Page To Return To The Home Page", () => {
-    cy.clickElementForce("[data-cy=back_icon_boutique_page]");
-    cy.log("✅✅ back icon clicked and back to main page");
-  });
 });
 // ***********************************************************************************
 describe("Should Move Between Filter Groups By Scrolling Horizontally", () => {

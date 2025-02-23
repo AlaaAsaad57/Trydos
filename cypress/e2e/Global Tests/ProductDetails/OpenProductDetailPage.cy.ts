@@ -8,7 +8,7 @@ describe("Should Open The Boutique Page & Move From It To A Product Page From Th
     cy.log("✅✅ Boutiues Founded & Loaded In Main Page");
   });
   it("Should Select Any Boutique & Click On", () => {
-    cy.clickElementForce(".offer-widget:nth-child(2)");
+    cy.clickElementForce(".offer-widget:nth-child(5)");
     cy.log("✅✅ An Boutique Selected & Click");
   });
   it("Should Verify Products ", () => {
@@ -33,7 +33,7 @@ describe("Should Open Product Page", () => {
     );
   });
   it("Should Choose The First Product From The Products On The Boutique Page & Open His Page", () => {
-    cy.wait(5000);
+    // cy.wait(5000);
     cy.get(".embla__slide")
       .its("length")
       .then((count) => {
@@ -42,12 +42,12 @@ describe("Should Open Product Page", () => {
           cy.wait(5000);
           cy.get(".embla__slide").eq(1).click({ force: true });
           cy.log("✅✅ Secondly Stories Chooses And Clicked");
-          cy.Exist("[data-cy=close_stories_icon]").then((exist) => {
-            if (exist) {
-              cy.clickElementForce("[data-cy=close_stories_icon]");
-              cy.log("✅✅ Close Stories Icon Clicked");
-            }
-          });
+          // cy.Exist("[data-cy=close_stories_icon]").then((exist) => {
+          // if (exist) {
+          cy.clickElementForce("[data-cy=close_stories_icon]");
+          cy.log("✅✅ Close Stories Icon Clicked");
+          // }
+          // });
         }
       });
   });
@@ -205,12 +205,12 @@ describe("Should Open last Story", () => {
       cy.wrap($el)
         .trigger("mousedown", {
           clientX: rect.x + rect.width / 2,
-          clientY: rect.y + 10,
+          clientY: rect.y - 10,
           force: true,
         })
         .trigger("mousemove", {
           clientX: rect.x + rect.width / 2,
-          clientY: rect.y + rect.height - 10,
+          clientY: rect.y + rect.height + 10,
           force: true,
         })
         .trigger("mouseup", { force: true });
@@ -341,18 +341,48 @@ describe("Should Verify Product Datail Footer Section", () => {
 });
 // *************************************twelve*********************************************
 describe("Should Do Like And Dislike & Waiting The Request Related To Them", () => {
-  it("Should Do Like & Waiting The Request Related To It", () => {
-    cy.intercept(
-      "POST",
-      "**/market-under-dev-backend.trydos.dev/api/new_v1/product_likes/store"
-    ).as("Like");
+  let countLovesBeforePutLove = 0;
+  let countLovesAfterPutLove = 0;
+  let countLovesAfterPutLove1 = 0;
+  it("should click LoveIcon only if not active", () => {
+    cy.get("[data-cy=LoveClickOnLast]").then(($icon) => {
+      if ($icon) {
+        cy.clickElementForce("[data-cy=LoveSymbol]");
+      } else {
+        cy.log("Love Icon Not Clicked On Previsually");
+      }
+    });
+  });
+  it("Should Verify Love Icon & Get The Privsually Count Of Loves", () => {
     cy.get('[data-cy="LoveSymbol"]').should("be.visible");
     cy.log("✅✅ Love Symbol Button Exists");
+    cy.get("[data-cy=CountOfLoves]")
+      .invoke("text")
+      .then((text) => {
+        countLovesBeforePutLove = parseInt(text);
+        cy.log(`count Loves Before Put Love Is: ${text}`);
+      });
+  });
+  it("Should Verify Count Of Loves Increased", () => {
     cy.clickElementForce("[data-cy=LoveSymbol]");
     cy.log("✅✅ Love Symbol Button Clicked");
+    cy.get("[data-cy=CountOfLoves]")
+      .invoke("text")
+      .then((text) => {
+        countLovesAfterPutLove = parseInt(text);
+        cy.log(`count Loves Before Put Love Is: ${text}`);
+        expect(countLovesAfterPutLove).to.be.greaterThan(
+          countLovesBeforePutLove
+        );
+      });
+  });
+  it("Should Waiting The Request Accured", () => {
+    cy.intercept("POST", "**/api/new_v1/product_likes/store").as("Like");
+    cy.get('[data-cy="LoveSymbol"]').should("be.visible");
+    cy.log("✅✅ Love Symbol Button Exists");
     cy.get("@Like", { timeout: 10000 }).then((alias) => {
       if (alias) {
-        cy.wait("@Like").then((interception) => {
+        cy.wait("@Like", { timeout: 10000 }).then((interception) => {
           cy.log("✅✅ Like request arrived");
         });
       } else {
@@ -360,21 +390,81 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
       }
     });
   });
-  it("Should Do Like & Waiting The Request Related To It", () => {
-    cy.intercept(
-      "POSt",
-      "**/market-under-dev-backend.trydos.dev/api/new_v1/product_likes/delete"
-    ).as("DeketeLike");
+  it("Should Do DesLike", () => {
     cy.clickElementForce("[data-cy=LoveSymbol]");
-    cy.log("✅✅ Love Symbol Button Clicked");
-    cy.get("@DeketeLike", { timeout: 10000 }).then((alias) => {
+    cy.log("✅✅ Love Symbol Button Clicked To Do Deslike");
+    cy.get("[data-cy=CountOfLoves]")
+      .invoke("text")
+      .then((text) => {
+        countLovesAfterPutLove1 = parseInt(text);
+        cy.log(`count Loves Before Put Love Is: ${text}`);
+        expect(countLovesAfterPutLove1).to.be.eq(countLovesAfterPutLove - 1);
+      });
+  });
+  it("Should Waiting The Request Accured", () => {
+    cy.intercept("POST", "**api/new_v1/product_likes/delete").as("DeleteLike");
+    cy.get("@DeleteLike", { timeout: 10000 }).then((alias) => {
       if (alias) {
-        cy.wait("@DeketeLike").then((interception) => {
-          cy.log("✅✅ Dekete Like request arrived");
+        cy.wait("@DeleteLike", { timeout: 10000 }).then((interception) => {
+          cy.log("✅✅ DesLike request arrived");
         });
       } else {
-        cy.log("❌❌ Dekete Like request did not arrive");
+        cy.log("❌❌ DesLike request did not arrive");
       }
     });
   });
 });
+// *************************************thirteen*********************************************
+// describe("Should Type Comment In Comment Section", () => {
+//   it("Should Click On Comment Icon", () => {
+//     cy.logout();
+//     cy.performLogin();
+//     cy.get('[data-cy="CommentIcon"]').should("be.visible");
+//     cy.log("✅✅ Comment Icon Button Exists");
+//     cy.clickElementForce("[data-cy=CommentIcon]");
+//     cy.log("✅✅ Comment Icon Clicked");
+//   });
+//   it("should render the comment section", () => {
+//     cy.get('[data-cy="ExtendCoomentSection"]').should("be.visible");
+//     cy.log("✅✅ Comment Icon Button Visible");
+//     cy.get('[data-cy="ExtendCoomentSection"] .extended-bar-top span').should(
+//       "contain.text",
+//       "Comment About This Product"
+//     );
+//     cy.log("✅✅ Comment Extended Bar Visible");
+//   });
+// it("should load comments", () => {
+//   cy.get('[data-cy="ExtendCoomentSection"]').within(() => {
+//     cy.get(".comments-list").should("exist");
+//   });
+//   cy.log("✅✅ Comment List Visible");
+// });
+// it("should allow increasing comments", () => {
+//   cy.intercept("POST", "/api/comments/increase", { statusCode: 200 }).as(
+//     "increaseComments"
+//   );
+
+//   cy.get(
+//     '[data-cy="ExtendCoomentSection"] button[data-cy="increase-comments"]'
+//   ).click();
+//   cy.wait("@increaseComments").its("response.statusCode").should("eq", 200);
+// });
+// it("should allow users to submit a new comment", () => {
+//   cy.get('[data-cy="comment-input"]').type("This is a test comment");
+//   cy.log("✅✅ Comment Input Visible % Write An Comment");
+//   cy.get('[data-cy="submit-comment"]').click({ force: true });
+//   cy.log("✅✅ Click On Comment Submit");
+//   cy.get('[data-cy="comments-list"]').should(
+//     "contain.text",
+//     "This is a test comment"
+//   );
+//   cy.log("✅✅ Test Comment Added To List Comment");
+// });
+// it("should handle comment verification", () => {
+//   cy.get('[data-cy="verify-comment"]').first().click({ force: true });
+//   cy.get('[data-cy="comment-status"]')
+//     .first()
+//     .should("contain.text", "Verified");
+//   cy.log("✅✅ Comment Add Operation Successfuly");
+// });
+// });

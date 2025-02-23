@@ -130,15 +130,20 @@ function ProductOptions({
                 else LikeProduct(true);
               }}
             >
-              {SelectedProduct?.is_liked || isLiked ? <HeartFill /> : <Heart />}
+              {SelectedProduct?.is_liked || isLiked ? (
+                <HeartFill data-cy="LoveClickOnLast" />
+              ) : (
+                <Heart />
+              )}
               {loading ? (
                 <Skeleton width={15} height={14}></Skeleton>
               ) : (
-                <span>{SelectedProduct?.likes}</span>
+                <span data-cy="CountOfLoves">{SelectedProduct?.likes}</span>
               )}
             </div>
             <div
               className="product-option-item"
+              data-cy="CommentIcon"
               onClick={() => {
                 Sendevent({
                   event: "button_clicked",
@@ -148,7 +153,7 @@ function ProductOptions({
               }}
             >
               <CommentIcon active={activeOption === "Comment"} />
-              <span>
+              <span data-cy="CountOfComment">
                 {productDetails.comment_count !== null ? (
                   productDetails.comment_count
                 ) : (
@@ -160,6 +165,7 @@ function ProductOptions({
               className={`product-option-item relative ${
                 activeOption === "Share" && "active-option"
               }`}
+              data-cy="ShareIcon"
               onClick={() => {
                 Sendevent({
                   event: "button_clicked",
@@ -170,7 +176,7 @@ function ProductOptions({
             >
               {" "}
               <Share />
-              <span>
+              <span data-cy="CountOfShares">
                 {sharesCount !== null && sharesCount >= 0 ? (
                   sharesCount
                 ) : (
@@ -180,6 +186,7 @@ function ProductOptions({
             </div>
             <div
               className="product-option-item"
+              data-cy="ThreePointsIcon"
               onClick={() => {
                 Sendevent({
                   event: "button_clicked",

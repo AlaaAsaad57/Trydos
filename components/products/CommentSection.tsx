@@ -44,7 +44,7 @@ function CommentSection({
     Init();
   }, []);
   return (
-    <div className="extended-section">
+    <div className="extended-section" data-cy="ExtendCoomentSection">
       <div className="extended-bar-top">
         <svg
           id="_20x20"
