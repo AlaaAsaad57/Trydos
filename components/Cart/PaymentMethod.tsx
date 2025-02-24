@@ -28,7 +28,9 @@ function PaymentMethod() {
     (state: StateInterface) => state.cart.orderData
   );
   const cart = useSelector((state: StateInterface) => state.cart);
-  const available_payment_method = useSelector((state: StateInterface) => state.cart.available_payment_method);
+  const available_payment_method = useSelector(
+    (state: StateInterface) => state.cart.available_payment_method
+  );
   const wallet = useSelector((state: StateInterface) => state.cart.wallet);
   const setOrderData = (e) => {
     dispatch({ type: "ORDER-DATA", payload: e });
@@ -134,125 +136,202 @@ function PaymentMethod() {
               language
             )}
           </div>
-          {available_payment_method && available_payment_method.length && available_payment_method.map((item) => {
-            if (item === "COD") {
-              return <CODInput
-                active={orderData?.payment?.filter((s) => s.id === 0).length > 0}
-                setActive={() => {
-                  if (!orderLoading) {
-                    if (orderData?.payment?.filter((s) => s.id === 0).length > 0) {
-                      setOrderData({
-                        payment: orderData?.payment?.filter((s) => s.id !== 0),
-                      });
-                    } else {
-                      dispatch({ type: "COD-USER", payload: false });
-                      setOrderData({
-                        payment: [
-                          { id: 0, balance: cart.total_cash },
-                        ],
-                      });
+          {available_payment_method &&
+            available_payment_method.length &&
+            available_payment_method.map((item, key) => {
+              if (item === "COD") {
+                return (
+                  <CODInput
+                    key={key}
+                    active={
+                      orderData?.payment?.filter((s) => s.id === 0).length > 0
                     }
-                  }
-                }}
-              />
-            }
-            if (item === "TrydosWallet") {
-              return <TryDosWalletInput
-                active={orderData?.payment?.filter((s) => s.id === 1).length > 0}
-                setActive={() => {
-                  if (!orderLoading) {
-                    if (orderData.payment.length === 1 && orderData?.payment?.filter((one) => one.id === 2 || one.id === 3).length === 1 && wallet?.total_wallet_balance < cart.total_cash) {
-                      dispatch({ type: "WALLET_BALANCE-USER", payload: true });
-                      setOrderData({
-                        payment: [
-                          ...orderData.payment,
-                          { id: 1, balance: wallet?.total_wallet_balance }
-                        ],
-                      });
-                    } else {
-                      if (orderData?.payment?.filter((s) => s.id === 1).length > 0) {
-                        setOrderData({
-                          payment: orderData?.payment?.filter((s) => s.id !== 1),
-                        });
-                      } else {
-                        dispatch({ type: "WALLET_BALANCE-USER", payload: false });
-                        setOrderData({
-                          payment: [
-                            { id: 1, balance: wallet?.total_wallet_balance },
-                          ],
-                        });
+                    setActive={() => {
+                      if (!orderLoading) {
+                        if (
+                          orderData?.payment?.filter((s) => s.id === 0).length >
+                          0
+                        ) {
+                          setOrderData({
+                            payment: orderData?.payment?.filter(
+                              (s) => s.id !== 0
+                            ),
+                          });
+                        } else {
+                          dispatch({ type: "COD-USER", payload: false });
+                          setOrderData({
+                            payment: [{ id: 0, balance: cart.total_cash }],
+                          });
+                        }
                       }
+                    }}
+                  />
+                );
+              }
+              if (item === "TrydosWallet") {
+                return (
+                  <TryDosWalletInput
+                    key={key}
+                    active={
+                      orderData?.payment?.filter((s) => s.id === 1).length > 0
                     }
-                  }
-                }}
-              />
-            }
-            if (item === "Crypto") {
-              return <CryptoInput
-                active={orderData?.payment?.filter((s) => s.id === 3).length > 0}
-                setActive={() => {
-                  if (!orderLoading) {
-                    if (orderData.payment.length === 1 && orderData?.payment?.filter((one) => one.id === 1).length === 1 && orderData?.payment?.filter((one) => one.id === 1)[0].balance < cart.total_cash) {
-                      dispatch({ type: "CRYPTO-USER", payload: true });
-                      setOrderData({
-                        payment: [
-                          ...orderData.payment,
-                          { id: 3, balance: cart.total_cash - orderData?.payment?.filter((one) => one.id === 1)[0].balance },
-                        ],
-                      });
-                    } else {
-                      if (orderData?.payment?.filter((s) => s.id === 3).length > 0) {
-                        dispatch({ type: "CRYPTO-USER", payload: false });
-                        setOrderData({
-                          payment: orderData?.payment?.filter((s) => s.id !== 3),
-                        });
-                      } else {
-                        dispatch({ type: "CRYPTO-USER", payload: true });
-                        setOrderData({
-                          payment: [
-                            { id: 3, balance: cart.total_cash },
-                          ],
-                        });
+                    setActive={() => {
+                      if (!orderLoading) {
+                        if (
+                          orderData.payment.length === 1 &&
+                          orderData?.payment?.filter(
+                            (one) => one.id === 2 || one.id === 3
+                          ).length === 1 &&
+                          wallet?.total_wallet_balance < cart.total_cash
+                        ) {
+                          dispatch({
+                            type: "WALLET_BALANCE-USER",
+                            payload: true,
+                          });
+                          setOrderData({
+                            payment: [
+                              ...orderData.payment,
+                              { id: 1, balance: wallet?.total_wallet_balance },
+                            ],
+                          });
+                        } else {
+                          if (
+                            orderData?.payment?.filter((s) => s.id === 1)
+                              .length > 0
+                          ) {
+                            setOrderData({
+                              payment: orderData?.payment?.filter(
+                                (s) => s.id !== 1
+                              ),
+                            });
+                          } else {
+                            dispatch({
+                              type: "WALLET_BALANCE-USER",
+                              payload: false,
+                            });
+                            setOrderData({
+                              payment: [
+                                {
+                                  id: 1,
+                                  balance: wallet?.total_wallet_balance,
+                                },
+                              ],
+                            });
+                          }
+                        }
                       }
+                    }}
+                  />
+                );
+              }
+              if (item === "Crypto") {
+                return (
+                  <CryptoInput
+                    key={key}
+                    active={
+                      orderData?.payment?.filter((s) => s.id === 3).length > 0
                     }
-                  }
-                }}
-              />
-            }
-            if (item === "Card") {
-              return <CreditInput
-                active={orderData?.payment?.filter((s) => s.id === 2).length > 0}
-                setActive={() => {
-                  if (!orderLoading) {
-                    if (orderData.payment.length === 1 && orderData?.payment?.filter((one) => one.id === 1).length === 1 && orderData?.payment?.filter((one) => one.id === 1)[0].balance < cart.total_cash) {
-                      dispatch({ type: "CREDIT-USER", payload: true });
-                      setOrderData({
-                        payment: [
-                          ...orderData.payment,
-                          { id: 2, balance: cart.total_cash - orderData?.payment?.filter((one) => one.id === 1)[0].balance },
-                        ],
-                      });
-                    } else {
-                      if (orderData?.payment?.filter((s) => s.id === 2).length > 0) {
-                        dispatch({ type: "CREDIT-USER", payload: false });
-                        setOrderData({
-                          payment: orderData?.payment?.filter((s) => s.id !== 2),
-                        });
-                      } else {
-                        dispatch({ type: "CREDIT-USER", payload: true });
-                        setOrderData({
-                          payment: [
-                            { id: 2, balance: cart.total_cash },
-                          ],
-                        });
+                    setActive={() => {
+                      if (!orderLoading) {
+                        if (
+                          orderData.payment.length === 1 &&
+                          orderData?.payment?.filter((one) => one.id === 1)
+                            .length === 1 &&
+                          orderData?.payment?.filter((one) => one.id === 1)[0]
+                            .balance < cart.total_cash
+                        ) {
+                          dispatch({ type: "CRYPTO-USER", payload: true });
+                          setOrderData({
+                            payment: [
+                              ...orderData.payment,
+                              {
+                                id: 3,
+                                balance:
+                                  cart.total_cash -
+                                  orderData?.payment?.filter(
+                                    (one) => one.id === 1
+                                  )[0].balance,
+                              },
+                            ],
+                          });
+                        } else {
+                          if (
+                            orderData?.payment?.filter((s) => s.id === 3)
+                              .length > 0
+                          ) {
+                            dispatch({ type: "CRYPTO-USER", payload: false });
+                            setOrderData({
+                              payment: orderData?.payment?.filter(
+                                (s) => s.id !== 3
+                              ),
+                            });
+                          } else {
+                            dispatch({ type: "CRYPTO-USER", payload: true });
+                            setOrderData({
+                              payment: [{ id: 3, balance: cart.total_cash }],
+                            });
+                          }
+                        }
                       }
+                    }}
+                  />
+                );
+              }
+              if (item === "Card") {
+                return (
+                  <CreditInput
+                    key={key}
+                    active={
+                      orderData?.payment?.filter((s) => s.id === 2).length > 0
                     }
-                  }
-                }}
-              />
-            }
-            return <></>
-          })}
+                    setActive={() => {
+                      if (!orderLoading) {
+                        if (
+                          orderData.payment.length === 1 &&
+                          orderData?.payment?.filter((one) => one.id === 1)
+                            .length === 1 &&
+                          orderData?.payment?.filter((one) => one.id === 1)[0]
+                            .balance < cart.total_cash
+                        ) {
+                          dispatch({ type: "CREDIT-USER", payload: true });
+                          setOrderData({
+                            payment: [
+                              ...orderData.payment,
+                              {
+                                id: 2,
+                                balance:
+                                  cart.total_cash -
+                                  orderData?.payment?.filter(
+                                    (one) => one.id === 1
+                                  )[0].balance,
+                              },
+                            ],
+                          });
+                        } else {
+                          if (
+                            orderData?.payment?.filter((s) => s.id === 2)
+                              .length > 0
+                          ) {
+                            dispatch({ type: "CREDIT-USER", payload: false });
+                            setOrderData({
+                              payment: orderData?.payment?.filter(
+                                (s) => s.id !== 2
+                              ),
+                            });
+                          } else {
+                            dispatch({ type: "CREDIT-USER", payload: true });
+                            setOrderData({
+                              payment: [{ id: 2, balance: cart.total_cash }],
+                            });
+                          }
+                        }
+                      }
+                    }}
+                  />
+                );
+              }
+              return <span key={key}></span>;
+            })}
         </div>
         {
           <CouponElement
@@ -308,8 +387,9 @@ const CouponElement = ({ active, setActive, close }) => {
       style={{
         border: active && "1px solid rgb(56 144 255 / 51%)",
       }}
-      className={`w-full cursor-pointer pt-[12px] ite mt-[30px] ${active ? "h-[111px] bg-[#fff]" : " h-[42px] bg-[#f8f8f8]"
-        } rounded-[15px]  flex-col items-start px-[12px]`}
+      className={`w-full cursor-pointer pt-[12px] ite mt-[30px] ${
+        active ? "h-[111px] bg-[#fff]" : " h-[42px] bg-[#f8f8f8]"
+      } rounded-[15px]  flex-col items-start px-[12px]`}
     >
       <div className="flex-row ">
         <svg
@@ -410,8 +490,9 @@ const CouponElement = ({ active, setActive, close }) => {
                 />
               )}
               <div
-                className={`transition-all text-[#1d1d1d] apply-button ${coupon ? "min-w-full " : "w-[100px] min-w-[100px] "
-                  } flex items-center justify-center h-[40px] rounded-[15px] bg-white`}
+                className={`transition-all text-[#1d1d1d] apply-button ${
+                  coupon ? "min-w-full " : "w-[100px] min-w-[100px] "
+                } flex items-center justify-center h-[40px] rounded-[15px] bg-white`}
                 style={{
                   border: "1px solid rgb(56 144 255 / 51%)",
                 }}
@@ -454,8 +535,9 @@ const CODInput = ({ active, setActive }) => {
       <div className="flex-row items-center">
         <WalletIcon />
         <span
-          className={`ml-[8px]  ${active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
-            } regular text-[12px]`}
+          className={`ml-[8px]  ${
+            active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+          } regular text-[12px]`}
         >
           {translateFunction("Cash On Delivery")}
         </span>
@@ -465,7 +547,7 @@ const CODInput = ({ active, setActive }) => {
           {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: total })}    {currency_symbol?.symbol}
+          {RoundPrice({ num: total })} {currency_symbol?.symbol}
         </span>
       </div>
     </div>
@@ -492,8 +574,9 @@ const TryDosWalletInput = ({ active, setActive }) => {
       <div className="flex-row items-center">
         <WalletIcon />
         <span
-          className={`ml-[8px]  ${active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
-            } regular text-[12px]`}
+          className={`ml-[8px]  ${
+            active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+          } regular text-[12px]`}
         >
           {translateFunction("Trydos Wallet")}
         </span>
@@ -508,7 +591,8 @@ const TryDosWalletInput = ({ active, setActive }) => {
           {translateFunction("Your Balance")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: wallet?.total_wallet_balance })}  {currency_symbol?.symbol}
+          {RoundPrice({ num: wallet?.total_wallet_balance })}{" "}
+          {currency_symbol?.symbol}
         </span>
       </div>
     </div>
@@ -529,8 +613,9 @@ const CreditInput = ({ active, setActive }) => {
       <div className="flex-row items-center">
         <CreditIcon />
         <span
-          className={`ml-[8px] ${active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
-            } regular text-[12px]`}
+          className={`ml-[8px] ${
+            active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+          } regular text-[12px]`}
         >
           {translateFunction("Credit Cards")}
         </span>
@@ -562,8 +647,9 @@ const CryptoInput = ({ active, setActive }) => {
       <div className="flex-row items-center">
         <CryptoIcon />
         <span
-          className={`ml-[8px] ${active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
-            } regular text-[12px]`}
+          className={`ml-[8px] ${
+            active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+          } regular text-[12px]`}
         >
           {translateFunction("Crypto")}
         </span>
