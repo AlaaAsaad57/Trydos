@@ -61,11 +61,10 @@ function ProductsList({
     }
   };
   useEffect(() => {
-    LogData(response);
     dispatchRouteChangeEvent("completed");
     document.documentElement.style.overflow = "initial";
     document.documentElement.scrollTop = 0;
-
+    dispatch({ type: "RESET-BOUTIQUE", payload: true });
     dispatch({ type: "GET_PRODUCT", payload: Listing_Data_res.body.data });
     setTimeout(() => {
       GetNextProd();

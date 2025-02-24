@@ -132,7 +132,11 @@ class HomeService {
     if (response.status === 500 || response.status === 422) {
       toast.error("Customer Info Error");
     }
-    if (response.status === 302 || response.status === 401) {
+    if (
+      response.status === 302 ||
+      response.status === 401 ||
+      response.status === 403
+    ) {
       if (getUser()) {
         await ExpiredUser();
       } else {

@@ -335,7 +335,7 @@ function Product({
               setTimeout(() => {
                 if (document.querySelector("#nprogress"))
                   // @ts-ignore
-                  document.querySelector("#nprogress").style.opacity = "0";
+                  dispatchRouteChangeEvent("completed");
               }, 1000);
             }}
           />
