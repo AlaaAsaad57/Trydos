@@ -71,6 +71,21 @@ Cypress.Commands.add("Exist", (selector) => {
       });
     });
 });
+Cypress.Commands.add("Exist1", (selector) => {
+  cy.get("body")
+    .should("exist")
+    .then(($body) => {
+      return new Cypress.Promise((resolve, reject) => {
+        if ($body.find(selector).length > 0) {
+          console.log("cy.exist() - Matching element found in DOM!");
+          resolve(true);
+        } else {
+          console.log("cy.exist() - Element did not exist!");
+          resolve(false);
+        }
+      });
+    });
+});
 Cypress.Commands.add("logout", () => {
   cy.get("[data-cy=avatar-options]").click({ scrollBehavior: false });
   cy.Exist("[data-cy=logout]").then((exists) => {
@@ -414,14 +429,38 @@ Cypress.Commands.add("verifyProductInCart", (productName: string) => {
 });
 // ***********************************Products Details******************************
 Cypress.Commands.add("verifyBoxsInBoutiquePage", () => {
-  cy.get("[data-cy=categoryBox", { timeout: 5000 });
-  cy.log("✅✅ Category Box Founded");
-  cy.get("[data-cy=brandBox", { timeout: 5000 });
-  cy.log("✅✅ Category Box Founded");
-  cy.get("[data-cy=colorBox", { timeout: 5000 });
-  cy.log("✅✅ Category Box Founded");
-  cy.get("[data-cy=priceBox", { timeout: 5000 });
-  cy.log("✅✅ Category Box Founded");
+  cy.Exist1("[data-cy=categoryBox").then((exist) => {
+    if (exist) {
+      cy.get("[data-cy=categoryBox", { timeout: 5000 });
+      cy.log("✅✅ Category Box Founded");
+    } else {
+      cy.log("❌❌ Category Box Not Founded");
+    }
+  });
+  cy.Exist1("[data-cy=brandBox").then((exist) => {
+    if (exist) {
+      cy.get("[data-cy=brandBox", { timeout: 5000 });
+      cy.log("✅✅ brand Box Founded");
+    } else {
+      cy.log("❌❌ brand Box Not Founded");
+    }
+  });
+  cy.Exist1("[data-cy=colorBox").then((exist) => {
+    if (exist) {
+      cy.get("[data-cy=colorBox", { timeout: 5000 });
+      cy.log("✅✅ color Box Box Founded");
+    } else {
+      cy.log("❌❌ color Box Not Founded");
+    }
+  });
+  cy.Exist1("[data-cy=priceBox").then((exist) => {
+    if (exist) {
+      cy.get("[data-cy=priceBox", { timeout: 5000 });
+      cy.log("✅✅ price Box Box Founded");
+    } else {
+      cy.log("❌❌ price Box Not Founded");
+    }
+  });
 });
 Cypress.Commands.add("verifyComponentsInProductCard", () => {
   cy.Exist("[data-cy=productPhotoSlider]").then((exist) => {

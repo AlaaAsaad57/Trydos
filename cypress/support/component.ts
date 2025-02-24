@@ -31,6 +31,7 @@ declare global {
       mount: typeof mount;
       Visit(value: string): void;
       Exist(selector: string): Promise<boolean>;
+      Exist1(selector: string): Promise<boolean>;
       logout(): Chainable<void>;
       (): Chainable<void>;
       typePincode(pincode: string): Chainable<void>;

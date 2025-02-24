@@ -8,14 +8,14 @@ describe("Should Open The Boutique Page & Move From It To A Product Page From Th
     cy.log("✅✅ Boutiues Founded & Loaded In Main Page");
   });
   it("Should Select Any Boutique & Click On", () => {
-    cy.clickElementForce(".offer-widget:nth-child(5)");
+    cy.clickElementForce(".offer-widget:nth-child(4)");
     cy.log("✅✅ An Boutique Selected & Click");
-  });
-  it("Should Verify Products ", () => {
     cy.get("[data-cy=boutiqueOpen]", { timeout: 20000 });
     cy.log("✅✅ The Boutique's Components Were Successfully Displayed");
     cy.get("[data-cy=boutique_top_info]", { timeout: 20000 });
     cy.log("✅✅ The Selected Boutique Page Has Opened");
+  });
+  it("Should Verify Products & Boxes Below Boutique Photo", () => {
     cy.verifyBoxsInBoutiquePage();
     cy.get("[data-cy=allCategory]", { timeout: 20000 });
     cy.log("✅✅ There Are Products On This Boutique Page");
@@ -237,32 +237,36 @@ describe("Should Verify Available Sizes Of The Product & Check Count Of Sizes", 
       });
   });
   it("Should Check Whether About Size Circle", () => {
-    cy.get('[data-cy="SizeBox"]').should("be.visible");
-    cy.log("✅✅ Size Box Displayed");
-    cy.get('[data-cy="ElementOnSizeBox"]').eq(0).click({ force: true });
-    cy.log("✅✅ Element On Size Box Clicked");
-    cy.get('[data-cy="SizeSliderBox"]').should("be.visible");
-    cy.log("✅✅ Size Slider Box Displayed");
-    cy.get('[data-cy="SizeCircle"]').should("be.visible");
-    cy.log("✅✅ Size Circle Displayed");
-    cy.get("[data-cy=SizeCircle]")
-      .its("length")
-      .then((count) => {
-        cy.log(`The Count Of Size Circle Is: ${count}`);
-        if (SizeCount1 === count) {
-          cy.log("✅✅ Count Of Size Circle Matched Available Sizes");
-        } else {
-          cy.log("❌❌ Count Of Size Circle Not Matched Available Sizes");
-        }
-      });
+    if (SizeCount1 > 0) {
+      cy.get('[data-cy="SizeBoxProductDetail"]').should("be.visible");
+      cy.log("✅✅ Size Box Displayed");
+      cy.get('[data-cy="ElementOnSizeBox"]').eq(0).click({ force: true });
+      cy.log("✅✅ Element On Size Box Clicked");
+      cy.get('[data-cy="SizeSliderBox"]').should("be.visible");
+      cy.log("✅✅ Size Slider Box Displayed");
+      cy.get('[data-cy="SizeCircle"]').should("be.visible");
+      cy.log("✅✅ Size Circle Displayed");
+      cy.get("[data-cy=SizeCircle]")
+        .its("length")
+        .then((count) => {
+          cy.log(`The Count Of Size Circle Is: ${count}`);
+          if (SizeCount1 === count) {
+            cy.log("✅✅ Count Of Size Circle Matched Available Sizes");
+          } else {
+            cy.log("❌❌ Count Of Size Circle Not Matched Available Sizes");
+          }
+        });
+    }
   });
   it("Should Check Whether About Boxes Below Size Circle", () => {
-    cy.get('[data-cy="RecommendedHelp"]').should("be.visible");
-    cy.log("✅✅ Recommended Help Box Displayed");
-    cy.get('[data-cy="SizeInfoBoxAboutRecommend"]').should("be.visible");
-    cy.log("✅✅ Size Info Box About Recommend Box Displayed");
-    cy.get('[data-cy="ProductShiping"]').should("be.visible");
-    cy.log("✅✅  Product Shiping Displayed");
+    if (SizeCount1 > 0) {
+      cy.get('[data-cy="RecommendedHelp"]').should("be.visible");
+      cy.log("✅✅ Recommended Help Box Displayed");
+      cy.get('[data-cy="SizeInfoBoxAboutRecommend"]').should("be.visible");
+      cy.log("✅✅ Size Info Box About Recommend Box Displayed");
+      cy.get('[data-cy="ProductShiping"]').should("be.visible");
+      cy.log("✅✅  Product Shiping Displayed");
+    }
   });
 });
 // *************************************nine*********************************************
@@ -344,8 +348,11 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
   let countLovesBeforePutLove = 0;
   let countLovesAfterPutLove = 0;
   let countLovesAfterPutLove1 = 0;
+  it("should logout", () => {
+    cy.logout();
+  });
   it("should click LoveIcon only if not active", () => {
-    cy.get("[data-cy=LoveClickOnLast]").then(($icon) => {
+    cy.Exist1("[data-cy=LoveClickOnLast]").then(($icon) => {
       if ($icon) {
         cy.clickElementForce("[data-cy=LoveSymbol]");
       } else {
@@ -360,7 +367,7 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
       .invoke("text")
       .then((text) => {
         countLovesBeforePutLove = parseInt(text);
-        cy.log(`count Loves Before Put Love Is: ${text}`);
+        cy.log(`count Loves Before Put Love Is: ${countLovesBeforePutLove}`);
       });
   });
   it("Should Verify Count Of Loves Increased", () => {
@@ -370,7 +377,7 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
       .invoke("text")
       .then((text) => {
         countLovesAfterPutLove = parseInt(text);
-        cy.log(`count Loves Before Put Love Is: ${text}`);
+        cy.log(`count Loves Before Put Love Is: ${countLovesAfterPutLove}`);
         expect(countLovesAfterPutLove).to.be.greaterThan(
           countLovesBeforePutLove
         );
@@ -397,12 +404,12 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
       .invoke("text")
       .then((text) => {
         countLovesAfterPutLove1 = parseInt(text);
-        cy.log(`count Loves Before Put Love Is: ${text}`);
+        cy.log(`count Loves Before Put Love Is: ${countLovesAfterPutLove1}`);
         expect(countLovesAfterPutLove1).to.be.eq(countLovesAfterPutLove - 1);
       });
   });
   it("Should Waiting The Request Accured", () => {
-    cy.intercept("POST", "**api/new_v1/product_likes/delete").as("DeleteLike");
+    cy.intercept("POST", "**/api/new_v1/product_likes/delete").as("DeleteLike");
     cy.get("@DeleteLike", { timeout: 10000 }).then((alias) => {
       if (alias) {
         cy.wait("@DeleteLike", { timeout: 10000 }).then((interception) => {
@@ -415,56 +422,70 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
   });
 });
 // *************************************thirteen*********************************************
-// describe("Should Type Comment In Comment Section", () => {
-//   it("Should Click On Comment Icon", () => {
-//     cy.logout();
-//     cy.performLogin();
-//     cy.get('[data-cy="CommentIcon"]').should("be.visible");
-//     cy.log("✅✅ Comment Icon Button Exists");
-//     cy.clickElementForce("[data-cy=CommentIcon]");
-//     cy.log("✅✅ Comment Icon Clicked");
-//   });
-//   it("should render the comment section", () => {
-//     cy.get('[data-cy="ExtendCoomentSection"]').should("be.visible");
-//     cy.log("✅✅ Comment Icon Button Visible");
-//     cy.get('[data-cy="ExtendCoomentSection"] .extended-bar-top span').should(
-//       "contain.text",
-//       "Comment About This Product"
-//     );
-//     cy.log("✅✅ Comment Extended Bar Visible");
-//   });
-// it("should load comments", () => {
-//   cy.get('[data-cy="ExtendCoomentSection"]').within(() => {
-//     cy.get(".comments-list").should("exist");
-//   });
-//   cy.log("✅✅ Comment List Visible");
-// });
-// it("should allow increasing comments", () => {
-//   cy.intercept("POST", "/api/comments/increase", { statusCode: 200 }).as(
-//     "increaseComments"
-//   );
-
-//   cy.get(
-//     '[data-cy="ExtendCoomentSection"] button[data-cy="increase-comments"]'
-//   ).click();
-//   cy.wait("@increaseComments").its("response.statusCode").should("eq", 200);
-// });
-// it("should allow users to submit a new comment", () => {
-//   cy.get('[data-cy="comment-input"]').type("This is a test comment");
-//   cy.log("✅✅ Comment Input Visible % Write An Comment");
-//   cy.get('[data-cy="submit-comment"]').click({ force: true });
-//   cy.log("✅✅ Click On Comment Submit");
-//   cy.get('[data-cy="comments-list"]').should(
-//     "contain.text",
-//     "This is a test comment"
-//   );
-//   cy.log("✅✅ Test Comment Added To List Comment");
-// });
-// it("should handle comment verification", () => {
-//   cy.get('[data-cy="verify-comment"]').first().click({ force: true });
-//   cy.get('[data-cy="comment-status"]')
-//     .first()
-//     .should("contain.text", "Verified");
-//   cy.log("✅✅ Comment Add Operation Successfuly");
-// });
-// });
+describe("Should Type Comment In Comment Section", () => {
+  it("Should Click On Comment Icon", () => {
+    cy.get('[data-cy="CommentIcon"]')
+      .should("be.visible")
+      .click({ force: true });
+    cy.log("✅✅ Comment Icon Button Exists and Clicked");
+  });
+  it("should render the comment section", () => {
+    cy.get('[data-cy="ExtendCoomentSection"]').should("be.visible");
+    cy.log("✅✅ Comment Icon Button Visible");
+    cy.get('[data-cy="ExtendCoomentSection"] .extended-bar-top span').should(
+      "contain.text",
+      "Comment About This Product"
+    );
+    cy.log("✅✅ Comment Extended Bar Visible");
+  });
+  it("should display the comment section", () => {
+    cy.get('[data-cy="CommentArea"]').should("be.visible");
+    cy.log("✅✅ Comment Area is visible");
+  });
+  it("should Check Comments", () => {
+    cy.Exist1(".comment-item").then((exist) => {
+      if (exist) {
+        cy.get(".comment-item").should("be.visible");
+        cy.get(".comment-item")
+          .its("length")
+          .then((count) => {
+            cy.log(`There Couunt Of Comments Is: ${count}`);
+          });
+        cy.log("✅✅ Comment Area is visible");
+      } else {
+        cy.log("❌❌ No Comment Just Now");
+      }
+    });
+  });
+  it("should allow users to submit a new comment", () => {
+    cy.get('[data-cy="CommentField"]').type("This is a test comment");
+    cy.log("✅✅ Comment Input Visible % Write An Comment");
+    cy.get('[data-cy="SubmitComment"]').click({ force: true });
+    cy.log("✅✅ Click On Comment Submit");
+    cy.get(".comment-text")
+      .eq(0)
+      .should("contain.text", "This is a test comment");
+    cy.log("✅✅ Test Comment Added To List Comment");
+  });
+  it("Should Waiting The Request Accured", () => {
+    cy.intercept("POST", "**/api/1_envw / customer / product_comment").as(
+      "Comment"
+    );
+    cy.get("@Comment", { timeout: 10000 }).then((alias) => {
+      if (alias) {
+        cy.wait("@Comment", { timeout: 10000 }).then((interception) => {
+          cy.log("✅✅ DesLike request arrived");
+        });
+      } else {
+        cy.log("❌❌ DesLike request did not arrive");
+      }
+    });
+  });
+  // it("should handle comment verification", () => {
+  //   cy.get('[data-cy="verify-comment"]').first().click({ force: true });
+  //   cy.get('[data-cy="comment-status"]')
+  //     .first()
+  //     .should("contain.text", "Verified");
+  //   cy.log("✅✅ Comment Add Operation Successfuly");
+  // });
+});

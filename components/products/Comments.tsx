@@ -49,7 +49,7 @@ function Comments({
     console.log(CommentsData);
   }, [CommentsData]);
   return (
-    <div className="content-extended comments-extended">
+    <div className="content-extended comments-extended" data-cy="CommentArea">
       {/* <CommentItem
         date="18 feb"
         name="Yxxx Oxxx"
@@ -59,6 +59,7 @@ function Comments({
       {CommentsData !== null ? (
         CommentsData.map((s, i) => (
           <CommentItem
+            data-cy="CommentItem"
             isPending={s?.is_verfied}
             resendComment={() => {
               resendComment(s.mid);
