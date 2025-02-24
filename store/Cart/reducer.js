@@ -91,6 +91,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         ...state,
         orderData: { ...state.orderData, orderPaylod: payload },
         cart: [],
+        localCart: [],
       };
     }
     case "CRYPTO_CARD_PAYMENT": {
