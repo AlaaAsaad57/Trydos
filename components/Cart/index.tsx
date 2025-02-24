@@ -45,16 +45,19 @@ function CartContainer({ close, toOrders }) {
   const getURLOfProduct = ({ product }) => {
     let productUrl;
     if (product.variations[0]?.color && !product.variations[0]?.Size)
-      productUrl = `/${lang}/products/${product.slug
-        }${`?color=${product?.variations[0]?.color}`}`;
+      productUrl = `/${lang}/products/${
+        product.slug
+      }${`?color=${product?.variations[0]?.color}`}`;
     else if (!product.variations[0]?.color && product.variations[0]?.Size)
-      productUrl = `/${lang}/products/${product.slug
-        }${`?size=${product?.variations[0]?.Size}`}`;
+      productUrl = `/${lang}/products/${
+        product.slug
+      }${`?size=${product?.variations[0]?.Size}`}`;
     else if (!product.variations[0]?.color && !product.variations[0]?.Size)
       productUrl = `/${lang}/products/${product.slug}`;
     else if (product.variations[0]?.color && product.variations[0]?.Size)
-      productUrl = `/${lang}/products/${product.slug
-        }${`?size=${product?.variations[0]?.Size}&color=${product?.variations[0]?.color}`}`;
+      productUrl = `/${lang}/products/${
+        product.slug
+      }${`?size=${product?.variations[0]?.Size}&color=${product?.variations[0]?.color}`}`;
     return productUrl;
   };
   const currency = useSelector(
@@ -106,8 +109,9 @@ function CartContainer({ close, toOrders }) {
   };
   return (
     <div
-      className={`flex-col ${cart.length > 0 ? "pb-[283px]" : "100px"
-        }   top-0 left-0 min-h-screen max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
+      className={`flex-col ${
+        cart.length > 0 ? "pb-[283px]" : "100px"
+      }   top-0 left-0 min-h-screen max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
     >
       <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
         <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
@@ -267,15 +271,16 @@ function CartContainer({ close, toOrders }) {
                       <NextLink
                         href={
                           params?.productId === product.slug &&
-                            product?.variations[0]?.color ===
+                          product?.variations[0]?.color ===
                             sarchParams.get("color")
                             ? "#"
                             : getURLOfProduct({ product })
                         }
-                        className={`flex-row mt-2 w-full relative  ${product.have_hurry_up_notify || true
+                        className={`flex-row mt-2 w-full relative  ${
+                          product.have_hurry_up_notify || true
                             ? "min-h-[230px]"
                             : "min-h-[161px]"
-                          } bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
+                        } bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
                         key={key}
                         onClick={(e) => {
                           // @ts-ignore
@@ -286,11 +291,11 @@ function CartContainer({ close, toOrders }) {
                                 type: "SET-ACTIVE-COLOR-DETAILS",
                                 payload:
                                   ProductDetails.sync_color_images[
-                                  ProductDetails.sync_color_images.findIndex(
-                                    (s) =>
-                                      s.color_name ===
-                                      product?.variations[0]?.color
-                                  )
+                                    ProductDetails.sync_color_images.findIndex(
+                                      (s) =>
+                                        s.color_name ===
+                                        product?.variations[0]?.color
+                                    )
                                   ],
                               });
                             }
@@ -348,8 +353,9 @@ function CartContainer({ close, toOrders }) {
                               <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                                 <CartColorIcon />
                                 <span
-                                  className={`${language === "ar" && "dir-rtl"
-                                    } ml-1.5`}
+                                  className={`${
+                                    language === "ar" && "dir-rtl"
+                                  } ml-1.5`}
                                 >
                                   {translateFunction("Color")}:{" "}
                                   <span className="regular">
@@ -362,8 +368,9 @@ function CartContainer({ close, toOrders }) {
                               <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
                                 <CartSizeIcon />
                                 <span
-                                  className={`ml-1.5 ${language === "ar" && "dir-rtl"
-                                    }`}
+                                  className={`ml-1.5 ${
+                                    language === "ar" && "dir-rtl"
+                                  }`}
                                 >
                                   {translateFunction("Size")}:
                                   <span className="regular">
@@ -376,8 +383,9 @@ function CartContainer({ close, toOrders }) {
                           <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                             <PiecesIcon />
                             <span
-                              className={`ml-1.5 ${language === "ar" && "dir-rtl"
-                                } text-[#8D8D8D] regular `}
+                              className={`ml-1.5 ${
+                                language === "ar" && "dir-rtl"
+                              } text-[#8D8D8D] regular `}
                             >
                               {translate("Composed Of:")}{" "}
                               <span className="regular">
@@ -389,8 +397,9 @@ function CartContainer({ close, toOrders }) {
                             <div className="flex-row whitespace-nowrap items-center text-[12px] light text-[#505050] mt-1 mr-3">
                               <DeleiveryIcon />
                               <span
-                                className={`ml-1.5 flex whitespace-nowrap ${language === "ar" && "dir-rtl"
-                                  } text-[#8D8D8D] regular`}
+                                className={`ml-1.5 flex whitespace-nowrap ${
+                                  language === "ar" && "dir-rtl"
+                                } text-[#8D8D8D] regular`}
                               >
                                 {translate("Shipping")}:{" "}
                                 <span className="regular whitespace-nowrap">
@@ -403,7 +412,9 @@ function CartContainer({ close, toOrders }) {
                             </div>
                           )}
 
-                          {(parseInt(product.quantity) > product.available_quantity || !product.check_availability) && (
+                          {(parseInt(product.quantity) >
+                            product.available_quantity ||
+                            !product.check_availability) && (
                             <div className="flex-row items-center text-[12px] light text-[#fd445d]">
                               <ErrorIcon />
                               <div
@@ -432,50 +443,50 @@ function CartContainer({ close, toOrders }) {
                         </div>
                         {(product.have_hurry_up_notify_time_left ||
                           product?.have_hurry_up_notify_qty) && (
-                            <div className="absolute left-2  text-[#A28E5B] text-[12px] bottom-[8px] pl-3 w-[95%] h-[32px] bg-[#FDFDEF] rounded-[5px] flex items-center">
-                              <span className="ml-1">
-                                <HurryIcon />
-                              </span>
-                              <span className="bold ml-1">
-                                {translate("Hurry Up!", GetAppLanguage())}
-                              </span>
-                              {product?.have_hurry_up_notify_time_left && (
-                                <>
-                                  <span className="regular ml-1">
-                                    {product.have_hurry_up_notify_time_left &&
-                                      translate(
-                                        "Quantity Running Out. ",
-                                        GetAppLanguage()
-                                      )}
-                                  </span>
+                          <div className="absolute left-2  text-[#A28E5B] text-[12px] bottom-[8px] pl-3 w-[95%] h-[32px] bg-[#FDFDEF] rounded-[5px] flex items-center">
+                            <span className="ml-1">
+                              <HurryIcon />
+                            </span>
+                            <span className="bold ml-1">
+                              {translate("Hurry Up!", GetAppLanguage())}
+                            </span>
+                            {product?.have_hurry_up_notify_time_left && (
+                              <>
+                                <span className="regular ml-1">
+                                  {product.have_hurry_up_notify_time_left &&
+                                    translate(
+                                      "Quantity Running Out. ",
+                                      GetAppLanguage()
+                                    )}
+                                </span>
 
-                                  <span className="bold">
-                                    -
-                                    <Timer
-                                      minutes={product.time_left_in_minutes}
-                                      onFinish={() => { }}
-                                      onResume={() => { }}
-                                    />
-                                  </span>
-                                </>
-                              )}
-                              {product?.have_hurry_up_notify_qty && (
-                                <>
-                                  <span className="regular ml-1">
-                                    {product.have_hurry_up_notify_qty &&
-                                      translate(
-                                        "Quantity Running Out. ",
-                                        GetAppLanguage()
-                                      )}
-                                  </span>
+                                <span className="bold">
+                                  -
+                                  <Timer
+                                    minutes={product.time_left_in_minutes}
+                                    onFinish={() => {}}
+                                    onResume={() => {}}
+                                  />
+                                </span>
+                              </>
+                            )}
+                            {product?.have_hurry_up_notify_qty && (
+                              <>
+                                <span className="regular ml-1">
+                                  {product.have_hurry_up_notify_qty &&
+                                    translate(
+                                      "Quantity Running Out. ",
+                                      GetAppLanguage()
+                                    )}
+                                </span>
 
-                                  <span className="bold">
-                                    -{product?.qty_left}
-                                  </span>
-                                </>
-                              )}
-                            </div>
-                          )}
+                                <span className="bold">
+                                  -{product?.qty_left}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </NextLink>
                       <QuantutyInput
                         id={product.id}
@@ -486,7 +497,7 @@ function CartContainer({ close, toOrders }) {
                         isHurry={true || product.have_hurry_up_notify}
                         disabled={false}
                         max={product.available_quantity}
-                        setValue={() => { }}
+                        setValue={() => {}}
                         value={product.quantity}
                         deleteFunction={() => {
                           RemoveFromCart(product);
@@ -602,7 +613,7 @@ function CartContainer({ close, toOrders }) {
                       <NextLink
                         href={
                           params?.productId === product.slug &&
-                            product?.variations[0]?.color ===
+                          product?.variations[0]?.color ===
                             sarchParams.get("color")
                             ? "#"
                             : getURLOfProduct({ product })
@@ -624,11 +635,11 @@ function CartContainer({ close, toOrders }) {
                                 type: "SET-ACTIVE-COLOR-DETAILS",
                                 payload:
                                   ProductDetails.sync_color_images[
-                                  ProductDetails.sync_color_images.findIndex(
-                                    (s) =>
-                                      s.color_name ===
-                                      product?.variations[0]?.color
-                                  )
+                                    ProductDetails.sync_color_images.findIndex(
+                                      (s) =>
+                                        s.color_name ===
+                                        product?.variations[0]?.color
+                                    )
                                   ],
                               });
                             }
@@ -685,8 +696,9 @@ function CartContainer({ close, toOrders }) {
                               <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                                 <CartColorIcon />
                                 <span
-                                  className={`ml-1.5 ${language === "ar" && "dir-rtl"
-                                    }`}
+                                  className={`ml-1.5 ${
+                                    language === "ar" && "dir-rtl"
+                                  }`}
                                 >
                                   {translateFunction("Color")}:
                                   <span className="regular">
@@ -699,8 +711,9 @@ function CartContainer({ close, toOrders }) {
                               <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1">
                                 <CartSizeIcon />
                                 <span
-                                  className={`ml-1.5 ${language === "ar" && "dir-rtl"
-                                    }`}
+                                  className={`ml-1.5 ${
+                                    language === "ar" && "dir-rtl"
+                                  }`}
                                 >
                                   {translateFunction("Size")}:
                                   <span className="regular">
@@ -713,8 +726,9 @@ function CartContainer({ close, toOrders }) {
                           <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                             <PiecesIcon />
                             <span
-                              className={`ml-1.5 text-[#8D8D8D] regular ${language === "ar" && "dir-rtl"
-                                }`}
+                              className={`ml-1.5 text-[#8D8D8D] regular ${
+                                language === "ar" && "dir-rtl"
+                              }`}
                             >
                               {translate("Composed Of:")}{" "}
                               <span className="regular">
@@ -726,8 +740,9 @@ function CartContainer({ close, toOrders }) {
                             <div className="flex-row whitespace-nowrap items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                               <DeleiveryIcon />
                               <span
-                                className={`ml-1.5 whitespace-nowrap text-[#8D8D8D] regular ${language === "ar" && "dir-rtl"
-                                  }`}
+                                className={`ml-1.5 whitespace-nowrap text-[#8D8D8D] regular ${
+                                  language === "ar" && "dir-rtl"
+                                }`}
                               >
                                 {translate("Shipping")}{" "}
                                 <span className="regular whitespace-nowrap">
@@ -861,8 +876,8 @@ function CartContainer({ close, toOrders }) {
                         isHurry={false}
                         value={product.quantity}
                         max={product.available_quantity}
-                        setValue={() => { }}
-                        deleteFunction={() => { }}
+                        setValue={() => {}}
+                        deleteFunction={() => {}}
                       />
                     </div>
                   ))}
@@ -1711,8 +1726,9 @@ const QuantutyInput = ({
       className={`absolute flex-wrap ${"top-[115px]"} left-[137px] flex-row items-center justify-between max-w-[calc(100%-152px)] w-full`}
     >
       <div
-        className={`${loading && "opacity-40"
-          } flex-row hide-btn relative max-w-[72px] w-[72px] h-[24px] mt-4 z-50`}
+        className={`${
+          loading && "opacity-40"
+        } flex-row hide-btn relative max-w-[72px] w-[72px] h-[24px] mt-4 z-50`}
       >
         <svg
           className="absolute hide-btn"
@@ -1809,7 +1825,7 @@ const QuantutyInput = ({
           data-cy="QuantityInCart"
           max={max}
           disabled
-          onChange={(e) => { }}
+          onChange={(e) => {}}
           className="outline-none hide-btn text-[14px] medium text-[#1D1D1D] text-center max-w-[72px] border-none py-1  w-[72px] h-[24px]"
         />
         {loading && <Spinner />}

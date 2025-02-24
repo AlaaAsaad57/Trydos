@@ -17,18 +17,6 @@ img {
 }
 
 @media only screen and (min-width: 912px) {
-  .move-anim {
-    top: 94px !important;
-    position: fixed !important;
-    z-index: 999999999999999;
-    left: -10px !important;
-    scale: 1;
-  }
-
-  .filter-listing-bar.fixedAlign {
-    top: 80px !important;
-  }
-
   .search-input-parent {
     background-color: #f2f2f2 !important;
   }
