@@ -59,7 +59,7 @@ function ProductColors({ colors, ProductColorsArray }) {
       {extended && <SquareIcon className="square-icon" />}
       <div className="colors-label flex-row align-center">
         <ColorsIcon data-cy="ColorsIcon" />
-        <span style={{ marginLeft: "5px" }}>
+        <span style={{ marginLeft: "5px" }} data-cy="Color-Length">
           {translate("Available ")} {colors?.length || 0} {translate("Color")}
         </span>
         <ColorsInfo
