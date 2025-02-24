@@ -33,7 +33,6 @@ describe("Should Open Product Page", () => {
     );
   });
   it("Should Choose The First Product From The Products On The Boutique Page & Open His Page", () => {
-    // cy.wait(5000);
     cy.get(".embla__slide")
       .its("length")
       .then((count) => {
@@ -42,12 +41,8 @@ describe("Should Open Product Page", () => {
           cy.wait(5000);
           cy.get(".embla__slide").eq(1).click({ force: true });
           cy.log("✅✅ Secondly Stories Chooses And Clicked");
-          // cy.Exist("[data-cy=close_stories_icon]").then((exist) => {
-          // if (exist) {
           cy.clickElementForce("[data-cy=close_stories_icon]");
           cy.log("✅✅ Close Stories Icon Clicked");
-          // }
-          // });
         }
       });
   });
@@ -443,7 +438,8 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
 });
 // *************************************thirteen*********************************************
 describe("Should Type Comment In Comment Section", () => {
-  let CountOfCommentPrevisually = 0;
+  let CountOfCommentPrevisually: number = 0;
+  let count1 = 0;
   it("Should Click On Comment Icon", () => {
     cy.get('[data-cy="CommentIcon"]')
       .should("be.visible")
@@ -456,12 +452,11 @@ describe("Should Type Comment In Comment Section", () => {
       if (exist) {
         cy.get("[data-cy=CountOfComment]").should("be.visible");
         cy.get("[data-cy=CountOfComment]")
-          .its("length")
-          .then((count) => {
-            CountOfCommentPrevisually = count;
+          .invoke("text")
+          .then((text) => {
+            CountOfCommentPrevisually = parseInt(text);
             cy.log(`There Couunt Of Comments Is: ${CountOfCommentPrevisually}`);
           });
-        cy.log("✅✅ Comment Area is visible");
       } else {
         cy.log("❌❌ No Comment Just Now");
       }
@@ -493,7 +488,7 @@ describe("Should Type Comment In Comment Section", () => {
           .its("length")
           .then((count) => {
             cy.log(`There Couunt Of Comments Is: ${count}`);
-            expect(CountOfCommentPrevisually).to.be.eq(count);
+            count1 = count;
           });
         cy.log("✅✅ Comment Area is visible");
       } else {
@@ -510,6 +505,7 @@ describe("Should Type Comment In Comment Section", () => {
       .eq(0)
       .should("contain.text", "This is a test comment");
     cy.log("✅✅ Test Comment Added To List Comment");
+    expect(CountOfCommentPrevisually).to.be.eq(count1);
   });
   it("Should Waiting The Request Accured", () => {
     cy.intercept(
@@ -519,18 +515,39 @@ describe("Should Type Comment In Comment Section", () => {
     cy.get("@Comment", { timeout: 10000 }).then((alias) => {
       if (alias) {
         cy.wait("@Comment", { timeout: 10000 }).then((interception) => {
-          cy.log("✅✅ DesLike request arrived");
+          cy.log("✅✅ Comment request arrived");
         });
       } else {
-        cy.log("❌❌ DesLike request did not arrive");
+        cy.log("❌❌ Comment request did not arrive");
       }
     });
   });
-  // it("should handle comment verification", () => {
-  //   cy.get('[data-cy="verify-comment"]').first().click({ force: true });
-  //   cy.get('[data-cy="comment-status"]')
-  //     .first()
-  //     .should("contain.text", "Verified");
-  //   cy.log("✅✅ Comment Add Operation Successfuly");
-  // });
+  it("should Click On Comment Icon To Close Comment Area", () => {
+    cy.get('[data-cy="CommentIcon"]').click({ force: true });
+  });
+});
+// *************************************thirteen*********************************************
+describe("", () => {
+  let CountOfSharesPrevisually: number = 0;
+  let count1 = 0;
+  it("Should Click On Comment Icon", () => {
+    cy.get('[data-cy="ShareIcon"]').should("be.visible").click({ force: true });
+    cy.log("✅✅ Comment Icon Button Exists and Clicked");
+  });
+  // **********************
+  it("should Get Count Of Comments Founded Previsually", () => {
+    cy.Exist1("[data-cy=CountOfComment]").then((exist) => {
+      if (exist) {
+        cy.get("[data-cy=CountOfShares]").should("be.visible");
+        cy.get("[data-cy=CountOfShares]")
+          .invoke("text")
+          .then((text) => {
+            CountOfSharesPrevisually = parseInt(text);
+            cy.log(`There Couunt Of Comments Is: ${CountOfSharesPrevisually}`);
+          });
+      } else {
+        cy.log("❌❌ No Share Just Now");
+      }
+    });
+  });
 });
