@@ -16,6 +16,7 @@ class OrderService {
         title: "pay Order",
         body: "",
       });
+      console.log(data);
       if (!data[0]?.url) {
         store.dispatch({ type: "ORDER-SUCCESS", payload: data });
         store.dispatch({ type: "ORDER-DATA", payload: { success: true } });
