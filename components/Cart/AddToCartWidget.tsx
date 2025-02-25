@@ -229,6 +229,16 @@ const SelectColor = ({ close }) => {
           className="back-icon p-0"
           onClick={() => {
             close();
+            if (
+              document.querySelector(
+                "#nprogress"
+                // @ts-ignore
+              )
+            )
+              document.querySelector(
+                "#nprogress"
+                // @ts-ignore
+              ).style.opacity = "1";
           }}
         >
           <BackIcon />

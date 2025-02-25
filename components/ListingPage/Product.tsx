@@ -334,13 +334,17 @@ function Product({
           <BuyButton
             buy={(e) => {
               // @ts-ignore
-              dispatchRouteChangeEvent("completed");
+
               stopProgress(true);
               addToCart();
               setTimeout(() => {
                 if (document.querySelector("#nprogress"))
-                  // @ts-ignore
-                  dispatchRouteChangeEvent("completed");
+                  document.querySelector(
+                    "#nprogress"
+                    // @ts-ignore
+                  ).style.opacity = "0";
+                dispatchRouteChangeEvent("completed");
+                stopProgress(true);
               }, 2000);
             }}
           />
