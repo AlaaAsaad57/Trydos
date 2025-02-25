@@ -1,3 +1,17 @@
+"use client";
+import { allCountries } from "country-telephone-data";
+const getCountry = () => {
+  const countryParam =
+    typeof window !== "undefined" &&
+    window.location.pathname.split("/")[1].split("-")[0];
+  if (countryParam) {
+    let country = {
+      name: allCountries.filter((s) => s.iso2 === countryParam)[0]?.name,
+      iso: countryParam,
+    };
+    return country;
+  }
+};
 const initialState = {
   orderLoading: false,
   cart: [],
@@ -5,7 +19,7 @@ const initialState = {
   center: null,
   addressDetails: {
     location: { latitude: null, longitude: null },
-    Country: { name: "Turkey", code: "TR" },
+    Country: getCountry(),
 
     address_detail: "",
     address: "",
@@ -164,7 +178,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         ...state,
         addressDetails: {
           location: { latitude: null, longitude: null },
-          Country: { name: "Turkey", code: "TR" },
+          Country: getCountry(),
           address_detail: "",
           address: "",
           contact_info: {
@@ -391,6 +405,12 @@ export const CartReducer = (state = initialState, { type, payload }) => {
             }${s.choices?.length > 0 ? `-${s.choices[0].choice_1}` : ""}`,
           })),
         ],
+      };
+    }
+    case "CART-OREVIEW": {
+      return {
+        ...state,
+        ...payload,
       };
     }
     case "REMOVE-FROM-CART": {

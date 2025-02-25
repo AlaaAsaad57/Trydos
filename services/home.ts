@@ -81,7 +81,7 @@ class HomeService {
           });
         },
       });
-      await getOldCart();
+      // await getOldCart();
       if (typeof window !== "undefined") {
         _isStoreLastJson() &&
           localStorage.setItem("LAST_JSON", JSON.stringify(repo));

@@ -118,7 +118,7 @@ export const AxiosPost = async ({
           return res.data.data;
         } else {
           toast.error(res.data.message);
-          throw new Error("Failed");
+          throw Error("Cart Error");
         }
       }
       if (res?.data.isSuccessful) {
@@ -137,6 +137,12 @@ export const AxiosPost = async ({
         throw new Error(res.data.message);
       }
     } catch (error) {
+      if (error?.message === "Cart Error") {
+        attempt = 2;
+        throw new Error(
+          `${title} : Max retries reached. Could not fetch the data. ${error.message}`
+        );
+      }
       if (
         error.status === 422 ||
         error.status === 500 ||

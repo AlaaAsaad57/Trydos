@@ -1,6 +1,8 @@
 export const translations = {
   en: {
     Buy: "Buy",
+    K: "k",
+    M: "M",
     "Shipping & Delivery Address": "Shipping & Delivery Address",
     "Your Address List Is Empty": "Your Address List Is Empty",
     "Show Address List": "Show Address List",
@@ -221,6 +223,10 @@ export const translations = {
     "Payment Method": "طرق الدفع",
     "Shipping & Payment": "الدفع والتوصيل",
     Done: "تم",
+    K: " ألف ",
+    Availabilty: "التوفر",
+    "Out Of Stock": "إنتهى من المخزن",
+    M: " مليون ",
     "These Shots Are Made By Users Who Have Already Purchased And Received The Product":
       "هذه الصور تم التقاطها من قبل مستخدمين قاموا بشراء المنتج واستلامه",
     "Please Choose Your Payment Method About Your Bag":

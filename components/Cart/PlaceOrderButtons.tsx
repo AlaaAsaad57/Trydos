@@ -55,7 +55,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
         throw Error("Please Review Your Cart Info");
       }
     } catch (error) {
-      toast.error("Please Review Your Cart Info Some Items Not Available");
+      toast.error("Please Review Your Cart Some Products Not Available");
       backToCart();
       setLoading(false);
     }

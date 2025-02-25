@@ -13,6 +13,7 @@ import ChatService from "services/chat";
 import Spinner from "components/global/Spinner";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 import { useParams } from "next/navigation";
+import { TumblrShareCount } from "node_modules/react-share/dist";
 function AddToCartButton({
   setOption,
   product,
@@ -498,6 +499,7 @@ function AddToCartButton({
             payload: getSelectedVariantofProduct(),
           });
         } catch (error) {
+          dispatch({ type: "LOADED-CART", payload: TumblrShareCount });
           console.log(error);
         }
       }

@@ -685,6 +685,15 @@ export const UpdateFilter = async ({
     console.log(error);
   }
 };
+function formatPrice(price) {
+  if (price >= 1000000) {
+    return (price / 1000000).toFixed(0) + translateFunction("M"); // For millions
+  } else if (price >= 1000) {
+    return (price / 1000).toFixed(0) + translateFunction("K"); // For thousands
+  } else {
+    return price; // For prices under 1000
+  }
+}
 export const RoundPrice = ({
   num,
   rate,
@@ -703,7 +712,7 @@ export const RoundPrice = ({
         ?.decimal_point_settings) ||
     0;
   let a = parseFloat(num);
-  return parseFloat((a * rateVariable).toFixed(pointsVariable));
+  return formatPrice(parseFloat((a * rateVariable).toFixed(pointsVariable)));
 };
 export const onClickSearchHistory = (searchValue) => {
   if (localStorage.getItem("search-history")) {
@@ -792,6 +801,13 @@ export const getCart = async ({ callback }) => {
   });
   callback([data, {}]);
 };
+export const GetCartOreview = async () => {
+  let data = await AxiosGet({
+    url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/cart_overview",
+    title: "Cart Oreview",
+  });
+  store.dispatch({ type: "CART-OREVIEW", payload: data });
+};
 export const AddToCartAnimation = () => {
   let productImage = document.getElementById("added-to-cart");
   let CartIcon = document.getElementById("cart-icon");
@@ -841,13 +857,13 @@ export const AddToCartAnimation = () => {
       },
       {
         scale: "0.1",
-        top: `${cartPosition.top}px`,
-        left: `${cartPosition.left}px`,
+        top: `${cartPosition.top + 50}px`,
+        left: `${cartPosition.left + 100}px`,
         opacity: 0,
       },
     ],
     {
-      duration: 1000,
+      duration: 2000,
       fill: "forwards",
     }
   );
