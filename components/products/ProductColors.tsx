@@ -171,7 +171,7 @@ function ProductColors({ colors, ProductColorsArray }) {
                   <CircleBorder
                     color={
                       isActive
-                        ? ProductColorsArray.filter(
+                        ? ProductColorsArray?.filter(
                             (s) => s.name === color.color_name
                           )[0].color
                         : "#fff"

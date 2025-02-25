@@ -72,7 +72,7 @@ function NormalColorSlider({
           <CircleBorder
             color={
               activeColor?.color_name === color.color_name
-                ? ProductColorsArray.filter(
+                ? ProductColorsArray?.filter(
                     (s) => s.name === color.color_name
                   )[0].color
                 : "#fff"
