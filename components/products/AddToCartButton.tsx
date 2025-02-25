@@ -133,7 +133,7 @@ function AddToCartButton({
         payload: getSelectedVariantofProduct(),
       });
   };
-  const NotifyAction = () => {
+  const NotifyAction = async () => {
     if (true) {
       Sendevent({ event: "button_clicked", value: "notify_me_button" });
       setNotify();
@@ -145,10 +145,11 @@ function AddToCartButton({
         //     });
         // }
       });
-      auth.NotifyForProducts({
+      await auth.NotifyForProducts({
         id: product?.id,
         variant: getSelectedVariantofProduct(),
       });
+      await home.GetFireBaseSettings();
     }
   };
   const isNotified = () => {
