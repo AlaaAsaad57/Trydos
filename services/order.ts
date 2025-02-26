@@ -1,6 +1,7 @@
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { store } from "store";
 import { GetAddressListApi, GetWalletApi, PlaceOrderApi } from "models/Api";
+import { GetCartOreview } from "utils/functions";
 
 class OrderService {
   async PlaceOrder({ payment_method, pay_by_wallet }) {
@@ -80,6 +81,7 @@ class OrderService {
         title: "set default Address",
         body: formBody,
       });
+      await GetCartOreview();
       store.dispatch({ type: "ORDER-LOADING", payload: false });
     } catch (error) {
       store.dispatch({ type: "ORDER-LOADING", payload: false });
@@ -118,6 +120,7 @@ class OrderService {
         body: formBody,
       });
       await this.GetAddressList();
+      await GetCartOreview();
       callback();
       store.dispatch({ type: "ADD-ADRRESS-LIST", payload: data });
       store.dispatch({ type: "ORDER-LOADING", payload: false });
