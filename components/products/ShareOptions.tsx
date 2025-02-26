@@ -49,7 +49,7 @@ function ShareOptions({
   const contacts = useSelector((state: StateInterface) => state.chat.contacts);
   return (
     <div className="share-options">
-      <div className={`share-avatar`}>
+      <div className={`share-avatar`} data-cy="Facebook">
         <div className="share-image social shadow-none">
           <FacebookShareButton
             url={window.location.href}
@@ -66,7 +66,7 @@ function ShareOptions({
         </div>
         <div className="share-name">Facebook</div>
       </div>
-      <div className={`share-avatar`}>
+      <div className={`share-avatar`} data-cy="Twitter">
         <div className="share-image social shadow-none">
           <TwitterShareButton
             beforeOnClick={() => {
@@ -84,7 +84,7 @@ function ShareOptions({
         </div>
         <div className="share-name">Twitter / X</div>
       </div>
-      <div className={`share-avatar`}>
+      <div className={`share-avatar`} data-cy="Whatsapp">
         <div className="share-image social shadow-none">
           <WhatsappShareButton
             beforeOnClick={() => {

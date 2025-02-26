@@ -463,6 +463,10 @@ Cypress.Commands.add("verifyBoxsInBoutiquePage", () => {
   });
 });
 Cypress.Commands.add("verifyComponentsInProductCard", () => {
+  cy.get('[data-cy="productName"]').should("exist");
+  cy.log("✅✅ productName Exists");
+  cy.get('[data-cy="productName"]').should("not.be.empty");
+  cy.get("[data-cy=Cart-ByButton]").contains("Buy").should("exist");
   cy.Exist("[data-cy=productPhotoSlider]").then((exist) => {
     if (exist) {
       cy.get("[data-cy=productPhotoSlider]", { timeout: 5000 })
@@ -504,4 +508,8 @@ Cypress.Commands.add("verifyComponentsInProductCard", () => {
       cy.log("❌❌ There aren't any photos slider");
     }
   });
+  cy.scrollTo("bottom");
+  cy.get('[data-cy="ReachEnd"]')
+    .should("be.visible")
+    .and("contain.text", "Reach End");
 });

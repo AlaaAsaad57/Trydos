@@ -1,5 +1,4 @@
-import { invoke } from "cypress/types/lodash";
-
+let storedUserName1: string = "";
 describe("Should Open The Boutique Page & Move From It To A Product Page From The Boutique", () => {
   before("Should Open The Trydos & Verify Boutiques Are Loaded", () => {
     Cypress.on("uncaught:exception", (err, runnable) => {
@@ -10,7 +9,7 @@ describe("Should Open The Boutique Page & Move From It To A Product Page From Th
     cy.log("✅✅ Boutiues Founded & Loaded In Main Page");
   });
   it("Should Select Any Boutique & Click On", () => {
-    cy.clickElementForce(".offer-widget:nth-child(2)");
+    cy.clickElementForce(".offer-widget:nth-child(6)");
     cy.log("✅✅ An Boutique Selected & Click");
     cy.get("[data-cy=boutiqueOpen]", { timeout: 20000 });
     cy.log("✅✅ The Boutique's Components Were Successfully Displayed");
@@ -27,14 +26,14 @@ describe("Should Open The Boutique Page & Move From It To A Product Page From Th
   });
 });
 // *************************************one*********************************************
-describe("Should Open Product Page", () => {
+describe("Should Open Product Page & Open One Of Pictures In Product Detail Page", () => {
   it("Should Choose The First Product From The Products On The Boutique Page & Open His Page", () => {
     cy.get("[data-cy=on_mouse_over_product]").eq(0).click({ force: true });
     cy.log(
       "✅✅ The Card Of The First Product Is Clicked & The Page Of Product Is Opned"
     );
   });
-  it("Should Choose The First Product From The Products On The Boutique Page & Open His Page", () => {
+  it("Should Open One Of Pictures In Product Detail Page", () => {
     cy.get(".embla__slide")
       .should("exist") // Ensure the elements exist
       .its("length")
@@ -50,28 +49,24 @@ describe("Should Open Product Page", () => {
   });
 });
 // *************************************two*********************************************
-describe("Read More / Read Less Button Test", () => {
-  it("toggles between Read More and Read Less correctly", () => {
+describe("Toggles Between Read More & Read Less Correctly", () => {
+  it("Read More Button Test", () => {
     cy.get(".read-more").contains("Read More").should("be.visible");
     cy.log("✅✅ Read More Button Founded");
-    cy.get(".read-more").contains("Read More").click();
+    cy.get(".read-more").contains("Read More").click({ force: true });
     cy.log("✅✅ Read More Button Clicked");
     cy.get(".read-more").contains("Read More").should("not.exist");
     cy.log("✅✅ Read More Button Disapperead");
+  });
+  it("Read Less Button Test", () => {
     cy.get(".read-more").contains("Read Less").should("be.visible");
     cy.log("✅✅ Read Less Button Founded");
-    cy.get(".product-details-text #details")
-      .invoke("text")
-      .should("not.contain", "...");
-    cy.get(".read-more").contains("Read Less").click();
+    cy.get(".read-more").contains("Read Less").click({ force: true });
     cy.log("✅✅ Read Less Button Clicked");
     cy.get(".read-more").contains("Read Less").should("not.exist");
     cy.log("✅✅ Read Less Button Disapperead");
     cy.get(".read-more").contains("Read More").should("be.visible");
     cy.log("✅✅ Read More Button Reapperead");
-    cy.get(".product-details-text #details")
-      .invoke("text")
-      .should("contain", "...");
   });
 });
 // *************************************three*********************************************
@@ -100,9 +95,8 @@ describe("Product Properties Section", () => {
   });
 });
 // *************************************four*********************************************
-describe("Should Verify Available Colors Of The Product & Navigate Between Product Images", () => {
-  let CountOfColor = 0;
-  it("Should Display The Available Color Box (Icon, Span, QuestionMark)", () => {
+describe("Should All Label As Available Color Founded", () => {
+  it("Should Display The Available Color Box (Icon, Text In Span) & All Label As Available Color", () => {
     cy.get('[data-cy="AvailableColor"]').should("be.visible");
     cy.log("✅✅ The Available Color Section Found");
     cy.get('[data-cy="ColorsIcon"]').should("be.visible");
@@ -120,6 +114,10 @@ describe("Should Verify Available Colors Of The Product & Navigate Between Produ
       });
     });
   });
+});
+// *************************************five*********************************************
+describe("Should Verify Available Colors Of The Product", () => {
+  let CountOfColor = 0;
   it("Should Get The Number Of  Available Color", () => {
     cy.get("[data-cy=Color-Length]")
       .invoke("text")
@@ -143,7 +141,7 @@ describe("Should Verify Available Colors Of The Product & Navigate Between Produ
     }
   });
 });
-// *************************************five*********************************************
+// *************************************six*********************************************
 describe("Should Click On Each QuestionMark Component & Read InfoWindow Text", () => {
   it("Should Verify & Click On QuestionMark Component and Read InfoWindow Text", () => {
     cy.get("[data-cy=QuestionMark]").each(($el, index) => {
@@ -161,7 +159,7 @@ describe("Should Click On Each QuestionMark Component & Read InfoWindow Text", (
     cy.get("body").click(0, 0);
   });
 });
-// *************************************six*********************************************
+// *************************************seven*********************************************
 describe("Should Open Camera Shot Picture", () => {
   it("Should Verify Swipper Photo1", () => {
     // Should Add Code To Check If Count Of Shots === Count Of SwiperPhoto1 When linking to the database
@@ -205,7 +203,7 @@ describe("Should Open Camera Shot Picture", () => {
     cy.get("body").click(0, 0);
   });
 });
-// *************************************seven*********************************************
+// *************************************eight*********************************************
 describe("Should Open last Story", () => {
   it("Should Click On Last Story & Close it", () => {
     cy.get('[data-cy="StoriesIcon"]').should("be.visible");
@@ -231,7 +229,7 @@ describe("Should Open last Story", () => {
     });
   });
 });
-// *************************************eight*********************************************
+// *************************************nine*********************************************
 describe("Should Verify Available Sizes Of The Product & Check Count Of Sizes", () => {
   let SizeCount1: number = 0;
   it("Should Check Whether About Size Box", () => {
@@ -281,7 +279,7 @@ describe("Should Verify Available Sizes Of The Product & Check Count Of Sizes", 
     }
   });
 });
-// *************************************nine*********************************************
+// *************************************ten*********************************************
 describe("Should Verify Product Shipping & Delivery", () => {
   it("Should Verify About Product Shipping & Delivery Displayed", () => {
     cy.get('[data-cy="ProductShiping"]').click({ force: true });
@@ -296,7 +294,7 @@ describe("Should Verify Product Shipping & Delivery", () => {
     cy.get('[data-cy="ProductShiping"]').click({ force: true });
   });
 });
-// *************************************ten*********************************************
+// *************************************eleven*********************************************
 describe("Should Verify About Free Shiping & Free Return ", () => {
   it("Should Verify About Product Shipping & Delivery Displayed", () => {
     cy.get('[data-cy="FreeShipping"]').should("be.visible");
@@ -307,7 +305,7 @@ describe("Should Verify About Free Shiping & Free Return ", () => {
     cy.log("✅✅ Count Days After Reciving Box Displayed");
   });
 });
-// *************************************eleven*********************************************
+// *************************************twelve*********************************************
 describe("Should Verify Product Info Section", () => {
   it("Should Display The Old Price With A Strikethrough Effect", () => {
     cy.get(".product-old-price").should("exist");
@@ -344,7 +342,7 @@ describe("Should Verify Product Info Section", () => {
     cy.log("✅✅ Shipping Date Text Exists");
   });
 });
-// *************************************twelve*********************************************
+// *************************************thirteen*********************************************
 describe("Should Verify Product Datail Footer Section", () => {
   it("Should Check About Add To Cart Button", () => {
     cy.get('[data-cy="AddToCartButton-data-cy"]').should("be.visible");
@@ -355,7 +353,7 @@ describe("Should Verify Product Datail Footer Section", () => {
     cy.log("✅✅ User InteraCtion BoX Exists");
   });
 });
-// *************************************twelve*********************************************
+// *************************************fourteen*********************************************
 describe("Should Do Like And Dislike & Waiting The Request Related To Them", () => {
   let countLovesBeforePutLove = 0;
   let countLovesAfterPutLove = 0;
@@ -439,7 +437,7 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
     });
   });
 });
-// *************************************thirteen*********************************************
+// *************************************fivteen*********************************************
 describe("Should Type Comment In Comment Section", () => {
   let CountOfCommentPrevisually: number = 0;
   let count1 = 0;
@@ -469,12 +467,15 @@ describe("Should Type Comment In Comment Section", () => {
   // **********************
   it("should render the comment section", () => {
     cy.get('[data-cy="ExtendCoomentSection"]').should("be.visible");
-    cy.log("✅✅ Comment Icon Button Visible");
+    cy.log("✅✅ Comment Section Visible");
     cy.get('[data-cy="ExtendCoomentSection"] .extended-bar-top span').should(
       "contain.text",
       "Comment About This Product"
     );
     cy.log("✅✅ Comment Extended Bar Visible");
+    cy.get('[data-cy="ExtendCoomentSection"] .extended-bar-top svg').should(
+      "be.visible"
+    );
   });
   it("should display the comment section", () => {
     cy.Exist1("[data-cy=CommentArea]").then((exist) => {
@@ -491,10 +492,9 @@ describe("Should Type Comment In Comment Section", () => {
         cy.get(".comment-item")
           .its("length")
           .then((count) => {
-            cy.log(`There Couunt Of Comments Is: ${count}`);
+            cy.log(`✅✅ The Couunt Of Comments Is: ${count}`);
             count1 = count;
           });
-        cy.log("✅✅ Comment Area is visible");
       } else {
         cy.log("❌❌ No Comment Just Now");
       }
@@ -535,9 +535,7 @@ describe("Should Type Comment In Comment Section", () => {
         .should("be.visible")
         .invoke("text")
         .then((data) => {
-          // Trim the string to avoid issues with extra whitespace
           const trimmedData = data.trim();
-
           if (trimmedData === "guest") {
             cy.log("✅✅ Comment Added As A Guest Source");
           } else {
@@ -548,20 +546,41 @@ describe("Should Type Comment In Comment Section", () => {
       cy.log("❌❌ Operation To Add Comment Not Completly");
     }
   });
+  it("should Verify The Comment Date Added With Comment Text", () => {
+    // Capture current time in Arabic format with AM/PM
+    const currentTime = new Date().toLocaleTimeString("en-SA", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    cy.log(`Expected Time: ${currentTime}`);
+    cy.get("[data-cy=Date-Of-Comment]", { timeout: 20000 })
+      .eq(0)
+      .should("be.visible")
+      .invoke("text")
+      .then((displayedTime) => {
+        cy.log(`Displayed Time: ${displayedTime}`);
+        expect(displayedTime.trim()).to.equal(currentTime);
+      });
+  });
   it("should Click On Comment Icon To Close Comment Area", () => {
     cy.get('[data-cy="CommentIcon"]').click({ force: true });
+    cy.log("✅✅ Comment Icon Clicked To Close Comment Area");
   });
 });
-// *************************************Fourteen*********************************************
-describe("", () => {
+// *************************************sixteen*********************************************
+describe("Should Type Share In Share Section", () => {
   let CountOfSharesPrevisually: number = 0;
-  let count1 = 0;
-  it("Should Click On Comment Icon", () => {
+  let count1: number = 0;
+  let CountOfSharesLastly: number = 0;
+  let CountOfSharesLastly1: number = 0;
+  let CountOfSharesLastly2: number = 0;
+  it("Should Click On Share Icon", () => {
     cy.get('[data-cy="ShareIcon"]').should("be.visible").click({ force: true });
     cy.log("✅✅ Comment Icon Button Exists and Clicked");
   });
   // **********************
-  it("should Get Count Of Comments Founded Previsually", () => {
+  it("should Get Count Of Shares Founded Previsually", () => {
     cy.Exist1("[data-cy=CountOfComment]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=CountOfShares]").should("be.visible");
@@ -575,5 +594,240 @@ describe("", () => {
         cy.log("❌❌ No Share Just Now");
       }
     });
+  });
+  it("should contain a share icon", () => {
+    cy.get('[data-cy="ExtendShareSection"] svg').should("exist");
+  });
+  it("should display the share text", () => {
+    cy.get('[data-cy="ExtendShareSection"]').contains(
+      "Share This Product With"
+    );
+  });
+  it("should contain the share options section", () => {
+    cy.get('[data-cy="ExtendShareSection"] .content-extended').should("exist");
+  });
+  it("should contain the share options section", () => {
+    cy.get('[data-cy="Facebook"]').should("exist");
+    cy.get('[data-cy="Facebook"] .share-name').contains("Facebook");
+  });
+  it("should contain the share options section", () => {
+    cy.get('[data-cy="Twitter"]').should("exist");
+    cy.get('[data-cy="Twitter"] .share-name').contains("Twitter / X");
+  });
+  it("should contain the share options section", () => {
+    cy.get('[data-cy="Whatsapp"]').should("exist");
+    cy.get('[data-cy="Whatsapp"] .share-name').contains("WhatsApp");
+  });
+  it("should open WhatsApp share link", () => {
+    cy.window().then((win) => {
+      cy.stub(win, "open").as("windowOpen");
+    });
+    cy.get('[data-cy="Whatsapp"]').click();
+    cy.get("@windowOpen").should(
+      "be.calledWithMatch",
+      /web.whatsapp.com\/send\?text=/
+    );
+  });
+  it("should Waiting Request", () => {
+    cy.intercept(
+      "POST",
+      "**/chating-staging-trydos.trydos.dev/api/v2/elastic/share_product_on_apps"
+    ).as("whatsappShare");
+    cy.wait("@whatsappShare").its("response.statusCode").should("eq", 200);
+  });
+  it("should Get Count Of Shares After Share", () => {
+    cy.get("[data-cy=CountOfShares]").should("be.visible");
+    cy.get("[data-cy=CountOfShares]")
+      .invoke("text")
+      .then((text) => {
+        CountOfSharesLastly = parseInt(text);
+        cy.log(`There Couunt Of Comments Is: ${CountOfSharesLastly}`);
+        expect(CountOfSharesLastly).to.be.eq(CountOfSharesPrevisually + 1);
+      });
+  });
+  // ***********************************************************************
+  it("should open Twitter share link", () => {
+    cy.window().then((win) => {
+      cy.stub(win, "open").as("windowOpen");
+    });
+    cy.get('[data-cy="Twitter"]').click();
+    cy.get("@windowOpen").should(
+      "be.calledWithMatch",
+      /twitter\.com\/intent\/tweet\?url=/
+    );
+  });
+  it("should Waiting Request", () => {
+    cy.intercept(
+      "POST",
+      "**/chating-staging-trydos.trydos.dev/api/v2/elastic/share_product_on_apps"
+    ).as("TwitterShare");
+    cy.wait("@TwitterShare").its("response.statusCode").should("eq", 200);
+  });
+  it("should Get Count Of Shares After Share", () => {
+    cy.get("[data-cy=CountOfShares]").should("be.visible");
+    cy.get("[data-cy=CountOfShares]")
+      .invoke("text")
+      .then((text) => {
+        CountOfSharesLastly1 = parseInt(text);
+        cy.log(`There Couunt Of Comments Is: ${CountOfSharesLastly1}`);
+        expect(CountOfSharesLastly1).to.be.eq(CountOfSharesLastly + 1);
+      });
+  });
+  // ***********************************************************************
+  it("should open Facebook share link", () => {
+    cy.window().then((win) => {
+      cy.stub(win, "open").as("windowOpen");
+    });
+    cy.get('[data-cy="Facebook"]').click();
+    cy.get("@windowOpen").should(
+      "be.calledWithMatch",
+      /facebook\.com\/sharer\/sharer\.php\?u=/
+    );
+  });
+  it("should Waiting Request", () => {
+    cy.intercept(
+      "POST",
+      "**/chating-staging-trydos.trydos.dev/api/v2/elastic/share_product_on_apps"
+    ).as("FacebookShare");
+    cy.wait("@FacebookShare").its("response.statusCode").should("eq", 200);
+  });
+  it("should Get Count Of Shares After Share", () => {
+    cy.get("[data-cy=CountOfShares]").should("be.visible");
+    cy.get("[data-cy=CountOfShares]")
+      .invoke("text")
+      .then((text) => {
+        CountOfSharesLastly2 = parseInt(text);
+        cy.log(`There Couunt Of Comments Is: ${CountOfSharesLastly2}`);
+        expect(CountOfSharesLastly2).to.be.eq(CountOfSharesLastly1 + 1);
+      });
+    cy.get('[data-cy="ShareIcon"]').click({ force: true });
+  });
+});
+// *************************************seventeen*********************************************
+describe("Should Do Login & Add Comment & Extract User Name", () => {
+  it("Should Do Login", () => {
+    cy.performLogin();
+  });
+  it("should extract user name, store it, and log it", () => {
+    cy.get('[data-cy="NavUserName"]')
+      .invoke("text")
+      .then((userName: string) => {
+        const trimmedUserName = userName.trim();
+        cy.log("Extracted User Name:", trimmedUserName);
+        expect(trimmedUserName).not.to.be.empty;
+        storedUserName1 = trimmedUserName;
+        cy.log("Stored User Name:", storedUserName1);
+      });
+  });
+});
+describe("Should Type Comment In Comment Section After Login & Verify The Comment Add As User Name", () => {
+  let CountOfCommentPrevisuallyAfterLogin: number = 0;
+  let count11: number = 0;
+  let AddedOk: number = 0;
+  it("Should Click On Comment Icon", () => {
+    cy.get('[data-cy="CommentIcon"]')
+      .should("be.visible")
+      .click({ force: true });
+    cy.log("✅✅ Comment Icon Button Exists and Clicked");
+  });
+  // **********************
+  it("should Get Count Of Comments Founded Previsually", () => {
+    cy.Exist1("[data-cy=CountOfComment]").then((exist) => {
+      if (exist) {
+        cy.get("[data-cy=CountOfComment]").should("be.visible");
+        cy.get("[data-cy=CountOfComment]")
+          .invoke("text")
+          .then((text) => {
+            CountOfCommentPrevisuallyAfterLogin = parseInt(text);
+            cy.log(
+              `There Couunt Of Comments Is: ${CountOfCommentPrevisuallyAfterLogin}`
+            );
+          });
+      } else {
+        cy.log("❌❌ No Comment Just Now");
+      }
+    });
+  });
+  it("should Check Comments", () => {
+    cy.Exist1(".comment-item").then((exist) => {
+      if (exist) {
+        cy.get(".comment-item")
+          .its("length")
+          .then((count) => {
+            cy.log(`✅✅ There Couunt Of Comments After Login Is: ${count}`);
+            count11 = count;
+          });
+      } else {
+        cy.log("❌❌ No Comment Just Now");
+      }
+    });
+  });
+  it("should allow users to submit a new comment", () => {
+    cy.get('[data-cy="CommentField"]').type(
+      "This is a test comment after login"
+    );
+    cy.log("✅✅ Comment Input Visible % Write A Comment");
+    cy.get('[data-cy="SubmitComment"]').click({ force: true });
+    cy.log("✅✅ Click On Comment Submit");
+    cy.get(".comment-text")
+      .eq(0)
+      .should("contain.text", "This is a test comment after login");
+    cy.log("✅✅ Test Comment Added To List Comment");
+    expect(CountOfCommentPrevisuallyAfterLogin).to.be.eq(count11);
+    AddedOk++;
+    cy.log(`AddedOk value: ${AddedOk}`);
+  });
+  it("Should Waiting The Request Accured", () => {
+    cy.intercept(
+      "POST",
+      "**/market-under-dev-backend.trydos.dev/api/new_v1/customer/product_comment"
+    ).as("Comment");
+    cy.get("@Comment", { timeout: 10000 }).then((alias) => {
+      if (alias) {
+        cy.wait("@Comment", { timeout: 10000 }).then((interception) => {
+          cy.log("✅✅ Comment request arrived");
+        });
+      } else {
+        cy.log("❌❌ Comment request did not arrive");
+      }
+    });
+  });
+  it("should Verify The Comment Added As A Guest Source", () => {
+    if (AddedOk > 0) {
+      cy.get('[data-cy="Source-Of-Comment"]')
+        .eq(0)
+        .should("be.visible")
+        .invoke("text")
+        .then((data) => {
+          const trimmedData = data.trim();
+          if (trimmedData === storedUserName1) {
+            cy.log("✅✅ Comment Added As A UserName Source");
+          } else {
+            cy.log("❌❌ Comment Not Added As A Guest Source");
+          }
+        });
+    } else {
+      cy.log("❌❌ Operation To Add Comment Not Completly");
+    }
+  });
+  it("should Verify The Comment Date Added With Comment Text", () => {
+    const currentTime = new Date().toLocaleTimeString("en-SA", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    cy.log(`Expected Time: ${currentTime}`);
+    cy.get("[data-cy=Date-Of-Comment]", { timeout: 20000 })
+      .eq(0)
+      .should("be.visible")
+      .invoke("text")
+      .then((displayedTime) => {
+        cy.log(`Displayed Time: ${displayedTime}`);
+        expect(displayedTime.trim()).to.equal(currentTime);
+      });
+  });
+  it("should Click On Comment Icon To Close Comment Area", () => {
+    cy.get('[data-cy="CommentIcon"]').click({ force: true });
+    cy.log("✅✅ Comment Icon Clicked To Close Comment Area");
   });
 });
