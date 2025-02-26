@@ -63,7 +63,7 @@ const ModalIframe = ({ openIframe, isLoading, handleIframeLoad, _closeIframe }: 
                         url: process.env.NEXT_PUBLIC_BACKEND_URL + `/customer/order/getOrdersByCartGroupID?cart_group_id=${cart[0].cart_group_id}`
                     })
                     if (data && data?.length > 0) {
-                        store.dispatch({ type: "ORDER-DATA", payload: { ...data[0], success: true } });
+                        store.dispatch({ type: "ORDER-DATA", payload: { data, success: true } });
                     }
                 }
             }
@@ -86,7 +86,7 @@ const ModalIframe = ({ openIframe, isLoading, handleIframeLoad, _closeIframe }: 
                                 url: process.env.NEXT_PUBLIC_BACKEND_URL + `/customer/order/getOrdersByCartGroupID?cart_group_id=${cart[0].cart_group_id}`
                             })
                             if (data && data?.length > 0) {
-                                store.dispatch({ type: "ORDER-DATA", payload: { ...data[0], success: true } });
+                                store.dispatch({ type: "ORDER-DATA", payload: { data, success: true } });
                             }
                         }
                     }} className="text-red-500 text-xl cursor-pointer px-3">

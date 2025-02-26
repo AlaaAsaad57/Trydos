@@ -12,7 +12,6 @@ import { useParams } from "next/navigation";
 import { useSwipeable } from "react-swipeable";
 import OrderMarquee from "./OrderMarquee";
 import DiscoutIcon from "public/svg/cart/Disount.svg";
-import GiftIcon from "public/svg/cart/Gift.svg";
 import ShippingIcon from "public/svg/cart/Shipping.svg";
 import { AxiosGet } from "utils/AxiosApi";
 import Spinner from "components/global/Spinner";
@@ -139,7 +138,7 @@ function OrderButton({ close, toOrders }) {
   };
   const getDiscount = () => {
     var a = parseInt(
-      ((cart.total_discount_on_product / cart.sub_total) * 100).toString()
+      (((cart.total_discount_on_product + cart.coupon_discount) / cart.sub_total) * 100).toString()
     );
     return a;
   };
@@ -304,9 +303,10 @@ function OrderButton({ close, toOrders }) {
                         className={`medium ${languageVariable === "ar" && "dir-rtl"
                           } text-[13px] text-[#A28E5B] flex whitespace-nowrap `}
                       >
-                        {translate("Total Discount")}{" "}
+                        {translate("Total Discount")}
+                        <div className="mx-1" />
                         <span className="bold text-[#A28E5B] ">
-                          {getDiscount()}%
+                          {" " + getDiscount()} %
                         </span>
                       </span>
                       <span className="regular text-[11px] text-[#A28E5B]">
@@ -316,11 +316,11 @@ function OrderButton({ close, toOrders }) {
                   </div>
 
                   <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#A28E5B]">
-                    {RoundPrice({ num: cart.total_discount_on_product })}{" "}
+                    {RoundPrice({ num: (cart.total_discount_on_product + cart.coupon_discount) })}{" "}
                     {currency_symbol.symbol}
                   </span>
                 </div>
-                <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
+                {/* <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
                   <div className="flex-row pl-[12px]">
                     <span className="flex-row translate-y-[3px]">
                       <GiftIcon />
@@ -338,7 +338,7 @@ function OrderButton({ close, toOrders }) {
                   <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]">
                     {RoundPrice({ num: -10 })} {currency_symbol.symbol}
                   </span>
-                </div>
+                </div> */}
                 <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
                   <div className="flex-row pl-[12px]">
                     <span className="flex-row translate-y-[3px]">
@@ -388,7 +388,7 @@ function OrderButton({ close, toOrders }) {
               <span className="flex-row justify-center items-center ml-[5px] bold  text-[16px] pr-[13px] text-[#1D1D1D]">
                 <span className="line-through regular mr-2">
                   {RoundPrice({ num: cart.total_cash }) +
-                    RoundPrice({ num: cart.total_discount_on_product })}
+                    RoundPrice({ num: (cart.total_discount_on_product + cart.coupon_discount) })}
                 </span>{" "}
                 {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}
                 <span className="ml-2">
