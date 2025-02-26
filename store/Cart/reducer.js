@@ -133,7 +133,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
     case "ORDER-SUCCESS": {
       return {
         ...state,
-        orderData: { ...state.orderData, orderPayload: payload },
+        orderData: { ...state.orderData, ...payload },
         cart: [],
         localCart: [],
       };

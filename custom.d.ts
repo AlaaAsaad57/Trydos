@@ -886,7 +886,6 @@ declare global {
       };
       orderData: {
         data: any;
-        orderPayload: any;
         order_group_id?: any;
         agree: boolean;
         payment: Array<{

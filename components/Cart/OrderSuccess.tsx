@@ -18,7 +18,7 @@ function OrderSuccess() {
         {translateFunction("Your Order Number")}
       </span>
       <span className="bold text-[20px] text-[#404040] mt-[6px]">
-        TTISA{orderData.order_group_id}
+        TTISA{orderData?.data[0]?.order_group_id}
       </span>
       <div className="flex-row mt-[11px] items-center">
         <svg
