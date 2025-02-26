@@ -61,6 +61,30 @@ class OrderService {
       store.dispatch({ type: "ORDER-LOADING", payload: false });
     }
   }
+  async SetDefault({ id }) {
+    let details = {
+      address_id: id,
+    };
+    var formBody: any = [];
+    for (var property in details) {
+      var encodedKey = encodeURIComponent(property);
+      var encodedValue = encodeURIComponent(details[property]);
+      formBody.push(encodedKey + "=" + encodedValue);
+    }
+    formBody = formBody.join("&");
+    try {
+      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      let data = await AxiosPost({
+        url:
+          process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/address/set-default",
+        title: "set default Address",
+        body: formBody,
+      });
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
+    } catch (error) {
+      store.dispatch({ type: "ORDER-LOADING", payload: false });
+    }
+  }
   async AddAddressList({ address, callback }) {
     let body = {
       latitude: address.location.latitude,

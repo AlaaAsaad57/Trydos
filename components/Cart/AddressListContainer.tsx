@@ -2,6 +2,7 @@ import { useDispatch, useSelector } from "react-redux";
 import React from "react";
 import { translateFunction } from "utils/functions";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
+import order from "services/order";
 
 function AddressListContainer({ closeSelect, slideNext, Delete }) {
   const addressLists = useSelector(
@@ -61,6 +62,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
               <div
                 key={i}
                 onClick={() => {
+                  order.SetDefault({ id: s.id });
                   dispatch({ type: "UPDATE-ADDRESS", payload: s });
                   closeSelect(false);
                 }}
