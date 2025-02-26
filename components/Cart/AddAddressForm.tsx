@@ -13,7 +13,7 @@ import TargetIcon from "public/svg/cart/Target.svg";
 import ContactInfoIcon from "public/svg/cart/ContactInfoIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
 import order from "services/order";
-import { IpDataApi } from "models/Api";
+
 function AddAddressForm({
   setAddressDetails,
   slidePrev,

@@ -661,7 +661,7 @@ export const UpdateFilter = async ({
           ? null
           : { colors: `${JSON.stringify(filters.colors)}` },
     });
-    console.log(str, filters);
+
     newFiltersCallback({
       filtersVar: {
         categories: product.data?.categories || [],

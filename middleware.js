@@ -150,7 +150,6 @@ export async function middleware(request) {
     }
     if (url.searchParams.get("changed-country")) {
       if (isChangedLocalizationByUrl) {
-        console.log(isChangedLocalizationByUrl);
         return response;
       } else {
         url.searchParams.delete("changed-country");

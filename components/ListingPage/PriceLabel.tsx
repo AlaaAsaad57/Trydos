@@ -11,9 +11,6 @@ function PriceLabel({
   price_formatted: number;
   offer_price: number;
 }) {
-  useEffect(() => {
-    console.log(price_formatted, offer_price);
-  }, []);
   const decimal_point_settings = useSelector(
     (state: StateInterface) => state.homepage.settings
   );

@@ -66,7 +66,6 @@ function MoreOptionsSection() {
     }
   };
   const checkIfTopicEnabled = (topic) => {
-    console.log(firebasSettings, topic);
     return firebasSettings?.subscribed_topics.some((s) => {
       return s.topic === topic;
     });

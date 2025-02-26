@@ -107,7 +107,6 @@ export const AxiosPost = async ({
         return res.data;
       }
       if (url.includes(`change_country_language`)) {
-        console.log(res.data);
         if (res.data) {
           return res.data.data.firebase_settings;
         }
