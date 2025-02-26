@@ -126,7 +126,6 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
                   coupon_number: "",
                   loading: false,
                   success: false,
-                  orderPayload: {},
                   data: []
                 },
               });
