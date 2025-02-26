@@ -10,15 +10,19 @@ class OrderService {
       let data: PlaceOrderApi = await AxiosPost({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/customer/order/checkout/${payment_method}?order_note=order note&address_id=${addressId}&pay_by_wallet=${pay_by_wallet ? 1 : 0
+          `/customer/order/checkout/${payment_method}?order_note=order note&address_id=${addressId}&pay_by_wallet=${
+            pay_by_wallet ? 1 : 0
           }`,
         title: "pay Order",
         body: "",
       });
-      console.log(data);
+
       if (!data[0]?.url) {
         store.dispatch({ type: "ORDER-SUCCESS", payload: { data } });
-        store.dispatch({ type: "ORDER-DATA", payload: { data, success: true } });
+        store.dispatch({
+          type: "ORDER-DATA",
+          payload: { data, success: true },
+        });
       } else {
         store.dispatch({ type: "CRYPTO_CARD_PAYMENT", payload: data[0] });
       }

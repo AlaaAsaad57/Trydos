@@ -8,6 +8,7 @@ import {
   RoundPrice,
   Sendevent,
   translateFunction,
+  GetCartOreview,
 } from "utils/functions";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import ShareIcon from "public/svg/listing/shareIcon.svg";
@@ -104,7 +105,7 @@ function CartContainer({ close, toOrders }) {
       payload: product.id,
     });
     await home.RemoveFromCart({ key: product.id });
-
+    await GetCartOreview();
     await updateDataForProduct(product.slug);
   };
   return (
@@ -1699,11 +1700,7 @@ const QuantutyInput = ({
       setLoading(true);
 
       await updateQuantity(parseInt(i.toString()) - 1, false);
-      await getCart({
-        callback: ([data, res]) => {
-          dispatch({ type: "CART-INIT", payload: data });
-        },
-      });
+      await GetCartOreview();
       setLoading(false);
     }
   };
@@ -1713,17 +1710,13 @@ const QuantutyInput = ({
       setInputValue(parseInt(i.toString()) + 1);
       setLoading(true);
       await updateQuantity(parseInt(i.toString()) + 1, true);
-      await getCart({
-        callback: ([data, res]) => {
-          dispatch({ type: "CART-INIT", payload: data });
-        },
-      });
+      await GetCartOreview();
       setLoading(false);
     }
   };
   return (
     <div
-      className={`absolute flex-wrap ${"top-[115px]"} left-[137px] flex-row items-center justify-between max-w-[calc(100%-152px)] w-full`}
+      className={`absolute flex-wrap ${"top-[125px]"} left-[137px] flex-row items-center justify-between max-w-[calc(100%-152px)] w-full`}
     >
       <div
         className={`${
@@ -1767,14 +1760,13 @@ const QuantutyInput = ({
           data-cy="PlusIcon_CartPage"
           onClick={() => {
             if (disabled) return false;
-            if (inputValue === max) {
-              toast.error(translate("stock is limited"));
-              return false;
-            }
-            // @ts-ignore
-            else {
-              increaseQuantity(inputValue);
-            }
+            // if (inputValue === max) {
+            //   toast.error(translate("stock is limited"));
+            //   return false;
+            // }
+            // // @ts-ignore
+            // else {
+            increaseQuantity(inputValue);
           }}
         >
           <PlusIcon className="" />
@@ -1830,7 +1822,7 @@ const QuantutyInput = ({
         />
         {loading && <Spinner />}
       </div>
-      <div className={``}>
+      <div className={`pl-[30px]`}>
         <div className="product-info-price">
           {product?.offer_price ? (
             <>

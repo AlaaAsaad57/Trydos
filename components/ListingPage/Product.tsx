@@ -108,16 +108,7 @@ function Product({
   const currency = useSelector(
     (state: StateInterface) => state.homepage.currency
   ) || { exchange_rate: 1 };
-  const getPrice = (num) => {
-    return RoundPrice({
-      num: num,
-      rate: currency?.exchange_rate || 1,
-      points:
-        (decimal_point_settings &&
-          decimal_point_settings["starting-setting"]?.decimal_point_settings) ||
-        0,
-    });
-  };
+
   return (
     <div className="max-h-[362px]" data-cy="countProduct">
       <NextLink
@@ -328,8 +319,8 @@ function Product({
         </div>
         <div className="product-footer w-100 flex-row align-center max-h-[30px]">
           <PriceLabel
-            offer_price={getPrice(product?.offer_price)}
-            price_formatted={getPrice(product.price)}
+            offer_price={product?.offer_price}
+            price_formatted={product.price}
           />
           <BuyButton
             buy={(e) => {
