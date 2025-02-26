@@ -32,6 +32,7 @@ export default PlaceOrderWidget;
 
 const OrderCartItem = () => {
   const items = useSelector((state: StateInterface) => state.cart.cart);
+  const orders = useSelector((state: StateInterface) => state.cart.orderData?.data);
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
@@ -48,7 +49,7 @@ const OrderCartItem = () => {
         <div className="regular text-[#1D1D1D] text-[14px] ml-2">
           {translateFunction("Your Shopping Bag", language)}
           <span className={language === "ar" ? "mr-1 bold" : "ml-1 bold"}>
-            {items.length}
+            {items.length || orders.length}
             <span className={"ml-1"}>
               {translateFunction("items", language)}
             </span>
@@ -58,7 +59,7 @@ const OrderCartItem = () => {
       <div
         className={`${`pl-[11px] pb-[12px] pt-[11px] `} transition flex-row `}
       >
-        {items.map((s, i) => {
+        {items.length ? items.map((s, i) => {
           return (
             <div className="flex relative h-[125px]" key={i}>
               <span
@@ -71,6 +72,25 @@ const OrderCartItem = () => {
                 className="w-[91px] h-[125px] rounded-[15px]"
                 src={getConfiguredImage({
                   src: s.image,
+                  width: 91,
+                  height: 150,
+                })}
+              />
+            </div>
+          );
+        }) : orders.map((s, i) => {
+          return (
+            <div className="flex relative h-[125px]" key={i}>
+              <span
+                className="absolute w-[91px] h-full z-10 rounded-[15px]"
+                style={{
+                  boxShadow: "#ffffff80 0px 3px 6px inset",
+                }}
+              />
+              <img
+                className="w-[91px] h-[125px] rounded-[15px]"
+                src={getConfiguredImage({
+                  src: s?.details[0].product_details?.images[0],
                   width: 91,
                   height: 150,
                 })}
@@ -505,6 +525,9 @@ const CODInput = () => {
 };
 const TryDosWalletInput = () => {
   const wallet = useSelector((state: StateInterface) => state.cart.wallet);
+  const currency_symbol = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  );
   return (
     <div
       className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
@@ -523,7 +546,8 @@ const TryDosWalletInput = () => {
           {translateFunction("Your Balance")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: wallet?.total_wallet_balance })}
+          {RoundPrice({ num: wallet?.total_wallet_balance })}{" "}
+          {currency_symbol?.symbol}
         </span>
       </div>
     </div>

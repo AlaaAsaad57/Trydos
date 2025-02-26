@@ -100,14 +100,7 @@ const openCart = (val) => {
 
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
-    case "ORDER-SUCCESS": {
-      return {
-        ...state,
-        orderData: { ...state.orderData, orderPaylod: payload },
-        cart: [],
-        localCart: [],
-      };
-    }
+
     case "CRYPTO_CARD_PAYMENT": {
       return {
         ...state,
@@ -151,12 +144,20 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         center: payload,
       };
     }
+    case "ORDER-SUCCESS": {
+      return {
+        ...state,
+        orderData: { ...state.orderData, ...payload },
+        cart: [],
+        localCart: [],
+      };
+    }
     case "ORDER-DATA": {
       return {
         ...state,
         orderData: {
           ...state.orderData,
-          ...payload,
+          ...payload
         },
       };
     }
@@ -398,11 +399,10 @@ export const CartReducer = (state = initialState, { type, payload }) => {
             quantity: s.quantity,
             size: s.choices?.length > 0 ? s.choices[0]?.choice_1 : null,
             color: "",
-            sku: `${s.product_id}${
-              s.variations?.length > 0 && s?.variations[0]?.color
-                ? `-${s.variations[0].color}`
-                : ""
-            }${s.choices?.length > 0 ? `-${s.choices[0].choice_1}` : ""}`,
+            sku: `${s.product_id}${s.variations?.length > 0 && s?.variations[0]?.color
+              ? `-${s.variations[0].color}`
+              : ""
+              }${s.choices?.length > 0 ? `-${s.choices[0].choice_1}` : ""}`,
           })),
         ],
       };

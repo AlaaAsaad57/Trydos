@@ -885,6 +885,7 @@ declare global {
         }>;
       };
       orderData: {
+        data: any;
         order_group_id?: any;
         agree: boolean;
         payment: Array<{
@@ -958,10 +959,10 @@ declare global {
         details: string;
         thumbnail: string;
         images:
-          | Array<string>
-          | Array<{
-              file_path?: string;
-            }>;
+        | Array<string>
+        | Array<{
+          file_path?: string;
+        }>;
         categories: Array<{
           id: number;
           name: string;
