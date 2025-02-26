@@ -7,7 +7,7 @@ const getCountry = () => {
   if (countryParam) {
     let country = {
       name: allCountries.filter((s) => s.iso2 === countryParam)[0]?.name,
-      iso: countryParam,
+      code: countryParam,
     };
     return country;
   }
@@ -100,7 +100,6 @@ const openCart = (val) => {
 
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
-
     case "CRYPTO_CARD_PAYMENT": {
       return {
         ...state,
@@ -157,7 +156,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         ...state,
         orderData: {
           ...state.orderData,
-          ...payload
+          ...payload,
         },
       };
     }
@@ -221,7 +220,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
 
       return {
         ...state,
-        addressDetails: temp,
+        addressDetails: { ...temp, Country: getCountry() },
       };
     }
     case "UPDATE-ADDRESS": {
@@ -399,10 +398,11 @@ export const CartReducer = (state = initialState, { type, payload }) => {
             quantity: s.quantity,
             size: s.choices?.length > 0 ? s.choices[0]?.choice_1 : null,
             color: "",
-            sku: `${s.product_id}${s.variations?.length > 0 && s?.variations[0]?.color
-              ? `-${s.variations[0].color}`
-              : ""
-              }${s.choices?.length > 0 ? `-${s.choices[0].choice_1}` : ""}`,
+            sku: `${s.product_id}${
+              s.variations?.length > 0 && s?.variations[0]?.color
+                ? `-${s.variations[0].color}`
+                : ""
+            }${s.choices?.length > 0 ? `-${s.choices[0].choice_1}` : ""}`,
           })),
         ],
       };

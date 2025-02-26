@@ -541,7 +541,7 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
   let country = lang.split("-")[0];
   country = {
     name: allCountries.filter((s) => s.iso2 === country)[0]?.name,
-    iso: country,
+    code: country,
   };
   return (
     <div

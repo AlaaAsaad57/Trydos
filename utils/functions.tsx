@@ -698,10 +698,12 @@ export const RoundPrice = ({
   num,
   rate,
   points,
+  returnNumber,
 }: {
   num?: any;
   rate?: any;
   points?: any;
+  returnNumber?: boolean;
 }): number => {
   let rateVariable =
     rate || store.getState().homepage.currency?.exchange_rate || 1;
@@ -712,6 +714,9 @@ export const RoundPrice = ({
         ?.decimal_point_settings) ||
     0;
   let a = parseFloat(num);
+  if (returnNumber) {
+    return parseFloat((a * rateVariable).toFixed(pointsVariable));
+  }
   return formatPrice(parseFloat((a * rateVariable).toFixed(pointsVariable)));
 };
 export const onClickSearchHistory = (searchValue) => {
