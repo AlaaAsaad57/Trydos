@@ -137,13 +137,7 @@ function OrderButton({ close, toOrders }) {
     );
   };
   const getDiscount = () => {
-    var a = parseInt(
-      (
-        ((cart.total_discount_on_product + cart.coupon_discount) /
-          cart.sub_total) *
-        100
-      ).toString()
-    );
+    var a = parseInt(((cart.total_discount / cart.sub_total) * 100).toString());
     return a;
   };
   const dispatch = useDispatch();

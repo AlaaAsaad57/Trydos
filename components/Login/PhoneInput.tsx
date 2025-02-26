@@ -43,7 +43,9 @@ function PhoneInput({
     return translateFunction(key, languageVariable);
   };
   useEffect(() => {
-    document.querySelector<HTMLInputElement>(".login-phone-input")?.focus();
+    document
+      .querySelector<HTMLInputElement>(".login-phone-input")
+      ?.focus({ preventScroll: true });
   }, []);
 
   const [active, setActive] = useState(false);
