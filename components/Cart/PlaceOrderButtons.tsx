@@ -41,16 +41,21 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
   const VerifyCart = async () => {
     try {
       setLoading(true);
-      await AxiosGet({
+      let a = await AxiosGet({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
           "/cart/check_availability_product_cart",
         title: "Check Product Availablity",
       });
-      setLoading(false);
-      successOrder();
+
+      if (a?.length === 0) {
+        setLoading(false);
+        successOrder();
+      } else {
+        throw Error("Please Review Your Cart Info");
+      }
     } catch (error) {
-      toast.error("Please Review Your Cart Info");
+      toast.error("Please Review Your Cart Some Products Not Available");
       backToCart();
       setLoading(false);
     }
@@ -60,9 +65,8 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
       {!orderData.success && (
         <div className="px-[24px] mb-[12px] w-full">
           <div
-            className={`${
-              orderData.agree ? "bg-[#F5FFF8]" : "bg-[#F8F8F8]"
-            } w-full cursor-pointer agree-valid-border pl-[26px] h-[40px] rounded-[15px] regular flex-row items-center text-[12px] text-[#1D1D1D]`}
+            className={`${orderData.agree ? "bg-[#F5FFF8]" : "bg-[#F8F8F8]"
+              } w-full cursor-pointer agree-valid-border pl-[26px] h-[40px] rounded-[15px] regular flex-row items-center text-[12px] text-[#1D1D1D]`}
             style={{
               border: "1px solid rgb(56 144 255 / 51%)",
             }}
@@ -74,31 +78,27 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
               <CheckBoxElement active={orderData.agree} />
             </span>
             <div
-              className={` ${
-                GetAppLanguage() === "ar" ? "dir-rtl" : ""
-              } flex ml-[34px]`}
+              className={` ${GetAppLanguage() === "ar" ? "dir-rtl" : ""
+                } flex ml-[34px]`}
             >
               <span className={`${GetAppLanguage() === "ar" ? "" : ""} `}>
                 {translateFunction("I read and agree to the")}
               </span>
               <span
-                className={`underline ${
-                  GetAppLanguage() === "ar" ? "mr-[4px]" : "ml-[4px]"
-                } text-[#388CFF]`}
+                className={`underline ${GetAppLanguage() === "ar" ? "mr-[4px]" : "ml-[4px]"
+                  } text-[#388CFF]`}
               >
                 {translateFunction("policies")}
               </span>
               <span
-                className={` ${
-                  GetAppLanguage() === "ar" ? "mr-[4px]" : "ml-[4px]"
-                }`}
+                className={` ${GetAppLanguage() === "ar" ? "mr-[4px]" : "ml-[4px]"
+                  }`}
               >
                 {translateFunction("and")}
               </span>
               <span
-                className={`underline  ${
-                  GetAppLanguage() === "ar" ? "mr-[4px]" : "ml-[4px]"
-                } text-[#388CFF]`}
+                className={`underline  ${GetAppLanguage() === "ar" ? "mr-[4px]" : "ml-[4px]"
+                  } text-[#388CFF]`}
               >
                 {translateFunction("terms")}
               </span>
@@ -111,9 +111,8 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
         style={{
           boxShadow: "0px -3px 20px #0000001a",
         }}
-        className={` ${
-          orderLoading && "opacity-55"
-        }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
+        className={` ${orderLoading && "opacity-55"
+          }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
       >
         <div
           onClick={() => {
@@ -127,6 +126,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
                   coupon_number: "",
                   loading: false,
                   success: false,
+                  data: []
                 },
               });
               dispatch({ type: "ENABLE-CART", payload: false });
@@ -137,23 +137,20 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
               VerifyCart();
             }
           }}
-          className={` ${
-            orderData.loading && "opacity-65 scale-95"
-          } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${
-            orderData.success
+          className={` ${(orderData.loading || loading) && "opacity-65 scale-95"
+            } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${orderData.success
               ? "bg-[#1D1D1D]"
               : isValid()
-              ? "bg-[#346BFF]"
-              : "bg-[#C4C2C2]"
-          } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
+                ? "bg-[#346BFF]"
+                : "bg-[#C4C2C2]"
+            } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
         >
           {orderData.success ? (
             <>
               <span>{translateFunction("Done")}</span>
               <span
-                className={`text-[#FEFEFE] text-[14px] medium ${
-                  GetAppLanguage() === "ar" && "dir-rtl"
-                } `}
+                className={`text-[#FEFEFE] text-[14px] medium ${GetAppLanguage() === "ar" && "dir-rtl"
+                  } `}
               >
                 {translateFunction("Back To HomePage")}
               </span>
@@ -162,9 +159,8 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
             <>
               <span>{translateFunction("Place Order")}</span>
               <span
-                className={`text-[#FEFEFE] text-[14px] medium ${
-                  GetAppLanguage() === "ar" && "dir-rtl"
-                } `}
+                className={`text-[#FEFEFE] text-[14px] medium ${GetAppLanguage() === "ar" && "dir-rtl"
+                  } `}
               >
                 {cart.cart.length} {translateFunction("items")}{" "}
                 {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}

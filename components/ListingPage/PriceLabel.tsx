@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { useSelector } from "react-redux";
+import { GetAppLanguage, RoundPrice } from "utils/functions";
 
 function PriceLabel({
   price_formatted,
@@ -9,14 +11,29 @@ function PriceLabel({
   price_formatted: number;
   offer_price: number;
 }) {
+  const decimal_point_settings = useSelector(
+    (state: StateInterface) => state.homepage.settings
+  );
   const currency = useSelector(
     (state: StateInterface) => state.homepage.currency
-  );
+  ) || { exchange_rate: 1, symbol: "" };
+  const getPrice = (num) => {
+    return RoundPrice({
+      num: num,
+      rate: currency?.exchange_rate || 1,
+      points:
+        (decimal_point_settings &&
+          decimal_point_settings["starting-setting"]?.decimal_point_settings) ||
+        0,
+    });
+  };
   return (
-    <div className="price-label flex">
+    <div
+      className={`${GetAppLanguage() === "ar" && "dir-rtl"} price-label flex`}
+    >
       {offer_price >= 0 && (
         <span className="old-price relative f-12 color-dark-gray light-text">
-          {price_formatted}
+          {getPrice(price_formatted)}
           <svg
             className="absolute w-100"
             xmlns="http://www.w3.org/2000/svg"
@@ -36,7 +53,7 @@ function PriceLabel({
         </span>
       )}
       <span className="new-price bold-text color-dark-gray flex f-12">
-        {offer_price >= 0 && offer_price}
+        {offer_price >= 0 && getPrice(offer_price)}
       </span>
       <span className="currency-label light-text color-dark-gray flex f-10">
         {currency?.symbol}

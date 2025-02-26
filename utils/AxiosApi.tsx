@@ -54,6 +54,7 @@ export const AxiosGet = async ({
       }
     } catch (error) {
       if (error.status === 422 || error.status === 500) {
+        attempt = 2;
         toast.error(`${title} : ${error.message ?? "Failed"}`);
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
@@ -106,7 +107,6 @@ export const AxiosPost = async ({
         return res.data;
       }
       if (url.includes(`change_country_language`)) {
-        console.log(res.data);
         if (res.data) {
           return res.data.data.firebase_settings;
         }
@@ -117,7 +117,7 @@ export const AxiosPost = async ({
           return res.data.data;
         } else {
           toast.error(res.data.message);
-          throw new Error("Failed");
+          throw Error("Cart Error");
         }
       }
       if (res?.data.isSuccessful) {
@@ -136,24 +136,27 @@ export const AxiosPost = async ({
         throw new Error(res.data.message);
       }
     } catch (error) {
-      if (
-        error.status === 422 ||
-        error === "Failed" ||
-        error?.message === "Failed"
-      ) {
+      if (error?.message === "Cart Error") {
         attempt = 2;
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
         );
       }
-      if (error.status === 500) {
+      if (
+        error.status === 422 ||
+        error.status === 500 ||
+        error === "Failed" ||
+        error?.message === "Failed"
+      ) {
         toast.error(`${title} : ${error.message ?? "Failed"}`);
+        attempt = 2;
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
         );
         return;
       }
-      if (error.status === 401) {
+
+      if (error.status === 401 || error.status === 403) {
         if (getUser()) {
           await ExpiredUser();
         } else {

@@ -1,9 +1,9 @@
 "use client";
 import { ProductInterface } from "models/product";
 import { useParams, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useDispatch } from "react-redux";
-import { encode_utf8, Sendevent, translateFunction } from "utils/functions";
+import { Sendevent, translateFunction } from "utils/functions";
 
 function ProductDetailsText({
   details,
@@ -12,66 +12,56 @@ function ProductDetailsText({
   details: string;
   product: ProductInterface;
 }) {
-  let { lang } = useParams();
-  // @ts-ignore
-  let languageVariable = lang.split("-")[1];
-  const translate = (key, lang?) => {
-    return translateFunction(key, languageVariable);
-  };
+  const { lang } = useParams();
   const searchParams = useSearchParams();
   const dispatch = useDispatch();
-  useEffect(() => {
-    if (searchParams.get("color"))
-      dispatch({
-        type: "SET-ACTIVE-COLOR-DETAILS",
-        payload: product.sync_color_images?.filter(
-          (s) => s.color_name === searchParams.get("color")
-        )[0],
-      });
-  }, []);
+  // @ts-ignore
+  const languageVariable = lang?.split("-")[1];
+  const translate = useMemo(
+    () => (key: string) => translateFunction(key, languageVariable),
+    [languageVariable]
+  );
+
+  const isLongText = details?.length > 95;
   const [show, setShow] = useState(false);
+
   useEffect(() => {
-    if (details) {
-      encode_utf8({
-        element: document.querySelectorAll(`.product-details-text #details`),
-        s: details.substring(0, 95) + "...",
-      });
+    const color = searchParams.get("color");
+    if (color) {
+      const selectedColor = product.sync_color_images?.find(
+        (s) => s.color_name === color
+      );
+      if (selectedColor) {
+        dispatch({ type: "SET-ACTIVE-COLOR-DETAILS", payload: selectedColor });
+      }
     }
-  }, []);
+  }, [searchParams, dispatch, product.sync_color_images]);
+
+  const toggleText = () => {
+    const newShowState = !show;
+    setShow(newShowState);
+    Sendevent({
+      event: "button_clicked",
+      value: newShowState ? "read_more_button" : "read_less_button",
+    });
+  };
+
   return (
     <div className="product-details-text">
-      <div id="details" className="have-arabic"></div>
-      {!show ? (
-        <span
-          className="read-more"
-          onClick={() => {
-            Sendevent({ event: "button_clicked", value: "read_more_button" });
-            setShow(true);
-            encode_utf8({
-              element: document.querySelectorAll(
-                `.product-details-text #details`
-              ),
-              s: details,
-            });
-          }}
-        >
-          {translate("Read More")}{" "}
-        </span>
-      ) : (
-        <span
-          className="read-more"
-          onClick={() => {
-            Sendevent({ event: "button_clicked", value: "read_less_button" });
-            setShow(false);
-            encode_utf8({
-              element: document.querySelectorAll(
-                `.product-details-text #details`
-              ),
-              s: details.substring(0, 95) + "...",
-            });
-          }}
-        >
-          {translate("Read Less")}{" "}
+      <div
+        id="details"
+        className="have-arabic"
+        dangerouslySetInnerHTML={{
+          __html: show
+            ? details
+            : details
+            ? details?.substring(0, 95) + "..."
+            : "",
+        }}
+      />
+      {isLongText && (
+        <span className="read-more" onClick={toggleText}>
+          {translate(show ? "Read Less" : "Read More")}
         </span>
       )}
     </div>

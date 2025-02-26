@@ -849,6 +849,7 @@ declare global {
     cart: {
       orderLoading: boolean;
       payIframeURL: "string";
+      total_discount: number;
       openPayIframe: boolean;
       cart: Array<any>;
       center: any;
@@ -885,6 +886,7 @@ declare global {
         }>;
       };
       orderData: {
+        data: any;
         order_group_id?: any;
         agree: boolean;
         payment: Array<{

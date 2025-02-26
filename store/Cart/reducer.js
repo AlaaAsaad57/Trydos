@@ -1,3 +1,17 @@
+"use client";
+import { allCountries } from "country-telephone-data";
+const getCountry = () => {
+  const countryParam =
+    typeof window !== "undefined" &&
+    window.location.pathname.split("/")[1].split("-")[0];
+  if (countryParam) {
+    let country = {
+      name: allCountries.filter((s) => s.iso2 === countryParam)[0]?.name,
+      code: countryParam,
+    };
+    return country;
+  }
+};
 const initialState = {
   orderLoading: false,
   cart: [],
@@ -5,7 +19,7 @@ const initialState = {
   center: null,
   addressDetails: {
     location: { latitude: null, longitude: null },
-    Country: { name: "Turkey", code: "TR" },
+    Country: getCountry(),
 
     address_detail: "",
     address: "",
@@ -86,12 +100,6 @@ const openCart = (val) => {
 
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
-    case "ORDER-SUCCESS": {
-      return {
-        ...state,
-        orderData: { ...state.orderData, orderPaylod: payload },
-      };
-    }
     case "CRYPTO_CARD_PAYMENT": {
       return {
         ...state,
@@ -135,6 +143,14 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         center: payload,
       };
     }
+    case "ORDER-SUCCESS": {
+      return {
+        ...state,
+        orderData: { ...state.orderData, ...payload },
+        cart: [],
+        localCart: [],
+      };
+    }
     case "ORDER-DATA": {
       return {
         ...state,
@@ -162,7 +178,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         ...state,
         addressDetails: {
           location: { latitude: null, longitude: null },
-          Country: { name: "Turkey", code: "TR" },
+          Country: getCountry(),
           address_detail: "",
           address: "",
           contact_info: {
@@ -204,7 +220,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
 
       return {
         ...state,
-        addressDetails: temp,
+        addressDetails: { ...temp, Country: getCountry() },
       };
     }
     case "UPDATE-ADDRESS": {
@@ -347,13 +363,17 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           ...state,
           SelectedProduct: {
             ...state.SelectedProduct,
-            current_stock: state.SelectedProduct.current_stock - 1,
+            current_stock:
+              state.SelectedProduct.current_stock === 0
+                ? 0
+                : state.SelectedProduct.current_stock - 1,
           },
         };
       } else {
         let arr = [];
         state.SelectedProduct.variation.map((s) => {
-          if (s.type === payload) arr.push({ ...s, qty: s.qty - 1 });
+          if (s.type === payload)
+            arr.push({ ...s, qty: s.qty === 0 ? 0 : s.qty - 1 });
           else arr.push(s);
         });
         return {
@@ -385,6 +405,12 @@ export const CartReducer = (state = initialState, { type, payload }) => {
             }${s.choices?.length > 0 ? `-${s.choices[0].choice_1}` : ""}`,
           })),
         ],
+      };
+    }
+    case "CART-OREVIEW": {
+      return {
+        ...state,
+        ...payload,
       };
     }
     case "REMOVE-FROM-CART": {

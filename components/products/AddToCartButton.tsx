@@ -13,6 +13,7 @@ import ChatService from "services/chat";
 import Spinner from "components/global/Spinner";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 import { useParams } from "next/navigation";
+import { TumblrShareCount } from "node_modules/react-share/dist";
 function AddToCartButton({
   setOption,
   product,
@@ -133,7 +134,7 @@ function AddToCartButton({
         payload: getSelectedVariantofProduct(),
       });
   };
-  const NotifyAction = () => {
+  const NotifyAction = async () => {
     if (true) {
       Sendevent({ event: "button_clicked", value: "notify_me_button" });
       setNotify();
@@ -145,10 +146,11 @@ function AddToCartButton({
         //     });
         // }
       });
-      auth.NotifyForProducts({
+      await auth.NotifyForProducts({
         id: product?.id,
         variant: getSelectedVariantofProduct(),
       });
+      await home.GetFireBaseSettings();
     }
   };
   const isNotified = () => {
@@ -373,137 +375,132 @@ function AddToCartButton({
           type: "AddToCartOptionEnable",
         });
       } else {
-        {
-          Sendevent({
-            event: "button_clicked",
-            value: "add_product_to_bag_button",
-          });
-          dispatch({ type: "LOADED-CART", payload: false });
-          AddToCartAction({ quantity: 1 });
-          try {
-            await home.AddToCart({
-              slug: product.slug_en_topic,
-              alreadyExist: isAlreayAdded({
-                sku: `${product?.id}${
-                  AddToCartOption?.selectedColor?.color_name
-                    ? `-${AddToCartOption?.selectedColor?.color_name}`
-                    : product.colors?.length > 0
-                    ? `-${product.colors[0]?.name}`
-                    : ""
-                }${
-                  AddToCartOption?.selectedSize?.name
-                    ? `-${AddToCartOption?.selectedSize?.name}`
-                    : ""
-                }`,
-              }),
-              callback: ({ id }) => {
-                try {
-                  let elem = document.querySelector(".add-cart-button");
+        Sendevent({
+          event: "button_clicked",
+          value: "add_product_to_bag_button",
+        });
+        dispatch({ type: "LOADED-CART", payload: false });
+        AddToCartAction({ quantity: 1 });
+        try {
+          await home.AddToCart({
+            slug: product.slug_en_topic,
+            alreadyExist: isAlreayAdded({
+              sku: `${product?.id}${
+                AddToCartOption?.selectedColor?.color_name
+                  ? `-${AddToCartOption?.selectedColor?.color_name}`
+                  : product.colors?.length > 0
+                  ? `-${product.colors[0]?.name}`
+                  : ""
+              }${
+                AddToCartOption?.selectedSize?.name
+                  ? `-${AddToCartOption?.selectedSize?.name}`
+                  : ""
+              }`,
+            }),
+            callback: ({ id }) => {
+              try {
+                let elem = document.querySelector(".add-cart-button");
 
-                  setTimeout(() => {
-                    if (elem) elem?.classList.add("success-add");
-                  }, 200);
-                  Sendevent({
-                    event: "button_clicked",
-                    value: "added_product_to_bag_event",
+                setTimeout(() => {
+                  if (elem) elem?.classList.add("success-add");
+                }, 200);
+                Sendevent({
+                  event: "button_clicked",
+                  value: "added_product_to_bag_event",
+                });
+
+                setTimeout(() => {
+                  elem.classList.remove("success-add");
+                  dispatch({
+                    type: "ADD-PRODUCT-TO-CART",
+                    payload: {
+                      id: product?.id,
+                      item_id: id,
+                      color: product?.colors
+                        ? product?.colors.filter(
+                            (s) =>
+                              s?.name ===
+                              AddToCartOption?.selectedColor?.color_name
+                          )[0]?.color
+                        : null,
+                      image: product?.sync_color_images
+                        ? product?.sync_color_images.filter(
+                            (s) =>
+                              s.color_name ===
+                              AddToCartOption?.selectedColor?.color_name
+                          )[0].images[0]?.file_path ??
+                          product?.sync_color_images.filter(
+                            (s) =>
+                              s.color_name ===
+                              AddToCartOption?.selectedColor?.color_name
+                          )[0].images[0]
+                        : product?.images[0]?.file_path ?? product?.images[0],
+                      quantity: AddToCartOption?.quantity || 1,
+                      size: AddToCartOption?.selectedSize?.name ?? null,
+                      sku: `${product?.id}${
+                        AddToCartOption?.selectedColor?.color_name
+                          ? `-${AddToCartOption?.selectedColor?.color_name}`
+                          : product.colors?.length > 0
+                          ? `-${product.colors[0]?.name}`
+                          : ""
+                      }${
+                        AddToCartOption?.selectedSize?.name
+                          ? `-${AddToCartOption?.selectedSize?.name}`
+                          : ""
+                      }`,
+                      UID: `${product?.id}${AddToCartOption?.selectedColor?.color_name}${AddToCartOption?.selectedSize?.name}`,
+                    },
                   });
-
-                  setTimeout(() => {
-                    elem.classList.remove("success-add");
-                    dispatch({
-                      type: "ADD-PRODUCT-TO-CART",
-                      payload: {
-                        id: product?.id,
-                        item_id: id,
-                        color: product?.colors
-                          ? product?.colors.filter(
-                              (s) =>
-                                s?.name ===
-                                AddToCartOption?.selectedColor?.color_name
-                            )[0]?.color
-                          : null,
-                        image: product?.sync_color_images
-                          ? product?.sync_color_images.filter(
-                              (s) =>
-                                s.color_name ===
-                                AddToCartOption?.selectedColor?.color_name
-                            )[0].images[0]?.file_path ??
-                            product?.sync_color_images.filter(
-                              (s) =>
-                                s.color_name ===
-                                AddToCartOption?.selectedColor?.color_name
-                            )[0].images[0]
-                          : product?.images[0]?.file_path ?? product?.images[0],
-                        quantity: AddToCartOption?.quantity || 1,
-                        size: AddToCartOption?.selectedSize?.name ?? null,
-                        sku: `${product?.id}${
-                          AddToCartOption?.selectedColor?.color_name
-                            ? `-${AddToCartOption?.selectedColor?.color_name}`
-                            : product.colors?.length > 0
-                            ? `-${product.colors[0]?.name}`
-                            : ""
-                        }${
-                          AddToCartOption?.selectedSize?.name
-                            ? `-${AddToCartOption?.selectedSize?.name}`
-                            : ""
-                        }`,
-                        UID: `${product?.id}${AddToCartOption?.selectedColor?.color_name}${AddToCartOption?.selectedSize?.name}`,
-                      },
-                    });
-                    // setOption("AddToCart");
-                  }, 1200);
-                } catch (e) {
-                  console.log(e);
-                }
-              },
-              errCallback: () => {
-                setOption("");
-              },
-              id: product?.id,
-              color:
-                product?.colors?.length === 1
-                  ? product?.colors[0].color
-                  : product?.colors
-                  ? product?.colors.filter(
-                      (s) =>
-                        s.name === AddToCartOption?.selectedColor?.color_name
-                    )[0]?.color
-                  : null,
-              image: product?.sync_color_images
-                ? product?.sync_color_images.filter(
-                    (s) =>
-                      s.color_name ===
-                      AddToCartOption?.selectedColor?.color_name
-                  )[0].images[0]?.file_path ??
-                  product?.sync_color_images.filter(
-                    (s) =>
-                      s.color_name ===
-                      AddToCartOption?.selectedColor?.color_name
-                  )[0].images[0]
-                : product?.images[0]?.file_path ?? product?.images[0],
-              quantity: getQuantityForAdd({
-                sku: `${product?.id}${
-                  AddToCartOption?.selectedColor?.color_name
-                    ? `-${AddToCartOption?.selectedColor?.color_name}`
-                    : product.colors?.length > 0
-                    ? `-${product.colors[0]?.name}`
-                    : ""
-                }${
-                  AddToCartOption?.selectedSize?.name
-                    ? `-${AddToCartOption?.selectedSize?.name}`
-                    : ""
-                }`,
-              }),
-              size: AddToCartOption?.selectedSize?.name ?? null,
-            });
-            console.log("HIHSIHSIHI");
-            dispatch({
-              type: "EDIT-QTY",
-              payload: getSelectedVariantofProduct(),
-            });
-          } catch (error) {
-            console.log(error);
-          }
+                  // setOption("AddToCart");
+                }, 1200);
+              } catch (e) {
+                console.log(e);
+              }
+            },
+            errCallback: () => {
+              setOption("");
+            },
+            id: product?.id,
+            color:
+              product?.colors?.length === 1
+                ? product?.colors[0].color
+                : product?.colors
+                ? product?.colors.filter(
+                    (s) => s.name === AddToCartOption?.selectedColor?.color_name
+                  )[0]?.color
+                : null,
+            image: product?.sync_color_images
+              ? product?.sync_color_images.filter(
+                  (s) =>
+                    s.color_name === AddToCartOption?.selectedColor?.color_name
+                )[0].images[0]?.file_path ??
+                product?.sync_color_images.filter(
+                  (s) =>
+                    s.color_name === AddToCartOption?.selectedColor?.color_name
+                )[0].images[0]
+              : product?.images[0]?.file_path ?? product?.images[0],
+            quantity: getQuantityForAdd({
+              sku: `${product?.id}${
+                AddToCartOption?.selectedColor?.color_name
+                  ? `-${AddToCartOption?.selectedColor?.color_name}`
+                  : product.colors?.length > 0
+                  ? `-${product.colors[0]?.name}`
+                  : ""
+              }${
+                AddToCartOption?.selectedSize?.name
+                  ? `-${AddToCartOption?.selectedSize?.name}`
+                  : ""
+              }`,
+            }),
+            size: AddToCartOption?.selectedSize?.name ?? null,
+          });
+          dispatch({
+            type: "EDIT-QTY",
+            payload: getSelectedVariantofProduct(),
+          });
+        } catch (error) {
+          dispatch({ type: "LOADED-CART", payload: TumblrShareCount });
+          console.log(error);
         }
       }
     }

@@ -13,7 +13,7 @@ import {
 } from "react-share";
 
 import { ProductInterface } from "models/product";
-import { getUserChat, Sendevent } from "utils/functions";
+import { getUser, getUserChat, Sendevent } from "utils/functions";
 import { AxiosPost } from "utils/AxiosApi";
 function ShareOptions({
   setShareContacts,
@@ -47,6 +47,7 @@ function ShareOptions({
     dispatch({ type: "SHARE-SOCIAL" });
   };
   const contacts = useSelector((state: StateInterface) => state.chat.contacts);
+  const user = useSelector((state: StateInterface) => state.auth.user);
   return (
     <div className="share-options">
       <div className={`share-avatar`} data-cy="Facebook">
@@ -102,6 +103,7 @@ function ShareOptions({
         <div className="share-name">WhatsApp</div>
       </div>
       {getUserChat() &&
+        user &&
         contacts
           .filter((s) => s.contact_user_id)
           .map((key, i) => (

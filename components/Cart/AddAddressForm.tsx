@@ -13,7 +13,7 @@ import TargetIcon from "public/svg/cart/Target.svg";
 import ContactInfoIcon from "public/svg/cart/ContactInfoIcon.svg";
 import { useDispatch, useSelector } from "react-redux";
 import order from "services/order";
-import { IpDataApi } from "models/Api";
+
 function AddAddressForm({
   setAddressDetails,
   slidePrev,
@@ -541,7 +541,7 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
   let country = lang.split("-")[0];
   country = {
     name: allCountries.filter((s) => s.iso2 === country)[0]?.name,
-    iso: country,
+    code: country,
   };
   return (
     <div

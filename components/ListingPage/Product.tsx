@@ -1,5 +1,6 @@
 import React, { useReducer } from "react";
 import ImageSlider from "./ImageSlider";
+import { stopProgress } from "next-nprogress-bar";
 
 import BuyButton from "./BuyButton";
 import NextLink from "components/global/NextLink";
@@ -14,6 +15,7 @@ const PriceLabel = dynamic(() => import("./PriceLabel"), {
 import ColorSlider from "./ColorSlider";
 import TopSlider from "./TopSlider";
 import { useParams } from "next/navigation";
+import { dispatchRouteChangeEvent } from "utils/events";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
@@ -106,16 +108,7 @@ function Product({
   const currency = useSelector(
     (state: StateInterface) => state.homepage.currency
   ) || { exchange_rate: 1 };
-  const getPrice = (num) => {
-    return RoundPrice({
-      num: num,
-      rate: currency?.exchange_rate || 1,
-      points:
-        (decimal_point_settings &&
-          decimal_point_settings["starting-setting"]?.decimal_point_settings) ||
-        0,
-    });
-  };
+
   return (
     <div className="max-h-[362px]" data-cy="countProduct">
       <NextLink
@@ -131,6 +124,8 @@ function Product({
             /* @ts-ignore*/
             e.target.closest(".buy-button")
           ) {
+            stopProgress(true);
+            dispatchRouteChangeEvent("completed");
             return false;
           } else {
             Sendevent({
@@ -324,19 +319,24 @@ function Product({
         </div>
         <div className="product-footer w-100 flex-row align-center max-h-[30px]">
           <PriceLabel
-            offer_price={getPrice(product?.offer_price)}
-            price_formatted={getPrice(product.price)}
+            offer_price={product?.offer_price}
+            price_formatted={product.price}
           />
           <BuyButton
             buy={(e) => {
               // @ts-ignore
 
+              stopProgress(true);
               addToCart();
               setTimeout(() => {
                 if (document.querySelector("#nprogress"))
-                  // @ts-ignore
-                  document.querySelector("#nprogress").style.opacity = "0";
-              }, 1000);
+                  document.querySelector(
+                    "#nprogress"
+                    // @ts-ignore
+                  ).style.opacity = "0";
+                dispatchRouteChangeEvent("completed");
+                stopProgress(true);
+              }, 2000);
             }}
           />
         </div>

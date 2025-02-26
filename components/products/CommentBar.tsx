@@ -15,7 +15,6 @@ function CommentBar({
   verifyCommentAction,
 }) {
   const addCommentAction = (s) => {
-    console.log(s);
     setComments([{ ...s, is_verfied: false }, ...CommentsData]);
     setTimeout(() => {
       document.querySelector(".comments-extended").scrollTop = 0;

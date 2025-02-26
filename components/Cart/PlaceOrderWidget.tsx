@@ -1,5 +1,9 @@
 import { useSelector } from "node_modules/react-redux/es";
-import { getConfiguredImage, RoundPrice, translateFunction } from "utils/functions";
+import {
+  getConfiguredImage,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import OrderCartIcon from "public/svg/cart/orderCartIcon.svg";
 import FreeShippingIcon from "public/svg/product/FreeShipping.svg";
 import WalletIcon from "assets/svg/cart/WalletIcon.svg";
@@ -18,9 +22,12 @@ import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
 import OrderSuccess from "./OrderSuccess";
 import { useParams } from "node_modules/next/navigation";
 function PlaceOrderWidget() {
+  const orderData = useSelector(
+    (state: StateInterface) => state.cart.orderData
+  );
   return (
     <div className="flex-col overflow-auto pb-[292px] max-h-[100vh]">
-      <OrderSuccess />
+      {orderData.success && <OrderSuccess />}
       <OrderCartItem />
       <AddressOrder />
       <PaymentOrder />
@@ -32,6 +39,9 @@ export default PlaceOrderWidget;
 
 const OrderCartItem = () => {
   const items = useSelector((state: StateInterface) => state.cart.cart);
+  const orders = useSelector(
+    (state: StateInterface) => state.cart.orderData?.data
+  );
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
@@ -48,7 +58,7 @@ const OrderCartItem = () => {
         <div className="regular text-[#1D1D1D] text-[14px] ml-2">
           {translateFunction("Your Shopping Bag", language)}
           <span className={language === "ar" ? "mr-1 bold" : "ml-1 bold"}>
-            {items.length}
+            {items.length || orders.length}
             <span className={"ml-1"}>
               {translateFunction("items", language)}
             </span>
@@ -58,26 +68,47 @@ const OrderCartItem = () => {
       <div
         className={`${`pl-[11px] pb-[12px] pt-[11px] `} transition flex-row `}
       >
-        {items.map((s, i) => {
-          return (
-            <div className="flex relative h-[125px]" key={i}>
-              <span
-                className="absolute w-[91px] h-full z-10 rounded-[15px]"
-                style={{
-                  boxShadow: "#ffffff80 0px 3px 6px inset",
-                }}
-              />
-              <img
-                className="w-[91px] h-[125px] rounded-[15px]"
-                src={getConfiguredImage({
-                  src: s.image,
-                  width: 91,
-                  height: 150,
-                })}
-              />
-            </div>
-          );
-        })}
+        {items.length
+          ? items.map((s, i) => {
+              return (
+                <div className="flex relative h-[125px]" key={i}>
+                  <span
+                    className="absolute w-[91px] h-full z-10 rounded-[15px]"
+                    style={{
+                      boxShadow: "#ffffff80 0px 3px 6px inset",
+                    }}
+                  />
+                  <img
+                    className="w-[91px] h-[125px] rounded-[15px]"
+                    src={getConfiguredImage({
+                      src: s.image,
+                      width: 91,
+                      height: 150,
+                    })}
+                  />
+                </div>
+              );
+            })
+          : orders.map((s, i) => {
+              return (
+                <div className="flex relative h-[125px]" key={i}>
+                  <span
+                    className="absolute w-[91px] h-full z-10 rounded-[15px]"
+                    style={{
+                      boxShadow: "#ffffff80 0px 3px 6px inset",
+                    }}
+                  />
+                  <img
+                    className="w-[91px] h-[125px] rounded-[15px]"
+                    src={getConfiguredImage({
+                      src: s?.details[0].product_details?.images[0],
+                      width: 91,
+                      height: 150,
+                    })}
+                  />
+                </div>
+              );
+            })}
       </div>
     </div>
   );
@@ -219,10 +250,11 @@ const AddressOrder = () => {
         style={{
           border: "#C4C2C28c 1px solid",
         }}
-        className={`flex-col  ${addressLists?.length === 0
-          ? "items-center h-[84px]   py-[12px]"
-          : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
-          } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
+        className={`flex-col  ${
+          addressLists?.length === 0
+            ? "items-center h-[84px]   py-[12px]"
+            : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
+        } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
       >
         <>
           <div className="flex-col">
@@ -497,7 +529,7 @@ const CODInput = () => {
           {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: total })}  {currency_symbol?.symbol}
+          {RoundPrice({ num: total })} {currency_symbol?.symbol}
         </span>
       </div>
     </div>
@@ -505,6 +537,9 @@ const CODInput = () => {
 };
 const TryDosWalletInput = () => {
   const wallet = useSelector((state: StateInterface) => state.cart.wallet);
+  const currency_symbol = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  );
   return (
     <div
       className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
@@ -523,7 +558,8 @@ const TryDosWalletInput = () => {
           {translateFunction("Your Balance")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: wallet?.total_wallet_balance })}
+          {RoundPrice({ num: wallet?.total_wallet_balance })}{" "}
+          {currency_symbol?.symbol}
         </span>
       </div>
     </div>

@@ -9,7 +9,10 @@ import "react-toastify/dist/ReactToastify.min.css";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/scss/main.scss";
 import { useEffect, useState } from "react";
-import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
+import {
+  AppProgressBar as ProgressBar,
+  stopProgress,
+} from "next-nprogress-bar";
 import CartProvider from "components/Cart/CartProvider";
 import Smartlook from "smartlook-client";
 import { useParams, useSearchParams } from "next/navigation";

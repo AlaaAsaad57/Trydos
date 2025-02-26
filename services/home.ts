@@ -81,7 +81,7 @@ class HomeService {
           });
         },
       });
-      await getOldCart();
+      // await getOldCart();
       if (typeof window !== "undefined") {
         _isStoreLastJson() &&
           localStorage.setItem("LAST_JSON", JSON.stringify(repo));
@@ -132,7 +132,11 @@ class HomeService {
     if (response.status === 500 || response.status === 422) {
       toast.error("Customer Info Error");
     }
-    if (response.status === 302 || response.status === 401) {
+    if (
+      response.status === 302 ||
+      response.status === 401 ||
+      response.status === 403
+    ) {
       if (getUser()) {
         await ExpiredUser();
       } else {
@@ -531,6 +535,7 @@ class HomeService {
         categories: repo.data.categories,
         boutiques: repo.data.boutiques,
         total_size: repo.data.total_size,
+        products: repo.data.products,
       });
     } catch (error) {
       console.log(error);
@@ -621,27 +626,12 @@ class HomeService {
         store.dispatch({ type: "LOADED-CART", payload: true });
         return;
       }
-
-      let fbtoken = localStorage.getItem("FB-DEVICE-TOKEN");
-
       store.dispatch({ type: "LOADED-CART", payload: true });
       if (res?.id_cart) {
         callback({ id: res?.id_cart });
-        // await this.subscribeToTopic({
-        //   topic: `product_hurry_up_quantity_${res?.id_cart}`,
-        // });
-        // await this.subscribeToTopic({
-        //   topic: `product_hurry_up_time_left_${res?.id_cart}`,
-        // });
         await this.subscribeToTopic({
           topic: `product_availability_${id}`,
         });
-        // await this.subscribeToTopic({
-        //   topic: `product_discount_${id}`,
-        // });
-        // await this.subscribeToTopic({
-        //   topic: `product_comment_${id}`,
-        // });
       } else {
         errCallback();
         // store.dispatch({ type: "AddToCartOptionDisable", payload: true });

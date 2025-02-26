@@ -43,7 +43,9 @@ function PhoneInput({
     return translateFunction(key, languageVariable);
   };
   useEffect(() => {
-    document.querySelector<HTMLInputElement>(".login-phone-input")?.focus();
+    document
+      .querySelector<HTMLInputElement>(".login-phone-input")
+      ?.focus({ preventScroll: true });
   }, []);
 
   const [active, setActive] = useState(false);
@@ -139,9 +141,7 @@ function PhoneInput({
     }
   }, [isKeyboardOpen]);
   useEffect(() => {
-    console.log(inputValue);
     if (inputValue) {
-      console.log(inputValue);
       // @ts-ignore
       ref.current.value = inputValue;
     }
