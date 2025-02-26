@@ -188,7 +188,7 @@ const SearchLocations = ({ closeSelect }) => {
         <DebounceInput
           minLength={2}
           onChange={(e) => {
-            searchAction(e.target.value);
+            if (e.target.value.length > 0) searchAction(e.target.value);
           }}
           onInput={(e) => {}}
           placeholder={translateFunction(

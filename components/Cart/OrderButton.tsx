@@ -323,8 +323,7 @@ function OrderButton({ close, toOrders }) {
 
                   <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#A28E5B]">
                     {RoundPrice({
-                      num:
-                        cart.total_discount_on_product + cart.coupon_discount,
+                      num: cart.total_discount,
                     })}{" "}
                     {currency_symbol.symbol}
                   </span>
@@ -398,7 +397,7 @@ function OrderButton({ close, toOrders }) {
               <span className="flex-row justify-center items-center ml-[5px] bold  text-[16px] pr-[13px] text-[#1D1D1D]">
                 <span className="line-through regular mr-2">
                   {RoundPrice({
-                    num: cart.total_cash + cart.total_discount_on_product,
+                    num: cart.total_cash + cart.total_discount,
                   })}
                 </span>{" "}
                 {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}
