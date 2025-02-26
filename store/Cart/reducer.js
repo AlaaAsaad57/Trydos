@@ -411,6 +411,8 @@ export const CartReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         ...payload,
+        cart: state.cart,
+        localCart: state.localCart,
       };
     }
     case "REMOVE-FROM-CART": {
