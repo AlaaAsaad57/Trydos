@@ -44,7 +44,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
       onTouchEnd={(e) => handleEnd()}
       onMouseMove={(e) => handleMove(e)}
     >
-      {boutique?.childCategoriesForProductIds.map((product, index) => {
+      {boutique?.mainCategoriesForProductIds.map((product, index) => {
         if (index < 7) {
           if (product?.most_viewed_product_thumbnail.file_path)
             return (

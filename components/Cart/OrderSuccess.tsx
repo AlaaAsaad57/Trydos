@@ -7,8 +7,9 @@ function OrderSuccess() {
   );
   return (
     <div
-      className={`transition-all justify-center items-center flex-col ${orderData.success ? "min-h-[300px]" : "h-0 overflow-hidden"
-        }`}
+      className={`transition-all justify-center items-center flex-col ${
+        orderData.success ? "min-h-[300px]" : "h-0 overflow-hidden"
+      }`}
     >
       <OrderSuccessIcon />
       <span className="regular text-[14px] text-[#1d1d1d] mt-[11px]">
@@ -18,7 +19,7 @@ function OrderSuccess() {
         {translateFunction("Your Order Number")}
       </span>
       <span className="bold text-[20px] text-[#404040] mt-[6px]">
-        TTISA{orderData?.data[0]?.order_group_id}
+        {orderData?.data[0]?.order_group_id}
       </span>
       <div className="flex-row mt-[11px] items-center">
         <svg
