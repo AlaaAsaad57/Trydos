@@ -143,7 +143,7 @@ Cypress.Commands.add("performLogin", (s?: string) => {
   cy.get("[data-testid=login-close-icon]").click({
     scrollBehavior: false,
   });
-  cy.get("@login", { timeout: 10000 }).then((alias) => {
+  cy.get("@login", { timeout: 5000 }).then((alias) => {
     if (alias) {
       cy.wait("@login").then((interception) => {
         cy.log("✅ login request arrived");
@@ -154,10 +154,9 @@ Cypress.Commands.add("performLogin", (s?: string) => {
       console.warn("login request did not arrive");
     }
   });
-  cy.wait(5000).then(() => {
+  cy.wait(500).then(() => {
     cy.log(`Count is: ${count}`);
     console.log("Count is" + count);
-    // expect(count).to.be.greaterThan(0);
   });
 });
 Cypress.Commands.add("performErrorLogin", () => {

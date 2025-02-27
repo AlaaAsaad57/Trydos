@@ -9,7 +9,7 @@ describe("Should Open The Boutique Page & Move From It To A Product Page From Th
     cy.log("✅✅ Boutiues Founded & Loaded In Main Page");
   });
   it("Should Select Any Boutique & Click On", () => {
-    cy.clickElementForce(".offer-widget:nth-child(6)");
+    cy.clickElementForce(".offer-widget:nth-child(1)");
     cy.log("✅✅ An Boutique Selected & Click");
     cy.get("[data-cy=boutiqueOpen]", { timeout: 20000 });
     cy.log("✅✅ The Boutique's Components Were Successfully Displayed");
@@ -210,22 +210,18 @@ describe("Should Open last Story", () => {
     cy.log("✅✅ Stories Icon Displayed");
     cy.get("[data-cy=Story]").last().click({ force: true });
     cy.log("✅✅ The Last Story Opened");
-    cy.get(".story-holder").should("be.visible").first().as("story");
-    cy.get("@story").then(($el) => {
-      const rect = $el[0].getBoundingClientRect(); // Get position & size
-      cy.wrap($el)
-        .trigger("mousedown", {
-          clientX: rect.x + rect.width / 2,
-          clientY: rect.y - 10,
-          force: true,
-        })
-        .trigger("mousemove", {
-          clientX: rect.x + rect.width / 2,
-          clientY: rect.y + rect.height + 10,
-          force: true,
-        })
-        .trigger("mouseup", { force: true });
-      cy.wait(10000);
+    cy.get(".story-holder").should("be.visible").last();
+    cy.Exist1(".story-holder").then((s) => {
+      if (s) {
+        cy.get(".story-holder").realSwipe("toBottom", {
+          length: 500,
+        });
+      }
+    });
+    cy.Exist1(".story-holder").then((s) => {
+      if (!s) {
+        cy.log("Stories Closed Successfully");
+      }
     });
   });
 });
@@ -376,71 +372,54 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
     cy.get("[data-cy=CountOfLoves]")
       .invoke("text")
       .then((text) => {
-        countLovesBeforePutLove = parseInt(text);
+        countLovesBeforePutLove = parseInt(text) || 0;
         cy.log(`count Loves Before Put Love Is: ${countLovesBeforePutLove}`);
       });
   });
   it("Should Verify Count Of Loves Increased", () => {
+    cy.intercept(
+      "POST",
+      "**/market-under-dev-backend.trydos.dev/api/new_v1/product_likes/store"
+    ).as("Like");
     cy.clickElementForce("[data-cy=LoveSymbol]");
     cy.log("✅✅ Love Symbol Button Clicked");
+    cy.wait("@Like").then((interception) => {
+      cy.log("✅✅ Like request arrived");
+    });
     cy.get("[data-cy=CountOfLoves]")
       .invoke("text")
       .then((text) => {
-        countLovesAfterPutLove = parseInt(text);
+        countLovesAfterPutLove = parseInt(text) || 0;
         cy.log(`count Loves Before Put Love Is: ${countLovesAfterPutLove}`);
         expect(countLovesAfterPutLove).to.be.greaterThan(
           countLovesBeforePutLove
         );
       });
   });
-  it("Should Waiting The Request Accured", () => {
-    cy.intercept(
-      "POST",
-      "**/market-under-dev-backend.trydos.dev/api/new_v1/product_likes/store"
-    ).as("Like");
-    cy.get('[data-cy="LoveSymbol"]').should("be.visible");
-    cy.log("✅✅ Love Symbol Button Exists");
-    cy.get("@Like", { timeout: 10000 }).then((alias) => {
-      if (alias) {
-        cy.wait("@Like", { timeout: 10000 }).then((interception) => {
-          cy.log("✅✅ Like request arrived");
-        });
-      } else {
-        cy.log("❌❌ Like request did not arrive");
-      }
-    });
-  });
   it("Should Do DesLike", () => {
-    cy.clickElementForce("[data-cy=LoveSymbol]");
-    cy.log("✅✅ Love Symbol Button Clicked To Do Deslike");
-    cy.get("[data-cy=CountOfLoves]")
-      .invoke("text")
-      .then((text) => {
-        countLovesAfterPutLove1 = parseInt(text);
-        cy.log(`count Loves Before Put Love Is: ${countLovesAfterPutLove1}`);
-        expect(countLovesAfterPutLove1).to.be.eq(countLovesAfterPutLove - 1);
-      });
-  });
-  it("Should Waiting The Request Accured", () => {
     cy.intercept(
       "POST",
       "**/market-under-dev-backend.trydos.dev/api/new_v1/product_likes/delete"
     ).as("DeleteLike");
-    cy.get("@DeleteLike", { timeout: 10000 }).then((alias) => {
-      if (alias) {
-        cy.wait("@DeleteLike", { timeout: 10000 }).then((interception) => {
-          cy.log("✅✅ DesLike request arrived");
-        });
-      } else {
-        cy.log("❌❌ DesLike request did not arrive");
-      }
+    cy.clickElementForce("[data-cy=LoveSymbol]");
+    cy.log("✅✅ Love Symbol Button Clicked To Do Deslike");
+    cy.wait("@DeleteLike").then((interception) => {
+      cy.log("✅✅ DesLike request arrived");
     });
+    cy.get("[data-cy=CountOfLoves]")
+      .invoke("text")
+      .then((text) => {
+        countLovesAfterPutLove1 = parseInt(text) || 0;
+        cy.log(`count Loves Before Put Love Is: ${countLovesAfterPutLove1}`);
+        expect(countLovesAfterPutLove1).to.be.eq(countLovesAfterPutLove - 1);
+      });
   });
 });
 // *************************************fivteen*********************************************
 describe("Should Type Comment In Comment Section", () => {
   let CountOfCommentPrevisually: number = 0;
-  let count1 = 0;
+  let CountOfCommentAfterComment: number = 0;
+  let count1: number = 0;
   let AddedOk: number = 0;
   it("Should Click On Comment Icon", () => {
     cy.get('[data-cy="CommentIcon"]')
@@ -456,7 +435,7 @@ describe("Should Type Comment In Comment Section", () => {
         cy.get("[data-cy=CountOfComment]")
           .invoke("text")
           .then((text) => {
-            CountOfCommentPrevisually = parseInt(text);
+            CountOfCommentPrevisually = parseInt(text) || 0;
             cy.log(`There Couunt Of Comments Is: ${CountOfCommentPrevisually}`);
           });
       } else {
@@ -494,6 +473,7 @@ describe("Should Type Comment In Comment Section", () => {
           .then((count) => {
             cy.log(`✅✅ The Couunt Of Comments Is: ${count}`);
             count1 = count;
+            expect(CountOfCommentPrevisually).to.be.eq(count1);
           });
       } else {
         cy.log("❌❌ No Comment Just Now");
@@ -501,30 +481,36 @@ describe("Should Type Comment In Comment Section", () => {
     });
   });
   it("should allow users to submit a new comment", () => {
-    cy.get('[data-cy="CommentField"]').type("This is a test comment");
-    cy.log("✅✅ Comment Input Visible % Write A Comment");
-    cy.get('[data-cy="SubmitComment"]').click({ force: true });
-    cy.log("✅✅ Click On Comment Submit");
-    cy.get(".comment-text")
-      .eq(0)
-      .should("contain.text", "This is a test comment");
-    cy.log("✅✅ Test Comment Added To List Comment");
-    expect(CountOfCommentPrevisually).to.be.eq(count1);
-    AddedOk++;
-    cy.log(`AddedOk value: ${AddedOk}`);
-  });
-  it("Should Waiting The Request Accured", () => {
     cy.intercept(
       "POST",
       "**/market-under-dev-backend.trydos.dev/api/new_v1/customer/product_comment"
     ).as("Comment");
-    cy.get("@Comment", { timeout: 10000 }).then((alias) => {
-      if (alias) {
-        cy.wait("@Comment", { timeout: 10000 }).then((interception) => {
-          cy.log("✅✅ Comment request arrived");
-        });
-      } else {
-        cy.log("❌❌ Comment request did not arrive");
+    cy.get('[data-cy="CommentField"]').type("This is a test comment");
+    cy.log("✅✅ Comment Input Visible % Write A Comment");
+    cy.get('[data-cy="SubmitComment"]').click({ force: true });
+    cy.log("✅✅ Click On Comment Submit");
+    cy.wait("@Comment").then((interception) => {
+      cy.log("✅✅ Comment request arrived");
+    });
+    cy.get(".comment-text")
+      .eq(0)
+      .should("contain.text", "This is a test comment");
+    cy.log("✅✅ Test Comment Added To List Comment");
+    AddedOk++;
+    cy.log(`AddedOk value: ${AddedOk}`);
+  });
+  it("should Get Count Of Comments After Add Comment", () => {
+    cy.Exist1("[data-cy=CountOfComment]").then((exist) => {
+      if (exist) {
+        cy.get("[data-cy=CountOfComment]")
+          .invoke("text")
+          .then((text) => {
+            CountOfCommentAfterComment = parseInt(text) || 0;
+            cy.log(
+              `There Couunt Of Comments Is: ${CountOfCommentAfterComment}`
+            );
+            expect(CountOfCommentAfterComment).to.be.eq(count1 + 1);
+          });
       }
     });
   });
@@ -581,13 +567,13 @@ describe("Should Type Share In Share Section", () => {
   });
   // **********************
   it("should Get Count Of Shares Founded Previsually", () => {
-    cy.Exist1("[data-cy=CountOfComment]").then((exist) => {
+    cy.Exist1("[data-cy=CountOfShares]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=CountOfShares]").should("be.visible");
         cy.get("[data-cy=CountOfShares]")
           .invoke("text")
           .then((text) => {
-            CountOfSharesPrevisually = parseInt(text);
+            CountOfSharesPrevisually = parseInt(text) || 0;
             cy.log(`There Couunt Of Comments Is: ${CountOfSharesPrevisually}`);
           });
       } else {
@@ -633,14 +619,17 @@ describe("Should Type Share In Share Section", () => {
       "POST",
       "**/chating-staging-trydos.trydos.dev/api/v2/elastic/share_product_on_apps"
     ).as("whatsappShare");
-    cy.wait("@whatsappShare").its("response.statusCode").should("eq", 200);
+    cy.wait("@whatsappShare", { timeout: 10000 })
+      .its("response.statusCode")
+      .should("eq", 200);
   });
   it("should Get Count Of Shares After Share", () => {
     cy.get("[data-cy=CountOfShares]").should("be.visible");
+    cy.Exist1;
     cy.get("[data-cy=CountOfShares]")
       .invoke("text")
       .then((text) => {
-        CountOfSharesLastly = parseInt(text);
+        CountOfSharesLastly = parseInt(text) || 0;
         cy.log(`There Couunt Of Comments Is: ${CountOfSharesLastly}`);
         expect(CountOfSharesLastly).to.be.eq(CountOfSharesPrevisually + 1);
       });
@@ -661,14 +650,16 @@ describe("Should Type Share In Share Section", () => {
       "POST",
       "**/chating-staging-trydos.trydos.dev/api/v2/elastic/share_product_on_apps"
     ).as("TwitterShare");
-    cy.wait("@TwitterShare").its("response.statusCode").should("eq", 200);
+    cy.wait("@TwitterShare", { timeout: 10000 })
+      .its("response.statusCode")
+      .should("eq", 200);
   });
   it("should Get Count Of Shares After Share", () => {
     cy.get("[data-cy=CountOfShares]").should("be.visible");
     cy.get("[data-cy=CountOfShares]")
       .invoke("text")
       .then((text) => {
-        CountOfSharesLastly1 = parseInt(text);
+        CountOfSharesLastly1 = parseInt(text) || 0;
         cy.log(`There Couunt Of Comments Is: ${CountOfSharesLastly1}`);
         expect(CountOfSharesLastly1).to.be.eq(CountOfSharesLastly + 1);
       });
@@ -689,14 +680,16 @@ describe("Should Type Share In Share Section", () => {
       "POST",
       "**/chating-staging-trydos.trydos.dev/api/v2/elastic/share_product_on_apps"
     ).as("FacebookShare");
-    cy.wait("@FacebookShare").its("response.statusCode").should("eq", 200);
+    cy.wait("@FacebookShare", { timeout: 10000 })
+      .its("response.statusCode")
+      .should("eq", 200);
   });
   it("should Get Count Of Shares After Share", () => {
     cy.get("[data-cy=CountOfShares]").should("be.visible");
     cy.get("[data-cy=CountOfShares]")
       .invoke("text")
       .then((text) => {
-        CountOfSharesLastly2 = parseInt(text);
+        CountOfSharesLastly2 = parseInt(text) || 0;
         cy.log(`There Couunt Of Comments Is: ${CountOfSharesLastly2}`);
         expect(CountOfSharesLastly2).to.be.eq(CountOfSharesLastly1 + 1);
       });
@@ -722,6 +715,7 @@ describe("Should Do Login & Add Comment & Extract User Name", () => {
 });
 describe("Should Type Comment In Comment Section After Login & Verify The Comment Add As User Name", () => {
   let CountOfCommentPrevisuallyAfterLogin: number = 0;
+  let CountOfCommentAfterLoginAndComment: number = 0;
   let count11: number = 0;
   let AddedOk: number = 0;
   it("Should Click On Comment Icon", () => {
@@ -732,21 +726,15 @@ describe("Should Type Comment In Comment Section After Login & Verify The Commen
   });
   // **********************
   it("should Get Count Of Comments Founded Previsually", () => {
-    cy.Exist1("[data-cy=CountOfComment]").then((exist) => {
-      if (exist) {
-        cy.get("[data-cy=CountOfComment]").should("be.visible");
-        cy.get("[data-cy=CountOfComment]")
-          .invoke("text")
-          .then((text) => {
-            CountOfCommentPrevisuallyAfterLogin = parseInt(text);
-            cy.log(
-              `There Couunt Of Comments Is: ${CountOfCommentPrevisuallyAfterLogin}`
-            );
-          });
-      } else {
-        cy.log("❌❌ No Comment Just Now");
-      }
-    });
+    cy.get("[data-cy=CountOfComment]").should("be.visible");
+    cy.get("[data-cy=CountOfComment]")
+      .invoke("text")
+      .then((text) => {
+        CountOfCommentPrevisuallyAfterLogin = parseInt(text) || 0;
+        cy.log(
+          `There Couunt Of Comments Is: ${CountOfCommentPrevisuallyAfterLogin}`
+        );
+      });
   });
   it("should Check Comments", () => {
     cy.Exist1(".comment-item").then((exist) => {
@@ -754,8 +742,9 @@ describe("Should Type Comment In Comment Section After Login & Verify The Commen
         cy.get(".comment-item")
           .its("length")
           .then((count) => {
-            cy.log(`✅✅ There Couunt Of Comments After Login Is: ${count}`);
             count11 = count;
+            cy.log(`✅✅ There Couunt Of Comments After Login Is: ${count11}`);
+            expect(CountOfCommentPrevisuallyAfterLogin).to.be.eq(count11);
           });
       } else {
         cy.log("❌❌ No Comment Just Now");
@@ -763,32 +752,38 @@ describe("Should Type Comment In Comment Section After Login & Verify The Commen
     });
   });
   it("should allow users to submit a new comment", () => {
+    cy.intercept(
+      "POST",
+      "**/market-under-dev-backend.trydos.dev/api/new_v1/customer/product_comment"
+    ).as("Comment");
     cy.get('[data-cy="CommentField"]').type(
       "This is a test comment after login"
     );
     cy.log("✅✅ Comment Input Visible % Write A Comment");
     cy.get('[data-cy="SubmitComment"]').click({ force: true });
     cy.log("✅✅ Click On Comment Submit");
+    cy.wait("@Comment").then((interception) => {
+      cy.log("✅✅ Comment request arrived");
+    });
     cy.get(".comment-text")
       .eq(0)
       .should("contain.text", "This is a test comment after login");
     cy.log("✅✅ Test Comment Added To List Comment");
-    expect(CountOfCommentPrevisuallyAfterLogin).to.be.eq(count11);
     AddedOk++;
     cy.log(`AddedOk value: ${AddedOk}`);
   });
-  it("Should Waiting The Request Accured", () => {
-    cy.intercept(
-      "POST",
-      "**/market-under-dev-backend.trydos.dev/api/new_v1/customer/product_comment"
-    ).as("Comment");
-    cy.get("@Comment", { timeout: 10000 }).then((alias) => {
-      if (alias) {
-        cy.wait("@Comment", { timeout: 10000 }).then((interception) => {
-          cy.log("✅✅ Comment request arrived");
-        });
-      } else {
-        cy.log("❌❌ Comment request did not arrive");
+  it("should Get Count Of Comments After Add Comment", () => {
+    cy.Exist1("[data-cy=CountOfComment]").then((exist) => {
+      if (exist) {
+        cy.get("[data-cy=CountOfComment]")
+          .invoke("text")
+          .then((text) => {
+            CountOfCommentAfterLoginAndComment = parseInt(text) || 0;
+            cy.log(
+              `There Couunt Of Comments Is: ${CountOfCommentAfterLoginAndComment}`
+            );
+            expect(CountOfCommentAfterLoginAndComment).to.be.eq(count11 + 1);
+          });
       }
     });
   });
