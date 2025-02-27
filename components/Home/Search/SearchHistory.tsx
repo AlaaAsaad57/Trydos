@@ -143,10 +143,28 @@ function SearchHistory({ options, setOptions }) {
               key={index}
               className="option-row-search flex-row"
               onClick={(e) => {
-                if (s.isSelected === false) {
-                  let arr = [...options];
-                  arr[index] = { ...s, isSelected: true };
-                  setOptions(arr);
+                // @ts-ignore
+                if (!e.target.closest(".close-icon-container")) {
+                  dispatch({
+                    type: "SEARCH-PARTIAL-LOADING",
+                    payload: true,
+                  });
+                  dispatch({ type: "SEARCH-LOADING", payload: true });
+                  home.UpdateFilters({
+                    search_text: s || "",
+                    callback: (e) => {
+                      setLoading(false);
+                      dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+                    },
+                  });
+                  home.SearchProducts({
+                    search_text: s,
+                    searchFilters: searchFilters,
+                    callback: (e) => {
+                      dispatch({ type: "FIND-PRODUCTS", payload: e });
+                    },
+                  });
+                  setOptions(s);
                 }
               }}
             >
@@ -155,7 +173,14 @@ function SearchHistory({ options, setOptions }) {
                 <div
                   className="close-icon-container"
                   onClick={() => {
-                    setOptions(s);
+                    let arr = localStorage.getItem("search-history");
+
+                    localStorage.setItem(
+                      "search-history",
+                      JSON.stringify(
+                        JSON.parse(arr).filter((item) => item !== s)
+                      )
+                    );
                   }}
                 >
                   <CloseIconOption />

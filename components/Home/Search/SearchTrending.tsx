@@ -2,9 +2,12 @@ import React, { useEffect, useState } from "react";
 import SearchTrendingicon from "public/svg/SearchTrendingicon.svg";
 import CloseIconOption from "public/svg/CloseIconOption.svg";
 import SearchMiniIcon from "public/svg/SearchMiniIcon.svg";
+import { useDispatch, useSelector } from "node_modules/react-redux/es";
+import home from "services/home";
 
-function SearchTrending({ options, setOptions }) {
+function SearchTrending() {
   const [openMenu, setOpen] = useState(false);
+  const options = useSelector((state: StateInterface) => state.Search.trending);
   useEffect(() => {
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector(
@@ -37,6 +40,13 @@ function SearchTrending({ options, setOptions }) {
       });
     }
   }, []);
+  const dispatch = useDispatch();
+  const setLoading = (e) => {
+    dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: e });
+  };
+  const searchFilters = useSelector(
+    (state: StateInterface) => state.Search.searchFilters
+  );
   return (
     <div
       className={` ${
@@ -60,42 +70,44 @@ function SearchTrending({ options, setOptions }) {
               key={index}
               className="search-filter-option"
               onClick={(e) => {
-                if (s.isSelected === false) {
-                  let arr = [...options];
-                  arr[index].isSelected = true;
-                  setOptions(arr);
-                }
+                dispatch({
+                  type: "SEARCH-PARTIAL-LOADING",
+                  payload: true,
+                });
+                dispatch({ type: "SEARCH-LOADING", payload: true });
+                home.UpdateFilters({
+                  search_text: s || "",
+                  callback: (e) => {
+                    setLoading(false);
+                    dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+                  },
+                });
+                home.SearchProducts({
+                  search_text: s,
+                  searchFilters: searchFilters,
+                  callback: (e) => {
+                    dispatch({ type: "FIND-PRODUCTS", payload: e });
+                  },
+                });
               }}
             >
-              {s.name}{" "}
-              {s.isSelected && (
+              {s.name}
+              {/* {s.isSelected && (
                 <div
                   className="close-icon-container"
                   onClick={() => {
-                    let arr = [...options];
-                    arr[index] = { ...s, isSelected: false };
-                    setOptions(arr);
+
                   }}
                 >
                   <CloseIconOption />
                 </div>
-              )}
+              )} */}
             </div>
           ))}
         </div>
       )}
       {openMenu && (
-        <span
-          className="clear-options-button"
-          onClick={(e) => {
-            let arr = [...options];
-            arr.map((s) => {
-              s.isSelected = false;
-            });
-            setOptions(arr);
-          }}
-        >
-          {" "}
+        <span className="clear-options-button" onClick={(e) => {}}>
           Clear All
         </span>
       )}
@@ -106,15 +118,29 @@ function SearchTrending({ options, setOptions }) {
               key={index}
               className="option-row-search flex-row"
               onClick={(e) => {
-                if (s.isSelected === false) {
-                  let arr = [...options];
-                  arr[index].isSelected = true;
-                  setOptions(arr);
-                }
+                dispatch({
+                  type: "SEARCH-PARTIAL-LOADING",
+                  payload: true,
+                });
+                dispatch({ type: "SEARCH-LOADING", payload: true });
+                home.UpdateFilters({
+                  search_text: s || "",
+                  callback: (e) => {
+                    setLoading(false);
+                    dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+                  },
+                });
+                home.SearchProducts({
+                  search_text: s,
+                  searchFilters: searchFilters,
+                  callback: (e) => {
+                    dispatch({ type: "FIND-PRODUCTS", payload: e });
+                  },
+                });
               }}
             >
               {s.name}{" "}
-              {s.isSelected && (
+              {/* {s.isSelected && (
                 <div
                   className="close-icon-container"
                   onClick={() => {
@@ -125,7 +151,7 @@ function SearchTrending({ options, setOptions }) {
                 >
                   <CloseIconOption />
                 </div>
-              )}
+              )} */}
               <div className="flex-row trend-count">
                 <span>{s.count}</span>
                 <SearchMiniIcon />

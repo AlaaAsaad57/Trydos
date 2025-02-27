@@ -43,7 +43,6 @@ function SearchComponent({
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.value.length === 0) {
       e.preventDefault();
-      clearSuggestion();
     }
 
     dispatch({ type: "SEARCH-WORD", payload: e.target.value });
@@ -56,13 +55,6 @@ function SearchComponent({
         dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
       },
     });
-    // home.SearchProducts({
-    //   search_text: e.target.value,
-    //   searchFilters: searchFilters,
-    //   callback: (e) => {
-    //     dispatch({ type: "FIND-PRODUCTS", payload: e || [] });
-    //   },
-    // });
   };
   const onInput = (e) => {
     let suggestion = document.querySelector<HTMLDivElement>(".predicted-word");
@@ -99,7 +91,7 @@ function SearchComponent({
     }
   };
   const searchParams = useSearchParams();
-  const params = new URLSearchParams(searchParams);
+
   const { lang } = useParams();
   const router = useRouter();
   const handleSearch = (data) => {
@@ -155,10 +147,7 @@ function SearchComponent({
     } else {
     }
   };
-  const clearSuggestion = () => {
-    // @ts-ignore
-    // let suggestion = (document.querySelector(".predicted-word").innerText = "");
-  };
+
   const setLoading = (e) => {
     dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: e });
   };
