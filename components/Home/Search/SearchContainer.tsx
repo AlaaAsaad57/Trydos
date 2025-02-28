@@ -37,7 +37,7 @@ function SearchContainer({ active }) {
       type: "SEARCH-RESULTS",
       payload: { categories, brands, boutiques },
     });
-    // await search.getTrendingSearch();
+    await search.getTrendingSearch();
   };
   useEffect(() => {
     getSearchData();
@@ -59,6 +59,9 @@ function SearchContainer({ active }) {
             options={searchHistoryItems}
             setOptions={(e) => {
               dispatch({ type: "SEARCH-WORD", payload: e });
+            }}
+            deleteOption={(e) => {
+              setSearchHistory(searchHistoryItems.filter((s) => s !== e));
             }}
           />
           <SearchTrending />

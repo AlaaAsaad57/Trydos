@@ -641,16 +641,17 @@ export const CartReducer = (state = initialState, { type, payload }) => {
     }
     case "AddToCartSize": {
       if ((state.variants?.variation || state.variants || [])?.length > 0) {
-        let variant = (
-          state.variants?.variation ||
-          state.variants ||
-          []
-        ).filter(
-          (s) =>
-            s.type.includes(
-              state?.AddToCartOption?.selectedColor?.color_name || ""
-            ) && s.type.includes(payload?.name || "")
-        )[0];
+        let variant = (state.variants?.variation || state.variants || [])
+          .map((s) => {
+            if (s.type.includes("-")) return s;
+            else return { ...s, type: `-${s.type}` };
+          })
+          .filter(
+            (s) =>
+              s.type.includes(
+                state?.AddToCartOption?.selectedColor?.color_name || ""
+              ) && s.type.endsWith(`-${payload?.name}` || "")
+          )[0];
         return {
           ...state,
           AddToCartOption: {

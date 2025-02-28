@@ -805,6 +805,7 @@ export const getCart = async ({ callback }) => {
     title: "Cart Request",
   });
   callback([data, {}]);
+  return data;
 };
 export const GetCartOreview = async () => {
   let data = await AxiosGet({
@@ -868,7 +869,7 @@ export const AddToCartAnimation = () => {
       },
     ],
     {
-      duration: 2000,
+      duration: 1200,
       fill: "forwards",
     }
   );

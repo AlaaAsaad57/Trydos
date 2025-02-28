@@ -39,6 +39,7 @@ function Story({
             e.currentTarget.src = errorPNG;
             e.currentTarget.onerror = null;
           }}
+          unoptimized
           src={getThumb(
             media.full_video_path || media.photo_path,
             media.full_video_path

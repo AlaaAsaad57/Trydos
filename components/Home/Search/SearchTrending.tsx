@@ -70,20 +70,21 @@ function SearchTrending() {
               key={index}
               className="search-filter-option"
               onClick={(e) => {
+                dispatch({ type: "SEARCH-WORD", payload: s.term });
                 dispatch({
                   type: "SEARCH-PARTIAL-LOADING",
                   payload: true,
                 });
                 dispatch({ type: "SEARCH-LOADING", payload: true });
                 home.UpdateFilters({
-                  search_text: s || "",
+                  search_text: s.term || "",
                   callback: (e) => {
                     setLoading(false);
                     dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
                   },
                 });
                 home.SearchProducts({
-                  search_text: s,
+                  search_text: s.term,
                   searchFilters: searchFilters,
                   callback: (e) => {
                     dispatch({ type: "FIND-PRODUCTS", payload: e });
@@ -91,7 +92,7 @@ function SearchTrending() {
                 });
               }}
             >
-              {s.name}
+              {s.term}
               {/* {s.isSelected && (
                 <div
                   className="close-icon-container"
@@ -107,7 +108,29 @@ function SearchTrending() {
         </div>
       )}
       {openMenu && (
-        <span className="clear-options-button" onClick={(e) => {}}>
+        <span
+          className="clear-options-button"
+          onClick={(e) => {
+            setLoading(true);
+            dispatch({ type: "SEARCH-WORD", payload: "" });
+
+            dispatch({ type: "FIND-PRODUCTS", payload: [] });
+            home.UpdateFilters({
+              search_text: "",
+              callback: (e) => {
+                setLoading(false);
+                dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+              },
+            });
+            home.SearchProducts({
+              search_text: "",
+              searchFilters: searchFilters,
+              callback: (e) => {
+                dispatch({ type: "FIND-PRODUCTS", payload: e });
+              },
+            });
+          }}
+        >
           Clear All
         </span>
       )}
@@ -118,20 +141,21 @@ function SearchTrending() {
               key={index}
               className="option-row-search flex-row"
               onClick={(e) => {
+                dispatch({ type: "SEARCH-WORD", payload: s.term });
                 dispatch({
                   type: "SEARCH-PARTIAL-LOADING",
                   payload: true,
                 });
                 dispatch({ type: "SEARCH-LOADING", payload: true });
                 home.UpdateFilters({
-                  search_text: s || "",
+                  search_text: s.term || "",
                   callback: (e) => {
                     setLoading(false);
                     dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
                   },
                 });
                 home.SearchProducts({
-                  search_text: s,
+                  search_text: s.term,
                   searchFilters: searchFilters,
                   callback: (e) => {
                     dispatch({ type: "FIND-PRODUCTS", payload: e });
@@ -139,7 +163,7 @@ function SearchTrending() {
                 });
               }}
             >
-              {s.name}{" "}
+              {s.term}{" "}
               {/* {s.isSelected && (
                 <div
                   className="close-icon-container"

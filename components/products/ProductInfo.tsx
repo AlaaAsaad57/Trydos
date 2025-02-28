@@ -39,7 +39,16 @@ function ProductInfo({
         <div className="product-new-price">
           {newPrice ?? <Skeleton width={30} height={10} />}
         </div>
-        <div className="product-currency">{currency}</div>
+        <div className="product-currency">
+          {currency ?? (
+            <Skeleton
+              containerClassName="flex items-center"
+              className="flex items-center"
+              width={20}
+              height={10}
+            />
+          )}
+        </div>
         <div className="info-icon">
           <svg
             xmlns="http://www.w3.org/2000/svg"

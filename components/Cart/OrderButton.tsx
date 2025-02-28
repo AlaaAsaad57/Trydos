@@ -144,19 +144,13 @@ function OrderButton({ close, toOrders }) {
   const GoToOrders = async (bool?) => {
     try {
       setLoading(true);
-      await getCart({
-        callback: ([data, res]) => {
-          dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
-        },
-      });
-      // check availableity
-      let a = await AxiosGet({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-          "/cart/check_availability_product_cart",
-        title: "Check Product Availablity",
-      });
-
+      let a = (
+        await getCart({
+          callback: ([data, res]) => {
+            dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+          },
+        })
+      ).cart.filter((s) => s.check_availability === false);
       if (a?.length === 0) {
         setTimeout(() => {
           if (user || bool) toOrders();

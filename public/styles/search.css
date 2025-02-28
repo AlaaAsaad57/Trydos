@@ -211,7 +211,7 @@
   align-items: center;
 }
 .option-row-search .close-icon-container {
-  right: -4px !important;
+  right: 5px !important;
 }
 .option-row-search:not(:first-child) {
   margin-top: 5px;

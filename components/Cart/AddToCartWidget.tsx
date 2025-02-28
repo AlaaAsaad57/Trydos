@@ -2,7 +2,12 @@ import SelectSize from "components/products/SelectSize";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { getConfiguredImage, getLang, Sendevent } from "utils/functions";
+import {
+  getConfiguredImage,
+  getLang,
+  RoundPrice,
+  Sendevent,
+} from "utils/functions";
 import Cookies from "js-cookie";
 import AddToCartButton from "components/products/AddToCartButton";
 
@@ -23,6 +28,7 @@ import {
 import { ToastContainer } from "react-toastify";
 import { AxiosGet } from "utils/AxiosApi";
 import { QuantityDetailsProductApi } from "models/Api";
+import ProductInfo from "components/products/ProductInfo";
 
 function AddToCartWidget() {
   const dispatch = useDispatch();
@@ -80,9 +86,30 @@ function AddToCartWidget() {
   useEffect(() => {
     getDetails();
   }, []);
+  const decimal_point_settings = useSelector(
+    (state: StateInterface) => state.homepage.settings
+  );
   const AddToCartOption = useSelector(
     (state: StateInterface) => state.cart.AddToCartOption
   );
+  const currency = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  );
+  const getPrice = (num) => {
+    if (currency?.exchange_rate === null || !currency?.exchange_rate)
+      return null;
+    if (
+      decimal_point_settings &&
+      Object.keys(decimal_point_settings).includes("starting-setting")
+    )
+      return RoundPrice({
+        num: num,
+        rate: currency?.exchange_rate,
+        points:
+          decimal_point_settings["starting-setting"]?.decimal_point_settings ||
+          0,
+      });
+  };
   return (
     <div className="flex-col h-full w-[100vw] flex top-0 left-0 fixed z-[99999999999999999] justify-start ">
       {AddToCartOption.enable && (
@@ -101,6 +128,19 @@ function AddToCartWidget() {
         }}
       />
       <div className="product-details-footer z-[9999] min-h-[100px] h-auto">
+        <ProductInfo
+          currency={currency?.symbol}
+          newPrice={
+            AddToCartOption.price?.offer_price
+              ? getPrice(AddToCartOption?.price?.offer_price)
+              : getPrice(product?.offer_price)
+          }
+          oldPrice={
+            AddToCartOption.price?.price
+              ? getPrice(AddToCartOption?.price?.price)
+              : getPrice(product.price)
+          }
+        />
         {SelectedProduct.choice_options && SelectedProduct?.variation ? (
           <div className="Extended-area-product">
             <svg

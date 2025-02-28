@@ -93,6 +93,12 @@ const ListingReducer = (state = initialState, { type, payload }) => {
         offset: 1,
       };
     }
+    case "RESET-END": {
+      return {
+        ...state,
+        isReachEnd: false,
+      };
+    }
     default:
       return state;
   }

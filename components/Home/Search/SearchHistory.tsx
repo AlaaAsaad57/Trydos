@@ -4,7 +4,7 @@ import CloseIconOption from "public/svg/CloseIconOption.svg";
 import home from "services/home";
 import { useDispatch, useSelector } from "react-redux";
 
-function SearchHistory({ options, setOptions }) {
+function SearchHistory({ options, setOptions, deleteOption }) {
   const [openMenu, setOpen] = useState(false);
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -113,6 +113,7 @@ function SearchHistory({ options, setOptions }) {
                             JSON.parse(arr).filter((item) => item !== s)
                           )
                         );
+                        deleteOption(s);
                       }}
                     >
                       <CloseIconOption />
@@ -181,6 +182,8 @@ function SearchHistory({ options, setOptions }) {
                         JSON.parse(arr).filter((item) => item !== s)
                       )
                     );
+                    setOpen(false);
+                    setOpen(true);
                   }}
                 >
                   <CloseIconOption />

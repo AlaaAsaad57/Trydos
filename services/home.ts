@@ -491,6 +491,7 @@ class HomeService {
     }
   }
   async UpdateFilters({ search_text, callback }) {
+    store.dispatch({ type: "RESET-END" });
     let searchFilters = store.getState().Search.searchFilters;
     let params = "";
     let urlParams = new URLSearchParams(params);
