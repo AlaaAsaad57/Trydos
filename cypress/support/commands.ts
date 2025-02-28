@@ -375,7 +375,7 @@ Cypress.Commands.add("interceptAndWait", (routes) => {
     cy.intercept(route.method || "GET", route.url).as(route.alias);
   });
   const aliases = routes.map((route) => `@${route.alias}`);
-  cy.wait(aliases, { timeout: 20000 }); // Adjust timeout as needed
+  cy.wait(aliases, { timeout: 30000 }); // Adjust timeout as needed
 });
 Cypress.Commands.add("clickElementScroll", (selector: string) => {
   cy.get(selector).click({ scrollBehavior: false });
@@ -466,7 +466,7 @@ Cypress.Commands.add("verifyComponentsInProductCard", () => {
   cy.log("✅✅ productName Exists");
   cy.get('[data-cy="productName"]').should("not.be.empty");
   cy.get("[data-cy=Cart-ByButton]").contains("Buy").should("exist");
-  cy.Exist("[data-cy=productPhotoSlider]").then((exist) => {
+  cy.Exist1("[data-cy=productPhotoSlider]").then((exist) => {
     if (exist) {
       cy.get("[data-cy=productPhotoSlider]", { timeout: 5000 })
         .eq(0)

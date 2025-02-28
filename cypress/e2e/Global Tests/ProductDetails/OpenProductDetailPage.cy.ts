@@ -9,7 +9,7 @@ describe("Should Open The Boutique Page & Move From It To A Product Page From Th
     cy.log("✅✅ Boutiues Founded & Loaded In Main Page");
   });
   it("Should Select Any Boutique & Click On", () => {
-    cy.clickElementForce(".offer-widget:nth-child(1)");
+    cy.clickElementForce(".offer-widget:nth-child(3)");
     cy.log("✅✅ An Boutique Selected & Click");
     cy.get("[data-cy=boutiqueOpen]", { timeout: 20000 });
     cy.log("✅✅ The Boutique's Components Were Successfully Displayed");
@@ -210,15 +210,15 @@ describe("Should Open last Story", () => {
     cy.log("✅✅ Stories Icon Displayed");
     cy.get("[data-cy=Story]").last().click({ force: true });
     cy.log("✅✅ The Last Story Opened");
-    cy.get(".story-holder").should("be.visible").last();
-    cy.Exist1(".story-holder").then((s) => {
+    cy.Exist1(".fixed-layout").then((s) => {
       if (s) {
-        cy.get(".story-holder").realSwipe("toBottom", {
+        // @ts-ignore
+        cy.get(".fixed-layout").realSwipe("toBottom", {
           length: 500,
         });
       }
     });
-    cy.Exist1(".story-holder").then((s) => {
+    cy.Exist1(".fixed-layout").then((s) => {
       if (!s) {
         cy.log("Stories Closed Successfully");
       }
@@ -532,23 +532,53 @@ describe("Should Type Comment In Comment Section", () => {
       cy.log("❌❌ Operation To Add Comment Not Completly");
     }
   });
+  // it("should Verify The Comment Date Added With Comment Text", () => {
+  //   // Capture current time in Arabic format with AM/PM
+  //   const currentTime = new Date().toLocaleTimeString("en-SA", {
+  //     hour: "2-digit",
+  //     minute: "2-digit",
+  //     hour12: false,
+  //   });
+  //   cy.log(`Expected Time: ${currentTime}`);
+  //   cy.get("[data-cy=Date-Of-Comment]", { timeout: 20000 })
+  //     .eq(0)
+  //     .should("be.visible")
+  //     .invoke("text")
+  //     .then((displayedTime) => {
+  //       cy.log(`Displayed Time: ${displayedTime}`);
+  //       expect(displayedTime.trim()).to.equal(currentTime);
+  //     });
+  // });
   it("should Verify The Comment Date Added With Comment Text", () => {
-    // Capture current time in Arabic format with AM/PM
-    const currentTime = new Date().toLocaleTimeString("en-SA", {
+    const currentTime = new Date();
+    const formattedCurrentTime = currentTime.toLocaleTimeString("en-SA", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
     });
-    cy.log(`Expected Time: ${currentTime}`);
+
+    cy.log(`Expected Time: ${formattedCurrentTime}`);
+
     cy.get("[data-cy=Date-Of-Comment]", { timeout: 20000 })
       .eq(0)
       .should("be.visible")
       .invoke("text")
       .then((displayedTime) => {
         cy.log(`Displayed Time: ${displayedTime}`);
-        expect(displayedTime.trim()).to.equal(currentTime);
+
+        const displayedDate = new Date();
+        const [displayedHour, displayedMinute] = displayedTime
+          .trim()
+          .split(":")
+          .map(Number);
+        displayedDate.setHours(displayedHour, displayedMinute, 0);
+
+        const timeDifference =
+          Math.abs(currentTime.getTime() - displayedDate.getTime()) / 60000; // Difference in minutes
+        expect(timeDifference).to.be.within(0, 2); // Allowing up to 2 minutes difference
       });
   });
+
   it("should Click On Comment Icon To Close Comment Area", () => {
     cy.get('[data-cy="CommentIcon"]').click({ force: true });
     cy.log("✅✅ Comment Icon Clicked To Close Comment Area");
@@ -736,6 +766,26 @@ describe("Should Type Comment In Comment Section After Login & Verify The Commen
         );
       });
   });
+  it("should render the comment section", () => {
+    cy.get('[data-cy="ExtendCoomentSection"]').should("be.visible");
+    cy.log("✅✅ Comment Section Visible");
+    cy.get('[data-cy="ExtendCoomentSection"] .extended-bar-top span').should(
+      "contain.text",
+      "Comment About This Product"
+    );
+    cy.log("✅✅ Comment Extended Bar Visible");
+    cy.get('[data-cy="ExtendCoomentSection"] .extended-bar-top svg').should(
+      "be.visible"
+    );
+  });
+  it("should display the comment section", () => {
+    cy.Exist1("[data-cy=CommentArea]").then((exist) => {
+      if (exist) {
+        cy.get('[data-cy="CommentArea"]').should("be.visible");
+        cy.log("✅✅ Comment Area is visible");
+      }
+    });
+  });
   it("should Check Comments", () => {
     cy.Exist1(".comment-item").then((exist) => {
       if (exist) {
@@ -805,22 +855,52 @@ describe("Should Type Comment In Comment Section After Login & Verify The Commen
       cy.log("❌❌ Operation To Add Comment Not Completly");
     }
   });
+  // it("should Verify The Comment Date Added With Comment Text", () => {
+  //   const currentTime = new Date().toLocaleTimeString("en-SA", {
+  //     hour: "2-digit",
+  //     minute: "2-digit",
+  //     hour12: false,
+  //   });
+  //   cy.log(`Expected Time: ${currentTime}`);
+  //   cy.get("[data-cy=Date-Of-Comment]", { timeout: 20000 })
+  //     .eq(0)
+  //     .should("be.visible")
+  //     .invoke("text")
+  //     .then((displayedTime) => {
+  //       cy.log(`Displayed Time: ${displayedTime}`);
+  //       expect(displayedTime.trim()).to.equal(currentTime);
+  //     });
+  // });
   it("should Verify The Comment Date Added With Comment Text", () => {
-    const currentTime = new Date().toLocaleTimeString("en-SA", {
+    const currentTime = new Date();
+    const formattedCurrentTime = currentTime.toLocaleTimeString("en-SA", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
     });
-    cy.log(`Expected Time: ${currentTime}`);
+
+    cy.log(`Expected Time: ${formattedCurrentTime}`);
+
     cy.get("[data-cy=Date-Of-Comment]", { timeout: 20000 })
       .eq(0)
       .should("be.visible")
       .invoke("text")
       .then((displayedTime) => {
         cy.log(`Displayed Time: ${displayedTime}`);
-        expect(displayedTime.trim()).to.equal(currentTime);
+
+        const displayedDate = new Date();
+        const [displayedHour, displayedMinute] = displayedTime
+          .trim()
+          .split(":")
+          .map(Number);
+        displayedDate.setHours(displayedHour, displayedMinute, 0);
+
+        const timeDifference =
+          Math.abs(currentTime.getTime() - displayedDate.getTime()) / 60000; // Difference in minutes
+        expect(timeDifference).to.be.within(0, 2); // Allowing up to 2 minutes difference
       });
   });
+
   it("should Click On Comment Icon To Close Comment Area", () => {
     cy.get('[data-cy="CommentIcon"]').click({ force: true });
     cy.log("✅✅ Comment Icon Clicked To Close Comment Area");

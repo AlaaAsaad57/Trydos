@@ -508,7 +508,10 @@ function CartContainer({ close, toOrders }) {
                   ))}
                 </>
               ) : (
-                <div className="flex-row items-center justify-center light text-[#5d5d5d] text-[16px]">
+                <div
+                  className="flex-row items-center justify-center light text-[#5d5d5d] text-[16px]"
+                  data-cy="EmptyCRart"
+                >
                   {translate("Cart is Empty", GetAppLanguage())}
                 </div>
               )}
@@ -606,7 +609,10 @@ function CartContainer({ close, toOrders }) {
                 {translate("Hide All", GetAppLanguage())}
               </span>
             </div>
-            <div className="flex-col  w-full h-auto mt-3">
+            <div
+              className="flex-col  w-full h-auto mt-3"
+              data-cy="Product_Non_Available_In_Cart"
+            >
               {!loading ? (
                 <>
                   {oldCart?.oldCart.map((product, key) => (
