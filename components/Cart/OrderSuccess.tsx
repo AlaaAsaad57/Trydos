@@ -1,14 +1,23 @@
-import { useSelector } from "node_modules/react-redux/es";
+import { useEffect } from "react";
+import { useSelector } from "react-redux";
 import OrderSuccessIcon from "public/svg/cart/OrderSuccess.svg";
 import { translateFunction } from "utils/functions";
 function OrderSuccess() {
   const orderData = useSelector(
     (state: StateInterface) => state.cart.orderData
   );
+  useEffect(() => {
+    if (orderData.success) {
+      setTimeout(() => {
+        document.querySelector(".order-sucess").scrollIntoView();
+      }, 200);
+    }
+  }, [orderData.success]);
   return (
     <div
-      className={`transition-all justify-center items-center flex-col ${orderData.success ? "min-h-[300px]" : "h-0 overflow-hidden"
-        }`}
+      className={`transition-all justify-center  order-sucess items-center flex-col ${
+        orderData.success ? "min-h-[300px]" : "h-0 overflow-hidden"
+      }`}
     >
       <OrderSuccessIcon />
       <span className="regular text-[14px] text-[#1d1d1d] mt-[11px]">
@@ -18,7 +27,7 @@ function OrderSuccess() {
         {translateFunction("Your Order Number")}
       </span>
       <span className="bold text-[20px] text-[#404040] mt-[6px]">
-        TTISA{orderData?.data[0]?.order_group_id}
+        {orderData?.data[0]?.order_group_id}
       </span>
       <div className="flex-row mt-[11px] items-center">
         <svg

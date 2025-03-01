@@ -543,6 +543,7 @@ declare global {
     };
     Search: {
       value: string;
+      trending: any;
       searchWords: Array<any>;
       totalProducts: any;
       searchResults: {

@@ -1,6 +1,7 @@
 const initialState = {
   value: "",
   searchWords: [].sort(),
+  trending: [],
   totalProducts: null,
   searchResults: {
     products: [],
@@ -16,6 +17,12 @@ const initialState = {
 
 const SearchReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "TRENDING-SEARCH": {
+      return {
+        ...state,
+        trending: payload,
+      };
+    }
     case "SEARCH-PARTIAL-LOADING": {
       return {
         ...state,

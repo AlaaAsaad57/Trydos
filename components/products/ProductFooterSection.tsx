@@ -215,11 +215,13 @@ function ProductFooterSection({ product }) {
   );
   const currency = useSelector(
     (state: StateInterface) => state.homepage.currency
-  ) || { exchange_rate: 1, symbol: "" };
+  );
   let AddToCartOption = useSelector(
     (state: StateInterface) => state.cart.AddToCartOption
   );
   const getPrice = (num) => {
+    if (currency?.exchange_rate === null || !currency?.exchange_rate)
+      return null;
     if (
       decimal_point_settings &&
       Object.keys(decimal_point_settings).includes("starting-setting")
@@ -270,14 +272,14 @@ function ProductFooterSection({ product }) {
           <ProductInfo
             currency={currency?.symbol}
             newPrice={
-              (AddToCartOption.price?.offer_price &&
-                getPrice(AddToCartOption?.price?.offer_price)) ||
-              getPrice(product?.offer_price)
+              AddToCartOption.price?.offer_price
+                ? getPrice(AddToCartOption?.price?.offer_price)
+                : getPrice(product?.offer_price)
             }
             oldPrice={
-              (AddToCartOption.price?.price &&
-                getPrice(AddToCartOption?.price?.price)) ||
-              getPrice(product.price)
+              AddToCartOption.price?.price
+                ? getPrice(AddToCartOption?.price?.price)
+                : getPrice(product.price)
             }
           />
           {

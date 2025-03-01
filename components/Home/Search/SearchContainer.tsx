@@ -6,18 +6,11 @@ import { useDispatch, useSelector } from "react-redux";
 import SearchResults from "./SearchResults";
 import { getSearchOptions } from "utils/functions";
 import { LogData } from "store/homepage/actions";
+import search from "services/search";
 
 function SearchContainer({ active }) {
   const [searchHistoryItems, setSearchHistory] = useState([]);
-  const [searchTrendItems, setSearchTrend] = useState([
-    { name: "Mango", isSelected: false, count: 1000 },
-    { name: "Dress", isSelected: false, count: 1000 },
-    { name: "Zara", isSelected: false, count: 1000 },
-    { name: "Adiddas", isSelected: false, count: 1000 },
-    { name: "Tall Dress", isSelected: false, count: 1000 },
-    { name: "Short Dress", isSelected: false, count: 1000 },
-    { name: "T-Shirt", isSelected: false, count: 1000 },
-  ]);
+
   const mountAnim = ` 
     0% {transform:translateX(-800px)}
     100% {transform:translateX(0px)}
@@ -44,6 +37,7 @@ function SearchContainer({ active }) {
       type: "SEARCH-RESULTS",
       payload: { categories, brands, boutiques },
     });
+    await search.getTrendingSearch();
   };
   useEffect(() => {
     getSearchData();
@@ -66,11 +60,11 @@ function SearchContainer({ active }) {
             setOptions={(e) => {
               dispatch({ type: "SEARCH-WORD", payload: e });
             }}
+            deleteOption={(e) => {
+              setSearchHistory(searchHistoryItems.filter((s) => s !== e));
+            }}
           />
-          <SearchTrending
-            options={searchTrendItems}
-            setOptions={(e) => setSearchTrend([...e])}
-          />
+          <SearchTrending />
         </>
       )}
       {<SearchResults />}
