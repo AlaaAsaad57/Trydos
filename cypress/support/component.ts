@@ -53,6 +53,7 @@ declare global {
       verifyProductInCart(productName: string): Chainable<void>;
       verifyBoxsInBoutiquePage(): Chainable<void>;
       verifyComponentsInProductCard(): Chainable<void>;
+      AddProductToCart(): Chainable<void>;
     }
   }
 }

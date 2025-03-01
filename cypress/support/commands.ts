@@ -512,3 +512,44 @@ Cypress.Commands.add("verifyComponentsInProductCard", () => {
     .should("be.visible")
     .and("contain.text", "Reach End");
 });
+// ***********************************Orders******************************
+Cypress.Commands.add("AddProductToCart", () => {
+  let productName = "";
+  cy.clickElementForce(".offer-widget:nth-child(4)");
+  cy.log("✅✅ An Boutique Selected & Click");
+  cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
+  cy.log("✅✅ The Boutiue Page Opened");
+  cy.getProductNameFirstly().then((name) => {
+    productName = name;
+  });
+  cy.get("[data-cy=Cart-ByButton]").eq(0).click({ force: true });
+  cy.log("✅✅ Buy Button Clicked");
+  cy.interceptAndWait([
+    {
+      method: "GET",
+      url: "**/product/qtyPriceDetails/**",
+      alias: "getProductData1",
+    },
+    {
+      method: "GET",
+      url: "**/product/likesCommentsSharesDetails/**",
+      alias: "getProductData2",
+    },
+  ]);
+  cy.log("✅✅ getProductData1 & getProductData2 Requests Arrived");
+  cy.intercept("POST", /\/cart\/(add|update)/).as("CartRequest");
+  cy.clickElementScroll("[data-cy=AddToCartButton-data-cy]");
+  cy.wait("@CartRequest", { timeout: 10000 }).then((interception) => {
+    if (interception?.response) {
+      console.log("✅ Intercepted request addToCart");
+      expect(interception.response.statusCode).to.eq(200);
+    } else {
+      console.warn("❌❌ @CartRequest was not intercepted or has no response.");
+    }
+  });
+  cy.log(
+    "✅✅ CartRequest Request Arrived & Click On Add To Cart Button Button"
+  );
+  cy.clickElementForce("[data-cy=back_icon_boutique_page]");
+  cy.log("✅✅ Dual Back Icon Clicked & Returned To Main Page");
+});

@@ -9,7 +9,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   });
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
     cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(6)").click({
+    cy.get(".offer-widget:nth-child(1)").click({
       force: true,
     });
     cy.log("✅✅ An Boutiue selected");
@@ -145,7 +145,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   let sizeTitle = "";
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
     cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(6)").click({
+    cy.get(".offer-widget:nth-child(1)").click({
       force: true,
     });
     cy.log("✅✅ An Boutiue selected");
@@ -276,7 +276,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   let sizeTitle = "";
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
     cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(6)").click({
+    cy.get(".offer-widget:nth-child(1)").click({
       force: true,
     });
     cy.log("✅✅ An Boutiue selected");
@@ -369,7 +369,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   let sizeTitle = "";
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
     cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(4)").click({
+    cy.get(".offer-widget:nth-child(1)").click({
       force: true,
     });
     cy.log("✅✅ An Boutiue selected");
@@ -458,7 +458,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
 describe("Should Move Between Filter Groups By Scrolling Horizontally", () => {
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
     cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(6)").click({
+    cy.get(".offer-widget:nth-child(1)").click({
       force: true,
     });
     cy.log("✅✅ An Boutiue selected");
@@ -504,7 +504,7 @@ describe("Should Move Between Filter Groups By Scrolling Horizontally", () => {
 describe("Should Move Between Filter Groups By Scrolling Horizontally After Updating Count Of Filter Croup", () => {
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
     cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(6)").click({
+    cy.get(".offer-widget:nth-child(1)").click({
       force: true,
     });
     cy.log("✅✅ An Boutiue selected");
@@ -563,7 +563,7 @@ describe("Should Move Between Filter Groups By Scrolling Horizontally After Upda
 describe("Should Clicks On Search Input And Search About A Product (By Name)", () => {
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
     cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(6)").click({
+    cy.get(".offer-widget:nth-child(1)").click({
       force: true,
     });
     cy.log("✅✅ An Boutiue selected");
@@ -619,7 +619,7 @@ describe("Should Clicks On Search Input And Search About A Product (By Name)", (
 describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products By Category Or Brand Or Color Or Price", () => {
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
     cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(6)").click({
+    cy.get(".offer-widget:nth-child(1)").click({
       force: true,
     });
     cy.log("✅✅ An Boutiue selected");
@@ -803,7 +803,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
 describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products By Category & Brand & Color", () => {
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
     cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(6)").click({
+    cy.get(".offer-widget:nth-child(1)").click({
       force: true,
     });
     cy.log("✅✅ An Boutiue selected");
@@ -865,7 +865,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
 describe("Should Clicks On Settings Icon & Filter As Category || Brand || Color || Price & Reset After Any Choice", () => {
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
     cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(6)").click({
+    cy.get(".offer-widget:nth-child(1)").click({
       force: true,
     });
     cy.log("✅✅ An Boutiue selected");

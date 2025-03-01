@@ -186,7 +186,7 @@ function PhoneInput({
                     fill="#8e8e8e"
                   />
                 </svg>
-                <span>
+                <span data-cy="FieldToInputNumber">
                   {translate(
                     "Enter Your Phone Number Registered With Us",
                     language
@@ -280,7 +280,7 @@ function PhoneInput({
               style={{ minWidth: "12px", transform: "translateY(2px)" }}
             />
             <div className="text-login-desc">
-              <div className="text-login-item">
+              <div className="text-login-item" data-cy="FieldToInputNumber">
                 {translate(
                   "Enter Your Phone Number Registered With Us",
                   language
