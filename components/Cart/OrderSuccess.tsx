@@ -1,13 +1,21 @@
-import { useSelector } from "node_modules/react-redux/es";
+import { useEffect } from "react";
+import { useSelector } from "react-redux";
 import OrderSuccessIcon from "public/svg/cart/OrderSuccess.svg";
 import { translateFunction } from "utils/functions";
 function OrderSuccess() {
   const orderData = useSelector(
     (state: StateInterface) => state.cart.orderData
   );
+  useEffect(() => {
+    if (orderData.success) {
+      setTimeout(() => {
+        document.querySelector(".order-sucess").scrollIntoView();
+      }, 200);
+    }
+  }, [orderData.success]);
   return (
     <div
-      className={`transition-all justify-center items-center flex-col ${
+      className={`transition-all justify-center  order-sucess items-center flex-col ${
         orderData.success ? "min-h-[300px]" : "h-0 overflow-hidden"
       }`}
     >

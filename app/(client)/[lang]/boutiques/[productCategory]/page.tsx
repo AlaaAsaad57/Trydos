@@ -15,7 +15,7 @@ interface Props {
   searchParams: {
     categories: string;
     prices: string;
-    search_text: string;
+    searchText: string;
     brands: string;
     colors: string;
   };
@@ -34,7 +34,7 @@ export async function generateMetadata({ params, searchParams }: Props) {
     }
     if (boutiqueId === "listing") {
       return {
-        title: `Trydos - ${searchParams.search_text} `,
+        title: `Trydos - ${searchParams.searchText || "Search"} `,
         description: ``,
       };
     } else

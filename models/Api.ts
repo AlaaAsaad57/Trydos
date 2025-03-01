@@ -580,6 +580,7 @@ export interface CartApi {
     available_payment_method: Array<string>;
     cart: Array<{
       id: number;
+      check_availability: boolean;
       customer_id: number;
       cart_group_id: string;
       product_id: number;
@@ -1244,7 +1245,7 @@ export interface CustomerInfoApi {
   };
 }
 export interface FireBaseSettingsApi {
-  firebase_settings: string
+  firebase_settings: string;
 }
 export interface RegisterGuestApi {
   data: {

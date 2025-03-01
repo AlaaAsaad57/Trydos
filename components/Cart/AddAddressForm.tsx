@@ -50,12 +50,7 @@ function AddAddressForm({
   };
   const isValid = () => {
     let valid = false;
-    if (addressDetails.location.latitude && addressDetails.location.longitude) {
-      valid = true;
-    } else {
-      valid = false;
-      return;
-    }
+
     if (
       addressDetails.contact_info.contact_person_name?.length > 0 &&
       addressDetails.contact_info.phone?.length > 0

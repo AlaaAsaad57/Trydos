@@ -775,14 +775,16 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
     }
   };
   const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
   const VerifyCart = async () => {
     setLoading(true);
-    let a = await AxiosGet({
-      url:
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/cart/check_availability_product_cart",
-      title: "Check Product Availablity",
-    });
+    let a = (
+      await getCart({
+        callback: ([data, res]) => {
+          dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+        },
+      })
+    ).cart.filter((s) => s.check_availability === false);
 
     if (a?.length === 0) {
       setNext();
