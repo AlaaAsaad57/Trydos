@@ -472,7 +472,6 @@ function OrderButton({ close, toOrders }) {
                           className={`text-[#FEFEFE] text-[14px] medium ${
                             GetAppLanguage() === "ar" && "dir-rtl"
                           } `}
-                          data-cy="Number-Of-Products-Required"
                         >
                           {cart.cart.length} {translate("items")}{" "}
                           {RoundPrice({ num: cart.total_cash })}{" "}

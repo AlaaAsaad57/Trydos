@@ -821,6 +821,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
             className={`text-[#FEFEFE] text-[14px] medium ${
               GetAppLanguage() === "ar" && "dir-rtl"
             } `}
+            data-cy="Number-Of-Products-Required"
           >
             {cart.cart.length} {translateFunction("items")}{" "}
             {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}

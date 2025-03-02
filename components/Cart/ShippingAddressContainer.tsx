@@ -78,7 +78,10 @@ const CartItemSelect = ({ items }) => {
         <OrderCartIcon />
         <div className="regular text-[#1D1D1D] text-[14px] ml-2">
           {translateFunction("Your Shopping Bag", language)}
-          <span className={language === "ar" ? "mr-1 bold" : "ml-1 bold"}>
+          <span
+            className={language === "ar" ? "mr-1 bold" : "ml-1 bold"}
+            data-cy="Count-Of-Shiping"
+          >
             {items.length}
             <span className={"ml-1"}>
               {translateFunction("items", language)}
@@ -597,6 +600,7 @@ const AddAddressButton = ({ onClick }) => {
   return (
     <div
       className="flex cursor-pointer w-full justify-center h-[40px] mt-[8px] items-center bg-[#E8FFED]"
+      data-cy="AddAddres"
       style={{
         border: "1px solid rgb(196 194 194 / 51%)",
         borderRadius: "15px",

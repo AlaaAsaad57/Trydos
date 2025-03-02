@@ -30,6 +30,7 @@ declare global {
     interface Chainable {
       mount: typeof mount;
       Visit(value: string): void;
+      Visit1(value: string): void;
       Exist(selector: string): Promise<boolean>;
       Exist1(selector: string): Promise<boolean>;
       logout(): Chainable<void>;
@@ -38,6 +39,7 @@ declare global {
       enterPhoneNumber(phoneNumber: string): Chainable<void>;
       enterPhoneNumber1(phoneNumber: string): Chainable<void>;
       performLogin(s?: string): Chainable<void>;
+      performLogin1(s?: string): Chainable<void>;
       Performloginfailure(): Chainable<void>;
       performErrorLogin(): Chainable<void>;
       performExpireOtpLogin(): Chainable<void>;

@@ -69,7 +69,10 @@ function SelectRegion({ closeSelect }) {
           closeSelect();
         }}
       />
-      <div className="flex-col items-center px-[12px] bottom-0  absolute z-[999999999] rounded-t-[30px] bg-[#fff] h-[441px] w-full pt-[19px]">
+      <div
+        className="flex-col items-center px-[12px] bottom-0  absolute z-[999999999] rounded-t-[30px] bg-[#fff] h-[441px] w-full pt-[19px]"
+        data-cy="Extended-Choose-Area"
+      >
         <div className="flex-row items-center w-full justify-center">
           <TargetIcon />
           <span className="flex regular ml-[6px] text-[#1D1D1D] text-[14px]">
@@ -195,6 +198,7 @@ const SearchLocations = ({ closeSelect }) => {
             "Search Province | District | Town | Street"
           )}
           className="pl-[47px] pr-[15px] border-none outline-none flex rounded-[12px] bg-[#F8F8F8] regular text-[#1D1D1D] w-full h-[40px]"
+          data-cy="SearchProvince-District-Town-Street"
           debounceTimeout={400}
         />
       </div>
@@ -244,6 +248,7 @@ const SearchResults = ({ searchResults, closeSelect }) => {
         <div
           key={i}
           className="flex text-[#1D1D1D] min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]"
+          data-cy="Firstly-Search-Result"
           onClick={() => {
             select(s);
           }}
