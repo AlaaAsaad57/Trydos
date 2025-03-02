@@ -21,7 +21,8 @@ import order from "services/order";
 import PaymentMethod from "./PaymentMethod";
 import PlaceOrderWidget from "./PlaceOrderWidget";
 import PlaceOrderButtons from "./PlaceOrderButtons";
-import { AxiosGet } from "utils/AxiosApi";
+
+import { toast } from "react-toastify";
 
 const DeleteIcon = () => {
   return (
@@ -510,6 +511,9 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
 export default OrdersPage;
 const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
   const dispatch = useDispatch();
+  const addressLists = useSelector(
+    (state: StateInterface) => state.cart.addressLists
+  );
   const GetAddressString = (location) => {
     let str = "";
     if (
@@ -751,9 +755,12 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
     );
   };
   const isValid = () => {
+    let defaultAddress =
+      address.filter((s) => s.is_default === 1)?.length > 0 &&
+      address.filter((s) => s.is_default === 1)[0];
     if (
-      address &&
-      address[0]?.id &&
+      defaultAddress &&
+      defaultAddress?.id &&
       orderData.payment.length > 0 &&
       isBalanceEnough()
     ) {
@@ -789,6 +796,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
     if (a?.length === 0) {
       setNext();
     } else {
+      toast.error("Please Review Your Cart Some Products Not Available");
       setPrev();
     }
     setLoading(false);

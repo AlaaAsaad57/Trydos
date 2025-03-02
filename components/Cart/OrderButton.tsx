@@ -161,11 +161,7 @@ function OrderButton({ close, toOrders }) {
         }, 300);
       } else {
         setLoading(false);
-        toast.error(
-          translateFunction(
-            "Please Review Your Cart Some Products Not Available"
-          )
-        );
+        toast.error("Please Review Your Cart Some Products Not Available");
       }
     } catch (error) {
       setOption(true);
@@ -410,9 +406,7 @@ function OrderButton({ close, toOrders }) {
           }}
         >
           <div
-            className={`${
-              IsNotAvailable() && "opacity-55"
-            } cursor-pointer  flex-col w-full  ${
+            className={`cursor-pointer  flex-col w-full  ${
               option ? "h-[200px]" : "bg-[#3C3C3C] h-[70px]"
             } rounded-[20px] text-center justify-center items-center`}
             style={{
@@ -423,13 +417,10 @@ function OrderButton({ close, toOrders }) {
               if (cart.cart.length === 0) {
                 close();
               } else {
-                if (IsNotAvailable()) {
+                if (!getUser()) {
+                  setOption(true);
                 } else {
-                  if (!getUser()) {
-                    setOption(true);
-                  } else {
-                    GoToOrders();
-                  }
+                  GoToOrders();
                 }
               }
             }}

@@ -901,6 +901,7 @@ declare global {
       };
       addressLists: Array<{
         id: number;
+        is_default: number;
         location: { latitude: any; longitude: any };
         Country: { name: string; code: string };
         address_detail: string;
