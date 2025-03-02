@@ -64,11 +64,11 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                 onClick={() => {
                   order.SetDefault({ id: s.id });
                   dispatch({ type: "UPDATE-ADDRESS", payload: s });
+                  dispatch({ type: "SET-DEF-ADDRESS", payload: s.id });
                   closeSelect(false);
                 }}
                 style={{
-                  border:
-                    addressLists[0].id !== s.id ? "" : "#388bff8c 1px solid",
+                  border: s.is_default === 0 ? "" : "#388bff8c 1px solid",
                 }}
                 className={`flex-col relative  ${
                   addressLists.length === 0

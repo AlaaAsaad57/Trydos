@@ -5,7 +5,9 @@ import { GetCartOreview } from "utils/functions";
 
 class OrderService {
   async PlaceOrder({ payment_method, pay_by_wallet }) {
-    let addressId = store.getState().cart.addressLists[0]?.id;
+    let addressId = store
+      .getState()
+      .cart.addressLists.filter((s) => s.is_default === 1)[0]?.id;
     try {
       store.dispatch({ type: "ORDER-LOADING", payload: true });
       let data: PlaceOrderApi = await AxiosPost({
