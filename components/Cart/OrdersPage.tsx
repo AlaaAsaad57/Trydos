@@ -177,6 +177,17 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
           });
           setLoading(false);
         }
+        if (
+          orderData.payment.length &&
+          orderData?.payment?.filter((one) => one.id === 0).length
+        ) {
+          setLoading(true);
+          await order.PlaceOrder({
+            payment_method: "COD",
+            pay_by_wallet: true,
+          });
+          setLoading(false);
+        }
       }
     } catch (error) {
       getCart({

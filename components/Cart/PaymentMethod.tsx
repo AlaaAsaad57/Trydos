@@ -149,19 +149,43 @@ function PaymentMethod() {
                     setActive={() => {
                       if (!orderLoading) {
                         if (
-                          orderData?.payment?.filter((s) => s.id === 0).length >
-                          0
+                          orderData.payment.length === 1 &&
+                          orderData?.payment?.filter((one) => one.id === 1)
+                            .length === 1 &&
+                          orderData?.payment?.filter((one) => one.id === 1)[0]
+                            .balance < cart.total_cash
                         ) {
+                          dispatch({ type: "COD-USER", payload: true });
                           setOrderData({
-                            payment: orderData?.payment?.filter(
-                              (s) => s.id !== 0
-                            ),
+                            payment: [
+                              ...orderData.payment,
+                              {
+                                id: 0,
+                                balance:
+                                  cart.total_cash -
+                                  orderData?.payment?.filter(
+                                    (one) => one.id === 1
+                                  )[0].balance,
+                              },
+                            ],
                           });
                         } else {
-                          dispatch({ type: "COD-USER", payload: false });
-                          setOrderData({
-                            payment: [{ id: 0, balance: cart.total_cash }],
-                          });
+                          if (
+                            orderData?.payment?.filter((s) => s.id === 0)
+                              .length > 0
+                          ) {
+                            dispatch({ type: "COD-USER", payload: false });
+                            setOrderData({
+                              payment: orderData?.payment?.filter(
+                                (s) => s.id !== 0
+                              ),
+                            });
+                          } else {
+                            dispatch({ type: "COD-USER", payload: true });
+                            setOrderData({
+                              payment: [{ id: 0, balance: cart.total_cash }],
+                            });
+                          }
                         }
                       }
                     }}
@@ -213,7 +237,7 @@ function PaymentMethod() {
                               payment: [
                                 {
                                   id: 1,
-                                  balance: wallet?.total_wallet_balance,
+                                  balance: cart.total_cash,
                                 },
                               ],
                             });
