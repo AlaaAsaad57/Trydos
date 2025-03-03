@@ -56,6 +56,7 @@ declare global {
       verifyBoxsInBoutiquePage(): Chainable<void>;
       verifyComponentsInProductCard(): Chainable<void>;
       AddProductToCart(): Chainable<void>;
+      AddAdress(): Chainable<void>;
     }
   }
 }

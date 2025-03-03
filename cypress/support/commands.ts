@@ -640,3 +640,52 @@ Cypress.Commands.add("AddProductToCart", () => {
   cy.clickElementForce("[data-cy=back_icon_boutique_page]");
   cy.log("✅✅ Dual Back Icon Clicked & Returned To Main Page");
 });
+// ***********************************Orders******************************
+Cypress.Commands.add("AddAdress", () => {
+  it("Should Change Place From List", () => {
+    cy.clickElementForce("[data-cy=Change-From-List]");
+    cy.log("✅✅ Change Place From List Button Clicked");
+    cy.get("[data-cy=Extended-Choose-Area]").should("exist");
+    cy.log("✅✅ Extended Box To Choose Area Apperead");
+    cy.clickElementForce("[data-cy=SearchProvince-District-Town-Street]");
+    cy.log("✅✅ Search Province District Town Street");
+    cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Latakia");
+    cy.log("✅✅ SearchProvince-District-Town-Street Filled");
+    cy.get('[data-cy="SearchProvince-District-Town-Street"]', {
+      timeout: 10000,
+    }).should("be.visible");
+    cy.wait(5000);
+    cy.get("[data-cy=Firstly-Search-Result]").eq(0).click({ force: true });
+    cy.log("✅✅ First Option Has Been Selected");
+  });
+  it("Should Add Detailed Address & Note", () => {
+    cy.clickElementForce("[data-cy=Detailed-Address-Note]");
+    cy.log("✅✅ Click On Detailed Address & Note Field");
+    cy.get("[data-cy=Detailed-Address-Note]").type(
+      "This Is A Test Detailed Address & Note"
+    );
+    cy.log("✅✅ Detailed Address & Note Input Filled");
+  });
+  it("Should Add Address Title", () => {
+    cy.clickElementForce("[data-cy=Address-Title]");
+    cy.log("✅✅ Click On Add Address Title Field");
+    cy.get('[data-cy="Address-Title"]').type("This Is A Test Address Title");
+    cy.log("✅✅ Address Title Input Filled");
+  });
+  it("Should Add Recipient Name", () => {
+    cy.clickElementForce("[data-cy=Recipient-Name]");
+    cy.log("✅✅ Click On Recipient Name Field");
+    cy.get('[data-cy="Recipient-Name"]').type("This Is A Test Recipient Name");
+    cy.log("✅✅ Recipient Name Input Filled");
+  });
+  it("Should Add Contact Phone", () => {
+    cy.clickElementForce("[data-cy=Contact-Phone]");
+    cy.log("✅✅ Click On Contact Phone Field");
+    cy.get('[data-cy="Contact-Phone"]').type("0963937764641");
+    cy.log("✅✅ Contact Phone Input Filled");
+  });
+  it("Should Click On Add & Save Button", () => {
+    cy.clickElementForce("[data-cy=AddSaveButton]");
+    cy.log("✅✅ Add & Save Button Clicked");
+  });
+});

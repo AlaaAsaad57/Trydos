@@ -76,6 +76,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                     ? "items-center h-[84px]   py-[12px]"
                     : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
                 } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
+                data-cy="Address"
               >
                 <EditIcon
                   onClick={() => {

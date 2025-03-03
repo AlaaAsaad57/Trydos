@@ -100,6 +100,26 @@ describe("Compare Quantity", () => {
   });
 });
 describe("Should Add Address", () => {
+  it("Should Check If User Add Address Lastly", () => {
+    cy.Exist("[data-cy=Address-Added-Last]").then((exist) => {
+      if (exist) {
+        cy.clickElementForce("[data-cy=Show-Address-That-Added]");
+        cy.log("✅✅ Show Address List Button Clicked");
+        cy.get("[data-cy=Address]").each(($el, index) => {
+          cy.wrap($el).then(() => {
+            cy.get("[data-cy=Delete-Address-Icon]")
+              .eq(0)
+              .click({ force: true })
+              .then((text) => {
+                cy.log(`Delete Address Icon ${index + 1}: ${text}`);
+                cy.clickElementForce("[data-cy=Yes-Delete-Address]");
+              });
+          });
+        });
+      }
+    });
+    cy.log("✅✅ Add Addres Button Clicked");
+  });
   it("Should Click On Add Address Button", () => {
     cy.clickElementForce("[data-cy=AddAddres]");
     cy.log("✅✅ Add Addres Button Clicked");
@@ -151,4 +171,22 @@ describe("Should Add Address", () => {
     cy.log("✅✅ Add & Save Button Clicked");
   });
 });
-describe("Compare Quantity", () => {});
+describe("Check Address & Add other Address", () => {
+  it("Should Show Address List", () => {
+    cy.clickElementForce("[data-cy=Show-Address-That-Added]");
+    cy.log("✅✅ Show Address List Button Clicked");
+  });
+  it("Should Show Address Added Last", () => {
+    cy.get('[data-cy="AddressListContainer"]', {
+      timeout: 10000,
+    }).should("be.visible");
+    cy.get('[data-cy="Address"]', {
+      timeout: 10000,
+    }).should("be.visible");
+  });
+  it("Should Add Other Address", () => {
+    cy.clickElementForce("[data-cy=Add-Shipping-Address]");
+    cy.log("✅✅ Show Address List Button Clicked");
+    cy.AddAdress();
+  });
+});

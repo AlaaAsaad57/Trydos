@@ -696,6 +696,7 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
               dispatch({ type: "DELETE-ADDRESS", payload: deletedAddress.id });
             }}
             className="w-full cursor-pointer flex justify-center items-center rounded-[15px] h-[50px] bg-[#F8F8F8] bold text-[16px] text-[#FF5F61]"
+            data-cy="Yes-Delete-Address"
             style={{
               border: "#ff5f6282 1px solid",
             }}
