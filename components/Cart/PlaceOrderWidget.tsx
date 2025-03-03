@@ -70,45 +70,45 @@ const OrderCartItem = () => {
       >
         {items.length
           ? items.map((s, i) => {
-              return (
-                <div className="flex relative h-[125px]" key={i}>
-                  <span
-                    className="absolute w-[91px] h-full z-10 rounded-[15px]"
-                    style={{
-                      boxShadow: "#ffffff80 0px 3px 6px inset",
-                    }}
-                  />
-                  <img
-                    className="w-[91px] h-[125px] rounded-[15px]"
-                    src={getConfiguredImage({
-                      src: s.image,
-                      width: 91,
-                      height: 150,
-                    })}
-                  />
-                </div>
-              );
-            })
+            return (
+              <div className="flex relative h-[125px]" key={i}>
+                <span
+                  className="absolute w-[91px] h-full z-10 rounded-[15px]"
+                  style={{
+                    boxShadow: "#ffffff80 0px 3px 6px inset",
+                  }}
+                />
+                <img
+                  className="w-[91px] h-[125px] rounded-[15px]"
+                  src={getConfiguredImage({
+                    src: s.image,
+                    width: 91,
+                    height: 150,
+                  })}
+                />
+              </div>
+            );
+          })
           : orders.map((s, i) => {
-              return (
-                <div className="flex relative h-[125px]" key={i}>
-                  <span
-                    className="absolute w-[91px] h-full z-10 rounded-[15px]"
-                    style={{
-                      boxShadow: "#ffffff80 0px 3px 6px inset",
-                    }}
-                  />
-                  <img
-                    className="w-[91px] h-[125px] rounded-[15px]"
-                    src={getConfiguredImage({
-                      src: s?.details[0].product_details?.images[0],
-                      width: 91,
-                      height: 150,
-                    })}
-                  />
-                </div>
-              );
-            })}
+            return (
+              <div className="flex relative h-[125px]" key={i}>
+                <span
+                  className="absolute w-[91px] h-full z-10 rounded-[15px]"
+                  style={{
+                    boxShadow: "#ffffff80 0px 3px 6px inset",
+                  }}
+                />
+                <img
+                  className="w-[91px] h-[125px] rounded-[15px]"
+                  src={getConfiguredImage({
+                    src: s?.details[0].product_details?.images[0],
+                    width: 91,
+                    height: 150,
+                  })}
+                />
+              </div>
+            );
+          })}
       </div>
     </div>
   );
@@ -243,18 +243,17 @@ const AddressOrder = () => {
           <FreeShippingIcon />
         </span>
       </div>
-      <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
+      {/* <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
         {translateFunction("Please Enter Shipping Address To Receive Your Bag")}
-      </div>
+      </div> */}
       <div
         style={{
           border: "#C4C2C28c 1px solid",
         }}
-        className={`flex-col  ${
-          addressLists?.length === 0
-            ? "items-center h-[84px]   py-[12px]"
-            : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
-        } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
+        className={`flex-col  ${addressLists?.length === 0
+          ? "items-center h-[84px]   py-[12px]"
+          : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
+          } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
       >
         <>
           <div className="flex-col">
@@ -474,22 +473,22 @@ const PaymentOrder = () => {
             {translateFunction("Payment Method")}
           </div>
         </div>
-        <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
+        {/* <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
           {translateFunction(
             "Please Choose Your Payment Method About Your Bag"
           )}
-        </div>
+        </div> */}
         {orderData?.payment?.filter((s) => s.id === 0).length > 0 && (
-          <CODInput />
+          <CODInput total={orderData?.payment?.filter((s) => s.id === 0)[0].balance} />
         )}
         {orderData?.payment?.filter((s) => s.id === 1).length > 0 && (
-          <TryDosWalletInput />
+          <TryDosWalletInput total={orderData?.payment?.filter((s) => s.id === 1)[0].balance} />
         )}
         {orderData?.payment?.filter((s) => s.id === 2).length > 0 && (
-          <CreditInput />
+          <CreditInput total={orderData?.payment?.filter((s) => s.id === 2)[0].balance} />
         )}
         {orderData?.payment?.filter((s) => s.id === 3).length > 0 && (
-          <CryptoInput />
+          <CryptoInput total={orderData?.payment?.filter((s) => s.id === 3)[0].balance} />
         )}
       </div>
       {/* {
@@ -506,8 +505,7 @@ const PaymentOrder = () => {
     </div>
   );
 };
-const CODInput = () => {
-  const total = useSelector((state: StateInterface) => state.cart.total_cash);
+const CODInput = ({ total }) => {
   const currency_symbol = useSelector(
     (state: StateInterface) => state.homepage.currency
   );
@@ -535,8 +533,7 @@ const CODInput = () => {
     </div>
   );
 };
-const TryDosWalletInput = () => {
-  const wallet = useSelector((state: StateInterface) => state.cart.wallet);
+const TryDosWalletInput = ({ total }) => {
   const currency_symbol = useSelector(
     (state: StateInterface) => state.homepage.currency
   );
@@ -555,17 +552,17 @@ const TryDosWalletInput = () => {
       </div>
       <div className="flex-row items-center">
         <span className="text-[#D3D3D3] regular text-[12px]">
-          {translateFunction("Your Balance")}
+          {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: wallet?.total_wallet_balance })}{" "}
+          {RoundPrice({ num: total })}{" "}
           {currency_symbol?.symbol}
         </span>
       </div>
     </div>
   );
 };
-const CreditInput = () => {
+const CreditInput = ({ total }) => {
   return (
     <div
       style={{
@@ -590,7 +587,7 @@ const CreditInput = () => {
     </div>
   );
 };
-const CryptoInput = () => {
+const CryptoInput = ({ total }) => {
   return (
     <div
       onClick={(e) => {
