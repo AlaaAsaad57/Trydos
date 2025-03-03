@@ -78,7 +78,10 @@ const CartItemSelect = ({ items }) => {
         <OrderCartIcon />
         <div className="regular text-[#1D1D1D] text-[14px] ml-2">
           {translateFunction("Your Shopping Bag", language)}
-          <span className={language === "ar" ? "mr-1 bold" : "ml-1 bold"}>
+          <span
+            className={language === "ar" ? "mr-1 bold" : "ml-1 bold"}
+            data-cy="Count-Of-Shiping"
+          >
             {items.length}
             <span className={"ml-1"}>
               {translateFunction("items", language)}
@@ -135,6 +138,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
         borderRadius: "15px",
       }}
       className={`address-valid-border flex-col mt-[11px] pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full ${" min-h-[203px]"}`}
+      data-cy="Address-Added-Last"
     >
       <div className="flex-row ">
         <svg
@@ -346,7 +350,10 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
                 </g>
               </g>
             </svg>
-            <span className="ml-[4px] flex medium text-[12px] text-[#8D8D8D] ">
+            <span
+              className="ml-[4px] flex medium text-[12px] text-[#8D8D8D] "
+              data-cy="Show-Address-That-Added"
+            >
               {translateFunction("Show Address List")}
             </span>
           </div>
@@ -370,27 +377,35 @@ const AddressContainer = ({ openAddressList }) => {
   const GetAddressString = (location) => {
     let str = "";
     if (
-      location.province &&
-      location.province.length > 0 &&
-      location.province !== "null"
+      location?.province &&
+      location?.province.length > 0 &&
+      location?.province !== "null"
     )
-      str += `${location.province}`;
-    if (location.city && location.city.length > 0 && location.city !== "null")
-      str += ` | ${location.city}`;
-    if (location.town && location.town.length > 0 && location.town !== "null")
-      str += ` | ${location.town}`;
+      str += `${location?.province}`;
     if (
-      location.street &&
-      location.street.length > 0 &&
-      location.street !== "null"
+      location?.city &&
+      location?.city.length > 0 &&
+      location?.city !== "null"
+    )
+      str += ` | ${location?.city}`;
+    if (
+      location?.town &&
+      location?.town.length > 0 &&
+      location?.town !== "null"
+    )
+      str += ` | ${location?.town}`;
+    if (
+      location?.street &&
+      location?.street?.length > 0 &&
+      location?.street !== "null"
     )
       str += ` | ${location.street}`;
     if (
-      location.building &&
-      location.building.length > 0 &&
-      location.building !== "null"
+      location?.building &&
+      location?.building?.length > 0 &&
+      location?.building !== "null"
     )
-      str += ` | ${location.building}`;
+      str += ` | ${location?.building}`;
     return str;
   };
   let defaultAddress = addressLists.filter((s) => s.is_default === 1)[0];
@@ -599,6 +614,7 @@ const AddAddressButton = ({ onClick }) => {
   return (
     <div
       className="flex cursor-pointer w-full justify-center h-[40px] mt-[8px] items-center bg-[#E8FFED]"
+      data-cy="AddAddres"
       style={{
         border: "1px solid rgb(196 194 194 / 51%)",
         borderRadius: "15px",

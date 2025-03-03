@@ -30,13 +30,16 @@ declare global {
     interface Chainable {
       mount: typeof mount;
       Visit(value: string): void;
+      Visit1(value: string): void;
       Exist(selector: string): Promise<boolean>;
+      Exist1(selector: string): Promise<boolean>;
       logout(): Chainable<void>;
       (): Chainable<void>;
       typePincode(pincode: string): Chainable<void>;
       enterPhoneNumber(phoneNumber: string): Chainable<void>;
       enterPhoneNumber1(phoneNumber: string): Chainable<void>;
       performLogin(s?: string): Chainable<void>;
+      performLogin1(s?: string): Chainable<void>;
       Performloginfailure(): Chainable<void>;
       performErrorLogin(): Chainable<void>;
       performExpireOtpLogin(): Chainable<void>;
@@ -52,12 +55,13 @@ declare global {
       verifyProductInCart(productName: string): Chainable<void>;
       verifyBoxsInBoutiquePage(): Chainable<void>;
       verifyComponentsInProductCard(): Chainable<void>;
+      AddProductToCart(): Chainable<void>;
+      AddAdress(): Chainable<void>;
     }
   }
 }
 
 Cypress.Commands.add("mount", mount);
-
 // Example use:
 // cy.mount(<MyComponent />)
 

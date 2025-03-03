@@ -41,10 +41,14 @@ function CommentItem({
         <Image src={photo} unoptimized width={20} height={20} alt={name} />
       </div>
       <div className="comment-content">
-        <div className="comment-source">{name}</div>
+        <div className="comment-source" data-cy="Source-Of-Comment">
+          {name}
+        </div>
         <div className="comment-text">{text}</div>
       </div>
-      <div className="comment-date">{date}</div>
+      <div className="comment-date" data-cy="Date-Of-Comment">
+        {date}
+      </div>
     </div>
   );
 }

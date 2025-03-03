@@ -12,27 +12,35 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
   const GetAddressString = (location) => {
     let str = "";
     if (
-      location.province &&
-      location.province.length > 0 &&
-      location.province !== "null"
+      location?.province &&
+      location?.province.length > 0 &&
+      location?.province !== "null"
     )
-      str += `${location.province}`;
-    if (location.city && location.city.length > 0 && location.city !== "null")
-      str += ` | ${location.city}`;
-    if (location.town && location.town.length > 0 && location.town !== "null")
-      str += ` | ${location.town}`;
+      str += `${location?.province}`;
     if (
-      location.street &&
-      location.street.length > 0 &&
-      location.street !== "null"
+      location?.city &&
+      location?.city.length > 0 &&
+      location?.city !== "null"
+    )
+      str += ` | ${location?.city}`;
+    if (
+      location?.town &&
+      location?.town.length > 0 &&
+      location?.town !== "null"
+    )
+      str += ` | ${location?.town}`;
+    if (
+      location?.street &&
+      location?.street?.length > 0 &&
+      location?.street !== "null"
     )
       str += ` | ${location.street}`;
     if (
-      location.building &&
-      location.building.length > 0 &&
-      location.building !== "null"
+      location?.building &&
+      location?.building?.length > 0 &&
+      location?.building !== "null"
     )
-      str += ` | ${location.building}`;
+      str += ` | ${location?.building}`;
     return str;
   };
   return (
@@ -49,6 +57,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
           paddingBottom: "calc(env(safe-area-inset-bottom) + 40px)",
         }}
         className="flex-col items-center px-[12px]   absolute z-[999999999] rounded-t-[30px] bg-[#fff] h-[481px] w-full pt-[11px]"
+        data-cy="AddressListContainer"
       >
         <div className="flex-row items-center w-full justify-center">
           <MiniDeliveryIcon />
@@ -64,10 +73,10 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                 onClick={(e) => {
                   // @ts-ignore
                   if (!e.target.closest(".map-element-icon")) {
+                    closeSelect(false);
                     order.SetDefault({ id: s.id });
                     dispatch({ type: "UPDATE-ADDRESS", payload: s });
                     dispatch({ type: "SET-DEF-ADDRESS", payload: s.id });
-                    closeSelect(false);
                   }
                 }}
                 style={{
@@ -78,6 +87,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                     ? "items-center h-[84px]   py-[12px]"
                     : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
                 } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
+                data-cy="Address"
               >
                 <EditIcon
                   onClick={() => {
@@ -222,6 +232,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
           </div>
           <div
             className="flex cursor-pointer w-full justify-center h-[40px] mt-[8px] items-center bg-[#E8FFED]"
+            data-cy="Add-Shipping-Address"
             style={{
               border: "1px solid rgb(196 194 194 / 51%)",
               borderRadius: "15px",
@@ -253,6 +264,7 @@ const EditIcon = ({ address, onClick }) => {
         onClick();
       }}
       className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-[10] right-[32px] top-[8px]"
+      data-cy="Edit-Addres-Icon"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -328,6 +340,7 @@ const DeleteIcon = ({ address, onClick }) => {
         onClick();
       }}
       className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-[10] right-[8px] top-[8px]"
+      data-cy="Delete-Address-Icon"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

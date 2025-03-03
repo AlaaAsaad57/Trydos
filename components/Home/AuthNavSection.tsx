@@ -59,7 +59,9 @@ function AuthNavSection() {
         style={{ marginRight: "12px", marginLeft: "0px" }}
       >
         {translate("Hello", language)} {user?.name && <span>,</span>}{" "}
-        <span className={`${language + "-light"}`}>{user?.name}</span>
+        <span className={`${language + "-light"}`} data-cy="NavUserName">
+          {user?.name}
+        </span>
       </div>
       <UserAvatar avatar={user?.avatar?.src ?? user.avatar} />
     </>

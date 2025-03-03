@@ -63,6 +63,7 @@ function CommentBar({
   return (
     <div className="comment-input-holder relative">
       <textarea
+        data-cy="CommentField"
         onKeyDown={(e) => {
           // @ts-ignore
           if ((e.key === "Enter" || e.keyCode === "13") && !e.shiftKey) {
@@ -88,6 +89,7 @@ function CommentBar({
       {val?.length > 0 && (
         <span
           className="absolute h-full flex items-center right-[30px] top-0"
+          data-cy="SubmitComment"
           onClick={() => {
             // @ts-ignore
             addComment(val);

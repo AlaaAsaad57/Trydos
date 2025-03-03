@@ -409,6 +409,7 @@ function OrderButton({ close, toOrders }) {
             className={`cursor-pointer  flex-col w-full  ${
               option ? "h-[200px]" : "bg-[#3C3C3C] h-[70px]"
             } rounded-[20px] text-center justify-center items-center`}
+            data-cy="Confirm-Order-Button"
             style={{
               boxShadow:
                 "inset 0px 3px 6px rgba(255,255,255,0.16), 0px 3px 6px rgba(0,0,0,0.1)",

@@ -2,7 +2,7 @@ describe("Should Open Two Window And Login From each Window", () => {
   before(() => {
     cy.Visit("/");
   });
-  it.skip("should Visit The Site And Login", () => {
+  it("should Visit The Site And Login", () => {
     cy.wait(1000);
     cy.logout();
     cy.wait(1000);
@@ -49,7 +49,9 @@ describe("Should Open Two Window And Login From each Window", () => {
       });
     cy.get(
       ".chat-message-container:nth-last-child(2) .message-hold .abs-menu .reply-but"
-    ).click({ scrollBehavior: false });
+    )
+      .last()
+      .click({ scrollBehavior: false });
     let a = parseInt((Math.random() * 1000).toString());
     cy.get(".input-chat").type(`Reply Test${a}`);
     cy.get(".input-chat-container ~ svg", { timeout: 2000 }).click({

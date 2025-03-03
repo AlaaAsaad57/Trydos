@@ -87,7 +87,7 @@ function ProductSizes({ sizes }) {
         }}
       >
         <Swiper
-          data-cy="SizeBox"
+          data-cy="SizeBoxProductDetail"
           modules={[EffectCoverflow]}
           speed={100}
           effect="coverflow"

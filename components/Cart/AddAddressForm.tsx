@@ -254,6 +254,7 @@ const SelectRegion = ({ setOpenSelect }) => {
         setOpenSelect(true);
       }}
       className="flex-col region-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] pl-[12px] items-start justify-center"
+      data-cy="Change-From-List"
       style={{
         border: "#d3d3d3a3 1px solid",
       }}
@@ -293,7 +294,10 @@ const DetailsAddress = () => {
         {translateFunction("Detailed Address & Note")}
       </div>
       <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
-        <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
+        <div
+          className="medium flex text-[#D3D3D3] text-[14px] w-full"
+          data-cy="Detailed-Address-Note"
+        >
           <textarea
             value={addressDetails.address_detail}
             onChange={(e) => {
@@ -329,7 +333,10 @@ const AddressTitle = () => {
         {translateFunction("Address Title")}
       </div>
       <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
-        <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
+        <div
+          className="medium flex text-[#D3D3D3] text-[14px] w-full"
+          data-cy="Address-Title"
+        >
           <input
             value={addressDetails.address}
             onChange={(e) => {
@@ -385,7 +392,10 @@ const ContactInfo = () => {
           {translateFunction("Recipient Name")}
         </div>
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
-          <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
+          <div
+            className="medium flex text-[#D3D3D3] text-[14px] w-full"
+            data-cy="Recipient-Name"
+          >
             <input
               value={addressDetails.contact_info.contact_person_name}
               onChange={(e) => {
@@ -416,7 +426,10 @@ const ContactInfo = () => {
           {translateFunction("Contact Phone")}
         </div>
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
-          <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
+          <div
+            className="medium flex text-[#D3D3D3] text-[14px] w-full"
+            data-cy="Contact-Phone"
+          >
             <input
               aria-autocomplete="both"
               aria-haspopup="false"
@@ -575,6 +588,7 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
         className={`w-full text-center flex justify-center items-center h-[70px] ${
           valid ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
         } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
+        data-cy="AddSaveButton"
       >
         {addressDetails?.id
           ? translateFunction("Edit & Save")

@@ -163,7 +163,10 @@ function ProductsList({
               </div>
               {(products.length > 0 ||
                 Listing_Data_res?.body?.data?.products?.length > 0) && (
-                <div className="get-next-product regular-text color-dark-gray">
+                <div
+                  className="get-next-product regular-text color-dark-gray"
+                  data-cy="ReachEnd"
+                >
                   {!isReachEnd ? (
                     <>
                       {" "}
