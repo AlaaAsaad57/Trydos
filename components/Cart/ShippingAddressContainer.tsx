@@ -138,7 +138,6 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
         borderRadius: "15px",
       }}
       className={`address-valid-border flex-col mt-[11px] pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full ${" min-h-[203px]"}`}
-      data-cy="Address-Added-Last"
     >
       <div className="flex-row ">
         <svg
@@ -448,7 +447,10 @@ const AddressContainer = ({ openAddressList }) => {
                 {defaultAddress?.address}
               </span>
             </div>
-            <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]">
+            <div
+              className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]"
+              data-cy="Address-Added-Last"
+            >
               {GetAddressString(defaultAddress?.region_details)}
             </div>
             <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]">

@@ -27,7 +27,7 @@ describe("Should Cart Page &Confirm Order Operation", () => {
   });
 });
 describe("should Login If User Is Not Verified", () => {
-  it("Should Apperead Box To Verified The Way To Send Otp Code", () => {
+  it("Should Enter Phone Number", () => {
     cy.Exist("[data-cy=FieldToInputNumber]").then((exist) => {
       if (exist) {
         cy.enterPhoneNumber1("963937764641");
@@ -35,7 +35,7 @@ describe("should Login If User Is Not Verified", () => {
       }
     });
   });
-  it("Should Apperead Box To Verified The Way To Send Otp Code", () => {
+  it("Should Select Way To Send Otp Code", () => {
     cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
     cy.get(".message-recieve-option:nth-child(2)").click({
       scrollBehavior: false,
@@ -44,7 +44,7 @@ describe("should Login If User Is Not Verified", () => {
     cy.wait("@sendOtpApi");
     cy.log("✅✅ Send Otp Api Request Successfuly");
   });
-  it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
+  it("Should Enter OTP Code", () => {
     cy.typePincode("999999");
     cy.log("✅✅ Type Pin Code Entred Successfuly");
   });
@@ -81,7 +81,7 @@ describe("Compare Quantity", () => {
         }
       });
   });
-  it("Should Extract The Number Of Items in Shopping Bag", () => {
+  it("Should Extract Number Of Items in Shopping Bag", () => {
     cy.get('[data-cy="Count-Of-Shiping"]')
       .invoke("text")
       .then((text) => {
@@ -120,7 +120,7 @@ describe("Should Add Address", () => {
     });
     cy.log("✅✅ Add Addres Button Clicked");
   });
-  it("Should Click On Add Address Button", () => {
+  it("Should Add Address", () => {
     cy.clickElementForce("[data-cy=AddAddres]");
     cy.log("✅✅ Add Addres Button Clicked");
   });
@@ -166,12 +166,12 @@ describe("Should Add Address", () => {
     cy.get('[data-cy="Contact-Phone"]').type("0963937764641");
     cy.log("✅✅ Contact Phone Input Filled");
   });
-  it("Should Click On Add & Save Button", () => {
+  it("Should Add & Save Address", () => {
     cy.clickElementForce("[data-cy=AddSaveButton]");
     cy.log("✅✅ Add & Save Button Clicked");
   });
 });
-describe("Check Address & Add other Address", () => {
+describe("Should Check Address & Add other Address", () => {
   it("Should Show Address List", () => {
     cy.clickElementForce("[data-cy=Show-Address-That-Added]");
     cy.log("✅✅ Show Address List Button Clicked");
@@ -188,5 +188,44 @@ describe("Check Address & Add other Address", () => {
     cy.clickElementForce("[data-cy=Add-Shipping-Address]");
     cy.log("✅✅ Show Address List Button Clicked");
     cy.AddAdress();
+  });
+  it("Should Show Address List", () => {
+    cy.clickElementForce("[data-cy=Show-Address-That-Added]");
+    cy.log("✅✅ Show Address List Button Clicked");
+    cy.get("[data-cy=Address]")
+      .its("length")
+      .then((count) => {
+        cy.log(`The Count Of Address Added Until Now Is: ${count}`);
+      });
+  });
+});
+describe("Should Edit Address", () => {
+  it("Should Check If User Add Address Lastly", () => {
+    cy.get("[data-cy=Edit-Addres-Icon]")
+      .eq(0)
+      .click({ force: true })
+      .then((text) => {
+        cy.clickElementForce("[data-cy=Detailed-Address-Note]");
+        cy.log("✅✅ Click On Detailed Address & Note Field");
+        cy.get("[data-cy=Detailed-Address-Note]").type(
+          "This Is A Test Detailed Address & Note After Edit"
+        );
+        cy.log("✅✅ Detailed Address & Note Input Filled");
+        cy.clickElementForce("[data-cy=AddSaveButton]");
+        cy.log("✅✅ Add & Save Button Clicked");
+      });
+  });
+});
+describe("Should Delete Address", () => {
+  it("Should Check If User Add Address Lastly", () => {
+    cy.clickElementForce("[data-cy=Show-Address-That-Added]");
+    cy.log("✅✅ Show Address List Button Clicked");
+    cy.get("[data-cy=Delete-Address-Icon]")
+      .eq(0)
+      .click({ force: true })
+      .then((text) => {
+        cy.log(`Delete Address Icon`);
+        cy.clickElementForce("[data-cy=Yes-Delete-Address]");
+      });
   });
 });
