@@ -143,10 +143,10 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
           orderData?.payment[0]?.id === 0
             ? "COD"
             : orderData?.payment[0]?.id === 1
-            ? "TrydosWallet"
-            : orderData?.payment[0]?.id === 2
-            ? "Card"
-            : "Crypto";
+              ? "TrydosWallet"
+              : orderData?.payment[0]?.id === 2
+                ? "Card"
+                : "Crypto";
         setLoading(true);
         await order.PlaceOrder({
           payment_method,
@@ -172,6 +172,17 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
           setLoading(true);
           await order.PlaceOrder({
             payment_method: "Crypto",
+            pay_by_wallet: true,
+          });
+          setLoading(false);
+        }
+        if (
+          orderData.payment.length &&
+          orderData?.payment?.filter((one) => one.id === 0).length
+        ) {
+          setLoading(true);
+          await order.PlaceOrder({
+            payment_method: "COD",
             pay_by_wallet: true,
           });
           setLoading(false);
@@ -807,9 +818,8 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
         style={{
           boxShadow: "0px -3px 20px #0000001a",
         }}
-        className={` ${
-          (orderLoading || loading) && "opacity-55"
-        }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
+        className={` ${(orderLoading || loading) && "opacity-55"
+          }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
       >
         <div
           onClick={() => {
@@ -818,17 +828,14 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
               VerifyCart();
             }
           }}
-          className={` ${
-            orderData.loading && "opacity-65 scale-95"
-          } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${
-            isValid() ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
-          } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
+          className={` ${orderData.loading && "opacity-65 scale-95"
+            } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${isValid() ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
+            } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
         >
           <span>{translateFunction("Confirm Shipping & Payment")}</span>
           <span
-            className={`text-[#FEFEFE] text-[14px] medium ${
-              GetAppLanguage() === "ar" && "dir-rtl"
-            } `}
+            className={`text-[#FEFEFE] text-[14px] medium ${GetAppLanguage() === "ar" && "dir-rtl"
+              } `}
           >
             {cart.cart.length} {translateFunction("items")}{" "}
             {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}
