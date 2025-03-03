@@ -2,7 +2,7 @@ import { useParams } from "next/navigation";
 import React from "react";
 import { translateFunction } from "utils/functions";
 
-function OrderMarquee() {
+function OrderMarquee({ shippingCost }) {
   const { lang } = useParams();
   // @ts-ignore
   const languageVariable = lang.split("-")[1];
@@ -18,12 +18,14 @@ function OrderMarquee() {
           <span className="bold ml-1">2 June</span>
         </div>
       </div>
-      <div className="flex items-center ml-2">
-        <FreeShippingIcon />
-        <div className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]">
-          {translate("Free Shipping")}
+      {shippingCost === 0 && (
+        <div className="flex items-center ml-2">
+          <FreeShippingIcon />
+          <div className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]">
+            {translate("Free Shipping")}
+          </div>
         </div>
-      </div>
+      )}
       <div className="flex items-center ml-2">
         <FreeReturnIcon />
         <div className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]">

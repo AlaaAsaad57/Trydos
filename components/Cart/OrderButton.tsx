@@ -259,7 +259,7 @@ function OrderButton({ close, toOrders }) {
                 </g>
               </svg>
             </div>
-            <OrderMarquee />
+            <OrderMarquee shippingCost={cart.total_shipping_cost} />
             {expanded && (
               <div className="flex-col bg-[#F8F8F8] rounded-t-[12px]  mt-3 pt-[15px]">
                 <div className="flex-row items-start pl-[12px]">
@@ -355,7 +355,7 @@ function OrderButton({ close, toOrders }) {
                   </div>
 
                   <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]">
-                    <span className="line-through">
+                    <span className="">
                       {" "}
                       {RoundPrice({ num: cart.total_shipping_cost })}{" "}
                       {currency_symbol.symbol}

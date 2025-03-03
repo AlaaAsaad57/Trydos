@@ -8,10 +8,12 @@ function ProductInfo({
   oldPrice,
   newPrice,
   currency,
+  shipping,
 }: {
   oldPrice: number;
   newPrice: number;
   currency: string;
+  shipping: number;
 }) {
   let { lang } = useParams();
   // @ts-ignore
@@ -97,10 +99,12 @@ function ProductInfo({
         <div className="product-prop-item">
           {translate("All Inclusive Without Additions")}
         </div>
-        <div className="product-prop-item">
-          <img width={15} height={15} alt="truck" src="/svg/greentruck.svg" />
-          <span>{translate("Free Shipping")}</span>
-        </div>
+        {shipping === 0 && (
+          <div className="product-prop-item">
+            <img width={15} height={15} alt="truck" src="/svg/greentruck.svg" />
+            <span>{translate("Free Shipping")}</span>
+          </div>
+        )}
         <div className="product-prop-item">
           <img width={15} height={15} alt="truck" src="/svg/redtruck.svg" />
           <span>{translate("Free Return")}</span>
