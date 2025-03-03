@@ -89,21 +89,21 @@ class OrderService {
   }
   async AddAddressList({ address, callback }) {
     let body = {
-      latitude: address.location.latitude,
-      longitude: address.location.longitude,
-      address: address.address,
-      address_detail: address.address_detail,
+      latitude: address.location?.latitude,
+      longitude: address.location?.longitude,
+      address: address?.address,
+      address_detail: address?.address_detail,
       country: address?.Country?.name,
       iso: address?.Country?.code,
-      city: address.region_details.city,
-      province: address.region_details.province,
-      town: address.region_details.town,
-      street: address.region_details.street,
-      building: address.region_details.building,
+      city: address.region_details?.city,
+      province: address.region_details?.province,
+      town: address.region_details?.town,
+      street: address.region_details?.street,
+      building: address.region_details?.building,
       zip: "123123",
-      contact_person_name: address.contact_info.contact_person_name,
-      phone: address.contact_info.phone,
-      alternative_phone: address.contact_info.alternative_phone,
+      contact_person_name: address.contact_info?.contact_person_name,
+      phone: address.contact_info?.phone,
+      alternative_phone: address.contact_info?.alternative_phone,
     };
     var formBody: any = [];
     for (var property in body) {
@@ -131,21 +131,21 @@ class OrderService {
   async UpdateAddressList({ address, callback }) {
     let body = {
       id: address.id,
-      latitude: address.location.latitude,
-      longitude: address.location.longitude,
-      address: address.address,
+      latitude: address.location?.latitude,
+      longitude: address.location?.longitude,
+      address: address?.address,
       address_detail: address.address_detail,
       country: address?.Country?.name,
       iso: address?.Country?.code,
-      city: address.region_details.city,
-      province: address.region_details.province,
-      town: address.region_details.town,
-      street: address.region_details.street,
-      building: address.region_details.building,
+      city: address.region_details?.city,
+      province: address.region_details?.province,
+      town: address.region_details?.town,
+      street: address.region_details?.street,
+      building: address.region_details?.building,
       zip: "123123",
-      contact_person_name: address.contact_info.contact_person_name,
-      phone: address.contact_info.phone,
-      alternative_phone: address.contact_info.alternative_phone,
+      contact_person_name: address.contact_info?.contact_person_name,
+      phone: address.contact_info?.phone,
+      alternative_phone: address.contact_info?.alternative_phone,
     };
     var formBody: any = [];
     for (var property in body) {

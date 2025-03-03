@@ -125,9 +125,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
   };
   const [openSelect, setOpenSelect] = useState(false);
   const colseSelect = () => {
-    setTimeout(() => {
-      setOpenSelect(false);
-    }, 300);
+    setOpenSelect(false);
   };
   const colseAddressList = () => {
     setTimeout(() => {
@@ -142,10 +140,10 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
           orderData?.payment[0]?.id === 0
             ? "COD"
             : orderData?.payment[0]?.id === 1
-              ? "TrydosWallet"
-              : orderData?.payment[0]?.id === 2
-                ? "Card"
-                : "Crypto";
+            ? "TrydosWallet"
+            : orderData?.payment[0]?.id === 2
+            ? "Card"
+            : "Crypto";
         setLoading(true);
         await order.PlaceOrder({
           payment_method,
@@ -250,6 +248,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
           {AddressListsOpen && (
             <AddressListContainer
               Delete={(e) => {
+                setOpenSelect(false);
                 setDeleteModal(e);
               }}
               slideNext={() => {
@@ -524,27 +523,35 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
   const GetAddressString = (location) => {
     let str = "";
     if (
-      location.province &&
-      location.province.length > 0 &&
-      location.province !== "null"
+      location?.province &&
+      location?.province.length > 0 &&
+      location?.province !== "null"
     )
-      str += `${location.province}`;
-    if (location.city && location.city.length > 0 && location.city !== "null")
-      str += ` | ${location.city}`;
-    if (location.town && location.town.length > 0 && location.town !== "null")
-      str += ` | ${location.town}`;
+      str += `${location?.province}`;
     if (
-      location.street &&
-      location.street.length > 0 &&
-      location.street !== "null"
+      location?.city &&
+      location?.city.length > 0 &&
+      location?.city !== "null"
+    )
+      str += ` | ${location?.city}`;
+    if (
+      location?.town &&
+      location?.town.length > 0 &&
+      location?.town !== "null"
+    )
+      str += ` | ${location?.town}`;
+    if (
+      location?.street &&
+      location?.street?.length > 0 &&
+      location?.street !== "null"
     )
       str += ` | ${location.street}`;
     if (
-      location.building &&
-      location.building.length > 0 &&
-      location.building !== "null"
+      location?.building &&
+      location?.building?.length > 0 &&
+      location?.building !== "null"
     )
-      str += ` | ${location.building}`;
+      str += ` | ${location?.building}`;
     return str;
   };
   return (
@@ -808,8 +815,9 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
         style={{
           boxShadow: "0px -3px 20px #0000001a",
         }}
-        className={` ${(orderLoading || loading) && "opacity-55"
-          }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
+        className={` ${
+          (orderLoading || loading) && "opacity-55"
+        }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
       >
         <div
           onClick={() => {
@@ -818,14 +826,17 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
               VerifyCart();
             }
           }}
-          className={` ${orderData.loading && "opacity-65 scale-95"
-            } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${isValid() ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
-            } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
+          className={` ${
+            orderData.loading && "opacity-65 scale-95"
+          } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${
+            isValid() ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
+          } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
         >
           <span>{translateFunction("Confirm Shipping & Payment")}</span>
           <span
-            className={`text-[#FEFEFE] text-[14px] medium ${GetAppLanguage() === "ar" && "dir-rtl"
-              } `}
+            className={`text-[#FEFEFE] text-[14px] medium ${
+              GetAppLanguage() === "ar" && "dir-rtl"
+            } `}
           >
             {cart.cart.length} {translateFunction("items")}{" "}
             {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}

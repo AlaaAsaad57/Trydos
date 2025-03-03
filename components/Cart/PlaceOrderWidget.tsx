@@ -70,45 +70,45 @@ const OrderCartItem = () => {
       >
         {items.length
           ? items.map((s, i) => {
-            return (
-              <div className="flex relative h-[125px]" key={i}>
-                <span
-                  className="absolute w-[91px] h-full z-10 rounded-[15px]"
-                  style={{
-                    boxShadow: "#ffffff80 0px 3px 6px inset",
-                  }}
-                />
-                <img
-                  className="w-[91px] h-[125px] rounded-[15px]"
-                  src={getConfiguredImage({
-                    src: s.image,
-                    width: 91,
-                    height: 150,
-                  })}
-                />
-              </div>
-            );
-          })
+              return (
+                <div className="flex relative h-[125px]" key={i}>
+                  <span
+                    className="absolute w-[91px] h-full z-10 rounded-[15px]"
+                    style={{
+                      boxShadow: "#ffffff80 0px 3px 6px inset",
+                    }}
+                  />
+                  <img
+                    className="w-[91px] h-[125px] rounded-[15px]"
+                    src={getConfiguredImage({
+                      src: s.image,
+                      width: 91,
+                      height: 150,
+                    })}
+                  />
+                </div>
+              );
+            })
           : orders.map((s, i) => {
-            return (
-              <div className="flex relative h-[125px]" key={i}>
-                <span
-                  className="absolute w-[91px] h-full z-10 rounded-[15px]"
-                  style={{
-                    boxShadow: "#ffffff80 0px 3px 6px inset",
-                  }}
-                />
-                <img
-                  className="w-[91px] h-[125px] rounded-[15px]"
-                  src={getConfiguredImage({
-                    src: s?.details[0].product_details?.images[0],
-                    width: 91,
-                    height: 150,
-                  })}
-                />
-              </div>
-            );
-          })}
+              return (
+                <div className="flex relative h-[125px]" key={i}>
+                  <span
+                    className="absolute w-[91px] h-full z-10 rounded-[15px]"
+                    style={{
+                      boxShadow: "#ffffff80 0px 3px 6px inset",
+                    }}
+                  />
+                  <img
+                    className="w-[91px] h-[125px] rounded-[15px]"
+                    src={getConfiguredImage({
+                      src: s?.details[0].product_details?.images[0],
+                      width: 91,
+                      height: 150,
+                    })}
+                  />
+                </div>
+              );
+            })}
       </div>
     </div>
   );
@@ -117,27 +117,35 @@ const AddressOrder = () => {
   const GetAddressString = (location) => {
     let str = "";
     if (
-      location.province &&
-      location.province.length > 0 &&
-      location.province !== "null"
+      location?.province &&
+      location?.province.length > 0 &&
+      location?.province !== "null"
     )
-      str += `${location.province}`;
-    if (location.city && location.city.length > 0 && location.city !== "null")
-      str += ` | ${location.city}`;
-    if (location.town && location.town.length > 0 && location.town !== "null")
-      str += ` | ${location.town}`;
+      str += `${location?.province}`;
     if (
-      location.street &&
-      location.street.length > 0 &&
-      location.street !== "null"
+      location?.city &&
+      location?.city.length > 0 &&
+      location?.city !== "null"
+    )
+      str += ` | ${location?.city}`;
+    if (
+      location?.town &&
+      location?.town.length > 0 &&
+      location?.town !== "null"
+    )
+      str += ` | ${location?.town}`;
+    if (
+      location?.street &&
+      location?.street?.length > 0 &&
+      location?.street !== "null"
     )
       str += ` | ${location.street}`;
     if (
-      location.building &&
-      location.building.length > 0 &&
-      location.building !== "null"
+      location?.building &&
+      location?.building?.length > 0 &&
+      location?.building !== "null"
     )
-      str += ` | ${location.building}`;
+      str += ` | ${location?.building}`;
     return str;
   };
   const addressLists = useSelector(
@@ -250,10 +258,11 @@ const AddressOrder = () => {
         style={{
           border: "#C4C2C28c 1px solid",
         }}
-        className={`flex-col  ${addressLists?.length === 0
-          ? "items-center h-[84px]   py-[12px]"
-          : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
-          } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
+        className={`flex-col  ${
+          addressLists?.length === 0
+            ? "items-center h-[84px]   py-[12px]"
+            : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
+        } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
       >
         <>
           <div className="flex-col">
@@ -479,16 +488,24 @@ const PaymentOrder = () => {
           )}
         </div> */}
         {orderData?.payment?.filter((s) => s.id === 0).length > 0 && (
-          <CODInput total={orderData?.payment?.filter((s) => s.id === 0)[0].balance} />
+          <CODInput
+            total={orderData?.payment?.filter((s) => s.id === 0)[0].balance}
+          />
         )}
         {orderData?.payment?.filter((s) => s.id === 1).length > 0 && (
-          <TryDosWalletInput total={orderData?.payment?.filter((s) => s.id === 1)[0].balance} />
+          <TryDosWalletInput
+            total={orderData?.payment?.filter((s) => s.id === 1)[0].balance}
+          />
         )}
         {orderData?.payment?.filter((s) => s.id === 2).length > 0 && (
-          <CreditInput total={orderData?.payment?.filter((s) => s.id === 2)[0].balance} />
+          <CreditInput
+            total={orderData?.payment?.filter((s) => s.id === 2)[0].balance}
+          />
         )}
         {orderData?.payment?.filter((s) => s.id === 3).length > 0 && (
-          <CryptoInput total={orderData?.payment?.filter((s) => s.id === 3)[0].balance} />
+          <CryptoInput
+            total={orderData?.payment?.filter((s) => s.id === 3)[0].balance}
+          />
         )}
       </div>
       {/* {
@@ -555,8 +572,7 @@ const TryDosWalletInput = ({ total }) => {
           {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: total })}{" "}
-          {currency_symbol?.symbol}
+          {RoundPrice({ num: total })} {currency_symbol?.symbol}
         </span>
       </div>
     </div>
