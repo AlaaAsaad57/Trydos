@@ -296,7 +296,7 @@ const DetailsAddress = () => {
       <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
         <div
           className="medium flex text-[#D3D3D3] text-[14px] w-full"
-          data-cy="Detailed-Address&Note"
+          data-cy="Detailed-Address-Note"
         >
           <textarea
             value={addressDetails.address_detail}
@@ -588,7 +588,7 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
         className={`w-full text-center flex justify-center items-center h-[70px] ${
           valid ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
         } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
-        data-cy="Add&SaveButton"
+        data-cy="AddSaveButton"
       >
         {addressDetails?.id
           ? translateFunction("Edit & Save")

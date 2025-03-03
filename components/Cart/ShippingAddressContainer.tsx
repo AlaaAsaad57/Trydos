@@ -349,7 +349,10 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
                 </g>
               </g>
             </svg>
-            <span className="ml-[4px] flex medium text-[12px] text-[#8D8D8D] ">
+            <span
+              className="ml-[4px] flex medium text-[12px] text-[#8D8D8D] "
+              data-cy="Show-Address-That-Added"
+            >
               {translateFunction("Show Address List")}
             </span>
           </div>

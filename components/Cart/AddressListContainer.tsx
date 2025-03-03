@@ -49,6 +49,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
           paddingBottom: "calc(env(safe-area-inset-bottom) + 40px)",
         }}
         className="flex-col items-center px-[12px]   absolute z-[999999999] rounded-t-[30px] bg-[#fff] h-[481px] w-full pt-[11px]"
+        data-cy="AddressListContainer"
       >
         <div className="flex-row items-center w-full justify-center">
           <MiniDeliveryIcon />
@@ -219,6 +220,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
           </div>
           <div
             className="flex cursor-pointer w-full justify-center h-[40px] mt-[8px] items-center bg-[#E8FFED]"
+            data-cy="Add-Shipping-Address"
             style={{
               border: "1px solid rgb(196 194 194 / 51%)",
               borderRadius: "15px",
@@ -250,6 +252,7 @@ const EditIcon = ({ address, onClick }) => {
         onClick();
       }}
       className="p-1 cursor-pointer flex justify-center absolute z-[10] right-[32px] top-[8px]"
+      data-cy="Edit-Addres-Icon"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -325,6 +328,7 @@ const DeleteIcon = ({ address, onClick }) => {
         onClick();
       }}
       className="p-1 cursor-pointer flex justify-center absolute z-[10] right-[8px] top-[8px]"
+      data-cy="Delete-Address-Icon"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
