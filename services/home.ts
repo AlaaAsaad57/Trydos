@@ -228,7 +228,7 @@ class HomeService {
       if (token) {
         localStorage.setItem("FB-DEVICE-TOKEN", token);
         setTimeout(async () => {
-          if (UserToken()) {
+          if (UserToken() && UserID()) {
             await AxiosPost({
               url:
                 process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",

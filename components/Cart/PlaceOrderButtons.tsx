@@ -8,6 +8,7 @@ import {
   RoundPrice,
   translateFunction,
 } from "utils/functions";
+import Spinner from "components/global/Spinner";
 
 function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
   const cart = useSelector((state: StateInterface) => state.cart);
@@ -149,9 +150,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
               VerifyCart();
             }
           }}
-          className={` ${
-            (orderData.loading || loading) && "opacity-65 scale-95"
-          } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${
+          className={`  w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${
             orderData.success
               ? "bg-[#1D1D1D]"
               : isValid()
@@ -159,28 +158,35 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
               : "bg-[#C4C2C2]"
           } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
         >
-          {orderData.success ? (
-            <>
-              <span>{translateFunction("Done")}</span>
-              <span
-                className={`text-[#FEFEFE] text-[14px] medium ${
-                  GetAppLanguage() === "ar" && "dir-rtl"
-                } `}
-              >
-                {translateFunction("Back To HomePage")}
-              </span>
-            </>
+          {orderData.loading || loading ? (
+            <Spinner />
           ) : (
             <>
-              <span>{translateFunction("Place Order")}</span>
-              <span
-                className={`text-[#FEFEFE] text-[14px] medium ${
-                  GetAppLanguage() === "ar" && "dir-rtl"
-                } `}
-              >
-                {cart.cart.length} {translateFunction("items")}{" "}
-                {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}
-              </span>
+              {orderData.success ? (
+                <>
+                  <span>{translateFunction("Done")}</span>
+                  <span
+                    className={`text-[#FEFEFE] text-[14px] medium ${
+                      GetAppLanguage() === "ar" && "dir-rtl"
+                    } `}
+                  >
+                    {translateFunction("Back To HomePage")}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span>{translateFunction("Place Order")}</span>
+                  <span
+                    className={`text-[#FEFEFE] text-[14px] medium ${
+                      GetAppLanguage() === "ar" && "dir-rtl"
+                    } `}
+                  >
+                    {cart.cart.length} {translateFunction("items")}{" "}
+                    {RoundPrice({ num: cart.total_cash })}{" "}
+                    {currency_symbol?.symbol}
+                  </span>
+                </>
+              )}
             </>
           )}
         </div>

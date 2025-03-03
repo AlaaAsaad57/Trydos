@@ -559,8 +559,9 @@ const CODInput = ({ active, setActive }) => {
       <div className="flex-row items-center">
         <WalletIcon />
         <span
-          className={`ml-[8px]  ${active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
-            } regular text-[12px]`}
+          className={`ml-[8px]  ${
+            active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+          } regular text-[12px]`}
         >
           {translateFunction("Cash On Delivery")}
         </span>
@@ -597,8 +598,9 @@ const TryDosWalletInput = ({ active, setActive }) => {
       <div className="flex-row items-center">
         <WalletIcon />
         <span
-          className={`ml-[8px]  ${active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
-            } regular text-[12px]`}
+          className={`ml-[8px]  ${
+            active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+          } regular text-[12px]`}
         >
           {translateFunction("Trydos Wallet")}
         </span>
@@ -635,8 +637,9 @@ const CreditInput = ({ active, setActive }) => {
       <div className="flex-row items-center">
         <CreditIcon />
         <span
-          className={`ml-[8px] ${active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
-            } regular text-[12px]`}
+          className={`ml-[8px] ${
+            active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+          } regular text-[12px]`}
         >
           {translateFunction("Credit Cards")}
         </span>
@@ -668,8 +671,9 @@ const CryptoInput = ({ active, setActive }) => {
       <div className="flex-row items-center">
         <CryptoIcon />
         <span
-          className={`ml-[8px] ${active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
-            } regular text-[12px]`}
+          className={`ml-[8px] ${
+            active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+          } regular text-[12px]`}
         >
           {translateFunction("Crypto")}
         </span>

@@ -953,6 +953,7 @@ declare global {
         selectedOptions: Array<any>;
       };
       SelectedProduct: {
+        shipping_cost: number;
         id: number;
         name: string;
         collected_after_ordering: any;

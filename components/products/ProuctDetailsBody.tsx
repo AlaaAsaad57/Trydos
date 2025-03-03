@@ -58,7 +58,9 @@ function ProuctDetailsBody({ product }) {
           )}
         </div>
         <div className="product-text-section flex-row align-center">
-          <div className="product-name" data-cy="productName_productPage">{product.name}</div>
+          <div className="product-name" data-cy="productName_productPage">
+            {product.name}
+          </div>
           <div className="product-category">
             {product?.category?.icon && (
               <img
@@ -90,7 +92,7 @@ function ProuctDetailsBody({ product }) {
           }
         />
         <ProductShippingOption />
-        <FreeShippingOption />
+        {product.shipping_cost === 0 && <FreeShippingOption />}
         <FreeReturnOption />
       </div>
     </div>

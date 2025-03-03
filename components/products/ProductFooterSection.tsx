@@ -263,6 +263,7 @@ function ProductFooterSection({ product }) {
   const loginOpen = useSelector(
     (state: StateInterface) => state.homepage.loginOpen
   );
+
   return (
     <>
       {option === "AddToCart" && <SelectColor close={() => setOption("")} />}
@@ -270,6 +271,7 @@ function ProductFooterSection({ product }) {
         <div className="product-details-footer z-[999999999]">
           <ProductDetails />
           <ProductInfo
+            shipping={product?.shipping_cost || 0}
             currency={currency?.symbol}
             newPrice={
               AddToCartOption.price?.offer_price
