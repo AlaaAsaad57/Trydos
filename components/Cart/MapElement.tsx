@@ -44,14 +44,17 @@ export const MapElement: React.FC<MapProps> = memo(
       const map = useMap();
 
       useEffect(() => {
-        if (center) {
+        // @ts-ignore
+        if (center && center.lat !== "null" && center.lng !== "null") {
           map.panTo(center, { animate: true });
         }
       }, [center, expanded]);
       useEffect(() => {
         if (
           addressDetails.location.latitude &&
-          addressDetails.location.longitude
+          addressDetails.location.latitude !== "null" &&
+          addressDetails.location.longitude &&
+          addressDetails.location.longitude !== "null"
         ) {
           map.panTo(
             {
@@ -107,7 +110,13 @@ export const MapElement: React.FC<MapProps> = memo(
           }}
         >
           <MapContainer
-            center={(center?.lat && center) || { lat: 39.1667, lng: 35.6667 }}
+            center={
+              // @ts-ignore
+              (center?.lat !== "null" && center) || {
+                lat: 39.1667,
+                lng: 35.6667,
+              }
+            }
             zoom={13}
             ref={ref}
             trackResize={true}
@@ -120,7 +129,9 @@ export const MapElement: React.FC<MapProps> = memo(
 
             <HandlClick />
             {addressDetails.location.latitude &&
-              addressDetails.location.longitude && (
+              addressDetails.location.latitude !== "null" &&
+              addressDetails.location.longitude &&
+              addressDetails.location.longitude !== "null" && (
                 <Marker
                   icon={iconPerson}
                   position={{

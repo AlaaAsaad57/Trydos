@@ -221,6 +221,8 @@ export const translations = {
   },
   ar: {
     "Payment Method": "طرق الدفع",
+    "Sorry This Product Not Available In Your Country":
+      "عذرا هذا المنتج غير متوفر في بلدك",
     "Shipping & Payment": "الدفع والتوصيل",
     Done: "تم",
     K: " ألف ",

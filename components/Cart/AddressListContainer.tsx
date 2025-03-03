@@ -61,11 +61,14 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
             {addressLists.map((s, i) => (
               <div
                 key={i}
-                onClick={() => {
-                  order.SetDefault({ id: s.id });
-                  dispatch({ type: "UPDATE-ADDRESS", payload: s });
-                  dispatch({ type: "SET-DEF-ADDRESS", payload: s.id });
-                  closeSelect(false);
+                onClick={(e) => {
+                  // @ts-ignore
+                  if (!e.target.closest(".map-element-icon")) {
+                    order.SetDefault({ id: s.id });
+                    dispatch({ type: "UPDATE-ADDRESS", payload: s });
+                    dispatch({ type: "SET-DEF-ADDRESS", payload: s.id });
+                    closeSelect(false);
+                  }
                 }}
                 style={{
                   border: s.is_default === 0 ? "" : "#388bff8c 1px solid",
@@ -249,7 +252,7 @@ const EditIcon = ({ address, onClick }) => {
         dispatch({ type: "START-UPDATE-ADDRESS", payload: address });
         onClick();
       }}
-      className="p-1 cursor-pointer flex justify-center absolute z-[10] right-[32px] top-[8px]"
+      className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-[10] right-[32px] top-[8px]"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -324,7 +327,7 @@ const DeleteIcon = ({ address, onClick }) => {
       onClick={() => {
         onClick();
       }}
-      className="p-1 cursor-pointer flex justify-center absolute z-[10] right-[8px] top-[8px]"
+      className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-[10] right-[8px] top-[8px]"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

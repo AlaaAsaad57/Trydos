@@ -161,7 +161,9 @@ const Map = ({
           }}
           locationSelected={
             addressDetails.location.latitude &&
-            addressDetails.location.longitude
+            addressDetails.location.latitude !== "null" &&
+            addressDetails.location.longitude &&
+            addressDetails.location.longitude !== "null"
           }
           selectLocation={() => {
             setExpanded(false);

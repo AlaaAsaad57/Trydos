@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddToCartButton from "./AddToCartButton";
 import Heart from "public/svg/Heart.svg";
 import HeartFill from "public/svg/HeartFill.svg";
@@ -9,9 +9,10 @@ import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
 import { useDispatch, useSelector } from "react-redux";
-import { Sendevent, UserID } from "utils/functions";
+import { Sendevent, translateFunction, UserID } from "utils/functions";
 import home from "services/home";
 import { AxiosPost } from "utils/AxiosApi";
+import { toast } from "react-toastify";
 
 function ProductOptions({
   activeOption,
@@ -100,6 +101,13 @@ function ProductOptions({
       }
     }
   };
+  useEffect(() => {
+    if (product.country_is_restricted) {
+      toast.error(
+        translateFunction("Sorry This Product Not Available In Your Country")
+      );
+    }
+  }, []);
   return (
     <div className="product-options-container">
       {share ? (

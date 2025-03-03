@@ -29,8 +29,8 @@ function PlaceOrderWidget() {
     <div className="flex-col overflow-auto pb-[292px] max-h-[100vh]">
       {orderData.success && <OrderSuccess />}
       <OrderCartItem />
-      <AddressOrder />
-      <PaymentOrder />
+      <AddressOrder success={orderData.success} />
+      <PaymentOrder success={orderData.success} />
     </div>
   );
 }
@@ -113,7 +113,7 @@ const OrderCartItem = () => {
     </div>
   );
 };
-const AddressOrder = () => {
+const AddressOrder = ({ success }) => {
   const GetAddressString = (location) => {
     let str = "";
     if (
@@ -244,9 +244,13 @@ const AddressOrder = () => {
           <FreeShippingIcon />
         </span>
       </div>
-      <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
-        {translateFunction("Please Enter Shipping Address To Receive Your Bag")}
-      </div>
+      {!success && (
+        <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
+          {translateFunction(
+            "Please Enter Shipping Address To Receive Your Bag"
+          )}
+        </div>
+      )}
       <div
         style={{
           border: "#C4C2C28c 1px solid",
@@ -388,7 +392,7 @@ const AddressOrder = () => {
     </div>
   );
 };
-const PaymentOrder = () => {
+const PaymentOrder = ({ success }) => {
   const orderData = useSelector(
     (state: StateInterface) => state.cart.orderData
   );
@@ -475,11 +479,13 @@ const PaymentOrder = () => {
             {translateFunction("Payment Method")}
           </div>
         </div>
-        <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
-          {translateFunction(
-            "Please Choose Your Payment Method About Your Bag"
-          )}
-        </div>
+        {!success && (
+          <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
+            {translateFunction(
+              "Please Choose Your Payment Method About Your Bag"
+            )}
+          </div>
+        )}
         {orderData?.payment?.filter((s) => s.id === 0).length > 0 && (
           <CODInput />
         )}

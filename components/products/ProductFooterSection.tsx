@@ -263,6 +263,7 @@ function ProductFooterSection({ product }) {
   const loginOpen = useSelector(
     (state: StateInterface) => state.homepage.loginOpen
   );
+
   return (
     <>
       {option === "AddToCart" && <SelectColor close={() => setOption("")} />}
