@@ -12,27 +12,35 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
   const GetAddressString = (location) => {
     let str = "";
     if (
-      location.province &&
-      location.province.length > 0 &&
-      location.province !== "null"
+      location?.province &&
+      location?.province.length > 0 &&
+      location?.province !== "null"
     )
-      str += `${location.province}`;
-    if (location.city && location.city.length > 0 && location.city !== "null")
-      str += ` | ${location.city}`;
-    if (location.town && location.town.length > 0 && location.town !== "null")
-      str += ` | ${location.town}`;
+      str += `${location?.province}`;
     if (
-      location.street &&
-      location.street.length > 0 &&
-      location.street !== "null"
+      location?.city &&
+      location?.city.length > 0 &&
+      location?.city !== "null"
+    )
+      str += ` | ${location?.city}`;
+    if (
+      location?.town &&
+      location?.town.length > 0 &&
+      location?.town !== "null"
+    )
+      str += ` | ${location?.town}`;
+    if (
+      location?.street &&
+      location?.street?.length > 0 &&
+      location?.street !== "null"
     )
       str += ` | ${location.street}`;
     if (
-      location.building &&
-      location.building.length > 0 &&
-      location.building !== "null"
+      location?.building &&
+      location?.building?.length > 0 &&
+      location?.building !== "null"
     )
-      str += ` | ${location.building}`;
+      str += ` | ${location?.building}`;
     return str;
   };
   return (
@@ -65,10 +73,10 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                 onClick={(e) => {
                   // @ts-ignore
                   if (!e.target.closest(".map-element-icon")) {
+                    closeSelect(false);
                     order.SetDefault({ id: s.id });
                     dispatch({ type: "UPDATE-ADDRESS", payload: s });
                     dispatch({ type: "SET-DEF-ADDRESS", payload: s.id });
-                    closeSelect(false);
                   }
                 }}
                 style={{

@@ -127,9 +127,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
   };
   const [openSelect, setOpenSelect] = useState(false);
   const colseSelect = () => {
-    setTimeout(() => {
-      setOpenSelect(false);
-    }, 300);
+    setOpenSelect(false);
   };
   const colseAddressList = () => {
     setTimeout(() => {
@@ -252,6 +250,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
           {AddressListsOpen && (
             <AddressListContainer
               Delete={(e) => {
+                setOpenSelect(false);
                 setDeleteModal(e);
               }}
               slideNext={() => {
@@ -529,27 +528,35 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
   const GetAddressString = (location) => {
     let str = "";
     if (
-      location.province &&
-      location.province.length > 0 &&
-      location.province !== "null"
+      location?.province &&
+      location?.province.length > 0 &&
+      location?.province !== "null"
     )
-      str += `${location.province}`;
-    if (location.city && location.city.length > 0 && location.city !== "null")
-      str += ` | ${location.city}`;
-    if (location.town && location.town.length > 0 && location.town !== "null")
-      str += ` | ${location.town}`;
+      str += `${location?.province}`;
     if (
-      location.street &&
-      location.street.length > 0 &&
-      location.street !== "null"
+      location?.city &&
+      location?.city.length > 0 &&
+      location?.city !== "null"
+    )
+      str += ` | ${location?.city}`;
+    if (
+      location?.town &&
+      location?.town.length > 0 &&
+      location?.town !== "null"
+    )
+      str += ` | ${location?.town}`;
+    if (
+      location?.street &&
+      location?.street?.length > 0 &&
+      location?.street !== "null"
     )
       str += ` | ${location.street}`;
     if (
-      location.building &&
-      location.building.length > 0 &&
-      location.building !== "null"
+      location?.building &&
+      location?.building?.length > 0 &&
+      location?.building !== "null"
     )
-      str += ` | ${location.building}`;
+      str += ` | ${location?.building}`;
     return str;
   };
   return (
