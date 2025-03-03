@@ -21,7 +21,9 @@ import order from "services/order";
 import PaymentMethod from "./PaymentMethod";
 import PlaceOrderWidget from "./PlaceOrderWidget";
 import PlaceOrderButtons from "./PlaceOrderButtons";
-import { AxiosGet } from "utils/AxiosApi";
+
+import { toast } from "react-toastify";
+import Spinner from "components/global/Spinner";
 
 const DeleteIcon = () => {
   return (
@@ -171,6 +173,17 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
           setLoading(true);
           await order.PlaceOrder({
             payment_method: "Crypto",
+            pay_by_wallet: true,
+          });
+          setLoading(false);
+        }
+        if (
+          orderData.payment.length &&
+          orderData?.payment?.filter((one) => one.id === 0).length
+        ) {
+          setLoading(true);
+          await order.PlaceOrder({
+            payment_method: "COD",
             pay_by_wallet: true,
           });
           setLoading(false);
@@ -510,6 +523,9 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
 export default OrdersPage;
 const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
   const dispatch = useDispatch();
+  const addressLists = useSelector(
+    (state: StateInterface) => state.cart.addressLists
+  );
   const GetAddressString = (location) => {
     let str = "";
     if (
@@ -752,9 +768,12 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
     );
   };
   const isValid = () => {
+    let defaultAddress =
+      address.filter((s) => s.is_default === 1)?.length > 0 &&
+      address.filter((s) => s.is_default === 1)[0];
     if (
-      address &&
-      address[0]?.id &&
+      defaultAddress &&
+      defaultAddress?.id &&
       orderData.payment.length > 0 &&
       isBalanceEnough()
     ) {
@@ -790,6 +809,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
     if (a?.length === 0) {
       setNext();
     } else {
+      toast.error("Please Review Your Cart Some Products Not Available");
       setPrev();
     }
     setLoading(false);
@@ -800,9 +820,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
         style={{
           boxShadow: "0px -3px 20px #0000001a",
         }}
-        className={` ${
-          (orderLoading || loading) && "opacity-55"
-        }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
+        className={`   text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
       >
         <div
           onClick={() => {
@@ -817,16 +835,22 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
             isValid() ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
           } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
         >
-          <span>{translateFunction("Confirm Shipping & Payment")}</span>
-          <span
-            className={`text-[#FEFEFE] text-[14px] medium ${
-              GetAppLanguage() === "ar" && "dir-rtl"
-            } `}
-            data-cy="Number-Of-Products-Required"
-          >
-            {cart.cart.length} {translateFunction("items")}{" "}
-            {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}
-          </span>
+          {orderLoading || loading ? (
+            <Spinner />
+          ) : (
+            <>
+              <span>{translateFunction("Confirm Shipping & Payment")}</span>
+              <span
+                className={`text-[#FEFEFE] text-[14px] medium ${
+                  GetAppLanguage() === "ar" && "dir-rtl"
+                } `}
+                data-cy="Number-Of-Products-Required"
+              >
+                {cart.cart.length} {translateFunction("items")}{" "}
+                {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}
+              </span>
+            </>
+          )}
         </div>
       </div>
     </div>

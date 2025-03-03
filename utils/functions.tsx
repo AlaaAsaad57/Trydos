@@ -686,10 +686,20 @@ export const UpdateFilter = async ({
   }
 };
 function formatPrice(price) {
+  let currency = store.getState().homepage.currency;
+  let ceil = currency?.ciel;
   if (price >= 1000000) {
-    return (price / 1000000).toFixed(0) + translateFunction("M"); // For millions
+    return (
+      (ceil
+        ? Math.ceil(parseFloat((price / 1000000).toFixed(3)) * ceil) / ceil
+        : parseFloat((price / 1000000).toFixed(3))) + translateFunction("M")
+    ); // For millions
   } else if (price >= 1000) {
-    return (price / 1000).toFixed(0) + translateFunction("K"); // For thousands
+    return (
+      (ceil
+        ? Math.ceil(parseFloat((price / 1000).toFixed(3)) * ceil) / ceil
+        : parseFloat((price / 1000).toFixed(3))) + translateFunction("K")
+    ); // For thousands
   } else {
     return price; // For prices under 1000
   }
@@ -705,6 +715,7 @@ export const RoundPrice = ({
   points?: any;
   returnNumber?: boolean;
 }): number => {
+  let currency = store.getState().homepage.currency;
   let rateVariable =
     rate || store.getState().homepage.currency?.exchange_rate || 1;
   let pointsVariable =
@@ -714,10 +725,16 @@ export const RoundPrice = ({
         ?.decimal_point_settings) ||
     0;
   let a = parseFloat(num);
+
   if (returnNumber) {
-    return parseFloat((a * rateVariable).toFixed(pointsVariable));
+    a = parseFloat((a * rateVariable).toFixed(pointsVariable));
+    return a;
   }
-  return formatPrice(parseFloat((a * rateVariable).toFixed(pointsVariable)));
+  a = parseFloat((a * rateVariable).toFixed(pointsVariable));
+  if (currency?.ciel) {
+    a = Math.ceil(a / currency.ceil) * currency.ceil;
+  }
+  return formatPrice(a);
 };
 export const onClickSearchHistory = (searchValue) => {
   if (localStorage.getItem("search-history")) {

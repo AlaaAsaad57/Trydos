@@ -129,6 +129,7 @@ function AddToCartWidget() {
       />
       <div className="product-details-footer z-[9999] min-h-[100px] h-auto">
         <ProductInfo
+          shipping={SelectedProduct?.shipping_cost || 0}
           currency={currency?.symbol}
           newPrice={
             AddToCartOption.price?.offer_price

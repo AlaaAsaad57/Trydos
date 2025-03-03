@@ -234,6 +234,20 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         addressLists: arr.reverse(),
       };
     }
+    case "SET-DEF-ADDRESS": {
+      let addressLists = state.addressLists;
+      let arr = addressLists.map((s) => {
+        if (s.id === payload) {
+          return { ...s, is_default: 1 };
+        } else {
+          return { ...s, is_default: 0 };
+        }
+      });
+      return {
+        ...state,
+        addressLists: arr,
+      };
+    }
     case "DELETE-ADDRESS": {
       return {
         ...state,

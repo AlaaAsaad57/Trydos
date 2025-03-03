@@ -1706,7 +1706,11 @@ const QuantutyInput = ({
       setLoading(true);
 
       await updateQuantity(parseInt(i.toString()) - 1, false);
-      await GetCartOreview();
+      await getCart({
+        callback: ([data, res]) => {
+          dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+        },
+      });
       setLoading(false);
     }
   };
@@ -1716,7 +1720,11 @@ const QuantutyInput = ({
       setInputValue(parseInt(i.toString()) + 1);
       setLoading(true);
       await updateQuantity(parseInt(i.toString()) + 1, true);
-      await GetCartOreview();
+      await getCart({
+        callback: ([data, res]) => {
+          dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+        },
+      });
       setLoading(false);
     }
   };

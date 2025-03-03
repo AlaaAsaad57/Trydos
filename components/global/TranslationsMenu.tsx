@@ -16,11 +16,18 @@ function TranslationsMenu({ init }: TranslationsMenuProps) {
   );
   const dispatch = useDispatch();
   useEffect(() => {
+    let country = init?.split("-")[0];
     getCurrency({
       lang: init.split("-")[1],
       country: init.split("-")[0],
       callback: ({ currency, res }) => {
-        dispatch({ type: "CURRENCY", payload: currency });
+        let ciel = null;
+        if (country === "sy") {
+          ciel = parseInt(process.env.NEXT_PUBLIC_SY_CIEL);
+        } else if (country === "lb") {
+          ciel = parseInt(process.env.NEXT_PUBLIC_LB_CIEL);
+        }
+        dispatch({ type: "CURRENCY", payload: { ...currency, ceil: ciel } });
         LogData(res);
       },
     });

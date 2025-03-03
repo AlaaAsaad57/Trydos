@@ -161,11 +161,7 @@ function OrderButton({ close, toOrders }) {
         }, 300);
       } else {
         setLoading(false);
-        toast.error(
-          translateFunction(
-            "Please Review Your Cart Some Products Not Available"
-          )
-        );
+        toast.error("Please Review Your Cart Some Products Not Available");
       }
     } catch (error) {
       setOption(true);
@@ -263,7 +259,7 @@ function OrderButton({ close, toOrders }) {
                 </g>
               </svg>
             </div>
-            <OrderMarquee />
+            <OrderMarquee shippingCost={cart.total_shipping_cost} />
             {expanded && (
               <div className="flex-col bg-[#F8F8F8] rounded-t-[12px]  mt-3 pt-[15px]">
                 <div className="flex-row items-start pl-[12px]">
@@ -359,7 +355,7 @@ function OrderButton({ close, toOrders }) {
                   </div>
 
                   <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]">
-                    <span className="line-through">
+                    <span className="">
                       {" "}
                       {RoundPrice({ num: cart.total_shipping_cost })}{" "}
                       {currency_symbol.symbol}
@@ -410,9 +406,7 @@ function OrderButton({ close, toOrders }) {
           }}
         >
           <div
-            className={`${
-              IsNotAvailable() && "opacity-55"
-            } cursor-pointer  flex-col w-full  ${
+            className={`cursor-pointer  flex-col w-full  ${
               option ? "h-[200px]" : "bg-[#3C3C3C] h-[70px]"
             } rounded-[20px] text-center justify-center items-center`}
             data-cy="Confirm-Order-Button"
@@ -424,13 +418,10 @@ function OrderButton({ close, toOrders }) {
               if (cart.cart.length === 0) {
                 close();
               } else {
-                if (IsNotAvailable()) {
+                if (!getUser()) {
+                  setOption(true);
                 } else {
-                  if (!getUser()) {
-                    setOption(true);
-                  } else {
-                    GoToOrders();
-                  }
+                  GoToOrders();
                 }
               }
             }}

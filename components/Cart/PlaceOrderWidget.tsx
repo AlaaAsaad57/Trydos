@@ -29,8 +29,8 @@ function PlaceOrderWidget() {
     <div className="flex-col overflow-auto pb-[292px] max-h-[100vh]">
       {orderData.success && <OrderSuccess />}
       <OrderCartItem />
-      <AddressOrder />
-      <PaymentOrder />
+      <AddressOrder success={orderData.success} />
+      <PaymentOrder success={orderData.success} />
     </div>
   );
 }
@@ -113,7 +113,7 @@ const OrderCartItem = () => {
     </div>
   );
 };
-const AddressOrder = () => {
+const AddressOrder = ({ success }) => {
   const GetAddressString = (location) => {
     let str = "";
     if (
@@ -143,6 +143,7 @@ const AddressOrder = () => {
   const addressLists = useSelector(
     (state: StateInterface) => state.cart.addressLists
   );
+  let defaultAddress = addressLists.filter((s) => s.is_default === 1)[0];
   return (
     <div
       style={{
@@ -243,9 +244,9 @@ const AddressOrder = () => {
           <FreeShippingIcon />
         </span>
       </div>
-      <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
+      {/* <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
         {translateFunction("Please Enter Shipping Address To Receive Your Bag")}
-      </div>
+      </div> */}
       <div
         style={{
           border: "#C4C2C28c 1px solid",
@@ -274,11 +275,11 @@ const AddressOrder = () => {
               </svg>
 
               <span className="regular ml-[4px] text-[12px] text-[#8D8D8D]">
-                {addressLists[0].address}
+                {defaultAddress?.address}
               </span>
             </div>
             <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]">
-              {GetAddressString(addressLists[0].region_details)}
+              {GetAddressString(defaultAddress?.region_details)}
             </div>
             <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]">
               <svg
@@ -318,7 +319,7 @@ const AddressOrder = () => {
               </svg>
 
               <div className="flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D]">
-                {addressLists[0].contact_info.phone}
+                {defaultAddress?.contact_info.phone}
               </div>
               <div className="flex-row ml-[17px]  items-center">
                 <svg
@@ -375,9 +376,9 @@ const AddressOrder = () => {
                 </svg>
 
                 <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]">
-                  {addressLists[0].contact_info.contact_person_name ||
+                  {defaultAddress?.contact_info.contact_person_name ||
                     // @ts-ignore
-                    addressLists[0].contact_info.name}
+                    defaultAddress?.contact_info.name}
                 </div>
               </div>
             </div>
@@ -387,7 +388,7 @@ const AddressOrder = () => {
     </div>
   );
 };
-const PaymentOrder = () => {
+const PaymentOrder = ({ success }) => {
   const orderData = useSelector(
     (state: StateInterface) => state.cart.orderData
   );
@@ -474,22 +475,30 @@ const PaymentOrder = () => {
             {translateFunction("Payment Method")}
           </div>
         </div>
-        <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
+        {/* <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
           {translateFunction(
             "Please Choose Your Payment Method About Your Bag"
           )}
-        </div>
+        </div> */}
         {orderData?.payment?.filter((s) => s.id === 0).length > 0 && (
-          <CODInput />
+          <CODInput
+            total={orderData?.payment?.filter((s) => s.id === 0)[0].balance}
+          />
         )}
         {orderData?.payment?.filter((s) => s.id === 1).length > 0 && (
-          <TryDosWalletInput />
+          <TryDosWalletInput
+            total={orderData?.payment?.filter((s) => s.id === 1)[0].balance}
+          />
         )}
         {orderData?.payment?.filter((s) => s.id === 2).length > 0 && (
-          <CreditInput />
+          <CreditInput
+            total={orderData?.payment?.filter((s) => s.id === 2)[0].balance}
+          />
         )}
         {orderData?.payment?.filter((s) => s.id === 3).length > 0 && (
-          <CryptoInput />
+          <CryptoInput
+            total={orderData?.payment?.filter((s) => s.id === 3)[0].balance}
+          />
         )}
       </div>
       {/* {
@@ -506,8 +515,7 @@ const PaymentOrder = () => {
     </div>
   );
 };
-const CODInput = () => {
-  const total = useSelector((state: StateInterface) => state.cart.total_cash);
+const CODInput = ({ total }) => {
   const currency_symbol = useSelector(
     (state: StateInterface) => state.homepage.currency
   );
@@ -535,8 +543,7 @@ const CODInput = () => {
     </div>
   );
 };
-const TryDosWalletInput = () => {
-  const wallet = useSelector((state: StateInterface) => state.cart.wallet);
+const TryDosWalletInput = ({ total }) => {
   const currency_symbol = useSelector(
     (state: StateInterface) => state.homepage.currency
   );
@@ -555,17 +562,16 @@ const TryDosWalletInput = () => {
       </div>
       <div className="flex-row items-center">
         <span className="text-[#D3D3D3] regular text-[12px]">
-          {translateFunction("Your Balance")}
+          {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: wallet?.total_wallet_balance })}{" "}
-          {currency_symbol?.symbol}
+          {RoundPrice({ num: total })} {currency_symbol?.symbol}
         </span>
       </div>
     </div>
   );
 };
-const CreditInput = () => {
+const CreditInput = ({ total }) => {
   return (
     <div
       style={{
@@ -590,7 +596,7 @@ const CreditInput = () => {
     </div>
   );
 };
-const CryptoInput = () => {
+const CryptoInput = ({ total }) => {
   return (
     <div
       onClick={(e) => {

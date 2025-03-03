@@ -400,6 +400,8 @@ const AddressContainer = ({ openAddressList }) => {
       str += ` | ${location.building}`;
     return str;
   };
+  let defaultAddress = addressLists.filter((s) => s.is_default === 1)[0];
+
   return (
     <div
       onClick={() => {
@@ -435,11 +437,11 @@ const AddressContainer = ({ openAddressList }) => {
               </svg>
 
               <span className="regular ml-[4px] text-[12px] text-[#8D8D8D]">
-                {addressLists[0].address}
+                {defaultAddress?.address}
               </span>
             </div>
             <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]">
-              {GetAddressString(addressLists[0].region_details)}
+              {GetAddressString(defaultAddress?.region_details)}
             </div>
             <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]">
               <svg
@@ -479,7 +481,7 @@ const AddressContainer = ({ openAddressList }) => {
               </svg>
 
               <div className="flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D]">
-                {addressLists[0].contact_info.phone}
+                {defaultAddress?.contact_info.phone}
               </div>
               <div className="flex-row ml-[17px]  items-center">
                 <svg
@@ -536,9 +538,9 @@ const AddressContainer = ({ openAddressList }) => {
                 </svg>
 
                 <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]">
-                  {addressLists[0].contact_info.contact_person_name ||
+                  {defaultAddress?.contact_info.contact_person_name ||
                     // @ts-ignore
-                    addressLists[0].contact_info.name}
+                    defaultAddress?.contact_info.name}
                 </div>
               </div>
             </div>
