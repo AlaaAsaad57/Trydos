@@ -112,7 +112,14 @@ describe("Should Add Address", () => {
               .click({ force: true })
               .then((text) => {
                 cy.log(`Delete Address Icon ${index + 1}: ${text}`);
+                cy.intercept(
+                  "POST",
+                  "**/api/new_v1/customer/address/delete?address**"
+                ).as("DeleteAddress");
                 cy.clickElementForce("[data-cy=Yes-Delete-Address]");
+                cy.wait("@DeleteAddress").then((interception) => {
+                  cy.log("✅✅ Get Address By Text request arrived");
+                });
               });
           });
         });
@@ -142,7 +149,7 @@ describe("Should Add Address", () => {
     cy.get('[data-cy="SearchProvince-District-Town-Street"]', {
       timeout: 10000,
     }).should("be.visible");
-    cy.wait(5000);
+    cy.wait(2000);
     cy.get("[data-cy=Firstly-Search-Result]").eq(0).click({ force: true });
     cy.log("✅✅ First Option Has Been Selected");
   });
@@ -220,6 +227,9 @@ describe("Should Check Address & Add other Address", () => {
 });
 describe("Should Edit Address", () => {
   it("Should Check If User Add Address Lastly", () => {
+    cy.intercept("POST", "**/api/new_v1/customer/address/update").as(
+      "UpdateAddress"
+    );
     cy.get("[data-cy=Edit-Addres-Icon]")
       .eq(0)
       .click({ force: true })
@@ -231,12 +241,15 @@ describe("Should Edit Address", () => {
         );
         cy.log("✅✅ Detailed Address & Note Input Filled");
         cy.clickElementForce("[data-cy=AddSaveButton]");
+        cy.wait("@UpdateAddress").then((interception) => {
+          cy.log("✅✅ Get Address By Text request arrived");
+        });
         cy.log("✅✅ Add & Save Button Clicked");
       });
   });
 });
 describe("Should Delete Address", () => {
-  it("Should Check If User Add Address Lastly", () => {
+  it("Should", () => {
     cy.clickElementForce("[data-cy=Show-Address-That-Added]");
     cy.log("✅✅ Show Address List Button Clicked");
     cy.get("[data-cy=Delete-Address-Icon]")
@@ -244,7 +257,14 @@ describe("Should Delete Address", () => {
       .click({ force: true })
       .then((text) => {
         cy.log(`Delete Address Icon`);
+        cy.intercept(
+          "POST",
+          "**/api/new_v1/customer/address/delete?address**"
+        ).as("DeleteAddress");
         cy.clickElementForce("[data-cy=Yes-Delete-Address]");
+        cy.wait("@DeleteAddress").then((interception) => {
+          cy.log("✅✅ Get Address By Text request arrived");
+        });
       });
   });
 });
