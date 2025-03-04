@@ -67,6 +67,13 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
       setLoading(false);
     }
   };
+  const getTotalPrice = () => {
+    if (orderData.payment.filter((s) => s.id === 0).length > 0) {
+      return cart.total_cash;
+    } else {
+      return cart.total;
+    }
+  };
   return (
     <div className="absolute flex-col items-center payment-order-bottom left-0 w-full">
       {!orderData.success && (
@@ -182,7 +189,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
                     } `}
                   >
                     {cart.cart.length} {translateFunction("items")}{" "}
-                    {RoundPrice({ num: cart.total_cash })}{" "}
+                    {RoundPrice({ num: getTotalPrice() })}{" "}
                     {currency_symbol?.symbol}
                   </span>
                 </>

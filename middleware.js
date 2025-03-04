@@ -113,18 +113,21 @@ export async function middleware(request) {
       httpOnly: true,
       secure: false,
       sameSite: "Strict",
+      maxAge: 360 * 7 * 24 * 60 * 60,
     });
     response.cookies.set("lang", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
       sameSite: "Strict",
+      maxAge: 360 * 7 * 24 * 60 * 60,
     });
     response.cookies.set("languge", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
       sameSite: "Strict",
+      maxAge: 360 * 7 * 24 * 60 * 60,
     });
     response.headers.set("set-cookie", true);
     request.cookies.set("country", country.toLowerCase(), {
@@ -132,18 +135,21 @@ export async function middleware(request) {
       httpOnly: true,
       secure: false,
       sameSite: "Strict",
+      maxAge: 360 * 7 * 24 * 60 * 60,
     });
     request.cookies.set("lang", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
       sameSite: "Strict",
+      maxAge: 360 * 7 * 24 * 60 * 60,
     });
     request.cookies.set("languge", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
       sameSite: "Strict",
+      maxAge: 360 * 7 * 24 * 60 * 60,
     });
     if (countryFromCookies === "gb") {
       return response;
