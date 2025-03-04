@@ -46,7 +46,7 @@ class OrderService {
       });
       store.dispatch({
         type: "WALLET-USER",
-        payload: { ...data, total_wallet_balance: 30 },
+        payload: data,
       });
       store.dispatch({ type: "ORDER-LOADING", payload: false });
     } catch (error) {
