@@ -801,6 +801,13 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
       shake("payment-valid-border");
     }
   };
+  const getTotalPrice = () => {
+    if (orderData.payment.filter((s) => s.id === 0).length > 0) {
+      return cart.total_cash;
+    } else {
+      return cart.total;
+    }
+  };
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const VerifyCart = async () => {
@@ -854,7 +861,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
                 data-cy="Number-Of-Products-Required"
               >
                 {cart.cart.length} {translateFunction("items")}{" "}
-                {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}
+                {RoundPrice({ num: getTotalPrice() })} {currency_symbol?.symbol}
               </span>
             </>
           )}

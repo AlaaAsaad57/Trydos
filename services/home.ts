@@ -427,7 +427,7 @@ class HomeService {
           `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
         : LISTING_INFO_URL + `?${str}`);
     await fetch(
-      url + `${offset ? `&offset=${offset}` : ""}&limit=${4}`,
+      url + `${offset ? `&offset=[${offset}]` : ""}&limit=${4}`,
 
       {
         method: "GET",
