@@ -131,7 +131,13 @@ describe("Should Add Address", () => {
     cy.log("✅✅ Extended Box To Choose Area Apperead");
     cy.clickElementForce("[data-cy=SearchProvince-District-Town-Street]");
     cy.log("✅✅ Search Province District Town Street");
+    cy.intercept("POST", "**/api/addresses/get-address-by-text").as(
+      "GetAddressByText"
+    );
     cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Latakia");
+    cy.wait("@GetAddressByText").then((interception) => {
+      cy.log("✅✅ Get Address By Text request arrived");
+    });
     cy.log("✅✅ SearchProvince-District-Town-Street Filled");
     cy.get('[data-cy="SearchProvince-District-Town-Street"]', {
       timeout: 10000,
@@ -169,6 +175,19 @@ describe("Should Add Address", () => {
   it("Should Add & Save Address", () => {
     cy.clickElementForce("[data-cy=AddSaveButton]");
     cy.log("✅✅ Add & Save Button Clicked");
+    cy.interceptAndWait([
+      {
+        method: "POST",
+        url: "**/api/new_v1/customer/address/add",
+        alias: "addAddress",
+      },
+      {
+        method: "GET",
+        url: "**/api/new_v1/customer/address/list",
+        alias: "list",
+      },
+    ]);
+    cy.log("✅✅ addAddress & list Requests Arrived");
   });
 });
 describe("Should Check Address & Add other Address", () => {

@@ -648,7 +648,13 @@ Cypress.Commands.add("AddAdress", () => {
   cy.log("✅✅ Extended Box To Choose Area Apperead");
   cy.clickElementForce("[data-cy=SearchProvince-District-Town-Street]");
   cy.log("✅✅ Search Province District Town Street");
-  cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Latakia");
+  cy.intercept("POST", "**/api/addresses/get-address-by-text").as(
+    "GetAddressByText"
+  );
+  cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Damascus");
+  cy.wait("@GetAddressByText").then((interception) => {
+    cy.log("✅✅ Get Address By Text request arrived");
+  });
   cy.log("✅✅ SearchProvince-District-Town-Street Filled");
   cy.get('[data-cy="SearchProvince-District-Town-Street"]', {
     timeout: 10000,
