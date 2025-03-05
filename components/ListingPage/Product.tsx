@@ -6,8 +6,7 @@ import BuyButton from "./BuyButton";
 import NextLink from "components/global/NextLink";
 import { ProductInterface } from "models/product";
 import { useDispatch, useSelector } from "react-redux";
-import { RoundPrice, Sendevent } from "utils/functions";
-import dynamic from "next/dynamic";
+import { Sendevent } from "utils/functions";
 
 import PriceLabel from "./PriceLabel";
 import ColorSlider from "./ColorSlider";
@@ -15,6 +14,7 @@ import TopSlider from "./TopSlider";
 import { useParams } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { CurrencyApi } from "models/Api";
+import CoverEffectSlider from "./CoverEffectSlider";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
@@ -174,7 +174,7 @@ function Product({
           }
         />
         <div className="offer-blured" /> */}
-        {/* {productState?.isActiveTopSlide && (
+        {productState?.isActiveTopSlide && (
           <TopSlider
             product_name={product.name}
             active={productState?.isActiveTopSlide}
@@ -184,7 +184,7 @@ function Product({
             }
             images={productState?.activeColor?.images}
           />
-        )} */}
+        )}
         <div
           className="product-photos max-h-[290px] overflow-visible w-100 justify-start align-center flex-col"
           style={{
@@ -198,7 +198,7 @@ function Product({
               productState?.isColorSelected && "selected-color"
             }`}
           >
-            {/* {product.sync_color_images &&
+            {product.sync_color_images &&
               productState?.isColorSelected &&
               !productState?.isActiveTopSlide && (
                 <ColorSlider
@@ -217,7 +217,7 @@ function Product({
                     dispatch({ type: "setActiveImage", payload: e })
                   }
                 />
-              )} */}
+              )}
 
             <ImageSlider
               priority={priority}
@@ -239,7 +239,7 @@ function Product({
               }
             />
 
-            {/* {product.sync_color_images && (
+            {product.sync_color_images && (
               <>
                 <CoverEffectSlider
                   priority={priority}
@@ -258,7 +258,7 @@ function Product({
                   )}
                 />
               </>
-            )} */}
+            )}
           </div>
         </div>
 
