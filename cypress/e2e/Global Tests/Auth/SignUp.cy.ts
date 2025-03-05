@@ -64,27 +64,15 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
     cy.typePincode("999999");
     cy.wait(2000);
     cy.log("✅✅ Type Pin Code Entred Successfuly");
-    cy.get("@verifyOtpSignin", { timeout: 10000 }).then((alias) => {
-      if (alias) {
-        cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
-          console.log(interception);
-        });
-      } else {
-        console.warn("❌❌ verifyOtpSignin alias does not exist");
-      }
+    cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+      console.log(interception);
     });
-    cy.wait(5000).then(() => {
+    cy.wait("@login", { timeout: 10000 }).then((interception) => {
+      cy.log("✅ login request arrived");
+    });
+    cy.wait(500).then(() => {
       cy.log(`Count is: ${count}`);
       expect(count).to.be.greaterThan(0);
-    });
-    cy.get("@login", { timeout: 10000 }).then((alias) => {
-      if (alias) {
-        cy.wait("@login", { timeout: 10000 }).then((interception) => {
-          cy.log("✅ login request arrived");
-        });
-      } else {
-        cy.log("❌❌ login request did not arrive");
-      }
     });
   });
   it("Should Click On Input Field For Writ User Name", () => {
@@ -212,37 +200,17 @@ describe("Should show user is already registered when registering with registere
     });
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
-    let count = 0;
     cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
       req.continue((res) => {
         res.body.data.already_exists = true;
       });
     }).as("verifyOtpSignin");
-    cy.intercept("POST", "**/login", () => {
-      count += 1;
-    }).as("login");
     cy.typePincode("999999");
     cy.log("✅✅ Type Pin Code Entred Successfuly");
-    cy.get("@verifyOtpSignin", { timeout: 10000 }).then((alias) => {
-      if (alias) {
-        cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
-          console.log(interception);
-        });
-      } else {
-        console.warn("❌❌ verifyOtpSignin alias does not exist");
-      }
+    cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+      console.log(interception);
     });
-    cy.wait(5000).then(() => {
-      cy.log(`Count is: ${count}`);
-    });
-    cy.get("@login", { timeout: 10000 }).then((alias) => {
-      if (alias) {
-        cy.wait("@login", { timeout: 10000 }).then((interception) => {
-          cy.log("✅ login request arrived");
-        });
-      } else {
-        cy.log("❌❌ login request did not arrive");
-      }
-    });
+    cy.get(".already-registered").should("be.visible");
+    cy.get("[data-testid=login-close-icon]").click();
   });
 });

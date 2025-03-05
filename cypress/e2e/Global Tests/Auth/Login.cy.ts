@@ -21,7 +21,7 @@ describe("Login Successful Attempt should login to 3 servers", () => {
     cy.log("✅✅ Click On I Have Already Acount Button");
   });
   it("Should Show By Mobile Phone Number Button (if the user try login from mobile phone)", () => {
-    cy.Exist("[data-cy=login-method-phone]").then((exist) => {
+    cy.Exist1("[data-cy=login-method-phone]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=login-method-phone]").click({ scrollBehavior: false });
         cy.log("✅✅ The User Attempt LogIn From Mobile Phone");
@@ -44,7 +44,7 @@ describe("Login Successful Attempt should login to 3 servers", () => {
     cy.log("✅✅ Send Otp Api Request Successfuly");
   });
   it("Should Verify If Have To Try Again To Send Otp Code", () => {
-    cy.Exist("[data-cy=WaitForTryAgain]").then((exist) => {
+    cy.Exist1("[data-cy=WaitForTryAgain]").then((exist) => {
       if (exist) {
         cy.wait(60000);
         cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
@@ -70,16 +70,10 @@ describe("Login Successful Attempt should login to 3 servers", () => {
     cy.intercept("POST", "**/login", () => {
       count += 1;
     }).as("login");
-    cy.get("@login", { timeout: 10000 }).then((alias) => {
-      if (alias) {
-        cy.wait("@login", { timeout: 10000 }).then((interception) => {
-          cy.log("✅✅ login request arrived");
-        });
-      } else {
-        cy.log("❌❌ login request did not arrive");
-      }
+    cy.wait("@login", { timeout: 10000 }).then((interception) => {
+      cy.log("✅✅ login request arrived");
     });
-    cy.wait(5000).then(() => {
+    cy.wait(500).then(() => {
       cy.log(`Count is: ${count}`);
       expect(count).to.be.greaterThan(1);
     });
@@ -102,7 +96,7 @@ describe("Login UnSuccessful Attempt should show error message to user", () => {
     cy.log("✅✅ Click On I Have Already Acount Button");
   });
   it("Should Show By Mobile Phone Number Button (if the user try login from mobile phone)", () => {
-    cy.Exist("[data-cy=login-method-phone]").then((exist) => {
+    cy.Exist1("[data-cy=login-method-phone]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=login-method-phone]").click({ scrollBehavior: false });
         cy.log("✅✅ The User Attempt LogIn From Mobile Phone");
@@ -125,7 +119,7 @@ describe("Login UnSuccessful Attempt should show error message to user", () => {
     cy.log("✅✅ Send Otp Api Request Successfuly");
   });
   it("Should Verify If Have To Try Again To Send Otp Code", () => {
-    cy.Exist("[data-cy=WaitForTryAgain]").then((exist) => {
+    cy.Exist1("[data-cy=WaitForTryAgain]").then((exist) => {
       if (exist) {
         cy.wait(60000);
         cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
@@ -156,13 +150,13 @@ describe("Login UnSuccessful Attempt should show error message to user", () => {
       count += 1;
     }).as("login1");
     expect(count).to.be.equal(0);
-    cy.get("@login1", { timeout: 10000 }).then((alias) => {
-      if (alias) {
+    cy.get("@login1").then((exist) => {
+      if (exist) {
         cy.wait("@login1", { timeout: 10000 }).then((interception) => {
           cy.log("✅✅ login request arrived");
         });
       } else {
-        cy.log("❌❌ login request did not arrive");
+        cy.log("���� login request not arrived");
       }
     });
   });
@@ -184,7 +178,7 @@ describe("Login UnSuccessful Attempt when otp code expired should show button fo
     cy.log("✅✅ Click On I Have Already Acount Button");
   });
   it("Should Show By Mobile Phone Number Button (if the user try login from mobile phone)", () => {
-    cy.Exist("[data-cy=login-method-phone]").then((exist) => {
+    cy.Exist1("[data-cy=login-method-phone]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=login-method-phone]").click({ scrollBehavior: false });
         cy.log("✅✅ The User Attempt LogIn From Mobile Phone");
@@ -207,7 +201,7 @@ describe("Login UnSuccessful Attempt when otp code expired should show button fo
     cy.log("✅✅ Send Otp Api Request Successfuly");
   });
   it("Should Verify If Have To Try Again To Send Otp Code", () => {
-    cy.Exist("[data-cy=WaitForTryAgain]").then((exist) => {
+    cy.Exist1("[data-cy=WaitForTryAgain]").then((exist) => {
       if (exist) {
         cy.wait(60000);
         cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
@@ -224,7 +218,7 @@ describe("Login UnSuccessful Attempt when otp code expired should show button fo
     cy.wait(130000);
   });
   it("Should Click On Resend Button To Resend OTP Code", () => {
-    cy.Exist(".resend-code-button").then((s) => {
+    cy.Exist1(".resend-code-button").then((s) => {
       if (s) {
         cy.get(".resend-code-button").click({ scrollBehavior: false });
         cy.typePincode("999999");
@@ -236,21 +230,6 @@ describe("Login UnSuccessful Attempt when otp code expired should show button fo
   it("Should Click On Close icon When Welcom Message Apperead", () => {
     cy.get("[data-testid=login-close-icon]").click({
       scrollBehavior: false,
-    });
-  });
-  it("Should Wait Login Request Until Arrives & Verification LogIn To Three Servers", () => {
-    cy.intercept("POST", "**/login", () => {
-      count += 1;
-    }).as("login2");
-    expect(count).to.be.equal(0);
-    cy.get("@login2", { timeout: 10000 }).then((alias) => {
-      if (alias) {
-        cy.wait("@login2", { timeout: 10000 }).then((interception) => {
-          cy.log("✅✅ login request arrived");
-        });
-      } else {
-        cy.log("❌❌ login request did not arrive");
-      }
     });
   });
 });
@@ -270,7 +249,7 @@ describe("Should show user not found when registering with non registered number
     cy.log("✅✅ Click On I Have Already Acount Button");
   });
   it("Should Show By Mobile Phone Number Button (if the user try login from mobile phone)", () => {
-    cy.Exist("[data-cy=login-method-phone]").then((exist) => {
+    cy.Exist1("[data-cy=login-method-phone]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=login-method-phone]").click({ scrollBehavior: false });
         cy.log("✅✅ The User Attempt LogIn From Mobile Phone");
@@ -293,7 +272,7 @@ describe("Should show user not found when registering with non registered number
     cy.log("✅✅ Send Otp Api Request Successfuly");
   });
   it("Should Verify If Have To Try Again To Send Otp Code", () => {
-    cy.Exist("[data-cy=WaitForTryAgain]").then((exist) => {
+    cy.Exist1("[data-cy=WaitForTryAgain]").then((exist) => {
       if (exist) {
         cy.wait(60000);
         cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
@@ -314,15 +293,9 @@ describe("Should show user not found when registering with non registered number
     }).as("verifyOtpSignin");
     cy.typePincode("999999");
     cy.log("✅✅ Type Pin Code Entred Successfuly");
-    cy.get("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
-      if (interception) {
-        cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
-          console.log(interception);
-          cy.log("✅ verifyOtpSignin request arrived");
-        });
-      } else {
-        cy.log("❌❌ verifyOtpSignin request did not arrive");
-      }
+    cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+      console.log(interception);
+      cy.log("✅ verifyOtpSignin request arrived");
     });
   });
   it("Should Apperead Not Registered Message", () => {

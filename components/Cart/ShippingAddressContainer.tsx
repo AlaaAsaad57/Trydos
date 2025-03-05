@@ -58,7 +58,10 @@ const CartItemSelect = ({ items }) => {
         setOpenCart(!openCart);
       }}
     >
-      <span className={` absolute top-[22px] right-[12px] `}>
+      <span
+        className={` absolute top-[22px] right-[12px] `}
+        data-cy="DropDownIcon"
+      >
         <svg
           className={`${openCart && "rotate-180"} transition`}
           xmlns="http://www.w3.org/2000/svg"
@@ -75,7 +78,7 @@ const CartItemSelect = ({ items }) => {
         </svg>
       </span>
       <div className="flex-row ">
-        <OrderCartIcon />
+        <OrderCartIcon data-cy="OrderCartIcon " />
         <div className="regular text-[#1D1D1D] text-[14px] ml-2">
           {translateFunction("Your Shopping Bag", language)}
           <span
@@ -97,7 +100,7 @@ const CartItemSelect = ({ items }) => {
         {openCart &&
           items.map((s, i) => {
             return (
-              <div className="flex relative h-[125px]" key={i}>
+              <div className="flex relative h-[125px]" key={i} data-cy="Item">
                 <span
                   className="absolute w-[91px] h-full z-10 rounded-[15px]"
                   style={{
@@ -139,8 +142,9 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
       }}
       className={`address-valid-border flex-col mt-[11px] pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full ${" min-h-[203px]"}`}
     >
-      <div className="flex-row ">
+      <div className="flex-row " data-cy="ShipingBox">
         <svg
+          data-cy="WrapIcon"
           xmlns="http://www.w3.org/2000/svg"
           xmlnsXlink="http://www.w3.org/1999/xlink"
           width="18"
@@ -229,7 +233,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
           {translateFunction("Shipping & Delivery Address", language)}
         </div>
         <span className="bold ml-[11px]">
-          <FreeShippingIcon />
+          <FreeShippingIcon data-cy="WrapIcon1" />
         </span>
         {orderLoading && (
           <span className="bold ml-[11px]">

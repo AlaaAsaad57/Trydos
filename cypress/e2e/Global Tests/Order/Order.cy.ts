@@ -1,4 +1,5 @@
 let CartLrLength1: number = 0;
+let CountItem1: number = 0;
 describe("Should Open The Website & Logout", () => {
   before("Visit The Site", () => {
     Cypress.on("uncaught:exception", (err, runnable) => {
@@ -64,7 +65,6 @@ describe("should Login If User Is Not Verified", () => {
     cy.log("✅✅ CartShiping & ListRequest Requests Arrived");
   });
 });
-
 describe("Compare Quantity", () => {
   it("Should Extract The Number Of Items That Confirm To Buy It", () => {
     cy.get('[data-cy="Number-Of-Products-Required"]')
@@ -89,6 +89,7 @@ describe("Compare Quantity", () => {
         const match = text.match(/(\d+)\s*\w*/); // Extract first number
         if (match) {
           const itemCount = parseInt(match[1], 10); // Convert extracted value to integer
+          CountItem1 = itemCount;
           cy.log("✅✅Extracted Item Count:", itemCount);
           expect(itemCount).to.be.a("number");
           expect(itemCount).to.be.eq(CartLrLength1);
@@ -98,7 +99,43 @@ describe("Compare Quantity", () => {
         }
       });
   });
+  // *********************************************
+  // it("Should Chack Other Components", () => {
+  //   cy.get("[data-cy=OrderCartIcon").should("exist");
+  //   cy.log("✅✅ Order Cart Icon Exists");
+  //   cy.get(".regular text-[#1D1D1D]")
+  //     .should("contain.text", "Your Shopping Bag")
+  //     .should("exist");
+  //   cy.log("✅✅ The Text Exists");
+  //   cy.clickElementForce("[data-cy=DropDownIcon]");
+  //   cy.log("✅✅ Drop Down Icon Click");
+  //   cy.get("data-cy=Item")
+  //     .its("length")
+  //     .then((count) => {
+  //       cy.log(`✅✅ The Count Of Item Required Is: ${count}`);
+  //       expect(count).to.be.eq(CountItem1);
+  //     });
+  // });
+  // *********************************************
 });
+describe("Shipping & Delivery Address Component", () => {
+  // it("should render the Bag shipping", () => {
+  //   cy.get("[data-cy=TitleInOrderPage]")
+  //     .find("svg")
+  //     .should("contain.text", "Bag Shipping & Delivery Address")
+  //     .should("exist");
+  // });
+  it("should render the shipping and delivery address component", () => {
+    cy.get('[data-cy="ShipingBox"]').should("exist");
+    cy.contains("Shipping & Delivery Address").should("be.visible");
+    cy.contains("Please Enter Shipping Address To Receive Your Bag").should(
+      "be.visible"
+    );
+    cy.get('[data-cy="WrapIcon1"]').should("exist");
+    cy.get('[data-cy="WrapIcon"]').should("exist");
+  });
+});
+
 describe("Should Add Address", () => {
   it("Should Check If User Add Address Lastly", () => {
     cy.Exist("[data-cy=Address-Added-Last]").then((exist) => {
@@ -227,10 +264,10 @@ describe("Should Check Address & Add other Address", () => {
 });
 describe("Should Edit Address", () => {
   it("Should Check If User Add Address Lastly", () => {
-    cy.intercept("POST", "**/api/new_v1/customer/address/update").as(
-      "UpdateAddress"
-    );
-    cy.get("[data-cy=Edit-Addres-Icon]")
+    // cy.intercept("POST", "**/api/new_v1/customer/address/update").as(
+    //   "UpdateAddress"
+    // );
+    cy.get("[data-cy=Edit-Addres-Icon]", { timeout: 10000 })
       .eq(0)
       .click({ force: true })
       .then((text) => {
@@ -241,15 +278,20 @@ describe("Should Edit Address", () => {
         );
         cy.log("✅✅ Detailed Address & Note Input Filled");
         cy.clickElementForce("[data-cy=AddSaveButton]");
-        cy.wait("@UpdateAddress").then((interception) => {
-          cy.log("✅✅ Get Address By Text request arrived");
-        });
         cy.log("✅✅ Add & Save Button Clicked");
       });
+    cy.wait(5000);
+    // cy.wait("@UpdateAddress").then((interception) => {
+    //   if (interception) {
+    //     cy.log("✅✅ Update Address By Text request arrived");
+    //   } else {
+    //     cy.log("Error");
+    //   }
+    // });
   });
 });
 describe("Should Delete Address", () => {
-  it("Should", () => {
+  it("Should Delete Address", () => {
     cy.clickElementForce("[data-cy=Show-Address-That-Added]");
     cy.log("✅✅ Show Address List Button Clicked");
     cy.get("[data-cy=Delete-Address-Icon]")

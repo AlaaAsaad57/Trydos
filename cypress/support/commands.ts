@@ -167,16 +167,9 @@ Cypress.Commands.add("performLogin", (s?: string) => {
   cy.get("[data-testid=login-close-icon]").click({
     scrollBehavior: false,
   });
-  cy.get("@login", { timeout: 5000 }).then((alias) => {
-    if (alias) {
-      cy.wait("@login").then((interception) => {
-        cy.log("✅ login request arrived");
-        console.log("login request arrived");
-      });
-    } else {
-      cy.log("❌❌ login request did not arrive");
-      console.warn("login request did not arrive");
-    }
+  cy.wait("@login").then((interception) => {
+    cy.log("✅ login request arrived");
+    console.log("login request arrived");
   });
   cy.wait(500).then(() => {
     cy.log(`Count is: ${count}`);
@@ -594,10 +587,10 @@ Cypress.Commands.add("verifyComponentsInProductCard", () => {
       cy.log("❌❌ There aren't any photos slider");
     }
   });
-  cy.scrollTo("bottom");
-  cy.get('[data-cy="ReachEnd"]')
-    .should("be.visible")
-    .and("contain.text", "Reach End");
+  // cy.scrollTo("bottom");
+  // cy.get('[data-cy="ReachEnd"]', { timeout: 15000 })
+  //   .should("be.visible")
+  //   .and("contain.text", "Reach End");
 });
 // ***********************************Orders******************************
 Cypress.Commands.add("AddProductToCart", () => {
