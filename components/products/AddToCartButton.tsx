@@ -515,7 +515,8 @@ function AddToCartButton({
   };
   return (
     <>
-      {AddToCartOption.enable && isQuantityEmpty() ? (
+      {AddToCartOption.enable &&
+      (isQuantityEmpty() || product?.is_available_in_market === false) ? (
         <>
           <div
             className={`add-cart-button extended-add-to-cart ${
@@ -846,7 +847,7 @@ function AddToCartButton({
           ) : (
             <div
               className={`${
-                product.country_is_restricted && "opacity-50"
+                product.is_country_restricted && "opacity-50"
               } add-cart-button ${
                 AddToCartOption?.enable &&
                 `extended-add-to-cart  ${!loading && "opacity-45"}`
