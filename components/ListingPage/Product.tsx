@@ -8,14 +8,13 @@ import { ProductInterface } from "models/product";
 import { useDispatch, useSelector } from "react-redux";
 import { RoundPrice, Sendevent } from "utils/functions";
 import dynamic from "next/dynamic";
-import CoverEffectSlider from "./CoverEffectSlider";
-const PriceLabel = dynamic(() => import("./PriceLabel"), {
-  ssr: false,
-});
+
+import PriceLabel from "./PriceLabel";
 import ColorSlider from "./ColorSlider";
 import TopSlider from "./TopSlider";
 import { useParams } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
+import { CurrencyApi } from "models/Api";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
@@ -58,10 +57,12 @@ const getIndex = (product, productState) => {
 function Product({
   product,
   priority,
+  currency,
   i,
 }: {
   product: ProductInterface;
   priority: boolean;
+  currency: CurrencyApi["data"]["currency"];
   i: number;
 }) {
   const dispatchStore = useDispatch();
@@ -105,9 +106,9 @@ function Product({
   const decimal_point_settings = useSelector(
     (state: StateInterface) => state.homepage.settings
   );
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  ) || { exchange_rate: 1 };
+  // const currency = useSelector(
+  //   (state: StateInterface) => state.homepage.currency
+  // ) || { exchange_rate: 1 };
 
   return (
     <div className="max-h-[362px]" data-cy="countProduct">
@@ -122,7 +123,9 @@ function Product({
             /* @ts-ignore*/
             e.target.closest(".product-photos-slider") ||
             /* @ts-ignore*/
-            e.target.closest(".buy-button")
+            e.target.closest(".buy-button") ||
+            /* @ts-ignore*/
+            e.target.closest(".inset-shadow-img")
           ) {
             stopProgress(true);
             dispatchRouteChangeEvent("completed");
@@ -171,7 +174,7 @@ function Product({
           }
         />
         <div className="offer-blured" /> */}
-        {productState?.isActiveTopSlide && (
+        {/* {productState?.isActiveTopSlide && (
           <TopSlider
             product_name={product.name}
             active={productState?.isActiveTopSlide}
@@ -181,7 +184,7 @@ function Product({
             }
             images={productState?.activeColor?.images}
           />
-        )}
+        )} */}
         <div
           className="product-photos max-h-[290px] overflow-visible w-100 justify-start align-center flex-col"
           style={{
@@ -195,7 +198,7 @@ function Product({
               productState?.isColorSelected && "selected-color"
             }`}
           >
-            {product.sync_color_images &&
+            {/* {product.sync_color_images &&
               productState?.isColorSelected &&
               !productState?.isActiveTopSlide && (
                 <ColorSlider
@@ -214,30 +217,29 @@ function Product({
                     dispatch({ type: "setActiveImage", payload: e })
                   }
                 />
-              )}
-            {
-              <ImageSlider
-                priority={priority}
-                product_name={product.name}
-                renderVar={productState?.renderVar}
-                active={
-                  !productState?.isColorSelected &&
-                  !productState?.isActiveTopSlide
-                }
-                isActiveTopSlide={productState?.isActiveTopSlide}
-                setActiveTopSlide={(e) =>
-                  dispatch({ type: "setActiveTopSlide", payload: e })
-                }
-                setColor={(e) => dispatch({ type: "setColor", payload: e })}
-                activeColor={productState?.activeColor}
-                isColorSelected={productState?.isColorSelected}
-                setActiveImage={(e) =>
-                  dispatch({ type: "setActiveImage", payload: e })
-                }
-              />
-            }
+              )} */}
 
-            {product.sync_color_images && (
+            <ImageSlider
+              priority={priority}
+              product_name={product.name}
+              renderVar={productState?.renderVar}
+              active={
+                !productState?.isColorSelected &&
+                !productState?.isActiveTopSlide
+              }
+              isActiveTopSlide={productState?.isActiveTopSlide}
+              setActiveTopSlide={(e) =>
+                dispatch({ type: "setActiveTopSlide", payload: e })
+              }
+              setColor={(e) => dispatch({ type: "setColor", payload: e })}
+              activeColor={productState?.activeColor}
+              isColorSelected={productState?.isColorSelected}
+              setActiveImage={(e) =>
+                dispatch({ type: "setActiveImage", payload: e })
+              }
+            />
+
+            {/* {product.sync_color_images && (
               <>
                 <CoverEffectSlider
                   priority={priority}
@@ -256,7 +258,7 @@ function Product({
                   )}
                 />
               </>
-            )}
+            )} */}
           </div>
         </div>
 
@@ -319,6 +321,7 @@ function Product({
         </div>
         <div className="product-footer w-100 flex-row align-center max-h-[30px]">
           <PriceLabel
+            currency={currency}
             offer_price={product?.offer_price}
             price_formatted={product.price}
           />

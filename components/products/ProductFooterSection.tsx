@@ -72,7 +72,7 @@ function ProductReducer(state, { type, payload }) {
     };
   }
 }
-function ProductFooterSection({ product }) {
+function ProductFooterSection({ product, currency }) {
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -212,10 +212,12 @@ function ProductFooterSection({ product }) {
   }, []);
   const decimal_point_settings = useSelector(
     (state: StateInterface) => state.homepage.settings
-  );
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+  ) || {
+    "starting-setting": {
+      decimal_point_settings: 0,
+    },
+  };
+
   let AddToCartOption = useSelector(
     (state: StateInterface) => state.cart.AddToCartOption
   );
