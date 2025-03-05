@@ -6,12 +6,8 @@ import BuyButton from "./BuyButton";
 import NextLink from "components/global/NextLink";
 import { ProductInterface } from "models/product";
 import { useDispatch, useSelector } from "react-redux";
-import { RoundPrice, Sendevent } from "utils/functions";
-import dynamic from "next/dynamic";
-
+import { Sendevent } from "utils/functions";
 import PriceLabel from "./PriceLabel";
-import ColorSlider from "./ColorSlider";
-import TopSlider from "./TopSlider";
 import { useParams } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { CurrencyApi } from "models/Api";
