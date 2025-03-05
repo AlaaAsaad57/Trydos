@@ -818,9 +818,11 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
           dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
         },
       })
-    ).cart.filter((s) => s.check_availability === false);
-
-    if (a?.length === 0) {
+    ).cart;
+    if (a.length === 0) {
+      setPrev();
+    }
+    if (a?.filter((s) => s?.check_availability === false).length === 0) {
       setNext();
     } else {
       toast.error("Please Review Your Cart Some Products Not Available");

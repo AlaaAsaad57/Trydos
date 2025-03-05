@@ -53,9 +53,12 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
             dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
           },
         })
-      ).cart.filter((s) => s.check_availability === false);
-
-      if (a?.length === 0) {
+      ).cart;
+      if (a.length === 0) {
+        backToCart();
+        setLoading(false);
+      }
+      if (a?.filter((s) => s?.check_availability === false).length === 0) {
         setLoading(false);
         successOrder();
       } else {
