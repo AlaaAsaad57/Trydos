@@ -102,7 +102,7 @@ function ProductOptions({
     }
   };
   useEffect(() => {
-    if (product.country_is_restricted) {
+    if (product.is_country_restricted) {
       toast.error(
         translateFunction("Sorry This Product Not Available In Your Country")
       );
