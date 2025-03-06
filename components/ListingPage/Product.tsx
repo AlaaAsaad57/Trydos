@@ -9,8 +9,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { Sendevent } from "utils/functions";
 
 import PriceLabel from "./PriceLabel";
-import ColorSlider from "./ColorSlider";
-import TopSlider from "./TopSlider";
 import { useParams } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { CurrencyApi } from "models/Api";
