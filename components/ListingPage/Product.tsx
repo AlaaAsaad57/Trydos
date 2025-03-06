@@ -13,6 +13,8 @@ import { useParams } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { CurrencyApi } from "models/Api";
 import CoverEffectSlider from "./CoverEffectSlider";
+import TopSlider from "./TopSlider";
+import ColorSlider from "./ColorSlider";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
