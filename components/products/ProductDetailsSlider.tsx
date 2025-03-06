@@ -7,7 +7,7 @@ import { getConfiguredImage } from "utils/functions";
 import { useDispatch, useSelector } from "react-redux";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CloseIcon from "components/Home/Stories/CloseIcon";
-function ProductDetailsSlider({ product }) {
+function ProductDetailsSlider({ product, currency }) {
   const productData = product;
   const [imageShow, showImage] = useState(-1);
   const [emblaRef] = useEmblaCarousel();
@@ -45,6 +45,7 @@ function ProductDetailsSlider({ product }) {
       type: "STORE-PRODUCT",
       payload: { ...product, colorFrom: searchParams.get("color") },
     });
+    dispatch({ type: "CURRENCY", payload: currency });
   }, []);
 
   return (

@@ -4,7 +4,7 @@ export const translations = {
     K: "k",
     M: "M",
     "Shipping & Delivery Address": "Shipping & Delivery Address",
-    "Your Address List Is Empty": "Your Address List Is Empty",
+    "No Address Selected": "No Address Selected",
     "Show Address List": "Show Address List",
     "Please Enter Shipping Address To Receive Your Bag":
       "Please Enter Shipping Address To Receive Your Bag",
@@ -299,7 +299,7 @@ export const translations = {
     "Earn Money With This Order": "كسب المال مع هذا الطلب",
     "Contact Info": "معلومات التواصل",
     "Add Shipping Address": "اضافة عنوان توصيل",
-    "Your Address List Is Empty": "قائمة العناوين فارغة",
+    "No Address Selected": "لم يتم اختيار اي عنوان",
     "Please Enter Shipping Address To Receive Your Bag":
       "الرجاء ادخال عنوان للشحن لاستلام سلتك",
     "Shipping & Delivery Address": "عناوين الشحن والتوصيل",
@@ -567,7 +567,7 @@ export const translations = {
   tr: {
     Buy: "Satın Al",
     "Shipping & Delivery Address": "Teslimat ve Gönderim Adresi",
-    "Your Address List Is Empty": "Adres Listeniz Boş",
+    "No Address Selected": "Adres Listeniz Boş",
     "Show Address List": "Adres Listesini Göster",
     "Please Enter Shipping Address To Receive Your Bag":
       "Çantanızı Alabilmeniz İçin Lütfen Teslimat Adresinizi Girin",

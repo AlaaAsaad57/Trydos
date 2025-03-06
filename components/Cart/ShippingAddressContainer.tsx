@@ -426,7 +426,7 @@ const AddressContainer = ({ openAddressList }) => {
           : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
       } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
     >
-      {addressLists?.length > 0 ? (
+      {defaultAddress ? (
         <>
           <div className="flex-col">
             <div className="flex-row items-center">
@@ -600,7 +600,7 @@ const AddressContainer = ({ openAddressList }) => {
             </svg>
           </span>
           <div className="flex medium text-[12px] text-[#C4C2C2] mt-[12px]">
-            {translateFunction("Your Address List Is Empty")}
+            {translateFunction("No Address Selected")}
           </div>
           <div className="flex regular text-[12px] text-[#C4C2C2] mt-[3px]">
             {translateFunction("You Can Also Create Multiple Addresses To Use")}
