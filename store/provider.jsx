@@ -39,15 +39,15 @@ export default function Providers({ children }) {
     }
 
     try {
-      Smartlook.init(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
+      // Smartlook.init(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
       if (localStorage.getItem("USER") || localStorage.getItem("guest-user")) {
         let user =
           localStorage.getItem("USER") || localStorage.getItem("guest-user");
-        Smartlook.identify(JSON.parse(user).id, {
-          name: JSON.parse(user)?.name || "Guest",
-          phone: JSON.parse(user)?.mobilePhone || "null",
-          // other custom properties
-        });
+        // Smartlook.identify(JSON.parse(user).id, {
+        //   name: JSON.parse(user)?.name || "Guest",
+        //   phone: JSON.parse(user)?.mobilePhone || "null",
+        //   // other custom properties
+        // });
       }
     } catch (error) {
       console.log(error);
