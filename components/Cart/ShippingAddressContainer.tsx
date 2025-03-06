@@ -78,7 +78,7 @@ const CartItemSelect = ({ items }) => {
         </svg>
       </span>
       <div className="flex-row ">
-        <OrderCartIcon data-cy="OrderCartIcon " />
+        <OrderCartIcon data-cy="Order-Cart-Icon" />
         <div className="regular text-[#1D1D1D] text-[14px] ml-2">
           {translateFunction("Your Shopping Bag", language)}
           <span
