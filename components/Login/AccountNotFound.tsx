@@ -172,6 +172,7 @@ function AccountNotFound({
       <div className="login-button-group">
         <div
           className="login-button"
+          data-cy="Create-New-Account"
           onClick={() => {
             Sendevent({
               event: "button_clicked",
@@ -191,6 +192,7 @@ function AccountNotFound({
       </div>
       <div
         className="blue-text"
+        data-cy="Cancel-Look-App"
         style={{
           fontSize: "12px",
           fontFamily: `var(--Quicksand-Regular)`,

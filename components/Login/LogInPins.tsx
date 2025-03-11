@@ -444,6 +444,7 @@ function LogInPins({
                   </span>
                   <span
                     className="blue-text"
+                    data-cy="Change-Way"
                     id="text-wrap-element"
                     style={{ cursor: "pointer" }}
                     onClick={() => setStepIndactor(4)}

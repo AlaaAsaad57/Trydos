@@ -131,10 +131,38 @@ Cypress.Commands.add("typePincode", (pincode: string) => {
     });
   });
 });
+// **********************************AddedLast**********************************************
+Cypress.Commands.add("typePincode1", (pincode: string) => {
+  cy.get(".pincode-input-text").first().focus(); // Ensure the first input field gets focus
+
+  const digits = pincode.split(""); // Split the pincode into individual digits
+  digits.forEach((digit, index) => {
+    cy.get(`.pincode-input-text:nth-child(${index + 1})`, {
+      timeout: 3000,
+    }).type(digit, { scrollBehavior: false });
+  });
+});
+Cypress.Commands.add("enterPhoneNumber11", (phoneNumber: string) => {
+  phoneNumber.split("").forEach((char) => {
+    cy.get("#phoneInput")
+      .type(char, { delay: 200 }) // Type each character with a delay
+      .should("be.focused"); // Verify that the input is still focused
+  });
+  cy.get("#phoneInput").type("{enter}");
+});
+// **********************************AddedLast**********************************************
 Cypress.Commands.add("enterPhoneNumber1", (phoneNumber: string) => {
   cy.get("#phoneInput").type(`${phoneNumber}{enter}`, {
     scrollBehavior: false,
   });
+});
+Cypress.Commands.add("reEnterPhoneNumber", (phoneNumber: string) => {
+  cy.clickElementForce("[data-cy=Edit-Phone-Number]");
+  cy.log("✅✅ Back To Write Correct Number Phone Successfuly");
+  cy.get("#phoneInput").type(`${phoneNumber}`, {
+    scrollBehavior: false,
+  });
+  cy.clickElementForce(".phone-arrow");
 });
 Cypress.Commands.add("enterPhoneNumber", (phoneNumber: string) => {
   cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");

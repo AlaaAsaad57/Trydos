@@ -56,7 +56,11 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
         <div className="welcoming-label">{translate("Hello,", language)}</div>
         <div className="welcoming-user">{Name || "Alaa Asaad"}</div>
       </div>
-      <div className="welcoming-enjoy" style={{ marginBottom: "10vh" }}>
+      <div
+        className="welcoming-enjoy"
+        style={{ marginBottom: "10vh" }}
+        data-cy="Wellcome-Enjoy"
+      >
         {translate("Enjoy With Our Services", language)}
       </div>
       <div className="signup-detail">
@@ -68,6 +72,7 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
       <div className="login-button-group">
         <div
           className="login-button"
+          data-cy="Complate-Close"
           onClick={() => close()}
           style={{
             position: "relative",

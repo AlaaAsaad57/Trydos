@@ -36,8 +36,11 @@ declare global {
       logout(): Chainable<void>;
       (): Chainable<void>;
       typePincode(pincode: string): Chainable<void>;
+      typePincode1(pincode: string): Chainable<void>;
       enterPhoneNumber(phoneNumber: string): Chainable<void>;
+      reEnterPhoneNumber(phoneNumber: string): Chainable<void>;
       enterPhoneNumber1(phoneNumber: string): Chainable<void>;
+      enterPhoneNumber11(phoneNumber: string): Chainable<void>;
       performLogin(s?: string): Chainable<void>;
       performLogin1(s?: string): Chainable<void>;
       Performloginfailure(): Chainable<void>;
@@ -57,6 +60,9 @@ declare global {
       verifyComponentsInProductCard(): Chainable<void>;
       AddProductToCart(): Chainable<void>;
       AddAdress(): Chainable<void>;
+    }
+    interface Window {
+      isKeyboardOpen?: boolean;
     }
   }
 }
