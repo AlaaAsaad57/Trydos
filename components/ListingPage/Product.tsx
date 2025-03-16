@@ -135,11 +135,6 @@ function Product({
               event: "button_clicked",
               value: "choose_product_button",
             });
-            setTimeout(() => {
-              if (document.querySelector("#nprogress"))
-                // @ts-ignore
-                document.querySelector("#nprogress").style.opacity = "1";
-            }, 1000);
           }
         }}
         href={`/${lang}/products/${product.slug}`}
@@ -332,11 +327,6 @@ function Product({
               stopProgress(true);
               addToCart();
               setTimeout(() => {
-                if (document.querySelector("#nprogress"))
-                  document.querySelector(
-                    "#nprogress"
-                    // @ts-ignore
-                  ).style.opacity = "0";
                 dispatchRouteChangeEvent("completed");
                 stopProgress(true);
               }, 2000);

@@ -223,6 +223,7 @@ export const translations = {
     "Payment Method": "طرق الدفع",
     "Sorry This Product Not Available In Your Country":
       "عذرا هذا المنتج غير متوفر في بلدك",
+    "Sorry This Product Not Available Now": "عذرا هذا المنتج غير متوفر حاليا",
     "Shipping & Payment": "الدفع والتوصيل",
     Done: "تم",
     K: " ألف ",
@@ -563,6 +564,9 @@ export const translations = {
     Today: "اليوم",
     "Time Is Expected, It May Take More Or Less Than 2 Days":
       "الوقت تقديري قد يستغرق أكثر أو أقل من يومين",
+    "We Will Inform You When this Is Available": "سنعلمك عند توفر المنتج",
+    "Notify Me When Size Is Available": "ارسل اشعار عند توفر المنتج",
+    "Notify Me": "ارسل اشعارا",
   },
   tr: {
     Buy: "Satın Al",

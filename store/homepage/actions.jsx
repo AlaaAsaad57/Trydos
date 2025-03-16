@@ -7,12 +7,14 @@ export const changeAppLanguage = (language) => {
     expires: 365,
   });
   changeAppLanguageServer(language);
+  changeToken({ key: "language", value: language });
+  changeToken({ key: "lang", value: language });
   return { type: "APP-LANGUAGE", payload: language };
 };
 export const changeAppCountry = (iso) => {
-  Cookies.set("country", iso, {
-    expires: 365,
-  });
+  // Cookies.set("country", iso, {
+  //   expires: 365,
+  // });
   changeToken({ key: "country", value: iso });
   return { type: "APP-COUNTRY", payload: iso };
 };

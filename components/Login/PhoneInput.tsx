@@ -42,11 +42,11 @@ function PhoneInput({
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
-  useEffect(() => {
-    document
-      .querySelector<HTMLInputElement>(".login-phone-input")
-      ?.focus({ preventScroll: true });
-  }, []);
+  // useEffect(() => {
+  //   document
+  //     .querySelector<HTMLInputElement>(".login-phone-input")
+  //     ?.focus({ preventScroll: true });
+  // }, []);
 
   const [active, setActive] = useState(false);
   const mountAnim = ` 
