@@ -43,7 +43,6 @@ describe("Should Add Product To Cart From Any Boutique Page", () => {
     cy.clickElementScroll("[data-cy=AddToCartButton-data-cy]");
     cy.wait("@CartRequest", { timeout: 10000 }).then((interception) => {
       if (interception?.response) {
-        console.log("✅ Intercepted request addToCart");
         expect(interception.response.statusCode).to.eq(200);
       } else {
         console.warn(
@@ -109,7 +108,6 @@ describe("Should Add Product To Cart From Any Product Page", () => {
     cy.clickElementScroll("[data-cy=AddToCartButton-data-cy]");
     cy.wait("@CartRequest", { timeout: 10000 }).then((interception) => {
       if (interception?.response) {
-        console.log("✅ Intercepted request UpdateCart");
         expect(interception.response.statusCode).to.eq(200);
       } else {
         console.warn(
@@ -163,7 +161,6 @@ describe("Should Click On Cart Icon On The Home Page & Increase The Quantity Of 
       .then((value) => {
         QuantityInCartPreviously = parseInt(value as string, 10);
         cy.log(`Input value is ${QuantityInCartPreviously}`);
-        console.log(`Input value is ${QuantityInCartPreviously}`);
       });
     cy.log("✅✅ The Quantity That Was Previously Requested Has Been Obtained");
   });
@@ -172,7 +169,7 @@ describe("Should Click On Cart Icon On The Home Page & Increase The Quantity Of 
     cy.get("[data-cy=PlusIcon_CartPage]").eq(0).click({ force: true });
     cy.wait("@increaseQuantity", { timeout: 10000 }).then((interception) => {
       if (interception) {
-        console.log("✅ increaseQuantity request successfully intercepted");
+        cy.log("✅ increaseQuantity request successfully intercepted");
       } else {
         console.warn("❌❌ increaseQuantity request did not arrive");
       }
@@ -188,12 +185,15 @@ describe("Should Click On Cart Icon On The Home Page & Increase The Quantity Of 
       .then((value) => {
         const inputValueAfterUpdate = parseInt(value as string, 10);
         cy.log(`Input value is ${inputValueAfterUpdate}`);
-        console.log(`Input value is ${inputValueAfterUpdate}`);
-        if (inputValueAfterUpdate > QuantityInCartPreviously) {
-          cy.log("Success: Quantity increaseded in cart");
-        } else {
-          cy.log("Error: Quantity did not increaseded in cart");
-        }
+        expect(inputValueAfterUpdate).to.be.greaterThan(
+          QuantityInCartPreviously
+        );
+        // cy.log("Success: Quantity increaseded in cart");
+        // if (inputValueAfterUpdate > QuantityInCartPreviously) {
+        //   cy.log("Success: Quantity increaseded in cart");
+        // } else {
+        //   cy.log("Error: Quantity did not increaseded in cart");
+        // }
       });
   });
   it("Should Click On Cart Back Icon To Return To Home Page", () => {
@@ -202,7 +202,7 @@ describe("Should Click On Cart Icon On The Home Page & Increase The Quantity Of 
   });
 });
 // *************************************************************************************************
-describe("Should Click On The Cart Icon On The Home Page & Decrease The Quantity (If The Quantity Becomes Zero Should Delete Product From Cart)", () => {
+describe("Should Click On The Cart Icon On The Home Page & Decrease The Quantity", () => {
   let QuantityInCartPreviously = 0;
   it("Should Click On Cart Icon In The Home Page & Open Cart Page", () => {
     cy.get("[data-cy=boutiques]", { timeout: 15000 });
@@ -216,7 +216,50 @@ describe("Should Click On The Cart Icon On The Home Page & Decrease The Quantity
       .then((value) => {
         QuantityInCartPreviously = parseInt(value as string, 10);
         cy.log(`Input value is ${QuantityInCartPreviously}`);
-        console.log(`Input value is ${QuantityInCartPreviously}`);
+      });
+    cy.log("✅✅ The Quantity That Was Previously Requested Has Been Obtained");
+  });
+  it("If The Quantity Of The Previously Requested Product Is One, We Will Find Delete Icon. Here, Click On It & The Product Is Deleted From The Cart, If It Is Greater Than One, It Will Be Reduced By One Only", () => {
+    cy.intercept("POST", "**/api/new_v1/cart/update").as("decreaseQuantity");
+    cy.get("[data-cy=MinusIcon_CartPage]").eq(0).click({ force: true });
+    cy.wait("@decreaseQuantity").then((interception) => {
+      if (interception) {
+        cy.log("✅ decreaseQuantity request successfully intercepted");
+      }
+    });
+    cy.get('[data-cy="QuantityInCart"]') // Replace with actual test ID
+      .invoke("val")
+      .then((value) => {
+        const inputValueAfterUpdate = parseInt(value as string, 10);
+        cy.log(`Input value is ${inputValueAfterUpdate}`);
+        cy.log(`Input value is ${inputValueAfterUpdate}`);
+        expect(inputValueAfterUpdate).to.be.lessThan(QuantityInCartPreviously);
+        cy.log("Success: Quantity decreaseded in cart");
+        // if (inputValueAfterUpdate < QuantityInCartPreviously) {
+        //   cy.log("Success: Quantity decreaseded in cart");
+        // }
+      });
+  });
+  it("Should Click On Cart Back Icon To Return To Home Page", () => {
+    cy.clickElementForce("[data-cy=CartBackIcon]");
+    cy.log("✅✅ Dual Back Icon Clicked & Returned To Main Page");
+  });
+});
+// **********************************************Added Last*****************************************************
+describe("Should Click On The Cart Icon On The Home Page & Delete The Quantity Of Product", () => {
+  let QuantityInCartPreviously = 0;
+  it("Should Click On Cart Icon In The Home Page & Open Cart Page", () => {
+    cy.get("[data-cy=boutiques]", { timeout: 15000 });
+    cy.clickElementForce("[data-cy=cartIcon_mainPage]");
+    cy.log("✅✅ Click On Cart Icon In Main Page & Open Cart Page");
+  });
+  it("The Required Quantity Of The Product Should Be Obtained In Advance", () => {
+    cy.get('[data-cy="QuantityInCart"]')
+      .eq(0)
+      .invoke("val")
+      .then((value) => {
+        QuantityInCartPreviously = parseInt(value as string, 10);
+        cy.log(`Input value is ${QuantityInCartPreviously}`);
       });
     cy.log("✅✅ The Quantity That Was Previously Requested Has Been Obtained");
   });
@@ -225,36 +268,11 @@ describe("Should Click On The Cart Icon On The Home Page & Decrease The Quantity
     cy.Exist("[data-cy=DeleteIcon_CartPage]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=DeleteIcon_CartPage]").eq(0).click({ force: true });
-        cy.wait("@removeRequest", { timeout: 10000 }).then((interception) => {
+        cy.wait("@removeRequest").then((interception) => {
           if (interception) {
             cy.log("✅ removeRequest successfully intercepted");
           }
         });
-      }
-    });
-    cy.Exist("[data-cy=EmptyCRart]").then((exist) => {
-      if (!exist) {
-        cy.intercept("POST", "**/api/new_v1/cart/update").as(
-          "decreaseQuantity"
-        );
-        cy.get("[data-cy=MinusIcon_CartPage]").eq(0).click({ force: true });
-        cy.get('[data-cy="QuantityInCart"]') // Replace with actual test ID
-          .invoke("val")
-          .then((value) => {
-            const inputValueAfterUpdate = parseInt(value as string, 10);
-            cy.log(`Input value is ${inputValueAfterUpdate}`);
-            cy.log(`Input value is ${inputValueAfterUpdate}`);
-            if (inputValueAfterUpdate < QuantityInCartPreviously) {
-              cy.log("Success: Quantity decreaseded in cart");
-            }
-          });
-        cy.wait("@decreaseQuantity", { timeout: 1000 }).then((interception) => {
-          if (interception) {
-            cy.log("✅ decreaseQuantity request successfully intercepted");
-          }
-        });
-      } else {
-        cy.log("❌❌ New Cart Becomming Empty");
       }
     });
   });

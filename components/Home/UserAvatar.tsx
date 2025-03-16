@@ -10,6 +10,7 @@ function UserAvatar({ avatar }: UserAvatarProps) {
         <>
           <div
             className="nav-question-item nav-img-item"
+            data-cy="Logout-ReLogout"
             style={{
               marginLeft: "0px",
               position: "relative",
@@ -34,10 +35,7 @@ function UserAvatar({ avatar }: UserAvatarProps) {
           </div>
         </>
       ) : (
-        <div
-          className="nav-question-item"
-          style={{ marginLeft: "0px" }}
-        >
+        <div className="nav-question-item" style={{ marginLeft: "0px" }}>
           <UserIcon style={{ transform: "scale(1)" }} />
         </div>
       )}
