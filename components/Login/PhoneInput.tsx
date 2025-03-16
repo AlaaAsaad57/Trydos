@@ -440,7 +440,7 @@ function PhoneInput({
             }}
             disabled={false}
             type="number"
-            autoFocus={true}
+            autoFocus={false}
             inputMode="numeric"
             onKeyDown={(e) => {
               if (
