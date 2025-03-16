@@ -29,7 +29,7 @@ function ProuctDetailsBody({ product }) {
         extra: {
           product_name: product.name,
           product_id: product.id,
-          product_categories: product.categories.map((s) => s.id),
+          product_categories: product.categories?.map((s) => s.id),
         },
       });
     }, 4000);
