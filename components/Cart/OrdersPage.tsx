@@ -274,7 +274,10 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                   setOrderStep(0);
                 }}
               />
-              <span className="text-[13px] text-[#505050] regular flex-row items-center ">
+              <span
+                className="text-[13px] text-[#505050] regular flex-row items-center "
+                data-cy="TitleInOrderPage"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"

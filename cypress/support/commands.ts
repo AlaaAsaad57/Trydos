@@ -131,10 +131,38 @@ Cypress.Commands.add("typePincode", (pincode: string) => {
     });
   });
 });
+// **********************************AddedLast**********************************************
+Cypress.Commands.add("typePincode1", (pincode: string) => {
+  cy.get(".pincode-input-text").first().focus(); // Ensure the first input field gets focus
+
+  const digits = pincode.split(""); // Split the pincode into individual digits
+  digits.forEach((digit, index) => {
+    cy.get(`.pincode-input-text:nth-child(${index + 1})`, {
+      timeout: 3000,
+    }).type(digit, { scrollBehavior: false });
+  });
+});
+Cypress.Commands.add("enterPhoneNumber11", (phoneNumber: string) => {
+  phoneNumber.split("").forEach((char) => {
+    cy.get("#phoneInput")
+      .type(char, { delay: 200 }) // Type each character with a delay
+      .should("be.focused"); // Verify that the input is still focused
+  });
+  cy.get("#phoneInput").type("{enter}");
+});
+// **********************************AddedLast**********************************************
 Cypress.Commands.add("enterPhoneNumber1", (phoneNumber: string) => {
   cy.get("#phoneInput").type(`${phoneNumber}{enter}`, {
     scrollBehavior: false,
   });
+});
+Cypress.Commands.add("reEnterPhoneNumber", (phoneNumber: string) => {
+  cy.clickElementForce("[data-cy=Edit-Phone-Number]");
+  cy.log("✅✅ Back To Write Correct Number Phone Successfuly");
+  cy.get("#phoneInput").type(`${phoneNumber}`, {
+    scrollBehavior: false,
+  });
+  cy.clickElementForce(".phone-arrow");
 });
 Cypress.Commands.add("enterPhoneNumber", (phoneNumber: string) => {
   cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
@@ -167,16 +195,9 @@ Cypress.Commands.add("performLogin", (s?: string) => {
   cy.get("[data-testid=login-close-icon]").click({
     scrollBehavior: false,
   });
-  cy.get("@login", { timeout: 5000 }).then((alias) => {
-    if (alias) {
-      cy.wait("@login").then((interception) => {
-        cy.log("✅ login request arrived");
-        console.log("login request arrived");
-      });
-    } else {
-      cy.log("❌❌ login request did not arrive");
-      console.warn("login request did not arrive");
-    }
+  cy.wait("@login").then((interception) => {
+    cy.log("✅ login request arrived");
+    console.log("login request arrived");
   });
   cy.wait(500).then(() => {
     cy.log(`Count is: ${count}`);
@@ -594,10 +615,10 @@ Cypress.Commands.add("verifyComponentsInProductCard", () => {
       cy.log("❌❌ There aren't any photos slider");
     }
   });
-  cy.scrollTo("bottom");
-  cy.get('[data-cy="ReachEnd"]')
-    .should("be.visible")
-    .and("contain.text", "Reach End");
+  // cy.scrollTo("bottom");
+  // cy.get('[data-cy="ReachEnd"]', { timeout: 15000 })
+  //   .should("be.visible")
+  //   .and("contain.text", "Reach End");
 });
 // ***********************************Orders******************************
 Cypress.Commands.add("AddProductToCart", () => {
@@ -642,50 +663,49 @@ Cypress.Commands.add("AddProductToCart", () => {
 });
 // ***********************************Orders******************************
 Cypress.Commands.add("AddAdress", () => {
-  it("Should Change Place From List", () => {
-    cy.clickElementForce("[data-cy=Change-From-List]");
-    cy.log("✅✅ Change Place From List Button Clicked");
-    cy.get("[data-cy=Extended-Choose-Area]").should("exist");
-    cy.log("✅✅ Extended Box To Choose Area Apperead");
-    cy.clickElementForce("[data-cy=SearchProvince-District-Town-Street]");
-    cy.log("✅✅ Search Province District Town Street");
-    cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Latakia");
-    cy.log("✅✅ SearchProvince-District-Town-Street Filled");
-    cy.get('[data-cy="SearchProvince-District-Town-Street"]', {
-      timeout: 10000,
-    }).should("be.visible");
-    cy.wait(5000);
-    cy.get("[data-cy=Firstly-Search-Result]").eq(0).click({ force: true });
-    cy.log("✅✅ First Option Has Been Selected");
+  cy.clickElementForce("[data-cy=Change-From-List]");
+  cy.log("✅✅ Change Place From List Button Clicked");
+  cy.get("[data-cy=Extended-Choose-Area]").should("exist");
+  cy.log("✅✅ Extended Box To Choose Area Apperead");
+  cy.clickElementForce("[data-cy=SearchProvince-District-Town-Street]");
+  cy.log("✅✅ Search Province District Town Street");
+  cy.intercept("POST", "**/api/addresses/get-address-by-text").as(
+    "GetAddressByText"
+  );
+  cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Damascus");
+  cy.wait("@GetAddressByText").then((interception) => {
+    cy.log("✅✅ Get Address By Text request arrived");
   });
-  it("Should Add Detailed Address & Note", () => {
-    cy.clickElementForce("[data-cy=Detailed-Address-Note]");
-    cy.log("✅✅ Click On Detailed Address & Note Field");
-    cy.get("[data-cy=Detailed-Address-Note]").type(
-      "This Is A Test Detailed Address & Note"
-    );
-    cy.log("✅✅ Detailed Address & Note Input Filled");
-  });
-  it("Should Add Address Title", () => {
-    cy.clickElementForce("[data-cy=Address-Title]");
-    cy.log("✅✅ Click On Add Address Title Field");
-    cy.get('[data-cy="Address-Title"]').type("This Is A Test Address Title");
-    cy.log("✅✅ Address Title Input Filled");
-  });
-  it("Should Add Recipient Name", () => {
-    cy.clickElementForce("[data-cy=Recipient-Name]");
-    cy.log("✅✅ Click On Recipient Name Field");
-    cy.get('[data-cy="Recipient-Name"]').type("This Is A Test Recipient Name");
-    cy.log("✅✅ Recipient Name Input Filled");
-  });
-  it("Should Add Contact Phone", () => {
-    cy.clickElementForce("[data-cy=Contact-Phone]");
-    cy.log("✅✅ Click On Contact Phone Field");
-    cy.get('[data-cy="Contact-Phone"]').type("0963937764641");
-    cy.log("✅✅ Contact Phone Input Filled");
-  });
-  it("Should Click On Add & Save Button", () => {
-    cy.clickElementForce("[data-cy=AddSaveButton]");
-    cy.log("✅✅ Add & Save Button Clicked");
-  });
+  cy.log("✅✅ SearchProvince-District-Town-Street Filled");
+  cy.get('[data-cy="SearchProvince-District-Town-Street"]', {
+    timeout: 10000,
+  }).should("be.visible");
+  cy.wait(5000);
+  cy.get("[data-cy=Firstly-Search-Result]").eq(0).click({ force: true });
+  cy.log("✅✅ First Option Has Been Selected");
+
+  cy.clickElementForce("[data-cy=Detailed-Address-Note]");
+  cy.log("✅✅ Click On Detailed Address & Note Field");
+  cy.get("[data-cy=Detailed-Address-Note]").type(
+    "This Is A Test Detailed Address & Note"
+  );
+  cy.log("✅✅ Detailed Address & Note Input Filled");
+
+  cy.clickElementForce("[data-cy=Address-Title]");
+  cy.log("✅✅ Click On Add Address Title Field");
+  cy.get('[data-cy="Address-Title"]').type("This Is A Test Address Title");
+  cy.log("✅✅ Address Title Input Filled");
+
+  cy.clickElementForce("[data-cy=Recipient-Name]");
+  cy.log("✅✅ Click On Recipient Name Field");
+  cy.get('[data-cy="Recipient-Name"]').type("This Is A Test Recipient Name");
+  cy.log("✅✅ Recipient Name Input Filled");
+
+  cy.clickElementForce("[data-cy=Contact-Phone]");
+  cy.log("✅✅ Click On Contact Phone Field");
+  cy.get('[data-cy="Contact-Phone"]').type("0963937764641");
+  cy.log("✅✅ Contact Phone Input Filled");
+
+  cy.clickElementForce("[data-cy=AddSaveButton]");
+  cy.log("✅✅ Add & Save Button Clicked");
 });

@@ -155,6 +155,7 @@ function WelcomingWidget({
       </div>
       <div
         className="welcoming-enjoy"
+        data-cy="Wellcome-Enjoy"
         style={{ marginBottom: "171px", justifyContent: "center" }}
       >
         {translate("Enjoy With Our Services", language)}

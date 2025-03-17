@@ -48,7 +48,7 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.log("✅✅ Container Of Brands Apperead");
   });
   it("Should Click On The Firstly Brand To Filter Result As It", () => {
-    cy.get("[data-cy=brandItem]").eq(1).click({ scrollBehavior: false });
+    cy.get("[data-cy=brandItem]").eq(0).click({ scrollBehavior: false });
     cy.log("✅✅ Firstly Brand Item Clicked");
   });
   it("Should Waiting Search Brand Request Until Arrived", () => {
