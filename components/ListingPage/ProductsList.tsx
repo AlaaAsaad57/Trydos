@@ -12,15 +12,17 @@ import { filterProducts, translateFunction } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
 import ListingSkeleton from "components/skeleton/listing";
 import AddToCartWidget from "components/Cart/AddToCartWidget";
-import { LogData } from "store/homepage/actions";
+import { CurrencyApi } from "models/Api";
 
 function ProductsList({
   Listing_Data_res,
   productCategory,
+  currency,
   boutiqueCategory,
   response,
 }: {
   Listing_Data_res: any;
+  currency: CurrencyApi["data"]["currency"];
   boutiqueCategory: string;
   productCategory: string;
   response?: any;
@@ -147,6 +149,7 @@ function ProductsList({
                   Listing_Data_res?.body?.data?.products
                 )?.map((product, i) => (
                   <Product
+                    currency={currency}
                     key={product.id}
                     product={product}
                     priority={i < 3}

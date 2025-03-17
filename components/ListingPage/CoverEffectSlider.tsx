@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import ImageAvatar from "./ImageAvatar";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { EffectCoverflow } from "swiper/modules";
+import { stopProgress } from "next-nprogress-bar";
 function CoverEffectSlider({
   images,
   active,
@@ -86,6 +87,9 @@ function CoverEffectSlider({
         }}
         className="avatar-slider"
         onSlideChange={(swiper) => {
+          setTimeout(() => {
+            stopProgress(true);
+          }, 300);
           setActive(swiper.activeIndex);
           setActiveColor({ ...images[swiper.activeIndex], index: 0 });
         }}

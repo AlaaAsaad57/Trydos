@@ -150,11 +150,15 @@ function OrderButton({ close, toOrders }) {
             dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
           },
         })
-      ).cart.filter((s) => s.check_availability === false);
-      if (a?.length === 0) {
+      ).cart;
+
+      if (a?.filter((s) => s?.check_availability === false).length === 0) {
         setTimeout(() => {
-          if (user || bool) toOrders();
-          else {
+          if (user || bool) {
+            if (a.length === 0) {
+              setLoading(false);
+            } else toOrders();
+          } else {
             setOption(true);
           }
           setLoading(false);

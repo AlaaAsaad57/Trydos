@@ -132,7 +132,14 @@ export const changeToken = async ({
   const cookieStore = cookies();
   if (deleteOption) {
     cookieStore.delete(key);
-  } else cookieStore.set(key, value);
+  } else
+    cookieStore.set(key, value, {
+      sameSite: true,
+      value: value,
+      path: "/",
+      maxAge: 360 * 7 * 24 * 60 * 60,
+      priority: "high",
+    });
 };
 
 export const changeAppCountryServer = async (value) => {

@@ -2,13 +2,8 @@ import SelectSize from "components/products/SelectSize";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import {
-  getConfiguredImage,
-  getLang,
-  RoundPrice,
-  Sendevent,
-} from "utils/functions";
-import Cookies from "js-cookie";
+import { getConfiguredImage, RoundPrice, Sendevent } from "utils/functions";
+
 import AddToCartButton from "components/products/AddToCartButton";
 
 import BackIcon from "public/svg/listing/backIcon.svg";
@@ -270,16 +265,6 @@ const SelectColor = ({ close }) => {
           className="back-icon p-0"
           onClick={() => {
             close();
-            if (
-              document.querySelector(
-                "#nprogress"
-                // @ts-ignore
-              )
-            )
-              document.querySelector(
-                "#nprogress"
-                // @ts-ignore
-              ).style.opacity = "1";
           }}
         >
           <BackIcon />

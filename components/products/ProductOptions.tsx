@@ -40,7 +40,7 @@ function ProductOptions({
   const SelectedProduct = useSelector(
     (state: StateInterface) => state.cart.SelectedProduct
   );
-  const [shareEnable, setShare] = useState(false);
+
   const [isLiked, setLiked] = useState(false);
   const dispatch = useDispatch();
   const LikeProduct = async (bool) => {
@@ -102,10 +102,13 @@ function ProductOptions({
     }
   };
   useEffect(() => {
-    if (product.country_is_restricted) {
+    if (product.is_country_restricted) {
       toast.error(
         translateFunction("Sorry This Product Not Available In Your Country")
       );
+    }
+    if (product.is_available_in_market === false) {
+      toast.error(translateFunction("Sorry This Product Not Available Now"));
     }
   }, []);
   return (

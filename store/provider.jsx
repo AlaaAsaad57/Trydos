@@ -9,10 +9,7 @@ import "react-toastify/dist/ReactToastify.min.css";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/scss/main.scss";
 import { useEffect, useState } from "react";
-import {
-  AppProgressBar as ProgressBar,
-  stopProgress,
-} from "next-nprogress-bar";
+import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 import CartProvider from "components/Cart/CartProvider";
 import Smartlook from "smartlook-client";
 import { useParams, useSearchParams } from "next/navigation";
@@ -41,7 +38,20 @@ export default function Providers({ children }) {
       toast.info("Cookies Is Not Enabled");
     }
 
-    Smartlook.init(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
+    try {
+      Smartlook.init(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
+      if (localStorage.getItem("USER") || localStorage.getItem("guest-user")) {
+        let user =
+          localStorage.getItem("USER") || localStorage.getItem("guest-user");
+        Smartlook.identify(JSON.parse(user).id, {
+          name: JSON.parse(user)?.name || "Guest",
+          phone: JSON.parse(user)?.mobilePhone || "null",
+          // other custom properties
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
     let images = document.querySelectorAll("img");
     images.forEach((img) => {
       if (img.complete && img.naturalWidth === 0) {

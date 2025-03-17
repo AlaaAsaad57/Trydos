@@ -5,6 +5,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { useRef } from "react";
 import PointsSlider from "./PointsSlider";
 import { getConfiguredImage } from "utils/functions";
+import { stopProgress } from "node_modules/next-nprogress-bar/dist";
 function ImageSlider({
   renderVar,
   product_name,
@@ -55,6 +56,7 @@ function ImageSlider({
         <Swiper
           effect="coverflow"
           id={product_name}
+          className="overflow-hidden"
           coverflowEffect={{
             depth: 100,
             modifier: 1,
@@ -71,6 +73,10 @@ function ImageSlider({
           slidesPerView={1}
           centeredSlides={true}
           onSlideChange={(swiper) => {
+            setTimeout(() => {
+              stopProgress(true);
+            }, 300);
+
             setActiveImage({ ...activeColor, index: swiper.activeIndex });
           }}
           initialSlide={activeColor.index}

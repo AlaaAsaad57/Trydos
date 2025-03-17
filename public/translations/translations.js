@@ -4,7 +4,7 @@ export const translations = {
     K: "k",
     M: "M",
     "Shipping & Delivery Address": "Shipping & Delivery Address",
-    "Your Address List Is Empty": "Your Address List Is Empty",
+    "No Address Selected": "No Address Selected",
     "Show Address List": "Show Address List",
     "Please Enter Shipping Address To Receive Your Bag":
       "Please Enter Shipping Address To Receive Your Bag",
@@ -223,6 +223,7 @@ export const translations = {
     "Payment Method": "طرق الدفع",
     "Sorry This Product Not Available In Your Country":
       "عذرا هذا المنتج غير متوفر في بلدك",
+    "Sorry This Product Not Available Now": "عذرا هذا المنتج غير متوفر حاليا",
     "Shipping & Payment": "الدفع والتوصيل",
     Done: "تم",
     K: " ألف ",
@@ -299,7 +300,7 @@ export const translations = {
     "Earn Money With This Order": "كسب المال مع هذا الطلب",
     "Contact Info": "معلومات التواصل",
     "Add Shipping Address": "اضافة عنوان توصيل",
-    "Your Address List Is Empty": "قائمة العناوين فارغة",
+    "No Address Selected": "لم يتم اختيار اي عنوان",
     "Please Enter Shipping Address To Receive Your Bag":
       "الرجاء ادخال عنوان للشحن لاستلام سلتك",
     "Shipping & Delivery Address": "عناوين الشحن والتوصيل",
@@ -563,11 +564,14 @@ export const translations = {
     Today: "اليوم",
     "Time Is Expected, It May Take More Or Less Than 2 Days":
       "الوقت تقديري قد يستغرق أكثر أو أقل من يومين",
+    "We Will Inform You When this Is Available": "سنعلمك عند توفر المنتج",
+    "Notify Me When Size Is Available": "ارسل اشعار عند توفر المنتج",
+    "Notify Me": "ارسل اشعارا",
   },
   tr: {
     Buy: "Satın Al",
     "Shipping & Delivery Address": "Teslimat ve Gönderim Adresi",
-    "Your Address List Is Empty": "Adres Listeniz Boş",
+    "No Address Selected": "Adres Listeniz Boş",
     "Show Address List": "Adres Listesini Göster",
     "Please Enter Shipping Address To Receive Your Bag":
       "Çantanızı Alabilmeniz İçin Lütfen Teslimat Adresinizi Girin",

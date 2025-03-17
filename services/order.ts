@@ -44,7 +44,10 @@ class OrderService {
           "/customer/wallet/list?limit=10&offset=1",
         title: "Get Wallet",
       });
-      store.dispatch({ type: "WALLET-USER", payload: data });
+      store.dispatch({
+        type: "WALLET-USER",
+        payload: data,
+      });
       store.dispatch({ type: "ORDER-LOADING", payload: false });
     } catch (error) {
       store.dispatch({ type: "ORDER-LOADING", payload: false });

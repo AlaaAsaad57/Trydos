@@ -16,6 +16,7 @@ import GooglePayIcon from "assets/svg/cart/Payment/GooglePay.svg";
 import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
 import Spinner from "components/global/Spinner";
 import CouponElement from "./couponElement";
+import { toast } from "react-toastify";
 function PaymentMethod() {
   const { lang } = useParams();
   // @ts-ignore
@@ -147,46 +148,59 @@ function PaymentMethod() {
                       orderData?.payment?.filter((s) => s.id === 0).length > 0
                     }
                     setActive={() => {
-                      if (!orderLoading) {
-                        if (
-                          orderData.payment.length === 1 &&
-                          orderData?.payment?.filter((one) => one.id === 1)
-                            .length === 1 &&
-                          orderData?.payment?.filter((one) => one.id === 1)[0]
-                            .balance < cart.total_cash
-                        ) {
-                          dispatch({ type: "COD-USER", payload: true });
-                          setOrderData({
-                            payment: [
-                              ...orderData.payment,
-                              {
-                                id: 0,
-                                balance:
-                                  cart.total_cash -
-                                  orderData?.payment?.filter(
-                                    (one) => one.id === 1
-                                  )[0].balance,
-                              },
-                            ],
-                          });
-                        } else {
+                      if (
+                        !(
+                          wallet?.total_wallet_balance >= cart.total &&
+                          wallet.total_wallet_balance >= cart.total_cash
+                        )
+                      ) {
+                        if (!orderLoading) {
                           if (
-                            orderData?.payment?.filter((s) => s.id === 0)
-                              .length > 0
+                            orderData.payment.length === 1 &&
+                            orderData?.payment?.filter((one) => one.id === 1)
+                              .length === 1 &&
+                            orderData?.payment?.filter((one) => one.id === 1)[0]
+                              .balance < cart.total_cash
                           ) {
-                            dispatch({ type: "COD-USER", payload: false });
-                            setOrderData({
-                              payment: orderData?.payment?.filter(
-                                (s) => s.id !== 0
-                              ),
-                            });
-                          } else {
                             dispatch({ type: "COD-USER", payload: true });
                             setOrderData({
-                              payment: [{ id: 0, balance: cart.total_cash }],
+                              payment: [
+                                ...orderData.payment,
+                                {
+                                  id: 0,
+                                  balance:
+                                    cart.total_cash -
+                                    orderData?.payment?.filter(
+                                      (one) => one.id === 1
+                                    )[0].balance,
+                                },
+                              ],
                             });
+                          } else {
+                            if (
+                              orderData?.payment?.filter((s) => s.id === 0)
+                                .length > 0
+                            ) {
+                              dispatch({ type: "COD-USER", payload: false });
+                              setOrderData({
+                                payment: orderData?.payment?.filter(
+                                  (s) => s.id !== 0
+                                ),
+                              });
+                            } else {
+                              dispatch({ type: "COD-USER", payload: true });
+                              setOrderData({
+                                payment: [{ id: 0, balance: cart.total_cash }],
+                              });
+                            }
                           }
                         }
+                      } else {
+                        toast.info(
+                          translateFunction(
+                            "Only Allowed To Pay through TryDos Wallet"
+                          )
+                        );
                       }
                     }}
                   />
@@ -237,7 +251,7 @@ function PaymentMethod() {
                               payment: [
                                 {
                                   id: 1,
-                                  balance: cart.total_cash,
+                                  balance: wallet?.total_wallet_balance,
                                 },
                               ],
                             });
@@ -256,46 +270,59 @@ function PaymentMethod() {
                       orderData?.payment?.filter((s) => s.id === 3).length > 0
                     }
                     setActive={() => {
-                      if (!orderLoading) {
-                        if (
-                          orderData.payment.length === 1 &&
-                          orderData?.payment?.filter((one) => one.id === 1)
-                            .length === 1 &&
-                          orderData?.payment?.filter((one) => one.id === 1)[0]
-                            .balance < cart.total_cash
-                        ) {
-                          dispatch({ type: "CRYPTO-USER", payload: true });
-                          setOrderData({
-                            payment: [
-                              ...orderData.payment,
-                              {
-                                id: 3,
-                                balance:
-                                  cart.total_cash -
-                                  orderData?.payment?.filter(
-                                    (one) => one.id === 1
-                                  )[0].balance,
-                              },
-                            ],
-                          });
-                        } else {
+                      if (
+                        !(
+                          wallet?.total_wallet_balance >= cart.total &&
+                          wallet.total_wallet_balance >= cart.total_cash
+                        )
+                      ) {
+                        if (!orderLoading) {
                           if (
-                            orderData?.payment?.filter((s) => s.id === 3)
-                              .length > 0
+                            orderData.payment.length === 1 &&
+                            orderData?.payment?.filter((one) => one.id === 1)
+                              .length === 1 &&
+                            orderData?.payment?.filter((one) => one.id === 1)[0]
+                              .balance < cart.total_cash
                           ) {
-                            dispatch({ type: "CRYPTO-USER", payload: false });
-                            setOrderData({
-                              payment: orderData?.payment?.filter(
-                                (s) => s.id !== 3
-                              ),
-                            });
-                          } else {
                             dispatch({ type: "CRYPTO-USER", payload: true });
                             setOrderData({
-                              payment: [{ id: 3, balance: cart.total_cash }],
+                              payment: [
+                                ...orderData.payment,
+                                {
+                                  id: 3,
+                                  balance:
+                                    cart.total_cash -
+                                    orderData?.payment?.filter(
+                                      (one) => one.id === 1
+                                    )[0].balance,
+                                },
+                              ],
                             });
+                          } else {
+                            if (
+                              orderData?.payment?.filter((s) => s.id === 3)
+                                .length > 0
+                            ) {
+                              dispatch({ type: "CRYPTO-USER", payload: false });
+                              setOrderData({
+                                payment: orderData?.payment?.filter(
+                                  (s) => s.id !== 3
+                                ),
+                              });
+                            } else {
+                              dispatch({ type: "CRYPTO-USER", payload: true });
+                              setOrderData({
+                                payment: [{ id: 3, balance: cart.total_cash }],
+                              });
+                            }
                           }
                         }
+                      } else {
+                        toast.info(
+                          translateFunction(
+                            "Only Allowed To Pay through TryDos Wallet"
+                          )
+                        );
                       }
                     }}
                   />
@@ -309,46 +336,59 @@ function PaymentMethod() {
                       orderData?.payment?.filter((s) => s.id === 2).length > 0
                     }
                     setActive={() => {
-                      if (!orderLoading) {
-                        if (
-                          orderData.payment.length === 1 &&
-                          orderData?.payment?.filter((one) => one.id === 1)
-                            .length === 1 &&
-                          orderData?.payment?.filter((one) => one.id === 1)[0]
-                            .balance < cart.total_cash
-                        ) {
-                          dispatch({ type: "CREDIT-USER", payload: true });
-                          setOrderData({
-                            payment: [
-                              ...orderData.payment,
-                              {
-                                id: 2,
-                                balance:
-                                  cart.total_cash -
-                                  orderData?.payment?.filter(
-                                    (one) => one.id === 1
-                                  )[0].balance,
-                              },
-                            ],
-                          });
-                        } else {
+                      if (
+                        !(
+                          wallet?.total_wallet_balance >= cart.total &&
+                          wallet.total_wallet_balance >= cart.total_cash
+                        )
+                      ) {
+                        if (!orderLoading) {
                           if (
-                            orderData?.payment?.filter((s) => s.id === 2)
-                              .length > 0
+                            orderData.payment.length === 1 &&
+                            orderData?.payment?.filter((one) => one.id === 1)
+                              .length === 1 &&
+                            orderData?.payment?.filter((one) => one.id === 1)[0]
+                              .balance < cart.total_cash
                           ) {
-                            dispatch({ type: "CREDIT-USER", payload: false });
-                            setOrderData({
-                              payment: orderData?.payment?.filter(
-                                (s) => s.id !== 2
-                              ),
-                            });
-                          } else {
                             dispatch({ type: "CREDIT-USER", payload: true });
                             setOrderData({
-                              payment: [{ id: 2, balance: cart.total_cash }],
+                              payment: [
+                                ...orderData.payment,
+                                {
+                                  id: 2,
+                                  balance:
+                                    cart.total_cash -
+                                    orderData?.payment?.filter(
+                                      (one) => one.id === 1
+                                    )[0].balance,
+                                },
+                              ],
                             });
+                          } else {
+                            if (
+                              orderData?.payment?.filter((s) => s.id === 2)
+                                .length > 0
+                            ) {
+                              dispatch({ type: "CREDIT-USER", payload: false });
+                              setOrderData({
+                                payment: orderData?.payment?.filter(
+                                  (s) => s.id !== 2
+                                ),
+                              });
+                            } else {
+                              dispatch({ type: "CREDIT-USER", payload: true });
+                              setOrderData({
+                                payment: [{ id: 2, balance: cart.total_cash }],
+                              });
+                            }
                           }
                         }
+                      } else {
+                        toast.info(
+                          translateFunction(
+                            "Only Allowed To Pay through TryDos Wallet"
+                          )
+                        );
                       }
                     }}
                   />
@@ -588,9 +628,11 @@ const TryDosWalletInput = ({ active, setActive }) => {
   return (
     <div
       onClick={() => {
-        setActive();
+        if (wallet?.total_wallet_balance > 0) setActive();
       }}
-      className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
+      className={`${
+        wallet?.total_wallet_balance === 0 && "opacity-45"
+      } w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
       style={{
         border: active && "1px solid rgb(56 144 255 / 51%)",
       }}

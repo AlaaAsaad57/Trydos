@@ -208,11 +208,12 @@ class HomeService {
           })
         );
         if (repo.data.user) {
-          Smartlook.identify(repo.data.user.id, {
-            name: repo.data.user.name,
-            phone: "guest",
-            // other custom properties
-          });
+          if (Smartlook.initialized())
+            Smartlook.identify(repo.data.user.id, {
+              name: repo.data.user.name,
+              phone: "guest",
+              // other custom properties
+            });
         }
         store.dispatch({ type: "IS-REGISTERING", payload: true });
       } catch (error) {
@@ -259,12 +260,12 @@ class HomeService {
         key: "MARKET-TOKEN",
         value: localStorage.getItem("MARKET-TOKEN"),
       });
-
-      Smartlook.identify(JSON.parse(localStorage.getItem("USER")).id, {
-        name: JSON.parse(localStorage.getItem("USER")).name,
-        phone: JSON.parse(localStorage.getItem("USER")).mobilePhone,
-        // other custom properties
-      });
+      if (Smartlook.initialized())
+        Smartlook.identify(JSON.parse(localStorage.getItem("USER")).id, {
+          name: JSON.parse(localStorage.getItem("USER")).name,
+          phone: JSON.parse(localStorage.getItem("USER")).mobilePhone,
+          // other custom properties
+        });
       store.dispatch({
         type: "LOGIN_SUCCESS",
         payload: {
@@ -276,11 +277,15 @@ class HomeService {
       });
     } else {
       if (localStorage.getItem("guest-user")) {
-        Smartlook.identify(JSON.parse(localStorage.getItem("guest-user")).id, {
-          name: JSON.parse(localStorage.getItem("guest-user")).name,
-          phone: JSON.parse(localStorage.getItem("guest-user")).mobilePhone,
-          // other custom properties
-        });
+        if (Smartlook.initialized())
+          Smartlook.identify(
+            JSON.parse(localStorage.getItem("guest-user")).id,
+            {
+              name: JSON.parse(localStorage.getItem("guest-user")).name,
+              phone: JSON.parse(localStorage.getItem("guest-user")).mobilePhone,
+              // other custom properties
+            }
+          );
       }
       this.RegisterDevice();
     }
@@ -346,11 +351,12 @@ class HomeService {
         );
         localStorage.removeItem("customer-info");
         if (repo.data.user) {
-          Smartlook.identify(repo.data.user.id, {
-            name: repo.data.user.name,
-            phone: "guest",
-            // other custom properties
-          });
+          if (Smartlook.initialized())
+            Smartlook.identify(repo.data.user.id, {
+              name: repo.data.user.name,
+              phone: "guest",
+              // other custom properties
+            });
           await this.RequestFireBase();
         }
         store.dispatch({ type: "IS-REGISTERING", payload: true });
@@ -427,7 +433,7 @@ class HomeService {
           `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
         : LISTING_INFO_URL + `?${str}`);
     await fetch(
-      url + `${offset ? `&offset=${offset}` : ""}&limit=${4}`,
+      url + `${offset ? `&offset=[${offset}]` : ""}&limit=${4}`,
 
       {
         method: "GET",

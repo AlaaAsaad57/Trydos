@@ -262,11 +262,12 @@ class AuthService {
   async ConfirmSignIn() {
     let userLocal = JSON.parse(localStorage.getItem("USER"));
     if (userLocal) {
-      Smartlook.identify(userLocal.id, {
-        name: userLocal.name,
-        phone: userLocal.mobilePhone,
-        // other custom properties
-      });
+      if (Smartlook.initialized())
+        Smartlook.identify(userLocal.id, {
+          name: userLocal.name,
+          phone: userLocal.mobilePhone,
+          // other custom properties
+        });
     }
     store.dispatch({
       type: "LOGIN_SUCCESS",

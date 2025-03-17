@@ -804,6 +804,13 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
       shake("payment-valid-border");
     }
   };
+  const getTotalPrice = () => {
+    if (orderData.payment.filter((s) => s.id === 0).length > 0) {
+      return cart.total_cash;
+    } else {
+      return cart.total;
+    }
+  };
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const VerifyCart = async () => {
@@ -814,9 +821,11 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
           dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
         },
       })
-    ).cart.filter((s) => s.check_availability === false);
-
-    if (a?.length === 0) {
+    ).cart;
+    if (a.length === 0) {
+      setPrev();
+    }
+    if (a?.filter((s) => s?.check_availability === false).length === 0) {
       setNext();
     } else {
       toast.error("Please Review Your Cart Some Products Not Available");
@@ -857,7 +866,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
                 data-cy="Number-Of-Products-Required"
               >
                 {cart.cart.length} {translateFunction("items")}{" "}
-                {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}
+                {RoundPrice({ num: getTotalPrice() })} {currency_symbol?.symbol}
               </span>
             </>
           )}

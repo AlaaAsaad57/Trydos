@@ -68,7 +68,6 @@ let nextConfig = withSvgr({
       },
     });
     if (!isServer && !dev) {
-      console.log("instrumenting....");
       config.module.rules.push({
         test: /\.(js|jsx|ts|tsx)$/,
         enforce: "post",

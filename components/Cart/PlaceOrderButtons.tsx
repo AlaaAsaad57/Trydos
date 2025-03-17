@@ -53,9 +53,12 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
             dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
           },
         })
-      ).cart.filter((s) => s.check_availability === false);
-
-      if (a?.length === 0) {
+      ).cart;
+      if (a.length === 0) {
+        backToCart();
+        setLoading(false);
+      }
+      if (a?.filter((s) => s?.check_availability === false).length === 0) {
         setLoading(false);
         successOrder();
       } else {
@@ -65,6 +68,13 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
       toast.error("Please Review Your Cart Some Products Not Available");
       backToCart();
       setLoading(false);
+    }
+  };
+  const getTotalPrice = () => {
+    if (orderData.payment.filter((s) => s.id === 0).length > 0) {
+      return cart.total_cash;
+    } else {
+      return cart.total;
     }
   };
   return (
@@ -182,7 +192,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
                     } `}
                   >
                     {cart.cart.length} {translateFunction("items")}{" "}
-                    {RoundPrice({ num: cart.total_cash })}{" "}
+                    {RoundPrice({ num: getTotalPrice() })}{" "}
                     {currency_symbol?.symbol}
                   </span>
                 </>

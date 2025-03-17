@@ -501,7 +501,8 @@ export interface QuantityDetailsProductApi {
       sku: string;
       qty: number;
     }>;
-    country_is_restricted: boolean;
+    is_country_restricted: boolean;
+    is_available_in_market: boolean;
     choice_options: Array<{
       name: string;
       title: string;
