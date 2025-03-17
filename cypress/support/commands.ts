@@ -38,7 +38,7 @@ Cypress.Commands.add("Visit", function (url: string) {
   cy.visit(url, {
     onLoad(win) {
       // @ts-ignore
-      cy.stub(win.Notification, "requestPermission").resolves("granted");
+      cy.stub(win.Notification, "permission").resolves("granted");
     },
   });
   cy.url().then((ur) => {
