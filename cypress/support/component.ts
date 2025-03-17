@@ -30,7 +30,7 @@ declare global {
     interface Chainable {
       mount: typeof mount;
       Visit(value: string): void;
-      Visit1(value: string): void;
+      VisitSy(value: string): void;
       Exist(selector: string): Promise<boolean>;
       Exist1(selector: string): Promise<boolean>;
       logout(): Chainable<void>;
@@ -59,6 +59,7 @@ declare global {
       verifyBoxsInBoutiquePage(): Chainable<void>;
       verifyComponentsInProductCard(): Chainable<void>;
       AddProductToCart(): Chainable<void>;
+      AddProductToCartThenComplateOrder(): Chainable<void>;
       AddAdress(): Chainable<void>;
     }
     interface Window {

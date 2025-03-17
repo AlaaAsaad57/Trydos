@@ -35,7 +35,6 @@
 // }// Custom command to visit a URL with overridden Notification permissions
 Cypress.Commands.add("Visit", function (url: string) {
   cy.intercept("GET", "**/api/new_v1/countries").as("CountriesApi");
-
   cy.visit(url, {
     onLoad(win) {
       // @ts-ignore
@@ -56,9 +55,8 @@ Cypress.Commands.add("Visit", function (url: string) {
   });
 });
 // **********************************************
-Cypress.Commands.add("Visit1", function (url: string) {
+Cypress.Commands.add("VisitSy", function (url: string) {
   cy.intercept("GET", "**/api/new_v1/countries").as("CountriesApi");
-
   cy.visit(url, {
     onLoad(win) {
       // @ts-ignore
@@ -708,4 +706,44 @@ Cypress.Commands.add("AddAdress", () => {
 
   cy.clickElementForce("[data-cy=AddSaveButton]");
   cy.log("✅✅ Add & Save Button Clicked");
+});
+// *********************************************
+Cypress.Commands.add("AddProductToCartThenComplateOrder", () => {
+  let productName = "";
+  cy.clickElementForce(".offer-widget:nth-child(7)");
+  cy.log("✅✅ An Boutique Selected & Click");
+  cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
+  cy.log("✅✅ The Boutiue Page Opened");
+  cy.getProductNameFirstly().then((name) => {
+    productName = name;
+  });
+  cy.get("[data-cy=Cart-ByButton]").eq(0).click({ force: true });
+  cy.log("✅✅ Buy Button Clicked");
+  cy.interceptAndWait([
+    {
+      method: "GET",
+      url: "**/product/qtyPriceDetails/**",
+      alias: "getProductData1",
+    },
+    {
+      method: "GET",
+      url: "**/product/likesCommentsSharesDetails/**",
+      alias: "getProductData2",
+    },
+  ]);
+  cy.log("✅✅ getProductData1 & getProductData2 Requests Arrived");
+  cy.intercept("POST", /\/cart\/(add|update)/).as("CartRequest");
+  cy.clickElementScroll("[data-cy=AddToCartButton-data-cy]");
+  cy.wait("@CartRequest", { timeout: 10000 }).then((interception) => {
+    if (interception?.response) {
+      console.log("✅ Intercepted request addToCart");
+      expect(interception.response.statusCode).to.eq(200);
+    } else {
+      console.warn("❌❌ @CartRequest was not intercepted or has no response.");
+    }
+  });
+  cy.log(
+    "✅✅ CartRequest Request Arrived & Click On Add To Cart Button Button"
+  );
+  cy.clickElementForce("[data-cy=cartIcon_mainPage]");
 });

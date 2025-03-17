@@ -5,7 +5,7 @@ describe("Should Open The Website & Logout", () => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
     });
-    cy.Visit1("/");
+    cy.VisitSy("/");
   });
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.wait(3000);
