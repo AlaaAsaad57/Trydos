@@ -1096,7 +1096,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
                     <ChatMessage
                       AudioRef={AudioRef}
                       setVid={(s) => setVid(s)}
-                      setImg={(ds) => setImgs(ds)}
+                      setImg={(ds) => setImgs(null)}
                       GetMessage={(msgId, qoutedId) =>
                         GetMessage(msgId, qoutedId)
                       }
@@ -1174,6 +1174,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
             <div className={"chat-input-container" + ` ${mics && "bac40"}`}>
               <PlusIcon
                 style={{ minWidth: "43px", cursor: "pointer" }}
+                className="chatplus"
                 onClick={() => uploadPhoto()}
                 height={"40"}
               ></PlusIcon>
