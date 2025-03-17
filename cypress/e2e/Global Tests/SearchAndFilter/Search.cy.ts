@@ -1,4 +1,4 @@
-describe.skip("Should Click On The Search Icon On The Home Page & View The Filtering & Search Page, Then Choose A Brand & Should That The Filtering Result Is Displayed & Present.", () => {
+describe("Should Click On The Search Icon On The Home Page & View The Filtering & Search Page, Then Choose A Brand & Should That The Filtering Result Is Displayed & Present.", () => {
   let totalProductsFound;
   before(() => {
     Cypress.on("uncaught:exception", (err, runnable) => {
@@ -93,7 +93,7 @@ describe.skip("Should Click On The Search Icon On The Home Page & View The Filte
   });
 });
 // **************************************************************************************
-describe.skip("Should Click On The Search Icon On The Home Page & View The Filtering & Search Page, Then Choose A Category & Should That The Filtering Result Is Displayed & Present.", () => {
+describe("Should Click On The Search Icon On The Home Page & View The Filtering & Search Page, Then Choose A Category & Should That The Filtering Result Is Displayed & Present.", () => {
   let totalProductsFound;
   it("Should Click On Search Icon On Home Page", () => {
     cy.clickElementScroll("[data-cy=searchIcon_mainPage]");

@@ -75,6 +75,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                  w-max
                 fixed flex-col gap-y-5 rounded-[20px] top-[10%]
                  text-center items-center justify-center px-4 py-8 bg-gray-100`}
+            data-cy="Change-Url-Container"
           >
             {forChanged && !forChanged?.includes("undefined") && (
               <span
