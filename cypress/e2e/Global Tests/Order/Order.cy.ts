@@ -5,7 +5,18 @@ describe("Should Open The Website & Logout", () => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
     });
-    cy.VisitSy("/");
+    cy.Visit("/");
+  });
+  it("Should change the url if it matches the condition", () => {
+    cy.url().then((currentUrl) => {
+      if (currentUrl === "http://localhost:3000/tr-en") {
+        cy.visit("http://localhost:3000/sy-en"); // Change URL
+        cy.get("[data-cy=Change-Url-Container]", { timeout: 10000 }).should(
+          "be.visible"
+        );
+        cy.clickElementForce("[data-cy=countain-with]");
+      }
+    });
   });
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.wait(3000);

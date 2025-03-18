@@ -54,29 +54,6 @@ Cypress.Commands.add("Visit", function (url: string) {
     }
   });
 });
-// **********************************************
-Cypress.Commands.add("VisitSy", function (url: string) {
-  cy.intercept("GET", "**/api/new_v1/countries").as("CountriesApi");
-  cy.visit(url, {
-    onLoad(win) {
-      // @ts-ignore
-      cy.stub(win.Notification, "requestPermission").resolves("granted");
-    },
-  });
-  cy.url().then((ur) => {
-    // @ts-ignore
-    if (ur.includes("-country")) {
-      cy.wait("@CountriesApi").then((i) => {
-        console.log("sahsahj", i);
-        if (i) {
-          cy.log("sd");
-          cy.get("#country").select("SY");
-        }
-      });
-    }
-  });
-});
-// **********************************************
 Cypress.Commands.add("Exist", (selector) => {
   cy.wait(3000);
   cy.get("body")
@@ -250,16 +227,11 @@ Cypress.Commands.add("performLogin1", (s?: string) => {
   cy.intercept("POST", "**/login", () => {
     count += 1;
   }).as("login");
-  cy.get("@login", { timeout: 10000 }).then((alias) => {
-    if (alias) {
-      cy.wait("@login", { timeout: 10000 }).then((interception) => {
-        cy.log("✅✅ login request arrived");
-      });
-    } else {
-      cy.log("❌❌ login request did not arrive");
-    }
+  cy.wait("@login", { timeout: 10000 }).then((interception) => {
+    cy.log("✅✅ login request arrived");
   });
-  cy.wait(5000).then(() => {
+
+  cy.wait(500).then(() => {
     cy.log(`Count is: ${count}`);
     expect(count).to.be.greaterThan(1);
   });

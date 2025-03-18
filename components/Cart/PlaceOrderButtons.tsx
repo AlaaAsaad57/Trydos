@@ -85,6 +85,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
             className={`${
               orderData.agree ? "bg-[#F5FFF8]" : "bg-[#F8F8F8]"
             } w-full cursor-pointer agree-valid-border pl-[26px] h-[40px] rounded-[15px] regular flex-row items-center text-[12px] text-[#1D1D1D]`}
+            data-cy="read-and-agree"
             style={{
               border: "1px solid rgb(56 144 255 / 51%)",
             }}

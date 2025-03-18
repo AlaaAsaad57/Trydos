@@ -592,6 +592,7 @@ const CODInput = ({ active, setActive }) => {
         setActive();
       }}
       className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
+      data-cy="Cach-on-delivery"
       style={{
         border: active && "1px solid rgb(56 144 255 / 51%)",
       }}

@@ -106,6 +106,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                 >
                   <span
                     className="text-blue-600 cursor-pointer"
+                    data-cy="countain-with"
                     onClick={() => {
                       setLoadingWidget(true);
                       // @ts-ignore

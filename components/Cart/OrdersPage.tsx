@@ -853,6 +853,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
           } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${
             isValid() ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
           } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
+          data-cy="Confirm-shipping-and-payment"
         >
           {orderLoading || loading ? (
             <Spinner />
