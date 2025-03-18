@@ -1,7 +1,5 @@
 /// <reference types="cypress-file-upload" />
 
-import { first } from "cypress/types/lodash";
-
 // ******************************* Chat Login & Initial Setup *********************************************************
 describe("Should Open Site And Login And Send Message", () => {
   before(() => {
@@ -37,7 +35,7 @@ describe("Should Open Site And Login And Send Message", () => {
 });
 
 // ******************************* Text Message Tests *********************************************************
-describe.skip("Should Send And Reply To Text Messages", () => {
+describe("Should Send And Reply To Text Messages", () => {
   it("should send Text Message", () => {
     cy.intercept("POST", "**/api/v1/messages/send").as("SendApi");
     let a = parseInt((Math.random() * 1000).toString());
@@ -80,7 +78,7 @@ describe.skip("Should Send And Reply To Text Messages", () => {
 });
 
 // ******************************* Image Message Tests *********************************************************
-describe.skip("Should Send And Reply To Image Messages", () => {
+describe("Should Send And Reply To Image Messages", () => {
   it("should send Image Message", () => {
     cy.intercept("POST", "**/api/v1/messages/send").as("SendApi");
     cy.get('input[type="file"]').selectFile("cypress/fixtures/images.jpeg", {
@@ -160,7 +158,7 @@ describe.skip("Should Send And Reply To Image Messages", () => {
 });
 
 // ******************************* File Message Tests *********************************************************
-describe.skip("Should Send And Reply To File Messages", () => {
+describe("Should Send And Reply To File Messages", () => {
   it("should send File Message", () => {
     cy.intercept("POST", "**/api/v1/messages/send").as("SendApi");
     cy.get('input[type="file"]').selectFile("cypress/fixtures/test.txt", {
@@ -230,7 +228,7 @@ describe.skip("Should Send And Reply To File Messages", () => {
 });
 
 // ******************************* Message Management Tests *********************************************************
-describe.skip("Should Delete Message", () => {
+describe("Should Delete Message", () => {
   it("should click on Message To Show Options", () => {
     cy.get(
       ".chat-message-container:nth-last-child(2) .message-hold .message-body"
