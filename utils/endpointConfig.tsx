@@ -32,3 +32,7 @@ export const DELETE_CHAT_URL = "/api/v1/channels/destroy";
 export const SET_CHANNEL_OPT_UTL = "/api/v1/channel_members/update";
 //Listing
 export const LISTING_INFO_URL = "/api/products/search";
+export const EXPIRED_TIME = {
+  seconds: 15,
+  minutes: 0,
+};

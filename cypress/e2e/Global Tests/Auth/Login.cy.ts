@@ -245,7 +245,11 @@ describe("Login UnSuccessful Attempt when otp code expired should show button fo
       "You Can Resend The Code After"
     );
     cy.get(".blue-text").should("be.visible");
-    cy.wait(130000);
+    const EXPIRED_TIME = {
+      seconds: 15,
+      minutes: 0,
+    };
+    cy.wait(EXPIRED_TIME.seconds * 1000 + 5000);
     cy.get("#text-wrap-element").should(
       "contain.text",
       "Didn’t You Receive A Code?"
@@ -493,7 +497,11 @@ describe("Login UnSuccessful Attempt when otp code expired & Change The Method T
     });
   });
   it("Should Wait Until OTP Code Becomes Expired", () => {
-    cy.wait(130000);
+    const EXPIRED_TIME = {
+      seconds: 15,
+      minutes: 0,
+    };
+    cy.wait(EXPIRED_TIME.seconds * 1000 + 5000);
   });
   it("Should Change The Way To Recive Otp Code", () => {
     cy.clickElementForce("[data-cy=Change-Way]");
