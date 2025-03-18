@@ -800,6 +800,9 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
         });
     }
   };
+  useEffect(() => {
+    props.setSearch("");
+  }, [activeChat]);
   const [searchEnable, enableSearch] = useState(false);
   return (
     <>

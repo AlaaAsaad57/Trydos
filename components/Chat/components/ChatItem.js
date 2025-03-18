@@ -175,6 +175,7 @@ function ChatItem({
         className={`chat-conversation-item ${
           status && status !== "null" && "typing"
         } ${isActive && "active-chat-effect"}`}
+        data-cy="ChatItem"
         onMouseUp={() => handleClick()}
       >
         {}

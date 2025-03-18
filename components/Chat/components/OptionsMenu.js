@@ -39,6 +39,7 @@ function OptionsMenu(props) {
             />
             <div
               className="message-opt"
+              data-cy="DELETE-OPTION"
               style={{ width: "90px", height: "35px" }}
               onClick={() => props.deleteMessage(true)}
             >
@@ -86,6 +87,7 @@ function OptionsMenu(props) {
             </div>
             <div
               className="message-opt"
+              data-cy="DELETE-OPTION"
               onClick={() => {
                 setDelete(true);
               }}

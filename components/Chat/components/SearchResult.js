@@ -46,7 +46,11 @@ function SearchResult({
   };
   return (
     <div>
-      <div className="chat-conversation-item-container" key={key}>
+      <div
+        data-cy="ContactItem"
+        className="chat-conversation-item-container"
+        key={key}
+      >
         {!isUser && (
           <div
             className="chat-activated-options"

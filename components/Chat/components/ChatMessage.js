@@ -1705,6 +1705,7 @@ function ChatMessage(props) {
                     <Image
                       alt="user-img"
                       src={fil.src}
+                      data-cy="FILE-PNG"
                       width={26}
                       height={20}
                       style={{ width: "26px" }}
