@@ -2,13 +2,15 @@ import UserIcon from "public/svg/userIcon.svg";
 import Image from "next/image";
 interface UserAvatarProps {
   avatar: string | any;
+  onClick?: () => void;
 }
-function UserAvatar({ avatar }: UserAvatarProps) {
+function UserAvatar({ avatar, onClick }: UserAvatarProps) {
   return (
     <>
       {avatar ? (
         <>
           <div
+            onClick={onClick}
             className="nav-question-item nav-img-item"
             data-cy="Logout-ReLogout"
             style={{
@@ -35,7 +37,11 @@ function UserAvatar({ avatar }: UserAvatarProps) {
           </div>
         </>
       ) : (
-        <div className="nav-question-item" style={{ marginLeft: "0px" }}>
+        <div
+          onClick={onClick}
+          className="nav-question-item"
+          style={{ marginLeft: "0px" }}
+        >
           <UserIcon style={{ transform: "scale(1)" }} />
         </div>
       )}

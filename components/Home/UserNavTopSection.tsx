@@ -153,7 +153,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
         style={{ marginLeft: "10px", cursor: "pointer" }}
       >
         {user ? (
-          <AuthNavSection />
+          <AuthNavSection onClick={() => setMenuOpen(!menuOpen)} />
         ) : (
           <div className="nav-question-item">
             <Image
