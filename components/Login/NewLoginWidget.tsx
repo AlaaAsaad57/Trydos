@@ -431,6 +431,8 @@ function NewLoginWidget() {
                   setWrongNumber(msg);
                 },
               });
+            }}
+            init={() => {
               setDisabled(false);
               setExpired(false);
             }}

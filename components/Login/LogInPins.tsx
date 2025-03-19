@@ -23,11 +23,13 @@ function LogInPins({
   failedLogin,
   successLogin,
   inputValue,
+  init,
 }: {
   inputValue: string;
   rendere: boolean;
   setStepIndactor: Function;
   stepIndicator: number;
+  init: any;
   expired: boolean;
   resend: Function;
   setPin: Function;
@@ -447,7 +449,10 @@ function LogInPins({
                     data-cy="Change-Way"
                     id="text-wrap-element"
                     style={{ cursor: "pointer" }}
-                    onClick={() => setStepIndactor(4)}
+                    onClick={() => {
+                      init();
+                      setStepIndactor(4);
+                    }}
                   >
                     {translate("Change ", language)}
                   </span>
@@ -455,7 +460,10 @@ function LogInPins({
                     className="blue-text"
                     id="text-wrap-element"
                     style={{ cursor: "pointer" }}
-                    onClick={() => setStepIndactor(4)}
+                    onClick={() => {
+                      init();
+                      setStepIndactor(4);
+                    }}
                   >
                     {translate("the Method Of Receiving", language)}
                   </span>
