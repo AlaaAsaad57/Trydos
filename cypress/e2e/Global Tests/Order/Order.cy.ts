@@ -180,10 +180,18 @@ describe("Should Add Address", () => {
       }
     });
     cy.log("✅✅ Add Addres Button Clicked");
+    cy.get("body").click(20, 20);
   });
   it("Should Add Address", () => {
-    cy.clickElementForce("[data-cy=AddAddres]");
-    cy.log("✅✅ Add Addres Button Clicked");
+    cy.Exist("[data-cy=Add-Shipping-Address]").then((exist) => {
+      if (exist) {
+        cy.clickElementForce("[data-cy=Add-Shipping-Address]");
+        cy.log("✅✅ Add-Shipping-Address Button Clicked");
+      } else {
+        cy.clickElementForce("[data-cy=AddAddres]");
+        cy.log("✅✅ Add Addres Button Clicked");
+      }
+    });
   });
   it("Should Change Place From List", () => {
     cy.clickElementForce("[data-cy=Change-From-List]");

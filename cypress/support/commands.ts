@@ -120,11 +120,12 @@ Cypress.Commands.add("typePincode1", (pincode: string) => {
 Cypress.Commands.add("enterPhoneNumber11", (phoneNumber: string) => {
   phoneNumber.split("").forEach((char) => {
     cy.get("#phoneInput")
-      .type(char, { delay: 200 }) // Type each character with a delay
+      .type(char, { delay: 200, force: true }) // Force typing into the hidden input
       .should("be.focused"); // Verify that the input is still focused
   });
-  cy.get("#phoneInput").type("{enter}");
+  cy.get("#phoneInput").type("{enter}", { force: true });
 });
+
 // **********************************AddedLast**********************************************
 Cypress.Commands.add("enterPhoneNumber1", (phoneNumber: string) => {
   cy.get("#phoneInput").type(`${phoneNumber}{enter}`, {

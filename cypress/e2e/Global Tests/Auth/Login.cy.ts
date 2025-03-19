@@ -517,7 +517,7 @@ describe("Login UnSuccessful Attempt when otp code expired & Change The Method T
   });
 });
 // ***********************************************************************************
-describe("Signup Successful Attempt should login to 3 servers", () => {
+describe("Should Input name in login if the user does not input your name when sign up operation", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.wait(3000);
     cy.logout();

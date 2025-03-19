@@ -370,7 +370,7 @@ describe("Should show user is already registered when registering with registere
   });
 });
 // **************************************************************************************************************
-describe("Signup Successful Attempt should login to 3 servers", () => {
+describe("Signup Successful Attempt & complete the profile", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.wait(3000);
     cy.logout();

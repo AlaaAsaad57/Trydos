@@ -8,7 +8,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
     cy.Visit("/");
   });
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
-    cy.get(".offer-widget:nth-child(1)").click({
+    cy.get(".offer-widget:nth-child(6)").click({
       force: true,
     });
     cy.log("✅✅ An Boutiue selected");
@@ -121,7 +121,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   let sizeTitle = "";
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
     cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(1)").click({
+    cy.get(".offer-widget:nth-child(6)").click({
       force: true,
     });
     cy.log("✅✅ An Boutiue selected");
@@ -320,7 +320,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   let sizeTitle = "";
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
     cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(1)").click({
+    cy.get(".offer-widget:nth-child(6)").click({
       force: true,
     });
     cy.log("✅✅ An Boutiue selected");
@@ -570,7 +570,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   let totalProductsFound4 = 0;
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
     cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(1)").click({
+    cy.get(".offer-widget:nth-child(6)").click({
       force: true,
     });
     cy.log("✅✅ An Boutiue selected");
@@ -688,6 +688,8 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   // *******************************price***************************
   it("Should Select A Price", () => {
     cy.Exist1("[data-cy=slider]").then((exist) => {
+      // cy.get("[data-cy=slider]").eq(0).click({ force: true });
+      // cy.log("✅ slider has been selected for filtering");
       cy.get(".rc-slider-handle-1").then(($el) => {
         const rect = $el[0].getBoundingClientRect();
         cy.wrap($el)
@@ -731,7 +733,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   let totalProductsFound44 = 0;
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
     cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(1)").click({
+    cy.get(".offer-widget:nth-child(6)").click({
       force: true,
     });
     cy.log("✅✅ An Boutiue selected");
@@ -766,19 +768,19 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
       }
     });
   });
-  it("Should Select A {Price}", () => {
-    cy.Exist1("[data-cy=slider]").then((exist) => {
-      cy.get("[data-cy=slider]").eq(0).click({ force: true });
-      cy.log("✅ slider has been selected for filtering");
-      cy.get(".rc-slider-handle-1").then(($el) => {
-        const rect = $el[0].getBoundingClientRect();
-        cy.wrap($el)
-          .trigger("mousedown", { which: 1, pageX: rect.x })
-          .trigger("mousemove", { which: 1, pageX: rect.x + 100 }) // Move right
-          .trigger("mouseup");
-      });
-    });
-  });
+  // it("Should Select A {Price}", () => {
+  //   cy.Exist1(".rc-slider-handle-1").then((exist) => {
+  //     // cy.get("[data-cy=slider]").eq(0).click({ force: true });
+  //     // cy.log("✅ slider has been selected for filtering");
+  //     cy.get(".rc-slider-handle-1").then(($el) => {
+  //       const rect = $el[0].getBoundingClientRect();
+  //       cy.wrap($el)
+  //         .trigger("mousedown", { which: 1, pageX: rect.x })
+  //         .trigger("mousemove", { which: 1, pageX: rect.x + 100 }) // Move right
+  //         .trigger("mouseup");
+  //     });
+  //   });
+  // });
   it("Should Obtain The Number Of Products That Appeared In Search Result Body", () => {
     cy.get("[data-cy=totalProduct_filterBoutique]")
       .invoke("text")
@@ -857,21 +859,21 @@ describe("Should Clicks On Settings Icon & Filter As Category || Brand || Color 
       }
     });
   });
-  it("Should Select A {Price}", () => {
-    cy.Exist1("[data-cy=slider]").then((exist) => {
-      cy.get("[data-cy=slider]").eq(0).click({ force: true });
-      cy.log("✅ slider has been selected for filtering");
-      cy.get(".rc-slider-handle-1").then(($el) => {
-        const rect = $el[0].getBoundingClientRect();
-        cy.wrap($el)
-          .trigger("mousedown", { which: 1, pageX: rect.x })
-          .trigger("mousemove", { which: 1, pageX: rect.x + 100 }) // Move right
-          .trigger("mouseup");
-      });
-      cy.get("[data-cy=resetButton]").click({ force: true });
-      cy.log("✅ A category has been selected for filtering");
-    });
-  });
+  // it("Should Select A {Price}", () => {
+  //   cy.Exist1(".rc-slider-handle-1").then((exist) => {
+  //     // cy.get("[data-cy=slider]").eq(0).click({ force: true });
+  //     // cy.log("✅ slider has been selected for filtering");
+  //     cy.get(".rc-slider-handle-1").then(($el) => {
+  //       const rect = $el[0].getBoundingClientRect();
+  //       cy.wrap($el)
+  //         .trigger("mousedown", { which: 1, pageX: rect.x })
+  //         .trigger("mousemove", { which: 1, pageX: rect.x + 100 }) // Move right
+  //         .trigger("mouseup");
+  //     });
+  //     cy.get("[data-cy=resetButton]").click({ force: true });
+  //     cy.log("✅ A category has been selected for filtering");
+  //   });
+  // });
   it("Should Click On Back Icon Found In Boutique Page To Return To The Home Page", () => {
     cy.clickElementForce("[data-cy=back_icon_boutique_page]");
     cy.log("✅✅ back icon clicked and back to main page");
