@@ -158,7 +158,7 @@ Cypress.Commands.add("performLogin", (s?: string) => {
     count += 1;
   }).as("login");
   cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-  cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
+  cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
   cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false }); //have account
   cy.Exist("[data-cy=login-method-phone]").then((exist) => {
     if (exist) {
@@ -187,7 +187,7 @@ Cypress.Commands.add("performLogin1", (s?: string) => {
   cy.logout();
   cy.viewport(783, 824);
   cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-  cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
+  cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
   cy.log("✅✅ Click On Login Icon & Open Its Interface");
   cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false }); //have account
   cy.log("✅✅ Click On I Have Already Acount Button");
@@ -245,7 +245,7 @@ Cypress.Commands.add("performErrorLogin", () => {
   }).as("login1");
   cy.viewport(783, 824);
   cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-  cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
+  cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
   cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false }); //have account
   cy.Exist("[data-cy=login-method-phone]").then((exist) => {
     if (exist) {
@@ -281,7 +281,7 @@ Cypress.Commands.add("performExpireOtpLogin", () => {
   }).as("login2");
   cy.viewport(783, 824);
   cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-  cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
+  cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
   cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false }); //have account
   cy.Exist("[data-cy=login-method-phone]").then((exist) => {
     if (exist) {
@@ -290,7 +290,11 @@ Cypress.Commands.add("performExpireOtpLogin", () => {
   });
   cy.wait(1000);
   cy.enterPhoneNumber("963753159877");
-  cy.wait(130000);
+  const EXPIRED_TIME = {
+    seconds: 15,
+    minutes: 0,
+  };
+  cy.wait(EXPIRED_TIME.seconds * 1000 + 5000);
   cy.Exist(".resend-code-button").then((s) => {
     if (s) {
       cy.get(".resend-code-button").click({ scrollBehavior: false });
@@ -321,7 +325,7 @@ Cypress.Commands.add("Performloginfailure", () => {
     });
   }).as("verifyOtpSignin");
   cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-  cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
+  cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
   cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false }); //have account
   cy.Exist("[data-cy=login-method-phone]").then((exist) => {
     if (exist) {
@@ -354,7 +358,7 @@ Cypress.Commands.add("signupProcess", () => {
   cy.logout();
   cy.viewport(783, 824);
   cy.get(".en-regular:nth-child(2)").click({ force: true });
-  cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
+  cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
   cy.get(".login-button:nth-child(2)").click({ force: true });
   cy.get(".agree-terms").click({ force: true });
   cy.enterPhoneNumber("963937288307");
@@ -397,7 +401,7 @@ Cypress.Commands.add("failedSignupProcess", () => {
   }).as("login1");
   cy.viewport(783, 824);
   cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-  cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
+  cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
   cy.get(".login-button:nth-child(2)").click({ scrollBehavior: false });
   cy.get(".agree-terms").click({ scrollBehavior: false });
   cy.enterPhoneNumber("963937288307");

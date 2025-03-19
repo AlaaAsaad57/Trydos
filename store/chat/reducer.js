@@ -795,7 +795,7 @@ export const ChatReducer = (
 
       let chat = state.data;
       let arr = [];
-      if (payload.isNew) {
+      if (payload.isNew || payload.act?.id?.includes("ch")) {
         arr.push({
           ...payload.act,
           messages: [...ac.messages, payload.message],
@@ -885,7 +885,7 @@ export const ChatReducer = (
           ) {
             mar.push({ ...payload, mid: null });
           }
-          chatData.push({ ...a, messages: [...mar] });
+          chatData.push({ ...a, messages: [...mar], id: payload?.channel_id });
         } else {
           chatData.push(a);
         }
@@ -895,10 +895,13 @@ export const ChatReducer = (
         state.activeChat.id &&
         state.activeChat.id === ac
       ) {
-        act = chatData.filter((a) => a.id === ac)[0];
+        act = {
+          ...chatData.filter((a) => a.id === payload?.channel_id)[0],
+          id: payload?.channel_id,
+        };
       } else {
         if (state.activeChat && state.activeChat.id) {
-          act = state.activeChat;
+          act = { ...state.activeChat, id: payload?.channel_id };
         }
       }
       let arr = [];

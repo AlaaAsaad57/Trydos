@@ -39,6 +39,7 @@ function OptionsMenu(props) {
             />
             <div
               className="message-opt"
+              data-cy="DELETE-OPTION"
               style={{ width: "90px", height: "35px" }}
               onClick={() => props.deleteMessage(true)}
             >
@@ -70,7 +71,11 @@ function OptionsMenu(props) {
             </div>
           </div>
           <div className="message-ops">
-            <div className="message-opt" onClick={() => props.forward()}>
+            <div
+              className="message-opt "
+              data-cy="FORWARD-OPTION"
+              onClick={() => props.forward()}
+            >
               <ForwardIcon></ForwardIcon>
               <div className="rep-descs">{translate("Forward", language)}</div>
             </div>
@@ -86,6 +91,7 @@ function OptionsMenu(props) {
             </div>
             <div
               className="message-opt"
+              data-cy="DELETE-OPTION"
               onClick={() => {
                 setDelete(true);
               }}

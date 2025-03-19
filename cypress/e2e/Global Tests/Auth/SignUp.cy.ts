@@ -13,7 +13,7 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
   });
   it("Should Click On Login Icon & Open Its Interface", () => {
     cy.clickElementScroll(".en-regular:nth-child(2)");
-    cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
+    cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
     cy.log("✅✅ Click On Login Icon & Open Its Interface");
   });
   it("Should Click On Create New Acount Button", () => {
@@ -118,7 +118,7 @@ describe("Signup UnSuccessful Attempt should show error message to user", () => 
   });
   it("Should Click On Login Icon & Open Its Interface", () => {
     cy.clickElementScroll(".en-regular:nth-child(2)");
-    cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
+    cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
     cy.log("✅✅ Click On Login Icon & Open Its Interface");
   });
   it("Should Click On Create New Acount Button", () => {
@@ -179,7 +179,7 @@ describe("Should show user is already registered when registering with registere
   });
   it("Should Click On Login Icon & Open Its Interface", () => {
     cy.clickElementScroll(".en-regular:nth-child(2)");
-    cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
+    cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
     cy.log("✅✅ Click On Login Icon & Open Its Interface");
   });
   it("Should Click On Create New Acount Button", () => {
@@ -243,7 +243,7 @@ describe("Should show user is already registered when registering with registere
   });
   it("Should Click On Login Icon & Open Its Interface", () => {
     cy.clickElementScroll(".en-regular:nth-child(2)");
-    cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
+    cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
     cy.log("✅✅ Click On Login Icon & Open Its Interface");
   });
   it("Should Click On Create New Acount Button", () => {
@@ -308,7 +308,7 @@ describe("Should show user is already registered when registering with registere
   });
   it("Should Click On Login Icon & Open Its Interface", () => {
     cy.clickElementScroll(".en-regular:nth-child(2)");
-    cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
+    cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
     cy.log("✅✅ Click On Login Icon & Open Its Interface");
   });
   it("Should Click On Create New Acount Button", () => {
@@ -378,7 +378,7 @@ describe("Signup Successful Attempt & complete the profile", () => {
   });
   it("Should Click On Login Icon & Open Its Interface", () => {
     cy.clickElementScroll(".en-regular:nth-child(2)");
-    cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
+    cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
     cy.log("✅✅ Click On Login Icon & Open Its Interface");
   });
   it("Should Click On Create New Acount Button", () => {

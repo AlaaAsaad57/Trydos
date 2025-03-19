@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useTimer } from "react-timer-and-stopwatch";
+import { EXPIRED_TIME } from "utils/endpointConfig";
 interface TimerProps {
   onFinish: Function;
   onResume: Function;
@@ -15,11 +16,7 @@ function Timer({ onFinish, minutes }: TimerProps) {
               minutes: minutes,
               seconds: 0,
             }
-          : {
-              // Set a duration of 1 minute and 30 seconds
-              minutes: 1,
-              seconds: 59,
-            },
+          : EXPIRED_TIME,
       },
     },
   });

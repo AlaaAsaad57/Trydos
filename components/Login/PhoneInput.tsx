@@ -411,6 +411,7 @@ function PhoneInput({
             aria-autocomplete="both"
             aria-haspopup="false"
             spellCheck="false"
+            placeholder="XXX XXX XXX XXX"
             autoCapitalize="off"
             autoComplete="off"
             autoCorrect="off"

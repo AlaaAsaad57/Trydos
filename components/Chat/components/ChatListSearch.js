@@ -28,7 +28,9 @@ function ChatListSearch(props) {
       </label>
       <input
         aria-label="Search"
+        data-cy="SearchInputChat"
         id="search"
+        value={props.search}
         onChange={(e) => SearchContacts(e.target.value)}
         placeholder={translate(
           "Search, Chat, Contact, Start New Chat",

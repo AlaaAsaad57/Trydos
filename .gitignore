@@ -11,6 +11,7 @@
 .nyc_output/out.json
 /cypress/reports/videos/*
 /cypress/reports
+/cypress/downloads
 /cypress/videos
 /cypress/screenshots
 /public/reports/videos/*
