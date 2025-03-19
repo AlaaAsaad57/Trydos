@@ -40,6 +40,7 @@ function UserAvatar({ avatar, onClick }: UserAvatarProps) {
         <div
           onClick={onClick}
           className="nav-question-item"
+          data-cy="avatar-options"
           style={{ marginLeft: "0px" }}
         >
           <UserIcon style={{ transform: "scale(1)" }} />
