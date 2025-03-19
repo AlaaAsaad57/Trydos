@@ -345,6 +345,8 @@ describe("Should Manage Chat Conversations", () => {
 
   it("should delete chat", () => {
     cy.get(".chat-screen-top svg").first().click({ scrollBehavior: false });
+    cy.wait(3000);
+
     cy.get(".chat-conversation-item")
       .first()
       // @ts-ignore
@@ -363,7 +365,7 @@ describe("Pin and UnPin Chat", () => {
       .last()
       // @ts-ignore
       .realSwipe("toRight", { length: 100 });
-    cy.get(".chat-2").click({ scrollBehavior: false });
+    cy.get(".chat-2").last().click({ scrollBehavior: false });
     cy.wait("@PinChat").then((s) => {
       expect(s.response.statusCode).to.eq(200);
     });
@@ -374,7 +376,7 @@ describe("Pin and UnPin Chat", () => {
       .first()
       // @ts-ignore
       .realSwipe("toRight", { length: 100 });
-    cy.get(".chat-2").click({ scrollBehavior: false });
+    cy.get(".chat-2").first().click({ scrollBehavior: false });
     cy.wait("@UnPinChat").then((s) => {
       expect(s.response.statusCode).to.eq(200);
     });
