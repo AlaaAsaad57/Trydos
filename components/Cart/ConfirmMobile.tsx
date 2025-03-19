@@ -154,6 +154,10 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
 
       <LogInPins
         expired={expired}
+        init={() => {
+          setDisabled(false);
+          setExpired(false);
+        }}
         stepIndicator={stepIndicator}
         setDisabled={(e) => {
           setDisabled(e);
