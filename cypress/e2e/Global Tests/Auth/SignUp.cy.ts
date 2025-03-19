@@ -108,6 +108,21 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
     cy.clickElementForce("[data-cy=skipForNow]");
     cy.log("✅✅ Skip For Now Button clicked");
   });
+  it("Should Arrived Dual Request", () => {
+    cy.interceptAndWait([
+      {
+        method: "POST",
+        url: "**/api/v1/users/update",
+        alias: "update",
+      },
+      {
+        method: "POST",
+        url: "**/api/new_v1/customer/update-name",
+        alias: "updatename",
+      },
+    ]);
+    cy.log("✅✅ updatename & updatename Requests Arrived");
+  });
 });
 // *************************failedSignupProcess**********************************
 describe("Signup UnSuccessful Attempt should show error message to user", () => {

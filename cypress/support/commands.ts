@@ -86,13 +86,15 @@ Cypress.Commands.add("Exist1", (selector) => {
     });
 });
 Cypress.Commands.add("logout", () => {
-  cy.get("[data-cy=avatar-options]").click({ scrollBehavior: false });
-  cy.Exist("[data-cy=logout]").then((exists) => {
-    if (exists) {
-      cy.get("[data-cy=logout]").click({ scrollBehavior: false });
-      cy.log("✅✅ You have successfully logged out");
-    } else {
-      cy.get("[data-cy=avatar-options]").click({ scrollBehavior: false });
+  cy.Exist("[data-cy=Logout-ReLogout]").then((exist) => {
+    if (exist) {
+      cy.get("[data-cy=Logout-ReLogout]").click({ force: true });
+      cy.Exist("[data-cy=logout]").then((exists) => {
+        if (exists) {
+          cy.get("[data-cy=logout]").click({ force: true });
+          cy.log("✅✅ You have successfully logged out");
+        }
+      });
     }
   });
 });

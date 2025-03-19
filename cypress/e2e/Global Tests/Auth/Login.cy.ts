@@ -5,9 +5,8 @@ describe("Login Successful Attempt should login to 3 servers", () => {
     });
     cy.Visit("/");
   });
-  // *******************************Added Last*********************************************************
   it("Should Ensure The User Has Not LogIn Previously", () => {
-    cy.wait(3000);
+    cy.wait(2000);
     cy.logout();
     cy.viewport(783, 824);
   });
@@ -21,7 +20,6 @@ describe("Login Successful Attempt should login to 3 servers", () => {
     cy.log("✅✅ Undo Login Process");
   });
 });
-// *******************************Added Last*********************************************************
 describe("Login Successful Attempt should login to 3 servers", () => {
   let count = 0;
   it("Should Click On Login Icon & Open Its Interface", () => {
@@ -48,11 +46,9 @@ describe("Login Successful Attempt should login to 3 servers", () => {
     cy.log("✅✅ Number Phone Entered Successfuly");
     cy.get('[data-testid="phone-number-input"]').should("not.be.focused");
   });
-  // ***************************Added Last*********************************
   it("Should Back & Change The Number", () => {
     cy.reEnterPhoneNumber("963937764641");
   });
-  // ***************************Added Last*********************************
   it("Should Click Recive Otp Code By SMS Button", () => {
     cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
     cy.get(".message-recieve-option:nth-child(2)").click({
@@ -183,6 +179,88 @@ describe("Login UnSuccessful Attempt should show error message to user", () => {
       } else {
         cy.log("���� login request not arrived");
       }
+    });
+  });
+});
+describe("Login UnSuccessful Attempt when otp code expired & Change The Method To Recive Otp Code", () => {
+  let count = 0;
+  it("Should Ensure The User Has Not LogIn Previously", () => {
+    cy.wait(3000);
+    cy.logout();
+    cy.viewport(783, 824);
+  });
+  it("Should Click On Login Icon & Open Its Interface", () => {
+    cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
+    cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
+    cy.log("✅✅ Click On Login Icon & Open Its Interface");
+  });
+  it("Should Click On I Have Already Acount Button", () => {
+    cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false }); //have account
+    cy.log("✅✅ Click On I Have Already Acount Button");
+  });
+  it("Should Show By Mobile Phone Number Button (if the user try login from mobile phone)", () => {
+    cy.Exist1("[data-cy=login-method-phone]").then((exist) => {
+      if (exist) {
+        cy.get("[data-cy=login-method-phone]").click({ scrollBehavior: false });
+        cy.log("✅✅ The User Attempt LogIn From Mobile Phone");
+      } else {
+        cy.log("✅✅ User Does Not Attempt LogIn From Mobile Phone");
+      }
+    });
+  });
+  it("Should Enter His Number In Number Entry Box", () => {
+    cy.enterPhoneNumber1("963753159877");
+    cy.log("✅✅ Number Phone Entered Successfuly");
+  });
+  it("Should Click Recive Otp Code By SMS Button", () => {
+    cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+    cy.get(".message-recieve-option:nth-child(2)").click({
+      scrollBehavior: false,
+    });
+    cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
+    cy.wait("@sendOtpApi");
+    cy.log("✅✅ Send Otp Api Request Successfuly");
+  });
+  it("Should Verify If Have To Try Again To Send Otp Code", () => {
+    cy.Exist1("[data-cy=WaitForTryAgain]").then((exist) => {
+      if (exist) {
+        cy.wait(60000);
+        cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+        cy.get(".message-recieve-option:nth-child(2)").click({
+          scrollBehavior: false,
+        });
+        cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
+        cy.wait("@sendOtpApi");
+        cy.log("✅✅ Send Otp Api Request Successfuly");
+      }
+    });
+  });
+  it("Should Wait Until OTP Code Becomes Expired", () => {
+    const EXPIRED_TIME = {
+      seconds: 15,
+      minutes: 0,
+    };
+    cy.wait(EXPIRED_TIME.seconds * 1000 + 5000);
+  });
+  it("Should Change The Way To Recive Otp Code", () => {
+    cy.clickElementForce("[data-cy=Change-Way]");
+    cy.get(".phone-send-options").should("be.visible");
+  });
+  it("Should Click On Resend Button To Resend OTP Code", () => {
+    cy.wait(45000);
+    cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+    cy.get(".message-recieve-option:nth-child(1)").click({
+      scrollBehavior: false,
+    });
+    cy.log("✅✅ Recive Otp Code By WattsApp Button Clicked Successfuly");
+    cy.wait("@sendOtpApi");
+    cy.log("✅✅ Send Otp Api Request Successfuly");
+    cy.get(".resend-code-button").click({ scrollBehavior: false });
+    cy.typePincode("999999");
+  });
+  it("Should Click On Close icon When Welcom Message Apperead", () => {
+    cy.get("[data-testid=login-close-icon]").click({
+      scrollBehavior: false,
     });
   });
 });
@@ -346,6 +424,88 @@ describe("Should show user not found when registering with non registered number
     });
   });
 });
+describe("Should Input name in login if the user does not input your name when sign up operation", () => {
+  it("Should Ensure The User Has Not LogIn Previously", () => {
+    cy.wait(3000);
+    cy.logout();
+    cy.viewport(783, 824);
+  });
+  it("Should Click On Login Icon & Open Its Interface", () => {
+    cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
+    cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
+    cy.log("✅✅ Click On Login Icon & Open Its Interface");
+  });
+  it("Should Click On I Have Already Acount Button", () => {
+    cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false }); //have account
+    cy.log("✅✅ Click On I Have Already Acount Button");
+  });
+  it("Should Show By Mobile Phone Number Button (if the user try login from mobile phone)", () => {
+    cy.Exist1("[data-cy=login-method-phone]").then((exist) => {
+      if (exist) {
+        cy.get("[data-cy=login-method-phone]").click({ scrollBehavior: false });
+        cy.log("✅✅ The User Attempt LogIn From Mobile Phone");
+      } else {
+        cy.log("✅✅ User Does Not Attempt LogIn From Mobile Phone");
+      }
+    });
+  });
+  it("Should Enter His Number In Number Entry Box", () => {
+    cy.enterPhoneNumber1("963937764641");
+    cy.log("✅✅ Number Phone Entered Successfuly");
+  });
+  it("Should Click Recive Otp Code By SMS Button", () => {
+    cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+    cy.get(".message-recieve-option:nth-child(2)").click({
+      scrollBehavior: false,
+    });
+    cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
+    cy.wait("@sendOtpApi");
+    cy.log("✅✅ Send Otp Api Request Successfuly");
+  });
+  it("Should Verify If Have To Try Again To Send Otp Code", () => {
+    cy.Exist1("[data-cy=WaitForTryAgain]").then((exist) => {
+      if (exist) {
+        cy.wait(30000);
+        cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+        cy.get(".message-recieve-option:nth-child(2)").click({
+          scrollBehavior: false,
+        });
+        cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
+        cy.wait("@sendOtpApi");
+        cy.log("✅✅ Send Otp Api Request Successfuly");
+      }
+    });
+  });
+  it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
+    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
+      req.continue((res) => {
+        res.body.data.user.name = "";
+      });
+    }).as("verifyOtpSignin");
+    cy.typePincode("999999");
+    cy.log("✅✅ Type Pin Code Entred Successfuly");
+    cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+      console.log(interception);
+      cy.log("✅ verifyOtpSignin request arrived");
+    });
+  });
+  it("Should Click On Input Field For Writ User Name", () => {
+    cy.clickElementForce("[data-cy=inputToWriteName]").should("be.visible");
+    cy.log("✅✅ Input Field For Writ User Name is clicked on");
+  });
+  it("Should Writ User Name In The Input Field", () => {
+    cy.get("[data-cy=InputFiledForName]", { timeout: 10000 })
+      .type("Abdo Hamdan", { force: true })
+      .should("have.value", "Abdo Hamdan"); // Ensure text was typed
+    cy.log("✅✅ User Name is Writ In Input Field");
+  });
+  it("Should Click On Arrow Founded In Right Of Input Field & Click On Skip For Now Button", () => {
+    cy.clickElementForce(".phone-arrow");
+    cy.clickElementForce("[data-testid=login-close-icon]");
+    cy.log("✅✅ Skip For Now Button clicked");
+  });
+});
+
 // ********************************************AddedLast*************************************************************
 describe("Should show user not found when registering with non registered number & Create New Account & Continue", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
@@ -435,174 +595,21 @@ describe("Should show user not found when registering with non registered number
     cy.clickElementForce("[data-cy=skipForNow]");
     cy.log("✅✅ Skip For Now Button clicked");
   });
+  it("Should Arrived Dual Request", () => {
+    cy.interceptAndWait([
+      {
+        method: "POST",
+        url: "**/api/v1/users/update",
+        alias: "update",
+      },
+      {
+        method: "POST",
+        url: "**/api/new_v1/customer/update-name",
+        alias: "updatename",
+      },
+    ]);
+    cy.log("✅✅ updatename & updatename Requests Arrived");
+    cy.wait(5000);
+  });
 });
 // *****************************************************************************************************************************
-describe("Login UnSuccessful Attempt when otp code expired & Change The Method To Recive Otp Code", () => {
-  let count = 0;
-  before(() => {
-    Cypress.on("uncaught:exception", (err, runnable) => {
-      return false;
-    });
-    cy.Visit("/");
-  });
-  it("Should Ensure The User Has Not LogIn Previously", () => {
-    cy.wait(3000);
-    cy.logout();
-    cy.viewport(783, 824);
-  });
-  it("Should Click On Login Icon & Open Its Interface", () => {
-    cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-    cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
-    cy.log("✅✅ Click On Login Icon & Open Its Interface");
-  });
-  it("Should Click On I Have Already Acount Button", () => {
-    cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false }); //have account
-    cy.log("✅✅ Click On I Have Already Acount Button");
-  });
-  it("Should Show By Mobile Phone Number Button (if the user try login from mobile phone)", () => {
-    cy.Exist1("[data-cy=login-method-phone]").then((exist) => {
-      if (exist) {
-        cy.get("[data-cy=login-method-phone]").click({ scrollBehavior: false });
-        cy.log("✅✅ The User Attempt LogIn From Mobile Phone");
-      } else {
-        cy.log("✅✅ User Does Not Attempt LogIn From Mobile Phone");
-      }
-    });
-  });
-  it("Should Enter His Number In Number Entry Box", () => {
-    cy.enterPhoneNumber1("963753159877");
-    cy.log("✅✅ Number Phone Entered Successfuly");
-  });
-  it("Should Click Recive Otp Code By SMS Button", () => {
-    cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-    cy.get(".message-recieve-option:nth-child(2)").click({
-      scrollBehavior: false,
-    });
-    cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
-    cy.wait("@sendOtpApi");
-    cy.log("✅✅ Send Otp Api Request Successfuly");
-  });
-  it("Should Verify If Have To Try Again To Send Otp Code", () => {
-    cy.Exist1("[data-cy=WaitForTryAgain]").then((exist) => {
-      if (exist) {
-        cy.wait(60000);
-        cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-        cy.get(".message-recieve-option:nth-child(2)").click({
-          scrollBehavior: false,
-        });
-        cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
-        cy.wait("@sendOtpApi");
-        cy.log("✅✅ Send Otp Api Request Successfuly");
-      }
-    });
-  });
-  it("Should Wait Until OTP Code Becomes Expired", () => {
-    const EXPIRED_TIME = {
-      seconds: 15,
-      minutes: 0,
-    };
-    cy.wait(EXPIRED_TIME.seconds * 1000 + 5000);
-  });
-  it("Should Change The Way To Recive Otp Code", () => {
-    cy.clickElementForce("[data-cy=Change-Way]");
-    cy.get(".phone-send-options").should("be.visible");
-  });
-  it("Should Click On Resend Button To Resend OTP Code", () => {
-    cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-    cy.get(".message-recieve-option:nth-child(1)").click({
-      scrollBehavior: false,
-    });
-    cy.log("✅✅ Recive Otp Code By WattsApp Button Clicked Successfuly");
-    cy.wait("@sendOtpApi");
-    cy.log("✅✅ Send Otp Api Request Successfuly");
-    cy.get(".resend-code-button").click({ scrollBehavior: false });
-    cy.typePincode("999999");
-  });
-  it("Should Click On Close icon When Welcom Message Apperead", () => {
-    cy.get("[data-testid=login-close-icon]").click({
-      scrollBehavior: false,
-    });
-  });
-});
-// ***********************************************************************************
-describe("Should Input name in login if the user does not input your name when sign up operation", () => {
-  it("Should Ensure The User Has Not LogIn Previously", () => {
-    cy.wait(3000);
-    cy.logout();
-    cy.viewport(783, 824);
-  });
-  it("Should Click On Login Icon & Open Its Interface", () => {
-    cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-    cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
-    cy.log("✅✅ Click On Login Icon & Open Its Interface");
-  });
-  it("Should Click On I Have Already Acount Button", () => {
-    cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false }); //have account
-    cy.log("✅✅ Click On I Have Already Acount Button");
-  });
-  it("Should Show By Mobile Phone Number Button (if the user try login from mobile phone)", () => {
-    cy.Exist1("[data-cy=login-method-phone]").then((exist) => {
-      if (exist) {
-        cy.get("[data-cy=login-method-phone]").click({ scrollBehavior: false });
-        cy.log("✅✅ The User Attempt LogIn From Mobile Phone");
-      } else {
-        cy.log("✅✅ User Does Not Attempt LogIn From Mobile Phone");
-      }
-    });
-  });
-  it("Should Enter His Number In Number Entry Box", () => {
-    cy.enterPhoneNumber1("963937764641");
-    cy.log("✅✅ Number Phone Entered Successfuly");
-  });
-  it("Should Click Recive Otp Code By SMS Button", () => {
-    cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-    cy.get(".message-recieve-option:nth-child(2)").click({
-      scrollBehavior: false,
-    });
-    cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
-    cy.wait("@sendOtpApi");
-    cy.log("✅✅ Send Otp Api Request Successfuly");
-  });
-  it("Should Verify If Have To Try Again To Send Otp Code", () => {
-    cy.Exist1("[data-cy=WaitForTryAgain]").then((exist) => {
-      if (exist) {
-        cy.wait(30000);
-        cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-        cy.get(".message-recieve-option:nth-child(2)").click({
-          scrollBehavior: false,
-        });
-        cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
-        cy.wait("@sendOtpApi");
-        cy.log("✅✅ Send Otp Api Request Successfuly");
-      }
-    });
-  });
-  it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
-    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
-      req.continue((res) => {
-        res.body.data.user.name = "";
-      });
-    }).as("verifyOtpSignin");
-    cy.typePincode("999999");
-    cy.log("✅✅ Type Pin Code Entred Successfuly");
-    cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
-      console.log(interception);
-      cy.log("✅ verifyOtpSignin request arrived");
-    });
-  });
-  it("Should Click On Input Field For Writ User Name", () => {
-    cy.clickElementForce("[data-cy=inputToWriteName]").should("be.visible");
-    cy.log("✅✅ Input Field For Writ User Name is clicked on");
-  });
-  it("Should Writ User Name In The Input Field", () => {
-    cy.get("[data-cy=InputFiledForName]", { timeout: 10000 })
-      .type("Abdo Hamdan", { force: true })
-      .should("have.value", "Abdo Hamdan"); // Ensure text was typed
-    cy.log("✅✅ User Name is Writ In Input Field");
-  });
-  it("Should Click On Arrow Founded In Right Of Input Field & Click On Skip For Now Button", () => {
-    cy.clickElementForce(".phone-arrow");
-    cy.clickElementForce("[data-testid=login-close-icon]");
-    cy.log("✅✅ Skip For Now Button clicked");
-  });
-});
