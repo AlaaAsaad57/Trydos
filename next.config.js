@@ -43,6 +43,7 @@ let nextConfig = withSvgr({
     ];
   },
   images: {
+    unoptimized: true,
     domains: [
       "res.cloudinary.com",
       "eu.ui-avatars.com",

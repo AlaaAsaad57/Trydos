@@ -358,6 +358,8 @@ function ChatMessage(props) {
                   <Image
                     alt="user-img"
                     className="abs-avva"
+                    width={30}
+                    height={30}
                     src={
                       activeChat &&
                       activeChat.channel_members &&
@@ -507,6 +509,8 @@ function ChatMessage(props) {
                     <Image
                       loading="eager"
                       alt="user-img"
+                      width={30}
+                      height={30}
                       className="abs-avva"
                       src={
                         activeChat &&
@@ -728,6 +732,8 @@ function ChatMessage(props) {
                     )[0]?.user?.photo_path ? (
                     <Image
                       loading="eager"
+                      width={30}
+                      height={30}
                       alt="user-img"
                       className="abs-avva"
                       src={
@@ -952,6 +958,8 @@ function ChatMessage(props) {
                     <Image
                       alt="user-img"
                       className="abs-avva"
+                      width={30}
+                      height={30}
                       src={
                         activeChat &&
                         activeChat.channel_members &&
@@ -1222,6 +1230,8 @@ function ChatMessage(props) {
                         <Image
                           alt="user-img"
                           className="abs-avva"
+                          width={30}
+                          height={30}
                           src={
                             activeChat &&
                             activeChat.channel_members &&
@@ -1467,6 +1477,8 @@ function ChatMessage(props) {
                     <Image
                       alt="user-img"
                       className="abs-avva"
+                      width={30}
+                      height={30}
                       src={
                         activeChat &&
                         activeChat.channel_members &&
@@ -1665,6 +1677,8 @@ function ChatMessage(props) {
                     <Image
                       alt="user-img"
                       className="abs-avva"
+                      width={30}
+                      height={30}
                       src={
                         activeChat &&
                         activeChat.channel_members &&
@@ -1708,6 +1722,7 @@ function ChatMessage(props) {
                       data-cy="FILE-PNG"
                       width={26}
                       height={20}
+                      unoptimized
                       style={{ width: "26px" }}
                     />
                     <div className="file-desc">
@@ -1855,6 +1870,8 @@ function ChatMessage(props) {
                   <Image
                     alt="user-img"
                     className="abs-avva"
+                    width={30}
+                    height={30}
                     src={
                       activeChat &&
                       activeChat.channel_members &&
@@ -1934,6 +1951,8 @@ function ChatMessage(props) {
                 )[0]?.user?.photo_path ? (
                 <Image
                   alt="user-img"
+                  width={30}
+                  height={30}
                   className="abs-avva"
                   src={
                     activeChat &&
@@ -2080,6 +2099,8 @@ function ChatMessage(props) {
                     <Image
                       alt="user-img"
                       className="abs-avva"
+                      width={30}
+                      height={30}
                       src={
                         activeChat &&
                         activeChat.channel_members &&
@@ -2260,6 +2281,8 @@ function ChatMessage(props) {
                     <Image
                       alt="user-img"
                       className="abs-avva"
+                      width={30}
+                      height={30}
                       src={
                         activeChat &&
                         activeChat.channel_members &&
@@ -2438,6 +2461,8 @@ function ChatMessage(props) {
                     <Image
                       alt="user-img"
                       className="abs-avva"
+                      width={30}
+                      height={30}
                       src={
                         activeChat &&
                         activeChat.channel_members &&
@@ -2627,6 +2652,8 @@ function ChatMessage(props) {
                         <Image
                           alt="user-img"
                           className="abs-avva"
+                          width={30}
+                          height={30}
                           src={
                             activeChat &&
                             activeChat.channel_members &&
@@ -2866,6 +2893,8 @@ function ChatMessage(props) {
                     <Image
                       alt="user-img"
                       className="abs-avva"
+                      width={30}
+                      height={30}
                       src={
                         activeChat &&
                         activeChat.channel_members &&
@@ -3027,6 +3056,8 @@ function ChatMessage(props) {
                     )[0]?.user?.photo_path ? (
                     <Image
                       alt="user-img"
+                      width={30}
+                      height={30}
                       className="abs-avva"
                       src={
                         activeChat &&
@@ -3071,6 +3102,7 @@ function ChatMessage(props) {
                       src={fil.src}
                       height={20}
                       style={{ width: "26px" }}
+                      unoptimized
                     />
                     <div className="file-desc">
                       <div className="file-name">{"FILE"}</div>
@@ -3180,6 +3212,8 @@ function ChatMessage(props) {
                   <Image
                     alt="user-img"
                     className="abs-avva"
+                    width={30}
+                    height={30}
                     src={
                       activeChat &&
                       activeChat.channel_members &&
@@ -3260,6 +3294,8 @@ function ChatMessage(props) {
                 <Image
                   alt="user-img"
                   className="abs-avva"
+                  width={30}
+                  height={30}
                   src={
                     activeChat &&
                     activeChat.channel_members &&

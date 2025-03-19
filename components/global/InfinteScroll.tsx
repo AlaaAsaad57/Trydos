@@ -10,7 +10,7 @@ const useInfiniteScroll = (fetchNextPage) => {
       const documentHeight = document.documentElement.scrollHeight;
 
       // If the scroll reaches 70% of the document height
-      if (scrollPosition >= documentHeight * 0.7) {
+      if (scrollPosition >= documentHeight * 0.3) {
         fetchNextPage();
       }
     };

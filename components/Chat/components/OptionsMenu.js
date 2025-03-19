@@ -71,7 +71,11 @@ function OptionsMenu(props) {
             </div>
           </div>
           <div className="message-ops">
-            <div className="message-opt" onClick={() => props.forward()}>
+            <div
+              className="message-opt "
+              data-cy="FORWARD-OPTION"
+              onClick={() => props.forward()}
+            >
               <ForwardIcon></ForwardIcon>
               <div className="rep-descs">{translate("Forward", language)}</div>
             </div>

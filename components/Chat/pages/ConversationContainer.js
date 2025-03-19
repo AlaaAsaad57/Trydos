@@ -43,7 +43,13 @@ const VoiceCall = dynamic(
   { ssr: false }
 );
 
-function ConversationContainer({ ViewedScreen, active, loading, first }) {
+function ConversationContainer({
+  ViewedScreen,
+  active,
+  loading,
+  first,
+  setSearch,
+}) {
   const [vid, setVid] = useState(null);
   const callLoading = useSelector((state) => state.chat.callLoading);
   const imageFile = useRef(null);
@@ -801,7 +807,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
     }
   };
   useEffect(() => {
-    props.setSearch("");
+    setSearch("");
   }, [activeChat]);
   const [searchEnable, enableSearch] = useState(false);
   return (

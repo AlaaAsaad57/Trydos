@@ -134,7 +134,7 @@ export const getTwoLetters = (name) => {
 export const getNew = (chatData, activeChat) => {
   let a = [];
   chatData.forEach((c) => {
-    if (isNew(c.messages) > 0) if (c.id !== activeChat?.id) a.push(c);
+    if (c && isNew(c?.messages) > 0) if (c.id !== activeChat?.id) a.push(c);
   });
   return a;
 };
