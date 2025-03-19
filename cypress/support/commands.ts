@@ -292,11 +292,8 @@ Cypress.Commands.add("performExpireOtpLogin", () => {
   });
   cy.wait(1000);
   cy.enterPhoneNumber("963753159877");
-  const EXPIRED_TIME = {
-    seconds: 15,
-    minutes: 0,
-  };
-  cy.wait(EXPIRED_TIME.seconds * 1000 + 5000);
+
+  cy.wait(130000);
   cy.Exist(".resend-code-button").then((s) => {
     if (s) {
       cy.get(".resend-code-button").click({ scrollBehavior: false });
