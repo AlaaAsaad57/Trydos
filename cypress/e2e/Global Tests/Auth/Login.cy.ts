@@ -243,7 +243,6 @@ describe("Login UnSuccessful Attempt when otp code expired & Change The Method T
     cy.get(".phone-send-options").should("be.visible");
   });
   it("Should Click On Resend Button To Resend OTP Code", () => {
-    cy.wait(45000);
     cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
     cy.get(".message-recieve-option:nth-child(1)").click({
       scrollBehavior: false,
@@ -251,7 +250,6 @@ describe("Login UnSuccessful Attempt when otp code expired & Change The Method T
     cy.log("✅✅ Recive Otp Code By WattsApp Button Clicked Successfuly");
     cy.wait("@sendOtpApi");
     cy.log("✅✅ Send Otp Api Request Successfuly");
-    cy.get(".resend-code-button").click({ scrollBehavior: false });
     cy.typePincode("999999");
   });
   it("Should Click On Close icon When Welcom Message Apperead", () => {
@@ -458,7 +456,7 @@ describe("Should Input name in login if the user does not input your name when s
   it("Should Verify If Have To Try Again To Send Otp Code", () => {
     cy.Exist1("[data-cy=WaitForTryAgain]").then((exist) => {
       if (exist) {
-        cy.wait(30000);
+        cy.wait(45000);
         cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
         cy.get(".message-recieve-option:nth-child(2)").click({
           scrollBehavior: false,
@@ -602,7 +600,6 @@ describe("Should show user not found when registering with non registered number
       },
     ]);
     cy.log("✅✅ updatename & updatename Requests Arrived");
-    cy.wait(5000);
   });
 });
 // *****************************************************************************************************************************

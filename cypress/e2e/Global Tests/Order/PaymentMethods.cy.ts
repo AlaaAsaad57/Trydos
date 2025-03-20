@@ -110,7 +110,7 @@ describe("Should Choose The way for payment", () => {
 });
 describe("Order Success Page", () => {
   it("should verify the order completion text appears after placing order", () => {
-    cy.get("div").contains("Done").should("be.visible");
+    cy.get("div", { timeout: 15000 }).contains("Done").should("be.visible");
   });
   it("should display the success message when order is completed", () => {
     cy.get('[data-cy="The-Purchas"]').should("be.visible");

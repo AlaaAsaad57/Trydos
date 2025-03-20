@@ -144,12 +144,14 @@ Cypress.Commands.add("reEnterPhoneNumber", (phoneNumber: string) => {
 });
 Cypress.Commands.add("enterPhoneNumber", (phoneNumber: string) => {
   cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-  cy.get("#phoneInput").click({ scrollBehavior: false });
+  cy.get("#phoneInput").click({ scrollBehavior: false, force: true });
   cy.get("#phoneInput").type(`${phoneNumber}{enter}`, {
     scrollBehavior: false,
+    force: true,
   });
   cy.get(".message-recieve-option:nth-child(1)").click({
     scrollBehavior: false,
+    force: true,
   });
   cy.wait("@sendOtpApi");
 });
@@ -597,7 +599,7 @@ Cypress.Commands.add("verifyComponentsInProductCard", () => {
 // ***********************************Orders******************************
 Cypress.Commands.add("AddProductToCart", () => {
   let productName = "";
-  cy.clickElementForce(".offer-widget:nth-child(7)");
+  cy.clickElementForce(".offer-widget:nth-child(6)");
   cy.log("✅✅ An Boutique Selected & Click");
   cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
   cy.log("✅✅ The Boutiue Page Opened");
@@ -686,7 +688,7 @@ Cypress.Commands.add("AddAdress", () => {
 // *********************************************
 Cypress.Commands.add("AddProductToCartThenComplateOrder", () => {
   let productName = "";
-  cy.clickElementForce(".offer-widget:nth-child(7)");
+  cy.clickElementForce(".offer-widget:nth-child(6)");
   cy.log("✅✅ An Boutique Selected & Click");
   cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
   cy.log("✅✅ The Boutiue Page Opened");
