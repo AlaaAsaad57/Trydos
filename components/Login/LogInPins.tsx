@@ -148,12 +148,23 @@ function LogInPins({
       }, 300);
     }
   }, [stepIndicator]);
+  const ResendFunction = async () => {
+    if (loading) return;
+    Sendevent({
+      event: "button_clicked",
+      value: "resend_otp_button",
+    });
+    setLoading(true);
+    await resend();
+    setLoading(false);
+  };
+  const [loading, setLoading] = useState(false);
   return (
     <AnimatedComponent show={active}>
       <>
         <div
           data-testid="pin-inputs-desc"
-          className="phone-input-desc"
+          className={`phone-input-desc ${loading ? "opacity-50" : ""}`}
           style={{ marginBottom: expired ? "12px" : "25px" }}
         >
           <svg
@@ -430,13 +441,9 @@ function LogInPins({
               ) : (
                 <>
                   <span
-                    className="blue-text resend-code-button"
+                    className="blue-text resend-code-button cursor-pointer"
                     onClick={() => {
-                      Sendevent({
-                        event: "button_clicked",
-                        value: "resend_otp_button",
-                      });
-                      resend();
+                      ResendFunction();
                     }}
                   >
                     {translate("Resend Code", language)}
@@ -450,6 +457,7 @@ function LogInPins({
                     id="text-wrap-element"
                     style={{ cursor: "pointer" }}
                     onClick={() => {
+                      if (loading) return;
                       init();
                       setStepIndactor(4);
                     }}
@@ -461,6 +469,7 @@ function LogInPins({
                     id="text-wrap-element"
                     style={{ cursor: "pointer" }}
                     onClick={() => {
+                      if (loading) return;
                       init();
                       setStepIndactor(4);
                     }}
