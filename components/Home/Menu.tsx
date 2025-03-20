@@ -137,6 +137,7 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
       {user ? (
         <>
           <NextLink
+            data-cy="Settings-Icon"
             style={{
               padding: "10px 15px",
               cursor: "pointer",

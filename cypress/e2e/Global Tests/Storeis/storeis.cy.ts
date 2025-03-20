@@ -12,7 +12,7 @@ describe("Open Stories After Login", () => {
   });
   it("should Login If User Is Not Verified", () => {
     cy.intercept("GET", "**/api/v1/stories/users_stories").as("StoriesApi");
-    cy.performLogin();
+    cy.performLogin1();
     cy.wait("@StoriesApi").then((interceptions) => {
       console.log(interceptions);
     });
@@ -94,7 +94,7 @@ describe("Should Ask For User Name if User Is Not Already Entered", () => {
         res.body.data.user.name = null;
       });
     }).as("verifyOtpSignin");
-    cy.performLogin();
+    cy.performLogin1();
   });
   it("should when click on Story Upload Button Show A Modal", () => {
     cy.get("[data-cy=Add-Story-Button]", { timeout: 5000 }).click({

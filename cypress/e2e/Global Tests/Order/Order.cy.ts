@@ -14,7 +14,7 @@ describe("Should Open The Website & Logout", () => {
         cy.get("[data-cy=Change-Url-Container]", { timeout: 10000 }).should(
           "be.visible"
         );
-        cy.clickElementForce("[data-cy=countain-with]");
+        cy.clickElement("[data-cy=countain-with]");
       }
     });
   });
@@ -30,11 +30,11 @@ describe("Should Open The Website & Logout", () => {
 describe("Should Cart Page &Confirm Order Operation", () => {
   it("Should Click On Cart Icon & Open Cart Page", () => {
     cy.get("[data-cy=boutiques]", { timeout: 15000 });
-    cy.clickElementForce("[data-cy=cartIcon_mainPage]");
+    cy.clickElement("[data-cy=cartIcon_mainPage]");
     cy.log("✅✅ Click On Cart Icon In Main Page & Open Cart Page");
   });
   it("Should Click On Confirm & Countinue Button", () => {
-    cy.clickElementForce("[data-cy=Confirm-Order-Button]");
+    cy.clickElement("[data-cy=Confirm-Order-Button]");
     cy.log("✅✅ Confirm & Countinue Button Clicked");
     cy.get("[data-cy=FieldToInputNumber]").should("be.visible");
   });
@@ -158,7 +158,7 @@ describe("Should Add Address", () => {
   it("Should Check If User Add Address Lastly", () => {
     cy.Exist("[data-cy=Address-Added-Last]").then((exist) => {
       if (exist) {
-        cy.clickElementForce("[data-cy=Show-Address-That-Added]");
+        cy.clickElement("[data-cy=Show-Address-That-Added]");
         cy.log("✅✅ Show Address List Button Clicked");
         cy.get("[data-cy=Address]").each(($el, index) => {
           cy.wrap($el).then(() => {
@@ -171,7 +171,7 @@ describe("Should Add Address", () => {
                   "POST",
                   "**/api/new_v1/customer/address/delete?address**"
                 ).as("DeleteAddress");
-                cy.clickElementForce("[data-cy=Yes-Delete-Address]");
+                cy.clickElement("[data-cy=Yes-Delete-Address]");
                 cy.wait("@DeleteAddress").then((interception) => {
                   cy.log("✅✅ Get Address By Text request arrived");
                 });
@@ -186,20 +186,20 @@ describe("Should Add Address", () => {
   it("Should Add Address", () => {
     cy.Exist("[data-cy=Add-Shipping-Address]").then((exist) => {
       if (exist) {
-        cy.clickElementForce("[data-cy=Add-Shipping-Address]");
+        cy.clickElement("[data-cy=Add-Shipping-Address]");
         cy.log("✅✅ Add-Shipping-Address Button Clicked");
       } else {
-        cy.clickElementForce("[data-cy=AddAddres]");
+        cy.clickElement("[data-cy=AddAddres]");
         cy.log("✅✅ Add Addres Button Clicked");
       }
     });
   });
   it("Should Change Place From List", () => {
-    cy.clickElementForce("[data-cy=Change-From-List]");
+    cy.clickElement("[data-cy=Change-From-List]");
     cy.log("✅✅ Change Place From List Button Clicked");
     cy.get("[data-cy=Extended-Choose-Area]").should("exist");
     cy.log("✅✅ Extended Box To Choose Area Appeared");
-    cy.clickElementForce("[data-cy=SearchProvince-District-Town-Street]");
+    cy.clickElement("[data-cy=SearchProvince-District-Town-Street]");
     cy.log("✅✅ Search Province District Town Street");
 
     cy.intercept("POST", "**/api/addresses/get-address-by-text").as(
@@ -223,7 +223,7 @@ describe("Should Add Address", () => {
     cy.log("✅✅ First Option Has Been Selected");
   });
   it("Should Add Detailed Address & Note", () => {
-    cy.clickElementForce("[data-cy=Detailed-Address-Note]");
+    cy.clickElement("[data-cy=Detailed-Address-Note]");
     cy.log("✅✅ Click On Detailed Address & Note Field");
     cy.get("[data-cy=Detailed-Address-Note]").type(
       "This Is A Test Detailed Address & Note",
@@ -232,7 +232,7 @@ describe("Should Add Address", () => {
     cy.log("✅✅ Detailed Address & Note Input Filled");
   });
   it("Should Add Address Title", () => {
-    cy.clickElementForce("[data-cy=Address-Title]");
+    cy.clickElement("[data-cy=Address-Title]");
     cy.log("✅✅ Click On Add Address Title Field");
     cy.get('[data-cy="Address-Title"]').type("This Is A Test Address Title", {
       force: true,
@@ -241,7 +241,7 @@ describe("Should Add Address", () => {
     cy.log("✅✅ Address Title Input Filled");
   });
   it("Should Add Recipient Name", () => {
-    cy.clickElementForce("[data-cy=Recipient-Name]");
+    cy.clickElement("[data-cy=Recipient-Name]");
     cy.log("✅✅ Click On Recipient Name Field");
     cy.get('[data-cy="Recipient-Name"]').type("This Is A Test Recipient Name", {
       force: true,
@@ -250,7 +250,7 @@ describe("Should Add Address", () => {
     cy.log("✅✅ Recipient Name Input Filled");
   });
   it("Should Add Contact Phone", () => {
-    cy.clickElementForce("[data-cy=Contact-Phone]");
+    cy.clickElement("[data-cy=Contact-Phone]");
     cy.log("✅✅ Click On Contact Phone Field");
     cy.get('[data-cy="Contact-Phone"]').type("0963937764641", {
       force: true,
@@ -259,7 +259,7 @@ describe("Should Add Address", () => {
     cy.log("✅✅ Contact Phone Input Filled");
   });
   it("Should Add & Save Address", () => {
-    cy.clickElementForce("[data-cy=AddSaveButton]");
+    cy.clickElement("[data-cy=AddSaveButton]");
     cy.log("✅✅ Add & Save Button Clicked");
     cy.interceptAndWait([
       {
@@ -278,7 +278,7 @@ describe("Should Add Address", () => {
 });
 describe("Should Check Address & Add other Address", () => {
   it("Should Show Address List", () => {
-    cy.clickElementForce("[data-cy=Show-Address-That-Added]");
+    cy.clickElement("[data-cy=Show-Address-That-Added]");
     cy.log("✅✅ Show Address List Button Clicked");
   });
   it("Should Show Address Added Last", () => {
@@ -290,12 +290,12 @@ describe("Should Check Address & Add other Address", () => {
     }).should("be.visible");
   });
   it("Should Add Other Address", () => {
-    cy.clickElementForce("[data-cy=Add-Shipping-Address]");
+    cy.clickElement("[data-cy=Add-Shipping-Address]");
     cy.log("✅✅ Show Address List Button Clicked");
     cy.AddAdress();
   });
   it("Should Show Address List", () => {
-    cy.clickElementForce("[data-cy=Show-Address-That-Added]");
+    cy.clickElement("[data-cy=Show-Address-That-Added]");
     cy.log("✅✅ Show Address List Button Clicked");
     cy.get("[data-cy=Address]")
       .its("length")
@@ -334,7 +334,7 @@ describe("Should Edit Address", () => {
 });
 describe("Should Delete Address", () => {
   it("Should Delete Address", () => {
-    cy.clickElementForce("[data-cy=Show-Address-That-Added]");
+    cy.clickElement("[data-cy=Show-Address-That-Added]");
     cy.log("✅✅ Show Address List Button Clicked");
     cy.get("[data-cy=Delete-Address-Icon]")
       .eq(0)
@@ -345,7 +345,7 @@ describe("Should Delete Address", () => {
           "POST",
           "**/api/new_v1/customer/address/delete?address**"
         ).as("DeleteAddress");
-        cy.clickElementForce("[data-cy=Yes-Delete-Address]");
+        cy.clickElement("[data-cy=Yes-Delete-Address]");
         cy.wait("@DeleteAddress").then((interception) => {
           cy.log("✅✅ Get Address By Text request arrived");
         });

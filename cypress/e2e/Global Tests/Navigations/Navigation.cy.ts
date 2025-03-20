@@ -28,7 +28,7 @@ describe("Should Verify About NavBar & Navigation Between Category Icons", () =>
         cy.log(`✅✅ categoryIco Selected`);
         cy.get("[data-cy=activeCategoryIcon]");
         cy.log("✅✅ The categoryIcon Page Selected");
-        cy.clickElementForce("[data-cy=storeLogo]");
+        cy.clickElement("[data-cy=storeLogo]");
         cy.log("✅✅ Store Logo clicked and returned to the main page");
         cy.get("[data-cy=boutiques]", { timeout: 15000 }).should("be.visible");
       }

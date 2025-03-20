@@ -70,7 +70,7 @@ Cypress.Commands.add("Exist", (selector) => {
       });
     });
 });
-Cypress.Commands.add("Exist1", (selector) => {
+Cypress.Commands.add("ChexkExistElement", (selector) => {
   cy.get("body")
     .should("exist")
     .then(($body) => {
@@ -89,104 +89,122 @@ Cypress.Commands.add("logout", () => {
   cy.Exist("[data-cy=Logout-ReLogout]").then((exist) => {
     if (exist) {
       cy.get("[data-cy=Logout-ReLogout]").click({ force: true });
-      cy.Exist("[data-cy=logout]").then((exists) => {
-        if (exists) {
-          cy.get("[data-cy=logout]").click({ force: true });
-          cy.log("✅✅ You have successfully logged out");
-        }
-      });
+      cy.get("[data-cy=logout]").click({ force: true });
+      cy.log("✅✅ You have successfully logged out");
+    } else {
+      cy.log("❌❌ No Login Founded!");
     }
   });
 });
-Cypress.Commands.add("typePincode", (pincode: string) => {
-  const digits = pincode.split(""); // Split the pincode into individual digits
-  digits.forEach((digit, index) => {
-    cy.get(`.pincode-input-text:nth-child(${index + 1})`, {
-      timeout: 3000,
-    }).type(digit, {
-      scrollBehavior: false,
-    });
+// ********************************add******************************************
+Cypress.Commands.add("WaitUntilLoadWebsiteAndlogoutAndViewport", () => {
+  cy.wait(3000);
+  cy.logout();
+  cy.viewport(783, 824);
+});
+Cypress.Commands.add("OpenLoginInterface", () => {
+  cy.clickElement(".en-regular:nth-child(2)");
+  cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
+  cy.log("✅✅ Click On Login Icon & Open Its Interface");
+});
+Cypress.Commands.add("HaveAccount", () => {
+  cy.clickElement(".login-button:nth-child(1)");
+  cy.log("✅✅ Click On I Have Already Acount Button");
+});
+Cypress.Commands.add("CreateNewAccount", () => {
+  cy.clickElement(".login-button:nth-child(2)");
+  cy.log("✅✅ Click On Create New Acount Button");
+});
+Cypress.Commands.add("ComplateLoginByMobilePhone", () => {
+  cy.ChexkExistElement("[data-cy=login-method-phone]").then((exist) => {
+    if (exist) {
+      cy.get("[data-cy=login-method-phone]").click({ scrollBehavior: false });
+      cy.log("✅✅ The User Attempt LogIn From Mobile Phone");
+    } else {
+      cy.log("✅✅ User Does Not Attempt LogIn From Mobile Phone");
+    }
   });
 });
-// **********************************AddedLast**********************************************
-Cypress.Commands.add("typePincode1", (pincode: string) => {
-  cy.get(".pincode-input-text").first().focus(); // Ensure the first input field gets focus
-
-  const digits = pincode.split(""); // Split the pincode into individual digits
+Cypress.Commands.add("AgreeTerms", () => {
+  cy.clickElement(".agree-terms");
+  cy.log("✅✅ Agree & Countinue Button Clicked Successfuly");
+});
+Cypress.Commands.add("ChooseWayToRecieveOtpAndWaitOtpRequest", () => {
+  cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+  cy.get(".message-recieve-option:nth-child(2)").click({
+    scrollBehavior: false,
+    force: true,
+  });
+  cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
+  cy.wait("@sendOtpApi");
+  cy.log("✅✅ Send Otp Api Request Successfuly");
+});
+Cypress.Commands.add("CheckIfTrySendOtp", () => {
+  cy.ChexkExistElement("[data-cy=WaitForTryAgain]").then((exist) => {
+    if (exist) {
+      cy.wait(60000);
+      cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+      cy.get(".message-recieve-option:nth-child(2)").click({
+        scrollBehavior: false,
+      });
+      cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
+      cy.wait("@sendOtpApi");
+      cy.log("✅✅ Send Otp Api Request Successfuly");
+    }
+  });
+});
+Cypress.Commands.add("EndLoginOperation", () => {
+  cy.get("[data-testid=login-close-icon]").click({
+    scrollBehavior: false,
+  });
+});
+Cypress.Commands.add("InputFieldNameVisible", () => {
+  cy.clickElement("[data-cy=inputToWriteName]").should("be.visible");
+  cy.log("✅✅ Input Field For Writ User Name is clicked on");
+});
+Cypress.Commands.add("TypeName", () => {
+  cy.get("[data-cy=InputFiledForName]", { timeout: 10000 })
+    .type("Abdo Hamdan", { force: true })
+    .should("have.value", "Abdo Hamdan"); // Ensure text was typed
+  cy.log("✅✅ User Name is Writ In Input Field");
+});
+Cypress.Commands.add("MakeOtpExpired", () => {
+  cy.wait(70000);
+});
+Cypress.Commands.add("ColoredFieldRed", () => {
+  cy.get(".input-failed", { timeout: 5000 }).should("be.visible");
+  cy.log("✅✅ OTP Code Input Fields Be Colored Red");
+});
+Cypress.Commands.add("typePincode", (pincode: string) => {
+  cy.get(".pincode-input-text").first().focus();
+  const digits = pincode.split("");
   digits.forEach((digit, index) => {
     cy.get(`.pincode-input-text:nth-child(${index + 1})`, {
       timeout: 3000,
     }).type(digit, { scrollBehavior: false });
   });
 });
-Cypress.Commands.add("enterPhoneNumber11", (phoneNumber: string) => {
+Cypress.Commands.add("enterPhoneNumber", (phoneNumber: string) => {
   phoneNumber.split("").forEach((char) => {
     cy.get("#phoneInput")
       .type(char, { delay: 200, force: true, scrollBehavior: false }) // Force typing into the hidden input
       .should("be.focused"); // Verify that the input is still focused
   });
-  cy.get("#phoneInput").type("{enter}", { force: true, scrollBehavior: false });
-});
-
-// **********************************AddedLast**********************************************
-Cypress.Commands.add("enterPhoneNumber1", (phoneNumber: string) => {
-  cy.get("#phoneInput").click({ scrollBehavior: false, force: true });
-  cy.get("#phoneInput").type(`${phoneNumber}{enter}`, {
+  cy.get("#phoneInput").type("{enter}", {
     force: true,
     scrollBehavior: false,
   });
+  cy.log("✅✅ Number Phone Entered Successfuly");
+  cy.get('[data-testid="phone-number-input"]').should("not.be.focused");
 });
 Cypress.Commands.add("reEnterPhoneNumber", (phoneNumber: string) => {
-  cy.clickElementForce("[data-cy=Edit-Phone-Number]");
+  cy.clickElement("[data-cy=Edit-Phone-Number]");
   cy.log("✅✅ Back To Write Correct Number Phone Successfuly");
   cy.get("#phoneInput").type(`${phoneNumber}`, {
     scrollBehavior: false,
   });
-  cy.clickElementForce(".phone-arrow");
+  cy.clickElement(".phone-arrow");
 });
-Cypress.Commands.add("enterPhoneNumber", (phoneNumber: string) => {
-  cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-  cy.get("#phoneInput").click({ scrollBehavior: false, force: true });
-  cy.get("#phoneInput").type(`${phoneNumber}{enter}`, {
-    scrollBehavior: false,
-    force: true,
-  });
-  cy.get(".message-recieve-option:nth-child(1)").click({
-    scrollBehavior: false,
-    force: true,
-  });
-  cy.wait("@sendOtpApi");
-});
-Cypress.Commands.add("performLogin", (s?: string) => {
-  cy.viewport(783, 824);
-  let count = 0;
-  cy.intercept("POST", "**/login", () => {
-    count += 1;
-  }).as("login");
-  cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-  cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
-  cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false }); //have account
-  cy.Exist("[data-cy=login-method-phone]").then((exist) => {
-    if (exist) {
-      cy.get("[data-cy=login-method-phone]").click({ scrollBehavior: false });
-    }
-  });
-  cy.wait(1000);
-  cy.enterPhoneNumber(s || "963937288307");
-  cy.typePincode("999999");
-  cy.get("[data-testid=login-close-icon]").click({
-    scrollBehavior: false,
-  });
-  cy.wait("@login").then((interception) => {
-    cy.log("✅ login request arrived");
-    console.log("login request arrived");
-  });
-  cy.wait(500).then(() => {
-    cy.log(`Count is: ${count}`);
-    console.log("Count is" + count);
-  });
-});
-// ********************************************************
 Cypress.Commands.add("performLogin1", (s?: string) => {
   let count = 0;
   cy.wait(3000);
@@ -205,7 +223,7 @@ Cypress.Commands.add("performLogin1", (s?: string) => {
       cy.log("✅✅ User Does Not Attempt LogIn From Mobile Phone");
     }
   });
-  cy.enterPhoneNumber1("963937764641");
+  cy.enterPhoneNumber("963937764641");
   cy.log("✅✅ Number Phone Entered Successfuly");
   cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
   cy.get(".message-recieve-option:nth-child(2)").click({
@@ -234,227 +252,20 @@ Cypress.Commands.add("performLogin1", (s?: string) => {
   cy.intercept("POST", "**/login", () => {
     count += 1;
   }).as("login");
+  cy.intercept("GET", "**/api/v1/stories/users_stories", () => {
+    count += 1;
+  }).as("Stories");
   cy.wait("@login", { timeout: 10000 }).then((interception) => {
     cy.log("✅✅ login request arrived");
   });
-
+  cy.wait("@Stories", { timeout: 10000 }).then((interception) => {
+    cy.log("✅✅ Stories request arrived");
+  });
   cy.wait(500).then(() => {
     cy.log(`Count is: ${count}`);
-    expect(count).to.be.greaterThan(1);
+    expect(count).to.be.greaterThan(2);
   });
 });
-// ********************************************************
-Cypress.Commands.add("performErrorLogin", () => {
-  let count = 0;
-  cy.intercept("POST", "**/login1", () => {
-    count += 1;
-  }).as("login1");
-  cy.viewport(783, 824);
-  cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-  cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
-  cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false }); //have account
-  cy.Exist("[data-cy=login-method-phone]").then((exist) => {
-    if (exist) {
-      cy.get("[data-cy=login-method-phone]").click({ scrollBehavior: false });
-    }
-  });
-  cy.wait(1000);
-  cy.enterPhoneNumber("963937764641");
-  cy.typePincode("499999");
-  cy.get(".input-failed", { timeout: 5000 }).should("be.visible");
-  cy.get("[data-testid=login-close-icon]").click({
-    scrollBehavior: false,
-  });
-  expect(count).to.be.equal(0);
-  cy.get("@login1").then((alias) => {
-    if (alias) {
-      cy.wait("@login1").then((interception) => {
-        cy.log("✅ login request arrived");
-        console.log("login request arrived");
-      });
-    } else {
-      cy.log("❌❌ login request did not arrive");
-      console.warn("login request did not arrive");
-    }
-  });
-});
-Cypress.Commands.add("performExpireOtpLogin", () => {
-  cy.logout();
-  cy.reload();
-  let count = 0;
-  cy.intercept("POST", "**/login2", () => {
-    count += 1;
-  }).as("login2");
-  cy.viewport(783, 824);
-  cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-  cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
-  cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false }); //have account
-  cy.Exist("[data-cy=login-method-phone]").then((exist) => {
-    if (exist) {
-      cy.get("[data-cy=login-method-phone]").click({ scrollBehavior: false });
-    }
-  });
-  cy.wait(1000);
-  cy.enterPhoneNumber("963753159877");
-
-  cy.wait(70000);
-  cy.Exist(".resend-code-button").then((s) => {
-    if (s) {
-      cy.get(".resend-code-button").click({ scrollBehavior: false });
-      cy.typePincode("999999");
-    } else {
-      expect(1).to.equal(2);
-    }
-  });
-  cy.get("[data-testid=login-close-icon]").click({
-    scrollBehavior: false,
-  });
-  cy.get("@login2", { timeout: 10000 }).then((alias) => {
-    if (alias) {
-      cy.wait("@login2").then((interception) => {
-        cy.log("✅ login request arrived");
-        console.log("login request arrived");
-      });
-    } else {
-      cy.log("❌❌ login request did not arrive");
-      console.warn("login request did not arrive");
-    }
-  });
-});
-Cypress.Commands.add("Performloginfailure", () => {
-  cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
-    req.continue((res) => {
-      res.body.data.already_exists = false; // Fake email field
-    });
-  }).as("verifyOtpSignin");
-  cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-  cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
-  cy.get(".login-button:nth-child(1)").click({ scrollBehavior: false }); //have account
-  cy.Exist("[data-cy=login-method-phone]").then((exist) => {
-    if (exist) {
-      cy.get("[data-cy=login-method-phone]").click({ scrollBehavior: false });
-    }
-  });
-  cy.wait(1000);
-  cy.enterPhoneNumber("963937288307");
-  cy.typePincode("999999");
-  cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
-    console.log(interception);
-  });
-  cy.get(".not-registered").should("be.visible");
-  cy.get("[data-testid=login-close-icon]").click({
-    scrollBehavior: false,
-  });
-});
-
-// **************************Sign up*************************** *//
-Cypress.Commands.add("signupProcess", () => {
-  let count = 0;
-  cy.intercept("POST", "**/login", () => {
-    count += 1;
-  }).as("login");
-  cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
-    req.continue((res) => {
-      res.body.data.already_exists = false;
-    });
-  }).as("verifyOtpSignin");
-  cy.logout();
-  cy.viewport(783, 824);
-  cy.get(".en-regular:nth-child(2)").click({ force: true });
-  cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
-  cy.get(".login-button:nth-child(2)").click({ force: true });
-  cy.get(".agree-terms").click({ force: true });
-  cy.enterPhoneNumber("963937288307");
-  cy.typePincode("999999");
-  cy.clickElementForce("[data-cy=inputToWriteName]");
-  cy.get("[data-cy=InputFiledForName]")
-    .type("Alaa Asaad", { force: true, scrollBehavior: false })
-    .should("have.value", "Alaa Asaad"); // Ensure text was typed
-  cy.get(".phone-arrow").click({ scrollBehavior: false });
-  cy.clickElementForce("[data-cy=skipForNow]");
-  cy.wait(5000).then(() => {
-    cy.log(`Count is: ${count}`);
-    expect(count).to.be.greaterThan(1);
-  });
-  cy.get("@login", { timeout: 10000 }).then((alias) => {
-    if (alias) {
-      cy.wait("@login", { timeout: 10000 }).then((interception) => {
-        cy.log("✅ login request arrived");
-        console.log("login request arrived");
-      });
-    } else {
-      cy.log("❌❌ login request did not arrive");
-      console.warn("login request did not arrive");
-    }
-  });
-  cy.get("@verifyOtpSignin", { timeout: 10000 }).then((alias) => {
-    if (alias) {
-      cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
-        console.log(interception);
-      });
-    } else {
-      console.warn("❌❌ verifyOtpSignin alias does not exist");
-    }
-  });
-});
-Cypress.Commands.add("failedSignupProcess", () => {
-  let count = 0;
-  cy.intercept("POST", "**/login", () => {
-    count += 1;
-  }).as("login1");
-  cy.viewport(783, 824);
-  cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-  cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
-  cy.get(".login-button:nth-child(2)").click({ scrollBehavior: false });
-  cy.get(".agree-terms").click({ scrollBehavior: false });
-  cy.enterPhoneNumber("963937288307");
-  cy.typePincode("499999");
-  cy.get(".input-failed", { timeout: 10000 }).should("be.visible");
-  cy.get("[data-testid=login-close-icon]").click({
-    scrollBehavior: false,
-  });
-  cy.wait(5000).then(() => {
-    cy.log(`Count is: ${count}`);
-    expect(count).to.be.equal(0);
-  });
-  cy.get("@login1", { timeout: 10000 }).then((alias) => {
-    if (alias) {
-      cy.wait("@login", { timeout: 10000 }).then((interception) => {
-        cy.log("✅ login request arrived");
-        console.log("login request arrived");
-      });
-    } else {
-      cy.log("❌❌ login request did not arrive");
-      console.warn("login request did not arrive");
-    }
-  });
-});
-Cypress.Commands.add("alreadyRegisteredSignup", () => {
-  cy.logout();
-  cy.viewport(783, 824);
-  cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
-    req.continue((res) => {
-      res.body.data.already_exists = true;
-    });
-  }).as("verifyOtpSignin");
-  cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
-  cy.get(".login-button:nth-child(2)").click({ scrollBehavior: false });
-  cy.get("[data-cy=agree-terms]").click({ scrollBehavior: false });
-  cy.enterPhoneNumber("963937288307");
-  cy.typePincode("999999");
-  cy.get("@verifyOtpSignin", { timeout: 10000 }).then((alias) => {
-    if (alias) {
-      cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
-        console.log(interception);
-      });
-    } else {
-      console.warn("❌❌ verifyOtpSignin alias does not exist");
-    }
-  });
-  cy.get(".already-registered").should("be.visible");
-  cy.get("[data-testid=login-close-icon]").click();
-});
-// ************************ Open Cart **************************************
 Cypress.Commands.add("interceptAndWait", (routes) => {
   // Iterate through the provided routes and set up intercepts
   routes.forEach((route) => {
@@ -463,11 +274,8 @@ Cypress.Commands.add("interceptAndWait", (routes) => {
   const aliases = routes.map((route) => `@${route.alias}`);
   cy.wait(aliases, { timeout: 30000 }); // Adjust timeout as needed
 });
-Cypress.Commands.add("clickElementScroll", (selector: string) => {
-  cy.get(selector).click({ scrollBehavior: false });
-});
-Cypress.Commands.add("clickElementForce", (selector: string) => {
-  cy.get(selector).click({ force: true });
+Cypress.Commands.add("clickElement", (selector: string) => {
+  cy.get(selector).click({ scrollBehavior: false, force: true });
 });
 Cypress.Commands.add(
   "getProductNameFirstly",
@@ -514,7 +322,7 @@ Cypress.Commands.add("verifyProductInCart", (productName: string) => {
 });
 // ***********************************Products Details******************************
 Cypress.Commands.add("verifyBoxsInBoutiquePage", () => {
-  cy.Exist1("[data-cy=categoryBox").then((exist) => {
+  cy.ChexkExistElement("[data-cy=categoryBox").then((exist) => {
     if (exist) {
       cy.get("[data-cy=categoryBox", { timeout: 5000 });
       cy.log("✅✅ Category Box Founded");
@@ -522,7 +330,7 @@ Cypress.Commands.add("verifyBoxsInBoutiquePage", () => {
       cy.log("❌❌ Category Box Not Founded");
     }
   });
-  cy.Exist1("[data-cy=brandBox").then((exist) => {
+  cy.ChexkExistElement("[data-cy=brandBox").then((exist) => {
     if (exist) {
       cy.get("[data-cy=brandBox", { timeout: 5000 });
       cy.log("✅✅ brand Box Founded");
@@ -530,7 +338,7 @@ Cypress.Commands.add("verifyBoxsInBoutiquePage", () => {
       cy.log("❌❌ brand Box Not Founded");
     }
   });
-  cy.Exist1("[data-cy=colorBox").then((exist) => {
+  cy.ChexkExistElement("[data-cy=colorBox").then((exist) => {
     if (exist) {
       cy.get("[data-cy=colorBox", { timeout: 5000 });
       cy.log("✅✅ color Box Box Founded");
@@ -538,7 +346,7 @@ Cypress.Commands.add("verifyBoxsInBoutiquePage", () => {
       cy.log("❌❌ color Box Not Founded");
     }
   });
-  cy.Exist1("[data-cy=priceBox").then((exist) => {
+  cy.ChexkExistElement("[data-cy=priceBox").then((exist) => {
     if (exist) {
       cy.get("[data-cy=priceBox", { timeout: 5000 });
       cy.log("✅✅ price Box Box Founded");
@@ -552,7 +360,7 @@ Cypress.Commands.add("verifyComponentsInProductCard", () => {
   cy.log("✅✅ productName Exists");
   cy.get('[data-cy="productName"]').should("not.be.empty");
   cy.get("[data-cy=Cart-ByButton]").contains("Buy").should("exist");
-  cy.Exist1("[data-cy=productPhotoSlider]").then((exist) => {
+  cy.ChexkExistElement("[data-cy=productPhotoSlider]").then((exist) => {
     if (exist) {
       cy.get("[data-cy=productPhotoSlider]", { timeout: 5000 })
         .eq(0)
@@ -601,7 +409,7 @@ Cypress.Commands.add("verifyComponentsInProductCard", () => {
 // ***********************************Orders******************************
 Cypress.Commands.add("AddProductToCart", () => {
   let productName = "";
-  cy.clickElementForce(".offer-widget:nth-child(6)");
+  cy.clickElement(".offer-widget:nth-child(6)");
   cy.log("✅✅ An Boutique Selected & Click");
   cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
   cy.log("✅✅ The Boutiue Page Opened");
@@ -624,7 +432,7 @@ Cypress.Commands.add("AddProductToCart", () => {
   ]);
   cy.log("✅✅ getProductData1 & getProductData2 Requests Arrived");
   cy.intercept("POST", /\/cart\/(add|update)/).as("CartRequest");
-  cy.clickElementScroll("[data-cy=AddToCartButton-data-cy]");
+  cy.clickElement("[data-cy=AddToCartButton-data-cy]");
   cy.wait("@CartRequest", { timeout: 10000 }).then((interception) => {
     if (interception?.response) {
       console.log("✅ Intercepted request addToCart");
@@ -636,16 +444,16 @@ Cypress.Commands.add("AddProductToCart", () => {
   cy.log(
     "✅✅ CartRequest Request Arrived & Click On Add To Cart Button Button"
   );
-  cy.clickElementForce("[data-cy=back_icon_boutique_page]");
+  cy.clickElement("[data-cy=back_icon_boutique_page]");
   cy.log("✅✅ Dual Back Icon Clicked & Returned To Main Page");
 });
 // ***********************************Orders******************************
 Cypress.Commands.add("AddAdress", () => {
-  cy.clickElementForce("[data-cy=Change-From-List]");
+  cy.clickElement("[data-cy=Change-From-List]");
   cy.log("✅✅ Change Place From List Button Clicked");
   cy.get("[data-cy=Extended-Choose-Area]").should("exist");
   cy.log("✅✅ Extended Box To Choose Area Apperead");
-  cy.clickElementForce("[data-cy=SearchProvince-District-Town-Street]");
+  cy.clickElement("[data-cy=SearchProvince-District-Town-Street]");
   cy.log("✅✅ Search Province District Town Street");
   cy.intercept("POST", "**/api/addresses/get-address-by-text").as(
     "GetAddressByText"
@@ -665,7 +473,7 @@ Cypress.Commands.add("AddAdress", () => {
   cy.get("[data-cy=Firstly-Search-Result]").eq(0).click({ force: true });
   cy.log("✅✅ First Option Has Been Selected");
 
-  cy.clickElementForce("[data-cy=Detailed-Address-Note]");
+  cy.clickElement("[data-cy=Detailed-Address-Note]");
   cy.log("✅✅ Click On Detailed Address & Note Field");
   cy.get("[data-cy=Detailed-Address-Note]").type(
     "This Is A Test Detailed Address & Note",
@@ -676,7 +484,7 @@ Cypress.Commands.add("AddAdress", () => {
   );
   cy.log("✅✅ Detailed Address & Note Input Filled");
 
-  cy.clickElementForce("[data-cy=Address-Title]");
+  cy.clickElement("[data-cy=Address-Title]");
   cy.log("✅✅ Click On Add Address Title Field");
   cy.get('[data-cy="Address-Title"]').type("This Is A Test Address Title", {
     force: true,
@@ -684,7 +492,7 @@ Cypress.Commands.add("AddAdress", () => {
   });
   cy.log("✅✅ Address Title Input Filled");
 
-  cy.clickElementForce("[data-cy=Recipient-Name]");
+  cy.clickElement("[data-cy=Recipient-Name]");
   cy.log("✅✅ Click On Recipient Name Field");
   cy.get('[data-cy="Recipient-Name"]').type("This Is A Test Recipient Name", {
     force: true,
@@ -692,7 +500,7 @@ Cypress.Commands.add("AddAdress", () => {
   });
   cy.log("✅✅ Recipient Name Input Filled");
 
-  cy.clickElementForce("[data-cy=Contact-Phone]");
+  cy.clickElement("[data-cy=Contact-Phone]");
   cy.log("✅✅ Click On Contact Phone Field");
   cy.get('[data-cy="Contact-Phone"]').type("0963937764641", {
     force: true,
@@ -700,13 +508,13 @@ Cypress.Commands.add("AddAdress", () => {
   });
   cy.log("✅✅ Contact Phone Input Filled");
 
-  cy.clickElementForce("[data-cy=AddSaveButton]");
+  cy.clickElement("[data-cy=AddSaveButton]");
   cy.log("✅✅ Add & Save Button Clicked");
 });
 // *********************************************
 Cypress.Commands.add("AddProductToCartThenComplateOrder", () => {
   let productName = "";
-  cy.clickElementForce(".offer-widget:nth-child(6)");
+  cy.clickElement(".offer-widget:nth-child(6)");
   cy.log("✅✅ An Boutique Selected & Click");
   cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
   cy.log("✅✅ The Boutiue Page Opened");
@@ -729,7 +537,7 @@ Cypress.Commands.add("AddProductToCartThenComplateOrder", () => {
   ]);
   cy.log("✅✅ getProductData1 & getProductData2 Requests Arrived");
   cy.intercept("POST", /\/cart\/(add|update)/).as("CartRequest");
-  cy.clickElementScroll("[data-cy=AddToCartButton-data-cy]");
+  cy.clickElement("[data-cy=AddToCartButton-data-cy]");
   cy.wait("@CartRequest", { timeout: 10000 }).then((interception) => {
     if (interception?.response) {
       console.log("✅ Intercepted request addToCart");
@@ -741,5 +549,5 @@ Cypress.Commands.add("AddProductToCartThenComplateOrder", () => {
   cy.log(
     "✅✅ CartRequest Request Arrived & Click On Add To Cart Button Button"
   );
-  cy.clickElementForce("[data-cy=cartIcon_mainPage]");
+  cy.clickElement("[data-cy=cartIcon_mainPage]");
 });

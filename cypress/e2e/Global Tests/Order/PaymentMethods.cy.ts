@@ -6,7 +6,7 @@ describe("Should visit the home page and add a product to the cart from the bout
     cy.Visit("/");
   });
   it("should verify the user is login", () => {
-    cy.Exist1("[data-cy=NavUserName]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=NavUserName]").then((exist) => {
       if (!exist) {
         cy.performLogin1();
       } else {
@@ -30,7 +30,7 @@ describe("Should visit the home page and add a product to the cart from the bout
         cy.get("[data-cy=Change-Url-Container]", { timeout: 10000 }).should(
           "be.visible"
         );
-        cy.clickElementForce("[data-cy=countain-with]");
+        cy.clickElement("[data-cy=countain-with]");
       }
     });
   });
@@ -40,7 +40,7 @@ describe("Should visit the home page and add a product to the cart from the bout
 });
 describe("Should Confirm Order Operation", () => {
   it("Should Click On Confirm & Countinue Button", () => {
-    cy.clickElementForce("[data-cy=Confirm-Order-Button]");
+    cy.clickElement("[data-cy=Confirm-Order-Button]");
     cy.log("✅✅ Confirm & Countinue Button Clicked");
   });
   it("Should Arrived Dual Request", () => {
@@ -63,7 +63,7 @@ describe("Should Chheck if address added last & add if not found", () => {
   it("Chheck if address added last", () => {
     cy.Exist("[data-cy=Address-Added-Last]").then((exist) => {
       if (!exist) {
-        cy.clickElementForce("[data-cy=AddAddres]");
+        cy.clickElement("[data-cy=AddAddres]");
         cy.log("✅✅ Add Addres Button Clicked");
         cy.AddAdress();
       } else {
@@ -74,8 +74,8 @@ describe("Should Chheck if address added last & add if not found", () => {
 });
 describe("Should Choose The way for payment", () => {
   it("Should Choose The way for payment", () => {
-    cy.clickElementForce("[data-cy=Cach-on-delivery]");
-    cy.clickElementForce("[data-cy=Confirm-shipping-and-payment]");
+    cy.clickElement("[data-cy=Cach-on-delivery]");
+    cy.clickElement("[data-cy=Confirm-shipping-and-payment]");
   });
   it("should verify the payment container is visible", () => {
     cy.get('[data-cy="Payment-Container-Cart-Page"]').should("be.visible");
