@@ -130,7 +130,9 @@ Cypress.Commands.add("enterPhoneNumber11", (phoneNumber: string) => {
 
 // **********************************AddedLast**********************************************
 Cypress.Commands.add("enterPhoneNumber1", (phoneNumber: string) => {
+  cy.get("#phoneInput").click({ scrollBehavior: false, force: true });
   cy.get("#phoneInput").type(`${phoneNumber}{enter}`, {
+    force: true,
     scrollBehavior: false,
   });
 });

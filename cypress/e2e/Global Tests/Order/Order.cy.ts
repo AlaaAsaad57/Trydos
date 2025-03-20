@@ -41,14 +41,14 @@ describe("Should Cart Page &Confirm Order Operation", () => {
 });
 describe("should Login If User Is Not Verified", () => {
   it("Should Enter Phone Number", () => {
-    cy.Exist("[data-cy=phone-number-input]").then((exist) => {
-      if (exist) {
-        cy.enterPhoneNumber("963937764641");
-        cy.log("✅✅ Number Phone Entered Successfuly");
-      }
+    cy.get("#phoneInput").click({ scrollBehavior: false, force: true });
+    cy.get("#phoneInput").type(`963937764641{enter}`, {
+      force: true,
+      scrollBehavior: false,
     });
   });
   it("Should Select Way To Send Otp Code", () => {
+    cy.wait(2000);
     cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
     cy.get(".message-recieve-option:nth-child(2)").click({
       scrollBehavior: false,
