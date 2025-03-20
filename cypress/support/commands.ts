@@ -122,10 +122,10 @@ Cypress.Commands.add("typePincode1", (pincode: string) => {
 Cypress.Commands.add("enterPhoneNumber11", (phoneNumber: string) => {
   phoneNumber.split("").forEach((char) => {
     cy.get("#phoneInput")
-      .type(char, { delay: 200, force: true }) // Force typing into the hidden input
+      .type(char, { delay: 200, force: true, scrollBehavior: false }) // Force typing into the hidden input
       .should("be.focused"); // Verify that the input is still focused
   });
-  cy.get("#phoneInput").type("{enter}", { force: true });
+  cy.get("#phoneInput").type("{enter}", { force: true, scrollBehavior: false });
 });
 
 // **********************************AddedLast**********************************************
@@ -368,7 +368,7 @@ Cypress.Commands.add("signupProcess", () => {
   cy.typePincode("999999");
   cy.clickElementForce("[data-cy=inputToWriteName]");
   cy.get("[data-cy=InputFiledForName]")
-    .type("Alaa Asaad", { force: true })
+    .type("Alaa Asaad", { force: true, scrollBehavior: false })
     .should("have.value", "Alaa Asaad"); // Ensure text was typed
   cy.get(".phone-arrow").click({ scrollBehavior: false });
   cy.clickElementForce("[data-cy=skipForNow]");
@@ -650,7 +650,10 @@ Cypress.Commands.add("AddAdress", () => {
   cy.intercept("POST", "**/api/addresses/get-address-by-text").as(
     "GetAddressByText"
   );
-  cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Damascus");
+  cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Damascus", {
+    force: true,
+    scrollBehavior: false,
+  });
   cy.wait("@GetAddressByText").then((interception) => {
     cy.log("✅✅ Get Address By Text request arrived");
   });
@@ -665,23 +668,36 @@ Cypress.Commands.add("AddAdress", () => {
   cy.clickElementForce("[data-cy=Detailed-Address-Note]");
   cy.log("✅✅ Click On Detailed Address & Note Field");
   cy.get("[data-cy=Detailed-Address-Note]").type(
-    "This Is A Test Detailed Address & Note"
+    "This Is A Test Detailed Address & Note",
+    {
+      force: true,
+      scrollBehavior: false,
+    }
   );
   cy.log("✅✅ Detailed Address & Note Input Filled");
 
   cy.clickElementForce("[data-cy=Address-Title]");
   cy.log("✅✅ Click On Add Address Title Field");
-  cy.get('[data-cy="Address-Title"]').type("This Is A Test Address Title");
+  cy.get('[data-cy="Address-Title"]').type("This Is A Test Address Title", {
+    force: true,
+    scrollBehavior: false,
+  });
   cy.log("✅✅ Address Title Input Filled");
 
   cy.clickElementForce("[data-cy=Recipient-Name]");
   cy.log("✅✅ Click On Recipient Name Field");
-  cy.get('[data-cy="Recipient-Name"]').type("This Is A Test Recipient Name");
+  cy.get('[data-cy="Recipient-Name"]').type("This Is A Test Recipient Name", {
+    force: true,
+    scrollBehavior: false,
+  });
   cy.log("✅✅ Recipient Name Input Filled");
 
   cy.clickElementForce("[data-cy=Contact-Phone]");
   cy.log("✅✅ Click On Contact Phone Field");
-  cy.get('[data-cy="Contact-Phone"]').type("0963937764641");
+  cy.get('[data-cy="Contact-Phone"]').type("0963937764641", {
+    force: true,
+    scrollBehavior: false,
+  });
   cy.log("✅✅ Contact Phone Input Filled");
 
   cy.clickElementForce("[data-cy=AddSaveButton]");
