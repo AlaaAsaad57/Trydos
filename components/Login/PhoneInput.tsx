@@ -406,6 +406,7 @@ function PhoneInput({
           <input
             ref={ref}
             value={inputValue}
+            data-cy="phone-number-input"
             data-testid="phone-number-input"
             id="phoneInput"
             aria-autocomplete="both"

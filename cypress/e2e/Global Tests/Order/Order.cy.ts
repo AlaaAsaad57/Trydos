@@ -36,13 +36,14 @@ describe("Should Cart Page &Confirm Order Operation", () => {
   it("Should Click On Confirm & Countinue Button", () => {
     cy.clickElementForce("[data-cy=Confirm-Order-Button]");
     cy.log("✅✅ Confirm & Countinue Button Clicked");
+    cy.get("[data-cy=FieldToInputNumber]").should("be.visible");
   });
 });
 describe("should Login If User Is Not Verified", () => {
   it("Should Enter Phone Number", () => {
-    cy.Exist("[data-cy=FieldToInputNumber]").then((exist) => {
+    cy.Exist("[data-cy=phone-number-input]").then((exist) => {
       if (exist) {
-        cy.enterPhoneNumber1("963937764641");
+        cy.enterPhoneNumber("963937764641");
         cy.log("✅✅ Number Phone Entered Successfuly");
       }
     });
@@ -180,7 +181,7 @@ describe("Should Add Address", () => {
       }
     });
     cy.log("✅✅ Add Addres Button Clicked");
-    cy.get("body").click(20, 20);
+    cy.get("body").click(0, 0);
   });
   it("Should Add Address", () => {
     cy.Exist("[data-cy=Add-Shipping-Address]").then((exist) => {
@@ -197,16 +198,19 @@ describe("Should Add Address", () => {
     cy.clickElementForce("[data-cy=Change-From-List]");
     cy.log("✅✅ Change Place From List Button Clicked");
     cy.get("[data-cy=Extended-Choose-Area]").should("exist");
-    cy.log("✅✅ Extended Box To Choose Area Apperead");
+    cy.log("✅✅ Extended Box To Choose Area Appeared");
     cy.clickElementForce("[data-cy=SearchProvince-District-Town-Street]");
     cy.log("✅✅ Search Province District Town Street");
+
     cy.intercept("POST", "**/api/addresses/get-address-by-text").as(
       "GetAddressByText"
     );
     cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Latakia");
+
     cy.wait("@GetAddressByText").then((interception) => {
       cy.log("✅✅ Get Address By Text request arrived");
     });
+
     cy.log("✅✅ SearchProvince-District-Town-Street Filled");
     cy.get('[data-cy="SearchProvince-District-Town-Street"]', {
       timeout: 10000,

@@ -1,4 +1,4 @@
-describe.only("Login Successful Attempt should login to 3 servers", () => {
+describe("Login Successful Attempt should login to 3 servers", () => {
   before(() => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
@@ -20,7 +20,7 @@ describe.only("Login Successful Attempt should login to 3 servers", () => {
     cy.log("✅✅ Undo Login Process");
   });
 });
-describe.only("Login Successful Attempt should login to 3 servers", () => {
+describe("Login Successful Attempt should login to 3 servers", () => {
   let count = 0;
   it("Should Click On Login Icon & Open Its Interface", () => {
     cy.get(".en-regular:nth-child(2)").click({ scrollBehavior: false });
@@ -100,7 +100,7 @@ describe.only("Login Successful Attempt should login to 3 servers", () => {
     });
   });
 });
-describe.only("Login UnSuccessful Attempt should show error message to user", () => {
+describe("Login UnSuccessful Attempt should show error message to user", () => {
   let count = 0;
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.wait(3000);
@@ -182,7 +182,7 @@ describe.only("Login UnSuccessful Attempt should show error message to user", ()
     });
   });
 });
-describe.only("Login UnSuccessful Attempt when otp code expired & Change The Method To Recive Otp Code", () => {
+describe("Login UnSuccessful Attempt when otp code expired & Change The Method To Recive Otp Code", () => {
   let count = 0;
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.wait(3000);
@@ -258,7 +258,7 @@ describe.only("Login UnSuccessful Attempt when otp code expired & Change The Met
     });
   });
 });
-describe.skip("Login UnSuccessful Attempt when otp code expired should show button for resend otp and resend code and continue to login", () => {
+describe("Login UnSuccessful Attempt when otp code expired should show button for resend otp and resend code and continue to login", () => {
   let count = 0;
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.wait(3000);
@@ -328,7 +328,6 @@ describe.skip("Login UnSuccessful Attempt when otp code expired should show butt
     cy.Exist1(".resend-code-button").then((s) => {
       if (s) {
         cy.get(".resend-code-button").click({ scrollBehavior: false });
-        cy.wait(1200);
         cy.get(".resend-code-button").should("not.exist");
         cy.typePincode("999999");
       } else {
@@ -342,7 +341,7 @@ describe.skip("Login UnSuccessful Attempt when otp code expired should show butt
     });
   });
 });
-describe.only("Should show user not found when registering with non registered number", () => {
+describe("Should show user not found when registering with non registered number", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.wait(3000);
     cy.logout();
@@ -416,7 +415,7 @@ describe.only("Should show user not found when registering with non registered n
     });
   });
 });
-describe.only("Should Input name in login if the user does not input your name when sign up operation", () => {
+describe("Should Input name in login if the user does not input your name when sign up operation", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.wait(3000);
     cy.logout();
@@ -499,7 +498,7 @@ describe.only("Should Input name in login if the user does not input your name w
 });
 
 // ********************************************AddedLast*************************************************************
-describe.only("Should show user not found when registering with non registered number & Create New Account & Continue", () => {
+describe("Should show user not found when registering with non registered number & Create New Account & Continue", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.wait(3000);
     cy.logout();

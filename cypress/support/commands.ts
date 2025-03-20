@@ -144,12 +144,14 @@ Cypress.Commands.add("reEnterPhoneNumber", (phoneNumber: string) => {
 });
 Cypress.Commands.add("enterPhoneNumber", (phoneNumber: string) => {
   cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-  cy.get("#phoneInput").click({ scrollBehavior: false });
+  cy.get("#phoneInput").click({ scrollBehavior: false, force: true });
   cy.get("#phoneInput").type(`${phoneNumber}{enter}`, {
     scrollBehavior: false,
+    force: true,
   });
   cy.get(".message-recieve-option:nth-child(1)").click({
     scrollBehavior: false,
+    force: true,
   });
   cy.wait("@sendOtpApi");
 });
