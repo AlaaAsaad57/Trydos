@@ -41,14 +41,14 @@ describe("Should Cart Page &Confirm Order Operation", () => {
 });
 describe("should Login If User Is Not Verified", () => {
   it("Should Enter Phone Number", () => {
-    cy.Exist("[data-cy=phone-number-input]").then((exist) => {
-      if (exist) {
-        cy.enterPhoneNumber("963937764641");
-        cy.log("✅✅ Number Phone Entered Successfuly");
-      }
+    cy.get("#phoneInput").click({ scrollBehavior: false, force: true });
+    cy.get("#phoneInput").type(`963937764641{enter}`, {
+      force: true,
+      scrollBehavior: false,
     });
   });
   it("Should Select Way To Send Otp Code", () => {
+    cy.wait(2000);
     cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
     cy.get(".message-recieve-option:nth-child(2)").click({
       scrollBehavior: false,
@@ -205,7 +205,10 @@ describe("Should Add Address", () => {
     cy.intercept("POST", "**/api/addresses/get-address-by-text").as(
       "GetAddressByText"
     );
-    cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Latakia");
+    cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Latakia", {
+      force: true,
+      scrollBehavior: false,
+    });
 
     cy.wait("@GetAddressByText").then((interception) => {
       cy.log("✅✅ Get Address By Text request arrived");
@@ -223,26 +226,36 @@ describe("Should Add Address", () => {
     cy.clickElementForce("[data-cy=Detailed-Address-Note]");
     cy.log("✅✅ Click On Detailed Address & Note Field");
     cy.get("[data-cy=Detailed-Address-Note]").type(
-      "This Is A Test Detailed Address & Note"
+      "This Is A Test Detailed Address & Note",
+      { force: true, scrollBehavior: false }
     );
     cy.log("✅✅ Detailed Address & Note Input Filled");
   });
   it("Should Add Address Title", () => {
     cy.clickElementForce("[data-cy=Address-Title]");
     cy.log("✅✅ Click On Add Address Title Field");
-    cy.get('[data-cy="Address-Title"]').type("This Is A Test Address Title");
+    cy.get('[data-cy="Address-Title"]').type("This Is A Test Address Title", {
+      force: true,
+      scrollBehavior: false,
+    });
     cy.log("✅✅ Address Title Input Filled");
   });
   it("Should Add Recipient Name", () => {
     cy.clickElementForce("[data-cy=Recipient-Name]");
     cy.log("✅✅ Click On Recipient Name Field");
-    cy.get('[data-cy="Recipient-Name"]').type("This Is A Test Recipient Name");
+    cy.get('[data-cy="Recipient-Name"]').type("This Is A Test Recipient Name", {
+      force: true,
+      scrollBehavior: false,
+    });
     cy.log("✅✅ Recipient Name Input Filled");
   });
   it("Should Add Contact Phone", () => {
     cy.clickElementForce("[data-cy=Contact-Phone]");
     cy.log("✅✅ Click On Contact Phone Field");
-    cy.get('[data-cy="Contact-Phone"]').type("0963937764641");
+    cy.get('[data-cy="Contact-Phone"]').type("0963937764641", {
+      force: true,
+      scrollBehavior: false,
+    });
     cy.log("✅✅ Contact Phone Input Filled");
   });
   it("Should Add & Save Address", () => {
@@ -300,7 +313,8 @@ describe("Should Edit Address", () => {
       .click({ force: true });
     cy.log("✅✅ Clicked on Edit Address Icon");
     cy.get("[data-cy=Detailed-Address-Note]", { timeout: 10000 }).type(
-      "This Is A Test Detailed Address & Note After Edit"
+      "This Is A Test Detailed Address & Note After Edit",
+      { force: true, scrollBehavior: false }
     );
     cy.log("✅✅ Detailed Address & Note Input Filled");
     cy.intercept("POST", "**/api/new_v1/customer/address/update").as(
