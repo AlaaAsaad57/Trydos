@@ -597,7 +597,7 @@ Cypress.Commands.add("verifyComponentsInProductCard", () => {
 // ***********************************Orders******************************
 Cypress.Commands.add("AddProductToCart", () => {
   let productName = "";
-  cy.clickElementForce(".offer-widget:nth-child(7)");
+  cy.clickElementForce(".offer-widget:nth-child(6)");
   cy.log("✅✅ An Boutique Selected & Click");
   cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
   cy.log("✅✅ The Boutiue Page Opened");
@@ -686,7 +686,7 @@ Cypress.Commands.add("AddAdress", () => {
 // *********************************************
 Cypress.Commands.add("AddProductToCartThenComplateOrder", () => {
   let productName = "";
-  cy.clickElementForce(".offer-widget:nth-child(7)");
+  cy.clickElementForce(".offer-widget:nth-child(6)");
   cy.log("✅✅ An Boutique Selected & Click");
   cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
   cy.log("✅✅ The Boutiue Page Opened");
