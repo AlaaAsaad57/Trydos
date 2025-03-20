@@ -392,7 +392,15 @@ function FilterInfoBar({
             <>
               <div className="category-title filter-bar-main-title">
                 {currency_symbol?.symbol}{" "}
-                {`${filtersVariable?.prices?.min} / ${filtersVariable?.prices?.max} `}
+                {RoundPrice({
+                  num: filtersVariable?.prices?.min,
+                  rate: currency?.exchange_rate,
+                })}{" "}
+                /
+                {RoundPrice({
+                  num: filtersVariable?.prices?.max,
+                  rate: currency?.exchange_rate,
+                })}{" "}
               </div>
             </>
           }
