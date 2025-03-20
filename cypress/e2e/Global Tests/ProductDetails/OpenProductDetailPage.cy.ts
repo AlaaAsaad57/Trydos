@@ -9,7 +9,7 @@ describe("Should Open The Boutique Page & Move From It To A Product Page From Th
     cy.log("✅✅ Boutiues Founded & Loaded In Main Page");
   });
   it("Should Select Any Boutique & Click On", () => {
-    cy.clickElementForce(".offer-widget:nth-child(3)");
+    cy.clickElement(".offer-widget:nth-child(3)");
     cy.log("✅✅ An Boutique Selected & Click");
     cy.get("[data-cy=boutiqueOpen]", { timeout: 20000 });
     cy.log("✅✅ The Boutique's Components Were Successfully Displayed");
@@ -42,7 +42,7 @@ describe("Should Open Product Page & Open One Of Pictures In Product Detail Page
         if (count > 1) {
           cy.get(".embla__slide").eq(1).click({ force: true });
           cy.log("✅✅ Secondly Stories Chooses And Clicked");
-          cy.clickElementForce("[data-cy=close_stories_icon]");
+          cy.clickElement("[data-cy=close_stories_icon]");
           cy.log("✅✅ Close Stories Icon Clicked");
         }
       });
@@ -210,7 +210,7 @@ describe("Should Open last Story", () => {
     cy.log("✅✅ Stories Icon Displayed");
     cy.get("[data-cy=Story]").last().click({ force: true });
     cy.log("✅✅ The Last Story Opened");
-    cy.Exist1(".fixed-layout").then((s) => {
+    cy.ChexkExistElement(".fixed-layout").then((s) => {
       if (s) {
         // @ts-ignore
         cy.get(".fixed-layout").realSwipe("toBottom", {
@@ -218,7 +218,7 @@ describe("Should Open last Story", () => {
         });
       }
     });
-    cy.Exist1(".fixed-layout").then((s) => {
+    cy.ChexkExistElement(".fixed-layout").then((s) => {
       if (!s) {
         cy.log("Stories Closed Successfully");
       }
@@ -358,9 +358,9 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
     cy.logout();
   });
   it("should click LoveIcon only if not active", () => {
-    cy.Exist1("[data-cy=LoveClickOnLast]").then(($icon) => {
+    cy.ChexkExistElement("[data-cy=LoveClickOnLast]").then(($icon) => {
       if ($icon) {
-        cy.clickElementForce("[data-cy=LoveSymbol]");
+        cy.clickElement("[data-cy=LoveSymbol]");
       } else {
         cy.log("Love Icon Not Clicked On Previsually");
       }
@@ -381,7 +381,7 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
       "POST",
       "**/market-under-dev-backend.trydos.dev/api/new_v1/product_likes/store"
     ).as("Like");
-    cy.clickElementForce("[data-cy=LoveSymbol]");
+    cy.clickElement("[data-cy=LoveSymbol]");
     cy.log("✅✅ Love Symbol Button Clicked");
     cy.wait("@Like").then((interception) => {
       cy.log("✅✅ Like request arrived");
@@ -401,7 +401,7 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
       "POST",
       "**/market-under-dev-backend.trydos.dev/api/new_v1/product_likes/delete"
     ).as("DeleteLike");
-    cy.clickElementForce("[data-cy=LoveSymbol]");
+    cy.clickElement("[data-cy=LoveSymbol]");
     cy.log("✅✅ Love Symbol Button Clicked To Do Deslike");
     cy.wait("@DeleteLike").then((interception) => {
       cy.log("✅✅ DesLike request arrived");
@@ -429,7 +429,7 @@ describe("Should Type Comment In Comment Section", () => {
   });
   // **********************
   it("should Get Count Of Comments Founded Previsually", () => {
-    cy.Exist1("[data-cy=CountOfComment]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=CountOfComment]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=CountOfComment]").should("be.visible");
         cy.get("[data-cy=CountOfComment]")
@@ -457,7 +457,7 @@ describe("Should Type Comment In Comment Section", () => {
     );
   });
   it("should display the comment section", () => {
-    cy.Exist1("[data-cy=CommentArea]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=CommentArea]").then((exist) => {
       if (exist) {
         cy.get('[data-cy="CommentArea"]').should("be.visible");
         cy.log("✅✅ Comment Area is visible");
@@ -465,7 +465,7 @@ describe("Should Type Comment In Comment Section", () => {
     });
   });
   it("should Check Comments", () => {
-    cy.Exist1(".comment-item").then((exist) => {
+    cy.ChexkExistElement(".comment-item").then((exist) => {
       if (exist) {
         cy.get(".comment-item").should("be.visible");
         cy.get(".comment-item")
@@ -500,7 +500,7 @@ describe("Should Type Comment In Comment Section", () => {
     cy.log(`AddedOk value: ${AddedOk}`);
   });
   it("should Get Count Of Comments After Add Comment", () => {
-    cy.Exist1("[data-cy=CountOfComment]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=CountOfComment]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=CountOfComment]")
           .invoke("text")
@@ -621,7 +621,7 @@ describe("Should Type Share In Share Section", () => {
   });
   // **********************
   it("should Get Count Of Shares Founded Previsually", () => {
-    cy.Exist1("[data-cy=CountOfShares]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=CountOfShares]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=CountOfShares]").should("be.visible");
         cy.get("[data-cy=CountOfShares]")
@@ -679,7 +679,6 @@ describe("Should Type Share In Share Section", () => {
   });
   it("should Get Count Of Shares After Share", () => {
     cy.get("[data-cy=CountOfShares]").should("be.visible");
-    cy.Exist1;
     cy.get("[data-cy=CountOfShares]")
       .invoke("text")
       .then((text) => {
@@ -755,7 +754,7 @@ describe("Should Type Share In Share Section", () => {
 // *************************************seventeen*********************************************
 describe("Should Do Login & Add Comment & Extract User Name", () => {
   it("Should Do Login", () => {
-    cy.performLogin();
+    cy.performLogin1();
   });
   it("should extract user name, store it, and log it", () => {
     cy.get('[data-cy="NavUserName"]')
@@ -805,7 +804,7 @@ describe("Should Type Comment In Comment Section After Login & Verify The Commen
     );
   });
   it("should display the comment section", () => {
-    cy.Exist1("[data-cy=CommentArea]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=CommentArea]").then((exist) => {
       if (exist) {
         cy.get('[data-cy="CommentArea"]').should("be.visible");
         cy.log("✅✅ Comment Area is visible");
@@ -813,7 +812,7 @@ describe("Should Type Comment In Comment Section After Login & Verify The Commen
     });
   });
   it("should Check Comments", () => {
-    cy.Exist1(".comment-item").then((exist) => {
+    cy.ChexkExistElement(".comment-item").then((exist) => {
       if (exist) {
         cy.get(".comment-item")
           .its("length")
@@ -849,7 +848,7 @@ describe("Should Type Comment In Comment Section After Login & Verify The Commen
     cy.log(`AddedOk value: ${AddedOk}`);
   });
   it("should Get Count Of Comments After Add Comment", () => {
-    cy.Exist1("[data-cy=CountOfComment]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=CountOfComment]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=CountOfComment]")
           .invoke("text")

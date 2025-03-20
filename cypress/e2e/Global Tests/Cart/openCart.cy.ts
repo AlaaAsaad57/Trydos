@@ -8,7 +8,7 @@ describe("Should Add Product To Cart From Any Boutique Page", () => {
   });
   it("Should Select Any Boutique & Click On", () => {
     cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.clickElementForce(".offer-widget:nth-child(6)");
+    cy.clickElement(".offer-widget:nth-child(6)");
     cy.log("✅✅ An Boutique Selected & Click");
     cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
     cy.log("✅✅ The Boutiue Page Opened");
@@ -40,7 +40,7 @@ describe("Should Add Product To Cart From Any Boutique Page", () => {
   });
   it("Should Click On Add To Cart Button & Wait Add To Cart Or Update Cart Request", () => {
     cy.intercept("POST", /\/cart\/(add|update)/).as("CartRequest");
-    cy.clickElementScroll("[data-cy=AddToCartButton-data-cy]");
+    cy.clickElement("[data-cy=AddToCartButton-data-cy]");
     cy.wait("@CartRequest", { timeout: 10000 }).then((interception) => {
       if (interception?.response) {
         expect(interception.response.statusCode).to.eq(200);
@@ -55,7 +55,7 @@ describe("Should Add Product To Cart From Any Boutique Page", () => {
     );
   });
   it("Should Click On Cart Icon & Open Cart Page", () => {
-    cy.clickElementForce("[data-cy=CartIcon]");
+    cy.clickElement("[data-cy=CartIcon]");
     cy.log("✅✅ Click On Cart Icon & Open Cart Page");
   });
   it("Should Get The Name Of Product That Was Added To cart To Compare It With The Name Obtained Previously", () => {
@@ -75,8 +75,8 @@ describe("Should Add Product To Cart From Any Boutique Page", () => {
       });
   });
   it("Should Click On Cart Back Icon & Back Icon Boutique Page To Return To Home Page", () => {
-    cy.clickElementForce("[data-cy=CartBackIcon]");
-    cy.clickElementForce("[data-cy=back_icon_boutique_page]");
+    cy.clickElement("[data-cy=CartBackIcon]");
+    cy.clickElement("[data-cy=back_icon_boutique_page]");
     cy.log("✅✅ Dual Back Icon Clicked & Returned To Main Page");
   });
 });
@@ -84,7 +84,7 @@ describe("Should Add Product To Cart From Any Product Page", () => {
   let productName = "";
   it("Should Select Any Boutique & Click On", () => {
     cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.clickElementForce(".offer-widget:nth-child(6)");
+    cy.clickElement(".offer-widget:nth-child(6)");
     cy.log("✅✅ An Boutique Selected & Click");
     cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
     cy.log("✅✅ The Boutiue Page Opened");
@@ -100,12 +100,12 @@ describe("Should Add Product To Cart From Any Product Page", () => {
     cy.log("✅✅ The Card Of The First Product Clicked");
   });
   it("Should Click On Add To Cart Button Thats Founded In Product Page", () => {
-    cy.clickElementScroll("[data-cy=addToCartButton_productPage]");
+    cy.clickElement("[data-cy=addToCartButton_productPage]");
     cy.log("✅✅ Add To Cart Button Thats Founded In Product Page Clicked");
   });
   it("Should Click On Add To Cart Button Thats Founded In Boutique Page & Wait Add To Cart Or Update Cart Request", () => {
     cy.intercept("POST", /\/cart\/(add|update)/).as("CartRequest");
-    cy.clickElementScroll("[data-cy=AddToCartButton-data-cy]");
+    cy.clickElement("[data-cy=AddToCartButton-data-cy]");
     cy.wait("@CartRequest", { timeout: 10000 }).then((interception) => {
       if (interception?.response) {
         expect(interception.response.statusCode).to.eq(200);
@@ -120,7 +120,7 @@ describe("Should Add Product To Cart From Any Product Page", () => {
     );
   });
   it("Should Click On Cart Icon & Open Cart Page", () => {
-    cy.clickElementForce("[data-cy=CartIcon_Productpage]");
+    cy.clickElement("[data-cy=CartIcon_Productpage]");
     cy.log("✅✅ Click On Cart Icon & Open Cart Page");
   });
   it("Should Get The Name Of Product That Was Added To cart To Compare It With The Name Obtained Previously", () => {
@@ -140,9 +140,9 @@ describe("Should Add Product To Cart From Any Product Page", () => {
       });
   });
   it("Should Click On Cart Back Icon & Back Icon Product Page & Back Icon Boutique Page To Return To Home Page", () => {
-    cy.clickElementForce("[data-cy=CartBackIcon]");
-    cy.clickElementForce("[data-cy=backIcon_productPage]");
-    cy.clickElementForce("[data-cy=back_icon_boutique_page]");
+    cy.clickElement("[data-cy=CartBackIcon]");
+    cy.clickElement("[data-cy=backIcon_productPage]");
+    cy.clickElement("[data-cy=back_icon_boutique_page]");
     cy.log("✅✅ Dual Back Icon Clicked & Returned To Main Page");
   });
 });
@@ -151,7 +151,7 @@ describe("Should Click On Cart Icon On The Home Page & Increase The Quantity Of 
   let QuantityInCartPreviously = 0;
   it("Should Click On Cart Icon In The Home Page & Open Cart Page", () => {
     cy.get("[data-cy=boutiques]", { timeout: 15000 });
-    cy.clickElementForce("[data-cy=cartIcon_mainPage]");
+    cy.clickElement("[data-cy=cartIcon_mainPage]");
     cy.log("✅✅ Click On Cart Icon In Main Page & Open Cart Page");
   });
   it("The Required Quantity Of The Product Should Be Obtained In Advance", () => {
@@ -188,16 +188,10 @@ describe("Should Click On Cart Icon On The Home Page & Increase The Quantity Of 
         expect(inputValueAfterUpdate).to.be.greaterThan(
           QuantityInCartPreviously
         );
-        // cy.log("Success: Quantity increaseded in cart");
-        // if (inputValueAfterUpdate > QuantityInCartPreviously) {
-        //   cy.log("Success: Quantity increaseded in cart");
-        // } else {
-        //   cy.log("Error: Quantity did not increaseded in cart");
-        // }
       });
   });
   it("Should Click On Cart Back Icon To Return To Home Page", () => {
-    cy.clickElementForce("[data-cy=CartBackIcon]");
+    cy.clickElement("[data-cy=CartBackIcon]");
     cy.log("✅✅ Dual Back Icon Clicked & Returned To Main Page");
   });
 });
@@ -206,7 +200,7 @@ describe("Should Click On The Cart Icon On The Home Page & Decrease The Quantity
   let QuantityInCartPreviously = 0;
   it("Should Click On Cart Icon In The Home Page & Open Cart Page", () => {
     cy.get("[data-cy=boutiques]", { timeout: 15000 });
-    cy.clickElementForce("[data-cy=cartIcon_mainPage]");
+    cy.clickElement("[data-cy=cartIcon_mainPage]");
     cy.log("✅✅ Click On Cart Icon In Main Page & Open Cart Page");
   });
   it("The Required Quantity Of The Product Should Be Obtained In Advance", () => {
@@ -241,7 +235,7 @@ describe("Should Click On The Cart Icon On The Home Page & Decrease The Quantity
       });
   });
   it("Should Click On Cart Back Icon To Return To Home Page", () => {
-    cy.clickElementForce("[data-cy=CartBackIcon]");
+    cy.clickElement("[data-cy=CartBackIcon]");
     cy.log("✅✅ Dual Back Icon Clicked & Returned To Main Page");
   });
 });
@@ -250,7 +244,7 @@ describe("Should Click On The Cart Icon On The Home Page & Delete The Quantity O
   let QuantityInCartPreviously = 0;
   it("Should Click On Cart Icon In The Home Page & Open Cart Page", () => {
     cy.get("[data-cy=boutiques]", { timeout: 15000 });
-    cy.clickElementForce("[data-cy=cartIcon_mainPage]");
+    cy.clickElement("[data-cy=cartIcon_mainPage]");
     cy.log("✅✅ Click On Cart Icon In Main Page & Open Cart Page");
   });
   it("The Required Quantity Of The Product Should Be Obtained In Advance", () => {
@@ -277,7 +271,7 @@ describe("Should Click On The Cart Icon On The Home Page & Delete The Quantity O
     });
   });
   it("Should Click On Cart Back Icon To Return To Home Page", () => {
-    cy.clickElementForce("[data-cy=CartBackIcon]");
+    cy.clickElement("[data-cy=CartBackIcon]");
     cy.log("✅✅ Dual Back Icon Clicked & Returned To Main Page");
   });
 });

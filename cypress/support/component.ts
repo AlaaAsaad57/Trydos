@@ -31,16 +31,28 @@ declare global {
       mount: typeof mount;
       Visit(value: string): void;
       Exist(selector: string): Promise<boolean>;
-      Exist1(selector: string): Promise<boolean>;
+      ChexkExistElement(selector: string): Promise<boolean>;
       logout(): Chainable<void>;
-      (): Chainable<void>;
+      // (): Chainable<void>;
+      WaitUntilLoadWebsiteAndlogoutAndViewport(): Chainable<void>;
+      HaveAccount(): Chainable<void>;
+      CreateNewAccount(): Chainable<void>;
+      AgreeTerms(): Chainable<void>;
+      CheckIfTrySendOtp(): Chainable<void>;
+      EndLoginOperation(): Chainable<void>;
+      InputFieldNameVisible(): Chainable<void>;
+      TypeName(): Chainable<void>;
+      MakeOtpExpired(): Chainable<void>;
+      ChooseWayToRecieveOtpAndWaitOtpRequest(): Chainable<void>;
+      ComplateLoginByMobilePhone(): Chainable<void>;
+      OpenLoginInterface(): Chainable<void>;
+      ColoredFieldRed(): Chainable<void>;
       typePincode(pincode: string): Chainable<void>;
-      typePincode1(pincode: string): Chainable<void>;
+      // typePincode1(pincode: string): Chainable<void>;
       enterPhoneNumber(phoneNumber: string): Chainable<void>;
       reEnterPhoneNumber(phoneNumber: string): Chainable<void>;
-      enterPhoneNumber1(phoneNumber: string): Chainable<void>;
-      enterPhoneNumber11(phoneNumber: string): Chainable<void>;
-      performLogin(s?: string): Chainable<void>;
+      // enterPhoneNumberWithFocused(phoneNumber: string): Chainable<void>;
+      // performLogin(s?: string): Chainable<void>;
       performLogin1(s?: string): Chainable<void>;
       Performloginfailure(): Chainable<void>;
       performErrorLogin(): Chainable<void>;
@@ -51,8 +63,7 @@ declare global {
       interceptAndWait(
         routes: { method?: string; url: string; alias: string }[]
       ): Chainable<void>;
-      clickElementScroll(selector: string): Chainable<Element>;
-      clickElementForce(selector: string): Chainable<Element>;
+      clickElement(selector: string): Chainable<Element>;
       getProductNameFirstly(selector?: string): Chainable<string>;
       verifyProductInCart(productName: string): Chainable<void>;
       verifyBoxsInBoutiquePage(): Chainable<void>;
