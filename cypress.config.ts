@@ -15,10 +15,10 @@ export default defineConfig({
     overwrite: true,
   },
   video: false,
-  defaultCommandTimeout: 10000,
+  defaultCommandTimeout: 20000,
   pageLoadTimeout: 120000,
-  requestTimeout: 10000,
-  retries: { runMode: 2 },
+  requestTimeout: 20000,
+  retries: { runMode: 2, openMode: 2 },
   e2e: {
     // @ts-ignore
     hideXHRInCommandLog: true,

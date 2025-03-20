@@ -293,7 +293,7 @@ Cypress.Commands.add("performExpireOtpLogin", () => {
   cy.wait(1000);
   cy.enterPhoneNumber("963753159877");
 
-  cy.wait(130000);
+  cy.wait(70000);
   cy.Exist(".resend-code-button").then((s) => {
     if (s) {
       cy.get(".resend-code-button").click({ scrollBehavior: false });

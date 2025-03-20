@@ -420,12 +420,15 @@ function NewLoginWidget() {
               setDisabled(e);
               setExpired(e);
             }}
-            resend={() => {
-              SendOtpHook({
+            resend={async () => {
+              await SendOtpHook({
                 mobilePhone: inputValue,
                 is_via_whatsapp: MessageMethod === "WA" ? "1" : "0",
 
-                successCallback: function () {},
+                successCallback: function () {
+                  setDisabled(false);
+                  setExpired(false);
+                },
                 errorCallback: function (msg) {
                   setStepIndicator(3);
                   setWrongNumber(msg);
