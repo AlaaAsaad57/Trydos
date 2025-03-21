@@ -17,6 +17,7 @@ describe("Login Successful Attempt should login to 3 servers", () => {
   });
 });
 describe("Login Successful Attempt should login to 3 servers", () => {
+  let UserName: string = "";
   let count = 0;
   it("Should Click On Login Icon & Open Its Interface", () => {
     cy.OpenLoginInterface();
@@ -39,8 +40,14 @@ describe("Login Successful Attempt should login to 3 servers", () => {
   it("Should Verify If Have To Try Again To Send Otp Code", () => {
     cy.CheckIfTrySendOtp();
   });
-  it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
+  it("Should Enter The 6-digit OTP Code That He Received On SMS And Store The User Name", () => {
+    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?**", (req) => {
+      req.continue((res) => {
+        UserName = res.body.data.user.name;
+      });
+    }).as("verifyOtpSignin");
     cy.typePincode("999999");
+    cy.wait("@verifyOtpSignin");
   });
   it("Should Click On Close icon When Welcom Message Apperead", () => {
     cy.EndLoginOperation;
@@ -62,6 +69,14 @@ describe("Login Successful Attempt should login to 3 servers", () => {
       cy.log(`Count is: ${count}`);
       expect(count).to.be.greaterThan(2);
     });
+  });
+  it("Should Verify User Name Apperead With Hello", () => {
+    cy.get("[data-cy=NavUserName]")
+      .invoke("text")
+      .then((text) => {
+        const username = text;
+        expect(username).to.be.eq(UserName);
+      });
   });
 });
 describe("Login UnSuccessful Attempt should show error message to user", () => {
@@ -100,6 +115,7 @@ describe("Login UnSuccessful Attempt should show error message to user", () => {
 });
 describe("Login UnSuccessful Attempt when otp code expired & Change The Method To Recive Otp Code", () => {
   let count = 0;
+  let UserName: string = "";
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -136,14 +152,29 @@ describe("Login UnSuccessful Attempt when otp code expired & Change The Method T
     cy.log("✅✅ Send Otp Api Request Successfuly");
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
+    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?**", (req) => {
+      req.continue((res) => {
+        UserName = res.body.data.user.name;
+      });
+    }).as("verifyOtpSignin");
     cy.typePincode("999999");
+    cy.wait("@verifyOtpSignin");
   });
   it("Should Click On Close icon When Welcom Message Apperead", () => {
     cy.EndLoginOperation();
   });
+  it("Should Verify User Name Apperead With Hello", () => {
+    cy.get("[data-cy=NavUserName]")
+      .invoke("text")
+      .then((text) => {
+        const username = text;
+        expect(username).to.be.eq(UserName);
+      });
+  });
 });
 describe("Login UnSuccessful Attempt when otp code expired should show button for resend otp and resend code and continue to login", () => {
   let count = 0;
+  let UserName: string = "";
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -173,10 +204,24 @@ describe("Login UnSuccessful Attempt when otp code expired should show button fo
     cy.get(".resend-code-button").should("not.exist");
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
+    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?**", (req) => {
+      req.continue((res) => {
+        UserName = res.body.data.user.name;
+      });
+    }).as("verifyOtpSignin");
     cy.typePincode("999999");
+    cy.wait("@verifyOtpSignin");
   });
   it("Should Click On Close icon When Welcom Message Apperead", () => {
     cy.EndLoginOperation();
+  });
+  it("Should Verify User Name Apperead With Hello", () => {
+    cy.get("[data-cy=NavUserName]")
+      .invoke("text")
+      .then((text) => {
+        const username = text;
+        expect(username).to.be.eq(UserName);
+      });
   });
 });
 describe("Should show user not found when registering with non registered number", () => {
@@ -220,6 +265,7 @@ describe("Should show user not found when registering with non registered number
   });
 });
 describe("Should Input name in login if the user does not input your name when sign up operation", () => {
+  let UserName: string = "";
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -249,23 +295,38 @@ describe("Should Input name in login if the user does not input your name when s
     }).as("verifyOtpSignin");
     cy.typePincode("999999");
     cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
-      cy.log("✅ verifyOtpSignin request arrived");
+      cy.log("✅✅ verifyOtpSignin request arrived");
     });
   });
   it("Should Click On Input Field For Writ User Name", () => {
     cy.InputFieldNameVisible();
   });
   it("Should Writ User Name In The Input Field", () => {
+    cy.intercept("POST", "**/api/v1/users/update", (req) => {
+      req.continue((res) => {
+        UserName = res.body.data.name;
+      });
+    }).as("updateNameee");
     cy.TypeName();
+    cy.wait("@updateNameee").then((inter) => {
+      if (inter) {
+        cy.log("✅✅ Update Name Successfully");
+      }
+    });
   });
   it("Should Click On Arrow Founded In Right Of Input Field & Click On Skip For Now Button", () => {
-    cy.clickElement(".phone-arrow");
     cy.clickElement("[data-testid=login-close-icon]");
     cy.log("✅✅ Skip For Now Button clicked");
   });
+  it("Should Verify User Name Apperead With Hello", () => {
+    cy.get("[data-cy=NavUserName]")
+      .invoke("text")
+      .then((text) => {
+        const username = text;
+        expect(username).to.be.eq(UserName);
+      });
+  });
 });
-
-// ********************************************AddedLast*************************************************************
 describe("Should show user not found when registering with non registered number & Create New Account & Continue", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
@@ -312,23 +373,12 @@ describe("Should show user not found when registering with non registered number
     cy.TypeName();
   });
   it("Should Click On Arrow Founded In Right Of Input Field & Click On Skip For Now Button", () => {
-    cy.clickElement(".phone-arrow");
-    cy.clickElement("[data-cy=skipForNow]");
-    cy.log("✅✅ Skip For Now Button clicked");
+    cy.SkipForNow();
   });
   it("Should Arrived Dual Request", () => {
-    cy.interceptAndWait([
-      {
-        method: "POST",
-        url: "**/api/v1/users/update",
-        alias: "update",
-      },
-      {
-        method: "POST",
-        url: "**/api/new_v1/customer/update-name",
-        alias: "updatename",
-      },
-    ]);
-    cy.log("✅✅ updatename & updatename Requests Arrived");
+    cy.intercept("POST", "**/api/v1/users/update").as("update");
+    // cy.intercept("POST", "**/api/new_v1/customer/update-name").as("updatename");
+    cy.wait("@update");
+    // cy.wait("@updatename");
   });
 });

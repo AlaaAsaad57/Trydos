@@ -1,4 +1,4 @@
-describe("Signup Successful Attempt should login to 3 servers", () => {
+describe.only("Signup Successful Attempt should login to 3 servers", () => {
   before(() => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
@@ -30,19 +30,18 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
     let count = 0;
-    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
-      req.continue((res) => {
-        res.body.data.already_exists = false;
-      });
-    }).as("verifyOtpSignin");
     cy.intercept("POST", "**/login", () => {
       count += 1;
     }).as("login");
     cy.window().then((win) => {
       (win as any).stepIndicator = 5;
     });
+    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
+      req.continue((res) => {
+        res.body.data.already_exists = false;
+      });
+    }).as("verifyOtpSignin");
     cy.typePincode("999999");
-    cy.log("✅✅ Type Pin Code Entred Successfuly");
     cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
       cy.log("✅ verifyOtpSignin request arrived");
     });
@@ -51,7 +50,7 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
     });
     cy.wait(500).then(() => {
       cy.log(`Count is: ${count}`);
-      expect(count).to.be.greaterThan(0);
+      expect(count).to.be.greaterThan(1);
     });
   });
   it("Should Click On Input Field For Writ User Name", () => {
@@ -69,13 +68,6 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
     });
     cy.get("@phoneInput").should("not.be.focused", { timeout: 5000 });
     cy.TypeName();
-  });
-  it("Should Click On Arrow Founded In Right Of Input Field & Click On Skip For Now Button", () => {
-    cy.clickElement(".phone-arrow");
-    cy.clickElement("[data-cy=skipForNow]");
-    cy.log("✅✅ Skip For Now Button clicked");
-  });
-  it("Should Arrived Dual Request", () => {
     cy.interceptAndWait([
       {
         method: "POST",
@@ -90,8 +82,11 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
     ]);
     cy.log("✅✅ updatename & updatename Requests Arrived");
   });
+  it("Should Click On Arrow Founded In Right Of Input Field & Click On Skip For Now Button", () => {
+    cy.SkipForNow();
+  });
 });
-describe("Signup UnSuccessful Attempt should show error message to user", () => {
+describe.only("Signup UnSuccessful Attempt should show error message to user", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -125,7 +120,7 @@ describe("Signup UnSuccessful Attempt should show error message to user", () => 
     cy.EndLoginOperation();
   });
 });
-describe("Should show user is already registered when registering with registered number", () => {
+describe.only("Should show user is already registered when registering with registered number", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -159,11 +154,17 @@ describe("Should show user is already registered when registering with registere
     cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
       cy.log("✅ verifyOtpSignin request arrived");
     });
-    cy.get(".already-registered").should("be.visible");
-    cy.EndLoginOperation();
+    cy.get("[data-cy=already-registered-phone]").should("be.visible");
+  });
+  it("Should Click On Close icon When Welcom Message Apperead", () => {
+    // cy.EndLoginOperation;
+    cy.get("[data-cy=Look-At-App]").click({
+      scrollBehavior: false,
+      force: true,
+    });
   });
 });
-describe("Should show user is already registered when registering with registered number & Cancel & Take A Look At The App", () => {
+describe.only("Should show user is already registered when registering with registered number & Cancel & Take A Look At The App", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -204,7 +205,7 @@ describe("Should show user is already registered when registering with registere
     cy.clickElement("[data-cy=Look-At-App]");
   });
 });
-describe("Should show user is already registered when registering with registered number & Login & Continue", () => {
+describe.only("Should show user is already registered when registering with registered number & Login & Continue", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -243,11 +244,13 @@ describe("Should show user is already registered when registering with registere
   it("Should Login & Countinue", () => {
     cy.clickElement("[data-cy=Login-Countinue]");
     cy.get("[data-cy=Wellcome-Enjoy]").should("be.visible");
-    cy.EndLoginOperation();
+  });
+  it("Should Click On Close icon When Welcom Message Apperead", () => {
+    cy.EndLoginOperation;
   });
 });
 // **************************************************************************************************************
-describe("Signup Successful Attempt & complete the profile", () => {
+describe.only("Signup Successful Attempt & complete the profile", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -272,17 +275,17 @@ describe("Signup Successful Attempt & complete the profile", () => {
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
     let count = 0;
-    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
-      req.continue((res) => {
-        res.body.data.already_exists = false;
-      });
-    }).as("verifyOtpSignin");
     cy.intercept("POST", "**/login", () => {
       count += 1;
     }).as("login");
     cy.window().then((win) => {
       (win as any).stepIndicator = 5;
     });
+    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
+      req.continue((res) => {
+        res.body.data.already_exists = false;
+      });
+    }).as("verifyOtpSignin");
     cy.typePincode("999999");
     cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
       cy.log("✅ verifyOtpSignin request arrived");
@@ -292,12 +295,11 @@ describe("Signup Successful Attempt & complete the profile", () => {
     });
     cy.wait(500).then(() => {
       cy.log(`Count is: ${count}`);
-      expect(count).to.be.greaterThan(0);
+      expect(count).to.be.greaterThan(1);
     });
   });
   it("Should Click On Input Field For Writ User Name", () => {
-    cy.clickElement("[data-cy=inputToWriteName]");
-    cy.log("✅✅ Input Field For Writ User Name is clicked on");
+    cy.InputFieldNameVisible();
   });
   it("Should Writ User Name In The Input Field", () => {
     cy.get('[data-cy="InputFiledForName"]').as("phoneInput").focus(); // Focus on the input
@@ -313,7 +315,6 @@ describe("Signup Successful Attempt & complete the profile", () => {
     cy.TypeName();
   });
   it("Should Click On Arrow Founded In Right Of Input Field & Click On Complate My Profile Button", () => {
-    cy.clickElement(".phone-arrow");
     cy.clickElement("[data-cy=Complate-Close]");
     cy.log("✅✅ Complate My Profile Button clicked");
   });
