@@ -1,4 +1,4 @@
-import { translations } from "public/translations/translations.js";
+import translations from "public/translations/translations.js";
 import profilePicture from "public/images/profileNo.png";
 import { store } from "store";
 import Cookies from "js-cookie";
@@ -30,12 +30,17 @@ export function translateFunction(key: string, language?: string | string[]) {
   } else {
     languageUrl = GetAppLanguage();
   }
-  if (language) {
-    return translations[language][key] || key;
+
+  // Ensure translations object exists and has the requested language
+  if (!translations || !translations[languageUrl]) {
+    return key;
   }
-  if (translations[languageUrl] && translations[languageUrl][key]) {
-    return translations[languageUrl][key] || key;
-  } else return key;
+
+  if (language) {
+    return translations[language]?.[key] || key;
+  }
+
+  return translations[languageUrl]?.[key] || key;
 }
 
 export const getStoriesHeaders = () => {

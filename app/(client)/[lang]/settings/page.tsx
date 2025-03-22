@@ -6,7 +6,7 @@ async function page({ params }) {
   return (
     <>
       <CustomNavbarServer lang={params.lang} />
-      <Setting />
+      <Setting lang={params.lang} />
     </>
   );
 }

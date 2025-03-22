@@ -1,4 +1,4 @@
-export const translations = {
+const translations = {
   en: {
     Buy: "Buy",
     K: "k",
@@ -107,7 +107,7 @@ export const translations = {
       "Scan This Qr Code From You Trydos App In Your Phone",
     "Enter Your Phone Number Registered With Us":
       "Enter Your Phone Number Registered With Us",
-    "Don’t Have Account?": "Don’t Have Account?",
+    "Don't Have Account?": "Don't Have Account?",
     "Create New Account": "Create New Account",
     "Choose The Verification Method": "Choose The Verification Method",
     "Send Verification Code To": "Send Verification Code To",
@@ -125,7 +125,7 @@ export const translations = {
       "Please Enter The Correct Code Sent To Your Phone",
     "You Have": "You Have",
     Attempts: "Attempts",
-    "Didn`t You Receive A Code?": "Didn`t You Receive A Code?",
+    "Didn't You Receive A Code?": "Didn't You Receive A Code?",
     "Change The Method Of Receiving": "Change The Method Of Receiving",
     Change: "Change",
     "Search, Chat, Contact, Start New Chat":
@@ -193,7 +193,7 @@ export const translations = {
       "We Will Send A Verification Code To The Number",
     "Please Enter The Verification Code Sent To Your Whatsapp":
       "Please Enter The Verification Code Sent To Your Whatsapp",
-    "Didn’t You Receive A Code?": "Didn’t You Receive A Code?",
+    "Didn't You Receive A Code?": "Didn't You Receive A Code?",
     "the Method Of Receiving": "the Method Of Receiving",
     "The Code Sent Has Expired": "The Code Sent Has Expired",
     "Later, Take A Look At The App": "Later, Take A Look At The App",
@@ -201,16 +201,16 @@ export const translations = {
     "Enter Your Phone Number To Login": "Enter Your Phone Number To Login",
     "To ": "To ",
     "Create New Account ": "Create New Account ",
-    "Tap “Agree & Continue” To Accept trydos":
-      "Tap “Agree & Continue” To Accept trydos",
+    'Tap "Agree & Continue" To Accept trydos':
+      'Tap "Agree & Continue" To Accept trydos',
     "Terms Of Services": "Terms Of Services",
     "Agree & Continue": "Agree & Continue",
     "Choose The Verification Method, Receive Code Via:":
       "Choose The Verification Method, Receive Code Via:",
     "Complete My Profile": "Complete My Profile",
     "Skip For Now": "Skip For Now",
-    "We Recommend That You Complete Your Profile To Make The Most Of The App’s Features, Such As Shopping, Chatting, Stories, Taking Advantage Of Offers, Interests, And Much More":
-      "We Recommend That You Complete Your Profile To Make The Most Of The App’s Features, Such As Shopping, Chatting, Stories, Taking Advantage Of Offers, Interests, And Much More",
+    "We Recommend That You Complete Your Profile To Make The Most Of The App's Features, Such As Shopping, Chatting, Stories, Taking Advantage Of Offers, Interests, And Much More":
+      "We Recommend That You Complete Your Profile To Make The Most Of The App's Features, Such As Shopping, Chatting, Stories, Taking Advantage Of Offers, Interests, And Much More",
     "Enjoy With Our Services": "Enjoy With Our Services",
     "Logged In Successfully !": "Logged In Successfully !",
     "Hello,": "Hello,",
@@ -218,9 +218,39 @@ export const translations = {
       "To Take Advantage Of All The Advantages Of The Application, Please Join Us In Quick And Easy Steps And For Just One Time",
     "I have Already Account": "I have Already Account",
     "Terms Of Services ": "Terms Of Services",
+    "Notifications Settings": "Notifications Settings",
+    "Notification Test": "Notification Test",
+    "Enabled Notifications Topic:": "Enabled Notifications Topic:",
+    "Disabled Notifications Topic:": "Disabled Notifications Topic:",
+    "Unsubscribing...": "Unsubscribing...",
+    Unsubscribe: "Unsubscribe",
+    "Loading Topics...": "Loading Topics...",
+    "No topics subscribed.": "No topics subscribed.",
+    "Subscribing...": "Subscribing...",
+    Subscribe: "Subscribe",
+    "notifications subscription:": "notifications subscription:",
+    "Enable Email Notifications": "Enable Email Notifications",
+    "Enable FireBase Notifications": "Enable FireBase Notifications",
+    "Enable WhatsApp Notifications": "Enable WhatsApp Notifications",
+    "notifications Receiving Preference:":
+      "notifications Receiving Preference:",
+    "Select An Option": "Select An Option",
+    daily: "daily",
+    weekly: "weekly",
+    monthly: "monthly",
+    "Continue with": "Continue with",
+    OR: "OR",
+    "Select Your Country": "Select Your Country",
+    uk: "UK",
+    uae: "UAE",
   },
   ar: {
     "Payment Method": "طرق الدفع",
+    Notifications: "الإشعارات",
+    Settings: "الإعدادات",
+    Orders: "الطلبات",
+    Language: "اللغة",
+    Logout: "تسجيل الخروج",
     "Sorry This Product Not Available In Your Country":
       "عذرا هذا المنتج غير متوفر في بلدك",
     "Sorry This Product Not Available Now": "عذرا هذا المنتج غير متوفر حاليا",
@@ -412,7 +442,7 @@ export const translations = {
     "To ": "لـ",
     "Logged In Successfully !": "تم تسجيل الدخول بنجاح",
     "Hello,": "مرحبا ,",
-    "We Recommend That You Complete Your Profile To Make The Most Of The App’s Features, Such As Shopping, Chatting, Stories, Taking Advantage Of Offers, Interests, And Much More":
+    "We Recommend That You Complete Your Profile To Make The Most Of The App's Features, Such As Shopping, Chatting, Stories, Taking Advantage Of Offers, Interests, And Much More":
       "ننصح باكمال معلومات الحساب للاستفادة من ميزات التطبيق كـ التسوق ,الدردشة ,القصص, الاهتمامات,الاستفادة من العروض وغيرها الكثير",
     "Complete My Profile": "اكمال ادخال معلومات الحساب",
     "Enjoy With Our Services": "استمتع بخدماتنا",
@@ -420,7 +450,7 @@ export const translations = {
     "Choose The Verification Method, Receive Code Via:":
       "اختر طريقة للتحقق لارسال الرمز عبر",
     "Agree & Continue": "موافق ومتابعة",
-    "Tap “Agree & Continue” To Accept trydos":
+    'Tap "Agree & Continue" To Accept trydos':
       "انقر على موافق لقبول سياسة الخصوصية لترايدوس",
     "Terms Of Services": "",
     "Create New Account ": "انشاء حساب ",
@@ -430,7 +460,7 @@ export const translations = {
     "Invalid Phone Number": "رقم خاطئ",
     "Later, Take A Look At The App": "لاحقا, القي نظرة على التطبيق",
     "The Code Sent Has Expired": "انتهت فترة استلام الرمز",
-    "Didn’t You Receive A Code?": "لم تستلم رمزا؟",
+    "Didn't You Receive A Code?": "لم تستلم رمزا؟",
     Change: "تغيير",
     "We Will Send A Verification Code To The Number":
       "سنرسل رمز تاكيد الى هذا الرقم",
@@ -500,7 +530,7 @@ export const translations = {
       "قم بمسح هذا الرمز عبر تطبيق ترايدوس من هاتفك",
     "Enter Your Phone Number Registered With Us":
       "ادخل رقم هاتفك الشخصي المسجل به معنا",
-    "Don’t Have Account?": "لا تملك حسابا؟",
+    "Don't Have Account?": "لا تملك حسابا؟",
     "Create New Account": "أنشئ حساباً جديداً",
     "Choose The Verification Method": "أختر طريقة التحقق",
     "Send Verification Code To": "ارسال رسالة التحقق إلى",
@@ -517,7 +547,7 @@ export const translations = {
       " رجاءً ادخل الرمز الصحيح الذي تم ارساله لهاتفك",
     "You Have": "لديك",
     Attempts: "محاولات",
-    "Didn`t You Receive A Code?": "لم تستلم رمزاً؟",
+    "Didn't You Receive A Code?": "لم تستلم رمزاً؟",
     "Change The Method Of Receiving": "تغيير طريقة استلام الرمز",
     Copy: "نسخ",
     Reply: "رد",
@@ -567,9 +597,38 @@ export const translations = {
     "We Will Inform You When this Is Available": "سنعلمك عند توفر المنتج",
     "Notify Me When Size Is Available": "ارسل اشعار عند توفر المنتج",
     "Notify Me": "ارسل اشعارا",
+    "Notifications Settings": "إعدادات الإشعارات",
+    "Notification Test": "اختبار الإشعارات",
+    "Enabled Notifications Topic:": "مواضيع الإشعارات المفعلة:",
+    "Disabled Notifications Topic:": "مواضيع الإشعارات المعطلة:",
+    "Unsubscribing...": "جاري إلغاء الاشتراك...",
+    Unsubscribe: "إلغاء الاشتراك",
+    "Loading Topics...": "جاري تحميل المواضيع...",
+    "No topics subscribed.": "لا توجد مواضيع مشتركة.",
+    "Subscribing...": "جاري الاشتراك...",
+    Subscribe: "اشتراك",
+    "notifications subscription:": "اشتراك الإشعارات:",
+    "Enable Email Notifications": "تفعيل إشعارات البريد الإلكتروني",
+    "Enable FireBase Notifications": "تفعيل إشعارات FireBase",
+    "Enable WhatsApp Notifications": "تفعيل إشعارات واتساب",
+    "notifications Receiving Preference:": "تفضيلات استلام الإشعارات:",
+    "Select An Option": "اختر خياراً",
+    daily: "يومياً",
+    weekly: "أسبوعياً",
+    monthly: "شهرياً",
+    "Continue with": "متابعة مع",
+    OR: "أو",
+    "Select Your Country": "اختر بلدك",
+    uk: "المملكة المتحدة",
+    uae: "الإمارات",
   },
   tr: {
     Buy: "Satın Al",
+    Notifications: "Bildirimler",
+    Language: "Dil",
+    Orders: "Siparişler",
+    Settings: "Ayarlar",
+    Logout: "Çıkış Yap",
     "Shipping & Delivery Address": "Teslimat ve Gönderim Adresi",
     "No Address Selected": "Adres Listeniz Boş",
     "Show Address List": "Adres Listesini Göster",
@@ -674,7 +733,7 @@ export const translations = {
       "Telefonunuzdaki Trydos Uygulamasından Bu QR Kodu Taratın",
     "Enter Your Phone Number Registered With Us":
       "Bizimle Kayıtlı Telefon Numaranızı Girin",
-    "Don’t Have Account?": "Hesabınız Yok Mu?",
+    "Don't Have Account?": "Hesabınız Yok Mu?",
     "Create New Account": "Yeni Hesap Oluştur",
     "Choose The Verification Method": "Doğrulama Yöntemini Seçin",
     "Send Verification Code To": "Doğrulama Kodunu Gönder",
@@ -693,7 +752,7 @@ export const translations = {
       "Telefonunuza Gönderilen Doğru Kodu Girin",
     "You Have": "Sizin Var",
     Attempts: "Denemeler",
-    "Didn’t You Receive A Code?": "Bir Kod Almadınız mı?",
+    "Didn't You Receive A Code?": "Bir Kod Almadınız mı?",
     "Change The Method Of Receiving": "Alım Yöntemini Değiştir",
     Change: "Değiştir",
     "Search, Chat, Contact, Start New Chat":
@@ -762,7 +821,7 @@ export const translations = {
       "Numaraya Doğrulama Kodu Göndereceğiz",
     "Please Enter The Verification Code Sent To Your Whatsapp":
       "Whatsapp'a Gönderilen Doğrulama Kodunu Girin",
-    "Didn’t You Receive A Code?": "Kod Almadınız mı?",
+    "Didn't You Receive A Code?": "Kod Almadınız mı?",
     "the Method Of Receiving": "Alım Yöntemi",
     "The Code Sent Has Expired": "Gönderilen Kodun Süresi Dolmuş",
     "Later, Take A Look At The App": "Sonra, Uygulamaya Göz At",
@@ -771,15 +830,15 @@ export const translations = {
       "Giriş Yapmak İçin Telefon Numaranızı Girin",
     "To ": "Şuraya",
     "Create New Account ": "Yeni Hesap Oluştur",
-    "Tap “Agree & Continue” To Accept trydos":
-      "trydos'u Kabul Etmek İçin “Kabul Et ve Devam Et”e Dokunun",
+    'Tap "Agree & Continue" To Accept trydos':
+      'trydos\'u Kabul Etmek İçin "Kabul Et ve Devam Et"e Dokunun',
     "Terms Of Services": "Hizmet Şartları",
     "Agree & Continue": "Kabul Et ve Devam Et",
     "Choose The Verification Method, Receive Code Via:":
       "Doğrulama Yöntemini Seçin, Kodu Şu Yöntemle Alın:",
     "Complete My Profile": "Profilimi Tamamla",
     "Skip For Now": "Şimdi Atla",
-    "We Recommend That You Complete Your Profile To Make The Most Of The App’s Features, Such As Shopping, Chatting, Stories, Taking Advantage Of Offers, Interests, And Much More":
+    "We Recommend That You Complete Your Profile To Make The Most Of The App's Features, Such As Shopping, Chatting, Stories, Taking Advantage Of Offers, Interests, And Much More":
       "Uygulamanın Özelliklerinden En İyi Şekilde Yararlanmak İçin Profilinizi Tamamlamanızı Tavsiye Ederiz. Alışveriş, Sohbet, Hikayeler, Tekliflerden Yararlanma, İlgi Alanları ve Daha Fazlası İçin.",
     "Enjoy With Our Services": "Hizmetlerimizin Tadını Çıkarın",
     "Logged In Successfully !": "Başarıyla Giriş Yapıldı!",
@@ -788,5 +847,35 @@ export const translations = {
       "Uygulamanın Tüm Avantajlarından Yararlanmak İçin, Lütfen Hızlı ve Kolay Adımlarla Sadece Bir Defa Bize Katılın",
     "I have Already Account": "Zaten Hesabım Var",
     "Terms Of Services ": "Hizmet Şartları",
+    "Notifications Settings": "Bildirim Ayarları",
+    "Notification Test": "Bildirim Testi",
+    "Enabled Notifications Topic:": "Etkin Bildirim Konuları:",
+    "Disabled Notifications Topic:": "Devre Dışı Bildirim Konuları:",
+    "Unsubscribing...": "Abonelikten Çıkılıyor...",
+    Unsubscribe: "Abonelikten Çık",
+    "Loading Topics...": "Konular Yükleniyor...",
+    "No topics subscribed.": "Abone olunan konu yok.",
+    "Subscribing...": "Abone Olunuyor...",
+    Subscribe: "Abone Ol",
+    "notifications subscription:": "bildirim aboneliği:",
+    "Enable Email Notifications": "E-posta Bildirimlerini Etkinleştir",
+    "Enable FireBase Notifications": "FireBase Bildirimlerini Etkinleştir",
+    "Enable WhatsApp Notifications": "WhatsApp Bildirimlerini Etkinleştir",
+    "notifications Receiving Preference:": "bildirim alma tercihi:",
+    "Select An Option": "Bir Seçenek Seçin",
+    daily: "günlük",
+    weekly: "haftalık",
+    monthly: "aylık",
+    "Continue with": "ile devam et",
+    OR: "VEYA",
+    "Select Your Country": "Ülkenizi Seçin",
+    uk: "İngiltere",
+    uae: "BAE",
   },
 };
+
+if (typeof window !== "undefined") {
+  window.translations = translations;
+}
+
+export default translations;
