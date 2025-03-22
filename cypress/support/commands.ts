@@ -47,8 +47,16 @@ Cypress.Commands.add("Visit", function (url: string) {
       cy.wait("@CountriesApi").then((i) => {
         console.log("sahsahj", i);
         if (i) {
-          cy.log("sd");
-          cy.get("#country").select("TR");
+          cy.Exist("#country").then((exist) => {
+            if (exist) {
+              cy.get("#country").select("TR");
+            } else {
+              cy.get("[data-cy='countain-with']").first().click({
+                force: true,
+                scrollBehavior: false,
+              });
+            }
+          });
         }
       });
     }
@@ -235,7 +243,7 @@ Cypress.Commands.add("performLogin1", (s?: string) => {
       cy.log("✅✅ User Does Not Attempt LogIn From Mobile Phone");
     }
   });
-  cy.enterPhoneNumber("963937764641");
+  cy.enterPhoneNumber(s ?? "963937764641");
   cy.log("✅✅ Number Phone Entered Successfuly");
   cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
   cy.get(".message-recieve-option:nth-child(2)").click({
