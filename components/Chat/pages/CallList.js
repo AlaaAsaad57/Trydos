@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getMessageTime, showDate } from "../chatsFunctions";
+import { showDate } from "../chatsFunctions";
 import CallItem from "components/Chat/components/CallItem";
 import { InView } from "react-intersection-observer";
 import Spinner from "components/global/Spinner";

@@ -37,8 +37,7 @@ export const GetChats = async (payload) => {
         },
       }
     );
-    if (!payload) {
-    }
+
     store.dispatch({
       type: "GET_CHAT_RED",
       payload: resp.data.data.channels,
@@ -568,18 +567,7 @@ export const getMediaReducer = (media, data) => {
     return { file_messages: data };
   }
 };
-export async function checkForUpdate() {
-  let axios = (await import("axios")).default;
-  try {
-    let last_date = store.getState().chat.lastNotification;
-    if (
-      last_date &&
-      new Date().getTime() - new Date(last_date).getTime() > 120000
-    ) {
-      GetChats(true);
-    }
-  } catch (e) {}
-}
+
 //   if (
 //     store.getState().chat.channels.filter((ch) => ch.id === channelId)
 //       .length === 0

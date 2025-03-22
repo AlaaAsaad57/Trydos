@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import ProfilePicture from "public/images/profileNo.png";
 import LastMessageBody from "./LastMessageBody";
 import TypingIndicator from "./TypingIndicator";
-import { getMessageTime, getTwoLetters, showDate } from "../chatsFunctions";
+import { getTwoLetters, showDate } from "../chatsFunctions";
 import MessageIcon from "../svg/messageIcon.svg";
 import ArrowRightIcon from "../svg/arrowRight.svg";
 import MutedChatIcon from "../svg/MutedChat.svg";
