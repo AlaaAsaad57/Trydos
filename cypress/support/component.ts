@@ -36,6 +36,9 @@ declare global {
       SkipForNow(): Chainable<void>;
       WaitUntilLoadWebsiteAndlogoutAndViewport(): Chainable<void>;
       HaveAccount(): Chainable<void>;
+      OpenBoutiqueAndAddProductToCartFromBoutiquePage(): Chainable<any>;
+      OpenBoutiqueAndAddProductToCartFromBoutiqueDatailPage(): Chainable<void>;
+      RequestForThreeServers(): Chainable<void>;
       CreateNewAccount(): Chainable<void>;
       AgreeTerms(): Chainable<void>;
       CheckIfTrySendOtp(): Chainable<void>;
@@ -59,9 +62,11 @@ declare global {
       verifyProductInCart(productName: string): Chainable<void>;
       verifyBoxsInBoutiquePage(): Chainable<void>;
       verifyComponentsInProductCard(): Chainable<void>;
-      AddProductToCart(): Chainable<void>;
-      AddProductToCartThenComplateOrder(): Chainable<void>;
+      ClickAddToCartAndWaitRequest(): Chainable<void>;
+      ConfirmAndComplateOrderButton(): Chainable<void>;
       AddAdress(): Chainable<void>;
+      ChooseBoutiqueAndVerifyComponentsAndBoxsInBoutiquePage(): Chainable<void>;
+      ComplateAddProductOperationAndGoCartPage(): Chainable<void>;
     }
     interface Window {
       isKeyboardOpen?: boolean;

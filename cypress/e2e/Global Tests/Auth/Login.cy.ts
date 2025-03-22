@@ -53,22 +53,7 @@ describe("Login Successful Attempt should login to 3 servers", () => {
     cy.EndLoginOperation;
   });
   it("Should Wait Login Request Until Arrives & Verification LogIn To Three Servers", () => {
-    cy.intercept("POST", "**/login", () => {
-      count += 1;
-    }).as("login");
-    cy.intercept("GET", "**/api/v1/stories/users_stories", () => {
-      count += 1;
-    }).as("Stories");
-    cy.wait("@login", { timeout: 10000 }).then((interception) => {
-      cy.log("✅✅ login request arrived");
-    });
-    cy.wait("@Stories", { timeout: 10000 }).then((interception) => {
-      cy.log("✅✅ Stories request arrived");
-    });
-    cy.wait(500).then(() => {
-      cy.log(`Count is: ${count}`);
-      expect(count).to.be.greaterThan(2);
-    });
+    cy.RequestForThreeServers();
   });
   it("Should Verify User Name Apperead With Hello", () => {
     cy.get("[data-cy=NavUserName]")
@@ -315,8 +300,14 @@ describe("Should Input name in login if the user does not input your name when s
     });
   });
   it("Should Click On Arrow Founded In Right Of Input Field & Click On Skip For Now Button", () => {
-    cy.clickElement("[data-testid=login-close-icon]");
-    cy.log("✅✅ Skip For Now Button clicked");
+    cy.ChexkExistElement("[data-testid=login-close-icon]").then((exist) => {
+      if (exist) {
+        cy.clickElement("[data-testid=login-close-icon]");
+        cy.log("✅✅ Skip For Now Button clicked");
+      } else {
+        cy.SkipForNow();
+      }
+    });
   });
   it("Should Verify User Name Apperead With Hello", () => {
     cy.get("[data-cy=NavUserName]")

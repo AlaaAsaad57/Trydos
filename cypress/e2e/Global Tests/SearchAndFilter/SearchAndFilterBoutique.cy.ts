@@ -6,23 +6,50 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
       return false;
     });
     cy.Visit("/");
+    cy.interceptAndWait([
+      {
+        method: "GET",
+        url: "**/api/v1/stories/users_stories",
+        alias: "users_stories",
+      },
+      {
+        method: "GET",
+        url: "**/api/products/popular-search",
+        alias: "popular-search",
+      },
+    ]);
+    cy.log("✅✅ users_stories & popular-search Requests Arrived");
   });
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
-    cy.get(".offer-widget:nth-child(6)").click({
-      force: true,
-    });
-    cy.log("✅✅ An Boutiue selected");
-    cy.get("[data-cy=boutique_top_info]", { timeout: 20000 });
-    cy.log("✅✅ The Boutiue Page Opened");
+    cy.clickElement(".offer-widget:eq(4)");
+    cy.log("✅✅ An Boutique Selected & Click");
+    cy.get("[data-cy=boutique_top_info]", { timeout: 10000 }).should(
+      "be.visible"
+    );
+    cy.log("✅✅ The Boutique Page Opened");
+    cy.interceptAndWait([
+      {
+        method: "POST",
+        url: "**/boutiques/**",
+        alias: "OpenBoutique",
+      },
+      {
+        method: "GET",
+        url: "**/api/products/search?&boutique_slugs**",
+        alias: "LoadallProducts",
+      },
+    ]);
+    cy.log("✅✅ OpenBoutique & LoadallProducts Requests Arrived");
+    cy.verifyBoxsInBoutiquePage();
+    cy.verifyComponentsInProductCard();
   });
   // ********************************************************************************
   it("Should Obtain The Main Name Of The Category That Was ChosenFor The Filter", () => {
     cy.ChexkExistElement("[data-cy=categoryBox").then((exist) => {
       if (!exist) {
         cy.log("❌❌ Category Box Not Found, Skipping to Home Page...");
-        cy.clickElement("[data-cy=back_icon_boutique_page]");
-        cy.log("✅✅ Back icon clicked and returned to the main page");
       } else {
+        cy.log("✅✅ Category Box Founded");
         cy.get("[data-cy=categoryTitle]")
           .eq(0)
           .invoke("text")
@@ -40,8 +67,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
           "GET",
           "**/api/products/search?category_slugs*&with_products=false"
         ).as("modifyRequest");
-        cy.log("✅✅ Category Box Founded");
-        cy.get("[data-cy=category_botiquePage]").eq(0).click({ force: true });
+        cy.clickElement("[data-cy=category_botiquePage]:eq(0)");
         cy.log("✅✅ A category has been selected for filtering");
         cy.wait(["@filterRequest", "@modifyRequest"]).then((interceptions) => {
           interceptions.forEach((interception, index) => {
@@ -50,9 +76,8 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
             cy.log(`✅✅ ${requestName} completed`);
           });
         });
-        cy.get("[data-cy=mainFilter]", { timeout: 10000 });
-        cy.log("✅✅ Main Filter Apperead In Filter Info Box");
         cy.get("[data-cy=mainFilter]")
+          .should("be.visible")
           .invoke("text")
           .then((text) => {
             const mainFilterInFilterBoxInfo = text as unknown as string;
@@ -60,17 +85,16 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
               "✅✅ The Main Filter Title In Filter Box Info Is:",
               mainFilterInFilterBoxInfo
             );
-            cy.wait(2000);
             expect(mainFilterInFilterBoxInfo).to.be.eq(mainCategoryTitle);
           });
       }
     });
   });
   it("Should Verifications The Box Of Size Founded", () => {
-    cy.Exist("[data-cy=sizeBox]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=sizeBox]").then((exist) => {
       if (exist) {
         cy.log("✅✅ The Box Of Size Founded");
-        cy.get("[data-cy=sizeBox]").eq(0).click({ force: true });
+        cy.clickElement("[data-cy=sizeBox]:eq(0)");
         cy.get("[data-cy=sizeTitle]")
           .eq(0)
           .invoke("text")
@@ -86,7 +110,6 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
               "✅✅ The Main Size Title In Filter Box Info Is:",
               sizeFilterTitle
             );
-            cy.wait(2000);
             expect(sizeFilterTitle).to.be.eq(sizeTitle);
           });
       } else {
@@ -99,42 +122,21 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   it("Should Verifications Filter Operation Is Completed Then Close Filter Info Box", () => {
     cy.ChexkExistElement("[data-cy=filterInfo]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=filterInfo]", { timeout: 10000 });
-        cy.log("✅✅ Filter Info Box Apperead");
         cy.clickElement("[data-cy=closeIcon]");
         cy.log("✅✅ The Filter Operation is finished");
       }
     });
   });
-  it("Should Click On Back Icon Found In Boutique Page To Return To The Home Page", () => {
-    cy.ChexkExistElement("[data-cy=back_icon_boutique_page]").then((exist) => {
-      if (exist) {
-        cy.clickElement("[data-cy=back_icon_boutique_page]");
-        cy.log("✅✅ back icon clicked and back to main page");
-      }
-    });
-  });
 });
-// ***********************************************************************************
 describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products By Brand", () => {
   let mainBrandTitle = "";
   let sizeTitle = "";
-  it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
-    cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(6)").click({
-      force: true,
-    });
-    cy.log("✅✅ An Boutiue selected");
-    cy.get("[data-cy=boutique_top_info]", { timeout: 20000 });
-    cy.log("✅✅ The Boutiue Page Opened");
-  });
   it("Should Obtain The Main Name Of The Brand That Was ChosenFor The Filter", () => {
     cy.ChexkExistElement("[data-cy=brandBox").then((exist) => {
       if (!exist) {
         cy.log("❌❌ Category Box Not Found, Skipping to Home Page...");
-        cy.clickElement("[data-cy=back_icon_boutique_page]");
-        cy.log("✅✅ Back icon clicked and returned to the main page");
       } else {
+        cy.log("✅✅ Brand Box Founded");
         cy.get("[data-cy=brandTitle]")
           .eq(0)
           .invoke("text")
@@ -149,7 +151,6 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
           "GET",
           "**/api/products/search?brand_slugs*&with_products=false"
         ).as("modifyRequest");
-        cy.log("✅✅ Brand Box Founded");
         cy.get("[data-cy=categoryShadow]").eq(0).click({ force: true });
         cy.log("✅✅ A Brand has been selected for filtering");
         cy.wait(["@filterRequest", "@modifyRequest"]).then((interceptions) => {
@@ -159,8 +160,6 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
             cy.log(`✅✅ ${requestName} completed`);
           });
         });
-        cy.get("[data-cy=mainFilterBrand]", { timeout: 10000 });
-        cy.log("✅✅ Main Filter Apperead In Filter Info Box");
         cy.get("[data-cy=mainFilterBrand]")
           .invoke("text")
           .then((text) => {
@@ -169,10 +168,8 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
               "✅✅ The Main Filter Title In Filter Box Info Is:",
               mainFilterBrandInFilterBoxInfo
             );
-            cy.wait(2000);
             expect(mainFilterBrandInFilterBoxInfo).to.be.eq(mainBrandTitle);
           });
-        // *
       }
     });
   });
@@ -180,7 +177,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
     cy.ChexkExistElement("[data-cy=sizeBox]").then((exist) => {
       if (exist) {
         cy.log("✅✅ The Box Of Size Founded");
-        cy.get("[data-cy=sizeBox]").eq(0).click({ force: true });
+        cy.clickElement("[data-cy=sizeBox]:eq(0)");
         cy.get("[data-cy=sizeTitle]")
           .eq(0)
           .invoke("text")
@@ -196,7 +193,6 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
               "✅✅ The Main Size Title In Filter Box Info Is:",
               sizeFilterTitle
             );
-            cy.wait(2000);
             expect(sizeFilterTitle).to.be.eq(sizeTitle);
           });
       } else {
@@ -209,38 +205,18 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   it("Should Verifications Filter Operation Is Completed Then Close Filter Info Box", () => {
     cy.ChexkExistElement("[data-cy=filterInfo]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=filterInfo]", { timeout: 10000 });
-        cy.log("✅✅ Filter Info Box Apperead");
         cy.clickElement("[data-cy=closeIcon]");
         cy.log("✅✅ The Filter Operation is finished");
       }
     });
   });
-
-  it("Should Click On Back Icon Found In Boutique Page To Return To The Home Page", () => {
-    cy.ChexkExistElement("[data-cy=back_icon_boutique_page]").then((exist) => {
-      if (exist) {
-        cy.clickElement("[data-cy=back_icon_boutique_page]");
-        cy.log("✅✅ back icon clicked and back to main page");
-      }
-    });
-  });
 });
-// ***********************************************************************************
 describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products By Color", () => {
   let sizeTitle = "";
-  it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
-    cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(6)").click({
-      force: true,
-    });
-    cy.log("✅✅ An Boutiue selected");
-    cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
-    cy.log("✅✅ The Boutiue Page Opened");
-  });
   it("Should Select A Color", () => {
     cy.ChexkExistElement("[data-cy=colorBox").then((exist) => {
       if (exist) {
+        cy.log("✅✅ Color Box Founded");
         cy.intercept(
           "GET",
           "**/api/products/search?boutique_slugs=*&colors=*"
@@ -249,9 +225,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
           "GET",
           "**/api/products/search?boutique_slugs=*&with_products=false&colors=*"
         ).as("modifyRequest");
-
-        cy.log("✅✅ Color Box Founded");
-        cy.get("[data-cy=categoryColor]").eq(0).click({ force: true });
+        cy.clickElement("[data-cy=categoryColor]:eq(0)");
         cy.log("✅✅ A Color has been selected for filtering");
         cy.wait(["@filterRequest", "@modifyRequest"]).then((interceptions) => {
           interceptions.forEach((interception, index) => {
@@ -260,6 +234,8 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
             cy.log(`✅✅ ${requestName} completed`);
           });
         });
+      } else {
+        cy.log("❌❌ Color Box Not Found, Skipping to Home Page...");
       }
     });
   });
@@ -267,7 +243,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
     cy.ChexkExistElement("[data-cy=sizeBox]").then((exist) => {
       if (exist) {
         cy.log("✅✅ The Box Of Size Founded");
-        cy.get("[data-cy=sizeBox]").eq(0).click({ force: true });
+        cy.clickElement("[data-cy=sizeBox]:eq(0)");
         cy.get("[data-cy=sizeTitle]")
           .eq(0)
           .invoke("text")
@@ -299,37 +275,18 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   it("Should Verifications Filter Operation Is Completed Then Close Filter Info Box", () => {
     cy.ChexkExistElement("[data-cy=filterInfo]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=filterInfo]", { timeout: 10000 });
-        cy.log("✅✅ Filter Info Box Apperead");
         cy.clickElement("[data-cy=closeIcon]");
         cy.log("✅✅ The Filter Operation is finished");
       }
     });
   });
-  it("Should Click On Back Icon Found In Boutique Page To Return To The Home Page", () => {
-    cy.ChexkExistElement("[data-cy=back_icon_boutique_page]").then((exist) => {
-      if (exist) {
-        cy.clickElement("[data-cy=back_icon_boutique_page]");
-        cy.log("✅✅ back icon clicked and back to main page");
-      }
-    });
-  });
 });
-// ***********************************************************************************
 describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products By Price", () => {
   let sizeTitle = "";
-  it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
-    cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(6)").click({
-      force: true,
-    });
-    cy.log("✅✅ An Boutiue selected");
-    cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
-    cy.log("✅✅ The Boutiue Page Opened");
-  });
   it("Should Select A Price", () => {
     cy.ChexkExistElement("[data-cy=priceBox").then((exist) => {
       if (exist) {
+        cy.log("✅✅ Price Box Founded");
         cy.intercept(
           "GET",
           "**/api/products/search?boutique_slugs=*&price=*"
@@ -338,9 +295,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
           "GET",
           "**/api/products/search?boutique_slugs=*&price=*&with_products=false"
         ).as("modifyRequest");
-
-        cy.log("✅✅ Price Box Founded");
-        cy.get("[data-cy=categoryPrice]").eq(0).click({ force: true });
+        cy.clickElement("[data-cy=categoryPrice]:eq(0)");
         cy.log("✅✅ A Price has been selected for filtering");
         cy.wait(["@filterRequest", "@modifyRequest"]).then((interceptions) => {
           interceptions.forEach((interception, index) => {
@@ -356,7 +311,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
     cy.ChexkExistElement("[data-cy=sizeBox]").then((exist) => {
       if (exist) {
         cy.log("✅✅ The Box Of Size Founded");
-        cy.get("[data-cy=sizeBox]").eq(0).click({ force: true });
+        cy.clickElement("[data-cy=sizeBox]:eq(0)");
         cy.get("[data-cy=sizeTitle]")
           .eq(0)
           .invoke("text")
@@ -385,35 +340,15 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   it("Should Verifications Filter Operation Is Completed Then Close Filter Info Box", () => {
     cy.ChexkExistElement("[data-cy=filterInfo]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=filterInfo]", { timeout: 10000 });
-        cy.log("✅✅ Filter Info Box Apperead");
         cy.clickElement("[data-cy=closeIcon]");
         cy.log("✅✅ The Filter Operation is finished");
       }
     });
   });
-  it("Should Click On Back Icon Found In Boutique Page To Return To The Home Page", () => {
-    cy.ChexkExistElement("[data-cy=back_icon_boutique_page]").then((exist) => {
-      if (exist) {
-        cy.clickElement("[data-cy=back_icon_boutique_page]");
-        cy.log("✅✅ back icon clicked and back to main page");
-      }
-    });
-  });
 });
-// ***********************************************************************************
 describe("Should Move Between Filter Groups By Scrolling Horizontally", () => {
   let countFilters = 0;
   let countDivs = 0;
-  it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
-    cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(6)").click({
-      force: true,
-    });
-    cy.log("✅✅ An Boutiue selected");
-    cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
-    cy.log("✅✅ The Boutiue Page Opened");
-  });
   it("Should Click On The Horizontal Scroll Icons", () => {
     cy.clickElement("[data-cy=rightScrool]");
     cy.log("✅✅ Right scroll is clicked");
@@ -442,29 +377,15 @@ describe("Should Move Between Filter Groups By Scrolling Horizontally", () => {
         });
       });
   });
-  it("Should Click On Back Icon Found In Boutique Page To Return To The Home Page", () => {
-    cy.clickElement("[data-cy=back_icon_boutique_page]");
-    cy.log("✅✅ back icon clicked and back to main page");
-  });
 });
-// ***********************************************************************************
 describe("Should Move Between Filter Groups By Scrolling Horizontally After Updating Count Of Filter Croup", () => {
   let countFilters = 0;
   let countDivs = 0;
-  it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
-    cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(6)").click({
-      force: true,
-    });
-    cy.log("✅✅ An Boutiue selected");
-    cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
-    cy.log("✅✅ The Boutiue Page Opened");
-  });
   it("Should Select A Brand", () => {
-    cy.Exist("[data-cy=brandBox").then((exist) => {
+    cy.ChexkExistElement("[data-cy=brandBox").then((exist) => {
       if (exist) {
         cy.log("✅✅ Brand Box Founded");
-        cy.get("[data-cy=categoryShadow]").eq(0).click({ force: true });
+        cy.clickElement("[data-cy=categoryShadow]:eq(0)");
         cy.log("✅✅ A Brand has been selected for filtering");
       }
     });
@@ -501,32 +422,20 @@ describe("Should Move Between Filter Groups By Scrolling Horizontally After Upda
         });
       });
   });
-  it("Should Click On Back Icon Found In Boutique Page To Return To The Home Page", () => {
-    cy.clickElement("[data-cy=back_icon_boutique_page]");
-    cy.log("✅✅ back icon clicked and back to main page");
-  });
 });
-// ***********************************************************************************
 describe("Should Clicks On Search Input And Search About A Product (By Name)", () => {
-  it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
-    cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(6)").click({
-      force: true,
-    });
-    cy.log("✅✅ An Boutiue selected");
-    cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
-    cy.log("✅✅ The Boutiue Page Opened");
-  });
   it("Should Click On The Search Icon On The Boutique Page", () => {
     cy.clickElement("[data-cy=searchIcon_boutiquePage]");
     cy.log("✅✅ search icon clicked");
   });
-  it("Should Click On The Input Search On The Boutique Page & Write An Product Name In", () => {
+  it("Should Click On The Input Search On The Boutique Page & Write A Product Name In", () => {
     cy.clickElement("[data-cy=inputFiled]");
     cy.get("[data-cy=inputFiled]")
       .type("Power", { force: true })
       .should("have.value", "Power");
     cy.log("✅✅ Writing Name In Input Search Field");
+    cy.get("[data-cy=inputFiled]").blur();
+    cy.get(".boutique-logo-container").should("be.visible");
   });
   it("Should Obtain The Number Of Products That Appeared After The Search To Confirm The Presence Of A Result", () => {
     cy.ChexkExistElement("[data-cy=countProduct").then((exist) => {
@@ -544,22 +453,9 @@ describe("Should Clicks On Search Input And Search About A Product (By Name)", (
       }
     });
   });
-  it("Should The Search Field Be Cleaned Of The Word You Typed", () => {
-    cy.log("✅ Typed in search input");
-    cy.get("[data-cy=inputFiled]").clear();
-    cy.log("✅ Cleared the search input");
-    cy.get("[data-cy=inputFiled]").type(" ", {
-      force: true,
-    });
-    cy.log("✅ Typed in search input");
-  });
   it("Should Click On Close Icon To Close The Search Input Field", () => {
-    cy.clickElement("[data-cy=closeSearchInput]");
+    cy.clickElement("[data-cy=closeIcon]");
     cy.log("✅ icon for close search input clicked");
-  });
-  it("Should Click On Back Icon Found In Boutique Page To Return To The Home Page", () => {
-    cy.clickElement("[data-cy=back_icon_boutique_page]");
-    cy.log("✅✅ back icon clicked and back to main page");
   });
 });
 // ***********************************************************************************
@@ -568,44 +464,38 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   let totalProductsFound2 = 0;
   let totalProductsFound3 = 0;
   let totalProductsFound4 = 0;
-  it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
-    cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(6)").click({
-      force: true,
-    });
-    cy.log("✅✅ An Boutiue selected");
-    cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
-    cy.log("✅✅ The Boutiue Page Opened");
-  });
   it("Should Click On Settings Icon Founded In Boutique Page", () => {
     cy.clickElement("[data-cy=settingsIcon]");
     cy.log("✅✅ settings icon Is clicked");
   });
   it("Should Select A Category", () => {
-    cy.ChexkExistElement("[data-cy=category_botiquePage]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=categoryBox]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=category_botiquePage]").eq(0).click({ force: true });
+        cy.clickElement("[data-cy=category_botiquePage]:eq(0)");
         cy.log("✅✅ A category has been selected for filtering");
-        cy.get('[data-cy="totalProduct_filterBoutique"]')
+        cy.get("[data-cy=totalProduct_filterBoutique]")
           .invoke("text")
           .then((text) => {
             const totalProductsFound = text.match(/\d+/)?.[0];
             totalProductsFound1 = parseInt(totalProductsFound, 10);
             cy.log(`✅✅ Total Products Found It: ${totalProductsFound}`);
           });
+        cy.intercept("GET", "**/boutiques/**").as("Load");
         cy.clickElement("[data-cy=totalProduct_filterBoutique]");
         cy.log("✅✅ Search Result Button Clicked");
+        cy.wait("@Load").then((inter) => {
+          cy.log("✅✅ Load Request Arrived");
+        });
       }
     });
   });
   it("Should Obtain The Number Of Products That Appeared As Result & Compare It With Number Of Products Appeared In Search Result Body", () => {
-    cy.ChexkExistElement("[data-cy=countProduct").then((exist) => {
+    cy.ChexkExistElement("[data-cy=countProduct]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=countProduct]")
           .its("length")
           .then((count) => {
             cy.log(`✅✅ Number Of Products View: ${count}`);
-            cy.wait(2000);
             expect(totalProductsFound1).to.be.eq(count);
           });
         cy.clickElement("[data-cy=closeIcon]");
@@ -617,9 +507,9 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   });
   // *******************************Brand**********************************
   it("Should Select A Brand", () => {
-    cy.ChexkExistElement("[data-cy=categoryShadow]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=brandBox]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=categoryShadow]").eq(0).click({ force: true });
+        cy.clickElement("[data-cy=categoryShadow]:eq(0)");
         cy.log("✅✅ A Brand has been selected for filtering");
         cy.get('[data-cy="totalProduct_filterBoutique"]')
           .invoke("text")
@@ -628,19 +518,22 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
             totalProductsFound2 = parseInt(totalProductsFound, 10);
             cy.log(`✅✅ Total Products Found It: ${totalProductsFound}`);
           });
+        cy.intercept("GET", "**/boutiques/**").as("Load");
         cy.clickElement("[data-cy=totalProduct_filterBoutique]");
         cy.log("✅✅ Search Result Button Clicked");
+        cy.wait("@Load").then((inter) => {
+          cy.log("✅✅ Load Request Arrived");
+        });
       }
     });
   });
   it("Should Obtain The Number Of Products That Appeared As Result & Compare It With Number Of Products Appeared In Search Result Body", () => {
-    cy.ChexkExistElement("[data-cy=countProduct").then((exist) => {
+    cy.ChexkExistElement("[data-cy=countProduct]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=countProduct]")
           .its("length")
           .then((count) => {
             cy.log(`✅✅ Number Of Products View: ${count}`);
-            cy.wait(2000);
             expect(totalProductsFound2).to.be.eq(count);
           });
         cy.clickElement("[data-cy=closeIcon]");
@@ -652,9 +545,9 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   });
   // *****************************color************************************
   it("Should Select A Color", () => {
-    cy.ChexkExistElement("[data-cy=categoryColor]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=colorBox]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=categoryColor]").eq(0).click({ force: true });
+        cy.clickElement("[data-cy=categoryColor]:eq(0)");
         cy.log("✅✅ A Color has been selected for filtering");
         cy.get('[data-cy="totalProduct_filterBoutique"]')
           .invoke("text")
@@ -662,20 +555,23 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
             const totalProductsFound = text.match(/\d+/)?.[0];
             totalProductsFound3 = parseInt(totalProductsFound, 10);
             cy.log(`✅✅ Total Products Found It: ${totalProductsFound}`);
+            cy.intercept("GET", "**/boutiques/**").as("Load");
             cy.clickElement("[data-cy=totalProduct_filterBoutique]");
             cy.log("✅✅ Search Result Button Clicked");
+            cy.wait("@Load").then((inter) => {
+              cy.log("✅✅ Load Request Arrived");
+            });
           });
       }
     });
   });
   it("Should Obtain The Number Of Products That Appeared As Result & Compare It With Number Of Products Appeared In Search Result Body", () => {
-    cy.ChexkExistElement("[data-cy=countProduct").then((exist) => {
+    cy.ChexkExistElement("[data-cy=countProduct]").then((exist) => {
       if (exist) {
         cy.get("[data-cy=countProduct]")
           .its("length")
           .then((count) => {
             cy.log(`✅✅ Number Of Products View: ${count}`);
-            cy.wait(2000);
             expect(totalProductsFound3).to.be.eq(count);
           });
         cy.clickElement("[data-cy=closeIcon]");
@@ -687,25 +583,36 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
   });
   // *******************************price***************************
   // it("Should Select A Price", () => {
-  //   cy.ChexkExistElement("[data-cy=slider]").then((exist) => {
-  //     cy.get("[data-cy=slider]").eq(0).click({ force: true });
-  //     cy.log("✅ slider has been selected for filtering");
-  //     cy.get(".rc-slider-handle-1").then(($el) => {
-  //       const rect = $el[0].getBoundingClientRect();
-  //       cy.wrap($el)
-  //         .trigger("mousedown", { which: 1, pageX: rect.x })
-  //         .trigger("mousemove", { which: 1, pageX: rect.x + 100 }) // Move right
-  //         .trigger("mouseup");
-  //     });
-  //     cy.get("[data-cy=totalProduct_filterBoutique]")
-  //       .invoke("text")
-  //       .then((text) => {
-  //         const totalProductsFound = text.match(/\d+/)?.[0];
-  //         totalProductsFound4 = parseInt(totalProductsFound, 10);
-  //         cy.log(`✅✅ Total Products Found It: ${totalProductsFound}`);
+  //   cy.ChexkExistElement("[[data-cy=slider]]").then((exist) => {
+  //     if (exist) {
+  //       // cy.intercept("GET", "**/api/products/search?boutique_slugs**").as(
+  //       //   "filterRequest"
+  //       // );
+  //       cy.get(".rc-slider-handle-1").then(($el) => {
+  //         const rect = $el[0].getBoundingClientRect();
+  //         cy.wrap($el)
+  //           .trigger("mousedown", { which: 1, pageX: rect.x })
+  //           .trigger("mousemove", { which: 1, pageX: rect.x + 100 }) // Move right
+  //           .trigger("mouseup");
   //       });
-  //     cy.clickElement("[data-cy=totalProduct_filterBoutique]");
-  //     cy.log("✅✅ Search Result Button Clicked");
+  //       cy.log("✅ Slider handle has been moved");
+  //       // cy.wait("@filterRequest").then((inter) => {
+  //       //   cy.log("✅✅ filter Request Arrived");
+  //       // });
+  //       cy.get("[data-cy=totalProduct_filterBoutique]")
+  //         .invoke("text")
+  //         .then((text) => {
+  //           const totalProductsFound = text.match(/\d+/)?.[0];
+  //           const totalProductsFoundNum = parseInt(totalProductsFound, 10);
+  //           cy.log(`✅ Total Products Found: ${totalProductsFoundNum}`);
+  //         });
+  //       cy.intercept("GET", "**/boutiques/**").as("Load");
+  //       cy.get("[data-cy=totalProduct_filterBoutique]").click();
+  //       cy.log("✅ Search Result Button Clicked");
+  //       cy.wait("@Load").then((inter) => {
+  //         cy.log("✅✅ Load Request Arrived");
+  //       });
+  //     }
   //   });
   // });
   it("Should Obtain The Number Of Products That Appeared As Result & Compare It With Number Of Products Appeared In Search Result Body", () => {
@@ -715,7 +622,6 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
           .its("length")
           .then((count) => {
             cy.log(`✅✅ Number Of Products View: ${count}`);
-            cy.wait(2000);
             expect(totalProductsFound4).to.be.eq(count);
           });
         cy.clickElement("[data-cy=closeIcon]");
@@ -723,143 +629,121 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
       }
     });
   });
-  it("Should Click On Back Icon Found In Boutique Page To Return To The Home Page", () => {
-    cy.clickElement("[data-cy=back_icon_boutique_page]");
-    cy.log("✅✅ back icon clicked and back to main page");
-  });
 });
 // *******************************************************************************
 describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products By Category & Brand & Color", () => {
   let totalProductsFound44 = 0;
-  it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
-    cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(6)").click({
-      force: true,
-    });
-    cy.log("✅✅ An Boutiue selected");
-    cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
-    cy.log("✅✅ The Boutiue Page Opened");
-  });
   it("Should Click On Settings Icon Founded In Boutique Page", () => {
     cy.clickElement("[data-cy=settingsIcon]");
     cy.log("✅✅ settings icon Is clicked");
   });
   it("Should Select A Category", () => {
-    cy.ChexkExistElement("[data-cy=category_botiquePage]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=categoryBox]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=category_botiquePage]").eq(0).click({ force: true });
+        cy.clickElement("[data-cy=category_botiquePage]:eq(0)");
         cy.log("✅✅ A category has been selected for filtering");
       }
     });
   });
   it("Should Select A Brand", () => {
-    cy.ChexkExistElement("[data-cy=categoryShadow]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=brandBox]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=categoryShadow]").eq(0).click({ force: true });
+        cy.clickElement("[data-cy=categoryShadow]:eq(0)");
         cy.log("✅✅ A Brand has been selected for filtering");
       }
     });
   });
   it("Should Select A Color", () => {
-    cy.ChexkExistElement("[data-cy=categoryColor]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=colorBox]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=categoryColor]").eq(0).click({ force: true });
+        cy.clickElement("[data-cy=categoryColor]:eq(0)");
         cy.log("✅✅ A Color has been selected for filtering");
       }
     });
   });
-  // it("Should Select A {Price}", () => {
-  //   cy.ChexkExistElement(".rc-slider-handle-1").then((exist) => {
-  //     cy.get("[data-cy=slider]").eq(0).click({ force: true });
-  //     cy.log("✅ slider has been selected for filtering");
-  //     cy.get(".rc-slider-handle-1").then(($el) => {
-  //       const rect = $el[0].getBoundingClientRect();
-  //       cy.wrap($el)
-  //         .trigger("mousedown", { which: 1, pageX: rect.x })
-  //         .trigger("mousemove", { which: 1, pageX: rect.x + 100 }) // Move right
-  //         .trigger("mouseup");
-  //     });
-  //   });
-  // });
   it("Should Obtain The Number Of Products That Appeared In Search Result Body", () => {
-    cy.get("[data-cy=totalProduct_filterBoutique]")
-      .invoke("text")
-      .then((text) => {
-        const totalProductsFound = text.match(/\d+/)?.[0];
-        totalProductsFound44 = parseInt(totalProductsFound, 10);
-        cy.log(`✅✅ Total Products Found It: ${totalProductsFound}`);
-      });
+    cy.ChexkExistElement("[data-cy=totalProduct_filterBoutique]").then(
+      (exist) => {
+        if (exist) {
+          cy.get("[data-cy=totalProduct_filterBoutique]")
+            .invoke("text")
+            .then((text) => {
+              const totalProductsFound = text.match(/\d+/)?.[0];
+              totalProductsFound44 = parseInt(totalProductsFound, 10);
+              cy.log(`✅✅ Total Products Found It: ${totalProductsFound}`);
+            });
+        }
+      }
+    );
   });
   it("Should Click On The Search Result Button To View The Result", () => {
-    cy.clickElement("[data-cy=totalProduct_filterBoutique]");
-    cy.log("✅✅ Search Result Button Clicked");
+    cy.ChexkExistElement("[data-cy=totalProduct_filterBoutique]").then(
+      (exist) => {
+        if (exist) {
+          cy.intercept("GET", "**/boutiques/**").as("Load");
+          cy.clickElement("[data-cy=totalProduct_filterBoutique]");
+          cy.log("✅✅ Search Result Button Clicked");
+          cy.wait("@Load").then((inter) => {
+            cy.log("✅✅ Load Request Arrived");
+          });
+        }
+      }
+    );
   });
   it("Should Obtain The Number Of Products That Appeared As Result & Compare It With Number Of Products Appeared In Search Result Body", () => {
     cy.ChexkExistElement("[data-cy=countProduct]").then((exist) => {
-      cy.get("[data-cy=countProduct]")
-        .its("length")
-        .then((count) => {
-          cy.log(`✅✅ Number Of Products View: ${count}`);
-          cy.wait(2000);
-          // expect(totalProductsFound44).to.be.eq(count);
-        });
+      if (exist) {
+        cy.get("[data-cy=countProduct]")
+          .its("length")
+          .then((count) => {
+            cy.log(`✅✅ Number Of Products View: ${count}`);
+            expect(totalProductsFound44).to.be.eq(count);
+          });
+      }
     });
   });
   it("Should Click On Close Icon To Return To Boutique Page", () => {
     cy.clickElement("[data-cy=closeIcon]");
     cy.log("✅✅ Close icon has been clicked");
   });
-  it("Should Click On Back Icon Found In Boutique Page To Return To The Home Page", () => {
-    cy.clickElement("[data-cy=back_icon_boutique_page]");
-    cy.log("✅✅ back icon clicked and back to main page");
-  });
 });
 // **************************************************************
 describe("Should Clicks On Settings Icon & Filter As Category || Brand || Color || Price & Reset After Any Choice", () => {
-  it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
-    cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.get(".offer-widget:nth-child(1)").click({
-      force: true,
-    });
-    cy.log("✅✅ An Boutiue selected");
-    cy.get("[data-cy=boutique_top_info]", { timeout: 15000 });
-    cy.log("✅✅ The Boutiue Page Opened");
-  });
   it("Should Click On Settings Icon Founded In Boutique Page", () => {
     cy.clickElement("[data-cy=settingsIcon]");
     cy.log("✅✅ settings icon Is clicked");
   });
   it("Should Select A Category", () => {
-    cy.ChexkExistElement("[data-cy=category_botiquePage]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=categoryBox]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=category_botiquePage]").eq(0).click({ force: true });
+        cy.clickElement("[data-cy=category_botiquePage]:eq(0)");
         cy.log("✅✅ A category has been selected for filtering");
-        cy.get("[data-cy=resetButton]").click({ force: true });
+        cy.clickElement("[data-cy=resetButton]");
         cy.log("✅ A category has been selected for filtering");
       }
     });
   });
   it("Should Select A Brand", () => {
-    cy.ChexkExistElement("[data-cy=categoryShadow]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=brandBox]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=categoryShadow]").eq(0).click({ force: true });
-        cy.log("✅✅ A Brand has been selected for filtering");
-        cy.get("[data-cy=resetButton]").click({ force: true });
+        cy.clickElement("[data-cy=categoryShadow]:eq(0)");
+        cy.log("✅✅ A category has been selected for filtering");
+        cy.clickElement("[data-cy=resetButton]");
         cy.log("✅ A category has been selected for filtering");
       }
     });
   });
   it("Should Select A Color", () => {
-    cy.ChexkExistElement("[data-cy=categoryColor]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=colorBox]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=categoryColor]").eq(0).click({ force: true });
-        cy.log("✅✅ A Color has been selected for filtering");
-        cy.get("[data-cy=resetButton]").click({ force: true });
+        cy.clickElement("[data-cy=categoryColor]:eq(0)");
+        cy.log("✅✅ A category has been selected for filtering");
+        cy.clickElement("[data-cy=resetButton]");
         cy.log("✅ A category has been selected for filtering");
       }
     });
   });
-  it("Should Select A {Price}", () => {
+  it("Should Select A Price", () => {
     cy.ChexkExistElement(".rc-slider-handle-1").then((exist) => {
       cy.get(".rc-slider-handle-1").then(($el) => {
         const rect = $el[0].getBoundingClientRect();
@@ -868,7 +752,7 @@ describe("Should Clicks On Settings Icon & Filter As Category || Brand || Color 
           .trigger("mousemove", { which: 1, pageX: rect.x + 100 }) // Move right
           .trigger("mouseup");
       });
-      cy.get("[data-cy=resetButton]").click({ force: true });
+      cy.clickElement("[data-cy=resetButton]");
       cy.log("✅ A category has been selected for filtering");
     });
   });

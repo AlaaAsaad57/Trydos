@@ -30,9 +30,6 @@ describe.only("Signup Successful Attempt should login to 3 servers", () => {
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
     let count = 0;
-    cy.intercept("POST", "**/login", () => {
-      count += 1;
-    }).as("login");
     cy.window().then((win) => {
       (win as any).stepIndicator = 5;
     });
@@ -45,13 +42,7 @@ describe.only("Signup Successful Attempt should login to 3 servers", () => {
     cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
       cy.log("✅ verifyOtpSignin request arrived");
     });
-    cy.wait("@login", { timeout: 10000 }).then((interception) => {
-      cy.log("✅ login request arrived");
-    });
-    cy.wait(500).then(() => {
-      cy.log(`Count is: ${count}`);
-      expect(count).to.be.greaterThan(1);
-    });
+    cy.RequestForThreeServers();
   });
   it("Should Click On Input Field For Writ User Name", () => {
     cy.InputFieldNameVisible();

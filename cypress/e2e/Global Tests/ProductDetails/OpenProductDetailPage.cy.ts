@@ -5,34 +5,26 @@ describe("Should Open The Boutique Page & Move From It To A Product Page From Th
       return false;
     });
     cy.Visit("/");
-    cy.get("[data-cy=boutiques]", { timeout: 20000 });
-    cy.log("✅✅ Boutiues Founded & Loaded In Main Page");
+    cy.interceptAndWait([
+      {
+        method: "GET",
+        url: "**/api/v1/stories/users_stories",
+        alias: "users_stories",
+      },
+      {
+        method: "GET",
+        url: "**/api/products/popular-search",
+        alias: "popular-search",
+      },
+    ]);
+    cy.log("✅✅ users_stories & popular-search Requests Arrived");
   });
   it("Should Select Any Boutique & Click On", () => {
-    cy.clickElement(".offer-widget:nth-child(3)");
-    cy.log("✅✅ An Boutique Selected & Click");
-    cy.get("[data-cy=boutiqueOpen]", { timeout: 20000 });
-    cy.log("✅✅ The Boutique's Components Were Successfully Displayed");
-    cy.get("[data-cy=boutique_top_info]", { timeout: 20000 });
-    cy.log("✅✅ The Selected Boutique Page Has Opened");
-  });
-  it("Should Verify Products & Boxes Below Boutique Photo", () => {
-    cy.verifyBoxsInBoutiquePage();
-    cy.get("[data-cy=allCategory]", { timeout: 20000 });
-    cy.log("✅✅ There Are Products On This Boutique Page");
-  });
-  it("Should Check The Components Of The Product Display Card (Product Name, Price, Purchase Button)", () => {
-    cy.verifyComponentsInProductCard();
+    cy.ChooseBoutiqueAndVerifyComponentsAndBoxsInBoutiquePage();
   });
 });
 // *************************************one*********************************************
-describe("Should Open Product Page & Open One Of Pictures In Product Detail Page", () => {
-  it("Should Choose The First Product From The Products On The Boutique Page & Open His Page", () => {
-    cy.get("[data-cy=on_mouse_over_product]").eq(0).click({ force: true });
-    cy.log(
-      "✅✅ The Card Of The First Product Is Clicked & The Page Of Product Is Opned"
-    );
-  });
+describe("Should Open One Of Pictures In Product Detail Page", () => {
   it("Should Open One Of Pictures In Product Detail Page", () => {
     cy.get(".embla__slide")
       .should("exist") // Ensure the elements exist

@@ -52,6 +52,7 @@ function SelectColor({ close }) {
       <div className="back-bar align-center w-100 flex-row min-h-12 bg-[#fff] p-4 z-[9999999999] fixed top-0 justify-between">
         <div
           className="back-icon p-0"
+          data-cy="BackIcon-WhenAddFromProductDetails"
           onClick={() => {
             document.documentElement.style.overflow = "auto";
             document.documentElement.scrollTop = 0;

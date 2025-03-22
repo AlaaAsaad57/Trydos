@@ -8,11 +8,13 @@ describe("Should visit the home page and add a product to the cart from the bout
   it("should verify the user is login", () => {
     cy.ChexkExistElement("[data-cy=NavUserName]").then((exist) => {
       if (!exist) {
+        cy.log("❌❌ Should Do login");
         cy.performLogin1();
       } else {
         cy.get("[data-cy=NavUserName]")
           .invoke("text")
           .then((text) => {
+            cy.log(`${text}`);
             if (text != "Abdo Hamdan") {
               cy.logout();
               cy.performLogin1();
@@ -35,15 +37,12 @@ describe("Should visit the home page and add a product to the cart from the bout
     });
   });
   it("Should add a product to the cart from the boutique page and pass through it to the cart page", () => {
-    cy.AddProductToCartThenComplateOrder();
+    cy.ComplateAddProductOperationAndGoCartPage();
   });
 });
 describe("Should Confirm Order Operation", () => {
   it("Should Click On Confirm & Countinue Button", () => {
-    cy.clickElement("[data-cy=Confirm-Order-Button]");
-    cy.log("✅✅ Confirm & Countinue Button Clicked");
-  });
-  it("Should Arrived Dual Request", () => {
+    cy.ConfirmAndComplateOrderButton();
     cy.interceptAndWait([
       {
         method: "GET",
@@ -61,7 +60,7 @@ describe("Should Confirm Order Operation", () => {
 });
 describe("Should Chheck if address added last & add if not found", () => {
   it("Chheck if address added last", () => {
-    cy.Exist("[data-cy=Address-Added-Last]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=Address-Added-Last]").then((exist) => {
       if (!exist) {
         cy.clickElement("[data-cy=AddAddres]");
         cy.log("✅✅ Add Addres Button Clicked");
@@ -126,7 +125,4 @@ describe("Order Success Page", () => {
       .contains("Order Invoice")
       .should("be.visible");
   });
-  // it("should include InfoOrder component", () => {
-  //   cy.get('[data-cy="The-Purchas"]').find("InfoOrder").should("exist");
-  // });
 });

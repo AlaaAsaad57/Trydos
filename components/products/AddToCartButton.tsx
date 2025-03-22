@@ -536,6 +536,7 @@ function AddToCartButton({
             } 
        
       `}
+            data-cy="ProductQuantityFinished"
             onClick={(e) => {
               // @ts-ignore
               NotifyAction();

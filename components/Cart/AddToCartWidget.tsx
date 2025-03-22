@@ -263,6 +263,7 @@ const SelectColor = ({ close }) => {
       <div className="back-bar align-center w-100 flex-row min-h-12 bg-[#fff] p-4 z-[99999999] justify-between">
         <div
           className="back-icon p-0"
+          data-cy="Back-Icon-AddToWedgit"
           onClick={() => {
             close();
           }}
