@@ -42,6 +42,8 @@
     "leaflet-geosearch": "^4.0.0",
     "less": "^4.2.0",
     "less-loader": "^12.2.0",
+    "mkdocs": "^0.0.1",
+    "mkdocs-material": "^0.0.1-security",
     "msw": "^2.3.1",
     "next": "^14.2",
     "next-nprogress-bar": "^2.3.13",
