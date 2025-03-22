@@ -241,7 +241,7 @@ Cypress.Commands.add("performLogin1", (s?: string) => {
   cy.OpenLoginInterface();
   cy.HaveAccount();
   cy.ComplateLoginByMobilePhone();
-  cy.enterPhoneNumber("963937764641");
+  cy.enterPhoneNumber(s || "963937764641");
   cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
   cy.CheckIfTrySendOtp();
   cy.typePincode("999999");
