@@ -112,15 +112,12 @@ describe("Compare Quantity Founded In Order With Quantity Required", () => {
   it("Should Check Other Components", () => {
     cy.get("[data-cy=Order-Cart-Icon]", { timeout: 15000 }).should("exist");
     cy.log("✅✅ Order Cart Icon Exists");
-
     cy.get(".regular")
       .should("contain.text", "Your Shopping Bag")
       .should("exist");
     cy.log("✅✅ The Text Exists");
-
     cy.get("[data-cy=DropDownIcon]").click({ force: true });
     cy.log("✅✅ Drop Down Icon Click");
-
     cy.get("[data-cy=Item]")
       .its("length")
       .then((count) => {

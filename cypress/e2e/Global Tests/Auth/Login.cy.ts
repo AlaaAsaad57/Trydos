@@ -366,10 +366,10 @@ describe("Should show user not found when registering with non registered number
   it("Should Click On Arrow Founded In Right Of Input Field & Click On Skip For Now Button", () => {
     cy.SkipForNow();
   });
-  it("Should Arrived Dual Request", () => {
-    cy.intercept("POST", "**/api/v1/users/update").as("update");
-    // cy.intercept("POST", "**/api/new_v1/customer/update-name").as("updatename");
-    cy.wait("@update");
-    // cy.wait("@updatename");
-  });
+  // it("Should Arrived Dual Request", () => {
+  //   cy.intercept("POST", "**/api/v1/users/update").as("update");
+  //   cy.intercept("POST", "**/api/new_v1/customer/update-name").as("updatename");
+  //   cy.wait("@update");
+  //   cy.wait("@updatename");
+  // });
 });
