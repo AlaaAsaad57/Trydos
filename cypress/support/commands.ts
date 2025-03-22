@@ -142,20 +142,26 @@ Cypress.Commands.add("ChooseWayToRecieveOtpAndWaitOtpRequest", () => {
 Cypress.Commands.add("CheckIfTrySendOtp", () => {
   cy.ChexkExistElement("[data-cy=WaitForTryAgain]").then((exist) => {
     if (exist) {
-      cy.wait(60000);
-      cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-      cy.get(".message-recieve-option:nth-child(2)").click({
-        scrollBehavior: false,
+      cy.get("[data-cy=WaitForTryAgain]").then(($element) => {
+        const waitTime = parseInt($element.text().match(/\d+/)[0]);
+        cy.log(`✅✅ Waiting for ${waitTime} seconds before trying again`);
+
+        cy.wait(waitTime * 1000 + 1); // Wait for the specified time in milliseconds
+        cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+        cy.get(".message-recieve-option:nth-child(2)").click({
+          scrollBehavior: false,
+        });
+        cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
+        cy.wait("@sendOtpApi");
+        cy.log("✅✅ Send Otp Api Request Successfuly");
       });
-      cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
-      cy.wait("@sendOtpApi");
-      cy.log("✅✅ Send Otp Api Request Successfuly");
     }
   });
 });
 Cypress.Commands.add("EndLoginOperation", () => {
   cy.get("[data-testid=login-close-icon]").click({
     scrollBehavior: false,
+    force: true,
   });
 });
 Cypress.Commands.add("InputFieldNameVisible", () => {
@@ -167,9 +173,14 @@ Cypress.Commands.add("TypeName", () => {
     .type("Abdo Hamdan", { force: true })
     .should("have.value", "Abdo Hamdan"); // Ensure text was typed
   cy.log("✅✅ User Name is Writ In Input Field");
+  cy.clickElement(".phone-arrow");
 });
 Cypress.Commands.add("MakeOtpExpired", () => {
   cy.wait(70000);
+});
+Cypress.Commands.add("SkipForNow", () => {
+  cy.clickElement("[data-cy=skipForNow]");
+  cy.log("✅✅ Skip For Now Button clicked");
 });
 Cypress.Commands.add("ColoredFieldRed", () => {
   cy.get(".input-failed", { timeout: 5000 }).should("be.visible");
@@ -184,6 +195,7 @@ Cypress.Commands.add("typePincode", (pincode: string) => {
     }).type(digit, { scrollBehavior: false });
   });
 });
+
 Cypress.Commands.add("enterPhoneNumber", (phoneNumber: string) => {
   phoneNumber.split("").forEach((char) => {
     cy.get("#phoneInput")
@@ -277,6 +289,7 @@ Cypress.Commands.add("interceptAndWait", (routes) => {
 Cypress.Commands.add("clickElement", (selector: string) => {
   cy.get(selector).click({ scrollBehavior: false, force: true });
 });
+// ****************************************************************************************************************************************
 Cypress.Commands.add(
   "getProductNameFirstly",
   (selector = "[data-cy=productName]") => {
@@ -401,10 +414,10 @@ Cypress.Commands.add("verifyComponentsInProductCard", () => {
       cy.log("❌❌ There aren't any photos slider");
     }
   });
-  // cy.scrollTo("bottom");
-  // cy.get('[data-cy="ReachEnd"]', { timeout: 15000 })
-  //   .should("be.visible")
-  //   .and("contain.text", "Reach End");
+  cy.scrollTo("bottom");
+  cy.get('[data-cy="ReachEnd"]', { timeout: 15000 })
+    .should("be.visible")
+    .and("contain.text", "Reach End");
 });
 // ***********************************Orders******************************
 Cypress.Commands.add("AddProductToCart", () => {
