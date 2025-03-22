@@ -2,7 +2,7 @@
 import SettingsModal from "components/Home/SettingsModal";
 import React, { useState } from "react";
 
-function Setting() {
+function Setting({ lang }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -11,6 +11,7 @@ function Setting() {
         onClose={() => {
           setIsModalOpen(false);
         }}
+        lang={lang}
       />
     </>
   );

@@ -47,8 +47,16 @@ Cypress.Commands.add("Visit", function (url: string) {
       cy.wait("@CountriesApi").then((i) => {
         console.log("sahsahj", i);
         if (i) {
-          cy.log("sd");
-          cy.get("#country").select("TR");
+          cy.Exist("#country").then((exist) => {
+            if (exist) {
+              cy.get("#country").select("TR");
+            } else {
+              cy.get("[data-cy='countain-with']").first().click({
+                force: true,
+                scrollBehavior: false,
+              });
+            }
+          });
         }
       });
     }
