@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { NotificationItem as NotificationItemType } from "../../types/notifications";
+import { translateFunction } from "utils/functions";
 
 interface NotificationItemProps {
   notification: NotificationItemType;
@@ -58,9 +59,11 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
           <NotificationIcon />
         )}
         <div className="flex-1">
-          <h4 className="font-medium text-gray-900">{notification.title}</h4>
-          <p className="text-sm text-gray-600">
+          <h4 className="font-medium text-gray-900">
             {parsedDescription.description}
+          </h4>
+          <p className="text-sm text-gray-600">
+            {translateFunction("Click to view details")}
           </p>
           {parsedDescription.boutique_description && (
             <div
@@ -96,7 +99,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         if (parsedDescription.type === "category created") {
           return (
             <Link
-              href={`/${lang}/categories/${
+              href={`/${lang}/boutiques/listing?categories=${
                 parsedDescription.category_slug || parsedDescription.slug
               }`}
             >

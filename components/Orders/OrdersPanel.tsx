@@ -96,9 +96,10 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
       style={{
         position: "fixed",
         top: 10,
-        right: 10,
-        maxHeight: "500px",
-        width: "400px",
+        right: 0,
+        maxHeight: "600px",
+        maxWidth: "400px",
+        width: "100%",
         background: "#fff",
         boxShadow: "-2px 0 5px rgba(0, 0, 0, 0.1)",
         zIndex: 1000,
@@ -171,7 +172,7 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
           scrollBehavior: "smooth",
           WebkitOverflowScrolling: "touch",
         }}
-        className="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
+        className="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent min-h-[400px]"
       >
         {orders.map((order) => (
           <OrderItem key={order.id} order={order} />

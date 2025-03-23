@@ -23,7 +23,6 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
     const originalStyle = window.getComputedStyle(document.body).overflow;
     const originalPosition = window.getComputedStyle(document.body).position;
     const originalTop = window.getComputedStyle(document.body).top;
-    const originalWidth = window.getComputedStyle(document.body).width;
 
     document.body.style.overflow = "hidden";
     document.body.style.position = "fixed";
@@ -34,7 +33,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
       document.body.style.overflow = originalStyle;
       document.body.style.position = originalPosition;
       document.body.style.top = originalTop;
-      document.body.style.width = originalWidth;
+
       window.scrollTo(0, parseInt(originalTop || "0") * -1);
     };
   }, []);
@@ -59,6 +58,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
     setLoading(true);
     try {
       const response = await fetchNotifications(page);
+
       if (response.isSuccessful && response.hasContent) {
         setNotifications((prev) => [...prev, ...response.data.data]);
         setHasMore(!!response.data.next_page_url);
@@ -99,11 +99,12 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
       ref={notificationsRef}
       style={{
         position: "fixed",
-        top: 0,
+        top: 10,
         right: 0,
         bottom: 0,
-        width: "400px",
-        maxHeight: "500px",
+        maxWidth: "400px",
+        width: "100%",
+        maxHeight: "600px",
         background: "#fff",
         boxShadow: "-2px 0 5px rgba(0, 0, 0, 0.1)",
         zIndex: 1000,
@@ -176,7 +177,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
           scrollBehavior: "smooth",
           WebkitOverflowScrolling: "touch",
         }}
-        className="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
+        className="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent min-h-[400px]"
       >
         {notifications.map((notification, index) => (
           <NotificationItem key={index} notification={notification} />

@@ -1,18 +1,18 @@
 import { OrderResponse } from "../types/orders";
+import { AxiosGet } from "utils/AxiosApi";
 
 export const fetchOrders = async (
   page: number,
   pageSize: number = 8
 ): Promise<OrderResponse> => {
   try {
-    // Replace this URL with your actual API endpoint
-    const response = await fetch(
-      `/api/orders?page=${page}&pageSize=${pageSize}`
-    );
-    if (!response.ok) {
-      throw new Error("Failed to fetch orders");
-    }
-    return await response.json();
+    const response = await AxiosGet({
+      url:
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+        `/customer/order/list?offset=${page}&limit=${pageSize}`,
+      title: "Fetch Orders",
+    });
+    return response;
   } catch (error) {
     console.error("Error fetching orders:", error);
     // Fallback to mock data if API is not available

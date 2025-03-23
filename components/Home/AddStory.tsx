@@ -22,7 +22,28 @@ function AddStory() {
     (state: StateInterface) => state.homepage.language
   );
   const [openMenu, setOpenMenu] = useState(false);
-  const [OpenCamera, setOpenCamera] = useState(false);
+  const OpenCamera = useSelector(
+    (state: StateInterface) => state.homepage.OpenCamera
+  );
+  const setOpenCamera = (value: boolean) => {
+    if (value) {
+      // @ts-ignore
+      document.querySelector(".stories-bar-container").style.zIndex =
+        "999999999999999999999999";
+      // @ts-ignore
+      document.querySelector(".stories-bars").classList.add("overflow-visible");
+      dispatch({ type: "OPEN_CAMERA", payload: value });
+    } else {
+      // @ts-ignore
+      document.querySelector(".stories-bar-container").style.zIndex =
+        "99999999";
+      // @ts-ignore
+      document
+        .querySelector(".stories-bars")
+        .classList.remove("overflow-visible");
+      dispatch({ type: "OPEN_CAMERA", payload: value });
+    }
+  };
   const [isSelected, setIsSelected] = useState(null);
   const [file, setFile] = useState(null);
   const dispatch = useDispatch();
