@@ -256,6 +256,8 @@ const translations = {
     "Remove Photo": "Remove Photo",
     "From Files": "From Files",
     "From Camera": "From Camera",
+    Wishlist: "Wishlist",
+    "Your wishlist is empty": "Your wishlist is empty",
   },
   ar: {
     "Payment Method": "طرق الدفع",
@@ -648,6 +650,8 @@ const translations = {
     "From Camera": "من الكاميرا",
     "Change Photo": "تغيير الصورة",
     "JPG, PNG or GIF (max. 5MB)": "JPG أو PNG أو GIF (الحد الأقصى 5 ميجابايت)",
+    Wishlist: "قائمة الرغبات",
+    "Your wishlist is empty": "قائمة رغباتك فارغة",
   },
   tr: {
     Buy: "Satın Al",
@@ -921,6 +925,8 @@ const translations = {
     "From Files": "Dosyalardan",
     "From Camera": "Kameradan",
     "JPG, PNG or GIF (max. 5MB)": "JPG, PNG veya GIF (maks. 5MB)",
+    Wishlist: "İstek Listesi",
+    "Your wishlist is empty": "İstek listeniz boş",
   },
 };
 

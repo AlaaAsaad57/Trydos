@@ -8,6 +8,7 @@ import { changeAppLanguage } from "store/homepage/actions";
 import { useDispatch, useSelector } from "node_modules/react-redux/es";
 import NotificationsPanel from "../Notifications/NotificationsPanel";
 import OrdersPanel from "../Orders/OrdersPanel";
+import WishListPanel from "../WishList/WishListPanel";
 import CountrySelector from "components/global/CountrySelector";
 
 interface MenuProps {
@@ -125,6 +126,7 @@ const MenuItem: React.FC<{
 const Menu: React.FC<MenuProps> = ({ user }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showOrders, setShowOrders] = useState(false);
+  const [showWishList, setShowWishList] = useState(false);
   const { lang } = useParams();
 
   const handleLogout = () => {
@@ -177,6 +179,17 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
               {translateFunction("Settings")}
             </MenuItem>
             <MenuItem
+              dataCy="WishList-Icon"
+              onClick={() => setShowWishList(!showWishList)}
+              icon={
+                <MenuIcon>
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </MenuIcon>
+              }
+            >
+              {translateFunction("Wishlist")}
+            </MenuItem>
+            <MenuItem
               dataCy="Notifications-Icon"
               onClick={() => setShowNotifications(!showNotifications)}
               icon={
@@ -227,6 +240,17 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
               {translateFunction("Settings")}
             </MenuItem>
             <MenuItem
+              dataCy="WishList-Icon"
+              onClick={() => setShowWishList(!showWishList)}
+              icon={
+                <MenuIcon>
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </MenuIcon>
+              }
+            >
+              {translateFunction("Wishlist")}
+            </MenuItem>
+            <MenuItem
               dataCy="Notifications-Icon"
               onClick={() => setShowNotifications(!showNotifications)}
               icon={
@@ -257,6 +281,7 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
         <NotificationsPanel onClose={() => setShowNotifications(false)} />
       )}
       {showOrders && <OrdersPanel onClose={() => setShowOrders(false)} />}
+      {showWishList && <WishListPanel onClose={() => setShowWishList(false)} />}
     </>
   );
 };
