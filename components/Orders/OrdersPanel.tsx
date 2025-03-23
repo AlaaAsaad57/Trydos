@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
-import { OrderItem as OrderItemType } from "../../types/orders";
+import { OrderItem as OrderItemType, OrdersResponse } from "../../types/orders";
 import { fetchOrders } from "../../services/orders";
 import OrderItem from "./OrderItem";
 
@@ -56,10 +56,14 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
 
     setLoading(true);
     try {
-      const response = await fetchOrders(page);
-      setOrders((prev) => [...prev, ...response.orders]);
-      setHasMore(response.hasMore);
-      setPage(response.nextPage);
+      const response: OrdersResponse = await fetchOrders(page);
+      if (response.isSuccessful && response.hasContent) {
+        setOrders((prev) => [...prev, ...response.data]);
+        setHasMore(response.data.length > 0);
+        setPage((prev) => prev + 1);
+      } else {
+        setHasMore(false);
+      }
     } catch (error) {
       console.error("Error loading orders:", error);
     } finally {
@@ -82,7 +86,7 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
       const scrollThreshold = 50; // pixels from bottom to trigger load
 
       if (scrollHeight - scrollTop - clientHeight < scrollThreshold) {
-        loadMoreOrders();
+        // loadMoreOrders();
       }
     };
 
