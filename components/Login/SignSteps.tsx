@@ -29,42 +29,46 @@ function SignSteps({
 }) {
   return (
     <>
-      <WelcomingWidget
-        signStep={signStep}
-        stepIndicator={stepIndicator}
-        Name={user?.name || "User Test"}
-        close={() => close()}
-        inputValue={inputValue}
-      />
+      {stepIndicator !== 7 && (
+        <>
+          <WelcomingWidget
+            signStep={signStep}
+            stepIndicator={stepIndicator}
+            Name={user?.name || "User Test"}
+            close={() => close()}
+            inputValue={inputValue}
+          />
 
-      <AlreadyRegistered
-        signStep={signStep}
-        stepIndicator={stepIndicator}
-        setStepSign={(e) => setStepSign(e)}
-        FinaliseLogin={() => FinaliseLogin()}
-        close={() => {
-          close();
-          cancelLogin();
-        }}
-        inputValue={inputValue}
-        setStepIndicator={(e) => setStepIndactor(e)}
-      />
-      <AccountNotFound
-        signStep={signStep}
-        close={() => {
-          close();
-          cancelLogin();
-        }}
-        stepIndicator={stepIndicator}
-        inputValue={inputValue}
-        setStepIndicator={(e) => setStepIndactor(e)}
-      />
-      <WelcomeSignup
-        Name={Name}
-        close={() => close()}
-        signStep={signStep}
-        stepIndicator={stepIndicator}
-      />
+          <AlreadyRegistered
+            signStep={signStep}
+            stepIndicator={stepIndicator}
+            setStepSign={(e) => setStepSign(e)}
+            FinaliseLogin={() => FinaliseLogin()}
+            close={() => {
+              close();
+              cancelLogin();
+            }}
+            inputValue={inputValue}
+            setStepIndicator={(e) => setStepIndactor(e)}
+          />
+          <AccountNotFound
+            signStep={signStep}
+            close={() => {
+              close();
+              cancelLogin();
+            }}
+            stepIndicator={stepIndicator}
+            inputValue={inputValue}
+            setStepIndicator={(e) => setStepIndactor(e)}
+          />
+          <WelcomeSignup
+            Name={Name}
+            close={() => close()}
+            signStep={signStep}
+            stepIndicator={stepIndicator}
+          />
+        </>
+      )}
     </>
   );
 }

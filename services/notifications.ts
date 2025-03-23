@@ -1,13 +1,21 @@
+import { UserToken } from "utils/functions";
 import { NotificationResponse } from "../types/notifications";
 
 export const fetchNotifications = async (
   page: number,
-  pageSize: number = 8
+  pageSize: number = 10
 ): Promise<NotificationResponse> => {
   try {
-    // Replace this URL with your actual API endpoint
     const response = await fetch(
-      `/api/notifications?page=${page}&pageSize=${pageSize}`
+      process.env.NEXT_PUBLIC_BACKEND_URL +
+        `/user-notifications/get?page=${page}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${UserToken()}`,
+        },
+      }
     );
     if (!response.ok) {
       throw new Error("Failed to fetch notifications");
@@ -17,50 +25,46 @@ export const fetchNotifications = async (
     console.error("Error fetching notifications:", error);
     // Fallback to mock data if API is not available
     return {
-      notifications: [
-        {
-          id: `${page * pageSize + 1}`,
-          title: "New message from John",
-          time: "2 hours ago",
-        },
-        {
-          id: `${page * pageSize + 2}`,
-          title: "System update available",
-          time: "5 hours ago",
-        },
-        {
-          id: `${page * pageSize + 3}`,
-          title: "Your order has been shipped",
-          time: "1 day ago",
-        },
-        {
-          id: `${page * pageSize + 4}`,
-          title: "New feature announcement",
-          time: "2 days ago",
-        },
-        {
-          id: `${page * pageSize + 5}`,
-          title: "Meeting reminder",
-          time: "3 days ago",
-        },
-        {
-          id: `${page * pageSize + 6}`,
-          title: "Document shared with you",
-          time: "4 days ago",
-        },
-        {
-          id: `${page * pageSize + 7}`,
-          title: "Profile update required",
-          time: "5 days ago",
-        },
-        {
-          id: `${page * pageSize + 8}`,
-          title: "New comment on your post",
-          time: "6 days ago",
-        },
-      ],
-      hasMore: page < 10,
-      nextPage: page + 1,
+      isSuccessful: true,
+      hasContent: true,
+      code: 200,
+      message: "Success",
+      detailed_error: null,
+      data: {
+        current_page: page,
+        data: [
+          {
+            title: "market",
+            description: JSON.stringify({
+              type: "boutique created",
+              description: "new boutique created",
+              boutique_slug: "test-boutique",
+              boutique_icon: {
+                file_path: "https://example.com/icon.svg",
+                original_width: "800px",
+                original_height: "800px",
+              },
+            }),
+          },
+        ],
+        first_page_url: "http://example.com/api/notifications?page=1",
+        from: (page - 1) * pageSize + 1,
+        last_page: 10,
+        last_page_url: "http://example.com/api/notifications?page=10",
+        links: [],
+        next_page_url:
+          page < 10
+            ? `http://example.com/api/notifications?page=${page + 1}`
+            : null,
+        path: "http://example.com/api/notifications",
+        per_page: pageSize,
+        prev_page_url:
+          page > 1
+            ? `http://example.com/api/notifications?page=${page - 1}`
+            : null,
+        to: page * pageSize,
+        total: 100,
+      },
     };
   }
 };
