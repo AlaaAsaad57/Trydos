@@ -59,9 +59,11 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
     setLoading(true);
     try {
       const response = await fetchNotifications(page);
-      setNotifications((prev) => [...prev, ...response.notifications]);
-      setHasMore(response.hasMore);
-      setPage(response.nextPage);
+      if (response.isSuccessful && response.hasContent) {
+        setNotifications((prev) => [...prev, ...response.data.data]);
+        setHasMore(!!response.data.next_page_url);
+        setPage((prev) => prev + 1);
+      }
     } catch (error) {
       console.error("Error loading notifications:", error);
     } finally {
@@ -101,6 +103,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
         right: 0,
         bottom: 0,
         width: "400px",
+        maxHeight: "500px",
         background: "#fff",
         boxShadow: "-2px 0 5px rgba(0, 0, 0, 0.1)",
         zIndex: 1000,
@@ -175,8 +178,8 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
         }}
         className="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
       >
-        {notifications.map((notification) => (
-          <NotificationItem key={notification.id} notification={notification} />
+        {notifications.map((notification, index) => (
+          <NotificationItem key={index} notification={notification} />
         ))}
         {loading && (
           <div
