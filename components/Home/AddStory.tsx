@@ -216,8 +216,8 @@ function AddStory() {
               position: "absolute",
               top: "200px",
               overflow: "hidden",
-              left: language !== "ar" ? "20px" : "initial",
-              right: language !== "ar" ? "initial" : "22px",
+              left: "20px",
+
               zIndex: 999999,
               borderRadius: "15px",
             }}
