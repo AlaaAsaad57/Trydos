@@ -285,9 +285,9 @@ function InputName({
             <LeftArrowIcon />
           </span>
         )}
-        <div className="flex light text-[11px] text-[#ff5858] mt-[20px]">
-          {translate("Name Should be atleast 8 characters")}
-        </div>
+      </div>
+      <div className="flex light text-[11px] text-[#ff5858] mt-[20px]">
+        {translate("Name Should be atleast 8 characters")}
       </div>
     </>
   );
