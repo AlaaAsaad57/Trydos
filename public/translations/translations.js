@@ -246,6 +246,7 @@ const translations = {
   },
   ar: {
     "Payment Method": "طرق الدفع",
+    Country: "البلد",
     "Click to view details": "اضغط لعرض التفاصيل",
     Notifications: "الإشعارات",
     Settings: "الإعدادات",
@@ -625,6 +626,7 @@ const translations = {
   },
   tr: {
     Buy: "Satın Al",
+    Country: "Ülke",
     Notifications: "Bildirimler",
     "Click to view details": "Detayları Görüntüle",
     Language: "Dil",
