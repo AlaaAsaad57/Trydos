@@ -1,11 +1,8 @@
 import "styles/productDetails.css";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
 
-import ProductDetailsServer from "components/Server/ProductDetails";
-
-import { getConfiguredImage, getProductMeta } from "utils/functions";
 import { notFound } from "next/navigation";
-import ComparePage from "pages/compare";
+import ComparePage from "components/global/compare";
 
 export async function generateMetadata({ params, searchParams }) {
   try {
