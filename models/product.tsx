@@ -5,7 +5,9 @@ export type ProductInterface = {
   message: string;
   share_link: string;
   details: string;
-  thumbnail: string;
+  thumbnail: {
+    file_path: string;
+  };
   images: Array<string>;
   categories: Array<{
     id: number;

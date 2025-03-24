@@ -3,13 +3,14 @@ import Cookies from "js-cookie";
 import { changeToken } from "store/homepage/cachedActions";
 import { Sendevent, translateFunction } from "utils/functions";
 import NextLink from "components/global/NextLink";
-import { useParams } from "node_modules/next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { changeAppLanguage } from "store/homepage/actions";
-import { useDispatch, useSelector } from "node_modules/react-redux/es";
+import { useDispatch, useSelector } from "react-redux";
 import NotificationsPanel from "../Notifications/NotificationsPanel";
 import OrdersPanel from "../Orders/OrdersPanel";
 import WishListPanel from "../WishList/WishListPanel";
 import CountrySelector from "components/global/CountrySelector";
+import { useRouter } from "next-nprogress-bar";
 
 interface MenuProps {
   user: any;
@@ -105,8 +106,9 @@ const MenuItem: React.FC<{
     display: "flex",
     alignItems: "center",
   };
+  const pathname = usePathname();
 
-  if (href) {
+  if (href && !pathname.includes(href)) {
     return (
       <NextLink data-cy={dataCy} style={style} href={href}>
         {icon}
@@ -116,7 +118,13 @@ const MenuItem: React.FC<{
   }
 
   return (
-    <div data-cy={dataCy} style={style} onClick={onClick}>
+    <div
+      data-cy={dataCy}
+      style={style}
+      onClick={() => {
+        onClick();
+      }}
+    >
       {icon}
       {children}
     </div>
@@ -164,119 +172,163 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
         <div className="flex items-center gap-4">
           <LanguageSelector />
         </div>
-        {user ? (
-          <>
-            <MenuItem
-              dataCy="Settings-Icon"
-              href={`/${lang}/settings`}
-              icon={
-                <MenuIcon>
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                </MenuIcon>
-              }
-            >
-              {translateFunction("Settings")}
-            </MenuItem>
-            <MenuItem
-              dataCy="WishList-Icon"
-              onClick={() => setShowWishList(!showWishList)}
-              icon={
-                <MenuIcon>
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </MenuIcon>
-              }
-            >
-              {translateFunction("Wishlist")}
-            </MenuItem>
-            <MenuItem
-              dataCy="Notifications-Icon"
-              onClick={() => setShowNotifications(!showNotifications)}
-              icon={
-                <MenuIcon>
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                </MenuIcon>
-              }
-            >
-              {translateFunction("Notifications")}
-            </MenuItem>
-            <MenuItem
-              dataCy="Orders-Icon"
-              onClick={() => setShowOrders(!showOrders)}
-              icon={
-                <MenuIcon>
-                  <path d="M21 8v13H3V8M1 3h22v5H1V3zM10 12h4" />
-                </MenuIcon>
-              }
-            >
-              {translateFunction("Orders")}
-            </MenuItem>
-            <MenuItem
-              dataCy="logout"
-              onClick={handleLogout}
-              icon={
-                <MenuIcon>
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                  <polyline points="16 17 21 12 16 7" />
-                  <line x1="21" y1="12" x2="9" y2="12" />
-                </MenuIcon>
-              }
-            >
-              {translateFunction("Logout")}
-            </MenuItem>
-          </>
-        ) : (
-          <>
-            <MenuItem
-              href={`/${lang}/settings`}
-              icon={
-                <MenuIcon>
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                </MenuIcon>
-              }
-            >
-              {translateFunction("Settings")}
-            </MenuItem>
-            <MenuItem
-              dataCy="WishList-Icon"
-              onClick={() => setShowWishList(!showWishList)}
-              icon={
-                <MenuIcon>
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </MenuIcon>
-              }
-            >
-              {translateFunction("Wishlist")}
-            </MenuItem>
-            <MenuItem
-              dataCy="Notifications-Icon"
-              onClick={() => setShowNotifications(!showNotifications)}
-              icon={
-                <MenuIcon>
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                </MenuIcon>
-              }
-            >
-              {translateFunction("Notifications")}
-            </MenuItem>
-            <MenuItem
-              dataCy="Orders-Icon"
-              onClick={() => setShowOrders(!showOrders)}
-              icon={
-                <MenuIcon>
-                  <path d="M21 8v13H3V8M1 3h22v5H1V3zM10 12h4" />
-                </MenuIcon>
-              }
-            >
-              {translateFunction("Orders")}
-            </MenuItem>
-          </>
-        )}
-      </div>
 
+        <>
+          <MenuItem
+            href={`/${lang}/settings`}
+            icon={
+              <MenuIcon>
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </MenuIcon>
+            }
+          >
+            {translateFunction("Settings")}
+          </MenuItem>
+          <MenuItem
+            dataCy="WishList-Icon"
+            onClick={() => setShowWishList(!showWishList)}
+            icon={
+              <MenuIcon>
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </MenuIcon>
+            }
+          >
+            {translateFunction("Wishlist")}
+          </MenuItem>
+          <MenuItem
+            dataCy="Notifications-Icon"
+            onClick={() => setShowNotifications(!showNotifications)}
+            icon={
+              <MenuIcon>
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </MenuIcon>
+            }
+          >
+            {translateFunction("Notifications")}
+          </MenuItem>
+          <MenuItem
+            dataCy="Orders-Icon"
+            onClick={() => setShowOrders(!showOrders)}
+            icon={
+              <MenuIcon>
+                <path d="M21 8v13H3V8M1 3h22v5H1V3zM10 12h4" />
+              </MenuIcon>
+            }
+          >
+            {translateFunction("Orders")}
+          </MenuItem>
+          <MenuItem
+            dataCy="Compare-Icon"
+            onClick={() => {}}
+            href={`/${lang}/compare`}
+            icon={
+              <MenuIcon>
+                <g
+                  id="Mask_Group_364"
+                  data-name="Mask Group 364"
+                  clipPath="url(#clipPath)"
+                >
+                  <g
+                    id="Group_3489"
+                    data-name="Group 3489"
+                    transform="translate(3.75 0)"
+                  >
+                    <g id="Group_3488" data-name="Group 3488">
+                      <g
+                        id="Rectangle_4149"
+                        data-name="Rectangle 4149"
+                        fill="none"
+                        stroke="#404040"
+                        strokeWidth="0.625"
+                      >
+                        <rect
+                          width="17.5"
+                          height="12.5"
+                          rx="2.5"
+                          stroke="none"
+                        />
+                        <rect
+                          x="0.313"
+                          y="0.313"
+                          width="16.875"
+                          height="11.875"
+                          rx="2.188"
+                          fill="none"
+                        />
+                      </g>
+                      <rect
+                        id="Rectangle_4150"
+                        data-name="Rectangle 4150"
+                        width="5"
+                        height="7.5"
+                        rx="1.25"
+                        transform="translate(6.25 2.5)"
+                        fill="#8e8e8e"
+                      />
+                    </g>
+                    <g
+                      id="Group_3486"
+                      data-name="Group 3486"
+                      transform="translate(0 12.5)"
+                    >
+                      <g
+                        id="Rectangle_4148"
+                        data-name="Rectangle 4148"
+                        fill="none"
+                        stroke="#404040"
+                        strokeWidth="0.625"
+                      >
+                        <rect
+                          width="17.5"
+                          height="12.5"
+                          rx="2.5"
+                          stroke="none"
+                        />
+                        <rect
+                          x="0.313"
+                          y="0.313"
+                          width="16.875"
+                          height="11.875"
+                          rx="2.188"
+                          fill="none"
+                        />
+                      </g>
+                      <rect
+                        id="Rectangle_4151"
+                        data-name="Rectangle 4151"
+                        width="5"
+                        height="7.5"
+                        rx="1.25"
+                        transform="translate(6.25 2.5)"
+                        fill="#8e8e8e"
+                      />
+                    </g>
+                  </g>
+                </g>
+              </MenuIcon>
+            }
+          >
+            {translateFunction("Compare")}
+          </MenuItem>
+        </>
+      </div>
+      {user && (
+        <MenuItem
+          dataCy="logout"
+          onClick={handleLogout}
+          icon={
+            <MenuIcon>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </MenuIcon>
+          }
+        >
+          {translateFunction("Logout")}
+        </MenuItem>
+      )}
       {showNotifications && (
         <NotificationsPanel onClose={() => setShowNotifications(false)} />
       )}

@@ -260,11 +260,28 @@ const translations = {
 
     Wishlist: "Wishlist",
     "Your wishlist is empty": "Your wishlist is empty",
+    "Compare Products": "Compare Products",
+    "Search for Product 1": "Search for Product 1",
+    "Search for Product 2": "Search for Product 2",
+    Name: "Name",
+    Image: "Image",
+    Colors: "Colors",
+    Sizes: "Sizes",
+    Price: "Price",
+    "Offer Price": "Offer Price",
+    "Product Comparison": "Product Comparison",
+    "Loading your selected products for a detailed side-by-side comparison. This will help you make an informed decision by comparing features, prices, and specifications.":
+      "Loading your selected products for a detailed side-by-side comparison. This will help you make an informed decision by comparing features, prices, and specifications.",
   },
   ar: {
     "Total Products:": "إجمالي المنتجات:",
+    "Added To Compare! Click To Go To Compare Page":
+      "تم إضافة للمقارنة! انقر للذهاب إلى صفحة المقارنة",
+    "Already Added To Compare!": "تم إضافة للمقارنة",
+    "Added To Compare": "تم إضافة للمقارنة",
     "Total Items": "إجمالي المنتجات",
-
+    "One of the products was not found. Please try searching for a different product.":
+      "لم يتم العثور على أحد المنتجات. يرجى البحث عن منتج آخر.",
     "Please Enter Coupon Information": "أدخل معلومات الكود",
     "Applying...": "يتم التطبيق...",
     "I Have a Discount Coupon": "لدي كود خصم",
@@ -679,10 +696,29 @@ const translations = {
     "JPG, PNG or GIF (max. 5MB)": "JPG أو PNG أو GIF (الحد الأقصى 5 ميجابايت)",
     Wishlist: "قائمة الرغبات",
     "Your wishlist is empty": "قائمة رغباتك فارغة",
+    "Compare Products": "مقارنة المنتجات",
+    "Search for Product 1": "البحث عن المنتج الأول",
+    "Search for Product 2": "البحث عن المنتج الثاني",
+    Name: "الاسم",
+    Image: "الصورة",
+    Colors: "الألوان",
+    Sizes: "المقاسات",
+    Price: "السعر",
+    "Offer Price": "سعر العرض",
+    "Product Comparison": "مقارنة المنتجات",
+    "Loading your selected products for a detailed side-by-side comparison. This will help you make an informed decision by comparing features, prices, and specifications.":
+      "جاري تحميل المنتجات المحددة لمقارنة مفصلة جنباً إلى جنب. سيساعدك هذا في اتخاذ قرار مستنير من خلال مقارنة الميزات والأسعار والمواصفات.",
   },
   tr: {
     "The Purchase Was Completed Successfully":
       "Satın Alma Başarıyla Tamamlandı",
+    "Already Added To Compare!": "Zaten Karşılaştırmaya Eklendi!",
+    "Added To Compare": "Karşılaştırmaya Eklendi",
+    "Added To Compare! Click To Go To Compare Page":
+      "Karşılaştırmaya Eklendi! Karşılaştırma Sayfasına Gitmek İçin Tıklayın",
+    Details: "Detaylar",
+    "One of the products was not found. Please try searching for a different product.":
+      "Bir veya daha fazla ürün bulunamadı. Lütfen farklı bir ürün arayın.",
     "Confirm Shipping & Payment": "Siparişi Onayla ve Ödeme Yap",
     "Bag Shipping & Delivery Address": "Kargo ve Teslimat Adresi",
     "Your Order Number": "Sipariş Numaranız",
@@ -1088,6 +1124,18 @@ const translations = {
     "JPG, PNG or GIF (max. 5MB)": "JPG, PNG veya GIF (maks. 5MB)",
     Wishlist: "İstek Listesi",
     "Your wishlist is empty": "İstek listeniz boş",
+    "Compare Products": "Ürünleri Karşılaştır",
+    "Search for Product 1": "1. Ürünü Ara",
+    "Search for Product 2": "2. Ürünü Ara",
+    Name: "İsim",
+    Image: "Görsel",
+    Colors: "Renkler",
+    Sizes: "Bedenler",
+    Price: "Fiyat",
+    "Offer Price": "Teklif Fiyatı",
+    "Product Comparison": "Ürün Karşılaştırma",
+    "Loading your selected products for a detailed side-by-side comparison. This will help you make an informed decision by comparing features, prices, and specifications.":
+      "Seçtiğiniz ürünler detaylı bir yan yana karşılaştırma için yükleniyor. Bu, özellikleri, fiyatları ve teknik özellikleri karşılaştırarak bilinçli bir karar vermenize yardımcı olacaktır.",
   },
 };
 

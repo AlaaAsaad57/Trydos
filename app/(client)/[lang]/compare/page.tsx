@@ -18,10 +18,11 @@ export async function generateMetadata({ params, searchParams }) {
 interface Props {
   params: {
     lang: string;
-    productId: string;
   };
+  searchParams: any;
 }
-async function Page({ params }: Props) {
+async function Page({ params, searchParams }: Props) {
+  console.log(searchParams);
   return (
     <>
       <CustomNavbarServer lang={params.lang} />
