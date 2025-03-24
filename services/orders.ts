@@ -16,13 +16,5 @@ export const fetchOrders = async (
   } catch (error) {
     console.error("Error fetching orders:", error);
     // Fallback to mock data if API is not available
-    return {
-      isSuccessful: true,
-      hasContent: true,
-      code: 200,
-      message: "Success",
-      detailed_error: null,
-      data: [],
-    };
   }
 };

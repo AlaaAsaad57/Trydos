@@ -49,7 +49,8 @@ export const AxiosGet = async ({
       // }
       if (
         url.includes("user-notifications/get") ||
-        url.includes("/customer/order/list")
+        url.includes("/customer/order/list") ||
+        url.includes("/coupon/apply")
       ) {
         return res.data;
       }

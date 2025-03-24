@@ -2,8 +2,10 @@ import { dispatchRouteChangeEvent } from "utils/events";
 import NextLink from "components/global/NextLink";
 import React from "react";
 import { getConfiguredImage, Sendevent } from "utils/functions";
+import { useParams } from "next/navigation";
 
 function ProductItem({ product, onClick }) {
+  const { lang } = useParams();
   return (
     <NextLink
       suppressHydrationWarning
@@ -19,7 +21,7 @@ function ProductItem({ product, onClick }) {
         document.documentElement.style.overflow = "hidden";
         document.documentElement.scrollTop = 0;
       }}
-      href={`/products/${product.slug}`}
+      href={`/${lang}/products/${product.slug}`}
     >
       <div className="result-product flex-row">
         <div className="image-result">

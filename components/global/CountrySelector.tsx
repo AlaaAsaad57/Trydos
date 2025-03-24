@@ -33,10 +33,7 @@ function CountrySelector({ init }: CountrySelectorProps) {
         );
         const data = await response.json();
         // Filter for Syria, Turkey, and Lebanon
-        const filteredCountries = data.data.countries.filter(
-          (country: Country) =>
-            ["sy", "tr", "lb"].includes(country.iso.toLowerCase())
-        );
+        const filteredCountries = data.data.countries;
         setCountries(filteredCountries);
       } catch (error) {
         console.error("Error fetching countries:", error);

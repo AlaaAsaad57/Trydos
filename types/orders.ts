@@ -106,5 +106,10 @@ export interface OrdersResponse {
   code: number;
   message: string;
   detailed_error: string | null;
-  data: OrderItem[];
+  data: {
+    total: number;
+    limit: number;
+    orders: OrderItem[];
+    offset: number;
+  };
 }

@@ -57,9 +57,13 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
     setLoading(true);
     try {
       const response: OrdersResponse = await fetchOrders(page);
-      if (response.isSuccessful && response.hasContent) {
-        setOrders((prev) => [...prev, ...response.data]);
-        setHasMore(response.data.length > 0);
+      if (
+        response.isSuccessful &&
+        response.hasContent &&
+        response.data.orders.length > 0
+      ) {
+        setOrders((prev) => [...prev, ...response.data.orders]);
+        setHasMore(response.data.orders.length > 0);
         setPage((prev) => prev + 1);
       } else {
         setHasMore(false);
@@ -86,7 +90,7 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
       const scrollThreshold = 50; // pixels from bottom to trigger load
 
       if (scrollHeight - scrollTop - clientHeight < scrollThreshold) {
-        // loadMoreOrders();
+        loadMoreOrders();
       }
     };
 

@@ -79,8 +79,8 @@ const LanguageSelector: React.FC = () => {
               src={`/svg/${
                 langCode === "en" ? "uk" : langCode === "ar" ? "uae" : langCode
               }.svg`}
-              width={20}
-              height={langCode === "en" ? 13 : 10}
+              width={30}
+              height={langCode === "en" ? 15 : 20}
               className={langCode === "en" ? "scale-125" : ""}
               alt={`${langCode} language`}
             />

@@ -14,7 +14,7 @@ const NewStoryModal = dynamic(() => import("./Stories/CameraStory"), {
 import { dataURLtoFile } from "components/Chat/chatsFunctions";
 import dynamic from "next/dynamic";
 import { toast } from "react-toastify";
-import { Sendevent } from "utils/functions";
+import { Sendevent, translateFunction } from "utils/functions";
 
 function AddStory() {
   const [uploaded, setUpload] = useState(0);
@@ -242,7 +242,7 @@ function AddStory() {
                 document.body.style.overflow = "hidden";
               }}
             >
-              From Camera
+              {translateFunction("From Camera")}
             </div>
             <div
               className="menuItem"
@@ -280,7 +280,7 @@ function AddStory() {
                 }
               }}
             >
-              From Files
+              {translateFunction("From Files")}
             </div>
           </div>
         </div>

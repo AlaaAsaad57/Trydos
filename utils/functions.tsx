@@ -592,6 +592,17 @@ export const filterProducts = async ({
   //   },
   // });
   callback(product.data.products);
+  return product.data.products;
+};
+export const searchProducts = async ({ searchText }) => {
+  let product: FilterProductApi["data"] = await AxiosGet({
+    url:
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+      `/api/products/search?limit=4&search_text=${searchText}`,
+    title: "Search Products",
+  });
+  console.log(product);
+  return product.products;
 };
 const urlParams = ({ filters, noProducts }) => {
   const PriceFiltered = store.getState().details.PriceFiltered;
