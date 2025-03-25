@@ -30,7 +30,8 @@ jobs:
       - run:
           name: Wait for App
           command: npx wait-on http://localhost:3000
-      - cypress/run:
+      - run:
+          name: Run Cypress Tests
           command: npx nyc cypress run --browser chrome --config baseUrl=http://localhost:3000
       - run:
           name: Upload Coverage
@@ -55,7 +56,6 @@ workflows:
   build-test-deploy:
     jobs:
       - build-and-test
-
       - deploy:
           requires:
             - build-and-test
