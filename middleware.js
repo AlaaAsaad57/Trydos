@@ -163,6 +163,7 @@ export async function middleware(request) {
       }
     }
     if (isChangedLocalizationByUrl) {
+      url.searchParams.delete("cart");
       url.searchParams.set(
         "changed-country",
         `${country},${countryFromCookies}`
@@ -195,11 +196,13 @@ export async function middleware(request) {
   } else {
     if (url.pathname.split("/")[1].includes("-")) {
       url.pathname = url.pathname.replace(url.pathname.split("/")[1], "gb-en");
+      url.searchParams.delete("cart");
       url.searchParams.set("no-country", true);
       return NextResponse.redirect(url);
     } else {
     }
     url.pathname = `/gb-en/${url.pathname}`;
+    url.searchParams.delete("cart");
     url.searchParams.set("no-country", true);
     return NextResponse.redirect(url);
   }
