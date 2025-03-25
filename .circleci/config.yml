@@ -29,8 +29,13 @@ jobs:
           background: true
       - run:
           name: Wait for App
-          command: npx wait-on http://localhost:3000
-      - cypress/run:
+          command: |
+            npx wait-on -t 120000 http://localhost:3000 || {
+              echo "Server failed to start within 120 seconds"
+              exit 1
+            }
+      - run:
+          name: Run Cypress Tests
           command: npx nyc cypress run --browser chrome --config baseUrl=http://localhost:3000
       - run:
           name: Upload Coverage
@@ -57,12 +62,10 @@ workflows:
       - build-and-test:
           filters:
             branches:
-              only:
-                - alaa-dev
+              only: create-circleci-config
       - deploy:
           requires:
             - build-and-test
           filters:
             branches:
-              only:
-                - alaa-dev
+              only: create-circleci-config
