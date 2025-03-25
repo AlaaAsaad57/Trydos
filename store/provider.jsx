@@ -139,11 +139,13 @@ export default function Providers({ children }) {
     ) {
       const params = new URLSearchParams(searchParams.toString());
       params.delete("cart");
-      window.history.replaceState(
-        {},
-        "",
-        `${window.location.pathname}?${params.toString()}`
-      );
+      if (typeof window !== "undefined") {
+        window.history.replaceState(
+          {},
+          "",
+          `${window.location.pathname}?${params.toString()}`
+        );
+      }
       // it commit
       return true;
     } else {
