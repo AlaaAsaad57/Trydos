@@ -1,4 +1,4 @@
-describe.only("Signup Successful Attempt should login to 3 servers", () => {
+describe("Signup Successful Attempt should login to 3 servers", () => {
   before(() => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
@@ -77,7 +77,7 @@ describe.only("Signup Successful Attempt should login to 3 servers", () => {
     cy.SkipForNow();
   });
 });
-describe.only("Signup UnSuccessful Attempt should show error message to user", () => {
+describe("Signup UnSuccessful Attempt should show error message to user", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -111,7 +111,7 @@ describe.only("Signup UnSuccessful Attempt should show error message to user", (
     cy.EndLoginOperation();
   });
 });
-describe.only("Should show user is already registered when registering with registered number", () => {
+describe("Should show user is already registered when registering with registered number", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -155,7 +155,7 @@ describe.only("Should show user is already registered when registering with regi
     });
   });
 });
-describe.only("Should show user is already registered when registering with registered number & Cancel & Take A Look At The App", () => {
+describe("Should show user is already registered when registering with registered number & Cancel & Take A Look At The App", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -196,7 +196,7 @@ describe.only("Should show user is already registered when registering with regi
     cy.clickElement("[data-cy=Look-At-App]");
   });
 });
-describe.only("Should show user is already registered when registering with registered number & Login & Continue", () => {
+describe("Should show user is already registered when registering with registered number & Login & Continue", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -241,7 +241,7 @@ describe.only("Should show user is already registered when registering with regi
   });
 });
 // **************************************************************************************************************
-describe.only("Signup Successful Attempt & complete the profile", () => {
+describe("Signup Successful Attempt & complete the profile", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
