@@ -1,0 +1,200 @@
+"use client";
+import OfferSlideItem from "./OfferSlideItem";
+import { encode_utf8, Sendevent } from "utils/functions";
+import OfferAvatars from "./OfferAvatars";
+
+import Image from "next/image";
+import { Boutique } from "models/offer";
+import { useRouter } from "next-nprogress-bar";
+import { useEffect } from "react";
+import OfferPhotosSlider from "./OfferPhotosSlider";
+import NextLink from "components/global/NextLink";
+import { useParams } from "next/navigation";
+
+interface NormalWidgetProps {
+  boutique: Boutique;
+  myKey: number;
+  onClick: Function;
+}
+const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
+  const router = useRouter();
+  useEffect(() => {
+    if (boutique.description) {
+      encode_utf8({
+        element: document.querySelectorAll(`#boutique-${boutique.id}`),
+        s: boutique.description,
+      });
+    }
+  }, []);
+  const { lang } = useParams();
+  return (
+    <NextLink
+      href={`/${lang}/boutiques/${boutique.slug}`}
+      onClick={(e) => {
+        // @ts-ignore: Unreachable code error
+        if (
+          // @ts-ignore: Unreachable code error
+          !e.target.closest(".offer-avatar") &&
+          // @ts-ignore: Unreachable code error
+          !e.target.closest(".offer-category")
+        ) {
+          Sendevent({
+            event: "button_clicked",
+            value: "choose_boutique_button",
+          });
+        } else {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }}
+      aria-label={`Go To listing Page`}
+      className="offer-widget"
+      key={myKey}
+    >
+      <>
+        {/* {boutique.banners[0] && (
+          <Image
+            fill
+            alt={"imageAlt" + myKey}
+            loading={myKey < 2 ? "eager" : "lazy"}
+            fetchPriority={myKey < 2 ? "high" : "low"}
+            priority={myKey < 2}
+            style={{
+              position: "absolute",
+              top: "0px",
+              left: "0px",
+              borderRadius: "15px",
+              zIndex: "1",
+              objectFit: "cover",
+              objectPosition: "center",
+            }}
+            quality={60}
+            unoptimized
+            src={getConfiguredImage({
+              src: boutique?.banners[0],
+              width: 900,
+              height: 342,
+            })}
+          />
+        )}
+        <div className="offer-blured" id={`blured-${boutique.id}`} /> */}
+        <div className="offer-container cursor-pointer">
+          <div className="offer-logo">
+            {boutique.icon?.file_path && (
+              <Image
+                id={"img-" + boutique.id}
+                className="object-contain"
+                alt={boutique.name}
+                loading={myKey < 2 ? "eager" : "lazy"}
+                fetchPriority={myKey < 2 ? "high" : "low"}
+                priority={myKey < 2}
+                style={{
+                  maxWidth: "187px",
+                  width: "auto",
+                  height: "20px",
+                }}
+                width={20}
+                height={20}
+                src={boutique?.icon?.file_path?.replace(
+                  "/upload",
+                  `/upload/h_50/f_webp/q_auto`
+                )}
+              />
+            )}
+          </div>
+          <div className="offer-category">
+            {boutique.mainCategoriesForProductIds
+              .slice(0, 5)
+              .map((category, key) => {
+                // @ts-ignore
+                if (category?.flat_photo_path?.file_path?.includes(".svg")) {
+                  return (
+                    <div
+                      onClick={(e) => {
+                        e.preventDefault();
+                        // dispatchRouteChangeEvent("start", { to: "boutique" });
+                        router.push(
+                          `/${lang}/boutiques/${boutique.slug}?categories=${category.slug}`
+                        );
+                      }}
+                      key={key}
+                    >
+                      <Image
+                        id={"img-" + boutique.id}
+                        alt={boutique.name}
+                        loading={myKey < 2 ? "eager" : "lazy"}
+                        fetchPriority={myKey < 2 ? "high" : "low"}
+                        priority={myKey < 2}
+                        width={12}
+                        height={12}
+                        // @ts-ignore
+                        src={category.flat_photo_path?.file_path?.replace(
+                          "/upload",
+                          `/upload/h_50/f_webp/q_auto`
+                        )}
+                      />
+                    </div>
+                  );
+                } else {
+                  if (category?.flat_photo_path?.file_path)
+                    return (
+                      <div
+                        aria-label={`${category.name} products page`}
+                        key={key}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          // dispatchRouteChangeEvent("start", { to: "boutique" });
+                          router.push(
+                            `/${lang}/boutiques/${boutique.slug}?categories=${category.slug}`
+                          );
+                        }}
+                      >
+                        <Image
+                          id={"img-" + boutique.id}
+                          alt={boutique.name}
+                          loading={myKey < 2 ? "eager" : "lazy"}
+                          fetchPriority={myKey < 2 ? "high" : "low"}
+                          priority={myKey < 2}
+                          width={12}
+                          height={12}
+                          // @ts-ignore
+                          src={category?.flat_photo_path?.file_path?.replace(
+                            "/upload",
+                            `/upload/h_50/f_webp/q_auto`
+                          )}
+                        />
+                      </div>
+                    );
+                }
+              })}
+          </div>
+          <div className="offer-desc" id={`boutique-${boutique.id}`}></div>
+          {boutique?.banners?.length > 1 ? (
+            <OfferPhotosSlider
+              key={myKey}
+              extended={false}
+              myKey={myKey}
+              priority={myKey < 2}
+              boutique={boutique}
+              OfferPhotos={boutique.banners || []}
+            />
+          ) : (
+            <div className="offer-slider-container">
+              {boutique?.banners && boutique?.banners[0] && (
+                <OfferSlideItem
+                  mykey={myKey}
+                  offerPhoto={boutique?.banners[0]}
+                  priority={myKey < 2}
+                  isSingle={true}
+                />
+              )}
+              <OfferAvatars boutique={boutique} priority={myKey < 2} />
+            </div>
+          )}
+        </div>
+      </>
+    </NextLink>
+  );
+};
+
+export default NormalWidget;

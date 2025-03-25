@@ -1,0 +1,131 @@
+html[lang=] .home-navbar {
+  display: flex;
+  flex-direction: row-reverse;
+}
+html[lang="ar"]
+  .home-page-container
+  #widget-auth.step1
+  .animation-row-container
+  .animated-container
+  .login-privacy-text {
+  padding-inline: 30px;
+  text-align: justify !important;
+  direction: rtl !important;
+  justify-content: center !important;
+  letter-spacing: 0.022rem !important;
+}
+html[lang="ar"] .categories-bar-container {
+  margin-left: 0px;
+  margin-right: 50px;
+  display: flex;
+}
+html[lang="ar"] .mobile-bar .categories-bar-item:not(:first-child) {
+  margin-right: 10px !important;
+  margin-left: 10px !important;
+}
+html[lang="ar"] .user-nav-container {
+  justify-content: flex-end;
+}
+html[lang="ar"] .user-nav-container,
+html[lang="ar"] .welcome-user,
+html[lang="ar"] .nav-question-item,
+html[lang="ar"] .login-label,
+html[lang="ar"] .login-label-title,
+html[lang="ar"] .login-qr-info,
+html[lang="ar"] .duartion-login-label,
+html[lang="ar"] .offer-container .offer-details,
+html[lang="ar"] .quick-event-bar {
+  flex-direction: row-reverse !important;
+}
+html[lang="ar"] .nav-question-item {
+  margin-right: 9px !important;
+  margin-left: 0px !important;
+}
+html[lang="ar"] .nav-question-item span {
+  margin-right: 5px !important;
+  margin-left: 0px !important;
+}
+html[lang="ar"] .login-label-text {
+  margin-right: 10px !important;
+  margin-left: 0px !important;
+}
+html[lang="ar"] .login-label.login-extend,
+html[lang="ar"] .login-qr-section {
+  align-items: end !important;
+}
+html[lang="ar"] .login-qr-info-text {
+  margin-right: 5px !important;
+  margin-left: 0px !important;
+}
+html[lang="ar"] .login-blue-question {
+  padding-left: 140px !important;
+}
+html[lang="ar"] .create-account-button .login-label {
+  padding-right: 132px !important;
+  justify-content: space-between !important;
+  flex-direction: row-reverse;
+  padding-left: 0px !important;
+}
+html[lang="ar"] .duartion-login-label .blue-text {
+  margin-right: 3px !important;
+  margin-left: 0px !important;
+}
+html[lang="ar"] .login-success-label {
+  direction: rtl;
+}
+html[lang="ar"] .stories-bars {
+  flex-direction: row;
+  padding-right: 15px !important;
+}
+html[lang="ar"] .story-element-container {
+  margin-right: 5px !important;
+  margin-left: 0px !important;
+}
+html[lang="ar"] .story-element-container:first-child {
+  margin-right: 0px !important;
+  margin-left: 0px !important;
+}
+html[lang="ar"] .home-bar {
+  padding-right: 10px !important;
+  flex-direction: row-reverse !important;
+}
+html[lang="ar"] .offer-container {
+  align-items: end !important;
+}
+html[lang="ar"] .offer-container .offer-logo {
+  margin-right: 25px !important;
+  margin-left: 0px !important;
+}
+html[lang="ar"] .offer-container .offer-category {
+  left: 15px !important;
+  right: 0px !important;
+  flex-direction: row !important;
+}
+html[lang="ar"] .offer-desc {
+  direction: rtl;
+  margin-right: 25px !important;
+  margin-left: 0px !important;
+}
+
+html[lang="ar"] .offer-container .offer-details .offer-details-item {
+  margin-right: 25px !important;
+  margin-left: 0px !important;
+}
+
+html[lang="ar"] .quick-event-bar .stopwatch-container {
+  left: 10px !important;
+  right: 0px !important;
+  flex-direction: row-reverse !important;
+  justify-content: start;
+  width: 125px !important;
+}
+html[lang="ar"] .quick-event-bar .bar-desc {
+  direction: rtl;
+}
+html[lang="ar"] .categories-bar-item:not(:first-child) {
+  margin-right: 0px !important;
+  margin-left: 0px !important;
+}
+html[lang="ar"] .categories-bar-item .categories-bar-item-description {
+  right: 0px !important;
+}

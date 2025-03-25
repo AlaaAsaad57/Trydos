@@ -1,0 +1,42 @@
+@import url("./chatcomponent.css");
+@import url("./chatstyles.css");
+.app {
+  max-width: 430px;
+  overflow: hidden;
+  width: 100%;
+  height: calc(100vh - 110px);
+  max-height: 919px;
+  position: fixed;
+  z-index: 9999999999999;
+  right: 30px;
+  left: initial;
+  top: 105px;
+}
+.ar-app.app {
+  left: 30px;
+  right: initial;
+}
+.backdrop_msg .message-hold {
+  filter: brightness(0.85) !important;
+}
+.caller-avatar-text.text-avatar {
+  width: 40px;
+  height: 40px;
+}
+.contact-icon-header {
+  display: flex;
+  position: absolute;
+  z-index: 14;
+  right: 20px;
+  top: 19px;
+}
+.active-chat-icon path {
+  fill: #5d5d5d;
+}
+.local-stream {
+  width: 100px;
+  height: 170px;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}

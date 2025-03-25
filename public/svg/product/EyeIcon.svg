@@ -1,0 +1,21 @@
+<svg id="_15x15_photo_back" data-name="15x15 photo back" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="15" height="15" viewBox="0 0 15 15">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="Rectangle_4561" data-name="Rectangle 4561" width="15" height="15" fill="none"/>
+    </clipPath>
+  </defs>
+  <g id="Mask_Group_353" data-name="Mask Group 353" clip-path="url(#clip-path)">
+    <g id="view">
+      <g id="Group_11038" data-name="Group 11038">
+        <g id="Group_11037" data-name="Group 11037">
+          <path id="Path_21459" data-name="Path 21459" d="M7.5,5.086A2.414,2.414,0,1,0,9.914,7.5,2.416,2.416,0,0,0,7.5,5.086Zm-.183,1.7a.554.554,0,0,0-.549.549h-.8A1.364,1.364,0,0,1,7.317,5.985Z" fill="#8d8d8d"/>
+        </g>
+      </g>
+      <g id="Group_11040" data-name="Group 11040">
+        <g id="Group_11039" data-name="Group 11039">
+          <path id="Path_21460" data-name="Path 21460" d="M14.825,7C14.009,5.985,11.1,2.672,7.5,2.672S.991,5.985.175,7a.8.8,0,0,0,0,1C.991,9.015,3.9,12.328,7.5,12.328S14.009,9.015,14.825,8A.8.8,0,0,0,14.825,7ZM7.5,11A3.5,3.5,0,1,1,11,7.5,3.5,3.5,0,0,1,7.5,11Z" fill="#8d8d8d"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,25 @@
+.translations-container:hover {
+  height: 200px;
+}
+
+.translations-container:hover .translations-container-inner .en-icon {
+  top: -70px;
+}
+.translations-container:hover .translations-container-inner .ar-icon {
+  top: -140px;
+}
+.translations-container:hover .translations-container-inner .tr-icon {
+  top: -210px;
+}
+.en-icon,
+.translation-icon {
+  transition: all 0.3s ease-in-out;
+}
+
+.ar-icon {
+  transition: all 0.5s ease-in-out;
+}
+
+.tr-icon {
+  transition: all 0.7s ease-in-out;
+}

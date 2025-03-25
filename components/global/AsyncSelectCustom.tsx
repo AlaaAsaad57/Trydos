@@ -1,0 +1,198 @@
+import React, { useEffect, useRef, useState } from "react";
+
+interface AsyncSelectProps {
+  placeholder: string;
+  onSearch: (value: string) => Promise<void>;
+  options: Array<{
+    label: string;
+    value: string;
+    thumbnail?: string;
+    price?: number;
+  }>;
+  onChange: (
+    option: {
+      label: string;
+      value: string;
+      thumbnail?: string;
+      price?: number;
+    } | null
+  ) => void;
+  onClear?: () => void;
+  isLoading?: boolean;
+  className?: string;
+  selectedOption?: {
+    label: string;
+    value: string;
+    thumbnail?: string;
+    price?: number;
+  } | null;
+}
+
+const AsyncSelectCustom: React.FC<AsyncSelectProps> = ({
+  placeholder,
+  onSearch,
+  options,
+  onChange,
+  onClear,
+  isLoading,
+  className,
+  selectedOption,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [internalSelectedOption, setInternalSelectedOption] = useState<{
+    label: string;
+    value: string;
+    thumbnail?: string;
+    price?: number;
+  } | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+        if (!internalSelectedOption) {
+          setSearchTerm("");
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [internalSelectedOption]);
+
+  useEffect(() => {
+    if (selectedOption) {
+      setInternalSelectedOption(selectedOption);
+      setSearchTerm(selectedOption.label);
+    }
+  }, [selectedOption]);
+
+  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    if (value.length > 0) {
+      await onSearch(value);
+    }
+  };
+
+  const handleOptionClick = (option: {
+    label: string;
+    value: string;
+    thumbnail?: string;
+    price?: number;
+  }) => {
+    setInternalSelectedOption(option);
+    setSearchTerm(option.label);
+    onChange(option);
+    setIsOpen(false);
+  };
+
+  const handleClear = () => {
+    setInternalSelectedOption(null);
+    setSearchTerm("");
+    onChange(null);
+    onClear?.();
+  };
+
+  const handleBlur = () => {
+    setTimeout(() => {
+      if (!internalSelectedOption) {
+        setSearchTerm("");
+      }
+    }, 200);
+  };
+
+  const handleFocus = () => {
+    setIsOpen(true);
+    if (internalSelectedOption) {
+      onSearch(internalSelectedOption.label);
+    } else {
+      setSearchTerm("");
+    }
+  };
+
+  return (
+    <div className={`relative ${className}`} ref={dropdownRef}>
+      <div className="relative">
+        <input
+          type="text"
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder={placeholder}
+          value={searchTerm}
+          onChange={handleInputChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+        />
+        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+          {searchTerm && (
+            <button
+              onClick={handleClear}
+              className="text-gray-400 hover:text-gray-600"
+              type="button"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M15 9l-6 6" />
+                <path d="M9 9l6 6" />
+              </svg>
+            </button>
+          )}
+          {isLoading && (
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900"></div>
+          )}
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-auto">
+          {options.length > 0 ? (
+            options.map((option) => (
+              <div
+                key={option.value}
+                className="px-4 py-2 cursor-pointer hover:bg-gray-100 flex items-center gap-3"
+                onClick={() => handleOptionClick(option)}
+              >
+                {option.thumbnail && (
+                  <img
+                    src={option.thumbnail}
+                    alt={option.label}
+                    className="w-10 h-10 object-cover rounded"
+                  />
+                )}
+                <div className="flex-1">
+                  <div className="font-medium">{option.label}</div>
+                  {option.price && (
+                    <div className="text-sm text-gray-600">
+                      ${option.price.toFixed(2)}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="px-4 py-2 text-gray-500">
+              {isLoading ? "Loading..." : "No options found"}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AsyncSelectCustom;

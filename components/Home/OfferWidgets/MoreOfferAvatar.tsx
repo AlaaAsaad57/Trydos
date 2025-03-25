@@ -1,0 +1,53 @@
+import Image from "next/image";
+
+import { translateFunction } from "utils/functions";
+import { useSelector } from "react-redux";
+import { useParams } from "next/navigation";
+
+interface MoreOfferAvatarProps {
+  images: string;
+  zIndex: number;
+  viewed: number;
+  priority: boolean;
+}
+function MoreOfferAvatar({
+  images,
+  zIndex,
+  viewed,
+  priority,
+}: MoreOfferAvatarProps) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
+  const language: string = useSelector(
+    (state: StateInterface) => state.homepage.language
+  );
+
+  return (
+    <div
+      className="offer-avatar hasMore"
+      style={{ zIndex: zIndex, transform: `translateX(-${viewed * 5}px)` }}
+    >
+      <div className="offer-more-s" />
+      <span className="z-40 text-[10px] regular text-white flex items-center justify-center w-full h-full">
+        {translate("More", language)}
+      </span>
+      <Image
+        loading="eager"
+        src={images}
+        className="absolute"
+        priority={priority}
+        fetchPriority={priority ? "high" : "low"}
+        alt="avatar"
+        width={40}
+        height={40}
+        style={{ borderRadius: "50%", height: "40px" }}
+      />
+    </div>
+  );
+}
+
+export default MoreOfferAvatar;
