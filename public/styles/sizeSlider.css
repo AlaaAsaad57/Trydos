@@ -1,0 +1,88 @@
+.size-slider-coverflow.swiper {
+  transform: translateX(-7px);
+  padding-block: 12px;
+}
+.size-slider-coverflow.swiper .swiper-slide.swiper-slide-prev,
+.size-slider-coverflow.swiper .swiper-slide-next.swiper-slide {
+  font-size: 20px !important;
+  min-width: 65px !important;
+  min-height: 65px !important;
+  max-width: 65px !important;
+  max-height: 65px !important;
+}
+.size-slider-coverflow.swiper .swiper-slide {
+  font-size: 10px !important;
+  min-width: 56px !important;
+  min-height: 56px !important;
+  max-width: 56px !important;
+  max-height: 56px !important;
+}
+.size-slider-coverflow.swiper .swiper-wrapper {
+  width: 420px !important;
+}
+.size-slider-coverflow.swiper .swiper-slide-next.swiper-slide + .swiper-slide,
+.size-slider-coverflow.swiper .swiper-slide:has(+ .swiper-slide-prev) {
+  font-size: 14px !important;
+  min-width: 60px !important;
+  min-height: 60px !important;
+  max-width: 60px !important;
+  max-height: 60px !important;
+}
+.size-slider-coverflow.swiper .swiper-slide-active {
+  font-size: 30px !important;
+  min-width: 70px !important;
+  min-height: 70px !important;
+  max-width: 70px !important;
+  max-height: 70px !important;
+  border-radius: 50%;
+  background-color: #505050;
+  color: #f8f8f8;
+  box-shadow: inset rgba(255, 255, 255, 0.5) 0px 4px 6px,
+    rgba(0, 0, 0, 0.1) 0px 3px 4px;
+  border: #366cb8 1px solid;
+}
+
+.size-slider-coverflow.swiper .swiper-slide-active.yellow-bg {
+  background-color: #ffaf5f;
+  color: #f8f8f8 !important;
+}
+.swiper-slide.yellow-bg {
+  color: #ffaf5f !important;
+}
+.swiper-slide.red-bg {
+  color: #ff5f61 !important;
+}
+.size-slider-coverflow.swiper .swiper-slide-active.red-bg {
+  background-color: #ff5f61 !important;
+  color: #f8f8f8 !important;
+}
+.color-swipe-slide {
+  box-shadow: 0px 3px 3px rgba(0, 0, 0, 0.1);
+}
+.color-swipe-slide::before {
+  position: absolute;
+  content: "";
+  top: 0px;
+  left: 0px;
+  border-radius: 50%;
+  width: 100%;
+  height: 100%;
+  box-shadow: inset 0px 4px 6px rgba(255, 255, 255, 0.5);
+}
+.h-available {
+  height: calc(100vh - 518px);
+}
+.moved-min-img {
+  height: calc(100vh - 650px);
+}
+.inset-select-shadow-image:before {
+  position: absolute;
+  content: "";
+  top: 0px;
+  left: 0px;
+  border-radius: 15px;
+  width: 100%;
+  height: 100%;
+  box-shadow: inset 0px 4px 6px rgba(255, 255, 255, 0.5);
+  z-index: 10;
+}

@@ -1,0 +1,103 @@
+import { getMessageStatusIcon, getUser } from "../chatsFunctions";
+import ImageIcon from "../svg/image.svg";
+import VideoIcon from "../svg/video.svg";
+import AudioIcon from "../svg/audio.svg";
+import { translateFunction } from "utils/functions";
+import { useSelector } from "react-redux";
+import { useParams } from "next/navigation";
+function LastMessageBody({ message, status }) {
+  let { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const translate = (key, lang) => {
+    return translateFunction(key, languageVariable);
+  };
+  const language = useSelector((state) => state.homepage.language);
+  const getMessage = () => {
+    if (message?.auth_message_status?.is_deleted === 1) {
+      return (
+        <>
+          {message.sender_user_id === getUser()?.id &&
+            getMessageStatusIcon(message.message_status, message.mid)}
+          <p>{translate("this message was deleted", language)}</p>
+        </>
+      );
+    }
+    if (message.message_type.name === "TextMessage") {
+      return (
+        <>
+          {message.sender_user_id === getUser()?.id &&
+            getMessageStatusIcon(message.message_status, message.mid)}
+          <p>{message.message_content && message.message_content.content}</p>
+        </>
+      );
+    }
+    if (message.message_type.name === "ImageMessage") {
+      return (
+        <>
+          {message.sender_user_id === getUser()?.id &&
+            getMessageStatusIcon(message.message_status, message.mid)}
+          <ImageIcon className="message-type-icon"></ImageIcon>{" "}
+          {translate("Image", language)}
+        </>
+      );
+    }
+    if (message.message_type.name === "ShareProduct") {
+      return (
+        <>
+          {message.sender_user_id === getUser()?.id &&
+            getMessageStatusIcon(message.message_status, message.mid)}
+
+          {translate("Product", language)}
+        </>
+      );
+    }
+    if (message.message_type.name === "VoiceMessage") {
+      return (
+        <>
+          {message.sender_user_id === getUser()?.id &&
+            getMessageStatusIcon(message.message_status, message.mid)}
+          <AudioIcon className="message-type-icon"></AudioIcon>{" "}
+          {translate("Audio", language)}
+        </>
+      );
+    }
+    if (message.message_type.name === "VideoMessage") {
+      return (
+        <>
+          {message.sender_user_id === getUser()?.id &&
+            getMessageStatusIcon(message.message_status, message.mid)}
+          <VideoIcon className="message-type-icon"></VideoIcon>{" "}
+          {translate("Video", language)}
+        </>
+      );
+    }
+    if (message.message_type.name === "FileMessage") {
+      return (
+        <>
+          {message.sender_user_id === getUser()?.id &&
+            getMessageStatusIcon(message.message_status, message.mid)}
+          {translate("File", language)}
+        </>
+      );
+    }
+    if (message.message_type.name === "VoiceCall") {
+      return <>{translate("Voice Call", language)}</>;
+    }
+    if (message.message_type.name === "VideoCall") {
+      return <>{translate("Video Call", language)}</>;
+    }
+  };
+  return (
+    <div
+      className={`last-message-body ${
+        message.message_type.name !== "TextMessage" && "inline-flex"
+      }`}
+      style={{ maxHeight: status ? "15px" : "40px" }}
+    >
+      {getMessage()}
+    </div>
+  );
+}
+
+export default LastMessageBody;

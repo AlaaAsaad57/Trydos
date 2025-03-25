@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="30" height="19.3" viewBox="0 0 30 19.3">
+  <g id="g5076" transform="translate(49.565 -114.19)">
+    <g id="g4142" transform="translate(-49.565 114.19)">
+      <path id="green" d="M2,0H28a2,2,0,0,1,2,2V6.7a0,0,0,0,1,0,0H2a2,2,0,0,1-2-2V2A2,2,0,0,1,2,0Z" fill="#00732f"/>
+      <rect id="rect5" width="30" height="6.7" transform="translate(0 5.8)" fill="#fff"/>
+      <path id="green-2" data-name="green" d="M2,0H30a0,0,0,0,1,0,0V4.7a2,2,0,0,1-2,2H2a2,2,0,0,1-2-2V2A2,2,0,0,1,2,0Z" transform="translate(0 12.5)"/>
+      <rect id="red" width="7" height="19.3" rx="2" fill="red"/>
+    </g>
+  </g>
+</svg>

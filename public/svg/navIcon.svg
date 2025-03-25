@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="19.329" height="20.131" viewBox="0 0 19.329 20.131">
+  <defs>
+    <filter id="Path_21301" x="4.999" y="5.801" width="14.329" height="14.329" filterUnits="userSpaceOnUse">
+      <feOffset dy="2" input="SourceAlpha"/>
+      <feGaussianBlur stdDeviation="1" result="blur"/>
+      <feFlood flood-opacity="0.2"/>
+      <feComposite operator="in" in2="blur"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+    <filter id="Path_21301-2" x="4.999" y="5.801" width="14.329" height="14.329" filterUnits="userSpaceOnUse">
+      <feOffset dy="3" input="SourceAlpha"/>
+      <feGaussianBlur stdDeviation="2" result="blur-2"/>
+      <feFlood flood-color="#fff" flood-opacity="0.302" result="color"/>
+      <feComposite operator="out" in="SourceGraphic" in2="blur-2"/>
+      <feComposite operator="in" in="color"/>
+      <feComposite operator="in" in2="SourceGraphic"/>
+    </filter>
+  </defs>
+  <g id="Group_10646" data-name="Group 10646" transform="translate(-205.059 -73.147)">
+    <g id="Group_10625" data-name="Group 10625" transform="translate(-193.631 -855.836) rotate(56)">
+      <path id="Path_21306" data-name="Path 21306" d="M4.344,2.936a10.187,10.187,0,0,1-1.184-.071.192.192,0,0,1-.136-.217c.007-.11.08-.191.162-.182a9.96,9.96,0,0,0,1.157.07,9.846,9.846,0,0,0,1.209-.077c.082-.01.155.071.163.181a.192.192,0,0,1-.135.218A10.071,10.071,0,0,1,4.344,2.936ZM.81,2.353a.114.114,0,0,1-.034-.005,20.963,20.963,0,0,1-2.319-.875.22.22,0,0,1-.1-.253c.026-.1.111-.162.189-.127a20.724,20.724,0,0,0,2.292.865.209.209,0,0,1,.112.24A.167.167,0,0,1,.81,2.353Zm7.115-.039a.165.165,0,0,1-.145-.152.211.211,0,0,1,.109-.242A15,15,0,0,0,10.15.95c.077-.041.164.01.194.112a.227.227,0,0,1-.084.26,15.255,15.255,0,0,1-2.3.986A.115.115,0,0,1,7.926,2.314Z" transform="matrix(0.999, -0.052, 0.052, 0.999, 995.593, 186.607)"/>
+      <g data-type="innerShadowGroup">
+        <g transform="matrix(0.56, -0.83, 0.83, 0.56, 993.11, 188.95)" filter="url(#Path_21301)">
+          <path id="Path_21301-3" data-name="Path 21301" d="M3,6A3,3,0,1,1,6,3,3,3,0,0,1,3,6Z" transform="translate(12.97 6.8) rotate(56)"/>
+        </g>
+        <g transform="matrix(0.56, -0.83, 0.83, 0.56, 993.11, 188.95)" filter="url(#Path_21301-2)">
+          <path id="Path_21301-4" data-name="Path 21301" d="M3,6A3,3,0,1,1,6,3,3,3,0,0,1,3,6Z" transform="translate(12.97 6.8) rotate(56)" fill="#fff"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
