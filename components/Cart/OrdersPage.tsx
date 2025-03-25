@@ -251,6 +251,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
             <AddressListContainer
               Delete={(e) => {
                 setOpenSelect(false);
+                openAddressList(false);
                 setDeleteModal(e);
               }}
               slideNext={() => {
@@ -438,6 +439,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                         <span
                           onClick={() => {
                             if (addressDetails.id) {
+                              openAddressList(false);
                               setDeleteModal(addressDetails);
                             }
                           }}
@@ -492,6 +494,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                       <span
                         onClick={() => {
                           if (addressDetails.id) {
+                            openAddressList(false);
                             setDeleteModal(addressDetails);
                           }
                         }}

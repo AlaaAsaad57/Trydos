@@ -8,6 +8,7 @@ const initialState = {
   loadingStories: true,
   selectedStory: null,
   renderStories: false,
+  OpenCamera: false,
   storiesData: null,
   categories: [],
 
@@ -26,6 +27,12 @@ const initialState = {
 
 const HomeReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "OPEN_CAMERA": {
+      return {
+        ...state,
+        OpenCamera: payload,
+      };
+    }
     case "IS-REGISTERING": {
       return {
         ...state,

@@ -137,6 +137,16 @@ export default function Providers({ children }) {
       searchParams.get("changed-country") ||
       searchParams.get("no-country")
     ) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("cart");
+      if (typeof window !== "undefined") {
+        window.history.replaceState(
+          {},
+          "",
+          `${window.location.pathname}?${params.toString()}`
+        );
+      }
+      // it commit
       return true;
     } else {
       return false;

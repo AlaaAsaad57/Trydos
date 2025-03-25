@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
-import { OrderItem as OrderItemType } from "../../types/orders";
+import { OrderItem as OrderItemType, OrdersResponse } from "../../types/orders";
 import { fetchOrders } from "../../services/orders";
 import OrderItem from "./OrderItem";
 
@@ -56,10 +56,18 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
 
     setLoading(true);
     try {
-      const response = await fetchOrders(page);
-      setOrders((prev) => [...prev, ...response.orders]);
-      setHasMore(response.hasMore);
-      setPage(response.nextPage);
+      const response: OrdersResponse = await fetchOrders(page);
+      if (
+        response.isSuccessful &&
+        response.hasContent &&
+        response.data.orders.length > 0
+      ) {
+        setOrders((prev) => [...prev, ...response.data.orders]);
+        setHasMore(response.data.orders.length > 0);
+        setPage((prev) => prev + 1);
+      } else {
+        setHasMore(false);
+      }
     } catch (error) {
       console.error("Error loading orders:", error);
     } finally {
@@ -96,9 +104,10 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
       style={{
         position: "fixed",
         top: 10,
-        right: 10,
-        maxHeight: "500px",
-        width: "400px",
+        right: 0,
+        maxHeight: "600px",
+        maxWidth: "400px",
+        width: "100%",
         background: "#fff",
         boxShadow: "-2px 0 5px rgba(0, 0, 0, 0.1)",
         zIndex: 1000,
@@ -171,7 +180,7 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
           scrollBehavior: "smooth",
           WebkitOverflowScrolling: "touch",
         }}
-        className="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
+        className="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent min-h-[400px]"
       >
         {orders.map((order) => (
           <OrderItem key={order.id} order={order} />

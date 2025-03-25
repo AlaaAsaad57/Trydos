@@ -4,8 +4,15 @@ export type ProductInterface = {
   slug: string;
   message: string;
   share_link: string;
-  details: string;
-  thumbnail: string;
+  details:
+    | string
+    | Array<{
+        title: string;
+        value: string;
+      }>;
+  thumbnail: {
+    file_path: string;
+  };
   images: Array<string>;
   categories: Array<{
     id: number;

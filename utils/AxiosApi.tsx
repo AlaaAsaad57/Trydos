@@ -47,6 +47,13 @@ export const AxiosGet = async ({
       // if (res.data.message !== "Data Got!") {
       //   toast.success(res.data.message);
       // }
+      if (
+        url.includes("user-notifications/get") ||
+        url.includes("/customer/order/list") ||
+        url.includes("/coupon/apply")
+      ) {
+        return res.data;
+      }
       if (res.data.popular_search_terms) {
         return res.data.popular_search_terms;
       }
