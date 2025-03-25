@@ -2,9 +2,15 @@ import { useParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import home from "services/home";
-import { GetAppLanguage, translateFunction } from "utils/functions";
+import {
+  addToCompare,
+  GetAppLanguage,
+  translateFunction,
+} from "utils/functions";
 import CheckIcon from "public/svg/CheckIcon.svg";
 import Spinner from "components/global/Spinner";
+import { toast } from "react-toastify";
+import { useRouter } from "next-nprogress-bar";
 function MoreOptionsSection() {
   let { lang } = useParams();
   // @ts-ignore
@@ -50,8 +56,16 @@ function MoreOptionsSection() {
     }
   }, []);
   const dispatch = useDispatch();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [addedToCompare, setAddedToCompare] = useState(
+    localStorage.getItem("f_p") === SelectedProduct.slug ||
+      localStorage.getItem("s_p") === SelectedProduct.slug
+  );
   let language = GetAppLanguage();
+  const AddedToCompare = () => {
+    return addedToCompare;
+  };
   const enableNotification = async (payload) => {
     if (!loading) {
       setLoading(true);
@@ -357,7 +371,30 @@ function MoreOptionsSection() {
 
           <span>{translate("Add To My Checklist", language)}</span>
         </div>
-        <div className="more-options-button">
+        <div
+          className={`more-options-button ${
+            AddedToCompare() ? "bg-green-300" : ""
+          }`}
+          onClick={() => {
+            if (AddedToCompare()) {
+              toast.info(translate("Already Added To Compare!", language));
+              return;
+            }
+            setAddedToCompare(true);
+            addToCompare(SelectedProduct.slug);
+            toast.success(
+              translate(
+                "Added To Compare! Click To Go To Compare Page",
+                language
+              ),
+              {
+                onClick: () => {
+                  router.push(`/compare`);
+                },
+              }
+            );
+          }}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -438,7 +475,13 @@ function MoreOptionsSection() {
               </g>
             </g>
           </svg>
-          <span>{translate("Add To Compare", language)}</span>
+          <span>
+            {AddedToCompare() ? (
+              <>{translate("Added To Compare", language)}</>
+            ) : (
+              translate("Add To Compare", language)
+            )}
+          </span>
         </div>
       </div>
     </div>

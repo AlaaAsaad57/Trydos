@@ -1,6 +1,7 @@
 import React from "react";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import SizeHelp from "public/svg/product/SizeHelp.svg";
+import { translateFunction } from "utils/functions";
 function SizeInfoBox() {
   return (
     <div className="size-box flex-col">
@@ -13,9 +14,11 @@ function SizeInfoBox() {
           className="recomend-text flex-row align-center"
           data-cy="RecommendedSize&Quantity"
         >
-          <span className="recomended-size">L</span> Recommended{" "}
-          <span className="recomended-size">Size</span> For You{" "}
-          <span className="quantity-size">Last 2</span>
+          <span className="recomended-size">L</span>{" "}
+          {translateFunction("Recommended")}{" "}
+          <span className="recomended-size">Size</span>{" "}
+          {translateFunction("For You")}{" "}
+          <span className="quantity-size">{translateFunction("Last")} 2</span>
         </div>
       </div>
       <div className="size-help flex-row align-center justify-center w-100 relative">
@@ -48,7 +51,7 @@ function SizeInfoBox() {
         </svg>
         <SizeHelp />
         <div className="recomend-text" data-cy="RecommendedHelp">
-          Need Help Finding Your Size?
+          {translateFunction("Need Help Finding Your Size?")}
         </div>
       </div>
     </div>

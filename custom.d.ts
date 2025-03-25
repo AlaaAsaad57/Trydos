@@ -3,6 +3,7 @@ declare global {
     homepage: {
       language: string;
       country: string;
+      OpenCamera: boolean;
       countries: Array<{
         id: number;
         parent_id: number;

@@ -592,6 +592,17 @@ export const filterProducts = async ({
   //   },
   // });
   callback(product.data.products);
+  return product.data.products;
+};
+export const searchProducts = async ({ searchText }) => {
+  let product: FilterProductApi["data"] = await AxiosGet({
+    url:
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+      `/api/products/search?limit=4&search_text=${searchText}`,
+    title: "Search Products",
+  });
+  console.log(product);
+  return product.products;
 };
 const urlParams = ({ filters, noProducts }) => {
   const PriceFiltered = store.getState().details.PriceFiltered;
@@ -935,4 +946,21 @@ export const WaitForCondition = async () => {
     // Optional: timeout in case it's taking too long
     // Wait for 10 seconds
   });
+};
+
+export const addToCompare = (slug: string) => {
+  const f_p = localStorage.getItem("f_p");
+  const s_p = localStorage.getItem("s_p");
+
+  if (!f_p) {
+    localStorage.setItem("f_p", slug);
+    return `?f_p=${slug}`;
+  } else if (!s_p) {
+    localStorage.setItem("s_p", slug);
+    return `?f_p=${f_p}&s_p=${slug}`;
+  } else {
+    // If both exist, replace the first one
+    localStorage.setItem("f_p", slug);
+    return `?f_p=${slug}&s_p=${s_p}`;
+  }
 };
