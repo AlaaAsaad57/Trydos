@@ -5,6 +5,13 @@ describe("Should Verify About NavBar & Navigation Between Category Icons", () =>
     });
     cy.Visit("/");
   });
+  it("Should change the url if it matches the condition", () => {
+    cy.Visit("/sy-en");
+    cy.get("[data-cy=Change-Url-Container]", { timeout: 30000 }).should(
+      "be.visible"
+    );
+    cy.clickElement("[data-cy=countain-with]:eq(0)");
+  });
   it("Should Verify The Presence Of The Navbar For The Store Logo, And The Rest Of The Icons (Cart - Login).", () => {
     cy.get("[data-cy=NavLogo]", { timeout: 10000 });
     cy.log("Store Logo Founded");
@@ -17,14 +24,13 @@ describe("Should Verify About NavBar & Navigation Between Category Icons", () =>
     cy.log("Nav Category Icons Founded");
   });
   it("Should Navigation Between Category Icons", () => {
-    cy.wait(5000);
     cy.get("[data-cy=categoryIcons]", { timeout: 15000 }).then(
       ($categoryIcons) => {
         const categoryIcon = $categoryIcons.length;
         cy.log(`✅✅ Number Of categoryIcons: ${categoryIcon}`);
         cy.get("[data-cy=categoryIcons]", { timeout: 10000 })
           .eq(0)
-          .click({ force: true });
+          .click({ force: true, scrollBehavior: false });
         cy.log(`✅✅ categoryIco Selected`);
         cy.get("[data-cy=activeCategoryIcon]");
         cy.log("✅✅ The categoryIcon Page Selected");
@@ -46,16 +52,18 @@ describe("Should Open The Home Page And Make Sure That The Boutiques Are Loaded.
       cy.get(".offer-widget")
         .eq(0)
         .as("currentBoutique")
-        .click({ force: true });
+        .click({ force: true, scrollBehavior: false });
       cy.log(`✅✅ Boutique Selected`);
       cy.get("[data-cy=on_mouse_over_product]", { timeout: 10000 })
         .eq(0)
-        .click({ force: true });
+        .click({ force: true, scrollBehavior: false });
       cy.get("[data-cy=backIcon_productPage]", { timeout: 20000 }).click({
         force: true,
+        scrollBehavior: false,
       });
       cy.get("[data-cy=back_icon_boutique_page]", { timeout: 20000 }).click({
         force: true,
+        scrollBehavior: false,
       });
       cy.log("✅✅ Back icon clicked and returned to the main page");
       cy.get("[data-cy=boutiques]", { timeout: 30000 }).should("be.visible");

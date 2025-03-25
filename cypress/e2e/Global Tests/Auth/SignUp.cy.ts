@@ -5,7 +5,6 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
     });
     cy.Visit("/");
   });
-  // *************************signupProcess********************
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -148,7 +147,6 @@ describe("Should show user is already registered when registering with registere
     cy.get("[data-cy=already-registered-phone]").should("be.visible");
   });
   it("Should Click On Close icon When Welcom Message Apperead", () => {
-    // cy.EndLoginOperation;
     cy.get("[data-cy=Look-At-App]").click({
       scrollBehavior: false,
       force: true,
@@ -240,7 +238,6 @@ describe("Should show user is already registered when registering with registere
     cy.EndLoginOperation;
   });
 });
-// **************************************************************************************************************
 describe("Signup Successful Attempt & complete the profile", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();

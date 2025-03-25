@@ -1,5 +1,4 @@
 /// <reference types="cypress-file-upload" />
-
 // ******************************* Chat Login & Initial Setup *********************************************************
 describe("Should Open Site And Login And Send Message", () => {
   before(() => {
@@ -14,7 +13,7 @@ describe("Should Open Site And Login And Send Message", () => {
     cy.logout();
     cy.wait(1000);
     cy.intercept("POST", "**/api/v1/users/login").as("LoginChat");
-    cy.performLogin1("963937288307");
+    cy.performLogin("963937288307");
     cy.get("@LoginChat", { timeout: 20000 });
   });
 
@@ -33,7 +32,6 @@ describe("Should Open Site And Login And Send Message", () => {
     cy.wait(2000);
   });
 });
-
 // ******************************* Text Message Tests *********************************************************
 describe("Should Send And Reply To Text Messages", () => {
   it("should send Text Message", () => {

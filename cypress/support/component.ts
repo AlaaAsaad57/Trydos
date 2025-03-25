@@ -53,7 +53,7 @@ declare global {
       typePincode(pincode: string): Chainable<void>;
       enterPhoneNumber(phoneNumber: string): Chainable<void>;
       reEnterPhoneNumber(phoneNumber: string): Chainable<void>;
-      performLogin1(s?: string): Chainable<void>;
+      performLogin(s?: string): Chainable<void>;
       interceptAndWait(
         routes: { method?: string; url: string; alias: string }[]
       ): Chainable<void>;

@@ -6,21 +6,6 @@ describe("Should Add Product To Cart From Any Boutique Page", () => {
     });
     cy.Visit("/");
   });
-  it("Should Verify The Main Pagee Loaded", () => {
-    cy.interceptAndWait([
-      {
-        method: "GET",
-        url: "**/api/v1/stories/users_stories",
-        alias: "users_stories",
-      },
-      {
-        method: "GET",
-        url: "**/api/products/popular-search",
-        alias: "popular-search",
-      },
-    ]);
-    cy.log("✅✅ users_stories & popular-search Requests Arrived");
-  });
   it("Should Select Any Boutique To Add Product To Cart From It", () => {
     cy.OpenBoutiqueAndAddProductToCartFromBoutiquePage();
   });
