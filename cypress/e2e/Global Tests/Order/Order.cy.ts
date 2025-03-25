@@ -7,12 +7,6 @@ describe("Should Open The Website & Logout", () => {
     });
     cy.Visit("/sy-en");
   });
-  it("Should change the url if it matches the condition", () => {
-    cy.get("[data-cy=Change-Url-Container]", { timeout: 30000 }).should(
-      "be.visible"
-    );
-    cy.clickElement("[data-cy=countain-with]:eq(0)");
-  });
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });

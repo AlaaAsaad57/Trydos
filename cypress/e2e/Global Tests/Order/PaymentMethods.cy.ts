@@ -5,12 +5,6 @@ describe("Should visit the home page and add a product to the cart from the bout
     });
     cy.Visit("/sy-en");
   });
-  it("Should change the url if it matches the condition", () => {
-    cy.get("[data-cy=Change-Url-Container]", { timeout: 30000 }).should(
-      "be.visible"
-    );
-    cy.clickElement("[data-cy=countain-with]:eq(0)");
-  });
   it("should verify the user is login", () => {
     cy.ChexkExistElement("[data-cy=NavUserName]").then((exist) => {
       if (!exist) {

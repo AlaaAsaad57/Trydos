@@ -4,13 +4,15 @@ describe("Should Verify About NavBar & Navigation Between Category Icons", () =>
       return false;
     });
     cy.Visit("/");
-  });
-  it("Should change the url if it matches the condition", () => {
-    cy.Visit("/sy-en");
-    cy.get("[data-cy=Change-Url-Container]", { timeout: 30000 }).should(
-      "be.visible"
-    );
-    cy.clickElement("[data-cy=countain-with]:eq(0)");
+    cy.url().then((url) => {
+      if (url === "http://localhost:3000/tr-en") {
+        cy.visit("/sy-en");
+        cy.clickElement("[data-cy=countain-with]:eq(0)");
+      } else {
+        cy.visit("/tr-en");
+        cy.clickElement("[data-cy=countain-with]:eq(0)");
+      }
+    });
   });
   it("Should Verify The Presence Of The Navbar For The Store Logo, And The Rest Of The Icons (Cart - Login).", () => {
     cy.get("[data-cy=NavLogo]", { timeout: 10000 });

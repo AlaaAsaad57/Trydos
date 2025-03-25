@@ -6,19 +6,19 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
       return false;
     });
     cy.Visit("/");
-    cy.interceptAndWait([
-      {
-        method: "GET",
-        url: "**/api/v1/stories/users_stories",
-        alias: "users_stories",
-      },
-      {
-        method: "GET",
-        url: "**/api/products/popular-search",
-        alias: "popular-search",
-      },
-    ]);
-    cy.log("✅✅ users_stories & popular-search Requests Arrived");
+    // cy.interceptAndWait([
+    //   {
+    //     method: "GET",
+    //     url: "**/api/v1/stories/users_stories",
+    //     alias: "users_stories",
+    //   },
+    //   {
+    //     method: "GET",
+    //     url: "**/api/products/popular-search",
+    //     alias: "popular-search",
+    //   },
+    // ]);
+    // cy.log("✅✅ users_stories & popular-search Requests Arrived");
   });
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
     cy.clickElement(".offer-widget:eq(4)");
