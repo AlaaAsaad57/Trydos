@@ -43,7 +43,6 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
     cy.verifyBoxsInBoutiquePage();
     cy.verifyComponentsInProductCard();
   });
-  // ********************************************************************************
   it("Should Obtain The Main Name Of The Category That Was ChosenFor The Filter", () => {
     cy.ChexkExistElement("[data-cy=categoryBox").then((exist) => {
       if (!exist) {
@@ -458,7 +457,6 @@ describe("Should Clicks On Search Input And Search About A Product (By Name)", (
     cy.log("✅ icon for close search input clicked");
   });
 });
-// ***********************************************************************************
 describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products By Category Or Brand Or Color Or Price", () => {
   let totalProductsFound1 = 0;
   let totalProductsFound2 = 0;
@@ -505,7 +503,6 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
       }
     });
   });
-  // *******************************Brand**********************************
   it("Should Select A Brand", () => {
     cy.ChexkExistElement("[data-cy=brandBox]").then((exist) => {
       if (exist) {
@@ -543,7 +540,6 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
       }
     });
   });
-  // *****************************color************************************
   it("Should Select A Color", () => {
     cy.ChexkExistElement("[data-cy=colorBox]").then((exist) => {
       if (exist) {
@@ -581,7 +577,6 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
       }
     });
   });
-  // *******************************price***************************
   // it("Should Select A Price", () => {
   //   cy.ChexkExistElement("[[data-cy=slider]]").then((exist) => {
   //     if (exist) {
@@ -630,7 +625,6 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
     });
   });
 });
-// *******************************************************************************
 describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products By Category & Brand & Color", () => {
   let totalProductsFound44 = 0;
   it("Should Click On Settings Icon Founded In Boutique Page", () => {
@@ -707,7 +701,6 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
     cy.log("✅✅ Close icon has been clicked");
   });
 });
-// **************************************************************
 describe("Should Clicks On Settings Icon & Filter As Category || Brand || Color || Price & Reset After Any Choice", () => {
   it("Should Click On Settings Icon Founded In Boutique Page", () => {
     cy.clickElement("[data-cy=settingsIcon]");

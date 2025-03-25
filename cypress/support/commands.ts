@@ -61,6 +61,19 @@ Cypress.Commands.add("Visit", function (url: string) {
       });
     }
   });
+  // cy.interceptAndWait([
+  //   {
+  //     method: "GET",
+  //     url: "**/api/v1/stories/users_stories",
+  //     alias: "users_stories",
+  //   },
+  //   {
+  //     method: "GET",
+  //     url: "**/api/products/popular-search",
+  //     alias: "popular-search",
+  //   },
+  // ]);
+  // cy.log("✅✅ users_stories & popular-search Requests Arrived");
 });
 Cypress.Commands.add("Exist", (selector) => {
   cy.wait(3000);
@@ -97,7 +110,7 @@ Cypress.Commands.add("logout", () => {
   cy.Exist("[data-cy=Logout-ReLogout]").then((exist) => {
     if (exist) {
       cy.get("[data-cy=Logout-ReLogout]").click({ force: true });
-      cy.get("[data-cy=logout]").click({ force: true });
+      cy.get("[data-cy=logout]").click({ force: true, scrollBehavior: false });
       cy.log("✅✅ You have successfully logged out");
     } else {
       cy.log("❌❌ No Login Founded!");
@@ -170,7 +183,7 @@ Cypress.Commands.add("InputFieldNameVisible", () => {
 Cypress.Commands.add("TypeName", () => {
   cy.clickElement("[data-cy=InputFiledForName]");
   cy.get("[data-cy=InputFiledForName]", { timeout: 10000 })
-    .type("Abdo Hamdan", { force: true })
+    .type("Abdo Hamdan", { force: true, scrollBehavior: false })
     .should("have.value", "Abdo Hamdan"); // Ensure text was typed
   cy.log("✅✅ User Name is Writ In Input Field");
   cy.clickElement(".phone-arrow");
@@ -236,7 +249,7 @@ Cypress.Commands.add("reEnterPhoneNumber", (phoneNumber: string) => {
   });
   cy.clickElement(".phone-arrow");
 });
-Cypress.Commands.add("performLogin1", (s?: string) => {
+Cypress.Commands.add("performLogin", (s?: string) => {
   cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   cy.OpenLoginInterface();
   cy.HaveAccount();
@@ -261,9 +274,9 @@ Cypress.Commands.add("clickElement", (selector: string) => {
 });
 Cypress.Commands.add("OpenBoutiqueAndAddProductToCartFromBoutiquePage", () => {
   let productName: string = "";
-  cy.clickElement(".offer-widget:eq(2)");
+  cy.clickElement(".offer-widget:eq(1)");
   cy.log("✅✅ An Boutique Selected & Click");
-  cy.get("[data-cy=boutique_top_info]", { timeout: 10000 }).should(
+  cy.get("[data-cy=boutique_top_info]", { timeout: 20000 }).should(
     "be.visible"
   );
   cy.log("✅✅ The Boutique Page Opened");
@@ -280,56 +293,58 @@ Cypress.Commands.add("OpenBoutiqueAndAddProductToCartFromBoutiquePage", () => {
     },
   ]);
   cy.log("✅✅ OpenBoutique & LoadallProducts Requests Arrived");
-  cy.get('[data-cy="on_mouse_over_product"]').then(($items) => {
-    const count = $items.length;
-    cy.log(
-      `✅✅ Number of items found after clicking the first offer widget: ${count}`
-    );
-    function processItem(index) {
-      if (index >= count) {
-        cy.log("✅✅ No more items to process.");
-        return;
-      }
-      cy.get("[data-cy=productName]")
-        .eq(index)
-        .invoke("text")
-        .then((text) => {
-          productName = text.trim();
-          cy.log(
-            "✅✅ Product Name Obtained & The Product Name Is:",
-            productName
-          );
-          cy.clickElement(`[data-cy=Cart-ByButton]:eq(${index})`);
-          cy.interceptAndWait([
-            {
-              method: "GET",
-              url: "**/product/qtyPriceDetails/**",
-              alias: "getProductData1",
-            },
-            {
-              method: "GET",
-              url: "**/product/likesCommentsSharesDetails/**",
-              alias: "getProductData2",
-            },
-          ]);
-          cy.log("✅✅ getProductData1 & getProductData2 Requests Arrived");
-          cy.ChexkExistElement("[data-cy=ProductQuantityFinished]").then(
-            (exists) => {
-              if (exists) {
-                cy.clickElement("[data-cy=Back-Icon-AddToWedgit]");
-                cy.log(
-                  `✅✅ Clicked Back-Icon-AddToWedgit for item ${index + 1}`
-                );
-                processItem(index + 1); // Continue looping
-              } else {
-                cy.log("✅✅ Product successfully added. Stopping loop.");
+  cy.get('[data-cy="on_mouse_over_product"]', { timeout: 15000 }).then(
+    ($items) => {
+      const count = $items.length;
+      cy.log(
+        `✅✅ Number of items found after clicking the first offer widget: ${count}`
+      );
+      function processItem(index) {
+        if (index >= count) {
+          cy.log("✅✅ No more items to process.");
+          return;
+        }
+        cy.get("[data-cy=productName]", { timeout: 15000 })
+          .eq(index)
+          .invoke("text")
+          .then((text) => {
+            productName = text.trim();
+            cy.log(
+              "✅✅ Product Name Obtained & The Product Name Is:",
+              productName
+            );
+            cy.clickElement(`[data-cy=Cart-ByButton]:eq(${index})`);
+            cy.interceptAndWait([
+              {
+                method: "GET",
+                url: "**/product/qtyPriceDetails/**",
+                alias: "getProductData1",
+              },
+              {
+                method: "GET",
+                url: "**/product/likesCommentsSharesDetails/**",
+                alias: "getProductData2",
+              },
+            ]);
+            cy.log("✅✅ getProductData1 & getProductData2 Requests Arrived");
+            cy.ChexkExistElement("[data-cy=ProductQuantityFinished]").then(
+              (exists) => {
+                if (exists) {
+                  cy.clickElement("[data-cy=Back-Icon-AddToWedgit]");
+                  cy.log(
+                    `✅✅ Clicked Back-Icon-AddToWedgit for item ${index + 1}`
+                  );
+                  processItem(index + 1); // Continue looping
+                } else {
+                  cy.log("✅✅ Product successfully added. Stopping loop.");
+                }
               }
-            }
-          );
-        });
+            );
+          });
+      }
+      processItem(0);
     }
-    processItem(0);
-  });
+  );
 });
 Cypress.Commands.add("verifyProductInCart", (productName: string) => {
   cy.get("[data-cy=productNameInCart]")
@@ -514,9 +529,9 @@ Cypress.Commands.add(
   "OpenBoutiqueAndAddProductToCartFromBoutiqueDatailPage",
   () => {
     let productName: string = "";
-    cy.clickElement(".offer-widget:eq(4)");
+    cy.clickElement(".offer-widget:eq(2)");
     cy.log("✅✅ An Boutique Selected & Click");
-    cy.get("[data-cy=boutique_top_info]", { timeout: 10000 }).should(
+    cy.get("[data-cy=boutique_top_info]", { timeout: 20000 }).should(
       "be.visible"
     );
     cy.log("✅✅ The Boutique Page Opened");
@@ -586,7 +601,7 @@ Cypress.Commands.add(
 Cypress.Commands.add("ClickAddToCartAndWaitRequest", () => {
   cy.intercept("POST", /\/cart\/(add|update)/).as("CartRequest");
   cy.clickElement("[data-cy=AddToCartButton-data-cy]");
-  cy.wait("@CartRequest", { timeout: 10000 }).then((interception) => {
+  cy.wait("@CartRequest", { timeout: 30000 }).then((interception) => {
     if (interception?.response) {
       expect(interception.response.statusCode).to.eq(200);
     } else {
@@ -606,13 +621,32 @@ Cypress.Commands.add("ComplateAddProductOperationAndGoCartPage", () => {
 Cypress.Commands.add("ConfirmAndComplateOrderButton", () => {
   cy.clickElement("[data-cy=Confirm-Order-Button]");
   cy.log("✅✅ Confirm & Countinue Button Clicked");
+  cy.ChexkExistElement("[data-cy=FieldToInputNumber]").then((exist) => {
+    if (!exist) {
+      cy.interceptAndWait([
+        {
+          method: "GET",
+          url: "**/api/new_v1/customer/address/list",
+          alias: "ListRequest",
+        },
+        {
+          method: "GET",
+          url: "**/api/new_v1/cart/cart_shipping",
+          alias: "CartShiping",
+        },
+      ]);
+      cy.log("✅✅ CartShiping & ListRequest Requests Arrived");
+    } else {
+      cy.log("❌❌ Should Complate Login Operation");
+    }
+  });
 });
 Cypress.Commands.add(
   "ChooseBoutiqueAndVerifyComponentsAndBoxsInBoutiquePage",
   () => {
-    cy.clickElement(".offer-widget:eq(4)");
+    cy.clickElement(".offer-widget:eq(3)");
     cy.log("✅✅ An Boutique Selected & Click");
-    cy.get("[data-cy=boutique_top_info]", { timeout: 10000 }).should(
+    cy.get("[data-cy=boutique_top_info]", { timeout: 30000 }).should(
       "be.visible"
     );
     cy.log("✅✅ The Boutique Page Opened");

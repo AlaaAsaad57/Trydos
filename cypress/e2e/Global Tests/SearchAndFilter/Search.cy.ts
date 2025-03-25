@@ -103,7 +103,6 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.log("✅ Close Icon To Close Search Result Container Clicked");
   });
 });
-// **************************************************************************************
 describe("Should Click On The Search Icon On The Home Page & View The Filtering & Search Page, Then Choose A Category & Should That The Filtering Result Is Displayed & Present.", () => {
   let totalProductsFound;
   it("Should Click On The Firstly Category To Filter Result As It", () => {
@@ -178,7 +177,6 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.log("✅ Close Icon To Close Search Result Container Clicked");
   });
 });
-// **************************************************************************************
 describe("Should Click On The Search Icon On The Home Page & View The Filtering & Search Page, Then Choose A Boutique & Should That The Filtering Result Is Displayed & Present.", () => {
   let totalProductsFound;
   it("Should Click On The Firstly Boutique To Filter Result As It", () => {
@@ -249,7 +247,6 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.log("✅ Close Icon To Close Search Result Container Clicked");
   });
 });
-// **************************************************************************************
 describe("Should Search About Product By Name", () => {
   let totalProductsFound;
   it("Should Click On Input Field To Write Name Of The Thing To Search", () => {

@@ -28,7 +28,7 @@ function GalleryItem({
         className={`${
           extended ? "h-[98px] pl-[20px] pr-[30px] pb-[10px] pt-[10px]" : "h-0"
         } transition-all rounded-b-[30px] bg-[#F8F8F8]  gallery-item-desc flex-col relative`}
-        data-cy="ProductsDetail&Info"
+        data-cy="ProductsDetailInfo"
       >
         {extended && (
           <>
