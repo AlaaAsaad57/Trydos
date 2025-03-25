@@ -1,0 +1,68 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@5
+  cypress: cypress-io/cypress@3
+
+jobs:
+  build-and-test:
+    docker:
+      - image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - node-deps-v1-{{ checksum "yarn.lock" }}
+      - run:
+          name: Install Dependencies
+          command: yarn
+      - save_cache:
+          key: node-deps-v1-{{ checksum "yarn.lock" }}
+          paths:
+            - node_modules
+      - run:
+          name: Build Next.js App
+          command: npx next build --no-lint
+      - run:
+          name: Start Next.js
+          command: npx next start
+          background: true
+      - run:
+          name: Wait for App
+          command: npx wait-on http://localhost:3000
+      - cypress/run:
+          command: npx nyc cypress run --browser chrome --config baseUrl=http://localhost:3000
+      - run:
+          name: Upload Coverage
+          command: npx codecov --token=${CODECOV_TOKEN}
+      - store_artifacts:
+          path: cypress/screenshots
+      - store_artifacts:
+          path: cypress/reports
+      - store_artifacts:
+          path: coverage
+
+  deploy:
+    docker:
+      - image: cimg/node:20.9.0
+    steps:
+      - run:
+          name: Deploy to Vercel
+          command: echo "Test Deploy to Vercel"
+
+workflows:
+  version: 2
+  build-test-deploy:
+    jobs:
+      - build-and-test:
+          filters:
+            branches:
+              only:
+                - alaa-dev
+      - deploy:
+          requires:
+            - build-and-test
+          filters:
+            branches:
+              only:
+                - alaa-dev

@@ -137,7 +137,13 @@ export default function Providers({ children }) {
       searchParams.get("changed-country") ||
       searchParams.get("no-country")
     ) {
-      searchParams.delete("cart");
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("cart");
+      window.history.replaceState(
+        {},
+        "",
+        `${window.location.pathname}?${params.toString()}`
+      );
       return true;
     } else {
       return false;
