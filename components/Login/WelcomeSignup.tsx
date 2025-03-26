@@ -1,4 +1,5 @@
 import { useParams } from "next/navigation";
+import { useRouter } from "next-nprogress-bar";
 import React, { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
 import { useSelector } from "react-redux";
@@ -10,6 +11,7 @@ interface Props {
   close: Function;
 }
 function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
+  const router = useRouter();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -73,7 +75,10 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
         <div
           className="login-button"
           data-cy="Complate-Close"
-          onClick={() => close()}
+          onClick={() => {
+            close();
+            router.push(`/settings#Profile`);
+          }}
           style={{
             position: "relative",
             backgroundColor: "#F4FFF4",

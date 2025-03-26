@@ -243,7 +243,9 @@ class AuthService {
         body: { name: name },
         title: "Update Name",
       });
-
+      if (!localStorage.getItem("STORIES-TOKEN")) {
+        await this.ConfirmSignIn();
+      }
       axios.post(
         process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + "/api/v1/users/update",
         { name: name },
@@ -290,8 +292,8 @@ class AuthService {
     if (localStorage.getItem("customer-info")) {
       localStorage.removeItem("customer-info");
     }
-    StoryService.loginStories();
-    ChatService.loginChat();
+    await StoryService.loginStories();
+    await ChatService.loginChat();
   }
   async cancelAuth() {
     if (!localStorage.getItem("guest-user")) {
