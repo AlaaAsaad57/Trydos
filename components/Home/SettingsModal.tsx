@@ -496,23 +496,34 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, lang }) => {
             <div className="notifications-tab mt-2">
               {topics?.length > 0 ? (
                 <>
-                  <span className="w-full flex text-[#1d1d1d] medium py-3 px-1 bg-gray-100 rounded-md">
+                  <span
+                    className="w-full flex text-[#1d1d1d] medium py-3 px-1 bg-gray-100 rounded-md"
+                    data-cy="Notifications-Can-Enabled"
+                  >
                     {translateFunction(
                       "Enabled Notifications Topic:",
                       Array.isArray(lang) ? lang[0] : lang.split("-")[1]
                     )}
                   </span>
-                  <ul className="space-y-2 max-h-[280px] overflow-scroll p-2">
+                  <ul
+                    className="space-y-2 max-h-[280px] overflow-scroll p-2"
+                    data-cy="Children-off-Notifications-Can-Enabled"
+                  >
                     {topics.map((topic, index) => (
                       <li
                         key={index}
                         className="flex justify-between items-center p-2 rounded"
+                        data-cy="NotificationsItem-Can-Enabled"
                       >
-                        <span className="text-gray-700">
+                        <span
+                          className="text-gray-700"
+                          data-cy="typeof-subscribing"
+                        >
                           {formatTopicName(topic)}
                         </span>
                         <button
                           className="text-red-500 hover:text-red-700"
+                          data-cy="ButtonToEnabled-NotificationsItem"
                           disabled={loading}
                           onClick={() => handleUnsubscribe(topic)}
                         >
@@ -535,7 +546,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, lang }) => {
                   </ul>
                 </>
               ) : (
-                <p className="text-gray-500">
+                <p className="text-gray-500" data-cy="NoTopics-Subscribe">
                   {loadingTopics
                     ? translateFunction(
                         "Loading Topics...",
@@ -551,23 +562,34 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, lang }) => {
               {/* Unsubscribed topics */}
               {unsubscribedTopics?.length > 0 && (
                 <div className="mt-4">
-                  <p className="w-full flex text-[#1d1d1d] medium py-3 px-1 bg-gray-100 rounded-md">
+                  <p
+                    className="w-full flex text-[#1d1d1d] medium py-3 px-1 bg-gray-100 rounded-md"
+                    data-cy="Notifications-Can-Disenabled"
+                  >
                     {translateFunction(
                       "Disabled Notifications Topic:",
                       Array.isArray(lang) ? lang[0] : lang.split("-")[1]
                     )}
                   </p>
-                  <ul className="space-y-2 max-h-[280px] overflow-scroll">
+                  <ul
+                    className="space-y-2 max-h-[280px] overflow-scroll"
+                    data-cy="Children-off-Notifications-Can-Disenabled"
+                  >
                     {unsubscribedTopics.map((topic, index) => (
                       <li
                         key={index}
                         className="flex justify-between items-center p-2 rounded"
+                        data-cy="NotificationsItem-Can-Disenabled"
                       >
-                        <span className="text-gray-700">
+                        <span
+                          className="text-gray-700"
+                          data-cy="typeof-unsubscribing"
+                        >
                           {formatTopicName(topic)}
                         </span>
                         <button
                           className="text-blue-500 hover:text-blue-700"
+                          data-cy="ButtonToDisenabled-NotificationsItem"
                           disabled={loading}
                           onClick={() => handleSubscribe(topic)}
                         >
@@ -592,7 +614,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, lang }) => {
               )}
               <div className="preferences-tab py-2 rounded-md mt-2">
                 <div className="flex-col w-full text-[#1d1d1d]">
-                  <div className="w-full flex text-[#1d1d1d] medium py-3 px-1 bg-gray-100 rounded-md">
+                  <div
+                    className="w-full flex text-[#1d1d1d] medium py-3 px-1 bg-gray-100 rounded-md"
+                    data-cy="notifications-subscription"
+                  >
                     {translateFunction(
                       "notifications subscription:",
                       Array.isArray(lang) ? lang[0] : lang.split("-")[1]
@@ -600,6 +625,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, lang }) => {
                   </div>
                   <div
                     className="flex-row my-1 items-center p-2 cursor-pointer bg-gray-100 rounded-md h-[50px]"
+                    data-cy="notifications-subscription-item"
                     onClick={() => {
                       if (fbSettings?.email === 0) {
                         changeNotificationPreferences({ email: 1 });
@@ -618,14 +644,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, lang }) => {
                       }
                     }}
                   >
-                    <MailIcon className="h-[30px]" />
-                    <span className="ml-2">
+                    <MailIcon className="h-[30px]" data-cy="mail-icon" />
+                    <span className="ml-2" data-cy="statement-mail">
                       {translateFunction(
                         "Enable Email Notifications",
                         Array.isArray(lang) ? lang[0] : lang.split("-")[1]
                       )}
                     </span>
                     <input
+                      data-cy="checkbox-mail"
                       checked={fbSettings?.email === 1}
                       onChange={() => {}}
                       value=""

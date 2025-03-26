@@ -175,6 +175,7 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
 
         <>
           <MenuItem
+            dataCy="Settings-Icon"
             href={`/${lang}/settings`}
             icon={
               <MenuIcon>

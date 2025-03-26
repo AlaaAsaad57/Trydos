@@ -136,29 +136,29 @@ describe("Should Click On Each QuestionMark Component & Read InfoWindow Text", (
 describe("Should Open Camera Shot Picture", () => {
   it("Should Verify Swipper Photo1", () => {
     // Should Add Code To Check If Count Of Shots === Count Of SwiperPhoto1 When linking to the database
-    cy.get('[data-cy="CameraIcon"]').should("be.visible");
+    cy.get("[data-cy=CameraIcon]").should("be.visible");
     cy.log("✅✅ Camera Icon Displayed");
-    cy.get('[data-cy="SwiperPhoto1"]').should("be.visible");
+    cy.get("[data-cy=SwiperPhoto1]").should("be.visible");
     cy.log("✅✅ Swiper Photo1 Displayed");
     cy.clickElement("[data-cy=SwiperPhoto1]:eq(0)");
     cy.log("✅✅ First Swiper Photo1 Clicked");
   });
   it("Should Check Whether The Image Interface Exists", () => {
-    cy.get('[data-cy="ActiveCaneraGallery"]').should("be.visible");
+    cy.get("[data-cy=ActiveCaneraGallery]").should("be.visible");
     cy.log("✅✅ Active Canera Gallery Displayed");
-    cy.get('[data-cy="GalleryItems"]').should("be.visible");
+    cy.get("[data-cy=GalleryItems]").should("be.visible");
     cy.log("✅✅ Gallery Items Displayed");
   });
   it("Should Choose Any Photo", () => {
-    cy.get('[data-cy="GalleryChooseItem"]').should("be.visible");
+    cy.get("[data-cy=GalleryChooseItem]").should("be.visible");
     cy.log("✅✅ Gallery Choose Item Displayed");
     cy.clickElement("[data-cy=GalleryChooseItem]:eq(0)");
     cy.log("✅✅ Firstly Gallery Choose Item Clicked");
   });
   it("Should Check Whether User Interaction Box & Get Number Of Love Interactions", () => {
-    cy.get('[data-cy="UserInteractions"]').should("be.visible");
+    cy.get("[data-cy=UserInteractions]").should("be.visible");
     cy.log("✅✅ User Interactions Displayed");
-    cy.get('[data-cy="CountOfUserInteractions"]:eq(0)').scrollIntoView();
+    cy.get("[data-cy=CountOfUserInteractions]:eq(0)").scrollIntoView();
     cy.log("✅✅ Box Interactions Displayed");
     cy.get("[data-cy=CountOfLoved]:eq(0)")
       .invoke("text")

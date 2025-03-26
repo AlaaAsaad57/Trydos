@@ -181,12 +181,18 @@ Cypress.Commands.add("InputFieldNameVisible", () => {
   cy.log("✅✅ Input Field For Writ User Name is clicked on");
 });
 Cypress.Commands.add("TypeName", () => {
+  // cy.intercept("POST", "**/customer/update-name").as("update-name");
+  // cy.intercept("POST", "**/api/v1/users/update").as("update");
   cy.clickElement("[data-cy=InputFiledForName]");
   cy.get("[data-cy=InputFiledForName]", { timeout: 10000 })
     .type("Abdo Hamdan", { force: true, scrollBehavior: false })
     .should("have.value", "Abdo Hamdan"); // Ensure text was typed
   cy.log("✅✅ User Name is Writ In Input Field");
   cy.clickElement(".phone-arrow");
+  // cy.wait(["@update-name", "@update"]).then((inter) => {
+  //   expect(inter[0].response.statusCode).to.be.eq(200);
+  //   expect(inter[1].response.statusCode).to.be.eq(200);
+  // });
 });
 Cypress.Commands.add("MakeOtpExpired", () => {
   cy.wait(70000);

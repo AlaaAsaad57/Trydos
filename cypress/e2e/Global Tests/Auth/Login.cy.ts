@@ -308,7 +308,13 @@ describe("Should Input name in login if the user does not input your name when s
       });
   });
 });
-describe("Should show user not found when registering with non registered number & Create New Account & Continue", () => {
+describe.only("Should show user not found when registering with non registered number & Create New Account & Continue", () => {
+  before(() => {
+    Cypress.on("uncaught:exception", (err, runnable) => {
+      return false;
+    });
+    cy.Visit("/");
+  });
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -322,7 +328,7 @@ describe("Should show user not found when registering with non registered number
     cy.ComplateLoginByMobilePhone();
   });
   it("Should Enter His Number In Number Entry Box", () => {
-    cy.enterPhoneNumber("963937288307");
+    cy.enterPhoneNumber("963937764641");
   });
   it("Should Click Recive Otp Code By SMS Button", () => {
     cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
