@@ -602,12 +602,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, lang }) => {
                     className="flex-row my-1 items-center p-2 cursor-pointer bg-gray-100 rounded-md h-[50px]"
                     onClick={() => {
                       if (fbSettings?.email === 0) {
-                        changeNotificationPreferences({ email: 1 });
                         changeSetting({
                           url: "update_email",
                           body: { email: 1 },
                           past: changeNotificationPreferences({ email: 0 }),
                         });
+                        changeNotificationPreferences({ email: 1 });
                       } else {
                         changeSetting({
                           url: "update_email",
@@ -626,10 +626,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, lang }) => {
                       )}
                     </span>
                     <input
-                      checked={fbSettings?.email === 1}
-                      onChange={() => {}}
-                      value=""
                       id="helper-checkbox"
+                      checked={fbSettings?.email === 1}
+                      defaultChecked={fbSettings?.email === 1}
+                      value=""
+                      onChange={() => {}}
                       aria-describedby="helper-checkbox-text"
                       type="checkbox"
                       className="ml-3 appearance-auto accent-[#71a4f8] w-5 h-5 text-blue-600 bg-gray-100 rounded-sm"
