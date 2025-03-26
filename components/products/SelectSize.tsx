@@ -394,11 +394,20 @@ const SelectSizeSlider = ({ sizes, setActive, getVariants }) => {
       if (size) dispatch({ type: "AddToCartSize", payload: size });
     }
   }, []);
+  const activeSize = useSelector(
+    (state: StateInterface) => state.cart.AddToCartOption.selectedSize
+  );
   const getInitial = () => {
     if (searchParams.get("size")) {
       let index = 0;
       sizes.map((s, i) => {
         if (s.name === searchParams.get("size")) index = i;
+      });
+      return index;
+    } else if (activeSize) {
+      let index = 0;
+      sizes.map((s, i) => {
+        if (s.name === activeSize.name) index = i;
       });
       return index;
     }

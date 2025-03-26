@@ -7,7 +7,14 @@ import { getConfiguredImage } from "utils/functions";
 import { useDispatch, useSelector } from "react-redux";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CloseIcon from "components/Home/Stories/CloseIcon";
-function ProductDetailsSlider({ product, currency }) {
+import { ProductInterface } from "models/product";
+function ProductDetailsSlider({
+  product,
+  currency,
+}: {
+  product: ProductInterface;
+  currency: any;
+}) {
   const productData = product;
   const [imageShow, showImage] = useState(-1);
   const [emblaRef] = useEmblaCarousel();
@@ -23,18 +30,18 @@ function ProductDetailsSlider({ product, currency }) {
     const newParams = new URLSearchParams(searchParams);
 
     if (!searchParams.get("color") && productData?.sync_color_images) {
-      newParams.set("color", productData?.sync_color_images[0].color_name);
+      // newParams.set("color", productData?.sync_color_images[0].color_name);
     }
     if (
       !searchParams.get("size") &&
       productData?.choice_options &&
       productData?.choice_options?.filter((s) => s.title == "Size").length
     ) {
-      newParams.set(
-        "size",
-        productData?.choice_options?.filter((s) => s.title == "Size")[0]
-          ?.options[0]?.name
-      );
+      // newParams.set(
+      //   "size",
+      //   productData?.choice_options?.filter((s) => s.title == "Size")[0]
+      //     ?.options[0]?.name
+      // );
     }
     if (newParams.size) {
       // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'

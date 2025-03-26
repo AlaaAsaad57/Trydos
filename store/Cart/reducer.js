@@ -471,12 +471,47 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         };
     }
     case "GET-PRODUCT-VARIATION": {
-      return {
-        ...state,
-        SelectedProduct: { ...state.SelectedProduct, ...payload },
-        variants: payload.variation,
-        loaded: true,
-      };
+      let temp = {};
+      if (payload.color || payload.size) {
+        return {
+          ...state,
+          SelectedProduct: { ...state.SelectedProduct, ...payload },
+          ...temp,
+          variants: payload.variation,
+          loaded: true,
+        };
+      } else {
+        let temp_product = { ...state.SelectedProduct, ...payload };
+
+        let temp_variant = temp_product.variation.filter((s) => s.qty > 0)[0];
+        if (temp_variant) {
+          let size =
+            temp_product.choice_options &&
+            temp_product.choice_options[0]?.options.filter((s) =>
+              temp_variant.type.endsWith(s.name)
+            )[0];
+          let color =
+            temp_product.sync_color_images &&
+            temp_product.sync_color_images?.filter((s) =>
+              temp_variant.type.startsWith(s.color_name)
+            )[0];
+          temp = {
+            AddToCartOption: {
+              ...state.AddToCartOption,
+              selectedColor: color,
+              selectedSize: size,
+            },
+          };
+        }
+
+        return {
+          ...state,
+          SelectedProduct: { ...state.SelectedProduct, ...payload },
+          ...temp,
+          variants: payload.variation,
+          loaded: true,
+        };
+      }
     }
     case "VIEWS-PRODUCTS": {
       return {
@@ -531,12 +566,16 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           AddToCartOption: {
             ...state.AddToCartOption,
             enable: true,
-            selectedColor: payload?.sync_color_images
-              ? payload?.sync_color_images[0]
-              : null,
+            selectedColor:
+              state.AddToCartOption.selectedColor ||
+              (payload?.sync_color_images?.length > 0
+                ? payload?.sync_color_images[0]
+                : null),
             selectedSize:
+              state.AddToCartOption.selectedSize ||
               payload?.choice_options?.filter((s) => s.title === "Size")[0]
-                ?.options[0] || null,
+                ?.options[0] ||
+              null,
           },
         };
       else
@@ -546,13 +585,17 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           AddToCartOption: {
             ...state.AddToCartOption,
             enable: true,
-            selectedColor: state.SelectedProduct?.sync_color_images
-              ? state.SelectedProduct?.sync_color_images[0]
-              : null,
+            selectedColor:
+              state.AddToCartOption.selectedColor ||
+              (state.SelectedProduct?.sync_color_images?.length > 0
+                ? state.SelectedProduct?.sync_color_images[0]
+                : null),
             selectedSize:
+              state.AddToCartOption.selectedSize ||
               state.SelectedProduct?.choice_options?.filter(
                 (s) => s.title === "Size"
-              )[0]?.options[0] || null,
+              )[0]?.options[0] ||
+              null,
           },
         };
     }
