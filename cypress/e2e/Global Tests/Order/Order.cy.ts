@@ -135,6 +135,7 @@ describe("Should Add Address", () => {
                 ).as("DeleteAddress");
                 cy.clickElement("[data-cy=Yes-Delete-Address]");
                 cy.wait("@DeleteAddress").then((interception) => {
+                  expect(interception.response.statusCode).to.be.eq(200);
                   cy.log("✅✅ Get Address By Text request arrived");
                 });
               }
@@ -171,6 +172,7 @@ describe("Should Add Address", () => {
       scrollBehavior: false,
     });
     cy.wait("@GetAddressByText").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅✅ Get Address By Text request arrived");
     });
     cy.log("✅✅ SearchProvince-District-Town-Street Filled");
@@ -293,6 +295,7 @@ describe("Should Delete Address", () => {
       ).as("DeleteAddress");
       cy.clickElement("[data-cy=Yes-Delete-Address]");
       cy.wait("@DeleteAddress").then((interception) => {
+        expect(interception.response.statusCode).to.be.eq(200);
         cy.log("✅✅ Get Address By Text request arrived");
       });
     });

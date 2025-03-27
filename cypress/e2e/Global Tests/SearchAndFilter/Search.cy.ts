@@ -25,6 +25,7 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.clickElement("[data-cy=brandItem]:eq(0)");
     cy.log("✅✅ Firstly Brand Item Clicked");
     cy.wait("@searchBrand").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅✅ searchBrand request arrived");
     });
     cy.get("[data-cy=IsActive]").should("be.visible");
@@ -101,6 +102,7 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.clickElement("[data-cy=categoryItem]:eq(0)");
     cy.log("✅✅ Firstly Category Item Clicked");
     cy.wait("@searchCategory").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅✅ searchCategory request arrived");
     });
   });
@@ -175,6 +177,7 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.clickElement("[data-cy=boutiqueItem]:eq(0)");
     cy.log("✅✅ Firstly Boutique Item Clicked");
     cy.wait("@searchBoutique").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅✅ searchBoutique request arrived");
     });
   });
@@ -249,6 +252,7 @@ describe("Should Search About Product By Name", () => {
       .should("have.value", "jack");
     cy.log("✅✅ Writing the name of the thing to search completed.");
     cy.wait("@searchtext").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅✅ searchtext request arrived");
     });
   });

@@ -6,19 +6,6 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
       return false;
     });
     cy.Visit("/");
-    // cy.interceptAndWait([
-    //   {
-    //     method: "GET",
-    //     url: "**/api/v1/stories/users_stories",
-    //     alias: "users_stories",
-    //   },
-    //   {
-    //     method: "GET",
-    //     url: "**/api/products/popular-search",
-    //     alias: "popular-search",
-    //   },
-    // ]);
-    // cy.log("✅✅ users_stories & popular-search Requests Arrived");
   });
   it("Should Click On Any Boutique & Verifications The Boutique Page Opened", () => {
     cy.clickElement(".offer-widget:eq(4)");
@@ -482,6 +469,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
         cy.clickElement("[data-cy=totalProduct_filterBoutique]");
         cy.log("✅✅ Search Result Button Clicked");
         cy.wait("@Load").then((inter) => {
+          expect(inter.response.statusCode).to.be.eq(200);
           cy.log("✅✅ Load Request Arrived");
         });
       }
@@ -519,6 +507,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
         cy.clickElement("[data-cy=totalProduct_filterBoutique]");
         cy.log("✅✅ Search Result Button Clicked");
         cy.wait("@Load").then((inter) => {
+          expect(inter.response.statusCode).to.be.eq(200);
           cy.log("✅✅ Load Request Arrived");
         });
       }
@@ -555,6 +544,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
             cy.clickElement("[data-cy=totalProduct_filterBoutique]");
             cy.log("✅✅ Search Result Button Clicked");
             cy.wait("@Load").then((inter) => {
+              expect(inter.response.statusCode).to.be.eq(200);
               cy.log("✅✅ Load Request Arrived");
             });
           });
@@ -678,6 +668,7 @@ describe("Should Choose Any Boutique & Open Its Page In Order To Filter Products
           cy.clickElement("[data-cy=totalProduct_filterBoutique]");
           cy.log("✅✅ Search Result Button Clicked");
           cy.wait("@Load").then((inter) => {
+            expect(inter.response.statusCode).to.be.eq(200);
             cy.log("✅✅ Load Request Arrived");
           });
         }

@@ -64,16 +64,16 @@ Cypress.Commands.add("Visit", function (url: string) {
   // cy.interceptAndWait([
   //   {
   //     method: "GET",
-  //     url: "**/api/v1/stories/users_stories",
-  //     alias: "users_stories",
+  //     url: "**/api/new_v1/web/home/startingSettings",
+  //     alias: "startingSettings",
   //   },
   //   {
   //     method: "GET",
-  //     url: "**/api/products/popular-search",
+  //     url: "**/api/products/search?with_products=false",
   //     alias: "popular-search",
   //   },
   // ]);
-  // cy.log("✅✅ users_stories & popular-search Requests Arrived");
+  // cy.log("✅✅ startingSettings & popular-search Requests Arrived");
 });
 Cypress.Commands.add("Exist", (selector) => {
   cy.wait(3000);
@@ -82,10 +82,10 @@ Cypress.Commands.add("Exist", (selector) => {
     .then(($body) => {
       return new Cypress.Promise((resolve, reject) => {
         if ($body.find(selector).length > 0) {
-          console.log("cy.exist() - Matching element found in DOM!");
+          cy.log("✅✅ cy.exist() - Matching element found in DOM!");
           resolve(true);
         } else {
-          console.log("cy.exist() - Element did not exist!");
+          cy.log("❌❌ cy.exist() - Element did not exist!");
           resolve(false);
         }
       });
@@ -97,10 +97,10 @@ Cypress.Commands.add("ChexkExistElement", (selector) => {
     .then(($body) => {
       return new Cypress.Promise((resolve, reject) => {
         if ($body.find(selector).length > 0) {
-          console.log("cy.exist() - Matching element found in DOM!");
+          cy.log(" ✅✅cy.exist() - Matching element found in DOM!");
           resolve(true);
         } else {
-          console.log("cy.exist() - Element did not exist!");
+          cy.log("❌❌ cy.exist() - Element did not exist!");
           resolve(false);
         }
       });
@@ -154,7 +154,9 @@ Cypress.Commands.add("ChooseWayToRecieveOtpAndWaitOtpRequest", () => {
   cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
   cy.clickElement(".message-recieve-option:nth-child(2)");
   cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
-  cy.wait("@sendOtpApi");
+  cy.wait("@sendOtpApi").then((response) => {
+    // expect(response.response.statusCode).to.be.eq(200);
+  });
   cy.log("✅✅ Send Otp Api Request Successfuly");
 });
 Cypress.Commands.add("CheckIfTrySendOtp", () => {
@@ -167,7 +169,9 @@ Cypress.Commands.add("CheckIfTrySendOtp", () => {
         cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
         cy.clickElement(".message-recieve-option:nth-child(2)");
         cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
-        cy.wait("@sendOtpApi");
+        cy.wait("@sendOtpApi").then((interception) => {
+          expect(interception.response.statusCode).to.be.eq(200);
+        });
         cy.log("✅✅ Send Otp Api Request Successfuly");
       });
     }
@@ -181,18 +185,18 @@ Cypress.Commands.add("InputFieldNameVisible", () => {
   cy.log("✅✅ Input Field For Writ User Name is clicked on");
 });
 Cypress.Commands.add("TypeName", () => {
-  // cy.intercept("POST", "**/customer/update-name").as("update-name");
-  // cy.intercept("POST", "**/api/v1/users/update").as("update");
+  cy.intercept("POST", "**/customer/update-name").as("update-name");
+  cy.intercept("POST", "**/api/v1/users/update").as("update");
   cy.clickElement("[data-cy=InputFiledForName]");
   cy.get("[data-cy=InputFiledForName]", { timeout: 10000 })
     .type("Abdo Hamdan", { force: true, scrollBehavior: false })
     .should("have.value", "Abdo Hamdan"); // Ensure text was typed
   cy.log("✅✅ User Name is Writ In Input Field");
   cy.clickElement(".phone-arrow");
-  // cy.wait(["@update-name", "@update"]).then((inter) => {
-  //   expect(inter[0].response.statusCode).to.be.eq(200);
-  //   expect(inter[1].response.statusCode).to.be.eq(200);
-  // });
+  cy.wait(["@update-name", "@update"]).then((inter) => {
+    expect(inter[0].response.statusCode).to.be.eq(200);
+    expect(inter[1].response.statusCode).to.be.eq(200);
+  });
 });
 Cypress.Commands.add("MakeOtpExpired", () => {
   cy.wait(70000);
@@ -214,9 +218,11 @@ Cypress.Commands.add("RequestForThreeServers", () => {
     count += 1;
   }).as("Stories");
   cy.wait("@login", { timeout: 10000 }).then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
     cy.log("✅✅ login request arrived");
   });
   cy.wait("@Stories", { timeout: 10000 }).then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
     cy.log("✅✅ Stories request arrived");
   });
   cy.wait(500).then(() => {
@@ -480,6 +486,7 @@ Cypress.Commands.add("AddAdress", () => {
     scrollBehavior: false,
   });
   cy.wait("@GetAddressByText").then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
     cy.log("✅✅ Get Address By Text request arrived");
   });
   cy.log("✅✅ SearchProvince-District-Town-Street Filled");
@@ -577,7 +584,9 @@ Cypress.Commands.add(
               "getProductData2"
             );
             cy.clickElement(`[data-cy=on_mouse_over_product]:eq(${index})`);
-            cy.wait("@getProductData2");
+            cy.wait("@getProductData2").then((interception) => {
+              expect(interception.response.statusCode).to.be.eq(200);
+            });
             cy.clickElement("[data-cy=addToCartButton_productPage]");
             cy.log(
               "✅✅ Add To Cart Button Thats Founded In Product Page Clicked"
@@ -671,7 +680,13 @@ Cypress.Commands.add(
     cy.log("✅✅ OpenBoutique & LoadallProducts Requests Arrived");
     cy.verifyBoxsInBoutiquePage();
     cy.verifyComponentsInProductCard();
+    cy.intercept("Get", "**/product/likesCommentsSharesDetails/**").as(
+      "getProductData2"
+    );
     cy.clickElement("[data-cy=on_mouse_over_product]:eq(0)");
+    cy.wait("@getProductData2").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
+    });
     cy.log(
       "✅✅ The Card Of The First Product Is Clicked & The Page Of Product Is Opned"
     );

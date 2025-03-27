@@ -78,6 +78,7 @@ describe("Should Click On Cart Icon On The Home Page & Increase The Quantity Of 
     cy.intercept("POST", "**/api/new_v1/cart/update").as("increaseQuantity");
     cy.clickElement("[data-cy=PlusIcon_CartPage]:eq(0)");
     cy.wait("@increaseQuantity").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅ increaseQuantity request successfully intercepted");
     });
     cy.log(
@@ -113,6 +114,7 @@ describe("Should Click On The Cart Icon On The Home Page & Decrease The Quantity
     cy.intercept("POST", "**/api/new_v1/cart/update").as("decreaseQuantity");
     cy.clickElement("[data-cy=MinusIcon_CartPage]:eq(0)");
     cy.wait("@decreaseQuantity").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅✅ decreaseQuantity request successfully intercepted");
     });
     cy.get('[data-cy="QuantityInCart"]') // Replace with actual test ID
@@ -141,6 +143,7 @@ describe("Should Click On The Cart Icon On The Home Page & Delete The Quantity O
     cy.intercept("POST", "**/api/new_v1/cart/remove").as("removeRequest");
     cy.clickElement("[data-cy=DeleteIcon_CartPage]:eq(0)");
     cy.wait("@removeRequest").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅ removeRequest successfully intercepted");
     });
   });

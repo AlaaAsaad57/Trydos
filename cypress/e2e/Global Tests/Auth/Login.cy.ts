@@ -47,7 +47,9 @@ describe("Login Successful Attempt should login to 3 servers", () => {
       });
     }).as("verifyOtpSignin");
     cy.typePincode("999999");
-    cy.wait("@verifyOtpSignin");
+    cy.wait("@verifyOtpSignin").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
+    });
   });
   it("Should Click On Close icon When Welcom Message Apperead", () => {
     cy.EndLoginOperation;
@@ -133,7 +135,9 @@ describe("Login UnSuccessful Attempt when otp code expired & Change The Method T
     cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
     cy.clickElement(".message-recieve-option:nth-child(1)");
     cy.log("✅✅ Recive Otp Code By WattsApp Button Clicked Successfuly");
-    cy.wait("@sendOtpApi");
+    cy.wait("@sendOtpApi").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
+    });
     cy.log("✅✅ Send Otp Api Request Successfuly");
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
@@ -143,7 +147,9 @@ describe("Login UnSuccessful Attempt when otp code expired & Change The Method T
       });
     }).as("verifyOtpSignin");
     cy.typePincode("999999");
-    cy.wait("@verifyOtpSignin");
+    cy.wait("@verifyOtpSignin").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
+    });
   });
   it("Should Click On Close icon When Welcom Message Apperead", () => {
     cy.EndLoginOperation();
@@ -195,7 +201,9 @@ describe("Login UnSuccessful Attempt when otp code expired should show button fo
       });
     }).as("verifyOtpSignin");
     cy.typePincode("999999");
-    cy.wait("@verifyOtpSignin");
+    cy.wait("@verifyOtpSignin").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
+    });
   });
   it("Should Click On Close icon When Welcom Message Apperead", () => {
     cy.EndLoginOperation();
@@ -239,6 +247,7 @@ describe("Should show user not found when registering with non registered number
     }).as("verifyOtpSignin");
     cy.typePincode("999999");
     cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅ verifyOtpSignin request arrived");
     });
   });
@@ -250,7 +259,6 @@ describe("Should show user not found when registering with non registered number
   });
 });
 describe("Should Input name in login if the user does not input your name when sign up operation", () => {
-  let UserName: string = "";
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -280,6 +288,7 @@ describe("Should Input name in login if the user does not input your name when s
     }).as("verifyOtpSignin");
     cy.typePincode("999999");
     cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅✅ verifyOtpSignin request arrived");
     });
   });
@@ -304,11 +313,11 @@ describe("Should Input name in login if the user does not input your name when s
       .invoke("text")
       .then((text) => {
         const username = text;
-        // expect(username).to.be.eq(UserName);
+        expect(username).to.be.eq("Abdo Hamdan");
       });
   });
 });
-describe.only("Should show user not found when registering with non registered number & Create New Account & Continue", () => {
+describe("Should show user not found when registering with non registered number & Create New Account & Continue", () => {
   before(() => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
@@ -344,6 +353,7 @@ describe.only("Should show user not found when registering with non registered n
     }).as("verifyOtpSignin");
     cy.typePincode("999999");
     cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅ verifyOtpSignin request arrived");
     });
   });
