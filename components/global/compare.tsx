@@ -61,6 +61,9 @@ const ComparePage: React.FC = ({
         });
         return;
       }
+      if (!f_p && !s_p && !storedFp && !storedSp) {
+        setInitialLoading(false);
+      }
     }
 
     // Original URL-based logic
