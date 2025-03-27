@@ -1,5 +1,5 @@
 import { store } from "store";
-import { ReInitialise } from "store/auth/actions";
+
 import userImage from "public/images/profileNo.png";
 import Cookies from "js-cookie";
 import Smartlook from "smartlook-client";
@@ -35,33 +35,6 @@ const getHeader = () => {
   };
 };
 class AuthService {
-  async CheckPhone(
-    value: string | number,
-    step: Function,
-    newAccount: boolean
-  ) {
-    try {
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-          "/phone/check-existence/" +
-          `${value}`,
-        getHeader()
-      );
-      let repo = await response.json();
-      step(277);
-      store.dispatch(ReInitialise());
-      if (typeof window !== "undefined") {
-        _isStoreLastJson() &&
-          localStorage.setItem("LAST_JSON", JSON.stringify(repo));
-      }
-    } catch (e) {
-      step(282);
-      store.dispatch({
-        type: "WRONG-NUMBER",
-        payload: e.response.data.message,
-      });
-    }
-  }
   async SendOtp(
     mobilePhone: string,
     is_via_whatsapp: number | string,

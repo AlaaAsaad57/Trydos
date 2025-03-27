@@ -97,7 +97,6 @@ const CartProvider = () => {
   };
   return (
     <>
-      {/* {showMessage && <ShowMessageAuth />} */}
       {cartEnable ? <StepSlider enableCart={(e) => enableCart(e)} /> : <></>}
       {openIframe.isShow && (
         <div

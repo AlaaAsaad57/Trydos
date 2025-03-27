@@ -18,9 +18,7 @@ export const changeAppCountry = (iso) => {
   changeToken({ key: "country", value: iso });
   return { type: "APP-COUNTRY", payload: iso };
 };
-export const GetMainData = (data) => {
-  return { type: "SITE-MAIN-DATA", payload: data };
-};
+
 /*Stories Actions */
 export const SelectStory = (e) => {
   if (e) {
@@ -32,9 +30,7 @@ export const SelectStory = (e) => {
   }
   return { type: "STORY-SELECTED", payload: e };
 };
-export const GetStoryData = (data) => {
-  return { type: "STORY-DATA", payload: data };
-};
+
 export const setNextStory = (storyId) => {
   return { type: "NEXT-STORY", payload: storyId };
 };

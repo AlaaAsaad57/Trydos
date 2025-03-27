@@ -9,7 +9,7 @@ import {
 import { store } from "../store/index.jsx";
 import { getUserChat } from "./functions";
 import { GetChats, Recive } from "store/chat/actions";
-import { InCall } from "../store/chat/actions";
+import { InCall } from "../store/chat/callActions.jsx";
 import Boutique from "components/Notifications/Boutique";
 import { Id } from "react-toastify";
 import ProductToOldCart from "components/Notifications/ProductToOldCart";

@@ -15,12 +15,6 @@ export interface UserInterface {
   already_exists?: boolean;
 }
 
-export interface CheckPhoneInputInterface {
-  value?: string | number;
-  step?: (num: number) => void;
-  newAccount?: boolean;
-}
-
 export interface SendOtpInputInterface {
   mobilePhone: string;
   is_via_whatsapp: number | string;

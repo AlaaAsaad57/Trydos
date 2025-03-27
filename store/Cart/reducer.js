@@ -321,17 +321,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         };
       }
     }
-    case "ANIMATION-END": {
-      return {
-        ...state,
-        AddToCartOption: {
-          ...state.AddToCartOption,
-          selectedOptions: state.AddToCartOption.selectedOptions.filter(
-            (s) => s.UID !== payload
-          ),
-        },
-      };
-    }
+
     case "STORE-OLD-CART": {
       if (!payload)
         return {
@@ -525,24 +515,6 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         SelectedProduct: { ...state.SelectedProduct, ...payload },
       };
     }
-    case "ADD-TO-CART": {
-      if (state.cart?.some((s) => s.id === payload?.id)) {
-        if (payload.quantity === 0) {
-          return {
-            ...state,
-            cart: state.cart.filter((s) => s.id !== payload.id),
-          };
-        }
-        let cartTemp = [];
-        state.cart.map((s) => {
-          if (s.id === payload.id) {
-            cartTemp.push({ ...payload });
-          } else {
-            cartTemp.push({ ...s });
-          }
-        });
-      } else return { ...state, cart: [...state.cart, payload] };
-    }
     case "STORE-VARIANTS": {
       return {
         ...state,
@@ -671,31 +643,31 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         };
       }
     }
-    case "REMOVE-QUANTITY": {
-      let arr_of_selected = [];
-      let variable = state.AddToCartOption.selectedOptions.filter(
-        (s) => s.UID === payload
-      )[0];
-      if (variable.quantity === 1) {
-        arr_of_selected = state.AddToCartOption.selectedOptions.filter(
-          (s) => s.UID !== payload
-        );
-      } else {
-        arr_of_selected = state.AddToCartOption.selectedOptions.map((s) => {
-          if (s.UID === payload) {
-            return { ...s, quantity: s.quantity - 1 };
-          } else return s;
-        });
-      }
+    // case "REMOVE-QUANTITY": {
+    //   let arr_of_selected = [];
+    //   let variable = state.AddToCartOption.selectedOptions.filter(
+    //     (s) => s.UID === payload
+    //   )[0];
+    //   if (variable.quantity === 1) {
+    //     arr_of_selected = state.AddToCartOption.selectedOptions.filter(
+    //       (s) => s.UID !== payload
+    //     );
+    //   } else {
+    //     arr_of_selected = state.AddToCartOption.selectedOptions.map((s) => {
+    //       if (s.UID === payload) {
+    //         return { ...s, quantity: s.quantity - 1 };
+    //       } else return s;
+    //     });
+    //   }
 
-      return {
-        ...state,
-        AddToCartOption: {
-          ...state.AddToCartOption,
-          selectedOptions: arr_of_selected,
-        },
-      };
-    }
+    //   return {
+    //     ...state,
+    //     AddToCartOption: {
+    //       ...state.AddToCartOption,
+    //       selectedOptions: arr_of_selected,
+    //     },
+    //   };
+    // }
     case "AddToCartSize": {
       if ((state.variants?.variation || state.variants || [])?.length > 0) {
         let variant = (state.variants?.variation || state.variants || [])

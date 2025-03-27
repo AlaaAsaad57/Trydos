@@ -2,7 +2,7 @@ import React from "react";
 import FilterLabel from "./FilterLabel";
 import SizeRow from "./SizeRow";
 
-function BoutiqueOfferFilter({ filterEnabled }) {
+function BoutiqueSizeFilter({ filterEnabled }) {
   return (
     <>
       {filterEnabled && <FilterLabel text="Filter By Size" />}
@@ -13,4 +13,4 @@ function BoutiqueOfferFilter({ filterEnabled }) {
   );
 }
 
-export default BoutiqueOfferFilter;
+export default BoutiqueSizeFilter;

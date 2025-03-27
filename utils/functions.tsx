@@ -930,8 +930,6 @@ export const ExpiredUser = async () => {
   localStorage.removeItem("MARKET-TOKEN");
   localStorage.removeItem("USER");
   Cookies.remove("MARKET-TOKEN");
-
-  // store.dispatch({ type: "INFO_EXPIRED_TOKEN", payload: true });
 };
 export const WaitForCondition = async () => {
   return new Promise((resolve, reject) => {

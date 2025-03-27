@@ -39,18 +39,11 @@ const AuthReducer = (state = initialState, { type, payload }) => {
     case "LOGIN_FAILED": {
       return { ...state, failedLogin: true, attempts: state.attempts - 1 };
     }
-    case "RE-INITILIASE": {
-      return { ...state, failedLogin: false, wrongNumber: "" };
-    }
+
     case "WRONG-NUMBER": {
       return { ...state, wrongNumber: payload };
     }
-    case "LOADING-OTP": {
-      return {
-        ...state,
-        loading: payload,
-      };
-    }
+
     case "SET-VERFICATION-ID": {
       return {
         ...state,

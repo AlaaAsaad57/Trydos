@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { AnswerCall, RefuseCall } from "store/chat/actions";
+import { AnswerCall, RefuseCall } from "store/chat/callActions";
 import profilePng from "public/images/profileNo.png";
 import { getTwoLetters } from "../chatsFunctions";
 import { translateFunction } from "utils/functions";

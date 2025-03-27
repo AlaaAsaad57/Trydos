@@ -5,7 +5,7 @@ import BoutiquePhoto from "./BoutiquePhoto";
 import BoutiqueCategoryFilter from "./BoutiqueCategoryFilter";
 import { useDispatch, useSelector } from "react-redux";
 import BoutiqueBrandFilter from "./filterComponents/BoutiqueBrandFilter";
-import BoutiqueOfferFilter from "./filterComponents/BoutiqueOfferFilter";
+
 import BoutiquePriceFilter from "./filterComponents/BoutiquePriceFilter";
 import BoutiqueSizeFilter from "./filterComponents/BoutiqueSizeFilter";
 import { Sendevent } from "utils/functions";
@@ -344,12 +344,6 @@ function BoutiqueHeader({ boutique, showFilters }) {
                     <>
                       {!filterEnabled && <BorderThin />}
                       <BoutiqueBrandFilter filterEnabled={filterEnabled} />
-                    </>
-                  )}
-                  {filters?.offers?.length > 0 && (
-                    <>
-                      {!filterEnabled && <BorderThin />}
-                      <BoutiqueOfferFilter filterEnabled={filterEnabled} />
                     </>
                   )}
 
