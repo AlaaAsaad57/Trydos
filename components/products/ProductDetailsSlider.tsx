@@ -12,7 +12,7 @@ function ProductDetailsSlider({
   product,
   currency,
 }: {
-  product: ProductInterface;
+  product: any;
   currency: any;
 }) {
   const productData = product;
