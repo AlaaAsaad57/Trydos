@@ -26,9 +26,8 @@ import {
   SendMessage,
   getMessagesBetweenMessage,
   getPage,
-  makeVideoCall,
-  makeVoiceCall,
 } from "store/chat/actions";
+import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
 import { SSRDetect, getUserChat, translateFunction } from "utils/functions";
 import dynamic from "next/dynamic";
 import { push, ref, set } from "firebase/database";

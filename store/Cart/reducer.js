@@ -321,17 +321,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         };
       }
     }
-    case "ANIMATION-END": {
-      return {
-        ...state,
-        AddToCartOption: {
-          ...state.AddToCartOption,
-          selectedOptions: state.AddToCartOption.selectedOptions.filter(
-            (s) => s.UID !== payload
-          ),
-        },
-      };
-    }
+
     case "STORE-OLD-CART": {
       if (!payload)
         return {
@@ -471,12 +461,47 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         };
     }
     case "GET-PRODUCT-VARIATION": {
-      return {
-        ...state,
-        SelectedProduct: { ...state.SelectedProduct, ...payload },
-        variants: payload.variation,
-        loaded: true,
-      };
+      let temp = {};
+      if (payload.color || payload.size) {
+        return {
+          ...state,
+          SelectedProduct: { ...state.SelectedProduct, ...payload },
+          ...temp,
+          variants: payload.variation,
+          loaded: true,
+        };
+      } else {
+        let temp_product = { ...state.SelectedProduct, ...payload };
+
+        let temp_variant = temp_product.variation.filter((s) => s.qty > 0)[0];
+        if (temp_variant) {
+          let size =
+            temp_product.choice_options &&
+            temp_product.choice_options[0]?.options.filter((s) =>
+              temp_variant.type.endsWith(s.name)
+            )[0];
+          let color =
+            temp_product.sync_color_images &&
+            temp_product.sync_color_images?.filter((s) =>
+              temp_variant.type.startsWith(s.color_name)
+            )[0];
+          temp = {
+            AddToCartOption: {
+              ...state.AddToCartOption,
+              selectedColor: color,
+              selectedSize: size,
+            },
+          };
+        }
+
+        return {
+          ...state,
+          SelectedProduct: { ...state.SelectedProduct, ...payload },
+          ...temp,
+          variants: payload.variation,
+          loaded: true,
+        };
+      }
     }
     case "VIEWS-PRODUCTS": {
       return {
@@ -489,24 +514,6 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         ...state,
         SelectedProduct: { ...state.SelectedProduct, ...payload },
       };
-    }
-    case "ADD-TO-CART": {
-      if (state.cart?.some((s) => s.id === payload?.id)) {
-        if (payload.quantity === 0) {
-          return {
-            ...state,
-            cart: state.cart.filter((s) => s.id !== payload.id),
-          };
-        }
-        let cartTemp = [];
-        state.cart.map((s) => {
-          if (s.id === payload.id) {
-            cartTemp.push({ ...payload });
-          } else {
-            cartTemp.push({ ...s });
-          }
-        });
-      } else return { ...state, cart: [...state.cart, payload] };
     }
     case "STORE-VARIANTS": {
       return {
@@ -531,12 +538,16 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           AddToCartOption: {
             ...state.AddToCartOption,
             enable: true,
-            selectedColor: payload?.sync_color_images
-              ? payload?.sync_color_images[0]
-              : null,
+            selectedColor:
+              state.AddToCartOption.selectedColor ||
+              (payload?.sync_color_images?.length > 0
+                ? payload?.sync_color_images[0]
+                : null),
             selectedSize:
+              state.AddToCartOption.selectedSize ||
               payload?.choice_options?.filter((s) => s.title === "Size")[0]
-                ?.options[0] || null,
+                ?.options[0] ||
+              null,
           },
         };
       else
@@ -546,13 +557,17 @@ export const CartReducer = (state = initialState, { type, payload }) => {
           AddToCartOption: {
             ...state.AddToCartOption,
             enable: true,
-            selectedColor: state.SelectedProduct?.sync_color_images
-              ? state.SelectedProduct?.sync_color_images[0]
-              : null,
+            selectedColor:
+              state.AddToCartOption.selectedColor ||
+              (state.SelectedProduct?.sync_color_images?.length > 0
+                ? state.SelectedProduct?.sync_color_images[0]
+                : null),
             selectedSize:
+              state.AddToCartOption.selectedSize ||
               state.SelectedProduct?.choice_options?.filter(
                 (s) => s.title === "Size"
-              )[0]?.options[0] || null,
+              )[0]?.options[0] ||
+              null,
           },
         };
     }
@@ -628,31 +643,31 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         };
       }
     }
-    case "REMOVE-QUANTITY": {
-      let arr_of_selected = [];
-      let variable = state.AddToCartOption.selectedOptions.filter(
-        (s) => s.UID === payload
-      )[0];
-      if (variable.quantity === 1) {
-        arr_of_selected = state.AddToCartOption.selectedOptions.filter(
-          (s) => s.UID !== payload
-        );
-      } else {
-        arr_of_selected = state.AddToCartOption.selectedOptions.map((s) => {
-          if (s.UID === payload) {
-            return { ...s, quantity: s.quantity - 1 };
-          } else return s;
-        });
-      }
+    // case "REMOVE-QUANTITY": {
+    //   let arr_of_selected = [];
+    //   let variable = state.AddToCartOption.selectedOptions.filter(
+    //     (s) => s.UID === payload
+    //   )[0];
+    //   if (variable.quantity === 1) {
+    //     arr_of_selected = state.AddToCartOption.selectedOptions.filter(
+    //       (s) => s.UID !== payload
+    //     );
+    //   } else {
+    //     arr_of_selected = state.AddToCartOption.selectedOptions.map((s) => {
+    //       if (s.UID === payload) {
+    //         return { ...s, quantity: s.quantity - 1 };
+    //       } else return s;
+    //     });
+    //   }
 
-      return {
-        ...state,
-        AddToCartOption: {
-          ...state.AddToCartOption,
-          selectedOptions: arr_of_selected,
-        },
-      };
-    }
+    //   return {
+    //     ...state,
+    //     AddToCartOption: {
+    //       ...state.AddToCartOption,
+    //       selectedOptions: arr_of_selected,
+    //     },
+    //   };
+    // }
     case "AddToCartSize": {
       if ((state.variants?.variation || state.variants || [])?.length > 0) {
         let variant = (state.variants?.variation || state.variants || [])

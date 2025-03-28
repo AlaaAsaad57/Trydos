@@ -57,12 +57,7 @@ const HomeReducer = (state = initialState, { type, payload }) => {
         activeRoute: payload,
       };
     }
-    case "LOADING": {
-      return {
-        ...state,
-        loading: true,
-      };
-    }
+
     case "GA-EVENT": {
       return {
         ...state,
@@ -82,12 +77,6 @@ const HomeReducer = (state = initialState, { type, payload }) => {
         ...state,
         loginOpen: payload,
         showMessage: false,
-      };
-    }
-    case "INFO_EXPIRED_TOKEN": {
-      return {
-        ...state,
-        showMessage: payload,
       };
     }
     case "WATCH-STORY": {
@@ -185,13 +174,7 @@ const HomeReducer = (state = initialState, { type, payload }) => {
         ],
       };
     }
-    case "SITE-MAIN-DATA": {
-      return {
-        ...state,
-        loading: false,
-        boutiques: payload,
-      };
-    }
+
     case "GET_SETTINGS": {
       return {
         ...state,

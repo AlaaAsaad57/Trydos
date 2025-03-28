@@ -17,7 +17,7 @@ import { toast } from "react-toastify";
 import chat from "services/chat";
 import home from "services/home";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { LikesSharesCommentsApi, ProductViews, SharesCount } from "models/Api";
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
@@ -120,6 +120,7 @@ function ProductFooterSection({ product, currency }) {
   const dispatchStore = useDispatch();
   const [sharedContacts, setShareContacts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const searchParams = useSearchParams();
   const getData = async () => {
     // await home.CheckLogin();
     try {
@@ -161,6 +162,10 @@ function ProductFooterSection({ product, currency }) {
           arr.push({ ...s, ...d });
         });
       }
+      const { color, size } = {
+        color: searchParams.get("color"),
+        size: searchParams.get("size"),
+      };
       dispatchStore({
         type: "GET-PRODUCT-VARIATION",
         payload: {
@@ -170,6 +175,8 @@ function ProductFooterSection({ product, currency }) {
           variation: arr,
           likes: likesNum,
           is_liked: isLiked,
+          color,
+          size,
         },
       });
       setLoading(false);

@@ -171,11 +171,20 @@ export const SelectColorsSlider = ({ colors }) => {
       if (color) dispatch({ type: "AddToCartColor", payload: color });
     }
   }, []);
+  const activeColor = useSelector(
+    (state: StateInterface) => state.cart.AddToCartOption.selectedColor
+  );
   const getInitial = () => {
     if (searchParams.get("color")) {
       let index = 0;
       colors.map((s, i) => {
         if (s.color_name === searchParams.get("color")) index = i;
+      });
+      return index;
+    } else if (activeColor) {
+      let index = 0;
+      colors.map((s, i) => {
+        if (s.color_name === activeColor.color_name) index = i;
       });
       return index;
     }

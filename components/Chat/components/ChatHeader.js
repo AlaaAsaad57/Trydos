@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getNew, getTwoLetters, showDate } from "../chatsFunctions";
 import Image from "next/image";
 import { getUserChat } from "utils/functions";
-import { makeVideoCall, makeVoiceCall } from "store/chat/actions";
+import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
 import { translateFunction } from "../../../utils/functions";
 import { useParams } from "next/navigation";
 function ChatHeader({ chats, activeChat, openDetails }) {

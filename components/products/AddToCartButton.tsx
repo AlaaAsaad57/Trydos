@@ -163,11 +163,8 @@ function AddToCartButton({
   const allVarIsEmpty = () => {
     let bool = true;
 
-    if (product?.variation) {
-      product?.variation?.map((s) => {
-        if (s.qty > 0) bool = false;
-      });
-      return bool;
+    if (product?.variation?.length > 0) {
+      return !(product?.variation?.filter((s) => s.qty > 0).length > 0);
     } else {
       return product.current_stock === 0;
     }

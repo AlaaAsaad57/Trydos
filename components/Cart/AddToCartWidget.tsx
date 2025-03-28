@@ -33,6 +33,7 @@ function AddToCartWidget() {
   const SelectedProduct = useSelector(
     (state: StateInterface) => state.cart.SelectedProduct
   );
+  const searchParams = useSearchParams();
 
   const product = useSelector((state: StateInterface) => state.details.product);
   const getDetails = async () => {
@@ -66,6 +67,11 @@ function AddToCartWidget() {
         arr.push({ ...s, ...d });
       });
     }
+    const { color, size } = {
+      color: searchParams.get("color"),
+      size: searchParams.get("size"),
+    };
+
     dispatch({
       type: "GET-PRODUCT-VARIATION",
       payload: {
@@ -75,6 +81,8 @@ function AddToCartWidget() {
         variation: arr,
         likes: null,
         is_liked: null,
+        color,
+        size,
       },
     });
   };

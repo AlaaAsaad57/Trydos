@@ -1,130 +1,133 @@
-<div align="center">
-  <img src="/svg/Logo.svg" alt="TryDos Logo" width="200" height="56" />
-  <h1>TryDos E-commerce Market</h1>
-</div>
+# TryDOS Documentation
 
-# Overview
+## Table of Contents
 
-TryDos is a modern, feature-rich e-commerce platform built with Next.js, offering a seamless shopping experience across multiple languages and regions. The platform combines advanced features like real-time stories, chat functionality, and AI-powered search to create an engaging marketplace environment.
+1. [Getting Started](./getting-started/README.md)
+2. [Architecture](./architecture/README.md)
+3. [Features](./features/README.md)
+4. [Development](./development/README.md)
+5. [Testing](./testing/README.md)
+6. [Deployment](./deployment/README.md)
+7. [Configuration](./configuration/README.md)
+8. [Performance](./performance/README.md)
+9. [Services](./services/README.md)
 
-## Core Features
+## Project Overview
 
-### 📱 Interactive Stories
-- Product storytelling
-- User-generated stories
-- Interactive story elements
-- Story analytics and metrics
-- View tracking and engagement metrics
+TryDOS is a modern e-commerce platform built with Next.js 14, TypeScript, and React. It provides a comprehensive shopping experience with advanced features for product discovery, purchasing, and user interaction.
 
-### 💬 Communication
-- Real-time chat system
-- Voice/video calls
-- Message notifications
-- Chat history management
-- User presence tracking
+### Tech Stack
 
-### 🛍️ Shopping Experience
-- Advanced cart management
-- Wishlist functionality
-- Order tracking
-- Multiple payment methods
-- Dynamic pricing
-- Inventory management
-
-### 🔍 Search & Discovery
-- Elastic Search integration
-- Real-time search suggestions
-- Faceted search filters
-- Product recommendations
-- Trending searches
-
-### 🌐 Internationalization
-- Multi-language support (English, Arabic)
-- RTL layout support
-- Country-specific pricing
-- Regional shipping options
-- Local currency handling
-
-### 🔔 Notifications
-- Push notifications
-- Order status updates
-- Product availability alerts
-- Price drop notifications
-- Custom notification preferences
-
-### 🏪 Boutique Features
-- Boutique creation and management
-- Category organization
-- Product management
-- Banner management
-- Analytics dashboard
-
-### 🛡️ Error Handling
-- Graceful error recovery
-- Network error handling
-- Offline support
-- Error logging and monitoring
-- User-friendly error messages
-
-### 🔐 Security
-- Authentication system
-- OTP verification (SMS/WhatsApp)
-- Secure payment processing
-- Data encryption
-- Token management
-
-## Technical Stack
-
-- **Frontend**: Next.js, React
+- **Framework**: Next.js 14
+- **Language**: TypeScript
+- **UI Library**: React 18
+- **Styling**: TailwindCSS
 - **State Management**: Redux
-- **Styling**: Tailwind CSS
-- **Search**: Elasticsearch
-- **Real-time**: WebSocket
-- **Analytics**: Custom tracking
-- **CDN**: Image optimization and delivery
-- **Monitoring**: Sentry integration
+- **Testing**: Cypress
+- **Maps**: Leaflet
+- **Charts**: ApexCharts
+- **Real-time Communication**: Agora RTC
+- **AI Integration**: Google Generative AI
+- **Analytics**: Sentry
+- **Monitoring**: Smartlook
+- **Payment Processing**: Multiple payment gateways
+- **Search Engine**: Elasticsearch
+
+## Key Features
+
+1. **E-commerce Core**
+
+   - Product browsing and search
+   - Advanced filtering by categories, brands, boutiques, price, color, and size
+   - Shopping cart management
+   - Multiple payment options (TryDOS Wallet, Cash on Delivery, Crypto, Credit Cards)
+   - Order tracking and management
+
+2. **Search Capabilities**
+
+   - Text-based search
+   - Image-based search using Google AI
+   - Voice search with speech recognition
+   - Advanced filtering system
+   - Search by product attributes
+
+3. **User Experience**
+
+   - Real-time chat support
+   - Push notifications via Firebase
+   - Responsive design
+   - Multi-language support
+   - RTL support for Arabic
+
+4. **Payment Options**
+
+   - TryDOS Wallet integration
+   - Cash on Delivery
+   - Cryptocurrency payments
+   - Credit/Debit card processing
+   - Multiple payment gateways
+
+5. **Additional Features**
+   - Real-time notifications
+   - User authentication
+   - Order history
+   - Wishlist management
+   - Product reviews and ratings
+
+## Project Structure
+
+```
+trydos/
+├── app/                    # Next.js app directory
+│   ├── api/               # API routes
+│   ├── (client)/          # Client-side components
+│   └── (special)/         # Special routes
+├── components/            # Reusable components
+│   ├── Cart/             # Shopping cart components
+│   ├── Product/          # Product-related components
+│   ├── Search/           # Search functionality
+│   └── Payment/          # Payment processing
+├── services/             # External service integrations
+├── store/                # Redux store configuration
+├── utils/                # Utility functions
+├── types/                # TypeScript type definitions
+├── models/               # Data models
+├── public/               # Static assets
+└── docs/                 # Documentation
+```
 
 ## Getting Started
 
-### Prerequisites
-```bash
-Node.js >= 16.x
-npm >= 8.x
-```
+See [Getting Started Guide](./getting-started/README.md) for detailed setup instructions.
 
-### Installation
-```bash
-git clone https://github.com/your-org/trydos.git
-cd trydos
-npm install
-```
+## Development
 
-### Development
-```bash
-npm run dev
-```
+See [Development Guide](./development/README.md) for coding standards and practices.
 
-### Build
-```bash
-npm run build
-npm start
-```
+## Testing
 
-## Documentation
+See [Testing Guide](./testing/README.md) for testing procedures and coverage requirements.
 
-For detailed documentation on specific features:
+## Deployment
 
-- [Product Management](./features/product-management.md)
-- [Internationalization](./features/internationalization.md)
-- [Story System](./features/story-features.md)
-- [Chat Features](./features/chat-features.md)
-- [API Reference](./services/api-endpoints.md)
-- [Environment Setup](./configuration/env-variables.md)
+See [Deployment Guide](./deployment/README.md) for deployment procedures and environments.
+
+## Configuration
+
+See [Configuration Guide](./configuration/README.md) for environment variables and settings.
+
+## Performance
+
+See [Performance Guide](./performance/README.md) for optimization techniques and metrics.
+
+## Services
+
+See [Services Guide](./services/README.md) for external service integrations and APIs.
 
 ## Contributing
 
-Please read our [Contributing Guide](./contributing.md) for details on our code of conduct and the process for submitting pull requests.
+Please read our contributing guidelines before submitting pull requests.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+This project is private and proprietary.
