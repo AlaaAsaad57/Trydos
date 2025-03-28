@@ -84,6 +84,14 @@ function MoreOptionsSection() {
       return s.topic === topic;
     });
   };
+  const getData = async () => {
+    setLoading(true);
+    await home.GetFireBaseSettings();
+    setLoading(false);
+  };
+  useEffect(() => {
+    getData();
+  }, []);
   return (
     <div className="extended-section" data-cy="ExtendThreePointsSection">
       <div className="extended-bar-top share-bar-top">
