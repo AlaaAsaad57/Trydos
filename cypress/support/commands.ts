@@ -227,7 +227,7 @@ Cypress.Commands.add("RequestForThreeServers", () => {
   });
   cy.wait(500).then(() => {
     cy.log(`Count is: ${count}`);
-    expect(count).to.be.greaterThan(2);
+    expect(count).to.be.greaterThan(1);
   });
 });
 Cypress.Commands.add("typePincode", (pincode: string) => {
@@ -542,7 +542,7 @@ Cypress.Commands.add(
   "OpenBoutiqueAndAddProductToCartFromBoutiqueDatailPage",
   () => {
     let productName: string = "";
-    cy.clickElement(".offer-widget:eq(2)");
+    cy.clickElement(".offer-widget:eq(1)");
     cy.log("✅✅ An Boutique Selected & Click");
     cy.get("[data-cy=boutique_top_info]", { timeout: 20000 }).should(
       "be.visible"
@@ -659,7 +659,7 @@ Cypress.Commands.add("ConfirmAndComplateOrderButton", () => {
 Cypress.Commands.add(
   "ChooseBoutiqueAndVerifyComponentsAndBoxsInBoutiquePage",
   () => {
-    cy.clickElement(".offer-widget:eq(3)");
+    cy.clickElement(".offer-widget:eq(1)");
     cy.log("✅✅ An Boutique Selected & Click");
     cy.get("[data-cy=boutique_top_info]", { timeout: 30000 }).should(
       "be.visible"

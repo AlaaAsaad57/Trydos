@@ -59,22 +59,11 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
     });
     cy.get("@phoneInput").should("not.be.focused", { timeout: 5000 });
     cy.TypeName();
-    // cy.interceptAndWait([
-    //   {
-    //     method: "POST",
-    //     url: "**/api/v1/users/update",
-    //     alias: "update",
-    //   },
-    //   {
-    //     method: "POST",
-    //     url: "**/api/new_v1/customer/update-name",
-    //     alias: "updatename",
-    //   },
-    // ]);
-    cy.log("✅✅ updatename & updatename Requests Arrived");
   });
   it("Should Click On Arrow Founded In Right Of Input Field & Click On Skip For Now Button", () => {
-    cy.SkipForNow();
+    // cy.SkipForNow();
+    cy.clickElement("[data-cy=Complate-Close]");
+    cy.log("✅✅ Complate My Profile Button clicked");
   });
 });
 describe("Signup UnSuccessful Attempt should show error message to user", () => {

@@ -303,8 +303,6 @@ describe("Should Input name in login if the user does not input your name when s
       if (exist) {
         cy.clickElement("[data-testid=login-close-icon]");
         cy.log("✅✅ Skip For Now Button clicked");
-      } else {
-        cy.SkipForNow();
       }
     });
   });

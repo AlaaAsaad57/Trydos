@@ -75,7 +75,7 @@ describe("should enable notifications in product detail page.", () => {
   });
   it("should be disabled Notification if it was previously enabled.", () => {
     for (let i = 0; i < buttons - 1; i++) {
-      cy.wait(5000);
+      cy.wait(2000);
       cy.get(".button-option")
         .eq(i)
         .then(($button) => {
@@ -96,6 +96,7 @@ describe("should enable notifications in product detail page.", () => {
                 interception
               );
             });
+            cy.wait(2000);
             cy.get(".button-option")
               .eq(i)
               .should("not.have.class", "bg-green-300");
@@ -110,7 +111,7 @@ describe("should enable notifications in product detail page.", () => {
   });
   it("should be enabled Notification.", () => {
     for (let i = 0; i < buttons - 1; i++) {
-      cy.wait(5000);
+      cy.wait(2000);
       cy.intercept(
         "POST",
         "/api/new_v1/firebase_device_tokens/subscribe_topic"
@@ -125,7 +126,7 @@ describe("should enable notifications in product detail page.", () => {
           interception
         );
       });
-      cy.wait(3000);
+      cy.wait(2000);
       // Assert that the button has the class bg-green-300 after clicking
       cy.get(".button-option").eq(i).should("have.class", "bg-green-300");
     }
@@ -238,6 +239,7 @@ describe("Should disable the notification & ensure that the unsubscribe process 
       expect(interception.response.statusCode).to.be.eq(200);
     });
     cy.reload();
+    cy.wait(5000);
     cy.clickElement("[data-cy=ThreePointsIcon]");
     cy.get(".button-option:eq(0)").should("not.have.class", "bg-green-300");
   });
