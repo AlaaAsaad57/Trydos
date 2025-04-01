@@ -65,6 +65,7 @@ declare global {
       ClickAddToCartAndWaitRequest(): Chainable<void>;
       ConfirmAndComplateOrderButton(): Chainable<void>;
       AddAdress(): Chainable<void>;
+      openWebsite(): Chainable<void>;
       ChooseBoutiqueAndVerifyComponentsAndBoxsInBoutiquePage(): Chainable<void>;
       ComplateAddProductOperationAndGoCartPage(): Chainable<void>;
     }

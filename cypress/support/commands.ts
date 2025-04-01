@@ -810,3 +810,13 @@ Cypress.Commands.add(
     );
   }
 );
+Cypress.Commands.add("openWebsite", () => {
+  cy.get("[data-cy=Logout-ReLogout]").should("exist").should("be.visible");
+  cy.get("[data-cy=Chat-Icon]").should("exist").should("be.visible");
+  cy.get("[data-cy=Nav_CartIcon_LogIn]").should("exist").should("be.visible");
+  cy.get("[data-cy=cartIcon_mainPage]").should("exist").should("be.visible");
+  cy.log("✅✅ all components founded and website oppened");
+  cy.clickElement("[data-cy=Logout-ReLogout]");
+  cy.clickElement("[data-cy=WishList-Icon]");
+  cy.log("✅✅ wishlist oppened");
+});
