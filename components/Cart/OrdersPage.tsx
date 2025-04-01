@@ -472,6 +472,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                     <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
                       <BackIcon
                         className="cursor-pointer z-50"
+                        data-cy="back-icon-addadresspage" // Added data-cy
                         onClick={() => {
                           Sendevent({
                             event: "button_clicked",
@@ -482,8 +483,11 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                         }}
                       />
                       <span className="text-[13px] text-[#505050] regular flex-row items-center ">
-                        <AddAddressIcon />
-                        <span className="regular ml-[8px]">
+                        <AddAddressIcon data-cy="add-address-icon" />
+                        <span
+                          className="regular ml-[8px]"
+                          data-cy="address-text"
+                        >
                           <>
                             {addressDetails.id
                               ? translate("Edit Shipping Address")
@@ -492,6 +496,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                         </span>
                       </span>
                       <span
+                        data-cy="delete-icon-container" // Added data-cy
                         onClick={() => {
                           if (addressDetails.id) {
                             openAddressList(false);
@@ -499,7 +504,9 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                           }
                         }}
                       >
-                        {addressDetails.id && <DeleteIcon />}
+                        {addressDetails.id && (
+                          <DeleteIcon data-cy="delete-icon" />
+                        )}
                       </span>
                     </div>
                   </div>

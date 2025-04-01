@@ -16,7 +16,8 @@ describe("Should Open The Website & Logout", () => {
 });
 describe("Should Cart Page &Confirm Order Operation", () => {
   it("Should Click On Confirm & Countinue Button", () => {
-    cy.ConfirmAndComplateOrderButton();
+    cy.clickElement("[data-cy=Confirm-Order-Button]");
+    cy.log("✅✅ Confirm & Countinue Button Clicked");
   });
 });
 describe("should Login If User Is Not Verified", () => {
@@ -118,12 +119,14 @@ describe("Shipping & Delivery Address Component", () => {
     cy.get("[data-cy=WrapIcon]").should("exist");
   });
 });
-describe("Should Add Address", () => {
+describe("Should delete all address founded lastly", () => {
   it("Should Check If User Add Address Lastly", () => {
     cy.ChexkExistElement("[data-cy=Address-Added-Last]").then((exist) => {
+      // Proceed only if the element exists
       if (exist) {
         cy.clickElement("[data-cy=Show-Address-That-Added]");
         cy.log("✅✅ Show Address List Button Clicked");
+
         cy.get("[data-cy=Address]").each(($el, index) => {
           cy.wrap($el).then(() => {
             cy.clickElement("[data-cy=Delete-Address-Icon]:eq(0)").then(
@@ -142,32 +145,180 @@ describe("Should Add Address", () => {
             );
           });
         });
-      }
-    });
-    cy.get("body").click(0, 0);
-  });
-  it("Should Add Address", () => {
-    cy.ChexkExistElement("[data-cy=Add-Shipping-Address]").then((exist) => {
-      if (exist) {
-        cy.clickElement("[data-cy=Add-Shipping-Address]");
-        cy.log("✅✅ Add-Shipping-Address Button Clicked");
       } else {
-        cy.clickElement("[data-cy=AddAddres]");
-        cy.log("✅✅ Add Addres Button Clicked");
+        cy.log(
+          "❌❌ Address-Added-Last element not found, skipping address deletion."
+        );
       }
     });
+    cy.get("body").click(0, 0); // Optional: Click to ensure no overlay blocks interactions
   });
+  it("Should open add adress interface", () => {
+    cy.clickElement("[data-cy=AddAddres]");
+    cy.log("✅✅ Add Addres Button Clicked");
+  });
+  it("should display the address options correctly", () => {
+    // Check for Back Icon
+    cy.get("[data-cy=back-icon-addadresspage]").should("exist");
+    // Check for Add Address Icon
+    cy.get("[data-cy=add-address-icon]").should("exist");
+    // Check for Address Text
+    cy.get("[data-cy=address-text]").then(($text) => {
+      const addressText = $text.text();
+      expect(addressText).to.be.oneOf([
+        "Add Shipping Address",
+        "Edit Shipping Address",
+      ]);
+    });
+    // Check for Delete Icon if addressDetails.id exists
+    cy.get("[data-cy=delete-icon-container]").then(($container) => {
+      if ($container.find("[data-cy=delete-icon]").length) {
+        cy.get("[data-cy=delete-icon]").should("exist");
+      } else {
+        cy.get("[data-cy=delete-icon]").should("not.exist"); // Ensure it doesn't exist if id is not present
+      }
+    });
+    cy.get("[data-cy=country-label]").should("exist");
+    cy.get("[data-cy=country-region-div]").should(
+      "contain",
+      "Country | Region"
+    );
+    cy.get("[data-cy=country-label] .flex-row.items-center").should("exist");
+    cy.get("[data-cy=country-flag]").should("exist");
+    cy.get('[data-cy="country-name"]').should("exist").and("not.be.empty");
+    cy.get("[data-cy=country-name] ").should("contain", "Syria");
+    cy.get("[data-cy=back-icon-addadresspage]").should("exist"); // Check for Back Icon
+    cy.get("[data-cy=add-address-icon]").should("exist"); // Check for Add Address Icon
+    cy.get("[data-cy=address-text]").then(($text) => {
+      const addressText = $text.text();
+      expect(addressText).to.be.oneOf([
+        "Add Shipping Address",
+        "Edit Shipping Address",
+      ]);
+    }); // Check for Address Text
+    cy.get("[data-cy=add-address-form]").should("exist"); // Check for the main form
+    cy.get("[data-cy=info-icon]").should("exist"); // Check for Address Icon
+    cy.get("[data-cy=address-info-header]").should("exist");
+    cy.get("[data-cy=info-text]").should(
+      "contain",
+      "Entering The Information Below Clearly And Completely"
+    ); // Check for the address info header
+    cy.get("[data-cy=map-container]").should("exist");
+    cy.get("[data-cy=map-toggle]").should("exist");
+    cy.get("[data-cy=location-accuracy]")
+      .should("exist")
+      .should(
+        "contain",
+        "Location Is Accurate, Making It Easy To Receive Shipments"
+      );
+    cy.get("[data-cy=address-section]").should("exist"); // Check for address section
+    cy.get("[data-cy=add-address-buttons-container]").should("exist"); // Check for address section
+    cy.get("[data-cy=address-icon]").should("exist"); // Check for address-info-icon
+    cy.get("[data-cy=address-info-text]").should("contain", "Address Info"); // Check for Address Info text
+    cy.get("[data-cy=address-info-icon]").should("exist");
+    cy.get("[data-cy=expand-map]").should("exist");
+    cy.get("[data-cy=expand-map] span")
+      .should("exist")
+      .should("contain", "Locate Your Location On Map");
+    cy.get("[data-cy=expand-map] svg").should("exist");
+  });
+});
+describe("Should add location by map", () => {
+  it("Moves marker & clicks it", () => {
+    cy.clickElement("[data-cy=expand-map]");
+    cy.get("body").click(250, 250);
+    cy.clickElement(".leaflet-control-zoom-out");
+    cy.clickElement(".leaflet-control-zoom-out");
+    cy.clickElement(".leaflet-control-zoom-out");
+    cy.clickElement(".leaflet-control-zoom-out");
+    cy.clickElement(".leaflet-control-zoom-out");
+    // Wait for the map to load
+    cy.get(".leaflet-marker-pane img")
+      .should("be.visible")
+      .then(($marker) => {
+        const marker = $marker[0];
+        // Get initial position
+        const rect = marker.getBoundingClientRect();
+        const startX = rect.left + rect.width / 2;
+        const startY = rect.top + rect.height / 2;
+        // Define target position (manually adjust based on map layout)
+        const targetX = startX - 100; // Adjust for Tartous position
+        const targetY = startY - 50;
+        // Simulate dragging
+        cy.wrap($marker)
+          .trigger("mousedown", { button: 0, clientX: startX, clientY: startY })
+          .trigger("mousemove", { clientX: targetX, clientY: targetY })
+          .trigger("mouseup", { force: true });
+        // Click the marker after movement
+        cy.wrap($marker).click({ force: true });
+      });
+    // cy.get("body").click(100, 250);
+    cy.clickElement(".leaflet-control-zoom-out");
+    cy.clickElement(".leaflet-control-zoom-out");
+    cy.clickElement(".leaflet-control-zoom-out");
+    cy.clickElement(".leaflet-control-zoom-out");
+    cy.get("body").click(100, 250);
+    cy.get("[data-cy=confirm-button]")
+      .should("exist")
+      .click({ scrollBehavior: false, force: true });
+  });
+});
+describe("Should choose region", () => {
   it("Should Change Place From List", () => {
-    cy.clickElement("[data-cy=Change-From-List]");
+    cy.get("[data-cy=change-list-statement]")
+      .should("exist")
+      .contains("Change From List");
+    cy.get("[data-cy=point-icon]").should("exist");
+    cy.get("[data-cy=Change-From-List]")
+      .should("exist")
+      .click({ scrollBehavior: false, force: true });
     cy.log("✅✅ Change Place From List Button Clicked");
     cy.get("[data-cy=Extended-Choose-Area]").should("exist");
     cy.log("✅✅ Extended Box To Choose Area Appeared");
+  });
+  it("Should found components of add region", () => {
+    cy.get("[data-cy=target-icon]").should("exist");
+    cy.get("[data-cy=Select-From-List]")
+      .should("exist")
+      .should("contain", "Select From List");
+    cy.get("[data-cy=country-flag]").should("exist");
+    cy.get("[data-cy=region-div]").should("exist");
+  });
+  it("displays country name", () => {
+    // Assuming you have a way to mock or set the country prop
+    cy.get("[data-cy=country-extend]").should("exist").contains("Syria"); // Replace 'Country Name' with the expected country name
+  });
+  it("displays province, city, and town with default values when not provided", () => {
+    // Check for default values when address details are not provided
+    cy.get("[data-cy=Province-extend]").should("exist").contains("Province");
+    cy.get("[data-cy=Town-extend]").should("exist").contains("Town");
+    cy.get("[data-cy=Suburb-extend]").should("exist").contains("Suburb");
+  });
+  it("displays the search input", () => {
+    cy.get("[data-cy=SearchProvince-District-Town-Street]").should("exist");
+    // Check if the DebounceInput has the correct placeholder
+    cy.get('[data-cy="SearchProvince-District-Town-Street"]').should(
+      "have.attr",
+      "placeholder",
+      "Search Province | District | Town | Street"
+    );
+    cy.get("[data-cy=search-svg]").should("exist");
     cy.clickElement("[data-cy=SearchProvince-District-Town-Street]");
-    cy.log("✅✅ Search Province District Town Street");
+  });
+  it("displays placeholder text", () => {
+    // cy.get(".absolute.top-[11px].left-[12px]").should("exist");
+    cy.get('[data-cy="SearchProvince-District-Town-Street"]').should(
+      "have.attr",
+      "placeholder",
+      "Search Province | District | Town | Street"
+    );
+  });
+  it("shows loading spinner when loading", () => {
+    // Simulate loading state
     cy.intercept("POST", "**/api/addresses/get-address-by-text").as(
       "GetAddressByText"
     );
-    cy.get("[data-cy=SearchProvince-District-Town-Street]").type("Latakia", {
+    cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Latakia", {
       force: true,
       scrollBehavior: false,
     });
@@ -175,45 +326,197 @@ describe("Should Add Address", () => {
       expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅✅ Get Address By Text request arrived");
     });
-    cy.log("✅✅ SearchProvince-District-Town-Street Filled");
-    cy.get("[data-cy=SearchProvince-District-Town-Street]", {
-      timeout: 10000,
-    }).should("be.visible");
+  });
+  it("should select firstly result apperead", () => {
     cy.clickElement("[data-cy=Firstly-Search-Result]:eq(0)");
     cy.log("✅✅ First Option Has Been Selected");
   });
-  it("Should Add Detailed Address & Note", () => {
-    cy.clickElement("[data-cy=Detailed-Address-Note] textarea") // Selects the textarea inside the div
+});
+describe("Should input detail of address", () => {
+  it("Should verify found it", () => {
+    cy.get("[data-cy=Detailed-Address-field]").should("exist");
+    cy.log("✅✅ Detailed-Address-field founded");
+  });
+  it("Should check components", () => {
+    cy.get("[data-cy=Detailed-Address-statement]")
+      .should("exist")
+      .contains("Detailed Address & Note");
+    cy.log("✅✅ Detailed-Address-statement founded");
+  });
+  it("should check field ", () => {
+    cy.get("[data-cy=Detailed-Address-Note]").should("exist");
+    cy.log("✅✅ Detailed-Address-Note founded");
+  });
+  it("should display placeholder text", () => {
+    cy.get("[data-cy=text-area-placeholder]").should("exist");
+    cy.log("✅✅ text-area-placeholder founded");
+    cy.get("[data-cy=text-area-placeholder]").should(
+      "have.attr",
+      "placeholder",
+      "Write The Address Clearly, Including The Street Address, Building, Flat, Door, Unit."
+    );
+  });
+  it("should fill field", () => {
+    cy.clickElement("[data-cy=text-area-placeholder]") // Selects the textarea inside the div
       .type("This Is A Test Detailed Address & Note", {
         force: true,
         scrollBehavior: false,
       });
     cy.log("✅✅ Clicked and Filled Detailed Address & Note Input");
   });
-  it("Should Add Address Title", () => {
-    cy.clickElement("[data-cy=Address-Title] input") // Selects the input inside the di
+});
+describe("Should add title of address", () => {
+  it("Should verify found it", () => {
+    cy.get("[data-cy=address-title]").should("exist");
+    cy.log("✅✅ address-title founded");
+  });
+  it("Should check components", () => {
+    cy.get("[data-cy=add-Address-statement]")
+      .should("exist")
+      .contains("Address Title");
+    cy.log("✅✅ add-Address-statement founded");
+  });
+  it("should check field ", () => {
+    cy.get("[data-cy=Address-Title]").should("exist");
+    cy.log("✅✅ Address-Title founded");
+  });
+  it("should display placeholder text", () => {
+    cy.get("[data-cy=add-address-input]").should("exist");
+    cy.log("✅✅ add-address-input founded");
+    cy.get("[data-cy=add-address-input]").should(
+      "have.attr",
+      "placeholder",
+      "Ex: Home, My Office, 2 Home Ect."
+    );
+  });
+  it("should fill field", () => {
+    cy.clickElement("[data-cy=add-address-input]") // Selects the textarea inside the div
       .type("This Is A Test Address Title", {
         force: true,
         scrollBehavior: false,
       });
     cy.log("✅✅ Clicked and Filled Address Title Input");
   });
-  it("Should Add Recipient Name", () => {
-    cy.clickElement("[data-cy=Recipient-Name] input") // Selects the input inside the div
+});
+describe("Should add name", () => {
+  it("Should verify found it", () => {
+    cy.get("[data-cy=container-name-phone]").should("exist");
+    cy.log("✅✅ container-name-phone founded");
+  });
+  it("Should check components", () => {
+    cy.get("[data-cy=contact-info-icon]").should("exist");
+    cy.log("✅✅ contact-info-icon founded");
+    cy.get("[data-cy=contact-info-text]")
+      .should("exist")
+      .contains("Contact Info");
+    cy.log("✅✅ contact-info-text founded");
+    cy.get("[data-cy=Address-info-icon]").should("exist");
+    cy.log("✅✅ Address-info-icon founded");
+  });
+  it("Should verify found it", () => {
+    cy.get("[data-cy=name-container]").should("exist");
+    cy.log("✅✅ name-container founded");
+    cy.get("[data-cy=recipient-name-statement]")
+      .should("exist")
+      .contains("Recipient Name");
+    cy.log("✅✅ recipient-name-statement founded");
+  });
+  it("should check field ", () => {
+    cy.get("[data-cy=Recipient-Name]").should("exist");
+    cy.log("✅✅ Recipient-Name founded");
+  });
+  it("should display placeholder text", () => {
+    cy.get("[data-cy=recipient-name-input]").should("exist");
+    cy.log("✅✅ recipient-name-input founded");
+    cy.get("[data-cy=recipient-name-input]").should(
+      "have.attr",
+      "placeholder",
+      "Enter Full Recipient Name"
+    );
+  });
+  it("should fill field", () => {
+    cy.clickElement("[data-cy=recipient-name-input]") // Selects the textarea inside the div
       .type("This Is A Test Recipient Name", {
         force: true,
         scrollBehavior: false,
       });
     cy.log("✅✅ Clicked and Filled Recipient Name Input");
   });
-  it("Should Add Contact Phone", () => {
-    cy.clickElement("[data-cy=Contact-Phone] input") // Selects the input inside the div
-      .type("0963937764641", { force: true, scrollBehavior: false });
+});
+describe("Should add phone number", () => {
+  it("Should verify found it", () => {
+    cy.get("[data-cy=phone-container]").should("exist");
+    cy.log("✅✅ phone-container founded");
+  });
+  it("Should check components", () => {
+    cy.get("[data-cy=phone-statement]")
+      .should("exist")
+      .contains("Contact Phone");
+    cy.log("✅✅ phone-statement founded");
+  });
+  it("should check field ", () => {
+    cy.get("[data-cy=Contact-Phone]").should("exist");
+    cy.log("✅✅ Contact-Phone founded");
+  });
+  it("should display placeholder text", () => {
+    cy.get("[data-cy=Contact-Phone-input]").should("exist");
+    cy.log("✅✅ Contact-Phone-input founded");
+    cy.get("[data-cy=Contact-Phone-input]").should(
+      "have.attr",
+      "placeholder",
+      "Enter Recipient Phone"
+    );
+  });
+  it("should fill field", () => {
+    cy.clickElement("[data-cy=Contact-Phone-input]") // Selects the textarea inside the div
+      .type("0963937764641", {
+        force: true,
+        scrollBehavior: false,
+      });
     cy.log("✅✅ Clicked and Filled Contact Phone Input");
   });
+});
+describe("Should add phone number", () => {
+  it("Should verify found it", () => {
+    cy.get("[data-cy=altarnative-Phone-container]").should("exist");
+    cy.log("✅✅ altarnative-Phone-container founded");
+  });
+  it("Should check components", () => {
+    cy.get("[data-cy=altarnative-Phone-statement]")
+      .should("exist")
+      .contains("Alternative Phone");
+    cy.log("✅✅ altarnative-Phone-statement founded");
+    cy.get("[data-cy=optional-statement]")
+      .should("exist")
+      .contains("(Optional)");
+    cy.log("✅✅ optional-statement founded");
+  });
+  it("should display placeholder text", () => {
+    cy.get("[data-cy=optional-input]").should("exist");
+    cy.log("✅✅ optional-input founded");
+    cy.get("[data-cy=optional-input]").should(
+      "have.attr",
+      "placeholder",
+      "Enter Alternative Recipient Phone"
+    );
+  });
+  it("should fill field", () => {
+    cy.clickElement("[data-cy=optional-input]") // Selects the textarea inside the div
+      .type("0963937764641", {
+        force: true,
+        scrollBehavior: false,
+      });
+    cy.log("✅✅ Clicked and Filled Contact Phone Input");
+  });
+});
+describe("should save address & wait the requests", () => {
   it("Should Add & Save Address", () => {
+    // add - address - buttons - container;
+    cy.get("[data-cy=add-address-buttons-container]").should("exist");
     cy.clickElement("[data-cy=AddSaveButton]");
     cy.log("✅✅ Add & Save Button Clicked");
+  });
+  it("Should wait the requests", () => {
     cy.interceptAndWait([
       {
         method: "POST",
@@ -264,7 +567,27 @@ describe("Should Edit Address", () => {
       .should("be.visible")
       .click({ force: true, scrollBehavior: false });
     cy.log("✅✅ Clicked on Edit Address Icon");
-    cy.clickElement("[data-cy=Detailed-Address-Note] textarea") // Selects the textarea inside the div
+    // Check for Back Icon
+    cy.get("[data-cy=back-icon-addadresspage]").should("exist");
+    // Check for Add Address Icon
+    cy.get("[data-cy=add-address-icon]").should("exist");
+    // Check for Address Text
+    cy.get("[data-cy=address-text]").then(($text) => {
+      const addressText = $text.text();
+      expect(addressText).to.be.oneOf([
+        "Add Shipping Address",
+        "Edit Shipping Address",
+      ]);
+    });
+    // Check for Delete Icon if addressDetails.id exists
+    cy.get("[data-cy=delete-icon-container]").then(($container) => {
+      if ($container.find("[data-cy=delete-icon]").length) {
+        cy.get("[data-cy=delete-icon]").should("exist");
+      } else {
+        cy.get("[data-cy=delete-icon]").should("not.exist"); // Ensure it doesn't exist if id is not present
+      }
+    });
+    cy.clickElement("[data-cy=text-area-placeholder]") // Selects the textarea inside the div
       .type("This Is A Test Detailed Address & Note", {
         force: true,
         scrollBehavior: false,

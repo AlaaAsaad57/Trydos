@@ -472,12 +472,46 @@ Cypress.Commands.add("verifyComponentsInProductCard", () => {
 });
 // ***********************************Orders******************************
 Cypress.Commands.add("AddAdress", () => {
-  cy.clickElement("[data-cy=Change-From-List]");
+  cy.clickElement("[data-cy=expand-map]");
+  cy.clickElement("[data-cy=cancel-button]");
+  cy.get("[data-cy=change-list-statement]")
+    .should("exist")
+    .contains("Change From List");
+  cy.get("[data-cy=point-icon]").should("exist");
+  cy.get("[data-cy=Change-From-List]")
+    .should("exist")
+    .click({ scrollBehavior: false, force: true });
   cy.log("✅✅ Change Place From List Button Clicked");
   cy.get("[data-cy=Extended-Choose-Area]").should("exist");
   cy.log("✅✅ Extended Box To Choose Area Appeared");
+  cy.get("[data-cy=target-icon]").should("exist");
+  cy.get("[data-cy=Select-From-List]")
+    .should("exist")
+    .should("contain", "Select From List");
+  cy.get("[data-cy=country-flag]").should("exist");
+  cy.get("[data-cy=region-div]").should("exist");
+  // Assuming you have a way to mock or set the country prop
+  cy.get("[data-cy=country-extend]").should("exist").contains("Syria"); // Replace 'Country Name' with the expected country name
+  // Check for default values when address details are not provided
+  cy.get("[data-cy=Province-extend]").should("exist").contains("Province");
+  cy.get("[data-cy=Town-extend]").should("exist").contains("Town");
+  cy.get("[data-cy=Suburb-extend]").should("exist").contains("Suburb");
+  cy.get("[data-cy=SearchProvince-District-Town-Street]").should("exist");
+  // Check if the DebounceInput has the correct placeholder
+  cy.get('[data-cy="SearchProvince-District-Town-Street"]').should(
+    "have.attr",
+    "placeholder",
+    "Search Province | District | Town | Street"
+  );
+  cy.get("[data-cy=search-svg]").should("exist");
   cy.clickElement("[data-cy=SearchProvince-District-Town-Street]");
-  cy.log("✅✅ Search Province District Town Street");
+  // cy.get(".absolute.top-[11px].left-[12px]").should("exist");
+  cy.get('[data-cy="SearchProvince-District-Town-Street"]').should(
+    "have.attr",
+    "placeholder",
+    "Search Province | District | Town | Street"
+  );
+  // Simulate loading state
   cy.intercept("POST", "**/api/addresses/get-address-by-text").as(
     "GetAddressByText"
   );
@@ -489,39 +523,123 @@ Cypress.Commands.add("AddAdress", () => {
     expect(interception.response.statusCode).to.be.eq(200);
     cy.log("✅✅ Get Address By Text request arrived");
   });
-  cy.log("✅✅ SearchProvince-District-Town-Street Filled");
-  cy.get('[data-cy="SearchProvince-District-Town-Street"]', {
-    timeout: 10000,
-  }).should("be.visible");
   cy.clickElement("[data-cy=Firstly-Search-Result]:eq(0)");
   cy.log("✅✅ First Option Has Been Selected");
-  cy.get("[data-cy=Detailed-Address-Note] textarea") // Selects the textarea inside the div
-    .click()
+  cy.get("[data-cy=Detailed-Address-field]").should("exist");
+  cy.log("✅✅ Detailed-Address-field founded");
+  cy.get("[data-cy=Detailed-Address-statement]")
+    .should("exist")
+    .contains("Detailed Address & Note");
+  cy.log("✅✅ Detailed-Address-statement founded");
+  cy.get("[data-cy=Detailed-Address-Note]").should("exist");
+  cy.log("✅✅ Detailed-Address-Note founded");
+  cy.get("[data-cy=text-area-placeholder]").should("exist");
+  cy.log("✅✅ text-area-placeholder founded");
+  cy.get("[data-cy=text-area-placeholder]").should(
+    "have.attr",
+    "placeholder",
+    "Write The Address Clearly, Including The Street Address, Building, Flat, Door, Unit."
+  );
+  cy.clickElement("[data-cy=text-area-placeholder]") // Selects the textarea inside the div
     .type("This Is A Test Detailed Address & Note", {
       force: true,
       scrollBehavior: false,
     });
-
   cy.log("✅✅ Clicked and Filled Detailed Address & Note Input");
-  cy.get('[data-cy="Address-Title"] input') // Selects the input inside the div
-    .click()
+  cy.get("[data-cy=address-title]").should("exist");
+  cy.log("✅✅ address-title founded");
+  cy.get("[data-cy=add-Address-statement]")
+    .should("exist")
+    .contains("Address Title");
+  cy.log("✅✅ add-Address-statement founded");
+  cy.get("[data-cy=Address-Title]").should("exist");
+  cy.log("✅✅ Address-Title founded");
+  cy.get("[data-cy=add-address-input]").should("exist");
+  cy.log("✅✅ add-address-input founded");
+  cy.get("[data-cy=add-address-input]").should(
+    "have.attr",
+    "placeholder",
+    "Ex: Home, My Office, 2 Home Ect."
+  );
+  cy.clickElement("[data-cy=add-address-input]") // Selects the textarea inside the div
     .type("This Is A Test Address Title", {
       force: true,
       scrollBehavior: false,
     });
   cy.log("✅✅ Clicked and Filled Address Title Input");
-  cy.get('[data-cy="Recipient-Name"] input') // Selects the input inside the div
-    .click()
+  cy.get("[data-cy=container-name-phone]").should("exist");
+  cy.log("✅✅ container-name-phone founded");
+  cy.get("[data-cy=contact-info-icon]").should("exist");
+  cy.log("✅✅ contact-info-icon founded");
+  cy.get("[data-cy=contact-info-text]")
+    .should("exist")
+    .contains("Contact Info");
+  cy.log("✅✅ contact-info-text founded");
+  cy.get("[data-cy=Address-info-icon]").should("exist");
+  cy.log("✅✅ Address-info-icon founded");
+  cy.get("[data-cy=name-container]").should("exist");
+  cy.log("✅✅ name-container founded");
+  cy.get("[data-cy=recipient-name-statement]")
+    .should("exist")
+    .contains("Recipient Name");
+  cy.log("✅✅ recipient-name-statement founded");
+  cy.get("[data-cy=Recipient-Name]").should("exist");
+  cy.log("✅✅ Recipient-Name founded");
+  cy.get("[data-cy=recipient-name-input]").should("exist");
+  cy.log("✅✅ recipient-name-input founded");
+  cy.get("[data-cy=recipient-name-input]").should(
+    "have.attr",
+    "placeholder",
+    "Enter Full Recipient Name"
+  );
+  cy.clickElement("[data-cy=recipient-name-input]") // Selects the textarea inside the div
     .type("This Is A Test Recipient Name", {
       force: true,
       scrollBehavior: false,
     });
   cy.log("✅✅ Clicked and Filled Recipient Name Input");
-  cy.get('[data-cy="Contact-Phone"] input') // Selects the input inside the div
-    .click()
-    .type("0963937764641", { force: true, scrollBehavior: false });
-
+  cy.get("[data-cy=phone-container]").should("exist");
+  cy.log("✅✅ phone-container founded");
+  cy.get("[data-cy=phone-statement]").should("exist").contains("Contact Phone");
+  cy.log("✅✅ phone-statement founded");
+  cy.get("[data-cy=Contact-Phone]").should("exist");
+  cy.log("✅✅ Contact-Phone founded");
+  cy.get("[data-cy=Contact-Phone-input]").should("exist");
+  cy.log("✅✅ Contact-Phone-input founded");
+  cy.get("[data-cy=Contact-Phone-input]").should(
+    "have.attr",
+    "placeholder",
+    "Enter Recipient Phone"
+  );
+  cy.clickElement("[data-cy=Contact-Phone-input]") // Selects the textarea inside the div
+    .type("0963937764641", {
+      force: true,
+      scrollBehavior: false,
+    });
   cy.log("✅✅ Clicked and Filled Contact Phone Input");
+  cy.get("[data-cy=altarnative-Phone-container]").should("exist");
+  cy.log("✅✅ altarnative-Phone-container founded");
+  cy.get("[data-cy=altarnative-Phone-statement]")
+    .should("exist")
+    .contains("Alternative Phone");
+  cy.log("✅✅ altarnative-Phone-statement founded");
+  cy.get("[data-cy=optional-statement]").should("exist").contains("(Optional)");
+  cy.log("✅✅ optional-statement founded");
+  cy.get("[data-cy=optional-input]").should("exist");
+  cy.log("✅✅ optional-input founded");
+  cy.get("[data-cy=optional-input]").should(
+    "have.attr",
+    "placeholder",
+    "Enter Alternative Recipient Phone"
+  );
+  cy.clickElement("[data-cy=optional-input]") // Selects the textarea inside the div
+    .type("0963937764641", {
+      force: true,
+      scrollBehavior: false,
+    });
+  cy.log("✅✅ Clicked and Filled Contact Phone Input");
+  // add - address - buttons - container;
+  cy.get("[data-cy=add-address-buttons-container]").should("exist");
   cy.clickElement("[data-cy=AddSaveButton]");
   cy.log("✅✅ Add & Save Button Clicked");
   cy.interceptAndWait([
@@ -636,7 +754,7 @@ Cypress.Commands.add("ComplateAddProductOperationAndGoCartPage", () => {
 Cypress.Commands.add("ConfirmAndComplateOrderButton", () => {
   cy.clickElement("[data-cy=Confirm-Order-Button]");
   cy.log("✅✅ Confirm & Countinue Button Clicked");
-  cy.ChexkExistElement("[data-cy=FieldToInputNumber]").then((exist) => {
+  cy.get("[data-cy=FieldToInputNumber]").then((exist) => {
     if (!exist) {
       cy.interceptAndWait([
         {

@@ -23,7 +23,10 @@ function SelectRegion({ closeSelect }) {
   const showRegion = () => {
     return (
       <>
-        <div className={`flex text-[#1D1D1D] text-[14px] regular`}>
+        <div
+          className={`flex text-[#1D1D1D] text-[14px] regular`}
+          data-cy="country-extend"
+        >
           {country.name}
         </div>
 
@@ -33,6 +36,7 @@ function SelectRegion({ closeSelect }) {
               ? "text-[#D3D3D3]"
               : "text-[#1D1D1D]"
           }  text-[14px] regular`}
+          data-cy="Province-extend"
         >
           <span className="px-1">|</span>
           {addressDetails.region_details?.province || "Province"}
@@ -43,6 +47,7 @@ function SelectRegion({ closeSelect }) {
               ? "text-[#D3D3D3]"
               : "text-[#1D1D1D]"
           }  text-[14px] regular`}
+          data-cy="Town-extend"
         >
           <span className="px-1">|</span>
           {addressDetails.region_details?.city || "Town"}
@@ -53,6 +58,7 @@ function SelectRegion({ closeSelect }) {
               ? "text-[#D3D3D3]"
               : "text-[#1D1D1D]"
           }  text-[14px] regular`}
+          data-cy="Suburb-extend"
         >
           <span className="px-1">|</span>
           {addressDetails.region_details?.town || "Suburb"}
@@ -78,17 +84,22 @@ function SelectRegion({ closeSelect }) {
         data-cy="Extended-Choose-Area"
       >
         <div className="flex-row items-center w-full justify-center">
-          <TargetIcon />
-          <span className="flex regular ml-[6px] text-[#1D1D1D] text-[14px]">
+          <TargetIcon data-cy="target-icon" />
+          <span
+            className="flex regular ml-[6px] text-[#1D1D1D] text-[14px]"
+            data-cy="Select-From-List"
+          >
             {translateFunction("Select From List")}
           </span>
         </div>
         <div className="flex-row items-center w-full justify-center mt-[11px]">
           <span className="min-h-[16px] w-[23px]">
-            <Flag height={"15"} code={country.iso} />
+            <Flag height={"15"} code={country.iso} data-cy="country-flag" />
           </span>
 
-          <div className="flex-row ml-[8px]">{showRegion()}</div>
+          <div className="flex-row ml-[8px]" data-cy="region-div">
+            {showRegion()}
+          </div>
         </div>
         <SearchLocations
           setFocused={setFocused}
@@ -152,6 +163,7 @@ const SearchLocations = ({ closeSelect, setFocused }) => {
     <>
       <div className="relative flex w-full mt-[21px]">
         <svg
+          data-cy="search-svg"
           className="absolute top-[11px] left-[12px] z-20"
           id="_15x15_photo_back"
           data-name="15x15 photo back"
