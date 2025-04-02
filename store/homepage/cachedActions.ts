@@ -621,7 +621,6 @@ export const getCountriesApi = async () => {
   }
   try {
     let end = new Date().getTime();
-    LogData({ repo, desc: "countries" });
 
     let data: CountriesApi = await repo.json();
 
