@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 const CallComponent = dynamic(
   () => import("components/Chat/components/CallComponent"),
   { ssr: false }
@@ -10,11 +11,17 @@ import { ChatConroller } from "store/chat/actions";
 import { SSRDetect, getUserChat } from "utils/functions";
 import ChatService from "services/chat";
 import dynamic from "next/dynamic";
+import { GetChats } from "store/chat/actions";
 function ChatModal() {
   const isCallIncoming = useSelector((state) => state.chat.isCallIncoming);
   const callInProgress = useSelector((state) => state.chat.callInProgress);
   const chatVar = useSelector((state) => state.chat.chatVar);
   const dispatch = useDispatch();
+  useEffect(() => {
+    if (chatVar) {
+      GetChats(false);
+    }
+  }, []);
   return (
     <>
       {isCallIncoming && (
