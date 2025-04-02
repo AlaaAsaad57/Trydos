@@ -4,13 +4,7 @@ import userImage from "public/images/profileNo.png";
 import Cookies from "js-cookie";
 import Smartlook from "smartlook-client";
 
-import {
-  _isStoreLastJson,
-  ExpiredUser,
-  getLang,
-  getUser,
-  UserID,
-} from "utils/functions";
+import { _isStoreLastJson, getLang } from "utils/functions";
 import { SEND_OTP, VERFIY_OTP, VERFIY_OTP_SIGNUP } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
@@ -94,7 +88,7 @@ class AuthService {
     try {
       const response = await fetch(
         process.env.NEXT_PUBLIC_BACKEND_URL +
-          (Username.length > 0 ? VERFIY_OTP_SIGNUP : VERFIY_OTP) +
+          "/auth/phone/verify_otp_from_guest" +
           `?verificationId=${verficationID}&otp=${code}${
             Username.length > 0 ? `&name=${Username}` : ""
           }`,
@@ -167,32 +161,7 @@ class AuthService {
       throw e;
     }
   }
-  async VerifyGuest(id, success) {
-    let dataBody = [];
-    let dataObj = { id_token: id };
-    for (var property in dataObj) {
-      if (dataObj[property] || dataObj[property] === 0) {
-        var encodedKey = encodeURIComponent(property);
-        var encodedValue = encodeURIComponent(dataObj[property]);
-        dataBody.push(encodedKey + "=" + encodedValue);
-      }
-    }
-    // @ts-ignore
-    dataBody = dataBody.join("&");
-    await AxiosPost({
-      url:
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/auth/firebase/verify-guest-phone",
-      body: dataBody,
-      title: "Verify Guest",
-      token: localStorage.getItem("has-phone")
-        ? null
-        : localStorage.getItem("DEVICE-TOKEN"),
-    });
 
-    await success();
-    await home.RequestFireBase();
-  }
   async UpdateName(name: string) {
     try {
       localStorage.setItem(
