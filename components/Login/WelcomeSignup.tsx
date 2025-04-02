@@ -1,4 +1,5 @@
 import { useParams } from "next/navigation";
+import { useRouter } from "next-nprogress-bar";
 import React, { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
 import { useSelector } from "react-redux";
@@ -10,6 +11,7 @@ interface Props {
   close: Function;
 }
 function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
+  const router = useRouter();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -56,7 +58,11 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
         <div className="welcoming-label">{translate("Hello,", language)}</div>
         <div className="welcoming-user">{Name || "Alaa Asaad"}</div>
       </div>
-      <div className="welcoming-enjoy" style={{ marginBottom: "10vh" }}>
+      <div
+        className="welcoming-enjoy"
+        style={{ marginBottom: "10vh" }}
+        data-cy="Wellcome-Enjoy"
+      >
         {translate("Enjoy With Our Services", language)}
       </div>
       <div className="signup-detail">
@@ -68,7 +74,11 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
       <div className="login-button-group">
         <div
           className="login-button"
-          onClick={() => close()}
+          data-cy="Complate-Close"
+          onClick={() => {
+            close();
+            router.push(`/settings#Profile`);
+          }}
           style={{
             position: "relative",
             backgroundColor: "#F4FFF4",

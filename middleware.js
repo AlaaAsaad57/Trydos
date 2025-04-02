@@ -64,7 +64,7 @@ export async function middleware(request) {
   const countryUrl = url.pathname.split("/")[1]?.toLowerCase()?.split("-")[0];
   const cookies = request.cookies;
   const countryFromCookies = cookies.get("country")?.value?.toLowerCase();
-  const langFromCookies = cookies.get("lang")?.value?.toLowerCase();
+  const langFromCookies = cookies.get("lang")?.value?.toLowerCase() || "en";
   if (
     countryFromCookies?.length > 0 &&
     countryUrl?.length > 0 &&
@@ -122,7 +122,7 @@ export async function middleware(request) {
       sameSite: "Strict",
       maxAge: 360 * 7 * 24 * 60 * 60,
     });
-    response.cookies.set("languge", lang.toLowerCase(), {
+    response.cookies.set("language", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
@@ -144,7 +144,7 @@ export async function middleware(request) {
       sameSite: "Strict",
       maxAge: 360 * 7 * 24 * 60 * 60,
     });
-    request.cookies.set("languge", lang.toLowerCase(), {
+    request.cookies.set("language", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: false,
@@ -163,6 +163,7 @@ export async function middleware(request) {
       }
     }
     if (isChangedLocalizationByUrl) {
+      url.searchParams.delete("cart");
       url.searchParams.set(
         "changed-country",
         `${country},${countryFromCookies}`
@@ -195,11 +196,13 @@ export async function middleware(request) {
   } else {
     if (url.pathname.split("/")[1].includes("-")) {
       url.pathname = url.pathname.replace(url.pathname.split("/")[1], "gb-en");
+      url.searchParams.delete("cart");
       url.searchParams.set("no-country", true);
       return NextResponse.redirect(url);
     } else {
     }
     url.pathname = `/gb-en/${url.pathname}`;
+    url.searchParams.delete("cart");
     url.searchParams.set("no-country", true);
     return NextResponse.redirect(url);
   }
@@ -210,17 +213,6 @@ export async function middleware(request) {
   }
 
   return NextResponse.redirect(url);
-}
-function setLocaleCookies(request, lang, country) {
-  request.cookies.set("language", lang, {
-    exoires: new Date(7467743843902 * 10000),
-  });
-  request.cookies.set("lang", lang, {
-    exoires: new Date(7467743843902 * 10000),
-  });
-  request.cookies.set("country", country, {
-    exoires: new Date(7467743843902 * 10000),
-  });
 }
 
 export const config = {

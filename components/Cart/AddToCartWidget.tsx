@@ -2,13 +2,8 @@ import SelectSize from "components/products/SelectSize";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import {
-  getConfiguredImage,
-  getLang,
-  RoundPrice,
-  Sendevent,
-} from "utils/functions";
-import Cookies from "js-cookie";
+import { getConfiguredImage, RoundPrice, Sendevent } from "utils/functions";
+
 import AddToCartButton from "components/products/AddToCartButton";
 
 import BackIcon from "public/svg/listing/backIcon.svg";
@@ -38,6 +33,7 @@ function AddToCartWidget() {
   const SelectedProduct = useSelector(
     (state: StateInterface) => state.cart.SelectedProduct
   );
+  const searchParams = useSearchParams();
 
   const product = useSelector((state: StateInterface) => state.details.product);
   const getDetails = async () => {
@@ -71,6 +67,11 @@ function AddToCartWidget() {
         arr.push({ ...s, ...d });
       });
     }
+    const { color, size } = {
+      color: searchParams.get("color"),
+      size: searchParams.get("size"),
+    };
+
     dispatch({
       type: "GET-PRODUCT-VARIATION",
       payload: {
@@ -80,6 +81,8 @@ function AddToCartWidget() {
         variation: arr,
         likes: null,
         is_liked: null,
+        color,
+        size,
       },
     });
   };
@@ -268,18 +271,9 @@ const SelectColor = ({ close }) => {
       <div className="back-bar align-center w-100 flex-row min-h-12 bg-[#fff] p-4 z-[99999999] justify-between">
         <div
           className="back-icon p-0"
+          data-cy="Back-Icon-AddToWedgit"
           onClick={() => {
             close();
-            if (
-              document.querySelector(
-                "#nprogress"
-                // @ts-ignore
-              )
-            )
-              document.querySelector(
-                "#nprogress"
-                // @ts-ignore
-              ).style.opacity = "1";
           }}
         >
           <BackIcon />

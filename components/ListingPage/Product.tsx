@@ -103,12 +103,19 @@ function Product({
     activeImageIndex: 0,
     renderVar: false,
   });
-  const decimal_point_settings = useSelector(
-    (state: StateInterface) => state.homepage.settings
-  );
-  // const currency = useSelector(
-  //   (state: StateInterface) => state.homepage.currency
-  // ) || { exchange_rate: 1 };
+
+  const isLowEndDevice = () => {
+    if (typeof navigator !== "undefined") {
+      // @ts-ignore
+      const ram = navigator.deviceMemory || 4; // Default to 4GB if unknown
+      const cores = navigator.hardwareConcurrency || 4; // Default to 4 cores
+
+      if (ram <= 3 || cores <= 3) {
+        return true;
+      }
+      return false;
+    }
+  };
 
   return (
     <div className="max-h-[362px]" data-cy="countProduct">
@@ -135,11 +142,6 @@ function Product({
               event: "button_clicked",
               value: "choose_product_button",
             });
-            setTimeout(() => {
-              if (document.querySelector("#nprogress"))
-                // @ts-ignore
-                document.querySelector("#nprogress").style.opacity = "1";
-            }, 1000);
           }
         }}
         href={`/${lang}/products/${product.slug}`}
@@ -198,7 +200,8 @@ function Product({
               productState?.isColorSelected && "selected-color"
             }`}
           >
-            {product.sync_color_images &&
+            {!isLowEndDevice() &&
+              product.sync_color_images &&
               productState?.isColorSelected &&
               !productState?.isActiveTopSlide && (
                 <ColorSlider
@@ -239,7 +242,7 @@ function Product({
               }
             />
 
-            {product.sync_color_images && (
+            {!isLowEndDevice() && product.sync_color_images && (
               <>
                 <CoverEffectSlider
                   priority={priority}
@@ -332,11 +335,6 @@ function Product({
               stopProgress(true);
               addToCart();
               setTimeout(() => {
-                if (document.querySelector("#nprogress"))
-                  document.querySelector(
-                    "#nprogress"
-                    // @ts-ignore
-                  ).style.opacity = "0";
                 dispatchRouteChangeEvent("completed");
                 stopProgress(true);
               }, 2000);

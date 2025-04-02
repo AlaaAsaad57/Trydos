@@ -30,33 +30,46 @@ declare global {
     interface Chainable {
       mount: typeof mount;
       Visit(value: string): void;
-      Visit1(value: string): void;
       Exist(selector: string): Promise<boolean>;
-      Exist1(selector: string): Promise<boolean>;
+      ChexkExistElement(selector: string): Promise<boolean>;
       logout(): Chainable<void>;
-      (): Chainable<void>;
+      SkipForNow(): Chainable<void>;
+      WaitUntilLoadWebsiteAndlogoutAndViewport(): Chainable<void>;
+      HaveAccount(): Chainable<void>;
+      OpenBoutiqueAndAddProductToCartFromBoutiquePage(): Chainable<any>;
+      OpenBoutiqueAndAddProductToCartFromBoutiqueDatailPage(): Chainable<void>;
+      RequestForThreeServers(): Chainable<void>;
+      CreateNewAccount(): Chainable<void>;
+      AgreeTerms(): Chainable<void>;
+      CheckIfTrySendOtp(): Chainable<void>;
+      EndLoginOperation(): Chainable<void>;
+      InputFieldNameVisible(): Chainable<void>;
+      TypeName(): Chainable<void>;
+      MakeOtpExpired(): Chainable<void>;
+      ChooseWayToRecieveOtpAndWaitOtpRequest(): Chainable<void>;
+      ComplateLoginByMobilePhone(): Chainable<void>;
+      OpenLoginInterface(): Chainable<void>;
+      ColoredFieldRed(): Chainable<void>;
       typePincode(pincode: string): Chainable<void>;
       enterPhoneNumber(phoneNumber: string): Chainable<void>;
-      enterPhoneNumber1(phoneNumber: string): Chainable<void>;
+      reEnterPhoneNumber(phoneNumber: string): Chainable<void>;
       performLogin(s?: string): Chainable<void>;
-      performLogin1(s?: string): Chainable<void>;
-      Performloginfailure(): Chainable<void>;
-      performErrorLogin(): Chainable<void>;
-      performExpireOtpLogin(): Chainable<void>;
-      signupProcess(): Chainable<void>;
-      failedSignupProcess(): Chainable<void>;
-      alreadyRegisteredSignup(): Chainable<void>;
       interceptAndWait(
         routes: { method?: string; url: string; alias: string }[]
       ): Chainable<void>;
-      clickElementScroll(selector: string): Chainable<Element>;
-      clickElementForce(selector: string): Chainable<Element>;
+      clickElement(selector: string): Chainable<Element>;
       getProductNameFirstly(selector?: string): Chainable<string>;
       verifyProductInCart(productName: string): Chainable<void>;
       verifyBoxsInBoutiquePage(): Chainable<void>;
       verifyComponentsInProductCard(): Chainable<void>;
-      AddProductToCart(): Chainable<void>;
+      ClickAddToCartAndWaitRequest(): Chainable<void>;
+      ConfirmAndComplateOrderButton(): Chainable<void>;
       AddAdress(): Chainable<void>;
+      ChooseBoutiqueAndVerifyComponentsAndBoxsInBoutiquePage(): Chainable<void>;
+      ComplateAddProductOperationAndGoCartPage(): Chainable<void>;
+    }
+    interface Window {
+      isKeyboardOpen?: boolean;
     }
   }
 }

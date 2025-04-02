@@ -139,7 +139,9 @@ function SelectSize({ sizes, variants }) {
       </div>
       {getVariants() === 0 ? (
         <div className="flex-row items-center text-[12px] text-[#FF5F61] mt-[9px] medium [&>span]:ml-1">
-          <span>Not Available Now, Stock Is Sold Out </span>
+          <span>
+            {translateFunction("Not Available Now, Stock Is Sold Out")}{" "}
+          </span>
         </div>
       ) : (
         <>
@@ -158,7 +160,7 @@ function SelectSize({ sizes, variants }) {
               <span> {translate("For You")} </span>
               {getVariants() < 10 && (
                 <>
-                  <span className="text-[#FFAF5F]">Last </span>
+                  <span className="text-[#FFAF5F]">{translate("Last")} </span>
                   <span className="text-[#FFAF5F] meduim">{getVariants()}</span>
                 </>
               )}
@@ -392,11 +394,20 @@ const SelectSizeSlider = ({ sizes, setActive, getVariants }) => {
       if (size) dispatch({ type: "AddToCartSize", payload: size });
     }
   }, []);
+  const activeSize = useSelector(
+    (state: StateInterface) => state.cart.AddToCartOption.selectedSize
+  );
   const getInitial = () => {
     if (searchParams.get("size")) {
       let index = 0;
       sizes.map((s, i) => {
         if (s.name === searchParams.get("size")) index = i;
+      });
+      return index;
+    } else if (activeSize) {
+      let index = 0;
+      sizes.map((s, i) => {
+        if (s.name === activeSize.name) index = i;
       });
       return index;
     }

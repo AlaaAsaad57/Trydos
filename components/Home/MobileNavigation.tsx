@@ -1,5 +1,5 @@
 import CategoryNavMobile from "./CategoryNavMobile";
-import { Category } from "models/Category";
+
 import SearchIcon from "./Search/SearchIcon";
 import { useState } from "react";
 import { useParams } from "next/navigation";
@@ -45,17 +45,18 @@ function MobileNavigation({ categories }: { categories: any[] }) {
         className={`categories-bar-container ${"mobile-bar"}`}
         data-cy="categoryNavBar"
       >
-        {categories.map((category, key) => (
-          <CategoryNavMobile
-            name={category.name}
-            active={activeCategory === category.slug}
-            setActive={() => setActiveCatgory(category.slug)}
-            key={key}
-            myKey={key}
-            icon={category?.flat_photo_path?.file_path}
-            slug={category.slug}
-          />
-        ))}
+        {typeof categories !== "string" &&
+          categories?.map((category, key) => (
+            <CategoryNavMobile
+              name={category.name}
+              active={activeCategory === category.slug}
+              setActive={() => setActiveCatgory(category.slug)}
+              key={key}
+              myKey={key}
+              icon={category?.flat_photo_path?.file_path}
+              slug={category.slug}
+            />
+          ))}
       </div>
     </div>
   );

@@ -144,6 +144,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
                 viewBox="0 0 122.879 93.242"
                 enableBackground="new 0 0 122.879 93.242"
                 xmlSpace="preserve"
+                style={{ cursor: "pointer", width: "100%" }}
               >
                 <g>
                   <path
@@ -223,7 +224,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
     <div
       className="fixed-img-prev"
       style={{
-        top: "-113px",
+        top: "-180px",
         justifyContent: "flex-end",
         paddingBottom: "60px",
       }}
@@ -366,6 +367,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
                     viewBox="0 0 122.879 93.242"
                     enableBackground="new 0 0 122.879 93.242"
                     xmlSpace="preserve"
+                    style={{ cursor: "pointer", width: "100%" }}
                   >
                     <g>
                       <path

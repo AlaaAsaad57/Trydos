@@ -66,34 +66,7 @@ const initialState = {
   client: null,
   nameModal: false,
 };
-const showDate = (d) => {
-  const language = store.getState().homepage.language;
-  var days = [
-    translate("Sunday", language),
-    translate("Monday", language),
-    translate("Tuesday", language),
-    translate("Wednesday", language),
-    translate("Thursday", language),
-    translate("Friday", language),
-    translate("Saturday", language),
-  ];
-  let now = new Date();
-  let nowString = `${now.getFullYear()}-${
-    now.getMonth() + 1 > 9
-      ? (now.getMonth() + 1).toString()
-      : "0" + (now.getMonth() + 1).toString()
-  }-${
-    now.getDate() > 9 ? now.getDate() : "0" + parseInt(now.getDate()).toString()
-  }`;
 
-  let day = new Date(d);
-  day = days[day.getDay()];
-  if (d === nowString) return translate("Today", language);
-  else if (new Date(nowString) - new Date(d) === 86400000) {
-    return translate("Yesterday", language);
-  } else if (new Date(nowString) - new Date(d) < 86400000 * 6) return day;
-  else return language === "ar" ? d.toLocaleString("ar-EG") : d;
-};
 export const ChatReducer = (
   state = initialState,
   { type, payload, param, source }
@@ -153,9 +126,6 @@ export const ChatReducer = (
     }
     case "FORWARD-MESSAGEs": {
       return { ...state, forwarded_message: payload, main: "MAIN" };
-    }
-    case "log_out": {
-      return initialState;
     }
     case "GET_CALLS": {
       let call_temp = state.calls;
@@ -471,22 +441,7 @@ export const ChatReducer = (
         },
       };
     }
-    case "CONV_DATWE": {
-      let mesDate = new Date(payload);
-      mesDate = `${mesDate.getFullYear()}-${
-        mesDate.getMonth() + 1 > 9
-          ? (mesDate.getMonth() + 1).toString()
-          : "0" + (mesDate.getMonth() + 1).toString()
-      }-${
-        mesDate.getDate() > 9
-          ? mesDate.getDate()
-          : "0" + parseInt(mesDate.getDate()).toString()
-      }`;
-      return {
-        ...state,
-        date: showDate(mesDate),
-      };
-    }
+
     case "SEND_MES_RED_NEW": {
       return {
         ...state,
@@ -505,24 +460,7 @@ export const ChatReducer = (
         ref: !state.ref,
       };
     }
-    case "CHAT_LOADING_USER": {
-      return {
-        ...state,
-        user_loading: true,
-      };
-    }
-    case "CHAT_DONE_USER": {
-      return {
-        ...state,
-        user_loading: false,
-      };
-    }
-    case "SEARCH_USER_RED": {
-      return {
-        ...state,
-        users: payload,
-      };
-    }
+
     case "REFS": {
       return {
         ...state,
@@ -795,7 +733,7 @@ export const ChatReducer = (
 
       let chat = state.data;
       let arr = [];
-      if (payload.isNew) {
+      if (payload.isNew || payload.act?.id?.includes("ch")) {
         arr.push({
           ...payload.act,
           messages: [...ac.messages, payload.message],
@@ -885,7 +823,7 @@ export const ChatReducer = (
           ) {
             mar.push({ ...payload, mid: null });
           }
-          chatData.push({ ...a, messages: [...mar] });
+          chatData.push({ ...a, messages: [...mar], id: payload?.channel_id });
         } else {
           chatData.push(a);
         }
@@ -895,10 +833,13 @@ export const ChatReducer = (
         state.activeChat.id &&
         state.activeChat.id === ac
       ) {
-        act = chatData.filter((a) => a.id === ac)[0];
+        act = {
+          ...chatData.filter((a) => a.id === payload?.channel_id)[0],
+          id: payload?.channel_id,
+        };
       } else {
         if (state.activeChat && state.activeChat.id) {
-          act = state.activeChat;
+          act = { ...state.activeChat, id: payload?.channel_id };
         }
       }
       let arr = [];

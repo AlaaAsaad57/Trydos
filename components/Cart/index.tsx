@@ -301,14 +301,6 @@ function CartContainer({ close, toOrders }) {
                               });
                             }
                           } else {
-                            setTimeout(() => {
-                              if (document.querySelector("#nprogress"))
-                                // @ts-ignore
-                                document.querySelector(
-                                  "#nprogress"
-                                  // @ts-ignore
-                                ).style.opacity = "1";
-                            }, 1000);
                           }
                           close();
                         }}
@@ -651,14 +643,6 @@ function CartContainer({ close, toOrders }) {
                               });
                             }
                           } else {
-                            setTimeout(() => {
-                              if (document.querySelector("#nprogress"))
-                                // @ts-ignore
-                                document.querySelector(
-                                  "#nprogress"
-                                  // @ts-ignore
-                                ).style.opacity = "1";
-                            }, 1000);
                           }
                           close();
                         }}

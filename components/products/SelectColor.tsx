@@ -52,6 +52,7 @@ function SelectColor({ close }) {
       <div className="back-bar align-center w-100 flex-row min-h-12 bg-[#fff] p-4 z-[9999999999] fixed top-0 justify-between">
         <div
           className="back-icon p-0"
+          data-cy="BackIcon-WhenAddFromProductDetails"
           onClick={() => {
             document.documentElement.style.overflow = "auto";
             document.documentElement.scrollTop = 0;
@@ -170,11 +171,20 @@ export const SelectColorsSlider = ({ colors }) => {
       if (color) dispatch({ type: "AddToCartColor", payload: color });
     }
   }, []);
+  const activeColor = useSelector(
+    (state: StateInterface) => state.cart.AddToCartOption.selectedColor
+  );
   const getInitial = () => {
     if (searchParams.get("color")) {
       let index = 0;
       colors.map((s, i) => {
         if (s.color_name === searchParams.get("color")) index = i;
+      });
+      return index;
+    } else if (activeColor) {
+      let index = 0;
+      colors.map((s, i) => {
+        if (s.color_name === activeColor.color_name) index = i;
       });
       return index;
     }

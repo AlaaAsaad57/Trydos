@@ -165,6 +165,7 @@ function SendMethod({
             </div>
             <div
               className="icon-detail"
+              data-cy="Edit-Phone-Number"
               style={{ cursor: "pointer", marginTop: "3px" }}
               onClick={() => setStepIndicator(3)}
             >

@@ -14,7 +14,7 @@ const NewStoryModal = dynamic(() => import("./Stories/CameraStory"), {
 import { dataURLtoFile } from "components/Chat/chatsFunctions";
 import dynamic from "next/dynamic";
 import { toast } from "react-toastify";
-import { Sendevent } from "utils/functions";
+import { Sendevent, translateFunction } from "utils/functions";
 
 function AddStory() {
   const [uploaded, setUpload] = useState(0);
@@ -22,7 +22,28 @@ function AddStory() {
     (state: StateInterface) => state.homepage.language
   );
   const [openMenu, setOpenMenu] = useState(false);
-  const [OpenCamera, setOpenCamera] = useState(false);
+  const OpenCamera = useSelector(
+    (state: StateInterface) => state.homepage.OpenCamera
+  );
+  const setOpenCamera = (value: boolean) => {
+    if (value) {
+      // @ts-ignore
+      document.querySelector(".stories-bar-container").style.zIndex =
+        "999999999999999999999999";
+      // @ts-ignore
+      document.querySelector(".stories-bars").classList.add("overflow-visible");
+      dispatch({ type: "OPEN_CAMERA", payload: value });
+    } else {
+      // @ts-ignore
+      document.querySelector(".stories-bar-container").style.zIndex =
+        "99999999";
+      // @ts-ignore
+      document
+        .querySelector(".stories-bars")
+        .classList.remove("overflow-visible");
+      dispatch({ type: "OPEN_CAMERA", payload: value });
+    }
+  };
   const [isSelected, setIsSelected] = useState(null);
   const [file, setFile] = useState(null);
   const dispatch = useDispatch();
@@ -193,10 +214,10 @@ function AddStory() {
               height: "auto",
               backgroundColor: "#FAFAFA",
               position: "absolute",
-              top: "263px",
+              top: "200px",
               overflow: "hidden",
-              left: language !== "ar" ? "22px" : "initial",
-              right: language !== "ar" ? "initial" : "22px",
+              left: "20px",
+
               zIndex: 999999,
               borderRadius: "15px",
             }}
@@ -221,7 +242,7 @@ function AddStory() {
                 document.body.style.overflow = "hidden";
               }}
             >
-              From Camera
+              {translateFunction("From Camera")}
             </div>
             <div
               className="menuItem"
@@ -259,7 +280,7 @@ function AddStory() {
                 }
               }}
             >
-              From Files
+              {translateFunction("From Files")}
             </div>
           </div>
         </div>

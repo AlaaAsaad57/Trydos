@@ -149,17 +149,17 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
       )}
       <div
         className="flex flex-row"
-        data-cy="avatar-options"
-        onClick={() => setMenuOpen(!menuOpen)}
         style={{ marginLeft: "10px", cursor: "pointer" }}
       >
         {user ? (
-          <AuthNavSection />
+          <AuthNavSection onClick={() => setMenuOpen(!menuOpen)} />
         ) : (
           <div className="nav-question-item">
             <Image
               src="/svg/userIcon.svg"
               width={30}
+              data-cy="avatar-options"
+              onClick={() => setMenuOpen(!menuOpen)}
               height={30}
               alt="user-icon"
             />

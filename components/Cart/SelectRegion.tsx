@@ -60,13 +60,17 @@ function SelectRegion({ closeSelect }) {
       </>
     );
   };
-
+  const [focused, setFocused] = useState(false);
   return (
     <>
       <div
         className="absolute top-[50px]  left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]"
         onClick={() => {
-          closeSelect();
+          if (focused) {
+            setFocused(false);
+          } else {
+            closeSelect();
+          }
         }}
       />
       <div
@@ -87,6 +91,7 @@ function SelectRegion({ closeSelect }) {
           <div className="flex-row ml-[8px]">{showRegion()}</div>
         </div>
         <SearchLocations
+          setFocused={setFocused}
           closeSelect={() => {
             closeSelect();
           }}
@@ -98,7 +103,7 @@ function SelectRegion({ closeSelect }) {
 
 export default SelectRegion;
 
-const SearchLocations = ({ closeSelect }) => {
+const SearchLocations = ({ closeSelect, setFocused }) => {
   const { lang } = useParams();
   // @ts-ignore
   const [country, language] = lang.split("-");
@@ -189,6 +194,9 @@ const SearchLocations = ({ closeSelect }) => {
           </span>
         )}
         <DebounceInput
+          onFocus={() => {
+            setFocused(true);
+          }}
           minLength={2}
           onChange={(e) => {
             if (e.target.value.length > 0) searchAction(e.target.value);
@@ -225,7 +233,7 @@ const SearchResults = ({ searchResults, closeSelect }) => {
   };
   const dispatch = useDispatch();
   const select = (s) => {
-    let a = { lat: s.coordinates?.lat, lng: s.coordinates?.lon };
+    let a = { lat: s.coordinates[0]?.lat, lng: s.coordinates[0]?.lon };
     if (a.lat && a.lng) dispatch({ type: "MAP-CENTER", payload: a });
     dispatch({
       type: "set-address-details",

@@ -8,6 +8,7 @@ const initialState = {
   loadingStories: true,
   selectedStory: null,
   renderStories: false,
+  OpenCamera: false,
   storiesData: null,
   categories: [],
 
@@ -26,6 +27,12 @@ const initialState = {
 
 const HomeReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "OPEN_CAMERA": {
+      return {
+        ...state,
+        OpenCamera: payload,
+      };
+    }
     case "IS-REGISTERING": {
       return {
         ...state,
@@ -50,12 +57,7 @@ const HomeReducer = (state = initialState, { type, payload }) => {
         activeRoute: payload,
       };
     }
-    case "LOADING": {
-      return {
-        ...state,
-        loading: true,
-      };
-    }
+
     case "GA-EVENT": {
       return {
         ...state,
@@ -75,12 +77,6 @@ const HomeReducer = (state = initialState, { type, payload }) => {
         ...state,
         loginOpen: payload,
         showMessage: false,
-      };
-    }
-    case "INFO_EXPIRED_TOKEN": {
-      return {
-        ...state,
-        showMessage: payload,
       };
     }
     case "WATCH-STORY": {
@@ -178,13 +174,7 @@ const HomeReducer = (state = initialState, { type, payload }) => {
         ],
       };
     }
-    case "SITE-MAIN-DATA": {
-      return {
-        ...state,
-        loading: false,
-        boutiques: payload,
-      };
-    }
+
     case "GET_SETTINGS": {
       return {
         ...state,

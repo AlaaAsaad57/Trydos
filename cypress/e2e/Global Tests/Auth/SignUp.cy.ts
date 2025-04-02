@@ -5,244 +5,305 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
     });
     cy.Visit("/");
   });
-  // *************************signupProcess********************
   it("Should Ensure The User Has Not LogIn Previously", () => {
-    cy.wait(3000);
-    cy.logout();
-    cy.viewport(783, 824);
+    cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
   it("Should Click On Login Icon & Open Its Interface", () => {
-    cy.clickElementScroll(".en-regular:nth-child(2)");
-    cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
-    cy.log("✅✅ Click On Login Icon & Open Its Interface");
+    cy.OpenLoginInterface();
   });
   it("Should Click On Create New Acount Button", () => {
-    cy.clickElementScroll(".login-button:nth-child(2)");
-    cy.log("✅✅ Click On Create New Acount Button");
+    cy.CreateNewAccount();
   });
   it("Should Click On Agree & Countinue Button", () => {
-    cy.clickElementForce(".agree-terms");
-    cy.log("✅✅ Agree & Countinue Button Clicked Successfuly");
+    cy.AgreeTerms();
   });
   it("Should Enter His Number In Number Entry Box", () => {
-    cy.enterPhoneNumber1("963937764641");
-    cy.log("✅✅ Number Phone Entered Successfuly");
+    cy.enterPhoneNumber("963937764641");
   });
   it("Should Click Recive Otp Code By SMS Button", () => {
-    cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-    cy.clickElementScroll(".message-recieve-option:nth-child(2)");
-    cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
-    cy.wait("@sendOtpApi");
-    cy.log("✅✅ Send Otp Api Request Successfuly");
+    cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
     cy.get("[data-testid=pin-inputs-desc]", { timeout: 20000 });
   });
   it("Should Verify If Have To Try Again To Send Otp Code", () => {
-    cy.Exist("[data-cy=WaitForTryAgain]").then((exist) => {
-      if (exist) {
-        cy.wait(60000);
-        cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-        cy.get(".message-recieve-option:nth-child(2)").click({
-          scrollBehavior: false,
-        });
-        cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
-        cy.wait("@sendOtpApi");
-        cy.log("✅✅ Send Otp Api Request Successfuly");
-        cy.get("[data-testid=pin-inputs-desc]", { timeout: 20000 });
-      }
-    });
+    cy.CheckIfTrySendOtp();
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
     let count = 0;
+    cy.window().then((win) => {
+      (win as any).stepIndicator = 5;
+    });
     cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
       req.continue((res) => {
         res.body.data.already_exists = false;
       });
     }).as("verifyOtpSignin");
-    cy.intercept("POST", "**/login", () => {
-      count += 1;
-    }).as("login");
     cy.typePincode("999999");
-    cy.wait(2000);
-    cy.log("✅✅ Type Pin Code Entred Successfuly");
-    cy.get("@verifyOtpSignin", { timeout: 10000 }).then((alias) => {
-      if (alias) {
-        cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
-          console.log(interception);
-        });
-      } else {
-        console.warn("❌❌ verifyOtpSignin alias does not exist");
-      }
+    cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+      cy.log("✅ verifyOtpSignin request arrived");
     });
-    cy.wait(5000).then(() => {
-      cy.log(`Count is: ${count}`);
-      expect(count).to.be.greaterThan(0);
-    });
-    cy.get("@login", { timeout: 10000 }).then((alias) => {
-      if (alias) {
-        cy.wait("@login", { timeout: 10000 }).then((interception) => {
-          cy.log("✅ login request arrived");
-        });
-      } else {
-        cy.log("❌❌ login request did not arrive");
-      }
-    });
+    cy.RequestForThreeServers();
   });
   it("Should Click On Input Field For Writ User Name", () => {
-    cy.clickElementForce("[data-cy=inputToWriteName]");
-    cy.log("✅✅ Input Field For Writ User Name is clicked on");
+    cy.InputFieldNameVisible();
   });
   it("Should Writ User Name In The Input Field", () => {
-    cy.get("[data-cy=InputFiledForName]", { timeout: 10000 })
-      .type("Abdo Hamdan", { force: true })
-      .should("have.value", "Abdo Hamdan"); // Ensure text was typed
-    cy.log("✅✅ User Name is Writ In Input Field");
+    cy.get('[data-cy="InputFiledForName"]').as("phoneInput").focus(); // Focus on the input
+    cy.window().then((win) => {
+      win.isKeyboardOpen = true;
+    });
+    cy.window().then((win) => {
+      win.isKeyboardOpen = false;
+      cy.get("@phoneInput").blur(); // Force blur event
+      win.dispatchEvent(new Event("resize")); // Simulate a window resize event
+    });
+    cy.get("@phoneInput").should("not.be.focused", { timeout: 5000 });
+    cy.TypeName();
+    cy.interceptAndWait([
+      {
+        method: "POST",
+        url: "**/api/v1/users/update",
+        alias: "update",
+      },
+      {
+        method: "POST",
+        url: "**/api/new_v1/customer/update-name",
+        alias: "updatename",
+      },
+    ]);
+    cy.log("✅✅ updatename & updatename Requests Arrived");
   });
   it("Should Click On Arrow Founded In Right Of Input Field & Click On Skip For Now Button", () => {
-    cy.get(".phone-arrow").click({ scrollBehavior: false });
-    cy.clickElementForce("[data-cy=skipForNow]");
-    cy.log("✅✅ Skip For Now Button clicked");
+    cy.SkipForNow();
   });
 });
-// *************************failedSignupProcess**********************************
 describe("Signup UnSuccessful Attempt should show error message to user", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
-    cy.wait(3000);
-    cy.logout();
-    cy.viewport(783, 824);
+    cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
   it("Should Click On Login Icon & Open Its Interface", () => {
-    cy.clickElementScroll(".en-regular:nth-child(2)");
-    cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
-    cy.log("✅✅ Click On Login Icon & Open Its Interface");
+    cy.OpenLoginInterface();
   });
   it("Should Click On Create New Acount Button", () => {
-    cy.clickElementScroll(".login-button:nth-child(2)");
-    cy.log("✅✅ Click On Create New Acount Button");
+    cy.CreateNewAccount();
   });
   it("Should Click On Agree & Countinue Button", () => {
-    cy.clickElementForce(".agree-terms");
-    cy.log("✅✅ Agree & Countinue Button Clicked Successfuly");
+    cy.AgreeTerms();
   });
   it("Should Enter His Number In Number Entry Box", () => {
-    cy.enterPhoneNumber1("963937288307");
-    cy.log("✅✅ Number Phone Entered Successfuly");
+    cy.enterPhoneNumber("963937288307");
   });
   it("Should Click Recive Otp Code By SMS Button", () => {
-    cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-    cy.clickElementScroll(".message-recieve-option:nth-child(2)");
-    cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
-    cy.wait("@sendOtpApi");
-    cy.log("✅✅ Send Otp Api Request Successfuly");
+    cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
     cy.get("[data-testid=pin-inputs-desc]", { timeout: 20000 });
   });
   it("Should Verify If Have To Try Again To Send Otp Code", () => {
-    cy.Exist("[data-cy=WaitForTryAgain]").then((exist) => {
-      if (exist) {
-        cy.wait(60000);
-        cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-        cy.get(".message-recieve-option:nth-child(2)").click({
-          scrollBehavior: false,
-        });
-        cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
-        cy.wait("@sendOtpApi");
-        cy.log("✅✅ Send Otp Api Request Successfuly");
-        cy.get("[data-testid=pin-inputs-desc]", { timeout: 20000 });
-      }
-    });
+    cy.CheckIfTrySendOtp();
   });
   it("Should Have Made Mistake In Entering The OTP Code", () => {
     cy.typePincode("499999");
-    cy.log("✅✅ Type Pin Code Mistake Entred");
+    cy.log("❌❌ Type Pin Code Mistake Entred");
   });
   it("Should OTP Code Input Fields Be Colored Red After Incorrect Input ", () => {
-    cy.get(".input-failed", { timeout: 5000 }).should("be.visible");
-    cy.log("✅✅ OTP Code Input Fields Be Colored Red");
+    cy.ColoredFieldRed();
   });
   it("Should Click On Close icon When Welcom Message Apperead", () => {
-    cy.get("[data-testid=login-close-icon]").click({
-      scrollBehavior: false,
-    });
+    cy.EndLoginOperation();
   });
 });
-// *************************alreadyRegisteredSignup******************************
 describe("Should show user is already registered when registering with registered number", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
-    cy.wait(3000);
-    cy.logout();
-    cy.viewport(783, 824);
+    cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
   it("Should Click On Login Icon & Open Its Interface", () => {
-    cy.clickElementScroll(".en-regular:nth-child(2)");
-    cy.get("[data-cy=login-widget-container]", { timeout: 15000 });
-    cy.log("✅✅ Click On Login Icon & Open Its Interface");
+    cy.OpenLoginInterface();
   });
   it("Should Click On Create New Acount Button", () => {
-    cy.clickElementScroll(".login-button:nth-child(2)");
-    cy.log("✅✅ Click On Create New Acount Button");
+    cy.CreateNewAccount();
   });
   it("Should Click On Agree & Countinue Button", () => {
-    cy.clickElementForce(".agree-terms");
-    cy.log("✅✅ Agree & Countinue Button Clicked Successfuly");
+    cy.AgreeTerms();
   });
   it("Should Enter His Number In Number Entry Box", () => {
-    cy.enterPhoneNumber1("963753159877");
-    cy.log("✅✅ Number Phone Entered Successfuly");
+    cy.enterPhoneNumber("963753159877");
   });
   it("Should Click Recive Otp Code By SMS Button", () => {
-    cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-    cy.clickElementScroll(".message-recieve-option:nth-child(2)");
-    cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
-    cy.wait("@sendOtpApi");
-    cy.log("✅✅ Send Otp Api Request Successfuly");
+    cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
     cy.get("[data-testid=pin-inputs-desc]", { timeout: 20000 });
   });
   it("Should Verify If Have To Try Again To Send Otp Code", () => {
-    cy.Exist("[data-cy=WaitForTryAgain]").then((exist) => {
-      if (exist) {
-        cy.wait(60000);
-        cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-        cy.get(".message-recieve-option:nth-child(2)").click({
-          scrollBehavior: false,
-        });
-        cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
-        cy.wait("@sendOtpApi");
-        cy.log("✅✅ Send Otp Api Request Successfuly");
-        cy.get("[data-testid=pin-inputs-desc]", { timeout: 20000 });
-      }
-    });
+    cy.CheckIfTrySendOtp();
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
-    let count = 0;
     cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
       req.continue((res) => {
         res.body.data.already_exists = true;
       });
     }).as("verifyOtpSignin");
+    cy.typePincode("999999");
+    cy.log("✅✅ Type Pin Code Entred Successfuly");
+    cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+      cy.log("✅ verifyOtpSignin request arrived");
+    });
+    cy.get("[data-cy=already-registered-phone]").should("be.visible");
+  });
+  it("Should Click On Close icon When Welcom Message Apperead", () => {
+    cy.get("[data-cy=Look-At-App]").click({
+      scrollBehavior: false,
+      force: true,
+    });
+  });
+});
+describe("Should show user is already registered when registering with registered number & Cancel & Take A Look At The App", () => {
+  it("Should Ensure The User Has Not LogIn Previously", () => {
+    cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
+  });
+  it("Should Click On Login Icon & Open Its Interface", () => {
+    cy.OpenLoginInterface();
+  });
+  it("Should Click On Create New Acount Button", () => {
+    cy.CreateNewAccount();
+  });
+  it("Should Click On Agree & Countinue Button", () => {
+    cy.AgreeTerms();
+  });
+  it("Should Enter His Number In Number Entry Box", () => {
+    cy.enterPhoneNumber("963937288307");
+  });
+  it("Should Click Recive Otp Code By SMS Button", () => {
+    cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
+    cy.get("[data-testid=pin-inputs-desc]", { timeout: 20000 });
+  });
+  it("Should Verify If Have To Try Again To Send Otp Code", () => {
+    cy.CheckIfTrySendOtp();
+    cy.get("[data-testid=pin-inputs-desc]", { timeout: 20000 });
+  });
+  it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
+    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
+      req.continue((res) => {
+        res.body.data.already_exists = true;
+      });
+    }).as("verifyOtpSignin");
+    cy.typePincode("999999");
+    cy.log("✅✅ Type Pin Code Entred Successfuly");
+    cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+      cy.log("✅ verifyOtpSignin request arrived");
+    });
+    cy.get("[data-cy=already-registered-phone]").should("be.visible");
+  });
+  it("Should Cancel & Look At The App", () => {
+    cy.clickElement("[data-cy=Look-At-App]");
+  });
+});
+describe("Should show user is already registered when registering with registered number & Login & Continue", () => {
+  it("Should Ensure The User Has Not LogIn Previously", () => {
+    cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
+  });
+  it("Should Click On Login Icon & Open Its Interface", () => {
+    cy.OpenLoginInterface();
+  });
+  it("Should Click On Create New Acount Button", () => {
+    cy.CreateNewAccount();
+  });
+  it("Should Click On Agree & Countinue Button", () => {
+    cy.AgreeTerms();
+  });
+  it("Should Enter His Number In Number Entry Box", () => {
+    cy.enterPhoneNumber("963753159877");
+  });
+  it("Should Click Recive Otp Code By SMS Button", () => {
+    cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
+    cy.get("[data-testid=pin-inputs-desc]", { timeout: 20000 });
+  });
+  it("Should Verify If Have To Try Again To Send Otp Code", () => {
+    cy.CheckIfTrySendOtp();
+  });
+  it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
+    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
+      req.continue((res) => {
+        res.body.data.already_exists = true;
+      });
+    }).as("verifyOtpSignin");
+    cy.typePincode("999999");
+    cy.log("✅✅ Type Pin Code Entred Successfuly");
+    cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+      cy.log("✅ verifyOtpSignin request arrived");
+    });
+    cy.get("[data-cy=already-registered-phone]").should("be.visible");
+  });
+  it("Should Login & Countinue", () => {
+    cy.clickElement("[data-cy=Login-Countinue]");
+    cy.get("[data-cy=Wellcome-Enjoy]").should("be.visible");
+  });
+  it("Should Click On Close icon When Welcom Message Apperead", () => {
+    cy.EndLoginOperation;
+  });
+});
+describe("Signup Successful Attempt & complete the profile", () => {
+  it("Should Ensure The User Has Not LogIn Previously", () => {
+    cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
+  });
+  it("Should Click On Login Icon & Open Its Interface", () => {
+    cy.OpenLoginInterface();
+  });
+  it("Should Click On Create New Acount Button", () => {
+    cy.CreateNewAccount();
+  });
+  it("Should Click On Agree & Countinue Button", () => {
+    cy.AgreeTerms();
+  });
+  it("Should Enter His Number In Number Entry Box", () => {
+    cy.enterPhoneNumber("963937764641");
+  });
+  it("Should Click Recive Otp Code By SMS Button", () => {
+    cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
+    cy.get("[data-testid=pin-inputs-desc]", { timeout: 20000 });
+  });
+  it("Should Verify If Have To Try Again To Send Otp Code", () => {
+    cy.CheckIfTrySendOtp();
+  });
+  it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
+    let count = 0;
     cy.intercept("POST", "**/login", () => {
       count += 1;
     }).as("login");
+    cy.window().then((win) => {
+      (win as any).stepIndicator = 5;
+    });
+    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
+      req.continue((res) => {
+        res.body.data.already_exists = false;
+      });
+    }).as("verifyOtpSignin");
     cy.typePincode("999999");
-    cy.log("✅✅ Type Pin Code Entred Successfuly");
-    cy.get("@verifyOtpSignin", { timeout: 10000 }).then((alias) => {
-      if (alias) {
-        cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
-          console.log(interception);
-        });
-      } else {
-        console.warn("❌❌ verifyOtpSignin alias does not exist");
-      }
+    cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+      cy.log("✅ verifyOtpSignin request arrived");
     });
-    cy.wait(5000).then(() => {
+    cy.wait("@login", { timeout: 10000 }).then((interception) => {
+      cy.log("✅ login request arrived");
+    });
+    cy.wait(500).then(() => {
       cy.log(`Count is: ${count}`);
+      expect(count).to.be.greaterThan(1);
     });
-    cy.get("@login", { timeout: 10000 }).then((alias) => {
-      if (alias) {
-        cy.wait("@login", { timeout: 10000 }).then((interception) => {
-          cy.log("✅ login request arrived");
-        });
-      } else {
-        cy.log("❌❌ login request did not arrive");
-      }
+  });
+  it("Should Click On Input Field For Writ User Name", () => {
+    cy.InputFieldNameVisible();
+  });
+  it("Should Writ User Name In The Input Field", () => {
+    cy.get('[data-cy="InputFiledForName"]').as("phoneInput").focus(); // Focus on the input
+    cy.window().then((win) => {
+      win.isKeyboardOpen = true;
     });
+    cy.window().then((win) => {
+      win.isKeyboardOpen = false;
+      cy.get("@phoneInput").blur(); // Force blur event
+      win.dispatchEvent(new Event("resize")); // Simulate a window resize event
+    });
+    cy.get("@phoneInput").should("not.be.focused", { timeout: 5000 });
+    cy.TypeName();
+  });
+  it("Should Click On Arrow Founded In Right Of Input Field & Click On Complate My Profile Button", () => {
+    cy.clickElement("[data-cy=Complate-Close]");
+    cy.log("✅✅ Complate My Profile Button clicked");
   });
 });

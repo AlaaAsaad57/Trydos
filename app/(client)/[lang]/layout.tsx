@@ -4,7 +4,7 @@ import "styles/home.css";
 import "styles/unused-onload.css";
 import Providers from "store/provider";
 import localFont from "next/font/local";
-import TranslationsMenu from "components/global/TranslationsMenu";
+
 import "regenerator-runtime/runtime";
 import PageTransition from "components/global/PageTransition";
 
@@ -81,10 +81,8 @@ export default async function RootLayout({ params, children }) {
       <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <Providers>
           <div className="site-container">
-            <>
-              <TranslationsMenu init={params.lang} />
-            </>
-            <PageTransition>{children}</PageTransition>
+            <></>
+            <PageTransition init={params.lang}>{children}</PageTransition>
           </div>
         </Providers>
       </body>

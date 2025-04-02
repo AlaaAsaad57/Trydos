@@ -1,4 +1,4 @@
-import { translations } from "public/translations/translations.js";
+import translations from "public/translations/translations.js";
 import profilePicture from "public/images/profileNo.png";
 import { store } from "store";
 import Cookies from "js-cookie";
@@ -30,12 +30,17 @@ export function translateFunction(key: string, language?: string | string[]) {
   } else {
     languageUrl = GetAppLanguage();
   }
-  if (language) {
-    return translations[language][key] || key;
+
+  // Ensure translations object exists and has the requested language
+  if (!translations || !translations[languageUrl]) {
+    return key;
   }
-  if (translations[languageUrl] && translations[languageUrl][key]) {
-    return translations[languageUrl][key] || key;
-  } else return key;
+
+  if (language) {
+    return translations[language]?.[key] || key;
+  }
+
+  return translations[languageUrl]?.[key] || key;
 }
 
 export const getStoriesHeaders = () => {
@@ -587,6 +592,17 @@ export const filterProducts = async ({
   //   },
   // });
   callback(product.data.products);
+  return product.data.products;
+};
+export const searchProducts = async ({ searchText }) => {
+  let product: FilterProductApi["data"] = await AxiosGet({
+    url:
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+      `/api/products/search?limit=4&search_text=${searchText}`,
+    title: "Search Products",
+  });
+  console.log(product);
+  return product.products;
 };
 const urlParams = ({ filters, noProducts }) => {
   const PriceFiltered = store.getState().details.PriceFiltered;
@@ -914,8 +930,6 @@ export const ExpiredUser = async () => {
   localStorage.removeItem("MARKET-TOKEN");
   localStorage.removeItem("USER");
   Cookies.remove("MARKET-TOKEN");
-
-  // store.dispatch({ type: "INFO_EXPIRED_TOKEN", payload: true });
 };
 export const WaitForCondition = async () => {
   return new Promise((resolve, reject) => {
@@ -930,4 +944,21 @@ export const WaitForCondition = async () => {
     // Optional: timeout in case it's taking too long
     // Wait for 10 seconds
   });
+};
+
+export const addToCompare = (slug: string) => {
+  const f_p = localStorage.getItem("f_p");
+  const s_p = localStorage.getItem("s_p");
+
+  if (!f_p) {
+    localStorage.setItem("f_p", slug);
+    return `?f_p=${slug}`;
+  } else if (!s_p) {
+    localStorage.setItem("s_p", slug);
+    return `?f_p=${f_p}&s_p=${slug}`;
+  } else {
+    // If both exist, replace the first one
+    localStorage.setItem("f_p", slug);
+    return `?f_p=${slug}&s_p=${s_p}`;
+  }
 };

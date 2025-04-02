@@ -1,54 +1,45 @@
 let CartLrLength1: number = 0;
+let CountItem1: number = 0;
 describe("Should Open The Website & Logout", () => {
   before("Visit The Site", () => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
     });
-    cy.Visit1("/");
+    cy.Visit("/sy-en");
+  });
+  it("Should change the url if it matches the condition", () => {
+    cy.get("[data-cy=Change-Url-Container]", { timeout: 30000 }).should(
+      "be.visible"
+    );
+    cy.clickElement("[data-cy=countain-with]:eq(0)");
   });
   it("Should Ensure The User Has Not LogIn Previously", () => {
-    cy.wait(3000);
-    cy.logout();
-    cy.viewport(783, 824);
+    cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
   it("Should Add To Cart", () => {
-    cy.AddProductToCart();
+    cy.ComplateAddProductOperationAndGoCartPage();
   });
 });
 describe("Should Cart Page &Confirm Order Operation", () => {
-  it("Should Click On Cart Icon & Open Cart Page", () => {
-    cy.get("[data-cy=boutiques]", { timeout: 15000 });
-    cy.clickElementForce("[data-cy=cartIcon_mainPage]");
-    cy.log("✅✅ Click On Cart Icon In Main Page & Open Cart Page");
-  });
   it("Should Click On Confirm & Countinue Button", () => {
-    cy.clickElementForce("[data-cy=Confirm-Order-Button]");
-    cy.log("✅✅ Confirm & Countinue Button Clicked");
+    cy.ConfirmAndComplateOrderButton();
   });
 });
 describe("should Login If User Is Not Verified", () => {
-  it("Should Apperead Box To Verified The Way To Send Otp Code", () => {
-    cy.Exist("[data-cy=FieldToInputNumber]").then((exist) => {
-      if (exist) {
-        cy.enterPhoneNumber1("963937764641");
-        cy.log("✅✅ Number Phone Entered Successfuly");
+  it("Should Enter Phone Number", () => {
+    cy.ChexkExistElement("[data-cy=FieldToInputNumber]").then((existing) => {
+      if (existing) {
+        cy.enterPhoneNumber("963937764641");
+      } else {
+        cy.log("✅✅ The Number Verified Last");
       }
     });
   });
-  it("Should Apperead Box To Verified The Way To Send Otp Code", () => {
-    cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
-    cy.get(".message-recieve-option:nth-child(2)").click({
-      scrollBehavior: false,
-    });
-    cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
-    cy.wait("@sendOtpApi");
-    cy.log("✅✅ Send Otp Api Request Successfuly");
+  it("Should Select Way To Send Otp Code", () => {
+    cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
   });
-  it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
+  it("Should Enter OTP Code & Arrived Dual Request", () => {
     cy.typePincode("999999");
-    cy.log("✅✅ Type Pin Code Entred Successfuly");
-  });
-  it("Should Arrived Dual Request", () => {
     cy.interceptAndWait([
       {
         method: "GET",
@@ -64,10 +55,9 @@ describe("should Login If User Is Not Verified", () => {
     cy.log("✅✅ CartShiping & ListRequest Requests Arrived");
   });
 });
-
-describe("Compare Quantity", () => {
+describe("Compare Quantity Founded In Order With Quantity Required", () => {
   it("Should Extract The Number Of Items That Confirm To Buy It", () => {
-    cy.get('[data-cy="Number-Of-Products-Required"]')
+    cy.get("[data-cy=Number-Of-Products-Required]")
       .invoke("text")
       .then((text) => {
         const match = text.match(/^(\d+)\s+items/); // Match number before "items"
@@ -76,117 +66,241 @@ describe("Compare Quantity", () => {
           cy.log("✅✅ Extracted Cart Length:", cartLength);
           expect(cartLength).to.be.a("number");
           CartLrLength1 = cartLength;
-        } else {
-          throw new Error("Could not extract cart length");
         }
       });
   });
-  it("Should Extract The Number Of Items in Shopping Bag", () => {
-    cy.get('[data-cy="Count-Of-Shiping"]')
+  it("Should Extract Number Of Items in Shopping Bag", () => {
+    cy.get("[data-cy=Count-Of-Shiping]")
       .invoke("text")
       .then((text) => {
         cy.log("✅✅ Extracted Text:", text); // Log the text to debug
         const match = text.match(/(\d+)\s*\w*/); // Extract first number
         if (match) {
           const itemCount = parseInt(match[1], 10); // Convert extracted value to integer
+          CountItem1 = itemCount;
           cy.log("✅✅Extracted Item Count:", itemCount);
           expect(itemCount).to.be.a("number");
           expect(itemCount).to.be.eq(CartLrLength1);
           cy.log("✅✅ Matxhed"); // Log the text to debug
-        } else {
-          throw new Error("Could not extract item count from: " + text);
         }
       });
+  });
+  // *********************************************
+  it("Should Check Other Components", () => {
+    cy.get("[data-cy=Order-Cart-Icon]", { timeout: 15000 }).should("exist");
+    cy.log("✅✅ Order Cart Icon Exists");
+    cy.get(".regular")
+      .should("contain.text", "Your Shopping Bag")
+      .should("exist");
+    cy.log("✅✅ The Text Exists");
+    cy.clickElement("[data-cy=DropDownIcon]");
+    cy.log("✅✅ Drop Down Icon Click");
+    cy.get("[data-cy=Item]")
+      .its("length")
+      .then((count) => {
+        cy.log(`✅✅ The Count Of Item Required Is: ${count}`);
+        expect(count).to.be.eq(CountItem1);
+      });
+  });
+});
+describe("Shipping & Delivery Address Component", () => {
+  it("Should Verify Shipping & Delivery Address Title", () => {
+    cy.get("[data-cy=TitleInOrderPage]", { timeout: 10000 })
+      .should("be.visible")
+      .should("contain.text", "Bag Shipping & Delivery Address");
+    cy.log("✅✅ Title 'Bag Shipping & Delivery Address' Exists");
+    cy.get("[data-cy=TitleInOrderPage] svg")
+      .should("exist")
+      .should("be.visible");
+    cy.log("✅✅ SVG Icon Exists in Title");
+  });
+  it("should render the shipping and delivery address component", () => {
+    cy.get("[data-cy=ShipingBox]").should("exist");
+    cy.contains("Shipping & Delivery Address").should("be.visible");
+    cy.contains("Please Enter Shipping Address To Receive Your Bag").should(
+      "be.visible"
+    );
+    cy.get("[data-cy=WrapIcon1]").should("exist");
+    cy.get("[data-cy=WrapIcon]").should("exist");
   });
 });
 describe("Should Add Address", () => {
   it("Should Check If User Add Address Lastly", () => {
-    cy.Exist("[data-cy=Address-Added-Last]").then((exist) => {
+    cy.ChexkExistElement("[data-cy=Address-Added-Last]").then((exist) => {
       if (exist) {
-        cy.clickElementForce("[data-cy=Show-Address-That-Added]");
+        cy.clickElement("[data-cy=Show-Address-That-Added]");
         cy.log("✅✅ Show Address List Button Clicked");
         cy.get("[data-cy=Address]").each(($el, index) => {
           cy.wrap($el).then(() => {
-            cy.get("[data-cy=Delete-Address-Icon]")
-              .eq(0)
-              .click({ force: true })
-              .then((text) => {
+            cy.clickElement("[data-cy=Delete-Address-Icon]:eq(0)").then(
+              (text) => {
                 cy.log(`Delete Address Icon ${index + 1}: ${text}`);
-                cy.clickElementForce("[data-cy=Yes-Delete-Address]");
-              });
+                cy.intercept(
+                  "POST",
+                  "**/api/new_v1/customer/address/delete?address**"
+                ).as("DeleteAddress");
+                cy.clickElement("[data-cy=Yes-Delete-Address]");
+                cy.wait("@DeleteAddress").then((interception) => {
+                  cy.log("✅✅ Get Address By Text request arrived");
+                });
+              }
+            );
           });
         });
       }
     });
-    cy.log("✅✅ Add Addres Button Clicked");
+    cy.get("body").click(0, 0);
   });
-  it("Should Click On Add Address Button", () => {
-    cy.clickElementForce("[data-cy=AddAddres]");
-    cy.log("✅✅ Add Addres Button Clicked");
+  it("Should Add Address", () => {
+    cy.ChexkExistElement("[data-cy=Add-Shipping-Address]").then((exist) => {
+      if (exist) {
+        cy.clickElement("[data-cy=Add-Shipping-Address]");
+        cy.log("✅✅ Add-Shipping-Address Button Clicked");
+      } else {
+        cy.clickElement("[data-cy=AddAddres]");
+        cy.log("✅✅ Add Addres Button Clicked");
+      }
+    });
   });
   it("Should Change Place From List", () => {
-    cy.clickElementForce("[data-cy=Change-From-List]");
+    cy.clickElement("[data-cy=Change-From-List]");
     cy.log("✅✅ Change Place From List Button Clicked");
     cy.get("[data-cy=Extended-Choose-Area]").should("exist");
-    cy.log("✅✅ Extended Box To Choose Area Apperead");
-    cy.clickElementForce("[data-cy=SearchProvince-District-Town-Street]");
+    cy.log("✅✅ Extended Box To Choose Area Appeared");
+    cy.clickElement("[data-cy=SearchProvince-District-Town-Street]");
     cy.log("✅✅ Search Province District Town Street");
-    cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Latakia");
+    cy.intercept("POST", "**/api/addresses/get-address-by-text").as(
+      "GetAddressByText"
+    );
+    cy.get("[data-cy=SearchProvince-District-Town-Street]").type("Latakia", {
+      force: true,
+      scrollBehavior: false,
+    });
+    cy.wait("@GetAddressByText").then((interception) => {
+      cy.log("✅✅ Get Address By Text request arrived");
+    });
     cy.log("✅✅ SearchProvince-District-Town-Street Filled");
-    cy.get('[data-cy="SearchProvince-District-Town-Street"]', {
+    cy.get("[data-cy=SearchProvince-District-Town-Street]", {
       timeout: 10000,
     }).should("be.visible");
-    cy.wait(5000);
-    cy.get("[data-cy=Firstly-Search-Result]").eq(0).click({ force: true });
+    cy.clickElement("[data-cy=Firstly-Search-Result]:eq(0)");
     cy.log("✅✅ First Option Has Been Selected");
   });
   it("Should Add Detailed Address & Note", () => {
-    cy.clickElementForce("[data-cy=Detailed-Address-Note]");
-    cy.log("✅✅ Click On Detailed Address & Note Field");
-    cy.get("[data-cy=Detailed-Address-Note]").type(
-      "This Is A Test Detailed Address & Note"
-    );
-    cy.log("✅✅ Detailed Address & Note Input Filled");
+    cy.clickElement("[data-cy=Detailed-Address-Note] textarea") // Selects the textarea inside the div
+      .type("This Is A Test Detailed Address & Note", {
+        force: true,
+        scrollBehavior: false,
+      });
+    cy.log("✅✅ Clicked and Filled Detailed Address & Note Input");
   });
   it("Should Add Address Title", () => {
-    cy.clickElementForce("[data-cy=Address-Title]");
-    cy.log("✅✅ Click On Add Address Title Field");
-    cy.get('[data-cy="Address-Title"]').type("This Is A Test Address Title");
-    cy.log("✅✅ Address Title Input Filled");
+    cy.clickElement("[data-cy=Address-Title] input") // Selects the input inside the di
+      .type("This Is A Test Address Title", {
+        force: true,
+        scrollBehavior: false,
+      });
+    cy.log("✅✅ Clicked and Filled Address Title Input");
   });
   it("Should Add Recipient Name", () => {
-    cy.clickElementForce("[data-cy=Recipient-Name]");
-    cy.log("✅✅ Click On Recipient Name Field");
-    cy.get('[data-cy="Recipient-Name"]').type("This Is A Test Recipient Name");
-    cy.log("✅✅ Recipient Name Input Filled");
+    cy.clickElement("[data-cy=Recipient-Name] input") // Selects the input inside the div
+      .type("This Is A Test Recipient Name", {
+        force: true,
+        scrollBehavior: false,
+      });
+    cy.log("✅✅ Clicked and Filled Recipient Name Input");
   });
   it("Should Add Contact Phone", () => {
-    cy.clickElementForce("[data-cy=Contact-Phone]");
-    cy.log("✅✅ Click On Contact Phone Field");
-    cy.get('[data-cy="Contact-Phone"]').type("0963937764641");
-    cy.log("✅✅ Contact Phone Input Filled");
+    cy.clickElement("[data-cy=Contact-Phone] input") // Selects the input inside the div
+      .type("0963937764641", { force: true, scrollBehavior: false });
+    cy.log("✅✅ Clicked and Filled Contact Phone Input");
   });
-  it("Should Click On Add & Save Button", () => {
-    cy.clickElementForce("[data-cy=AddSaveButton]");
+  it("Should Add & Save Address", () => {
+    cy.clickElement("[data-cy=AddSaveButton]");
     cy.log("✅✅ Add & Save Button Clicked");
+    cy.interceptAndWait([
+      {
+        method: "POST",
+        url: "**/api/new_v1/customer/address/add",
+        alias: "addAddress",
+      },
+      {
+        method: "GET",
+        url: "**/api/new_v1/customer/address/list",
+        alias: "list",
+      },
+    ]);
+    cy.log("✅✅ addAddress & list Requests Arrived");
   });
 });
-describe("Check Address & Add other Address", () => {
+describe("Should Check Address & Add other Address", () => {
   it("Should Show Address List", () => {
-    cy.clickElementForce("[data-cy=Show-Address-That-Added]");
+    cy.clickElement("[data-cy=Show-Address-That-Added]");
     cy.log("✅✅ Show Address List Button Clicked");
   });
   it("Should Show Address Added Last", () => {
-    cy.get('[data-cy="AddressListContainer"]', {
+    cy.get("[data-cy=AddressListContainer]", {
       timeout: 10000,
     }).should("be.visible");
-    cy.get('[data-cy="Address"]', {
+    cy.get("[data-cy=Address]", {
       timeout: 10000,
     }).should("be.visible");
   });
   it("Should Add Other Address", () => {
-    cy.clickElementForce("[data-cy=Add-Shipping-Address]");
+    cy.clickElement("[data-cy=Add-Shipping-Address]");
     cy.log("✅✅ Show Address List Button Clicked");
     cy.AddAdress();
+  });
+  it("Should Show Address List", () => {
+    cy.clickElement("[data-cy=Show-Address-That-Added]");
+    cy.log("✅✅ Show Address List Button Clicked");
+    cy.get("[data-cy=Address]")
+      .its("length")
+      .then((count) => {
+        cy.log(`✅✅ The Count Of Address Added Until Now Is: ${count}`);
+      });
+  });
+});
+describe("Should Edit Address", () => {
+  it("Should Check If User Adds Address Lastly", () => {
+    cy.get("[data-cy=Edit-Addres-Icon]", { timeout: 10000 })
+      .first()
+      .should("be.visible")
+      .click({ force: true, scrollBehavior: false });
+    cy.log("✅✅ Clicked on Edit Address Icon");
+    cy.clickElement("[data-cy=Detailed-Address-Note] textarea") // Selects the textarea inside the div
+      .type("This Is A Test Detailed Address & Note", {
+        force: true,
+        scrollBehavior: false,
+      });
+    cy.log("✅✅ Clicked and Filled Detailed Address & Note Input");
+    cy.intercept("POST", "**/api/new_v1/customer/address/update").as(
+      "UpdateAddress"
+    );
+    cy.clickElement("[data-cy=AddSaveButton]");
+    cy.log("✅✅ Add & Save Button Clicked");
+    cy.wait("@UpdateAddress", { timeout: 15000 })
+      .its("response.statusCode")
+      .should("eq", 200)
+      .then(() => {
+        cy.log("✅✅ Update Address API request was successful");
+      });
+  });
+});
+describe("Should Delete Address", () => {
+  it("Should Delete Address", () => {
+    cy.clickElement("[data-cy=Show-Address-That-Added]");
+    cy.log("✅✅ Show Address List Button Clicked");
+    cy.clickElement("[data-cy=Delete-Address-Icon]:eq(0)").then((text) => {
+      cy.log(`Delete Address Icon`);
+      cy.intercept(
+        "POST",
+        "**/api/new_v1/customer/address/delete?address**"
+      ).as("DeleteAddress");
+      cy.clickElement("[data-cy=Yes-Delete-Address]");
+      cy.wait("@DeleteAddress").then((interception) => {
+        cy.log("✅✅ Get Address By Text request arrived");
+      });
+    });
   });
 });

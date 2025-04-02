@@ -26,9 +26,8 @@ import {
   SendMessage,
   getMessagesBetweenMessage,
   getPage,
-  makeVideoCall,
-  makeVoiceCall,
 } from "store/chat/actions";
+import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
 import { SSRDetect, getUserChat, translateFunction } from "utils/functions";
 import dynamic from "next/dynamic";
 import { push, ref, set } from "firebase/database";
@@ -43,7 +42,13 @@ const VoiceCall = dynamic(
   { ssr: false }
 );
 
-function ConversationContainer({ ViewedScreen, active, loading, first }) {
+function ConversationContainer({
+  ViewedScreen,
+  active,
+  loading,
+  first,
+  setSearch,
+}) {
   const [vid, setVid] = useState(null);
   const callLoading = useSelector((state) => state.chat.callLoading);
   const imageFile = useRef(null);
@@ -800,6 +805,9 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
         });
     }
   };
+  useEffect(() => {
+    setSearch("");
+  }, [activeChat]);
   const [searchEnable, enableSearch] = useState(false);
   return (
     <>
@@ -1096,7 +1104,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
                     <ChatMessage
                       AudioRef={AudioRef}
                       setVid={(s) => setVid(s)}
-                      setImg={(ds) => setImgs(ds)}
+                      setImg={(ds) => setImgs(null)}
                       GetMessage={(msgId, qoutedId) =>
                         GetMessage(msgId, qoutedId)
                       }
@@ -1174,6 +1182,7 @@ function ConversationContainer({ ViewedScreen, active, loading, first }) {
             <div className={"chat-input-container" + ` ${mics && "bac40"}`}>
               <PlusIcon
                 style={{ minWidth: "43px", cursor: "pointer" }}
+                className="chatplus"
                 onClick={() => uploadPhoto()}
                 height={"40"}
               ></PlusIcon>

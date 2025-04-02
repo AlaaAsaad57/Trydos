@@ -38,17 +38,17 @@ function CustomNavbar({ init }: NavbarProps) {
     let languageCookies = Cookies.get("language");
     let countryCookies = Cookies.get("country");
     if (!searchParams.get("no-country"))
-      Cookies.set("country", init.split("-")[0]?.toLowerCase(), {
-        expires: 365,
-      });
-    dispatch(
-      changeAppLanguage(
-        init.split("-")[1] ||
-          languageCookies ||
-          language ||
-          process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE
-      )
-    );
+      // Cookies.set("country", init.split("-")[0]?.toLowerCase(), {
+      //   expires: 365,
+      // });
+      dispatch(
+        changeAppLanguage(
+          init.split("-")[1] ||
+            languageCookies ||
+            language ||
+            process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE
+        )
+      );
     dispatch(
       changeAppCountry(
         init.split("-")[0] ||

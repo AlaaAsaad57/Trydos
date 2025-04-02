@@ -251,6 +251,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
             <AddressListContainer
               Delete={(e) => {
                 setOpenSelect(false);
+                openAddressList(false);
                 setDeleteModal(e);
               }}
               slideNext={() => {
@@ -274,7 +275,10 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                   setOrderStep(0);
                 }}
               />
-              <span className="text-[13px] text-[#505050] regular flex-row items-center ">
+              <span
+                className="text-[13px] text-[#505050] regular flex-row items-center "
+                data-cy="TitleInOrderPage"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -435,6 +439,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                         <span
                           onClick={() => {
                             if (addressDetails.id) {
+                              openAddressList(false);
                               setDeleteModal(addressDetails);
                             }
                           }}
@@ -489,6 +494,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                       <span
                         onClick={() => {
                           if (addressDetails.id) {
+                            openAddressList(false);
                             setDeleteModal(addressDetails);
                           }
                         }}
@@ -850,6 +856,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
           } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${
             isValid() ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
           } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
+          data-cy="Confirm-shipping-and-payment"
         >
           {orderLoading || loading ? (
             <Spinner />

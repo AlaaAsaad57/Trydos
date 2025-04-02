@@ -65,6 +65,7 @@ function Chat(props) {
                 first={first}
                 loading={loading}
                 active={activeChat}
+                setSearch={setSearch}
                 ViewedScreen={ViewedScreen === "chat" && !contactOpen}
               />
             )}
