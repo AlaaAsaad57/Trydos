@@ -212,11 +212,7 @@ function NewLoginWidget() {
   };
 
   const FinaliseLogin = async () => {
-    let idToken = localStorage.getItem("ID-TOKEN");
-
-    await AuthService.VerifyGuest(idToken, () => {
-      AuthService.ConfirmSignIn();
-    });
+    AuthService.ConfirmSignIn();
   };
   const mountAnim = ` 
   0% {transform:translateX(800px)}

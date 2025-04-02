@@ -7,9 +7,9 @@ export const CUSTOMER_INFO_URL = "/customer/info";
 export const FIREBASE_SETTINGS_URL =
   "/firebase_device_tokens/my_firebase_settings";
 
-export const VERFIY_OTP = "/phone/verify_otp_singin";
-export const VERFIY_OTP_SIGNUP = "/phone/verify_otp_signup";
-export const SEND_OTP = "/phone/send_otp";
+export const VERFIY_OTP = "/auth/phone/verify_otp_singin";
+export const VERFIY_OTP_SIGNUP = "/auth/phone/verify_otp_signup";
+export const SEND_OTP = "/auth/phone/send_otp";
 // export const HOME_DATA_URL = "/web/home/boutiques";
 export const HOME_DATA_URL = "/api/home/boutiques";
 // export const HOME_DATA_CATEGORIES_URL =

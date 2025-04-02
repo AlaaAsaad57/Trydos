@@ -63,9 +63,6 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
     }
   };
   const FinaliseLogin = async () => {
-    let idToken = localStorage.getItem("ID-TOKEN");
-
-    await AuthService.VerifyGuest(idToken, async () => {});
     await AuthService.ConfirmSignIn();
   };
   const [failedLogin, setFailed] = useState(false);
