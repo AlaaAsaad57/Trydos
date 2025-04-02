@@ -810,7 +810,7 @@ Cypress.Commands.add(
     );
   }
 );
-Cypress.Commands.add("openWebsite", () => {
+Cypress.Commands.add("openWishlist", () => {
   cy.get("[data-cy=Logout-ReLogout]").should("exist").should("be.visible");
   cy.get("[data-cy=Chat-Icon]").should("exist").should("be.visible");
   cy.get("[data-cy=Nav_CartIcon_LogIn]").should("exist").should("be.visible");
@@ -819,4 +819,19 @@ Cypress.Commands.add("openWebsite", () => {
   cy.clickElement("[data-cy=Logout-ReLogout]");
   cy.clickElement("[data-cy=WishList-Icon]");
   cy.log("✅✅ wishlist oppened");
+});
+Cypress.Commands.add("openNotifications", () => {
+  cy.get("[data-cy=avatar-options]").should("exist").should("be.visible");
+  cy.get("[data-cy=Chat-Icon]").should("exist").should("be.visible");
+  cy.get("[data-cy=Nav_CartIcon_LogIn]").should("exist").should("be.visible");
+  cy.get("[data-cy=cartIcon_mainPage]").should("exist").should("be.visible");
+  cy.log("✅✅ all components founded and website oppened");
+  cy.intercept("GET", "**/api/new_v1/countries").as("getCountries");
+  cy.clickElement("[data-cy=Logout-ReLogout]");
+  cy.wait("@getCountries").then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
+  });
+  cy.get('[dataCy="Notifications-Icon"] svg').should("exist");
+  // Verify the text inside the MenuItem
+  cy.get('[dataCy="Notifications-Icon"]').contains("Settings").should("exist");
 });

@@ -96,6 +96,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
 
   return (
     <div
+      data-cy="notification-container"
       ref={notificationsRef}
       style={{
         position: "fixed",
@@ -113,6 +114,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
       }}
     >
       <div
+        data-cy="notification-header"
         style={{
           padding: "15px",
           borderBottom: "1px solid #eee",
@@ -121,8 +123,12 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
           justifyContent: "space-between",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div
+          style={{ display: "flex", alignItems: "center", gap: "8px" }}
+          data-cy="notification-left"
+        >
           <svg
+            data-cy="notification-svg"
             width="20"
             height="20"
             viewBox="0 0 24 24"
@@ -135,11 +141,15 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
-          <span style={{ fontWeight: 600, fontSize: "16px", color: "#333" }}>
+          <span
+            style={{ fontWeight: 600, fontSize: "16px", color: "#333" }}
+            data-cy="notification-text"
+          >
             {translateFunction("Notifications")}
           </span>
         </div>
         <button
+          data-cy="button-close"
           onClick={onClose}
           style={{
             background: "none",
@@ -153,6 +163,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
           }}
         >
           <svg
+            data-cy="close-svg"
             width="20"
             height="20"
             viewBox="0 0 24 24"
@@ -168,6 +179,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
         </button>
       </div>
       <div
+        data-cy="notification-body"
         ref={scrollRef}
         style={{
           flex: 1,
@@ -184,6 +196,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
         ))}
         {loading && (
           <div
+            data-cy="notification-loading"
             style={{
               padding: "16px",
               textAlign: "center",
@@ -195,6 +208,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
             }}
           >
             <svg
+              data-cy="loading-svg"
               className="animate-spin"
               width="20"
               height="20"
@@ -219,6 +233,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
         )}
         {!hasMore && notifications.length > 0 && (
           <div
+            data-cy="no-more-notifications"
             style={{
               padding: "16px",
               textAlign: "center",
