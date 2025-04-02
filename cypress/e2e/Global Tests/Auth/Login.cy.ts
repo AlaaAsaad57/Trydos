@@ -41,11 +41,15 @@ describe("Login Successful Attempt should login to 3 servers", () => {
     cy.CheckIfTrySendOtp();
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS And Store The User Name", () => {
-    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?**", (req) => {
-      req.continue((res) => {
-        UserName = res.body.data.user.name;
-      });
-    }).as("verifyOtpSignin");
+    cy.intercept(
+      "GET",
+      "/api/new_v1auth/phone/verify_otp_from_gues**",
+      (req) => {
+        req.continue((res) => {
+          UserName = res.body.data.user.name;
+        });
+      }
+    ).as("verifyOtpSignin");
     cy.typePincode("999999");
     cy.wait("@verifyOtpSignin").then((interception) => {
       expect(interception.response.statusCode).to.be.eq(200);
@@ -132,7 +136,9 @@ describe("Login UnSuccessful Attempt when otp code expired & Change The Method T
     cy.get(".phone-send-options").should("be.visible");
   });
   it("Should Resend OTP Code & Recieve It By WattsApp", () => {
-    cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+    cy.intercept("GET", "**/api/new_v1/auth/phone/send_otp?**").as(
+      "sendOtpApi"
+    );
     cy.clickElement(".message-recieve-option:nth-child(1)");
     cy.log("✅✅ Recive Otp Code By WattsApp Button Clicked Successfuly");
     cy.wait("@sendOtpApi").then((interception) => {
@@ -141,11 +147,15 @@ describe("Login UnSuccessful Attempt when otp code expired & Change The Method T
     cy.log("✅✅ Send Otp Api Request Successfuly");
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
-    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?**", (req) => {
-      req.continue((res) => {
-        UserName = res.body.data.user.name;
-      });
-    }).as("verifyOtpSignin");
+    cy.intercept(
+      "GET",
+      "/api/new_v1auth/phone/verify_otp_from_gues**",
+      (req) => {
+        req.continue((res) => {
+          UserName = res.body.data.user.name;
+        });
+      }
+    ).as("verifyOtpSignin");
     cy.typePincode("999999");
     cy.wait("@verifyOtpSignin").then((interception) => {
       expect(interception.response.statusCode).to.be.eq(200);
@@ -195,11 +205,15 @@ describe("Login UnSuccessful Attempt when otp code expired should show button fo
     cy.get(".resend-code-button").should("not.exist");
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
-    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?**", (req) => {
-      req.continue((res) => {
-        UserName = res.body.data.user.name;
-      });
-    }).as("verifyOtpSignin");
+    cy.intercept(
+      "GET",
+      "/api/new_v1auth/phone/verify_otp_from_gues**",
+      (req) => {
+        req.continue((res) => {
+          UserName = res.body.data.user.name;
+        });
+      }
+    ).as("verifyOtpSignin");
     cy.typePincode("999999");
     cy.wait("@verifyOtpSignin").then((interception) => {
       expect(interception.response.statusCode).to.be.eq(200);
@@ -240,11 +254,15 @@ describe("Should show user not found when registering with non registered number
     cy.CheckIfTrySendOtp();
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
-    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
-      req.continue((res) => {
-        res.body.data.already_exists = false;
-      });
-    }).as("verifyOtpSignin");
+    cy.intercept(
+      "GET",
+      "/api/new_v1auth/phone/verify_otp_from_gues*",
+      (req) => {
+        req.continue((res) => {
+          res.body.data.already_exists = false;
+        });
+      }
+    ).as("verifyOtpSignin");
     cy.typePincode("999999");
     cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
       expect(interception.response.statusCode).to.be.eq(200);
@@ -281,11 +299,15 @@ describe("Should Input name in login if the user does not input your name when s
     cy.CheckIfTrySendOtp();
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
-    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
-      req.continue((res) => {
-        res.body.data.user.name = "";
-      });
-    }).as("verifyOtpSignin");
+    cy.intercept(
+      "GET",
+      "/api/new_v1auth/phone/verify_otp_from_gues*",
+      (req) => {
+        req.continue((res) => {
+          res.body.data.user.name = "";
+        });
+      }
+    ).as("verifyOtpSignin");
     cy.typePincode("999999");
     cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
       expect(interception.response.statusCode).to.be.eq(200);
@@ -344,11 +366,15 @@ describe("Should show user not found when registering with non registered number
     cy.CheckIfTrySendOtp();
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
-    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
-      req.continue((res) => {
-        res.body.data.already_exists = false;
-      });
-    }).as("verifyOtpSignin");
+    cy.intercept(
+      "GET",
+      "/api/new_v1auth/phone/verify_otp_from_gues*",
+      (req) => {
+        req.continue((res) => {
+          res.body.data.already_exists = false;
+        });
+      }
+    ).as("verifyOtpSignin");
     cy.typePincode("999999");
     cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
       expect(interception.response.statusCode).to.be.eq(200);
