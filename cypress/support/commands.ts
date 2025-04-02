@@ -151,7 +151,7 @@ Cypress.Commands.add("AgreeTerms", () => {
   cy.log("✅✅ Agree & Countinue Button Clicked Successfuly");
 });
 Cypress.Commands.add("ChooseWayToRecieveOtpAndWaitOtpRequest", () => {
-  cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+  cy.intercept("GET", "**/api/new_v1/auth/phone/send_otp?**").as("sendOtpApi");
   cy.clickElement(".message-recieve-option:nth-child(2)");
   cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
   cy.wait("@sendOtpApi").then((response) => {
@@ -166,7 +166,9 @@ Cypress.Commands.add("CheckIfTrySendOtp", () => {
         const waitTime = parseInt($element.text().match(/\d+/)[0]);
         cy.log(`✅✅ Waiting for ${waitTime} seconds before trying again`);
         cy.wait(waitTime * 1000 + 1); // Wait for the specified time in milliseconds
-        cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+        cy.intercept("GET", "**/api/new_v1/auth/phone/send_otp?**").as(
+          "sendOtpApi"
+        );
         cy.clickElement(".message-recieve-option:nth-child(2)");
         cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
         cy.wait("@sendOtpApi").then((interception) => {
