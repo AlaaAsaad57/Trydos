@@ -91,7 +91,7 @@ describe("Should Ask For User Name if User Is Not Already Entered", () => {
   it("should Login But Intercepting Request to Clear Name", () => {
     cy.intercept(
       "GET",
-      "**/api/new_v1/auth/phone/verify_otp_from_guest?*",
+      "**/api/new_v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           res.body.data.user.name = null;

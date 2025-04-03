@@ -43,7 +43,7 @@ describe("Login Successful Attempt should login to 3 servers", () => {
   it("Should Enter The 6-digit OTP Code That He Received On SMS And Store The User Name", () => {
     cy.intercept(
       "GET",
-      "/api/new_v1auth/phone/verify_otp_from_gues**",
+      "/api/new_v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           UserName = res.body.data.user.name;
@@ -149,7 +149,7 @@ describe("Login UnSuccessful Attempt when otp code expired & Change The Method T
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
     cy.intercept(
       "GET",
-      "/api/new_v1auth/phone/verify_otp_from_gues**",
+      "/api/new_v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           UserName = res.body.data.user.name;
@@ -207,7 +207,7 @@ describe("Login UnSuccessful Attempt when otp code expired should show button fo
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
     cy.intercept(
       "GET",
-      "/api/new_v1auth/phone/verify_otp_from_gues**",
+      "/api/new_v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           UserName = res.body.data.user.name;
@@ -256,7 +256,7 @@ describe("Should show user not found when registering with non registered number
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
     cy.intercept(
       "GET",
-      "/api/new_v1auth/phone/verify_otp_from_gues*",
+      "/api/new_v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           res.body.data.already_exists = false;
@@ -301,7 +301,7 @@ describe("Should Input name in login if the user does not input your name when s
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
     cy.intercept(
       "GET",
-      "/api/new_v1auth/phone/verify_otp_from_gues*",
+      "/api/new_v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           res.body.data.user.name = "";
@@ -368,7 +368,7 @@ describe("Should show user not found when registering with non registered number
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
     cy.intercept(
       "GET",
-      "/api/new_v1auth/phone/verify_otp_from_gues*",
+      "/api/new_v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           res.body.data.already_exists = false;
