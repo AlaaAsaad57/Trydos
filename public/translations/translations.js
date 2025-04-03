@@ -276,8 +276,15 @@ const translations = {
   },
   ar: {
     "Total Products:": "إجمالي المنتجات:",
+    "No Address Selected": "لم يتم اختيار عنوان",
+    "Only Allowed To Pay through TryDos Wallet":
+      "يسمح فقط بالدفع عبر محفظة ترايدوس",
     "Product Restricted in This Country": "المنتج محظور في هذا البلد",
     "Product Not available": "المنتج غير متوفر",
+    "Please Enter Shipping Address To Receive Your Bag":
+      "الرجاء ادخال عنوان التوصيل لاستلام المشتريات",
+    "Your Shopping Bag": "سلة التسوق",
+
     "Added To Compare! Click To Go To Compare Page":
       "تم إضافة للمقارنة! انقر للذهاب إلى صفحة المقارنة",
     "Already Added To Compare!": "تم إضافة للمقارنة",
@@ -715,6 +722,8 @@ const translations = {
   tr: {
     "The Purchase Was Completed Successfully":
       "Satın Alma Başarıyla Tamamlandı",
+    "Only Allowed To Pay through TryDos Wallet":
+      "Bu Ürünü Satın Almak İçin Sadece TryDos Cüzdanına Ödeme Yapılabilir",
     "Product Not available": "Bu Ürün Mevcut Değildir",
     "Product Restricted in This Country": "Bu Ürün Bu Ülkeye Uygun Değildir",
     "Already Added To Compare!": "Zaten Karşılaştırmaya Eklendi!",
