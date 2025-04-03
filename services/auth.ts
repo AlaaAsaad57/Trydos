@@ -5,7 +5,7 @@ import Cookies from "js-cookie";
 import Smartlook from "smartlook-client";
 
 import { _isStoreLastJson, getLang } from "utils/functions";
-import { SEND_OTP, VERFIY_OTP, VERFIY_OTP_SIGNUP } from "utils/endpointConfig";
+import { SEND_OTP } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
 import home from "./home";
