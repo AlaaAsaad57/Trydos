@@ -107,7 +107,7 @@ function ProductOptions({
         translateFunction("Sorry This Product Not Available In Your Country")
       );
     }
-    if (product.is_available_in_market === false) {
+    if (product.in_stock === false) {
       toast.error(translateFunction("Sorry This Product Not Available Now"));
     }
   }, []);

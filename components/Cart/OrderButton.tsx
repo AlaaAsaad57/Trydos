@@ -157,7 +157,7 @@ function OrderButton({ close, toOrders }) {
           (s) =>
             s?.check_availability === false ||
             s.is_country_restricted === true ||
-            s.is_available_in_market === false
+            s.in_stock === false
         ).length === 0
       ) {
         setTimeout(() => {

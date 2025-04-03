@@ -523,7 +523,7 @@ function AddToCartButton({
     <>
       {AddToCartOption.enable &&
       (isQuantityEmpty() ||
-        product?.is_available_in_market === false ||
+        product?.in_stock === false ||
         product.is_country_restricted ||
         allVarIsEmpty()) ? (
         <>
@@ -947,7 +947,7 @@ function AddToCartButton({
                       {getTotalQuantity()}
                     </span>
                   )}
-                  {product?.is_available_in_market === false ||
+                  {product?.in_stock === false ||
                   product.is_country_restricted ||
                   allVarIsEmpty() ? (
                     <NotifySVG className={`mr-[15px]`} />
@@ -1016,13 +1016,13 @@ function AddToCartButton({
                   )}
                 </div>
                 <span className="mt-1">
-                  {product?.is_available_in_market === false ||
+                  {product?.in_stock === false ||
                   product.is_country_restricted ||
                   allVarIsEmpty()
                     ? translate("Notify Me")
                     : translate("Add To Bag")}{" "}
                   {!(
-                    product?.is_available_in_market === false ||
+                    product?.in_stock === false ||
                     product.is_country_restricted ||
                     allVarIsEmpty()
                   ) &&

@@ -502,7 +502,7 @@ export interface QuantityDetailsProductApi {
       qty: number;
     }>;
     is_country_restricted: boolean;
-    is_available_in_market: boolean;
+
     choice_options: Array<{
       name: string;
       title: string;
@@ -584,7 +584,7 @@ export interface CartApi {
       id: number;
       check_availability: boolean;
       customer_id: number;
-      is_available_in_market: boolean;
+      in_stock: boolean;
       is_country_restricted: boolean;
       cart_group_id: string;
       product_id: number;

@@ -454,7 +454,7 @@ function CartContainer({ close, toOrders }) {
                               </div>
                             </div>
                           )}
-                          {product.is_available_in_market === false && (
+                          {product.in_stock === false && (
                             <div className="flex-row items-center mt-1 text-[12px] light text-[#fd445d]">
                               <svg
                                 width="15"
