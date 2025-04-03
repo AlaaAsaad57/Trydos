@@ -584,6 +584,8 @@ export interface CartApi {
       id: number;
       check_availability: boolean;
       customer_id: number;
+      is_available_in_market: boolean;
+      is_country_restricted: boolean;
       cart_group_id: string;
       product_id: number;
       choices: Array<{

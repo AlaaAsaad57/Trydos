@@ -835,7 +835,14 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
     if (a.length === 0) {
       setPrev();
     }
-    if (a?.filter((s) => s?.check_availability === false).length === 0) {
+    if (
+      a?.filter(
+        (s) =>
+          s?.check_availability === false ||
+          s.is_country_restricted === true ||
+          s.is_available_in_market === false
+      ).length === 0
+    ) {
       setNext();
     } else {
       toast.error("Please Review Your Cart Some Products Not Available");

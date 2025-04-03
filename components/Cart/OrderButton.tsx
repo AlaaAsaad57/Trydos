@@ -152,7 +152,14 @@ function OrderButton({ close, toOrders }) {
         })
       ).cart;
 
-      if (a?.filter((s) => s?.check_availability === false).length === 0) {
+      if (
+        a?.filter(
+          (s) =>
+            s?.check_availability === false ||
+            s.is_country_restricted === true ||
+            s.is_available_in_market === false
+        ).length === 0
+      ) {
         setTimeout(() => {
           if (user || bool) {
             if (a.length === 0) {

@@ -1,6 +1,7 @@
 const translations = {
   en: {
     Buy: "Buy",
+
     K: "k",
     M: "M",
     "Shipping & Delivery Address": "Shipping & Delivery Address",
@@ -275,6 +276,8 @@ const translations = {
   },
   ar: {
     "Total Products:": "إجمالي المنتجات:",
+    "Product Restricted in This Country": "المنتج محظور في هذا البلد",
+    "Product Not available": "المنتج غير متوفر",
     "Added To Compare! Click To Go To Compare Page":
       "تم إضافة للمقارنة! انقر للذهاب إلى صفحة المقارنة",
     "Already Added To Compare!": "تم إضافة للمقارنة",
@@ -712,6 +715,8 @@ const translations = {
   tr: {
     "The Purchase Was Completed Successfully":
       "Satın Alma Başarıyla Tamamlandı",
+    "Product Not available": "Bu Ürün Mevcut Değildir",
+    "Product Restricted in This Country": "Bu Ürün Bu Ülkeye Uygun Değildir",
     "Already Added To Compare!": "Zaten Karşılaştırmaya Eklendi!",
     "Added To Compare": "Karşılaştırmaya Eklendi",
     "Added To Compare! Click To Go To Compare Page":
