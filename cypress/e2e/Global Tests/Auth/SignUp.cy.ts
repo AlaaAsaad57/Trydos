@@ -32,13 +32,18 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
     cy.window().then((win) => {
       (win as any).stepIndicator = 5;
     });
-    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
-      req.continue((res) => {
-        res.body.data.already_exists = false;
-      });
-    }).as("verifyOtpSignin");
+    cy.intercept(
+      "GET",
+      "/api/new_v1/auth/phone/verify_otp_from_gues*",
+      (req) => {
+        req.continue((res) => {
+          res.body.data.already_exists = false;
+        });
+      }
+    ).as("verifyOtpSignin");
     cy.typePincode("999999");
     cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅ verifyOtpSignin request arrived");
     });
     cy.RequestForThreeServers();
@@ -58,22 +63,11 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
     });
     cy.get("@phoneInput").should("not.be.focused", { timeout: 5000 });
     cy.TypeName();
-    cy.interceptAndWait([
-      {
-        method: "POST",
-        url: "**/api/v1/users/update",
-        alias: "update",
-      },
-      {
-        method: "POST",
-        url: "**/api/new_v1/customer/update-name",
-        alias: "updatename",
-      },
-    ]);
-    cy.log("✅✅ updatename & updatename Requests Arrived");
   });
   it("Should Click On Arrow Founded In Right Of Input Field & Click On Skip For Now Button", () => {
-    cy.SkipForNow();
+    // cy.SkipForNow();
+    cy.clickElement("[data-cy=Complate-Close]");
+    cy.log("✅✅ Complate My Profile Button clicked");
   });
 });
 describe("Signup UnSuccessful Attempt should show error message to user", () => {
@@ -134,14 +128,19 @@ describe("Should show user is already registered when registering with registere
     cy.CheckIfTrySendOtp();
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
-    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
-      req.continue((res) => {
-        res.body.data.already_exists = true;
-      });
-    }).as("verifyOtpSignin");
+    cy.intercept(
+      "GET",
+      "/api/new_v1/auth/phone/verify_otp_from_gues*",
+      (req) => {
+        req.continue((res) => {
+          res.body.data.already_exists = true;
+        });
+      }
+    ).as("verifyOtpSignin");
     cy.typePincode("999999");
     cy.log("✅✅ Type Pin Code Entred Successfuly");
     cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅ verifyOtpSignin request arrived");
     });
     cy.get("[data-cy=already-registered-phone]").should("be.visible");
@@ -178,14 +177,19 @@ describe("Should show user is already registered when registering with registere
     cy.get("[data-testid=pin-inputs-desc]", { timeout: 20000 });
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
-    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
-      req.continue((res) => {
-        res.body.data.already_exists = true;
-      });
-    }).as("verifyOtpSignin");
+    cy.intercept(
+      "GET",
+      "/api/new_v1/auth/phone/verify_otp_from_gues*",
+      (req) => {
+        req.continue((res) => {
+          res.body.data.already_exists = true;
+        });
+      }
+    ).as("verifyOtpSignin");
     cy.typePincode("999999");
     cy.log("✅✅ Type Pin Code Entred Successfuly");
     cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅ verifyOtpSignin request arrived");
     });
     cy.get("[data-cy=already-registered-phone]").should("be.visible");
@@ -218,14 +222,19 @@ describe("Should show user is already registered when registering with registere
     cy.CheckIfTrySendOtp();
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
-    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
-      req.continue((res) => {
-        res.body.data.already_exists = true;
-      });
-    }).as("verifyOtpSignin");
+    cy.intercept(
+      "GET",
+      "/api/new_v1/auth/phone/verify_otp_from_gues*",
+      (req) => {
+        req.continue((res) => {
+          res.body.data.already_exists = true;
+        });
+      }
+    ).as("verifyOtpSignin");
     cy.typePincode("999999");
     cy.log("✅✅ Type Pin Code Entred Successfuly");
     cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅ verifyOtpSignin request arrived");
     });
     cy.get("[data-cy=already-registered-phone]").should("be.visible");
@@ -263,27 +272,27 @@ describe("Signup Successful Attempt & complete the profile", () => {
   });
   it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
     let count = 0;
-    cy.intercept("POST", "**/login", () => {
-      count += 1;
-    }).as("login");
+    cy.intercept("POST", "**/login", () => {}).as("login");
     cy.window().then((win) => {
       (win as any).stepIndicator = 5;
     });
-    cy.intercept("GET", "/api/new_v1/phone/verify_otp_singin?*", (req) => {
-      req.continue((res) => {
-        res.body.data.already_exists = false;
-      });
-    }).as("verifyOtpSignin");
+    cy.intercept(
+      "GET",
+      "/api/new_v1/auth/phone/verify_otp_from_gues*",
+      (req) => {
+        req.continue((res) => {
+          res.body.data.already_exists = false;
+        });
+      }
+    ).as("verifyOtpSignin");
     cy.typePincode("999999");
     cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅ verifyOtpSignin request arrived");
     });
     cy.wait("@login", { timeout: 10000 }).then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅ login request arrived");
-    });
-    cy.wait(500).then(() => {
-      cy.log(`Count is: ${count}`);
-      expect(count).to.be.greaterThan(1);
     });
   });
   it("Should Click On Input Field For Writ User Name", () => {

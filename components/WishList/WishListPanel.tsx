@@ -96,6 +96,7 @@ const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
 
   return (
     <div
+      data-cy="wishList-card"
       ref={wishListRef}
       style={{
         position: "fixed",
@@ -112,6 +113,7 @@ const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
       }}
     >
       <div
+        data-cy="wishList-header"
         style={{
           padding: "15px",
           borderBottom: "1px solid #eee",
@@ -120,8 +122,12 @@ const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
           justifyContent: "space-between",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div
+          style={{ display: "flex", alignItems: "center", gap: "8px" }}
+          data-cy="wishList-left"
+        >
           <svg
+            data-cy="wishList-svg"
             width="20"
             height="20"
             viewBox="0 0 24 24"
@@ -133,11 +139,15 @@ const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
           >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
-          <span style={{ fontWeight: 600, fontSize: "16px", color: "#333" }}>
+          <span
+            style={{ fontWeight: 600, fontSize: "16px", color: "#333" }}
+            data-cy="wishList-statement"
+          >
             {translateFunction("Wishlist")}
           </span>
         </div>
         <button
+          data-cy="close-button"
           onClick={onClose}
           style={{
             background: "none",
@@ -151,6 +161,7 @@ const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
           }}
         >
           <svg
+            data-cy="close-icon"
             width="20"
             height="20"
             viewBox="0 0 24 24"
@@ -167,6 +178,7 @@ const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
       </div>
 
       <div
+        data-cy="wishlist-body"
         style={{
           flex: 1,
           overflowY: "auto",
@@ -181,47 +193,73 @@ const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
           wishlistItems.map((item) => (
             <NextLink
               key={item.id}
+              data-cy="wishlist-item"
               className="flex gap-3 p-4 hover:bg-gray-50 border-b border-gray-100"
               href={`#`}
               //   href={`/${lang}/products/${item.slug}`}
             >
-              <div className="relative w-20 h-[90px] flex-shrink-0">
+              <div
+                className="relative w-20 h-[90px] flex-shrink-0"
+                data-cy="wishlist-container-img"
+              >
                 <Image
+                  data-cy="wishlist-img"
                   src={item.thumbnail}
                   alt={item.name}
                   fill
                   className="object-cover rounded-md"
                 />
               </div>
-              <div className="flex-1">
-                <div className="text-sm font-medium text-gray-900 hover:text-blue-600">
+              <div className="flex-1" data-cy="wishlist-body-item">
+                <div
+                  className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                  data-cy="wishlist-item-name"
+                >
                   {item.name}
                 </div>
-                <div className="text-xs text-gray-600">{item.description}</div>
-                <div className="mt-1 flex items-center gap-2">
+                <div
+                  className="text-xs text-gray-600"
+                  data-cy="wishlist-item-description"
+                >
+                  {item.description}
+                </div>
+                <div
+                  className="mt-1 flex items-center gap-2"
+                  data-cy="wishlist-item-price"
+                >
                   {item.offer_price < item.price && (
-                    <span className="text-sm text-gray-500 line-through">
+                    <span
+                      className="text-sm text-gray-500 line-through"
+                      data-cy="wishlist-item-old-price"
+                    >
                       {currency.symbol}
                       {item.price}
                     </span>
                   )}
-                  <span className="text-sm font-medium text-gray-900">
+                  <span
+                    className="text-sm font-medium text-gray-900"
+                    data-cy="wishlist-item-new-price"
+                  >
                     {currency.symbol}
                     {item.offer_price}
                   </span>
                 </div>
-                <div className="mt-2">
-                  <div className="flex gap-1">
+                <div className="mt-2" data-cy="wishlist-item-footer">
+                  <div className="flex gap-1" data-cy="wishlist-item-circles">
                     {item.colors.map((color, index) => (
                       <div
                         key={index}
                         className="w-4 h-4 rounded-full"
+                        data-cy="wishlist-item-color-circle"
                         style={{ backgroundColor: color }}
                         aria-label={`Color option ${color}`}
                       />
                     ))}
                   </div>
-                  <div className="mt-1 text-xs text-gray-600">
+                  <div
+                    className="mt-1 text-xs text-gray-600"
+                    data-cy="wishlist-item-sizes"
+                  >
                     Sizes: {item.sizes.join(", ")}
                   </div>
                 </div>
@@ -230,6 +268,7 @@ const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
           ))
         ) : (
           <div
+            data-cy="empty-container"
             style={{
               padding: "32px 16px",
               textAlign: "center",
@@ -237,6 +276,7 @@ const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
             }}
           >
             <svg
+              data-cy="empty-icon"
               width="48"
               height="48"
               viewBox="0 0 24 24"
@@ -249,7 +289,7 @@ const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
             >
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
-            <p className="text-sm">
+            <p className="text-sm" data-cy="empty-statement">
               {translateFunction("Your wishlist is empty")}
             </p>
           </div>

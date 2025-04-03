@@ -58,7 +58,14 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
         backToCart();
         setLoading(false);
       }
-      if (a?.filter((s) => s?.check_availability === false).length === 0) {
+      if (
+        a?.filter(
+          (s) =>
+            s?.check_availability === false ||
+            s.is_country_restricted === true ||
+            s.is_available_in_market === false
+        ).length === 0
+      ) {
         setLoading(false);
         successOrder();
       } else {

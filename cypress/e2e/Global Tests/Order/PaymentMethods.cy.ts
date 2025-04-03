@@ -5,29 +5,27 @@ describe("Should visit the home page and add a product to the cart from the bout
     });
     cy.Visit("/sy-en");
   });
-  it("Should change the url if it matches the condition", () => {
-    cy.get("[data-cy=Change-Url-Container]", { timeout: 30000 }).should(
-      "be.visible"
-    );
-    cy.clickElement("[data-cy=countain-with]:eq(0)");
-  });
-  it("should verify the user is login", () => {
+  it("Should Login Firstly", () => {
+    cy.wait(3000);
     cy.ChexkExistElement("[data-cy=NavUserName]").then((exist) => {
-      if (!exist) {
-        cy.log("❌❌ Should Do login");
-        cy.performLogin();
-      } else {
+      if (exist) {
         cy.get("[data-cy=NavUserName]")
           .invoke("text")
           .then((text) => {
-            cy.log(`${text}`);
-            if (text != "Abdo Hamdan") {
+            // Remove all spaces from the extracted text
+            const trimmedText = text.replace(/\s+/g, "");
+            cy.log(`${trimmedText}`);
+
+            // Compare the trimmed text with "Abdo Hamdan" without spaces
+            if (trimmedText !== "AbdoHamdan") {
               cy.logout();
               cy.performLogin();
             } else {
-              cy.log("✅✅ The user you want he is login");
+              cy.log("✅✅ The user you want is logged in");
             }
           });
+      } else {
+        cy.performLogin();
       }
     });
   });

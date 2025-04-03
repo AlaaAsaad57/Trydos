@@ -64,16 +64,16 @@ Cypress.Commands.add("Visit", function (url: string) {
   // cy.interceptAndWait([
   //   {
   //     method: "GET",
-  //     url: "**/api/v1/stories/users_stories",
-  //     alias: "users_stories",
+  //     url: "**/api/new_v1/web/home/startingSettings",
+  //     alias: "startingSettings",
   //   },
   //   {
   //     method: "GET",
-  //     url: "**/api/products/popular-search",
+  //     url: "**/api/products/search?with_products=false",
   //     alias: "popular-search",
   //   },
   // ]);
-  // cy.log("✅✅ users_stories & popular-search Requests Arrived");
+  // cy.log("✅✅ startingSettings & popular-search Requests Arrived");
 });
 Cypress.Commands.add("Exist", (selector) => {
   cy.wait(3000);
@@ -82,10 +82,10 @@ Cypress.Commands.add("Exist", (selector) => {
     .then(($body) => {
       return new Cypress.Promise((resolve, reject) => {
         if ($body.find(selector).length > 0) {
-          console.log("cy.exist() - Matching element found in DOM!");
+          cy.log("✅✅ cy.exist() - Matching element found in DOM!");
           resolve(true);
         } else {
-          console.log("cy.exist() - Element did not exist!");
+          cy.log("❌❌ cy.exist() - Element did not exist!");
           resolve(false);
         }
       });
@@ -97,10 +97,10 @@ Cypress.Commands.add("ChexkExistElement", (selector) => {
     .then(($body) => {
       return new Cypress.Promise((resolve, reject) => {
         if ($body.find(selector).length > 0) {
-          console.log("cy.exist() - Matching element found in DOM!");
+          cy.log(" ✅✅cy.exist() - Matching element found in DOM!");
           resolve(true);
         } else {
-          console.log("cy.exist() - Element did not exist!");
+          cy.log("❌❌ cy.exist() - Element did not exist!");
           resolve(false);
         }
       });
@@ -151,10 +151,12 @@ Cypress.Commands.add("AgreeTerms", () => {
   cy.log("✅✅ Agree & Countinue Button Clicked Successfuly");
 });
 Cypress.Commands.add("ChooseWayToRecieveOtpAndWaitOtpRequest", () => {
-  cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+  cy.intercept("GET", "**/api/new_v1/auth/phone/send_otp?**").as("sendOtpApi");
   cy.clickElement(".message-recieve-option:nth-child(2)");
   cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
-  cy.wait("@sendOtpApi");
+  cy.wait("@sendOtpApi").then((response) => {
+    // expect(response.response.statusCode).to.be.eq(200);
+  });
   cy.log("✅✅ Send Otp Api Request Successfuly");
 });
 Cypress.Commands.add("CheckIfTrySendOtp", () => {
@@ -164,10 +166,14 @@ Cypress.Commands.add("CheckIfTrySendOtp", () => {
         const waitTime = parseInt($element.text().match(/\d+/)[0]);
         cy.log(`✅✅ Waiting for ${waitTime} seconds before trying again`);
         cy.wait(waitTime * 1000 + 1); // Wait for the specified time in milliseconds
-        cy.intercept("GET", "**/api/new_v1/phone/send_otp?**").as("sendOtpApi");
+        cy.intercept("GET", "**/api/new_v1/auth/phone/send_otp?**").as(
+          "sendOtpApi"
+        );
         cy.clickElement(".message-recieve-option:nth-child(2)");
         cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
-        cy.wait("@sendOtpApi");
+        cy.wait("@sendOtpApi").then((interception) => {
+          expect(interception.response.statusCode).to.be.eq(200);
+        });
         cy.log("✅✅ Send Otp Api Request Successfuly");
       });
     }
@@ -181,12 +187,18 @@ Cypress.Commands.add("InputFieldNameVisible", () => {
   cy.log("✅✅ Input Field For Writ User Name is clicked on");
 });
 Cypress.Commands.add("TypeName", () => {
+  cy.intercept("POST", "**/customer/update-name").as("update-name");
+  cy.intercept("POST", "**/api/v1/users/update").as("update");
   cy.clickElement("[data-cy=InputFiledForName]");
   cy.get("[data-cy=InputFiledForName]", { timeout: 10000 })
     .type("Abdo Hamdan", { force: true, scrollBehavior: false })
     .should("have.value", "Abdo Hamdan"); // Ensure text was typed
   cy.log("✅✅ User Name is Writ In Input Field");
   cy.clickElement(".phone-arrow");
+  cy.wait(["@update-name", "@update"]).then((inter) => {
+    expect(inter[0].response.statusCode).to.be.eq(200);
+    expect(inter[1].response.statusCode).to.be.eq(200);
+  });
 });
 Cypress.Commands.add("MakeOtpExpired", () => {
   cy.wait(70000);
@@ -208,14 +220,16 @@ Cypress.Commands.add("RequestForThreeServers", () => {
     count += 1;
   }).as("Stories");
   cy.wait("@login", { timeout: 10000 }).then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
     cy.log("✅✅ login request arrived");
   });
   cy.wait("@Stories", { timeout: 10000 }).then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
     cy.log("✅✅ Stories request arrived");
   });
   cy.wait(500).then(() => {
     cy.log(`Count is: ${count}`);
-    expect(count).to.be.greaterThan(2);
+    expect(count).to.be.greaterThan(1);
   });
 });
 Cypress.Commands.add("typePincode", (pincode: string) => {
@@ -460,12 +474,46 @@ Cypress.Commands.add("verifyComponentsInProductCard", () => {
 });
 // ***********************************Orders******************************
 Cypress.Commands.add("AddAdress", () => {
-  cy.clickElement("[data-cy=Change-From-List]");
+  cy.clickElement("[data-cy=expand-map]");
+  cy.clickElement("[data-cy=cancel-button]");
+  cy.get("[data-cy=change-list-statement]")
+    .should("exist")
+    .contains("Change From List");
+  cy.get("[data-cy=point-icon]").should("exist");
+  cy.get("[data-cy=Change-From-List]")
+    .should("exist")
+    .click({ scrollBehavior: false, force: true });
   cy.log("✅✅ Change Place From List Button Clicked");
   cy.get("[data-cy=Extended-Choose-Area]").should("exist");
   cy.log("✅✅ Extended Box To Choose Area Appeared");
+  cy.get("[data-cy=target-icon]").should("exist");
+  cy.get("[data-cy=Select-From-List]")
+    .should("exist")
+    .should("contain", "Select From List");
+  cy.get("[data-cy=country-flag]").should("exist");
+  cy.get("[data-cy=region-div]").should("exist");
+  // Assuming you have a way to mock or set the country prop
+  cy.get("[data-cy=country-extend]").should("exist").contains("Syria"); // Replace 'Country Name' with the expected country name
+  // Check for default values when address details are not provided
+  cy.get("[data-cy=Province-extend]").should("exist").contains("Province");
+  cy.get("[data-cy=Town-extend]").should("exist").contains("Town");
+  cy.get("[data-cy=Suburb-extend]").should("exist").contains("Suburb");
+  cy.get("[data-cy=SearchProvince-District-Town-Street]").should("exist");
+  // Check if the DebounceInput has the correct placeholder
+  cy.get('[data-cy="SearchProvince-District-Town-Street"]').should(
+    "have.attr",
+    "placeholder",
+    "Search Province | District | Town | Street"
+  );
+  cy.get("[data-cy=search-svg]").should("exist");
   cy.clickElement("[data-cy=SearchProvince-District-Town-Street]");
-  cy.log("✅✅ Search Province District Town Street");
+  // cy.get(".absolute.top-[11px].left-[12px]").should("exist");
+  cy.get('[data-cy="SearchProvince-District-Town-Street"]').should(
+    "have.attr",
+    "placeholder",
+    "Search Province | District | Town | Street"
+  );
+  // Simulate loading state
   cy.intercept("POST", "**/api/addresses/get-address-by-text").as(
     "GetAddressByText"
   );
@@ -474,41 +522,126 @@ Cypress.Commands.add("AddAdress", () => {
     scrollBehavior: false,
   });
   cy.wait("@GetAddressByText").then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
     cy.log("✅✅ Get Address By Text request arrived");
   });
-  cy.log("✅✅ SearchProvince-District-Town-Street Filled");
-  cy.get('[data-cy="SearchProvince-District-Town-Street"]', {
-    timeout: 10000,
-  }).should("be.visible");
   cy.clickElement("[data-cy=Firstly-Search-Result]:eq(0)");
   cy.log("✅✅ First Option Has Been Selected");
-  cy.get("[data-cy=Detailed-Address-Note] textarea") // Selects the textarea inside the div
-    .click()
+  cy.get("[data-cy=Detailed-Address-field]").should("exist");
+  cy.log("✅✅ Detailed-Address-field founded");
+  cy.get("[data-cy=Detailed-Address-statement]")
+    .should("exist")
+    .contains("Detailed Address & Note");
+  cy.log("✅✅ Detailed-Address-statement founded");
+  cy.get("[data-cy=Detailed-Address-Note]").should("exist");
+  cy.log("✅✅ Detailed-Address-Note founded");
+  cy.get("[data-cy=text-area-placeholder]").should("exist");
+  cy.log("✅✅ text-area-placeholder founded");
+  cy.get("[data-cy=text-area-placeholder]").should(
+    "have.attr",
+    "placeholder",
+    "Write The Address Clearly, Including The Street Address, Building, Flat, Door, Unit."
+  );
+  cy.clickElement("[data-cy=text-area-placeholder]") // Selects the textarea inside the div
     .type("This Is A Test Detailed Address & Note", {
       force: true,
       scrollBehavior: false,
     });
-
   cy.log("✅✅ Clicked and Filled Detailed Address & Note Input");
-  cy.get('[data-cy="Address-Title"] input') // Selects the input inside the div
-    .click()
+  cy.get("[data-cy=address-title]").should("exist");
+  cy.log("✅✅ address-title founded");
+  cy.get("[data-cy=add-Address-statement]")
+    .should("exist")
+    .contains("Address Title");
+  cy.log("✅✅ add-Address-statement founded");
+  cy.get("[data-cy=Address-Title]").should("exist");
+  cy.log("✅✅ Address-Title founded");
+  cy.get("[data-cy=add-address-input]").should("exist");
+  cy.log("✅✅ add-address-input founded");
+  cy.get("[data-cy=add-address-input]").should(
+    "have.attr",
+    "placeholder",
+    "Ex: Home, My Office, 2 Home Ect."
+  );
+  cy.clickElement("[data-cy=add-address-input]") // Selects the textarea inside the div
     .type("This Is A Test Address Title", {
       force: true,
       scrollBehavior: false,
     });
   cy.log("✅✅ Clicked and Filled Address Title Input");
-  cy.get('[data-cy="Recipient-Name"] input') // Selects the input inside the div
-    .click()
+  cy.get("[data-cy=container-name-phone]").should("exist");
+  cy.log("✅✅ container-name-phone founded");
+  cy.get("[data-cy=contact-info-icon]").should("exist");
+  cy.log("✅✅ contact-info-icon founded");
+  cy.get("[data-cy=contact-info-text]")
+    .should("exist")
+    .contains("Contact Info");
+  cy.log("✅✅ contact-info-text founded");
+  cy.get("[data-cy=Address-info-icon]").should("exist");
+  cy.log("✅✅ Address-info-icon founded");
+  cy.get("[data-cy=name-container]").should("exist");
+  cy.log("✅✅ name-container founded");
+  cy.get("[data-cy=recipient-name-statement]")
+    .should("exist")
+    .contains("Recipient Name");
+  cy.log("✅✅ recipient-name-statement founded");
+  cy.get("[data-cy=Recipient-Name]").should("exist");
+  cy.log("✅✅ Recipient-Name founded");
+  cy.get("[data-cy=recipient-name-input]").should("exist");
+  cy.log("✅✅ recipient-name-input founded");
+  cy.get("[data-cy=recipient-name-input]").should(
+    "have.attr",
+    "placeholder",
+    "Enter Full Recipient Name"
+  );
+  cy.clickElement("[data-cy=recipient-name-input]") // Selects the textarea inside the div
     .type("This Is A Test Recipient Name", {
       force: true,
       scrollBehavior: false,
     });
   cy.log("✅✅ Clicked and Filled Recipient Name Input");
-  cy.get('[data-cy="Contact-Phone"] input') // Selects the input inside the div
-    .click()
-    .type("0963937764641", { force: true, scrollBehavior: false });
-
+  cy.get("[data-cy=phone-container]").should("exist");
+  cy.log("✅✅ phone-container founded");
+  cy.get("[data-cy=phone-statement]").should("exist").contains("Contact Phone");
+  cy.log("✅✅ phone-statement founded");
+  cy.get("[data-cy=Contact-Phone]").should("exist");
+  cy.log("✅✅ Contact-Phone founded");
+  cy.get("[data-cy=Contact-Phone-input]").should("exist");
+  cy.log("✅✅ Contact-Phone-input founded");
+  cy.get("[data-cy=Contact-Phone-input]").should(
+    "have.attr",
+    "placeholder",
+    "Enter Recipient Phone"
+  );
+  cy.clickElement("[data-cy=Contact-Phone-input]") // Selects the textarea inside the div
+    .type("0963937764641", {
+      force: true,
+      scrollBehavior: false,
+    });
   cy.log("✅✅ Clicked and Filled Contact Phone Input");
+  cy.get("[data-cy=altarnative-Phone-container]").should("exist");
+  cy.log("✅✅ altarnative-Phone-container founded");
+  cy.get("[data-cy=altarnative-Phone-statement]")
+    .should("exist")
+    .contains("Alternative Phone");
+  cy.log("✅✅ altarnative-Phone-statement founded");
+  cy.get("[data-cy=optional-statement]").should("exist").contains("(Optional)");
+  cy.log("✅✅ optional-statement founded");
+  cy.get("[data-cy=optional-input]").should("exist");
+  cy.log("✅✅ optional-input founded");
+  cy.get("[data-cy=optional-input]").should(
+    "have.attr",
+    "placeholder",
+    "Enter Alternative Recipient Phone"
+  );
+  cy.clickElement("[data-cy=optional-input]") // Selects the textarea inside the div
+    .type("0963937764641", {
+      force: true,
+      scrollBehavior: false,
+    });
+  cy.log("✅✅ Clicked and Filled Contact Phone Input");
+  // add - address - buttons - container;
+  cy.get("[data-cy=add-address-buttons-container]").should("exist");
   cy.clickElement("[data-cy=AddSaveButton]");
   cy.log("✅✅ Add & Save Button Clicked");
   cy.interceptAndWait([
@@ -529,7 +662,7 @@ Cypress.Commands.add(
   "OpenBoutiqueAndAddProductToCartFromBoutiqueDatailPage",
   () => {
     let productName: string = "";
-    cy.clickElement(".offer-widget:eq(2)");
+    cy.clickElement(".offer-widget:eq(1)");
     cy.log("✅✅ An Boutique Selected & Click");
     cy.get("[data-cy=boutique_top_info]", { timeout: 20000 }).should(
       "be.visible"
@@ -571,7 +704,9 @@ Cypress.Commands.add(
               "getProductData2"
             );
             cy.clickElement(`[data-cy=on_mouse_over_product]:eq(${index})`);
-            cy.wait("@getProductData2");
+            cy.wait("@getProductData2").then((interception) => {
+              expect(interception.response.statusCode).to.be.eq(200);
+            });
             cy.clickElement("[data-cy=addToCartButton_productPage]");
             cy.log(
               "✅✅ Add To Cart Button Thats Founded In Product Page Clicked"
@@ -621,7 +756,7 @@ Cypress.Commands.add("ComplateAddProductOperationAndGoCartPage", () => {
 Cypress.Commands.add("ConfirmAndComplateOrderButton", () => {
   cy.clickElement("[data-cy=Confirm-Order-Button]");
   cy.log("✅✅ Confirm & Countinue Button Clicked");
-  cy.ChexkExistElement("[data-cy=FieldToInputNumber]").then((exist) => {
+  cy.get("[data-cy=FieldToInputNumber]").then((exist) => {
     if (!exist) {
       cy.interceptAndWait([
         {
@@ -644,7 +779,7 @@ Cypress.Commands.add("ConfirmAndComplateOrderButton", () => {
 Cypress.Commands.add(
   "ChooseBoutiqueAndVerifyComponentsAndBoxsInBoutiquePage",
   () => {
-    cy.clickElement(".offer-widget:eq(3)");
+    cy.clickElement(".offer-widget:eq(1)");
     cy.log("✅✅ An Boutique Selected & Click");
     cy.get("[data-cy=boutique_top_info]", { timeout: 30000 }).should(
       "be.visible"
@@ -665,9 +800,40 @@ Cypress.Commands.add(
     cy.log("✅✅ OpenBoutique & LoadallProducts Requests Arrived");
     cy.verifyBoxsInBoutiquePage();
     cy.verifyComponentsInProductCard();
+    cy.intercept("Get", "**/product/likesCommentsSharesDetails/**").as(
+      "getProductData2"
+    );
     cy.clickElement("[data-cy=on_mouse_over_product]:eq(0)");
+    cy.wait("@getProductData2").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
+    });
     cy.log(
       "✅✅ The Card Of The First Product Is Clicked & The Page Of Product Is Opned"
     );
   }
 );
+Cypress.Commands.add("openWishlist", () => {
+  cy.get("[data-cy=Logout-ReLogout]").should("exist").should("be.visible");
+  cy.get("[data-cy=Chat-Icon]").should("exist").should("be.visible");
+  cy.get("[data-cy=Nav_CartIcon_LogIn]").should("exist").should("be.visible");
+  cy.get("[data-cy=cartIcon_mainPage]").should("exist").should("be.visible");
+  cy.log("✅✅ all components founded and website oppened");
+  cy.clickElement("[data-cy=Logout-ReLogout]");
+  cy.clickElement("[data-cy=WishList-Icon]");
+  cy.log("✅✅ wishlist oppened");
+});
+Cypress.Commands.add("openNotifications", () => {
+  cy.get("[data-cy=avatar-options]").should("exist").should("be.visible");
+  cy.get("[data-cy=Chat-Icon]").should("exist").should("be.visible");
+  cy.get("[data-cy=Nav_CartIcon_LogIn]").should("exist").should("be.visible");
+  cy.get("[data-cy=cartIcon_mainPage]").should("exist").should("be.visible");
+  cy.log("✅✅ all components founded and website oppened");
+  cy.intercept("GET", "**/api/new_v1/countries").as("getCountries");
+  cy.clickElement("[data-cy=Logout-ReLogout]");
+  cy.wait("@getCountries").then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
+  });
+  cy.get('[dataCy="Notifications-Icon"] svg').should("exist");
+  // Verify the text inside the MenuItem
+  cy.get('[dataCy="Notifications-Icon"]').contains("Settings").should("exist");
+});

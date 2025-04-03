@@ -136,29 +136,29 @@ describe("Should Click On Each QuestionMark Component & Read InfoWindow Text", (
 describe("Should Open Camera Shot Picture", () => {
   it("Should Verify Swipper Photo1", () => {
     // Should Add Code To Check If Count Of Shots === Count Of SwiperPhoto1 When linking to the database
-    cy.get('[data-cy="CameraIcon"]').should("be.visible");
+    cy.get("[data-cy=CameraIcon]").should("be.visible");
     cy.log("✅✅ Camera Icon Displayed");
-    cy.get('[data-cy="SwiperPhoto1"]').should("be.visible");
+    cy.get("[data-cy=SwiperPhoto1]").should("be.visible");
     cy.log("✅✅ Swiper Photo1 Displayed");
     cy.clickElement("[data-cy=SwiperPhoto1]:eq(0)");
     cy.log("✅✅ First Swiper Photo1 Clicked");
   });
   it("Should Check Whether The Image Interface Exists", () => {
-    cy.get('[data-cy="ActiveCaneraGallery"]').should("be.visible");
+    cy.get("[data-cy=ActiveCaneraGallery]").should("be.visible");
     cy.log("✅✅ Active Canera Gallery Displayed");
-    cy.get('[data-cy="GalleryItems"]').should("be.visible");
+    cy.get("[data-cy=GalleryItems]").should("be.visible");
     cy.log("✅✅ Gallery Items Displayed");
   });
   it("Should Choose Any Photo", () => {
-    cy.get('[data-cy="GalleryChooseItem"]').should("be.visible");
+    cy.get("[data-cy=GalleryChooseItem]").should("be.visible");
     cy.log("✅✅ Gallery Choose Item Displayed");
     cy.clickElement("[data-cy=GalleryChooseItem]:eq(0)");
     cy.log("✅✅ Firstly Gallery Choose Item Clicked");
   });
   it("Should Check Whether User Interaction Box & Get Number Of Love Interactions", () => {
-    cy.get('[data-cy="UserInteractions"]').should("be.visible");
+    cy.get("[data-cy=UserInteractions]").should("be.visible");
     cy.log("✅✅ User Interactions Displayed");
-    cy.get('[data-cy="CountOfUserInteractions"]:eq(0)').scrollIntoView();
+    cy.get("[data-cy=CountOfUserInteractions]:eq(0)").scrollIntoView();
     cy.log("✅✅ Box Interactions Displayed");
     cy.get("[data-cy=CountOfLoved]:eq(0)")
       .invoke("text")
@@ -335,6 +335,7 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
         });
         cy.log("✅✅ You have successfully logged out");
         cy.wait("@loadProductDetail", { timeout: 30000 }).then((inter) => {
+          expect(inter.response.statusCode).to.be.eq(200);
           cy.log("✅✅ Load Product Detail Request Arrived");
         });
       } else {
@@ -351,6 +352,7 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
         ).as("DeleteLike");
         cy.clickElement("[data-cy=LoveSymbol]");
         cy.wait("@DeleteLike").then((interception) => {
+          expect(interception.response.statusCode).to.be.eq(200);
           cy.log("✅✅ DesLike request arrived");
         });
       } else {
@@ -376,6 +378,7 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
     cy.clickElement("[data-cy=LoveSymbol]");
     cy.log("✅✅ Love Symbol Button Clicked");
     cy.wait("@Like").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅✅ Like request arrived");
     });
     cy.get("[data-cy=CountOfLoves]")
@@ -396,6 +399,7 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
     cy.clickElement("[data-cy=LoveSymbol]");
     cy.log("✅✅ Love Symbol Button Clicked To Do Deslike");
     cy.wait("@DeleteLike").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅✅ DesLike request arrived");
     });
     cy.get("[data-cy=CountOfLoves]")
@@ -474,6 +478,7 @@ describe("Should Type Comment In Comment Section", () => {
     cy.clickElement('[data-cy="SubmitComment"]');
     cy.log("✅✅ Click On Comment Submit");
     cy.wait("@Comment").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅✅ Comment request arrived");
     });
     cy.get(".comment-text")
@@ -616,7 +621,7 @@ describe("Should Type Share In Share Section", () => {
       .then((text) => {
         CountOfSharesLastly = parseInt(text) || 0;
         cy.log(`There Couunt Of Comments Is: ${CountOfSharesLastly}`);
-        cy.wait(5000).then(() => {
+        cy.wait(500).then(() => {
           expect(CountOfSharesLastly).to.be.eq(CountOfSharesPrevisually + 1);
         });
       });
@@ -746,6 +751,7 @@ describe("Should Type Comment In Comment Section After Login & Verify The Commen
     cy.clickElement('[data-cy="SubmitComment"]');
     cy.log("✅✅ Click On Comment Submit");
     cy.wait("@Comment").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅✅ Comment request arrived");
     });
     cy.get(".comment-text:eq(0)").should(

@@ -21,8 +21,12 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   }, [notification.description]);
 
   const NotificationIcon = () => (
-    <div className="w-10 h-10 rounded-full mr-3 bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center">
+    <div
+      className="w-10 h-10 rounded-full mr-3 bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center"
+      data-cy="container-svg"
+    >
       <svg
+        data-cy="svg-notification"
         width="20"
         height="20"
         viewBox="0 0 24 24"
@@ -58,16 +62,23 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         ) : (
           <NotificationIcon />
         )}
-        <div className="flex-1">
-          <h4 className="font-medium text-gray-900">
+        <div className="flex-1" data-cy="notification-item-body">
+          <h4
+            className="font-medium text-gray-900"
+            data-cy="notification-item-description"
+          >
             {parsedDescription.description}
           </h4>
-          <p className="text-sm text-gray-600">
+          <p
+            className="text-sm text-gray-600"
+            data-cy="notification-Click-show"
+          >
             {translateFunction("Click to view details")}
           </p>
           {parsedDescription.boutique_description && (
             <div
               className="mt-1 text-sm text-gray-500"
+              data-cy="tester-not-know"
               dangerouslySetInnerHTML={{
                 __html: parsedDescription.boutique_description,
               }}

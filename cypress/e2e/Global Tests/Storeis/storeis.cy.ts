@@ -89,11 +89,15 @@ describe("Should Ask For User Name if User Is Not Already Entered", () => {
     cy.logout();
   });
   it("should Login But Intercepting Request to Clear Name", () => {
-    cy.intercept("GET", "**/api/new_v1/phone/verify_otp_singin?*", (req) => {
-      req.continue((res) => {
-        res.body.data.user.name = null;
-      });
-    }).as("verifyOtpSignin");
+    cy.intercept(
+      "GET",
+      "**/api/new_v1/auth/phone/verify_otp_from_guest?*",
+      (req) => {
+        req.continue((res) => {
+          res.body.data.user.name = null;
+        });
+      }
+    ).as("verifyOtpSignin");
     cy.performLogin();
   });
   it("should when click on Story Upload Button Show A Modal", () => {
