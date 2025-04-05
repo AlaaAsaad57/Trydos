@@ -428,7 +428,7 @@ function FilterInfoBar({
           <span>
             <Search className="scale-75" />
           </span>
-          <div className="category-title filter-bar-main-title uppercase">
+          <div className="category-title filter-bar-main-title  text-[#5d5d5d]">
             {filtersVariable?.searchText || searchValue}
           </div>
         </>

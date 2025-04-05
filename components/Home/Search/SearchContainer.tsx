@@ -31,11 +31,12 @@ function SearchContainer({ active }) {
     }
   }, [searchValue]);
   const getSearchData = async () => {
-    let [{ categories, brands, boutiques }, res] = await getSearchOptions();
+    let [{ categories, brands, boutiques, colors }, res] =
+      await getSearchOptions();
     LogData(res);
     dispatch({
       type: "SEARCH-RESULTS",
-      payload: { categories, brands, boutiques },
+      payload: { categories, brands, boutiques, colors },
     });
     await search.getTrendingSearch();
   };

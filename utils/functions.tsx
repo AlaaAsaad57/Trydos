@@ -811,6 +811,7 @@ export const getSearchOptions = async () => {
       categories: categories?.categories ?? [],
       brands: categories?.brands ?? [],
       boutiques: categories?.boutiques ?? [],
+      colors: categories.colors ?? [],
     },
     {},
   ];

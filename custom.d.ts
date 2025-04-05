@@ -685,6 +685,7 @@ declare global {
             original_height: string;
           };
         }>;
+        colors: Array<string>;
       };
       enable: boolean;
       searchFilters: {
