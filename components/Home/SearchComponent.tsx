@@ -6,6 +6,7 @@ import { ChangeEvent, useEffect } from "react";
 import {
   caseCheck,
   onClickSearchHistory,
+  ProcessSearchInput,
   Sendevent,
   translateFunction,
 } from "utils/functions";
@@ -41,6 +42,7 @@ function SearchComponent({
   );
   const dispatch = useDispatch();
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+    console.log(ProcessSearchInput(e.target.value));
     if (e.target.value.length === 0) {
       e.preventDefault();
     }
