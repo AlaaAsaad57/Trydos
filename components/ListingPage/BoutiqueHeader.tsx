@@ -34,7 +34,7 @@ const PrefetchingFilters = () => {
     AxiosCacheApi({
       url:
         process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        `/api/products/search${
+        `/api/products/searchInCatalog${
           boutique ? `?boutique_slugs=["${boutique}"]` : ""
         }`,
     });
@@ -43,7 +43,7 @@ const PrefetchingFilters = () => {
         AxiosCacheApi({
           url:
             process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-            `/api/products/search?category_slugs=${decodeURI(
+            `/api/products/searchInCatalog?category_slugs=${decodeURI(
               JSON.stringify([s.slug])
             )}${boutique ? `&boutique_slugs=["${boutique}"]` : ""}`,
         });
@@ -51,7 +51,7 @@ const PrefetchingFilters = () => {
         AxiosCacheApi({
           url:
             process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-            `/api/products/search?&brand_slugs=${decodeURI(
+            `/api/products/searchInCatalog?&brand_slugs=${decodeURI(
               JSON.stringify([s.slug])
             )}${boutique ? `&boutique_slugs=["${boutique}"]` : ""}`,
         });

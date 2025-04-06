@@ -429,7 +429,7 @@ class HomeService {
     let url =
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
       (categories
-        ? "/api/products/search" +
+        ? "/api/products/searchInCatalog" +
           `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
         : LISTING_INFO_URL + `?${str}`);
     await fetch(
@@ -478,7 +478,7 @@ class HomeService {
     try {
       let rep = await fetch(
         process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-          "/api/products/search" +
+          "/api/products/searchInCatalog" +
           `?search_text=${search_text}${
             urlParams.size > 0 ? `&` + urlParams.toString() : ""
           }&limit=4&with_filter=false`,
@@ -522,7 +522,7 @@ class HomeService {
     try {
       let rep = await fetch(
         process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-          `/api/products/search?${
+          `/api/products/searchInCatalog?${
             search_text?.length > 0 ? `search_text=${search_text}` : ""
           }${
             urlParams.toString()?.length > 0 ? `&${urlParams.toString()}` : ""

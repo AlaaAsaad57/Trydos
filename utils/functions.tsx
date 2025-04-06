@@ -43,29 +43,6 @@ export function translateFunction(key: string, language?: string | string[]) {
   return translations[languageUrl]?.[key] || key;
 }
 
-export const getStoriesHeaders = () => {
-  const token = SSRDetect() && localStorage.getItem("STORIES-TOKEN");
-
-  return {
-    headers: {
-      Authentication: `Bearer ${token}`,
-      Authorization: `Bearer ${token}`,
-    },
-
-    next: {
-      tags: ["stories"],
-      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-    },
-  };
-};
-export const GeneralCahcedHeader = (apiName) => {
-  return {
-    next: {
-      tags: [apiName],
-      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-    },
-  };
-};
 export const configureStory = (story) => {
   let returnedData = [];
   story?.stories?.map((storyItem) => {
@@ -558,14 +535,14 @@ export const filterProducts = async ({
   };
   let str = "";
   if (reset) {
-    str = `/api/products/search?limit=4&${
+    str = `/api/products/searchInCatalog?limit=4&${
       boutiqueId !== "listing" &&
       boutiqueId &&
       `boutique_slugs=${JSON.stringify([boutiqueId])}`
     }`;
   } else {
     let urlParam = urlParams({ filters: filters, noProducts: false });
-    str = `/api/products/search?${urlParam}`;
+    str = `/api/products/searchInCatalog?${urlParam}`;
   }
   let product: FilterProductApi = await AxiosCacheApi({
     url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str,
@@ -598,7 +575,7 @@ export const searchProducts = async ({ searchText }) => {
   let product: FilterProductApi["data"] = await AxiosGet({
     url:
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-      `/api/products/search?limit=4&search_text=${searchText}`,
+      `/api/products/searchInCatalog?limit=4&search_text=${searchText}`,
     title: "Search Products",
   });
   console.log(product);
@@ -671,7 +648,7 @@ export const UpdateFilter = async ({
       colors: filterObj.colors.map((s) => s),
     };
     let urlParam = urlParams({ filters: filters, noProducts: true });
-    let str = `/api/products/search?${urlParam}`;
+    let str = `/api/products/searchInCatalog?${urlParam}`;
 
     let product: FilterProductApi = await AxiosCacheApi({
       url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str,
@@ -802,7 +779,7 @@ export const getSearchOptions = async () => {
   let categories: FilterProductApi["data"] = await AxiosGet({
     url:
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-      "/api/products/search?with_products=false",
+      "/api/products/searchInCatalog?with_products=false",
     title: "get Search Filter Options Request",
   });
 
