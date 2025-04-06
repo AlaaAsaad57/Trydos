@@ -66,7 +66,8 @@ declare global {
       ConfirmAndComplateOrderButton(): Chainable<void>;
       AddAdress(): Chainable<void>;
       openWishlist(): Chainable<void>;
-      openNotifications(): Chainable<void>;
+      openNotificationsWhenLogout(): Chainable<void>;
+      openNotificationsWhenLogin(): Chainable<void>;
       ChooseBoutiqueAndVerifyComponentsAndBoxsInBoutiquePage(): Chainable<void>;
       ComplateAddProductOperationAndGoCartPage(): Chainable<void>;
     }
