@@ -101,6 +101,7 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
   return (
     <div
       ref={ordersRef}
+      data-cy="order-panel"
       style={{
         position: "fixed",
         top: 10,
@@ -116,6 +117,7 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
       }}
     >
       <div
+        data-cy="order-header"
         style={{
           padding: "15px",
           borderBottom: "1px solid #eee",
@@ -124,8 +126,12 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
           justifyContent: "space-between",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div
+          style={{ display: "flex", alignItems: "center", gap: "8px" }}
+          data-cy="left-header-component"
+        >
           <svg
+            data-cy="left-header-component-svg"
             width="20"
             height="20"
             viewBox="0 0 24 24"
@@ -137,11 +143,15 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
           >
             <path d="M21 8v13H3V8M1 3h22v5H1V3zM10 12h4" />
           </svg>
-          <span style={{ fontWeight: 600, fontSize: "16px", color: "#333" }}>
+          <span
+            style={{ fontWeight: 600, fontSize: "16px", color: "#333" }}
+            data-cy="left-header-component-text"
+          >
             {translateFunction("Orders")}
           </span>
         </div>
         <button
+          data-cy="close-button"
           onClick={onClose}
           style={{
             background: "none",
@@ -155,6 +165,7 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
           }}
         >
           <svg
+            data-cy="close-svg"
             width="20"
             height="20"
             viewBox="0 0 24 24"
@@ -171,6 +182,7 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
       </div>
 
       <div
+        data-cy="order-body"
         ref={scrollRef}
         style={{
           flex: 1,
@@ -187,6 +199,7 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
         ))}
         {loading && (
           <div
+            data-cy="Loading-container"
             style={{
               padding: "16px",
               textAlign: "center",
@@ -198,6 +211,7 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
             }}
           >
             <svg
+              data-cy="Loading-svg"
               className="animate-spin"
               width="20"
               height="20"
@@ -222,6 +236,7 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({ onClose }) => {
         )}
         {!hasMore && orders.length > 0 && (
           <div
+            data-cy="noMoreOrders-container"
             style={{
               padding: "16px",
               textAlign: "center",

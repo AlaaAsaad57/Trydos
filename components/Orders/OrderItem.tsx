@@ -71,21 +71,37 @@ const OrderItem: React.FC<OrderItemProps> = ({ order }) => {
 
   const { lang } = useParams();
   return (
-    <div className="border-b border-gray-200 p-4 hover:bg-gray-50">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <span className="text-sm text-gray-500">
+    <div
+      className="border-b border-gray-200 p-4 hover:bg-gray-50"
+      data-cy="one-order"
+    >
+      <div
+        className="flex items-center justify-between mb-3"
+        data-cy="one-order-header"
+      >
+        <div data-cy="leftOne-order-header">
+          <span
+            className="text-sm text-gray-500"
+            data-cy="leftOne-order-header-text-id"
+          >
             {translateFunction("Order")} #{order.id}
           </span>
-          <p className="text-xs text-gray-400 mt-1">
+          <p
+            className="text-xs text-gray-400 mt-1"
+            data-cy="leftOne-order-header-date"
+          >
             {formatDate(order.created_at)}
           </p>
         </div>
-        <div className="flex flex-col items-end gap-1">
+        <div
+          className="flex flex-col items-end gap-1"
+          data-cy="rightOne-order-header"
+        >
           <span
             className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
               order.order_status
             )}`}
+            data-cy="rightOne-order-header-status"
           >
             {translateFunction(order.order_status)}
           </span>
@@ -93,35 +109,50 @@ const OrderItem: React.FC<OrderItemProps> = ({ order }) => {
             className={`px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(
               order.payment_status
             )}`}
+            data-cy="rightOne-order-header-paymentStatus"
           >
             {translateFunction(order.payment_status)}
           </span>
-          <span className="text-xs text-gray-500">
+          <span
+            className="text-xs text-gray-500"
+            data-cy="rightOne-order-header-paymentMethod"
+          >
             {translateFunction(order.payment_method)}
           </span>
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3" data-cy="one-order-body">
         {order.details.map((detail) => (
           <NextLink
+            data-cy="one-order-body-container"
             key={detail.id}
             className="flex gap-3"
             href={`/${lang}/products/${detail.product_details.slug}`}
           >
-            <div className="relative w-20 h-20 flex-shrink-0">
+            <div
+              className="relative w-20 h-20 flex-shrink-0"
+              data-cy="one-order-body-img-container"
+            >
               <Image
+                data-cy="one-order-body-img"
                 src={detail.product_details.thumbnail}
                 alt={detail.product_details.name}
                 fill
                 className="object-cover rounded-md"
               />
             </div>
-            <div className="flex-1">
-              <div className="text-sm font-medium text-gray-900 hover:text-blue-600">
+            <div className="flex-1" data-cy="one-order-body-detail">
+              <div
+                className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                data-cy="one-order-body-detailName"
+              >
                 {detail.product_details.name}
               </div>
-              <div className="mt-1 text-sm text-gray-500">
+              <div
+                className="mt-1 text-sm text-gray-500"
+                data-cy="one-order-body-qtyCurr"
+              >
                 {detail.qty} x {currency.symbol}
                 {RoundPrice({ num: detail.price_after_discount })}
               </div>
@@ -137,20 +168,28 @@ const OrderItem: React.FC<OrderItemProps> = ({ order }) => {
         ))}
       </div>
 
-      <div className="mt-3 pt-3 border-t border-gray-100">
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500">{translateFunction("Total")}</span>
-          <span className="font-medium">
+      <div
+        className="mt-3 pt-3 border-t border-gray-100"
+        data-cy="one-order-total-shiping"
+      >
+        <div className="flex justify-between text-sm" data-cy="one-order-total">
+          <span className="text-gray-500" data-cy="one-order-totalText">
+            {translateFunction("Total")}
+          </span>
+          <span className="font-medium" data-cy="one-order-totalPrice">
             {currency.symbol}
             {RoundPrice({ num: order.order_amount + order.shipping_cost })}
           </span>
         </div>
         {order.shipping_cost > 0 && (
-          <div className="flex justify-between text-sm mt-1">
-            <span className="text-gray-500">
+          <div
+            className="flex justify-between text-sm mt-1"
+            data-cy="one-order-shiping"
+          >
+            <span className="text-gray-500" data-cy="one-order-shipingText">
               {translateFunction("Shipping")}
             </span>
-            <span className="font-medium">
+            <span className="font-medium" data-cy="one-order-shipingPrice">
               {currency.symbol}
               {RoundPrice({ num: order.shipping_cost })}
             </span>
@@ -158,12 +197,12 @@ const OrderItem: React.FC<OrderItemProps> = ({ order }) => {
         )}
       </div>
 
-      <div className="mt-3 text-xs text-gray-400">
-        <p>
+      <div className="mt-3 text-xs text-gray-400" data-cy="address-container">
+        <p data-cy="address-title-text">
           {translateFunction("Shipping Address")}:{" "}
           {order.shipping_address_data.address}
         </p>
-        <p>
+        <p data-cy="address-title-cityProvinceCountry">
           {order.shipping_address_data.city},{" "}
           {order.shipping_address_data.province},{" "}
           {order.shipping_address_data.country}
