@@ -883,3 +883,55 @@ Cypress.Commands.add("openNotificationsWhenLogin", () => {
   });
   cy.get("[data-cy=notification-loading]").should("not.exist");
 });
+
+Cypress.Commands.add("openOrdersWhenLogout", () => {
+  cy.get("[data-cy=avatar-options]").should("exist").should("be.visible");
+  cy.get("[data-cy=Nav_CartIcon_LogIn]").should("exist").should("be.visible");
+  cy.get("[data-cy=cartIcon_mainPage]").should("exist").should("be.visible");
+  cy.log("✅✅ all components founded and website oppened");
+  cy.intercept("GET", "**/api/new_v1/countries").as("getCountries");
+  cy.clickElement("[data-cy=avatar-options]");
+  cy.wait("@getCountries").then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
+  });
+  cy.get("[data-cy=Orders-Icon] svg").should("exist");
+  cy.get("[data-cy=Orders-Icon]").contains("Orders").should("exist");
+  ///api/new_v1/customer/order/list?
+  cy.intercept("GET", "**/api/new_v1/customer/order/list?**").as("getorder1");
+  cy.clickElement("[data-cy=Orders-Icon]"); //loading-svg
+  cy.get("[data-cy=Loading-container]").should("exist").should("be.visible");
+  cy.get("[data-cy=Loading-svg]").should("exist").should("be.visible");
+  cy.get("[data-cy=Loading-container]")
+    .should("exist")
+    .and("be.visible")
+    .contains("Loading...");
+  cy.wait("@getorder1").then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
+  });
+});
+Cypress.Commands.add("openOrdersWhenLogin", () => {
+  cy.get("[data-cy=Logout-ReLogout]").should("exist").should("be.visible");
+  cy.get("[data-cy=Chat-Icon]").should("exist").should("be.visible");
+  cy.get("[data-cy=Nav_CartIcon_LogIn]").should("exist").should("be.visible");
+  cy.get("[data-cy=cartIcon_mainPage]").should("exist").should("be.visible");
+  cy.log("✅✅ all components founded and website oppened");
+  cy.intercept("GET", "**/api/new_v1/countries").as("getCountries");
+  cy.clickElement("[data-cy=Logout-ReLogout]");
+  cy.wait("@getCountries").then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
+  });
+  cy.get("[data-cy=Orders-Icon] svg").should("exist");
+  cy.get("[data-cy=Orders-Icon]").contains("Orders").should("exist");
+  ///api/new_v1/customer/order/list?
+  cy.intercept("GET", "**/api/new_v1/customer/order/list?**").as("getorder1");
+  cy.clickElement("[data-cy=Orders-Icon]"); //loading-svg
+  cy.get("[data-cy=Loading-container]").should("exist").should("be.visible");
+  cy.get("[data-cy=Loading-svg]").should("exist").should("be.visible");
+  cy.get("[data-cy=Loading-container]")
+    .should("exist")
+    .and("be.visible")
+    .contains("Loading...");
+  cy.wait("@getorder1").then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
+  });
+});

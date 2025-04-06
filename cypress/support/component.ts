@@ -68,6 +68,8 @@ declare global {
       openWishlist(): Chainable<void>;
       openNotificationsWhenLogout(): Chainable<void>;
       openNotificationsWhenLogin(): Chainable<void>;
+      openOrdersWhenLogout(): Chainable<void>;
+      openOrdersWhenLogin(): Chainable<void>;
       ChooseBoutiqueAndVerifyComponentsAndBoxsInBoutiquePage(): Chainable<void>;
       ComplateAddProductOperationAndGoCartPage(): Chainable<void>;
     }
