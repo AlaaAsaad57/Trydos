@@ -824,7 +824,6 @@ Cypress.Commands.add("openWishlist", () => {
 });
 Cypress.Commands.add("openNotificationsWhenLogout", () => {
   cy.get("[data-cy=avatar-options]").should("exist").should("be.visible");
-  // cy.get("[data-cy=Chat-Icon]").should("exist").should("be.visible");
   cy.get("[data-cy=Nav_CartIcon_LogIn]").should("exist").should("be.visible");
   cy.get("[data-cy=cartIcon_mainPage]").should("exist").should("be.visible");
   cy.log("✅✅ all components founded and website oppened");
@@ -840,10 +839,17 @@ Cypress.Commands.add("openNotificationsWhenLogout", () => {
   cy.intercept("GET", "**/api/new_v1/user-notifications/get?page=1").as(
     "getPage1"
   );
-  cy.clickElement("[data-cy=Notifications-Icon]");
+  cy.clickElement("[data-cy=Notifications-Icon]"); //loading-svg
+  cy.get("[data-cy=notification-loading]").should("exist").should("be.visible");
+  cy.get("[data-cy=loading-svg]").should("exist").should("be.visible");
+  cy.get("[data-cy=notification-loading]")
+    .should("exist")
+    .and("be.visible")
+    .contains("Loading...");
   cy.wait("@getPage1").then((interception) => {
     expect(interception.response.statusCode).to.be.eq(200);
   });
+  cy.get("[data-cy=notification-loading]").should("not.exist");
 });
 Cypress.Commands.add("openNotificationsWhenLogin", () => {
   cy.get("[data-cy=Logout-ReLogout]").should("exist").should("be.visible");
@@ -868,7 +874,12 @@ Cypress.Commands.add("openNotificationsWhenLogin", () => {
   cy.clickElement("[data-cy=Notifications-Icon]");
   cy.get("[data-cy=notification-loading]").should("exist").should("be.visible");
   cy.get("[data-cy=loading-svg]").should("exist").should("be.visible");
+  cy.get("[data-cy=notification-loading]")
+    .should("exist")
+    .and("be.visible")
+    .contains("Loading...");
   cy.wait("@getPage1").then((interception) => {
     expect(interception.response.statusCode).to.be.eq(200);
   });
+  cy.get("[data-cy=notification-loading]").should("not.exist");
 });
