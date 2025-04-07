@@ -1,4 +1,3 @@
-import { UserToken } from "utils/functions";
 import { NotificationResponse } from "../types/notifications";
 import { AxiosGet } from "utils/AxiosApi";
 

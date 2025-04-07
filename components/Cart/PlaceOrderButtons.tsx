@@ -1,14 +1,9 @@
 import { toast } from "react-toastify";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { AxiosGet } from "utils/AxiosApi";
-import {
-  GetAppLanguage,
-  getCart,
-  RoundPrice,
-  translateFunction,
-} from "utils/functions";
+import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
+import LocalizationServiceClass from "services/localization";
 
 function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
   const cart = useSelector((state: StateInterface) => state.cart);
@@ -105,29 +100,41 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
             </span>
             <div
               className={` ${
-                GetAppLanguage() === "ar" ? "dir-rtl" : ""
+                LocalizationServiceClass.GetAppLanguage() === "ar"
+                  ? "dir-rtl"
+                  : ""
               } flex ml-[34px]`}
             >
-              <span className={`${GetAppLanguage() === "ar" ? "" : ""} `}>
+              <span
+                className={`${
+                  LocalizationServiceClass.GetAppLanguage() === "ar" ? "" : ""
+                } `}
+              >
                 {translateFunction("I read and agree to the")}
               </span>
               <span
                 className={`underline ${
-                  GetAppLanguage() === "ar" ? "mr-[4px]" : "ml-[4px]"
+                  LocalizationServiceClass.GetAppLanguage() === "ar"
+                    ? "mr-[4px]"
+                    : "ml-[4px]"
                 } text-[#388CFF]`}
               >
                 {translateFunction("policies")}
               </span>
               <span
                 className={` ${
-                  GetAppLanguage() === "ar" ? "mr-[4px]" : "ml-[4px]"
+                  LocalizationServiceClass.GetAppLanguage() === "ar"
+                    ? "mr-[4px]"
+                    : "ml-[4px]"
                 }`}
               >
                 {translateFunction("and")}
               </span>
               <span
                 className={`underline  ${
-                  GetAppLanguage() === "ar" ? "mr-[4px]" : "ml-[4px]"
+                  LocalizationServiceClass.GetAppLanguage() === "ar"
+                    ? "mr-[4px]"
+                    : "ml-[4px]"
                 } text-[#388CFF]`}
               >
                 {translateFunction("terms")}
@@ -185,7 +192,8 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
                   <span>{translateFunction("Done")}</span>
                   <span
                     className={`text-[#FEFEFE] text-[14px] medium ${
-                      GetAppLanguage() === "ar" && "dir-rtl"
+                      LocalizationServiceClass.GetAppLanguage() === "ar" &&
+                      "dir-rtl"
                     } `}
                   >
                     {translateFunction("Back To HomePage")}
@@ -196,7 +204,8 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
                   <span>{translateFunction("Place Order")}</span>
                   <span
                     className={`text-[#FEFEFE] text-[14px] medium ${
-                      GetAppLanguage() === "ar" && "dir-rtl"
+                      LocalizationServiceClass.GetAppLanguage() === "ar" &&
+                      "dir-rtl"
                     } `}
                   >
                     {cart.cart.length} {translateFunction("items")}{" "}

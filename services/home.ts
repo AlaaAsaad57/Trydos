@@ -6,16 +6,9 @@ import userImage from "public/images/profileNo.png";
 import {
   _isStoreLastJson,
   AddToCartAnimation,
-  ExpiredUser,
   getCart,
-  getOldCart,
   getLang,
-  getUser,
-  UserID,
-  UserToken,
   WaitForCondition,
-  GetAppLanguage,
-  GetAppCountry,
 } from "utils/functions";
 import Smartlook from "smartlook-client";
 
@@ -42,6 +35,8 @@ import {
   StarttingSettingApi,
   UpdateCartApi,
 } from "models/Api";
+import auth from "./auth";
+import LocalizationServiceClass from "./localization";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -137,8 +132,8 @@ class HomeService {
       response.status === 401 ||
       response.status === 403
     ) {
-      if (getUser()) {
-        await ExpiredUser();
+      if (auth.getUser()) {
+        await auth.ExpiredUser();
       } else {
         await this.registerForExpire();
         await this.getCustomerInfo();
@@ -229,14 +224,14 @@ class HomeService {
       if (token) {
         localStorage.setItem("FB-DEVICE-TOKEN", token);
         setTimeout(async () => {
-          if (UserToken() && UserID()) {
+          if (auth.UserToken() && auth.UserID()) {
             await AxiosPost({
               url:
                 process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
               body: {
                 device_token: token,
-                user_id: UserID(),
-                auth_token: UserToken(),
+                user_id: auth.UserID(),
+                auth_token: auth.UserToken(),
               },
               title: "register firebase token",
             });
@@ -737,8 +732,8 @@ class HomeService {
       {
         boutique_id: 144,
         topic: "boutique_created",
-        language_code: GetAppLanguage(),
-        country_iso: GetAppCountry(),
+        language_code: LocalizationServiceClass.GetAppLanguage(),
+        country_iso: LocalizationServiceClass.GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -750,8 +745,8 @@ class HomeService {
 
       {
         product_id: 7681,
-        language_code: GetAppLanguage(),
-        country_iso: GetAppCountry(),
+        language_code: LocalizationServiceClass.GetAppLanguage(),
+        country_iso: LocalizationServiceClass.GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -770,8 +765,8 @@ class HomeService {
           product_id: 7681,
           variant: "Blue-XXL",
           topic: "product_availability_7681",
-          language_code: GetAppLanguage(),
-          country_iso: GetAppCountry(),
+          language_code: LocalizationServiceClass.GetAppLanguage(),
+          country_iso: LocalizationServiceClass.GetAppCountry(),
         },
         { ...getHeader() }
       )
@@ -788,8 +783,8 @@ class HomeService {
       {
         product_id: 7681,
         topic: "product_comment_7681",
-        language_code: GetAppLanguage(),
-        country_iso: GetAppCountry(),
+        language_code: LocalizationServiceClass.GetAppLanguage(),
+        country_iso: LocalizationServiceClass.GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -803,8 +798,8 @@ class HomeService {
       {
         product_id: 7681,
         topic: "product_discount_7681",
-        language_code: GetAppLanguage(),
-        country_iso: GetAppCountry(),
+        language_code: LocalizationServiceClass.GetAppLanguage(),
+        country_iso: LocalizationServiceClass.GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -818,8 +813,8 @@ class HomeService {
       {
         category_id: 392,
         topic: "category_created",
-        language_code: GetAppLanguage(),
-        country_iso: GetAppCountry(),
+        language_code: LocalizationServiceClass.GetAppLanguage(),
+        country_iso: LocalizationServiceClass.GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -832,11 +827,11 @@ class HomeService {
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_product_before_stock_out",
       {
-        user_id: UserID(),
+        user_id: auth.UserID(),
         product_id: 7681,
         topic: "product_before_stock_out_7681",
-        language_code: GetAppLanguage(),
-        country_iso: GetAppCountry(),
+        language_code: LocalizationServiceClass.GetAppLanguage(),
+        country_iso: LocalizationServiceClass.GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -848,11 +843,11 @@ class HomeService {
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_product_when_change_in_price",
       {
-        user_id: UserID(),
+        user_id: auth.UserID(),
         product_id: 7681,
         topic: "product_when_change_in_price_7681",
-        language_code: GetAppLanguage(),
-        country_iso: GetAppCountry(),
+        language_code: LocalizationServiceClass.GetAppLanguage(),
+        country_iso: LocalizationServiceClass.GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -868,7 +863,7 @@ class HomeService {
   }
   async StoreNotificationProduct({ type_id, variant, product_id }) {
     let detail = {
-      user_id: UserID(),
+      user_id: auth.UserID(),
       product_id: product_id,
       notification_type_id: type_id,
       variant: variant,

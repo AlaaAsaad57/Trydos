@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import Stories from "./Stories/index";
 import ChatService from "services/chat";
-import { getUser, getUserChat } from "utils/functions";
+import { getUserChat } from "utils/functions";
 const NameModal = dynamic(() => import("components/global/NameModal"));
 // const StoriesContainer = dynamic(() => import("./Stories/NewStories"), {
 //   loading: () => <LandingPage afterLoad={true} />,
@@ -13,7 +13,6 @@ const NameModal = dynamic(() => import("components/global/NameModal"));
 // });
 import StoriesContainer from "./Stories/NewStories";
 
-import { getUserStories } from "../../utils/functions";
 import StoryServiceClass from "services/story";
 // import LandingPage from "./LandingPage";
 import { dispatchRouteChangeEvent } from "utils/events";
@@ -21,6 +20,7 @@ import { dispatchRouteChangeEvent } from "utils/events";
 //   ssr: false,
 // });
 import SearchContainer from "./Search/SearchContainer";
+import auth from "services/auth";
 
 export default function Home() {
   useEffect(() => {
@@ -35,9 +35,9 @@ export default function Home() {
   const dispatch = useDispatch();
   const initFB = async () => {
     dispatch({ type: "RESET-FILTERS" });
-    if (getUserStories()?.id) {
+    if (StoryServiceClass.getUserStories()?.id) {
       const Cookies = (await import("js-cookie")).default;
-      Cookies.set("token", getUserStories()?.access_token);
+      Cookies.set("token", StoryServiceClass.getUserStories()?.access_token);
     }
 
     if (getUserChat()?.id) {
@@ -86,7 +86,7 @@ export default function Home() {
       JSON.parse(localStorage.getItem("USER") || "{}")?.name;
     return (
       getUserChat()?.id &&
-      getUser()?.id &&
+      auth.getUser()?.id &&
       (!name || name?.length === 0) &&
       nameModal
     );

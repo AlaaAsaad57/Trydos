@@ -281,5 +281,44 @@ class AuthService {
       return data;
     } catch (error) {}
   }
+  getUser() {
+    return (
+      localStorage.getItem("USER") && JSON.parse(localStorage.getItem("USER"))
+    );
+  }
+  UserToken() {
+    return (
+      localStorage.getItem("MARKET-TOKEN") ||
+      localStorage.getItem("DEVICE-TOKEN") ||
+      false
+    );
+  }
+  UserID() {
+    return (
+      (localStorage.getItem("USER") &&
+        JSON.parse(localStorage.getItem("USER"))?.id) ||
+      (localStorage.getItem("guest-user") &&
+        JSON.parse(localStorage.getItem("guest-user"))?.id) ||
+      false
+    );
+  }
+  User() {
+    return (
+      (localStorage.getItem("USER") &&
+        JSON.parse(localStorage.getItem("USER"))) ||
+      (localStorage.getItem("guest-user") &&
+        JSON.parse(localStorage.getItem("guest-user"))) ||
+      false
+    );
+  }
+  async ExpiredUser() {
+    if (this.getUser()?.phone)
+      localStorage.setItem("has-phone", this.getUser()?.phone);
+    await home.registerForExpire(this.getUser().id);
+    this.cancelAuth();
+    localStorage.removeItem("MARKET-TOKEN");
+    localStorage.removeItem("USER");
+    Cookies.remove("MARKET-TOKEN");
+  }
 }
 export default new AuthService();

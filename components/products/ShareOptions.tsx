@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   FacebookIcon,
   FacebookShareButton,
-  TelegramShareButton,
   TwitterIcon,
   TwitterShareButton,
   WhatsappIcon,
@@ -13,7 +12,7 @@ import {
 } from "react-share";
 
 import { ProductInterface } from "models/product";
-import { getUser, getUserChat, Sendevent } from "utils/functions";
+import { getUserChat, Sendevent } from "utils/functions";
 import { AxiosPost } from "utils/AxiosApi";
 function ShareOptions({
   setShareContacts,

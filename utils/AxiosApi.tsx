@@ -5,8 +5,9 @@ import Cookies from "js-cookie";
 import { setupCache } from "axios-cache-interceptor";
 import home from "services/home";
 
-import { ExpiredUser, getUser, LogError, WaitForCondition } from "./functions";
+import { LogError, WaitForCondition } from "./functions";
 import { toast } from "react-toastify";
+import auth from "services/auth";
 export const errorPNG = pngErr.src;
 const getHeader = (token?) => {
   let [countryUrl, languageUrl] = window.location.pathname
@@ -72,8 +73,8 @@ export const AxiosGet = async ({
         return;
       }
       if (error.status === 401 || error.status === 403) {
-        if (getUser()) {
-          await ExpiredUser();
+        if (auth.getUser()) {
+          await auth.ExpiredUser();
         } else {
           await home.registerForExpire();
         }
@@ -167,8 +168,8 @@ export const AxiosPost = async ({
       }
 
       if (error.status === 401 || error.status === 403) {
-        if (getUser()) {
-          await ExpiredUser();
+        if (auth.getUser()) {
+          await auth.ExpiredUser();
         } else {
           await home.registerForExpire();
         }

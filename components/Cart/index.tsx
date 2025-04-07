@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  GetAppLanguage,
   getCart,
   getOldCart,
   getConfiguredImage,
@@ -27,6 +26,7 @@ import { dispatchRouteChangeEvent } from "utils/events";
 import Spinner from "components/global/Spinner";
 import Timer from "components/Login/Timer";
 import { QuantityDetailsProductApi } from "models/Api";
+import LocalizationServiceClass from "services/localization";
 
 function CartContainer({ close, toOrders }) {
   let { lang } = useParams();
@@ -500,7 +500,10 @@ function CartContainer({ close, toOrders }) {
                               <HurryIcon />
                             </span>
                             <span className="bold ml-1">
-                              {translate("Hurry Up!", GetAppLanguage())}
+                              {translate(
+                                "Hurry Up!",
+                                LocalizationServiceClass.GetAppLanguage()
+                              )}
                             </span>
                             {product?.have_hurry_up_notify_time_left && (
                               <>
@@ -508,7 +511,7 @@ function CartContainer({ close, toOrders }) {
                                   {product.have_hurry_up_notify_time_left &&
                                     translate(
                                       "Quantity Running Out. ",
-                                      GetAppLanguage()
+                                      LocalizationServiceClass.GetAppLanguage()
                                     )}
                                 </span>
 
@@ -528,7 +531,7 @@ function CartContainer({ close, toOrders }) {
                                   {product.have_hurry_up_notify_qty &&
                                     translate(
                                       "Quantity Running Out. ",
-                                      GetAppLanguage()
+                                      LocalizationServiceClass.GetAppLanguage()
                                     )}
                                 </span>
 
@@ -563,7 +566,10 @@ function CartContainer({ close, toOrders }) {
                   className="flex-row items-center justify-center light text-[#5d5d5d] text-[16px]"
                   data-cy="EmptyCRart"
                 >
-                  {translate("Cart is Empty", GetAppLanguage())}
+                  {translate(
+                    "Cart is Empty",
+                    LocalizationServiceClass.GetAppLanguage()
+                  )}
                 </div>
               )}
             </>
@@ -644,7 +650,10 @@ function CartContainer({ close, toOrders }) {
                 <OldCartIcon />
               </span>{" "}
               <span className="regular text-[#505050] text-[15px] ml-1">
-                {translate("Out Of Bag!", GetAppLanguage())}
+                {translate(
+                  "Out Of Bag!",
+                  LocalizationServiceClass.GetAppLanguage()
+                )}
               </span>
               <span
                 className="cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]"
@@ -657,7 +666,10 @@ function CartContainer({ close, toOrders }) {
                   dispatch({ type: "STORE-OLD-CART", payload: [] });
                 }}
               >
-                {translate("Hide All", GetAppLanguage())}
+                {translate(
+                  "Hide All",
+                  LocalizationServiceClass.GetAppLanguage()
+                )}
               </span>
             </div>
             <div
@@ -840,7 +852,10 @@ function CartContainer({ close, toOrders }) {
                             }}
                           >
                             <span className="hide-btn cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]">
-                              {translate("Hide", GetAppLanguage())}
+                              {translate(
+                                "Hide",
+                                LocalizationServiceClass.GetAppLanguage()
+                              )}
                             </span>
                           </div>
                         }
@@ -866,7 +881,10 @@ function CartContainer({ close, toOrders }) {
                             <OldCartIcon />
                           </span>
                           <span className="text-[#8D8D8D] bold text-[12px] ml-1">
-                            {translate("Out Of Bag!", GetAppLanguage())}{" "}
+                            {translate(
+                              "Out Of Bag!",
+                              LocalizationServiceClass.GetAppLanguage()
+                            )}{" "}
                             <span className="regular">
                               {translate("Time Running Out.")}{" "}
                               <span className="bold">-30:00</span> |{" "}

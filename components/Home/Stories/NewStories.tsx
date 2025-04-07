@@ -4,9 +4,10 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Cube from "react-cube-navigation";
 import { SelectStory } from "store/homepage/actions";
-import { configureStory } from "utils/functions";
+
 import StoryHolder from "./StoryHolder";
 import { useSwipeable } from "react-swipeable";
+import StoryServiceClass from "services/story";
 
 function StoriesContainer({ activeId, selectedStory }) {
   const storiesData = useSelector(
@@ -118,7 +119,7 @@ function StoriesContainer({ activeId, selectedStory }) {
                 <StoryHolder
                   active={selectedStory.id === storiesData[i]?.id}
                   isPaused={active}
-                  story={configureStory(storiesData[i])}
+                  story={StoryServiceClass.configureStory(storiesData[i])}
                 />
               )}
             </div>
