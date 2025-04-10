@@ -24,6 +24,7 @@ const getHeader = (token?) => {
         Cookies.get("MARKET-TOKEN") ??
         Cookies.get("DEVICE-TOKEN")
       }`,
+      accept: "application/json",
     },
   };
 };
@@ -72,7 +73,7 @@ export const AxiosGet = async ({
         );
         return;
       }
-      if (error.status === 401 || error.status === 403) {
+      if (error.status === 401) {
         if (auth.getUser()) {
           await auth.ExpiredUser();
         } else {
@@ -167,7 +168,7 @@ export const AxiosPost = async ({
         return;
       }
 
-      if (error.status === 401 || error.status === 403) {
+      if (error.status === 401) {
         if (auth.getUser()) {
           await auth.ExpiredUser();
         } else {
@@ -206,6 +207,7 @@ export const AxiosCacheApi = async ({
       Authorization: `Bearer ${
         Cookies.get("MARKET-TOKEN") ?? Cookies.get("DEVICE-TOKEN")
       }`,
+      accept: "application/json",
     },
     cache: {
       ttl: parseInt(process.env.NEXT_PUBLIC_REVALIDATE) * 10000,
