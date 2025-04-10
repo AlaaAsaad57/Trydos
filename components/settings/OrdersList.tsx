@@ -224,6 +224,7 @@ function OrdersList({
                   border:
                     selectedStatus === status?.key && "1px solid #3C8AFF7f",
                 }}
+                key={status.key}
               >
                 <span className="text-[#8D8D8D] text-[12px] regular">
                   {translateFunction(status.name)}

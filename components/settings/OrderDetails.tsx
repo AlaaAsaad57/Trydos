@@ -518,7 +518,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
       </div>
       <div className="flex-col w-full mt-[12px]">
         {order.details.map((Product) => (
-          <ProductCard product={Product} />
+          <ProductCard product={Product} key={Product.id} />
         ))}
       </div>
     </div>

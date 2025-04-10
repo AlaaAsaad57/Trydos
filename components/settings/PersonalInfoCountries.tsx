@@ -265,6 +265,7 @@ function PersonalInfoCountries({
             {countries.map((country) => {
               return (
                 <div
+                  key={country.iso}
                   onClick={() => {
                     if (!isSettingCountry) {
                       changeCountry(country);
