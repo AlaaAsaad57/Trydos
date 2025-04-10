@@ -41,7 +41,6 @@ function PersonalInfo({
   };
   const dispatch = useDispatch();
   const isEdited = () => {
-    console.log(userProfileData, userProfile);
     return (
       userProfileData.name !== userProfile?.name ||
       userProfileData.phone !== userProfile?.phone ||

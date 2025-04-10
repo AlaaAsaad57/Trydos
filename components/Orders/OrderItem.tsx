@@ -25,7 +25,7 @@ const OrderItem: React.FC<OrderItemProps> = ({ order, showDetails }) => {
         <OrderItemId id={order.order_group_id.toString()} />
       </div>
       <div className="flex-row w-full justify-between items-start mt-[11px]">
-        <OrderStatus status={order.order_status} />
+        <OrderStatus status={order.order_status?.value} />
         <OrderInvoice
           invoice={{
             items: order.details.length,

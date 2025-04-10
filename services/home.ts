@@ -8,6 +8,7 @@ import {
   AddToCartAnimation,
   getCart,
   getLang,
+  urlParams,
   WaitForCondition,
 } from "utils/functions";
 import Smartlook from "smartlook-client";
@@ -364,48 +365,37 @@ class HomeService {
     }
   }
 
-  async getNextProduct({ offset, categories, boutiqueCategory }) {
-    const filterObj = store.getState().details.activeFilters;
+  async getNextProduct({
+    lang,
+    offset,
+    categories,
+    boutiqueCategory,
+    noFilter = false,
+  }) {
     const sizesAttr = store.getState().details.filters.sizesAttr;
-    let filters: any = {
+
+    const filterObj = store.getState().details.selectedFilter;
+
+    let filters = {
       categories: filterObj.categories.map((s) => s.slug),
-      prices: filterObj.prices?.pricesWord
-        ? [
-            `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
-          ]
-        : null,
+      prices:
+        filterObj.prices?.min >= 0
+          ? [
+              `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
+            ]
+          : null,
       brands: filterObj.brands.map((brand) => brand.slug),
       attributes: { ...sizesAttr, options: filterObj.sizes },
-
+      boutique_slug: categories,
+      lang: lang.split("-")[1],
+      country: lang.split("-")[0],
       searchText: filterObj.searchText,
+      colors: filterObj.colors.map((s) => s),
     };
-
     if (categories && categories !== "listing")
       filters = { ...filters, boutique_slug: [categories] };
 
-    let str = `${
-      filters.categories?.length > 0
-        ? `category_slugs=${JSON.stringify(filters.categories)}`
-        : ""
-    }${
-      filters.brands?.length > 0
-        ? `&brand_slugs=${JSON.stringify(filters.brands)}`
-        : ""
-    }${
-      filters.attributes?.options?.length > 0
-        ? `&attributes=${JSON.stringify(filters.attributes)}`
-        : ""
-    }${
-      filters.prices !== null ? `&price=${JSON.stringify(filters.prices)}` : ""
-    }${
-      filters.boutique_slug
-        ? `&boutique_slugs=${JSON.stringify(filters.boutique_slug)}`
-        : ""
-    }${
-      filters?.searchText?.length > 0
-        ? `&search_text=${filters.searchText}`
-        : ""
-    }`;
+    let str = urlParams({ filters, noProducts: false, noFilter: true });
     var details =
       boutiqueCategory !== "undefined"
         ? {

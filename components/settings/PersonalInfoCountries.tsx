@@ -54,8 +54,6 @@ function PersonalInfoCountries({
       window.history.replaceState(null, "", newPath);
     }
 
-    console.log(newPath);
-
     let action = await changeAppCountry(country.iso.toLowerCase());
     await changeAppCountryServer(country.iso.toLowerCase());
     dispatch(action);

@@ -478,7 +478,7 @@ export const filterProducts = async ({
   callback(product.data.products);
   return product.data.products;
 };
-const urlParams = ({ filters, noProducts }) => {
+export const urlParams = ({ filters, noProducts, noFilter = false }) => {
   const PriceFiltered = store.getState().details.PriceFiltered;
   let urlParams = new URLSearchParams();
   if (filters.categories.length > 0) {
@@ -501,6 +501,9 @@ const urlParams = ({ filters, noProducts }) => {
   }
   if (noProducts) {
     urlParams.set("with_products", "false");
+  }
+  if (noFilter) {
+    urlParams.set("with_filters", "false");
   }
   if (filters.colors && filters?.colors.length > 0) {
     urlParams.set("colors", JSON.stringify(filters.colors));

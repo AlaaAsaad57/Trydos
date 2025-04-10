@@ -118,7 +118,7 @@ function UploadProfilePhoto({
     if (editorRef.current) {
       const image = editorRef.current.getImage();
       const canvasScaled = editorRef.current.getImageScaledToCanvas();
-      console.log(canvasScaled, image);
+
       return canvasScaled.toDataURL();
     }
   };

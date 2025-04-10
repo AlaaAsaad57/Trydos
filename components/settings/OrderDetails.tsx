@@ -62,7 +62,7 @@ function OrderDetails({
         </div>
         <div className="flex-row justify-between items-center w-full mt-[8px]">
           <OrderExpectedDeliveryCard time={selectedOrder.created_at} />
-          <OrderStatusCard status={selectedOrder.order_status} />
+          <OrderStatusCard status={selectedOrder.order_status.value} />
         </div>
         <OrderAddressCard address={selectedOrder.shipping_address_data} />
       </div>
@@ -415,7 +415,9 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
           </span>
           <div className="text-[#1D1D1D] flex-row text-[12px] regular mt-[3px]">
             <span>
-              {translateFunction(getStatusDisplayName(order.order_status))}
+              {translateFunction(
+                getStatusDisplayName(order.order_status.value)
+              )}
             </span>
             <svg
               className="ml-[11px]"
