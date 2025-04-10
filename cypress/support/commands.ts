@@ -307,7 +307,7 @@ Cypress.Commands.add("OpenBoutiqueAndAddProductToCartFromBoutiquePage", () => {
     },
   ]);
   cy.log("✅✅ OpenBoutique & LoadallProducts Requests Arrived");
-  cy.get('[data-cy="on_mouse_over_product"]', { timeout: 15000 }).then(
+  cy.get("[data-cy=on_mouse_over_product]", { timeout: 15000 }).then(
     ($items) => {
       const count = $items.length;
       cy.log(

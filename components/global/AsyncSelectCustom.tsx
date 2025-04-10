@@ -128,7 +128,10 @@ const AsyncSelectCustom: React.FC<AsyncSelectProps> = ({
           onFocus={handleFocus}
           onBlur={handleBlur}
         />
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+        <div
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2"
+          data-cy="end-compare"
+        >
           {searchTerm && (
             <button
               onClick={handleClear}

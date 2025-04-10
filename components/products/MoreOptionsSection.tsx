@@ -238,8 +238,9 @@ function MoreOptionsSection() {
             </div>
           </div>
         </div>
-        <div className="more-options-button">
+        <div className="more-options-button" data-cy="add-checkList">
           <svg
+            data-cy="add-checkList-svg"
             xmlns="http://www.w3.org/2000/svg"
             xmlnsXlink="http://www.w3.org/1999/xlink"
             width="25"
@@ -377,12 +378,15 @@ function MoreOptionsSection() {
             </g>
           </svg>
 
-          <span>{translate("Add To My Checklist", language)}</span>
+          <span data-cy="add-checkList-text">
+            {translate("Add To My Checklist", language)}
+          </span>
         </div>
         <div
           className={`more-options-button ${
             AddedToCompare() ? "bg-green-300" : ""
           }`}
+          data-cy="add-compare"
           onClick={() => {
             if (AddedToCompare()) {
               toast.info(translate("Already Added To Compare!", language));
@@ -404,6 +408,7 @@ function MoreOptionsSection() {
           }}
         >
           <svg
+            data-cy="add-compare-svg"
             xmlns="http://www.w3.org/2000/svg"
             xmlnsXlink="http://www.w3.org/1999/xlink"
             width="25"
@@ -483,7 +488,7 @@ function MoreOptionsSection() {
               </g>
             </g>
           </svg>
-          <span>
+          <span data-cy="add-compare-text">
             {AddedToCompare() ? (
               <>{translate("Added To Compare", language)}</>
             ) : (
