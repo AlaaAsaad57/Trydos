@@ -38,7 +38,7 @@ function MainSetting({
   };
   const [loading, setLoading] = useState(false);
   const wallet = useSelector(
-    (state: StateInterface) => state.cart.wallet?.total_wallet_balance
+    (state: StateInterface) => state.cart.wallet?.wallet_balance
   );
   const currency = useSelector(
     (state: StateInterface) => state.homepage.currency

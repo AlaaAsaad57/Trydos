@@ -777,7 +777,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
       }, 1300);
     }
   };
-  const wallet = useSelector((state: StateInterface) => state.cart.wallet);
+
   const totalBalance = () => {
     let val = 0;
     orderData.payment.map((s) => {

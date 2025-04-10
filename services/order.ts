@@ -44,6 +44,7 @@ class OrderService {
           "/customer/wallet/list?limit=10&offset=1",
         title: "Get Wallet",
       });
+
       store.dispatch({
         type: "WALLET-USER",
         payload: data,
