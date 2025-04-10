@@ -320,5 +320,25 @@ class AuthService {
     localStorage.removeItem("USER");
     Cookies.remove("MARKET-TOKEN");
   }
+  async UpdateProfile(userObj) {
+    let res = await AxiosPost({
+      url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-profile",
+      body: userObj,
+      title: "Update Profile",
+    });
+    return res;
+  }
+  async UpdateProfileImage(image) {
+    let formData = new FormData();
+    formData.append("image", image);
+    formData.append("path", "customers/profile");
+
+    let res = await AxiosPost({
+      url: process.env.NEXT_PUBLIC_BACKEND_URL + "/storage/storage-upload",
+      body: formData,
+      title: "Update Profile Image",
+    });
+    return res;
+  }
 }
 export default new AuthService();

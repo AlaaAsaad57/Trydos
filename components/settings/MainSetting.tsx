@@ -1,4 +1,4 @@
-import React, { DOMElement } from "react";
+import React, { DOMElement, useEffect, useState } from "react";
 import ProfileCard from "./ProfileCard";
 import TryDosWalletIcon from "public/svg/TryDosWalletIcon.svg";
 import OrdersIcon from "public/svg/OrdersIcon.svg";
@@ -12,6 +12,10 @@ import LanguageIcon from "public/svg/LanguageIcon.svg";
 import { useParams } from "node_modules/next/navigation";
 import { allCountries } from "country-telephone-data";
 import Flag from "react-world-flags";
+import order from "services/order";
+import { useSelector } from "node_modules/react-redux/es";
+import { RoundPrice, translateFunction } from "utils/functions";
+import Spinner from "components/global/Spinner";
 
 const options = [
   { name: "Settings", Icon: <SettingsIcon /> },
@@ -32,6 +36,27 @@ function MainSetting({
     name: allCountries.filter((s) => s.iso2 === country)[0]?.name,
     iso: country,
   };
+  const [loading, setLoading] = useState(false);
+  const wallet = useSelector(
+    (state: StateInterface) => state.cart.wallet?.total_wallet_balance
+  );
+  const currency = useSelector(
+    (state: StateInterface) => state.homepage.currency
+  );
+
+  useEffect(() => {
+    getWallet();
+  }, []);
+  const getWallet = async () => {
+    try {
+      setLoading(true);
+      const res = await order.GetWallet();
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
+  };
   return (
     <div className="flex-col w-full pt-[20px] px-[12px]">
       <ProfileCard
@@ -40,20 +65,34 @@ function MainSetting({
         goToProfileSize={() => swipeToScreen(4)}
       />
       <div className="flex-row mt-[18px]">
-        <div className="flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px] cursor-pointer">
+        <div
+          className="flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px] cursor-pointer"
+          onClick={() => {
+            swipeToScreen(9);
+          }}
+        >
           <OrdersIcon />
           <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
-            Orders
+            {translateFunction("Orders")}
           </span>
-          <span className="text-[#8D8D8D] text-[12px] regular">1 Action</span>
+          <span className="text-[#8D8D8D] text-[12px] regular">
+            1 {translateFunction("Action")}
+          </span>
         </div>
         <div className="flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px] ml-[12px] cursor-pointer">
           <TryDosWalletIcon />
           <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
-            Trydos Wallet
+            {translateFunction("Trydos Wallet")}
           </span>
           <span className="text-[#8D8D8D] text-[12px] regular">
-            300 USD Your Balance
+            {loading ? (
+              <Spinner />
+            ) : (
+              <>
+                {RoundPrice({ num: wallet })} {currency?.symbol}{" "}
+                {translateFunction("Your Balance")}
+              </>
+            )}
           </span>
         </div>
       </div>
@@ -62,7 +101,12 @@ function MainSetting({
           <SettingOption key={option.name} {...option} />
         ))}
         <div className="flex-row mt-[12px]">
-          <div className="flex-row w-1/2 h-[53px] bg-[#F8F8F8] rounded-[15px] px-[12px] items-center cursor-pointer">
+          <div
+            onClick={() => {
+              swipeToScreen(8);
+            }}
+            className="flex-row w-1/2 h-[53px] bg-[#F8F8F8] rounded-[15px] px-[12px] items-center cursor-pointer"
+          >
             <Flag
               code={country.iso.toUpperCase()}
               height="18"
@@ -100,7 +144,7 @@ const SettingOption = ({
     <div className="w-full flex-row cursor-pointer mt-[4px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center">
       {Icon}
       <span className="text-[14px] regular text-[#1d1d1d] ml-[12px] ">
-        {name}
+        {translateFunction(name)}
       </span>
     </div>
   );

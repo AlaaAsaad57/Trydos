@@ -4,6 +4,8 @@ import PersonIcon from "public/svg/PersonIcon.svg";
 import SizeIcon from "public/svg/SizeIcon.svg";
 import AddressIcon from "public/svg/AddressIcon.svg";
 import BankIcon from "public/svg/BankIcon.svg";
+import { useSelector } from "react-redux";
+import { translateFunction } from "utils/functions";
 function Profile({
   swipeToScreen,
   goBack,
@@ -11,6 +13,9 @@ function Profile({
   swipeToScreen: (index: number) => void;
   goBack: () => void;
 }) {
+  const userProfile = useSelector(
+    (state: StateInterface) => state.auth.userProfile
+  );
   const options = [
     {
       name: "Personal Info",
@@ -31,14 +36,20 @@ function Profile({
         swipeToScreen(5);
       },
     },
-    { name: "Bank Cards", Icon: <BankIcon />, callback: () => {} },
+    {
+      name: "Bank Cards",
+      Icon: <BankIcon />,
+      callback: () => {
+        swipeToScreen(7);
+      },
+    },
   ];
   return (
     <div className="flex-col">
       <SettingTopBar goBack={() => goBack()} screenName="Profile" />
       <div className="flex-row justify-center mt-[12px]">
         <ProfilePicture
-          photo={null}
+          photo={userProfile.image}
           GoToProfilePhotoScreen={() => {
             swipeToScreen(2);
           }}
@@ -72,13 +83,13 @@ const ProfilePicture = ({
       >
         <div className="regular text-[12px] text-[#FFFFFF] rounded-b-[22px] h-[39px] absolute bottom-0 left-0 w-full bg-[#404040] opacity-70 z-10" />
         <div className="flex justify-center  items-center regular text-[12px] text-[#FFFFFF] rounded-b-[22px] h-[39px] absolute bottom-0 left-0 w-full bg-transparent z-20">
-          change photo
+          {translateFunction("Change Photo")}
         </div>
         <img
           width={128}
           src={photo}
           height={128}
-          className="rounded-[22px] object-cover"
+          className="rounded-[22px] object-cover h-[128px] w-[128px]"
         />
       </div>
     );
@@ -185,7 +196,7 @@ const SettingOption = ({
     >
       {Icon}
       <span className="text-[14px] regular text-[#1d1d1d] ml-[12px] ">
-        {name}
+        {translateFunction(name)}
       </span>
     </div>
   );

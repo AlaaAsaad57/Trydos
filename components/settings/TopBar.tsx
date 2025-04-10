@@ -1,6 +1,7 @@
 import React from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import OptionsIcon from "public/svg/OptionsIcon.svg";
+import { translateFunction } from "utils/functions";
 
 function SettingTopBar({
   Save,
@@ -11,12 +12,12 @@ function SettingTopBar({
 }: {
   Save?: () => void;
   hasOptions?: boolean;
-  screenName: string;
+  screenName: string | React.ReactNode;
   goBack: () => void;
   Icon?: React.ReactNode;
 }) {
   return (
-    <div className="flex-row w-full h-[50px] items-center px-[12px] justify-between">
+    <div className="flex-row w-full min-h-[50px] h-[50px] items-center px-[12px] justify-between">
       <span className="cursor-pointer" onClick={() => goBack()}>
         <BackIcon />
       </span>
@@ -25,7 +26,9 @@ function SettingTopBar({
         <span
           className={`${Icon && "ml-[4px]"} text-[#1D1D1D] text-[14px] medium`}
         >
-          {screenName}
+          {typeof screenName === "string"
+            ? translateFunction(screenName)
+            : screenName}
         </span>
       </div>
       <span
@@ -34,7 +37,7 @@ function SettingTopBar({
           if (Save) Save();
         }}
       >
-        {Save && "Save"}
+        {Save && translateFunction("Save")}
         {hasOptions && <OptionsIcon />}
       </span>
     </div>

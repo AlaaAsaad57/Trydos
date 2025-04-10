@@ -344,6 +344,7 @@ class HomeService {
             expired_at: repo.data.expires_at,
           })
         );
+
         localStorage.removeItem("customer-info");
         if (repo.data.user) {
           if (Smartlook.initialized())

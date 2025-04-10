@@ -1,3 +1,6 @@
+import { CustomerInfoApi } from "models/Api";
+import { OrderItem } from "types/orders";
+
 declare global {
   interface StateInterface {
     homepage: {
@@ -171,19 +174,13 @@ declare global {
       };
     };
     auth: {
+      userProfile: CustomerInfoApi["customer_info"];
       user: {
         id: number;
         already_exists?: boolean;
         idToken: string;
         name: string;
-        avatar: {
-          src: string;
-          height: number;
-          width: number;
-          blurDataURL: string;
-          blurWidth: number;
-          blurHeight: number;
-        };
+        image: string;
       };
       firebaseSettings: any;
       Tempuser: {
@@ -191,14 +188,7 @@ declare global {
         idToken: string;
         already_exists?: boolean;
         name: string;
-        avatar: {
-          src: string;
-          height: number;
-          width: number;
-          blurDataURL: string;
-          blurWidth: number;
-          blurHeight: number;
-        };
+        image: string;
       };
       failedLogin: boolean;
       attempts: number;
@@ -850,6 +840,7 @@ declare global {
       sharesCount: number;
     };
     cart: {
+      selectedOrder: OrderItem;
       orderLoading: boolean;
       payIframeURL: "string";
       total_discount: number;

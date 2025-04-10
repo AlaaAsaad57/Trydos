@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import SettingTopBar from "./TopBar";
 import { translateFunction } from "utils/functions";
 
 import AddressInfo from "public/svg/cart/AddressInfo.svg";
+import { useDispatch, useSelector } from "react-redux";
+import auth from "services/auth";
 function PersonalInfo({
   swipeToScreen,
   goBack,
@@ -10,14 +12,74 @@ function PersonalInfo({
   swipeToScreen: (index: number) => void;
   goBack: () => void;
 }) {
+  const userProfile = useSelector(
+    (state: StateInterface) => state.auth.userProfile
+  );
+  const [userProfileData, setUserProfileData] = useState({
+    name: userProfile?.name,
+    phone: userProfile?.phone,
+    email: userProfile?.email,
+    gender: userProfile?.gender.value,
+    alternative_phone: userProfile?.alternative_phone,
+  });
+  const [loading, setLoading] = useState(false);
+  const updateUserProfile = async (payload) => {
+    try {
+      setLoading(true);
+      await auth.UpdateProfile(payload);
+      dispatch({
+        type: "EDIT_USER_INFO",
+        payload: { ...payload, gender: { value: payload.gender } },
+      });
+      setLoading(false);
+      goBack();
+    } catch (error) {
+      setLoading(false);
+
+      console.log(error);
+    }
+  };
+  const dispatch = useDispatch();
+  const isEdited = () => {
+    console.log(userProfileData, userProfile);
+    return (
+      userProfileData.name !== userProfile?.name ||
+      userProfileData.phone !== userProfile?.phone ||
+      userProfileData.email !== userProfile?.email ||
+      userProfileData.gender !== userProfile?.gender.value ||
+      userProfileData.alternative_phone !== userProfile?.alternative_phone
+    );
+  };
+  const isValid = () => {
+    return (
+      userProfileData.name &&
+      userProfileData.phone &&
+      userProfileData.email &&
+      userProfileData.gender &&
+      userProfileData.alternative_phone
+    );
+  };
   return (
-    <div className="flex-col">
+    <div className={`flex-col ${loading ? "opacity-50 scale-95" : ""}`}>
       <SettingTopBar
-        goBack={() => goBack()}
-        screenName="Profile | Personal Info"
-        Save={() => {
+        goBack={() => {
+          setUserProfileData({
+            name: userProfile?.name ?? "",
+            phone: userProfile?.phone ?? "",
+            email: userProfile?.email ?? "",
+            gender: userProfile?.gender.value,
+            alternative_phone: userProfile?.alternative_phone ?? "",
+          });
           goBack();
         }}
+        screenName="Profile | Personal Info"
+        Save={
+          isEdited() && isValid()
+            ? () => {
+                updateUserProfile(userProfileData);
+              }
+            : null
+        }
       />
       <div className="flex-row justify-center mt-[12px] w-full">
         <div
@@ -134,10 +196,7 @@ function PersonalInfo({
           >
             {translateFunction("Full Name")}
           </div>
-          <AddressInfo
-            className="ml-[12px] cursor-pointer"
-            data-cy="Address-info-icon"
-          />
+          <AddressInfo className="ml-[12px] cursor-pointer" />
         </div>
         <div
           className="flex-col name-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
@@ -158,6 +217,13 @@ function PersonalInfo({
               data-cy="Recipient-Name"
             >
               <input
+                value={userProfileData?.name}
+                onChange={(e) => {
+                  setUserProfileData({
+                    ...userProfileData,
+                    name: e.target.value,
+                  });
+                }}
                 data-cy="recipient-name-input"
                 placeholder={translateFunction("Enter Full Name")}
                 className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
@@ -189,6 +255,13 @@ function PersonalInfo({
                 aria-autocomplete="both"
                 aria-haspopup="false"
                 type="number"
+                value={userProfileData?.phone}
+                onChange={(e) => {
+                  setUserProfileData({
+                    ...userProfileData,
+                    phone: e.target.value,
+                  });
+                }}
                 spellCheck="false"
                 autoCapitalize="off"
                 autoComplete="off"
@@ -228,6 +301,13 @@ function PersonalInfo({
                 aria-autocomplete="both"
                 aria-haspopup="false"
                 spellCheck="false"
+                value={userProfileData?.alternative_phone}
+                onChange={(e) => {
+                  setUserProfileData({
+                    ...userProfileData,
+                    alternative_phone: e.target.value,
+                  });
+                }}
                 autoCapitalize="off"
                 pattern="[0-9]*"
                 autoComplete="off"
@@ -264,6 +344,13 @@ function PersonalInfo({
                 aria-haspopup="false"
                 type="email"
                 spellCheck="false"
+                value={userProfileData?.email}
+                onChange={(e) => {
+                  setUserProfileData({
+                    ...userProfileData,
+                    email: e.target.value,
+                  });
+                }}
                 autoCapitalize="off"
                 autoComplete="off"
                 pattern="[0-9]*"
@@ -290,28 +377,43 @@ function PersonalInfo({
           <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
             <div className="medium flex text-[#D3D3D3] text-[14px] w-full h-[50px]">
               <div
-                className="flex text-[#1D1D1D] flex-row h-[50px] justify-center items-center rounded-[15px] w-1/3"
+                onClick={() => {
+                  setUserProfileData({ ...userProfileData, gender: 1 });
+                }}
+                className={`flex ${
+                  userProfileData.gender === 1 ? "text-[#1D1D1D]" : ""
+                } flex-row h-[50px] justify-center items-center rounded-[15px] w-1/3`}
                 style={{
-                  border: "1px solid #402CDDa3",
+                  border: userProfileData.gender === 1 && "1px solid #402CDDa3",
                 }}
               >
-                Man
+                {translateFunction("Man")}
               </div>
               <div
-                className="flex ml-[11px] flex-row h-[50px] justify-center items-center rounded-[15px] w-1/3"
+                onClick={() => {
+                  setUserProfileData({ ...userProfileData, gender: 2 });
+                }}
+                className={`flex ml-[11px] ${
+                  userProfileData.gender === 2 ? "text-[#1D1D1D]" : ""
+                } flex-row h-[50px] justify-center items-center rounded-[15px] w-1/3`}
                 style={{
-                  border: "1px solid #E6E6E6a3",
+                  border: userProfileData.gender === 2 && "1px solid #402CDDa3",
                 }}
               >
-                Woman
+                {translateFunction("Woman")}
               </div>
               <div
-                className="flex ml-[11px] flex-row h-[50px] justify-center items-center rounded-[15px] w-1/3"
+                onClick={() => {
+                  setUserProfileData({ ...userProfileData, gender: 3 });
+                }}
+                className={`flex ml-[11px] ${
+                  userProfileData.gender === 3 ? "text-[#1D1D1D]" : ""
+                } flex-row h-[50px] justify-center items-center rounded-[15px] w-1/3`}
                 style={{
-                  border: "1px solid #E6E6E6a3",
+                  border: userProfileData.gender === 3 && "1px solid #402CDDa3",
                 }}
               >
-                Other
+                {translateFunction("Other")}
               </div>
             </div>
           </div>

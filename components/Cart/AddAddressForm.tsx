@@ -580,11 +580,13 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
     (state: StateInterface) => state.cart.addressDetails
   );
   const shake = (v) => {
-    document.querySelector(`.${v}`).scrollIntoView({ block: "end" });
-    document.querySelector(`.${v}`).classList.add("shake-anim");
-    setTimeout(() => {
-      document.querySelector(`.${v}`).classList.remove("shake-anim");
-    }, 1300);
+    if (document.querySelector(`.${v}`)) {
+      document.querySelector(`.${v}`)?.scrollIntoView({ block: "end" });
+      document.querySelector(`.${v}`)?.classList.add("shake-anim");
+      setTimeout(() => {
+        document.querySelector(`.${v}`)?.classList.remove("shake-anim");
+      }, 1300);
+    }
   };
   const validate = () => {
     if (

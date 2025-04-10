@@ -7,7 +7,7 @@ import { useParams, usePathname } from "next/navigation";
 import { changeAppLanguage } from "store/homepage/actions";
 import { useDispatch, useSelector } from "react-redux";
 import NotificationsPanel from "../Notifications/NotificationsPanel";
-import OrdersPanel from "../Orders/OrdersPanel";
+
 import WishListPanel from "../WishList/WishListPanel";
 import CountrySelector from "components/global/CountrySelector";
 import { useRouter } from "next-nprogress-bar";
@@ -176,7 +176,8 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
         <>
           <MenuItem
             dataCy="Settings-Icon"
-            href={`/${lang}/settings`}
+            href={`/${lang}/setting`}
+            onClick={() => {}}
             icon={
               <MenuIcon>
                 <circle cx="12" cy="12" r="3" />
@@ -209,7 +210,7 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
           >
             {translateFunction("Notifications")}
           </MenuItem>
-          <MenuItem
+          {/* <MenuItem
             dataCy="Orders-Icon"
             onClick={() => setShowOrders(!showOrders)}
             icon={
@@ -219,7 +220,7 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
             }
           >
             {translateFunction("Orders")}
-          </MenuItem>
+          </MenuItem> */}
           <MenuItem
             dataCy="Compare-Icon"
             onClick={() => {}}
@@ -334,7 +335,7 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
       {showNotifications && (
         <NotificationsPanel onClose={() => setShowNotifications(false)} />
       )}
-      {showOrders && <OrdersPanel onClose={() => setShowOrders(false)} />}
+
       {showWishList && <WishListPanel onClose={() => setShowWishList(false)} />}
     </>
   );

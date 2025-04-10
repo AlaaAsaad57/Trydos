@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import SettingTopBar from "./TopBar";
 import { translateFunction } from "utils/functions";
 import AddressInfo from "public/svg/cart/AddressInfo.svg";
+import { useDispatch, useSelector } from "react-redux";
+import auth from "services/auth";
 
 function ProfileSizeInfo({
   swipeToScreen,
@@ -10,14 +12,58 @@ function ProfileSizeInfo({
   swipeToScreen: (index: number) => void;
   goBack: () => void;
 }) {
+  const userProfile = useSelector(
+    (state: StateInterface) => state.auth.userProfile
+  );
+  const [userProfileData, setUserProfileData] = useState({
+    tall: userProfile?.tall,
+    weight: userProfile?.weight,
+  });
+  const isEdited = () => {
+    return (
+      userProfileData.tall !== userProfile?.tall ||
+      userProfileData.weight !== userProfile?.weight
+    );
+  };
+  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const updateUserProfile = async (payload) => {
+    try {
+      setLoading(true);
+      await auth.UpdateProfile(payload);
+      dispatch({
+        type: "EDIT_USER_INFO",
+        payload: payload,
+      });
+      setLoading(false);
+      goBack();
+    } catch (error) {
+      setLoading(false);
+
+      console.log(error);
+    }
+  };
+  const isValid = () => {
+    return userProfileData.tall && userProfileData.weight;
+  };
   return (
-    <div className="flex-col">
+    <div className={`flex-col ${loading ? "opacity-50 scale-95" : ""}`}>
       <SettingTopBar
-        goBack={() => goBack()}
-        screenName="Profile | Size Info"
-        Save={() => {
+        goBack={() => {
+          setUserProfileData({
+            tall: userProfile?.tall ?? "",
+            weight: userProfile?.weight ?? "",
+          });
           goBack();
         }}
+        screenName="Profile | Size Info"
+        Save={
+          isEdited() && isValid()
+            ? () => {
+                updateUserProfile(userProfileData);
+              }
+            : null
+        }
       />
       <div className="flex-row justify-center mt-[12px] w-full">
         <div
@@ -291,6 +337,17 @@ function ProfileSizeInfo({
               <input
                 data-cy="recipient-name-input"
                 placeholder={translateFunction("000 CM")}
+                value={userProfileData.tall}
+                maxLength={3}
+                max={260}
+                type="number"
+                inputMode="numeric"
+                onChange={(e) => {
+                  setUserProfileData({
+                    ...userProfileData,
+                    tall: parseInt(e.target.value),
+                  });
+                }}
                 className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
               />
             </div>
@@ -308,8 +365,18 @@ function ProfileSizeInfo({
           <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
             <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
               <input
-                data-cy="recipient-name-input"
                 placeholder={translateFunction("000 KG")}
+                value={userProfileData.weight}
+                maxLength={3}
+                max={200}
+                type="number"
+                inputMode="numeric"
+                onChange={(e) => {
+                  setUserProfileData({
+                    ...userProfileData,
+                    weight: parseInt(e.target.value),
+                  });
+                }}
                 className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
               />
             </div>

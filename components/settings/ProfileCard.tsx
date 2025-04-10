@@ -1,5 +1,7 @@
 import React from "react";
 import Qr from "public/svg/Userqr.svg";
+import { useSelector } from "node_modules/react-redux/es";
+import { translateFunction } from "utils/functions";
 function ProfileCard({
   goToProfile,
   goToProfileSize,
@@ -9,12 +11,9 @@ function ProfileCard({
   goToProfileSize: () => void;
   goToProfilePicture: () => void;
 }) {
-  let user = {
-    name: "Mohamad Katmawi",
-    phone: "+90 552 800 2000",
-    photo: null,
-    Size: null,
-  };
+  const userProfile = useSelector(
+    (state: StateInterface) => state.auth.userProfile
+  );
   return (
     <div
       className="w-full h-[138px] rounded-[15px] bg-[#F8F8F8] p-[12px] flex-row justify-between cursor-pointer"
@@ -31,13 +30,13 @@ function ProfileCard({
         <div className="flex-row items-end">
           <div className="flex-col mt-[5px]">
             <span className="medium text-[#1D1D1D] text-[14px]">
-              {user.name}
+              {userProfile?.name}
             </span>
             <span className="regular text-[#8D8D8D] text-[12px] mt-[2px]">
-              {user.phone}
+              + {userProfile?.phone}
             </span>
           </div>
-          <div className="flex-col items-center cursor-pointer">
+          <div className="flex-col items-center cursor-pointer ml-[10px] justify-center h-full">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16.413"
@@ -75,22 +74,32 @@ function ProfileCard({
                   data-name="Path 15413"
                   d="M15.332,7.332A.667.667,0,0,0,14.665,8a6.668,6.668,0,1,1-1.936-4.7.667.667,0,1,0,.945-.94A8,8,0,1,0,16,8a.667.667,0,0,0-.667-.667Z"
                   transform="translate(37.438 62.538)"
-                  fill="none"
+                  fill={
+                    userProfile?.is_phone_verified === 1 ? "#4cff79" : "none"
+                  }
                   stroke="#707070"
                   strokeWidth="0.4"
                 />
               </g>
             </svg>
-            <span className="text-[10px] regular text-[#FF5F61] mt-[4px]">
-              Verified Now
+            <span
+              className={`text-[10px] regular ${
+                userProfile?.is_phone_verified === 1
+                  ? "text-[#1d1d1d]"
+                  : "text-[#FF5F61] cursor-pointer"
+              } mt-[4px]`}
+            >
+              {userProfile?.is_phone_verified === 1
+                ? translateFunction("Verified")
+                : translateFunction("Verify Now")}
             </span>
           </div>
         </div>
         <span
-          className="cursor-pointer w-[50px] regular text-[12px] text-[#8D8D8D] self-navigate"
+          className="cursor-pointer whitespace-nowrap w-[50px] regular text-[12px] text-[#8D8D8D] self-navigate"
           onClick={() => goToProfileSize()}
         >
-          Add Size
+          {translateFunction("Add Size")}
         </span>
       </div>
       <div
@@ -100,10 +109,10 @@ function ProfileCard({
         }}
         onClick={() => goToProfilePicture()}
       >
-        {user.photo ? (
+        {userProfile?.image ? (
           <img
-            className="w-full h-full rounded-[12px]"
-            src={user.photo}
+            className="w-full h-full rounded-[12px] object-cover"
+            src={userProfile?.image}
             alt="user"
           />
         ) : (

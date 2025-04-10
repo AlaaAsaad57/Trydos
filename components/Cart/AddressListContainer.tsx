@@ -3,46 +3,38 @@ import React from "react";
 import { translateFunction } from "utils/functions";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import order from "services/order";
-
+export const GetAddressString = (location) => {
+  let str = "";
+  if (
+    location?.province &&
+    location?.province.length > 0 &&
+    location?.province !== "null"
+  )
+    str += `${location?.province}`;
+  if (location?.city && location?.city.length > 0 && location?.city !== "null")
+    str += ` | ${location?.city}`;
+  if (location?.town && location?.town.length > 0 && location?.town !== "null")
+    str += ` | ${location?.town}`;
+  if (
+    location?.street &&
+    location?.street?.length > 0 &&
+    location?.street !== "null"
+  )
+    str += ` | ${location.street}`;
+  if (
+    location?.building &&
+    location?.building?.length > 0 &&
+    location?.building !== "null"
+  )
+    str += ` | ${location?.building}`;
+  return str;
+};
 function AddressListContainer({ closeSelect, slideNext, Delete }) {
   const addressLists = useSelector(
     (state: StateInterface) => state.cart.addressLists
   );
   const dispatch = useDispatch();
-  const GetAddressString = (location) => {
-    let str = "";
-    if (
-      location?.province &&
-      location?.province.length > 0 &&
-      location?.province !== "null"
-    )
-      str += `${location?.province}`;
-    if (
-      location?.city &&
-      location?.city.length > 0 &&
-      location?.city !== "null"
-    )
-      str += ` | ${location?.city}`;
-    if (
-      location?.town &&
-      location?.town.length > 0 &&
-      location?.town !== "null"
-    )
-      str += ` | ${location?.town}`;
-    if (
-      location?.street &&
-      location?.street?.length > 0 &&
-      location?.street !== "null"
-    )
-      str += ` | ${location.street}`;
-    if (
-      location?.building &&
-      location?.building?.length > 0 &&
-      location?.building !== "null"
-    )
-      str += ` | ${location?.building}`;
-    return str;
-  };
+
   return (
     <>
       <div

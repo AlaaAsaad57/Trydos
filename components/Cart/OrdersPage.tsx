@@ -533,7 +533,11 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
 }
 
 export default OrdersPage;
-const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
+export const DeleteModalComponent = ({
+  closeModal,
+  deletedAddress,
+  slidePrev,
+}) => {
   const dispatch = useDispatch();
   const addressLists = useSelector(
     (state: StateInterface) => state.cart.addressLists
