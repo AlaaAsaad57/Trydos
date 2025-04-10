@@ -6,16 +6,10 @@ import userImage from "public/images/profileNo.png";
 import {
   _isStoreLastJson,
   AddToCartAnimation,
-  ExpiredUser,
   getCart,
-  getOldCart,
   getLang,
-  getUser,
-  UserID,
-  UserToken,
+  urlParams,
   WaitForCondition,
-  GetAppLanguage,
-  GetAppCountry,
 } from "utils/functions";
 import Smartlook from "smartlook-client";
 
@@ -42,6 +36,8 @@ import {
   StarttingSettingApi,
   UpdateCartApi,
 } from "models/Api";
+import auth from "./auth";
+import LocalizationServiceClass from "./localization";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -137,8 +133,8 @@ class HomeService {
       response.status === 401 ||
       response.status === 403
     ) {
-      if (getUser()) {
-        await ExpiredUser();
+      if (auth.getUser()) {
+        await auth.ExpiredUser();
       } else {
         await this.registerForExpire();
         await this.getCustomerInfo();
@@ -229,14 +225,14 @@ class HomeService {
       if (token) {
         localStorage.setItem("FB-DEVICE-TOKEN", token);
         setTimeout(async () => {
-          if (UserToken() && UserID()) {
+          if (auth.UserToken() && auth.UserID()) {
             await AxiosPost({
               url:
                 process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
               body: {
                 device_token: token,
-                user_id: UserID(),
-                auth_token: UserToken(),
+                user_id: auth.UserID(),
+                auth_token: auth.UserToken(),
               },
               title: "register firebase token",
             });
@@ -349,6 +345,7 @@ class HomeService {
             expired_at: repo.data.expires_at,
           })
         );
+
         localStorage.removeItem("customer-info");
         if (repo.data.user) {
           if (Smartlook.initialized())
@@ -368,48 +365,37 @@ class HomeService {
     }
   }
 
-  async getNextProduct({ offset, categories, boutiqueCategory }) {
-    const filterObj = store.getState().details.activeFilters;
+  async getNextProduct({
+    lang,
+    offset,
+    categories,
+    boutiqueCategory,
+    noFilter = false,
+  }) {
     const sizesAttr = store.getState().details.filters.sizesAttr;
-    let filters: any = {
+
+    const filterObj = store.getState().details.selectedFilter;
+
+    let filters = {
       categories: filterObj.categories.map((s) => s.slug),
-      prices: filterObj.prices?.pricesWord
-        ? [
-            `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
-          ]
-        : null,
+      prices:
+        filterObj.prices?.min >= 0
+          ? [
+              `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
+            ]
+          : null,
       brands: filterObj.brands.map((brand) => brand.slug),
       attributes: { ...sizesAttr, options: filterObj.sizes },
-
+      boutique_slug: categories,
+      lang: lang.split("-")[1],
+      country: lang.split("-")[0],
       searchText: filterObj.searchText,
+      colors: filterObj.colors.map((s) => s),
     };
-
     if (categories && categories !== "listing")
       filters = { ...filters, boutique_slug: [categories] };
 
-    let str = `${
-      filters.categories?.length > 0
-        ? `category_slugs=${JSON.stringify(filters.categories)}`
-        : ""
-    }${
-      filters.brands?.length > 0
-        ? `&brand_slugs=${JSON.stringify(filters.brands)}`
-        : ""
-    }${
-      filters.attributes?.options?.length > 0
-        ? `&attributes=${JSON.stringify(filters.attributes)}`
-        : ""
-    }${
-      filters.prices !== null ? `&price=${JSON.stringify(filters.prices)}` : ""
-    }${
-      filters.boutique_slug
-        ? `&boutique_slugs=${JSON.stringify(filters.boutique_slug)}`
-        : ""
-    }${
-      filters?.searchText?.length > 0
-        ? `&search_text=${filters.searchText}`
-        : ""
-    }`;
+    let str = urlParams({ filters, noProducts: false, noFilter: true });
     var details =
       boutiqueCategory !== "undefined"
         ? {
@@ -429,7 +415,7 @@ class HomeService {
     let url =
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
       (categories
-        ? "/api/products/search" +
+        ? "/api/products/searchInCatalog" +
           `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
         : LISTING_INFO_URL + `?${str}`);
     await fetch(
@@ -478,7 +464,7 @@ class HomeService {
     try {
       let rep = await fetch(
         process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-          "/api/products/search" +
+          "/api/products/searchInCatalog" +
           `?search_text=${search_text}${
             urlParams.size > 0 ? `&` + urlParams.toString() : ""
           }&limit=4&with_filter=false`,
@@ -522,7 +508,7 @@ class HomeService {
     try {
       let rep = await fetch(
         process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-          `/api/products/search?${
+          `/api/products/searchInCatalog?${
             search_text?.length > 0 ? `search_text=${search_text}` : ""
           }${
             urlParams.toString()?.length > 0 ? `&${urlParams.toString()}` : ""
@@ -737,8 +723,8 @@ class HomeService {
       {
         boutique_id: 144,
         topic: "boutique_created",
-        language_code: GetAppLanguage(),
-        country_iso: GetAppCountry(),
+        language_code: LocalizationServiceClass.GetAppLanguage(),
+        country_iso: LocalizationServiceClass.GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -750,8 +736,8 @@ class HomeService {
 
       {
         product_id: 7681,
-        language_code: GetAppLanguage(),
-        country_iso: GetAppCountry(),
+        language_code: LocalizationServiceClass.GetAppLanguage(),
+        country_iso: LocalizationServiceClass.GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -770,8 +756,8 @@ class HomeService {
           product_id: 7681,
           variant: "Blue-XXL",
           topic: "product_availability_7681",
-          language_code: GetAppLanguage(),
-          country_iso: GetAppCountry(),
+          language_code: LocalizationServiceClass.GetAppLanguage(),
+          country_iso: LocalizationServiceClass.GetAppCountry(),
         },
         { ...getHeader() }
       )
@@ -788,8 +774,8 @@ class HomeService {
       {
         product_id: 7681,
         topic: "product_comment_7681",
-        language_code: GetAppLanguage(),
-        country_iso: GetAppCountry(),
+        language_code: LocalizationServiceClass.GetAppLanguage(),
+        country_iso: LocalizationServiceClass.GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -803,8 +789,8 @@ class HomeService {
       {
         product_id: 7681,
         topic: "product_discount_7681",
-        language_code: GetAppLanguage(),
-        country_iso: GetAppCountry(),
+        language_code: LocalizationServiceClass.GetAppLanguage(),
+        country_iso: LocalizationServiceClass.GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -818,8 +804,8 @@ class HomeService {
       {
         category_id: 392,
         topic: "category_created",
-        language_code: GetAppLanguage(),
-        country_iso: GetAppCountry(),
+        language_code: LocalizationServiceClass.GetAppLanguage(),
+        country_iso: LocalizationServiceClass.GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -832,11 +818,11 @@ class HomeService {
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_product_before_stock_out",
       {
-        user_id: UserID(),
+        user_id: auth.UserID(),
         product_id: 7681,
         topic: "product_before_stock_out_7681",
-        language_code: GetAppLanguage(),
-        country_iso: GetAppCountry(),
+        language_code: LocalizationServiceClass.GetAppLanguage(),
+        country_iso: LocalizationServiceClass.GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -848,11 +834,11 @@ class HomeService {
       process.env.NEXT_PUBLIC_BACKEND_URL +
         "/firebase_device_tokens/send_product_when_change_in_price",
       {
-        user_id: UserID(),
+        user_id: auth.UserID(),
         product_id: 7681,
         topic: "product_when_change_in_price_7681",
-        language_code: GetAppLanguage(),
-        country_iso: GetAppCountry(),
+        language_code: LocalizationServiceClass.GetAppLanguage(),
+        country_iso: LocalizationServiceClass.GetAppCountry(),
       },
       { ...getHeader() }
     );
@@ -868,7 +854,7 @@ class HomeService {
   }
   async StoreNotificationProduct({ type_id, variant, product_id }) {
     let detail = {
-      user_id: UserID(),
+      user_id: auth.UserID(),
       product_id: product_id,
       notification_type_id: type_id,
       variant: variant,

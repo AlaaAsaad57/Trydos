@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 import "leaflet/dist/leaflet.css";
 import Map from "./Map";
-import axios from "axios";
+
 import { useParams } from "next/navigation";
 import Addressicon from "public/svg/cart/AddressIcon.svg";
 import AddressInfo from "public/svg/cart/AddressInfo.svg";
@@ -580,11 +580,13 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
     (state: StateInterface) => state.cart.addressDetails
   );
   const shake = (v) => {
-    document.querySelector(`.${v}`).scrollIntoView({ block: "end" });
-    document.querySelector(`.${v}`).classList.add("shake-anim");
-    setTimeout(() => {
-      document.querySelector(`.${v}`).classList.remove("shake-anim");
-    }, 1300);
+    if (document.querySelector(`.${v}`)) {
+      document.querySelector(`.${v}`)?.scrollIntoView({ block: "end" });
+      document.querySelector(`.${v}`)?.classList.add("shake-anim");
+      setTimeout(() => {
+        document.querySelector(`.${v}`)?.classList.remove("shake-anim");
+      }, 1300);
+    }
   };
   const validate = () => {
     if (

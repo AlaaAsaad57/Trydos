@@ -2,19 +2,13 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { ProductInterface } from "models/product";
-import {
-  filterProducts,
-  GetAppLanguage,
-  searchProducts,
-  translateFunction,
-  RoundPrice,
-} from "utils/functions";
+import { filterProducts, translateFunction, RoundPrice } from "utils/functions";
 import AsyncSelectCustom from "./AsyncSelectCustom";
 import Link from "next/link";
 import CompareLoadingWidget from "./CompareLoadingWidget";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
-
+import SearchService from "services/search";
 const ComparePage: React.FC = ({
   showInstantLoading = true,
 }: {
@@ -109,7 +103,7 @@ const ComparePage: React.FC = ({
   const [searchLoading, setSearchLoading] = useState(false);
   const search = async (inputValue: string) => {
     setSearchLoading(true);
-    const productsVar = await searchProducts({
+    const productsVar = await SearchService.searchProducts({
       searchText: inputValue,
     });
 

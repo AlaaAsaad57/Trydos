@@ -5,7 +5,6 @@ import {
   getConfiguredImage,
   Sendevent,
   translateFunction,
-  UserToken,
 } from "utils/functions";
 import NotifySVG from "public/svg/cart/NotifyCart.svg";
 import auth from "services/auth";
@@ -127,7 +126,7 @@ function AddToCartButton({
       );
   };
   const setNotify = () => {
-    if (UserToken())
+    if (auth.UserToken())
       dispatch({
         type: "NOTIFY-PRODUCT",
         payload: getSelectedVariantofProduct(),

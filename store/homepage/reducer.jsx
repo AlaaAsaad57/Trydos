@@ -1,5 +1,5 @@
-import { configureStory } from "utils/functions";
-import { getUserStories } from "utils/functions";
+import StoryServiceClass from "services/story";
+
 import { v4 as uuidv4 } from "uuid";
 const initialState = {
   language: "en",
@@ -128,7 +128,7 @@ const HomeReducer = (state = initialState, { type, payload }) => {
       if (index < state.storiesData.length - 1)
         return {
           ...state,
-          selectedStory: configureStory(
+          selectedStory: StoryServiceClass.configureStory(
             state.storiesData.filter((story, i) => i === index + 1)[0]
           ),
           renderStories: !state.renderStories,
@@ -143,7 +143,7 @@ const HomeReducer = (state = initialState, { type, payload }) => {
       if (index > 0)
         return {
           ...state,
-          selectedStory: configureStory(
+          selectedStory: StoryServiceClass.configureStory(
             state.storiesData.filter((story, i) => i === index - 1)[0]
           ),
           renderStories: !state.renderStories,
@@ -164,7 +164,7 @@ const HomeReducer = (state = initialState, { type, payload }) => {
           (user) => parseInt(user.id) === parseInt(payload.user_id)
         )
       ) {
-        arr.push({ ...getUserStories(), stories: [payload] });
+        arr.push({ ...StoryServiceClass.getUserStories(), stories: [payload] });
       }
       return {
         ...state,

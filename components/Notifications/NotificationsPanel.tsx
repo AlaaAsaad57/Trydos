@@ -192,7 +192,11 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
         className="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent min-h-[400px]"
       >
         {notifications.map((notification, index) => (
-          <NotificationItem key={index} notification={notification} />
+          <NotificationItem
+            key={index}
+            notification={notification}
+            onClose={onClose}
+          />
         ))}
         {loading && (
           <div

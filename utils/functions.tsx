@@ -1,5 +1,4 @@
 import translations from "public/translations/translations.js";
-import profilePicture from "public/images/profileNo.png";
 import { store } from "store";
 import Cookies from "js-cookie";
 
@@ -18,6 +17,7 @@ import {
   SimpleDetailsProductApi,
 } from "models/Api";
 import auth from "services/auth";
+import LocalizationServiceClass from "services/localization";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -28,7 +28,7 @@ export function translateFunction(key: string, language?: string | string[]) {
   if (typeof window !== "undefined") {
     languageUrl = window.location.pathname.split("/")[1].split("-")[1];
   } else {
-    languageUrl = GetAppLanguage();
+    languageUrl = LocalizationServiceClass.GetAppLanguage();
   }
 
   // Ensure translations object exists and has the requested language
@@ -43,123 +43,12 @@ export function translateFunction(key: string, language?: string | string[]) {
   return translations[languageUrl]?.[key] || key;
 }
 
-export const getStoriesHeaders = () => {
-  const token = SSRDetect() && localStorage.getItem("STORIES-TOKEN");
-
-  return {
-    headers: {
-      Authentication: `Bearer ${token}`,
-      Authorization: `Bearer ${token}`,
-    },
-
-    next: {
-      tags: ["stories"],
-      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-    },
-  };
-};
-export const GeneralCahcedHeader = (apiName) => {
-  return {
-    next: {
-      tags: [apiName],
-      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-    },
-  };
-};
-export const configureStory = (story) => {
-  let returnedData = [];
-  story?.stories?.map((storyItem) => {
-    if (storyItem.full_video_path) {
-      let vid = storyItem.full_video_path.replace(
-        "/upload",
-        "/upload/w_700/f_webm/q_auto"
-      );
-      returnedData.push({
-        url: vid,
-        FixedUrl: vid,
-        is_seen: storyItem.is_seen,
-        id: storyItem.id,
-        header: {
-          heading: story.name ?? story.mobile_phone ?? "Unknown",
-          subheading: "Posted 30m ago",
-          profileImage: story.photo_path ?? profilePicture.src,
-        },
-        duration: 5000,
-        preloadResource: true,
-        type: "video",
-      });
-    } else if (storyItem.photo_path) {
-      let img = storyItem.photo_path.replace(
-        "/upload",
-        "/upload/w_800/f_avif/q_auto"
-      );
-      returnedData.push({
-        url: img,
-        FixedUrl: img,
-        is_seen: storyItem.is_seen,
-        duration: 5000,
-        id: storyItem.id,
-        header: {
-          heading: story.name ?? story.mobile_phone ?? "Unknown",
-          subheading: "Posted 30m ago",
-          profileImage: story.photo_path ?? profilePicture.src,
-        },
-        preloadResource: true,
-        type: "image",
-      });
-    }
-  });
-  return { ...story, stories: returnedData };
-};
-export const getThumb = (url, isVideo) => {
-  if (url) {
-    if (isVideo) {
-      return url.replace("/upload", "/upload/h_194/f_avif/q_100");
-    } else return url.replace("/upload", "/upload/h_194/f_avif/q_100");
-  }
-};
-export const getUser = () => {
-  return (
-    localStorage.getItem("USER") && JSON.parse(localStorage.getItem("USER"))
-  );
-};
 export const getUserChat = () => {
   if (typeof window !== "undefined")
     return (
       localStorage.getItem("USER-CHAT") &&
       JSON.parse(localStorage.getItem("USER-CHAT"))
     );
-};
-export const UserToken = () => {
-  return (
-    localStorage.getItem("MARKET-TOKEN") ||
-    localStorage.getItem("DEVICE-TOKEN") ||
-    false
-  );
-};
-export const UserID = () => {
-  return (
-    (localStorage.getItem("USER") &&
-      JSON.parse(localStorage.getItem("USER"))?.id) ||
-    (localStorage.getItem("guest-user") &&
-      JSON.parse(localStorage.getItem("guest-user"))?.id) ||
-    false
-  );
-};
-export const User = () => {
-  return (
-    (localStorage.getItem("USER") &&
-      JSON.parse(localStorage.getItem("USER"))) ||
-    (localStorage.getItem("guest-user") &&
-      JSON.parse(localStorage.getItem("guest-user"))) ||
-    false
-  );
-};
-export const getUserStories = () => {
-  return (
-    localStorage.getItem("USER-STORIES") &&
-    JSON.parse(localStorage.getItem("USER-STORIES"))
-  );
 };
 
 export const _isStoreLastJson = () => {
@@ -202,12 +91,7 @@ export const Sendevent = async (params: {
     console.error(e);
   }
 };
-export const GetAppLanguage = () => {
-  return store.getState().homepage.language;
-};
-export const GetAppCountry = () => {
-  return store.getState().homepage.country;
-};
+
 export function encode_utf8(params: {
   s: string;
   element: NodeListOf<Element>;
@@ -558,14 +442,14 @@ export const filterProducts = async ({
   };
   let str = "";
   if (reset) {
-    str = `/api/products/search?limit=4&${
+    str = `/api/products/searchInCatalog?limit=4&${
       boutiqueId !== "listing" &&
       boutiqueId &&
       `boutique_slugs=${JSON.stringify([boutiqueId])}`
     }`;
   } else {
     let urlParam = urlParams({ filters: filters, noProducts: false });
-    str = `/api/products/search?${urlParam}`;
+    str = `/api/products/searchInCatalog?${urlParam}`;
   }
   let product: FilterProductApi = await AxiosCacheApi({
     url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str,
@@ -594,17 +478,7 @@ export const filterProducts = async ({
   callback(product.data.products);
   return product.data.products;
 };
-export const searchProducts = async ({ searchText }) => {
-  let product: FilterProductApi["data"] = await AxiosGet({
-    url:
-      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-      `/api/products/search?limit=4&search_text=${searchText}`,
-    title: "Search Products",
-  });
-  console.log(product);
-  return product.products;
-};
-const urlParams = ({ filters, noProducts }) => {
+export const urlParams = ({ filters, noProducts, noFilter = false }) => {
   const PriceFiltered = store.getState().details.PriceFiltered;
   let urlParams = new URLSearchParams();
   if (filters.categories.length > 0) {
@@ -627,6 +501,9 @@ const urlParams = ({ filters, noProducts }) => {
   }
   if (noProducts) {
     urlParams.set("with_products", "false");
+  }
+  if (noFilter) {
+    urlParams.set("with_filters", "false");
   }
   if (filters.colors && filters?.colors.length > 0) {
     urlParams.set("colors", JSON.stringify(filters.colors));
@@ -671,7 +548,7 @@ export const UpdateFilter = async ({
       colors: filterObj.colors.map((s) => s),
     };
     let urlParam = urlParams({ filters: filters, noProducts: true });
-    let str = `/api/products/search?${urlParam}`;
+    let str = `/api/products/searchInCatalog?${urlParam}`;
 
     let product: FilterProductApi = await AxiosCacheApi({
       url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str,
@@ -798,23 +675,7 @@ export async function fetchWithRetry(url, options, title) {
     }
   }
 }
-export const getSearchOptions = async () => {
-  let categories: FilterProductApi["data"] = await AxiosGet({
-    url:
-      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-      "/api/products/search?with_products=false",
-    title: "get Search Filter Options Request",
-  });
 
-  return [
-    {
-      categories: categories?.categories ?? [],
-      brands: categories?.brands ?? [],
-      boutiques: categories?.boutiques ?? [],
-    },
-    {},
-  ];
-};
 export const getOldCart = async () => {
   if (
     !localStorage.getItem("DEVICE-TOKEN") &&
@@ -917,20 +778,12 @@ export const AddToCartAnimation = () => {
 export const LogError = (error, url, href) => {
   axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile_error_log/store`, {
     error_description: JSON.stringify(error),
-    token: UserToken(),
+    token: auth.UserToken(),
     url: href,
     backend_url: url,
   });
 };
-export const ExpiredUser = async () => {
-  if (getUser()?.phone) localStorage.setItem("has-phone", getUser()?.phone);
-  await home.registerForExpire(getUser().id);
 
-  auth.cancelAuth();
-  localStorage.removeItem("MARKET-TOKEN");
-  localStorage.removeItem("USER");
-  Cookies.remove("MARKET-TOKEN");
-};
 export const WaitForCondition = async () => {
   return new Promise((resolve, reject) => {
     const interval = setInterval(() => {

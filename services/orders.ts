@@ -3,13 +3,16 @@ import { AxiosGet } from "utils/AxiosApi";
 
 export const fetchOrders = async (
   page: number,
-  pageSize: number = 8
+  pageSize: number = 8,
+  selectedStatus: string = ""
 ): Promise<OrdersResponse> => {
   try {
     const response = await AxiosGet({
       url:
         process.env.NEXT_PUBLIC_BACKEND_URL +
-        `/customer/order/list?offset=${page}&limit=${pageSize}`,
+        `/customer/order/list?offset=${page}&limit=${pageSize}${
+          selectedStatus ? `&order_status=${selectedStatus}` : ""
+        }`,
       title: "Fetch Orders",
     });
     return response;

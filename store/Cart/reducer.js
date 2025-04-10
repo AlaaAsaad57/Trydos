@@ -15,6 +15,7 @@ const getCountry = () => {
 const initialState = {
   orderLoading: false,
   cart: [],
+  selectedOrder: null,
   addressLists: [],
   center: null,
   addressDetails: {
@@ -100,6 +101,12 @@ const openCart = (val) => {
 
 export const CartReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "ORDER-DETAILS": {
+      return {
+        ...state,
+        selectedOrder: payload,
+      };
+    }
     case "CRYPTO_CARD_PAYMENT": {
       return {
         ...state,
@@ -110,7 +117,7 @@ export const CartReducer = (state = initialState, { type, payload }) => {
     case "WALLET_BALANCE-USER": {
       return {
         ...state,
-        balance: state?.wallet?.total_wallet_balance || 0,
+        balance: state?.wallet?.wallet_balance || 0,
       };
     }
     case "COD-USER": {

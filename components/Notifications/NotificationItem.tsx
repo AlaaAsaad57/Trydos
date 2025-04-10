@@ -1,17 +1,30 @@
 import React from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { NotificationItem as NotificationItemType } from "../../types/notifications";
 import { translateFunction } from "utils/functions";
 
+import { useDispatch } from "react-redux/es";
+
 interface NotificationItemProps {
   notification: NotificationItemType;
+  onClose: () => void;
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({
   notification,
+  onClose,
 }) => {
   const { lang } = useParams();
+  const dispatch = useDispatch();
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const parsedDescription = React.useMemo(() => {
     try {
       return JSON.parse(notification.description);
@@ -96,6 +109,29 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
           </Link>
         );
       default:
+        if (parsedDescription.type?.startsWith("product hurry up")) {
+          return (
+            <div
+              onClick={() => {
+                window.history.pushState({ isPopup: true }, "open Cart");
+                dispatch({ type: "ENABLE-CART", payload: true });
+
+                const newParams = new URLSearchParams(searchParams);
+                newParams.set("cart", "true");
+
+                // Use router.push with pathname and updated query
+                // @ts-ignore
+                router.push(`${pathname}?${newParams.toString()}`, {
+                  // @ts-ignore
+                  shallow: true,
+                });
+                onClose();
+              }}
+            >
+              {content}
+            </div>
+          );
+        }
         if (parsedDescription.type?.startsWith("product")) {
           return (
             <Link
@@ -118,6 +154,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
             </Link>
           );
         }
+
         return content;
     }
   };

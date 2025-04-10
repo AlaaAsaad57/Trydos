@@ -3,7 +3,8 @@
 import { CurrencyApi } from "models/Api";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
-import { GetAppLanguage, RoundPrice } from "utils/functions";
+import LocalizationServiceClass from "services/localization";
+import { RoundPrice } from "utils/functions";
 
 function PriceLabel({
   price_formatted,
@@ -30,7 +31,9 @@ function PriceLabel({
   };
   return (
     <div
-      className={`${GetAppLanguage() === "ar" && "dir-rtl"} price-label flex`}
+      className={`${
+        LocalizationServiceClass.GetAppLanguage() === "ar" && "dir-rtl"
+      } price-label flex`}
     >
       {offer_price >= 0 && (
         <span className="old-price relative f-12 color-dark-gray light-text">

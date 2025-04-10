@@ -1,9 +1,9 @@
 import StoryAvatar from "./StoryAvatar";
 import Story from "./Story";
 import profilePicture from "public/images/profileNo.png";
-import { configureStory } from "utils/functions";
+
 import { GetUnviewedStory } from "store/homepage/actions";
-import { Story as StoryInterface } from "models/story";
+import StoryServiceClass from "services/story";
 
 function StoryElement({ index, story, select }) {
   return (
@@ -16,7 +16,7 @@ function StoryElement({ index, story, select }) {
         index={1}
         media={story.stories[GetUnviewedStory(story)]}
         Name={story.name ?? story.mobile_phone ?? "Unknown"}
-        onClick={() => select(configureStory(story))}
+        onClick={() => select(StoryServiceClass.configureStory(story))}
       />
     </div>
   );

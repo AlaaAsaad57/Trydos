@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import {
-  GetAppLanguage,
   getCart,
   RoundPrice,
   Sendevent,
@@ -24,6 +23,7 @@ import PlaceOrderButtons from "./PlaceOrderButtons";
 
 import { toast } from "react-toastify";
 import Spinner from "components/global/Spinner";
+import LocalizationServiceClass from "services/localization";
 
 const DeleteIcon = () => {
   return (
@@ -533,7 +533,11 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
 }
 
 export default OrdersPage;
-const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
+export const DeleteModalComponent = ({
+  closeModal,
+  deletedAddress,
+  slidePrev,
+}) => {
   const dispatch = useDispatch();
   const addressLists = useSelector(
     (state: StateInterface) => state.cart.addressLists
@@ -773,7 +777,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
       }, 1300);
     }
   };
-  const wallet = useSelector((state: StateInterface) => state.cart.wallet);
+
   const totalBalance = () => {
     let val = 0;
     orderData.payment.map((s) => {
@@ -879,7 +883,8 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
               <span>{translateFunction("Confirm Shipping & Payment")}</span>
               <span
                 className={`text-[#FEFEFE] text-[14px] medium ${
-                  GetAppLanguage() === "ar" && "dir-rtl"
+                  LocalizationServiceClass.GetAppLanguage() === "ar" &&
+                  "dir-rtl"
                 } `}
                 data-cy="Number-Of-Products-Required"
               >

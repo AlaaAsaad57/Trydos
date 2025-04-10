@@ -1,9 +1,8 @@
 import { useState } from "react";
-
-import { getThumb } from "utils/functions";
 import { errorPNG } from "utils/AxiosApi";
 import Loader from "components/global/Loader";
 import Image from "next/image";
+import StoryServiceClass from "services/story";
 function Story({
   onClick,
   media,
@@ -40,7 +39,7 @@ function Story({
             e.currentTarget.onerror = null;
           }}
           unoptimized
-          src={getThumb(
+          src={StoryServiceClass.getThumb(
             media.full_video_path || media.photo_path,
             media.full_video_path
           )}

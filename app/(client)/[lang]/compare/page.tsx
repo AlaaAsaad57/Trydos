@@ -22,7 +22,6 @@ interface Props {
   searchParams: any;
 }
 async function Page({ params, searchParams }: Props) {
-  console.log(searchParams);
   return (
     <>
       <CustomNavbarServer lang={params.lang} />

@@ -2,8 +2,14 @@ export interface OrderItem {
   id: number;
   customer_id: number;
   payment_status: string;
-  order_status: string;
-  payment_method: string;
+  order_status: {
+    value: string;
+    label: string;
+  };
+  payment_method: {
+    value: string;
+    label: string;
+  };
   transaction_ref: string;
   order_amount: number;
   partial_payment_by_wallet: number;

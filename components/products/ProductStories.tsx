@@ -4,7 +4,7 @@ import StoreisIcon from "public/svg/product/StoreisIcon.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { SelectStory } from "store/homepage/actions";
-import { configureStory, getThumb, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import StoryServiceClass from "services/story";
 import StoriesContainer from "components/Home/Stories/NewStories";
 import InfoWindow from "./InfoWindow";
@@ -101,12 +101,14 @@ function ProductStories() {
             key={index}
             className="product-story relative"
             data-cy="Story"
-            onClick={() => setSelectStory(configureStory(story))}
+            onClick={() =>
+              setSelectStory(StoryServiceClass.configureStory(story))
+            }
           >
             <img
               width={135}
               height={194}
-              src={getThumb(
+              src={StoryServiceClass.getThumb(
                 story.stories[0].full_video_path || story.stories[0].photo_path,
                 Boolean(story.stories[0].full_video_path)
               )}

@@ -63,7 +63,7 @@ function AuthNavSection({ onClick }: { onClick: () => void }) {
           {user?.name}
         </span>
       </div>
-      <UserAvatar onClick={onClick} avatar={user?.avatar?.src ?? user.avatar} />
+      <UserAvatar onClick={onClick} avatar={user?.image} />
     </>
   );
 }

@@ -281,5 +281,64 @@ class AuthService {
       return data;
     } catch (error) {}
   }
+  getUser() {
+    return (
+      localStorage.getItem("USER") && JSON.parse(localStorage.getItem("USER"))
+    );
+  }
+  UserToken() {
+    return (
+      localStorage.getItem("MARKET-TOKEN") ||
+      localStorage.getItem("DEVICE-TOKEN") ||
+      false
+    );
+  }
+  UserID() {
+    return (
+      (localStorage.getItem("USER") &&
+        JSON.parse(localStorage.getItem("USER"))?.id) ||
+      (localStorage.getItem("guest-user") &&
+        JSON.parse(localStorage.getItem("guest-user"))?.id) ||
+      false
+    );
+  }
+  User() {
+    return (
+      (localStorage.getItem("USER") &&
+        JSON.parse(localStorage.getItem("USER"))) ||
+      (localStorage.getItem("guest-user") &&
+        JSON.parse(localStorage.getItem("guest-user"))) ||
+      false
+    );
+  }
+  async ExpiredUser() {
+    if (this.getUser()?.phone)
+      localStorage.setItem("has-phone", this.getUser()?.phone);
+    await home.registerForExpire(this.getUser().id);
+    this.cancelAuth();
+    localStorage.removeItem("MARKET-TOKEN");
+    localStorage.removeItem("USER");
+    Cookies.remove("MARKET-TOKEN");
+  }
+  async UpdateProfile(userObj) {
+    let res = await AxiosPost({
+      url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-profile",
+      body: userObj,
+      title: "Update Profile",
+    });
+    return res;
+  }
+  async UpdateProfileImage(image) {
+    let formData = new FormData();
+    formData.append("image", image);
+    formData.append("path", "customers/profile");
+
+    let res = await AxiosPost({
+      url: process.env.NEXT_PUBLIC_BACKEND_URL + "/storage/storage-upload",
+      body: formData,
+      title: "Update Profile Image",
+    });
+    return res;
+  }
 }
 export default new AuthService();

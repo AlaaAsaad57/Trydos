@@ -11,11 +11,11 @@ export const changeAppLanguage = (language) => {
   changeToken({ key: "lang", value: language });
   return { type: "APP-LANGUAGE", payload: language };
 };
-export const changeAppCountry = (iso) => {
+export const changeAppCountry = async (iso) => {
   // Cookies.set("country", iso, {
   //   expires: 365,
   // });
-  changeToken({ key: "country", value: iso });
+  await changeToken({ key: "country", value: iso });
   return { type: "APP-COUNTRY", payload: iso };
 };
 

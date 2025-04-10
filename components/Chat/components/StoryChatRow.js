@@ -1,12 +1,12 @@
-import { configureStory, getThumb } from "../../../utils/functions";
 import { errorPNG } from "utils/AxiosApi";
 import Image from "next/image";
+import StoryServiceClass from "services/story";
 function StoryChatRow({ story, index, viewedStory, stories, select }) {
   return (
     <div
       className="call-conversation-item"
       style={{ cursor: "pointer" }}
-      onClick={() => select(configureStory(story))}
+      onClick={() => select(StoryServiceClass.configureStory(story))}
     >
       <Image
         className="thumb-img"
@@ -27,7 +27,7 @@ function StoryChatRow({ story, index, viewedStory, stories, select }) {
           e.currentTarget.src = errorPNG;
           e.currentTarget.onerror = null;
         }}
-        src={getThumb(
+        src={StoryServiceClass.getThumb(
           viewedStory.full_video_path || viewedStory.photo_path,
           viewedStory.full_video_path
         )}

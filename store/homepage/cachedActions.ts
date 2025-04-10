@@ -266,7 +266,7 @@ export const getListingData = async ({
       };
     }
 
-    let str = `/api/products/search?lang=${language}&limit=4${
+    let str = `/api/products/searchInCatalog?lang=${language}&limit=4${
       obj.categories?.length > 0
         ? `&category_slugs=${JSON.stringify(
             obj.categories.split(",").map((s) => s)
@@ -355,13 +355,13 @@ export const getListingData = async ({
     let url =
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
       (productCategory
-        ? `/api/products/search?lang=${language}&limit=4` +
+        ? `/api/products/searchInCatalog?lang=${language}&limit=4` +
           `&category=${productCategory}${
             !str.includes("listing")
               ? `&boutique_slugs=${JSON.stringify(str)}`
               : ""
           }`
-        : `/api/products/search?lang=${language}&limit=4` +
+        : `/api/products/searchInCatalog?lang=${language}&limit=4` +
           `${
             !str.includes("listing")
               ? `&boutique_slugs=${JSON.stringify(str)}`

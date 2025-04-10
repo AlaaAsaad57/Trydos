@@ -150,8 +150,8 @@ function PaymentMethod() {
                     setActive={() => {
                       if (
                         !(
-                          wallet?.total_wallet_balance >= cart.total &&
-                          wallet.total_wallet_balance >= cart.total_cash
+                          wallet?.wallet_balance >= cart.total &&
+                          wallet.wallet_balance >= cart.total_cash
                         )
                       ) {
                         if (!orderLoading) {
@@ -220,7 +220,7 @@ function PaymentMethod() {
                           orderData?.payment?.filter(
                             (one) => one.id === 2 || one.id === 3
                           ).length === 1 &&
-                          wallet?.total_wallet_balance < cart.total_cash
+                          wallet?.wallet_balance < cart.total_cash
                         ) {
                           dispatch({
                             type: "WALLET_BALANCE-USER",
@@ -229,7 +229,7 @@ function PaymentMethod() {
                           setOrderData({
                             payment: [
                               ...orderData.payment,
-                              { id: 1, balance: wallet?.total_wallet_balance },
+                              { id: 1, balance: wallet?.wallet_balance },
                             ],
                           });
                         } else {
@@ -251,7 +251,7 @@ function PaymentMethod() {
                               payment: [
                                 {
                                   id: 1,
-                                  balance: wallet?.total_wallet_balance,
+                                  balance: wallet?.wallet_balance,
                                 },
                               ],
                             });
@@ -272,8 +272,8 @@ function PaymentMethod() {
                     setActive={() => {
                       if (
                         !(
-                          wallet?.total_wallet_balance >= cart.total &&
-                          wallet.total_wallet_balance >= cart.total_cash
+                          wallet?.wallet_balance >= cart.total &&
+                          wallet.wallet_balance >= cart.total_cash
                         )
                       ) {
                         if (!orderLoading) {
@@ -338,8 +338,8 @@ function PaymentMethod() {
                     setActive={() => {
                       if (
                         !(
-                          wallet?.total_wallet_balance >= cart.total &&
-                          wallet.total_wallet_balance >= cart.total_cash
+                          wallet?.wallet_balance >= cart.total &&
+                          wallet.wallet_balance >= cart.total_cash
                         )
                       ) {
                         if (!orderLoading) {
@@ -629,10 +629,10 @@ const TryDosWalletInput = ({ active, setActive }) => {
   return (
     <div
       onClick={() => {
-        if (wallet?.total_wallet_balance > 0) setActive();
+        if (wallet?.wallet_balance > 0) setActive();
       }}
       className={`${
-        wallet?.total_wallet_balance === 0 && "opacity-45"
+        wallet?.wallet_balance === 0 && "opacity-45"
       } w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
       style={{
         border: active && "1px solid rgb(56 144 255 / 51%)",
@@ -658,7 +658,7 @@ const TryDosWalletInput = ({ active, setActive }) => {
           {translateFunction("Your Balance")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: wallet?.total_wallet_balance || 0 })}{" "}
+          {RoundPrice({ num: wallet?.wallet_balance || 0 })}{" "}
           {currency_symbol?.symbol}
         </span>
       </div>

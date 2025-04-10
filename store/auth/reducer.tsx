@@ -13,10 +13,17 @@ const initialState = {
     whatsapp: 0,
     firebase: 0,
   },
+  userProfile: null,
 };
 
 const AuthReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "EDIT_USER_INFO": {
+      return {
+        ...state,
+        userProfile: { ...state.userProfile, ...payload },
+      };
+    }
     case "CANCEL-AUTH": {
       return {
         ...state,
@@ -50,13 +57,12 @@ const AuthReducer = (state = initialState, { type, payload }) => {
         verficationID: payload,
       };
     }
-    // case "UPDATE_USER_INFO": {
-    //   return {
-    //     ...state,
-    //     user: { ...payload, already_exists: state.user?.already_exists },
-    //     Tempuser: { ...payload, already_exists: state.user?.already_exists },
-    //   };
-    // }
+    case "UPDATE_USER_INFO": {
+      return {
+        ...state,
+        userProfile: payload,
+      };
+    }
     case "GET_FIREBASE_SETTINGS": {
       return {
         ...state,

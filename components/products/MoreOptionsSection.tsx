@@ -2,15 +2,12 @@ import { useParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import home from "services/home";
-import {
-  addToCompare,
-  GetAppLanguage,
-  translateFunction,
-} from "utils/functions";
+import { addToCompare, translateFunction } from "utils/functions";
 import CheckIcon from "public/svg/CheckIcon.svg";
 import Spinner from "components/global/Spinner";
 import { toast } from "react-toastify";
 import { useRouter } from "next-nprogress-bar";
+import LocalizationServiceClass from "services/localization";
 function MoreOptionsSection() {
   let { lang } = useParams();
   // @ts-ignore
@@ -62,7 +59,7 @@ function MoreOptionsSection() {
     localStorage.getItem("f_p") === SelectedProduct.slug ||
       localStorage.getItem("s_p") === SelectedProduct.slug
   );
-  let language = GetAppLanguage();
+  let language = LocalizationServiceClass.GetAppLanguage();
   const AddedToCompare = () => {
     return addedToCompare;
   };

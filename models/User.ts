@@ -9,7 +9,7 @@ export interface UserInterface {
   auth_token?: string;
   username?: string;
   name: string;
-  avatar: string | null | avatarInterface;
+  image?: string | null;
   idToken: string;
   passowrd?: string;
   already_exists?: boolean;

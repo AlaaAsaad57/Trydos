@@ -1,12 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
-import {
-  GetAppLanguage,
-  getCart,
-  getUser,
-  RoundPrice,
-  translateFunction,
-} from "utils/functions";
+import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import ConfirmMobile from "./ConfirmMobile";
 import { useParams } from "next/navigation";
 import { useSwipeable } from "react-swipeable";
@@ -16,6 +10,8 @@ import ShippingIcon from "public/svg/cart/Shipping.svg";
 import { AxiosGet } from "utils/AxiosApi";
 import Spinner from "components/global/Spinner";
 import { toast } from "react-toastify";
+import auth from "services/auth";
+import LocalizationServiceClass from "services/localization";
 function OrderButton({ close, toOrders }) {
   let { lang } = useParams();
   // @ts-ignore
@@ -429,7 +425,7 @@ function OrderButton({ close, toOrders }) {
               if (cart.cart.length === 0) {
                 close();
               } else {
-                if (!getUser()) {
+                if (!auth.getUser()) {
                   setOption(true);
                 } else {
                   GoToOrders();
@@ -462,17 +458,24 @@ function OrderButton({ close, toOrders }) {
                     {cart.cart.length === 0 ? (
                       <>
                         <span className="text-[#FEFEFE] text-[18px] medium ">
-                          {translate("Back To HomePage", GetAppLanguage())}
+                          {translate(
+                            "Back To HomePage",
+                            LocalizationServiceClass.GetAppLanguage()
+                          )}
                         </span>
                       </>
                     ) : (
                       <>
                         <span className="text-[#FEFEFE] text-[18px] medium ">
-                          {translate("Confirm And Continue", GetAppLanguage())}
+                          {translate(
+                            "Confirm And Continue",
+                            LocalizationServiceClass.GetAppLanguage()
+                          )}
                         </span>
                         <span
                           className={`text-[#FEFEFE] text-[14px] medium ${
-                            GetAppLanguage() === "ar" && "dir-rtl"
+                            LocalizationServiceClass.GetAppLanguage() ===
+                              "ar" && "dir-rtl"
                           } `}
                         >
                           {cart.cart.length} {translate("items")}{" "}
