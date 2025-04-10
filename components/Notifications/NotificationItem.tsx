@@ -21,6 +21,10 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   onClose,
 }) => {
   const { lang } = useParams();
+  const dispatch = useDispatch();
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const parsedDescription = React.useMemo(() => {
     try {
       return JSON.parse(notification.description);
@@ -96,10 +100,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         </div>
       </div>
     );
-    const dispatch = useDispatch();
-    const pathname = usePathname();
-    const router = useRouter();
-    const searchParams = useSearchParams();
+
     switch (parsedDescription.type) {
       case "boutique created":
         return (
