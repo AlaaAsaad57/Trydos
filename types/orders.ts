@@ -6,7 +6,10 @@ export interface OrderItem {
     value: string;
     label: string;
   };
-  payment_method: string;
+  payment_method: {
+    value: string;
+    label: string;
+  };
   transaction_ref: string;
   order_amount: number;
   partial_payment_by_wallet: number;

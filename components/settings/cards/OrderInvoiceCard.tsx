@@ -6,7 +6,10 @@ import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
 
 interface OrderInvoiceCardProps {
   amount: number;
-  payments: string;
+  payments: {
+    value: string;
+    label: string;
+  };
 }
 
 const OrderInvoiceCard: React.FC<OrderInvoiceCardProps> = ({
@@ -140,10 +143,14 @@ const OrderInvoiceCard: React.FC<OrderInvoiceCardProps> = ({
 };
 
 export default OrderInvoiceCard;
-const PaymentsIcon = ({ payments }: { payments: string }) => {
-  const showPaymentIcon = (payment: string) => {
-    switch (payment) {
-      case "cod":
+const PaymentsIcon = ({
+  payments,
+}: {
+  payments: { value: string; label: string };
+}) => {
+  const showPaymentIcon = (payment: { value: string; label: string }) => {
+    switch (payment.value) {
+      case "cash_on_delivery":
         return <WalletIcon />;
       case "trydos_wallet":
         return <WalletIcon />;
