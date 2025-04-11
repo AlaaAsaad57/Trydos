@@ -64,81 +64,6 @@ const OrderProductSlider = ({ products }: { products: OrderDetail[] }) => {
             }}
           />
         </div>
-      </div>
-
-      <div className="space-y-3" data-cy="one-order-body">
-        {order.details.map((detail) => (
-          <NextLink
-            data-cy="one-order-body-container"
-            key={detail.id}
-            className="flex gap-3"
-            href={`/${lang}/products/${detail.product_details.slug}`}
-          >
-            <div
-              className="relative w-20 h-20 flex-shrink-0"
-              data-cy="one-order-body-img-container"
-            >
-              <Image
-                data-cy="one-order-body-img"
-                src={detail.product_details.thumbnail}
-                alt={detail.product_details.name}
-                fill
-                className="object-cover rounded-md"
-              />
-            </div>
-            <div className="flex-1" data-cy="one-order-body-detail">
-              <div
-                className="text-sm font-medium text-gray-900 hover:text-blue-600"
-                data-cy="one-order-body-detailName"
-              >
-                {detail.product_details.name}
-              </div>
-              <div
-                className="mt-1 text-sm text-gray-500"
-                data-cy="one-order-body-qtyCurr"
-              >
-                {detail.qty} x {currency.symbol}
-                {RoundPrice({ num: detail.price_after_discount })}
-              </div>
-              {detail.variation && (
-                <div className="mt-1 text-xs text-gray-400">
-                  {Object.entries(detail.variation)
-                    .map(([key, value]) => `${key}: ${value}`)
-                    .join(", ")}
-                </div>
-              )}
-            </div>
-          </NextLink>
-        ))}
-      </div>
-
-      <div
-        className="mt-3 pt-3 border-t border-gray-100"
-        data-cy="one-order-total-shiping"
-      >
-        <div className="flex justify-between text-sm" data-cy="one-order-total">
-          <span className="text-gray-500" data-cy="one-order-totalText">
-            {translateFunction("Total")}
-          </span>
-          <span className="font-medium" data-cy="one-order-totalPrice">
-            {currency.symbol}
-            {RoundPrice({ num: order.order_amount + order.shipping_cost })}
-          </span>
-        </div>
-        {order.shipping_cost > 0 && (
-          <div
-            className="flex justify-between text-sm mt-1"
-            data-cy="one-order-shiping"
-          >
-            <span className="text-gray-500" data-cy="one-order-shipingText">
-              {translateFunction("Shipping")}
-            </span>
-            <span className="font-medium" data-cy="one-order-shipingPrice">
-              {currency.symbol}
-              {RoundPrice({ num: order.shipping_cost })}
-            </span>
-          </div>
-        )}
       ))}
     </div>
   );
@@ -439,7 +364,6 @@ const OrderInvoice = ({
         <span>{RoundPrice({ num: invoice.total })}</span>
         <span className="ml-[2px]">{currency?.symbol}</span>
       </div>
-      <OrderProductSlider products={order.details} />
     </div>
   );
 };
