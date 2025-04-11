@@ -393,7 +393,7 @@ class HomeService {
       colors: filterObj.colors.map((s) => s),
     };
     if (categories && categories !== "listing")
-      filters = { ...filters, boutique_slug: [categories] };
+      filters = { ...filters, boutique_slug: categories };
 
     let str = urlParams({ filters, noProducts: false, noFilter: true });
     var details =
@@ -419,7 +419,7 @@ class HomeService {
           `?${boutiqueCategory ? `category=${boutiqueCategory}&` : ""}${str}`
         : LISTING_INFO_URL + `?${str}`);
     await fetch(
-      url + `${offset ? `&offset=[${offset}]` : ""}&limit=${4}`,
+      url + `${offset ? `&offset=[${offset}]` : ""}&limit=${8}`,
 
       {
         method: "GET",

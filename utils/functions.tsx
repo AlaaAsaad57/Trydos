@@ -487,11 +487,14 @@ export const urlParams = ({ filters, noProducts, noFilter = false }) => {
   if (filters.brands.length > 0) {
     urlParams.set("brand_slugs", JSON.stringify(filters.brands));
   }
-  if (filters.boutique_slug.length > 0 && filters.boutique_slug !== "listing") {
+  if (
+    filters?.boutique_slug?.length > 0 &&
+    filters.boutique_slug !== "listing"
+  ) {
     urlParams.set("boutique_slugs", JSON.stringify([filters.boutique_slug]));
   }
   if (filters?.attributes?.options?.length > 0) {
-    urlParams.set("attributes", JSON.stringify(filters.attributes));
+    urlParams.set("attributes", JSON.stringify([filters.attributes]));
   }
   if (filters.prices !== null && PriceFiltered) {
     urlParams.set("price", JSON.stringify(filters.prices));
@@ -549,7 +552,6 @@ export const UpdateFilter = async ({
     };
     let urlParam = urlParams({ filters: filters, noProducts: true });
     let str = `/api/products/searchInCatalog?${urlParam}`;
-
     let product: FilterProductApi = await AxiosCacheApi({
       url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str,
       params:

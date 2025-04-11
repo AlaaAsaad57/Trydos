@@ -160,6 +160,7 @@ function FilterInfoBar({
       {filtersVariable?.categories.length > 0 && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
+
           {filtersVariable?.categories.map(
             (category) =>
               (category.name ||

@@ -266,7 +266,7 @@ export const getListingData = async ({
       };
     }
 
-    let str = `/api/products/searchInCatalog?lang=${language}&limit=4${
+    let str = `/api/products/searchInCatalog?lang=${language}&limit=8${
       obj.categories?.length > 0
         ? `&category_slugs=${JSON.stringify(
             obj.categories.split(",").map((s) => s)
@@ -278,9 +278,9 @@ export const getListingData = async ({
         : ""
     }${
       obj.sizes?.length > 0
-        ? `&attributes={id:${obj.sizesAttr.id},name:${
+        ? `&attributes=[{id:${obj.sizesAttr.id},name:${
             obj.sizesAttr.name
-          },options:${JSON.stringify(obj.sizes.split(","))}}`
+          },options:${JSON.stringify(obj.sizes.split(","))}}]`
         : ""
     }${
       obj.search_text?.length > 0
@@ -320,7 +320,7 @@ export const getListingData = async ({
         }),
       }
     );
-
+    console.log(productRes.url);
     let repo: FilterProductApi = await productRes.json();
     let end = new Date().getTime();
     let time = end - start;
@@ -354,27 +354,15 @@ export const getListingData = async ({
 
     let url =
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-      (productCategory
-        ? `/api/products/searchInCatalog?lang=${language}&limit=4` +
-          `&category=${productCategory}${
-            !str.includes("listing")
-              ? `&boutique_slugs=${JSON.stringify(str)}`
-              : ""
-          }`
-        : `/api/products/searchInCatalog?lang=${language}&limit=4` +
-          `${
-            !str.includes("listing")
-              ? `&boutique_slugs=${JSON.stringify(str)}`
-              : ""
-          }`);
-    var details = productCategory
-      ? {
-          boutique_slug: [str],
-          category: productCategory,
-        }
-      : {
-          boutique_slug: [str],
-        };
+      (`/api/products/searchInCatalog?lang=${language}&limit=8` +
+        `${
+          !str.includes("listing")
+            ? `&boutique_slugs=${JSON.stringify(str)}`
+            : ""
+        }`);
+    var details = {
+      boutique_slug: [str],
+    };
     var formBody: any[] | string = [];
     for (var property in details) {
       var encodedKey = encodeURIComponent(property);
