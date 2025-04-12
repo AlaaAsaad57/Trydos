@@ -6,7 +6,7 @@ import Cube from "react-cube-navigation";
 import { SelectStory } from "store/homepage/actions";
 import { useSwipeable } from "react-swipeable";
 import StoryServiceClass from "services/story";
-
+import StoryHolder from "./StoryHolder";
 function StoriesContainer({ activeId, selectedStory }) {
   const storiesData = useSelector(
     (state: StateInterface) => state.homepage.storiesData
@@ -116,26 +116,12 @@ function StoriesContainer({ activeId, selectedStory }) {
               {i > -1 && i < storiesData.length && (
                 <>
                   {
-                    // <StoryHolder
-                    //   active={selectedStory.id === storiesData[i]?.id}
-                    //   isPaused={active}
-                    //   story={StoryServiceClass.configureStory(storiesData[i])}
-                    // />
+                    <StoryHolder
+                      active={selectedStory.id === storiesData[i]?.id}
+                      isPaused={active}
+                      story={StoryServiceClass.configureStory(storiesData[i])}
+                    />
                   }
-                  {/* <StoriesViewer
-                    stories={storiesData.map((story) =>
-                      StoryServiceClass.configureStory(story)
-                    )}
-                    currentIndex={i}
-                    isActive={selectedStory.id === storiesData[i]?.id}
-                    onClose={() => dispatch(SelectStory(null))}
-                    onStoryEnd={() => {
-                      if (i < storiesData.length - 1) {
-                        dispatch(SelectStory(storiesData[i + 1]));
-                      }
-                    }}
-                    onAllStoriesEnd={() => dispatch(SelectStory(null))}
-                  /> */}
                 </>
               )}
             </div>
