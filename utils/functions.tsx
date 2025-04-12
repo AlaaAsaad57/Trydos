@@ -583,7 +583,7 @@ export const UpdateFilter = async ({
     console.log(error);
   }
 };
-function formatPrice(price) {
+export function formatPrice(price) {
   let currency = store.getState().homepage.currency;
   let ceil = currency?.ciel;
   if (price >= 1000000) {
@@ -602,6 +602,10 @@ function formatPrice(price) {
     return price; // For prices under 1000
   }
 }
+export const toUSD = (price) => {
+  let currency = store.getState().homepage.currency;
+  return price / currency?.exchange_rate;
+};
 export const RoundPrice = ({
   num,
   rate,

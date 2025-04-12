@@ -4,8 +4,6 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Cube from "react-cube-navigation";
 import { SelectStory } from "store/homepage/actions";
-
-import StoryHolder from "./StoryHolder";
 import { useSwipeable } from "react-swipeable";
 import StoryServiceClass from "services/story";
 
@@ -72,7 +70,7 @@ function StoriesContainer({ activeId, selectedStory }) {
   });
   return (
     <div
-      className="fixed-layout"
+      className="fixed-layout justify-start"
       {...handlers}
       onPointerLeave={() => {
         document.querySelector<HTMLDivElement>(
@@ -116,11 +114,29 @@ function StoriesContainer({ activeId, selectedStory }) {
               }}
             >
               {i > -1 && i < storiesData.length && (
-                <StoryHolder
-                  active={selectedStory.id === storiesData[i]?.id}
-                  isPaused={active}
-                  story={StoryServiceClass.configureStory(storiesData[i])}
-                />
+                <>
+                  {
+                    // <StoryHolder
+                    //   active={selectedStory.id === storiesData[i]?.id}
+                    //   isPaused={active}
+                    //   story={StoryServiceClass.configureStory(storiesData[i])}
+                    // />
+                  }
+                  {/* <StoriesViewer
+                    stories={storiesData.map((story) =>
+                      StoryServiceClass.configureStory(story)
+                    )}
+                    currentIndex={i}
+                    isActive={selectedStory.id === storiesData[i]?.id}
+                    onClose={() => dispatch(SelectStory(null))}
+                    onStoryEnd={() => {
+                      if (i < storiesData.length - 1) {
+                        dispatch(SelectStory(storiesData[i + 1]));
+                      }
+                    }}
+                    onAllStoriesEnd={() => dispatch(SelectStory(null))}
+                  /> */}
+                </>
               )}
             </div>
           );

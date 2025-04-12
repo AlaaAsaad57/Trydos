@@ -1,0 +1,90 @@
+.stories-viewer {
+  position: fixed;
+  inset: 0;
+  background: black;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+}
+.Cube__Pane {
+  min-height: 100%;
+}
+.stories-progress {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress {
+  height: 100%;
+  background: white;
+  transition: width 0.1s linear;
+}
+
+.story-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.story-media {
+  max-width: 90%;
+  max-height: 80%;
+  object-fit: contain;
+}
+
+.story-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 0 16px;
+}
+
+.control-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.control-btn.close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  font-size: 24px;
+  padding: 8px;
+}
+
+.error-message {
+  color: white;
+  font-size: 16px;
+  text-align: center;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  margin: 20px;
+}
+.Cube {
+  min-height: 100%;
+}

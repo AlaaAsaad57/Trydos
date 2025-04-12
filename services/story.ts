@@ -159,7 +159,7 @@ class StoryService {
             subheading: "Posted 30m ago",
             profileImage: story.photo_path ?? profilePicture.src,
           },
-          duration: 5000,
+          duration: storyItem.duration,
           preloadResource: true,
           type: "video",
         });
