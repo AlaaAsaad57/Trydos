@@ -166,7 +166,7 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
           </div>
         )}
       </div>
-      {menuOpen && <Menu user={user} />}
+      {menuOpen && <Menu user={user} setMenuOpen={setMenuOpen} />}
     </div>
   );
 }

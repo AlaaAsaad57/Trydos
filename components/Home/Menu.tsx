@@ -14,6 +14,7 @@ import { useRouter } from "next-nprogress-bar";
 
 interface MenuProps {
   user: any;
+  setMenuOpen: (open: boolean) => void;
 }
 
 const MenuIcon: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -110,7 +111,14 @@ const MenuItem: React.FC<{
 
   if (href && !pathname.includes(href)) {
     return (
-      <NextLink data-cy={dataCy} style={style} href={href}>
+      <NextLink
+        data-cy={dataCy}
+        style={style}
+        href={href}
+        onClick={() => {
+          if (onClick) onClick();
+        }}
+      >
         {icon}
         {children}
       </NextLink>
@@ -131,7 +139,7 @@ const MenuItem: React.FC<{
   );
 };
 
-const Menu: React.FC<MenuProps> = ({ user }) => {
+const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showOrders, setShowOrders] = useState(false);
   const [showWishList, setShowWishList] = useState(false);
@@ -176,8 +184,10 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
         <>
           <MenuItem
             dataCy="Settings-Icon"
-            href={`/${lang}/setting`}
-            onClick={() => {}}
+            href={`/${lang}/setting?tab=main`}
+            onClick={() => {
+              setMenuOpen(false);
+            }}
             icon={
               <MenuIcon>
                 <circle cx="12" cy="12" r="3" />
