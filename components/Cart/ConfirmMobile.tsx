@@ -97,6 +97,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
 
           setStepIndicator(6);
         }
+        setLoadingPin(false);
       },
       successCallback: async (exists, name) => {
         Sendevent({
@@ -106,13 +107,14 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
         });
 
         await FinaliseLogin();
+
         setTimeout(() => {
+          setLoadingPin(false);
           closeWindow();
           goToOrders();
         }, 2000);
       },
     });
-    setLoadingPin(false);
   };
   const wrongNumber = useSelector(
     (state: StateInterface) => state.auth.wrongNumber
@@ -124,29 +126,32 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
       setStepIndicator(4);
     }
   }, []);
+  const [showMobile, setShowMobile] = useState(false);
   return (
     <div>
-      {!hasMobile && (
-        <PhoneInput
-          isForCart={true}
-          inputValue={inputValue}
-          wrongNumber={wrongNumber}
-          setWrongNumber={(e) => {
-            //   setWrongNumber(e);
-            dispatch({ type: "WRONG-NUMBER", payload: e });
-          }}
-          setInputValue={(e) => setInputValue(e)}
-          stepIndicator={stepIndicator}
-          setStepIndicator={(e) => setStepIndicator(e)}
-          operation={"login"}
-        />
-      )}
+      {!hasMobile ||
+        (showMobile && (
+          <PhoneInput
+            isForCart={true}
+            inputValue={inputValue}
+            wrongNumber={wrongNumber}
+            setWrongNumber={(e) => {
+              //   setWrongNumber(e);
+              dispatch({ type: "WRONG-NUMBER", payload: e });
+            }}
+            setInputValue={(e) => setInputValue(e)}
+            stepIndicator={stepIndicator}
+            setStepIndicator={(e) => setStepIndicator(e)}
+            operation={"login"}
+          />
+        ))}
       <SendMethod
         stepIndicator={stepIndicator}
         setWrongNumber={(e) => {
           dispatch({ type: "WRONG-NUMBER", payload: e });
         }}
         setStepIndicator={(e: number) => setStepIndicator(e)}
+        setShowMobile={setShowMobile}
         setMessageMethod={(e: string) => setMessageMethod(e)}
         inputValue={inputValue}
       />

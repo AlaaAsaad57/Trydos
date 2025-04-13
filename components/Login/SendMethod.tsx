@@ -13,12 +13,14 @@ function SendMethod({
   setWrongNumber,
   setMessageMethod,
   stepIndicator,
+  setShowMobile,
 }: {
   setStepIndicator: Function;
   stepIndicator: number;
   inputValue: string;
   setWrongNumber: Function;
   setMessageMethod: Function;
+  setShowMobile: Function;
 }) {
   const wrongNumber = useSelector(
     (state: StateInterface) => state.auth.wrongNumber
@@ -167,7 +169,10 @@ function SendMethod({
               className="icon-detail"
               data-cy="Edit-Phone-Number"
               style={{ cursor: "pointer", marginTop: "3px" }}
-              onClick={() => setStepIndicator(3)}
+              onClick={() => {
+                setShowMobile(true);
+                setStepIndicator(3);
+              }}
             >
               <svg
                 id="Group_10806"

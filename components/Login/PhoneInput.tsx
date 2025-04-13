@@ -141,7 +141,7 @@ function PhoneInput({
     }
   }, [isKeyboardOpen]);
   useEffect(() => {
-    if (inputValue) {
+    if (inputValue && ref.current) {
       // @ts-ignore
       ref.current.value = inputValue;
     }

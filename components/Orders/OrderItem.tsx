@@ -1,5 +1,9 @@
 import React from "react";
-import { translateFunction, RoundPrice } from "utils/functions";
+import {
+  translateFunction,
+  RoundPrice,
+  getConfiguredImage,
+} from "utils/functions";
 import { OrderDetail, OrderItem as OrderItemType } from "../../types/orders";
 import { useSelector } from "react-redux";
 import { useParams } from "next/navigation";
@@ -48,8 +52,12 @@ const OrderProductSlider = ({ products }: { products: OrderDetail[] }) => {
           className="flex-row cursor-pointer items-center relative w-[91px] h-[125px] ml-[5px]"
         >
           <img
-            className="w-full h-full object-cover rounded-[15px]"
-            src={product.product_details.thumbnail}
+            className="w-full h-full object-contain bg-white rounded-[15px]"
+            src={getConfiguredImage({
+              src: product.product_details.thumbnail,
+              width: 91,
+              height: 125,
+            })}
             alt={product.product_details.name}
             width={100}
             height={100}
