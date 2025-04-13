@@ -6,6 +6,7 @@ import Timer from "./Timer";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 import { useParams } from "next/navigation";
+import Spinner from "components/global/Spinner";
 
 function LogInPins({
   setPin,
@@ -24,6 +25,7 @@ function LogInPins({
   successLogin,
   inputValue,
   init,
+  loadingPin,
 }: {
   inputValue: string;
   rendere: boolean;
@@ -41,6 +43,7 @@ function LogInPins({
   failedLogin: boolean;
   successLogin: boolean;
   disabled: boolean;
+  loadingPin: boolean;
 }) {
   let { lang } = useParams();
   // @ts-ignore
@@ -486,101 +489,114 @@ function LogInPins({
           className="pin-inputs-container"
           style={{ marginTop: "0px" }}
         >
-          <div className="pin-border-container" style={{ zIndex: "1" }}>
-            {Array(6)
-              .fill(1)
-              .map((e, index) => (
-                <div
-                  key={index}
-                  className={
-                    "pin-border-element" +
-                    " " +
-                    (expired && "input-expired ") +
-                    (user && " input-success ") +
-                    " " +
-                    ((wrongNumber || failedLogin) && !user && "input-failed")
-                  }
-                  style={{
-                    backgroundColor: wrongNumber
-                      ? "#fff5f5"
-                      : user
-                      ? "#F4FFF4"
-                      : pin[index] || disabled
-                      ? "#f5f5f5"
-                      : "#fafafa",
-                    borderRadius: "15px",
-                  }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="50"
-                    height="60"
-                    viewBox="0 0 50 60"
-                    style={{
-                      opacity:
-                        successLogin || wrongNumber || expired || failedLogin
-                          ? "1"
+          {loadingPin ? (
+            <div className="pin-border-container flex justify-center items-center">
+              <Spinner />
+            </div>
+          ) : (
+            <>
+              <div className="pin-border-container" style={{ zIndex: "1" }}>
+                {Array(6)
+                  .fill(1)
+                  .map((e, index) => (
+                    <div
+                      key={index}
+                      className={
+                        "pin-border-element" +
+                        " " +
+                        (expired && "input-expired ") +
+                        (user && " input-success ") +
+                        " " +
+                        ((wrongNumber || failedLogin) &&
+                          !user &&
+                          "input-failed")
+                      }
+                      style={{
+                        backgroundColor: wrongNumber
+                          ? "#fff5f5"
+                          : user
+                          ? "#F4FFF4"
                           : pin[index] || disabled
-                          ? "0"
-                          : "1",
-                    }}
-                  >
-                    <g
-                      id="Rectangle_4722"
-                      data-name="Rectangle 4722"
-                      fill={wrongNumber ? "#fff5f5" : "none"}
-                      stroke="#4d84ff"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="0.5"
-                      strokeDasharray="3 3"
+                          ? "#f5f5f5"
+                          : "#fafafa",
+                        borderRadius: "15px",
+                      }}
                     >
-                      <rect width="50" height="60" rx="15" stroke="none" />
-                      <rect
-                        x="0.25"
-                        y="0.25"
-                        width="49.5"
-                        height="59.5"
-                        rx="14.75"
-                        fill="none"
-                      />
-                    </g>
-                  </svg>
-                </div>
-              ))}
-          </div>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="50"
+                        height="60"
+                        viewBox="0 0 50 60"
+                        style={{
+                          opacity:
+                            successLogin ||
+                            wrongNumber ||
+                            expired ||
+                            failedLogin
+                              ? "1"
+                              : pin[index] || disabled
+                              ? "0"
+                              : "1",
+                        }}
+                      >
+                        <g
+                          id="Rectangle_4722"
+                          data-name="Rectangle 4722"
+                          fill={wrongNumber ? "#fff5f5" : "none"}
+                          stroke="#4d84ff"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="0.5"
+                          strokeDasharray="3 3"
+                        >
+                          <rect width="50" height="60" rx="15" stroke="none" />
+                          <rect
+                            x="0.25"
+                            y="0.25"
+                            width="49.5"
+                            height="59.5"
+                            rx="14.75"
+                            fill="none"
+                          />
+                        </g>
+                      </svg>
+                    </div>
+                  ))}
+              </div>
 
-          {rendere && (
-            <PinInput
-              ariaLabel="pin-input"
-              length={6}
-              initialValue={pin}
-              onChange={(value) => {
-                setPin(value);
-              }}
-              type="numeric"
-              disabled={disabled}
-              inputMode="number"
-              placeholder=""
-              aria-label=""
-              style={{ marginTop: 0 }}
-              onComplete={(value) => Submit(value)}
-              inputStyle={{
-                borderRadius: 15,
-                backgroundColor: "transparent",
-                margin: "initial",
-                color: "transparent",
+              {rendere && (
+                <PinInput
+                  ariaLabel="pin-input"
+                  length={6}
+                  initialValue={pin}
+                  onChange={(value) => {
+                    setPin(value);
+                  }}
+                  type="numeric"
+                  disabled={disabled}
+                  inputMode="number"
+                  placeholder=""
+                  aria-label=""
+                  style={{ marginTop: 0 }}
+                  onComplete={(value) => Submit(value)}
+                  inputStyle={{
+                    borderRadius: 15,
+                    backgroundColor: "transparent",
+                    margin: "initial",
+                    color: "transparent",
 
-                border: "#ddddddc5 0.5px solid",
-                width: 50,
-                height: 60,
-              }}
-              // onComplete={(value, index) => setPin(value)}
-              autoSelect={true}
-              regexCriteria={/^[ A-Za-z0-9_@./#&+-]*$/}
+                    border: "#ddddddc5 0.5px solid",
+                    width: 50,
+                    height: 60,
+                  }}
+                  // onComplete={(value, index) => setPin(value)}
+                  autoSelect={true}
+                  regexCriteria={/^[ A-Za-z0-9_@./#&+-]*$/}
 
-              // disabled={disablePin}
-            />
+                  // disabled={disablePin}
+                />
+              )}
+            </>
           )}
         </div>
         {wrongNumber && (

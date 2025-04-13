@@ -66,8 +66,9 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
     await AuthService.ConfirmSignIn();
   };
   const [failedLogin, setFailed] = useState(false);
-
+  const [loadingPin, setLoadingPin] = useState(false);
   const loginFunc = async (e) => {
+    setLoadingPin(true);
     await VerifyOtpHook({
       code: e,
       EditPhoneFunc: () => {},
@@ -111,6 +112,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
         }, 2000);
       },
     });
+    setLoadingPin(false);
   };
   const wrongNumber = useSelector(
     (state: StateInterface) => state.auth.wrongNumber
@@ -150,6 +152,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
       />
 
       <LogInPins
+        loadingPin={loadingPin}
         expired={expired}
         init={() => {
           setDisabled(false);

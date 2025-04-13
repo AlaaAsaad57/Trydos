@@ -111,7 +111,9 @@ function NewLoginWidget() {
       console.error("VerifyOtp failed:", error);
     }
   };
+  const [loadingPin, setLoadingPin] = useState(false);
   const loginFunc = async (e) => {
+    setLoadingPin(true);
     await VerifyOtpHook({
       code: e,
       EditPhoneFunc: () => {},
@@ -192,6 +194,7 @@ function NewLoginWidget() {
         }, 2000);
       },
     });
+    setLoadingPin(false);
   };
 
   const getPageColor = () => {
@@ -410,6 +413,7 @@ function NewLoginWidget() {
           />
 
           <LogInPins
+            loadingPin={loadingPin}
             expired={expired}
             stepIndicator={stepIndicator}
             setDisabled={(e) => {

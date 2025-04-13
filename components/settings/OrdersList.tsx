@@ -79,6 +79,26 @@ function OrdersList({
         response.hasContent &&
         response.data.orders.length > 0
       ) {
+        // Merge details for items with same order_group_id
+        const mergedOrders = response.data.orders.reduce(
+          (acc: OrderItemType[], curr: OrderItemType) => {
+            const existingOrder = acc.find(
+              (order) => order.order_group_id === curr.order_group_id
+            );
+            if (existingOrder) {
+              existingOrder.details = [
+                ...existingOrder.details,
+                ...curr.details,
+              ];
+              existingOrder.order_amount =
+                existingOrder.order_amount + curr.order_amount;
+              return acc;
+            }
+            return [...acc, curr];
+          },
+          []
+        );
+        response.data.orders = mergedOrders;
         setOrders((prev) =>
           reset ? response.data.orders : [...prev, ...response.data.orders]
         );

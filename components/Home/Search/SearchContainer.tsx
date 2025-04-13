@@ -55,15 +55,17 @@ function SearchContainer({ active }) {
     >
       {searchValue.length === 0 && (
         <>
-          <SearchHistory
-            options={searchHistoryItems}
-            setOptions={(e) => {
-              dispatch({ type: "SEARCH-WORD", payload: e });
-            }}
-            deleteOption={(e) => {
-              setSearchHistory(searchHistoryItems.filter((s) => s !== e));
-            }}
-          />
+          {searchHistoryItems.length > 0 && (
+            <SearchHistory
+              options={searchHistoryItems}
+              setOptions={(e) => {
+                dispatch({ type: "SEARCH-WORD", payload: e });
+              }}
+              deleteOption={(e) => {
+                setSearchHistory(searchHistoryItems.filter((s) => s !== e));
+              }}
+            />
+          )}
           <SearchTrending />
         </>
       )}

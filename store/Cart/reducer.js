@@ -141,12 +141,11 @@ export const CartReducer = (state = initialState, { type, payload }) => {
         };
       }
       case "WALLET-USER": {
-        console.log(payload, toUSD(payload?.wallet_balance || 0));
         return {
           ...state,
           wallet: {
             ...payload,
-            wallet_balance: toUSD(payload?.wallet_balance || 0),
+            wallet_balance: payload?.wallet_balance || 0,
           },
         };
       }
