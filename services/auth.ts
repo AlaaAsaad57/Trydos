@@ -185,10 +185,11 @@ class AuthService {
         body: { name: name },
         title: "Update Name",
       });
+      await home.getCustomerInfo();
       if (!localStorage.getItem("STORIES-TOKEN")) {
         await this.ConfirmSignIn();
       }
-      axios.post(
+      await axios.post(
         process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + "/api/v1/users/update",
         { name: name },
         {

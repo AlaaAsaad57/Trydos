@@ -464,8 +464,8 @@ function NewLoginWidget() {
             <InputName
               value={Name}
               setName={(e) => setName(e)}
-              submit={() => {
-                AuthService.UpdateName(Name);
+              submit={async () => {
+                await AuthService.UpdateName(Name);
                 if (operation === "login") {
                   if (user.already_exists) setSignStep("welcomeLogin");
                   else setSignStep("welcomeSignup");

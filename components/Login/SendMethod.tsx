@@ -20,7 +20,7 @@ function SendMethod({
   inputValue: string;
   setWrongNumber: Function;
   setMessageMethod: Function;
-  setShowMobile: Function;
+  setShowMobile?: Function;
 }) {
   const wrongNumber = useSelector(
     (state: StateInterface) => state.auth.wrongNumber
@@ -170,7 +170,9 @@ function SendMethod({
               data-cy="Edit-Phone-Number"
               style={{ cursor: "pointer", marginTop: "3px" }}
               onClick={() => {
-                setShowMobile(true);
+                if (setShowMobile) {
+                  setShowMobile(true);
+                }
                 setStepIndicator(3);
               }}
             >

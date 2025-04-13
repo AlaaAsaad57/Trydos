@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
 import { useSelector } from "react-redux";
 import { translateFunction } from "utils/functions";
+import NextLink from "components/global/NextLink";
 interface Props {
   stepIndicator: number;
   Name: string | null;
@@ -72,12 +73,12 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
         )}
       </div>
       <div className="login-button-group">
-        <div
+        <NextLink
+          href={`/${lang}/setting?tab=Profile`}
           className="login-button"
           data-cy="Complate-Close"
           onClick={() => {
             close();
-            router.push(`/settings#Profile`);
           }}
           style={{
             position: "relative",
@@ -89,7 +90,7 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
           }}
         >
           {translate("Complete My Profile", language)}
-        </div>
+        </NextLink>
       </div>
       <div
         className="blue-text skip-text"
