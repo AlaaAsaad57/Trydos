@@ -113,9 +113,16 @@ function CartContainer({ close, toOrders }) {
       className={`flex-col ${
         cart.length > 0 ? "pb-[283px]" : "100px"
       }   top-0 left-0 min-h-screen max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
+      data-cy="cartPage-container"
     >
-      <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
-        <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
+      <div
+        className="flex-col pl-2 pr-2 bg-[#fff] p-1"
+        data-cy="cartPage-header-container"
+      >
+        <div
+          className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center "
+          data-cy="cartPage-headerComponents-container"
+        >
           <BackIcon
             className="cursor-pointer z-50"
             data-cy="CartBackIcon"
@@ -128,8 +135,12 @@ function CartContainer({ close, toOrders }) {
               close();
             }}
           />
-          <span className="text-[13px] text-[#505050] regular flex-row items-center">
+          <span
+            className="text-[13px] text-[#505050] regular flex-row items-center"
+            data-cy="cartPage-textContainer-onHeader"
+          >
             <svg
+              data-cy="svg-textContainer"
               xmlns="http://www.w3.org/2000/svg"
               xmlnsXlink="http://www.w3.org/1999/xlink"
               width="20"
@@ -246,30 +257,43 @@ function CartContainer({ close, toOrders }) {
                 </g>
               </g>
             </svg>
-            <span className="regular ml-[8px]">
+            <span
+              className="regular ml-[8px]"
+              data-cy="textContainer-textOnHeader"
+            >
               {translate("Shopping Bag", language)}{" "}
               {cart.length > 0 && (
-                <span className="bold">
+                <span className="bold" data-cy="length-ofItems">
                   {cart.length} {translate("Items")}
                 </span>
               )}
             </span>
           </span>
 
-          <ShareIcon />
+          <ShareIcon data-cy="shareIcon-onHeader" />
         </div>
       </div>
-
-      <div className="flex-col overflow-auto max-h-screen">
-        <div className="flex-col  w-full h-auto mt-10 pb-[20px]">
+      <div
+        className="flex-col overflow-auto max-h-screen"
+        data-cy="container-ofProducts"
+      >
+        <div
+          className="flex-col  w-full h-auto mt-10 pb-[20px]"
+          data-cy="container2-ofProducts"
+        >
           {!loading ? (
             <>
               {cart.length > 0 ? (
                 <>
                   {cart?.map((product, key) => (
-                    <div className="relative px-[12px]" key={key}>
+                    <div
+                      className="relative px-[12px]"
+                      key={key}
+                      data-cy="one-product"
+                    >
                       {" "}
                       <NextLink
+                        data-cy="product-card"
                         href={
                           params?.productId === product.slug &&
                           product?.variations[0]?.color ===
@@ -305,8 +329,12 @@ function CartContainer({ close, toOrders }) {
                           close();
                         }}
                       >
-                        <div className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative">
+                        <div
+                          className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative"
+                          data-cy="container-image-onCard"
+                        >
                           <img
+                            data-cy="image-onCard"
                             src={getConfiguredImage({
                               height: 150,
                               width: 150,
@@ -317,9 +345,16 @@ function CartContainer({ close, toOrders }) {
                             className="rounded-2xl"
                           />
                         </div>
-                        <div className="flex-col mt-4 ml-5">
-                          <div className="h-[10px] overflow-hidden">
+                        <div
+                          className="flex-col mt-4 ml-5"
+                          data-cy="container-ofProduct-information"
+                        >
+                          <div
+                            className="h-[10px] overflow-hidden"
+                            data-cy="container-ofProduct-information-img"
+                          >
                             <img
+                              data-cy="img-ofProduct-information"
                               src={getConfiguredImage({
                                 height: 150,
                                 width: 150,
@@ -341,63 +376,97 @@ function CartContainer({ close, toOrders }) {
                             {product.name.substring(0, 30)}
                           </div>
 
-                          <div className="flex-row flex-wrap">
+                          <div
+                            className="flex-row flex-wrap"
+                            data-cy="color-div"
+                          >
                             {product.variations[0]?.color && (
-                              <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
-                                <CartColorIcon />
+                              <div
+                                className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3"
+                                data-cy="color-div2"
+                              >
+                                <CartColorIcon data-cy="color-icon" />
                                 <span
+                                  data-cy="color-text"
                                   className={`${
                                     language === "ar" && "dir-rtl"
                                   } ml-1.5`}
                                 >
                                   {translateFunction("Color")}:{" "}
-                                  <span className="regular">
+                                  <span
+                                    className="regular"
+                                    data-cy="color-name"
+                                  >
                                     {product.variations[0].color}
                                   </span>
                                 </span>
                               </div>
                             )}
                             {product.variations[0]?.Size && (
-                              <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                                <CartSizeIcon />
+                              <div
+                                className="flex-row items-center text-[12px] light text-[#505050] mt-1"
+                                data-cy="size-container"
+                              >
+                                <CartSizeIcon data-cy="size-svg" />
                                 <span
                                   className={`ml-1.5 ${
                                     language === "ar" && "dir-rtl"
                                   }`}
+                                  data-cy="size-container-text"
                                 >
                                   {translateFunction("Size")}:
-                                  <span className="regular">
+                                  <span
+                                    className="regular"
+                                    data-cy="size-container-size"
+                                  >
                                     {product.variations[0].Size}
                                   </span>
                                 </span>
                               </div>
                             )}
                           </div>
-                          <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
-                            <PiecesIcon />
+                          <div
+                            className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3"
+                            data-cy="countPieces-container"
+                          >
+                            <PiecesIcon data-cy="pieces-svg" />
                             <span
                               className={`ml-1.5 ${
                                 language === "ar" && "dir-rtl"
                               } text-[#8D8D8D] regular `}
+                              data-cy="countPieces-text"
                             >
                               {translate("Composed Of:")}{" "}
-                              <span className="regular">
+                              <span
+                                className="regular"
+                                data-cy="countPieces-number"
+                              >
                                 {product.count_of_pieces} {translate("Piece")}
                               </span>
                             </span>
                           </div>
                           {product.shipping_days && (
-                            <div className="flex-row whitespace-nowrap items-center text-[12px] light text-[#505050] mt-1 mr-3">
-                              <DeleiveryIcon />
+                            <div
+                              className="flex-row whitespace-nowrap items-center text-[12px] light text-[#505050] mt-1 mr-3"
+                              data-cy="sshipping-container"
+                            >
+                              <DeleiveryIcon data-cy="sshipping-svg" />
                               <span
                                 className={`ml-1.5 flex whitespace-nowrap ${
                                   language === "ar" && "dir-rtl"
                                 } text-[#8D8D8D] regular`}
+                                data-cy="shipping-text"
                               >
                                 {translate("Shipping")}:{" "}
-                                <span className="regular whitespace-nowrap">
+                                <span
+                                  className="regular whitespace-nowrap"
+                                  data-cy="days-number"
+                                >
                                   {product.shipping_days} {translate("Days")}{" "}
-                                  <span className="ml-1 underline">
+                                  <span
+                                    className="ml-1 underline"
+                                    data-cy="days-text"
+                                  >
                                     {translate("Details")}
                                   </span>
                                 </span>
@@ -483,8 +552,12 @@ function CartContainer({ close, toOrders }) {
                           )}
                         </div>
 
-                        <div className="absolute top-1 right-1">
+                        <div
+                          className="absolute top-1 right-1"
+                          data-cy="card-numbering-container"
+                        >
                           <input
+                            data-cy="card-numbering-value"
                             defaultValue={key + 1}
                             type="number"
                             min={1}
@@ -643,19 +716,29 @@ function CartContainer({ close, toOrders }) {
           )}
         </div>
         {oldCart?.oldCart?.length > 0 && (
-          <div className="flex-col bg-[#F8F8F8]  w-full h-auto mt-10">
-            <hr className="p-4" />
-            <div className="flex-row mt-0 min-h-[30px] w-full items-center justify-start bg-[#F8F8F8] rounded-[10px]">
-              <span className="ml-[32px]">
-                <OldCartIcon />
+          <div
+            className="flex-col bg-[#F8F8F8]  w-full h-auto mt-10"
+            data-cy="oldCart-outOfBag"
+          >
+            <hr className="p-4" data-cy="line" />
+            <div
+              className="flex-row mt-0 min-h-[30px] w-full items-center justify-start bg-[#F8F8F8] rounded-[10px]"
+              data-cy="oldCart-viewer"
+            >
+              <span className="ml-[32px]" data-cy="spanContainer-oldCartIcon">
+                <OldCartIcon data-cy="oldCart-icon" />
               </span>{" "}
-              <span className="regular text-[#505050] text-[15px] ml-1">
+              <span
+                className="regular text-[#505050] text-[15px] ml-1"
+                data-cy="outOfBag-text"
+              >
                 {translate(
                   "Out Of Bag!",
                   LocalizationServiceClass.GetAppLanguage()
                 )}
               </span>
               <span
+                data-cy="hideAll"
                 className="cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]"
                 onClick={() => {
                   Sendevent({
@@ -679,8 +762,13 @@ function CartContainer({ close, toOrders }) {
               {!loading ? (
                 <>
                   {oldCart?.oldCart.map((product, key) => (
-                    <div className="relative px-[12px]" key={key}>
+                    <div
+                      className="relative px-[12px]"
+                      key={key}
+                      data-cy="oldProduct-card"
+                    >
                       <NextLink
+                        data-cy="goTo-addAgain"
                         href={
                           params?.productId === product.slug &&
                           product?.variations[0]?.color ===
@@ -1791,14 +1879,17 @@ const QuantutyInput = ({
   };
   return (
     <div
+      data-cy="card-footer"
       className={`absolute flex-wrap ${"top-[125px]"} left-[137px] flex-row items-center justify-between max-w-[calc(100%-152px)] w-full`}
     >
       <div
         className={`${
           loading && "opacity-40"
         } flex-row hide-btn relative max-w-[72px] w-[72px] h-[24px] mt-4 z-50`}
+        data-cy="plus-delete-increase-container"
       >
         <svg
+          data-cy="square-icon"
           className="absolute hide-btn"
           xmlns="http://www.w3.org/2000/svg"
           width="72"
@@ -1844,7 +1935,7 @@ const QuantutyInput = ({
             increaseQuantity(inputValue);
           }}
         >
-          <PlusIcon className="" />
+          <PlusIcon className="" data-cy="plus-icon-svg" />
         </div>
 
         {inputValue > 1 ? (
@@ -1861,7 +1952,7 @@ const QuantutyInput = ({
                 }
               }}
             >
-              <MinusIcon className="" />
+              <MinusIcon className="" data-cy="minus-icon-svg" />
             </div>
             {!loading && (
               <div
@@ -1871,7 +1962,7 @@ const QuantutyInput = ({
                   deleteFunction();
                 }}
               >
-                <DeleteIcon />
+                <DeleteIcon data-cy="delete-icon-svg" />
               </div>
             )}
           </>
@@ -1883,7 +1974,7 @@ const QuantutyInput = ({
               deleteFunction();
             }}
           >
-            <DeleteIcon />
+            <DeleteIcon data-cy="delete-icon-svg" />
           </div>
         )}
         <input
@@ -1897,13 +1988,16 @@ const QuantutyInput = ({
         />
         {loading && <Spinner />}
       </div>
-      <div className={`pl-[30px]`}>
-        <div className="product-info-price">
+      <div className={`pl-[30px]`} data-cy="oldNew-price-container">
+        <div className="product-info-price" data-cy="oldNew-price-container2">
           {product?.offer_price ? (
             <>
-              <div className="flex-col">
-                <div className="flex-row">
-                  <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
+              <div className="flex-col" data-cy="Subdivisions">
+                <div className="flex-row" data-cy="newOld-price">
+                  <div
+                    className="product-old-price text-[18px] text-[#C4C2C2] regular"
+                    data-cy="oldPrice-container"
+                  >
                     {RoundPrice({
                       num: product.price * product.quantity,
                       rate: currency?.exchange_rate,
@@ -1914,6 +2008,7 @@ const QuantutyInput = ({
                         0,
                     })}
                     <svg
+                      data-cy="oldPrice-svg"
                       className="bottom-3"
                       xmlns="http://www.w3.org/2000/svg"
                       width="100%"
@@ -1930,7 +2025,10 @@ const QuantutyInput = ({
                       />
                     </svg>
                   </div>
-                  <div className="product-new-price text-[18px] bold">
+                  <div
+                    className="product-new-price text-[18px] bold"
+                    data-cy="new-price"
+                  >
                     {RoundPrice({
                       num: product?.offer_price * product.quantity,
                       rate: currency.exchange_rate,
@@ -1941,15 +2039,21 @@ const QuantutyInput = ({
                         0,
                     })}
                   </div>
-                  <div className="product-currency text-[8px] light text-[#1D1D1D]">
+                  <div
+                    className="product-currency text-[8px] light text-[#1D1D1D]"
+                    data-cy="currency-symbol"
+                  >
                     {currency?.symbol}
                   </div>
                 </div>
-                <div className="flex-row">
-                  <SavedIcon />
-                  <span className="text-[8px] text-[#388CFF]  need-row-rev mx-[4px]">
+                <div className="flex-row" data-cy="below-subdivisions">
+                  <SavedIcon data-cy="saved-svg" />
+                  <span
+                    className="text-[8px] text-[#388CFF]  need-row-rev mx-[4px]"
+                    data-cy="saved-text"
+                  >
                     {translate("Saved")}{" "}
-                    <span className="bold">
+                    <span className="bold" data-cy="rate">
                       {parseInt(
                         (
                           ((product.price - product?.offer_price) /

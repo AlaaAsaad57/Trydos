@@ -457,7 +457,10 @@ function OrderButton({ close, toOrders }) {
                     {" "}
                     {cart.cart.length === 0 ? (
                       <>
-                        <span className="text-[#FEFEFE] text-[18px] medium ">
+                        <span
+                          className="text-[#FEFEFE] text-[18px] medium "
+                          data-cy="backHome-text"
+                        >
                           {translate(
                             "Back To HomePage",
                             LocalizationServiceClass.GetAppLanguage()

@@ -9,9 +9,7 @@ describe("Should Open Site And Login And Send Message", () => {
   });
 
   it("should Visit The Site And Login", () => {
-    cy.wait(1000);
     cy.logout();
-    cy.wait(1000);
     cy.intercept("POST", "**/api/v1/users/login").as("LoginChat");
     cy.performLogin("963937288307");
     cy.get("@LoginChat", { timeout: 20000 });

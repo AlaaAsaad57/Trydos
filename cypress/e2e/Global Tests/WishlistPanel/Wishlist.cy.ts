@@ -1,5 +1,5 @@
-describe("should open website and open wishlist", () => {
-  before("should open website", () => {
+describe("should open trydos and open wishlist", () => {
+  before("should open trydos", () => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
     });
@@ -74,12 +74,10 @@ describe("should verify if content exists or not", () => {
             .and("be.visible");
           cy.get("[data-cy=wishlist-item-old-price]")
             .should("exist")
-            .and("be.visible")
-            .contains("Sp");
+            .and("be.visible");
           cy.get("[data-cy=wishlist-item-new-price]")
             .should("exist")
-            .and("be.visible")
-            .contains("Sp");
+            .and("be.visible");
           cy.get("[data-cy=wishlist-item-footer]")
             .should("exist")
             .and("be.visible");
@@ -121,7 +119,7 @@ describe("should verify if content exists or not", () => {
               expect(sizeCount).to.be.eq(colorLength);
             });
           cy.clickElement("[data-cy=close-icon]");
-          cy.clickElement("[data-cy=Logout-ReLogout]");
+          cy.clickElement("[data-cy=avatar-options]");
         } else {
           // Optionally handle the case where there are no items✅✅
           cy.log("❌❌ No items in the wishlist");

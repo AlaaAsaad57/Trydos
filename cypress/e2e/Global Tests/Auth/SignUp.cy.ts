@@ -34,7 +34,7 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
     });
     cy.intercept(
       "GET",
-      "/api/new_v1/auth/phone/verify_otp_from_guest?**",
+      "/api/v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           res.body.data.already_exists = false;
@@ -130,7 +130,7 @@ describe("Should show user is already registered when registering with registere
   it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
     cy.intercept(
       "GET",
-      "/api/new_v1/auth/phone/verify_otp_from_guest?**",
+      "/api/v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           res.body.data.already_exists = true;
@@ -179,7 +179,7 @@ describe("Should show user is already registered when registering with registere
   it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
     cy.intercept(
       "GET",
-      "/api/new_v1/auth/phone/verify_otp_from_guest?**",
+      "/api/v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           res.body.data.already_exists = true;
@@ -224,7 +224,7 @@ describe("Should show user is already registered when registering with registere
   it("Should Enter The 6-digit OTP Code That He Received On SMS & Wait Login Request Until Arrives & Verify Otp Signin To Three Servers", () => {
     cy.intercept(
       "GET",
-      "/api/new_v1/auth/phone/verify_otp_from_guest?**",
+      "/api/v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           res.body.data.already_exists = true;
@@ -278,7 +278,7 @@ describe("Signup Successful Attempt & complete the profile", () => {
     });
     cy.intercept(
       "GET",
-      "/api/new_v1/auth/phone/verify_otp_from_guest?**",
+      "/api/v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           res.body.data.already_exists = false;

@@ -1,6 +1,6 @@
 let CartLrLength1: number = 0;
 let CountItem1: number = 0;
-describe("Should Open The Website & Logout", () => {
+describe("Should Open The trydos & Logout", () => {
   before("Visit The Site", () => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
@@ -38,12 +38,12 @@ describe("should Login If User Is Not Verified", () => {
     cy.interceptAndWait([
       {
         method: "GET",
-        url: "**/api/new_v1/customer/address/list",
+        url: "**/api/v1/customer/address/list",
         alias: "ListRequest",
       },
       {
         method: "GET",
-        url: "**/api/new_v1/cart/cart_shipping",
+        url: "**/api/v1/cart/cart_shipping",
         alias: "CartShiping",
       },
     ]);
@@ -134,7 +134,7 @@ describe("Should delete all address founded lastly", () => {
                 cy.log(`Delete Address Icon ${index + 1}: ${text}`);
                 cy.intercept(
                   "POST",
-                  "**/api/new_v1/customer/address/delete?address**"
+                  "**/api/v1/customer/address/delete?address**"
                 ).as("DeleteAddress");
                 cy.clickElement("[data-cy=Yes-Delete-Address]");
                 cy.wait("@DeleteAddress").then((interception) => {
@@ -318,7 +318,7 @@ describe("Should choose region", () => {
     cy.intercept("POST", "**/api/addresses/get-address-by-text").as(
       "GetAddressByText"
     );
-    cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Latakia", {
+    cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Aleppo", {
       force: true,
       scrollBehavior: false,
     });
@@ -520,12 +520,12 @@ describe("should save address & wait the requests", () => {
     cy.interceptAndWait([
       {
         method: "POST",
-        url: "**/api/new_v1/customer/address/add",
+        url: "**/api/v1/customer/address/add",
         alias: "addAddress",
       },
       {
         method: "GET",
-        url: "**/api/new_v1/customer/address/list",
+        url: "**/api/v1/customer/address/list",
         alias: "list",
       },
     ]);
@@ -593,7 +593,7 @@ describe("Should Edit Address", () => {
         scrollBehavior: false,
       });
     cy.log("✅✅ Clicked and Filled Detailed Address & Note Input");
-    cy.intercept("POST", "**/api/new_v1/customer/address/update").as(
+    cy.intercept("POST", "**/api/v1/customer/address/update").as(
       "UpdateAddress"
     );
     cy.clickElement("[data-cy=AddSaveButton]");
@@ -612,10 +612,9 @@ describe("Should Delete Address", () => {
     cy.log("✅✅ Show Address List Button Clicked");
     cy.clickElement("[data-cy=Delete-Address-Icon]:eq(0)").then((text) => {
       cy.log(`Delete Address Icon`);
-      cy.intercept(
-        "POST",
-        "**/api/new_v1/customer/address/delete?address**"
-      ).as("DeleteAddress");
+      cy.intercept("POST", "**/api/v1/customer/address/delete?address**").as(
+        "DeleteAddress"
+      );
       cy.clickElement("[data-cy=Yes-Delete-Address]");
       cy.wait("@DeleteAddress").then((interception) => {
         expect(interception.response.statusCode).to.be.eq(200);

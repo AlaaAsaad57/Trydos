@@ -35,7 +35,21 @@ describe("Should visit the home page and add a product to the cart from the bout
 });
 describe("Should Confirm Order Operation", () => {
   it("Should Click On Confirm & Countinue Button", () => {
-    cy.ConfirmAndComplateOrderButton();
+    cy.clickElement("[data-cy=Confirm-Order-Button]");
+    cy.log("✅✅ Confirm & Countinue Button Clicked");
+    cy.interceptAndWait([
+      {
+        method: "GET",
+        url: "**/api/v1/customer/address/list",
+        alias: "ListRequest",
+      },
+      {
+        method: "GET",
+        url: "**/api/v1/cart/cart_shipping",
+        alias: "CartShiping",
+      },
+    ]);
+    cy.log("✅✅ CartShiping & ListRequest Requests Arrived");
   });
 });
 describe("Should Chheck if address added last & add if not found", () => {

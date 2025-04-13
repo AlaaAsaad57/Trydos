@@ -19,9 +19,9 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
   it("Should Click On The Firstly Brand To Filter Result As It", () => {
     cy.get("[data-cy=ContainerOfBrands]", { timeout: 10000 });
     cy.log("✅✅ Container Of Brands Apperead");
-    cy.intercept("GET", "**/api/products/search?&brand_slugs**").as(
+    cy.intercept("GET", "**/api/products/searchInCatalog?&brand_slugs**").as(
       "searchBrand"
-    );
+    ); ///api/products/search?&brand_slugs
     cy.clickElement("[data-cy=brandItem]:eq(0)");
     cy.log("✅✅ Firstly Brand Item Clicked");
     cy.wait("@searchBrand").then((interception) => {
@@ -54,12 +54,12 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.interceptAndWait([
       {
         method: "POST",
-        url: "**/boutiques/listing?**",
+        url: "**/boutiques/listing?brands**",
         alias: "listing",
       },
       {
         method: "GET",
-        url: "**/api/products/search?**",
+        url: "**/api/products/searchInCatalog?brand_slugs**",
         alias: "LoadallProducts",
       },
     ]);
@@ -96,9 +96,9 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
   it("Should Click On The Firstly Category To Filter Result As It", () => {
     cy.get("[data-cy=ContainerOfCategories]", { timeout: 10000 });
     cy.log("✅✅ Container Of Categorys Apperead");
-    cy.intercept("GET", "**/api/products/search?&category_slugs**").as(
+    cy.intercept("GET", "**/api/products/searchInCatalog?&category_slugs**").as(
       "searchCategory"
-    );
+    ); ///api/products/search?&category_slugs
     cy.clickElement("[data-cy=categoryItem]:eq(0)");
     cy.log("✅✅ Firstly Category Item Clicked");
     cy.wait("@searchCategory").then((interception) => {
@@ -129,12 +129,12 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.interceptAndWait([
       {
         method: "POST",
-        url: "**/boutiques/listing?**",
+        url: "**/boutiques/listing?categories**",
         alias: "listing",
       },
       {
         method: "GET",
-        url: "**/api/products/search?**",
+        url: "**/api/products/searchInCatalog?category_slugs**",
         alias: "LoadallProducts",
       },
     ]);
@@ -171,7 +171,7 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
   it("Should Click On The Firstly Boutique To Filter Result As It", () => {
     cy.get("[data-cy=ContainerOfBoutiques]", { timeout: 10000 });
     cy.log("✅✅ Container Of Boutiques Apperead");
-    cy.intercept("Get", "**/api/products/search?&boutique_slugs**").as(
+    cy.intercept("Get", "**/api/products/searchInCatalog?&boutique_slugs**").as(
       "searchBoutique"
     );
     cy.clickElement("[data-cy=boutiqueItem]:eq(0)");
@@ -204,12 +204,12 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     cy.interceptAndWait([
       {
         method: "POST",
-        url: "**/boutiques/listing?**",
+        url: "**/boutiques/listing?boutique_slugs**",
         alias: "listing",
       },
       {
         method: "GET",
-        url: "**/api/products/search?**",
+        url: "**/api/products/searchInCatalog?boutique_slugs**",
         alias: "LoadallProducts",
       },
     ]);
@@ -244,7 +244,7 @@ describe("Should Search About Product By Name", () => {
     cy.log("✅✅ Input Field clicked for writing the search term.");
   });
   it("Should Write Name Of The Thing To Search", () => {
-    cy.intercept("GET", "**/api/products/search?search_text**").as(
+    cy.intercept("GET", "**/api/products/searchInCatalog?search_text**").as(
       "searchtext"
     );
     cy.get("[data-cy=inputField]", { timeout: 10000 })
@@ -275,12 +275,12 @@ describe("Should Search About Product By Name", () => {
         cy.interceptAndWait([
           {
             method: "POST",
-            url: "**/boutiques/listing?**",
+            url: "**/boutiques/listing?searchText**",
             alias: "listing",
           },
           {
             method: "GET",
-            url: "**/api/products/search?**",
+            url: "**/api/products/searchInCatalog?search_text**",
             alias: "LoadallProducts",
           },
         ]);
