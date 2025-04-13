@@ -76,7 +76,7 @@ function OrderItemsList({
                     id="Mask_Group_715"
                     data-name="Mask Group 715"
                     transform="translate(0 0.269)"
-                    clip-path="url(#clip-path097)"
+                    clipPath="url(#clip-path097)"
                   >
                     <g
                       id="Group_4033"
@@ -114,8 +114,8 @@ function OrderItemsList({
                         transform="translate(2.581 8.318)"
                         fill="none"
                         stroke="#1d1d1d"
-                        stroke-linecap="round"
-                        stroke-width="0.5"
+                        strokeLinecap="round"
+                        strokeWidth="0.5"
                       />
                     </g>
                   </g>
@@ -142,7 +142,7 @@ function OrderItemsList({
                   <g
                     id="Mask_Group_716"
                     data-name="Mask Group 716"
-                    clip-path="url(#clip-path075)"
+                    clipPath="url(#clip-path075)"
                   >
                     <g id="work" transform="translate(0 0.252)">
                       <path

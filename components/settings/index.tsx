@@ -28,6 +28,9 @@ interface SettingOption {
 }
 
 function Settings({ lang }: { lang: string }) {
+  const addressDetails = useSelector(
+    (state: StateInterface) => state.cart.addressDetails
+  );
   const userProfile = useSelector(
     (state: StateInterface) => state.auth.userProfile
   );
@@ -35,6 +38,9 @@ function Settings({ lang }: { lang: string }) {
   const dispatch = useDispatch();
   const setSelectedOrder = (order) => {
     dispatch({ type: "ORDER-DETAILS", payload: order });
+  };
+  const setIsActive = (e) => {
+    dispatch({ type: "SET-IS-ACTIVE-Address", payload: e });
   };
   const [NavigationOptions, setNavigationOptions] = useState<SettingOption[]>([
     {
@@ -94,6 +100,7 @@ function Settings({ lang }: { lang: string }) {
       title: "Address",
       component: (
         <PersonalInfoAddress
+          setIsActive={(e) => setIsActive(true)}
           goBack={() => swipeToScreen(1)}
           swipeToScreen={(index) => swipeToScreen(index)}
         />
@@ -104,10 +111,18 @@ function Settings({ lang }: { lang: string }) {
       id: "Personal Address Modal",
       title: "Address Details",
       component: (
-        <PersonalInfoAddressModal
-          goBack={() => swipeToScreen(1)}
-          swipeToScreen={(index) => swipeToScreen(index)}
-        />
+        <>
+          {
+            <PersonalInfoAddressModal
+              goBack={() => {
+                dispatch({ type: "set-address-details", payload: null });
+
+                swipeToScreen(5);
+              }}
+              swipeToScreen={(index) => swipeToScreen(index)}
+            />
+          }
+        </>
       ),
       parentId: "Personal Info",
     },

@@ -104,7 +104,7 @@ function PersonalBankCards({
               <g
                 id="Mask_Group_728"
                 data-name="Mask Group 728"
-                clip-path="url(#clip-path)"
+                clipPath="url(#clip-path)"
               >
                 <g id="credit-card-2" transform="translate(0.04 1.795)">
                   <path

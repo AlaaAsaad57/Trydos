@@ -29,7 +29,7 @@ function OrderStatusCard({ status }: { status: string }) {
             id="Mask_Group_703"
             data-name="Mask Group 703"
             transform="translate(0 0)"
-            clip-path="url(#clip-path69)"
+            clipPath="url(#clip-path69)"
           >
             <g
               id="Group_4033"
@@ -67,8 +67,8 @@ function OrderStatusCard({ status }: { status: string }) {
                 transform="translate(4.054 13.067)"
                 fill="none"
                 stroke="#1d1d1d"
-                stroke-linecap="round"
-                stroke-width="0.5"
+                strokeLinecap="round"
+                strokeWidth="0.5"
               />
             </g>
           </g>
@@ -97,7 +97,7 @@ function OrderStatusCard({ status }: { status: string }) {
             id="Mask_Group_706"
             data-name="Mask Group 706"
             transform="translate(0 0.381)"
-            clip-path="url(#clip-path874)"
+            clipPath="url(#clip-path874)"
           >
             <g
               id="Group_4033"
@@ -135,8 +135,8 @@ function OrderStatusCard({ status }: { status: string }) {
                 transform="translate(2.964 9.552)"
                 fill="none"
                 stroke="#8d8d8d"
-                stroke-linecap="round"
-                stroke-width="0.5"
+                strokeLinecap="round"
+                strokeWidth="0.5"
               />
             </g>
           </g>
@@ -165,7 +165,7 @@ function OrderStatusCard({ status }: { status: string }) {
             id="Mask_Group_706"
             data-name="Mask Group 706"
             transform="translate(0 0.381)"
-            clip-path="url(#clip-path8724)"
+            clipPath="url(#clip-path8724)"
           >
             <g
               id="Group_4033"
@@ -203,8 +203,8 @@ function OrderStatusCard({ status }: { status: string }) {
                 transform="translate(2.964 9.552)"
                 fill="none"
                 stroke="#8d8d8d"
-                stroke-linecap="round"
-                stroke-width="0.5"
+                strokeLinecap="round"
+                strokeWidth="0.5"
               />
             </g>
           </g>
@@ -237,7 +237,7 @@ function OrderStatusCard({ status }: { status: string }) {
           <g
             id="Mask_Group_689"
             data-name="Mask Group 689"
-            clip-path="url(#clip-path172)"
+            clipPath="url(#clip-path172)"
           >
             <g id="work" transform="translate(0 0.298)">
               <path

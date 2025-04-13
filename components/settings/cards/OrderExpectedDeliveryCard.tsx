@@ -32,7 +32,7 @@ function OrderExpectedDeliveryCard({ time }: { time: string }) {
             id="Mask_Group_380"
             data-name="Mask Group 380"
             transform="translate(0)"
-            clip-path="url(#clip-path734)"
+            clipPath="url(#clip-path734)"
           >
             <g id="delivery_location" transform="translate(1.792 -0.04)">
               <g id="Group_11335" data-name="Group 11335">

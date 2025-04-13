@@ -156,7 +156,7 @@ function AddAddressForm({
           </div>
         </div>
 
-        {activeIndex && (
+        {activeIndex && countries.length > 0 && (
           <Map
             expanded={expanded}
             setCenter={(e) => setCenter(e)}

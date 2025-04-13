@@ -10,9 +10,11 @@ import { getCountriesApi } from "store/homepage/cachedActions";
 function PersonalInfoAddress({
   swipeToScreen,
   goBack,
+  setIsActive,
 }: {
   swipeToScreen: (index: number) => void;
   goBack: () => void;
+  setIsActive: (isActive: boolean) => void;
 }) {
   const getAdditionData = async () => {
     order.GetAddressList();
@@ -164,7 +166,7 @@ function PersonalInfoAddress({
             </div>
           ) : (
             <>
-              <div className="flex-col  mt-[20px] h-auto max-h-[290px] overflow-auto">
+              <div className="flex-col  mt-[20px] h-auto max-h-[290px] overflow-auto w-full">
                 {addressLists.map((s, i) => (
                   <div
                     key={i}
@@ -191,6 +193,7 @@ function PersonalInfoAddress({
                       onClick={() => {
                         // closeSelect();
                         // slideNext();
+                        setIsActive(true);
                         setAddressDetails(s);
                         swipeToScreen(6);
                       }}
@@ -345,6 +348,8 @@ function PersonalInfoAddress({
               borderRadius: "15px",
             }}
             onClick={() => {
+              setIsActive(true);
+              dispatch({ type: "INIT-ADDRESS-FORM" });
               swipeToScreen(6);
               // onClick();
             }}
@@ -390,7 +395,7 @@ const MiniAddressInfo = () => {
           id="Mask_Group_730"
           data-name="Mask Group 730"
           transform="translate(24 170)"
-          clip-path="url(#clip-path)"
+          clipPath="url(#clip-path)"
         >
           <g id="Layer_x0020_1" transform="translate(1.165 0)">
             <g id="Group_13671" data-name="Group 13671">

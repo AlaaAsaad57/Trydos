@@ -268,7 +268,7 @@ const CheckBoxElement = ({ active }) => {
                     data-name="Ellipse 427"
                     fill="none"
                     stroke="#388cff"
-                    stroke-width="0.5"
+                    strokeWidth="0.5"
                   >
                     <circle cx="7.5" cy="7.5" r="7.5" stroke="none" />
                     <circle cx="7.5" cy="7.5" r="7.25" fill="none" />
@@ -329,7 +329,7 @@ const CheckBoxElement = ({ active }) => {
                     data-name="Ellipse 427"
                     fill="none"
                     stroke="#8e8e8e"
-                    stroke-width="0.5"
+                    strokeWidth="0.5"
                   >
                     <circle cx="7.5" cy="7.5" r="7.5" stroke="none" />
                     <circle cx="7.5" cy="7.5" r="7.25" fill="none" />

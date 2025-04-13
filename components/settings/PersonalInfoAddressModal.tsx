@@ -3,7 +3,7 @@ import SettingTopBar from "./TopBar";
 import SelectRegion from "components/Cart/SelectRegion";
 import { DeleteModalComponent } from "components/Cart/OrdersPage";
 import AddAddressForm from "components/Cart/AddAddressForm";
-import { useDispatch } from "node_modules/react-redux/es";
+import { useDispatch, useSelector } from "node_modules/react-redux/es";
 
 function PersonalInfoAddressModal({
   swipeToScreen,
@@ -17,7 +17,9 @@ function PersonalInfoAddressModal({
     dispatch({ type: "set-address-details", payload: e });
   };
   const [openSelect, setOpenSelect] = useState(false);
-
+  const isActiveAddress = useSelector(
+    (state: StateInterface) => state.auth.isActiveAddress
+  );
   return (
     <div className="flex-col max-h-[calc(100vh-200px)]">
       <SettingTopBar
@@ -33,18 +35,20 @@ function PersonalInfoAddressModal({
           }}
         />
       )}
-      <AddAddressForm
-        activeIndex={true}
-        setOpenSelect={() => {
-          setOpenSelect(true);
-        }}
-        slidePrev={() => {
-          swipeToScreen(5);
-        }}
-        setAddressDetails={(e) => {
-          setAddressDetails(e);
-        }}
-      />
+      {isActiveAddress && (
+        <AddAddressForm
+          activeIndex={true}
+          setOpenSelect={() => {
+            setOpenSelect(true);
+          }}
+          slidePrev={() => {
+            swipeToScreen(5);
+          }}
+          setAddressDetails={(e) => {
+            setAddressDetails(e);
+          }}
+        />
+      )}
     </div>
   );
 }

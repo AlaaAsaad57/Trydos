@@ -255,7 +255,7 @@ function UploadProfilePhoto({
                         id="Mask_Group_493"
                         data-name="Mask Group 493"
                         transform="translate(203 428)"
-                        clip-path="url(#clip-path)"
+                        clipPath="url(#clip-path)"
                       >
                         <g id="image-add" transform="translate(0 1.498)">
                           <path
@@ -344,7 +344,7 @@ function UploadProfilePhoto({
                       <g
                         id="Mask_Group_733"
                         data-name="Mask Group 733"
-                        clip-path="url(#clip-path)"
+                        clipPath="url(#clip-path)"
                       >
                         <g id="Icons" transform="translate(-2.25 -2.25)">
                           <path
@@ -399,7 +399,7 @@ function UploadProfilePhoto({
                       <g
                         id="Mask_Group_734"
                         data-name="Mask Group 734"
-                        clip-path="url(#clip-path)"
+                        clipPath="url(#clip-path)"
                       >
                         <g id="image-gallery-2" transform="translate(0 -0.75)">
                           <g id="Group_13684" data-name="Group 13684">

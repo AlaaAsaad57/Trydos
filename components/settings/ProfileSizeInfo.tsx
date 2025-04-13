@@ -151,7 +151,7 @@ function ProfileSizeInfo({
             <g
               id="Mask_Group_731"
               data-name="Mask Group 731"
-              clip-path="url(#clip-path)"
+              clipPath="url(#clip-path)"
             >
               <g id="measuring-tape-2" transform="translate(0.04 0.692)">
                 <path

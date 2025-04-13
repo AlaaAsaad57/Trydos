@@ -175,6 +175,8 @@ declare global {
     };
     auth: {
       userProfile: CustomerInfoApi["customer_info"];
+      totalOrders: number;
+      isActiveAddress: boolean;
       user: {
         id: number;
         already_exists?: boolean;

@@ -14,10 +14,24 @@ const initialState = {
     firebase: 0,
   },
   userProfile: null,
+  totalOrders: -1,
+  isActiveAddress: false,
 };
 
 const AuthReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "SET-IS-ACTIVE-Address": {
+      return {
+        ...state,
+        isActiveAddress: payload,
+      };
+    }
+    case "TOTAL_ORDERS": {
+      return {
+        ...state,
+        totalOrders: payload,
+      };
+    }
     case "EDIT_USER_INFO": {
       return {
         ...state,

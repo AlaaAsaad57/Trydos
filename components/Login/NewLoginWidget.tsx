@@ -145,6 +145,7 @@ function NewLoginWidget() {
       },
       successCallback: (exists, name) => {
         setTimeout(() => {
+          setLoadingPin(false);
           if (operation === "signup") {
             Sendevent({
               event: "programming_event",
@@ -194,7 +195,6 @@ function NewLoginWidget() {
         }, 2000);
       },
     });
-    setLoadingPin(false);
   };
 
   const getPageColor = () => {

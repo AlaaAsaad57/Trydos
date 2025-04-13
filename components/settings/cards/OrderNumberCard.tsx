@@ -31,7 +31,7 @@ const OrderNumberCard: React.FC<OrderNumberCardProps> = ({ number }) => {
           id="Mask_Group_726"
           data-name="Mask Group 726"
           transform="translate(0 0.412)"
-          clip-path="url(#clip-path23)"
+          clipPath="url(#clip-path23)"
         >
           <g
             id="Group_13514"
@@ -56,8 +56,8 @@ const OrderNumberCard: React.FC<OrderNumberCardProps> = ({ number }) => {
               transform="translate(2.977 9.176)"
               fill="none"
               stroke="#f74949"
-              stroke-linecap="round"
-              stroke-width="0.5"
+              strokeLinecap="round"
+              strokeWidth="0.5"
             />
           </g>
         </g>

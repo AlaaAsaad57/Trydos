@@ -57,6 +57,9 @@ function MainSetting({
       setLoading(false);
     }
   };
+  const totalOrders = useSelector(
+    (state: StateInterface) => state.auth.totalOrders
+  );
   return (
     <div className="flex-col w-full pt-[20px] px-[12px]">
       <ProfileCard
@@ -75,9 +78,15 @@ function MainSetting({
           <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
             {translateFunction("Orders")}
           </span>
-          <span className="text-[#8D8D8D] text-[12px] regular">
-            1 {translateFunction("Action")}
-          </span>
+          {totalOrders === -1 ? (
+            <span>
+              <Spinner />
+            </span>
+          ) : (
+            <span className="text-[#8D8D8D] text-[12px] regular">
+              {totalOrders} {translateFunction("Action")}
+            </span>
+          )}
         </div>
         <div className="flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px] ml-[12px] cursor-pointer">
           <TryDosWalletIcon />

@@ -52,7 +52,7 @@ const OrderInvoiceCard: React.FC<OrderInvoiceCardProps> = ({
         <g
           id="Mask_Group_701"
           data-name="Mask Group 701"
-          clip-path="url(#clip-path865)"
+          clipPath="url(#clip-path865)"
         >
           <g id="_x31_8_Invoice" transform="translate(1.812 0.001)">
             <g id="Group_13612" data-name="Group 13612">

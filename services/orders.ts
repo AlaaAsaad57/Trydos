@@ -1,3 +1,4 @@
+import { store } from "store";
 import { OrdersResponse } from "../types/orders";
 import { AxiosGet } from "utils/AxiosApi";
 
@@ -15,6 +16,7 @@ export const fetchOrders = async (
         }`,
       title: "Fetch Orders",
     });
+    store.dispatch({ type: "TOTAL_ORDERS", payload: response.data.total });
     return response;
   } catch (error) {
     console.error("Error fetching orders:", error);

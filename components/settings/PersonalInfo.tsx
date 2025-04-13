@@ -5,6 +5,8 @@ import { translateFunction } from "utils/functions";
 import AddressInfo from "public/svg/cart/AddressInfo.svg";
 import { useDispatch, useSelector } from "react-redux";
 import auth from "services/auth";
+import ConfirmMobileChange from "./ConfirmMobileChange";
+import XIcon from "public/svg/Xicon.svg";
 function PersonalInfo({
   swipeToScreen,
   goBack,
@@ -26,7 +28,18 @@ function PersonalInfo({
   const updateUserProfile = async (payload) => {
     try {
       setLoading(true);
-      await auth.UpdateProfile(payload);
+      let obj;
+      if (userProfile.phone !== payload.phone)
+        obj = { ...obj, phone: payload.phone };
+      if (userProfile.name !== payload.name)
+        obj = { ...obj, name: payload.name };
+      if (userProfile.email !== payload.email)
+        obj = { ...obj, email: payload.email };
+      if (userProfile.gender !== payload.gender)
+        obj = { ...obj, gender: payload.gender };
+      if (userProfile.alternative_phone !== payload.alternative_phone)
+        obj = { ...obj, alternative_phone: payload.alternative_phone };
+      await auth.UpdateProfile({ ...obj });
       dispatch({
         type: "EDIT_USER_INFO",
         payload: { ...payload, gender: { value: payload.gender } },
@@ -49,6 +62,10 @@ function PersonalInfo({
       userProfileData.alternative_phone !== userProfile?.alternative_phone
     );
   };
+  const isPhoneEdited = () => {
+    return userProfileData.phone !== userProfile?.phone;
+  };
+  const [isPhoneShouldChange, setIsPhoneShouldChange] = useState(false);
   const isValid = () => {
     return (
       userProfileData.name &&
@@ -58,8 +75,22 @@ function PersonalInfo({
       userProfileData.alternative_phone
     );
   };
+
   return (
-    <div className={`flex-col ${loading ? "opacity-50 scale-95" : ""}`}>
+    <div
+      className={`flex-col relative ${loading ? "opacity-50 scale-95" : ""}`}
+    >
+      {isPhoneShouldChange && (
+        <ConfirmationModal
+          closeWindow={() => {
+            setIsPhoneShouldChange(false);
+          }}
+          value={userProfileData.phone}
+          successCallback={() => {
+            setIsPhoneShouldChange(false);
+          }}
+        />
+      )}
       <SettingTopBar
         goBack={() => {
           setUserProfileData({
@@ -75,7 +106,11 @@ function PersonalInfo({
         Save={
           isEdited() && isValid()
             ? () => {
-                updateUserProfile(userProfileData);
+                if (isPhoneEdited()) {
+                  setIsPhoneShouldChange(true);
+                } else {
+                  updateUserProfile(userProfileData);
+                }
               }
             : null
         }
@@ -166,7 +201,7 @@ function PersonalInfo({
             <g
               id="Mask_Group_732"
               data-name="Mask Group 732"
-              clip-path="url(#clip-path)"
+              clipPath="url(#clip-path)"
             >
               <g id="Outline" transform="translate(1.372)">
                 <g id="Group_13672" data-name="Group 13672">
@@ -423,3 +458,24 @@ function PersonalInfo({
 }
 
 export default PersonalInfo;
+const ConfirmationModal = ({ closeWindow, value, successCallback }) => {
+  return (
+    <>
+      <XIcon
+        className="w-[20px] absolute z-30 top-[calc(50%-170px)]  right-[30px]  h-[20px] cursor-pointer"
+        onClick={closeWindow}
+      />
+      <div className="fixed z-20 top-0 left-0  w-full h-full bg-black opacity-50" />
+
+      <div className="p-5 flex  w-auto justify-center z-30 h-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[15px]">
+        <ConfirmMobileChange
+          closeWindow={closeWindow}
+          value={value}
+          successCallback={(idToken) => {
+            successCallback(idToken);
+          }}
+        />
+      </div>
+    </>
+  );
+};

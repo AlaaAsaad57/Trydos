@@ -102,7 +102,7 @@ const OrderStatus = ({ status }: { status: string }) => {
           id="Mask_Group_703"
           data-name="Mask Group 703"
           transform="translate(0 0)"
-          clip-path="url(#clip-path123)"
+          clipPath="url(#clip-path123)"
         >
           <g
             id="Group_4033"
@@ -140,8 +140,8 @@ const OrderStatus = ({ status }: { status: string }) => {
               transform="translate(3.041 9.801)"
               fill="none"
               stroke="#1d1d1d"
-              stroke-linecap="round"
-              stroke-width="0.5"
+              strokeLinecap="round"
+              strokeWidth="0.5"
             />
           </g>
         </g>
@@ -172,7 +172,7 @@ const OrderStatus = ({ status }: { status: string }) => {
         <g
           id="Mask_Group_689"
           data-name="Mask Group 689"
-          clip-path="url(#clip-path343)"
+          clipPath="url(#clip-path343)"
         >
           <g id="work" transform="translate(0 0.298)">
             <path
@@ -283,7 +283,7 @@ const OrderInvoice = ({
         <g
           id="Mask_Group_701"
           data-name="Mask Group 701"
-          clip-path="url(#clip-path865)"
+          clipPath="url(#clip-path865)"
         >
           <g id="_x31_8_Invoice" transform="translate(1.812 0.001)">
             <g id="Group_13612" data-name="Group 13612">
@@ -508,7 +508,7 @@ const OrderItemId = ({ id }: { id: string }) => {
           id="Mask_Group_726"
           data-name="Mask Group 726"
           transform="translate(0 0.412)"
-          clip-path="url(#clip-path23)"
+          clipPath="url(#clip-path23)"
         >
           <g
             id="Group_13514"
@@ -533,8 +533,8 @@ const OrderItemId = ({ id }: { id: string }) => {
               transform="translate(2.977 9.176)"
               fill="none"
               stroke="#f74949"
-              stroke-linecap="round"
-              stroke-width="0.5"
+              strokeLinecap="round"
+              strokeWidth="0.5"
             />
           </g>
         </g>

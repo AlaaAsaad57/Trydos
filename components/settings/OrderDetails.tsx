@@ -127,7 +127,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
                 id="Mask_Group_380"
                 data-name="Mask Group 380"
                 transform="translate(0)"
-                clip-path="url(#clip-path734)"
+                clipPath="url(#clip-path734)"
               >
                 <g id="delivery_location" transform="translate(1.792 -0.04)">
                   <g id="Group_11335" data-name="Group 11335">
@@ -229,7 +229,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
                 id="Mask_Group_703"
                 data-name="Mask Group 703"
                 transform="translate(0 0)"
-                clip-path="url(#clip-path69)"
+                clipPath="url(#clip-path69)"
               >
                 <g
                   id="Group_4033"
@@ -267,8 +267,8 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
                     transform="translate(4.054 13.067)"
                     fill="none"
                     stroke="#1d1d1d"
-                    stroke-linecap="round"
-                    stroke-width="0.5"
+                    strokeLinecap="round"
+                    strokeWidth="0.5"
                   />
                 </g>
               </g>
@@ -297,7 +297,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
                 id="Mask_Group_706"
                 data-name="Mask Group 706"
                 transform="translate(0 0.381)"
-                clip-path="url(#clip-path874)"
+                clipPath="url(#clip-path874)"
               >
                 <g
                   id="Group_4033"
@@ -335,8 +335,8 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
                     transform="translate(2.964 9.552)"
                     fill="none"
                     stroke="#8d8d8d"
-                    stroke-linecap="round"
-                    stroke-width="0.5"
+                    strokeLinecap="round"
+                    strokeWidth="0.5"
                   />
                 </g>
               </g>
@@ -365,7 +365,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
                 id="Mask_Group_706"
                 data-name="Mask Group 706"
                 transform="translate(0 0.381)"
-                clip-path="url(#clip-path8724)"
+                clipPath="url(#clip-path8724)"
               >
                 <g
                   id="Group_4033"
@@ -403,8 +403,8 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
                     transform="translate(2.964 9.552)"
                     fill="none"
                     stroke="#8d8d8d"
-                    stroke-linecap="round"
-                    stroke-width="0.5"
+                    strokeLinecap="round"
+                    strokeWidth="0.5"
                   />
                 </g>
               </g>
@@ -441,7 +441,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
               <g
                 id="Mask_Group_689"
                 data-name="Mask Group 689"
-                clip-path="url(#clip-path172)"
+                clipPath="url(#clip-path172)"
               >
                 <g id="work" transform="translate(0 0.298)">
                   <path
@@ -623,7 +623,7 @@ const ProductCard = ({ product }: { product: OrderDetail }) => {
                 id="Mask_Group_725"
                 data-name="Mask Group 725"
                 transform="translate(0 -0.35)"
-                clip-path="url(#clip-path927)"
+                clipPath="url(#clip-path927)"
               >
                 <g id="work" transform="translate(0 0.259)">
                   <path

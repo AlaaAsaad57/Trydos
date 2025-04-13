@@ -355,8 +355,8 @@ export const OrdersIcon = () => {
           x2="0.5"
           gradientUnits="objectBoundingBox"
         >
-          <stop offset="0" stop-color="#f53c3c" />
-          <stop offset="1" stop-color="#ff9696" />
+          <stop offset="0" stopColor="#f53c3c" />
+          <stop offset="1" stopColor="#ff9696" />
         </linearGradient>
       </defs>
       <g
@@ -373,7 +373,7 @@ export const OrdersIcon = () => {
             id="Mask_Group_665"
             data-name="Mask Group 665"
             transform="translate(0)"
-            clip-path="url(#clip-path2)"
+            clipPath="url(#clip-path2)"
           >
             <g
               id="Group_4033"
@@ -411,8 +411,8 @@ export const OrdersIcon = () => {
                 transform="translate(3.648 11.76)"
                 fill="none"
                 stroke="#fce66e"
-                stroke-linecap="round"
-                stroke-width="0.6"
+                strokeLinecap="round"
+                strokeWidth="0.6"
               />
             </g>
           </g>
@@ -426,7 +426,7 @@ export const OrdersIcon = () => {
             id="Mask_Group_666"
             data-name="Mask Group 666"
             transform="translate(0)"
-            clip-path="url(#clip-path-22)"
+            clipPath="url(#clip-path-22)"
           >
             <g
               id="Group_4033-2"
