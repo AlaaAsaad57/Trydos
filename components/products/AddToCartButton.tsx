@@ -11,7 +11,7 @@ import auth from "services/auth";
 import Spinner from "components/global/Spinner";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 import { useParams } from "next/navigation";
-import { toast } from "react-toastify";
+
 function AddToCartButton({
   setOption,
   product,
@@ -161,7 +161,7 @@ function AddToCartButton({
   };
   const allVarIsEmpty = () => {
     let bool = true;
-
+    if (product.collected_after_ordering === 1) return false;
     if (product?.variation?.length > 0) {
       return !(product?.variation?.filter((s) => s.qty > 0).length > 0);
     } else {
@@ -518,13 +518,17 @@ function AddToCartButton({
       }
     }
   };
+  const shouldShowNotifyButton = () => {
+    if (product?.in_stock === false || product.is_country_restricted)
+      return true;
+    if (product.collected_after_ordering === 1) return false;
+    if (isQuantityEmpty()) return true;
+    if (allVarIsEmpty()) return false;
+    return false;
+  };
   return (
     <>
-      {AddToCartOption.enable &&
-      (isQuantityEmpty() ||
-        product?.in_stock === false ||
-        product.is_country_restricted ||
-        allVarIsEmpty()) ? (
+      {AddToCartOption.enable && shouldShowNotifyButton() ? (
         <>
           <div
             className={`add-cart-button extended-add-to-cart ${
