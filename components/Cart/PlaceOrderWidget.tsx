@@ -501,16 +501,27 @@ const PaymentOrder = ({ success }) => {
         {orderData?.payment?.filter((s) => s.id === 1).length > 0 && (
           <TryDosWalletInput
             total={
-              orderData?.data.order_amount ||
-              orderData?.data?.partial_payment_by_wallet
+              orderData?.data?.order_amount ||
+              orderData?.data?.partial_payment_by_wallet ||
+              orderData?.payment?.filter((s) => s.id === 1)[0].balance
             }
           />
         )}
         {orderData?.payment?.filter((s) => s.id === 2).length > 0 && (
-          <CreditInput total={orderData?.data.order_amount} />
+          <CreditInput
+            total={
+              orderData?.data?.order_amount ||
+              orderData?.payment?.filter((s) => s.id === 2)[0].balance
+            }
+          />
         )}
         {orderData?.payment?.filter((s) => s.id === 3).length > 0 && (
-          <CryptoInput total={orderData?.data.order_amount} />
+          <CryptoInput
+            total={
+              orderData?.data?.order_amount ||
+              orderData?.payment?.filter((s) => s.id === 3)[0].balance
+            }
+          />
         )}
       </div>
       {/* {
