@@ -75,6 +75,7 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
           });
         cy.get("[data-cy=closeIcon]", { timeout: 10000 }).click({
           scrollBehavior: false,
+          force: true,
         });
         cy.log("✅✅ Close Icon Clicked");
       }
@@ -150,6 +151,7 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
           });
         cy.get("[data-cy=closeIcon]", { timeout: 10000 }).click({
           scrollBehavior: false,
+          force: true,
         });
         cy.log("✅✅ Close Icon Clicked");
       }
@@ -162,7 +164,7 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     );
   });
   it("Should Click On Close Icon To Close Search Result Container", () => {
-    cy.get("[data-cy=closeIcon]").click({ scrollBehavior: false });
+    cy.get("[data-cy=closeIcon]").click({ scrollBehavior: false, force: true });
     cy.log("✅ Close Icon To Close Search Result Container Clicked");
   });
 });
@@ -233,7 +235,7 @@ describe("Should Click On The Search Icon On The Home Page & View The Filtering 
     );
   });
   it("Should Click On Close Icon To Close Search Result Container", () => {
-    cy.get("[data-cy=closeIcon]").click({ scrollBehavior: false });
+    cy.get("[data-cy=closeIcon]").click({ scrollBehavior: false, force: true });
     cy.log("✅ Close Icon To Close Search Result Container Clicked");
   });
 });
@@ -296,7 +298,10 @@ describe("Should Search About Product By Name", () => {
         cy.log(
           "✅✅ Back Icon Founded In The Page Apperead After Click On Search Total Button Clicked"
         );
-        cy.get("[data-cy=closeIcon]").click({ scrollBehavior: false });
+        cy.get("[data-cy=closeIcon]").click({
+          scrollBehavior: false,
+          force: true,
+        });
         cy.log("✅ Close Icon To Close Search Result Container Clicked");
       }
     });

@@ -1,10 +1,11 @@
 describe("Should open trydos then open cart page", () => {
-  before(() => {
+  before("open trydos", () => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
     });
     cy.Visit("/");
   });
+  // end- open trydos
   it("open cart page", () => {
     cy.clickElement("[data-cy=cartIcon_mainPage]");
     cy.interceptAndWait([
@@ -21,8 +22,10 @@ describe("Should open trydos then open cart page", () => {
     ]);
     cy.log("✅✅ getCartShipping & getOldCart Requests Arrived");
   });
+  // open cart page
 });
-describe("Should check if products purchased later are out of the bag", () => {
+// end- Should open trydos then open cart page
+describe("Should Verify components and check if products purchased later are out of the bag", () => {
   it("Verify components", () => {
     cy.get("[data-cy=cartPage-container]").should("exist").and("be.visible");
     cy.get("[data-cy=cartPage-header-container]")
@@ -36,7 +39,6 @@ describe("Should check if products purchased later are out of the bag", () => {
       .should("exist")
       .and("be.visible"); //svg-textContainer
     cy.get("[data-cy=svg-textContainer]").should("exist").and("be.visible"); //svg-textContainer
-    // cy.get("[data-cy=length-ofItems]").should("exist").and("be.visible");
     cy.get("[data-cy=textContainer-textOnHeader]")
       .should("exist")
       .and("be.visible")
@@ -46,6 +48,7 @@ describe("Should check if products purchased later are out of the bag", () => {
     cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
     cy.log("✅✅ All components founded");
   });
+  // end- Verify components
   it("Check if cart is empty or products are out of the bag", () => {
     cy.document().then((doc) => {
       const emptyCart = doc.querySelector('[data-cy="EmptyCRart"]');
@@ -194,7 +197,9 @@ describe("Should check if products purchased later are out of the bag", () => {
       }
     });
   });
+  // end- Check if cart is empty or products are out of the bag
 });
+// end- Verify components and Check if cart is empty or products are out of the bag
 describe("Should verify about cart components", () => {
   it("verify about cart components", () => {
     cy.get("[data-cy=container-ofProducts]").should("exist").and("be.visible");
@@ -336,33 +341,178 @@ describe("Should verify about cart components", () => {
           .contains("%");
       }
     });
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
-    // cy.get("[data-cy=container2-ofProducts]").should("exist").and("be.visible");
+  });
+  // end- verify about cart components
+});
+// end- should verify about cart components
+describe("Should verify components in cart footer page", () => {
+  it("should render the container with correct initial styles", () => {
+    cy.get("[data-cy=order-bottom-button]").should("exist");
+    cy.Exist("[data-cy=one-product]").then((exists) => {
+      if (exists) {
+        cy.get("[data-cy=overflow-hidden-container]").should("exist");
+        cy.get('[data-cy="overflow-hidden-container"]')
+          .should("exist")
+          .and("have.class", "flex-col")
+          .and("have.class", "overflow-hidden")
+          .and("have.class", "h-[116px]"); // Check for collapsed state
+        cy.get('[data-cy="containerOf-questionMark"]')
+          .find('[data-cy="questionMark"]')
+          .should("exist")
+          .and("have.attr", "width", "14")
+          .and("have.attr", "height", "14");
+        cy.get('[data-cy="horizontal-tape-container"]')
+          .should("exist")
+          .and("have.class", "flex")
+          .and("have.class", "flex-row")
+          .and("have.class", "marquee-slide");
+        cy.get('[data-cy="firstItem-onHorizontalTape"]')
+          .should("exist")
+          .find('[data-cy="deleivery-icon"]')
+          .should("exist");
+        cy.get('[data-cy="deleivery-text"]')
+          .should("exist")
+          .and("contain", "Delivery")
+          .find('[data-cy="text-name"]')
+          .should("contain", "2 June");
+        cy.get('[data-cy="firstItem-onHorizontalTape"]')
+          .should("have.class", "flex")
+          .and("have.class", "items-center");
+        cy.get('[data-cy="deleivery-text"]')
+          .should("have.class", "ml-1")
+          .and("have.class", "whitespace-nowrap")
+          .and("have.class", "text-[11px]")
+          .and("have.class", "text-[#505050]");
+        cy.Exist("[data-cy=secondItem-onHorizontalTape]").then((exists) => {
+          if (exists) {
+            cy.get('[data-cy="secondItem-onHorizontalTape"]')
+              .should("exist")
+              .find('[data-cy="free-shipping-icon"]')
+              .should("exist");
+
+            cy.get('[data-cy="FreeShipping-text"]')
+              .should("exist")
+              .and("contain", "Free Shipping");
+            cy.get('[data-cy="secondItem-onHorizontalTape"]')
+              .should("have.class", "flex")
+              .and("have.class", "items-center")
+              .and("have.class", "ml-2");
+            cy.get('[data-cy="FreeShipping-text"]')
+              .should("have.class", "ml-1")
+              .and("have.class", "whitespace-nowrap")
+              .and("have.class", "text-[11px]")
+              .and("have.class", "text-[#505050]");
+          }
+        });
+        cy.get('[data-cy="thirdItem-onHorizontalTape"]')
+          .should("exist")
+          .find('[data-cy="free-return-icon"]')
+          .should("exist");
+        cy.get('[data-cy="FreeReturn-text"]')
+          .should("exist")
+          .and("contain", "Free Return");
+        cy.get('[data-cy="thirdItem-onHorizontalTape"]')
+          .should("have.class", "flex")
+          .and("have.class", "items-center")
+          .and("have.class", "ml-2");
+        cy.get('[data-cy="FreeReturn-text"]')
+          .should("have.class", "ml-1")
+          .and("have.class", "whitespace-nowrap")
+          .and("have.class", "text-[11px]")
+          .and("have.class", "text-[#505050]");
+        cy.get('[data-cy="fourthItem-onHorizontalTape"]')
+          .should("exist")
+          .find('[data-cy="deleiveryuaranteeIcon"]')
+          .should("exist");
+        cy.get('[data-cy="DeliveryGuarantee-text"]')
+          .should("exist")
+          .and("contain", "Delivery Guarantee");
+        cy.get('[data-cy="fifthItem-onHorizontalTape"]')
+          .should("exist")
+          .find('[data-cy="Return-Gurantee-Icon"]')
+          .should("exist");
+        cy.get('[data-cy="ReturnGurantee-text"]')
+          .should("exist")
+          .and("contain", "Return Guarantee");
+        cy.get('[data-cy="sixtyItem-onHorizontalTape"]')
+          .should("exist")
+          .find('[data-cy="Secure-Payment-Icon"]')
+          .should("exist");
+        cy.get('[data-cy="SecurePayment-text"]')
+          .should("exist")
+          .and("contain", "Secure Privacy");
+        cy.get('[data-cy="seventyItem-onHorizontalTape"]')
+          .should("exist")
+          .find('[data-cy="Safe-Payment-Icon"]')
+          .should("exist");
+        cy.get('[data-cy="SafePayment-text"]')
+          .should("exist")
+          .and("contain", "Safe & Easy Payment");
+        cy.get('[data-cy="eightyItem-onHorizontalTape"]')
+          .should("exist")
+          .find('[data-cy="Purchase-Protection-Icon"]')
+          .should("exist");
+        cy.get('[data-cy="PurchaseProtection-text"]')
+          .should("exist")
+          .and("contain", "Purshase Protection");
+        cy.get('[data-cy="nintyItem-onHorizontalTape"]')
+          .should("exist")
+          .find('[data-cy="Money-Icon"]')
+          .should("exist");
+        cy.get('[data-cy="Money-text"]')
+          .should("exist")
+          .and("contain", "Earn Money With This Order");
+      }
+    });
+  });
+  it("should display the item details and discount information and shipping information and correct prices correctly", () => {
+    cy.Exist("[data-cy=total-expanded]").then((exists) => {
+      if (exists) {
+        cy.clickElement("[data-cy=total-expanded]");
+        cy.get("[data-cy=itemPriceDiscountShipping-container]").should("exist");
+        // Check item texts
+        cy.get("[data-cy=itemTexts]").should("contain", "Item");
+        cy.get("[data-cy=itemTotalTexts]").should("contain", "Total Items");
+        cy.get("[data-cy=itemsLength]").should("exist");
+        // Check price section
+        cy.get("[data-cy=Price-container]").should("exist");
+        cy.get("[data-cy=Price-text]").should("contain", "Price");
+        cy.get("[data-cy=NormalPrice-text]").should("contain", "Normal Price");
+        cy.get("[data-cy=currency_symbol-Price]").should("exist");
+        cy.get("[data-cy=discount-container]").should("exist");
+        cy.get("[data-cy=totalDiscount-text]").should(
+          "contain",
+          "Total Discount"
+        );
+        cy.get("[data-cy=empty-div2]").should("exist");
+        cy.get("[data-cy=ShowDiscount]").should(
+          "contain",
+          "Click To Show All Discount"
+        );
+        cy.get("[data-cy=Shipping-container]").should("exist");
+        cy.get("[data-cy=Shipping-text]").should("contain", "Shipping");
+        cy.get("[data-cy=Completely-text]").should(
+          "contain",
+          "Shipping Is Completely Free Without Any Extras"
+        );
+      }
+    });
+  });
+  it("should display total information correctly", () => {
+    cy.Exist("[data-cy=total-expanded]").then((exists) => {
+      if (exists) {
+        cy.get("[data-cy=total-expanded]").should("exist");
+        // Check total left container texts
+        cy.get("[data-cy=total-left-text]").should("contain", "Total");
+        cy.get("[data-cy=Inclusive-text]").should(
+          "contain",
+          "All Inclusive Without Additions"
+        );
+        // Check total right container
+        cy.get("[data-cy=total-right-RoundPrice]").should("exist");
+        cy.get("[data-cy=total-right-text]").should("exist");
+        cy.get("[data-cy=Confirm-Order-Button]").should("exist");
+      }
+    });
   });
 });

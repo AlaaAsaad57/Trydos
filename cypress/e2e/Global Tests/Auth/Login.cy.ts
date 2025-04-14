@@ -288,7 +288,7 @@ describe("Should Input name in login if the user does not input your name when s
     cy.ComplateLoginByMobilePhone();
   });
   it("Should Enter His Number In Number Entry Box", () => {
-    cy.enterPhoneNumber("963937764641");
+    cy.enterPhoneNumber("963937288307");
   });
   it("Should Click Recive Otp Code By SMS Button", () => {
     cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
@@ -316,7 +316,19 @@ describe("Should Input name in login if the user does not input your name when s
     cy.InputFieldNameVisible();
   });
   it("Should Writ User Name In The Input Field", () => {
-    cy.TypeName();
+    // cy.TypeName();
+    cy.intercept("POST", "**/customer/update-name").as("update-name");
+    cy.intercept("POST", "**/api/v1/users/update").as("update");
+    cy.clickElement("[data-cy=InputFiledForName]");
+    cy.get("[data-cy=InputFiledForName]", { timeout: 10000 })
+      .type("Alaa Asaad", { force: true, scrollBehavior: false })
+      .should("have.value", "Alaa Asaad"); // Ensure text was typed
+    cy.log("✅✅ User Name is Writ In Input Field");
+    cy.clickElement(".phone-arrow");
+    cy.wait(["@update-name", "@update"]).then((inter) => {
+      expect(inter[0].response.statusCode).to.be.eq(200);
+      expect(inter[1].response.statusCode).to.be.eq(200);
+    });
   });
   it("Should Click On Arrow Founded In Right Of Input Field & Click On Skip For Now Button", () => {
     cy.ChexkExistElement("[data-testid=login-close-icon]").then((exist) => {
