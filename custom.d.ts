@@ -788,7 +788,7 @@ declare global {
         flash_deal_max_allowed_quantity: any;
         description: any;
         model: any;
-        in_stock: boolean;
+        is_Active: boolean;
         variation: Array<{
           type: string;
           price: number;
@@ -810,7 +810,7 @@ declare global {
         offer_price: number;
         tax: number;
         unit_price: number;
-        current_stock: number;
+        available_quantity: number;
         Left_stock: number;
         seller_id: any;
         seller: {
@@ -969,7 +969,7 @@ declare global {
         flash_deal_max_allowed_quantity: any;
         description: any;
         model: any;
-        in_stock: boolean;
+        is_Active: boolean;
         variation: Array<{
           variant_notify_for_user: boolean;
           type: string;
@@ -992,7 +992,7 @@ declare global {
         offer_price: number;
         tax: number;
         unit_price: number;
-        current_stock: number;
+        available_quantity: number;
         Left_stock: number;
         seller_id: any;
         seller: {

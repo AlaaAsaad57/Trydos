@@ -77,7 +77,7 @@ export interface OrderDetail {
     price: number;
     offer_price: number;
     is_favourite: boolean;
-    in_stock: boolean;
+    is_Active: boolean;
     rating: {
       overall_rating: number;
       total_rating: number;

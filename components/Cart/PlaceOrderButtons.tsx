@@ -58,7 +58,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
           (s) =>
             s?.check_availability === false ||
             s.is_country_restricted === true ||
-            s.in_stock === false
+            s.is_Active === false
         ).length === 0
       ) {
         setLoading(false);

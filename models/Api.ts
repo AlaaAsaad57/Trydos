@@ -287,7 +287,7 @@ export interface FilterProductApi {
       }>;
       price: number;
       offer_price: number;
-      in_stock: boolean;
+      is_Active: boolean;
       boutique_id?: number;
     }>;
     brands: Array<{
@@ -493,7 +493,7 @@ export interface QuantityDetailsProductApi {
     id: number;
     description: any;
     model: any;
-    in_stock: boolean;
+    is_Active: boolean;
     variation: Array<{
       type: string;
       price: number;
@@ -517,7 +517,7 @@ export interface QuantityDetailsProductApi {
     offer_price: number;
     tax: number;
     unit_price: number;
-    current_stock: number;
+    available_quantity: number;
     Left_stock: number;
     seller_id: any;
     seller: {
@@ -584,7 +584,7 @@ export interface CartApi {
       id: number;
       check_availability: boolean;
       customer_id: number;
-      in_stock: boolean;
+      is_Active: boolean;
       is_country_restricted: boolean;
       cart_group_id: string;
       product_id: number;
@@ -1372,7 +1372,7 @@ export interface GetProductApi {
       }>;
       price: number;
       offer_price: number;
-      in_stock: boolean;
+      is_Active: boolean;
       boutique_id?: number;
     }>;
     brands: Array<{

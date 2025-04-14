@@ -379,10 +379,10 @@ export const CartReducer = (state = initialState, { type, payload }) => {
             ...state,
             SelectedProduct: {
               ...state.SelectedProduct,
-              current_stock:
-                state.SelectedProduct.current_stock === 0
+              available_quantity:
+                state.SelectedProduct.available_quantity === 0
                   ? 0
-                  : state.SelectedProduct.current_stock - 1,
+                  : state.SelectedProduct.available_quantity - 1,
             },
           };
         } else {

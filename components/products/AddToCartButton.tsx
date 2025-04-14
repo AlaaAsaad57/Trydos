@@ -117,7 +117,7 @@ function AddToCartButton({
       return false;
     }
     if (getSelectedVariantofProduct() === "")
-      return product?.current_stock <= 0;
+      return product?.available_quantity <= 0;
     else
       return (
         product?.variation?.filter(
@@ -165,7 +165,7 @@ function AddToCartButton({
     if (product?.variation?.length > 0) {
       return !(product?.variation?.filter((s) => s.qty > 0).length > 0);
     } else {
-      return product.current_stock === 0;
+      return product.available_quantity === 0;
     }
   };
 
@@ -206,7 +206,7 @@ function AddToCartButton({
 
     if (getSelectedVariantofProduct() === "") {
       return (
-        product?.current_stock ===
+        product?.available_quantity ===
         getQuantity({
           sku: `${product?.id}${
             selectedCartItem?.selectedColor?.color_name
@@ -521,7 +521,7 @@ function AddToCartButton({
   const shouldShowNotifyButton = () => {
     //
     //restricted,status,collect_after_ordering,quantity,allVarIsEmpty
-    if (product?.in_stock === false || product.is_country_restricted)
+    if (product?.is_Active === false || product.is_country_restricted)
       return true;
     if (product.collected_after_ordering === 1) return false;
     if (isQuantityEmpty()) return true;
@@ -952,7 +952,7 @@ function AddToCartButton({
                       {getTotalQuantity()}
                     </span>
                   )}
-                  {product?.in_stock === false ||
+                  {product?.is_Active === false ||
                   product.is_country_restricted ||
                   allVarIsEmpty() ? (
                     <NotifySVG className={`mr-[15px]`} />
@@ -1021,13 +1021,13 @@ function AddToCartButton({
                   )}
                 </div>
                 <span className="mt-1">
-                  {product?.in_stock === false ||
+                  {product?.is_Active === false ||
                   product.is_country_restricted ||
                   allVarIsEmpty()
                     ? translate("Notify Me")
                     : translate("Add To Bag")}{" "}
                   {!(
-                    product?.in_stock === false ||
+                    product?.is_Active === false ||
                     product.is_country_restricted ||
                     allVarIsEmpty()
                   ) &&
