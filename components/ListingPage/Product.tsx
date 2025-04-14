@@ -79,26 +79,30 @@ function Product({
 
   const [productState, dispatch] = useReducer(ProductReducer, {
     isActiveTopSlide: false,
-    activeColor: product.sync_color_images
-      ? {
-          ...product.sync_color_images.filter(
-            (color) => color.images.length > 0
-          )[
-            Math.round(
-              product.sync_color_images.filter(
-                (color) => color.images.length > 0
-              ).length / 2
-            ) - 1
-          ],
-          index: 0,
-        }
-      : { images: product.images },
+    activeColor:
+      product.sync_color_images &&
+      product.sync_color_images[0]?.images?.length > 0
+        ? {
+            ...product.sync_color_images?.filter(
+              (color) => color.images.length > 0
+            )[
+              Math.round(
+                product.sync_color_images?.filter(
+                  (color) => color.images.length > 0
+                ).length / 2
+              ) - 1
+            ],
+            index: 0,
+          }
+        : { images: product.images },
     // @ts-ignore
-    activeImage: product?.sync_color_images
-      ? // @ts-ignore
-        product?.sync_color_images[0]?.images[0]?.file_path
-      : // @ts-ignore
-        product.images[0]?.file_path,
+    activeImage:
+      product?.sync_color_images &&
+      product?.sync_color_images[0]?.images?.length > 0
+        ? // @ts-ignore
+          product?.sync_color_images[0]?.images[0]?.file_path
+        : // @ts-ignore
+          product.images[0]?.file_path,
     isColorSelected: false,
     activeImageIndex: 0,
     renderVar: false,
@@ -212,7 +216,7 @@ function Product({
                     !productState?.isActiveTopSlide
                   }
                   activeColor={productState?.activeColor}
-                  colors={product.sync_color_images.filter(
+                  colors={product.sync_color_images?.filter(
                     (color) => color.images.length > 0
                   )}
                   getIndex={getIndex(product, productState)}
@@ -256,7 +260,7 @@ function Product({
                   setActiveColor={(e) =>
                     dispatch({ type: "setActiveColor", payload: e })
                   }
-                  images={product.sync_color_images.filter(
+                  images={product.sync_color_images?.filter(
                     (color) => color.images.length > 0
                   )}
                 />
