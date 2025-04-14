@@ -14,7 +14,7 @@ interface Props {
     mainCategory: string;
   };
 }
-async function page({ params }: Props) {
+function page({ params }: Props) {
   return (
     <>
       <NavbarServer lang={params.lang} />

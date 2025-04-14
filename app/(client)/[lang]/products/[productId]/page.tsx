@@ -45,8 +45,7 @@ export async function generateMetadata({ params, searchParams }) {
   }
 }
 
-export const revalidate =
-  parseInt(process.env.NEXT_PUBLIC_REVALIDATE) * 60 * 24;
+export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 
 interface Props {
   params: {
@@ -54,7 +53,7 @@ interface Props {
     productId: string;
   };
 }
-async function Page({ params }: Props) {
+function Page({ params }: Props) {
   return (
     <>
       <CustomNavbarServer lang={params.lang} />
