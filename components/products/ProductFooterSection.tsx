@@ -213,6 +213,7 @@ function ProductFooterSection({ product, currency }) {
     dispatchStore({ type: "LOADED-CART", payload: false });
 
     getData();
+    dispatchStore({ type: "AddToCartOptionDisable" });
   }, []);
   const decimal_point_settings = useSelector(
     (state: StateInterface) => state.homepage.settings
