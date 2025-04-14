@@ -519,6 +519,8 @@ function AddToCartButton({
     }
   };
   const shouldShowNotifyButton = () => {
+    //
+    //restricted,status,collect_after_ordering,quantity,allVarIsEmpty
     if (product?.in_stock === false || product.is_country_restricted)
       return true;
     if (product.collected_after_ordering === 1) return false;

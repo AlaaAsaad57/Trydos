@@ -141,6 +141,7 @@ function FilterBar({ boutique, filters, productsServer }) {
     };
 
     dispatch({ type: "FILTER-INIT", payload: filtersVar });
+    dispatch({ type: "AddToCartOptionDisable" });
   }, []);
   return (
     <>
