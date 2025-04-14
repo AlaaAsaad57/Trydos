@@ -2,7 +2,8 @@ import Home from "components/Home";
 // import BrandsBar from "components/Home/Bars/BrandsBar";
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
-export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
+export const revalidate =
+  parseInt(process.env.NEXT_PUBLIC_REVALIDATE) * 60 * 24;
 
 async function HomePage({ params }) {
   return (

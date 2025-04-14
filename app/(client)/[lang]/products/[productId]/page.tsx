@@ -45,7 +45,8 @@ export async function generateMetadata({ params, searchParams }) {
   }
 }
 
-export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
+export const revalidate =
+  parseInt(process.env.NEXT_PUBLIC_REVALIDATE) * 60 * 24;
 
 interface Props {
   params: {

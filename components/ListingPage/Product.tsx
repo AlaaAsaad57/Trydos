@@ -1,4 +1,4 @@
-import React, { useReducer } from "react";
+import React, { useEffect, useReducer } from "react";
 import ImageSlider from "./ImageSlider";
 import { stopProgress } from "next-nprogress-bar";
 
@@ -9,12 +9,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { Sendevent } from "utils/functions";
 
 import PriceLabel from "./PriceLabel";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { CurrencyApi } from "models/Api";
 import CoverEffectSlider from "./CoverEffectSlider";
 import TopSlider from "./TopSlider";
 import ColorSlider from "./ColorSlider";
+import { PrefetchKind } from "node_modules/next/dist/client/components/router-reducer/router-reducer-types";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
@@ -120,7 +121,12 @@ function Product({
       return false;
     }
   };
-
+  const router = useRouter();
+  useEffect(() => {
+    router.prefetch(`/${lang}/products/${product.slug}`, {
+      kind: PrefetchKind.FULL,
+    });
+  }, []);
   return (
     <div className="max-h-[362px]" data-cy="countProduct">
       <NextLink

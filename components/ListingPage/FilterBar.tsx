@@ -26,6 +26,7 @@ import {
 } from "next/navigation";
 import NextLink from "components/global/NextLink";
 import { DebounceInput } from "node_modules/react-debounce-input/src";
+import { PrefetchKind } from "node_modules/next/dist/client/components/router-reducer/router-reducer-types";
 
 function FilterBar({ boutique, filters, productsServer }) {
   const selectedFilter = useSelector(
@@ -142,7 +143,11 @@ function FilterBar({ boutique, filters, productsServer }) {
 
     dispatch({ type: "FILTER-INIT", payload: filtersVar });
     dispatch({ type: "AddToCartOptionDisable" });
+    router.prefetch(`/${paramsVar.lang}`, {
+      kind: PrefetchKind.FULL,
+    });
   }, []);
+
   return (
     <>
       <div className="filter-listing-bar relative flex-row align-center">

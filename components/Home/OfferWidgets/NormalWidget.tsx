@@ -10,6 +10,7 @@ import { useEffect } from "react";
 import OfferPhotosSlider from "./OfferPhotosSlider";
 import NextLink from "components/global/NextLink";
 import { useParams } from "next/navigation";
+import { PrefetchKind } from "next/dist/client/components/router-reducer/router-reducer-types";
 
 interface NormalWidgetProps {
   boutique: Boutique;
@@ -27,6 +28,11 @@ const NormalWidget = ({ boutique, myKey, onClick }: NormalWidgetProps) => {
     }
   }, []);
   const { lang } = useParams();
+  useEffect(() => {
+    router.prefetch(`/${lang}/boutiques/${boutique.slug}`, {
+      kind: PrefetchKind.FULL,
+    });
+  }, []);
   return (
     <NextLink
       href={`/${lang}/boutiques/${boutique.slug}`}
