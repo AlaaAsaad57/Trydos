@@ -8,6 +8,7 @@ import localFont from "next/font/local";
 import "regenerator-runtime/runtime";
 import PageTransition from "components/global/PageTransition";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
+import { Suspense } from "react";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -53,7 +54,28 @@ const quicksand_semibold = localFont({
   preload: false,
   fallback: ["system-ui", "arial"],
 });
-export const revalidte = 360000;
+export const revalidte = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
+export async function generateStaticParams() {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/countries`
+    );
+    if (!response.ok) {
+      throw new Error("Failed to fetch countries");
+    }
+    const data = await response.json();
+    const languages = ["en", "ar", "tr"];
+
+    return data.data.countries?.flatMap((country) =>
+      languages.map((lang) => ({
+        lang: `${country.iso.toLowerCase()}-${lang}`,
+      }))
+    );
+  } catch (error) {
+    console.error("Error generating static params:", error);
+    return [];
+  }
+}
 export default async function RootLayout({ params, children }) {
   // ${sf_pro_rounded_light.variable}
   // ${sf_pro_rounded_semibold.variable}
@@ -80,8 +102,10 @@ export default async function RootLayout({ params, children }) {
 
       <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <Providers>
-          <div className="site-container">
-            <CustomNavbarServer lang={params.lang} />
+          <div className="site-container items-center">
+            <Suspense>
+              <CustomNavbarServer lang={params.lang} />
+            </Suspense>
             <PageTransition init={params.lang}>{children}</PageTransition>
           </div>
         </Providers>

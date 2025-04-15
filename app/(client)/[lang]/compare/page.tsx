@@ -3,7 +3,7 @@ import CustomNavbarServer from "components/Server/ServerCustomNav";
 
 import { notFound } from "next/navigation";
 import ComparePage from "components/global/compare";
-
+export const dynamic = "force-dynamic";
 export async function generateMetadata({ params, searchParams }) {
   try {
     return {

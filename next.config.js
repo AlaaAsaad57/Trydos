@@ -56,6 +56,7 @@ let nextConfig = {
   experimental: {
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
+
     staleTimes: {
       dynamic: 36000,
       static: 36000,

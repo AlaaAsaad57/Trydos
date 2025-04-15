@@ -12,6 +12,7 @@ async function OfferListServer({ params }) {
     const [HomeData, response] = await getHomeData({
       str: params?.mainCategory,
       lang: params.lang ? params.lang.split("-")[1] : null,
+      country: params.lang ? params.lang.split("-")[0] : null,
     });
 
     return (

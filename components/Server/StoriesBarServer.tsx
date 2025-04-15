@@ -2,19 +2,17 @@ import AddStory from "components/Home/AddStory";
 import StoriesBorder from "components/Home/Stories/StoriesBorder";
 import StoryElement from "components/Home/Stories/StoryElement";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
-import { cookies } from "node_modules/next/headers";
 import React from "react";
 import { getStoriesServer } from "store/homepage/cachedActions";
 
 async function StoriesBarServer() {
-  let token = cookies().get("token")?.value;
   const { data: stories, error } = await getStoriesServer();
   try {
     return (
       <div className="stories-bar-container">
         <div id="stories-bar" className="stories-bar">
           <div className="stories-bars">
-            {token && <AddStory />}
+            {<AddStory />}
 
             {stories.map((story, index) => (
               <StoryElement key={index} index={index} story={story} />

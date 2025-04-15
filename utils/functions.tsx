@@ -134,8 +134,6 @@ export const getLang = (lang, cookieLang) => {
 };
 
 export const getProductMeta = async ({ productId, lang, color }) => {
-  const cookies = (await import("next/headers")).cookies;
-  const cookieStore = cookies();
   let start = new Date();
   let [country, language] = lang.split("-");
 
@@ -151,8 +149,8 @@ export const getProductMeta = async ({ productId, lang, color }) => {
       headers: new Headers({
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        lang: await getLang(language, cookieStore.get("language")?.value),
-        country: country || cookieStore.get("country")?.value,
+        lang: language,
+        country: country,
       }),
     },
     "Product SimpleDetails"
@@ -165,12 +163,8 @@ export const getProductMeta = async ({ productId, lang, color }) => {
       process.env.NEXT_PUBLIC_BACKEND_URL +
       `/web/product/simpleDetails/${productId}`,
     headers: {
-      Authorization: `Bearer ${
-        typeof localStorage !== "undefined" &&
-        localStorage.getItem("MARKET-TOKEN")
-      }`,
-      lang: getLang(null, cookieStore.get("language")?.value),
-      country: cookieStore.get("country")?.value,
+      lang: language,
+      country: country,
     },
     response: data,
     time: end.getTime() - start.getTime(),
@@ -182,8 +176,6 @@ export const getProductMeta = async ({ productId, lang, color }) => {
   return data.data;
 };
 export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
-  const cookies = (await import("next/headers")).cookies;
-  const cookieStore = cookies();
   let [country, language] = lang.split("-");
   let start = new Date();
   let resp = await fetch(
@@ -196,9 +188,8 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
       headers: new Headers({
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        lang: await getLang(language, cookieStore.get("language")?.value),
-        country:
-          cookieStore.get("country") && cookieStore.get("country")?.value,
+        lang: language,
+        country: country,
       }),
     }
   );
@@ -211,13 +202,8 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
       process.env.NEXT_PUBLIC_BACKEND_URL +
       `/web/boutique/simpleDetails/${boutiqueId}`,
     headers: {
-      Authorization: `Bearer ${
-        typeof localStorage !== "undefined"
-          ? localStorage.getItem("MARKET-TOKEN")
-          : cookieStore.get("token")?.value
-      }`,
-      lang: getLang(null, cookieStore.get("language")?.value),
-      country: cookieStore.get("country")?.value,
+      lang: language,
+      country: country,
     },
     response: data,
     time: end.getTime() - start.getTime(),

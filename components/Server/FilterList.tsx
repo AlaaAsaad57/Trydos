@@ -10,12 +10,11 @@ async function FilterList({ searchParams, params }) {
       ? null
       : await getBoutiqueMeta({ boutiqueId, lang: params.lang });
   const [Listing_Data_res, response] = await getListingData({
-    categories: (searchParams.boutique_slugs && [
-      searchParams.boutique_slugs,
-    ]) || [params.productCategory],
+    categories: [params.productCategory],
     productCategory: params.boutiqueCategory,
     lang: params.lang ? params.lang.split("-")[1] : null,
-    searchParams: searchParams,
+    country: params.lang ? params.lang.split("-")[0] : null,
+    searchParams: {},
     noProducts: true,
   });
 

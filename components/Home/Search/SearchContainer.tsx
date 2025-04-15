@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
 import SearchHistory from "./SearchHistory";
@@ -6,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import SearchResults from "./SearchResults";
 import { LogData } from "store/homepage/actions";
 import search from "services/search";
+import { Suspense } from "react";
 
 function SearchContainer({ active }) {
   const [searchHistoryItems, setSearchHistory] = useState([]);
@@ -69,7 +71,9 @@ function SearchContainer({ active }) {
           <SearchTrending />
         </>
       )}
-      {<SearchResults />}
+      <Suspense fallback={<div>Loading...</div>}>
+        <SearchResults />
+      </Suspense>
     </Animated.div>
   );
 }

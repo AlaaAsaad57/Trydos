@@ -11,11 +11,36 @@ import {
   HomeBoutiqueApi,
   QuantityDetailsProductApi,
 } from "models/Api";
+export const getBoutiques = async ({ str, lang, country }) => {
+  let url = HOME_DATA_URL + `?lang=${lang}&limit=10000`;
 
-export const getHomeData = async ({ str, lang }) => {
-  const cookies = (await import("next/headers")).cookies;
+  let method = { method: "GET" };
+
+  try {
+    const res = await fetch(process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + url, {
+      ...method,
+      next: {
+        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_BOUTIQUES),
+        tags: [`home-boutiques`],
+      },
+      headers: new Headers({
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        lang: lang,
+        country: country,
+      }),
+      credentials: "include",
+      mode: "cors",
+    });
+    const repo: HomeBoutiqueApi = await res.json();
+    return repo.data.boutiques.map((s) => s.slug);
+  } catch (e) {
+    console.log(e);
+    return [];
+  }
+};
+export const getHomeData = async ({ str, lang, country }) => {
   const language = lang;
-  const cookieStore = cookies();
   let url =
     HOME_DATA_URL +
     (str?.length
@@ -35,8 +60,8 @@ export const getHomeData = async ({ str, lang }) => {
       headers: new Headers({
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        lang: await getLang(language, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
+        lang: language,
+        country: country,
       }),
       credentials: "include",
       mode: "cors",
@@ -48,8 +73,8 @@ export const getHomeData = async ({ str, lang }) => {
     let returned_res = {
       type: res.type,
       headers: new Headers({
-        lang: await getLang(language, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
+        lang: language,
+        country: country,
       }),
       url: res.url,
       time: time + "ms",
@@ -101,9 +126,8 @@ export const getStoriesServer = async () => {
 };
 export const getMainCategories = async ({
   lang,
+  country,
 }): Promise<[CategoriesApi["data"]["mainCategories"], any]> => {
-  const cookies = (await import("next/headers")).cookies;
-  const cookieStore = cookies();
   const language = lang;
 
   try {
@@ -118,9 +142,8 @@ export const getMainCategories = async ({
           tags: ["home-categories"],
         },
         headers: new Headers({
-          lang: await getLang(language, cookieStore.get("language")?.value),
-          country:
-            cookieStore.get("country") && cookieStore.get("country").value,
+          lang: lang,
+          country: country,
         }),
       }
     );
@@ -131,8 +154,8 @@ export const getMainCategories = async ({
     let returned_res = {
       type: res.type,
       headers: new Headers({
-        lang: await getLang(language, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
+        lang: lang,
+        country: country,
       }),
       url: res.url,
       time: time + "ms",
@@ -211,6 +234,7 @@ export const getCountry = (country, cookieCountry) => {
 export const getListingData = async ({
   categories,
   lang,
+  country,
   productCategory,
   searchParams,
   noProducts,
@@ -218,6 +242,7 @@ export const getListingData = async ({
 }: {
   categories?: string[];
   lang: string;
+  country: string;
   productCategory: string;
   searchParams: {
     searchText?: string;
@@ -233,8 +258,6 @@ export const getListingData = async ({
 }) => {
   let language = lang;
   let start = new Date().getTime();
-  const cookies = (await import("next/headers")).cookies;
-  const cookieStore = cookies();
   if (Object.keys(searchParams).length > 0) {
     let obj: {
       search_text?: string;
@@ -365,23 +388,22 @@ export const getListingData = async ({
           ],
         },
         headers: new Headers({
-          lang: await getLang(language, cookieStore.get("language")?.value),
-          country:
-            cookieStore.get("country") && cookieStore.get("country").value,
+          lang: lang,
+          country: country,
           Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         }),
       }
     );
-    console.log(productRes.url);
+
     let repo: FilterProductApi = await productRes.json();
     let end = new Date().getTime();
     let time = end - start;
     let returned_res = {
       type: productRes.type,
       headers: new Headers({
-        lang: await getLang(language, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
+        lang: lang,
+        country: country,
       }),
       url: productRes.url,
       time: time + "ms",
@@ -439,9 +461,8 @@ export const getListingData = async ({
         },
 
         headers: new Headers({
-          lang: await getLang(language, cookieStore.get("language")?.value),
-          country:
-            cookieStore.get("country") && cookieStore.get("country").value,
+          lang: lang,
+          country: country,
           Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         }),
@@ -452,9 +473,8 @@ export const getListingData = async ({
       let returned_res = {
         type: res.type,
         headers: new Headers({
-          lang: await getLang(language, cookieStore.get("language")?.value),
-          country:
-            cookieStore.get("country") && cookieStore.get("country").value,
+          lang: lang,
+          country: country,
         }),
         url: res.url,
         time: time + "ms",

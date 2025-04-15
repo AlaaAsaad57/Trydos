@@ -6,11 +6,34 @@ import StoriesBarServer from "components/Server/StoriesBarServer";
 import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
 import OfferListSkeleton from "components/skeleton/OfferList";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
+
 import { Suspense } from "react";
 import "regenerator-runtime/runtime";
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
+export const dynamicParams = true;
+export async function generateStaticParams() {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/countries`
+    );
+    if (!response.ok) {
+      throw new Error("Failed to fetch countries");
+    }
+    const data = await response.json();
+    const languages = ["en", "ar", "tr"];
 
-function HomePage({ params }) {
+    return data.data.countries?.flatMap((country) =>
+      languages.map((lang) => ({
+        lang: `${country.iso.toLowerCase()}-${lang}`,
+      }))
+    );
+  } catch (error) {
+    console.error("Error generating static params:", error);
+    return [];
+  }
+}
+
+function HomePage({ params }: { params: { lang: string } }) {
   return (
     <>
       <Suspense fallback={<MobileNavigationSkeleton />}>

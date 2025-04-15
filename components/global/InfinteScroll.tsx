@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { InView } from "react-intersection-observer";
 import Spinner from "./Spinner";
 import { useParams } from "next/navigation";
 import NormalWidget from "components/Home/OfferWidgets/NormalWidget";

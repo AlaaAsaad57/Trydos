@@ -1,6 +1,12 @@
+"use client";
 import CustomNavbar from "components/Home/CustomNav";
-async function CustomNavbarServer({ lang }: { lang: string }) {
-  return <CustomNavbar init={lang} />;
+function CustomNavbarServer({ lang }: { lang: string }) {
+  try {
+    return <CustomNavbar init={lang} />;
+  } catch (error) {
+    console.error("Error loading navbar:", error);
+    return <></>;
+  }
 }
 
 export default CustomNavbarServer;

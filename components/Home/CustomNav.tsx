@@ -1,15 +1,16 @@
 "use client";
-import { useEffect } from "react";
+import { Suspense } from "react";
 import Logo from "./Logo";
 import UserNavTopSection from "./UserNavTopSection";
 import { useDispatch, useSelector } from "react-redux";
-import { changeAppCountry, changeAppLanguage } from "store/homepage/actions";
+
 import NextLink from "components/global/NextLink";
 
 import { dispatchRouteChangeEvent } from "utils/events";
 import { ToastContainer } from "react-toastify";
 import AuthSections from "./AuthSections";
-import { useSearchParams } from "next/navigation";
+
+import InitFunction from "./InitFunction";
 import { usePrefetchLinks } from "hooks/usePrefetchHook";
 
 interface NavbarProps {
@@ -26,41 +27,9 @@ function CustomNavbar({ init }: NavbarProps) {
     window.history.pushState({ isPopup: true }, "open Login");
     dispatch({ type: "LOGIN-OPEN", payload: e });
   };
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
-  const country = useSelector(
-    (state: StateInterface) => state.homepage.country
-  );
+
   const dispatch = useDispatch();
-  const searchParams = useSearchParams();
-  const initFunc = async () => {
-    const Cookies = (await import("js-cookie")).default;
-    let languageCookies = Cookies.get("language");
-    let countryCookies = Cookies.get("country");
-    if (!searchParams.get("no-country"))
-      // Cookies.set("country", init.split("-")[0]?.toLowerCase(), {
-      //   expires: 365,
-      // });
-      dispatch(
-        changeAppLanguage(
-          init.split("-")[1] ||
-            languageCookies ||
-            language ||
-            process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE
-        )
-      );
-    let action = await changeAppCountry(
-      init.split("-")[0] ||
-        countryCookies ||
-        country ||
-        process.env.NEXT_PUBLIC_DEFAULT_COUNTRY
-    );
-    dispatch(action);
-  };
-  useEffect(() => {
-    initFunc();
-  }, []);
+
   usePrefetchLinks();
   const cartEnable = useSelector((state: StateInterface) => state.cart.enable);
   return (
@@ -71,8 +40,11 @@ function CustomNavbar({ init }: NavbarProps) {
           style={{ zIndex: "9999999999999999" }}
         />
       )}
+      <Suspense fallback={<></>}>
+        <InitFunction init={init} />
+      </Suspense>
       <AuthSections />
-      <div className="home-navbar">
+      <div className="home-navbar max-h-[1365px]">
         <NextLink
           href={`/${init}`}
           aria-label="TryDos Home"

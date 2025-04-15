@@ -1,6 +1,5 @@
 "use client";
 import CategoryNavMobile from "./CategoryNavMobile";
-
 import SearchIcon from "./Search/SearchIcon";
 import { useState } from "react";
 import { useParams } from "next/navigation";
