@@ -54,35 +54,29 @@ function ProductDetailsSlider({
     });
     dispatch({ type: "CURRENCY", payload: currency });
   }, []);
-  console.log(
-    (activeColor && activeColor?.images?.length > 0 && activeColor) ??
-      (searchParams.get("color") &&
-        productData?.sync_color_images &&
-        productData?.sync_color_images?.filter(
-          (s) => s.color_name === searchParams.get("color")
-        )[0]) ??
-      (productData?.sync_color_images &&
-        productData?.sync_color_images[0]?.images?.length > 0 &&
-        productData?.sync_color_images[0]) ??
-      productData ?? { images: [product.thumbnail] }
-  );
+
+  const getImages = () => {
+    if (activeColor && activeColor?.images?.length > 0) {
+      return activeColor;
+    } else if (searchParams.get("color") && productData?.sync_color_images) {
+      return productData?.sync_color_images?.filter(
+        (s) => s.color_name === searchParams.get("color")
+      )[0];
+    } else if (
+      productData?.sync_color_images &&
+      productData?.sync_color_images[0]?.images?.length > 0
+    ) {
+      return productData?.sync_color_images[0];
+    }
+    return productData ?? { images: [product.thumbnail] };
+  };
+
   return (
     <>
       <div className="product-details-slider">
         <div className="embla" ref={emblaRef}>
           <div className="embla__container">
-            {(
-              (activeColor && activeColor?.images?.length > 0 && activeColor) ??
-              (searchParams.get("color") &&
-                productData?.sync_color_images &&
-                productData?.sync_color_images?.filter(
-                  (s) => s.color_name === searchParams.get("color")
-                )[0]) ??
-              (productData?.sync_color_images &&
-                productData?.sync_color_images[0]?.images?.length > 0 &&
-                productData?.sync_color_images[0]) ??
-              productData ?? { images: [product.thumbnail] }
-            )?.images?.map((img, i) => (
+            {getImages()?.images?.map((img, i) => (
               <div
                 className="embla__slide"
                 key={img}
