@@ -104,6 +104,39 @@ describe("should Login If User Is Not Verified", () => {
     cy.log("✅✅ CartShiping & ListRequest Requests Arrived");
   });
 });
+// **************************************************************************
+describe("Should verify components in address delivery page", () => {
+  it("renders the header delivery component", () => {
+    cy.get("[data-cy=swiper-slide]").should("exist");
+    cy.get('[data-cy="header-delivery"]').should("be.visible");
+    cy.get('[data-cy="TitleInOrderPage"]').should(
+      "contain",
+      "Bag Shipping & Delivery Address"
+    );
+    cy.get('[data-cy="swiperSlide-backIcon"]').should("be.visible");
+  });
+  it("triggers back icon click event", () => {
+    cy.clickElement('[data-cy="swiperSlide-backIcon"]');
+    cy.clickElement("[data-cy=Confirm-Order-Button]");
+    cy.log("✅✅ Confirm & Countinue Button Clicked");
+    cy.interceptAndWait([
+      {
+        method: "GET",
+        url: "**/api/v1/customer/address/list",
+        alias: "ListRequest",
+      },
+      {
+        method: "GET",
+        url: "**/api/v1/cart/cart_shipping",
+        alias: "CartShiping",
+      },
+    ]);
+    cy.log("✅✅ CartShiping & ListRequest Requests Arrived");
+  });
+  it("", () => {});
+  it("", () => {});
+});
+// **************************************************************************
 describe("Compare Quantity Founded In Order With Quantity Required", () => {
   it("Should Extract The Number Of Items That Confirm To Buy It", () => {
     cy.get("[data-cy=Number-Of-Products-Required]")
