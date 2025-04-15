@@ -844,7 +844,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
         (s) =>
           s?.check_availability === false ||
           s.is_country_restricted === true ||
-          s.is_Active === false
+          s.is_active === false
       ).length === 0
     ) {
       setNext();

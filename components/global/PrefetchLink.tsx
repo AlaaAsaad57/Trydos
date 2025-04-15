@@ -5,12 +5,7 @@ import React, { useEffect } from "react";
 import { Sendevent } from "utils/functions";
 
 function PrefetchLink({ link, slug }) {
-  const router = useRouter();
-
   useEffect(() => {
-    router.prefetch(link, {
-      kind: PrefetchKind.FULL,
-    });
     let element = document.querySelector(`#boutique-${slug}`);
     if (element) {
       element.addEventListener("click", function () {

@@ -3,7 +3,7 @@
 // eslint-disable-next-line no-restricted-imports
 import Link from "next/link";
 import React, { ComponentProps, MouseEventHandler, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { PrefetchKind } from "node_modules/next/dist/client/components/router-reducer/router-reducer-types";
 
 export interface INextLinkProps
@@ -18,11 +18,7 @@ export default function NextLink({
   ...props
 }: INextLinkProps) {
   const router = useRouter();
-  useEffect(() => {
-    router.prefetch(href, {
-      kind: PrefetchKind.FULL,
-    });
-  }, []);
+
   return (
     <Link
       className={className}

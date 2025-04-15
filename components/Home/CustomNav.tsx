@@ -9,7 +9,8 @@ import NextLink from "components/global/NextLink";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { ToastContainer } from "react-toastify";
 import AuthSections from "./AuthSections";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { usePrefetchLinks } from "hooks/usePrefetchHook";
 
 interface NavbarProps {
   init: string;
@@ -60,6 +61,7 @@ function CustomNavbar({ init }: NavbarProps) {
   useEffect(() => {
     initFunc();
   }, []);
+  usePrefetchLinks();
   const cartEnable = useSelector((state: StateInterface) => state.cart.enable);
   return (
     <>

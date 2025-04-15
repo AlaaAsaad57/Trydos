@@ -14,12 +14,7 @@ import CartIcon from "public/svg/CartIcon.svg";
 import { LogData } from "store/homepage/actions";
 import auth from "services/auth";
 import home from "services/home";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ToastContainer } from "react-toastify";
 import { AxiosGet } from "utils/AxiosApi";
 import { QuantityDetailsProductApi } from "models/Api";

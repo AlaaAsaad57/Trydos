@@ -129,11 +129,7 @@ function Product({
     }
   };
   const router = useRouter();
-  useEffect(() => {
-    router.prefetch(`/${lang}/products/${product.slug}`, {
-      kind: PrefetchKind.FULL,
-    });
-  }, []);
+
   return (
     <div className="max-h-[362px]" data-cy="countProduct">
       <NextLink

@@ -43,7 +43,7 @@ export type ProductInterface = {
   flash_deal_max_allowed_quantity: any;
   description: any;
   model: any;
-  is_Active: boolean;
+  is_active: boolean;
   variation: Array<{
     type: string;
     price: number;

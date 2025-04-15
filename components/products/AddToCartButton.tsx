@@ -521,7 +521,7 @@ function AddToCartButton({
   const shouldShowNotifyButton = () => {
     //
     //restricted,status,collect_after_ordering,quantity,allVarIsEmpty
-    if (product?.is_Active === false || product.is_country_restricted)
+    if (product?.is_active === false || product.is_country_restricted)
       return true;
     if (product.collected_after_ordering === 1) return false;
     if (isQuantityEmpty()) return true;
@@ -952,7 +952,7 @@ function AddToCartButton({
                       {getTotalQuantity()}
                     </span>
                   )}
-                  {product?.is_Active === false ||
+                  {product?.is_active === false ||
                   product.is_country_restricted ||
                   allVarIsEmpty() ? (
                     <NotifySVG className={`mr-[15px]`} />
@@ -1021,13 +1021,13 @@ function AddToCartButton({
                   )}
                 </div>
                 <span className="mt-1">
-                  {product?.is_Active === false ||
+                  {product?.is_active === false ||
                   product.is_country_restricted ||
                   allVarIsEmpty()
                     ? translate("Notify Me")
                     : translate("Add To Bag")}{" "}
                   {!(
-                    product?.is_Active === false ||
+                    product?.is_active === false ||
                     product.is_country_restricted ||
                     allVarIsEmpty()
                   ) &&
