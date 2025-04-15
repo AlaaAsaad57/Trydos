@@ -43,6 +43,7 @@ function AddAddressForm({
 
       (s) => s.iso.toLowerCase() === lang.split("-")[0].toLowerCase()
     )[0];
+    console.log(UserCountries);
     setCenter({
       lat: parseFloat(UserCountries?.latitude),
       lng: parseFloat(UserCountries?.longitude),
