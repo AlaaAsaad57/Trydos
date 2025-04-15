@@ -18,7 +18,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
         link={`/${lang}/boutiques/${boutique.slug}`}
         slug={boutique.slug}
       />
-      <Link
+      <a
         href={`/${lang}/boutiques/${boutique.slug}`}
         aria-label={`Go To listing Page`}
         className="offer-widget"
@@ -75,7 +75,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
             </div>
           )}
         </div>
-      </Link>
+      </a>
       <div className="offer-category absolute top-[18px] right-[18px] z-20">
         {boutique.mainCategoriesForProductIds
           .slice(0, 5)
@@ -83,7 +83,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
             // @ts-ignore
             if (category?.flat_photo_path?.file_path) {
               return (
-                <Link
+                <a
                   href={`/${lang}/boutiques/${boutique.slug}?categories=${category.slug}`}
                   key={key}
                   className={`${key > 0 && "ml-[13px]"}`}
@@ -102,7 +102,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
                       `/upload/h_50/f_webp/q_auto`
                     )}
                   />
-                </Link>
+                </a>
               );
             }
           })}

@@ -20,7 +20,7 @@ export default function NextLink({
   const router = useRouter();
 
   return (
-    <Link
+    <a
       className={className}
       href={href}
       {...props}
@@ -29,6 +29,6 @@ export default function NextLink({
       }}
     >
       <>{children}</>
-    </Link>
+    </a>
   );
 }

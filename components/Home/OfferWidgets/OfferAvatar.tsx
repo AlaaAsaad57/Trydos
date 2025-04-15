@@ -27,7 +27,7 @@ function OfferAvatar({
     } else return images;
   };
   return (
-    <Link
+    <a
       href={linkUrl}
       className="offer-avatar"
       style={{
@@ -52,7 +52,7 @@ function OfferAvatar({
         unselectable="on"
         style={{ borderRadius: "50%", height: "40px" }}
       />
-    </Link>
+    </a>
   );
 }
 
