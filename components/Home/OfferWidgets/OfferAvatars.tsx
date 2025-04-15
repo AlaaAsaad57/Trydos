@@ -1,3 +1,4 @@
+"use client";
 import { useRef } from "react";
 import OfferAvatar from "./OfferAvatar";
 import { Boutique } from "models/offer";
@@ -43,6 +44,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
       onMouseLeave={(e) => handleEnd()}
       onTouchEnd={(e) => handleEnd()}
       onMouseMove={(e) => handleMove(e)}
+      onClick={() => {}}
     >
       {boutique?.mainCategoriesForProductIds.map((product, index) => {
         if (index < 7) {

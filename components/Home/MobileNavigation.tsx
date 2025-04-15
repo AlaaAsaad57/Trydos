@@ -1,3 +1,4 @@
+"use client";
 import CategoryNavMobile from "./CategoryNavMobile";
 
 import SearchIcon from "./Search/SearchIcon";

@@ -129,22 +129,21 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   const [showMobile, setShowMobile] = useState(false);
   return (
     <div>
-      {!hasMobile ||
-        (showMobile && (
-          <PhoneInput
-            isForCart={true}
-            inputValue={inputValue}
-            wrongNumber={wrongNumber}
-            setWrongNumber={(e) => {
-              //   setWrongNumber(e);
-              dispatch({ type: "WRONG-NUMBER", payload: e });
-            }}
-            setInputValue={(e) => setInputValue(e)}
-            stepIndicator={stepIndicator}
-            setStepIndicator={(e) => setStepIndicator(e)}
-            operation={"login"}
-          />
-        ))}
+      {(!hasMobile || showMobile) && (
+        <PhoneInput
+          isForCart={true}
+          inputValue={inputValue}
+          wrongNumber={wrongNumber}
+          setWrongNumber={(e) => {
+            //   setWrongNumber(e);
+            dispatch({ type: "WRONG-NUMBER", payload: e });
+          }}
+          setInputValue={(e) => setInputValue(e)}
+          stepIndicator={stepIndicator}
+          setStepIndicator={(e) => setStepIndicator(e)}
+          operation={"login"}
+        />
+      )}
       <SendMethod
         stepIndicator={stepIndicator}
         setWrongNumber={(e) => {

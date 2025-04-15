@@ -79,7 +79,6 @@ function QuickOfferWidjet({ offer, onClick }: QuickOfferWidjetProps) {
                 myKey={4}
                 extended={false}
                 priority={false}
-                boutique={null}
                 OfferPhotos={offer.photos}
               />
             ) : (

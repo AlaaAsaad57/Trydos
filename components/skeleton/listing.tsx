@@ -29,7 +29,12 @@ function ListingSkeleton({ forProducts }: { forProducts?: boolean }) {
           <div className="boutique-header flex-col align-center">
             <div className="boutique-top-info flex-col">
               <div className="boutique-logo-container flex-row align-center">
-                <Skeleton width={130} height={20} borderRadius={"30"} />
+                <Skeleton
+                  className="w-fu"
+                  width={130}
+                  height={20}
+                  borderRadius={"30"}
+                />
               </div>
               <div className="boutique-text">
                 <Skeleton width={200} height={10} />
@@ -44,7 +49,12 @@ function ListingSkeleton({ forProducts }: { forProducts?: boolean }) {
                       style={{ height: "100%" }}
                     />
 
-                    <Skeleton width={380} height={135} borderRadius={"30"} />
+                    <Skeleton
+                      className="w-full h-full"
+                      width={380}
+                      height={135}
+                      borderRadius={"30"}
+                    />
                   </div>
                 </div>
               </div>

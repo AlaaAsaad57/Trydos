@@ -1,5 +1,5 @@
+"use client";
 import OfferSlideItem from "./OfferSlideItem";
-import OfferAvatars from "./OfferAvatars";
 import { Boutique } from "models/offer";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
@@ -7,12 +7,12 @@ interface OfferPhotosSliderProps {
   OfferPhotos: { file_path: string }[];
   extended: boolean;
   priority: boolean;
-  boutique: Boutique;
+
   myKey: number;
 }
 function OfferPhotosSlider({
   OfferPhotos,
-  boutique,
+
   myKey,
   extended,
   priority,
@@ -40,7 +40,6 @@ function OfferPhotosSlider({
           ))}
         </div>
       </div>
-      <OfferAvatars boutique={boutique} priority={false} />
     </div>
   );
 }

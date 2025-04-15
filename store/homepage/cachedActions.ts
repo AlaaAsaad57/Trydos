@@ -6,6 +6,7 @@ import {
   CategoriesApi,
   CountriesApi,
   FilterProductApi,
+  GetStoriesApi,
   GlobalDetailsProductApi,
   HomeBoutiqueApi,
   QuantityDetailsProductApi,
@@ -64,7 +65,40 @@ export const getHomeData = async ({ str, lang }) => {
     return [[], e.toString()];
   }
 };
+export const getStoriesServer = async () => {
+  const cookies = (await import("next/headers")).cookies;
+  const cookieStore = cookies();
+  let token = await cookieStore.get("token")?.value;
+  let language = await cookieStore.get("language")?.value;
+  let country = await cookieStore.get("country")?.value;
+  let method = { method: "GET" };
 
+  try {
+    const res = await fetch(
+      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
+        "/api/v1/stories/users_stories",
+      {
+        ...method,
+        next: {
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_STORIES),
+          tags: [`home-stories`],
+        },
+        headers: new Headers({
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          lang: language || "en",
+          country: country || "tr",
+        }),
+      }
+    );
+    const repo: GetStoriesApi = await res.json();
+    return { data: repo.data.data };
+  } catch (e) {
+    console.log(e);
+    return { data: [], error: e };
+  }
+};
 export const getMainCategories = async ({
   lang,
 }): Promise<[CategoriesApi["data"]["mainCategories"], any]> => {
@@ -179,6 +213,23 @@ export const getListingData = async ({
   lang,
   productCategory,
   searchParams,
+  noProducts,
+  noFilters,
+}: {
+  categories?: string[];
+  lang: string;
+  productCategory: string;
+  searchParams: {
+    searchText?: string;
+    categories?: string;
+    prices?: string;
+    sizes?: string;
+    colors?: string;
+    brands?: string;
+    offers?: string;
+  };
+  noProducts?: boolean;
+  noFilters?: boolean;
 }) => {
   let language = lang;
   let start = new Date().getTime();
@@ -194,7 +245,7 @@ export const getListingData = async ({
       brands?: string;
       offers?: string;
       sizesAttr?: { id: string; name: string };
-      boutique_slug?: string;
+      boutique_slug?: string | string[];
     } = {};
     if (Object.keys(searchParams).includes("searchText")) {
       obj = { ...obj, search_text: searchParams.searchText };
@@ -290,6 +341,8 @@ export const getListingData = async ({
       filters.boutique_slug
         ? `&boutique_slugs=${JSON.stringify(categories)}`
         : ""
+    }${noFilters ? "&with_filters=false" : ""}${
+      noProducts ? "&with_products=false" : ""
     }`;
 
     let productRes = await fetch(
@@ -354,7 +407,9 @@ export const getListingData = async ({
 
     let url =
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-      (`/api/products/searchInCatalog?lang=${language}&limit=8` +
+      (`/api/products/searchInCatalog?lang=${language}&limit=8${
+        noFilters ? "&with_filters=false" : ""
+      }${noProducts ? "&with_products=false" : ""}` +
         `${
           !str.includes("listing")
             ? `&boutique_slugs=${JSON.stringify(str)}`

@@ -5,7 +5,6 @@ import React from "react";
 async function page({ params }) {
   return (
     <>
-      <CustomNavbarServer lang={params.lang} />
       <Setting lang={params.lang} />
     </>
   );

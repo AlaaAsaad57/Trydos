@@ -17,7 +17,7 @@ import {
   UpdateFilter,
 } from "utils/functions";
 import FloatingInfoBar from "./filterComponents/FloatingInfoBar";
-import { dispatchRouteChangeEvent } from "utils/events";
+
 import {
   useParams,
   usePathname,
@@ -331,7 +331,7 @@ function FilterBar({ boutique, filters, productsServer }) {
               }
             }}
           >
-            {(products.length > 1 || productsServer?.length > 1) && (
+            {(products.length > 1 || productsServer > 1) && (
               <FilterIcon
                 className={`${filterEnabled && "filter-icon-enabled"}`}
               />
@@ -354,7 +354,7 @@ function FilterBar({ boutique, filters, productsServer }) {
       </div>
       <BoutiqueHeader
         boutique={boutique}
-        showFilters={products?.length > 1 || productsServer?.length > 1}
+        showFilters={products?.length > 1 || productsServer > 1}
       />
       {!filterEnabled && showFilterInfoBar() && (
         <FilterInfoBar filtersVariable={activeFilters} />

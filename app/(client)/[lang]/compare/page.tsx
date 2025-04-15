@@ -24,8 +24,6 @@ interface Props {
 async function Page({ params, searchParams }: Props) {
   return (
     <>
-      <CustomNavbarServer lang={params.lang} />
-
       <ComparePage />
     </>
   );

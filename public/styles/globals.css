@@ -422,6 +422,7 @@ body {
   background-color: #fafafa;
   width: 100%;
   min-width: 100%;
+  flex-direction: column;
   display: flex;
   min-height: 100%;
   justify-content: space-around;
@@ -1018,6 +1019,8 @@ svg {
 .offer-avatar {
   cursor: pointer;
   transition: 0.3s;
+  background-color: white;
+  bottom: 0px;
   position: relative;
   display: flex;
   transform: translateX(-5px);
@@ -1082,7 +1085,8 @@ svg {
   display: flex;
   z-index: 9999;
   align-items: flex-end;
-  position: absolute;
+  max-height: 40px;
+
   left: 0;
   right: 0;
   margin-left: auto;

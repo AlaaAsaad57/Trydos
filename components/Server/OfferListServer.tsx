@@ -1,26 +1,38 @@
 import React from "react";
 import { getHomeData } from "store/homepage/cachedActions";
-import OfferList from "components/Home/OfferWidgets/OfferList";
+
 import "styles/offers.css";
 import "styles/productDetails.css";
+import InfinteScroll from "components/global/InfinteScroll";
+import NormalWidget from "components/Home/OfferWidgets/NormalWidget";
+import OfferListSkeleton from "components/skeleton/OfferList";
 
 async function OfferListServer({ params }) {
-  const [HomeData, response] = await getHomeData({
-    str: params?.mainCategory,
-    lang: params.lang ? params.lang.split("-")[1] : null,
-  });
+  try {
+    const [HomeData, response] = await getHomeData({
+      str: params?.mainCategory,
+      lang: params.lang ? params.lang.split("-")[1] : null,
+    });
 
-  return (
-    <>
-      <OfferList
-        response={response}
-        boutiques={HomeData?.boutiques || []}
-        key={2}
-        offsetVariable={HomeData?.offset}
-        quick={false}
-      />
-    </>
-  );
+    return (
+      <div className={`offers-list pb-[184px]`} data-cy="boutiques">
+        {HomeData.boutiques.map((boutique, myKey) => {
+          return (
+            <NormalWidget
+              boutique={boutique}
+              myKey={myKey}
+              key={myKey}
+              lang={params.lang}
+            />
+          );
+        })}
+        <InfinteScroll offsetVariable={HomeData.offset} />
+      </div>
+    );
+  } catch (error) {
+    console.error("Error loading offers:", error);
+    return <OfferListSkeleton />;
+  }
 }
 
 export default OfferListServer;

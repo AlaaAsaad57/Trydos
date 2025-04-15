@@ -7,7 +7,7 @@ import localFont from "next/font/local";
 
 import "regenerator-runtime/runtime";
 import PageTransition from "components/global/PageTransition";
-
+import CustomNavbarServer from "components/Server/ServerCustomNav";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -81,7 +81,7 @@ export default async function RootLayout({ params, children }) {
       <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <Providers>
           <div className="site-container">
-            <></>
+            <CustomNavbarServer lang={params.lang} />
             <PageTransition init={params.lang}>{children}</PageTransition>
           </div>
         </Providers>

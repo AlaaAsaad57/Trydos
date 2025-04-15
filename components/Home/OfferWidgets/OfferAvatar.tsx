@@ -1,6 +1,7 @@
 import { dispatchRouteChangeEvent } from "utils/events";
 import Image from "next/image";
 import { useRouter } from "next-nprogress-bar";
+import Link from "next/link";
 
 interface OfferAvatarProps {
   images: string;
@@ -26,12 +27,8 @@ function OfferAvatar({
     } else return images;
   };
   return (
-    <div
-      onClick={(e) => {
-        // e.preventDefault();
-        router.push(linkUrl);
-        // dispatchRouteChangeEvent("start", { to: "boutique" });
-      }}
+    <Link
+      href={linkUrl}
       className="offer-avatar"
       style={{
         zIndex: zIndex,
@@ -42,7 +39,7 @@ function OfferAvatar({
         <span>{name}</span>
         <span>{category}</span>
       </div>
-      <div className="offer-avatr-inner-s" />
+      <div className="offer-avatr-inner-s w-full h-full" />
       <Image
         loading={priority ? "eager" : "lazy"}
         src={getImageCld()}
@@ -55,7 +52,7 @@ function OfferAvatar({
         unselectable="on"
         style={{ borderRadius: "50%", height: "40px" }}
       />
-    </div>
+    </Link>
   );
 }
 

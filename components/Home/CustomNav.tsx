@@ -61,7 +61,6 @@ function CustomNavbar({ init }: NavbarProps) {
     initFunc();
   }, []);
   const cartEnable = useSelector((state: StateInterface) => state.cart.enable);
-
   return (
     <>
       {!AddToCartOption.enable && !cartEnable && (

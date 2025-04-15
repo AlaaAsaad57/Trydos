@@ -1,24 +1,34 @@
+"use client";
 import { useState } from "react";
 import { errorPNG } from "utils/AxiosApi";
 import Loader from "components/global/Loader";
 import Image from "next/image";
 import StoryServiceClass from "services/story";
+import { useDispatch } from "node_modules/react-redux/es";
+import { Story as StoryType } from "models/story";
+import { SelectStory } from "store/homepage/actions";
+
 function Story({
-  onClick,
   media,
   Name,
   index,
+  story,
 }: {
-  onClick: Function;
   media: { photo_path: string; full_video_path: string; id: number };
   Name: string;
   index: number;
+  story: StoryType;
 }) {
+  const dispatch = useDispatch();
+  const setSelectStory = (e: StoryType) => {
+    dispatch(SelectStory(e));
+  };
+
   const [load, onLoad] = useState(null);
   return (
     <div
       className="story-element-item"
-      onClick={() => onClick()}
+      onClick={() => setSelectStory(StoryServiceClass.configureStory(story))}
       data-cy="story-element"
     >
       <div className="linear-g-image" />
@@ -33,7 +43,8 @@ function Story({
           }}
           width={100}
           height={160}
-          loading={window.innerWidth < 500 && index >= 4 ? "lazy" : "eager"}
+          priority={true}
+          loading="eager"
           onError={(e) => {
             e.currentTarget.src = errorPNG;
             e.currentTarget.onerror = null;

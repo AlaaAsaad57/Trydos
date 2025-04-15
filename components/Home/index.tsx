@@ -3,22 +3,13 @@ import "styles/home.css";
 import { useDispatch, useSelector } from "react-redux";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
-import Stories from "./Stories/index";
+
 import ChatService from "services/chat";
 import { getUserChat } from "utils/functions";
 const NameModal = dynamic(() => import("components/global/NameModal"));
-// const StoriesContainer = dynamic(() => import("./Stories/NewStories"), {
-//   loading: () => <LandingPage afterLoad={true} />,
-//   ssr: false,
-// });
 import StoriesContainer from "./Stories/NewStories";
-
 import StoryServiceClass from "services/story";
-// import LandingPage from "./LandingPage";
 import { dispatchRouteChangeEvent } from "utils/events";
-// const SearchContainer = dynamic(() => import("./Search/SearchContainer"), {
-//   ssr: false,
-// });
 import SearchContainer from "./Search/SearchContainer";
 import auth from "services/auth";
 
@@ -93,7 +84,6 @@ export default function Home() {
   };
   return (
     <>
-      <Stories />
       {getNameModalOpen() && <NameModal />}
       {selectedStory?.id && (
         <StoriesContainer

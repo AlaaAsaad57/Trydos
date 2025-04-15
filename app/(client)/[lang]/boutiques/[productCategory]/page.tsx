@@ -1,10 +1,12 @@
+import FilterList from "components/Server/FilterList";
 import ProductListServer from "components/Server/ProductList";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
+import ListingSkeleton from "components/skeleton/listing";
 
 // import ListingSkeleton from "components/skeleton/listing";
 // import NavbarSkeleton from "components/skeleton/navbar";
 import { notFound } from "next/navigation";
-// import { Suspense } from "react";
+import { Suspense } from "react";
 import { getBoutiqueMeta } from "utils/functions";
 
 interface Props {
@@ -63,9 +65,12 @@ function Page({
 }) {
   return (
     <>
-      <CustomNavbarServer lang={params.lang} />
-
-      <ProductListServer searchParams={searchParams} params={params} />
+      <Suspense fallback={<ListingSkeleton forProducts={false} />}>
+        <FilterList params={params} searchParams={searchParams} />
+      </Suspense>
+      <Suspense fallback={<ListingSkeleton forProducts={true} />}>
+        <ProductListServer searchParams={searchParams} params={params} />
+      </Suspense>
     </>
   );
 }
