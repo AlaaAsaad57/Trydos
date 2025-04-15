@@ -1,5 +1,5 @@
 describe("Notifications Tests", () => {
-  before("Open Website", () => {
+  before("Open trydos", () => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
     });
@@ -94,7 +94,7 @@ describe("When user is logged in", () => {
       .then(($initialLength) => {
         const initialCount1 = $initialLength.valueOf();
         cy.log(`Initial count: ${initialCount1}`);
-        // cy.intercept("GET", "**/api/new_v1/user-notifications/get?page=**").as(
+        // cy.intercept("GET", "**/api/v1/user-notifications/get?page=**").as(
         //   "getPages"
         // );
         // cy.get("[data-cy=notification-item-body]")

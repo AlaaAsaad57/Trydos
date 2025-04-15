@@ -43,7 +43,7 @@ describe("Login Successful Attempt should login to 3 servers", () => {
   it("Should Enter The 6-digit OTP Code That He Received On SMS And Store The User Name", () => {
     cy.intercept(
       "GET",
-      "/api/new_v1/auth/phone/verify_otp_from_guest?**",
+      "/api/v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           UserName = res.body.data.user.name;
@@ -136,9 +136,7 @@ describe("Login UnSuccessful Attempt when otp code expired & Change The Method T
     cy.get(".phone-send-options").should("be.visible");
   });
   it("Should Resend OTP Code & Recieve It By WattsApp", () => {
-    cy.intercept("GET", "**/api/new_v1/auth/phone/send_otp?**").as(
-      "sendOtpApi"
-    );
+    cy.intercept("GET", "**/api/v1/auth/phone/send_otp?**").as("sendOtpApi");
     cy.clickElement(".message-recieve-option:nth-child(1)");
     cy.log("✅✅ Recive Otp Code By WattsApp Button Clicked Successfuly");
     cy.wait("@sendOtpApi").then((interception) => {
@@ -149,7 +147,7 @@ describe("Login UnSuccessful Attempt when otp code expired & Change The Method T
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
     cy.intercept(
       "GET",
-      "/api/new_v1/auth/phone/verify_otp_from_guest?**",
+      "/api/v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           UserName = res.body.data.user.name;
@@ -207,7 +205,7 @@ describe("Login UnSuccessful Attempt when otp code expired should show button fo
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
     cy.intercept(
       "GET",
-      "/api/new_v1/auth/phone/verify_otp_from_guest?**",
+      "/api/v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           UserName = res.body.data.user.name;
@@ -256,7 +254,7 @@ describe("Should show user not found when registering with non registered number
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
     cy.intercept(
       "GET",
-      "/api/new_v1/auth/phone/verify_otp_from_guest?**",
+      "/api/v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           res.body.data.already_exists = false;
@@ -290,7 +288,7 @@ describe("Should Input name in login if the user does not input your name when s
     cy.ComplateLoginByMobilePhone();
   });
   it("Should Enter His Number In Number Entry Box", () => {
-    cy.enterPhoneNumber("963937764641");
+    cy.enterPhoneNumber("963937288307");
   });
   it("Should Click Recive Otp Code By SMS Button", () => {
     cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
@@ -301,7 +299,7 @@ describe("Should Input name in login if the user does not input your name when s
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
     cy.intercept(
       "GET",
-      "/api/new_v1/auth/phone/verify_otp_from_guest?**",
+      "/api/v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           res.body.data.user.name = "";
@@ -318,7 +316,19 @@ describe("Should Input name in login if the user does not input your name when s
     cy.InputFieldNameVisible();
   });
   it("Should Writ User Name In The Input Field", () => {
-    cy.TypeName();
+    // cy.TypeName();
+    cy.intercept("POST", "**/customer/update-name").as("update-name");
+    cy.intercept("POST", "**/api/v1/users/update").as("update");
+    cy.clickElement("[data-cy=InputFiledForName]");
+    cy.get("[data-cy=InputFiledForName]", { timeout: 10000 })
+      .type("Alaa Asaad", { force: true, scrollBehavior: false })
+      .should("have.value", "Alaa Asaad"); // Ensure text was typed
+    cy.log("✅✅ User Name is Writ In Input Field");
+    cy.clickElement(".phone-arrow");
+    cy.wait(["@update-name", "@update"]).then((inter) => {
+      expect(inter[0].response.statusCode).to.be.eq(200);
+      expect(inter[1].response.statusCode).to.be.eq(200);
+    });
   });
   it("Should Click On Arrow Founded In Right Of Input Field & Click On Skip For Now Button", () => {
     cy.ChexkExistElement("[data-testid=login-close-icon]").then((exist) => {
@@ -368,7 +378,7 @@ describe("Should show user not found when registering with non registered number
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
     cy.intercept(
       "GET",
-      "/api/new_v1/auth/phone/verify_otp_from_guest?**",
+      "/api/v1/auth/phone/verify_otp_from_guest?**",
       (req) => {
         req.continue((res) => {
           res.body.data.already_exists = false;

@@ -16,7 +16,7 @@ function UserAvatar({ avatar, onClick }: UserAvatarProps) {
           <div
             onClick={onClick}
             className="nav-question-item nav-img-item w-[30px] h-[30px] "
-            data-cy="Logout-ReLogout"
+            data-cy="avatar-options"
             style={{
               marginLeft: "0px",
               position: "relative",

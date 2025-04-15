@@ -75,7 +75,7 @@ describe("Should Click On Cart Icon On The Home Page & Increase The Quantity Of 
     cy.log("✅✅ The Quantity That Was Previously Requested Has Been Obtained");
   });
   it("Should Click On The Increase Icon For The Product In The Cart & Waiting Increase Quantity Request", () => {
-    cy.intercept("POST", "**/api/new_v1/cart/update").as("increaseQuantity");
+    cy.intercept("POST", "**/api/v1/cart/update").as("increaseQuantity");
     cy.clickElement("[data-cy=PlusIcon_CartPage]:eq(0)");
     cy.wait("@increaseQuantity").then((interception) => {
       expect(interception.response.statusCode).to.be.eq(200);
@@ -111,7 +111,7 @@ describe("Should Click On The Cart Icon On The Home Page & Decrease The Quantity
     cy.log("✅✅ The Quantity That Was Previously Requested Has Been Obtained");
   });
   it("If The Quantity Of The Previously Requested Product Is One, We Will Find Delete Icon. Here, Click On It & The Product Is Deleted From The Cart, If It Is Greater Than One, It Will Be Reduced By One Only", () => {
-    cy.intercept("POST", "**/api/new_v1/cart/update").as("decreaseQuantity");
+    cy.intercept("POST", "**/api/v1/cart/update").as("decreaseQuantity");
     cy.clickElement("[data-cy=MinusIcon_CartPage]:eq(0)");
     cy.wait("@decreaseQuantity").then((interception) => {
       expect(interception.response.statusCode).to.be.eq(200);
@@ -140,7 +140,7 @@ describe("Should Click On The Cart Icon On The Home Page & Delete The Quantity O
     cy.log("✅✅ The Quantity That Was Previously Requested Has Been Obtained");
   });
   it("If The Quantity Of The Previously Requested Product Is One, We Will Find Delete Icon. Here, Click On It & The Product Is Deleted From The Cart, If It Is Greater Than One, It Will Be Reduced By One Only", () => {
-    cy.intercept("POST", "**/api/new_v1/cart/remove").as("removeRequest");
+    cy.intercept("POST", "**/api/v1/cart/remove").as("removeRequest");
     cy.clickElement("[data-cy=DeleteIcon_CartPage]:eq(0)");
     cy.wait("@removeRequest").then((interception) => {
       expect(interception.response.statusCode).to.be.eq(200);

@@ -48,16 +48,18 @@ function PaymentMethod() {
   // };
   return (
     <>
-      <div className="px-[12px] flex-col">
+      <div data-cy="payment-viewer" className="px-[12px] flex-col">
         <div
+          data-cy="payment-viewer-container"
           style={{
             border: "1px solid rgb(196 194 194 / 51%)",
             borderRadius: "15px",
           }}
           className={`flex-col payment-valid-border ${"mt-[30px] min-h-[203px]"} pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full  `}
         >
-          <div className="flex-row ">
+          <div data-cy="first-bay-way" className="flex-row ">
             <svg
+              data-cy="payment-viewer-svg"
               id="_15x15_photo_back"
               data-name="15x15 photo back"
               xmlns="http://www.w3.org/2000/svg"
@@ -127,11 +129,17 @@ function PaymentMethod() {
               </g>
             </svg>
 
-            <div className="regular text-[#1D1D1D] text-[14px] ml-2">
+            <div
+              data-cy="payment-viewer-text"
+              className="regular text-[#1D1D1D] text-[14px] ml-2"
+            >
               {translateFunction("Payment Method", language)}
             </div>
           </div>
-          <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
+          <div
+            data-cy="payment-viewer-text2"
+            className="regular text-[12px] text-[#8D8D8D] ml-[28px]"
+          >
             {translateFunction(
               "Please Choose Your Payment Method About Your Bag",
               language
@@ -588,18 +596,19 @@ const CODInput = ({ active, setActive }) => {
   );
   return (
     <div
+      data-cy="Cach-on-delivery"
       onClick={() => {
         setActive();
       }}
       className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
-      data-cy="Cach-on-delivery"
       style={{
         border: active && "1px solid rgb(56 144 255 / 51%)",
       }}
     >
-      <div className="flex-row items-center">
-        <WalletIcon />
+      <div data-cy="WalletIcon-container" className="flex-row items-center">
+        <WalletIcon data-cy="WalletIcon-container-svg" />
         <span
+          data-cy="Cash-texts"
           className={`ml-[8px]  ${
             active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
           } regular text-[12px]`}
@@ -607,11 +616,17 @@ const CODInput = ({ active, setActive }) => {
           {translateFunction("Cash On Delivery")}
         </span>
       </div>
-      <div className="flex-row items-center">
-        <span className="text-[#D3D3D3] regular text-[12px]">
+      <div data-cy="total-container" className="flex-row items-center">
+        <span
+          data-cy="total-container-span"
+          className="text-[#D3D3D3] regular text-[12px]"
+        >
           {translateFunction("Total")}
         </span>
-        <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
+        <span
+          data-cy="total-container-span2"
+          className="text-[#1D1D1D] semibold text-[12px] ml-1"
+        >
           {RoundPrice({ num: total })} {currency_symbol?.symbol}
         </span>
       </div>
@@ -628,6 +643,7 @@ const TryDosWalletInput = ({ active, setActive }) => {
   );
   return (
     <div
+      data-cy="second-bay-way"
       onClick={() => {
         if (wallet?.wallet_balance > 0) setActive();
       }}
@@ -638,9 +654,10 @@ const TryDosWalletInput = ({ active, setActive }) => {
         border: active && "1px solid rgb(56 144 255 / 51%)",
       }}
     >
-      <div className="flex-row items-center">
-        <WalletIcon />
+      <div data-cy="second-bay-way-con" className="flex-row items-center">
+        <WalletIcon data-cy="second-bay-way-svg" />
         <span
+          data-cy="second-bay-way-con-text"
           className={`ml-[8px]  ${
             active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
           } regular text-[12px]`}
@@ -648,16 +665,25 @@ const TryDosWalletInput = ({ active, setActive }) => {
           {translateFunction("Trydos Wallet")}
         </span>
         {orderLoading && (
-          <span className="bold ml-[11px]">
+          <span
+            data-cy="second-bay-way-con-text-load"
+            className="bold ml-[11px]"
+          >
             <Spinner />
           </span>
         )}
       </div>
-      <div className="flex-row items-center">
-        <span className="text-[#D3D3D3] regular text-[12px]">
+      <div data-cy="third-bay-way" className="flex-row items-center">
+        <span
+          data-cy="third-bay-way-text"
+          className="text-[#D3D3D3] regular text-[12px]"
+        >
           {translateFunction("Your Balance")}
         </span>
-        <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
+        <span
+          data-cy="third-bay-way-text-cont"
+          className="text-[#1D1D1D] semibold text-[12px] ml-1"
+        >
           {RoundPrice({ num: wallet?.wallet_balance || 0 })}{" "}
           {currency_symbol?.symbol}
         </span>
@@ -669,6 +695,7 @@ const TryDosWalletInput = ({ active, setActive }) => {
 const CreditInput = ({ active, setActive }) => {
   return (
     <div
+      data-cy="dredit-way"
       onClick={() => {
         setActive();
       }}
@@ -677,9 +704,10 @@ const CreditInput = ({ active, setActive }) => {
       }}
       className="mt-[6px] cursor-pointer w-full items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
     >
-      <div className="flex-row items-center">
-        <CreditIcon />
+      <div data-cy="dredit-way-con" className="flex-row items-center">
+        <CreditIcon data-cy="dredit-way-svg" />
         <span
+          data-cy="dredit-way-text"
           className={`ml-[8px] ${
             active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
           } regular text-[12px]`}
@@ -687,13 +715,16 @@ const CreditInput = ({ active, setActive }) => {
           {translateFunction("Credit Cards")}
         </span>
       </div>
-      <div className="flex-row items-center">
-        <VisaIcon />
-        <MasterIcon className="ml-[5px]" />
-        <MaestroIcon className="ml-[5px]" />
-        <AmericanExpressIcon className="ml-[5px]" />
-        <ApplePayIcon className="ml-[5px]" />
-        <GooglePayIcon className="ml-[5px]" />
+      <div data-cy="container-icons" className="flex-row items-center">
+        <VisaIcon data-cy="Visa-Icon" />
+        <MasterIcon data-cy="Master-Icon" className="ml-[5px]" />
+        <MaestroIcon data-cy="Maestro-Icon" className="ml-[5px]" />
+        <AmericanExpressIcon
+          data-cy="AmericanExpress-Icon"
+          className="ml-[5px]"
+        />
+        <ApplePayIcon data-cy="ApplePay-Icon" className="ml-[5px]" />
+        <GooglePayIcon data-cy="GooglePay-Icon" className="ml-[5px]" />
       </div>
     </div>
   );
@@ -701,6 +732,7 @@ const CreditInput = ({ active, setActive }) => {
 const CryptoInput = ({ active, setActive }) => {
   return (
     <div
+      data-cy="crypto-bay-way"
       onClick={(e) => {
         // @ts-ignore
 
@@ -711,9 +743,10 @@ const CryptoInput = ({ active, setActive }) => {
       }}
       className="mt-[6px] cursor-pointer w-full items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
     >
-      <div className="flex-row items-center">
-        <CryptoIcon />
+      <div data-cy="crypto-bay-way-container" className="flex-row items-center">
+        <CryptoIcon data-cy="crypto-bay-way-svg" />
         <span
+          data-cy="crypto-bay-way-text"
           className={`ml-[8px] ${
             active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
           } regular text-[12px]`}
@@ -721,11 +754,14 @@ const CryptoInput = ({ active, setActive }) => {
           {translateFunction("Crypto")}
         </span>
       </div>
-      <div className="flex-row items-center">
-        <PaymentIconOne />
-        <PaymentIconTwo className="ml-[5px]" />
-        <PaymentIconThree className="ml-[5px]" />
-        <PaymentIconFour className="ml-[5px]" />
+      <div data-cy="containers-icons" className="flex-row items-center">
+        <PaymentIconOne data-cy="PaymentIconOne-icons" />
+        <PaymentIconTwo data-cy="PaymentIconTwo-icons" className="ml-[5px]" />
+        <PaymentIconThree
+          data-cy="PaymentIconThree-icons"
+          className="ml-[5px]"
+        />
+        <PaymentIconFour data-cy="PaymentIconFour-icons" className="ml-[5px]" />
       </div>
     </div>
   );

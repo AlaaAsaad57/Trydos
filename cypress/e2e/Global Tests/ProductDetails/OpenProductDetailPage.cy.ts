@@ -1,5 +1,5 @@
 let storedUserName1: string = "";
-describe("Should Visit Website & Add Product To Cart", () => {
+describe("Should Visit trydos & Add Product To Cart", () => {
   before("Should Open The Trydos", () => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
@@ -322,12 +322,12 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
   let countLovesAfterPutLove = 0;
   let countLovesAfterPutLove1 = 0;
   it("should logout", () => {
-    cy.Exist("[data-cy=Logout-ReLogout]").then((exist) => {
+    cy.Exist("[data-cy=avatar-options]").then((exist) => {
       if (exist) {
-        cy.get("[data-cy=Logout-ReLogout]").click({ force: true });
+        cy.get("[data-cy=avatar-options]").click({ force: true });
         cy.intercept(
           "GET",
-          "**/api/new_v1/web/product/likesCommentsSharesDetails/**"
+          "**/api/v1/web/product/likesCommentsSharesDetails/**"
         ).as("loadProductDetail");
         cy.get("[data-cy=logout]").click({
           force: true,
@@ -348,7 +348,7 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
       if ($icon) {
         cy.intercept(
           "POST",
-          "**/market-under-dev-backend.trydos.dev/api/new_v1/product_likes/delete"
+          "**/market-under-dev-backend.trydos.dev/api/v1/product_likes/delete"
         ).as("DeleteLike");
         cy.clickElement("[data-cy=LoveSymbol]");
         cy.wait("@DeleteLike").then((interception) => {
@@ -373,7 +373,7 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
   it("Should Verify Count Of Loves Increased", () => {
     cy.intercept(
       "POST",
-      "**/market-under-dev-backend.trydos.dev/api/new_v1/product_likes/store"
+      "**/market-under-dev-backend.trydos.dev/api/v1/product_likes/store"
     ).as("Like");
     cy.clickElement("[data-cy=LoveSymbol]");
     cy.log("✅✅ Love Symbol Button Clicked");
@@ -394,7 +394,7 @@ describe("Should Do Like And Dislike & Waiting The Request Related To Them", () 
   it("Should Do DesLike", () => {
     cy.intercept(
       "POST",
-      "**/market-under-dev-backend.trydos.dev/api/new_v1/product_likes/delete"
+      "**/market-under-dev-backend.trydos.dev/api/v1/product_likes/delete"
     ).as("DeleteLike");
     cy.clickElement("[data-cy=LoveSymbol]");
     cy.log("✅✅ Love Symbol Button Clicked To Do Deslike");
@@ -468,7 +468,7 @@ describe("Should Type Comment In Comment Section", () => {
   it("should allow users to submit a new comment", () => {
     cy.intercept(
       "POST",
-      "**/market-under-dev-backend.trydos.dev/api/new_v1/customer/product_comment"
+      "**/market-under-dev-backend.trydos.dev/api/v1/customer/product_comment"
     ).as("Comment");
     cy.get('[data-cy="CommentField"]').type("This is a test comment", {
       force: true,
@@ -738,7 +738,7 @@ describe("Should Type Comment In Comment Section After Login & Verify The Commen
   it("should allow users to submit a new comment", () => {
     cy.intercept(
       "POST",
-      "**/market-under-dev-backend.trydos.dev/api/new_v1/customer/product_comment"
+      "**/market-under-dev-backend.trydos.dev/api/v1/customer/product_comment"
     ).as("Comment");
     cy.get('[data-cy="CommentField"]').type(
       "This is a test comment after login",

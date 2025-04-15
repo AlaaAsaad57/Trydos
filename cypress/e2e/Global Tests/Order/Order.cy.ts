@@ -1,6 +1,6 @@
 let CartLrLength1: number = 0;
 let CountItem1: number = 0;
-describe("Should Open The Website & Logout", () => {
+describe("Should Open The trydos & Logout", () => {
   before("Visit The Site", () => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
@@ -24,6 +24,32 @@ describe("should Login If User Is Not Verified", () => {
   it("Should Enter Phone Number", () => {
     cy.ChexkExistElement("[data-cy=FieldToInputNumber]").then((existing) => {
       if (existing) {
+        cy.get("[data-testid=animated-container]");
+        cy.get("[data-cy=login-operation]").should("exist");
+        cy.get("[data-cy=login-operation-svg]").should("exist");
+        cy.get("[data-cy=text-loginDesc]").should("exist");
+        cy.get("[data-cy=text-loginDesc-text]").should(
+          "contain",
+          "Enter Your Phone Number To Complete Order"
+        ); //login-detail
+        cy.get("[data-cy=login-detail]").should("exist");
+        cy.get("[data-cy=login-detail-svg]").should("exist");
+        cy.get("[data-cy=FieldToInputNumber]").should(
+          "contain",
+          "Enter Your Phone Number Registered With Us"
+        ); //login-detail-Verification
+        cy.get("[data-cy=login-detail-Verification]").should("exist");
+        cy.get("[data-cy=login-detail-Verification-svg]").should("exist"); //login-detail-Verification-text
+        cy.get("[data-cy=login-detail-Verification-text]").should(
+          "contain",
+          "We Will Send A Verification Code To The Number"
+        ); //container-enterPhone
+        cy.get("[data-cy=container-enterPhone]").should("exist"); //container-enterPhone-svg
+        cy.get("[data-cy=container-enterPhone-svg]").should("exist"); //solidPhhone-enterPhone-svg
+        cy.get("[data-cy=solidPhhone-enterPhone-svg]").should("exist"); //span-flag
+        cy.get("[data-cy=span-flag]").should("exist"); //plus-icon-span
+        cy.get("[data-cy=plus-icon-span]").should("exist"); //phone-number-input
+        cy.get("[data-cy=phone-number-input]").should("exist"); //phone-number-input
         cy.enterPhoneNumber("963937764641");
       } else {
         cy.log("✅✅ The Number Verified Last");
@@ -31,6 +57,34 @@ describe("should Login If User Is Not Verified", () => {
     });
   });
   it("Should Select Way To Send Otp Code", () => {
+    cy.get("[data-testid=animated-container]").should("exist");
+    cy.get("[data-testid=pin-inputs-desc]").should("exist");
+    cy.get("[data-cy=pin-inputs-desc-svg]").should("exist");
+    cy.get("[data-cy=send-verification-number]").should("exist");
+    cy.get("[data-cy=send-verification-number-text]")
+      .should("exist")
+      .contains("We Will Send A Verification Code To The Number");
+    cy.get("[data-cy=Edit-Phone-Number]").should("exist");
+    cy.get("[data-cy=Edit-Phone-Number-svg]").should("exist");
+    cy.get("[data-cy=Edit-Phone-Number-plus]").should("exist").contains("+");
+    cy.get("[data-cy=span-edit-number]").should("exist");
+    cy.get("[data-cy=span-edit-number-svg]").should("exist");
+    cy.get("[data-cy=choose]").should("exist");
+    cy.get("[data-cy=choose-svg]").should("exist");
+    cy.get("[data-cy=choose-text]")
+      .should("exist")
+      .contains("Choose The Verification Method, Receive Code Via:");
+    cy.get("[data-cy=send-way]").should("exist");
+    cy.get("[data-cy=whatssapp-way]").should("exist");
+    cy.get("[data-cy=border-whatssapp-way]").should("exist");
+    cy.get("[data-cy=border-whatssapp-way-svg]").should("exist");
+    cy.get("[data-cy=way-icon]").should("exist");
+    cy.get("[data-cy=whattsapp-text]").should("exist").contains("WhatsApp");
+    cy.get("[data-cy=message-way]").should("exist");
+    cy.get("[data-cy=message-way-svg-container]").should("exist");
+    cy.get("[data-cy=message-way-svg]").should("exist");
+    cy.get("[data-cy=message-icon-svg]").should("exist");
+    cy.get("[data-cy=message-text]").should("exist").contains("SMS");
     cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
   });
   it("Should Enter OTP Code & Arrived Dual Request", () => {
@@ -38,18 +92,51 @@ describe("should Login If User Is Not Verified", () => {
     cy.interceptAndWait([
       {
         method: "GET",
-        url: "**/api/new_v1/customer/address/list",
+        url: "**/api/v1/customer/address/list",
         alias: "ListRequest",
       },
       {
         method: "GET",
-        url: "**/api/new_v1/cart/cart_shipping",
+        url: "**/api/v1/cart/cart_shipping",
         alias: "CartShiping",
       },
     ]);
     cy.log("✅✅ CartShiping & ListRequest Requests Arrived");
   });
 });
+// **************************************************************************
+describe("Should verify components in address delivery page", () => {
+  it("renders the header delivery component", () => {
+    cy.get("[data-cy=swiper-slide]").should("exist");
+    cy.get('[data-cy="header-delivery"]').should("be.visible");
+    cy.get('[data-cy="TitleInOrderPage"]').should(
+      "contain",
+      "Bag Shipping & Delivery Address"
+    );
+    cy.get('[data-cy="swiperSlide-backIcon"]').should("be.visible");
+  });
+  it("triggers back icon click event", () => {
+    cy.clickElement('[data-cy="swiperSlide-backIcon"]');
+    cy.clickElement("[data-cy=Confirm-Order-Button]");
+    cy.log("✅✅ Confirm & Countinue Button Clicked");
+    cy.interceptAndWait([
+      {
+        method: "GET",
+        url: "**/api/v1/customer/address/list",
+        alias: "ListRequest",
+      },
+      {
+        method: "GET",
+        url: "**/api/v1/cart/cart_shipping",
+        alias: "CartShiping",
+      },
+    ]);
+    cy.log("✅✅ CartShiping & ListRequest Requests Arrived");
+  });
+  it("", () => {});
+  it("", () => {});
+});
+// **************************************************************************
 describe("Compare Quantity Founded In Order With Quantity Required", () => {
   it("Should Extract The Number Of Items That Confirm To Buy It", () => {
     cy.get("[data-cy=Number-Of-Products-Required]")
@@ -134,7 +221,7 @@ describe("Should delete all address founded lastly", () => {
                 cy.log(`Delete Address Icon ${index + 1}: ${text}`);
                 cy.intercept(
                   "POST",
-                  "**/api/new_v1/customer/address/delete?address**"
+                  "**/api/v1/customer/address/delete?address**"
                 ).as("DeleteAddress");
                 cy.clickElement("[data-cy=Yes-Delete-Address]");
                 cy.wait("@DeleteAddress").then((interception) => {
@@ -318,7 +405,7 @@ describe("Should choose region", () => {
     cy.intercept("POST", "**/api/addresses/get-address-by-text").as(
       "GetAddressByText"
     );
-    cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Latakia", {
+    cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Aleppo", {
       force: true,
       scrollBehavior: false,
     });
@@ -520,12 +607,12 @@ describe("should save address & wait the requests", () => {
     cy.interceptAndWait([
       {
         method: "POST",
-        url: "**/api/new_v1/customer/address/add",
+        url: "**/api/v1/customer/address/add",
         alias: "addAddress",
       },
       {
         method: "GET",
-        url: "**/api/new_v1/customer/address/list",
+        url: "**/api/v1/customer/address/list",
         alias: "list",
       },
     ]);
@@ -593,7 +680,7 @@ describe("Should Edit Address", () => {
         scrollBehavior: false,
       });
     cy.log("✅✅ Clicked and Filled Detailed Address & Note Input");
-    cy.intercept("POST", "**/api/new_v1/customer/address/update").as(
+    cy.intercept("POST", "**/api/v1/customer/address/update").as(
       "UpdateAddress"
     );
     cy.clickElement("[data-cy=AddSaveButton]");
@@ -612,10 +699,9 @@ describe("Should Delete Address", () => {
     cy.log("✅✅ Show Address List Button Clicked");
     cy.clickElement("[data-cy=Delete-Address-Icon]:eq(0)").then((text) => {
       cy.log(`Delete Address Icon`);
-      cy.intercept(
-        "POST",
-        "**/api/new_v1/customer/address/delete?address**"
-      ).as("DeleteAddress");
+      cy.intercept("POST", "**/api/v1/customer/address/delete?address**").as(
+        "DeleteAddress"
+      );
       cy.clickElement("[data-cy=Yes-Delete-Address]");
       cy.wait("@DeleteAddress").then((interception) => {
         expect(interception.response.statusCode).to.be.eq(200);

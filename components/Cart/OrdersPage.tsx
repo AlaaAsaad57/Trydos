@@ -251,6 +251,7 @@ function OrdersPage({
         wrapperClass="flex  h-full"
       >
         <SwiperSlide
+          data-cy="swiper-slide"
           className={` min-w-[100vw] h-[100vh] relative cart-widget`}
         >
           {AddressListsOpen && (
@@ -268,9 +269,16 @@ function OrdersPage({
               }}
             />
           )}
-          <div className="flex-col pl-2 pr-2 bg-[#fff] p-1 ">
-            <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
+          <div
+            data-cy="header-delivery"
+            className="flex-col pl-2 pr-2 bg-[#fff] p-1 "
+          >
+            <div
+              data-cy="header-delivery-container"
+              className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center "
+            >
               <BackIcon
+                data-cy="swiperSlide-backIcon"
                 className="cursor-pointer z-50"
                 onClick={() => {
                   Sendevent({
@@ -373,14 +381,20 @@ function OrdersPage({
                     </g>
                   </g>
                 </svg>
-                <span className="regular ml-[8px]">
+                <span
+                  data-cy="shippingDelivery-text"
+                  className="regular ml-[8px]"
+                >
                   <>{translate("Bag Shipping & Delivery Address")}</>
                 </span>
               </span>
               <span />
             </div>
           </div>
-          <div className="flex-col overflow-auto pb-[292px] max-h-full">
+          <div
+            data-cy="Shipping-Address-Container"
+            className="flex-col overflow-auto pb-[292px] max-h-full"
+          >
             <ShippingAddressContainer
               openAddressList={(e) => {
                 openAddressList(e);
