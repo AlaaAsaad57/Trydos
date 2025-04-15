@@ -405,9 +405,7 @@ function CartContainer({ close, toOrders }) {
                             </div>
                           )}
 
-                          {(parseInt(product.quantity) >
-                            product.available_quantity ||
-                            !product.check_availability) && (
+                          {!product.check_availability && (
                             <div className="flex-row items-center mt-1 text-[12px] light text-[#fd445d]">
                               <ErrorIcon />
                               <div
