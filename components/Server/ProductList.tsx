@@ -39,7 +39,6 @@ async function ProductListServer({ params, searchParams }) {
     <>
       <ProductsList
         currency={currency}
-        response={response}
         Listing_Data_res={Listing_Data_res}
         productCategory={params.productCategory}
         boutiqueCategory={params.boutiqueCategory}

@@ -19,13 +19,11 @@ function ProductsList({
   productCategory,
   currency,
   boutiqueCategory,
-  response,
 }: {
   Listing_Data_res: any;
   currency: CurrencyApi["data"]["currency"];
   boutiqueCategory: string;
   productCategory: string;
-  response?: any;
 }) {
   const dispatch = useDispatch();
   let { lang } = useParams();

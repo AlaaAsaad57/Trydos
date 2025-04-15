@@ -1,10 +1,7 @@
 import FilterList from "components/Server/FilterList";
 import ProductListServer from "components/Server/ProductList";
-import CustomNavbarServer from "components/Server/ServerCustomNav";
-import ListingSkeleton from "components/skeleton/listing";
 
-// import ListingSkeleton from "components/skeleton/listing";
-// import NavbarSkeleton from "components/skeleton/navbar";
+import ListingSkeleton from "components/skeleton/listing";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getBoutiques, getHomeData } from "store/homepage/cachedActions";
@@ -48,7 +45,7 @@ export async function generateStaticParams({ params }) {
       country: params.lang ? params.lang.split("-")[0] : null,
       str: "",
     });
-    console.log(boutiques_slugs, params);
+
     return boutiques_slugs.map((category) => ({
       productCategory: category,
       lang: params.lang,
