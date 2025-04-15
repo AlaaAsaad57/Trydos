@@ -95,15 +95,22 @@ function Product({
             ],
             index: 0,
           }
-        : { images: product.images },
+        : {
+            images:
+              product.images?.length > 0
+                ? product.images
+                : [product.thumbnail.file_path],
+          },
     // @ts-ignore
     activeImage:
       product?.sync_color_images &&
       product?.sync_color_images[0]?.images?.length > 0
         ? // @ts-ignore
           product?.sync_color_images[0]?.images[0]?.file_path
-        : // @ts-ignore
-          product.images[0]?.file_path,
+        : product.images?.length > 0
+        ? // @ts-ignore
+          product.images[0]?.file_path
+        : product.thumbnail.file_path,
     isColorSelected: false,
     activeImageIndex: 0,
     renderVar: false,
