@@ -7,7 +7,14 @@ import { getConfiguredImage } from "utils/functions";
 import { useDispatch, useSelector } from "react-redux";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CloseIcon from "components/Home/Stories/CloseIcon";
-function ProductDetailsSlider({ product, currency }) {
+import { ProductInterface } from "models/product";
+function ProductDetailsSlider({
+  product,
+  currency,
+}: {
+  product: any;
+  currency: any;
+}) {
   const productData = product;
   const [imageShow, showImage] = useState(-1);
   const [emblaRef] = useEmblaCarousel();
@@ -23,18 +30,18 @@ function ProductDetailsSlider({ product, currency }) {
     const newParams = new URLSearchParams(searchParams);
 
     if (!searchParams.get("color") && productData?.sync_color_images) {
-      newParams.set("color", productData?.sync_color_images[0].color_name);
+      // newParams.set("color", productData?.sync_color_images[0].color_name);
     }
     if (
       !searchParams.get("size") &&
       productData?.choice_options &&
       productData?.choice_options?.filter((s) => s.title == "Size").length
     ) {
-      newParams.set(
-        "size",
-        productData?.choice_options?.filter((s) => s.title == "Size")[0]
-          ?.options[0]?.name
-      );
+      // newParams.set(
+      //   "size",
+      //   productData?.choice_options?.filter((s) => s.title == "Size")[0]
+      //     ?.options[0]?.name
+      // );
     }
     if (newParams.size) {
       // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
@@ -48,22 +55,28 @@ function ProductDetailsSlider({ product, currency }) {
     dispatch({ type: "CURRENCY", payload: currency });
   }, []);
 
+  const getImages = () => {
+    if (activeColor && activeColor?.images?.length > 0) {
+      return activeColor;
+    } else if (searchParams.get("color") && productData?.sync_color_images) {
+      return productData?.sync_color_images?.filter(
+        (s) => s.color_name === searchParams.get("color")
+      )[0];
+    } else if (
+      productData?.sync_color_images &&
+      productData?.sync_color_images[0]?.images?.length > 0
+    ) {
+      return productData?.sync_color_images[0];
+    }
+    return productData ?? { images: [product.thumbnail] };
+  };
+
   return (
     <>
       <div className="product-details-slider">
         <div className="embla" ref={emblaRef}>
           <div className="embla__container">
-            {(
-              activeColor ??
-              (searchParams.get("color") &&
-                productData?.sync_color_images &&
-                productData?.sync_color_images?.filter(
-                  (s) => s.color_name === searchParams.get("color")
-                )[0]) ??
-              (productData?.sync_color_images &&
-                productData?.sync_color_images[0]) ??
-              productData
-            )?.images?.map((img, i) => (
+            {getImages()?.images?.map((img, i) => (
               <div
                 className="embla__slide"
                 key={img}

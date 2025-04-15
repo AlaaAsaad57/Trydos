@@ -53,11 +53,9 @@ interface Props {
     productId: string;
   };
 }
-async function Page({ params }: Props) {
+function Page({ params }: Props) {
   return (
     <>
-      <CustomNavbarServer lang={params.lang} />
-
       <ProductDetailsServer productId={params.productId} lang={params.lang} />
     </>
   );

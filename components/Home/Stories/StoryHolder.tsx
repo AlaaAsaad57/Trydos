@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Loader from "components/global/Loader";
 import { setNextStory, setPreviousStory } from "store/homepage/actions";
 import { StoryType } from "models/story";
-import ReactInstaStories from "utils/libs/react-insta-stories-master/src";
+import ReactInstaStories from "utils/react-insta-stories-master/src";
 import { Sendevent } from "utils/functions";
 
 interface Props {
@@ -34,7 +34,7 @@ function StoryHolder({ story, active, isPaused }: Props) {
             activeId={selectedStory.id}
             id={story.id}
             key={story.id}
-            isPaused={isPaused || !active}
+            isPaused={!active}
             preloadCount={1}
             loader={<Loader style={{}} />}
             currentIndex={0}

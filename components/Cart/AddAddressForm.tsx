@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 import "leaflet/dist/leaflet.css";
 import Map from "./Map";
-import axios from "axios";
+
 import { useParams } from "next/navigation";
 import Addressicon from "public/svg/cart/AddressIcon.svg";
 import AddressInfo from "public/svg/cart/AddressInfo.svg";
@@ -43,6 +43,7 @@ function AddAddressForm({
 
       (s) => s.iso.toLowerCase() === lang.split("-")[0].toLowerCase()
     )[0];
+    console.log(UserCountries);
     setCenter({
       lat: parseFloat(UserCountries?.latitude),
       lng: parseFloat(UserCountries?.longitude),
@@ -92,12 +93,14 @@ function AddAddressForm({
         className={`${
           orderLoading ? "opacity-50 scale-[.99]" : ""
         } flex-col h-full max-h-full overflow-auto w-full relative pb-[160px]`}
+        data-cy="add-address-form" // Added data-cy
       >
         <div
           className="bg-[#F8F8F8] min-h-[50px] flex-row items-center pl-[24px] pr-[20px] "
           style={{
             border: "1px solid rgb(211 211 211 / 51%)",
           }}
+          data-cy="address-info-header" // Added data-cy
         >
           <svg
             id="Group_3387"
@@ -106,6 +109,7 @@ function AddAddressForm({
             width="16"
             height="16"
             viewBox="0 0 16 16"
+            data-cy="info-icon" // Added data-cy
           >
             <path
               id="Path_15434"
@@ -143,14 +147,17 @@ function AddAddressForm({
               fill="#388cff"
             />
           </svg>
-          <div className="regular text-[10px] ml-[8px] text-[#8D8D8D]">
+          <div
+            className="regular text-[10px] ml-[8px] text-[#8D8D8D]"
+            data-cy="info-text"
+          >
             {translateFunction(
               "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster."
             )}
           </div>
         </div>
 
-        {activeIndex && (
+        {activeIndex && countries.length > 0 && (
           <Map
             expanded={expanded}
             setCenter={(e) => setCenter(e)}
@@ -163,6 +170,7 @@ function AddAddressForm({
               center
             }
             setAddressDetails={(e) => setAddressDetails(e)}
+            data-cy="map-component" // Added data-cy
           />
         )}
         <AddressSection
@@ -170,7 +178,7 @@ function AddAddressForm({
             setOpenSelect();
           }}
         />
-        <ContactInfo />
+        <ContactInfo data-cy="contact-info" />
       </div>
       {!expanded && (
         <AddAddressButtons
@@ -178,6 +186,7 @@ function AddAddressForm({
           slidePrev={() => {
             slidePrev();
           }}
+          data-cy="add-address-buttons" // Added data-cy
         />
       )}
     </>
@@ -188,16 +197,26 @@ export default AddAddressForm;
 
 const AddressSection = ({ setOpenSelect }) => {
   return (
-    <div className="flex-col w-full mt-[30px] px-[12px]">
+    <div
+      className="flex-col w-full mt-[30px] px-[12px]"
+      data-cy="address-section"
+    >
       <div className="flex-row px-[12px] items-center">
-        <Addressicon />
-        <div className="flex ml-[6px] text-[#404040] text-[12px] medium">
+        <Addressicon data-cy="address-icon" />
+        <div
+          className="flex ml-[6px] text-[#404040] text-[12px] medium"
+          data-cy="address-info-text"
+        >
           {translateFunction("Address Info")}
         </div>
-        <AddressInfo className="ml-[12px] cursor-pointer" />
+        <AddressInfo
+          className="ml-[12px] cursor-pointer"
+          data-cy="address-info-icon"
+        />
       </div>
       <CountryLabel />
       <SelectRegion
+        data-cy="select-region"
         setOpenSelect={() => {
           setOpenSelect();
         }}
@@ -224,19 +243,29 @@ const CountryLabel = () => {
   }, []);
   return (
     <div
+      data-cy="country-label" // Added data-cy
       className="flex-col rounded-[15px] w-full mt-[12px] py-[7px] pl-[12px] items-start justify-center"
       style={{
         border: "#d3d3d3a3 1px solid",
       }}
     >
-      <div className="flex-row regular text-[#505050] text-[12px]">
+      <div
+        className="flex-row regular text-[#505050] text-[12px]"
+        data-cy="country-region-div"
+      >
         {translateFunction("Country | Region")}
       </div>
       <div className="flex-row items-center mt-[3px] ">
-        <span className="h-[15px] rounded-[5px] w-[22px]">
+        <span
+          className="h-[15px] rounded-[5px] w-[22px]"
+          data-cy="country-flag"
+        >
           <Flag height={"15"} code={country.iso} />
         </span>
-        <div className="medium flex text-[#1D1D1D] text-[14px] ml-[8px]">
+        <div
+          className="medium flex text-[#1D1D1D] text-[14px] ml-[8px]"
+          data-cy="country-name"
+        >
           {country?.name}
         </div>
       </div>
@@ -259,11 +288,14 @@ const SelectRegion = ({ setOpenSelect }) => {
         border: "#d3d3d3a3 1px solid",
       }}
     >
-      <div className="flex-row regular text-[#505050] text-[12px]">
+      <div
+        className="flex-row regular text-[#505050] text-[12px]"
+        data-cy="change-list-statement"
+      >
         {translateFunction("Change From List")}
       </div>
       <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] ">
-        <TargetIcon className="&>path:fill" />
+        <TargetIcon className="&>path:fill" data-cy="point-icon" />
 
         <div
           className={`medium flex ${
@@ -286,11 +318,15 @@ const DetailsAddress = () => {
   return (
     <div
       className="flex-col details-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
+      data-cy="Detailed-Address-field"
       style={{
         border: "#d3d3d3a3 1px solid",
       }}
     >
-      <div className="flex-row regular text-[#505050] text-[12px]">
+      <div
+        className="flex-row regular text-[#505050] text-[12px]"
+        data-cy="Detailed-Address-statement"
+      >
         {translateFunction("Detailed Address & Note")}
       </div>
       <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
@@ -299,6 +335,7 @@ const DetailsAddress = () => {
           data-cy="Detailed-Address-Note"
         >
           <textarea
+            data-cy="text-area-placeholder"
             value={addressDetails.address_detail}
             onChange={(e) => {
               dispatch({
@@ -324,12 +361,16 @@ const AddressTitle = () => {
   const dispatch = useDispatch();
   return (
     <div
+      data-cy="address-title" // Added data-cy
       className="flex-col title-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
       style={{
         border: "#d3d3d3a3 1px solid",
       }}
     >
-      <div className="flex-row regular text-[#505050] text-[12px]">
+      <div
+        className="flex-row regular text-[#505050] text-[12px]"
+        data-cy="add-Address-statement"
+      >
         {translateFunction("Address Title")}
       </div>
       <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
@@ -338,6 +379,7 @@ const AddressTitle = () => {
           data-cy="Address-Title"
         >
           <input
+            data-cy="add-address-input"
             value={addressDetails.address}
             onChange={(e) => {
               dispatch({
@@ -374,21 +416,34 @@ const ContactInfo = () => {
   //   }
   // }, [addressDetails?.id, user]);
   return (
-    <div className="flex-col w-full mt-[30px] px-[12px] pb-[110px]">
+    <div
+      className="flex-col w-full mt-[30px] px-[12px] pb-[110px]"
+      data-cy="container-name-phone"
+    >
       <div className="flex-row px-[12px] items-center">
-        <ContactInfoIcon />
-        <div className="flex ml-[6px] text-[#404040] text-[12px] medium">
+        <ContactInfoIcon data-cy="contact-info-icon" />
+        <div
+          className="flex ml-[6px] text-[#404040] text-[12px] medium"
+          data-cy="contact-info-text"
+        >
           {translateFunction("Contact Info")}
         </div>
-        <AddressInfo className="ml-[12px] cursor-pointer" />
+        <AddressInfo
+          className="ml-[12px] cursor-pointer"
+          data-cy="Address-info-icon"
+        />
       </div>
       <div
         className="flex-col name-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
+        data-cy="name-container"
         style={{
           border: "#d3d3d3a3 1px solid",
         }}
       >
-        <div className="flex-row regular text-[#505050] text-[12px]">
+        <div
+          className="flex-row regular text-[#505050] text-[12px]"
+          data-cy="recipient-name-statement"
+        >
           {translateFunction("Recipient Name")}
         </div>
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
@@ -397,6 +452,7 @@ const ContactInfo = () => {
             data-cy="Recipient-Name"
           >
             <input
+              data-cy="recipient-name-input"
               value={addressDetails.contact_info.contact_person_name}
               onChange={(e) => {
                 dispatch({
@@ -418,11 +474,15 @@ const ContactInfo = () => {
       {/*  */}
       <div
         className="flex-col phone-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
+        data-cy="phone-container"
         style={{
           border: "#d3d3d3a3 1px solid",
         }}
       >
-        <div className="flex-row regular text-[#505050] text-[12px]">
+        <div
+          className="flex-row regular text-[#505050] text-[12px]"
+          data-cy="phone-statement"
+        >
           {translateFunction("Contact Phone")}
         </div>
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
@@ -431,6 +491,7 @@ const ContactInfo = () => {
             data-cy="Contact-Phone"
           >
             <input
+              data-cy="Contact-Phone-input"
               aria-autocomplete="both"
               aria-haspopup="false"
               type="number"
@@ -461,19 +522,27 @@ const ContactInfo = () => {
       {/*  */}
       <div
         className="flex-col cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
+        data-cy="altarnative-Phone-container"
         style={{
           border: "#d3d3d3a3 1px solid",
         }}
       >
-        <div className="flex-row regular text-[#505050] text-[12px]">
+        <div
+          className="flex-row regular text-[#505050] text-[12px]"
+          data-cy="altarnative-Phone-statement"
+        >
           {translateFunction("Alternative Phone")}
-          <span className="text-[#D3D3D3] ml-[4px]">
+          <span
+            className="text-[#D3D3D3] ml-[4px]"
+            data-cy="optional-statement"
+          >
             {translateFunction("(Optional)")}
           </span>
         </div>
         <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
           <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
             <input
+              data-cy="optional-input"
               aria-autocomplete="both"
               aria-haspopup="false"
               spellCheck="false"
@@ -512,11 +581,13 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
     (state: StateInterface) => state.cart.addressDetails
   );
   const shake = (v) => {
-    document.querySelector(`.${v}`).scrollIntoView({ block: "end" });
-    document.querySelector(`.${v}`).classList.add("shake-anim");
-    setTimeout(() => {
-      document.querySelector(`.${v}`).classList.remove("shake-anim");
-    }, 1300);
+    if (document.querySelector(`.${v}`)) {
+      document.querySelector(`.${v}`)?.scrollIntoView({ block: "end" });
+      document.querySelector(`.${v}`)?.classList.add("shake-anim");
+      setTimeout(() => {
+        document.querySelector(`.${v}`)?.classList.remove("shake-anim");
+      }, 1300);
+    }
   };
   const validate = () => {
     if (
@@ -559,6 +630,7 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
       className={`add-address-button ${
         orderLoading && "opacity-55"
       } absolute text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
+      data-cy="add-address-buttons-container" // Added data-cy
     >
       <div
         onClick={() => {

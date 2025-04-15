@@ -9,16 +9,10 @@ export interface UserInterface {
   auth_token?: string;
   username?: string;
   name: string;
-  avatar: string | null | avatarInterface;
+  image?: string | null;
   idToken: string;
   passowrd?: string;
   already_exists?: boolean;
-}
-
-export interface CheckPhoneInputInterface {
-  value?: string | number;
-  step?: (num: number) => void;
-  newAccount?: boolean;
 }
 
 export interface SendOtpInputInterface {

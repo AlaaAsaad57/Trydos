@@ -54,11 +54,13 @@ function ProductsList({
     if (!loading && !isReachEnd) {
       dispatch({ type: "PRODUCT_LOADING" });
       await homeService.getNextProduct({
+        lang: lang,
         offset: offset,
         categories:
           SearchParams.get("boutique_slugs") ||
           (productCategory !== "listing" ? productCategory : null),
         boutiqueCategory: boutiqueCategory,
+        noFilter: true,
       });
     }
   };
@@ -75,11 +77,13 @@ function ProductsList({
   const GetNextProd = async () => {
     dispatch({ type: "PRODUCT_LOADING" });
     await homeService.getNextProduct({
+      lang: lang,
       offset: offset ?? Listing_Data_res.body.data.offset,
       categories:
         SearchParams.get("boutique_slugs") ||
         (productCategory !== "listing" ? productCategory : null),
       boutiqueCategory: boutiqueCategory,
+      noFilter: true,
     });
   };
   const filterEnabled = useSelector(

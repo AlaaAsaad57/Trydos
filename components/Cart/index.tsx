@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  GetAppLanguage,
   getCart,
   getOldCart,
   getConfiguredImage,
@@ -27,6 +26,7 @@ import { dispatchRouteChangeEvent } from "utils/events";
 import Spinner from "components/global/Spinner";
 import Timer from "components/Login/Timer";
 import { QuantityDetailsProductApi } from "models/Api";
+import LocalizationServiceClass from "services/localization";
 
 function CartContainer({ close, toOrders }) {
   let { lang } = useParams();
@@ -301,14 +301,6 @@ function CartContainer({ close, toOrders }) {
                               });
                             }
                           } else {
-                            setTimeout(() => {
-                              if (document.querySelector("#nprogress"))
-                                // @ts-ignore
-                                document.querySelector(
-                                  "#nprogress"
-                                  // @ts-ignore
-                                ).style.opacity = "1";
-                            }, 1000);
                           }
                           close();
                         }}
@@ -413,10 +405,8 @@ function CartContainer({ close, toOrders }) {
                             </div>
                           )}
 
-                          {(parseInt(product.quantity) >
-                            product.available_quantity ||
-                            !product.check_availability) && (
-                            <div className="flex-row items-center text-[12px] light text-[#fd445d]">
+                          {!product.check_availability && (
+                            <div className="flex-row items-center mt-1 text-[12px] light text-[#fd445d]">
                               <ErrorIcon />
                               <div
                                 className={`${language === "ar" && "dir-rtl"}`}
@@ -426,6 +416,65 @@ function CartContainer({ close, toOrders }) {
                                 </span>
                                 <span className="regular ml-1">
                                   {translateFunction("Out Of Stock")}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          {product.is_country_restricted === true && (
+                            <div className="flex-row items-center text-[12px] mt-1 light text-[#fd445d]">
+                              <svg
+                                width="12"
+                                height="12"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                                <path d="M2 12h20" />
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                              </svg>
+
+                              <div
+                                className={`${language === "ar" && "dir-rtl"}`}
+                              >
+                                <span className="ml-1">
+                                  {translateFunction("Availabilty")}:
+                                </span>
+                                <span className="regular ml-1">
+                                  {translateFunction(
+                                    "Product Restricted in This Country"
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          {product.is_active === false && (
+                            <div className="flex-row items-center mt-1 text-[12px] light text-[#fd445d]">
+                              <svg
+                                width="15"
+                                height="15"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M21 8v13H3V8M1 3h22v5H1V3zM10 12h4" />
+                              </svg>
+
+                              <div
+                                className={`${language === "ar" && "dir-rtl"}`}
+                              >
+                                <span className="ml-1">
+                                  {translateFunction("Availabilty")}:
+                                </span>
+                                <span className="regular ml-1">
+                                  {translateFunction("Product Not available")}
                                 </span>
                               </div>
                             </div>
@@ -449,7 +498,10 @@ function CartContainer({ close, toOrders }) {
                               <HurryIcon />
                             </span>
                             <span className="bold ml-1">
-                              {translate("Hurry Up!", GetAppLanguage())}
+                              {translate(
+                                "Hurry Up!",
+                                LocalizationServiceClass.GetAppLanguage()
+                              )}
                             </span>
                             {product?.have_hurry_up_notify_time_left && (
                               <>
@@ -457,7 +509,7 @@ function CartContainer({ close, toOrders }) {
                                   {product.have_hurry_up_notify_time_left &&
                                     translate(
                                       "Quantity Running Out. ",
-                                      GetAppLanguage()
+                                      LocalizationServiceClass.GetAppLanguage()
                                     )}
                                 </span>
 
@@ -477,7 +529,7 @@ function CartContainer({ close, toOrders }) {
                                   {product.have_hurry_up_notify_qty &&
                                     translate(
                                       "Quantity Running Out. ",
-                                      GetAppLanguage()
+                                      LocalizationServiceClass.GetAppLanguage()
                                     )}
                                 </span>
 
@@ -495,6 +547,10 @@ function CartContainer({ close, toOrders }) {
                           await updateDataForProduct(product.slug);
                         }}
                         product={product}
+                        maxAllowed={product.max_allowed_qty}
+                        isCollectedAfterOrdering={Boolean(
+                          product.collected_after_ordering
+                        )}
                         isHurry={true || product.have_hurry_up_notify}
                         disabled={false}
                         max={product.available_quantity}
@@ -512,7 +568,10 @@ function CartContainer({ close, toOrders }) {
                   className="flex-row items-center justify-center light text-[#5d5d5d] text-[16px]"
                   data-cy="EmptyCRart"
                 >
-                  {translate("Cart is Empty", GetAppLanguage())}
+                  {translate(
+                    "Cart is Empty",
+                    LocalizationServiceClass.GetAppLanguage()
+                  )}
                 </div>
               )}
             </>
@@ -593,7 +652,10 @@ function CartContainer({ close, toOrders }) {
                 <OldCartIcon />
               </span>{" "}
               <span className="regular text-[#505050] text-[15px] ml-1">
-                {translate("Out Of Bag!", GetAppLanguage())}
+                {translate(
+                  "Out Of Bag!",
+                  LocalizationServiceClass.GetAppLanguage()
+                )}
               </span>
               <span
                 className="cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]"
@@ -606,7 +668,10 @@ function CartContainer({ close, toOrders }) {
                   dispatch({ type: "STORE-OLD-CART", payload: [] });
                 }}
               >
-                {translate("Hide All", GetAppLanguage())}
+                {translate(
+                  "Hide All",
+                  LocalizationServiceClass.GetAppLanguage()
+                )}
               </span>
             </div>
             <div
@@ -651,14 +716,6 @@ function CartContainer({ close, toOrders }) {
                               });
                             }
                           } else {
-                            setTimeout(() => {
-                              if (document.querySelector("#nprogress"))
-                                // @ts-ignore
-                                document.querySelector(
-                                  "#nprogress"
-                                  // @ts-ignore
-                                ).style.opacity = "1";
-                            }, 1000);
                           }
                           close();
                         }}
@@ -797,7 +854,10 @@ function CartContainer({ close, toOrders }) {
                             }}
                           >
                             <span className="hide-btn cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]">
-                              {translate("Hide", GetAppLanguage())}
+                              {translate(
+                                "Hide",
+                                LocalizationServiceClass.GetAppLanguage()
+                              )}
                             </span>
                           </div>
                         }
@@ -823,7 +883,10 @@ function CartContainer({ close, toOrders }) {
                             <OldCartIcon />
                           </span>
                           <span className="text-[#8D8D8D] bold text-[12px] ml-1">
-                            {translate("Out Of Bag!", GetAppLanguage())}{" "}
+                            {translate(
+                              "Out Of Bag!",
+                              LocalizationServiceClass.GetAppLanguage()
+                            )}{" "}
                             <span className="regular">
                               {translate("Time Running Out.")}{" "}
                               <span className="bold">-30:00</span> |{" "}
@@ -879,6 +942,8 @@ function CartContainer({ close, toOrders }) {
                         id={product.id}
                         product={product}
                         updateData={async () => {}}
+                        isCollectedAfterOrdering={false}
+                        maxAllowed={product.max_allowed_qty}
                         disabled={true}
                         isHurry={false}
                         value={product.quantity}
@@ -1595,6 +1660,8 @@ const QuantutyInput = ({
   updateData,
   isHurry,
   product,
+  maxAllowed,
+  isCollectedAfterOrdering,
 }) => {
   const [inputValue, setInputValue] = useState(parseInt(value));
   const PlusIcon = ({ className }) => {
@@ -1728,6 +1795,19 @@ const QuantutyInput = ({
       setLoading(false);
     }
   };
+  const shouldDisablePlus = () => {
+    if (maxAllowed !== "0" && inputValue >= maxAllowed) {
+      return true;
+    }
+    if (isCollectedAfterOrdering) {
+      return false;
+    }
+
+    if (inputValue >= product.available_quantity) {
+      return true;
+    }
+    return false;
+  };
   return (
     <div
       className={`absolute flex-wrap ${"top-[125px]"} left-[137px] flex-row items-center justify-between max-w-[calc(100%-152px)] w-full`}
@@ -1769,22 +1849,24 @@ const QuantutyInput = ({
             </g>
           </g>
         </svg>
-        <div
-          className="absolute hide-btn h-[24px] flex items-center right-[6px]  cursor-pointer"
-          data-cy="PlusIcon_CartPage"
-          onClick={() => {
-            if (disabled) return false;
-            // if (inputValue === max) {
-            //   toast.error(translate("stock is limited"));
-            //   return false;
-            // }
-            // // @ts-ignore
-            // else {
-            increaseQuantity(inputValue);
-          }}
-        >
-          <PlusIcon className="" />
-        </div>
+        {!shouldDisablePlus() && (
+          <div
+            className="absolute hide-btn h-[24px] flex items-center right-[6px]  cursor-pointer"
+            data-cy="PlusIcon_CartPage"
+            onClick={() => {
+              if (disabled) return false;
+              // if (inputValue === max) {
+              //   toast.error(translate("stock is limited"));
+              //   return false;
+              // }
+              // // @ts-ignore
+              // else {
+              increaseQuantity(inputValue);
+            }}
+          >
+            <PlusIcon className="" />
+          </div>
+        )}
 
         {inputValue > 1 ? (
           <>

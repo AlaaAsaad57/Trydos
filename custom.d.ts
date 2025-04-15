@@ -1,8 +1,12 @@
+import { CustomerInfoApi } from "models/Api";
+import { OrderItem } from "types/orders";
+
 declare global {
   interface StateInterface {
     homepage: {
       language: string;
       country: string;
+      OpenCamera: boolean;
       countries: Array<{
         id: number;
         parent_id: number;
@@ -170,19 +174,15 @@ declare global {
       };
     };
     auth: {
+      userProfile: CustomerInfoApi["customer_info"];
+      totalOrders: number;
+      isActiveAddress: boolean;
       user: {
         id: number;
         already_exists?: boolean;
         idToken: string;
         name: string;
-        avatar: {
-          src: string;
-          height: number;
-          width: number;
-          blurDataURL: string;
-          blurWidth: number;
-          blurHeight: number;
-        };
+        image: string;
       };
       firebaseSettings: any;
       Tempuser: {
@@ -190,14 +190,7 @@ declare global {
         idToken: string;
         already_exists?: boolean;
         name: string;
-        avatar: {
-          src: string;
-          height: number;
-          width: number;
-          blurDataURL: string;
-          blurWidth: number;
-          blurHeight: number;
-        };
+        image: string;
       };
       failedLogin: boolean;
       attempts: number;
@@ -684,6 +677,7 @@ declare global {
             original_height: string;
           };
         }>;
+        colors: Array<string>;
       };
       enable: boolean;
       searchFilters: {
@@ -794,7 +788,7 @@ declare global {
         flash_deal_max_allowed_quantity: any;
         description: any;
         model: any;
-        in_stock: boolean;
+        is_active: boolean;
         variation: Array<{
           type: string;
           price: number;
@@ -816,7 +810,7 @@ declare global {
         offer_price: number;
         tax: number;
         unit_price: number;
-        current_stock: number;
+        available_quantity: number;
         Left_stock: number;
         seller_id: any;
         seller: {
@@ -848,6 +842,7 @@ declare global {
       sharesCount: number;
     };
     cart: {
+      selectedOrder: OrderItem;
       orderLoading: boolean;
       payIframeURL: "string";
       total_discount: number;
@@ -858,33 +853,11 @@ declare global {
       wallet: {
         limit: number;
         offset: number;
-        total_wallet_balance: number;
+        wallet_balance: number;
+        currency_symbol: string;
+        currency_code: string;
         total_wallet_transaction: number;
-        wallet_transaction_list: Array<{
-          id: number;
-          user_id: number;
-          order_id: any;
-          transaction_id: number;
-          credit: number;
-          debit: number;
-          admin_bonus: number;
-          balance: number;
-          transaction_type: string;
-          reference: string;
-          payment_method_customer: any;
-          returned_to_credit_cart: number;
-          created_at: string;
-          updated_at: string;
-          deleted_at: any;
-          return_request_id: any;
-          destination_id: any;
-          converted_wallet_transaction_id: any;
-          status_payment: string;
-          credit_formatted: string;
-          debit_formatted: string;
-          balance_formatted: string;
-          destination_name: string;
-        }>;
+        wallet_transaction_list: any[];
       };
       orderData: {
         data: any;
@@ -996,7 +969,7 @@ declare global {
         flash_deal_max_allowed_quantity: any;
         description: any;
         model: any;
-        in_stock: boolean;
+        is_active: boolean;
         variation: Array<{
           variant_notify_for_user: boolean;
           type: string;
@@ -1019,7 +992,7 @@ declare global {
         offer_price: number;
         tax: number;
         unit_price: number;
-        current_stock: number;
+        available_quantity: number;
         Left_stock: number;
         seller_id: any;
         seller: {

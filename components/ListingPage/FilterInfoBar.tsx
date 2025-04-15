@@ -160,6 +160,7 @@ function FilterInfoBar({
       {filtersVariable?.categories.length > 0 && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
+
           {filtersVariable?.categories.map(
             (category) =>
               (category.name ||
@@ -392,7 +393,15 @@ function FilterInfoBar({
             <>
               <div className="category-title filter-bar-main-title">
                 {currency_symbol?.symbol}{" "}
-                {`${filtersVariable?.prices?.min} / ${filtersVariable?.prices?.max} `}
+                {RoundPrice({
+                  num: filtersVariable?.prices?.min,
+                  rate: currency?.exchange_rate,
+                })}{" "}
+                /
+                {RoundPrice({
+                  num: filtersVariable?.prices?.max,
+                  rate: currency?.exchange_rate,
+                })}{" "}
               </div>
             </>
           }
@@ -420,7 +429,7 @@ function FilterInfoBar({
           <span>
             <Search className="scale-75" />
           </span>
-          <div className="category-title filter-bar-main-title uppercase">
+          <div className="category-title filter-bar-main-title  text-[#5d5d5d]">
             {filtersVariable?.searchText || searchValue}
           </div>
         </>

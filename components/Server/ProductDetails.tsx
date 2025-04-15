@@ -4,11 +4,7 @@ import dynamic from "next/dynamic";
 import BackBar from "components/products/BackBar";
 import ProductDetailsSlider from "components/products/ProductDetailsSlider";
 import ProductFooterSection from "components/products/ProductFooterSection";
-const ProuctDetailsBody = dynamic(
-  () => import("components/products/ProuctDetailsBody"),
-  { ssr: false }
-);
-
+import ProuctDetailsBody from "components/products/ProuctDetailsBody";
 import React from "react";
 import { getProductDetails } from "store/homepage/cachedActions";
 import { fetchWithRetry } from "utils/functions";
@@ -41,7 +37,7 @@ async function ProductDetailsServer({ productId, lang }) {
     <div className="product-details-container w-full">
       <BackBar link={true} close={null} data={data} />
       <ProductDetailsSlider product={product} currency={currency} />
-      <ProuctDetailsBody product={product} />
+      <ProuctDetailsBody product={product} lang={lang} />
       <ProductFooterSection product={product} currency={currency} />
     </div>
   );

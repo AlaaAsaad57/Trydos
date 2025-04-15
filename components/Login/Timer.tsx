@@ -1,38 +1,30 @@
 import { useEffect } from "react";
-import { useSelector } from "react-redux";
-import { useTimer } from "react-timer-and-stopwatch";
+
+import { useTimer as TimerUtil } from "react-timer-hook";
+
 interface TimerProps {
   onFinish: Function;
   onResume: Function;
   minutes?: number;
 }
 function Timer({ onFinish, minutes }: TimerProps) {
-  const timer = useTimer({
-    create: {
-      timerWithDuration: {
-        time: minutes
-          ? {
-              minutes: minutes,
-              seconds: 0,
-            }
-          : {
-              // Set a duration of 1 minute and 30 seconds
-              minutes: 1,
-              seconds: 59,
-            },
-      },
+  const data = TimerUtil({
+    expiryTimestamp: new Date(Date.now() + (minutes || 1) * 60 * 1000),
+    autoStart: true,
+    onExpire() {
+      onFinish();
     },
   });
   useEffect(() => {
-    if (timer.timerIsFinished) {
-      onFinish();
-    }
-  }, [timer]);
+    data.start();
+  }, []);
+  // Add leading zero for single digits
+  const formattedMinutes = String(data.minutes).padStart(2, "0");
+  const formattedSeconds = String(data.seconds).padStart(2, "0");
+
   return (
     <>
-      {timer.timerDisplayStrings.minutes +
-        ":" +
-        timer.timerDisplayStrings.seconds}
+      {formattedMinutes}:{formattedSeconds}
     </>
   );
 }

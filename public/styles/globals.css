@@ -323,54 +323,6 @@ span[aria-live="polite"] {
   display: flex;
   width: auto;
 }
-
-.selected-language {
-  background-color: #cecdcd;
-}
-
-.translation-icon,
-.translations-container-inner {
-  display: flex;
-  width: 60px;
-  height: 60px;
-  position: relative;
-}
-
-.translation-icon {
-  position: absolute;
-  z-index: 10;
-  top: 0;
-  align-items: center;
-  justify-content: center;
-  left: 0;
-  background-color: #f5f5f5;
-  border-radius: 50%;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.258);
-}
-
-.en-icon {
-  z-index: 8;
-}
-
-.ar-icon {
-  z-index: 7;
-}
-
-.tr-icon {
-  z-index: 6;
-}
-
-.translations-container {
-  display: flex;
-  width: 60px;
-  height: 50px;
-  align-items: flex-end;
-  position: fixed;
-  z-index: 199;
-  right: 20px;
-  bottom: 30px;
-}
-
 .react-loading-skeleton {
   --base-color: #ebebeb;
   --highlight-color: #f5f5f5;
@@ -470,6 +422,7 @@ body {
   background-color: #fafafa;
   width: 100%;
   min-width: 100%;
+  flex-direction: column;
   display: flex;
   min-height: 100%;
   justify-content: space-around;
@@ -1066,6 +1019,8 @@ svg {
 .offer-avatar {
   cursor: pointer;
   transition: 0.3s;
+  background-color: white;
+  bottom: 0px;
   position: relative;
   display: flex;
   transform: translateX(-5px);
@@ -1130,7 +1085,8 @@ svg {
   display: flex;
   z-index: 9999;
   align-items: flex-end;
-  position: absolute;
+  max-height: 40px;
+
   left: 0;
   right: 0;
   margin-left: auto;
@@ -1150,11 +1106,36 @@ input::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
-
-#nprogress .bar {
+#nprogress,
+.nprogress {
+  opacity: 1 !important;
+}
+#nprogress .bar,
+.nprogress .bar {
   z-index: 999999999999 !important;
+
+  background: #f53d3d !important;
+  position: fixed !important;
+
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 4px !important;
 }
 
+#nprogress .peg,
+.nprogress .peg {
+  display: block;
+  position: absolute;
+  right: 0px;
+  width: 100px;
+  height: 100%;
+  box-shadow: 0 0 10px #f53d3d, 0 0 5px #f53d3d;
+  opacity: 1;
+  -webkit-transform: rotate(3deg) translate(0px, -4px);
+  -ms-transform: rotate(3deg) translate(0px, -4px);
+  transform: rotate(3deg) translate(0px, -4px);
+}
 .home-navbar.animate-in {
   animation-name: animate-in;
   animation-duration: 0.5s;

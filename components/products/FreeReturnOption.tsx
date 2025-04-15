@@ -1,9 +1,8 @@
 import FreeReturnIcon from "public/svg/product/FreeReturnIcon.svg";
 import ReturnIcon from "public/svg/product/ReturnIcon.svg";
-import { useParams } from "next/navigation";
+
 import { translateFunction } from "utils/functions";
-function FreeReturnOption() {
-  let { lang } = useParams();
+function FreeReturnOption({ lang }) {
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang?) => {

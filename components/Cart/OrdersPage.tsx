@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import {
-  GetAppLanguage,
   getCart,
   RoundPrice,
   Sendevent,
@@ -24,6 +23,7 @@ import PlaceOrderButtons from "./PlaceOrderButtons";
 
 import { toast } from "react-toastify";
 import Spinner from "components/global/Spinner";
+import LocalizationServiceClass from "services/localization";
 
 const DeleteIcon = () => {
   return (
@@ -106,7 +106,13 @@ const DeleteIcon = () => {
     </svg>
   );
 };
-function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
+function OrdersPage({
+  setStep,
+  close,
+}: {
+  setStep: (e: number) => void;
+  close: () => void;
+}) {
   let { lang } = useParams();
   const addressDetails = useSelector(
     (state: StateInterface) => state.cart.addressDetails
@@ -251,6 +257,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
             <AddressListContainer
               Delete={(e) => {
                 setOpenSelect(false);
+                openAddressList(false);
                 setDeleteModal(e);
               }}
               slideNext={() => {
@@ -274,7 +281,10 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                   setOrderStep(0);
                 }}
               />
-              <span className="text-[13px] text-[#505050] regular flex-row items-center ">
+              <span
+                className="text-[13px] text-[#505050] regular flex-row items-center "
+                data-cy="TitleInOrderPage"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -435,6 +445,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                         <span
                           onClick={() => {
                             if (addressDetails.id) {
+                              openAddressList(false);
                               setDeleteModal(addressDetails);
                             }
                           }}
@@ -458,6 +469,9 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                       });
                       setStep(0);
                     }}
+                    close={() => {
+                      close();
+                    }}
                     successOrder={() => setOrderSuccess(true)}
                   />
                 </>
@@ -467,6 +481,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                     <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
                       <BackIcon
                         className="cursor-pointer z-50"
+                        data-cy="back-icon-addadresspage" // Added data-cy
                         onClick={() => {
                           Sendevent({
                             event: "button_clicked",
@@ -477,8 +492,11 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                         }}
                       />
                       <span className="text-[13px] text-[#505050] regular flex-row items-center ">
-                        <AddAddressIcon />
-                        <span className="regular ml-[8px]">
+                        <AddAddressIcon data-cy="add-address-icon" />
+                        <span
+                          className="regular ml-[8px]"
+                          data-cy="address-text"
+                        >
                           <>
                             {addressDetails.id
                               ? translate("Edit Shipping Address")
@@ -487,13 +505,17 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                         </span>
                       </span>
                       <span
+                        data-cy="delete-icon-container" // Added data-cy
                         onClick={() => {
                           if (addressDetails.id) {
+                            openAddressList(false);
                             setDeleteModal(addressDetails);
                           }
                         }}
                       >
-                        {addressDetails.id && <DeleteIcon />}
+                        {addressDetails.id && (
+                          <DeleteIcon data-cy="delete-icon" />
+                        )}
                       </span>
                     </div>
                   </div>
@@ -520,7 +542,11 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
 }
 
 export default OrdersPage;
-const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
+export const DeleteModalComponent = ({
+  closeModal,
+  deletedAddress,
+  slidePrev,
+}) => {
   const dispatch = useDispatch();
   const addressLists = useSelector(
     (state: StateInterface) => state.cart.addressLists
@@ -760,7 +786,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
       }, 1300);
     }
   };
-  const wallet = useSelector((state: StateInterface) => state.cart.wallet);
+
   const totalBalance = () => {
     let val = 0;
     orderData.payment.map((s) => {
@@ -822,7 +848,14 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
     if (a.length === 0) {
       setPrev();
     }
-    if (a?.filter((s) => s?.check_availability === false).length === 0) {
+    if (
+      a?.filter(
+        (s) =>
+          s?.check_availability === false ||
+          s.is_country_restricted === true ||
+          s.is_active === false
+      ).length === 0
+    ) {
       setNext();
     } else {
       toast.error("Please Review Your Cart Some Products Not Available");
@@ -850,6 +883,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
           } w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${
             isValid() ? "bg-[#346BFF]" : "bg-[#C4C2C2]"
           } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
+          data-cy="Confirm-shipping-and-payment"
         >
           {orderLoading || loading ? (
             <Spinner />
@@ -858,7 +892,8 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
               <span>{translateFunction("Confirm Shipping & Payment")}</span>
               <span
                 className={`text-[#FEFEFE] text-[14px] medium ${
-                  GetAppLanguage() === "ar" && "dir-rtl"
+                  LocalizationServiceClass.GetAppLanguage() === "ar" &&
+                  "dir-rtl"
                 } `}
                 data-cy="Number-Of-Products-Required"
               >

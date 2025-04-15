@@ -97,7 +97,6 @@ const CartProvider = () => {
   };
   return (
     <>
-      {/* {showMessage && <ShowMessageAuth />} */}
       {cartEnable ? <StepSlider enableCart={(e) => enableCart(e)} /> : <></>}
       {openIframe.isShow && (
         <div
@@ -165,6 +164,9 @@ export const StepSlider = ({ enableCart }) => {
                   setStep={(e) => {
                     setStep(0);
                     ref.current.slidePrev();
+                  }}
+                  close={() => {
+                    enableCart(false);
                   }}
                 />
               </>

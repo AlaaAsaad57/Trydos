@@ -18,6 +18,7 @@ function OrderSuccess() {
       className={`transition-all justify-center  order-sucess items-center flex-col ${
         orderData.success ? "min-h-[300px]" : "h-0 overflow-hidden"
       }`}
+      data-cy="The-Purchas"
     >
       <OrderSuccessIcon />
       <span className="regular text-[14px] text-[#1d1d1d] mt-[11px]">

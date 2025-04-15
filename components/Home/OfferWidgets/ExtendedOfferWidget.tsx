@@ -108,7 +108,6 @@ function ExtendedOfferWidget({
             </div>
             <OfferPhotosSlider
               myKey={4}
-              boutique={null}
               extended={true}
               priority={false}
               OfferPhotos={offer}

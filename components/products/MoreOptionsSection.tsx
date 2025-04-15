@@ -2,9 +2,12 @@ import { useParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import home from "services/home";
-import { GetAppLanguage, translateFunction } from "utils/functions";
+import { addToCompare, translateFunction } from "utils/functions";
 import CheckIcon from "public/svg/CheckIcon.svg";
 import Spinner from "components/global/Spinner";
+import { toast } from "react-toastify";
+import { useRouter } from "next-nprogress-bar";
+import LocalizationServiceClass from "services/localization";
 function MoreOptionsSection() {
   let { lang } = useParams();
   // @ts-ignore
@@ -50,8 +53,16 @@ function MoreOptionsSection() {
     }
   }, []);
   const dispatch = useDispatch();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
-  let language = GetAppLanguage();
+  const [addedToCompare, setAddedToCompare] = useState(
+    localStorage.getItem("f_p") === SelectedProduct.slug ||
+      localStorage.getItem("s_p") === SelectedProduct.slug
+  );
+  let language = LocalizationServiceClass.GetAppLanguage();
+  const AddedToCompare = () => {
+    return addedToCompare;
+  };
   const enableNotification = async (payload) => {
     if (!loading) {
       setLoading(true);
@@ -70,6 +81,14 @@ function MoreOptionsSection() {
       return s.topic === topic;
     });
   };
+  const getData = async () => {
+    setLoading(true);
+    await home.GetFireBaseSettings();
+    setLoading(false);
+  };
+  useEffect(() => {
+    getData();
+  }, []);
   return (
     <div className="extended-section" data-cy="ExtendThreePointsSection">
       <div className="extended-bar-top share-bar-top">
@@ -216,8 +235,9 @@ function MoreOptionsSection() {
             </div>
           </div>
         </div>
-        <div className="more-options-button">
+        <div className="more-options-button" data-cy="add-checkList">
           <svg
+            data-cy="add-checkList-svg"
             xmlns="http://www.w3.org/2000/svg"
             xmlnsXlink="http://www.w3.org/1999/xlink"
             width="25"
@@ -355,10 +375,37 @@ function MoreOptionsSection() {
             </g>
           </svg>
 
-          <span>{translate("Add To My Checklist", language)}</span>
+          <span data-cy="add-checkList-text">
+            {translate("Add To My Checklist", language)}
+          </span>
         </div>
-        <div className="more-options-button">
+        <div
+          className={`more-options-button ${
+            AddedToCompare() ? "bg-green-300" : ""
+          }`}
+          data-cy="add-compare"
+          onClick={() => {
+            if (AddedToCompare()) {
+              toast.info(translate("Already Added To Compare!", language));
+              return;
+            }
+            setAddedToCompare(true);
+            addToCompare(SelectedProduct.slug);
+            toast.success(
+              translate(
+                "Added To Compare! Click To Go To Compare Page",
+                language
+              ),
+              {
+                onClick: () => {
+                  router.push(`/compare`);
+                },
+              }
+            );
+          }}
+        >
           <svg
+            data-cy="add-compare-svg"
             xmlns="http://www.w3.org/2000/svg"
             xmlnsXlink="http://www.w3.org/1999/xlink"
             width="25"
@@ -438,7 +485,13 @@ function MoreOptionsSection() {
               </g>
             </g>
           </svg>
-          <span>{translate("Add To Compare", language)}</span>
+          <span data-cy="add-compare-text">
+            {AddedToCompare() ? (
+              <>{translate("Added To Compare", language)}</>
+            ) : (
+              translate("Add To Compare", language)
+            )}
+          </span>
         </div>
       </div>
     </div>

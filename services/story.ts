@@ -7,10 +7,11 @@ import {
   LOG_IN_STORIES,
   UPLOAD_STORY_URL,
 } from "utils/endpointConfig";
-import { getUserStories } from "utils/functions";
+
 import Cookies from "js-cookie";
 import axios from "axios";
 import { GetStoriesApi, LoginStoreisApi, UploadStoryApi } from "models/Api";
+import profilePicture from "public/images/profileNo.png";
 
 class StoryService {
   /* get stories */
@@ -62,7 +63,7 @@ class StoryService {
   }
   async WatchStory(pid: number | string, id: number | string) {
     try {
-      if (getUserStories()?.id) {
+      if (this.getUserStories()?.id) {
         store.dispatch({ type: "WATCH-STORY", payload: { pid: pid, id: id } });
         const response = await fetch(
           process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
@@ -132,6 +133,64 @@ class StoryService {
     } catch (e) {
       callback(null);
       endUpload();
+    }
+  }
+  getUserStories() {
+    return (
+      localStorage.getItem("USER-STORIES") &&
+      JSON.parse(localStorage.getItem("USER-STORIES"))
+    );
+  }
+  configureStory(story) {
+    let returnedData = [];
+    story?.stories?.map((storyItem) => {
+      if (storyItem.full_video_path) {
+        let vid = storyItem.full_video_path.replace(
+          "/upload",
+          "/upload/w_700/f_webm/q_auto"
+        );
+        returnedData.push({
+          url: vid,
+          FixedUrl: vid,
+          is_seen: storyItem.is_seen,
+          id: storyItem.id,
+          header: {
+            heading: story.name ?? story.mobile_phone ?? "Unknown",
+            subheading: "Posted 30m ago",
+            profileImage: story.photo_path ?? profilePicture.src,
+          },
+          duration: storyItem.duration,
+          preloadResource: true,
+          type: "video",
+        });
+      } else if (storyItem.photo_path) {
+        let img = storyItem.photo_path.replace(
+          "/upload",
+          "/upload/w_800/f_avif/q_auto"
+        );
+        returnedData.push({
+          url: img,
+          FixedUrl: img,
+          is_seen: storyItem.is_seen,
+          duration: 5000,
+          id: storyItem.id,
+          header: {
+            heading: story.name ?? story.mobile_phone ?? "Unknown",
+            subheading: "Posted 30m ago",
+            profileImage: story.photo_path ?? profilePicture.src,
+          },
+          preloadResource: true,
+          type: "image",
+        });
+      }
+    });
+    return { ...story, stories: returnedData };
+  }
+  getThumb(url, isVideo) {
+    if (url) {
+      if (isVideo) {
+        return url.replace("/upload", "/upload/h_194/f_avif/q_100");
+      } else return url.replace("/upload", "/upload/h_194/f_avif/q_100");
     }
   }
 }

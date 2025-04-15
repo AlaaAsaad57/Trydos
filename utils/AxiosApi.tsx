@@ -5,8 +5,9 @@ import Cookies from "js-cookie";
 import { setupCache } from "axios-cache-interceptor";
 import home from "services/home";
 
-import { ExpiredUser, getUser, LogError, WaitForCondition } from "./functions";
+import { LogError, WaitForCondition } from "./functions";
 import { toast } from "react-toastify";
+import auth from "services/auth";
 export const errorPNG = pngErr.src;
 const getHeader = (token?) => {
   let [countryUrl, languageUrl] = window.location.pathname
@@ -23,6 +24,7 @@ const getHeader = (token?) => {
         Cookies.get("MARKET-TOKEN") ??
         Cookies.get("DEVICE-TOKEN")
       }`,
+      accept: "application/json",
     },
   };
 };
@@ -47,6 +49,13 @@ export const AxiosGet = async ({
       // if (res.data.message !== "Data Got!") {
       //   toast.success(res.data.message);
       // }
+      if (
+        url.includes("user-notifications/get") ||
+        url.includes("/customer/order/list") ||
+        url.includes("/coupon/apply")
+      ) {
+        return res.data;
+      }
       if (res.data.popular_search_terms) {
         return res.data.popular_search_terms;
       }
@@ -64,9 +73,9 @@ export const AxiosGet = async ({
         );
         return;
       }
-      if (error.status === 401 || error.status === 403) {
-        if (getUser()) {
-          await ExpiredUser();
+      if (error.status === 401) {
+        if (auth.getUser()) {
+          await auth.ExpiredUser();
         } else {
           await home.registerForExpire();
         }
@@ -159,9 +168,9 @@ export const AxiosPost = async ({
         return;
       }
 
-      if (error.status === 401 || error.status === 403) {
-        if (getUser()) {
-          await ExpiredUser();
+      if (error.status === 401) {
+        if (auth.getUser()) {
+          await auth.ExpiredUser();
         } else {
           await home.registerForExpire();
         }
@@ -198,6 +207,7 @@ export const AxiosCacheApi = async ({
       Authorization: `Bearer ${
         Cookies.get("MARKET-TOKEN") ?? Cookies.get("DEVICE-TOKEN")
       }`,
+      accept: "application/json",
     },
     cache: {
       ttl: parseInt(process.env.NEXT_PUBLIC_REVALIDATE) * 10000,

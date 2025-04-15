@@ -209,6 +209,7 @@ input[type="number"] {
 .pin-inputs-container {
   display: flex;
   width: 100%;
+  min-width: 330px;
   height: 60px;
   margin-top: 20px;
   position: relative;
@@ -288,6 +289,8 @@ input[type="number"] {
   align-items: center;
   justify-content: center;
   padding-inline: 30px;
+  color: #5d5c5d;
+
   font-family: var(--Quicksand-Light);
   font-size: 14px;
   text-align: center;

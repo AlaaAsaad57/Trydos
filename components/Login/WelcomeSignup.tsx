@@ -1,8 +1,10 @@
 import { useParams } from "next/navigation";
+import { useRouter } from "next-nprogress-bar";
 import React, { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
 import { useSelector } from "react-redux";
 import { translateFunction } from "utils/functions";
+import NextLink from "components/global/NextLink";
 interface Props {
   stepIndicator: number;
   Name: string | null;
@@ -10,6 +12,7 @@ interface Props {
   close: Function;
 }
 function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
+  const router = useRouter();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -56,7 +59,11 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
         <div className="welcoming-label">{translate("Hello,", language)}</div>
         <div className="welcoming-user">{Name || "Alaa Asaad"}</div>
       </div>
-      <div className="welcoming-enjoy" style={{ marginBottom: "10vh" }}>
+      <div
+        className="welcoming-enjoy"
+        style={{ marginBottom: "10vh" }}
+        data-cy="Wellcome-Enjoy"
+      >
         {translate("Enjoy With Our Services", language)}
       </div>
       <div className="signup-detail">
@@ -66,9 +73,13 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
         )}
       </div>
       <div className="login-button-group">
-        <div
+        <NextLink
+          href={`/${lang}/setting?tab=Profile`}
           className="login-button"
-          onClick={() => close()}
+          data-cy="Complate-Close"
+          onClick={() => {
+            close();
+          }}
           style={{
             position: "relative",
             backgroundColor: "#F4FFF4",
@@ -79,7 +90,7 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
           }}
         >
           {translate("Complete My Profile", language)}
-        </div>
+        </NextLink>
       </div>
       <div
         className="blue-text skip-text"

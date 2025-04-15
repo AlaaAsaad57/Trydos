@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ProductItem from "./Results/ProductItem";
@@ -298,7 +299,7 @@ function SearchResults() {
         )}
         {totalProducts === 0 && !loading && (
           <div className="flex p-3 justify-center items-center light text-[#5d5d5d] text-[14px]">
-            No Results Found
+            {translateFunction("No Results Found")}
           </div>
         )}
         {showFilterBar() && (
@@ -319,7 +320,7 @@ function SearchResults() {
                 data-cy="searchTotalProduct"
                 onClick={() => apply()}
               >
-                Search{" "}
+                {translateFunction("Search")}{" "}
                 {loading ? (
                   <span className="ml-2">
                     <Spinner className="" />
@@ -331,7 +332,7 @@ function SearchResults() {
                         className="text-[#fafafa] regular ml-2"
                         data-cy="countAfterFilter"
                       >
-                        (Total Products: {totalProducts})
+                        ({translateFunction("Total Products:")} {totalProducts})
                       </span>
                     )}
                   </>
@@ -344,7 +345,7 @@ function SearchResults() {
                 data-cy="resetIcon"
                 onClick={() => reset()}
               >
-                Reset
+                {translateFunction("Reset")}
               </div>
             )}
           </div>

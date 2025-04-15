@@ -63,14 +63,12 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
     }
   };
   const FinaliseLogin = async () => {
-    let idToken = localStorage.getItem("ID-TOKEN");
-
-    await AuthService.VerifyGuest(idToken, async () => {});
     await AuthService.ConfirmSignIn();
   };
   const [failedLogin, setFailed] = useState(false);
-
+  const [loadingPin, setLoadingPin] = useState(false);
   const loginFunc = async (e) => {
+    setLoadingPin(true);
     await VerifyOtpHook({
       code: e,
       EditPhoneFunc: () => {},
@@ -99,6 +97,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
 
           setStepIndicator(6);
         }
+        setLoadingPin(false);
       },
       successCallback: async (exists, name) => {
         Sendevent({
@@ -108,7 +107,9 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
         });
 
         await FinaliseLogin();
+
         setTimeout(() => {
+          setLoadingPin(false);
           closeWindow();
           goToOrders();
         }, 2000);
@@ -125,33 +126,42 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
       setStepIndicator(4);
     }
   }, []);
+  const [showMobile, setShowMobile] = useState(false);
   return (
     <div>
-      <PhoneInput
-        isForCart={true}
-        inputValue={inputValue}
-        wrongNumber={wrongNumber}
-        setWrongNumber={(e) => {
-          //   setWrongNumber(e);
-          dispatch({ type: "WRONG-NUMBER", payload: e });
-        }}
-        setInputValue={(e) => setInputValue(e)}
-        stepIndicator={stepIndicator}
-        setStepIndicator={(e) => setStepIndicator(e)}
-        operation={"login"}
-      />
+      {(!hasMobile || showMobile) && (
+        <PhoneInput
+          isForCart={true}
+          inputValue={inputValue}
+          wrongNumber={wrongNumber}
+          setWrongNumber={(e) => {
+            //   setWrongNumber(e);
+            dispatch({ type: "WRONG-NUMBER", payload: e });
+          }}
+          setInputValue={(e) => setInputValue(e)}
+          stepIndicator={stepIndicator}
+          setStepIndicator={(e) => setStepIndicator(e)}
+          operation={"login"}
+        />
+      )}
       <SendMethod
         stepIndicator={stepIndicator}
         setWrongNumber={(e) => {
           dispatch({ type: "WRONG-NUMBER", payload: e });
         }}
         setStepIndicator={(e: number) => setStepIndicator(e)}
+        setShowMobile={setShowMobile}
         setMessageMethod={(e: string) => setMessageMethod(e)}
         inputValue={inputValue}
       />
 
       <LogInPins
+        loadingPin={loadingPin}
         expired={expired}
+        init={() => {
+          setDisabled(false);
+          setExpired(false);
+        }}
         stepIndicator={stepIndicator}
         setDisabled={(e) => {
           setDisabled(e);

@@ -1,8 +1,7 @@
 import FreeShippingIcon from "public/svg/product/FreeShipping.svg";
-import { useParams } from "next/navigation";
+
 import { translateFunction } from "utils/functions";
-function FreeShippingOption() {
-  let { lang } = useParams();
+function FreeShippingOption({ lang }) {
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang?) => {

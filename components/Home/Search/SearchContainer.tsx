@@ -1,12 +1,13 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
 import SearchHistory from "./SearchHistory";
 import SearchTrending from "./SearchTrending";
 import { useDispatch, useSelector } from "react-redux";
 import SearchResults from "./SearchResults";
-import { getSearchOptions } from "utils/functions";
 import { LogData } from "store/homepage/actions";
 import search from "services/search";
+import { Suspense } from "react";
 
 function SearchContainer({ active }) {
   const [searchHistoryItems, setSearchHistory] = useState([]);
@@ -31,11 +32,12 @@ function SearchContainer({ active }) {
     }
   }, [searchValue]);
   const getSearchData = async () => {
-    let [{ categories, brands, boutiques }, res] = await getSearchOptions();
+    let [{ categories, brands, boutiques, colors }, res] =
+      await search.getSearchOptions();
     LogData(res);
     dispatch({
       type: "SEARCH-RESULTS",
-      payload: { categories, brands, boutiques },
+      payload: { categories, brands, boutiques, colors },
     });
     await search.getTrendingSearch();
   };
@@ -55,19 +57,23 @@ function SearchContainer({ active }) {
     >
       {searchValue.length === 0 && (
         <>
-          <SearchHistory
-            options={searchHistoryItems}
-            setOptions={(e) => {
-              dispatch({ type: "SEARCH-WORD", payload: e });
-            }}
-            deleteOption={(e) => {
-              setSearchHistory(searchHistoryItems.filter((s) => s !== e));
-            }}
-          />
+          {searchHistoryItems.length > 0 && (
+            <SearchHistory
+              options={searchHistoryItems}
+              setOptions={(e) => {
+                dispatch({ type: "SEARCH-WORD", payload: e });
+              }}
+              deleteOption={(e) => {
+                setSearchHistory(searchHistoryItems.filter((s) => s !== e));
+              }}
+            />
+          )}
           <SearchTrending />
         </>
       )}
-      {<SearchResults />}
+      <Suspense fallback={<div>Loading...</div>}>
+        <SearchResults />
+      </Suspense>
     </Animated.div>
   );
 }

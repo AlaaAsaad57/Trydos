@@ -56,14 +56,13 @@ function Navbar({ init, categories, response }: NavbarProps) {
           process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE
       )
     );
-    dispatch(
-      changeAppCountry(
-        init.split("-")[0] ||
-          countryCookies ||
-          country ||
-          process.env.NEXT_PUBLIC_DEFAULT_COUNTRY
-      )
+    let action = await changeAppCountry(
+      init.split("-")[0] ||
+        countryCookies ||
+        country ||
+        process.env.NEXT_PUBLIC_DEFAULT_COUNTRY
     );
+    dispatch(action);
   };
   useEffect(() => {
     LogData(response);

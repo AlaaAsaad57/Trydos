@@ -1,5 +1,4 @@
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
-import { dispatchRouteChangeEvent } from "utils/events";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect } from "react";

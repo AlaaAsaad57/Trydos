@@ -1,4 +1,4 @@
-import React, { useReducer } from "react";
+import React, { useEffect, useReducer } from "react";
 import ImageSlider from "./ImageSlider";
 import { stopProgress } from "next-nprogress-bar";
 
@@ -7,10 +7,15 @@ import NextLink from "components/global/NextLink";
 import { ProductInterface } from "models/product";
 import { useDispatch, useSelector } from "react-redux";
 import { Sendevent } from "utils/functions";
+
 import PriceLabel from "./PriceLabel";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { CurrencyApi } from "models/Api";
+import CoverEffectSlider from "./CoverEffectSlider";
+import TopSlider from "./TopSlider";
+import ColorSlider from "./ColorSlider";
+import { PrefetchKind } from "node_modules/next/dist/client/components/router-reducer/router-reducer-types";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
@@ -75,36 +80,55 @@ function Product({
 
   const [productState, dispatch] = useReducer(ProductReducer, {
     isActiveTopSlide: false,
-    activeColor: product.sync_color_images
-      ? {
-          ...product.sync_color_images.filter(
-            (color) => color.images.length > 0
-          )[
-            Math.round(
-              product.sync_color_images.filter(
-                (color) => color.images.length > 0
-              ).length / 2
-            ) - 1
-          ],
-          index: 0,
-        }
-      : { images: product.images },
+    activeColor:
+      product.sync_color_images &&
+      product.sync_color_images[0]?.images?.length > 0
+        ? {
+            ...product.sync_color_images?.filter(
+              (color) => color.images.length > 0
+            )[
+              Math.round(
+                product.sync_color_images?.filter(
+                  (color) => color.images.length > 0
+                ).length / 2
+              ) - 1
+            ],
+            index: 0,
+          }
+        : {
+            images:
+              product.images?.length > 0
+                ? product.images
+                : [product.thumbnail.file_path],
+          },
     // @ts-ignore
-    activeImage: product?.sync_color_images
-      ? // @ts-ignore
-        product?.sync_color_images[0]?.images[0]?.file_path
-      : // @ts-ignore
-        product.images[0]?.file_path,
+    activeImage:
+      product?.sync_color_images &&
+      product?.sync_color_images[0]?.images?.length > 0
+        ? // @ts-ignore
+          product?.sync_color_images[0]?.images[0]?.file_path
+        : product.images?.length > 0
+        ? // @ts-ignore
+          product.images[0]?.file_path
+        : product.thumbnail.file_path,
     isColorSelected: false,
     activeImageIndex: 0,
     renderVar: false,
   });
-  const decimal_point_settings = useSelector(
-    (state: StateInterface) => state.homepage.settings
-  );
-  // const currency = useSelector(
-  //   (state: StateInterface) => state.homepage.currency
-  // ) || { exchange_rate: 1 };
+
+  const isLowEndDevice = () => {
+    if (typeof navigator !== "undefined") {
+      // @ts-ignore
+      const ram = navigator.deviceMemory || 4; // Default to 4GB if unknown
+      const cores = navigator.hardwareConcurrency || 4; // Default to 4 cores
+
+      if (ram <= 3 || cores <= 3) {
+        return true;
+      }
+      return false;
+    }
+  };
+  const router = useRouter();
 
   return (
     <div className="max-h-[362px]" data-cy="countProduct">
@@ -131,11 +155,6 @@ function Product({
               event: "button_clicked",
               value: "choose_product_button",
             });
-            setTimeout(() => {
-              if (document.querySelector("#nprogress"))
-                // @ts-ignore
-                document.querySelector("#nprogress").style.opacity = "1";
-            }, 1000);
           }
         }}
         href={`/${lang}/products/${product.slug}`}
@@ -170,7 +189,7 @@ function Product({
           }
         />
         <div className="offer-blured" /> */}
-        {/* {productState?.isActiveTopSlide && (
+        {productState?.isActiveTopSlide && (
           <TopSlider
             product_name={product.name}
             active={productState?.isActiveTopSlide}
@@ -180,7 +199,7 @@ function Product({
             }
             images={productState?.activeColor?.images}
           />
-        )} */}
+        )}
         <div
           className="product-photos max-h-[290px] overflow-visible w-100 justify-start align-center flex-col"
           style={{
@@ -194,7 +213,8 @@ function Product({
               productState?.isColorSelected && "selected-color"
             }`}
           >
-            {/* {product.sync_color_images &&
+            {!isLowEndDevice() &&
+              product.sync_color_images &&
               productState?.isColorSelected &&
               !productState?.isActiveTopSlide && (
                 <ColorSlider
@@ -205,7 +225,7 @@ function Product({
                     !productState?.isActiveTopSlide
                   }
                   activeColor={productState?.activeColor}
-                  colors={product.sync_color_images.filter(
+                  colors={product.sync_color_images?.filter(
                     (color) => color.images.length > 0
                   )}
                   getIndex={getIndex(product, productState)}
@@ -213,7 +233,7 @@ function Product({
                     dispatch({ type: "setActiveImage", payload: e })
                   }
                 />
-              )} */}
+              )}
 
             <ImageSlider
               priority={priority}
@@ -235,7 +255,7 @@ function Product({
               }
             />
 
-            {/* {product.sync_color_images && (
+            {!isLowEndDevice() && product.sync_color_images && (
               <>
                 <CoverEffectSlider
                   priority={priority}
@@ -249,12 +269,12 @@ function Product({
                   setActiveColor={(e) =>
                     dispatch({ type: "setActiveColor", payload: e })
                   }
-                  images={product.sync_color_images.filter(
+                  images={product.sync_color_images?.filter(
                     (color) => color.images.length > 0
                   )}
                 />
               </>
-            )} */}
+            )}
           </div>
         </div>
 
@@ -328,11 +348,6 @@ function Product({
               stopProgress(true);
               addToCart();
               setTimeout(() => {
-                if (document.querySelector("#nprogress"))
-                  document.querySelector(
-                    "#nprogress"
-                    // @ts-ignore
-                  ).style.opacity = "0";
                 dispatchRouteChangeEvent("completed");
                 stopProgress(true);
               }, 2000);

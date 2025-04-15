@@ -12,7 +12,7 @@ import AgoraRTC, {
 } from "agora-rtc-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useStopwatch } from "react-timer-hook";
-import { RefuseCall } from "store/chat/actions";
+import { RefuseCall } from "store/chat/callActions";
 import { getTwoLetters } from "../chatsFunctions";
 import axios from "axios";
 

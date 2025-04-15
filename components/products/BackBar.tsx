@@ -1,11 +1,12 @@
 "use client";
 import React, { useEffect } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { useSelector } from "react-redux";
 import { LogData } from "store/homepage/actions";
 import NextLink from "components/global/NextLink";
+import { PrefetchKind } from "node_modules/next/dist/client/components/router-reducer/router-reducer-types";
 function BackBar({
   close,
   link,
@@ -24,6 +25,17 @@ function BackBar({
   const activeRoute = useSelector(
     (state: StateInterface) => state.homepage.activeRoute
   );
+  const { lang } = useParams();
+  useEffect(() => {
+    if (activeRoute === "/" || !activeRoute)
+      router.prefetch(`/${lang}`, {
+        kind: PrefetchKind.FULL,
+      });
+    else
+      router.prefetch(`${activeRoute}`, {
+        kind: PrefetchKind.FULL,
+      });
+  }, []);
   return (
     <div className="back-bar align-center w-100 flex-row">
       <NextLink

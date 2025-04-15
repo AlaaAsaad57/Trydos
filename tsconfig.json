@@ -1,40 +1,17 @@
 {
   "compilerOptions": {
     "paths": {
-      "*": [
-        "./*"
-      ],
-      "@/*": [
-        "./*"
-      ],
-      "assets/*": [
-        "./public/*"
-      ],
-      "styles/*": [
-        "./public/styles/*"
-      ],
-      "react": [
-        "./node_modules/@types/react"
-      ],
-      "services/*": [
-        "./services/*"
-      ],
-      "components/*": [
-        "./components/*"
-      ]
+      "*": ["./*"],
+      "@/*": ["./*"],
+      "assets/*": ["./public/*"],
+      "styles/*": ["./public/styles/*"],
+      "react": ["./node_modules/@types/react"],
+      "services/*": ["./services/*"],
+      "components/*": ["./components/*"]
     },
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "types": [
-      "node",
-      "vite/client",
-      "vite-plugin-svgr/client",
-      "vitest"
-    ],
+    "types": ["node"],
     "skipLibCheck": true,
     "strict": false,
     "forceConsistentCasingInFileNames": true,
@@ -51,15 +28,9 @@
         "name": "next"
       }
     ],
-    "target": "ES2017"
+    "target": "ES2017",
+    "strictNullChecks": false
   },
-  "include": [
-    "next-env.d.ts",
-    ".next/types/**/*.ts",
-    "**/*.ts",
-    "**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
 }

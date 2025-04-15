@@ -407,9 +407,11 @@ const PaymentOrder = ({ success }) => {
           borderRadius: "15px",
         }}
         className={`flex-col payment-valid-border pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full  `}
+        data-cy="Payment-Container-Cart-Page"
       >
         <div className="flex-row ">
           <svg
+            data-cy="svg-payment"
             id="_15x15_photo_back"
             data-name="15x15 photo back"
             xmlns="http://www.w3.org/2000/svg"
@@ -479,7 +481,10 @@ const PaymentOrder = ({ success }) => {
             </g>
           </svg>
 
-          <div className="regular text-[#1D1D1D] text-[14px] ml-2">
+          <div
+            className="regular text-[#1D1D1D] text-[14px] ml-2"
+            data-cy="Payment-Method-Statement"
+          >
             {translateFunction("Payment Method")}
           </div>
         </div>
@@ -495,17 +500,27 @@ const PaymentOrder = ({ success }) => {
         )}
         {orderData?.payment?.filter((s) => s.id === 1).length > 0 && (
           <TryDosWalletInput
-            total={orderData?.payment?.filter((s) => s.id === 1)[0].balance}
+            total={
+              orderData?.data?.order_amount ||
+              orderData?.data?.partial_payment_by_wallet ||
+              orderData?.payment?.filter((s) => s.id === 1)[0].balance
+            }
           />
         )}
         {orderData?.payment?.filter((s) => s.id === 2).length > 0 && (
           <CreditInput
-            total={orderData?.payment?.filter((s) => s.id === 2)[0].balance}
+            total={
+              orderData?.data?.order_amount ||
+              orderData?.payment?.filter((s) => s.id === 2)[0].balance
+            }
           />
         )}
         {orderData?.payment?.filter((s) => s.id === 3).length > 0 && (
           <CryptoInput
-            total={orderData?.payment?.filter((s) => s.id === 3)[0].balance}
+            total={
+              orderData?.data?.order_amount ||
+              orderData?.payment?.filter((s) => s.id === 3)[0].balance
+            }
           />
         )}
       </div>
@@ -533,6 +548,7 @@ const CODInput = ({ total }) => {
       style={{
         border: "#C4C2C28c 1px soild",
       }}
+      data-cy="cachondelivry-cartpage"
     >
       <div className="flex-row items-center">
         <WalletIcon />

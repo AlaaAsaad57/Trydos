@@ -42,11 +42,11 @@ function PhoneInput({
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
-  useEffect(() => {
-    document
-      .querySelector<HTMLInputElement>(".login-phone-input")
-      ?.focus({ preventScroll: true });
-  }, []);
+  // useEffect(() => {
+  //   document
+  //     .querySelector<HTMLInputElement>(".login-phone-input")
+  //     ?.focus({ preventScroll: true });
+  // }, []);
 
   const [active, setActive] = useState(false);
   const mountAnim = ` 
@@ -141,7 +141,7 @@ function PhoneInput({
     }
   }, [isKeyboardOpen]);
   useEffect(() => {
-    if (inputValue) {
+    if (inputValue && ref.current) {
       // @ts-ignore
       ref.current.value = inputValue;
     }
@@ -406,11 +406,13 @@ function PhoneInput({
           <input
             ref={ref}
             value={inputValue}
+            data-cy="phone-number-input"
             data-testid="phone-number-input"
             id="phoneInput"
             aria-autocomplete="both"
             aria-haspopup="false"
             spellCheck="false"
+            placeholder="XXX XXX XXX XXX"
             autoCapitalize="off"
             autoComplete="off"
             autoCorrect="off"
@@ -440,7 +442,7 @@ function PhoneInput({
             }}
             disabled={false}
             type="number"
-            autoFocus={true}
+            autoFocus={false}
             inputMode="numeric"
             onKeyDown={(e) => {
               if (

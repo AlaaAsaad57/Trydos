@@ -4,8 +4,15 @@ export type ProductInterface = {
   slug: string;
   message: string;
   share_link: string;
-  details: string;
-  thumbnail: string;
+  details:
+    | string
+    | Array<{
+        title: string;
+        value: string;
+      }>;
+  thumbnail: {
+    file_path: string;
+  };
   images: Array<string>;
   categories: Array<{
     id: number;
@@ -36,7 +43,7 @@ export type ProductInterface = {
   flash_deal_max_allowed_quantity: any;
   description: any;
   model: any;
-  in_stock: boolean;
+  is_active: boolean;
   variation: Array<{
     type: string;
     price: number;
@@ -51,7 +58,7 @@ export type ProductInterface = {
   has_tax: boolean;
   tax: string;
   unit_price: string;
-  current_stock: number;
+  available_quantity: number;
   Left_stock: number;
   price: number;
   price_formatted: string;

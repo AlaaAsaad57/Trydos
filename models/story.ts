@@ -1,4 +1,4 @@
-import { Story as StoryInstaType } from "utils/libs/react-insta-stories-master/src/interfaces";
+import { Story as StoryInstaType } from "utils/react-insta-stories-master/src/interfaces";
 export interface Story {
   id: number;
   name: string | null;

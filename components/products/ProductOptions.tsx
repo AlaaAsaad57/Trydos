@@ -9,10 +9,11 @@ import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
 import { useDispatch, useSelector } from "react-redux";
-import { Sendevent, translateFunction, UserID } from "utils/functions";
+import { Sendevent, translateFunction } from "utils/functions";
 import home from "services/home";
 import { AxiosPost } from "utils/AxiosApi";
 import { toast } from "react-toastify";
+import auth from "services/auth";
 
 function ProductOptions({
   activeOption,
@@ -40,7 +41,7 @@ function ProductOptions({
   const SelectedProduct = useSelector(
     (state: StateInterface) => state.cart.SelectedProduct
   );
-  const [shareEnable, setShare] = useState(false);
+
   const [isLiked, setLiked] = useState(false);
   const dispatch = useDispatch();
   const LikeProduct = async (bool) => {
@@ -55,7 +56,7 @@ function ProductOptions({
         await AxiosPost({
           url: process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/store`,
           title: "like For Product",
-          body: { product_id: product.id, user_id: UserID() },
+          body: { product_id: product.id, user_id: auth.UserID() },
         });
         // home.subscribeToTopic({
         //   topic: `product_availability_${SelectedProduct?.id}`,
@@ -82,7 +83,7 @@ function ProductOptions({
         AxiosPost({
           url: process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/delete`,
           title: "unlike For Product",
-          body: { product_id: product.id, user_id: UserID() },
+          body: { product_id: product.id, user_id: auth.UserID() },
         });
         home.UnsubscripeFromTopic({
           topic: `product_availability_${SelectedProduct?.id}`,
@@ -106,6 +107,9 @@ function ProductOptions({
       toast.error(
         translateFunction("Sorry This Product Not Available In Your Country")
       );
+    }
+    if (product.is_active === false) {
+      toast.error(translateFunction("Sorry This Product Not Available Now"));
     }
   }, []);
   return (

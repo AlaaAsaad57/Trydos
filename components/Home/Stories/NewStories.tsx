@@ -4,10 +4,9 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Cube from "react-cube-navigation";
 import { SelectStory } from "store/homepage/actions";
-import { configureStory } from "utils/functions";
-import StoryHolder from "./StoryHolder";
 import { useSwipeable } from "react-swipeable";
-
+import StoryServiceClass from "services/story";
+import StoryHolder from "./StoryHolder";
 function StoriesContainer({ activeId, selectedStory }) {
   const storiesData = useSelector(
     (state: StateInterface) => state.homepage.storiesData
@@ -71,7 +70,7 @@ function StoriesContainer({ activeId, selectedStory }) {
   });
   return (
     <div
-      className="fixed-layout"
+      className="fixed-layout justify-start"
       {...handlers}
       onPointerLeave={() => {
         document.querySelector<HTMLDivElement>(
@@ -115,11 +114,15 @@ function StoriesContainer({ activeId, selectedStory }) {
               }}
             >
               {i > -1 && i < storiesData.length && (
-                <StoryHolder
-                  active={selectedStory.id === storiesData[i]?.id}
-                  isPaused={active}
-                  story={configureStory(storiesData[i])}
-                />
+                <>
+                  {
+                    <StoryHolder
+                      active={selectedStory.id === storiesData[i]?.id}
+                      isPaused={active}
+                      story={StoryServiceClass.configureStory(storiesData[i])}
+                    />
+                  }
+                </>
               )}
             </div>
           );

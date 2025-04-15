@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import "styles/popup.css";
 
-import { Sendevent } from "./functions";
+import { Sendevent, translateFunction } from "./functions";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import Spinner from "components/global/Spinner";
@@ -75,6 +75,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                  w-max
                 fixed flex-col gap-y-5 rounded-[20px] top-[10%]
                  text-center items-center justify-center px-4 py-8 bg-gray-100`}
+            data-cy="Change-Url-Container"
           >
             {forChanged && !forChanged?.includes("undefined") && (
               <span
@@ -105,6 +106,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                 >
                   <span
                     className="text-blue-600 cursor-pointer"
+                    data-cy="countain-with"
                     onClick={() => {
                       setLoadingWidget(true);
                       // @ts-ignore
@@ -114,7 +116,10 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                       );
                     }}
                   >
-                    Continue with{" "}
+                    {translateFunction(
+                      "Continue with",
+                      Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+                    )}
                     <span className="bold">
                       {` ${
                         options.filter(
@@ -125,7 +130,12 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                       }`}{" "}
                     </span>
                   </span>
-                  <span className="px-2"> OR </span>
+                  <span className="px-2">
+                    {translateFunction(
+                      "OR",
+                      Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+                    )}
+                  </span>
                   <span
                     className="text-blue-600 cursor-pointer"
                     onClick={() => {
@@ -137,7 +147,10 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                       );
                     }}
                   >
-                    Continue with
+                    {translateFunction(
+                      "Continue with",
+                      Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+                    )}
                     <span className="bold">
                       {` ${
                         options.filter(
@@ -152,12 +165,12 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
               </span>
             )}
             {noCountry && (
-              <span
-                className="capitalize text-center font-bold text-dark text-base px-10"
-                style={{ color: "#000000ff" }}
-              >
-                {"Select Your Country"}
-              </span>
+              <div className="capitalize text-center font-bold text-dark text-base px-10">
+                {translateFunction(
+                  "Select Your Country",
+                  Array.isArray(lang) ? lang[0] : lang.split("-")[1]
+                )}
+              </div>
             )}
             {!forChanged && (
               <>

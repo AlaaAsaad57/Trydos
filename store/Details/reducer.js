@@ -176,7 +176,7 @@ const DetailsReducer = (state = initialState, { type, payload }) => {
                 name: payload?.attributes.filter((s) => s.name === "Size")[0]
                   ?.name,
               }
-            : {},
+            : { id: 1, name: "Size" },
           sizes:
             payload.attributes.filter((s) => s.name === "Size")[0]?.options ||
             [],

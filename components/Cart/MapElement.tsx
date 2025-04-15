@@ -126,7 +126,6 @@ export const MapElement: React.FC<MapProps> = memo(
             style={{ width: "100%", height: "100%" }}
           >
             <TileLayer url={getUrl()} />
-
             <HandlClick />
             {addressDetails.location.latitude &&
               addressDetails.location.latitude !== "null" &&

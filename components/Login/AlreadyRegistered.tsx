@@ -172,6 +172,7 @@ function AlreadyRegistered({
       <div className="login-button-group">
         <div
           className="login-button"
+          data-cy="Login-Countinue"
           onClick={() => {
             if (user.name?.length > 1) {
               Sendevent({
@@ -197,6 +198,7 @@ function AlreadyRegistered({
       </div>
       <div
         className="blue-text"
+        data-cy="Look-At-App"
         style={{
           fontSize: "12px",
           fontFamily: `var(--Quicksand-Regular)`,

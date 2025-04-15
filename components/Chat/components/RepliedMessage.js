@@ -133,6 +133,7 @@ function RepliedMessage({
                   ) : (
                     <Image
                       alt="user-img"
+                      unoptimized
                       className="abs-avva"
                       src={
                         (activeChat &&
@@ -235,6 +236,7 @@ function RepliedMessage({
                       <Image
                         alt="user-img"
                         className="abs-avva"
+                        unoptimized
                         src={
                           (activeChat &&
                             activeChat.channel_members &&
@@ -334,6 +336,7 @@ function RepliedMessage({
                     <Image
                       alt="user-img"
                       className="abs-avva"
+                      unoptimized
                       src={
                         (activeChat &&
                           activeChat.channel_members &&
@@ -432,6 +435,7 @@ function RepliedMessage({
                     <Image
                       alt="user-img"
                       className="abs-avva"
+                      unoptimized
                       src={
                         (activeChat &&
                           activeChat.channel_members &&
@@ -536,6 +540,7 @@ function RepliedMessage({
                     ) : (
                       <Image
                         alt="user-img"
+                        unoptimized
                         className="abs-avva"
                         src={
                           (activeChat &&
@@ -555,6 +560,7 @@ function RepliedMessage({
                   alt="user-img"
                   className="message-type-icon"
                   height={20}
+                  width={26}
                   src={out.src}
                 />
                 File
@@ -643,6 +649,7 @@ function RepliedMessage({
                   ) : (
                     <Image
                       alt="user-img"
+                      unoptimized
                       className="abs-avva"
                       src={
                         (activeChat &&
@@ -745,6 +752,7 @@ function RepliedMessage({
                       <Image
                         alt="user-img"
                         className="abs-avva"
+                        unoptimized
                         src={
                           (activeChat &&
                             activeChat.channel_members &&
@@ -847,6 +855,7 @@ function RepliedMessage({
                       <Image
                         alt="user-img"
                         className="abs-avva"
+                        unoptimized
                         src={
                           (activeChat &&
                             activeChat.channel_members &&
@@ -946,6 +955,7 @@ function RepliedMessage({
                     <Image
                       alt="user-img"
                       className="abs-avva"
+                      unoptimized
                       src={
                         (activeChat &&
                           activeChat.channel_members &&
@@ -1048,6 +1058,7 @@ function RepliedMessage({
                     <Image
                       alt="user-img"
                       className="abs-avva"
+                      unoptimized
                       src={
                         (activeChat &&
                           activeChat.channel_members &&

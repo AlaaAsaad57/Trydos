@@ -287,7 +287,7 @@ export interface FilterProductApi {
       }>;
       price: number;
       offer_price: number;
-      in_stock: boolean;
+      is_active: boolean;
       boutique_id?: number;
     }>;
     brands: Array<{
@@ -493,7 +493,7 @@ export interface QuantityDetailsProductApi {
     id: number;
     description: any;
     model: any;
-    in_stock: boolean;
+    is_active: boolean;
     variation: Array<{
       type: string;
       price: number;
@@ -502,7 +502,7 @@ export interface QuantityDetailsProductApi {
       qty: number;
     }>;
     is_country_restricted: boolean;
-    is_available_in_market: boolean;
+
     choice_options: Array<{
       name: string;
       title: string;
@@ -517,7 +517,7 @@ export interface QuantityDetailsProductApi {
     offer_price: number;
     tax: number;
     unit_price: number;
-    current_stock: number;
+    available_quantity: number;
     Left_stock: number;
     seller_id: any;
     seller: {
@@ -584,6 +584,9 @@ export interface CartApi {
       id: number;
       check_availability: boolean;
       customer_id: number;
+      is_active: boolean;
+      collected_after_ordering?: boolean;
+      is_country_restricted: boolean;
       cart_group_id: string;
       product_id: number;
       choices: Array<{
@@ -814,33 +817,11 @@ export type GetAddressListApi = Array<{
 export interface GetWalletApi {
   limit: number;
   offset: number;
-  total_wallet_balance: number;
+  wallet_balance: number;
+  currency_symbol: string;
+  currency_code: string;
   total_wallet_transaction: number;
-  wallet_transaction_list: Array<{
-    id: number;
-    user_id: number;
-    order_id: any;
-    transaction_id: number;
-    credit: number;
-    debit: number;
-    admin_bonus: number;
-    balance: number;
-    transaction_type: string;
-    reference: string;
-    payment_method_customer: any;
-    returned_to_credit_cart: number;
-    created_at: string;
-    updated_at: string;
-    deleted_at: any;
-    return_request_id: any;
-    destination_id: any;
-    converted_wallet_transaction_id: any;
-    status_payment: string;
-    credit_formatted: string;
-    debit_formatted: string;
-    balance_formatted: string;
-    destination_name: string;
-  }>;
+  wallet_transaction_list: any[];
 }
 export interface PlaceOrderApi {
   url?: string;
@@ -1240,10 +1221,19 @@ export interface StarttingSettingApi {
 export interface CustomerInfoApi {
   customer_info: {
     id: number;
-    name: string;
-    phone: string;
-    is_phone_verified: number;
-    last_otp_id_token: string;
+    name?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    is_phone_verified?: number;
+    last_otp_id_token?: string | null;
+    image?: string | null;
+    tall?: number | string | null;
+    weight?: number | string | null;
+    gender: {
+      value: number;
+      name: string;
+    };
+    alternative_phone?: number | string | null;
   };
 }
 export interface FireBaseSettingsApi {
@@ -1383,7 +1373,7 @@ export interface GetProductApi {
       }>;
       price: number;
       offer_price: number;
-      in_stock: boolean;
+      is_active: boolean;
       boutique_id?: number;
     }>;
     brands: Array<{

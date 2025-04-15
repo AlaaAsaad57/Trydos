@@ -6,19 +6,16 @@ import ProductOptions from "./ProductOptions";
 import ProductDetails from "./ProductDetails";
 import SelectColor from "./SelectColor";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  GetAppLanguage,
-  RoundPrice,
-  translateFunction,
-  UserID,
-} from "utils/functions";
+import { RoundPrice, translateFunction } from "utils/functions";
 
 import { toast } from "react-toastify";
 import chat from "services/chat";
 import home from "services/home";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { LikesSharesCommentsApi, ProductViews, SharesCount } from "models/Api";
+import auth from "services/auth";
+import LocalizationServiceClass from "services/localization";
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
     return {
@@ -120,6 +117,7 @@ function ProductFooterSection({ product, currency }) {
   const dispatchStore = useDispatch();
   const [sharedContacts, setShareContacts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const searchParams = useSearchParams();
   const getData = async () => {
     // await home.CheckLogin();
     try {
@@ -161,6 +159,10 @@ function ProductFooterSection({ product, currency }) {
           arr.push({ ...s, ...d });
         });
       }
+      const { color, size } = {
+        color: searchParams.get("color"),
+        size: searchParams.get("size"),
+      };
       dispatchStore({
         type: "GET-PRODUCT-VARIATION",
         payload: {
@@ -170,6 +172,8 @@ function ProductFooterSection({ product, currency }) {
           variation: arr,
           likes: likesNum,
           is_liked: isLiked,
+          color,
+          size,
         },
       });
       setLoading(false);
@@ -189,7 +193,7 @@ function ProductFooterSection({ product, currency }) {
         url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + `/api/products/view`,
         title: "get Views For Product",
         body: {
-          user_id: UserID(),
+          user_id: auth.UserID(),
           product_id: product.id,
         },
       });
@@ -209,6 +213,7 @@ function ProductFooterSection({ product, currency }) {
     dispatchStore({ type: "LOADED-CART", payload: false });
 
     getData();
+    dispatchStore({ type: "AddToCartOptionDisable" });
   }, []);
   const decimal_point_settings = useSelector(
     (state: StateInterface) => state.homepage.settings
@@ -258,7 +263,10 @@ function ProductFooterSection({ product, currency }) {
       });
     } else {
       toast.warn(
-        translate("please select one contact at least", GetAppLanguage())
+        translate(
+          "please select one contact at least",
+          LocalizationServiceClass.GetAppLanguage()
+        )
       );
     }
   };

@@ -1,7 +1,7 @@
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { store } from "store";
 import { GetAddressListApi, GetWalletApi, PlaceOrderApi } from "models/Api";
-import { GetCartOreview } from "utils/functions";
+import { GetCartOreview, toUSD } from "utils/functions";
 
 class OrderService {
   async PlaceOrder({ payment_method, pay_by_wallet }) {
@@ -44,9 +44,10 @@ class OrderService {
           "/customer/wallet/list?limit=10&offset=1",
         title: "Get Wallet",
       });
+
       store.dispatch({
         type: "WALLET-USER",
-        payload: data,
+        payload: { ...data, wallet_balance: toUSD(data.wallet_balance || 0) },
       });
       store.dispatch({ type: "ORDER-LOADING", payload: false });
     } catch (error) {

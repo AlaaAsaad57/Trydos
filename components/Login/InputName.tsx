@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Sendevent, translateFunction } from "utils/functions";
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { useParams } from "next/navigation";
+import Spinner from "components/global/Spinner";
 
 function InputName({
   value,
@@ -51,7 +52,12 @@ function InputName({
   const language = useSelector(
     (state: StateInterface) => state.homepage.language
   );
-
+  const [loading, setLoading] = useState(false);
+  const updateName = async () => {
+    setLoading(true);
+    await submit();
+    setLoading(false);
+  };
   return (
     <>
       <div className="phone-input-desc" style={{ marginBottom: "28px" }}>
@@ -267,27 +273,35 @@ function InputName({
           placeholder={translate("Enter Your Name", language)}
         />
         {value.length > 7 && (
-          <span
-            className="phone-arrow"
-            onClick={() => {
-              // AuthService.CheckPhone(
-              //   inputValue,
-              //   (e) => setStepIndicator(e),
-              //   stepIndicator === 3
-              // );
-              Sendevent({
-                event: "button_clicked",
-                value: "confirm_name_button",
-              });
-              submit();
-            }}
-          >
-            <LeftArrowIcon />
-          </span>
+          <>
+            {loading ? (
+              <span className="phone-arrow">
+                <Spinner />
+              </span>
+            ) : (
+              <span
+                className="phone-arrow"
+                onClick={() => {
+                  // AuthService.CheckPhone(
+                  //   inputValue,
+                  //   (e) => setStepIndicator(e),
+                  //   stepIndicator === 3
+                  // );
+                  Sendevent({
+                    event: "button_clicked",
+                    value: "confirm_name_button",
+                  });
+                  updateName();
+                }}
+              >
+                <LeftArrowIcon />
+              </span>
+            )}
+          </>
         )}
-        <div className="flex light text-[11px] text-[#ff5858] mt-[20px]">
-          {translate("Name Should be atleast 8 characters")}
-        </div>
+      </div>
+      <div className="flex light text-[11px] text-[#ff5858] mt-[20px]">
+        {translate("Name Should be atleast 8 characters")}
       </div>
     </>
   );

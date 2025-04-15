@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
-const withSvgr = require("next-svgr");
+
 const path = require("path");
-let nextConfig = withSvgr({
+let nextConfig = {
   swcMinify: true,
-  reactStrictMode: false,
+  reactStrictMode: true,
   compress: true,
   logging: {
     fetches: {
@@ -43,6 +43,7 @@ let nextConfig = withSvgr({
     ];
   },
   images: {
+    unoptimized: true,
     domains: [
       "res.cloudinary.com",
       "eu.ui-avatars.com",
@@ -55,12 +56,35 @@ let nextConfig = withSvgr({
   experimental: {
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
+
     staleTimes: {
       dynamic: 36000,
       static: 36000,
     },
   },
   webpack(config, { dev, isServer }) {
+    const fileLoaderRule = config.module.rules.find((rule) =>
+      rule.test?.test?.(".svg")
+    );
+
+    config.module.rules.push(
+      // Reapply the existing rule, but only for svg imports ending in ?url
+      {
+        ...fileLoaderRule,
+        test: /\.svg$/i,
+        resourceQuery: /url/, // *.svg?url
+      },
+      // Convert all other *.svg imports to React components
+      {
+        test: /\.svg$/i,
+        issuer: fileLoaderRule.issuer,
+        resourceQuery: { not: [...fileLoaderRule.resourceQuery.not, /url/] }, // exclude if *.svg?url
+        use: ["@svgr/webpack"],
+      }
+    );
+
+    // Modify the file loader rule to ignore *.svg, since we have it handled now.
+    fileLoaderRule.exclude = /\.svg$/i;
     config.module.rules.push({
       test: /\.mp3$/,
       use: {
@@ -68,7 +92,6 @@ let nextConfig = withSvgr({
       },
     });
     if (!isServer && !dev) {
-      console.log("instrumenting....");
       config.module.rules.push({
         test: /\.(js|jsx|ts|tsx)$/,
         enforce: "post",
@@ -76,7 +99,7 @@ let nextConfig = withSvgr({
           {
             loader: "istanbul-instrumenter-loader",
             options: {
-              esModules: true, // Make sure to handle ES modules
+              esModules: true,
             },
           },
         ],
@@ -84,7 +107,18 @@ let nextConfig = withSvgr({
           path.resolve(__dirname, "store"),
           path.resolve(__dirname, "components"),
           path.resolve(__dirname, "services"),
-        ], // Instrument the pages folder (or your app's code)
+          path.resolve(__dirname, "utils"),
+        ],
+        exclude: [
+          // Exclude specific components
+          path.resolve(__dirname, "components/global/webViewActions"),
+          path.resolve(__dirname, "components/global/WebViewVideoCall"),
+          path.resolve(__dirname, "components/global/WebViewVoiceCall"),
+          // Exclude utils/libs
+          path.resolve(__dirname, "utils/libs"),
+          // Exclude specific store actions
+          path.resolve(__dirname, "store/chat/callActions"),
+        ],
       });
     }
     if (!dev) {
@@ -93,7 +127,7 @@ let nextConfig = withSvgr({
     return config;
   },
   // your config for other plugins or the general next.js here...
-});
+};
 
 const sentryWebpackPluginOptions = {
   // Additional config options for the Sentry webpack plugin. Keep in mind that

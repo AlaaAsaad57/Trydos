@@ -2,8 +2,9 @@ import { AddComment } from "models/Api";
 import React, { useState } from "react";
 
 import { AxiosPost } from "utils/AxiosApi";
-import { Sendevent, User, UserID } from "utils/functions";
+import { Sendevent } from "utils/functions";
 import CommentPost from "public/svg/CommentPost.svg";
+import auth from "services/auth";
 function CommentBar({
   product,
   setComments,
@@ -30,7 +31,7 @@ function CommentBar({
     ErrorAccure(mid);
   };
   const [val, setVal] = useState("");
-  const user = User();
+  const user = auth.User();
   const addComment = async (s) => {
     let mid = Math.round(Math.random() * 1000);
     try {
@@ -45,7 +46,7 @@ function CommentBar({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/product_comment",
         title: "add comment For Product",
         body: {
-          customer_id: UserID(),
+          customer_id: auth.UserID(),
           product_id: product?.id,
           comment: s,
         },

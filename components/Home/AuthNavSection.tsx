@@ -7,7 +7,7 @@ import { getNew } from "components/Chat/chatsFunctions";
 import ChatNotification from "./ChatNotification";
 import { useParams } from "next/navigation";
 
-function AuthNavSection() {
+function AuthNavSection({ onClick }: { onClick: () => void }) {
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -63,7 +63,7 @@ function AuthNavSection() {
           {user?.name}
         </span>
       </div>
-      <UserAvatar avatar={user?.avatar?.src ?? user.avatar} />
+      <UserAvatar onClick={onClick} avatar={user?.image} />
     </>
   );
 }

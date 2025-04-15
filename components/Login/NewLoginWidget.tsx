@@ -111,7 +111,9 @@ function NewLoginWidget() {
       console.error("VerifyOtp failed:", error);
     }
   };
+  const [loadingPin, setLoadingPin] = useState(false);
   const loginFunc = async (e) => {
+    setLoadingPin(true);
     await VerifyOtpHook({
       code: e,
       EditPhoneFunc: () => {},
@@ -143,6 +145,7 @@ function NewLoginWidget() {
       },
       successCallback: (exists, name) => {
         setTimeout(() => {
+          setLoadingPin(false);
           if (operation === "signup") {
             Sendevent({
               event: "programming_event",
@@ -212,11 +215,7 @@ function NewLoginWidget() {
   };
 
   const FinaliseLogin = async () => {
-    let idToken = localStorage.getItem("ID-TOKEN");
-
-    await AuthService.VerifyGuest(idToken, () => {
-      AuthService.ConfirmSignIn();
-    });
+    AuthService.ConfirmSignIn();
   };
   const mountAnim = ` 
   0% {transform:translateX(800px)}
@@ -414,23 +413,29 @@ function NewLoginWidget() {
           />
 
           <LogInPins
+            loadingPin={loadingPin}
             expired={expired}
             stepIndicator={stepIndicator}
             setDisabled={(e) => {
               setDisabled(e);
               setExpired(e);
             }}
-            resend={() => {
-              SendOtpHook({
+            resend={async () => {
+              await SendOtpHook({
                 mobilePhone: inputValue,
                 is_via_whatsapp: MessageMethod === "WA" ? "1" : "0",
 
-                successCallback: function () {},
+                successCallback: function () {
+                  setDisabled(false);
+                  setExpired(false);
+                },
                 errorCallback: function (msg) {
                   setStepIndicator(3);
                   setWrongNumber(msg);
                 },
               });
+            }}
+            init={() => {
               setDisabled(false);
               setExpired(false);
             }}
@@ -459,8 +464,8 @@ function NewLoginWidget() {
             <InputName
               value={Name}
               setName={(e) => setName(e)}
-              submit={() => {
-                AuthService.UpdateName(Name);
+              submit={async () => {
+                await AuthService.UpdateName(Name);
                 if (operation === "login") {
                   if (user.already_exists) setSignStep("welcomeLogin");
                   else setSignStep("welcomeSignup");

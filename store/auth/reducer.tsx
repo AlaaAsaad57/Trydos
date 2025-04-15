@@ -13,10 +13,31 @@ const initialState = {
     whatsapp: 0,
     firebase: 0,
   },
+  userProfile: null,
+  totalOrders: -1,
+  isActiveAddress: false,
 };
 
 const AuthReducer = (state = initialState, { type, payload }) => {
   switch (type) {
+    case "SET-IS-ACTIVE-Address": {
+      return {
+        ...state,
+        isActiveAddress: payload,
+      };
+    }
+    case "TOTAL_ORDERS": {
+      return {
+        ...state,
+        totalOrders: payload,
+      };
+    }
+    case "EDIT_USER_INFO": {
+      return {
+        ...state,
+        userProfile: { ...state.userProfile, ...payload },
+      };
+    }
     case "CANCEL-AUTH": {
       return {
         ...state,
@@ -39,31 +60,23 @@ const AuthReducer = (state = initialState, { type, payload }) => {
     case "LOGIN_FAILED": {
       return { ...state, failedLogin: true, attempts: state.attempts - 1 };
     }
-    case "RE-INITILIASE": {
-      return { ...state, failedLogin: false, wrongNumber: "" };
-    }
+
     case "WRONG-NUMBER": {
       return { ...state, wrongNumber: payload };
     }
-    case "LOADING-OTP": {
-      return {
-        ...state,
-        loading: payload,
-      };
-    }
+
     case "SET-VERFICATION-ID": {
       return {
         ...state,
         verficationID: payload,
       };
     }
-    // case "UPDATE_USER_INFO": {
-    //   return {
-    //     ...state,
-    //     user: { ...payload, already_exists: state.user?.already_exists },
-    //     Tempuser: { ...payload, already_exists: state.user?.already_exists },
-    //   };
-    // }
+    case "UPDATE_USER_INFO": {
+      return {
+        ...state,
+        userProfile: payload,
+      };
+    }
     case "GET_FIREBASE_SETTINGS": {
       return {
         ...state,

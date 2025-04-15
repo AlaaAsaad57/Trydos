@@ -30,6 +30,7 @@ function ChatWindow(props) {
   return (
     <div className="chat-window">
       <ContactIcon
+        data-cy="ContactsIcon"
         className="contact-icon-header"
         onClick={() => {
           props.setOpenContacts(true);

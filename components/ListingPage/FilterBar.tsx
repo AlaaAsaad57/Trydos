@@ -17,7 +17,7 @@ import {
   UpdateFilter,
 } from "utils/functions";
 import FloatingInfoBar from "./filterComponents/FloatingInfoBar";
-import { dispatchRouteChangeEvent } from "utils/events";
+
 import {
   useParams,
   usePathname,
@@ -26,6 +26,7 @@ import {
 } from "next/navigation";
 import NextLink from "components/global/NextLink";
 import { DebounceInput } from "node_modules/react-debounce-input/src";
+import { PrefetchKind } from "node_modules/next/dist/client/components/router-reducer/router-reducer-types";
 
 function FilterBar({ boutique, filters, productsServer }) {
   const selectedFilter = useSelector(
@@ -141,7 +142,12 @@ function FilterBar({ boutique, filters, productsServer }) {
     };
 
     dispatch({ type: "FILTER-INIT", payload: filtersVar });
+    dispatch({ type: "AddToCartOptionDisable" });
+    router.prefetch(`/${paramsVar.lang}`, {
+      kind: PrefetchKind.FULL,
+    });
   }, []);
+
   return (
     <>
       <div className="filter-listing-bar relative flex-row align-center">
@@ -325,7 +331,7 @@ function FilterBar({ boutique, filters, productsServer }) {
               }
             }}
           >
-            {(products.length > 1 || productsServer?.length > 1) && (
+            {(products.length > 1 || productsServer > 1) && (
               <FilterIcon
                 className={`${filterEnabled && "filter-icon-enabled"}`}
               />
@@ -348,7 +354,7 @@ function FilterBar({ boutique, filters, productsServer }) {
       </div>
       <BoutiqueHeader
         boutique={boutique}
-        showFilters={products?.length > 1 || productsServer?.length > 1}
+        showFilters={products?.length > 1 || productsServer > 1}
       />
       {!filterEnabled && showFilterInfoBar() && (
         <FilterInfoBar filtersVariable={activeFilters} />

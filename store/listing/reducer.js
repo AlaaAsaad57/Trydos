@@ -87,12 +87,6 @@ const ListingReducer = (state = initialState, { type, payload }) => {
         loading: false,
       };
     }
-    case "RESET-OFFSET": {
-      return {
-        ...state,
-        offset: 1,
-      };
-    }
     case "RESET-END": {
       return {
         ...state,

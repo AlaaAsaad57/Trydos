@@ -68,14 +68,6 @@ export const getMessageStatusIcon = (status_array, mid) => {
     return <SentIcon className="status-icon"></SentIcon>;
   }
 };
-export const getMessageTime = (lastMessage) => {
-  if (lastMessage.created_at) {
-    let d = new Date(lastMessage.created_at);
-    return `${d.getHours() > 9 ? d.getHours() : "0" + d.getHours()}:${
-      d.getMinutes() > 9 ? d.getMinutes() : "0" + d.getMinutes()
-    }`;
-  }
-};
 export const isNew = (ch) => {
   let a = ch?.filter(
     (mes) =>
@@ -134,7 +126,7 @@ export const getTwoLetters = (name) => {
 export const getNew = (chatData, activeChat) => {
   let a = [];
   chatData.forEach((c) => {
-    if (isNew(c.messages) > 0) if (c.id !== activeChat?.id) a.push(c);
+    if (c && isNew(c?.messages) > 0) if (c.id !== activeChat?.id) a.push(c);
   });
   return a;
 };

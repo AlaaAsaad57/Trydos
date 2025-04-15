@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import CustomNavbar from "components/Home/CustomNav";
 export default function NotFound() {
   const params = useParams();

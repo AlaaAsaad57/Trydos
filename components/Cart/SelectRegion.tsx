@@ -23,7 +23,10 @@ function SelectRegion({ closeSelect }) {
   const showRegion = () => {
     return (
       <>
-        <div className={`flex text-[#1D1D1D] text-[14px] regular`}>
+        <div
+          className={`flex text-[#1D1D1D] text-[14px] regular`}
+          data-cy="country-extend"
+        >
           {country.name}
         </div>
 
@@ -33,6 +36,7 @@ function SelectRegion({ closeSelect }) {
               ? "text-[#D3D3D3]"
               : "text-[#1D1D1D]"
           }  text-[14px] regular`}
+          data-cy="Province-extend"
         >
           <span className="px-1">|</span>
           {addressDetails.region_details?.province || "Province"}
@@ -43,6 +47,7 @@ function SelectRegion({ closeSelect }) {
               ? "text-[#D3D3D3]"
               : "text-[#1D1D1D]"
           }  text-[14px] regular`}
+          data-cy="Town-extend"
         >
           <span className="px-1">|</span>
           {addressDetails.region_details?.city || "Town"}
@@ -53,6 +58,7 @@ function SelectRegion({ closeSelect }) {
               ? "text-[#D3D3D3]"
               : "text-[#1D1D1D]"
           }  text-[14px] regular`}
+          data-cy="Suburb-extend"
         >
           <span className="px-1">|</span>
           {addressDetails.region_details?.town || "Suburb"}
@@ -60,13 +66,17 @@ function SelectRegion({ closeSelect }) {
       </>
     );
   };
-
+  const [focused, setFocused] = useState(false);
   return (
     <>
       <div
         className="absolute top-[50px]  left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]"
         onClick={() => {
-          closeSelect();
+          if (focused) {
+            setFocused(false);
+          } else {
+            closeSelect();
+          }
         }}
       />
       <div
@@ -74,19 +84,25 @@ function SelectRegion({ closeSelect }) {
         data-cy="Extended-Choose-Area"
       >
         <div className="flex-row items-center w-full justify-center">
-          <TargetIcon />
-          <span className="flex regular ml-[6px] text-[#1D1D1D] text-[14px]">
+          <TargetIcon data-cy="target-icon" />
+          <span
+            className="flex regular ml-[6px] text-[#1D1D1D] text-[14px]"
+            data-cy="Select-From-List"
+          >
             {translateFunction("Select From List")}
           </span>
         </div>
         <div className="flex-row items-center w-full justify-center mt-[11px]">
           <span className="min-h-[16px] w-[23px]">
-            <Flag height={"15"} code={country.iso} />
+            <Flag height={"15"} code={country.iso} data-cy="country-flag" />
           </span>
 
-          <div className="flex-row ml-[8px]">{showRegion()}</div>
+          <div className="flex-row ml-[8px]" data-cy="region-div">
+            {showRegion()}
+          </div>
         </div>
         <SearchLocations
+          setFocused={setFocused}
           closeSelect={() => {
             closeSelect();
           }}
@@ -98,7 +114,7 @@ function SelectRegion({ closeSelect }) {
 
 export default SelectRegion;
 
-const SearchLocations = ({ closeSelect }) => {
+const SearchLocations = ({ closeSelect, setFocused }) => {
   const { lang } = useParams();
   // @ts-ignore
   const [country, language] = lang.split("-");
@@ -147,6 +163,7 @@ const SearchLocations = ({ closeSelect }) => {
     <>
       <div className="relative flex w-full mt-[21px]">
         <svg
+          data-cy="search-svg"
           className="absolute top-[11px] left-[12px] z-20"
           id="_15x15_photo_back"
           data-name="15x15 photo back"
@@ -189,6 +206,9 @@ const SearchLocations = ({ closeSelect }) => {
           </span>
         )}
         <DebounceInput
+          onFocus={() => {
+            setFocused(true);
+          }}
           minLength={2}
           onChange={(e) => {
             if (e.target.value.length > 0) searchAction(e.target.value);
@@ -225,7 +245,7 @@ const SearchResults = ({ searchResults, closeSelect }) => {
   };
   const dispatch = useDispatch();
   const select = (s) => {
-    let a = { lat: s.coordinates?.lat, lng: s.coordinates?.lon };
+    let a = { lat: s.coordinates[0]?.lat, lng: s.coordinates[0]?.lon };
     if (a.lat && a.lng) dispatch({ type: "MAP-CENTER", payload: a });
     dispatch({
       type: "set-address-details",

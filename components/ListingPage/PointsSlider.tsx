@@ -24,7 +24,7 @@ function PointsSlider({
             setActiveTopSlide();
           }}
         >
-          {colors.map((img, i) => (
+          {colors?.map((img, i) => (
             <div
               key={i}
               className={`slider-point-item rounded-50 relative wid-${getSize(

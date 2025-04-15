@@ -1,16 +1,11 @@
 import { toast } from "react-toastify";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { AxiosGet } from "utils/AxiosApi";
-import {
-  GetAppLanguage,
-  getCart,
-  RoundPrice,
-  translateFunction,
-} from "utils/functions";
+import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
+import LocalizationServiceClass from "services/localization";
 
-function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
+function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   const cart = useSelector((state: StateInterface) => state.cart);
   const currency_symbol = useSelector(
     (state: StateInterface) => state.homepage.currency
@@ -58,7 +53,14 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
         backToCart();
         setLoading(false);
       }
-      if (a?.filter((s) => s?.check_availability === false).length === 0) {
+      if (
+        a?.filter(
+          (s) =>
+            s?.check_availability === false ||
+            s.is_country_restricted === true ||
+            s.is_active === false
+        ).length === 0
+      ) {
         setLoading(false);
         successOrder();
       } else {
@@ -85,6 +87,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
             className={`${
               orderData.agree ? "bg-[#F5FFF8]" : "bg-[#F8F8F8]"
             } w-full cursor-pointer agree-valid-border pl-[26px] h-[40px] rounded-[15px] regular flex-row items-center text-[12px] text-[#1D1D1D]`}
+            data-cy="read-and-agree"
             style={{
               border: "1px solid rgb(56 144 255 / 51%)",
             }}
@@ -97,29 +100,41 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
             </span>
             <div
               className={` ${
-                GetAppLanguage() === "ar" ? "dir-rtl" : ""
+                LocalizationServiceClass.GetAppLanguage() === "ar"
+                  ? "dir-rtl"
+                  : ""
               } flex ml-[34px]`}
             >
-              <span className={`${GetAppLanguage() === "ar" ? "" : ""} `}>
+              <span
+                className={`${
+                  LocalizationServiceClass.GetAppLanguage() === "ar" ? "" : ""
+                } `}
+              >
                 {translateFunction("I read and agree to the")}
               </span>
               <span
                 className={`underline ${
-                  GetAppLanguage() === "ar" ? "mr-[4px]" : "ml-[4px]"
+                  LocalizationServiceClass.GetAppLanguage() === "ar"
+                    ? "mr-[4px]"
+                    : "ml-[4px]"
                 } text-[#388CFF]`}
               >
                 {translateFunction("policies")}
               </span>
               <span
                 className={` ${
-                  GetAppLanguage() === "ar" ? "mr-[4px]" : "ml-[4px]"
+                  LocalizationServiceClass.GetAppLanguage() === "ar"
+                    ? "mr-[4px]"
+                    : "ml-[4px]"
                 }`}
               >
                 {translateFunction("and")}
               </span>
               <span
                 className={`underline  ${
-                  GetAppLanguage() === "ar" ? "mr-[4px]" : "ml-[4px]"
+                  LocalizationServiceClass.GetAppLanguage() === "ar"
+                    ? "mr-[4px]"
+                    : "ml-[4px]"
                 } text-[#388CFF]`}
               >
                 {translateFunction("terms")}
@@ -152,7 +167,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
                   data: [],
                 },
               });
-              dispatch({ type: "ENABLE-CART", payload: false });
+              close();
               return;
             }
             Validate();
@@ -177,7 +192,8 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
                   <span>{translateFunction("Done")}</span>
                   <span
                     className={`text-[#FEFEFE] text-[14px] medium ${
-                      GetAppLanguage() === "ar" && "dir-rtl"
+                      LocalizationServiceClass.GetAppLanguage() === "ar" &&
+                      "dir-rtl"
                     } `}
                   >
                     {translateFunction("Back To HomePage")}
@@ -188,7 +204,8 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
                   <span>{translateFunction("Place Order")}</span>
                   <span
                     className={`text-[#FEFEFE] text-[14px] medium ${
-                      GetAppLanguage() === "ar" && "dir-rtl"
+                      LocalizationServiceClass.GetAppLanguage() === "ar" &&
+                      "dir-rtl"
                     } `}
                   >
                     {cart.cart.length} {translateFunction("items")}{" "}
@@ -251,7 +268,7 @@ const CheckBoxElement = ({ active }) => {
                     data-name="Ellipse 427"
                     fill="none"
                     stroke="#388cff"
-                    stroke-width="0.5"
+                    strokeWidth="0.5"
                   >
                     <circle cx="7.5" cy="7.5" r="7.5" stroke="none" />
                     <circle cx="7.5" cy="7.5" r="7.25" fill="none" />
@@ -312,7 +329,7 @@ const CheckBoxElement = ({ active }) => {
                     data-name="Ellipse 427"
                     fill="none"
                     stroke="#8e8e8e"
-                    stroke-width="0.5"
+                    strokeWidth="0.5"
                   >
                     <circle cx="7.5" cy="7.5" r="7.5" stroke="none" />
                     <circle cx="7.5" cy="7.5" r="7.25" fill="none" />

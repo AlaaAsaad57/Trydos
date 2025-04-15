@@ -59,7 +59,7 @@ function OrderMarquee({ shippingCost }) {
       <div className="flex items-center ml-2">
         <PurchaseProtectionIcon />
         <div className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]">
-          {translate("Purchase Protection")}
+          {translate("Purshase Protection")}
         </div>
       </div>
       <div className="flex items-center ml-2">

@@ -766,7 +766,7 @@ export interface StateInterface {
       flash_deal_max_allowed_quantity: any;
       description: any;
       model: any;
-      in_stock: boolean;
+      is_active: boolean;
       variation: Array<{
         type: string;
         price: number;
@@ -788,7 +788,7 @@ export interface StateInterface {
       offer_price: number;
       tax: number;
       unit_price: number;
-      current_stock: number;
+      available_quantity: number;
       Left_stock: number;
       seller_id: any;
       seller: {
@@ -871,7 +871,7 @@ export interface StateInterface {
       flash_deal_max_allowed_quantity: any;
       description: any;
       model: any;
-      in_stock: boolean;
+      is_active: boolean;
       variation: Array<{
         variant_notify_for_user: boolean;
         type: string;
@@ -894,7 +894,7 @@ export interface StateInterface {
       offer_price: number;
       tax: number;
       unit_price: number;
-      current_stock: number;
+      available_quantity: number;
       Left_stock: number;
       seller_id: any;
       seller: {

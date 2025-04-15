@@ -5,7 +5,7 @@ import BoutiquePhoto from "./BoutiquePhoto";
 import BoutiqueCategoryFilter from "./BoutiqueCategoryFilter";
 import { useDispatch, useSelector } from "react-redux";
 import BoutiqueBrandFilter from "./filterComponents/BoutiqueBrandFilter";
-import BoutiqueOfferFilter from "./filterComponents/BoutiqueOfferFilter";
+
 import BoutiquePriceFilter from "./filterComponents/BoutiquePriceFilter";
 import BoutiqueSizeFilter from "./filterComponents/BoutiqueSizeFilter";
 import { Sendevent } from "utils/functions";
@@ -34,7 +34,7 @@ const PrefetchingFilters = () => {
     AxiosCacheApi({
       url:
         process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        `/api/products/search${
+        `/api/products/searchInCatalog${
           boutique ? `?boutique_slugs=["${boutique}"]` : ""
         }`,
     });
@@ -43,7 +43,7 @@ const PrefetchingFilters = () => {
         AxiosCacheApi({
           url:
             process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-            `/api/products/search?category_slugs=${decodeURI(
+            `/api/products/searchInCatalog?category_slugs=${decodeURI(
               JSON.stringify([s.slug])
             )}${boutique ? `&boutique_slugs=["${boutique}"]` : ""}`,
         });
@@ -51,7 +51,7 @@ const PrefetchingFilters = () => {
         AxiosCacheApi({
           url:
             process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-            `/api/products/search?&brand_slugs=${decodeURI(
+            `/api/products/searchInCatalog?&brand_slugs=${decodeURI(
               JSON.stringify([s.slug])
             )}${boutique ? `&boutique_slugs=["${boutique}"]` : ""}`,
         });
@@ -344,12 +344,6 @@ function BoutiqueHeader({ boutique, showFilters }) {
                     <>
                       {!filterEnabled && <BorderThin />}
                       <BoutiqueBrandFilter filterEnabled={filterEnabled} />
-                    </>
-                  )}
-                  {filters?.offers?.length > 0 && (
-                    <>
-                      {!filterEnabled && <BorderThin />}
-                      <BoutiqueOfferFilter filterEnabled={filterEnabled} />
                     </>
                   )}
 

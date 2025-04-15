@@ -1,8 +1,9 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import LocalizationServiceClass from "services/localization";
 import { dispatchRouteChangeEvent } from "utils/events";
-import { GetAppLanguage, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 
 function BuyButton({ buy }) {
   let { lang } = useParams();
@@ -24,7 +25,7 @@ function BuyButton({ buy }) {
       }}
     >
       <span className="f-10 flex align-start">
-        {translate("Buy", GetAppLanguage())}
+        {translate("Buy", LocalizationServiceClass.GetAppLanguage())}
       </span>
       <img
         src={"/svg/BuyButton.svg"}

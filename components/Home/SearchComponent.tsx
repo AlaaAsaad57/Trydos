@@ -16,7 +16,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useRouter } from "next-nprogress-bar";
 import SearchVoice from "./Search/SearchVoice";
 import SearchImage from "./Search/SearchImage";
-
+import SearchService from "services/search";
 interface SearchComponentProps {
   searchEnabled: boolean;
   close: Function;
@@ -41,6 +41,7 @@ function SearchComponent({
   );
   const dispatch = useDispatch();
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+    console.log(SearchService.ProcessSearchInput(e.target.value));
     if (e.target.value.length === 0) {
       e.preventDefault();
     }
