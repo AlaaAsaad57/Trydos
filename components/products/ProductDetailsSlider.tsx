@@ -54,22 +54,34 @@ function ProductDetailsSlider({
     });
     dispatch({ type: "CURRENCY", payload: currency });
   }, []);
-
+  console.log(
+    (activeColor && activeColor?.images?.length > 0 && activeColor) ??
+      (searchParams.get("color") &&
+        productData?.sync_color_images &&
+        productData?.sync_color_images?.filter(
+          (s) => s.color_name === searchParams.get("color")
+        )[0]) ??
+      (productData?.sync_color_images &&
+        productData?.sync_color_images[0]?.images?.length > 0 &&
+        productData?.sync_color_images[0]) ??
+      productData ?? { images: [product.thumbnail] }
+  );
   return (
     <>
       <div className="product-details-slider">
         <div className="embla" ref={emblaRef}>
           <div className="embla__container">
             {(
-              activeColor ??
+              (activeColor && activeColor?.images?.length > 0 && activeColor) ??
               (searchParams.get("color") &&
                 productData?.sync_color_images &&
                 productData?.sync_color_images?.filter(
                   (s) => s.color_name === searchParams.get("color")
                 )[0]) ??
               (productData?.sync_color_images &&
+                productData?.sync_color_images[0]?.images?.length > 0 &&
                 productData?.sync_color_images[0]) ??
-              productData
+              productData ?? { images: [product.thumbnail] }
             )?.images?.map((img, i) => (
               <div
                 className="embla__slide"

@@ -1,8 +1,5 @@
-"use client";
-import { ProductInterface } from "models/product";
-import React, { useEffect } from "react";
+import React from "react";
 import "styles/product-body.css";
-import EyeIcon from "public/svg/product/EyeIcon.svg";
 import ProductDetailsText from "./ProductDetailsText";
 import ProductProperties from "./ProductProperties";
 import ProductDescriptors from "./ProductDescriptors";
@@ -10,42 +7,28 @@ import ProductColors from "./ProductColors";
 import ProductSizes from "./ProductSizes";
 // import CameraShots from "./CameraShots";
 import ProductStories from "./ProductStories";
-import ProductShippingOption from "./ProductShippingOption";
+
+const ProductShippingOption = dynamic(() => import("./ProductShippingOption"), {
+  ssr: false,
+});
 import FreeReturnOption from "./FreeReturnOption";
 import FreeShippingOption from "./FreeShippingOption";
-import { useSelector } from "react-redux";
-import Skeleton from "react-loading-skeleton";
-import { Sendevent } from "utils/functions";
-import CameraShots from "./CameraShots";
 
-function ProuctDetailsBody({ product }) {
-  const SelectedProduct = useSelector(
-    (state: StateInterface) => state.cart.SelectedProduct
-  );
-  useEffect(() => {
-    setTimeout(() => {
-      Sendevent({
-        event: "viewed_product",
-        extra: {
-          product_name: product.name,
-          product_id: product.id,
-          product_categories: product.categories?.map((s) => s.id),
-        },
-      });
-    }, 4000);
-  }, []);
+import CameraShots from "./CameraShots";
+import ProductViews from "./ProductViews";
+import dynamic from "node_modules/next/dynamic";
+
+function ProuctDetailsBody({ product, lang }) {
   return (
     <div className="product-details-body flex-row relative">
-      <div className="view-count absolute flex-row align-center">
-        <EyeIcon />
-        {SelectedProduct?.views_count >= 0 ? (
-          <span>{SelectedProduct.views_count ?? "1"}</span>
-        ) : (
-          <span className="m-0">
-            <Skeleton className="m-0" count={1} width={20} height={10} />
-          </span>
-        )}
-      </div>
+      <ProductViews
+        product={{
+          name: product.name,
+          id: product.id,
+          categories: product.categories,
+        }}
+      />
+
       <div className="product-info-section flex-col align-start">
         <div className="product-brand-logo">
           {product?.brand?.icon && (
@@ -77,7 +60,7 @@ function ProuctDetailsBody({ product }) {
         </div>
 
         <ProductDetailsText product={product} details={product.details} />
-        <ProductProperties />
+        <ProductProperties lang={lang} />
         <ProductDescriptors descriptors={product.descriptors} />
         <ProductColors
           colors={product.sync_color_images || []}
@@ -92,8 +75,8 @@ function ProuctDetailsBody({ product }) {
           }
         />
         <ProductShippingOption />
-        {product.shipping_cost === 0 && <FreeShippingOption />}
-        <FreeReturnOption />
+        {product.shipping_cost === 0 && <FreeShippingOption lang={lang} />}
+        <FreeReturnOption lang={lang} />
       </div>
     </div>
   );

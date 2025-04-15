@@ -4,8 +4,7 @@ import VerifiedIcon from "public/svg/product/Verified.svg";
 import Flag from "public/svg/product/flag.svg";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
-function ProductProperties() {
-  let { lang } = useParams();
+function ProductProperties({ lang }) {
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang?) => {

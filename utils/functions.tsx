@@ -28,7 +28,7 @@ export function translateFunction(key: string, language?: string | string[]) {
   if (typeof window !== "undefined") {
     languageUrl = window.location.pathname.split("/")[1].split("-")[1];
   } else {
-    languageUrl = LocalizationServiceClass.GetAppLanguage();
+    languageUrl = language || LocalizationServiceClass.GetAppLanguage();
   }
 
   // Ensure translations object exists and has the requested language
