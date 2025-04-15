@@ -349,16 +349,18 @@ function OrderButton({ close, toOrders }) {
                     <span className="flex-row translate-y-[3px]">
                       <ShippingIcon />
                     </span>{" "}
-                    <div className="flex-col pl-1 text-[#5BA260]">
-                      <span className="medium text-[13px] text-[#5BA260]">
-                        {translate("Shipping")}
-                      </span>
-                      <span className="regular text-[11px] text-[#5BA260]">
-                        {translate(
-                          "Shipping Is Completely Free Without Any Extras"
-                        )}
-                      </span>
-                    </div>
+                    {cart.total_shipping_cost === 0 && (
+                      <div className="flex-col pl-1 text-[#5BA260]">
+                        <span className="medium text-[13px] text-[#5BA260]">
+                          {translate("Shipping")}
+                        </span>
+                        <span className="regular text-[11px] text-[#5BA260]">
+                          {translate(
+                            "Shipping Is Completely Free Without Any Extras"
+                          )}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]">
