@@ -585,6 +585,7 @@ export interface CartApi {
       check_availability: boolean;
       customer_id: number;
       is_active: boolean;
+      collected_after_ordering?: boolean;
       is_country_restricted: boolean;
       cart_group_id: string;
       product_id: number;

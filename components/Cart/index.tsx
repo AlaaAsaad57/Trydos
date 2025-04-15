@@ -547,6 +547,10 @@ function CartContainer({ close, toOrders }) {
                           await updateDataForProduct(product.slug);
                         }}
                         product={product}
+                        maxAllowed={product.max_allowed_qty}
+                        isCollectedAfterOrdering={Boolean(
+                          product.collected_after_ordering
+                        )}
                         isHurry={true || product.have_hurry_up_notify}
                         disabled={false}
                         max={product.available_quantity}
@@ -938,6 +942,8 @@ function CartContainer({ close, toOrders }) {
                         id={product.id}
                         product={product}
                         updateData={async () => {}}
+                        isCollectedAfterOrdering={false}
+                        maxAllowed={product.max_allowed_qty}
                         disabled={true}
                         isHurry={false}
                         value={product.quantity}
@@ -1654,6 +1660,8 @@ const QuantutyInput = ({
   updateData,
   isHurry,
   product,
+  maxAllowed,
+  isCollectedAfterOrdering,
 }) => {
   const [inputValue, setInputValue] = useState(parseInt(value));
   const PlusIcon = ({ className }) => {
@@ -1787,6 +1795,19 @@ const QuantutyInput = ({
       setLoading(false);
     }
   };
+  const shouldDisablePlus = () => {
+    if (maxAllowed !== "0" && inputValue >= maxAllowed) {
+      return true;
+    }
+    if (isCollectedAfterOrdering) {
+      return false;
+    }
+
+    if (inputValue >= product.available_quantity) {
+      return true;
+    }
+    return false;
+  };
   return (
     <div
       className={`absolute flex-wrap ${"top-[125px]"} left-[137px] flex-row items-center justify-between max-w-[calc(100%-152px)] w-full`}
@@ -1828,22 +1849,24 @@ const QuantutyInput = ({
             </g>
           </g>
         </svg>
-        <div
-          className="absolute hide-btn h-[24px] flex items-center right-[6px]  cursor-pointer"
-          data-cy="PlusIcon_CartPage"
-          onClick={() => {
-            if (disabled) return false;
-            // if (inputValue === max) {
-            //   toast.error(translate("stock is limited"));
-            //   return false;
-            // }
-            // // @ts-ignore
-            // else {
-            increaseQuantity(inputValue);
-          }}
-        >
-          <PlusIcon className="" />
-        </div>
+        {!shouldDisablePlus() && (
+          <div
+            className="absolute hide-btn h-[24px] flex items-center right-[6px]  cursor-pointer"
+            data-cy="PlusIcon_CartPage"
+            onClick={() => {
+              if (disabled) return false;
+              // if (inputValue === max) {
+              //   toast.error(translate("stock is limited"));
+              //   return false;
+              // }
+              // // @ts-ignore
+              // else {
+              increaseQuantity(inputValue);
+            }}
+          >
+            <PlusIcon className="" />
+          </div>
+        )}
 
         {inputValue > 1 ? (
           <>
