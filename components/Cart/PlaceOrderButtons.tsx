@@ -5,7 +5,7 @@ import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
 
-function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
+function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   const cart = useSelector((state: StateInterface) => state.cart);
   const currency_symbol = useSelector(
     (state: StateInterface) => state.homepage.currency
@@ -167,7 +167,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart }) {
                   data: [],
                 },
               });
-              dispatch({ type: "ENABLE-CART", payload: false });
+              close();
               return;
             }
             Validate();

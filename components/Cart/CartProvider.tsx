@@ -165,6 +165,9 @@ export const StepSlider = ({ enableCart }) => {
                     setStep(0);
                     ref.current.slidePrev();
                   }}
+                  close={() => {
+                    enableCart(false);
+                  }}
                 />
               </>
             ) : (

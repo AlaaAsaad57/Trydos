@@ -106,7 +106,13 @@ const DeleteIcon = () => {
     </svg>
   );
 };
-function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
+function OrdersPage({
+  setStep,
+  close,
+}: {
+  setStep: (e: number) => void;
+  close: () => void;
+}) {
   let { lang } = useParams();
   const addressDetails = useSelector(
     (state: StateInterface) => state.cart.addressDetails
@@ -462,6 +468,9 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                         },
                       });
                       setStep(0);
+                    }}
+                    close={() => {
+                      close();
                     }}
                     successOrder={() => setOrderSuccess(true)}
                   />
