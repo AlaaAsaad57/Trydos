@@ -24,6 +24,32 @@ describe("should Login If User Is Not Verified", () => {
   it("Should Enter Phone Number", () => {
     cy.ChexkExistElement("[data-cy=FieldToInputNumber]").then((existing) => {
       if (existing) {
+        cy.get("[data-testid=animated-container]");
+        cy.get("[data-cy=login-operation]").should("exist");
+        cy.get("[data-cy=login-operation-svg]").should("exist");
+        cy.get("[data-cy=text-loginDesc]").should("exist");
+        cy.get("[data-cy=text-loginDesc-text]").should(
+          "contain",
+          "Enter Your Phone Number To Complete Order"
+        ); //login-detail
+        cy.get("[data-cy=login-detail]").should("exist");
+        cy.get("[data-cy=login-detail-svg]").should("exist");
+        cy.get("[data-cy=FieldToInputNumber]").should(
+          "contain",
+          "Enter Your Phone Number Registered With Us"
+        ); //login-detail-Verification
+        cy.get("[data-cy=login-detail-Verification]").should("exist");
+        cy.get("[data-cy=login-detail-Verification-svg]").should("exist"); //login-detail-Verification-text
+        cy.get("[data-cy=login-detail-Verification-text]").should(
+          "contain",
+          "We Will Send A Verification Code To The Number"
+        ); //container-enterPhone
+        cy.get("[data-cy=container-enterPhone]").should("exist"); //container-enterPhone-svg
+        cy.get("[data-cy=container-enterPhone-svg]").should("exist"); //solidPhhone-enterPhone-svg
+        cy.get("[data-cy=solidPhhone-enterPhone-svg]").should("exist"); //span-flag
+        cy.get("[data-cy=span-flag]").should("exist"); //plus-icon-span
+        cy.get("[data-cy=plus-icon-span]").should("exist"); //phone-number-input
+        cy.get("[data-cy=phone-number-input]").should("exist"); //phone-number-input
         cy.enterPhoneNumber("963937764641");
       } else {
         cy.log("✅✅ The Number Verified Last");
@@ -31,6 +57,34 @@ describe("should Login If User Is Not Verified", () => {
     });
   });
   it("Should Select Way To Send Otp Code", () => {
+    cy.get("[data-testid=animated-container]").should("exist");
+    cy.get("[data-testid=pin-inputs-desc]").should("exist");
+    cy.get("[data-cy=pin-inputs-desc-svg]").should("exist");
+    cy.get("[data-cy=send-verification-number]").should("exist");
+    cy.get("[data-cy=send-verification-number-text]")
+      .should("exist")
+      .contains("We Will Send A Verification Code To The Number");
+    cy.get("[data-cy=Edit-Phone-Number]").should("exist");
+    cy.get("[data-cy=Edit-Phone-Number-svg]").should("exist");
+    cy.get("[data-cy=Edit-Phone-Number-plus]").should("exist").contains("+");
+    cy.get("[data-cy=span-edit-number]").should("exist");
+    cy.get("[data-cy=span-edit-number-svg]").should("exist");
+    cy.get("[data-cy=choose]").should("exist");
+    cy.get("[data-cy=choose-svg]").should("exist");
+    cy.get("[data-cy=choose-text]")
+      .should("exist")
+      .contains("Choose The Verification Method, Receive Code Via:");
+    cy.get("[data-cy=send-way]").should("exist");
+    cy.get("[data-cy=whatssapp-way]").should("exist");
+    cy.get("[data-cy=border-whatssapp-way]").should("exist");
+    cy.get("[data-cy=border-whatssapp-way-svg]").should("exist");
+    cy.get("[data-cy=way-icon]").should("exist");
+    cy.get("[data-cy=whattsapp-text]").should("exist").contains("WhatsApp");
+    cy.get("[data-cy=message-way]").should("exist");
+    cy.get("[data-cy=message-way-svg-container]").should("exist");
+    cy.get("[data-cy=message-way-svg]").should("exist");
+    cy.get("[data-cy=message-icon-svg]").should("exist");
+    cy.get("[data-cy=message-text]").should("exist").contains("SMS");
     cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
   });
   it("Should Enter OTP Code & Arrived Dual Request", () => {

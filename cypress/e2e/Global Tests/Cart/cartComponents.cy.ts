@@ -114,6 +114,12 @@ describe("Should Verify components and check if products purchased later are out
           },
         ]);
         cy.log("✅✅ getCartShipping & getOldCart Requests Arrived");
+        cy.get("[data-cy=order-bottom-button]").should("exist");
+        cy.get("[data-cy=container-orderButton]").should("exist"); //Confirm-Order-Button
+        cy.get("[data-cy=Confirm-Order-Button]").should("exist"); //backHome-text
+        cy.get("[data-cy=backHome-text]")
+          .should("exist")
+          .contains("Back To HomePage"); //backHome-text
       } else if (emptyCart && !oldCartOutOfBag) {
         cy.log("⚠️⚠️ Only emptyCart exists");
         cy.log("✅✅ Cart is Empty");
@@ -462,6 +468,11 @@ describe("Should verify components in cart footer page", () => {
         cy.get('[data-cy="Money-text"]')
           .should("exist")
           .and("contain", "Earn Money With This Order");
+        cy.get("[data-cy=container-orderButton]").should("exist"); //Confirm-Order-Button
+        cy.get("[data-cy=Confirm-Order-Button]").should("exist"); //backHome-text
+        cy.get("[data-cy=confirm-text]")
+          .should("exist")
+          .contains("Confirm And Continue"); //backHome-text
       }
     });
   });
