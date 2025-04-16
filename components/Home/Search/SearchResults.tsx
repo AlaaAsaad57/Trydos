@@ -11,7 +11,7 @@ import {
   translateFunction,
 } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
-import { useRouter } from "next-nprogress-bar";
+import { useRouter } from "next/navigation";
 
 import { dispatchRouteChangeEvent } from "utils/events";
 import home from "services/home";

@@ -6,7 +6,7 @@ import { addToCompare, translateFunction } from "utils/functions";
 import CheckIcon from "public/svg/CheckIcon.svg";
 import Spinner from "components/global/Spinner";
 import { toast } from "react-toastify";
-import { useRouter } from "next-nprogress-bar";
+import { useRouter } from "next/navigation";
 import LocalizationServiceClass from "services/localization";
 function MoreOptionsSection() {
   let { lang } = useParams();

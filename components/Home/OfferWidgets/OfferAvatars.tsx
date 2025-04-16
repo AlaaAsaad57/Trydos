@@ -2,7 +2,7 @@
 import { useRef } from "react";
 import OfferAvatar from "./OfferAvatar";
 import { Boutique } from "models/offer";
-import { useRouter } from "next-nprogress-bar";
+import { useRouter } from "next/navigation";
 import MoreOfferAvatar from "./MoreOfferAvatar";
 
 interface OfferAvatarsProps {

@@ -4,7 +4,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import BorderImage from "./BorderImage";
 
 import { getConfiguredImage } from "utils/functions";
-import { stopProgress } from "next-nprogress-bar";
+// import { stopProgress } from "next-nprogress-bar";
 function ColorSlider({
   active,
   activeColor,
@@ -72,7 +72,7 @@ function ColorSlider({
         centeredSlides={true}
         onSlideChange={(swiper) => {
           setTimeout(() => {
-            stopProgress(true);
+            // stopProgress(true);
           }, 300);
           setActiveColor({ ...colors[swiper.activeIndex], index: 0 });
         }}

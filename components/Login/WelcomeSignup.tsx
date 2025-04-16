@@ -1,5 +1,5 @@
 import { useParams } from "next/navigation";
-import { useRouter } from "next-nprogress-bar";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
 import { useSelector } from "react-redux";

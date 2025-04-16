@@ -1,6 +1,6 @@
 import { dispatchRouteChangeEvent } from "utils/events";
 import Image from "next/image";
-import { useRouter } from "next-nprogress-bar";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface OfferAvatarProps {

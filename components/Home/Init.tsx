@@ -1,7 +1,7 @@
 "use client";
 import { useParams, useSearchParams } from "next/navigation";
 import axios from "node_modules/axios";
-import { AppProgressBar } from "next-nprogress-bar";
+
 import React, { useEffect, useState } from "react";
 import HomeService from "services/home";
 import { store } from "store";
@@ -169,11 +169,11 @@ function Init() {
           })}
         />
       )}
-      <AppProgressBar
+      {/* <AppProgressBar
         color="#f53d3d"
         height="4px"
         options={{ showSpinner: false }}
-      />
+      /> */}
     </>
   );
 }

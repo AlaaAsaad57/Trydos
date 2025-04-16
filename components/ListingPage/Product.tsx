@@ -1,6 +1,6 @@
 import React, { useEffect, useReducer } from "react";
 import ImageSlider from "./ImageSlider";
-import { stopProgress } from "next-nprogress-bar";
+// import { stopProgress } from "next-nprogress-bar";
 
 import BuyButton from "./BuyButton";
 import NextLink from "components/global/NextLink";
@@ -147,7 +147,7 @@ function Product({
             /* @ts-ignore*/
             e.target.closest(".inset-shadow-img")
           ) {
-            stopProgress(true);
+            // stopProgress(true);
             dispatchRouteChangeEvent("completed");
             return false;
           } else {
@@ -349,7 +349,7 @@ function Product({
               addToCart();
               setTimeout(() => {
                 dispatchRouteChangeEvent("completed");
-                stopProgress(true);
+                // stopProgress(true);
               }, 2000);
             }}
           />

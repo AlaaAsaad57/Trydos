@@ -10,7 +10,6 @@ import NotificationsPanel from "../Notifications/NotificationsPanel";
 
 import WishListPanel from "../WishList/WishListPanel";
 import CountrySelector from "components/global/CountrySelector";
-import { useRouter } from "next-nprogress-bar";
 
 interface MenuProps {
   user: any;

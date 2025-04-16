@@ -13,7 +13,7 @@ import home from "services/home";
 import { DebounceInput } from "react-debounce-input";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { useParams, useSearchParams } from "next/navigation";
-import { useRouter } from "next-nprogress-bar";
+import { useRouter } from "next/navigation";
 import SearchVoice from "./Search/SearchVoice";
 import SearchImage from "./Search/SearchImage";
 import SearchService from "services/search";
