@@ -8,18 +8,19 @@ import { Sendevent } from "utils/functions";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
 
-function ConfirmMobileChange({ closeWindow, value, successCallback }) {
+function ConfirmMobileChange({ closeWindow, value, successCallbackFunction }) {
   const [stepIndicator, setStepIndicator] = useState(3);
   const [inputValue, setInputValue] = useState(value);
   const dispatch = useDispatch();
   const [MessageMethod, setMessageMethod] = useState("");
   const [pins, setPins] = useState("");
-  const verficationID = useSelector(
-    (state: StateInterface) => state.auth.verficationID
-  );
   const [disabled, setDisabled] = useState(false);
   const [expired, setExpired] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [idToken, setIdToken] = useState("");
+  const verficationID = useSelector(
+    (state: StateInterface) => state.auth.verficationID
+  );
   const SendOtpHook = async ({
     errorCallback,
     mobilePhone,
@@ -28,11 +29,12 @@ function ConfirmMobileChange({ closeWindow, value, successCallback }) {
   }) => {
     try {
       let errorCallbackFunc = (e) => errorCallback(e);
-      await AuthService.SendOtp(
+      let data = await AuthService.SendOtp(
         mobilePhone,
         is_via_whatsapp,
         errorCallbackFunc
       );
+
       successCallback();
     } catch (error) {
       console.log(error);
@@ -41,24 +43,15 @@ function ConfirmMobileChange({ closeWindow, value, successCallback }) {
     }
   };
   const [rendere, setRender] = useState(true);
-  const VerifyOtpHook = async ({
-    code,
-    verificationID,
-    Username,
-    EditPhoneFunc,
-    successCallback,
-    errorCallback,
-  }) => {
+  const VerifyOtpHook = async ({ code, verificationID }) => {
     try {
-      let [exists, name] = await AuthService.VerifyOtp(
+      let data = await AuthService.VerifyOtpForUpdatePhone(
         code,
-        verificationID,
-        Username,
-        EditPhoneFunc
+        verificationID
       );
-      await successCallback(exists, name);
+      return data;
     } catch (error) {
-      errorCallback(error);
+      // errorCallback(error);
       console.error("VerifyOtp failed:", error);
     }
   };
@@ -69,56 +62,56 @@ function ConfirmMobileChange({ closeWindow, value, successCallback }) {
   const [loadingPin, setLoadingPin] = useState(false);
   const loginFunc = async (e) => {
     setLoadingPin(true);
-    // await VerifyOtpHook({
-    //   code: e,
-    //   EditPhoneFunc: () => {},
-    //   Username: "",
-    //   verificationID: verficationID,
-    //   errorCallback: (e) => {
-    //     Sendevent({
-    //       event: "programming_event",
-    //       value: "otp_failed_event",
-    //     });
-    //     setFailed(true);
-    //     setTimeout(() => {
-    //       setPins("");
-    //       setRender(false);
-    //       setFailed(false);
-    //       setTimeout(() => {
-    //         setRender(true);
-    //       }, 300);
-    //     }, 1000);
-    //     if (e.message === "user not found") {
-    //       Sendevent({
-    //         event: "programming_event",
+    let data = await VerifyOtpHook({
+      code: e,
+      verificationID: verficationID,
+      // errorCallback: (e) => {
+      //   Sendevent({
+      //     event: "programming_event",
+      //     value: "otp_failed_event",
+      //   });
+      //   setFailed(true);
+      //   setTimeout(() => {
+      //     setPins("");
+      //     setRender(false);
+      //     setFailed(false);
+      //     setTimeout(() => {
+      //       setRender(true);
+      //     }, 300);
+      //   }, 1000);
+      //   if (e.message === "user not found") {
+      //     Sendevent({
+      //       event: "programming_event",
 
-    //         value: "phone_number_not_registered_event",
-    //       });
+      //       value: "phone_number_not_registered_event",
+      //     });
 
-    //       setStepIndicator(6);
-    //     }
-    //     setLoadingPin(false);
-    //   },
-    //   successCallback: async (exists, name) => {
-    //     Sendevent({
-    //       event: "programming_event",
+      //     setStepIndicator(6);
+      //   }
+      //   setLoadingPin(false);
+      // },
+      // successCallback: async (exists, name) => {
+      //   Sendevent({
+      //     event: "programming_event",
 
-    //       value: "verify_otp_signin_success_event",
-    //     });
+      //     value: "verify_otp_signin_success_event",
+      //   });
 
-    //     await FinaliseLogin();
+      //   await FinaliseLogin();
 
-    //     setTimeout(() => {
-    //       setLoadingPin(false);
-    //       closeWindow();
-    //       goToOrders();
-    //     }, 2000);
-    //   },
-    // });
-    let idToken = "";
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    localStorage.setItem("has-phone", value);
-    successCallback(idToken);
+      //   setTimeout(() => {
+      //     setLoadingPin(false);
+      //     closeWindow();
+      //     goToOrders();
+      //   }, 2000);
+      // },
+    });
+
+    // let idToken = "";
+    // await new Promise((resolve) => setTimeout(resolve, 2000));
+    // localStorage.setItem("has-phone", value);
+
+    successCallbackFunction(data);
     setLoadingPin(false);
   };
   const wrongNumber = useSelector(
@@ -148,6 +141,7 @@ function ConfirmMobileChange({ closeWindow, value, successCallback }) {
 
       <LogInPins
         loadingPin={loadingPin}
+        forChanging={true}
         expired={expired}
         init={() => {
           setDisabled(false);

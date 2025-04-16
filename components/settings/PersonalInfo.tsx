@@ -39,6 +39,9 @@ function PersonalInfo({
         obj = { ...obj, gender: payload.gender };
       if (userProfile.alternative_phone !== payload.alternative_phone)
         obj = { ...obj, alternative_phone: payload.alternative_phone };
+      if (payload.id_token) {
+        obj = { ...obj, id_token: payload.id_token };
+      }
       await auth.UpdateProfile({ ...obj });
       dispatch({
         type: "EDIT_USER_INFO",
@@ -86,7 +89,13 @@ function PersonalInfo({
             setIsPhoneShouldChange(false);
           }}
           value={userProfileData.phone}
-          successCallback={() => {
+          successCallback={(idToken) => {
+            updateUserProfile({
+              ...userProfileData,
+              phone: userProfileData.phone,
+              id_token: idToken,
+            });
+
             setIsPhoneShouldChange(false);
           }}
         />
@@ -471,7 +480,7 @@ const ConfirmationModal = ({ closeWindow, value, successCallback }) => {
         <ConfirmMobileChange
           closeWindow={closeWindow}
           value={value}
-          successCallback={(idToken) => {
+          successCallbackFunction={(idToken) => {
             successCallback(idToken);
           }}
         />

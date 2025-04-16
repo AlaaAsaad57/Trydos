@@ -62,6 +62,7 @@ class AuthService {
           _isStoreLastJson() &&
             localStorage.setItem("LAST_JSON", JSON.stringify(repo));
         }
+        return repo.data.verificationId;
       } else {
         store.dispatch({
           type: "WRONG-NUMBER",
@@ -69,7 +70,7 @@ class AuthService {
         });
         throw new Error(msg);
       }
-      return repo;
+      return repo.data.verificationId;
     } catch (e) {
       errorCallback();
       store.dispatch({
@@ -161,7 +162,20 @@ class AuthService {
       throw e;
     }
   }
-
+  async VerifyOtpForUpdatePhone(code: string, verficationID: string) {
+    try {
+      let response = await fetch(
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+          "/auth/phone/verify_otp" +
+          `?verificationId=${verficationID}&otp=${code}`,
+        getHeader()
+      );
+      let data = await response.json();
+      return data.data.id_token;
+    } catch (error) {
+      throw error;
+    }
+  }
   async UpdateName(name: string) {
     try {
       localStorage.setItem(
