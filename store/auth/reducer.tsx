@@ -16,6 +16,7 @@ const initialState = {
   userProfile: null,
   totalOrders: -1,
   isActiveAddress: false,
+  isPhoneVerified: false,
 };
 
 const AuthReducer = (state = initialState, { type, payload }) => {
@@ -56,6 +57,7 @@ const AuthReducer = (state = initialState, { type, payload }) => {
         user: state.user ? { ...state.user, ...payload } : payload,
         Tempuser: state.user ? { ...state.user, ...payload } : payload,
         failedLogin: false,
+        isPhoneVerified: payload.is_phone_verified,
       };
     case "LOGIN_FAILED": {
       return { ...state, failedLogin: true, attempts: state.attempts - 1 };
@@ -75,6 +77,12 @@ const AuthReducer = (state = initialState, { type, payload }) => {
       return {
         ...state,
         userProfile: payload,
+      };
+    }
+    case "UPDATE_USER_IS_VERFIED": {
+      return {
+        ...state,
+        userProfile: { ...state.userProfile, ...payload },
       };
     }
     case "GET_FIREBASE_SETTINGS": {

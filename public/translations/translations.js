@@ -2,7 +2,7 @@ const translations = {
   en: {
     Buy: "Buy",
 
-    K: "k",
+    K: "K",
     M: "M",
     "Shipping & Delivery Address": "Shipping & Delivery Address",
     "No Address Selected": "No Address Selected",

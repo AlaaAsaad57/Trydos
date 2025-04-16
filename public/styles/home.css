@@ -54,6 +54,8 @@
   z-index: 9999999999998;
   width: 100vw;
   height: 100vh;
+  background-color: #0000004f;
+  top: 0px;
 }
 
 .nav-img-item.nav-question-item {

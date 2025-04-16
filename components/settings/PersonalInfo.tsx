@@ -21,7 +21,7 @@ function PersonalInfo({
     name: userProfile?.name,
     phone: userProfile?.phone,
     email: userProfile?.email,
-    gender: userProfile?.gender.value,
+    gender: userProfile?.gender?.value || userProfile?.gender,
     alternative_phone: userProfile?.alternative_phone,
   });
   const [loading, setLoading] = useState(false);
@@ -61,7 +61,7 @@ function PersonalInfo({
       userProfileData.name !== userProfile?.name ||
       userProfileData.phone !== userProfile?.phone ||
       userProfileData.email !== userProfile?.email ||
-      userProfileData.gender !== userProfile?.gender.value ||
+      userProfileData.gender !== userProfile?.gender?.value ||
       userProfileData.alternative_phone !== userProfile?.alternative_phone
     );
   };
@@ -85,6 +85,7 @@ function PersonalInfo({
     >
       {isPhoneShouldChange && (
         <ConfirmationModal
+          forVerify={false}
           closeWindow={() => {
             setIsPhoneShouldChange(false);
           }}
@@ -467,7 +468,12 @@ function PersonalInfo({
 }
 
 export default PersonalInfo;
-const ConfirmationModal = ({ closeWindow, value, successCallback }) => {
+export const ConfirmationModal = ({
+  closeWindow,
+  value,
+  successCallback,
+  forVerify,
+}) => {
   return (
     <>
       <XIcon
@@ -478,6 +484,7 @@ const ConfirmationModal = ({ closeWindow, value, successCallback }) => {
 
       <div className="p-5 flex  w-auto justify-center z-30 h-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[15px]">
         <ConfirmMobileChange
+          forVerify={forVerify}
           closeWindow={closeWindow}
           value={value}
           successCallbackFunction={(idToken) => {

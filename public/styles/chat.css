@@ -12,10 +12,7 @@
   left: initial;
   top: 105px;
 }
-.ar-app.app {
-  left: 30px;
-  right: initial;
-}
+
 .backdrop_msg .message-hold {
   filter: brightness(0.85) !important;
 }

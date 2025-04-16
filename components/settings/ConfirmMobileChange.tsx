@@ -8,7 +8,12 @@ import { Sendevent } from "utils/functions";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
 
-function ConfirmMobileChange({ closeWindow, value, successCallbackFunction }) {
+function ConfirmMobileChange({
+  closeWindow,
+  value,
+  successCallbackFunction,
+  forVerify,
+}) {
   const [stepIndicator, setStepIndicator] = useState(3);
   const [inputValue, setInputValue] = useState(value);
   const dispatch = useDispatch();
@@ -17,7 +22,7 @@ function ConfirmMobileChange({ closeWindow, value, successCallbackFunction }) {
   const [disabled, setDisabled] = useState(false);
   const [expired, setExpired] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [idToken, setIdToken] = useState("");
+
   const verficationID = useSelector(
     (state: StateInterface) => state.auth.verficationID
   );
@@ -45,6 +50,16 @@ function ConfirmMobileChange({ closeWindow, value, successCallbackFunction }) {
   const [rendere, setRender] = useState(true);
   const VerifyOtpHook = async ({ code, verificationID }) => {
     try {
+      if (forVerify) {
+        let data = await AuthService.VerifyOtp(
+          code,
+          verficationID,
+          "",
+          () => {}
+        );
+        FinaliseLogin();
+        return data;
+      }
       let data = await AuthService.VerifyOtpForUpdatePhone(
         code,
         verificationID
@@ -112,6 +127,10 @@ function ConfirmMobileChange({ closeWindow, value, successCallbackFunction }) {
     // localStorage.setItem("has-phone", value);
 
     successCallbackFunction(data);
+    dispatch({
+      type: "UPDATE_USER_IS_VERFIED",
+      payload: { is_phone_verified: 1 },
+    });
     setLoadingPin(false);
   };
   const wrongNumber = useSelector(
