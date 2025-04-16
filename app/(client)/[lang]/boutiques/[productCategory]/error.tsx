@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Logo from "components/Home/Logo";
 import { LogError } from "utils/functions";
-import "regenerator-runtime/runtime";
+
 export default function Error({
   error,
   reset,

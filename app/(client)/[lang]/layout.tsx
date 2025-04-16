@@ -5,7 +5,6 @@ import "styles/unused-onload.css";
 import Providers from "store/provider";
 import localFont from "next/font/local";
 
-import "regenerator-runtime/runtime";
 import PageTransition from "components/global/PageTransition";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
 import { Suspense } from "react";
@@ -82,6 +81,10 @@ export default async function RootLayout({ params, children }) {
   // ${sf_pro_rounded_regular.variable}
   // ${sf_pro_rounded_medium.variable}
   // ${sf_pro_rounded_bold.variable}
+  console.log(
+    "Layout Page",
+    `${new Date().getMinutes()}:${new Date().getSeconds()}`
+  );
 
   return (
     <html

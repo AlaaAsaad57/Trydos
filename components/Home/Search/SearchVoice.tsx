@@ -1,10 +1,11 @@
 import React, { useEffect } from "react";
+import "regenerator-runtime/runtime";
 import SearchMicIcon from "public/svg/SearchMicIcon.svg";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
 import { useSelector } from "react-redux";
-import "regenerator-runtime/runtime";
+
 function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
   const language = useSelector(
     (state: StateInterface) => state.homepage.language

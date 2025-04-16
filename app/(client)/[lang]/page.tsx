@@ -8,7 +8,7 @@ import OfferListSkeleton from "components/skeleton/OfferList";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 
 import { Suspense } from "react";
-import "regenerator-runtime/runtime";
+
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const dynamicParams = true;
 export async function generateStaticParams() {

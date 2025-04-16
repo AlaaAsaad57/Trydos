@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import "public/styles/pageTransition.css";
 import { getCurrency } from "store/chat/actions";
-import { useDispatch } from "node_modules/react-redux/es";
+import { useDispatch } from "react-redux/";
 function PageTransition({ children, init }) {
   const pathname = usePathname();
   const [prevPathname, setPrevPathname] = useState("");

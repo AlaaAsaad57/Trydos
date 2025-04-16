@@ -1,4 +1,3 @@
-import { dispatchRouteChangeEvent } from "utils/events";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -27,7 +26,7 @@ function OfferAvatar({
     } else return images;
   };
   return (
-    <a
+    <Link
       href={linkUrl}
       className="offer-avatar"
       style={{
@@ -52,7 +51,7 @@ function OfferAvatar({
         unselectable="on"
         style={{ borderRadius: "50%", height: "40px" }}
       />
-    </a>
+    </Link>
   );
 }
 
