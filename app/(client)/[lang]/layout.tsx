@@ -106,8 +106,9 @@ export default async function RootLayout({ params, children }) {
       <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <Providers>
           <div className="site-container items-center">
-            <CustomNavbarServer lang={params.lang} />
-
+            <Suspense fallback={<></>}>
+              <CustomNavbarServer lang={params.lang} />
+            </Suspense>
             <PageTransition init={params.lang}>{children}</PageTransition>
           </div>
         </Providers>
