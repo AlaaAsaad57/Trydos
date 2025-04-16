@@ -217,7 +217,7 @@ function Settings({ lang }: { lang: string }) {
       {/* Sidebar Navigation */}
 
       {/* Main Content Area */}
-      <div className="w-full h-full flex-1 relative overflow-hidden">
+      <div className="w-full h-full flex-1 relative overflow-hidden min-h-screen">
         <div
           className="absolute w-full h-full transition-transform duration-300 ease-in-out"
           style={{

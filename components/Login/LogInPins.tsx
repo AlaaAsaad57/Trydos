@@ -26,6 +26,7 @@ function LogInPins({
   inputValue,
   init,
   loadingPin,
+  forChanging,
 }: {
   inputValue: string;
   rendere: boolean;
@@ -44,6 +45,7 @@ function LogInPins({
   successLogin: boolean;
   disabled: boolean;
   loadingPin: boolean;
+  forChanging?: boolean;
 }) {
   let { lang } = useParams();
   // @ts-ignore
@@ -505,7 +507,7 @@ function LogInPins({
                         "pin-border-element" +
                         " " +
                         (expired && "input-expired ") +
-                        (user && " input-success ") +
+                        (user && !forChanging && " input-success ") +
                         " " +
                         ((wrongNumber || failedLogin) &&
                           !user &&
@@ -514,7 +516,7 @@ function LogInPins({
                       style={{
                         backgroundColor: wrongNumber
                           ? "#fff5f5"
-                          : user
+                          : user && !forChanging
                           ? "#F4FFF4"
                           : pin[index] || disabled
                           ? "#f5f5f5"
