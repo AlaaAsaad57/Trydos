@@ -78,7 +78,7 @@ function PersonalInfo({
       userProfileData.alternative_phone
     );
   };
-
+  console.log(userProfileData, userProfile);
   return (
     <div
       className={`flex-col relative ${loading ? "opacity-50 scale-95" : ""}`}
@@ -298,7 +298,7 @@ function PersonalInfo({
                 data-cy="Contact-Phone-input"
                 aria-autocomplete="both"
                 aria-haspopup="false"
-                type="number"
+                type="text"
                 value={userProfileData?.phone}
                 onChange={(e) => {
                   setUserProfileData({
@@ -307,6 +307,7 @@ function PersonalInfo({
                   });
                 }}
                 spellCheck="false"
+                accept=""
                 autoCapitalize="off"
                 autoComplete="off"
                 pattern="[0-9]*"

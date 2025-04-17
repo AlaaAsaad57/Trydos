@@ -179,28 +179,10 @@ class AuthService {
         throw new Error("Wrong Code");
       }
       localStorage.setItem("ID-TOKEN", data.data.id_token);
-      Cookies.set("MARKET-TOKEN", data.data.token);
-      localStorage.setItem("MARKET-TOKEN", data.data.token);
-      changeToken({ key: "MARKET-TOKEN", value: data.data.token });
-      localStorage.setItem(
-        "USER",
-        JSON.stringify({
-          ...data.data.user,
-          already_exists: data.data.already_exists,
-          is_verified: false,
-          expires_at: data.data.expires_at,
-        })
-      );
-      localStorage.removeItem("guest-user");
-      if (localStorage.getItem("customer-info")) {
-        localStorage.removeItem("customer-info");
-      }
       store.dispatch({
-        type: "TEMP-USER",
+        type: "UPDATE_USER_IS_VERFIED",
         payload: {
-          ...data.data.user,
-          already_exists: data.data.already_exists,
-          is_verified: false,
+          is_phone_verified: 1,
         },
       });
       return data.data.id_token;
