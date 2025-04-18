@@ -4,7 +4,6 @@ import axios from "node_modules/axios";
 
 import React, { useEffect, useState } from "react";
 import HomeService from "services/home";
-import { store } from "store";
 import PopupCountry from "utils/PopupCountry";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 import home from "services/home";
@@ -60,7 +59,6 @@ function Init() {
       HomeService.CheckLogin();
     }
     // @ts-ignore
-    window.store = store;
   }, []);
   const getCountries = async () => {
     let data = await axios.get(
@@ -140,11 +138,6 @@ function Init() {
     if (!shouldShowBluredInfo()) {
       const handlePageRefresh = async () => {
         try {
-          // const response2 = await AxiosGet({
-          //   url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
-          //   title: "get firebase settings request"
-          // });
-          // store.dispatch({ type: "GET_FIREBASE_SETTINGS", payload: response2?.firebase_settings });
           requestFirebaseNotificationPermission().then((fbtoken) => {
             if (fbtoken) home.handleTopicsOnPageRefresh(fbtoken);
           });

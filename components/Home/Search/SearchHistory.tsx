@@ -2,9 +2,16 @@ import React, { useEffect, useState } from "react";
 import SearchHistoryIcon from "public/svg/SearchHistoryIcon.svg";
 import CloseIconOption from "public/svg/CloseIconOption.svg";
 import home from "services/home";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppStore } from "store";
 
 function SearchHistory({ options, setOptions, deleteOption }) {
+  const {
+    editFilterSearch,
+    setSearchPartialLoading,
+    findProducts,
+    setSearchLoading,
+    searchFilters,
+  } = useAppStore();
   const [openMenu, setOpen] = useState(false);
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -38,12 +45,9 @@ function SearchHistory({ options, setOptions, deleteOption }) {
       });
     }
   }, []);
-  const dispatch = useDispatch();
-  const searchFilters = useSelector(
-    (state: StateInterface) => state.Search.searchFilters
-  );
+
   const setLoading = (e) => {
-    dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: e });
+    setSearchPartialLoading(e);
   };
 
   return (
@@ -77,23 +81,20 @@ function SearchHistory({ options, setOptions, deleteOption }) {
                   onClick={(e) => {
                     // @ts-ignore
                     if (!e.target.closest(".close-icon-container")) {
-                      dispatch({
-                        type: "SEARCH-PARTIAL-LOADING",
-                        payload: true,
-                      });
-                      dispatch({ type: "SEARCH-LOADING", payload: true });
+                      setSearchPartialLoading(true);
+                      setSearchLoading(true);
                       home.UpdateFilters({
                         search_text: s || "",
                         callback: (e) => {
                           setLoading(false);
-                          dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+                          editFilterSearch(e);
                         },
                       });
                       home.SearchProducts({
                         search_text: s,
                         searchFilters: searchFilters,
                         callback: (e) => {
-                          dispatch({ type: "FIND-PRODUCTS", payload: e });
+                          findProducts(e);
                         },
                       });
                       setOptions(s);
@@ -146,23 +147,20 @@ function SearchHistory({ options, setOptions, deleteOption }) {
               onClick={(e) => {
                 // @ts-ignore
                 if (!e.target.closest(".close-icon-container")) {
-                  dispatch({
-                    type: "SEARCH-PARTIAL-LOADING",
-                    payload: true,
-                  });
-                  dispatch({ type: "SEARCH-LOADING", payload: true });
+                  setSearchPartialLoading(true);
+                  setSearchLoading(true);
                   home.UpdateFilters({
                     search_text: s || "",
                     callback: (e) => {
                       setLoading(false);
-                      dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+                      editFilterSearch(e);
                     },
                   });
                   home.SearchProducts({
                     search_text: s,
                     searchFilters: searchFilters,
                     callback: (e) => {
-                      dispatch({ type: "FIND-PRODUCTS", payload: e });
+                      findProducts(e);
                     },
                   });
                   setOptions(s);

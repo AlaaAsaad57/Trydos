@@ -2,9 +2,10 @@ import React, { useRef, useState } from "react";
 import SettingTopBar from "./TopBar";
 import AvatarEditor from "react-avatar-editor";
 import { dataURLtoFile } from "components/Chat/chatsFunctions";
-import { useDispatch, useSelector } from "react-redux";
+
 import auth from "services/auth";
 import { translateFunction } from "utils/functions";
+import { useAppStore } from "store";
 
 function UploadProfilePhoto({
   swipeToScreen,
@@ -13,9 +14,7 @@ function UploadProfilePhoto({
   swipeToScreen: (index: number) => void;
   goBack: () => void;
 }) {
-  const userProfile = useSelector(
-    (state: StateInterface) => state.auth.userProfile
-  );
+  const { editUserInfo, userProfile } = useAppStore();
 
   const [file, setFile] = useState(userProfile.image);
   const [isDragged, setIsDragged] = useState(false);
@@ -122,7 +121,7 @@ function UploadProfilePhoto({
       return canvasScaled.toDataURL();
     }
   };
-  const dispatch = useDispatch();
+
   const UploadFile = async () => {
     setIsUploading(true);
     try {
@@ -143,13 +142,11 @@ function UploadProfilePhoto({
         image: file ? res.sub_path : null,
       });
       // setFile(res.data.image);
-      dispatch({
-        type: "EDIT_USER_INFO",
-        payload: {
-          image: file
-            ? process.env.NEXT_PUBLIC_CLOUDINARY_URL + res.sub_path
-            : null,
-        },
+
+      editUserInfo({
+        image: file
+          ? process.env.NEXT_PUBLIC_CLOUDINARY_URL + res.sub_path
+          : null,
       });
       setIsDragged(false);
       setIsUploading(false);

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import ReplyIcon from "../svg/rep.svg";
 import CopyIcon from "../svg/copy.svg";
 import CategoryIcon from "../svg/categ.svg";
@@ -7,16 +6,17 @@ import EditIcon from "../svg/edit.svg";
 import ForwardIcon from "../svg/forward.svg";
 import RemindIcon from "../svg/remind.svg";
 import { translateFunction } from "utils/functions";
-import { useSelector } from "react-redux";
+
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 function OptionsMenu(props) {
+  const { language } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const language = useSelector((state) => state.homepage.language);
   const { DeleteModal, setDelete } = props;
   return (
     <div className="abs-menu">

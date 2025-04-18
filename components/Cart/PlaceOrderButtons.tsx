@@ -1,18 +1,20 @@
 import { toast } from "react-toastify";
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
+import { useAppStore } from "store";
 
 function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
-  const cart = useSelector((state: StateInterface) => state.cart);
-  const currency_symbol = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
-  const orderData = useSelector(
-    (state: StateInterface) => state.cart.orderData
-  );
+  const {
+    setOrderData,
+    initCart,
+    currency,
+    orderData,
+    total,
+    total_cash,
+    cart,
+  } = useAppStore();
   const shake = (v) => {
     if (document.querySelector(`.${v}`)) {
       document.querySelector(`.${v}`).scrollIntoView({ block: "end" });
@@ -34,9 +36,8 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
       shake("agree-valid-border");
     }
   };
-  const dispatch = useDispatch();
   const setAgree = (e) => {
-    dispatch({ type: "ORDER-DATA", payload: { agree: e } });
+    setOrderData({ agree: e });
   };
   const [loading, setLoading] = useState(false);
   const VerifyCart = async () => {
@@ -45,7 +46,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
       let a = (
         await getCart({
           callback: ([data, res]) => {
-            dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+            initCart(data ?? { cart: [] });
           },
         })
       ).cart;
@@ -74,9 +75,9 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   };
   const getTotalPrice = () => {
     if (orderData.payment.filter((s) => s.id === 0).length > 0) {
-      return cart.total_cash;
+      return total_cash;
     } else {
-      return cart.total;
+      return total;
     }
   };
   return (
@@ -155,18 +156,16 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
         <div
           onClick={() => {
             if (orderData.success) {
-              dispatch({
-                type: "ORDER-DATA",
-                payload: {
-                  payment: [],
-                  coupon: false,
-                  agree: false,
-                  coupon_number: "",
-                  loading: false,
-                  success: false,
-                  data: [],
-                },
+              setOrderData({
+                payment: [],
+                coupon: false,
+                agree: false,
+                coupon_number: "",
+                loading: false,
+                success: false,
+                data: [],
               });
+
               close();
               return;
             }
@@ -208,9 +207,8 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
                       "dir-rtl"
                     } `}
                   >
-                    {cart.cart.length} {translateFunction("items")}{" "}
-                    {RoundPrice({ num: getTotalPrice() })}{" "}
-                    {currency_symbol?.symbol}
+                    {cart.length} {translateFunction("items")}{" "}
+                    {RoundPrice({ num: getTotalPrice() })} {currency?.symbol}
                   </span>
                 </>
               )}

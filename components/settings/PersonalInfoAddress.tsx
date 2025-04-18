@@ -3,10 +3,11 @@ import { translateFunction } from "utils/functions";
 import AddressInfo from "public/svg/cart/AddressInfo.svg";
 import SettingTopBar from "./TopBar";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
-import { useDispatch, useSelector } from "node_modules/react-redux/es";
+
 import order from "services/order";
 import { DeleteModalComponent } from "components/Cart/OrdersPage";
 import { getCountriesApi } from "store/homepage/cachedActions";
+import { useAppStore } from "store";
 function PersonalInfoAddress({
   swipeToScreen,
   goBack,
@@ -16,10 +17,11 @@ function PersonalInfoAddress({
   goBack: () => void;
   setIsActive: (isActive: boolean) => void;
 }) {
+  const { setCountries, addressLists } = useAppStore();
   const getAdditionData = async () => {
     order.GetAddressList();
     const countries = await getCountriesApi();
-    dispatch({ type: "COUNTRIES-DATA", payload: countries });
+    setCountries(countries);
   };
   useEffect(() => {
     getAdditionData();
@@ -59,13 +61,8 @@ function PersonalInfoAddress({
       str += ` | ${location?.building}`;
     return str;
   };
-  const addressLists = useSelector(
-    (state: StateInterface) => state.cart.addressLists
-  );
-  const dispatch = useDispatch();
-  const setAddressDetails = (e) => {
-    dispatch({ type: "set-address-details", payload: e });
-  };
+
+  const { initAddressForm, setAddressDetails } = useAppStore();
   return (
     <div className="flex-col ">
       <SettingTopBar
@@ -175,8 +172,6 @@ function PersonalInfoAddress({
                       if (!e.target.closest(".map-element-icon")) {
                         // closeSelect(false);
                         // order.SetDefault({ id: s.id });
-                        // dispatch({ type: "UPDATE-ADDRESS", payload: s });
-                        // dispatch({ type: "SET-DEF-ADDRESS", payload: s.id });
                       }
                     }}
                     style={{
@@ -349,7 +344,7 @@ function PersonalInfoAddress({
             }}
             onClick={() => {
               setIsActive(true);
-              dispatch({ type: "INIT-ADDRESS-FORM" });
+              initAddressForm();
               swipeToScreen(6);
               // onClick();
             }}
@@ -414,11 +409,11 @@ const MiniAddressInfo = () => {
   );
 };
 const EditIcon = ({ address, onClick }) => {
-  const dispatch = useDispatch();
+  const { startUpdateAddress } = useAppStore();
   return (
     <span
       onClick={() => {
-        dispatch({ type: "START-UPDATE-ADDRESS", payload: address });
+        startUpdateAddress(address);
         onClick();
       }}
       className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-[10] right-[32px] top-[8px]"
@@ -491,7 +486,6 @@ const EditIcon = ({ address, onClick }) => {
   );
 };
 const DeleteIcon = ({ address, onClick }) => {
-  const dispatch = useDispatch();
   return (
     <span
       onClick={() => {

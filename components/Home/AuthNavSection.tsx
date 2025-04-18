@@ -1,4 +1,3 @@
-import { useDispatch, useSelector } from "react-redux";
 import ChatIcon from "public/svg/ChatIcon.svg";
 import { Sendevent, translateFunction } from "utils/functions";
 import UserAvatar from "./UserAvatar";
@@ -6,22 +5,16 @@ import { ChatConroller } from "store/chat/actions";
 import { getNew } from "components/Chat/chatsFunctions";
 import ChatNotification from "./ChatNotification";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 
 function AuthNavSection({ onClick }: { onClick: () => void }) {
+  const { language, user, chatVar, data: chats } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
-  const chatVar = useSelector((state: StateInterface) => state.chat.chatVar);
-  const user = useSelector((state: StateInterface) => state.auth.user);
-
-  const chats = useSelector((state: StateInterface) => state.chat.data);
-  const dispatch = useDispatch();
 
   return (
     <>
@@ -42,7 +35,7 @@ function AuthNavSection({ onClick }: { onClick: () => void }) {
               event: "button_clicked",
               value: "chat_nav_bar_button",
             });
-            dispatch(ChatConroller(true));
+            ChatConroller(true);
           }}
         >
           {!chatVar && getNew(chats).length === 0 ? (

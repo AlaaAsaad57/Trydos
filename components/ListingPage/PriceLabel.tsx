@@ -1,9 +1,9 @@
 "use client";
 
 import { CurrencyApi } from "models/Api";
-import { useEffect } from "react";
-import { useSelector } from "react-redux";
+
 import LocalizationServiceClass from "services/localization";
+import { useAppStore } from "store";
 import { RoundPrice } from "utils/functions";
 
 function PriceLabel({
@@ -15,18 +15,14 @@ function PriceLabel({
   offer_price: number;
   currency: CurrencyApi["data"]["currency"];
 }) {
-  const decimal_point_settings = useSelector(
-    (state: StateInterface) => state.homepage.settings
-  );
+  const { settings } = useAppStore();
 
   const getPrice = (num) => {
     return RoundPrice({
       num: num,
       rate: currency?.exchange_rate || 1,
       points:
-        (decimal_point_settings &&
-          decimal_point_settings["starting-setting"]?.decimal_point_settings) ||
-        0,
+        (settings && settings["starting-setting"]?.decimal_point_settings) || 0,
     });
   };
   return (

@@ -7,13 +7,14 @@ import AsyncSelectCustom from "./AsyncSelectCustom";
 import Link from "next/link";
 import CompareLoadingWidget from "./CompareLoadingWidget";
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
 import SearchService from "services/search";
+import { useAppStore } from "store";
 const ComparePage: React.FC = ({
   showInstantLoading = true,
 }: {
   showInstantLoading?: boolean;
 }) => {
+  const { currency } = useAppStore();
   const searchParams = useSearchParams();
   const [product1, setProduct1] = useState<any>(null);
   const [product2, setProduct2] = useState<any>(null);
@@ -21,9 +22,6 @@ const ComparePage: React.FC = ({
   const [loading2, setLoading2] = useState(false);
   const [initialLoading, setInitialLoading] = useState(showInstantLoading);
   const { lang } = useParams();
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
   useEffect(() => {
     const { f_p, s_p } = {
       f_p: searchParams.get("f_p"),

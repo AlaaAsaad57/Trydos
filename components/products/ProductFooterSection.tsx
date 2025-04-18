@@ -5,17 +5,16 @@ import ExtendedAreaInfo from "./ExtendedAreaInfo";
 import ProductOptions from "./ProductOptions";
 import ProductDetails from "./ProductDetails";
 import SelectColor from "./SelectColor";
-import { useDispatch, useSelector } from "react-redux";
 import { RoundPrice, translateFunction } from "utils/functions";
 
 import { toast } from "react-toastify";
 import chat from "services/chat";
-import home from "services/home";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { useParams, useSearchParams } from "next/navigation";
 import { LikesSharesCommentsApi, ProductViews, SharesCount } from "models/Api";
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
+import { useAppStore } from "store";
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
     return {
@@ -70,15 +69,25 @@ function ProductReducer(state, { type, payload }) {
   }
 }
 function ProductFooterSection({ product, currency }) {
+  const {
+    setLoadedCart,
+    getProductVariation,
+    setViewsProducts,
+    storeVariants,
+    disableAddToCartOption,
+    setShareLoading,
+    setSharesCount,
+    loginOpen,
+    AddToCartOption,
+    settings,
+  } = useAppStore();
   let { lang } = useParams();
+  console.log(currency, settings);
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const shareLoading = useSelector(
-    (state: StateInterface) => state.details.shareLoading
-  );
   const sizes =
     product?.choice_options?.filter((s) => s.title == "Size")[0]?.options || [];
   const [productState, dispatch] = useReducer(ProductReducer, {
@@ -114,7 +123,7 @@ function ProductFooterSection({ product, currency }) {
       comments: req?.comments || [],
     });
   };
-  const dispatchStore = useDispatch();
+
   const [sharedContacts, setShareContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
@@ -128,18 +137,12 @@ function ProductFooterSection({ product, currency }) {
           product.slug,
         title: "Like & Comments Data Request",
       });
-
-      dispatchStore({
-        type: "STORE-VARIANTS",
+      storeVariants({
         // @ts-ignore
-        payload: {
-          // @ts-ignore
-          variation: req?.variation,
-          // @ts-ignore
-          slug_en_topic: req?.slug_en_topic,
-        },
+        variation: req?.variation,
+        // @ts-ignore
+        slug_en_topic: req?.slug_en_topic,
       });
-
       // @ts-ignore
       let likesNum = req?.count_of_likes || 0;
       // @ts-ignore
@@ -163,18 +166,16 @@ function ProductFooterSection({ product, currency }) {
         color: searchParams.get("color"),
         size: searchParams.get("size"),
       };
-      dispatchStore({
-        type: "GET-PRODUCT-VARIATION",
-        payload: {
-          ...product,
-          // @ts-ignore
-          is_product_notify_for_user: req?.is_product_notify_for_user,
-          variation: arr,
-          likes: likesNum,
-          is_liked: isLiked,
-          color,
-          size,
-        },
+
+      getProductVariation({
+        ...product,
+        // @ts-ignore
+        is_product_notify_for_user: req?.is_product_notify_for_user,
+        variation: arr,
+        likes: likesNum,
+        is_liked: isLiked,
+        color,
+        size,
       });
       setLoading(false);
       // @ts-ignore
@@ -184,11 +185,7 @@ function ProductFooterSection({ product, currency }) {
           `/api/v2/elastic/shared_count/${product.id}`,
         title: "Share Count Request",
       });
-
-      dispatchStore({
-        type: "shares",
-        payload: reqShares.shared_count,
-      });
+      setSharesCount(reqShares.shared_count);
       const viewsReq: ProductViews = await AxiosPost({
         url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + `/api/products/view`,
         title: "get Views For Product",
@@ -197,11 +194,8 @@ function ProductFooterSection({ product, currency }) {
           product_id: product.id,
         },
       });
-      dispatchStore({
-        type: "VIEWS-PRODUCTS",
-        payload: {
-          views_count: viewsReq?.view_count || 0,
-        },
+      setViewsProducts({
+        views_count: viewsReq?.view_count || 0,
       });
       setLoading(false);
     } catch (error) {
@@ -210,35 +204,20 @@ function ProductFooterSection({ product, currency }) {
     }
   };
   useEffect(() => {
-    dispatchStore({ type: "LOADED-CART", payload: false });
+    setLoadedCart(false);
 
     getData();
-    dispatchStore({ type: "AddToCartOptionDisable" });
+    disableAddToCartOption();
   }, []);
-  const decimal_point_settings = useSelector(
-    (state: StateInterface) => state.homepage.settings
-  ) || {
-    "starting-setting": {
-      decimal_point_settings: 0,
-    },
-  };
 
-  let AddToCartOption = useSelector(
-    (state: StateInterface) => state.cart.AddToCartOption
-  );
   const getPrice = (num) => {
     if (currency?.exchange_rate === null || !currency?.exchange_rate)
       return null;
-    if (
-      decimal_point_settings &&
-      Object.keys(decimal_point_settings).includes("starting-setting")
-    )
+    if (settings && Object.keys(settings).includes("starting-setting"))
       return RoundPrice({
         num: num,
         rate: currency?.exchange_rate,
-        points:
-          decimal_point_settings["starting-setting"]?.decimal_point_settings ||
-          0,
+        points: settings["starting-setting"]?.decimal_point_settings || 0,
       });
   };
   const shareAction = () => {
@@ -251,12 +230,12 @@ function ProductFooterSection({ product, currency }) {
         product_slug: product.slug,
         product_description: product?.details,
       };
-      dispatchStore({ type: "share-loading", payload: true });
+      setShareLoading(true);
       chat.ShareProduct({
         userId: sharedContacts,
         product: messageShare,
         callback: () => {
-          dispatchStore({ type: "share-loading", payload: false });
+          setShareLoading(false);
           setShareContacts([]);
           setOption("");
         },
@@ -270,9 +249,6 @@ function ProductFooterSection({ product, currency }) {
       );
     }
   };
-  const loginOpen = useSelector(
-    (state: StateInterface) => state.homepage.loginOpen
-  );
 
   return (
     <>

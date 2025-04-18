@@ -1,22 +1,16 @@
 import React, { useRef, useEffect } from "react";
 import { translateFunction } from "utils/functions";
 import Image from "next/image";
-import { useParams } from "next/navigation";
 import NextLink from "components/global/NextLink";
-import { useSelector } from "react-redux";
+import { useAppStore } from "store";
 
 interface WishListPanelProps {
   onClose: () => void;
 }
 
 const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
+  const { currency } = useAppStore();
   const wishListRef = useRef<HTMLDivElement>(null);
-
-  const { lang } = useParams();
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  ) || { symbol: "" };
-
   // Handle document scroll lock
   useEffect(() => {
     const originalStyle = window.getComputedStyle(document.body).overflow;

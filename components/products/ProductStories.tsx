@@ -2,29 +2,28 @@
 import React, { useEffect } from "react";
 import StoreisIcon from "public/svg/product/StoreisIcon.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
-import { useDispatch, useSelector } from "react-redux";
 import { SelectStory } from "store/homepage/actions";
 import { translateFunction } from "utils/functions";
 import StoryServiceClass from "services/story";
 import StoriesContainer from "components/Home/Stories/NewStories";
 import InfoWindow from "./InfoWindow";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 function ProductStories() {
+  const {
+    storiesData: stories,
+    selectedStory,
+    InfoMessage: showInfoMessageObj,
+    showInfoMessage,
+  } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
-  const stories = useSelector(
-    (state: StateInterface) => state.homepage.storiesData
-  );
-  const dispatch = useDispatch();
-  const selectedStory = useSelector(
-    (state: StateInterface) => state.homepage.selectedStory
-  );
   const setSelectStory = (e) => {
-    dispatch(SelectStory(e));
+    SelectStory(e);
   };
   useEffect(() => {
     setTimeout(() => {
@@ -60,14 +59,12 @@ function ProductStories() {
       });
     }
   }, []);
-  const showInfoMessage = useSelector(
-    (state: StateInterface) => state.details.InfoMessage.showInfoMessage
-  );
+
   return (
     <div
       className={`product-colors product-stories flex-col  align-start relative`}
     >
-      {showInfoMessage && <InfoWindow />}
+      {showInfoMessageObj.showInfoMessage && <InfoWindow />}
       {selectedStory?.id && (
         <StoriesContainer
           activeId={selectedStory?.id}
@@ -81,15 +78,12 @@ function ProductStories() {
           data-cy="QuestionMark"
           style={{ marginLeft: "9px" }}
           onClick={() => {
-            dispatch({
-              type: "SHOW-INFO-MESSAGE",
-              payload: {
-                showInfoMessage: true,
-                title: `${translate("Product Story")}`,
-                text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
-                icon: "/svg/product/StoreisIcon.svg",
-                value: [],
-              },
+            showInfoMessage({
+              showInfoMessage: true,
+              title: `${translate("Product Story")}`,
+              text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
+              icon: "/svg/product/StoreisIcon.svg",
+              value: [],
             });
           }}
         />
@@ -109,8 +103,12 @@ function ProductStories() {
               width={135}
               height={194}
               src={StoryServiceClass.getThumb(
-                story.stories[0].full_video_path || story.stories[0].photo_path,
-                Boolean(story.stories[0].full_video_path)
+                // @ts-ignore
+                story.stories[0]?.full_video_path ||
+                  // @ts-ignore
+                  story.stories[0]?.photo_path,
+                // @ts-ignore
+                Boolean(story.stories[0]?.full_video_path)
               )}
             />
             <div className="inset-story-shadow absolute" />

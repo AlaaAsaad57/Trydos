@@ -8,8 +8,7 @@ import {
 } from "next/navigation";
 import { NotificationItem as NotificationItemType } from "../../types/notifications";
 import { translateFunction } from "utils/functions";
-
-import { useDispatch } from "react-redux/es";
+import { useAppStore } from "store";
 
 interface NotificationItemProps {
   notification: NotificationItemType;
@@ -20,8 +19,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   notification,
   onClose,
 }) => {
+  const { enableCart } = useAppStore();
   const { lang } = useParams();
-  const dispatch = useDispatch();
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -114,8 +113,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
             <div
               onClick={() => {
                 window.history.pushState({ isPopup: true }, "open Cart");
-                dispatch({ type: "ENABLE-CART", payload: true });
-
+                enableCart(true);
                 const newParams = new URLSearchParams(searchParams);
                 newParams.set("cart", "true");
 

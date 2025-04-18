@@ -1,8 +1,8 @@
 import Image from "next/image";
 
 import { translateFunction } from "utils/functions";
-import { useSelector } from "react-redux";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 
 interface MoreOfferAvatarProps {
   images: string;
@@ -22,9 +22,7 @@ function MoreOfferAvatar({
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const language: string = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
+  const { language } = useAppStore();
 
   return (
     <div

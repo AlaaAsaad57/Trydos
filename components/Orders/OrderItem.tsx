@@ -5,10 +5,11 @@ import {
   getConfiguredImage,
 } from "utils/functions";
 import { OrderDetail, OrderItem as OrderItemType } from "../../types/orders";
-import { useSelector } from "react-redux";
+
 import { useParams } from "next/navigation";
 
 import { getStatusDisplayName } from "components/settings/OrdersList";
+import { useAppStore } from "store";
 
 interface OrderItemProps {
   order: OrderItemType;
@@ -255,9 +256,7 @@ const OrderInvoice = ({
 }: {
   invoice: { items: number; total: number };
 }) => {
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+  const { currency } = useAppStore();
   return (
     <div className="flex-row items-center">
       <svg

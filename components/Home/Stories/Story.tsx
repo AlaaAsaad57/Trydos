@@ -4,7 +4,6 @@ import { errorPNG } from "utils/AxiosApi";
 import Loader from "components/global/Loader";
 import Image from "next/image";
 import StoryServiceClass from "services/story";
-import { useDispatch } from "node_modules/react-redux/es";
 import { Story as StoryType } from "models/story";
 import { SelectStory } from "store/homepage/actions";
 
@@ -19,9 +18,8 @@ function Story({
   index: number;
   story: StoryType;
 }) {
-  const dispatch = useDispatch();
   const setSelectStory = (e: StoryType) => {
-    dispatch(SelectStory(e));
+    SelectStory(e);
   };
 
   const [load, onLoad] = useState(null);

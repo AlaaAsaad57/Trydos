@@ -5,11 +5,12 @@ import { Sendevent, translateFunction } from "utils/functions";
 import NextLink from "components/global/NextLink";
 import { useParams, usePathname } from "next/navigation";
 import { changeAppLanguage } from "store/homepage/actions";
-import { useDispatch, useSelector } from "react-redux";
+
 import NotificationsPanel from "../Notifications/NotificationsPanel";
 
 import WishListPanel from "../WishList/WishListPanel";
 import CountrySelector from "components/global/CountrySelector";
+import { useAppStore } from "store";
 
 interface MenuProps {
   user: any;
@@ -33,16 +34,13 @@ const MenuIcon: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 );
 
 const LanguageSelector: React.FC = () => {
+  const { language } = useAppStore();
   const { lang } = useParams();
-  const dispatch = useDispatch();
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
 
   const isSelected = (val: string) => language === val;
 
   const handleLanguageChange = (newLang: string) => {
-    dispatch(changeAppLanguage(newLang));
+    changeAppLanguage(newLang);
     window.location.href = window.location.href.replace(
       // @ts-ignore
       lang,

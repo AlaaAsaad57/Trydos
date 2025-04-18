@@ -3,10 +3,10 @@ import SettingTopBar from "./TopBar";
 import { translateFunction } from "utils/functions";
 
 import AddressInfo from "public/svg/cart/AddressInfo.svg";
-import { useDispatch, useSelector } from "react-redux";
 import auth from "services/auth";
 import ConfirmMobileChange from "./ConfirmMobileChange";
 import XIcon from "public/svg/Xicon.svg";
+import { useAppStore } from "store";
 function PersonalInfo({
   swipeToScreen,
   goBack,
@@ -14,9 +14,8 @@ function PersonalInfo({
   swipeToScreen: (index: number) => void;
   goBack: () => void;
 }) {
-  const userProfile = useSelector(
-    (state: StateInterface) => state.auth.userProfile
-  );
+  const { editUserInfo, userProfile } = useAppStore();
+
   const [userProfileData, setUserProfileData] = useState({
     name: userProfile?.name,
     phone: userProfile?.phone,
@@ -43,10 +42,7 @@ function PersonalInfo({
         obj = { ...obj, id_token: payload.id_token };
       }
       await auth.UpdateProfile({ ...obj });
-      dispatch({
-        type: "EDIT_USER_INFO",
-        payload: { ...payload, gender: { value: payload.gender } },
-      });
+      editUserInfo({ ...payload, gender: { value: payload.gender } });
       setLoading(false);
       goBack();
     } catch (error) {
@@ -55,7 +51,7 @@ function PersonalInfo({
       console.log(error);
     }
   };
-  const dispatch = useDispatch();
+
   const isEdited = () => {
     return (
       userProfileData.name !== userProfile?.name ||

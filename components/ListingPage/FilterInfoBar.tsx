@@ -1,11 +1,11 @@
 "use client";
 import React, { useEffect } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
-import { useDispatch, useSelector } from "react-redux";
 import CloseIcon from "public/svg/CloseIcon.svg";
 import { filterProducts, RoundPrice, UpdateFilter } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
 import Search from "public/svg/SearchIcon.svg";
+import { useAppStore } from "store";
 
 function FilterInfoBar({
   filtersVariable,
@@ -16,36 +16,20 @@ function FilterInfoBar({
   reset?: Function;
   searchValue?: string;
 }) {
-  const decimal_point_settings = useSelector(
-    (state: StateInterface) => state.homepage.settings
-  );
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  ) || { exchange_rate: 1 };
-  const getPrice = (num) => {
-    if (
-      decimal_point_settings &&
-      Object.keys(decimal_point_settings).includes("starting-setting")
-    )
-      return RoundPrice({
-        num: num,
-        rate: currency?.exchange_rate,
-        points:
-          (decimal_point_settings["starting-setting"]?.decimal_point_settings >=
-            0 &&
-            decimal_point_settings["starting-setting"]
-              ?.decimal_point_settings) ||
-          0,
-      });
-  };
-  const currency_symbol = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
-  const sizesAttr = useSelector(
-    (state: StateInterface) => state.details.filters.sizesAttr
-  );
-  const dispatch = useDispatch();
-  const filters = useSelector((state: StateInterface) => state.details.filters);
+  const {
+    setFilterLoading,
+    resetFilter,
+    editFilter,
+    getProducts,
+    setSkeleton,
+    setLoadingProducts,
+    resetListingFilter,
+    setActiveFilter,
+    currency,
+    filters,
+  } = useAppStore();
+
+  const sizesAttr = filters.sizesAttr;
   useEffect(() => {
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement =
@@ -101,11 +85,11 @@ function FilterInfoBar({
         data-cy="closeIcon"
         className="mr-2 ml-2"
         onClick={() => {
-          dispatch({ type: "RESET-FILTER" });
-          dispatch({ type: "FILTER-LOADING", payload: true });
-          dispatch({ type: "PRODUCT_LOADING" });
-          dispatch({ type: "RESET_LISTING_FILTER" });
-          dispatch({ type: "Skeleton-Listing" });
+          resetFilter();
+          setFilterLoading(true);
+          setLoadingProducts(true);
+          resetListingFilter();
+          setSkeleton(true);
           // @ts-ignore
           filterProducts({
             boutiqueId:
@@ -115,25 +99,22 @@ function FilterInfoBar({
             lang: pathName.lang,
             sizesAttr: sizesAttr,
             callback: (products) => {
-              dispatch({ type: "GET_PRODUCT", payload: { products } });
-              dispatch({ type: "FILTER-LOADING", payload: false });
+              getProducts({ products });
+              setFilterLoading(false);
             },
             offset: 1,
             storeCallback: (e) => {
-              dispatch({
-                type: "ACTIVE-FILTER",
-                payload: {
-                  categories: [],
-                  brands: [],
-                  prices: null,
-                  offers: [],
-                  sizes: [],
-                  colors: [],
-                },
+              setActiveFilter({
+                categories: [],
+                brands: [],
+                prices: null,
+                offers: [],
+                sizes: [],
+                colors: [],
               });
             },
             newFiltersCallback: ({ filtersVar }) => {
-              dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+              editFilter(filtersVar);
             },
             reset: true,
           });
@@ -143,17 +124,14 @@ function FilterInfoBar({
             boutiqueId: pathName.productCategory,
             lang: pathName.lang,
             done: () => {
-              dispatch({ type: "FILTER-LOADING", payload: false });
+              setFilterLoading(false);
             },
             newFiltersCallback: ({ filtersVar }) => {
-              dispatch({
-                type: "EDIT-FILTER",
-                payload: { ...filtersVar, reset: true },
-              });
+              editFilter({ ...filtersVar, reset: true });
             },
             searchText: "",
           });
-          dispatch({ type: "RESET-FILTER" });
+          resetFilter();
           if (reset) reset();
         }}
       />
@@ -392,7 +370,7 @@ function FilterInfoBar({
           {
             <>
               <div className="category-title filter-bar-main-title">
-                {currency_symbol?.symbol}{" "}
+                {currency?.symbol}{" "}
                 {RoundPrice({
                   num: filtersVariable?.prices?.min,
                   rate: currency?.exchange_rate,

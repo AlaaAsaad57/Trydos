@@ -1,6 +1,5 @@
 "use client";
 import "styles/home.css";
-import { useDispatch, useSelector } from "react-redux";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
 
@@ -12,8 +11,11 @@ import StoryServiceClass from "services/story";
 import { dispatchRouteChangeEvent } from "utils/events";
 import SearchContainer from "./Search/SearchContainer";
 import auth from "services/auth";
+import { useAppStore } from "store";
 
 export default function Home() {
+  const { resetFilters, selectedStory, enable_search, nameModal } =
+    useAppStore();
   useEffect(() => {
     dispatchRouteChangeEvent("completed");
     document.documentElement.style.overflow = "initial";
@@ -23,9 +25,8 @@ export default function Home() {
       initFB();
     } catch (e) {}
   }, []);
-  const dispatch = useDispatch();
   const initFB = async () => {
-    dispatch({ type: "RESET-FILTERS" });
+    resetFilters();
     if (StoryServiceClass.getUserStories()?.id) {
       const Cookies = (await import("js-cookie")).default;
       Cookies.set("token", StoryServiceClass.getUserStories()?.access_token);
@@ -47,30 +48,7 @@ export default function Home() {
       });
     }
   };
-  const selectedStory = useSelector(
-    (state: StateInterface) => state.homepage.selectedStory
-  );
 
-  const searchEnabled = useSelector(
-    (state: StateInterface) => state.Search.enable
-  );
-
-  const nameModal = useSelector(
-    (state: StateInterface) => state.chat.nameModal
-  );
-  // useEffect(() => {
-  //   if (selectedStory) {
-  //     document.documentElement
-  //       .getElementsByTagName("meta")[0]
-  //       .setAttribute("content", "");
-  //     document.body.style.overflowY = "hidden";
-  //   } else {
-  //     document.documentElement
-  //       .getElementsByTagName("meta")[0]
-  //       .setAttribute("content", "");
-  //     document.body.style.overflowY = "initial";
-  //   }
-  // }, [selectedStory]);
   const getNameModalOpen = () => {
     let name =
       typeof window !== "undefined" &&
@@ -91,7 +69,7 @@ export default function Home() {
           selectedStory={selectedStory}
         />
       )}
-      {<SearchContainer active={searchEnabled} />}
+      {<SearchContainer active={enable_search} />}
     </>
   );
 }

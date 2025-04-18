@@ -2,11 +2,10 @@
 import React, { useEffect } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import { useParams, useRouter } from "next/navigation";
-import { dispatchRouteChangeEvent } from "utils/events";
-import { useSelector } from "react-redux";
 import { LogData } from "store/homepage/actions";
 import NextLink from "components/global/NextLink";
 import { PrefetchKind } from "node_modules/next/dist/client/components/router-reducer/router-reducer-types";
+import { useAppStore } from "store";
 function BackBar({
   close,
   link,
@@ -22,9 +21,7 @@ function BackBar({
     LogData(data);
   }, []);
   const router = useRouter();
-  const activeRoute = useSelector(
-    (state: StateInterface) => state.homepage.activeRoute
-  );
+  const { activeRoute } = useAppStore();
   const { lang } = useParams();
   useEffect(() => {
     if (activeRoute === "/" || !activeRoute)

@@ -1,7 +1,7 @@
 import { LOG_IN_CHAT } from "utils/endpointConfig";
 import HomeService from "services/home";
 import Cookies from "js-cookie";
-import { store } from "store";
+import { useAppStore } from "store";
 import {
   _isStoreLastJson,
   getLang,
@@ -89,6 +89,7 @@ class ChatService {
     } catch (e) {}
   }
   async ShareProduct({ userId, product, callback }) {
+    const { language } = useAppStore.getState();
     try {
       let response = await axios.post(
         process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
@@ -97,14 +98,10 @@ class ChatService {
         { ...ChatHeader() }
       );
       await GetChats("share");
-      toast.success(
-        translate("Shared Successfully", store.getState().homepage.language)
-      );
+      toast.success(translate("Shared Successfully", language));
       callback();
     } catch (e) {
-      toast.error(
-        translate("Product Share error", store.getState.homepage.language)
-      );
+      toast.error(translate("Product Share error", language));
     }
   }
   async StoreToken(payload: {
@@ -112,6 +109,7 @@ class ChatService {
     user?: { access_token: string; id: number };
     token: string;
   }) {
+    const { setFirebaseToken } = useAppStore.getState();
     const response = await fetch(
       process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + "/api/v1/firebase_tokens",
       {
@@ -134,7 +132,7 @@ class ChatService {
       _isStoreLastJson() &&
         localStorage.setItem("LAST_JSON", JSON.stringify(repo));
     }
-    store.dispatch({ type: "STORE_TOKEN_RED", payload: payload.token });
+    setFirebaseToken(payload.token);
     localStorage.setItem("firebase_id", repo.data.id);
   }
 }

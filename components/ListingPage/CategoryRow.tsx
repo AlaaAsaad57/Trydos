@@ -1,10 +1,10 @@
 "use client";
-import React, { useEffect } from "react";
+import React from "react";
 import CategoryCircle from "./CategoryCircle";
-import { useSelector } from "react-redux";
+import { useAppStore } from "store";
 
 function CategoryRow() {
-  const filters = useSelector((state: StateInterface) => state.details.filters);
+  const { filters } = useAppStore();
 
   return (
     <div className="category-row-container flex-row" data-cy="categoryBox">

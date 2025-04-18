@@ -13,9 +13,10 @@ import { useParams } from "node_modules/next/navigation";
 import { allCountries } from "country-telephone-data";
 import Flag from "react-world-flags";
 import order from "services/order";
-import { useSelector } from "node_modules/react-redux/es";
+
 import { RoundPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
+import { useAppStore } from "store";
 
 const options = [
   { name: "Settings", Icon: <SettingsIcon /> },
@@ -29,6 +30,7 @@ function MainSetting({
 }: {
   swipeToScreen: (index: number) => void;
 }) {
+  const { wallet, currency, totalOrders } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
   let country = lang?.split("-")[0];
@@ -37,12 +39,6 @@ function MainSetting({
     iso: country,
   };
   const [loading, setLoading] = useState(false);
-  const wallet = useSelector(
-    (state: StateInterface) => state.cart.wallet?.wallet_balance
-  );
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
 
   useEffect(() => {
     getWallet();
@@ -57,9 +53,7 @@ function MainSetting({
       setLoading(false);
     }
   };
-  const totalOrders = useSelector(
-    (state: StateInterface) => state.auth.totalOrders
-  );
+
   return (
     <div className="flex-col w-full pt-[20px] px-[12px]">
       <ProfileCard

@@ -1,7 +1,6 @@
 "use client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { expandView, normalizeView, Sendevent } from "utils/functions";
 import CartContainer from ".";
 import home from "services/home";
@@ -10,19 +9,30 @@ import OrdersPage from "./OrdersPage";
 import { Swiper as SwiperType } from "node_modules/swiper/types";
 import ModalIframe from "./ModalIframe";
 import { ToastContainer } from "react-toastify";
+import { useAppStore } from "store";
 const CartProvider = () => {
-  const dispatch = useDispatch();
+  const {
+    enableCart,
+    disableAddToCartOption,
+    setEnableSearch,
+    setLoginOpen,
+    setSelectedStory,
+    setChatOpen,
+    filterEnabled,
+    openPayIframe,
+    payIframeURL,
+    cart_enable: enable,
+  } = useAppStore();
+
   const pathname = usePathname();
   const router = useRouter();
 
   const searchParams = useSearchParams();
-  const filterEnabled = useSelector(
-    (state: StateInterface) => state.listing.filterEnabled
-  );
-  const enableCart = (s) => {
-    dispatch({ type: "AddToCartOptionDisable", payload: false });
+
+  const enableCartAction = (s) => {
+    disableAddToCartOption();
     window.history.pushState({ isPopup: true }, "open Cart");
-    dispatch({ type: "ENABLE-CART", payload: s });
+    enableCart(s);
     if (s) {
       const newParams = new URLSearchParams(searchParams);
       newParams.set("cart", "true");
@@ -46,11 +56,11 @@ const CartProvider = () => {
     }, 10);
     window.addEventListener("popstate", (event) => {
       if (event.state?.isPopup) {
-        dispatch({ type: "STORY-SELECTED", payload: null });
-        dispatch({ type: "ENABLE-CART", payload: false });
-        dispatch({ type: "LOGIN-OPEN", payload: false });
-        dispatch({ type: "CHAT-OPEN", payload: false });
-        dispatch({ type: "ENABLE-SEARCH", payload: false });
+        setSelectedStory(null);
+        enableCart(false);
+        setLoginOpen(false);
+        setChatOpen(false);
+        setEnableSearch(false);
       }
     });
     window.addEventListener("scroll", function (e) {
@@ -66,16 +76,9 @@ const CartProvider = () => {
 
   useEffect(() => {
     if (searchParams.get("cart")) {
-      enableCart(true);
+      enableCartAction(true);
     }
   }, []);
-  const cartEnable = useSelector((state: StateInterface) => state.cart.enable);
-  const showMessage = useSelector(
-    (state: StateInterface) => state.homepage.showMessage
-  );
-  const { openPayIframe, payIframeURL } = useSelector(
-    (state: StateInterface) => state.cart
-  );
   useEffect(() => {
     if (openPayIframe) {
       _openIframe(payIframeURL);
@@ -97,7 +100,7 @@ const CartProvider = () => {
   };
   return (
     <>
-      {cartEnable ? <StepSlider enableCart={(e) => enableCart(e)} /> : <></>}
+      {enable ? <StepSlider enableCart={(e) => enableCartAction(e)} /> : <></>}
       {openIframe.isShow && (
         <div
           ref={modalIframeRef}
@@ -118,13 +121,13 @@ const CartProvider = () => {
 };
 export default CartProvider;
 export const StepSlider = ({ enableCart }) => {
+  const { cart_enable: enable } = useAppStore();
   const [step, setStep] = useState(0);
   const ref = useRef<SwiperType | null>();
-  const cartEnable = useSelector((state: StateInterface) => state.cart.enable);
 
   return (
     <div className="w-full h-[100vh] fixed z-[9999999999] cart-provider">
-      {cartEnable && <ToastContainer position="top-right" />}
+      {enable && <ToastContainer position="top-right" />}
       <Swiper
         initialSlide={step}
         navigation={false}

@@ -5,28 +5,23 @@ import MuteIcon from "../svg/muteIcon.svg";
 import UnmuteIcon from "../svg/UnmuteIcon.svg";
 import DeleteIcon from "../svg/DeleteIcon.svg";
 import ArchiveIcon from "../svg/ArchiveIcon.svg";
-import { useDispatch, useSelector } from "react-redux";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 function ChatOptions({ id, unread, pinned, muted }) {
+  const { language, setUnreadChat, pinChat, muteChat, deleteChat } =
+    useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const dispatch = useDispatch();
-  const language = useSelector((state) => state.homepage.language);
   return (
     <div className="chat-options-container">
       <div
         className="chat-option chat-1"
-        onClick={() =>
-          dispatch({
-            type: "UNREAD_CHAT_REDUCER",
-            payload: { id: id, value: !unread },
-          })
-        }
+        onClick={() => setUnreadChat({ id: id, value: !unread })}
       >
         <UnreadIcon></UnreadIcon>
         <div>
@@ -35,12 +30,7 @@ function ChatOptions({ id, unread, pinned, muted }) {
       </div>
       <div
         className="chat-option chat-2"
-        onClick={() =>
-          dispatch({
-            type: "PIN_CHAT_REDUCER",
-            payload: { id: id, value: !pinned },
-          })
-        }
+        onClick={() => pinChat({ id: id, value: !pinned })}
       >
         <PinIcon></PinIcon>
         <div>
@@ -49,12 +39,7 @@ function ChatOptions({ id, unread, pinned, muted }) {
       </div>
       <div
         className="chat-option chat-3"
-        onClick={() =>
-          dispatch({
-            type: "MUTE_CHAT_REDUCER",
-            payload: { id: id, value: !muted },
-          })
-        }
+        onClick={() => muteChat({ id: id, value: !muted })}
       >
         {!muted ? <MuteIcon></MuteIcon> : <UnmuteIcon></UnmuteIcon>}
         <div>
@@ -63,9 +48,7 @@ function ChatOptions({ id, unread, pinned, muted }) {
       </div>
       <div
         className="chat-option chat-4"
-        onClick={() =>
-          dispatch({ type: "DELETE_CHAT_REDUCER", payload: { id: id } })
-        }
+        onClick={() => deleteChat({ id: id })}
       >
         <DeleteIcon></DeleteIcon>
         <div>{translate("Delete", language)}</div>

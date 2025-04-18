@@ -1,11 +1,10 @@
 "use client";
 import React, { useEffect } from "react";
 import BrandCircle from "./BrandCircle";
-import { useSelector } from "react-redux";
+import { useAppStore } from "store";
 
 function BrandRow() {
-  const filters = useSelector((state: StateInterface) => state.details.filters);
-
+  const { filters } = useAppStore();
   useEffect(() => {
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector(".brand-row");

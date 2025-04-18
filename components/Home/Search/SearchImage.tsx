@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import SearchCamIcon from "public/svg/SearchCamIcon.svg";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { translateFunction } from "utils/functions";
-import { useSelector } from "react-redux";
+
 import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 
 function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
+  const { language } = useAppStore();
+
   const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   let { lang } = useParams();

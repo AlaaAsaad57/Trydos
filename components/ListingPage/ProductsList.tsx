@@ -2,7 +2,7 @@
 import "styles/listing.css";
 import "styles/globals.css";
 import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+
 import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";
 import homeService from "services/home";
@@ -13,6 +13,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import ListingSkeleton from "components/skeleton/listing";
 import AddToCartWidget from "components/Cart/AddToCartWidget";
 import { CurrencyApi } from "models/Api";
+import { useAppStore } from "store";
 
 function ProductsList({
   Listing_Data_res,
@@ -25,32 +26,34 @@ function ProductsList({
   boutiqueCategory: string;
   productCategory: string;
 }) {
-  const dispatch = useDispatch();
+  const {
+    editFilter,
+    getProducts,
+    setLoadingProducts,
+    getNextProducts,
+    resetBoutique,
+    resetListingFilter,
+    products,
+    AddToCartOption,
+    offset,
+    skeleton,
+    listing_loading,
+    isReachEnd,
+    filterEnabled,
+    filters,
+    selectedFilter,
+  } = useAppStore();
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
-  const products = useSelector(
-    (state: StateInterface) => state.listing.products
-  );
-  const AddToCartOption = useSelector(
-    (state: StateInterface) => state.cart.AddToCartOption
-  );
-
-  const offset = useSelector((state: StateInterface) => state.listing.offset);
-  const loading = useSelector((state: StateInterface) => state.listing.loading);
-  const skeleton = useSelector(
-    (state: StateInterface) => state.listing.skeleton
-  );
-  const isReachEnd = useSelector(
-    (state: StateInterface) => state.listing.isReachEnd
-  );
   const SearchParams = useSearchParams();
   const GetNextPage = async () => {
-    if (!loading && !isReachEnd) {
-      dispatch({ type: "PRODUCT_LOADING" });
+    if (!listing_loading && !isReachEnd) {
+      setLoadingProducts(true);
       await homeService.getNextProduct({
         lang: lang,
         offset: offset,
@@ -66,14 +69,15 @@ function ProductsList({
     dispatchRouteChangeEvent("completed");
     document.documentElement.style.overflow = "initial";
     document.documentElement.scrollTop = 0;
-    dispatch({ type: "RESET-BOUTIQUE", payload: true });
-    dispatch({ type: "GET_PRODUCT", payload: Listing_Data_res.body.data });
+    resetBoutique();
+    getProducts(Listing_Data_res.body.data);
+
     setTimeout(() => {
       GetNextProd();
     }, 2000);
   }, []);
   const GetNextProd = async () => {
-    dispatch({ type: "PRODUCT_LOADING" });
+    setLoadingProducts(true);
     await homeService.getNextProduct({
       lang: lang,
       offset: offset ?? Listing_Data_res.body.data.offset,
@@ -84,17 +88,11 @@ function ProductsList({
       noFilter: true,
     });
   };
-  const filterEnabled = useSelector(
-    (state: StateInterface) => state.listing.filterEnabled
-  );
-  const selectedFilter = useSelector(
-    (state: StateInterface) => state.details.selectedFilter
-  );
-  const filters = useSelector((state: StateInterface) => state.details.filters);
+
   const pathName = useParams();
   const filter = () => {
-    dispatch({ type: "RESET_LISTING_FILTER" });
-    dispatch({ type: "PRODUCT_LOADING" });
+    resetListingFilter();
+    setLoadingProducts(true);
 
     filterProducts({
       boutiqueId:
@@ -104,18 +102,13 @@ function ProductsList({
       lang: pathName.lang,
       sizesAttr: filters.sizesAttr,
       callback: (products) => {
-        if (offset === null)
-          dispatch({ type: "GET_PRODUCT", payload: { products } });
-        else
-          dispatch({
-            type: "GET_NEXT_PRODUCT",
-            payload: { products },
-          });
+        if (offset === null) Listing_Data_res.body.data({ products });
+        else getNextProducts({ products });
       },
       storeCallback: () => {},
       offset: offset,
       newFiltersCallback: ({ filtersVar }) => {
-        dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+        editFilter(filtersVar);
       },
       searchText: selectedFilter.searchText,
     });
@@ -141,7 +134,7 @@ function ProductsList({
                 data-cy="allCategory"
                 onWheelCapture={() => {
                   if (!selectedFilter.filtered) GetNextPage();
-                  else if (!loading && !isReachEnd) {
+                  else if (!listing_loading && !isReachEnd) {
                     filter();
                   }
                 }}
@@ -175,19 +168,21 @@ function ProductsList({
                   {!isReachEnd ? (
                     <>
                       {" "}
-                      {!loading ? (
+                      {!listing_loading ? (
                         <InView
                           className="spinner-container"
                           as="div"
                           onChange={(inView) => {
-                            if (inView && !loading) {
+                            if (inView && !listing_loading) {
                               GetNextPage();
                             }
                           }}
                         ></InView>
                       ) : (
                         <h2>
-                          {loading && <Spinner no={false} className="" />}
+                          {listing_loading && (
+                            <Spinner no={false} className="" />
+                          )}
                         </h2>
                       )}
                     </>

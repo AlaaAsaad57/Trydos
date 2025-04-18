@@ -2,39 +2,36 @@
 import { Suspense } from "react";
 import Logo from "./Logo";
 import UserNavTopSection from "./UserNavTopSection";
-import { useDispatch, useSelector } from "react-redux";
-
 import NextLink from "components/global/NextLink";
-
 import { dispatchRouteChangeEvent } from "utils/events";
 import { ToastContainer } from "react-toastify";
 import AuthSections from "./AuthSections";
-
 import InitFunction from "./InitFunction";
 import { usePrefetchLinks } from "hooks/usePrefetchHook";
+import { useAppStore } from "store";
 
 interface NavbarProps {
   init: string;
 }
 function CustomNavbar({ init }: NavbarProps) {
-  const AddToCartOption = useSelector(
-    (state: StateInterface) => state.cart.AddToCartOption
-  );
-  const loginOpen = useSelector(
-    (state: StateInterface) => state.homepage.loginOpen
-  );
-  const setLoginOpen = (e: boolean) => {
+  const {
+    setEnableSearch,
+    setLoginOpen,
+    AddToCartOption,
+    loginOpen,
+    cart_enable,
+  } = useAppStore();
+
+  const setLoginOpenAction = (e: boolean) => {
     window.history.pushState({ isPopup: true }, "open Login");
-    dispatch({ type: "LOGIN-OPEN", payload: e });
+    setLoginOpen(e);
   };
 
-  const dispatch = useDispatch();
-
   usePrefetchLinks();
-  const cartEnable = useSelector((state: StateInterface) => state.cart.enable);
+
   return (
     <>
-      {!AddToCartOption.enable && !cartEnable && (
+      {!AddToCartOption.enable && !cart_enable && (
         <ToastContainer
           position="top-right"
           style={{ zIndex: "9999999999999999" }}
@@ -50,7 +47,7 @@ function CustomNavbar({ init }: NavbarProps) {
           aria-label="TryDos Home"
           data-cy="NavLogo"
           onClick={(e) => {
-            dispatch({ type: "ENABLE-SEARCH", payload: false });
+            setEnableSearch(false);
             dispatchRouteChangeEvent("start", { from: "", to: "HomePage" });
             document.documentElement.style.overflow = "hidden";
             document.documentElement.scrollTop = 0;
@@ -62,7 +59,7 @@ function CustomNavbar({ init }: NavbarProps) {
         {
           <UserNavTopSection
             loginOpen={loginOpen}
-            openLogin={(e) => setLoginOpen(e)}
+            openLogin={(e) => setLoginOpenAction(e)}
           />
         }
       </div>

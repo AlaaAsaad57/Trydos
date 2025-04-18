@@ -4,21 +4,18 @@ import { Category } from "models/Category";
 import CategoryNavItem from "./CategoryNavItem";
 import SearchIcon from "./Search/SearchIcon";
 import { useParams } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppStore } from "store";
 
 interface CategoriesBarProps {
   forMobile: boolean;
   categories: any[];
 }
 function CategoriesBar({ forMobile, categories }: CategoriesBarProps) {
+  const { setEnableSearch, enable_search } = useAppStore();
   const searchParams: { lang: string; mainCategory: string } = useParams();
   const [active, setActive] = useState(searchParams.mainCategory ?? false);
-  const searchEnabled = useSelector(
-    (state: StateInterface) => state.Search.enable
-  );
-  const dispatch = useDispatch();
   const setSearchEnabled = (e) => {
-    dispatch({ type: "ENABLE-SEARCH", payload: e });
+    setEnableSearch(e);
   };
   return (
     <>
@@ -29,14 +26,14 @@ function CategoriesBar({ forMobile, categories }: CategoriesBarProps) {
           </div>
           <div
             className={`categories-bar-container ${forMobile && "mobile-bar"}`}
-            style={{ marginLeft: searchEnabled ? "13px" : "50px" }}
+            style={{ marginLeft: enable_search ? "13px" : "50px" }}
           >
-            {!searchEnabled &&
+            {!enable_search &&
               categories?.map((category, key) => (
                 <CategoryNavItem
                   active={active === category.slug}
                   setActive={(e) => setActive(e)}
-                  searchEnabled={searchEnabled}
+                  searchEnabled={enable_search}
                   close={() => setSearchEnabled(false)}
                   openSearch={() => setSearchEnabled(true)}
                   name={category?.name}

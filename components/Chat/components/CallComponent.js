@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { useSelector, useDispatch } from "react-redux";
 import { AnswerCall, RefuseCall } from "store/chat/callActions";
 import profilePng from "public/images/profileNo.png";
 import { getTwoLetters } from "../chatsFunctions";
@@ -7,21 +6,23 @@ import { translateFunction } from "utils/functions";
 import "styles/chat.css";
 import Image from "next/image";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 function CallComponent(props) {
+  const {
+    caller,
+    incomeCallData,
+    MessageActiveCall,
+    language,
+    incomeCallType,
+    refuseCall,
+  } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const caller = useSelector((state) => state.chat.caller);
-  const incomeCallData = useSelector((state) => state.chat.incomeCallData);
-  const MessageActiveCall = useSelector(
-    (state) => state.chat.MessageActiveCall
-  );
-  const language = useSelector((state) => state.homepage.language);
-  const incomeCallType = useSelector((state) => state.chat.incomeCallType);
-  const dispatch = useDispatch();
+
   const ref = useRef();
   var RefAudio;
   useEffect(() => {
@@ -109,7 +110,7 @@ function CallComponent(props) {
             RefuseCall(incomeCallData.channelId, MessageActiveCall);
             ref.current.pause();
             ref.current.currentTime = 0;
-            dispatch({ type: "REFUSE_CALL", payload: MessageActiveCall });
+            refuseCall(MessageActiveCall);
           }}
         >
           <svg

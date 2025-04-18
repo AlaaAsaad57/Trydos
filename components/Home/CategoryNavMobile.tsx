@@ -1,10 +1,11 @@
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import React, { useEffect } from "react";
-import { useSelector } from "react-redux";
+
 import { Sendevent, translateFunction } from "utils/functions";
 import NextLink from "components/global/NextLink";
+import { useAppStore } from "store";
 
 interface CategoryNavMobileProps {
   name: string;
@@ -22,16 +23,13 @@ function CategoryNavMobile({
   active,
   setActive,
 }: CategoryNavMobileProps) {
+  const { language } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
-  const router = useRouter();
   const searchParams: { lang: string; mainCategory: string } = useParams();
   useEffect(() => {
     if (active) {

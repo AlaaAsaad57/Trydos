@@ -1,5 +1,5 @@
 import translations from "public/translations/translations.js";
-import { store } from "store";
+import { useAppStore } from "store";
 import Cookies from "js-cookie";
 
 import { notFound } from "next/navigation";
@@ -64,6 +64,8 @@ export const Sendevent = async (params: {
   extra?: any;
   category?: any;
 }) => {
+  let { session_id, previous_event_button_name, setGAEvent } =
+    useAppStore.getState();
   try {
     let userId = localStorage.getItem("USER")
       ? JSON.parse(localStorage.getItem("USER"))?.id
@@ -80,13 +82,12 @@ export const Sendevent = async (params: {
         device_language: Cookies.get("language"),
         time_stamp: new Date().toISOString(),
 
-        our_session_id: store.getState().homepage.session_id,
-        previous_event_button_name:
-          store.getState().homepage.previous_event_button_name,
+        our_session_id: session_id,
+        previous_event_button_name: previous_event_button_name,
       });
     }
 
-    store.dispatch({ type: "GA-EVENT", payload: params.value });
+    setGAEvent(params.value);
   } catch (e) {
     console.error(e);
   }
@@ -238,7 +239,8 @@ export const caseCheck = (word, value) => {
   return word.join("");
 };
 export const expandView = ({ filter }) => {
-  let filterEnabled = store.getState().listing.filterEnabled;
+  const { filterEnabled } = useAppStore.getState();
+
   if (!filter && filterEnabled) {
     return;
   }
@@ -306,7 +308,7 @@ export const expandView = ({ filter }) => {
     ).style.maxHeight = "0px";
 };
 export const normalizeView = () => {
-  let filterEnabled = store.getState().listing.filterEnabled;
+  const { filterEnabled } = useAppStore.getState();
   if (filterEnabled) {
     return;
   }
@@ -407,7 +409,9 @@ export const filterProducts = async ({
   searchText?: string;
   serachTrigger?: boolean;
 }) => {
-  const filterObj = store.getState().details.selectedFilter;
+  const { selectedFilter } = useAppStore.getState();
+
+  const filterObj = selectedFilter;
 
   storeCallback(filterObj);
 
@@ -465,7 +469,8 @@ export const filterProducts = async ({
   return product.data.products;
 };
 export const urlParams = ({ filters, noProducts, noFilter = false }) => {
-  const PriceFiltered = store.getState().details.PriceFiltered;
+  const { PriceFiltered } = useAppStore.getState();
+
   let urlParams = new URLSearchParams();
   if (filters.categories.length > 0) {
     urlParams.set("category_slugs", JSON.stringify(filters.categories));
@@ -518,7 +523,9 @@ export const UpdateFilter = async ({
   filtersVar?: any;
 }) => {
   try {
-    const filterObj = filtersVar || store.getState().details.selectedFilter;
+    const { selectedFilter } = useAppStore.getState();
+
+    const filterObj = filtersVar || selectedFilter;
 
     let filters = {
       categories: filterObj.categories.map((s) => s.slug),
@@ -570,7 +577,8 @@ export const UpdateFilter = async ({
   }
 };
 export function formatPrice(price) {
-  let currency = store.getState().homepage.currency;
+  const { currency } = useAppStore.getState();
+
   let ceil = currency?.ciel;
   if (price >= 1000000) {
     return (
@@ -589,7 +597,8 @@ export function formatPrice(price) {
   }
 }
 export const toUSD = (price) => {
-  let currency = store.getState().homepage.currency;
+  const { currency } = useAppStore.getState();
+
   return price / currency?.exchange_rate;
 };
 export const RoundPrice = ({
@@ -603,14 +612,12 @@ export const RoundPrice = ({
   points?: any;
   returnNumber?: boolean;
 }): number => {
-  let currency = store.getState().homepage.currency;
-  let rateVariable =
-    rate || store.getState().homepage.currency?.exchange_rate || 1;
+  const { currency, settings } = useAppStore.getState();
+
+  let rateVariable = rate || currency?.exchange_rate || 1;
   let pointsVariable =
     points ||
-    (store.getState().homepage?.settings &&
-      store.getState().homepage?.settings["starting-setting"]
-        ?.decimal_point_settings) ||
+    (settings && settings["starting-setting"]?.decimal_point_settings) ||
     0;
   let a = parseFloat(num);
 
@@ -678,10 +685,8 @@ export const getOldCart = async () => {
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/old-cart/get_old_cart",
     title: "Old Cart Request",
   });
-  store.dispatch({
-    type: "STORE-OLD-CART",
-    payload: oldCartData?.original?.data,
-  });
+  const { storeOldCart } = useAppStore.getState();
+  storeOldCart(oldCartData?.original?.data);
 };
 export const getCart = async ({ callback }) => {
   if (
@@ -697,11 +702,12 @@ export const getCart = async ({ callback }) => {
   return data;
 };
 export const GetCartOreview = async () => {
+  const { setCartPreview } = useAppStore.getState();
   let data = await AxiosGet({
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/cart_overview",
     title: "Cart Oreview",
   });
-  store.dispatch({ type: "CART-OREVIEW", payload: data });
+  setCartPreview(data);
 };
 export const AddToCartAnimation = () => {
   let productImage = document.getElementById("added-to-cart");
@@ -762,9 +768,6 @@ export const AddToCartAnimation = () => {
       fill: "forwards",
     }
   );
-  // setTimeout(() => {
-  //   store.dispatch({ type: "LOADED-CART", payload: true });
-  // }, 1500);
 };
 
 export const LogError = (error, url, href) => {
@@ -777,9 +780,10 @@ export const LogError = (error, url, href) => {
 };
 
 export const WaitForCondition = async () => {
+  const { isRegisteringReady } = useAppStore.getState();
   return new Promise((resolve, reject) => {
     const interval = setInterval(() => {
-      const isReady = store.getState().homepage.isRegisteringReady;
+      const isReady = isRegisteringReady;
       if (isReady) {
         clearInterval(interval);
         resolve("Ready, now performing the request!");

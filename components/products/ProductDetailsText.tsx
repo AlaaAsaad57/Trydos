@@ -2,7 +2,7 @@
 import { ProductInterface } from "models/product";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
-import { useDispatch } from "react-redux";
+import { useAppStore } from "store";
 import { Sendevent, translateFunction } from "utils/functions";
 
 function ProductDetailsText({
@@ -12,9 +12,9 @@ function ProductDetailsText({
   details: string;
   product: ProductInterface;
 }) {
+  const { setActiveColorDetails } = useAppStore();
   const { lang } = useParams();
   const searchParams = useSearchParams();
-  const dispatch = useDispatch();
   // @ts-ignore
   const languageVariable = lang?.split("-")[1];
   const translate = useMemo(
@@ -32,10 +32,10 @@ function ProductDetailsText({
         (s) => s.color_name === color
       );
       if (selectedColor) {
-        dispatch({ type: "SET-ACTIVE-COLOR-DETAILS", payload: selectedColor });
+        setActiveColorDetails(selectedColor);
       }
     }
-  }, [searchParams, dispatch, product.sync_color_images]);
+  }, [searchParams, product.sync_color_images]);
 
   const toggleText = () => {
     const newShowState = !show;

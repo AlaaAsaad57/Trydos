@@ -20,9 +20,10 @@ import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import CircleBorder from "public/svg/product/CircleBorder";
 import NormalColorSlider from "./NormalColorSlider";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppStore } from "store";
 
 function ProductColors({ colors, ProductColorsArray }) {
+  const { setActiveColorDetails, showInfoMessage, product } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -31,13 +32,11 @@ function ProductColors({ colors, ProductColorsArray }) {
   };
   const [extended, setExtended] = useState(false);
 
-  const activeColor = useSelector(
-    (state: StateInterface) => state.details.product?.activeColor
-  );
+  const activeColor = product.activeColor;
   const setActiveColor = (e) => {
-    dispatch({ type: "SET-ACTIVE-COLOR-DETAILS", payload: e });
+    setActiveColorDetails(e);
   };
-  const dispatch = useDispatch();
+
   // const setActiveColor = (e) => {
   //   setActiveColorFunc(e);
   // };
@@ -66,15 +65,12 @@ function ProductColors({ colors, ProductColorsArray }) {
           data-cy="QuestionMark"
           style={{ marginLeft: "9px" }}
           onClick={() => {
-            dispatch({
-              type: "SHOW-INFO-MESSAGE",
-              payload: {
-                showInfoMessage: true,
-                title: `Available ${colors.length} Color`,
-                text: "The Colors In The Image Are Intended To Give Approximate Information About The Color Of The Product And 100% Compatibility Is Not Guaranteed. However, The Display And Resolution Of Your Electronic Device There May Be Differences Between The Color Images And The Colors Of The Products Due To The Settings. It Is Technically Possible For An Inevitable Difference To Occur. Trydos Because Of The Difference. Does Not Have Any Liability.",
-                icon: "/svg/product/colors.svg",
-                value: [],
-              },
+            showInfoMessage({
+              showInfoMessage: true,
+              title: `Available ${colors.length} Color`,
+              text: "The Colors In The Image Are Intended To Give Approximate Information About The Color Of The Product And 100% Compatibility Is Not Guaranteed. However, The Display And Resolution Of Your Electronic Device There May Be Differences Between The Color Images And The Colors Of The Products Due To The Settings. It Is Technically Possible For An Inevitable Difference To Occur. Trydos Because Of The Difference. Does Not Have Any Liability.",
+              icon: "/svg/product/colors.svg",
+              value: [],
             });
           }}
         />

@@ -1,7 +1,7 @@
 "use client";
 import CloseIcon from "public/svg/CloseIcon.svg";
 import SearchCloseIcon from "public/svg/SearchCloseIcon.svg";
-import { useDispatch, useSelector } from "react-redux";
+
 import { ChangeEvent, useEffect } from "react";
 import {
   caseCheck,
@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import SearchVoice from "./Search/SearchVoice";
 import SearchImage from "./Search/SearchImage";
 import SearchService from "services/search";
+import { useAppStore } from "store";
 interface SearchComponentProps {
   searchEnabled: boolean;
   close: Function;
@@ -29,31 +30,31 @@ function SearchComponent({
   focus,
   setFocuse,
 }: SearchComponentProps) {
-  const searchValue = useSelector(
-    (state: StateInterface) => state.Search.value
-  );
+  const {
+    editFilterSearch,
+    setSearchPartialLoading,
+    findProducts,
+    setSearchLoading,
+    setSearchWord,
+    value,
+    searchFilters,
+    searchWords,
+  } = useAppStore();
 
-  const searchFilters = useSelector(
-    (state: StateInterface) => state.Search.searchFilters
-  );
-  const words = useSelector(
-    (state: StateInterface) => state.Search.searchWords
-  );
-  const dispatch = useDispatch();
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     console.log(SearchService.ProcessSearchInput(e.target.value));
     if (e.target.value.length === 0) {
       e.preventDefault();
     }
 
-    dispatch({ type: "SEARCH-WORD", payload: e.target.value });
-    dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: true });
-    dispatch({ type: "SEARCH-LOADING", payload: true });
+    setSearchWord(e.target.value);
+    setSearchPartialLoading(true);
+    setSearchLoading(true);
     home.UpdateFilters({
       search_text: e.target.value || "",
       callback: (e) => {
         setLoading(false);
-        dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+        editFilterSearch(e);
       },
     });
   };
@@ -62,12 +63,12 @@ function SearchComponent({
     let arr = [];
     let regex = new RegExp("^" + e.target.value.toUpperCase(), "i");
     //loop through words array
-    for (let i in words) {
+    for (let i in searchWords) {
       //check if input matches with any word in words array
-      if (regex.test(words[i].toUpperCase()) && e.target.value != "") {
+      if (regex.test(searchWords[i].toUpperCase()) && e.target.value != "") {
         //Change case of word in words array according to user input
         let selectedWord = caseCheck(
-          words[i].toUpperCase(),
+          searchWords[i].toUpperCase(),
           e.target.value.toUpperCase()
         );
         //display suggestion
@@ -83,7 +84,7 @@ function SearchComponent({
     }
 
     if (
-      words.filter(
+      searchWords.filter(
         (s) =>
           s.substr(0, e.target.value.length).toUpperCase() ===
           e.target.value.toUpperCase()
@@ -120,7 +121,7 @@ function SearchComponent({
         params.delete("boutique_slugs");
       }
     }
-    params.set("searchText", searchValue);
+    params.set("searchText", value);
 
     router.push(`/${lang}/boutiques/listing?${params.toString()}`);
   };
@@ -139,7 +140,7 @@ function SearchComponent({
     //   // @ts-ignore
     // } else
     if (e.keyCode == 13 && e.target.value.length > 0) {
-      onClickSearchHistory(searchValue);
+      onClickSearchHistory(value);
       handleSearch(searchFilters);
       dispatchRouteChangeEvent("start", { to: "boutique" });
       document.documentElement.style.overflow = "hidden";
@@ -150,7 +151,7 @@ function SearchComponent({
   };
 
   const setLoading = (e) => {
-    dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: e });
+    setSearchPartialLoading(e);
   };
 
   return (
@@ -169,14 +170,14 @@ function SearchComponent({
             onKeyDown(e);
           }}
           onBlur={() => {
-            if (searchValue.length === 0) {
+            if (value.length === 0) {
               setFocuse(false);
             }
           }}
           onSubmit={(e) => {
-            onClickSearchHistory(searchValue);
+            onClickSearchHistory(value);
           }}
-          value={searchValue}
+          value={value}
           onChange={(e) => {
             onChange(e);
           }}
@@ -198,27 +199,27 @@ function SearchComponent({
           <SearchCloseIcon
             data-cy="SearchInputCloseIcon"
             onClick={() => {
-              if (searchValue.length > 0) {
+              if (value.length > 0) {
                 Sendevent({
                   event: "button_clicked",
                   value: "reset_home_search_button",
                 });
                 setLoading(true);
-                dispatch({ type: "SEARCH-WORD", payload: "" });
+                setSearchWord("");
 
-                dispatch({ type: "FIND-PRODUCTS", payload: [] });
+                findProducts([]);
                 home.UpdateFilters({
                   search_text: "",
                   callback: (e) => {
                     setLoading(false);
-                    dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+                    editFilterSearch(e);
                   },
                 });
                 home.SearchProducts({
                   search_text: "",
                   searchFilters: searchFilters,
                   callback: (e) => {
-                    dispatch({ type: "FIND-PRODUCTS", payload: e });
+                    findProducts(e);
                   },
                 });
               } else {
@@ -228,7 +229,7 @@ function SearchComponent({
                 });
 
                 close();
-                dispatch({ type: "SEARCH-WORD", payload: "" });
+                setSearchWord("");
                 setFocuse(false);
               }
             }}
@@ -245,20 +246,20 @@ function SearchComponent({
                     value: "search_with_image_button",
                   });
 
-                  dispatch({ type: "SEARCH-WORD", payload: e });
-                  dispatch({ type: "SEARCH-LOADING", payload: true });
+                  setSearchWord(e);
+                  setSearchLoading(true);
                   home.UpdateFilters({
                     search_text: e || "",
                     callback: (e) => {
                       setLoading(false);
-                      dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+                      editFilterSearch(e);
                     },
                   });
                   home.SearchProducts({
                     search_text: e,
                     searchFilters: searchFilters,
                     callback: (e) => {
-                      dispatch({ type: "FIND-PRODUCTS", payload: e });
+                      findProducts(e);
                     },
                   });
                 }
@@ -274,20 +275,20 @@ function SearchComponent({
                     value: "search_with_voice_button",
                   });
 
-                  dispatch({ type: "SEARCH-WORD", payload: e });
-                  dispatch({ type: "SEARCH-LOADING", payload: true });
+                  setSearchWord(e);
+                  setSearchLoading(true);
                   home.UpdateFilters({
                     search_text: e || "",
                     callback: (e) => {
                       setLoading(false);
-                      dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+                      editFilterSearch(e);
                     },
                   });
                   home.SearchProducts({
                     search_text: e,
                     searchFilters: searchFilters,
                     callback: (e) => {
-                      dispatch({ type: "FIND-PRODUCTS", payload: e });
+                      findProducts(e);
                     },
                   });
                 }
@@ -301,27 +302,27 @@ function SearchComponent({
           <CloseIcon
             data-cy="closeIcon_searchPage"
             onClick={() => {
-              if (searchValue.length > 0) {
-                dispatch({ type: "SEARCH-WORD", payload: "" });
-                dispatch({ type: "FIND-PRODUCTS", payload: [] });
-                dispatch({ type: "SEARCH-LOADING", payload: true });
+              if (value.length > 0) {
+                setSearchWord("");
+                findProducts([]);
+                setSearchLoading(true);
                 home.UpdateFilters({
                   search_text: "",
                   callback: (e) => {
                     setLoading(false);
-                    dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+                    editFilterSearch(e);
                   },
                 });
                 home.SearchProducts({
                   search_text: "",
                   searchFilters: searchFilters,
                   callback: (e) => {
-                    dispatch({ type: "FIND-PRODUCTS", payload: e });
+                    findProducts(e);
                   },
                 });
               } else {
                 close();
-                dispatch({ type: "SEARCH-WORD", payload: "" });
+                setSearchWord("");
               }
             }}
           />

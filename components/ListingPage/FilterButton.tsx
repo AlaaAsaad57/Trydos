@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+
+import { useAppStore } from "store";
 
 function FilterButton({ filters, showedFilter }) {
-  const dispatch = useDispatch();
+  const { setShowedFilter } = useAppStore();
+
   const onClick = () => {
     let i = filters().findIndex((s) => s.name === showedFilter);
     if (i + 1 > filters().length - 1) {
-      dispatch({ type: "SHOWED-FILTER", payload: filters()[0].name });
+      setShowedFilter(filters()[0].name);
+
       document.querySelector(".filter-container").scrollLeft =
         window.innerWidth * 0;
     } else {
-      dispatch({ type: "SHOWED-FILTER", payload: filters()[i + 1].name });
+      setShowedFilter(filters()[i + 1].name);
       let a = 0;
       document
         .querySelectorAll(".boutique-category-filter")
@@ -32,7 +35,11 @@ function FilterButton({ filters, showedFilter }) {
     >
       {show &&
         filters().map((s, i) => (
-          <span className={`${i > 0 && "ml-[2px]"}`} key={i} data-cy="countFilters">
+          <span
+            className={`${i > 0 && "ml-[2px]"}`}
+            key={i}
+            data-cy="countFilters"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="7.483"

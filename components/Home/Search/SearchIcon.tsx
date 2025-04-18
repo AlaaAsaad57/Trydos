@@ -3,23 +3,23 @@ import React, { useEffect, useState } from "react";
 import Search from "public/svg/SearchIcon.svg";
 import "styles/search.css";
 import SearchComponent from "../SearchComponent";
-import { useDispatch, useSelector } from "react-redux";
+
 import { normalizeView, Sendevent } from "utils/functions";
+import { useAppStore } from "store";
 
 function SearchIcon() {
-  const searchEnabled = useSelector(
-    (state: StateInterface) => state.Search.enable
-  );
+  const { setEnableSearch, enable_search } = useAppStore();
+
   const [focuse, setFocus] = useState(false);
   const [rendered, setRendered] = useState(false);
-  const dispatch = useDispatch();
+
   const EnableSearch = (e: boolean) => {
     if (e) document.documentElement.style.overflow = "hidden";
     else document.documentElement.style.overflow = "auto";
-    dispatch({ type: "ENABLE-SEARCH", payload: e });
+    setEnableSearch(e);
   };
   useEffect(() => {
-    if (searchEnabled) {
+    if (enable_search) {
       setTimeout(() => {
         document.documentElement.style.overflow = "hidden";
       }, 1000);
@@ -32,10 +32,10 @@ function SearchIcon() {
     <>
       {rendered && (
         <div
-          className={`search-icon ${searchEnabled && "active-serach"}`}
+          className={`search-icon ${enable_search && "active-serach"}`}
           data-cy="searchIcon_mainPage"
           onClick={() => {
-            if (!searchEnabled) {
+            if (!enable_search) {
               Sendevent({
                 event: "button_clicked",
                 value: "home_search_button",
@@ -58,7 +58,7 @@ function SearchIcon() {
               EnableSearch(false);
               document.documentElement.style.overflow = "initial";
             }}
-            searchEnabled={searchEnabled}
+            searchEnabled={enable_search}
             focus={focuse}
             setFocuse={(s: boolean) => setFocus(s)}
           />

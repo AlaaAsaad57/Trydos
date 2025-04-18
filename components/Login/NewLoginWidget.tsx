@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import LogoAuth from "public/svg/LogoAuth.svg";
-import { useDispatch, useSelector } from "react-redux";
 import { Sendevent, translateFunction } from "utils/functions";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
@@ -16,9 +15,20 @@ import AuthService from "services/auth";
 import LoginMethods from "./LoginMethods";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 
 function NewLoginWidget() {
   let { lang } = useParams();
+  const {
+    setWrongNumber,
+    setLoginOpen,
+    loginOpen,
+    language,
+    wrongNumber,
+    verficationID,
+    Tempuser,
+  } = useAppStore();
+
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
@@ -28,9 +38,6 @@ function NewLoginWidget() {
   const [signStep, setSignStep] = useState("");
   const [operation, setOperation] = useState("login");
   const [showMethods, setShowMethods] = useState(false);
-  const loginOpen = useSelector(
-    (state: StateInterface) => state.homepage.loginOpen
-  );
 
   const [Name, setName] = useState("");
   const [success, setSuccess] = useState(false);
@@ -41,18 +48,6 @@ function NewLoginWidget() {
   const [inputValue, setInputValue] = useState("");
   const [MessageMethod, setMessageMethod] = useState("");
   const [failedLogin, setFailed] = useState(false);
-  const [wrongNumberVar, setWrongNumber] = useState(false);
-  const wrongNumber = useSelector(
-    (state: StateInterface) => state.auth.wrongNumber
-  );
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
-
-  const verficationID = useSelector(
-    (state: StateInterface) => state.auth.verficationID
-  );
-  const user = useSelector((state: StateInterface) => state.auth.Tempuser);
 
   const SendOtpHook = async ({
     errorCallback,
@@ -87,8 +82,8 @@ function NewLoginWidget() {
       }
     }, 1500);
   }, [loginOpen]);
-  const setLoginOpen = (e: boolean) => {
-    dispatch({ type: "LOGIN-OPEN", payload: e });
+  const setLoginOpenAction = (e: boolean) => {
+    setLoginOpen(e);
   };
   const VerifyOtpHook = async ({
     code,
@@ -230,7 +225,7 @@ function NewLoginWidget() {
       setStepIndicator(0);
     } else setStepIndicator(stepIndicator - 1);
   };
-  const dispatch = useDispatch();
+
   if (!loginOpen) return <></>;
   return (
     <>
@@ -241,7 +236,7 @@ function NewLoginWidget() {
             event: "button_clicked",
             value: "later_take_look_button",
           });
-          setLoginOpen(false);
+          setLoginOpenAction(false);
         }}
         className="backdrop-login"
       />
@@ -394,7 +389,6 @@ function NewLoginWidget() {
             wrongNumber={wrongNumber}
             setWrongNumber={(e) => {
               setWrongNumber(e);
-              dispatch({ type: "WRONG-NUMBER", payload: e });
             }}
             setInputValue={(e) => setInputValue(e)}
             stepIndicator={stepIndicator}
@@ -405,7 +399,6 @@ function NewLoginWidget() {
             stepIndicator={stepIndicator}
             setWrongNumber={(e) => {
               setWrongNumber(e);
-              dispatch({ type: "WRONG-NUMBER", payload: e });
             }}
             setStepIndicator={(e: number) => setStepIndicator(e)}
             setMessageMethod={(e: string) => setMessageMethod(e)}
@@ -467,11 +460,11 @@ function NewLoginWidget() {
               submit={async () => {
                 await AuthService.UpdateName(Name);
                 if (operation === "login") {
-                  if (user.already_exists) setSignStep("welcomeLogin");
+                  if (Tempuser.already_exists) setSignStep("welcomeLogin");
                   else setSignStep("welcomeSignup");
                 }
                 if (operation === "signup") {
-                  if (user.already_exists) {
+                  if (Tempuser.already_exists) {
                     setSignStep("welcomeLogin");
                   } else {
                     setSignStep("welcomeSignup");
@@ -488,13 +481,13 @@ function NewLoginWidget() {
               setSignStep(e);
             }}
             Name={Name}
-            user={user}
+            user={Tempuser}
             FinaliseLogin={() => FinaliseLogin()}
             cancelLogin={() => {
               AuthService.cancelAuth();
             }}
             close={() => {
-              setLoginOpen(false);
+              setLoginOpenAction(false);
               Sendevent({
                 event: "button_clicked",
                 category: "button_clicked",
@@ -519,7 +512,7 @@ function NewLoginWidget() {
             className="take-look-text"
             data-testid="take-look-text"
             onClick={() => {
-              setLoginOpen(false);
+              setLoginOpenAction(false);
               AuthService.cancelAuth();
               Sendevent({
                 event: "button_clicked",
@@ -541,7 +534,7 @@ function NewLoginWidget() {
             data-testid="login-close-icon"
             onClick={() => {
               if (stepIndicator < 6) AuthService.cancelAuth();
-              setLoginOpen(false);
+              setLoginOpenAction(false);
               Sendevent({
                 event: "button_clicked",
                 category: "button_clicked",
@@ -558,7 +551,7 @@ function NewLoginWidget() {
                   value: "later_take_look_button",
                 });
                 if (stepIndicator < 6) AuthService.cancelAuth();
-                setLoginOpen(false);
+                setLoginOpenAction(false);
               }}
               xmlns="http://www.w3.org/2000/svg"
               width="16.411"

@@ -12,7 +12,6 @@ import ShippingAddressContainer from "./ShippingAddressContainer";
 import { Swiper as SwiperType } from "node_modules/swiper/types";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import AddAddressForm from "./AddAddressForm";
-import { useDispatch, useSelector } from "react-redux";
 import SelectRegion from "./SelectRegion";
 import AddressListContainer from "./AddressListContainer";
 import TrashIcon from "public/svg/cart/TrashIcon.svg";
@@ -24,6 +23,7 @@ import PlaceOrderButtons from "./PlaceOrderButtons";
 import { toast } from "react-toastify";
 import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
+import { useAppStore } from "store";
 
 const DeleteIcon = () => {
   return (
@@ -113,11 +113,14 @@ function OrdersPage({
   setStep: (e: number) => void;
   close: () => void;
 }) {
+  const {
+    addressDetails,
+    orderData,
+    setOrderData,
+    setAddressDetails,
+    initCart,
+  } = useAppStore();
   let { lang } = useParams();
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
-
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key: string, lang?: string) => {
@@ -127,10 +130,6 @@ function OrdersPage({
   const [orderStep, setOrderStep] = useState(0);
   const [AddressListsOpen, openAddressList] = useState(false);
   const ref = useRef<SwiperType>();
-  const dispatch = useDispatch();
-  const setAddressDetails = (e) => {
-    dispatch({ type: "set-address-details", payload: e });
-  };
   const [openSelect, setOpenSelect] = useState(false);
   const colseSelect = () => {
     setOpenSelect(false);
@@ -196,10 +195,7 @@ function OrdersPage({
     } catch (error) {
       getCart({
         callback: ([data, res]) => {
-          dispatch({
-            type: "CART-INIT",
-            payload: data ?? { cart: [] },
-          });
+          initCart(data ?? { cart: [] });
         },
       });
       setStep(0);
@@ -207,11 +203,9 @@ function OrdersPage({
   };
 
   const setLoading = (e) => {
-    dispatch({ type: "ORDER-DATA", payload: { loading: e } });
+    setOrderData({ loading: e });
   };
-  const orderData = useSelector(
-    (state: StateInterface) => state.cart.orderData
-  );
+
   const [nextStep, setNextStep] = useState(false);
 
   return (
@@ -405,10 +399,7 @@ function OrdersPage({
               setNextStep(false);
               getCart({
                 callback: ([data, res]) => {
-                  dispatch({
-                    type: "CART-INIT",
-                    payload: data ?? { cart: [] },
-                  });
+                  initCart(data ?? { cart: [] });
                 },
               });
               ref.current.slidePrev();
@@ -461,10 +452,7 @@ function OrdersPage({
                     backToCart={() => {
                       getCart({
                         callback: ([data, res]) => {
-                          dispatch({
-                            type: "CART-INIT",
-                            payload: data ?? { cart: [] },
-                          });
+                          initCart(data ?? { cart: {} });
                         },
                       });
                       setStep(0);
@@ -547,10 +535,7 @@ export const DeleteModalComponent = ({
   deletedAddress,
   slidePrev,
 }) => {
-  const dispatch = useDispatch();
-  const addressLists = useSelector(
-    (state: StateInterface) => state.cart.addressLists
-  );
+  const { deleteAddress } = useAppStore();
   const GetAddressString = (location) => {
     let str = "";
     if (
@@ -742,7 +727,7 @@ export const DeleteModalComponent = ({
               slidePrev();
               closeModal();
               order.DeleteAddressList({ address: deletedAddress.id });
-              dispatch({ type: "DELETE-ADDRESS", payload: deletedAddress.id });
+              deleteAddress(deletedAddress.id);
             }}
             className="w-full cursor-pointer flex justify-center items-center rounded-[15px] h-[50px] bg-[#F8F8F8] bold text-[16px] text-[#FF5F61]"
             data-cy="Yes-Delete-Address"
@@ -766,17 +751,15 @@ export const DeleteModalComponent = ({
   );
 };
 const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
-  const cart = useSelector((state: StateInterface) => state.cart);
-  const currency_symbol = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
-  const orderData = useSelector(
-    (state: StateInterface) => state.cart.orderData
-  );
-
-  const address = useSelector(
-    (state: StateInterface) => state.cart.addressLists
-  );
+  const {
+    initCart,
+    currency,
+    orderData,
+    addressLists,
+    total_cash,
+    total,
+    cart,
+  } = useAppStore();
   const shake = (v) => {
     if (document.querySelector(`.${v}`)) {
       document.querySelector(`.${v}`).scrollIntoView({ block: "end" });
@@ -797,13 +780,13 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
   const isBalanceEnough = () => {
     return (
       RoundPrice({ num: totalBalance(), returnNumber: true }) >=
-      RoundPrice({ num: cart.total_cash, returnNumber: true })
+      RoundPrice({ num: total_cash, returnNumber: true })
     );
   };
   const isValid = () => {
     let defaultAddress =
-      address.filter((s) => s.is_default === 1)?.length > 0 &&
-      address.filter((s) => s.is_default === 1)[0];
+      addressLists.filter((s) => s.is_default === 1)?.length > 0 &&
+      addressLists.filter((s) => s.is_default === 1)[0];
     if (
       defaultAddress &&
       defaultAddress?.id &&
@@ -820,7 +803,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
       shake("payment-valid-border");
       // alert(translateFunction("Your Balance Not meet purchase value"));
     }
-    if (!address[0]?.id) {
+    if (!addressLists[0]?.id) {
       shake("address-valid-border");
     }
     if (orderData.payment?.length === 0) {
@@ -829,19 +812,19 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
   };
   const getTotalPrice = () => {
     if (orderData.payment.filter((s) => s.id === 0).length > 0) {
-      return cart.total_cash;
+      return total_cash;
     } else {
-      return cart.total;
+      return total;
     }
   };
   const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
+
   const VerifyCart = async () => {
     setLoading(true);
     let a = (
       await getCart({
         callback: ([data, res]) => {
-          dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+          initCart(data ?? { cart: [] });
         },
       })
     ).cart;
@@ -897,8 +880,8 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
                 } `}
                 data-cy="Number-Of-Products-Required"
               >
-                {cart.cart.length} {translateFunction("items")}{" "}
-                {RoundPrice({ num: getTotalPrice() })} {currency_symbol?.symbol}
+                {cart.length} {translateFunction("items")}{" "}
+                {RoundPrice({ num: getTotalPrice() })} {currency?.symbol}
               </span>
             </>
           )}

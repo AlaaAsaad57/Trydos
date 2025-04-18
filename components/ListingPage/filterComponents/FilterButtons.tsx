@@ -6,8 +6,8 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React from "react";
+import { useAppStore } from "store";
 import {
   filterProducts,
   normalizeView,
@@ -16,32 +16,29 @@ import {
 } from "utils/functions";
 
 function FilterButtons() {
-  const loading = useSelector((state: StateInterface) => state.details.loading);
-  const totalProducts = useSelector(
-    (state: StateInterface) => state.details.totalProducts
-  );
+  const {
+    resetSelected,
+    applySelected,
+    setFilterLoading,
+    editFilter,
+    setActiveRoute,
+    setFilterEnabled,
+    getProducts,
+    setSkeleton,
+    setLoadingProducts,
+    resetListingFilter,
+    setActiveFilter,
+    details_loading,
+    selectedFilter,
+    totalProducts,
+    filters,
+    activeFiltersShouldUpdate,
+    filterEnabled,
+    activeFilters,
+    isChangedFilter,
+  } = useAppStore();
 
-  const dispatch = useDispatch();
-  const selectedFilter = useSelector(
-    (state: StateInterface) => state.details.selectedFilter
-  );
-
-  const sizesAttr = useSelector(
-    (state: StateInterface) => state.details.filters.sizesAttr
-  );
-
-  const activeFiltersShouldUpdate = useSelector(
-    (state: StateInterface) => state.details.activeFiltersShouldUpdate
-  );
-  const filterEnabled = useSelector(
-    (state: StateInterface) => state.listing.filterEnabled
-  );
-  const activeFilters = useSelector(
-    (state: StateInterface) => state.details.activeFilters
-  );
-  const isChangedFilter = useSelector(
-    (state: StateInterface) => state.details.isChangedFilter
-  );
+  const sizesAttr = filters.sizesAttr;
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
@@ -105,10 +102,7 @@ function FilterButtons() {
     } else {
       params.delete("searchText");
     }
-    dispatch({
-      type: "ACTIVE-ROUTE",
-      payload: `${pathname}?${params.toString()}`,
-    });
+    setActiveRoute(`${pathname}?${params.toString()}`);
     // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
     replace(`${pathname}?${params.toString()}`, { shallow: true });
   };
@@ -151,15 +145,15 @@ function FilterButtons() {
             <div
               className={`apply-button flex-row`}
               onClick={() => {
-                if (!loading) {
+                if (!details_loading) {
                   Sendevent({
                     event: "button_clicked",
                     value: "apply_filter_button",
                   });
-                  dispatch({ type: "APPLY-SELECTED" });
-                  dispatch({ type: "PRODUCT_LOADING" });
-                  dispatch({ type: "RESET_LISTING_FILTER" });
-                  dispatch({ type: "Skeleton-Listing" });
+                  applySelected();
+                  setLoadingProducts(true);
+                  resetListingFilter();
+                  setSkeleton(true);
                   filterProducts({
                     boutiqueId:
                       (SearchParams.get("boutique_slugs") &&
@@ -169,20 +163,17 @@ function FilterButtons() {
                     lang: pathName.lang,
                     sizesAttr: sizesAttr,
                     callback: (products) => {
-                      dispatch({ type: "GET_PRODUCT", payload: { products } });
+                      getProducts({ products });
                     },
                     offset: 1,
                     storeCallback: (e) => {
-                      dispatch({
-                        type: "ACTIVE-FILTER",
-                        payload: e,
-                      });
+                      setActiveFilter(e);
                     },
                     newFiltersCallback: ({ filtersVar }) => {
-                      dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+                      editFilter(filtersVar);
                     },
                   });
-                  dispatch({ type: "filterEnabled", payload: false });
+                  setFilterEnabled(false);
                   window.scrollTo({ top: 0 });
                   normalizeView();
                   if (activeFiltersShouldUpdate) handleSearch(selectedFilter);
@@ -190,14 +181,15 @@ function FilterButtons() {
               }}
             >
               Apply
-              {loading ? (
+              {details_loading ? (
                 <span className="ml-2">
                   <Spinner />
                 </span>
               ) : (
-                  <span className="text-[#fafafa] regular ml-2"
+                <span
+                  className="text-[#fafafa] regular ml-2"
                   data-cy="totalProduct_filterBoutique"
-                  >
+                >
                   (Total Products: {totalProducts})
                 </span>
               )}
@@ -214,8 +206,8 @@ function FilterButtons() {
                   event: "button_clicked",
                   value: "reset_button",
                 });
-                dispatch({ type: "RESET-SELECTED" });
-                dispatch({ type: "FILTER-LOADING", payload: true });
+                resetSelected();
+                setFilterLoading(true);
                 UpdateFilter({
                   filtersVar: {
                     categories: [],
@@ -228,13 +220,10 @@ function FilterButtons() {
                   boutiqueId: pathName.productCategory,
                   lang: pathName.lang,
                   done: () => {
-                    dispatch({ type: "FILTER-LOADING", payload: false });
+                    setFilterLoading(false);
                   },
                   newFiltersCallback: ({ filtersVar }) => {
-                    dispatch({
-                      type: "EDIT-FILTER",
-                      payload: { ...filtersVar, reset: true },
-                    });
+                    editFilter({ ...filtersVar, reset: true });
                   },
                   searchText: "",
                 });

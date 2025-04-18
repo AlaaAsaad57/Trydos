@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 import SizeCircle from "./SizeCircle";
-import { useSelector } from "react-redux";
+import { useAppStore } from "store";
 
 function SizeRow() {
-  const filters = useSelector((state: StateInterface) => state.details.filters);
+  const { filters } = useAppStore();
 
   useEffect(() => {
     if (typeof document !== "undefined") {

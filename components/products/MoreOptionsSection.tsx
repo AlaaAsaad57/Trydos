@@ -1,5 +1,4 @@
 import { useParams } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import home from "services/home";
 import { addToCompare, translateFunction } from "utils/functions";
@@ -8,19 +7,21 @@ import Spinner from "components/global/Spinner";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import LocalizationServiceClass from "services/localization";
+import { useAppStore } from "store";
 function MoreOptionsSection() {
+  const {
+    disableNotification,
+    enableNotification,
+    SelectedProduct,
+    firebaseSettings,
+  } = useAppStore();
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const SelectedProduct = useSelector(
-    (state: StateInterface) => state.cart.SelectedProduct
-  );
-  const firebasSettings = useSelector(
-    (state: StateInterface) => state.auth.firebaseSettings
-  );
   useEffect(() => {
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector("#slider-options");
@@ -52,7 +53,7 @@ function MoreOptionsSection() {
       });
     }
   }, []);
-  const dispatch = useDispatch();
+
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [addedToCompare, setAddedToCompare] = useState(
@@ -63,21 +64,23 @@ function MoreOptionsSection() {
   const AddedToCompare = () => {
     return addedToCompare;
   };
-  const enableNotification = async (payload) => {
+  const enableNotificationTopic = async (payload) => {
     if (!loading) {
       setLoading(true);
-      if (firebasSettings?.subscribed_topics.some((s) => s.topic === payload)) {
-        dispatch({ type: "DISABLE-NOTIFICATION", payload: payload });
+      if (
+        firebaseSettings?.subscribed_topics.some((s) => s.topic === payload)
+      ) {
+        disableNotification(payload);
         await home.UnsubscripeFromTopic({ topic: payload });
       } else {
-        dispatch({ type: "ENABLE-NOTIFICATION", payload: payload });
+        enableNotification(payload);
         await home.subscribeToTopic({ topic: payload });
       }
       setLoading(false);
     }
   };
   const checkIfTopicEnabled = (topic) => {
-    return firebasSettings?.subscribed_topics.some((s) => {
+    return firebaseSettings?.subscribed_topics.some((s) => {
       return s.topic === topic;
     });
   };
@@ -175,7 +178,7 @@ function MoreOptionsSection() {
                 ) && "bg-green-300"
               }`}
               onClick={async () => {
-                enableNotification(
+                enableNotificationTopic(
                   `product_before_stock_out_${SelectedProduct.id}`
                 );
               }}
@@ -192,7 +195,7 @@ function MoreOptionsSection() {
                 ) && "bg-green-300"
               }`}
               onClick={() => {
-                enableNotification(
+                enableNotificationTopic(
                   `product_when_change_in_price_${SelectedProduct.id}`
                 );
               }}
@@ -208,7 +211,9 @@ function MoreOptionsSection() {
                 "bg-green-300"
               }`}
               onClick={() => {
-                enableNotification(`product_discount_${SelectedProduct.id}`);
+                enableNotificationTopic(
+                  `product_discount_${SelectedProduct.id}`
+                );
               }}
             >
               {checkIfTopicEnabled(
@@ -222,7 +227,9 @@ function MoreOptionsSection() {
                 "bg-green-300"
               }`}
               onClick={async () => {
-                enableNotification(`product_comment_${SelectedProduct.id}`);
+                enableNotificationTopic(
+                  `product_comment_${SelectedProduct.id}`
+                );
               }}
             >
               {checkIfTopicEnabled(`product_comment_${SelectedProduct.id}`) && (

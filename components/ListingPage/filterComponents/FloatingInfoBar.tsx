@@ -1,12 +1,9 @@
 import React from "react";
 import FilterInfoBar from "../FilterInfoBar";
-import { useSelector } from "react-redux";
+import { useAppStore } from "store";
 
 function FloatingInfoBar() {
-  const selectedFilter = useSelector(
-    (state: StateInterface) => state.details.selectedFilter
-  );
-
+  const { selectedFilter } = useAppStore();
   return (
     <div className="floating-info">
       <div className="floating-info-details">

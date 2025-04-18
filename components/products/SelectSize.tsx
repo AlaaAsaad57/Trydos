@@ -2,7 +2,6 @@ import { useEffect, useRef } from "react";
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperRef, SwiperSlide } from "swiper/react";
 import "styles/sizeSlider.css";
-import { useDispatch, useSelector } from "react-redux";
 import { Sendevent, translateFunction } from "utils/functions";
 import {
   useParams,
@@ -10,24 +9,18 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import { Swiper as SwiperType } from "node_modules/swiper/types";
+import { useAppStore } from "store";
 function SelectSize({ sizes, variants }) {
+  const { addToCartSize, AddToCartOption, SelectedProduct } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
-  const activeSize = useSelector(
-    (state: StateInterface) => state.cart.AddToCartOption.selectedSize
-  );
-  const SelectedProduct = useSelector(
-    (state: StateInterface) => state.cart.SelectedProduct
-  );
-  const activeColor = useSelector(
-    (state: StateInterface) => state.cart.AddToCartOption.selectedColor
-  );
-  const dispatch = useDispatch();
+  const activeSize = AddToCartOption.selectedSize;
+  const activeColor = AddToCartOption?.selectedColor;
+
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -39,7 +32,7 @@ function SelectSize({ sizes, variants }) {
       // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
       shallow: true,
     });
-    dispatch({ type: "AddToCartSize", payload: e });
+    addToCartSize(e);
     Sendevent({ event: "button_clicked", value: "slide_choose_size_event" });
   };
 
@@ -48,11 +41,13 @@ function SelectSize({ sizes, variants }) {
     let variant = (e
       ? variations.filter((s) => {
           let size = s.type.split("-")[1] || s.type.split("-")[0];
+          // @ts-ignore
           return s.type.includes(activeColor?.color_name || "") && size === e;
         })[0]
       : variations.filter((s) => {
           let size = s.type.split("-")[1] || s.type.split("-")[0];
           return (
+            // @ts-ignore
             s.type.includes(activeColor?.color_name || "") &&
             activeSize?.name === size
           );
@@ -384,19 +379,18 @@ function SelectSize({ sizes, variants }) {
 
 export default SelectSize;
 const SelectSizeSlider = ({ sizes, setActive, getVariants }) => {
+  const { addToCartSize, AddToCartOption } = useAppStore();
   const searchParams = useSearchParams();
-  const dispatch = useDispatch();
   const router = useRouter();
   const pathname = usePathname();
   useEffect(() => {
     if (searchParams.get("size")) {
       let size = sizes.filter((s) => s.name === searchParams.get("size"))[0];
-      if (size) dispatch({ type: "AddToCartSize", payload: size });
+      if (size) addToCartSize(size);
     }
   }, []);
-  const activeSize = useSelector(
-    (state: StateInterface) => state.cart.AddToCartOption.selectedSize
-  );
+  const activeSize = AddToCartOption.selectedSize;
+
   const getInitial = () => {
     if (searchParams.get("size")) {
       let index = 0;

@@ -1,14 +1,12 @@
 "use client";
-import { useSelector } from "react-redux";
 import React, { useEffect } from "react";
 import { Sendevent } from "utils/functions";
 import EyeIcon from "public/svg/product/EyeIcon.svg";
 import Skeleton from "react-loading-skeleton";
+import { useAppStore } from "store";
 
 function ProductViews({ product }) {
-  const SelectedProduct = useSelector(
-    (state: StateInterface) => state.cart.SelectedProduct
-  );
+  const { SelectedProduct } = useAppStore();
   useEffect(() => {
     setTimeout(() => {
       Sendevent({

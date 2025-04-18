@@ -3,13 +3,14 @@ import { getStatusDisplayName, OrdersIcon } from "./OrdersList";
 import SettingTopBar from "./TopBar";
 
 import { OrderDateCard, OrderInvoiceCard, OrderNumberCard } from "./cards";
-import { useDispatch, useSelector } from "react-redux";
+
 import OrderExpectedDeliveryCard from "./cards/OrderExpectedDeliveryCard";
 import OrderStatusCard from "./cards/OrderStatusCard";
 import OrderAddressCard from "./cards/OrderAddressCard";
 import OrderItemsList from "./cards/OrderItemsList";
 import { OrderDetail, OrderItem } from "types/orders";
 import { RoundPrice, translateFunction } from "utils/functions";
+import { useAppStore } from "store";
 
 function OrderDetails({
   resetOrderDetails,
@@ -18,12 +19,10 @@ function OrderDetails({
   resetOrderDetails: () => void;
   goBack: () => void;
 }) {
-  const selectedOrder = useSelector(
-    (state: StateInterface) => state.cart.selectedOrder
-  );
-  const dispatch = useDispatch();
+  const { setOrderDetails, selectedOrder } = useAppStore();
+
   const resetOrder = () => {
-    dispatch({ type: "ORDER-DETAILS", payload: null });
+    setOrderDetails(null);
     goBack();
   };
   const [isExpanded, setIsExpanded] = useState(false);
@@ -80,9 +79,8 @@ function OrderDetails({
 
 export default OrderDetails;
 const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+  const { currency } = useAppStore();
+
   return (
     <div className="bg-[#fff] mt-[20px] rounded-[10px] w-full h-auto p-[12px] flex-col flex items-start">
       <span className="w-[70px] h-[10px] bg-[#C4C2C27f]"></span>
@@ -527,9 +525,8 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
   );
 };
 const ProductCard = ({ product }: { product: OrderDetail }) => {
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+  const { currency } = useAppStore();
+
   return (
     <div className="flex-row relative w-full border-t border-[#C4C2C27f] py-[12px]">
       <div className="flex-row  relative">

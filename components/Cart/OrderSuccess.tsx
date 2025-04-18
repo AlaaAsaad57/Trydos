@@ -1,11 +1,11 @@
 import { useEffect } from "react";
-import { useSelector } from "react-redux";
+
 import OrderSuccessIcon from "public/svg/cart/OrderSuccess.svg";
 import { translateFunction } from "utils/functions";
+import { useAppStore } from "store";
 function OrderSuccess() {
-  const orderData = useSelector(
-    (state: StateInterface) => state.cart.orderData
-  );
+  const { orderData } = useAppStore();
+
   useEffect(() => {
     if (orderData.success) {
       setTimeout(() => {
@@ -28,6 +28,7 @@ function OrderSuccess() {
         {translateFunction("Your Order Number")}
       </span>
       <span className="bold text-[20px] text-[#404040] mt-[6px]">
+        {/* @ts-ignore */}
         {orderData?.data[0]?.order_group_id}
       </span>
       <div className="flex-row mt-[11px] items-center">

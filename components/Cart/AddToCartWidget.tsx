@@ -1,6 +1,5 @@
 import SelectSize from "components/products/SelectSize";
 import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 
 import { getConfiguredImage, RoundPrice, Sendevent } from "utils/functions";
 
@@ -19,18 +18,27 @@ import { ToastContainer } from "react-toastify";
 import { AxiosGet } from "utils/AxiosApi";
 import { QuantityDetailsProductApi } from "models/Api";
 import ProductInfo from "components/products/ProductInfo";
+import { useAppStore } from "store";
 
 function AddToCartWidget() {
-  const dispatch = useDispatch();
+  const {
+    getProductDetailsForCart,
+    getProductVariation,
+    disableAddToCartOption,
+    addToCartSize,
+    storeProductBoutique,
+    loaded,
+    SelectedProduct,
+    product,
+    AddToCartOption,
+    settings,
+    currency,
+  } = useAppStore();
 
-  const loaded = useSelector((state: StateInterface) => state.cart.loaded);
   let QTY_URL = "/web/product/qtyPriceDetails";
-  const SelectedProduct = useSelector(
-    (state: StateInterface) => state.cart.SelectedProduct
-  );
+
   const searchParams = useSearchParams();
 
-  const product = useSelector((state: StateInterface) => state.details.product);
   const getDetails = async () => {
     if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
     let data: QuantityDetailsProductApi["data"] = await AxiosGet({
@@ -43,15 +51,12 @@ function AddToCartWidget() {
     let additionalData = await auth.getProductNotify({
       id: SelectedProduct.slug,
     });
-    dispatch({ type: "GET-PRODUCT-DETAILS-FOR-CART", payload: data });
-    dispatch({
-      type: "STORE-PRODUCT-Boutique",
-      payload: { ...product, ...data },
-    });
+    getProductDetailsForCart(data);
+    storeProductBoutique({ ...product, ...data });
     if (data.choice_options) {
       let a = data?.choice_options?.filter((s) => s.title == "Size")[0]
         ?.options[0];
-      dispatch({ type: "AddToCartSize", payload: a });
+      addToCartSize(a);
     }
     let arr = [];
     if (additionalData?.variation?.length) {
@@ -67,45 +72,29 @@ function AddToCartWidget() {
       size: searchParams.get("size"),
     };
 
-    dispatch({
-      type: "GET-PRODUCT-VARIATION",
-      payload: {
-        ...product,
-        // @ts-ignore
-        is_product_notify_for_user: additionalData?.is_product_notify_for_user,
-        variation: arr,
-        likes: null,
-        is_liked: null,
-        color,
-        size,
-      },
+    getProductVariation({
+      ...product,
+      // @ts-ignore
+      is_product_notify_for_user: additionalData?.is_product_notify_for_user,
+      variation: arr,
+      likes: null,
+      is_liked: null,
+      color,
+      size,
     });
   };
   useEffect(() => {
     getDetails();
   }, []);
-  const decimal_point_settings = useSelector(
-    (state: StateInterface) => state.homepage.settings
-  );
-  const AddToCartOption = useSelector(
-    (state: StateInterface) => state.cart.AddToCartOption
-  );
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+
   const getPrice = (num) => {
     if (currency?.exchange_rate === null || !currency?.exchange_rate)
       return null;
-    if (
-      decimal_point_settings &&
-      Object.keys(decimal_point_settings).includes("starting-setting")
-    )
+    if (settings && Object.keys(settings).includes("starting-setting"))
       return RoundPrice({
         num: num,
         rate: currency?.exchange_rate,
-        points:
-          decimal_point_settings["starting-setting"]?.decimal_point_settings ||
-          0,
+        points: settings["starting-setting"]?.decimal_point_settings || 0,
       });
   };
   return (
@@ -118,7 +107,7 @@ function AddToCartWidget() {
       )}
       <SelectColor
         close={() => {
-          dispatch({ type: "AddToCartOptionDisable" });
+          disableAddToCartOption();
           Sendevent({
             event: "button_clicked",
             value: "trydos_appbar_backicon_button",
@@ -228,18 +217,18 @@ function AddToCartWidget() {
 
 export default AddToCartWidget;
 const SelectColor = ({ close }) => {
-  const AddToCartOption = useSelector(
-    (state: StateInterface) => state.cart.AddToCartOption
-  );
-  const SelectedProduct = useSelector(
-    (state: StateInterface) => state.cart.SelectedProduct
-  );
-  const dispatch = useDispatch();
+  const {
+    enableCart,
+    disableAddToCartOption,
+    AddToCartOption,
+    SelectedProduct,
+    localCart,
+  } = useAppStore();
   const pathname = usePathname();
   const router = useRouter();
 
   const searchParams = useSearchParams();
-  const enableCart = (s) => {
+  const enableCartAction = (s) => {
     window.history.pushState({ isPopup: true }, "open Cart");
     if (s) {
       const newParams = new URLSearchParams(searchParams);
@@ -256,9 +245,8 @@ const SelectColor = ({ close }) => {
       // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
       router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     }
-    dispatch({ type: "ENABLE-CART", payload: s });
+    enableCart(s);
   };
-  const cart = useSelector((state: StateInterface) => state.cart?.localCart);
 
   return (
     <>
@@ -281,13 +269,13 @@ const SelectColor = ({ close }) => {
               value: "cart_nav_bar_button",
             });
             close();
-            dispatch({ type: "AddToCartOptionDisable", payload: false });
-            enableCart(true);
+            disableAddToCartOption();
+            enableCartAction(true);
           }}
         >
-          {cart?.length > 0 && (
+          {localCart?.length > 0 && (
             <span className="bg-green-500 right-[-8px] top-[-4px] text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
-              {cart.length}
+              {localCart.length}
             </span>
           )}
           <CartIcon id={"cart-icon"} className="cart-icon" data-cy="CartIcon" />
@@ -328,7 +316,9 @@ const SelectColor = ({ close }) => {
             id={"added-to-cart"}
             src={getConfiguredImage({
               src:
+                // @ts-ignore
                 (AddToCartOption?.selectedColor?.images &&
+                  // @ts-ignore
                   AddToCartOption?.selectedColor?.images[0]) ||
                 SelectedProduct.images[0],
               width: 400,

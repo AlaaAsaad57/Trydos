@@ -1,17 +1,12 @@
 "use client";
 import { useSearchParams } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
+
 import React, { useEffect } from "react";
+import { useAppStore } from "store";
 import { changeAppCountry, changeAppLanguage } from "store/homepage/actions";
 
 function InitFunction({ init }: { init: string }) {
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
-  const country = useSelector(
-    (state: StateInterface) => state.homepage.country
-  );
-  const dispatch = useDispatch();
+  const { language, country } = useAppStore();
   const searchParams = useSearchParams();
   const initFunc = async () => {
     const Cookies = (await import("js-cookie")).default;
@@ -21,21 +16,20 @@ function InitFunction({ init }: { init: string }) {
       // Cookies.set("country", init.split("-")[0]?.toLowerCase(), {
       //   expires: 365,
       // });
-      dispatch(
-        changeAppLanguage(
-          init.split("-")[1] ||
-            languageCookies ||
-            language ||
-            process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE
-        )
+
+      changeAppLanguage(
+        init.split("-")[1] ||
+          languageCookies ||
+          language ||
+          process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE
       );
+
     let action = await changeAppCountry(
       init.split("-")[0] ||
         countryCookies ||
         country ||
         process.env.NEXT_PUBLIC_DEFAULT_COUNTRY
     );
-    dispatch(action);
   };
   useEffect(() => {
     initFunc();

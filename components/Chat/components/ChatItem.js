@@ -8,9 +8,9 @@ import ArrowRightIcon from "../svg/arrowRight.svg";
 import MutedChatIcon from "../svg/MutedChat.svg";
 import PinnedChatIcon from "../svg/PinnedChat.svg";
 import ChatOptions from "./ChatOptions";
-import { useDispatch } from "react-redux";
 import { useState } from "react";
 import Image from "next/image";
+import { useAppStore } from "store";
 function ChatItem({
   isActive,
   unread,
@@ -24,6 +24,7 @@ function ChatItem({
   pinned,
   muted,
 }) {
+  const { setMain, openChat } = useAppStore();
   const [Moving, setMoving] = useState(false);
   var timeout;
   function handleTouchStart(evt, a, index) {
@@ -107,8 +108,8 @@ function ChatItem({
       /*most significant*/
       if (xDiff > 0) {
         if (Math.abs(xDiff) < 250) {
-          dispatch({ type: "MAIN", payload: "main" });
-          dispatch({ type: "OPEN-CHAT", payload: null });
+          setMain("main");
+          openChat(null);
           moving = true;
           a.style.transform = `translateX(-${Math.abs(250)}px)`;
           if (timeout) {
@@ -148,7 +149,6 @@ function ChatItem({
       });
     });
   }, []);
-  const dispatch = useDispatch();
 
   const handleClick = () => {
     timeout = setTimeout(() => {
@@ -158,7 +158,7 @@ function ChatItem({
         yDown = null;
         moving = false;
         setMoving(false);
-        dispatch({ type: "MAIN", payload: "chat" });
+        setMain("chat");
       } else {
         if (!isMove && Moving === id) {
         }

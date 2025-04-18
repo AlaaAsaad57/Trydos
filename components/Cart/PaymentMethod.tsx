@@ -1,5 +1,4 @@
 import { useParams } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
 import { RoundPrice, translateFunction } from "utils/functions";
 import WalletIcon from "assets/svg/cart/WalletIcon.svg";
 import CreditIcon from "assets/svg/cart/CreditIcon.svg";
@@ -17,24 +16,26 @@ import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
 import Spinner from "components/global/Spinner";
 import CouponElement from "./couponElement";
 import { toast } from "react-toastify";
+import { useAppStore } from "store";
 function PaymentMethod() {
+  const {
+    setWalletBalance,
+    setCodUser,
+    setCryptoUser,
+    setCreditUser,
+    orderLoading,
+    orderData,
+    available_payment_method,
+    wallet,
+    total,
+    total_cash,
+  } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
-  const dispatch = useDispatch();
-  const orderLoading = useSelector(
-    (state: StateInterface) => state.cart.orderLoading
-  );
-  const orderData = useSelector(
-    (state: StateInterface) => state.cart.orderData
-  );
-  const cart = useSelector((state: StateInterface) => state.cart);
-  const available_payment_method = useSelector(
-    (state: StateInterface) => state.cart.available_payment_method
-  );
-  const wallet = useSelector((state: StateInterface) => state.cart.wallet);
+
   const setOrderData = (e) => {
-    dispatch({ type: "ORDER-DATA", payload: e });
+    setOrderData(e);
   };
   // const totalBalance = () => {
   //   let val = 0;
@@ -150,8 +151,8 @@ function PaymentMethod() {
                     setActive={() => {
                       if (
                         !(
-                          wallet?.wallet_balance >= cart.total &&
-                          wallet.wallet_balance >= cart.total_cash
+                          wallet?.wallet_balance >= total &&
+                          wallet.wallet_balance >= total_cash
                         )
                       ) {
                         if (!orderLoading) {
@@ -160,16 +161,16 @@ function PaymentMethod() {
                             orderData?.payment?.filter((one) => one.id === 1)
                               .length === 1 &&
                             orderData?.payment?.filter((one) => one.id === 1)[0]
-                              .balance < cart.total_cash
+                              .balance < total_cash
                           ) {
-                            dispatch({ type: "COD-USER", payload: true });
+                            setCodUser();
                             setOrderData({
                               payment: [
                                 ...orderData.payment,
                                 {
                                   id: 0,
                                   balance:
-                                    cart.total_cash -
+                                    total_cash -
                                     orderData?.payment?.filter(
                                       (one) => one.id === 1
                                     )[0].balance,
@@ -181,16 +182,16 @@ function PaymentMethod() {
                               orderData?.payment?.filter((s) => s.id === 0)
                                 .length > 0
                             ) {
-                              dispatch({ type: "COD-USER", payload: false });
+                              setCodUser();
                               setOrderData({
                                 payment: orderData?.payment?.filter(
                                   (s) => s.id !== 0
                                 ),
                               });
                             } else {
-                              dispatch({ type: "COD-USER", payload: true });
+                              setCodUser();
                               setOrderData({
-                                payment: [{ id: 0, balance: cart.total_cash }],
+                                payment: [{ id: 0, balance: total_cash }],
                               });
                             }
                           }
@@ -220,12 +221,9 @@ function PaymentMethod() {
                           orderData?.payment?.filter(
                             (one) => one.id === 2 || one.id === 3
                           ).length === 1 &&
-                          wallet?.wallet_balance < cart.total_cash
+                          wallet?.wallet_balance < total_cash
                         ) {
-                          dispatch({
-                            type: "WALLET_BALANCE-USER",
-                            payload: true,
-                          });
+                          setWalletBalance();
                           setOrderData({
                             payment: [
                               ...orderData.payment,
@@ -243,10 +241,7 @@ function PaymentMethod() {
                               ),
                             });
                           } else {
-                            dispatch({
-                              type: "WALLET_BALANCE-USER",
-                              payload: false,
-                            });
+                            setWalletBalance();
                             setOrderData({
                               payment: [
                                 {
@@ -272,8 +267,8 @@ function PaymentMethod() {
                     setActive={() => {
                       if (
                         !(
-                          wallet?.wallet_balance >= cart.total &&
-                          wallet.wallet_balance >= cart.total_cash
+                          wallet?.wallet_balance >= total &&
+                          wallet.wallet_balance >= total_cash
                         )
                       ) {
                         if (!orderLoading) {
@@ -282,16 +277,16 @@ function PaymentMethod() {
                             orderData?.payment?.filter((one) => one.id === 1)
                               .length === 1 &&
                             orderData?.payment?.filter((one) => one.id === 1)[0]
-                              .balance < cart.total_cash
+                              .balance < total_cash
                           ) {
-                            dispatch({ type: "CRYPTO-USER", payload: true });
+                            setCryptoUser();
                             setOrderData({
                               payment: [
                                 ...orderData.payment,
                                 {
                                   id: 3,
                                   balance:
-                                    cart.total_cash -
+                                    total_cash -
                                     orderData?.payment?.filter(
                                       (one) => one.id === 1
                                     )[0].balance,
@@ -303,16 +298,16 @@ function PaymentMethod() {
                               orderData?.payment?.filter((s) => s.id === 3)
                                 .length > 0
                             ) {
-                              dispatch({ type: "CRYPTO-USER", payload: false });
+                              setCryptoUser();
                               setOrderData({
                                 payment: orderData?.payment?.filter(
                                   (s) => s.id !== 3
                                 ),
                               });
                             } else {
-                              dispatch({ type: "CRYPTO-USER", payload: true });
+                              setCryptoUser();
                               setOrderData({
-                                payment: [{ id: 3, balance: cart.total_cash }],
+                                payment: [{ id: 3, balance: total_cash }],
                               });
                             }
                           }
@@ -338,8 +333,8 @@ function PaymentMethod() {
                     setActive={() => {
                       if (
                         !(
-                          wallet?.wallet_balance >= cart.total &&
-                          wallet.wallet_balance >= cart.total_cash
+                          wallet?.wallet_balance >= total &&
+                          wallet.wallet_balance >= total_cash
                         )
                       ) {
                         if (!orderLoading) {
@@ -348,16 +343,16 @@ function PaymentMethod() {
                             orderData?.payment?.filter((one) => one.id === 1)
                               .length === 1 &&
                             orderData?.payment?.filter((one) => one.id === 1)[0]
-                              .balance < cart.total_cash
+                              .balance < total_cash
                           ) {
-                            dispatch({ type: "CREDIT-USER", payload: true });
+                            setCreditUser();
                             setOrderData({
                               payment: [
                                 ...orderData.payment,
                                 {
                                   id: 2,
                                   balance:
-                                    cart.total_cash -
+                                    total_cash -
                                     orderData?.payment?.filter(
                                       (one) => one.id === 1
                                     )[0].balance,
@@ -369,16 +364,16 @@ function PaymentMethod() {
                               orderData?.payment?.filter((s) => s.id === 2)
                                 .length > 0
                             ) {
-                              dispatch({ type: "CREDIT-USER", payload: false });
+                              setCreditUser();
                               setOrderData({
                                 payment: orderData?.payment?.filter(
                                   (s) => s.id !== 2
                                 ),
                               });
                             } else {
-                              dispatch({ type: "CREDIT-USER", payload: true });
+                              setCreditUser();
                               setOrderData({
-                                payment: [{ id: 2, balance: cart.total_cash }],
+                                payment: [{ id: 2, balance: total_cash }],
                               });
                             }
                           }
@@ -420,7 +415,6 @@ export default PaymentMethod;
 //     (state: StateInterface) => state.cart.orderData.coupon_number
 //   );
 //   const onChange = (e) => {
-//     dispatch({ type: "ORDER-DATA", payload: { coupon_number: e } });
 //   };
 //   useEffect(() => {
 //     if (active) {
@@ -579,13 +573,8 @@ export default PaymentMethod;
 //   );
 // };
 const CODInput = ({ active, setActive }) => {
-  const orderLoading = useSelector(
-    (state: StateInterface) => state.cart.orderLoading
-  );
-  const total = useSelector((state: StateInterface) => state.cart.total_cash);
-  const currency_symbol = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+  const { total_cash, currency } = useAppStore();
+
   return (
     <div
       onClick={() => {
@@ -612,20 +601,14 @@ const CODInput = ({ active, setActive }) => {
           {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: total })} {currency_symbol?.symbol}
+          {RoundPrice({ num: total_cash })} {currency?.symbol}
         </span>
       </div>
     </div>
   );
 };
 const TryDosWalletInput = ({ active, setActive }) => {
-  const orderLoading = useSelector(
-    (state: StateInterface) => state.cart.orderLoading
-  );
-  const wallet = useSelector((state: StateInterface) => state.cart.wallet);
-  const currency_symbol = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+  const { orderLoading, wallet, currency } = useAppStore();
   return (
     <div
       onClick={() => {
@@ -658,8 +641,7 @@ const TryDosWalletInput = ({ active, setActive }) => {
           {translateFunction("Your Balance")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: wallet?.wallet_balance || 0 })}{" "}
-          {currency_symbol?.symbol}
+          {RoundPrice({ num: wallet?.wallet_balance || 0 })} {currency?.symbol}
         </span>
       </div>
     </div>

@@ -12,10 +12,11 @@ import PersonalBankCards from "./PersonalBankCards";
 import PersonalInfoCountries from "./PersonalInfoCountries";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import OrdersList from "./OrdersList";
-import { OrderItem as OrderItemType } from "types/orders";
+
 import OrderDetails from "./OrderDetails";
-import { useDispatch, useSelector } from "react-redux/es";
+
 import Spinner from "components/global/Spinner";
+import { useAppStore } from "store";
 
 interface SettingOption {
   id: string;
@@ -28,19 +29,18 @@ interface SettingOption {
 }
 
 function Settings({ lang }: { lang: string }) {
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
-  const userProfile = useSelector(
-    (state: StateInterface) => state.auth.userProfile
-  );
+  const {
+    setIsActiveAddress,
+    userProfile,
+    setOrderDetails,
+    setAddressDetails,
+  } = useAppStore();
 
-  const dispatch = useDispatch();
   const setSelectedOrder = (order) => {
-    dispatch({ type: "ORDER-DETAILS", payload: order });
+    setOrderDetails(order);
   };
   const setIsActive = (e) => {
-    dispatch({ type: "SET-IS-ACTIVE-Address", payload: e });
+    setIsActiveAddress(e);
   };
   const [NavigationOptions, setNavigationOptions] = useState<SettingOption[]>([
     {
@@ -115,8 +115,7 @@ function Settings({ lang }: { lang: string }) {
           {
             <PersonalInfoAddressModal
               goBack={() => {
-                dispatch({ type: "set-address-details", payload: null });
-
+                setAddressDetails(null);
                 swipeToScreen(5);
               }}
               swipeToScreen={(index) => swipeToScreen(index)}

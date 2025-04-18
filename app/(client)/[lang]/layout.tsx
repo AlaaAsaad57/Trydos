@@ -4,8 +4,6 @@ import "styles/home.css";
 import "styles/unused-onload.css";
 import Providers from "store/provider";
 import localFont from "next/font/local";
-
-import PageTransition from "components/global/PageTransition";
 import CustomNavbarServer from "components/Server/ServerCustomNav";
 import { Suspense } from "react";
 export const metadata = {
@@ -109,7 +107,7 @@ export default async function RootLayout({ params, children }) {
             <Suspense fallback={<></>}>
               <CustomNavbarServer lang={params.lang} />
             </Suspense>
-            <PageTransition init={params.lang}>{children}</PageTransition>
+            {children}
           </div>
         </Providers>
       </body>

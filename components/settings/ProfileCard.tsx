@@ -1,7 +1,8 @@
 import React from "react";
 import Qr from "public/svg/Userqr.svg";
-import { useSelector } from "node_modules/react-redux/es";
+
 import { translateFunction } from "utils/functions";
+import { useAppStore } from "store";
 function ProfileCard({
   goToProfile,
   goToProfileSize,
@@ -11,9 +12,7 @@ function ProfileCard({
   goToProfileSize: () => void;
   goToProfilePicture: () => void;
 }) {
-  const userProfile = useSelector(
-    (state: StateInterface) => state.auth.userProfile
-  );
+  const { userProfile } = useAppStore();
   return (
     <div
       className="w-full h-[138px] rounded-[15px] bg-[#F8F8F8] p-[12px] flex-row justify-between cursor-pointer"

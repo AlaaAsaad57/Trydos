@@ -1,6 +1,3 @@
-"use client";
-import { Provider } from "react-redux";
-import { store } from "./index";
 import GAComponent from "components/global/GAComponent";
 import { SSRDetect } from "utils/functions";
 import Init from "components/Home/Init";
@@ -13,13 +10,13 @@ export default function Providers({ children }) {
       <Suspense fallback={<></>}>
         <Init />
       </Suspense>
-      <Provider store={store}>
-        <Suspense fallback={<></>}>
-          <CartProvider />
-        </Suspense>
 
-        {children}
-      </Provider>
+      <Suspense fallback={<></>}>
+        <CartProvider />
+      </Suspense>
+
+      {children}
+
       {SSRDetect() && <GAComponent />}
     </>
   );

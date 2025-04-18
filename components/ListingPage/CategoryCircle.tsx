@@ -1,19 +1,24 @@
 import React, { useState } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import SubCategoryCircle from "./SubCategoryCircle";
-import { useDispatch, useSelector } from "react-redux";
 import { filterProducts, Sendevent, UpdateFilter } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
+import { useAppStore } from "store";
 
 function CategoryCircle({ category }) {
-  const selectedFilter = useSelector(
-    (state: StateInterface) => state.details.selectedFilter
-  );
-  const filterEnabled = useSelector(
-    (state: StateInterface) => state.listing.filterEnabled
-  );
-  const filters = useSelector((state: StateInterface) => state.details.filters);
-  const dispatch = useDispatch();
+  const {
+    setFilterLoading,
+    filterCategory,
+    editFilter,
+    filterStart,
+    getProducts,
+    setSkeleton,
+    selectedFilter,
+    filterEnabled,
+    filters,
+    setActiveFilter,
+  } = useAppStore();
+
   const pathName = useParams();
   const params = useSearchParams();
   const selectCategory = (e) => {
@@ -36,21 +41,21 @@ function CategoryCircle({ category }) {
         category.childes.map((sub) => sub.slug).includes(s.slug)
       );
       arr.map((s) => {
-        dispatch({ type: "FILTER-CATEGORY", payload: s });
+        filterCategory(s);
       });
     }
-    dispatch({ type: "FILTER-CATEGORY", payload: e });
-    dispatch({ type: "FILTER-LOADING", payload: true });
+    filterCategory(e);
+    setFilterLoading(true);
     UpdateFilter({
       boutiqueId: pathName.productCategory,
       lang: pathName.lang,
       sizesAttr: filters.sizesAttr,
       newFiltersCallback: ({ filtersVar }) => {
-        dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+        editFilter(filtersVar);
       },
       searchText: "",
       done: () => {
-        dispatch({ type: "FILTER-LOADING", payload: false });
+        setFilterLoading(false);
       },
     });
     if (!filterEnabled) {
@@ -59,8 +64,8 @@ function CategoryCircle({ category }) {
     }
   };
   const filter = () => {
-    dispatch({ type: "FILTER-START" });
-    dispatch({ type: "Skeleton-Listing" });
+    filterStart();
+    setSkeleton(true);
     filterProducts({
       boutiqueId:
         (params.get("boutique_slugs") && params.get("boutique_slugs")) ||
@@ -68,17 +73,14 @@ function CategoryCircle({ category }) {
       lang: pathName.lang,
       sizesAttr: filters.sizesAttr,
       callback: (products) => {
-        dispatch({ type: "GET_PRODUCT", payload: { products } });
+        getProducts({ products });
       },
       offset: 1,
       storeCallback: (e) => {
-        dispatch({
-          type: "ACTIVE-FILTER",
-          payload: e,
-        });
+        setActiveFilter(e);
       },
       newFiltersCallback: ({ filtersVar }) => {
-        dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+        editFilter(filtersVar);
       },
     });
   };
@@ -179,20 +181,19 @@ function CategoryCircle({ category }) {
                     .length > 0
                 }
                 onClick={(sub) => {
-                  if (isSelected())
-                    dispatch({ type: "FILTER-CATEGORY", payload: category });
-                  dispatch({ type: "FILTER-CATEGORY", payload: sub });
-                  dispatch({ type: "FILTER-LOADING", payload: true });
+                  if (isSelected()) filterCategory(category);
+                  filterCategory(sub);
+                  setFilterLoading(true);
                   UpdateFilter({
                     boutiqueId: pathName.productCategory,
                     lang: pathName.lang,
                     sizesAttr: filters.sizesAttr,
                     newFiltersCallback: ({ filtersVar }) => {
-                      dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+                      editFilter(filtersVar);
                     },
                     searchText: "",
                     done: () => {
-                      dispatch({ type: "FILTER-LOADING", payload: false });
+                      setFilterLoading(false);
                     },
                   });
                   if (!filterEnabled) {

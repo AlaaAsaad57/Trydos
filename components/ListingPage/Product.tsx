@@ -5,7 +5,6 @@ import ImageSlider from "./ImageSlider";
 import BuyButton from "./BuyButton";
 import NextLink from "components/global/NextLink";
 import { ProductInterface } from "models/product";
-import { useDispatch, useSelector } from "react-redux";
 import { Sendevent } from "utils/functions";
 
 import PriceLabel from "./PriceLabel";
@@ -16,6 +15,7 @@ import CoverEffectSlider from "./CoverEffectSlider";
 import TopSlider from "./TopSlider";
 import ColorSlider from "./ColorSlider";
 import { PrefetchKind } from "node_modules/next/dist/client/components/router-reducer/router-reducer-types";
+import { useAppStore } from "store";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
@@ -66,16 +66,14 @@ function Product({
   currency: CurrencyApi["data"]["currency"];
   i: number;
 }) {
-  const dispatchStore = useDispatch();
+  const { enableAddToCartOption, storeProductBoutique } = useAppStore();
+
   const { lang } = useParams();
   const addToCart = () => {
     document.documentElement.style.overflow = "hidden";
     document.documentElement.scrollTop = 0;
-    dispatchStore({
-      type: "STORE-PRODUCT-Boutique",
-      payload: { ...product },
-    });
-    dispatchStore({ type: "AddToCartOptionEnable", payload: product });
+    storeProductBoutique({ ...product });
+    enableAddToCartOption(product);
   };
 
   const [productState, dispatch] = useReducer(ProductReducer, {

@@ -1,17 +1,15 @@
 "use client";
 import "styles/stories.css";
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import Cube from "react-cube-navigation";
 import { SelectStory } from "store/homepage/actions";
 import { useSwipeable } from "react-swipeable";
 import StoryServiceClass from "services/story";
 import StoryHolder from "./StoryHolder";
+import { useAppStore } from "store";
 function StoriesContainer({ activeId, selectedStory }) {
-  const storiesData = useSelector(
-    (state: StateInterface) => state.homepage.storiesData
-  );
-  const dispatch = useDispatch();
+  const { storiesData } = useAppStore();
+
   var dir = 0;
   const [isTop, setIsTop] = useState("");
 
@@ -44,7 +42,7 @@ function StoriesContainer({ activeId, selectedStory }) {
             ).style.transform = `translateY(${100}%)`;
 
             setTimeout(() => {
-              dispatch(SelectStory(null));
+              SelectStory(null);
             }, 150);
           } else {
             document.querySelector<HTMLDivElement>(
@@ -95,7 +93,7 @@ function StoriesContainer({ activeId, selectedStory }) {
             ) === 1 &&
             i > -1
           ) {
-            dispatch(SelectStory(storiesData[i]));
+            SelectStory(storiesData[i]);
           }
         }}
         width={window.innerWidth}

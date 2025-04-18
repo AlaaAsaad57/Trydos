@@ -2,7 +2,6 @@
 import { useEffect } from "react";
 import Logo from "./Logo";
 import UserNavTopSection from "./UserNavTopSection";
-import { useDispatch, useSelector } from "react-redux";
 import {
   changeAppCountry,
   changeAppLanguage,
@@ -10,12 +9,13 @@ import {
 } from "store/homepage/actions";
 import { Category } from "models/Category";
 import MobileNavigation from "./MobileNavigation";
-import CategoriesBar from "./CategoriesBar";
+
 import NextLink from "components/global/NextLink";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 import AuthSections from "./AuthSections";
 import { ToastContainer } from "react-toastify";
+import { useAppStore } from "store";
 
 interface NavbarProps {
   init: string;
@@ -23,22 +23,20 @@ interface NavbarProps {
   response?: any;
 }
 function Navbar({ init, categories, response }: NavbarProps) {
-  const loginOpen = useSelector(
-    (state: StateInterface) => state.homepage.loginOpen
-  );
-  const setLoginOpen = (e: boolean) => {
+  const {
+    setEnableSearch,
+    setLoginOpen,
+    loginOpen,
+    language,
+    country,
+    cart_enable,
+  } = useAppStore();
+
+  const setLoginOpenAction = (e: boolean) => {
     window.history.pushState({ isPopup: true }, "open Login");
-    dispatch({ type: "LOGIN-OPEN", payload: e });
+    setLoginOpen(e);
   };
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
-  const dispatch = useDispatch();
-  const params = usePathname();
   const searchParams = useSearchParams();
-  const country = useSelector(
-    (state: StateInterface) => state.homepage.country
-  );
   const initFunc = async () => {
     const Cookies = (await import("js-cookie")).default;
     let languageCookies = Cookies.get("language");
@@ -48,31 +46,29 @@ function Navbar({ init, categories, response }: NavbarProps) {
       Cookies.set("country", init.split("-")[0]?.toLowerCase(), {
         expires: 365,
       });
-    dispatch(
-      changeAppLanguage(
-        init.split("-")[1] ||
-          languageCookies ||
-          language ||
-          process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE
-      )
+
+    changeAppLanguage(
+      init.split("-")[1] ||
+        languageCookies ||
+        language ||
+        process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE
     );
+
     let action = await changeAppCountry(
       init.split("-")[0] ||
         countryCookies ||
         country ||
         process.env.NEXT_PUBLIC_DEFAULT_COUNTRY
     );
-    dispatch(action);
   };
   useEffect(() => {
     LogData(response);
     initFunc();
   }, []);
-  const cartEnable = useSelector((state: StateInterface) => state.cart.enable);
 
   return (
     <>
-      {!cartEnable && (
+      {!cart_enable && (
         <ToastContainer
           position="top-right"
           style={{ zIndex: "9999999999999999" }}
@@ -85,7 +81,7 @@ function Navbar({ init, categories, response }: NavbarProps) {
           aria-label="TryDos Home"
           data-cy="NavLogo"
           onClick={(e) => {
-            dispatch({ type: "ENABLE-SEARCH", payload: false });
+            setEnableSearch(false);
             // if(!showNavbar())
             // dispatchRouteChangeEvent("start", { to: "HomePage" });
             // document.documentElement.style.overflow = "hidden";
@@ -100,7 +96,7 @@ function Navbar({ init, categories, response }: NavbarProps) {
         {
           <UserNavTopSection
             loginOpen={loginOpen}
-            openLogin={(e) => setLoginOpen(e)}
+            openLogin={(e) => setLoginOpenAction(e)}
           />
         }
       </div>

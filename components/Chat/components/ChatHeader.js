@@ -2,24 +2,29 @@ import ArrowIcon from "../svg/arrow.svg";
 import VideoIcon from "../svg/vcall.svg";
 import CallIcon from "../svg/call.svg";
 import profile from "public/images/profileNo.png";
-import { useDispatch, useSelector } from "react-redux";
+
 import { getNew, getTwoLetters, showDate } from "../chatsFunctions";
 import Image from "next/image";
 import { getUserChat } from "utils/functions";
 import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
 import { translateFunction } from "../../../utils/functions";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 function ChatHeader({ chats, activeChat, openDetails }) {
+  const {
+    callLoading,
+    Server_time,
+    language,
+    setMain,
+    openChat,
+    setReplyMessage,
+  } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const dispatch = useDispatch();
-  const callLoading = useSelector((state) => state.chat.callLoading);
-  const Server_time = useSelector((state) => state.chat.Server_time);
-  const language = useSelector((state) => state.homepage.language);
   const time_differenc = (date) => {
     let value = (new Date(Server_time) - new Date(date)) / 1000 / 60;
     return value;
@@ -45,9 +50,9 @@ function ChatHeader({ chats, activeChat, openDetails }) {
     <div className="chat-screen-top">
       <ArrowIcon
         onClick={() => {
-          dispatch({ type: "MAIN", payload: "main" });
-          dispatch({ type: "OPEN-CHAT", payload: null });
-          dispatch({ type: "REPLY-MESSAGE", payload: null });
+          setMain("main");
+          openChat(null);
+          setReplyMessage(null);
         }}
       ></ArrowIcon>
       {getNew(chats, activeChat).length > 0 && (

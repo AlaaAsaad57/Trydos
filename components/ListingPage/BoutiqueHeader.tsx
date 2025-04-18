@@ -3,7 +3,6 @@ import VerificationIcon from "public/svg/listing/VerificationIcon.svg";
 import TopStarIcon from "public/svg/listing/TopStar.svg";
 import BoutiquePhoto from "./BoutiquePhoto";
 import BoutiqueCategoryFilter from "./BoutiqueCategoryFilter";
-import { useDispatch, useSelector } from "react-redux";
 import BoutiqueBrandFilter from "./filterComponents/BoutiqueBrandFilter";
 
 import BoutiquePriceFilter from "./filterComponents/BoutiquePriceFilter";
@@ -21,69 +20,61 @@ import FilterButton from "./FilterButton";
 import BoutiqueColorsFilter from "./filterComponents/BoutiqueColorsFilter";
 import BoutiquePriceSelect from "./BoutiquePriceSelect";
 import { AxiosCacheApi } from "utils/AxiosApi";
+import { useAppStore } from "store";
 
-const PrefetchingFilters = () => {
-  const filters = useSelector((state: StateInterface) => state.details.filters);
-  let params = useParams();
-  let boutique = params.productCategory;
-  let arr = [];
+// const PrefetchingFilters = () => {
+//   const filters = useSelector((state: StateInterface) => state.details.filters);
+//   let params = useParams();
+//   let boutique = params.productCategory;
+//   let arr = [];
 
-  arr = [...filters.categories.slice(0, 3), ...filters.brands.slice(0, 4)];
+//   arr = [...filters.categories.slice(0, 3), ...filters.brands.slice(0, 4)];
 
-  useEffect(() => {
-    AxiosCacheApi({
-      url:
-        process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        `/api/products/searchInCatalog${
-          boutique ? `?boutique_slugs=["${boutique}"]` : ""
-        }`,
-    });
-    arr.map((s) => {
-      if (s.childes) {
-        AxiosCacheApi({
-          url:
-            process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-            `/api/products/searchInCatalog?category_slugs=${decodeURI(
-              JSON.stringify([s.slug])
-            )}${boutique ? `&boutique_slugs=["${boutique}"]` : ""}`,
-        });
-      } else {
-        AxiosCacheApi({
-          url:
-            process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-            `/api/products/searchInCatalog?&brand_slugs=${decodeURI(
-              JSON.stringify([s.slug])
-            )}${boutique ? `&boutique_slugs=["${boutique}"]` : ""}`,
-        });
-      }
-    });
-  }, []);
+//   useEffect(() => {
+//     AxiosCacheApi({
+//       url:
+//         process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+//         `/api/products/searchInCatalog${
+//           boutique ? `?boutique_slugs=["${boutique}"]` : ""
+//         }`,
+//     });
+//     arr.map((s) => {
+//       if (s.childes) {
+//         AxiosCacheApi({
+//           url:
+//             process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+//             `/api/products/searchInCatalog?category_slugs=${decodeURI(
+//               JSON.stringify([s.slug])
+//             )}${boutique ? `&boutique_slugs=["${boutique}"]` : ""}`,
+//         });
+//       } else {
+//         AxiosCacheApi({
+//           url:
+//             process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+//             `/api/products/searchInCatalog?&brand_slugs=${decodeURI(
+//               JSON.stringify([s.slug])
+//             )}${boutique ? `&boutique_slugs=["${boutique}"]` : ""}`,
+//         });
+//       }
+//     });
+//   }, []);
 
-  return <></>;
-};
+//   return <></>;
+// };
 
 function BoutiqueHeader({ boutique, showFilters }) {
-  const filterEnabled = useSelector(
-    (state: StateInterface) => state.listing.filterEnabled
-  );
-  const showedFilter = useSelector(
-    (state: StateInterface) => state.listing.showedFilter
-  );
-  const filterLoading = useSelector(
-    (state: StateInterface) => state.details.filterLoading
-  );
-  const loading = useSelector((state: StateInterface) => state.details.loading);
-
-  const sizesAttr = useSelector(
-    (state: StateInterface) => state.details.filters.sizesAttr
-  );
-
-  const filters = useSelector((state: StateInterface) => state.details.filters);
-  const activeFilters = useSelector(
-    (state: StateInterface) => state.details.activeFilters
-  );
-
-  const dispatch = useDispatch();
+  const {
+    enableHandlingFilter,
+    setActiveRoute,
+    filterEnabled,
+    showedFilter,
+    filterLoading,
+    filters,
+    activeFilters,
+    activeFiltersShouldUpdate,
+    setActiveFilter,
+  } = useAppStore();
+  const sizesAttr = filters.sizesAttr;
   useEffect(() => {
     if (boutique) {
       setTimeout(() => {
@@ -96,11 +87,9 @@ function BoutiqueHeader({ boutique, showFilters }) {
         });
       }, 4000);
     }
-    dispatch({ type: "enable-handling-filter" });
+    enableHandlingFilter();
   }, []);
-  const activeFiltersShouldUpdate = useSelector(
-    (state: StateInterface) => state.details.activeFiltersShouldUpdate
-  );
+
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
@@ -177,10 +166,7 @@ function BoutiqueHeader({ boutique, showFilters }) {
         params.delete("colors");
       }
     }
-    dispatch({
-      type: "ACTIVE-ROUTE",
-      payload: `${pathname}?${params.toString()}`,
-    });
+    setActiveRoute(`${pathname}?${params.toString()}`);
     // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
     replace(`${pathname}?${params.toString()}`, { shallow: true });
   };
@@ -191,59 +177,53 @@ function BoutiqueHeader({ boutique, showFilters }) {
   }, [activeFilters]);
   useEffect(() => {
     if (searchParams.size > 0) {
-      dispatch({
-        type: "ACTIVE-FILTER",
-        payload: {
-          // @ts-ignore
-          categories: searchParams.get("categories")
-            ? searchParams
-                .get("categories")
-                .split(",")
-                .map((s) => {
-                  return {
-                    slug: s,
-                  };
-                })
-            : [],
-          colors: searchParams.get("colors")
-            ? searchParams
-                .get("colors")
-                .split(",")
-                .map((s) => {
-                  return s;
-                })
-            : [],
-          brands: searchParams.get("brands")
-            ? searchParams
-                .get("brands")
-                .split(",")
-                .map((s) => {
-                  return {
-                    slug: s,
-                  };
-                })
-            : [],
-          sizes: searchParams.get("sizes")
-            ? searchParams.get("sizes").split(",")
-            : [],
-          prices: searchParams.get("min-pr")
-            ? {
-                min: searchParams.get("min-pr"),
-                max: searchParams.get("max-pr"),
-                pricesWord: `["${searchParams.get("min-pr")}-${searchParams.get(
-                  "max-pr"
-                )}"]`,
-              }
-            : null,
-          offers: [],
-          searchText: searchParams.get("searchText") || "",
-        },
+      setActiveFilter({
+        // @ts-ignore
+        categories: searchParams.get("categories")
+          ? searchParams
+              .get("categories")
+              .split(",")
+              .map((s) => {
+                return {
+                  slug: s,
+                };
+              })
+          : [],
+        colors: searchParams.get("colors")
+          ? searchParams
+              .get("colors")
+              .split(",")
+              .map((s) => {
+                return s;
+              })
+          : [],
+        brands: searchParams.get("brands")
+          ? searchParams
+              .get("brands")
+              .split(",")
+              .map((s) => {
+                return {
+                  slug: s,
+                };
+              })
+          : [],
+        sizes: searchParams.get("sizes")
+          ? searchParams.get("sizes").split(",")
+          : [],
+        prices: searchParams.get("min-pr")
+          ? {
+              min: searchParams.get("min-pr"),
+              max: searchParams.get("max-pr"),
+              pricesWord: `["${searchParams.get("min-pr")}-${searchParams.get(
+                "max-pr"
+              )}"]`,
+            }
+          : null,
+        offers: [],
+        searchText: searchParams.get("searchText") || "",
       });
     }
-    dispatch({
-      type: "ACTIVE-ROUTE",
-      payload: `${window.location.href}`,
-    });
+    setActiveRoute(`${window.location.href}`);
   }, []);
 
   useEffect(() => {
@@ -317,7 +297,10 @@ function BoutiqueHeader({ boutique, showFilters }) {
                 if (filters?.sizes.length > 0) arr.push({ name: "Sizes" });
                 if (filters?.offers.length > 0) arr.push({ name: "Offers" });
                 if (filters?.colors.length > 0) arr.push({ name: "Colors" });
-                if (filters?.prices?.priceRanges?.length > 0)
+                if (
+                  filters?.prices?.priceRanges &&
+                  filters?.prices?.priceRanges?.length > 0
+                )
                   arr.push({ name: "Prices" });
                 return arr;
               }}

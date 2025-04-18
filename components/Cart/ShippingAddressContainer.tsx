@@ -2,21 +2,20 @@ import React, { useEffect, useState } from "react";
 import OrderCartIcon from "public/svg/cart/orderCartIcon.svg";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
 import FreeShippingIcon from "public/svg/product/FreeShipping.svg";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { getCountriesApi } from "store/homepage/cachedActions";
+import { useAppStore } from "store";
 function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
-  const cart = useSelector((state: StateInterface) => state.cart?.cart);
-  const dispatch = useDispatch();
-  const user = useSelector((state: StateInterface) => state.auth.user);
+  const { setCountries, cart, user } = useAppStore();
+
   const getOrderData = async () => {
     order.GetWallet();
     order.GetAddressList();
     const countries = await getCountriesApi();
-    dispatch({ type: "COUNTRIES-DATA", payload: countries });
+    setCountries(countries);
   };
   useEffect(() => {
     if (user) {
@@ -124,16 +123,12 @@ const CartItemSelect = ({ items }) => {
 };
 
 const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
+  const { initAddressForm, addressLists, orderLoading } = useAppStore();
   const { lang } = useParams();
-  const addressLists = useSelector(
-    (state: StateInterface) => state.cart.addressLists
-  );
+
   // @ts-ignore
   const language = lang.split("-")[1];
-  const dispatch = useDispatch();
-  const orderLoading = useSelector(
-    (state: StateInterface) => state.cart.orderLoading
-  );
+
   return (
     <div
       style={{
@@ -364,7 +359,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
       ) : (
         <AddAddressButton
           onClick={() => {
-            dispatch({ type: "INIT-ADDRESS-FORM", payload: true });
+            initAddressForm();
 
             slideNext();
           }}
@@ -374,9 +369,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
   );
 };
 const AddressContainer = ({ openAddressList }) => {
-  const addressLists = useSelector(
-    (state: StateInterface) => state.cart.addressLists
-  );
+  const { addressLists } = useAppStore();
   const GetAddressString = (location) => {
     let str = "";
     if (

@@ -1,22 +1,27 @@
-import React, { useState } from "react";
+import React from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
-import { useDispatch, useSelector } from "react-redux";
-
 import { useParams, useSearchParams } from "next/navigation";
 import { filterProducts, Sendevent, UpdateFilter } from "utils/functions";
+import { useAppStore } from "store";
 
 function SizeCircle({ text }: { text: string }) {
-  const selectedFilter = useSelector(
-    (state: StateInterface) => state.details.selectedFilter
-  );
+  const {
+    setFilterLoading,
+    filterSize,
+    editFilter,
+    filterStart,
+    getProducts,
+    setSkeleton,
+    setActiveFilter,
+    selectedFilter,
+    filters,
+    filterEnabled,
+  } = useAppStore();
+
   const pathName = useParams();
-  const filters = useSelector((state: StateInterface) => state.details.filters);
-  const dispatch = useDispatch();
-  const filterEnabled = useSelector(
-    (state: StateInterface) => state.listing.filterEnabled
-  );
+
   const selectCategory = (e) => {
-    dispatch({ type: "FILTER-LOADING", payload: true });
+    setFilterLoading(true);
     Sendevent({
       event: "button_clicked",
       value: "add_filter_button",
@@ -25,17 +30,17 @@ function SizeCircle({ text }: { text: string }) {
         name: e,
       },
     });
-    dispatch({ type: "FILTER-SIZE", payload: e });
+    filterSize(e);
     UpdateFilter({
       boutiqueId: pathName.productCategory,
       lang: pathName.lang,
       sizesAttr: filters.sizesAttr,
       newFiltersCallback: ({ filtersVar }) => {
-        dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+        editFilter(filtersVar);
       },
       searchText: "",
       done: () => {
-        dispatch({ type: "FILTER-LOADING", payload: false });
+        setFilterLoading(false);
       },
     });
     if (!filterEnabled) {
@@ -44,8 +49,8 @@ function SizeCircle({ text }: { text: string }) {
   };
   const SearchParams = useSearchParams();
   const filter = () => {
-    dispatch({ type: "FILTER-START" });
-    dispatch({ type: "Skeleton-Listing" });
+    filterStart();
+    setSkeleton(true);
     filterProducts({
       boutiqueId:
         (SearchParams.get("boutique_slugs") &&
@@ -54,17 +59,14 @@ function SizeCircle({ text }: { text: string }) {
       lang: pathName.lang,
       sizesAttr: filters.sizesAttr,
       callback: (products) => {
-        dispatch({ type: "GET_PRODUCT", payload: { products } });
+        getProducts({ products });
       },
       offset: 1,
       storeCallback: (e) => {
-        dispatch({
-          type: "ACTIVE-FILTER",
-          payload: e,
-        });
+        setActiveFilter(e);
       },
       newFiltersCallback: ({ filtersVar }) => {
-        dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+        editFilter(filtersVar);
       },
     });
   };

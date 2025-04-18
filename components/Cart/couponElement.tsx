@@ -1,21 +1,12 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+
+import { useAppStore } from "store";
 import { AxiosGet } from "utils/AxiosApi";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 
 const CouponElement = ({ active, setActive, close }) => {
-  const dispatch = useDispatch();
-
-  const coupon_number = useSelector(
-    (state: StateInterface) => state.cart.orderData.coupon_number
-  );
-  const coupon_discount = useSelector(
-    (state: StateInterface) => state.cart.coupon_discount
-  );
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  ) || { exchange_rate: 1, symbol: "" };
-
+  const { setOrderData, initCart, orderData, currency, coupon_discount } =
+    useAppStore();
   const [coupon, setCoupon] = useState<number | false>(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -28,11 +19,11 @@ const CouponElement = ({ active, setActive, close }) => {
   }, [coupon_discount, active, setActive]);
 
   const onChange = (e) => {
-    dispatch({ type: "ORDER-DATA", payload: { coupon_number: e } });
+    setOrderData({ coupon_number: e });
   };
 
   const applyCoupon = async () => {
-    if (!coupon_number) return;
+    if (!orderData.coupon_number) return;
     if (coupon) return;
     setLoading(true);
     setError("");
@@ -41,7 +32,7 @@ const CouponElement = ({ active, setActive, close }) => {
       const response = await AxiosGet({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/coupon/apply?code=${coupon_number}`,
+          `/coupon/apply?code=${orderData.coupon_number}`,
         title: "apply coupon request",
       });
 
@@ -51,7 +42,7 @@ const CouponElement = ({ active, setActive, close }) => {
 
       getCart({
         callback: ([data]) => {
-          dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+          initCart(data ?? { cart: [] });
         },
       });
 
@@ -91,7 +82,7 @@ const CouponElement = ({ active, setActive, close }) => {
               {!coupon && (
                 <input
                   placeholder="Coupon No"
-                  value={coupon_number}
+                  value={orderData.coupon_number}
                   onChange={(e) => onChange(e.target.value)}
                   onBlur={(e) => {
                     if (!e.target.value) close();

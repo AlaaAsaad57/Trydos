@@ -1,4 +1,3 @@
-import { useSelector } from "node_modules/react-redux/es";
 import {
   getConfiguredImage,
   RoundPrice,
@@ -21,10 +20,10 @@ import GooglePayIcon from "assets/svg/cart/Payment/GooglePay.svg";
 import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
 import OrderSuccess from "./OrderSuccess";
 import { useParams } from "node_modules/next/navigation";
+import { useAppStore } from "store";
 function PlaceOrderWidget() {
-  const orderData = useSelector(
-    (state: StateInterface) => state.cart.orderData
-  );
+  const { orderData } = useAppStore();
+
   return (
     <div className="flex-col overflow-auto pb-[292px] max-h-[100vh]">
       {orderData.success && <OrderSuccess />}
@@ -38,10 +37,7 @@ function PlaceOrderWidget() {
 export default PlaceOrderWidget;
 
 const OrderCartItem = () => {
-  const items = useSelector((state: StateInterface) => state.cart.cart);
-  const orders = useSelector(
-    (state: StateInterface) => state.cart.orderData?.data
-  );
+  const { cart, orderData } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
@@ -58,7 +54,8 @@ const OrderCartItem = () => {
         <div className="regular text-[#1D1D1D] text-[14px] ml-2">
           {translateFunction("Your Shopping Bag", language)}
           <span className={language === "ar" ? "mr-1 bold" : "ml-1 bold"}>
-            {items.length || orders.length}
+            {/* @ts-ignore */}
+            {cart.length || orderData?.data?.length}
             <span className={"ml-1"}>
               {translateFunction("items", language)}
             </span>
@@ -68,8 +65,8 @@ const OrderCartItem = () => {
       <div
         className={`${`pl-[11px] pb-[12px] pt-[11px] `} transition flex-row `}
       >
-        {items.length
-          ? items.map((s, i) => {
+        {cart.length
+          ? cart.map((s, i) => {
               return (
                 <div className="flex relative h-[125px]" key={i}>
                   <span
@@ -89,7 +86,9 @@ const OrderCartItem = () => {
                 </div>
               );
             })
-          : orders.map((s, i) => {
+          : orderData &&
+            // @ts-ignore
+            orderData?.data?.map((s, i) => {
               return (
                 <div className="flex relative h-[125px]" key={i}>
                   <span
@@ -114,6 +113,7 @@ const OrderCartItem = () => {
   );
 };
 const AddressOrder = ({ success }) => {
+  const { addressLists } = useAppStore();
   const GetAddressString = (location) => {
     let str = "";
     if (
@@ -148,9 +148,7 @@ const AddressOrder = ({ success }) => {
       str += ` | ${location?.building}`;
     return str;
   };
-  const addressLists = useSelector(
-    (state: StateInterface) => state.cart.addressLists
-  );
+
   let defaultAddress = addressLists.filter((s) => s.is_default === 1)[0];
   return (
     <div
@@ -397,9 +395,7 @@ const AddressOrder = ({ success }) => {
   );
 };
 const PaymentOrder = ({ success }) => {
-  const orderData = useSelector(
-    (state: StateInterface) => state.cart.orderData
-  );
+  const { orderData } = useAppStore();
   return (
     <div className="px-[12px] flex-col">
       <div
@@ -539,9 +535,7 @@ const PaymentOrder = ({ success }) => {
   );
 };
 const CODInput = ({ total }) => {
-  const currency_symbol = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+  const { currency } = useAppStore();
   return (
     <div
       className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
@@ -561,16 +555,15 @@ const CODInput = ({ total }) => {
           {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: total })} {currency_symbol?.symbol}
+          {RoundPrice({ num: total })} {currency?.symbol}
         </span>
       </div>
     </div>
   );
 };
 const TryDosWalletInput = ({ total }) => {
-  const currency_symbol = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+  const { currency } = useAppStore();
+
   return (
     <div
       className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
@@ -589,7 +582,7 @@ const TryDosWalletInput = ({ total }) => {
           {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: total })} {currency_symbol?.symbol}
+          {RoundPrice({ num: total })} {currency?.symbol}
         </span>
       </div>
     </div>

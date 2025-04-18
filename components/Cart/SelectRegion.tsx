@@ -4,12 +4,13 @@ import TargetIcon from "public/svg/cart/Target.svg";
 import { useParams } from "next/navigation";
 import { allCountries } from "country-telephone-data";
 import Flag from "react-world-flags";
-import { useDispatch, useSelector } from "react-redux";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 import { GetAddressByTextApi } from "models/Api";
 import Cookies from "js-cookie";
+import { useAppStore } from "store";
 function SelectRegion({ closeSelect }) {
+  const { addressDetails } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
   let country = lang.split("-")[0];
@@ -17,9 +18,6 @@ function SelectRegion({ closeSelect }) {
     name: allCountries.filter((s) => s.iso2 === country)[0].name,
     iso: country,
   };
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
   const showRegion = () => {
     return (
       <>
@@ -233,6 +231,7 @@ const SearchLocations = ({ closeSelect, setFocused }) => {
 };
 
 const SearchResults = ({ searchResults, closeSelect }) => {
+  const { setMapCenter, setAddressDetails } = useAppStore();
   const showLocationText = (location) => {
     let str = "";
     if (location.country) str += location.country;
@@ -243,22 +242,19 @@ const SearchResults = ({ searchResults, closeSelect }) => {
     if (location?.building) str += ` | ${location.building}`;
     return str;
   };
-  const dispatch = useDispatch();
+
   const select = (s) => {
     let a = { lat: s.coordinates[0]?.lat, lng: s.coordinates[0]?.lon };
-    if (a.lat && a.lng) dispatch({ type: "MAP-CENTER", payload: a });
-    dispatch({
-      type: "set-address-details",
-      payload: {
-        region_details: {
-          city: s.city,
-          province: s?.province,
-          town: s.town,
-          street: s.street,
-          building: s.building,
-        },
-        region: showLocationText(s),
+    if (a.lat && a.lng) setMapCenter(a);
+    setAddressDetails({
+      region_details: {
+        city: s.city,
+        province: s?.province,
+        town: s.town,
+        street: s.street,
+        building: s.building,
       },
+      region: showLocationText(s),
     });
     closeSelect();
   };

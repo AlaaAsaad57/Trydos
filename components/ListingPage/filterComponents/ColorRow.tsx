@@ -1,9 +1,10 @@
 import React, { useEffect } from "react";
-import { useSelector } from "react-redux";
+
 import ColorCircle from "./ColorCircle";
+import { useAppStore } from "store";
 
 function ColorRow() {
-  const filters = useSelector((state: StateInterface) => state.details.filters);
+  const { filters } = useAppStore();
 
   useEffect(() => {
     if (typeof document !== "undefined") {

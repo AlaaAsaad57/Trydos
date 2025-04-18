@@ -7,7 +7,6 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import NormalSizesSlider from "./NormalSizesSlider";
 import DashedCircleBorder from "public/svg/product/DashedCircleBorder.svg";
 import SizeInfoBox from "./SizeInfoBox";
-import { useDispatch } from "react-redux";
 import { Sendevent, translateFunction } from "utils/functions";
 import {
   useParams,
@@ -15,8 +14,10 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
+import { useAppStore } from "store";
 
 function ProductSizes({ sizes }) {
+  const { showInfoMessage } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -25,7 +26,6 @@ function ProductSizes({ sizes }) {
   };
   const [extended, setExtended] = useState(false);
   const [activeColor, setActiveColorFunc] = useState([]);
-  const dispatch = useDispatch();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -51,15 +51,12 @@ function ProductSizes({ sizes }) {
           data-cy="QuestionMark"
           style={{ marginLeft: "9px" }}
           onClick={() => {
-            dispatch({
-              type: "SHOW-INFO-MESSAGE",
-              payload: {
-                showInfoMessage: true,
-                title: ` Available ${sizes.length} Sizes`,
-                text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
-                icon: "/svg/product/SizesIcon.svg",
-                value: [],
-              },
+            showInfoMessage({
+              showInfoMessage: true,
+              title: ` Available ${sizes.length} Sizes`,
+              text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
+              icon: "/svg/product/SizesIcon.svg",
+              value: [],
             });
           }}
         />

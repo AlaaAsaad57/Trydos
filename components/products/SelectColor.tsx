@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperRef, SwiperSlide } from "swiper/react";
 import CartIcon from "public/svg/CartIcon.svg";
@@ -9,25 +8,25 @@ import { getConfiguredImage, Sendevent } from "utils/functions";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ToastContainer } from "react-toastify";
+import { useAppStore } from "store";
 
 function SelectColor({ close }) {
-  const cart = useSelector((state: StateInterface) => state.cart?.localCart);
+  const {
+    enableCart,
+    disableAddToCartOption,
+    localCart,
 
-  const AddToCartOption = useSelector(
-    (state: StateInterface) => state.cart.AddToCartOption
-  );
-  const SelectedProduct = useSelector(
-    (state: StateInterface) => state.cart.SelectedProduct
-  );
+    AddToCartOption,
+    SelectedProduct,
+  } = useAppStore();
 
-  const dispatch = useDispatch();
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const enableCart = (s) => {
-    dispatch({ type: "AddToCartOptionDisable", payload: false });
+  const enableCartAction = (s) => {
+    disableAddToCartOption();
     window.history.pushState({ isPopup: true }, "open Cart");
-    dispatch({ type: "ENABLE-CART", payload: s });
+    enableCart(s);
     if (s) {
       const newParams = new URLSearchParams(searchParams);
       newParams.set("cart", "true");
@@ -57,7 +56,7 @@ function SelectColor({ close }) {
             document.documentElement.style.overflow = "auto";
             document.documentElement.scrollTop = 0;
             close();
-            dispatch({ type: "AddToCartOptionDisable", payload: false });
+            disableAddToCartOption();
           }}
         >
           <BackIcon />
@@ -65,14 +64,14 @@ function SelectColor({ close }) {
         <span
           className="relative"
           onClick={() => {
-            dispatch({ type: "AddToCartOptionDisable", payload: false });
+            disableAddToCartOption();
             close();
-            enableCart(true);
+            enableCartAction(true);
           }}
         >
-          {cart?.length > 0 && (
+          {localCart?.length > 0 && (
             <span className="bg-green-500 right-[-8px] top-[-4px] text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
-              {cart.length}
+              {localCart.length}
             </span>
           )}
           <CartIcon
@@ -126,7 +125,9 @@ function SelectColor({ close }) {
               height: 400,
               width: 400,
               src:
+                // @ts-ignore
                 (AddToCartOption?.selectedColor?.images &&
+                  // @ts-ignore
                   AddToCartOption?.selectedColor?.images[0]) ||
                 (SelectedProduct?.images && SelectedProduct?.images[0]),
             })}
@@ -148,7 +149,8 @@ function SelectColor({ close }) {
 
 export default SelectColor;
 export const SelectColorsSlider = ({ colors }) => {
-  const dispatch = useDispatch();
+  const { addToCartColor, AddToCartOption } = useAppStore();
+
   const router = useRouter();
   const pathname = usePathname();
   const setActive = (e) => {
@@ -159,7 +161,7 @@ export const SelectColorsSlider = ({ colors }) => {
       // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
       shallow: true,
     });
-    dispatch({ type: "AddToCartColor", payload: e });
+    addToCartColor(e);
     Sendevent({ event: "button_clicked", value: "slide_choose_color_event" });
   };
   const searchParams = useSearchParams();
@@ -168,12 +170,11 @@ export const SelectColorsSlider = ({ colors }) => {
       let color = colors.filter(
         (s) => s.color_name === searchParams.get("color")
       )[0];
-      if (color) dispatch({ type: "AddToCartColor", payload: color });
+      if (color) addToCartColor(color);
     }
   }, []);
-  const activeColor = useSelector(
-    (state: StateInterface) => state.cart.AddToCartOption.selectedColor
-  );
+  const activeColor = AddToCartOption.selectedColor;
+
   const getInitial = () => {
     if (searchParams.get("color")) {
       let index = 0;
@@ -184,6 +185,7 @@ export const SelectColorsSlider = ({ colors }) => {
     } else if (activeColor) {
       let index = 0;
       colors.map((s, i) => {
+        // @ts-ignore
         if (s.color_name === activeColor.color_name) index = i;
       });
       return index;

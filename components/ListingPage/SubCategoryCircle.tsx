@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
-import { useSelector } from "react-redux";
+import { useAppStore } from "store";
 
 function SubCategoryCircle({
   index,
@@ -9,13 +9,12 @@ function SubCategoryCircle({
   onClick,
   active,
 }) {
+  const { selectedFilter } = useAppStore();
   const [expanded, setExpanded] = useState(active);
   useEffect(() => {
     setExpanded(active);
   }, [active]);
-  const selectedFilter = useSelector(
-    (state: StateInterface) => state.details.selectedFilter
-  );
+
   const isSelected = (sub) => {
     return (
       selectedFilter.categories.filter((s) => s.slug === sub.slug).length > 0

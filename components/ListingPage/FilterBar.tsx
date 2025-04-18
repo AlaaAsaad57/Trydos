@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import "styles/listing-components.css";
 import SearchIcon from "public/svg/listing/searchIcon.svg";
 import SortIcon from "public/svg/listing/sortIcon.svg";
@@ -8,7 +8,6 @@ import ShareIcon from "public/svg/listing/shareIcon.svg";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import BoutiqueHeader from "./BoutiqueHeader";
 import FilterInfoBar from "./FilterInfoBar";
-import { useDispatch, useSelector } from "react-redux";
 import {
   expandView,
   filterProducts,
@@ -27,35 +26,38 @@ import {
 import NextLink from "components/global/NextLink";
 import { DebounceInput } from "node_modules/react-debounce-input/src";
 import { PrefetchKind } from "node_modules/next/dist/client/components/router-reducer/router-reducer-types";
+import { useAppStore } from "store";
 
-function FilterBar({ boutique, filters, productsServer }) {
-  const selectedFilter = useSelector(
-    (state: StateInterface) => state.details.selectedFilter
-  );
+function FilterBar({ boutique, filters: filtersObj, productsServer }) {
+  const {
+    disableAddToCartOption,
+    resetSelectedBack,
+    initFilter,
+    setFilterLoading,
+    resetFilters,
+    editFilter,
+    setFilterSearch,
+    searchFilter,
+    setFilterEnabled,
+    getProducts,
+    setSkeleton,
+    resetBoutique,
+    setActiveFilter,
+    selectedFilter,
+    filterEnabled,
+    activeFilters,
+    products,
+    filters,
+    search,
+  } = useAppStore();
 
   const pathName = useParams();
-  const dispatch = useDispatch();
+
   const setEnableFilter = (e) => {
-    dispatch({ type: "filterEnabled", payload: e });
+    setFilterEnabled(e);
   };
-  const filterEnabled = useSelector(
-    (state: StateInterface) => state.listing.filterEnabled
-  );
-  const activeFilters = useSelector(
-    (state: StateInterface) => state.details.activeFilters
-  );
-  const selectedFilters = useSelector(
-    (state: StateInterface) => state.details.selectedFilter
-  );
-  const products = useSelector(
-    (state: StateInterface) => state.listing.products
-  );
-  const ActiveSearch = useSelector(
-    (state: StateInterface) => state.details.search
-  );
-  const sizesAttr = useSelector(
-    (state: StateInterface) => state.details.filters.sizesAttr
-  );
+
+  const sizesAttr = filters.sizesAttr;
   const showFilterInfoBar = () => {
     if (
       selectedFilter.categories.length > 0 ||
@@ -76,27 +78,26 @@ function FilterBar({ boutique, filters, productsServer }) {
   const paramsVar = useParams();
   const router = useRouter();
   const onChange = (e) => {
-    dispatch({ type: "FILTER-LOADING", payload: true });
-    dispatch({ type: "SEARCH-FILTER", payload: e.target.value });
+    setFilterLoading(true);
+
+    searchFilter(e.target.value);
     UpdateFilter({
       sizesAttr: sizesAttr,
       boutiqueId: pathName.productCategory,
       lang: pathName.lang,
       done: () => {
-        dispatch({ type: "FILTER-LOADING", payload: false });
+        setFilterLoading(false);
       },
       newFiltersCallback: ({ filtersVar }) => {
-        dispatch({
-          type: "EDIT-FILTER",
-          payload: { ...filtersVar },
-        });
+        editFilter({ ...filtersVar });
       },
       searchText: e.target.value,
     });
+
     if (filterEnabled) {
     } else {
       const params = new URLSearchParams(searchParams);
-      dispatch({ type: "Skeleton-Listing" });
+      setSkeleton(true);
       filterProducts({
         serachTrigger: true,
         boutiqueId:
@@ -105,17 +106,14 @@ function FilterBar({ boutique, filters, productsServer }) {
         lang: paramsVar.lang,
         sizesAttr: sizesAttr,
         callback: (products) => {
-          dispatch({ type: "GET_PRODUCT", payload: { products } });
+          getProducts({ products });
         },
         offset: 1,
         storeCallback: (e) => {
-          dispatch({
-            type: "ACTIVE-FILTER",
-            payload: e,
-          });
+          setActiveFilter(e);
         },
         newFiltersCallback: ({ filtersVar }) => {
-          dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+          editFilter(filtersVar);
         },
         searchText: e.target.value,
       });
@@ -132,17 +130,17 @@ function FilterBar({ boutique, filters, productsServer }) {
 
   useEffect(() => {
     let filtersVar = {
-      categories: filters?.categories || [],
-      brands: filters?.brands || [],
-      attributes: filters?.attributes || [],
-      offers: filters?.offers || [],
-      prices: filters?.prices || null,
-      search_text: filters?.result_for || "",
-      colors: filters?.colors || [],
+      categories: filtersObj?.categories || [],
+      brands: filtersObj?.brands || [],
+      attributes: filtersObj?.attributes || [],
+      offers: filtersObj?.offers || [],
+      prices: filtersObj?.prices || null,
+      search_text: filtersObj?.result_for || "",
+      colors: filtersObj?.colors || [],
     };
+    initFilter(filtersVar);
 
-    dispatch({ type: "FILTER-INIT", payload: filtersVar });
-    dispatch({ type: "AddToCartOptionDisable" });
+    disableAddToCartOption();
     router.prefetch(`/${paramsVar.lang}`, {
       kind: PrefetchKind.FULL,
     });
@@ -162,8 +160,8 @@ function FilterBar({ boutique, filters, productsServer }) {
                 event: "button_clicked",
                 value: "back_app_button",
               });
-              dispatch({ type: "RESET-FILTERS" });
-              dispatch({ type: "RESET-BOUTIQUE" });
+              resetFilters();
+              resetBoutique();
               // dispatchRouteChangeEvent("start", {
               //   to: "HomePage",
               //   from: "details",
@@ -172,7 +170,7 @@ function FilterBar({ boutique, filters, productsServer }) {
               // document.documentElement.style.overflow = "hidden";
               // document.documentElement.scrollTop = 0;
             } else {
-              dispatch({ type: "RESET-SELECTED-Back" });
+              resetSelectedBack();
 
               UpdateFilter({
                 filtersVar: {
@@ -185,13 +183,10 @@ function FilterBar({ boutique, filters, productsServer }) {
                 boutiqueId: pathName.productCategory,
                 lang: pathName.lang,
                 done: () => {
-                  dispatch({ type: "FILTER-LOADING", payload: false });
+                  setFilterLoading(false);
                 },
                 newFiltersCallback: ({ filtersVar }) => {
-                  dispatch({
-                    type: "EDIT-FILTER",
-                    payload: { ...filtersVar, reset: false },
-                  });
+                  editFilter(filtersVar);
                 },
                 searchText: selectedFilter?.searchText,
               });
@@ -204,12 +199,12 @@ function FilterBar({ boutique, filters, productsServer }) {
         </NextLink>
         <div
           className={`filter-bar-options flex-row align-center ${
-            ActiveSearch && "w-full"
+            search && "w-full"
           }`}
         >
           <div
             className={`filter-option transition-all filter-search-option relative ${
-              ActiveSearch &&
+              search &&
               "w-[75%] [&>input]:w-full [&>input]:bg-[#f8f8f8] [&>input]:h-[40px]"
             }`}
             data-cy="searchIcon_boutiquePage"
@@ -229,16 +224,16 @@ function FilterBar({ boutique, filters, productsServer }) {
                 document.querySelector<HTMLInputElement>(
                   ".boutique-logo-container"
                 ).style.display = "none";
-              dispatch({ type: "FILTER-SEARCH-ENABLE", payload: true });
+              setFilterSearch(true);
             }}
           >
             <DebounceInput
               data-cy="inputFiled"
               id="filter-search"
               debounceTimeout={400}
-              value={selectedFilters.searchText}
+              value={selectedFilter.searchText}
               onBlur={() => {
-                if (selectedFilters?.searchText.length === 0) {
+                if (selectedFilter?.searchText.length === 0) {
                   if (
                     document.querySelector<HTMLInputElement>(
                       ".boutique-logo-container"
@@ -247,7 +242,7 @@ function FilterBar({ boutique, filters, productsServer }) {
                     document.querySelector<HTMLInputElement>(
                       ".boutique-logo-container"
                     ).style.display = "flex";
-                  dispatch({ type: "FILTER-SEARCH-ENABLE", payload: false });
+                  setFilterSearch(false);
                 }
               }}
               onChange={(e) => {
@@ -257,7 +252,7 @@ function FilterBar({ boutique, filters, productsServer }) {
                 //@ts-ignore
                 if (e.keyCode == 13) {
                   const params = new URLSearchParams(searchParams);
-                  dispatch({ type: "Skeleton-Listing" });
+                  setSkeleton(true);
                   filterProducts({
                     serachTrigger: true,
                     boutiqueId:
@@ -267,23 +262,20 @@ function FilterBar({ boutique, filters, productsServer }) {
                     lang: paramsVar.lang,
                     sizesAttr: sizesAttr,
                     callback: (products) => {
-                      dispatch({ type: "GET_PRODUCT", payload: { products } });
+                      getProducts({ products });
                     },
                     offset: 1,
                     storeCallback: (e) => {
-                      dispatch({
-                        type: "ACTIVE-FILTER",
-                        payload: e,
-                      });
+                      setActiveFilter(e);
                     },
                     newFiltersCallback: ({ filtersVar }) => {
-                      dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+                      editFilter(filtersVar);
                     },
-                    searchText: selectedFilters.searchText,
+                    searchText: selectedFilter.searchText,
                   });
                   setEnableFilter(false);
-                  if (selectedFilters.searchText.length > 0) {
-                    params.set("searchText", selectedFilters.searchText);
+                  if (selectedFilter.searchText.length > 0) {
+                    params.set("searchText", selectedFilter.searchText);
                   } else {
                     params.delete("searchText");
                   }
@@ -297,12 +289,12 @@ function FilterBar({ boutique, filters, productsServer }) {
                 }
               }}
               className={`${
-                ActiveSearch && "pl-[40px]"
+                search && "pl-[40px]"
               } rounded-[15px]  w-0 h-full border-0 outline-none text-[#5d5d5d]`}
             />
             <SearchIcon
               className={`absolute z-10 ${
-                ActiveSearch ? "top-[9px] left-[14px]" : "top-0 left-0"
+                search ? "top-[9px] left-[14px]" : "top-0 left-0"
               }`}
             />
           </div>

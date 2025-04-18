@@ -1,6 +1,6 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect } from "react";
+
 import ProductItem from "./Results/ProductItem";
 import BrandItem from "./Results/BrandItem";
 import CategoryItem from "./Results/CategoryItem";
@@ -17,13 +17,27 @@ import { dispatchRouteChangeEvent } from "utils/events";
 import home from "services/home";
 import Spinner from "components/global/Spinner";
 import FilterInfoBar from "components/ListingPage/FilterInfoBar";
+import { useAppStore } from "store";
 
 function SearchResults() {
-  const loading = useSelector(
-    (state: StateInterface) => state.Search.partialLoading
-  );
+  const {
+    editFilterSearch,
+    resetSearchFilter,
+    setSearchPartialLoading,
+    setSearchCategory,
+    setSearchBrand,
+    setSearchBoutique,
+    setSearchWord,
+    partialLoading,
+    searchResults,
+    totalProducts,
+    loading_search,
+    searchFilters,
+    value,
+  } = useAppStore();
+
   const setLoading = (e) => {
-    dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: e });
+    setSearchPartialLoading(e);
   };
   const searchParams = useSearchParams();
   const showFilterBar = () => {
@@ -31,29 +45,13 @@ function SearchResults() {
       searchFilters?.categories.length > 0 ||
       searchFilters?.brands.length > 0 ||
       searchFilters?.boutiques.length > 0 ||
-      searchValue.length > 0
+      value.length > 0
     );
   };
   const router = useRouter();
-  const searchResults = useSelector(
-    (state: StateInterface) => state.Search.searchResults
-  );
-  const totalProducts = useSelector(
-    (state: StateInterface) => state.Search.totalProducts
-  );
-  const loadingSearch = useSelector(
-    (state: StateInterface) => state.Search.loading
-  );
-  const searchFilters = useSelector(
-    (state: StateInterface) => state.Search.searchFilters
-  );
-  const searchValue = useSelector(
-    (state: StateInterface) => state.Search.value
-  );
   const { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
-  const dispatch = useDispatch();
   const handleSearch = (data) => {
     const params = new URLSearchParams(searchParams);
     //categories
@@ -79,7 +77,7 @@ function SearchResults() {
         params.delete("boutique_slugs");
       }
     }
-    if (searchValue) params.set("searchText", searchValue);
+    if (value) params.set("searchText", value);
     router.push(`/${lang}/boutiques/listing?${params.toString()}`);
   };
   const apply = () => {
@@ -87,7 +85,7 @@ function SearchResults() {
       event: "button_clicked",
       value: "apply_home_search_result_button",
     });
-    onClickSearchHistory(searchValue || "");
+    onClickSearchHistory(value || "");
     handleSearch(searchFilters);
     dispatchRouteChangeEvent("start", { to: "boutique" });
     document.documentElement.style.overflow = "hidden";
@@ -131,14 +129,14 @@ function SearchResults() {
       event: "button_clicked",
       value: "reset_home_search_button",
     });
-    dispatch({ type: "RESET-SEARCH-FILTER" });
+    resetSearchFilter();
     setLoading(true);
-    dispatch({ type: "SEARCH-WORD", payload: "" });
+    setSearchWord("");
     home.UpdateFilters({
       search_text: "",
       callback: (e) => {
         setLoading(false);
-        dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+        editFilterSearch(e);
       },
     });
   };
@@ -146,10 +144,10 @@ function SearchResults() {
     setLoading(true);
 
     home.UpdateFilters({
-      search_text: searchValue || "",
+      search_text: value || "",
       callback: (e) => {
         setLoading(false);
-        dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+        editFilterSearch(e);
       },
     });
   };
@@ -158,7 +156,7 @@ function SearchResults() {
       (searchFilters?.categories.length > 0 ||
         searchFilters?.brands.length > 0 ||
         searchFilters?.boutiques.length > 0 ||
-        searchValue.length > 0) &&
+        value.length > 0) &&
       totalProducts > 0
     )
       return true;
@@ -170,13 +168,13 @@ function SearchResults() {
       data-cy="searchResults_body"
     >
       <>
-        {(searchResults?.products?.length > 0 || loading) && (
+        {(searchResults?.products?.length > 0 || partialLoading) && (
           <div className="products-results flex-col max-h-[60%] overflow-auto">
             <div className="result-label flex-row">
               {translateFunction("Find Products", languageVariable)}{" "}
-              {loadingSearch && <Spinner className="ml-3" no />}
+              {loading_search && <Spinner className="ml-3" no />}
             </div>
-            {searchValue?.length > 0 &&
+            {value?.length > 0 &&
               searchResults?.products?.map((product, index) => {
                 return (
                   <ProductItem
@@ -188,14 +186,14 @@ function SearchResults() {
               })}
           </div>
         )}
-        {(searchResults?.brands?.length > 0 || loading) && (
+        {(searchResults?.brands?.length > 0 || partialLoading) && (
           <div
             className="products-results brand-results"
             data-cy="ContainerOfBrands"
           >
             <div className="result-label flex-row">
               {translateFunction("Find Brands", languageVariable)}{" "}
-              {loading && <Spinner className="ml-3" no />}
+              {partialLoading && <Spinner className="ml-3" no />}
             </div>
             <div className="brands-results-row flex-row overflow-auto">
               {searchResults?.brands?.map((brand, index) => (
@@ -211,7 +209,7 @@ function SearchResults() {
                         name: brand.name,
                       },
                     });
-                    dispatch({ type: "SEARCH-BRAND", payload: brand });
+                    setSearchBrand(brand);
                     updateFiltersApi();
                   }}
                   isActive={searchFilters?.brands.some(
@@ -223,14 +221,14 @@ function SearchResults() {
           </div>
         )}
 
-        {(searchResults?.categories?.length > 0 || loading) && (
+        {(searchResults?.categories?.length > 0 || partialLoading) && (
           <div
             className="products-results brand-results"
             data-cy="ContainerOfCategories"
           >
             <div className="result-label flex-row">
               {translateFunction("Find Categories", languageVariable)}{" "}
-              {loading && <Spinner className="ml-3" no />}
+              {partialLoading && <Spinner className="ml-3" no />}
             </div>
             <div className="brands-results-row flex-row overflow-auto">
               {searchResults?.categories?.map((category, index) => (
@@ -246,10 +244,7 @@ function SearchResults() {
                         name: category.name,
                       },
                     });
-                    dispatch({
-                      type: "SEARCH-CATEGORY",
-                      payload: e,
-                    });
+                    setSearchCategory(e);
                     updateFiltersApi();
                   }}
                   isActive={searchFilters?.categories.some(
@@ -260,14 +255,14 @@ function SearchResults() {
             </div>
           </div>
         )}
-        {(searchResults?.boutiques?.length > 0 || loading) && (
+        {(searchResults?.boutiques?.length > 0 || partialLoading) && (
           <div
             className="products-results brand-results"
             data-cy="ContainerOfBoutiques"
           >
             <div className="result-label flex-row">
               {translateFunction("Find Boutiques", languageVariable)}{" "}
-              {loading && <Spinner className="ml-3" no />}
+              {partialLoading && <Spinner className="ml-3" no />}
             </div>
             <div className="brands-results-row flex-row overflow-auto">
               {searchResults?.boutiques?.map((boutique, index) => (
@@ -283,10 +278,7 @@ function SearchResults() {
                         name: boutique.name,
                       },
                     });
-                    dispatch({
-                      type: "SEARCH-BOUTIQUE",
-                      payload: boutique,
-                    });
+                    setSearchBoutique(boutique);
                     updateFiltersApi();
                   }}
                   isActive={searchFilters?.boutiques.some(
@@ -297,14 +289,14 @@ function SearchResults() {
             </div>
           </div>
         )}
-        {totalProducts === 0 && !loading && (
+        {totalProducts === 0 && !partialLoading && (
           <div className="flex p-3 justify-center items-center light text-[#5d5d5d] text-[14px]">
             {translateFunction("No Results Found")}
           </div>
         )}
         {showFilterBar() && (
           <FilterInfoBar
-            searchValue={searchValue}
+            searchValue={value}
             reset={() => reset()}
             filtersVariable={searchFilters}
           />
@@ -314,14 +306,14 @@ function SearchResults() {
             className="flex-row w-full mt-3 justify-center"
             data-cy="searchResult"
           >
-            {(showButton() || loading) && (
+            {(showButton() || partialLoading) && (
               <div
                 className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
                 data-cy="searchTotalProduct"
                 onClick={() => apply()}
               >
                 {translateFunction("Search")}{" "}
-                {loading ? (
+                {partialLoading ? (
                   <span className="ml-2">
                     <Spinner className="" />
                   </span>

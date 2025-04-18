@@ -3,27 +3,23 @@ import React, { useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
-
-import { useDispatch, useSelector } from "react-redux";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CloseIcon from "components/Home/Stories/CloseIcon";
-import { ProductInterface } from "models/product";
+import { useAppStore } from "store";
 function ProductDetailsSlider({
-  product,
+  product: productObj,
   currency,
 }: {
   product: any;
   currency: any;
 }) {
-  const productData = product;
+  const { editInfo, storeProduct, setCurrency, product } = useAppStore();
+  const productData = productObj;
   const [imageShow, showImage] = useState(-1);
   const [emblaRef] = useEmblaCarousel();
   const [emblaRef1] = useEmblaCarousel({ startIndex: imageShow || 0 });
-  const activeColor = useSelector(
-    (state: StateInterface) => state.details.product?.activeColor
-  );
+  const activeColor = product.activeColor;
   const searchParams = useSearchParams();
-  const dispatch = useDispatch();
   const router = useRouter();
   const pathname = usePathname();
   useEffect(() => {
@@ -47,12 +43,9 @@ function ProductDetailsSlider({
       // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
       router.push(pathname + `?${newParams.toString()}`, { shallow: true });
     }
-    dispatch({ type: "EDIT-INFO", payload: { ...product } });
-    dispatch({
-      type: "STORE-PRODUCT",
-      payload: { ...product, colorFrom: searchParams.get("color") },
-    });
-    dispatch({ type: "CURRENCY", payload: currency });
+    editInfo({ ...productData });
+    storeProduct({ ...productData, colorFrom: searchParams.get("color") });
+    setCurrency(currency);
   }, []);
 
   const getImages = () => {
@@ -68,7 +61,7 @@ function ProductDetailsSlider({
     ) {
       return productData?.sync_color_images[0];
     }
-    return productData ?? { images: [product.thumbnail] };
+    return productData ?? { images: [productData.thumbnail] };
   };
 
   return (

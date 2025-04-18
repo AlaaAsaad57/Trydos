@@ -1,5 +1,5 @@
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
-import { store } from "store";
+import { useAppStore } from "store";
 import { FilterProductApi } from "models/Api";
 
 class SearchService {
@@ -10,7 +10,8 @@ class SearchService {
         "/api/products/popular-search",
       title: "Get Trending Search",
     });
-    store.dispatch({ type: "TRENDING-SEARCH", payload: data });
+    const { setTrendingSearch } = useAppStore.getState();
+    setTrendingSearch(data);
   }
   async searchProducts({ searchText }) {
     let product: FilterProductApi["data"] = await AxiosGet({

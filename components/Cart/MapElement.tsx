@@ -11,7 +11,7 @@ import { Icon, LatLngLiteral, Map, Point } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet-defaulticon-compatibility";
-import { useSelector } from "react-redux";
+import { useAppStore } from "store";
 
 type MapType = "roadmap" | "satellite" | "hybrid" | "terrain";
 
@@ -25,9 +25,7 @@ type MapProps = {
 
 export const MapElement: React.FC<MapProps> = memo(
   ({ center, expanded, setLocation }) => {
-    const addressDetails = useSelector(
-      (state: StateInterface) => state.cart.addressDetails
-    );
+    const { addressDetails } = useAppStore();
     const [mapType, setMapType] = useState<MapType>("roadmap");
 
     const getUrl = () => {

@@ -1,13 +1,12 @@
 import { getNew, getTwoLetters, getUser } from "../chatsFunctions";
-import { useDispatch, useSelector } from "react-redux";
 import PointIcon from "../svg/point.svg";
 import Image from "next/image";
 import profilePicture from "public/images/profileNo.png";
+import { useAppStore } from "store";
 import { GetLastSeen } from "store/chat/actions";
 import { getUserChat } from "utils/functions";
 function NewChatsSide({ activeChat, chats }) {
-  const dispatch = useDispatch();
-  const language = useSelector((state) => state.homepage.language);
+  const { openChat, watchChannel } = useAppStore();
   return (
     <div className="new-chats">
       {activeChat &&
@@ -33,8 +32,8 @@ function NewChatsSide({ activeChat, chats }) {
                     )[0]?.user_id;
                     GetLastSeen(a.id, friendId);
                   }
-                  dispatch({ type: "OPEN-CHAT", payload: a });
-                  dispatch({ type: "WATCH_CHANNEL", payload: a.id });
+                  openChat(a);
+                  watchChannel(a.id);
                 }}
               >
                 <PointIcon></PointIcon>

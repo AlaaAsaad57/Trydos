@@ -1,14 +1,15 @@
 "use client";
-import { useDispatch } from "react-redux/es";
+
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useAppStore } from "store";
 function ProductToOldCart({ data }) {
-  const dispatch = useDispatch();
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { enableCart } = useAppStore();
   const openCart = () => {
     window.history.pushState({ isPopup: true }, "open Cart");
-    dispatch({ type: "ENABLE-CART", payload: true });
+    enableCart(true);
 
     const newParams = new URLSearchParams(searchParams);
     newParams.set("cart", "true");

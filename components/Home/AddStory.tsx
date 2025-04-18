@@ -5,7 +5,6 @@ const CircularProgressbarComponent = dynamic(() => import("./Progress"), {
   ssr: false,
 });
 import PlusIcon from "public/svg/chatplus.svg";
-import { useDispatch, useSelector } from "react-redux";
 import { AddStoryAction } from "store/homepage/actions";
 import { revalidateStories } from "utils/serverActions";
 const NewStoryModal = dynamic(() => import("./Stories/CameraStory"), {
@@ -15,25 +14,22 @@ import { dataURLtoFile } from "components/Chat/chatsFunctions";
 import dynamic from "next/dynamic";
 import { toast } from "react-toastify";
 import { Sendevent, translateFunction } from "utils/functions";
+import { useAppStore } from "store";
 
 function AddStory() {
+  const { setOpenCamera, user, OpenCamera, setNameModal } = useAppStore();
   const [uploaded, setUpload] = useState(0);
-  const user = useSelector((state: StateInterface) => state.auth.user);
-  const language: string = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
+
   const [openMenu, setOpenMenu] = useState(false);
-  const OpenCamera = useSelector(
-    (state: StateInterface) => state.homepage.OpenCamera
-  );
-  const setOpenCamera = (value: boolean) => {
+
+  const setOpenCameraAction = (value: boolean) => {
     if (value) {
       // @ts-ignore
       document.querySelector(".stories-bar-container").style.zIndex =
         "999999999999999999999999";
       // @ts-ignore
       document.querySelector(".stories-bars").classList.add("overflow-visible");
-      dispatch({ type: "OPEN_CAMERA", payload: value });
+      setOpenCamera(value);
     } else {
       // @ts-ignore
       document.querySelector(".stories-bar-container").style.zIndex =
@@ -42,12 +38,12 @@ function AddStory() {
       document
         .querySelector(".stories-bars")
         .classList.remove("overflow-visible");
-      dispatch({ type: "OPEN_CAMERA", payload: value });
+      setOpenCamera(value);
     }
   };
   const [isSelected, setIsSelected] = useState(null);
   const [file, setFile] = useState(null);
-  const dispatch = useDispatch();
+
   const handleChange = async (e: any) => {
     const { toast } = await import("react-toastify");
     if (e.target.files[0]?.type.includes("video")) {
@@ -89,7 +85,7 @@ function AddStory() {
                       value: "upload_story_success",
                     });
 
-                    dispatch(AddStoryAction(data));
+                    AddStoryAction(data);
                   })
                   .catch((e) => {
                     Sendevent({
@@ -128,7 +124,7 @@ function AddStory() {
             0,
             () => {}
           ).then((data) => {
-            dispatch(AddStoryAction(data));
+            AddStoryAction(data);
           });
           setIsSelected(path);
           setFile(e.target.files[0]);
@@ -158,7 +154,7 @@ function AddStory() {
             }
           )
             .then((data) => {
-              dispatch(AddStoryAction(data));
+              AddStoryAction(data);
             })
             .catch((e) => {
               setFile(null);
@@ -199,7 +195,7 @@ function AddStory() {
               HandleUploadedVideo({ target: { files: [a] } });
             }}
             close={() => {
-              setOpenCamera(false);
+              setOpenCameraAction(false);
               document.body.style.overflow = "scroll";
             }}
           />
@@ -236,7 +232,7 @@ function AddStory() {
                   border: "#00000029 1px solid",
                 }}
                 onClick={(e) => {
-                  setOpenCamera(true);
+                  setOpenCameraAction(true);
                   Sendevent({
                     event: "button_clicked",
                     value: "upload_camera_button",
@@ -305,7 +301,9 @@ function AddStory() {
                 value: "upload_story_button",
               });
               setOpenMenu(true);
-            } else dispatch({ type: "SHOW-MODAL", payload: true });
+            } else {
+              setNameModal(true);
+            }
           }}
         >
           {isSelected ? (

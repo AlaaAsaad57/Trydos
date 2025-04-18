@@ -10,13 +10,14 @@ import AgoraRTC, {
   createClient,
   createMicrophoneAndCameraTracks,
 } from "agora-rtc-react";
-import { useDispatch, useSelector } from "react-redux";
+
 import { useStopwatch } from "react-timer-hook";
 import { RefuseCall } from "store/chat/callActions";
 import { getTwoLetters } from "../chatsFunctions";
 import axios from "axios";
 
 import { getUserChat, translateFunction } from "utils/functions";
+import { useAppStore } from "store";
 const config = {
   mode: "rtc",
   codec: "h264",
@@ -26,18 +27,17 @@ const useClient = createClient(config);
 const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
 const appId = "0af959943ff542df8f2cb1b925ec0cc1";
 function VideoCall(props) {
+  const { storeClient, language, activeChat, MessageActiveCall, call } =
+    useAppStore();
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
-  const dispatch = useDispatch();
   const [callStatus, setCallStatus] = useState(null);
-  const activeChat = useSelector((state) => state.chat.activeChat);
   // React.useEffect(() => {
   //   const timeout = setTimeout(() => {
   //     setRender(!render)
   //   }, 2000)
   //   return () => clearTimeout(timeout)
   // }, [render])
-  const language = useSelector((state) => state.homepage.language);
   useEffect(() => {
     // setTimeout(()=>{
     //   if(users.length===0&&!isRunning){
@@ -51,7 +51,8 @@ function VideoCall(props) {
   const [users, setUsers] = useState([]);
   const [displayMethod, setDisplayMethod] = useState(false);
   const client = useClient(config);
-  dispatch({ type: "STORE-CLIENT", payload: client });
+  storeClient(client);
+
   // ready is a state variable, which returns true when the local tracks are initialized, untill then tracks variable is null
   const { ready, tracks, error } = useMicrophoneAndCameraTracks();
   const getToken = async (channelName) => {
@@ -140,9 +141,7 @@ function VideoCall(props) {
   useEffect(() => {
     start();
   }, []);
-  const MessageActiveCall = useSelector(
-    (state) => state.chat.MessageActiveCall
-  );
+
   const [joined, setJoined] = useState(false);
   const userEndCall = async (durationVal) => {
     if (ready) {
@@ -181,7 +180,7 @@ function VideoCall(props) {
       });
     }
   };
-  const call = useSelector((state) => state.chat.call);
+
   useEffect(() => {
     if (seconds === 60 && users.length === 0 && call === "vid-outgoing") {
       userEndCall(-1);

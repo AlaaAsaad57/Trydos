@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 import { Sendevent, translateFunction } from "utils/functions";
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { useParams } from "next/navigation";
 import Spinner from "components/global/Spinner";
+import { useAppStore } from "store";
 
 function InputName({
   value,
@@ -15,6 +15,8 @@ function InputName({
   submit: Function;
   setName: Function;
 }) {
+  const { language } = useAppStore();
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -49,9 +51,6 @@ function InputName({
     } else {
     }
   }, [isKeyboardOpen]);
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
   const [loading, setLoading] = useState(false);
   const updateName = async () => {
     setLoading(true);

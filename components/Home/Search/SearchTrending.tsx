@@ -1,13 +1,21 @@
 import React, { useEffect, useState } from "react";
 import SearchTrendingicon from "public/svg/SearchTrendingicon.svg";
-import CloseIconOption from "public/svg/CloseIconOption.svg";
 import SearchMiniIcon from "public/svg/SearchMiniIcon.svg";
-import { useDispatch, useSelector } from "node_modules/react-redux/es";
+
 import home from "services/home";
+import { useAppStore } from "store";
 
 function SearchTrending() {
+  const {
+    editFilterSearch,
+    setSearchPartialLoading,
+    findProducts,
+    setSearchLoading,
+    setSearchWord,
+    trending,
+    searchFilters,
+  } = useAppStore();
   const [openMenu, setOpen] = useState(false);
-  const options = useSelector((state: StateInterface) => state.Search.trending);
   useEffect(() => {
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector(
@@ -40,13 +48,11 @@ function SearchTrending() {
       });
     }
   }, []);
-  const dispatch = useDispatch();
+
   const setLoading = (e) => {
-    dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: e });
+    setSearchPartialLoading(e);
   };
-  const searchFilters = useSelector(
-    (state: StateInterface) => state.Search.searchFilters
-  );
+
   return (
     <div
       className={` ${
@@ -65,29 +71,26 @@ function SearchTrending() {
 
       {!openMenu && (
         <div className="search-filter-options s2 flex-row">
-          {options.map((s, index) => (
+          {trending.map((s, index) => (
             <div
               key={index}
               className="search-filter-option"
               onClick={(e) => {
-                dispatch({ type: "SEARCH-WORD", payload: s.term });
-                dispatch({
-                  type: "SEARCH-PARTIAL-LOADING",
-                  payload: true,
-                });
-                dispatch({ type: "SEARCH-LOADING", payload: true });
+                setSearchWord(s.term);
+                setSearchPartialLoading(true);
+                setSearchLoading(true);
                 home.UpdateFilters({
                   search_text: s.term || "",
                   callback: (e) => {
                     setLoading(false);
-                    dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+                    editFilterSearch(e);
                   },
                 });
                 home.SearchProducts({
                   search_text: s.term,
                   searchFilters: searchFilters,
                   callback: (e) => {
-                    dispatch({ type: "FIND-PRODUCTS", payload: e });
+                    findProducts(e);
                   },
                 });
               }}
@@ -112,21 +115,21 @@ function SearchTrending() {
           className="clear-options-button"
           onClick={(e) => {
             setLoading(true);
-            dispatch({ type: "SEARCH-WORD", payload: "" });
+            setSearchWord("");
 
-            dispatch({ type: "FIND-PRODUCTS", payload: [] });
+            findProducts([]);
             home.UpdateFilters({
               search_text: "",
               callback: (e) => {
                 setLoading(false);
-                dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+                editFilterSearch(e);
               },
             });
             home.SearchProducts({
               search_text: "",
               searchFilters: searchFilters,
               callback: (e) => {
-                dispatch({ type: "FIND-PRODUCTS", payload: e });
+                findProducts(e);
               },
             });
           }}
@@ -136,29 +139,26 @@ function SearchTrending() {
       )}
       {openMenu && (
         <div className="flex-col search-filter-menu">
-          {options.map((s, index) => (
+          {trending.map((s, index) => (
             <div
               key={index}
               className="option-row-search flex-row"
               onClick={(e) => {
-                dispatch({ type: "SEARCH-WORD", payload: s.term });
-                dispatch({
-                  type: "SEARCH-PARTIAL-LOADING",
-                  payload: true,
-                });
-                dispatch({ type: "SEARCH-LOADING", payload: true });
+                setSearchWord(s.term);
+                setSearchPartialLoading(true);
+                setSearchLoading(true);
                 home.UpdateFilters({
                   search_text: s.term || "",
                   callback: (e) => {
                     setLoading(false);
-                    dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
+                    editFilterSearch(e);
                   },
                 });
                 home.SearchProducts({
                   search_text: s.term,
                   searchFilters: searchFilters,
                   callback: (e) => {
-                    dispatch({ type: "FIND-PRODUCTS", payload: e });
+                    findProducts(e);
                   },
                 });
               }}

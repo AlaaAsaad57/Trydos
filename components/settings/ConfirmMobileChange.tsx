@@ -1,26 +1,26 @@
 import LogInPins from "components/Login/LogInPins";
-import PhoneInput from "components/Login/PhoneInput";
+
 import SendMethod from "components/Login/SendMethod";
-import { useDispatch, useSelector } from "react-redux";
+
 import React, { useEffect, useState } from "react";
 import AuthService from "services/auth";
-import { Sendevent } from "utils/functions";
+
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
+import { useAppStore } from "store";
 
 function ConfirmMobileChange({ closeWindow, value, successCallbackFunction }) {
+  const { setWrongNumber, verficationID, wrongNumber } = useAppStore();
   const [stepIndicator, setStepIndicator] = useState(3);
   const [inputValue, setInputValue] = useState(value);
-  const dispatch = useDispatch();
+
   const [MessageMethod, setMessageMethod] = useState("");
   const [pins, setPins] = useState("");
   const [disabled, setDisabled] = useState(false);
   const [expired, setExpired] = useState(false);
   const [success, setSuccess] = useState(false);
   const [idToken, setIdToken] = useState("");
-  const verficationID = useSelector(
-    (state: StateInterface) => state.auth.verficationID
-  );
+
   const SendOtpHook = async ({
     errorCallback,
     mobilePhone,
@@ -114,9 +114,7 @@ function ConfirmMobileChange({ closeWindow, value, successCallbackFunction }) {
     successCallbackFunction(data);
     setLoadingPin(false);
   };
-  const wrongNumber = useSelector(
-    (state: StateInterface) => state.auth.wrongNumber
-  );
+
   useEffect(() => {
     if (value) {
       let phone = value;
@@ -130,7 +128,7 @@ function ConfirmMobileChange({ closeWindow, value, successCallbackFunction }) {
       <SendMethod
         stepIndicator={stepIndicator}
         setWrongNumber={(e) => {
-          dispatch({ type: "WRONG-NUMBER", payload: e });
+          setWrongNumber(e);
         }}
         setStepIndicator={(e: number) => setStepIndicator(e)}
         setShowMobile={setShowMobile}

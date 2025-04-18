@@ -3,13 +3,14 @@ import React, { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
 import SearchHistory from "./SearchHistory";
 import SearchTrending from "./SearchTrending";
-import { useDispatch, useSelector } from "react-redux";
 import SearchResults from "./SearchResults";
 import { LogData } from "store/homepage/actions";
 import search from "services/search";
 import { Suspense } from "react";
+import { useAppStore } from "store";
 
 function SearchContainer({ active }) {
+  const { setSearchResults, setSearchWord, value } = useAppStore();
   const [searchHistoryItems, setSearchHistory] = useState([]);
 
   const mountAnim = ` 
@@ -20,25 +21,19 @@ function SearchContainer({ active }) {
   0% {transform:translateX(0px)}
   100% {transform:translateX(-800px)}
   `;
-  const searchValue = useSelector(
-    (state: StateInterface) => state.Search.value
-  );
-  const dispatch = useDispatch();
   useEffect(() => {
     if (localStorage.getItem("search-history")) {
       setSearchHistory(JSON.parse(localStorage.getItem("search-history")));
     } else {
       setSearchHistory([]);
     }
-  }, [searchValue]);
+  }, [value]);
   const getSearchData = async () => {
     let [{ categories, brands, boutiques, colors }, res] =
       await search.getSearchOptions();
     LogData(res);
-    dispatch({
-      type: "SEARCH-RESULTS",
-      payload: { categories, brands, boutiques, colors },
-    });
+    // @ts-ignore
+    setSearchResults({ categories, brands, boutiques, colors });
     await search.getTrendingSearch();
   };
   useEffect(() => {
@@ -55,13 +50,13 @@ function SearchContainer({ active }) {
       className="search-container"
       data-cy="searchContainer"
     >
-      {searchValue.length === 0 && (
+      {value.length === 0 && (
         <>
           {searchHistoryItems.length > 0 && (
             <SearchHistory
               options={searchHistoryItems}
               setOptions={(e) => {
-                dispatch({ type: "SEARCH-WORD", payload: e });
+                setSearchWord(e);
               }}
               deleteOption={(e) => {
                 setSearchHistory(searchHistoryItems.filter((s) => s !== e));
