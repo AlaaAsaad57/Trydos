@@ -93,7 +93,8 @@ function CategoryCircle({ category }) {
   const isSelectedChild = () => {
     if (
       selectedFilter.categories.filter(
-        (s) => category.childes.filter((sub) => sub.slug === s.slug).length > 0
+        (s) =>
+          category?.childes?.filter((sub) => sub.slug === s.slug)?.length > 0
       ).length > 0
     )
       return true;
