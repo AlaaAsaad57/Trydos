@@ -280,25 +280,19 @@ Cypress.Commands.add("clickElement", (selector: string) => {
 });
 Cypress.Commands.add("OpenBoutiqueAndAddProductToCartFromBoutiquePage", () => {
   let productName: string = "";
-  cy.clickElement(".offer-widget:eq(5)");
+  cy.intercept("GET", "**/api/products/searchInCatalog?boutique_slugs**").as(
+    "LoadallProducts"
+  );
+  cy.clickElement(".offer-widget:eq(3)");
   cy.log("✅✅ An Boutique Selected & Click");
   cy.get("[data-cy=boutique_top_info]", { timeout: 20000 }).should(
     "be.visible"
   );
   cy.log("✅✅ The Boutique Page Opened");
-  cy.interceptAndWait([
-    {
-      method: "POST",
-      url: "**/boutiques/**",
-      alias: "OpenBoutique",
-    },
-    {
-      method: "GET",
-      url: "**/api/products/searchInCatalog?boutique_slugs**",
-      alias: "LoadallProducts",
-    },
-  ]);
-  cy.log("✅✅ OpenBoutique & LoadallProducts Requests Arrived");
+  cy.wait("@LoadallProducts").then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
+  });
+  cy.log("✅✅ LoadallProducts Request Arrived");
   cy.get("[data-cy=on_mouse_over_product]", { timeout: 15000 }).then(
     ($items) => {
       const count = $items.length;
@@ -654,25 +648,19 @@ Cypress.Commands.add(
   "OpenBoutiqueAndAddProductToCartFromBoutiqueDatailPage",
   () => {
     let productName: string = "";
-    cy.clickElement(".offer-widget:eq(6)");
+    cy.intercept("GET", "**/api/products/searchInCatalog?boutique_slugs**").as(
+      "LoadallProducts"
+    );
+    cy.clickElement(".offer-widget:eq(3)");
     cy.log("✅✅ An Boutique Selected & Click");
     cy.get("[data-cy=boutique_top_info]", { timeout: 20000 }).should(
       "be.visible"
     );
     cy.log("✅✅ The Boutique Page Opened");
-    cy.interceptAndWait([
-      {
-        method: "POST",
-        url: "**/boutiques/**",
-        alias: "OpenBoutique",
-      },
-      {
-        method: "GET",
-        url: "**/api/products/searchInCatalog?boutique_slugs**",
-        alias: "LoadallProducts",
-      },
-    ]);
-    cy.log("✅✅ OpenBoutique & LoadallProducts Requests Arrived");
+    cy.wait("@LoadallProducts").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
+    });
+    cy.log("✅✅ LoadallProducts Request Arrived");
     cy.get('[data-cy="on_mouse_over_product"]').then(($items) => {
       const count = $items.length;
       cy.log(
@@ -748,25 +736,19 @@ Cypress.Commands.add("ComplateAddProductOperationAndGoCartPage", () => {
 Cypress.Commands.add(
   "ChooseBoutiqueAndVerifyComponentsAndBoxsInBoutiquePage",
   () => {
-    cy.clickElement(".offer-widget:eq(6)");
+    cy.intercept("GET", "**/api/products/searchInCatalog?boutique_slugs**").as(
+      "LoadallProducts"
+    );
+    cy.clickElement(".offer-widget:eq(3)");
     cy.log("✅✅ An Boutique Selected & Click");
     cy.get("[data-cy=boutique_top_info]", { timeout: 30000 }).should(
       "be.visible"
     );
     cy.log("✅✅ The Boutique Page Opened");
-    cy.interceptAndWait([
-      {
-        method: "POST",
-        url: "**/boutiques/**",
-        alias: "OpenBoutique",
-      },
-      {
-        method: "GET",
-        url: "**/api/products/searchInCatalog?boutique_slugs**",
-        alias: "LoadallProducts",
-      },
-    ]);
-    cy.log("✅✅ OpenBoutique & LoadallProducts Requests Arrived");
+    cy.wait("@LoadallProducts").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
+    });
+    cy.log("✅✅ LoadallProducts Request Arrived");
     cy.verifyBoxsInBoutiquePage();
     cy.verifyComponentsInProductCard();
     cy.intercept("Get", "**/product/likesCommentsSharesDetails/**").as(

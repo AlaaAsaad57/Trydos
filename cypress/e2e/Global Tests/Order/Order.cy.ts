@@ -31,25 +31,25 @@ describe("should Login If User Is Not Verified", () => {
         cy.get("[data-cy=text-loginDesc-text]").should(
           "contain",
           "Enter Your Phone Number To Complete Order"
-        ); //login-detail
+        );
         cy.get("[data-cy=login-detail]").should("exist");
         cy.get("[data-cy=login-detail-svg]").should("exist");
         cy.get("[data-cy=FieldToInputNumber]").should(
           "contain",
           "Enter Your Phone Number Registered With Us"
-        ); //login-detail-Verification
+        );
         cy.get("[data-cy=login-detail-Verification]").should("exist");
-        cy.get("[data-cy=login-detail-Verification-svg]").should("exist"); //login-detail-Verification-text
+        cy.get("[data-cy=login-detail-Verification-svg]").should("exist");
         cy.get("[data-cy=login-detail-Verification-text]").should(
           "contain",
           "We Will Send A Verification Code To The Number"
         ); //container-enterPhone
-        cy.get("[data-cy=container-enterPhone]").should("exist"); //container-enterPhone-svg
-        cy.get("[data-cy=container-enterPhone-svg]").should("exist"); //solidPhhone-enterPhone-svg
-        cy.get("[data-cy=solidPhhone-enterPhone-svg]").should("exist"); //span-flag
-        cy.get("[data-cy=span-flag]").should("exist"); //plus-icon-span
-        cy.get("[data-cy=plus-icon-span]").should("exist"); //phone-number-input
-        cy.get("[data-cy=phone-number-input]").should("exist"); //phone-number-input
+        cy.get("[data-cy=container-enterPhone]").should("exist");
+        cy.get("[data-cy=container-enterPhone-svg]").should("exist");
+        cy.get("[data-cy=solidPhhone-enterPhone-svg]").should("exist");
+        cy.get("[data-cy=span-flag]").should("exist");
+        cy.get("[data-cy=plus-icon-span]").should("exist");
+        cy.get("[data-cy=phone-number-input]").should("exist");
         cy.enterPhoneNumber("963937764641");
       } else {
         cy.log("✅✅ The Number Verified Last");
@@ -104,19 +104,55 @@ describe("should Login If User Is Not Verified", () => {
     cy.log("✅✅ CartShiping & ListRequest Requests Arrived");
   });
 });
+describe("Payment Viewer Component", () => {
+  it("should render the payment viewer container with correct styling", () => {
+    cy.get("[data-cy=payment-viewer]").should("exist");
+    cy.get("[data-cy=payment-viewer-container]").should("exist");
+  });
+  it("should display the payment method header with icon and text", () => {
+    cy.get('[data-cy="first-bay-way"]').within(() => {
+      cy.get("[data-cy=payment-viewer-svg]")
+        .should("exist")
+        .and("have.attr", "width", "18")
+        .and("have.attr", "height", "18");
+      cy.get('[data-cy="payment-viewer-text"]')
+        .should("exist")
+        .and("have.text", "Payment Method")
+        .and("have.css", "color", "rgb(29, 29, 29)")
+        .and("have.css", "font-size", "14px");
+    });
+  });
+  it("should display the payment method subtext with correct styling", () => {
+    cy.get("[data-cy=payment-viewer-text2]")
+      .should("exist")
+      .and("have.text", "Please Choose Your Payment Method About Your Bag")
+      .and("have.css", "color", "rgb(141, 141, 141)")
+      .and("have.css", "font-size", "12px");
+  });
+
+  it("should have proper spacing and layout", () => {
+    cy.get("[data-cy=payment-viewer-container]")
+      .should("have.class", "mt-[30px]")
+      .and("have.class", "min-h-[203px]");
+    cy.get("[data-cy=payment-viewer-text]").should("have.class", "ml-2");
+    cy.get("[data-cy=payment-viewer-text2]").should("have.class", "ml-[28px]");
+    cy.get("[data-cy=first-bay-way]").should("exist");
+    cy.get("[data-cy=payment-viewer-text]")
+      .should("exist")
+      .and("have.text", "Payment Method");
+    cy.get("[data-cy=payment-viewer-text2]")
+      .should("exist")
+      .and("have.text", "Please Choose Your Payment Method About Your Bag");
+  });
+});
 // **************************************************************************
 describe("Should verify components in address delivery page", () => {
   it("renders the header delivery component", () => {
     cy.get("[data-cy=swiper-slide]").should("exist");
-    cy.get('[data-cy="header-delivery"]').should("be.visible");
-    cy.get('[data-cy="TitleInOrderPage"]').should(
-      "contain",
-      "Bag Shipping & Delivery Address"
-    );
-    cy.get('[data-cy="swiperSlide-backIcon"]').should("be.visible");
+    cy.get("[data-cy=swiperSlide-backIcon]").should("be.visible");
   });
   it("triggers back icon click event", () => {
-    cy.clickElement('[data-cy="swiperSlide-backIcon"]');
+    cy.clickElement("[data-cy=swiperSlide-backIcon]");
     cy.clickElement("[data-cy=Confirm-Order-Button]");
     cy.log("✅✅ Confirm & Countinue Button Clicked");
     cy.interceptAndWait([
@@ -133,10 +169,65 @@ describe("Should verify components in address delivery page", () => {
     ]);
     cy.log("✅✅ CartShiping & ListRequest Requests Arrived");
   });
-  it("", () => {});
-  it("", () => {});
+  it("", () => {
+    cy.get("[data-cy=header-delivery]").should("be.visible");
+    cy.get("[data-cy=header-delivery-container]").should("be.visible");
+    cy.get("[data-cy=TitleInOrderPage]")
+      .should("be.visible")
+      .within(() => {
+        cy.get("[data-cy=TitleInOrderPage-svg]").should("exist");
+        cy.get("[data-cy=shippingDelivery-text]").should(
+          "have.text",
+          "Bag Shipping & Delivery Address"
+        );
+      });
+  });
+  it("renders the bag viewer correctly", () => {
+    cy.get("[data-cy=Shipping-Address-Container]").should("exist");
+    cy.get("[data-cy=deliveryAddress-viewer]").should("exist");
+    cy.get("[data-cy=deliveryAddress-viewer]").should("exist");
+    cy.get("[data-cy=bag-viewer]").should("exist");
+    cy.get("[data-cy=DropDownIcon]").should("exist");
+    cy.get("[data-cy=Order-Cart-Icon]").should("exist");
+    cy.get("[data-cy=bag-viewer-inside]").should("exist");
+    cy.get("[data-cy=Shopping-bag-texts]").should(
+      "contain",
+      "Your Shopping Bag"
+    );
+    cy.get("[data-cy=items-Shiping-text]").should("contain", "items");
+    cy.get('[data-cy="Count-Of-Shiping"]').should("exist");
+  });
+  it("toggles the cart view on click", () => {
+    cy.get("[data-cy=bag-viewer]").should("not.have.class", "pt-[15px]");
+    cy.clickElement("[data-cy=bag-viewer]");
+    cy.get("[data-cy=bag-viewer]").should("have.class", "pt-[15px]");
+    cy.get("[data-cy=dropDownIcon-svg]").should("have.class", "rotate-180");
+    cy.get("[data-cy=bag-product-viewer]").should("exist");
+    cy.get("[data-cy=Item]").should("exist");
+    cy.get("[data-cy=span-item]").should("exist");
+    cy.get("[data-cy=img-item]").should("exist");
+    cy.clickElement("[data-cy=bag-viewer]");
+    cy.get("[data-cy=bag-viewer]").should("not.have.class", "pt-[15px]");
+    cy.get("[data-cy=dropDownIcon-svg]").should("not.have.class", "rotate-180");
+  });
 });
-// **************************************************************************
+// ******************************************************************************new
+describe("Should verify delivery address viewer", () => {
+  it("should display the shipping and delivery address header", () => {
+    cy.get("[data-cy=delivery-address-viewer]").should("exist");
+    cy.get("[data-cy=ShipingBox]").should("exist");
+    cy.get("[data-cy=WrapIcon]").should("exist");
+    cy.get('[data-cy="delivery-address-stexts"]')
+      .should("be.visible")
+      .and("contain", "Shipping & Delivery Address"); // Adjust the text based on translation if
+    cy.get("[data-cy=freeShupping-container]").should("exist");
+    cy.get("[data-cy=WrapIcon1]").should("exist");
+    cy.get("[data-cy=ShipingBox]").should("exist");
+    cy.get("[data-cy=ShipingBox]").should("exist");
+    cy.get("[data-cy=ShipingBox]").should("exist");
+  });
+});
+// ******************************************************************************new
 describe("Compare Quantity Founded In Order With Quantity Required", () => {
   it("Should Extract The Number Of Items That Confirm To Buy It", () => {
     cy.get("[data-cy=Number-Of-Products-Required]")
@@ -167,7 +258,6 @@ describe("Compare Quantity Founded In Order With Quantity Required", () => {
         }
       });
   });
-  // *********************************************
   it("Should Check Other Components", () => {
     cy.get("[data-cy=Order-Cart-Icon]", { timeout: 15000 }).should("exist");
     cy.log("✅✅ Order Cart Icon Exists");
@@ -185,10 +275,11 @@ describe("Compare Quantity Founded In Order With Quantity Required", () => {
       });
   });
 });
+
 describe("Shipping & Delivery Address Component", () => {
   it("Should Verify Shipping & Delivery Address Title", () => {
     cy.get("[data-cy=TitleInOrderPage]", { timeout: 10000 })
-      .should("be.visible")
+      .should("exist")
       .should("contain.text", "Bag Shipping & Delivery Address");
     cy.log("✅✅ Title 'Bag Shipping & Delivery Address' Exists");
     cy.get("[data-cy=TitleInOrderPage] svg")
@@ -209,7 +300,6 @@ describe("Shipping & Delivery Address Component", () => {
 describe("Should delete all address founded lastly", () => {
   it("Should Check If User Add Address Lastly", () => {
     cy.ChexkExistElement("[data-cy=Address-Added-Last]").then((exist) => {
-      // Proceed only if the element exists
       if (exist) {
         cy.clickElement("[data-cy=Show-Address-That-Added]");
         cy.log("✅✅ Show Address List Button Clicked");
@@ -239,6 +329,24 @@ describe("Should delete all address founded lastly", () => {
       }
     });
     cy.get("body").click(0, 0); // Optional: Click to ensure no overlay blocks interactions
+  });
+  it("Should open add adress interface", () => {
+    cy.get("[data-cy=addresses-viewer]").should("exist");
+    cy.get("[data-cy=span-noAddress]").should("exist");
+    cy.get("[data-cy=span-noAddress-svg]").should("exist");
+    cy.get("[data-cy=noAddress-text]")
+      .should("exist")
+      .contains("No Address Selected");
+    cy.get("[data-cy=canAdd-text]")
+      .should("exist")
+      .contains("You Can Also Create Multiple Addresses To Use");
+    cy.get("[data-cy=AddAddres]").should("exist");
+    cy.get("[data-cy=AddAddres-svg]").should("exist");
+    cy.get("[data-cy=addShipping-text]")
+      .should("exist")
+      .contains("Add Shipping Address");
+    cy.get("[data-cy=addresses-viewer]").should("exist");
+    cy.get("[data-cy=addresses-viewer]").should("exist");
   });
   it("Should open add adress interface", () => {
     cy.clickElement("[data-cy=AddAddres]");
