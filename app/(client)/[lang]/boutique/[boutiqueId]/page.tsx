@@ -134,13 +134,14 @@ export default function Page({
             <SortIcon data-cy="closeSearchInput" />
           </div>
           <Suspense
+            key={"filter-button"}
             fallback={
               <div className="filter-option">
                 <Skeleton width={30} height={30} borderRadius={10} />
               </div>
             }
           >
-            <FilterBoutiquePageButton />
+            <FilterBoutiquePageButton key={"filter-button"} />
           </Suspense>
           <Suspense
             fallback={
@@ -222,7 +223,11 @@ const BouqiuePhotoSlider = ({ banners }) => {
       <div className="offer-slider-container">
         {banners &&
           banners?.map((banner, index) => (
-            <div className="offer-slide-item" style={{ width: "100%" }}>
+            <div
+              className="offer-slide-item"
+              style={{ width: "100%" }}
+              key={index}
+            >
               <div className="image-offer">
                 <div
                   className="image-inner-shadow"
