@@ -12,7 +12,8 @@ import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import { Suspense } from "react";
 
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-
+export const runtime = "nodejs";
+export const preferredRegion = ["bom1", "sin1"];
 interface Props {
   params: {
     lang: string;

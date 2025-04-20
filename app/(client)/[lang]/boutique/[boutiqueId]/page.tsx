@@ -35,7 +35,6 @@ const ShareBoutiquePageButton = dynamic(
 );
 
 export const dynamicParams = true;
-export const preferredRegion = "auto";
 // export async function generateMetadata({ params, searchParams }: Props) {
 //   const boutiqueId = params.boutiqueId;
 //   try {
@@ -63,12 +62,8 @@ export const preferredRegion = "auto";
 //     notFound();
 //   }
 // }
-export const config = {
-  runtime: "nodejs", // Use Node.js for full functionality
-  regions: ["bom1", "sin1"], // Primary regions for Middle East
-  // Add fallback regions
-  fallbackRegions: ["fra1", "cdg1"], // European regions as fallback
-};
+export const runtime = "nodejs";
+export const preferredRegion = ["bom1", "sin1"];
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export function generateMetadata() {
   return {
@@ -97,19 +92,7 @@ export async function generateStaticParams({ params }) {
     return [];
   }
 }
-interface Props {
-  params: {
-    lang: string;
-    boutiqueId: string;
-  };
-  searchParams: {
-    categories: string;
-    prices: string;
-    searchText: string;
-    brands: string;
-    colors: string;
-  };
-}
+
 interface ParamsType {
   lang: string;
   boutiqueId: string;
@@ -183,10 +166,7 @@ export default async function Page({
         className={`boutique-header ${"flex-col"} align-center`}
         data-cy="boutiqueOpen"
       >
-        <Suspense
-          key={params.boutiqueId}
-          fallback={<ListingSkeleton forProducts={false} />}
-        >
+        <Suspense key={params.boutiqueId} fallback={<BoutiqueHeaderSkeleton />}>
           <BoutiqueHeader
             boutiqueId={params.boutiqueId}
             key={params.boutiqueId}
@@ -194,18 +174,18 @@ export default async function Page({
           ></BoutiqueHeader>
         </Suspense>
         <Suspense
-          key={`filter-list-${JSON.stringify(searchParams)}`}
-          fallback={<ListingSkeleton forProducts={false} />}
+          key={`Suspense-filter-list-${params.boutiqueId}`}
+          fallback={<FiltersSkeleton />}
         >
           <FilterList
-            key={`filter-list-${JSON.stringify(searchParams)}`}
+            key={`filter-list-${params.boutiqueId}`}
             params={params}
             searchParams={searchParams}
           />
         </Suspense>
       </div>
       <Suspense
-        key={`product-list-${JSON.stringify(searchParams)}`}
+        key={`Suspense-product-list-${JSON.stringify(searchParams)}`}
         fallback={<ListingSkeleton forProducts={true} />}
       >
         <ProductListServer
@@ -283,6 +263,57 @@ const BouqiuePhotoSlider = ({ banners }) => {
             </div>
           ))}
       </div>
+    </div>
+  );
+};
+const BoutiqueHeaderSkeleton = () => {
+  return (
+    <>
+      <div className="boutique-top-info flex-col">
+        <div className="boutique-logo-container flex-row align-center">
+          <Skeleton
+            className="w-fu"
+            width={130}
+            height={20}
+            borderRadius={"30"}
+          />
+        </div>
+        <div className="boutique-text">
+          <Skeleton width={200} height={10} />
+        </div>
+      </div>
+      <div className="boutique-photo-holder">
+        <div className="offer-slider-container">
+          <div className="offer-slide-item" style={{ width: "100%" }}>
+            <div className="image-offer">
+              <div className="image-inner-shadow" style={{ height: "100%" }} />
+
+              <Skeleton
+                className="w-full h-full"
+                width={380}
+                height={135}
+                borderRadius={"30"}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+const FiltersSkeleton = () => {
+  return (
+    <div className={`w-full flex-row items-center pl-[15px] mt-[20px]`}>
+      {Array.from({ length: 20 }).map((_, index) => (
+        <div key={index} className="filter-option w-[70px] h-[70px]">
+          <Skeleton
+            width={70}
+            height={70}
+            borderRadius={"50%"}
+            className="ml-2"
+          />
+        </div>
+      ))}
     </div>
   );
 };

@@ -51,6 +51,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
           if (product?.most_viewed_product_thumbnail.file_path)
             return (
               <OfferAvatar
+                boutique={boutique}
                 name={product.name}
                 linkUrl={`/boutique/${boutique.slug}?categories=["${product.slug}"]`}
                 key={index}

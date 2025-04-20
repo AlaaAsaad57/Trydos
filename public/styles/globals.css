@@ -421,7 +421,7 @@ body {
   transform-origin: top center;
   background-color: #fafafa;
   width: 100%;
-  min-width: 100%;
+  max-width: 1365px;
   flex-direction: column;
   display: flex;
   min-height: 100%;

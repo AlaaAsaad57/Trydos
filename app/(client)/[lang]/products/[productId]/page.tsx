@@ -6,6 +6,9 @@ import { getConfiguredImage, getProductMeta } from "utils/functions";
 import { notFound } from "next/navigation";
 import { getProducts } from "store/homepage/cachedActions";
 
+export const runtime = "nodejs";
+export const preferredRegion = ["bom1", "sin1"]; // For Middle East users
+
 export async function generateMetadata({ params, searchParams }) {
   const productId = params.productId;
   try {

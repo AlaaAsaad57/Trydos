@@ -216,6 +216,8 @@ export async function middleware(request) {
 }
 
 export const config = {
+  runtime: "nodejs",
+  preferredRegion: ["bom1", "sin1"],
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
