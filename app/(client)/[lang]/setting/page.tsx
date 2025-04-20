@@ -1,4 +1,3 @@
-import CustomNavbarServer from "components/Server/ServerCustomNav";
 import Settings from "components/settings";
 import React from "react";
 export const dynamic = "force-dynamic";

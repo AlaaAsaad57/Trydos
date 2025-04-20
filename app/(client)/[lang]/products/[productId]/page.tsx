@@ -1,5 +1,4 @@
 import "styles/productDetails.css";
-import CustomNavbarServer from "components/Server/ServerCustomNav";
 
 import ProductDetailsServer from "components/Server/ProductDetails";
 

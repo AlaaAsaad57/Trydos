@@ -19,7 +19,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
         slug={boutique.slug}
       />
       <Link
-        href={`/${lang}/boutiques/${boutique.slug}`}
+        href={`/${lang}/boutique/${boutique.slug}`}
         aria-label={`Go To listing Page`}
         className="offer-widget"
         id={`boutique-${boutique.slug}`}
@@ -84,7 +84,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
             if (category?.flat_photo_path?.file_path) {
               return (
                 <Link
-                  href={`/${lang}/boutiques/${boutique.slug}?categories=${category.slug}`}
+                  href={`/${lang}/boutique/${boutique.slug}?categories=[${category.slug}]`}
                   key={key}
                   className={`${key > 0 && "ml-[13px]"}`}
                 >

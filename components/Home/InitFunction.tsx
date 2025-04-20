@@ -5,7 +5,7 @@ import React, { useEffect } from "react";
 import { useAppStore } from "store";
 import { changeAppCountry, changeAppLanguage } from "store/homepage/actions";
 
-function InitFunction({ init }: { init: string }) {
+function InitFunction({ init }: { init: string | string[] }) {
   const { language, country } = useAppStore();
   const searchParams = useSearchParams();
   const initFunc = async () => {
@@ -18,14 +18,14 @@ function InitFunction({ init }: { init: string }) {
       // });
 
       changeAppLanguage(
-        init.split("-")[1] ||
+        (typeof init === "string" && init.split("-")[1]) ||
           languageCookies ||
           language ||
           process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE
       );
 
     let action = await changeAppCountry(
-      init.split("-")[0] ||
+      (typeof init === "string" && init.split("-")[0]) ||
         countryCookies ||
         country ||
         process.env.NEXT_PUBLIC_DEFAULT_COUNTRY

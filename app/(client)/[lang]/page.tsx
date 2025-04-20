@@ -1,12 +1,10 @@
 import Home from "components/Home";
-// import BrandsBar from "components/Home/Bars/BrandsBar";
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
 import StoriesBarServer from "components/Server/StoriesBarServer";
 import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
 import OfferListSkeleton from "components/skeleton/OfferList";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
-
 import { Suspense } from "react";
 
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
@@ -36,10 +34,13 @@ export async function generateStaticParams() {
 function HomePage({ params }: { params: { lang: string } }) {
   return (
     <>
-      <Suspense fallback={<MobileNavigationSkeleton />}>
+      <Suspense
+        fallback={<MobileNavigationSkeleton />}
+        key={`Navbar ${params.lang}`}
+      >
         <NavbarServer lang={params.lang} />
       </Suspense>
-      <Suspense fallback={<StoriesSkeleton />}>
+      <Suspense fallback={<StoriesSkeleton />} key={`Stories ${params.lang}`}>
         <StoriesBarServer />
       </Suspense>
       <Suspense
@@ -48,10 +49,14 @@ function HomePage({ params }: { params: { lang: string } }) {
             Loading...
           </div>
         }
+        key={`Home ${params.lang}`}
       >
         <Home />
       </Suspense>
-      <Suspense fallback={<OfferListSkeleton />}>
+      <Suspense
+        fallback={<OfferListSkeleton />}
+        key={`OfferList ${params.lang}`}
+      >
         <OfferListServer params={params} />
       </Suspense>
     </>

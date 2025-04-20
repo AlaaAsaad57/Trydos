@@ -1,5 +1,4 @@
 import "styles/productDetails.css";
-import CustomNavbarServer from "components/Server/ServerCustomNav";
 
 import { notFound } from "next/navigation";
 import ComparePage from "components/global/compare";

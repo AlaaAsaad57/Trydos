@@ -5,6 +5,7 @@ import { LogData } from "./actions";
 import {
   CategoriesApi,
   CountriesApi,
+  CurrencyApi,
   FilterProductApi,
   GetStoriesApi,
   GlobalDetailsProductApi,
@@ -756,4 +757,161 @@ export const getCountriesApi = async () => {
       },
     ];
   }
+};
+export const getProductsAndFilters = async ({
+  searchParams,
+  lang,
+  country,
+  noProducts,
+  noFilters,
+  offset,
+  boutiqueId,
+}: {
+  searchParams: URLSearchParams;
+  lang: string;
+  country: string;
+  noProducts: boolean;
+  noFilters: boolean;
+  offset: number | boolean;
+  boutiqueId?: string;
+}) => {
+  try {
+    let params = configureSearchParams({
+      searchParams,
+      noProducts,
+      noFilters,
+      lang,
+      offset,
+      boutiqueId,
+    });
+    let configured_url = `/api/products/searchInCatalog?${params.toString()}`;
+    // console.log(`configured_url: ${configured_url}`);
+    let response = await fetch(
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + configured_url,
+      {
+        method: "GET",
+        headers: new Headers({
+          lang: lang,
+          country: country,
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        }),
+        next: {
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
+        },
+      }
+    );
+    if (response.status !== 200) {
+      const errorBody = await response.json();
+      throw new Error(
+        `Listing Products and Filters Error: ${
+          response.status
+        } ${JSON.stringify(errorBody.message)}`
+      );
+    }
+    let data: FilterProductApi = await response.json();
+    // console.warn(configured_url, data.data.prices?.priceRanges);
+    return data;
+  } catch (error) {
+    console.error(`Listing Products and Filters Error: ${error}`);
+    return {
+      data: {
+        products: [],
+        brands: [],
+        attributes: [],
+        colors: [],
+        categories: [],
+        boutiques: [],
+        prices: {
+          min_price: 0,
+          max_price: 0,
+          priceRanges: [],
+        },
+        search_time: "0.00",
+        offset: 0,
+        total_size: 0,
+        limit: 8,
+        process_time: "0.00",
+      },
+    };
+  }
+};
+const configureSearchParams = ({
+  searchParams,
+  noFilters,
+  noProducts,
+  lang,
+  offset,
+  boutiqueId,
+}): URLSearchParams => {
+  let params = new URLSearchParams();
+  params.set("lang", lang);
+  params.set("limit", "8");
+  if (offset) {
+    params.set("offset", `[${offset}]`);
+  }
+  if (noProducts) {
+    params.set("with_products", "false");
+  }
+  if (noFilters) {
+    params.set("with_filters", "false");
+  }
+  if (searchParams.search_text) {
+    params.set("search_text", searchParams.search_text);
+  }
+  if (searchParams.categories) {
+    params.set("category_slugs", decodeURI(searchParams.categories));
+  }
+  if (searchParams.prices) {
+    params.set("price", decodeURIComponent(searchParams.prices));
+  }
+  if (searchParams.sizes) {
+    params.set(
+      "attributes",
+      JSON.stringify([
+        {
+          id: 1,
+          options: JSON.parse(decodeURI(searchParams.sizes)),
+          name: "Size",
+        },
+      ])
+    );
+  }
+  if (searchParams.colors) {
+    params.set("colors", decodeURIComponent(searchParams.colors));
+  }
+  if (searchParams.brands) {
+    params.set("brand_slugs", decodeURI(searchParams.brands));
+  }
+  if (searchParams.boutiques) {
+    params.set("boutique_slugs", decodeURI(searchParams.boutiques));
+  }
+  if (boutiqueId) {
+    params.set("boutique_slugs", `["${boutiqueId}"]`);
+  }
+
+  // console.log(
+  //   `params: ${decodeURIComponent(params.toString())} ${JSON.stringify(
+  //     searchParams
+  //   )}`
+  // );
+  return params;
+};
+export const getCurrency = async ({ lang, country }) => {
+  let data = await fetch(
+    process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile/home/currency",
+    {
+      next: {
+        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+      },
+      headers: new Headers({
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        lang: lang,
+        country: country,
+      }),
+    }
+  );
+  let currency: CurrencyApi = await data.json();
+  return currency.data.currency;
 };

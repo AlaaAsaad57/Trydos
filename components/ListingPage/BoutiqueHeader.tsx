@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
-import VerificationIcon from "public/svg/listing/VerificationIcon.svg";
-import TopStarIcon from "public/svg/listing/TopStar.svg";
+
 import BoutiquePhoto from "./BoutiquePhoto";
 import BoutiqueCategoryFilter from "./BoutiqueCategoryFilter";
 import BoutiqueBrandFilter from "./filterComponents/BoutiqueBrandFilter";
@@ -19,7 +18,6 @@ import {
 import FilterButton from "./FilterButton";
 import BoutiqueColorsFilter from "./filterComponents/BoutiqueColorsFilter";
 import BoutiquePriceSelect from "./BoutiquePriceSelect";
-import { AxiosCacheApi } from "utils/AxiosApi";
 import { useAppStore } from "store";
 
 // const PrefetchingFilters = () => {
@@ -273,8 +271,6 @@ function BoutiqueHeader({ boutique, showFilters }) {
           >
             <div className="boutique-logo-container flex-row align-center">
               <img width={130} height={20} src={boutique.icon} />
-              <VerificationIcon />
-              <TopStarIcon />
             </div>
             <div className="boutique-text">{boutique.name}</div>
           </div>

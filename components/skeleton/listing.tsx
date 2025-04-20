@@ -2,10 +2,16 @@ import "styles/listing-components.css";
 import React from "react";
 import Skeleton from "react-loading-skeleton";
 
-function ListingSkeleton({ forProducts }: { forProducts?: boolean }) {
+function ListingSkeleton({
+  forProducts,
+  withBanners,
+}: {
+  forProducts?: boolean;
+  withBanners?: boolean;
+}) {
   return (
     <>
-      {forProducts !== true && (
+      {forProducts !== true && withBanners && (
         <>
           <div className="filter-listing-bar relative flex-row align-center">
             <div className="back-icon">

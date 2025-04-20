@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import CustomNavbar from "components/Home/CustomNav";
 export default function NotFound() {
   const params = useParams();
   // @ts-ignore
@@ -9,7 +8,7 @@ export default function NotFound() {
   return (
     <>
       {/* @ts-ignore*/}
-      <CustomNavbar init={lang} />
+
       <div className="w-full items-center flex-col justify-around  h-full ">
         <h2 className="text-[#5d5d5d] text-[18px] light">404 - Not Found</h2>
         <p className="mt-[30px] text-[#5d5d5d] text-[18px] light ">

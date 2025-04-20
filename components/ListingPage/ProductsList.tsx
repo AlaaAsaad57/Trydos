@@ -1,203 +1,282 @@
 "use client";
-import "styles/listing.css";
-import "styles/globals.css";
-import { useEffect } from "react";
+
+import { useEffect, useState } from "react";
 
 import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";
 import homeService from "services/home";
 import { dispatchRouteChangeEvent } from "utils/events";
-import Product from "./Product";
-import { filterProducts, translateFunction } from "utils/functions";
+
+import { filterProducts, RoundPrice, translateFunction } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
 import ListingSkeleton from "components/skeleton/listing";
 import AddToCartWidget from "components/Cart/AddToCartWidget";
 import { CurrencyApi } from "models/Api";
 import { useAppStore } from "store";
+import { getProductsAndFilters } from "store/homepage/cachedActions";
+import { BuyButtonProduct, ProductPhotosSlider } from "./Product";
+import Link from "node_modules/next/link";
 
-function ProductsList({
-  Listing_Data_res,
-  productCategory,
+function ProductsInfiniteScroll({
+  offset,
+  boutiqueId,
   currency,
-  boutiqueCategory,
+  searchParams,
 }: {
-  Listing_Data_res: any;
+  offset: any;
   currency: CurrencyApi["data"]["currency"];
-  boutiqueCategory: string;
-  productCategory: string;
+  boutiqueId: string;
+  searchParams: any;
 }) {
   const {
-    editFilter,
-    getProducts,
-    setLoadingProducts,
-    getNextProducts,
     resetBoutique,
-    resetListingFilter,
-    products,
     AddToCartOption,
-    offset,
-    skeleton,
     listing_loading,
-    isReachEnd,
     filterEnabled,
-    filters,
     selectedFilter,
+    settings,
   } = useAppStore();
-
-  let { lang } = useParams();
+  const { lang }: { lang: string } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
-  const SearchParams = useSearchParams();
-  const GetNextPage = async () => {
-    if (!listing_loading && !isReachEnd) {
-      setLoadingProducts(true);
-      await homeService.getNextProduct({
-        lang: lang,
-        offset: offset,
-        categories:
-          SearchParams.get("boutique_slugs") ||
-          (productCategory !== "listing" ? productCategory : null),
-        boutiqueCategory: boutiqueCategory,
-        noFilter: true,
-      });
-    }
-  };
+
   useEffect(() => {
     dispatchRouteChangeEvent("completed");
     document.documentElement.style.overflow = "initial";
     document.documentElement.scrollTop = 0;
     resetBoutique();
-    getProducts(Listing_Data_res.body.data);
-
     setTimeout(() => {
-      GetNextProd();
+      getProductsReq();
     }, 2000);
   }, []);
-  const GetNextProd = async () => {
-    setLoadingProducts(true);
-    await homeService.getNextProduct({
-      lang: lang,
-      offset: offset ?? Listing_Data_res.body.data.offset,
-      categories:
-        SearchParams.get("boutique_slugs") ||
-        (productCategory !== "listing" ? productCategory : null),
-      boutiqueCategory: boutiqueCategory,
-      noFilter: true,
+
+  const [products, setProducts] = useState([]);
+  const [offsetValue, setOffsetValue] = useState(offset);
+  const [loading, setLoading] = useState(false);
+  const [isReachEnd, setIsReachEnd] = useState(false);
+
+  const getProductsReq = async () => {
+    setLoading(true);
+    const response = await getProductsAndFilters({
+      lang: languageVariable,
+      offset: offsetValue,
+      searchParams: searchParams,
+      country: lang?.split("-")[0],
+      noProducts: false,
+      noFilters: true,
+      boutiqueId: boutiqueId === "listing" ? null : boutiqueId,
+    });
+    setProducts([
+      ...products,
+      ...response.data.products.filter(
+        (newproduct) =>
+          products.filter((oldproduct) => oldproduct.id === newproduct.id)
+            .length === 0
+      ),
+    ]);
+
+    setOffsetValue(response.data.offset);
+    setLoading(false);
+    if (
+      response.data.products.length === 0 ||
+      offsetValue === response.data.offset
+    ) {
+      setLoading(false);
+      setIsReachEnd(true);
+    }
+  };
+  const getPrice = (num) => {
+    return RoundPrice({
+      num: num,
+      rate: currency?.exchange_rate || 1,
+      points:
+        (settings && settings["starting-setting"]?.decimal_point_settings) || 0,
     });
   };
-
-  const pathName = useParams();
-  const filter = () => {
-    resetListingFilter();
-    setLoadingProducts(true);
-
-    filterProducts({
-      boutiqueId:
-        (SearchParams.get("boutique_slugs") &&
-          SearchParams.get("boutique_slugs")) ||
-        pathName.productCategory,
-      lang: pathName.lang,
-      sizesAttr: filters.sizesAttr,
-      callback: (products) => {
-        if (offset === null) Listing_Data_res.body.data({ products });
-        else getNextProducts({ products });
-      },
-      storeCallback: () => {},
-      offset: offset,
-      newFiltersCallback: ({ filtersVar }) => {
-        editFilter(filtersVar);
-      },
-      searchText: selectedFilter.searchText,
-    });
-  };
-
   return (
     <>
-      {!filterEnabled && (
-        <>
-          {skeleton ? (
-            <>
-              <ListingSkeleton forProducts={true} />
-            </>
-          ) : (
-            <>
-              <div
-                className={
-                  products?.length === 0 &&
-                  Listing_Data_res?.body?.data?.products?.length === 0
-                    ? "listing-container-empty"
-                    : "listing-container flex pb-[350px] max-w-[1310px]"
-                }
-                data-cy="allCategory"
-                onWheelCapture={() => {
-                  if (!selectedFilter.filtered) GetNextPage();
-                  else if (!listing_loading && !isReachEnd) {
-                    filter();
-                  }
-                }}
-              >
-                {(
-                  (products.length > 0 && products) ||
-                  Listing_Data_res?.body?.data?.products
-                )?.map((product, i) => (
-                  <Product
-                    currency={currency}
-                    key={product.id}
-                    product={product}
-                    priority={i < 3}
-                    i={i}
-                  />
-                ))}
+      {products?.map((product, key) => (
+        <div
+          className="max-h-[362px]"
+          data-cy="countProduct"
+          key={product.slug}
+        >
+          <Link
+            suppressHydrationWarning
+            // @ts-ignore
+            // onClick={(e, bool = false) => {
+            //   /* @ts-ignore*/
+            //   if (
+            //     /* @ts-ignore*/
+            //     e.target.closest(".top-slider-enable") ||
+            //     /* @ts-ignore*/
+            //     e.target.closest(".product-photos-slider") ||
+            //     /* @ts-ignore*/
+            //     e.target.closest(".buy-button") ||
+            //     /* @ts-ignore*/
+            //     e.target.closest(".inset-shadow-img")
+            //   ) {
+            //     // stopProgress(true);
+            //     dispatchRouteChangeEvent("completed");
+            //     return false;
+            //   } else {
+            //     Sendevent({
+            //       event: "button_clicked",
+            //       value: "choose_product_button",
+            //     });
+            //   }
+            // }}
+            href={`/${lang}/products/${product.slug}`}
+            className="product-container  align-center flex-col relative"
+            data-cy="on_mouse_over_product"
+            // onMouseLeave={() => {
+            //   if (productState?.isActiveTopSlide || productState?.isColorSelected) {
+            //     dispatch({ type: "setActiveTopSlide", payload: false });
+            //     dispatch({ type: "setColor", payload: false });
+            //   }
+            // }}
+          >
+            <ProductPhotosSlider
+              product={{
+                sync_color_images: product.sync_color_images,
+                images: product.images,
+                thumbnail: product.thumbnail,
+              }}
+              priority={key < 3}
+            />
 
-                {products.length === 0 &&
-                  !(Listing_Data_res?.body?.data?.products?.length > 0) && (
+            <div className="product-body w-100 flex-col align-start justify-start max-h-[30px] min-h-[30px]">
+              <p
+                className="prouct-details overflow-hidden w-100 regular-text color-dark-gray f-10"
+                data-cy="productName"
+              >
+                {product?.brand?.icon &&
+                  typeof product.brand.icon === "string" && (
+                    <img
+                      loading={"eager"}
+                      src={product?.brand?.icon?.replace(
+                        "/upload",
+                        "/upload/h_50/q_auto"
+                      )}
+                      width={16}
+                      height={7}
+                      alt={product.name}
+                      className="max-h-[20px] max-w-[40px]"
+                    />
+                  )}
+                {product.name.substring(0, 50)}
+
+                {product.category && (
+                  <span className="product-category-icon align-center">
+                    <span
+                      style={{ display: "inline" }}
+                      className="justify-start quantity flex f-10 align-center med-text"
+                    >
+                      1
+                    </span>
+                    {product?.category?.flat_photo_path?.file_path?.length >
+                      0 && (
+                      <img
+                        loading={"eager"}
+                        src={product?.category?.flat_photo_path?.file_path?.replace(
+                          "/upload",
+                          "/upload/h_50/f_webp/q_auto"
+                        )}
+                        width={10}
+                        height={10}
+                        style={{
+                          display: "inline",
+                          minWidth: "10px",
+                          minHeight: "10px",
+                        }}
+                        alt={product.name}
+                        className="max-h-[20px] max-w-[40px]"
+                      />
+                    )}
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="product-footer w-100 flex-row align-center max-h-[30px]">
+              <div
+                className={`${
+                  languageVariable === "ar" && "dir-rtl"
+                } price-label flex`}
+              >
+                {product?.offer_price >= 0 && (
+                  <span className="old-price relative f-12 color-dark-gray light-text">
+                    {getPrice(product.price)}
+                    <svg
+                      className="absolute w-100"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="100%"
+                      height="1"
+                    >
+                      <line
+                        id="Line_1"
+                        data-name="Line 1"
+                        x2="100%"
+                        transform="translate(0 0.5)"
+                        fill="none"
+                        stroke="#3c3c3c"
+                        strokeWidth="1"
+                      />
+                    </svg>
+                  </span>
+                )}
+                <span className="new-price bold-text color-dark-gray flex f-12">
+                  {product?.offer_price >= 0 && getPrice(product?.offer_price)}
+                </span>
+                <span className="currency-label light-text color-dark-gray flex f-10">
+                  {currency?.symbol}
+                </span>
+              </div>
+
+              <BuyButtonProduct product={product} />
+            </div>
+          </Link>
+        </div>
+      ))}
+
+      {/* {products.length === 0 &&
+                   (
                     <div className="flex p-3 h-10 justify-center items-center light text-[#5d5d5d] text-[14px]">
                       {translate("No Results Found")}
                     </div>
-                  )}
-              </div>
-              {(products.length > 0 ||
-                Listing_Data_res?.body?.data?.products?.length > 0) && (
-                <div
-                  className="get-next-product regular-text color-dark-gray"
-                  data-cy="ReachEnd"
-                >
-                  {!isReachEnd ? (
-                    <>
-                      {" "}
-                      {!listing_loading ? (
-                        <InView
-                          className="spinner-container"
-                          as="div"
-                          onChange={(inView) => {
-                            if (inView && !listing_loading) {
-                              GetNextPage();
-                            }
-                          }}
-                        ></InView>
-                      ) : (
-                        <h2>
-                          {listing_loading && (
-                            <Spinner no={false} className="" />
-                          )}
-                        </h2>
-                      )}
-                    </>
-                  ) : (
-                    <>{translate("Reach End")}</>
-                  )}
-                </div>
+                  )} */}
+
+      {AddToCartOption.enable && <AddToCartWidget />}
+      {products.length > 0 && (
+        <div
+          className="get-next-product regular-text color-dark-gray"
+          data-cy="ReachEnd"
+        >
+          {!isReachEnd ? (
+            <>
+              {!loading ? (
+                <InView
+                  className="spinner-container"
+                  as="div"
+                  onChange={(inView) => {
+                    if (inView && !loading) {
+                      getProductsReq();
+                    }
+                  }}
+                ></InView>
+              ) : (
+                <h2>{loading && <Spinner no={false} className="" />}</h2>
               )}
             </>
+          ) : (
+            <>{translate("Reach End")}</>
           )}
-        </>
+        </div>
       )}
-      {AddToCartOption.enable && <AddToCartWidget />}
     </>
   );
 }
 
-export default ProductsList;
+export default ProductsInfiniteScroll;

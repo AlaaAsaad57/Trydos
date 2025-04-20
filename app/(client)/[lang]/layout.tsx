@@ -4,8 +4,13 @@ import "styles/home.css";
 import "styles/unused-onload.css";
 import Providers from "store/provider";
 import localFont from "next/font/local";
-import CustomNavbarServer from "components/Server/ServerCustomNav";
 import { Suspense } from "react";
+import NextLink from "components/global/NextLink";
+import Logo from "components/Home/Logo";
+import UserNavTopSection from "components/Home/UserNavTopSection";
+import Skeleton from "node_modules/react-loading-skeleton/dist";
+import NavbarClient from "components/Home/NavbarClient";
+
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -79,11 +84,6 @@ export default async function RootLayout({ params, children }) {
   // ${sf_pro_rounded_regular.variable}
   // ${sf_pro_rounded_medium.variable}
   // ${sf_pro_rounded_bold.variable}
-  console.log(
-    "Layout Page",
-    `${new Date().getMinutes()}:${new Date().getSeconds()}`
-  );
-
   return (
     <html
       className={`
@@ -105,8 +105,35 @@ export default async function RootLayout({ params, children }) {
         <Providers>
           <div className="site-container items-center">
             <Suspense fallback={<></>}>
-              <CustomNavbarServer lang={params.lang} />
+              <NavbarClient />
             </Suspense>
+            <div className="home-navbar max-h-[1365px]">
+              <NextLink
+                href={`/${params.lang}`}
+                aria-label="TryDos Home"
+                data-cy="NavLogo"
+              >
+                <Logo animated={false} style={false} key={1} />
+              </NextLink>
+              <Suspense
+                fallback={
+                  <div className="user-nav-container">
+                    <div className="nav-question-item">
+                      <Skeleton className="w-[30px] h-[30px] rounded-sm" />
+                    </div>
+                    <div className="nav-question-item ml-2">
+                      <Skeleton className="w-[30px] h-[30px] rounded-sm" />
+                    </div>
+                    <div className="nav-question-item ml-2">
+                      <Skeleton className="w-[30px] h-[30px] rounded-sm" />
+                    </div>
+                  </div>
+                }
+              >
+                <UserNavTopSection />
+              </Suspense>
+            </div>
+
             {children}
           </div>
         </Providers>

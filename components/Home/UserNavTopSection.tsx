@@ -1,6 +1,6 @@
 "use client";
 import { translateFunction } from "utils/functions";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import AuthNavSection from "./AuthNavSection";
 import CartIcon from "public/svg/CartIcon.svg";
@@ -13,11 +13,7 @@ import {
 import Menu from "./Menu";
 import { useAppStore } from "store";
 
-interface UserNavTopSectionProps {
-  loginOpen: boolean;
-  openLogin: Function;
-}
-function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
+function UserNavTopSection() {
   const {
     enableCart,
     disableAddToCartOption,
@@ -25,6 +21,8 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
     user,
     enable_search,
     localCart,
+    loginOpen,
+    setLoginOpen: openLogin,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -32,15 +30,6 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
-
-  useEffect(() => {
-    setTimeout(() => {
-      if (true) {
-        // Placeholder for any async actions
-      }
-    }, 1000);
-  }, [user]);
-
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -128,7 +117,10 @@ function UserNavTopSection({ loginOpen, openLogin }: UserNavTopSectionProps) {
           <div
             data-testid="login-text"
             className="nav-question-item"
-            onClick={() => openLogin(true)}
+            onClick={() => {
+              openLogin(true);
+              window.history.pushState({ isPopup: true }, "open Login");
+            }}
           >
             <img src="/svg/login.svg" width={15} height={15} alt="login" />
             <span
