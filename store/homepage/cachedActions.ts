@@ -62,7 +62,7 @@ export const getProducts = async ({ lang, country }) => {
       mode: "cors",
     });
     const repo: FilterProductApi = await res.json();
-    console.log(repo.data.products.map((s) => s.slug));
+
     return repo.data.products.map((s) => s.slug);
   } catch (e) {
     console.log(e);

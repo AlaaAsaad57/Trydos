@@ -8,7 +8,7 @@ import LegalInfoIcon from "public/svg/LegalInfoIcon.svg";
 import AboutIcon from "public/svg/AboutIcon.svg";
 import ShareAppIcon from "public/svg/ShareAppIcon.svg";
 import LanguageIcon from "public/svg/LanguageIcon.svg";
-
+import SyFlage from "public/svg/sy.svg";
 import { useParams } from "next/navigation";
 import { allCountries } from "country-telephone-data";
 import Flag from "react-world-flags";
@@ -110,15 +110,20 @@ function MainSetting({
             }}
             className="flex-row w-1/2 h-[53px] bg-[#F8F8F8] rounded-[15px] px-[12px] items-center cursor-pointer"
           >
-            <Flag
-              code={country.iso.toUpperCase()}
-              height="18"
-              style={{
-                borderRadius: "4px",
-              }}
-              width="28"
-              alt={`${country.name} flag`}
-            />
+            {country.iso === "sy" ? (
+              <SyFlage data-cy="country-flag" />
+            ) : (
+              <Flag
+                code={country.iso.toUpperCase()}
+                height="18"
+                style={{
+                  borderRadius: "4px",
+                }}
+                width="28"
+                alt={`${country.name} flag`}
+              />
+            )}
+
             <span className="text-[#1D1D1D] text-[14px] regular ml-[12px]">
               {country.name}
             </span>

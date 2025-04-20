@@ -9,6 +9,7 @@ import Spinner from "components/global/Spinner";
 import { GetAddressByTextApi } from "models/Api";
 import Cookies from "js-cookie";
 import { useAppStore } from "store";
+import SyFlage from "public/svg/sy.svg";
 function SelectRegion({ closeSelect }) {
   const { addressDetails } = useAppStore();
   const { lang } = useParams();
@@ -92,7 +93,11 @@ function SelectRegion({ closeSelect }) {
         </div>
         <div className="flex-row items-center w-full justify-center mt-[11px]">
           <span className="min-h-[16px] w-[23px]">
-            <Flag height={"15"} code={country.iso} data-cy="country-flag" />
+            {country.iso?.toLowerCase() === "sy" ? (
+              <SyFlage data-cy="country-flag" />
+            ) : (
+              <Flag height={"15"} data-cy="country-flag" code={country.iso} />
+            )}
           </span>
 
           <div className="flex-row ml-[8px]" data-cy="region-div">

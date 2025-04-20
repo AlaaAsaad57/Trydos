@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import { changeAppCountry } from "store/homepage/actions";
 import { changeAppCountryServer } from "store/homepage/cachedActions";
 import { useAppStore } from "store";
+import SyFlage from "public/svg/sy.svg";
 function PersonalInfoCountries({
   swipeToScreen,
   goBack,
@@ -271,15 +272,20 @@ function PersonalInfoCountries({
                   }}
                   className={`w-full flex-row cursor-pointer mt-[12px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center`}
                 >
-                  <Flag
-                    code={country.iso.toUpperCase()}
-                    height="18"
-                    style={{
-                      borderRadius: "4px",
-                    }}
-                    width="28"
-                    alt={`${country.name} flag`}
-                  />
+                  {country.iso === "sy" ? (
+                    <SyFlage data-cy="country-flag" />
+                  ) : (
+                    <Flag
+                      code={country.iso.toUpperCase()}
+                      height="18"
+                      style={{
+                        borderRadius: "4px",
+                      }}
+                      width="28"
+                      alt={`${country.name} flag`}
+                    />
+                  )}
+
                   <span className="text-[14px] regular text-[#1d1d1d] ml-[12px] ">
                     {country.name}
                   </span>

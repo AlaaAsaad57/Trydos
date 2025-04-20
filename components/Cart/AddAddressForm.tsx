@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 import "leaflet/dist/leaflet.css";
 import Map from "./Map";
-
+import SyFlage from "public/svg/sy.svg";
 import { useParams } from "next/navigation";
 import Addressicon from "public/svg/cart/AddressIcon.svg";
 import AddressInfo from "public/svg/cart/AddressInfo.svg";
@@ -252,7 +252,11 @@ const CountryLabel = () => {
           className="h-[15px] rounded-[5px] w-[22px]"
           data-cy="country-flag"
         >
-          <Flag height={"15"} code={country.iso} />
+          {country.iso?.toLowerCase() === "sy" ? (
+            <SyFlage />
+          ) : (
+            <Flag height={"15"} code={country.iso} />
+          )}
         </span>
         <div
           className="medium flex text-[#1D1D1D] text-[14px] ml-[8px]"

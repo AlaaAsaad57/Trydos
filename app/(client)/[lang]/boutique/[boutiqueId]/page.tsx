@@ -35,7 +35,7 @@ const ShareBoutiquePageButton = dynamic(
 );
 
 export const dynamicParams = true;
-
+export const preferredRegion = "auto";
 // export async function generateMetadata({ params, searchParams }: Props) {
 //   const boutiqueId = params.boutiqueId;
 //   try {
@@ -63,9 +63,22 @@ export const dynamicParams = true;
 //     notFound();
 //   }
 // }
-
+export const config = {
+  runtime: "nodejs", // Use Node.js for full functionality
+  regions: ["bom1", "sin1"], // Primary regions for Middle East
+  // Add fallback regions
+  fallbackRegions: ["fra1", "cdg1"], // European regions as fallback
+};
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-
+export function generateMetadata() {
+  return {
+    title: "Trydos - Boutique",
+    description: "Trydos - Boutique",
+    headers: {
+      "Cache-Control": "public, s-maxage=864000, stale-while-revalidate=864000",
+    },
+  };
+}
 export async function generateStaticParams({ params }) {
   // Fetch your main product categories
   try {
@@ -101,16 +114,24 @@ interface ParamsType {
   lang: string;
   boutiqueId: string;
 }
-export default function Page({
+export default async function Page({
   params,
   searchParams,
 }: {
   params: ParamsType;
   searchParams: any;
 }) {
+  // const [boutiqueData, filterData, productData] = await Promise.all([
+  //   getBoutiqueMeta({ boutiqueId: params.boutiqueId, lang: params.lang }),
+  //   getFiltersData({ params, searchParams }),
+  //   getProductsData({ params, searchParams })
+  // ]);
   return (
     <>
-      <div className="filter-listing-bar relative flex-row align-center">
+      <div
+        className="filter-listing-bar relative flex-row align-center"
+        key={`${params.boutiqueId}-${JSON.stringify(searchParams)}`}
+      >
         <NextLink
           data={{
             is_full_home: true,

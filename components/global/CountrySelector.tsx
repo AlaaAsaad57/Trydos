@@ -6,7 +6,7 @@ import {
   changeToken,
 } from "store/homepage/cachedActions";
 import { translateFunction } from "utils/functions";
-
+import SyFlage from "public/svg/sy.svg";
 interface Country {
   name: string;
   iso: string;
@@ -89,12 +89,16 @@ function CountrySelector({ init }: CountrySelectorProps) {
               window.location.href = newUrl;
             }}
           >
-            <Flag
-              code={country.iso.toUpperCase()}
-              height="20"
-              width="30"
-              alt={`${country.name} flag`}
-            />
+            {country.iso?.toLowerCase() === "sy" ? (
+              <SyFlage data-cy="country-flag" />
+            ) : (
+              <Flag
+                height="20"
+                width="30"
+                data-cy="country-flag"
+                code={country.iso.toUpperCase()}
+              />
+            )}
           </div>
         ))}
       </div>

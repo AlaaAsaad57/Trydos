@@ -34,7 +34,7 @@ export default function NextLink({
     <Link
       aria-label={ariaLabel}
       className={className}
-      prefetch
+      prefetch={true}
       href={href}
       {...props}
       onClick={handleClick}
@@ -42,8 +42,6 @@ export default function NextLink({
       //   if (onClick) onClick(e);
       // }}
     >
-      <PrefetchLinkUtil href={href} label={ariaLabel} />
-
       <>{children}</>
     </Link>
   );
