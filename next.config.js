@@ -51,15 +51,15 @@ let nextConfig = {
       "market_staging.trydos.tech",
       "s3.ap-south-1.amazonaws.com",
     ],
-    minimumCacheTTL: 300,
+    minimumCacheTTL: 86400,
   },
   experimental: {
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
 
     staleTimes: {
-      dynamic: 36000,
-      static: 36000,
+      dynamic: 86400,
+      static: 86400,
     },
   },
   webpack(config, { dev, isServer }) {
