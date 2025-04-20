@@ -4,12 +4,25 @@ import {
   getProductsAndFilters,
 } from "store/homepage/cachedActions";
 
-import SwitchFiltersButton from "components/filterPage/SwitchFiltersButton";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import CloseIcon from "public/svg/CloseIcon.svg";
 import Search from "public/svg/SearchIcon.svg";
 import NextLink from "components/global/NextLink";
+import { translateFunction } from "utils/functions";
+import dynamic from "next/dynamic";
 
+const SwitchFiltersButton = dynamic(
+  () => import("components/filterPage/SwitchFiltersButton"),
+  {
+    ssr: false,
+  }
+);
+const FilterLabel = dynamic(
+  () => import("components/ListingPage/filterComponents/FilterLabel"),
+  {
+    ssr: false,
+  }
+);
 async function FilterList({ searchParams, params }) {
   const filtersData = await getProductsAndFilters({
     searchParams,
@@ -27,7 +40,8 @@ async function FilterList({ searchParams, params }) {
     colors: filtersData.data?.colors,
     prices: filtersData.data?.prices?.priceRanges,
     sizes: filtersData.data?.attributes[0]?.options,
-    boutiques: filtersData.data?.boutiques,
+    boutiques:
+      params.boutiqueId !== "listing" ? null : filtersData.data?.boutiques,
     search_text: searchParams?.searchText || null,
   };
   const currency = await getCurrency({
@@ -36,43 +50,58 @@ async function FilterList({ searchParams, params }) {
   });
   ``;
   return (
-    <Suspense fallback={<h1>Loading...</h1>}>
+    <>
       <div className={`w-full flex-row items-center pl-[15px]`}>
-        <SwitchFiltersButton
-          length={
-            Object.keys(filters).filter(
-              (s) => filters[s] && filters[s]?.length > 0
-            ).length
+        <Suspense
+          key={`switch-filters-button-${JSON.stringify(filters)}`}
+          fallback={
+            <div className="filter-button flex-row items-center h-[25px]" />
           }
-        />
-        <div
-          className={`flex-row items-center  justify-start align-start filter-container overflow-auto scroll-smooth`}
         >
-          {Object.keys(filters).map((filter) => {
+          <SwitchFiltersButton
+            length={
+              Object.keys(filters).filter(
+                (s) => filters[s] && filters[s]?.length > 0
+              ).length
+            }
+          />
+        </Suspense>
+        <div
+          className={`flex-row items-center pr-[100px]  justify-start align-start filter-container overflow-auto scroll-smooth`}
+        >
+          {Object.keys(filters).map((filter, index) => {
             if (filters[filter] && filters[filter]?.length > 0)
               return (
-                <FilterItemsRow
-                  currency={currency}
-                  searchParams={searchParams}
-                  items={filters[filter]}
-                  key={filter}
-                  term={filter}
-                />
+                <>
+                  <Suspense>
+                    <FilterLabel text={`Filter By ${filter}`} />
+                  </Suspense>
+                  <FilterItemsRow
+                    index={index}
+                    params={params}
+                    currency={currency}
+                    searchParams={searchParams}
+                    items={filters[filter]}
+                    key={filter}
+                    term={filter}
+                  />
+                </>
               );
           })}
         </div>
       </div>
       <ActiveFiltersBar
+        params={params}
         currency={currency}
         searchParams={searchParams}
         filters={filters}
       />
-    </Suspense>
+    </>
   );
 }
 
 export default FilterList;
-const ActiveFiltersBar = ({ currency, searchParams, filters }) => {
+const ActiveFiltersBar = ({ currency, searchParams, filters, params }) => {
   let activeFilters: any = Object.keys(searchParams).reduce((acc, key) => {
     return {
       ...acc,
@@ -97,7 +126,7 @@ const ActiveFiltersBar = ({ currency, searchParams, filters }) => {
       className="filter-info-bar flex-row cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none "
       data-cy="filterInfo"
     >
-      <NextLink href={`?`}>
+      <NextLink href={`?`} ariaLabel={`close filter ${params.lang}`}>
         <CloseIcon data-cy="closeIcon" className="mr-2 ml-2" />
       </NextLink>
       {activeFilters?.categories?.length > 0 && (
@@ -409,7 +438,14 @@ const ActiveFiltersBar = ({ currency, searchParams, filters }) => {
     </div>
   );
 };
-const FilterItemsRow = ({ currency, searchParams, items, term }) => {
+const FilterItemsRow = ({
+  currency,
+  searchParams,
+  items,
+  term,
+  params,
+  index,
+}) => {
   const getDataCy = () => {
     if (term === "categories") return "categoryBox";
     if (term === "brands") return "BrandBox";
@@ -421,14 +457,16 @@ const FilterItemsRow = ({ currency, searchParams, items, term }) => {
     <div
       className={`${
         term !== "categories" && term !== "brands" && "pt-[10px]"
-      } boutique-category-filter flex-row`}
+      } scrollable-area-${index} boutique-category-filter flex-row`}
     >
       <div className="category-row-container flex-row" data-cy={getDataCy()}>
         {items &&
           items?.map((item) => (
             <FilterItem
+              params={params}
               searchParams={searchParams}
               key={item.id}
+              currency={currency}
               term={term}
               item={item}
             />
@@ -437,7 +475,30 @@ const FilterItemsRow = ({ currency, searchParams, items, term }) => {
     </div>
   );
 };
-const FilterItem = ({ term, item, searchParams }) => {
+const FilterItem = ({ term, item, searchParams, currency, params }) => {
+  const getPrice = (num) => {
+    let rateVariable = currency?.exchange_rate;
+    let price = parseFloat(num);
+    price = parseFloat((price * rateVariable).toFixed(0));
+    let ceil = 2;
+    if (price >= 1000000) {
+      return (
+        (ceil
+          ? Math.ceil(parseFloat((price / 1000000).toFixed(3)) * ceil) / ceil
+          : parseFloat((price / 1000000).toFixed(3))) +
+        translateFunction("M", params.lang.split("-")[1])
+      ); // For millions
+    } else if (price >= 1000) {
+      return (
+        (ceil
+          ? Math.ceil(parseFloat((price / 1000).toFixed(3)) * ceil) / ceil
+          : parseFloat((price / 1000).toFixed(3))) +
+        translateFunction("K", params.lang.split("-")[1])
+      ); // For thousands
+    } else {
+      return price; // For prices under 1000
+    }
+  };
   if (term === "categories") {
     const { href, isFiltered } = getFilterStateForItem(
       searchParams,
@@ -447,6 +508,7 @@ const FilterItem = ({ term, item, searchParams }) => {
 
     return (
       <NextLink
+        ariaLabel={`filter category ${item.slug} ${params.lang}`}
         href={href}
         className={`category-circle flex-col align-center ${
           item?.categories_sub?.length > 0 && "extended-circle"
@@ -506,6 +568,7 @@ const FilterItem = ({ term, item, searchParams }) => {
     return (
       <NextLink
         href={href}
+        ariaLabel={`filter brand ${item.slug} ${params.lang}`}
         className={`category-circle flex-col align-center ${
           true && "extended-circle"
         }`}
@@ -560,6 +623,7 @@ const FilterItem = ({ term, item, searchParams }) => {
     return (
       <NextLink
         href={href}
+        ariaLabel={`filter color ${item} ${params.lang}`}
         className={`category-circle flex-col align-center ${
           true && "extended-circle"
         }`}
@@ -614,6 +678,7 @@ const FilterItem = ({ term, item, searchParams }) => {
     return (
       <NextLink
         href={href}
+        ariaLabel={`filter size ${item} ${params.lang}`}
         className={`category-circle flex-col align-center ${
           true && "extended-circle"
         }`}
@@ -675,6 +740,7 @@ const FilterItem = ({ term, item, searchParams }) => {
     return (
       <NextLink
         href={href}
+        ariaLabel={`filter price ${item.min_price}-${item.max_price} ${params.lang}`}
         className={`category-circle flex-col align-center ${
           true && "extended-circle"
         }`}
@@ -699,7 +765,9 @@ const FilterItem = ({ term, item, searchParams }) => {
               minWidth: "140px",
             }}
           >
-            {` ${item.min_price} - ${item.max_price}`}
+            {` ${currency.symbol} ${getPrice(item.min_price)} - ${
+              currency.symbol
+            } ${getPrice(item.max_price)}`}
           </div>
         </div>
         <div className="category-text-container flex-col align-center">

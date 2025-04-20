@@ -40,6 +40,7 @@ function CategoryNavMobile({
   }, []);
   return (
     <NextLink
+      ariaLabel={`Category ${slug} ${lang}`}
       className={`categories-bar-item ${
         decodeURI(searchParams.mainCategory) === slug && "active-nav-category"
       }`}

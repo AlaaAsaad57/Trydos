@@ -1,12 +1,30 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 
 function SwitchFiltersButton({ length }) {
-  let active = 0;
+  let [active, setActive] = useState(0);
+  const onClick = () => {
+    if (active === length - 1) {
+      document.querySelector(`.scrollable-area-${0}`).scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+        inline: "start",
+      });
+      setActive(0);
+    } else {
+      document.querySelector(`.scrollable-area-${active + 1}`).scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+        inline: "start",
+      });
+      setActive(active + 1);
+    }
+  };
   return (
     <div
       className="filter-button flex-row items-center h-[25px]"
       data-cy="rightScrool"
-      // onClick={() => onClick()}
+      onClick={() => onClick()}
     >
       {Array.from({ length }).map((_, i) => (
         <span

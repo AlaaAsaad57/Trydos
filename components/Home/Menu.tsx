@@ -109,6 +109,7 @@ const MenuItem: React.FC<{
   if (href && !pathname.includes(href)) {
     return (
       <NextLink
+        ariaLabel={`Menu Item ${href}`}
         data-cy={dataCy}
         style={style}
         href={href}

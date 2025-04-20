@@ -40,6 +40,35 @@ export const getBoutiques = async ({ str, lang, country }) => {
     return [];
   }
 };
+export const getProducts = async ({ lang, country }) => {
+  const language = lang;
+  let url = "/api/products/searchInCatalog" + `?lang=${language}&limit=1000`;
+  let method = { method: "GET" };
+
+  try {
+    const res = await fetch(process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + url, {
+      ...method,
+      next: {
+        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
+        tags: [`product-slugs`],
+      },
+      headers: new Headers({
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        lang: lang,
+        country: country,
+      }),
+      credentials: "include",
+      mode: "cors",
+    });
+    const repo: FilterProductApi = await res.json();
+    console.log(repo.data.products.map((s) => s.slug));
+    return repo.data.products.map((s) => s.slug);
+  } catch (e) {
+    console.log(e);
+    return [];
+  }
+};
 export const getHomeData = async ({ str, lang, country }) => {
   const language = lang;
   let url =
@@ -51,7 +80,6 @@ export const getHomeData = async ({ str, lang, country }) => {
   let method = { method: "GET" };
 
   try {
-    let start = new Date().getTime();
     const res = await fetch(process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + url, {
       ...method,
       next: {
@@ -68,27 +96,10 @@ export const getHomeData = async ({ str, lang, country }) => {
       mode: "cors",
     });
     const repo: HomeBoutiqueApi = await res.json();
-
-    let end = new Date().getTime();
-    let time = end - start;
-    let returned_res = {
-      type: res.type,
-      headers: new Headers({
-        lang: language,
-        country: country,
-      }),
-      url: res.url,
-      time: time + "ms",
-      response: repo,
-      request: "Get boutiques",
-    };
-
-    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-      return [repo.data, returned_res];
-    else return [repo.data, {}];
+    return repo.data;
   } catch (e) {
     console.log(e);
-    return [[], e.toString()];
+    return { boutiques: [], offset: null };
   }
 };
 export const getStoriesServer = async () => {
@@ -813,7 +824,7 @@ export const getProductsAndFilters = async ({
     // console.warn(configured_url, data.data.prices?.priceRanges);
     return data;
   } catch (error) {
-    console.error(`Listing Products and Filters Error: ${error}`);
+    console.error(`Listing Products and Filters Error: ${error}`, searchParams);
     return {
       data: {
         products: [],

@@ -274,6 +274,7 @@ function CartContainer({ close, toOrders }) {
                             ? "#"
                             : getURLOfProduct({ product })
                         }
+                        ariaLabel={`Cart Product ${product.slug} ${params.lang}`}
                         className={`flex-row mt-2 w-full relative  ${
                           product.have_hurry_up_notify || true
                             ? "min-h-[230px]"
@@ -685,6 +686,7 @@ function CartContainer({ close, toOrders }) {
                             ? "#"
                             : getURLOfProduct({ product })
                         }
+                        ariaLabel={`old Cart Product ${product.slug} ${params.lang}`}
                         className="flex-row mt-2 w-full relative  min-h-[230px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
                         key={key}
                         style={{ border: "1px solid #ff5f617a" }}

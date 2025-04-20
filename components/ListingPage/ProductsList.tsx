@@ -28,14 +28,7 @@ function ProductsInfiniteScroll({
   boutiqueId: string;
   searchParams: any;
 }) {
-  const {
-    resetBoutique,
-    AddToCartOption,
-    listing_loading,
-    filterEnabled,
-    selectedFilter,
-    settings,
-  } = useAppStore();
+  const { resetBoutique, AddToCartOption, settings } = useAppStore();
   const { lang }: { lang: string } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -84,6 +77,7 @@ function ProductsInfiniteScroll({
       response.data.products.length === 0 ||
       offsetValue === response.data.offset
     ) {
+      console.log("end of products");
       setLoading(false);
       setIsReachEnd(true);
     }
@@ -105,6 +99,7 @@ function ProductsInfiniteScroll({
           key={product.slug}
         >
           <NextLink
+            ariaLabel={`Product ${product.slug} ${lang}`}
             suppressHydrationWarning
             // @ts-ignore
             // onClick={(e, bool = false) => {
@@ -249,9 +244,9 @@ function ProductsInfiniteScroll({
                   )} */}
 
       {AddToCartOption.enable && <AddToCartWidget />}
-      {products.length > 0 && (
+      {
         <div
-          className="get-next-product regular-text color-dark-gray"
+          className="get-next-product regular-text color-dark-gray absolute flex justify-center items-end bottom-[300px]"
           data-cy="ReachEnd"
         >
           {!isReachEnd ? (
@@ -274,7 +269,7 @@ function ProductsInfiniteScroll({
             <>{translate("Reach End")}</>
           )}
         </div>
-      )}
+      }
     </>
   );
 }

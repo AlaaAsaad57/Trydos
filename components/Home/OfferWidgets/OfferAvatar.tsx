@@ -29,6 +29,7 @@ function OfferAvatar({
   return (
     <NextLink
       href={linkUrl}
+      aria-label={`Go To listing boutique ${name} ${category}`}
       className="offer-avatar"
       style={{
         zIndex: zIndex,

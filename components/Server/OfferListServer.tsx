@@ -9,7 +9,7 @@ import OfferListSkeleton from "components/skeleton/OfferList";
 
 async function OfferListServer({ params }) {
   try {
-    const [HomeData, response] = await getHomeData({
+    const HomeData = await getHomeData({
       str: params?.mainCategory,
       lang: params.lang ? params.lang.split("-")[1] : null,
       country: params.lang ? params.lang.split("-")[0] : null,

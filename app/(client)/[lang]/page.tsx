@@ -1,12 +1,14 @@
-import Home from "components/Home";
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
 import StoriesBarServer from "components/Server/StoriesBarServer";
 import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
 import OfferListSkeleton from "components/skeleton/OfferList";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
+import dynamic from "next/dynamic";
 import { Suspense } from "react";
-
+const Home = dynamic(() => import("components/Home"), {
+  ssr: false,
+});
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const dynamicParams = true;
 export async function generateStaticParams() {

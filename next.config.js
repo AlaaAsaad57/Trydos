@@ -3,7 +3,7 @@
 const path = require("path");
 let nextConfig = {
   swcMinify: true,
-  reactStrictMode: true,
+  reactStrictMode: false,
   compress: true,
   logging: {
     fetches: {

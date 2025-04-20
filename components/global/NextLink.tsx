@@ -5,16 +5,19 @@ import PrefetchLinkUtil from "./PrefetchLinkUtil";
 export interface INextLinkProps
   extends Omit<ComponentProps<typeof Link>, "href"> {
   href: string;
+  ariaLabel?: string;
 }
 export default function NextLink({
   href,
   className,
   children,
   onClick,
+  ariaLabel,
   ...props
 }: INextLinkProps) {
   return (
     <Link
+      aria-label={ariaLabel}
       className={className}
       prefetch
       href={href}
@@ -24,7 +27,7 @@ export default function NextLink({
       // }}
     >
       <Suspense key={href} fallback={<></>}>
-        <PrefetchLinkUtil href={href} />
+        <PrefetchLinkUtil href={href} label={ariaLabel} />
       </Suspense>
       <>{children}</>
     </Link>

@@ -36,6 +36,7 @@ function BackBar({
   return (
     <div className="back-bar align-center w-100 flex-row">
       <NextLink
+        ariaLabel={`Back to ${activeRoute} ${lang}`}
         href={link ? activeRoute : "#"}
         data-cy="backIcon_productPage"
         className={`back-icon flex-row ${className}`}

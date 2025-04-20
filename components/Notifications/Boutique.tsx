@@ -16,6 +16,7 @@ function Boutique({ data }) {
   const { lang } = useParams();
   return (
     <NextLink
+      ariaLabel={`Boutique ${data.boutique_slug} ${lang}`}
       className="flex-col"
       href={`/${lang}/boutiques/${data.boutique_slug}`}
       prefetch

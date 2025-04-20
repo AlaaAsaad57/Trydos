@@ -105,6 +105,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       case "boutique created":
         return (
           <NextLink
+            ariaLabel={`notification Boutique ${parsedDescription.boutique_slug} ${lang}`}
             href={`/${lang}/boutiques/${parsedDescription.boutique_slug}`}
           >
             {content}
@@ -136,6 +137,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         if (parsedDescription.type?.startsWith("product")) {
           return (
             <NextLink
+              ariaLabel={`notification Product ${
+                parsedDescription.product_slug || parsedDescription.slug
+              } ${lang}`}
               href={`/${lang}/products/${
                 parsedDescription.product_slug || parsedDescription.slug
               }`}
@@ -147,6 +151,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         if (parsedDescription.type === "category created") {
           return (
             <NextLink
+              ariaLabel={`notification Category ${
+                parsedDescription.category_slug || parsedDescription.slug
+              } ${lang}`}
               href={`/${lang}/boutiques/listing?categories=${
                 parsedDescription.category_slug || parsedDescription.slug
               }`}

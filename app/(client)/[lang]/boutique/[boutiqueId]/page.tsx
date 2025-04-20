@@ -1,4 +1,5 @@
 import FilterList from "components/Server/FilterList";
+import dynamic from "next/dynamic";
 import ProductListServer from "components/Server/ProductList";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import SortIcon from "public/svg/listing/sortIcon.svg";
@@ -6,51 +7,62 @@ import ListingSkeleton from "components/skeleton/listing";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getBoutiques } from "store/homepage/cachedActions";
-import {
-  fetchWithRetry,
-  getBoutiqueMeta,
-  getConfiguredImage,
-} from "utils/functions";
+import { getBoutiqueMeta, getConfiguredImage } from "utils/functions";
 import NextLink from "components/global/NextLink";
-import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
-import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
 import VerificationIcon from "public/svg/listing/VerificationIcon.svg";
 import TopStarIcon from "public/svg/listing/TopStar.svg";
 import Image from "next/image";
 import BorderImage from "components/ListingPage/BorderImage";
 import "styles/listing-components.css";
 import Skeleton from "react-loading-skeleton";
-import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
-import { CurrencyApi } from "models/Api";
+const SearchBoutiquePage = dynamic(
+  () => import("components/filterPage/SearchBoutiquePage"),
+  {
+    ssr: false,
+  }
+);
+const FilterBoutiquePageButton = dynamic(
+  () => import("components/filterPage/FilterBoutiquePageButton"),
+  {
+    ssr: false,
+  }
+);
+const ShareBoutiquePageButton = dynamic(
+  () => import("components/filterPage/ShareBoutiquePageButton"),
+  {
+    ssr: false,
+  }
+);
+
 export const dynamicParams = true;
 
-export async function generateMetadata({ params, searchParams }: Props) {
-  const boutiqueId = params.boutiqueId;
-  try {
-    const metaData =
-      boutiqueId === "listing"
-        ? { name: "listing" }
-        : await getBoutiqueMeta({ boutiqueId, lang: params.lang });
+// export async function generateMetadata({ params, searchParams }: Props) {
+//   const boutiqueId = params.boutiqueId;
+//   try {
+//     const metaData =
+//       boutiqueId === "listing"
+//         ? { name: "listing" }
+//         : await getBoutiqueMeta({ boutiqueId, lang: params.lang });
 
-    if (!metaData?.name) {
-      notFound();
-    }
-    if (boutiqueId === "listing") {
-      return {
-        title: `Trydos - ${searchParams.searchText || "Search"} `,
-        description: ``,
-      };
-    } else
-      return {
-        title: `Trydos - ${metaData?.name} `,
-        // @ts-ignore
-        description: `${metaData?.name} - ${metaData?.description} `,
-      };
-  } catch (error) {
-    console.error(error);
-    notFound();
-  }
-}
+//     if (!metaData?.name) {
+//       notFound();
+//     }
+//     if (boutiqueId === "listing") {
+//       return {
+//         title: `Trydos - ${searchParams.searchText || "Search"} `,
+//         description: ``,
+//       };
+//     } else
+//       return {
+//         title: `Trydos - ${metaData?.name} `,
+//         // @ts-ignore
+//         description: `${metaData?.name} - ${metaData?.description} `,
+//       };
+//   } catch (error) {
+//     console.error(error);
+//     notFound();
+//   }
+// }
 
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 
@@ -101,6 +113,7 @@ export default function Page({
       <div className="filter-listing-bar relative flex-row align-center">
         <NextLink
           href={`/${params.lang}`}
+          ariaLabel={`TryDos Home ${params.lang}`}
           className="back-icon"
           data-cy="backIcon_pageAfterClickSearchTotal"
         >
@@ -141,41 +154,40 @@ export default function Page({
         </div>
       </div>
 
-      <Suspense
-        key={JSON.stringify(searchParams)}
-        fallback={
-          <ListingSkeleton
-            forProducts={true}
-            withBanners={params.boutiqueId !== "listing"}
-          />
-        }
+      <div
+        className={`boutique-header ${"flex-col"} align-center`}
+        data-cy="boutiqueOpen"
       >
-        <div
-          className={`boutique-header ${"flex-col"} align-center`}
-          data-cy="boutiqueOpen"
-        >
-          <Suspense
-            key={JSON.stringify(params)}
-            fallback={<ListingSkeleton forProducts={false} />}
-          >
-            <BoutiqueHeader
-              boutiqueId={params.boutiqueId}
-              lang={params.lang}
-            ></BoutiqueHeader>
-          </Suspense>
-          <Suspense
-            key={JSON.stringify(searchParams)}
-            fallback={<ListingSkeleton forProducts={false} />}
-          >
-            <FilterList params={params} searchParams={searchParams} />
-          </Suspense>
-        </div>
         <Suspense
-          key={JSON.stringify(searchParams)}
-          fallback={<ListingSkeleton forProducts={true} />}
+          key={params.boutiqueId}
+          fallback={<ListingSkeleton forProducts={false} />}
         >
-          <ProductListServer searchParams={searchParams} params={params} />
+          <BoutiqueHeader
+            boutiqueId={params.boutiqueId}
+            key={params.boutiqueId}
+            lang={params.lang}
+          ></BoutiqueHeader>
         </Suspense>
+        <Suspense
+          key={`filter-list-${JSON.stringify(searchParams)}`}
+          fallback={<ListingSkeleton forProducts={false} />}
+        >
+          <FilterList
+            key={`filter-list-${JSON.stringify(searchParams)}`}
+            params={params}
+            searchParams={searchParams}
+          />
+        </Suspense>
+      </div>
+      <Suspense
+        key={`product-list-${JSON.stringify(searchParams)}`}
+        fallback={<ListingSkeleton forProducts={true} />}
+      >
+        <ProductListServer
+          key={`product-list-${JSON.stringify(searchParams)}`}
+          searchParams={searchParams}
+          params={params}
+        />
       </Suspense>
     </>
   );

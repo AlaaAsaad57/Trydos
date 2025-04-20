@@ -4,6 +4,7 @@ import ProductDetailsServer from "components/Server/ProductDetails";
 
 import { getConfiguredImage, getProductMeta } from "utils/functions";
 import { notFound } from "next/navigation";
+import { getProducts } from "store/homepage/cachedActions";
 
 export async function generateMetadata({ params, searchParams }) {
   const productId = params.productId;
@@ -43,7 +44,22 @@ export async function generateMetadata({ params, searchParams }) {
     notFound();
   }
 }
-
+export const dynamicParams = true;
+export async function generateStaticParams({ params }) {
+  try {
+    const products = await getProducts({
+      lang: params.lang ? params.lang.split("-")[1] : null,
+      country: params.lang ? params.lang.split("-")[0] : null,
+    });
+    return products.map((product) => ({
+      productId: product,
+      lang: params.lang,
+    }));
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+}
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 
 interface Props {

@@ -8,6 +8,7 @@ function ProductItem({ product, onClick }) {
   const { lang } = useParams();
   return (
     <NextLink
+      ariaLabel={`Product ${product.slug} ${lang}`}
       suppressHydrationWarning
       // @ts-ignore
       onClick={(e, bool = false) => {

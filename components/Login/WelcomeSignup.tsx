@@ -72,6 +72,7 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
       </div>
       <div className="login-button-group">
         <NextLink
+          ariaLabel={`Complete My Profile ${lang}`}
           href={`/${lang}/setting?tab=Profile`}
           className="login-button"
           data-cy="Complate-Close"

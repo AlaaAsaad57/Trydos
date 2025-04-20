@@ -10,11 +10,7 @@ async function NavbarServer({ lang }: { lang: string }) {
       country: lang.split("-")[0],
     });
 
-    return (
-      <Suspense fallback={<MobileNavigationSkeleton />}>
-        <MobileNavigation categories={categories} />
-      </Suspense>
-    );
+    return <MobileNavigation categories={categories} />;
   } catch (error) {
     console.error("Error loading navbar:", error);
     return <MobileNavigationSkeleton />;
