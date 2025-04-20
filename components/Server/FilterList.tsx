@@ -164,7 +164,7 @@ const ActiveFiltersBar = ({ currency, searchParams, filters, params }) => {
                     <img
                       width={20}
                       height={20}
-                      src={
+                      src={(
                         getItemData({
                           value: category,
                           arr: filters.categories,
@@ -180,7 +180,10 @@ const ActiveFiltersBar = ({ currency, searchParams, filters, params }) => {
                           arr: filters.categories,
                           key: "slug",
                         }).flat_photo_path?.file_path
-                      }
+                      )?.replace(
+                        "/upload",
+                        "/upload/w_50,h_50,c_fit/f_avif/q_100"
+                      )}
                     />
                   </div>
                   <div
@@ -221,12 +224,15 @@ const ActiveFiltersBar = ({ currency, searchParams, filters, params }) => {
                           </g>
                         </svg>
                         <img
-                          src={
+                          src={(
                             s.icon?.file_path ||
                             filters.categories.filter(
                               (sub) => sub.slug === s.slug
                             )[0]?.icon?.file_path
-                          }
+                          )?.replace(
+                            "/upload",
+                            "/upload/w_50,h_50,c_fit/f_avif/q_100"
+                          )}
                           width={10}
                           height={10}
                         />
@@ -275,13 +281,14 @@ const ActiveFiltersBar = ({ currency, searchParams, filters, params }) => {
                     <img
                       width={20}
                       height={20}
-                      src={
-                        getItemData({
-                          value: category,
-                          arr: filters.boutiques,
-                          key: "slug",
-                        })?.banner?.file_path
-                      }
+                      src={getItemData({
+                        value: category,
+                        arr: filters.boutiques,
+                        key: "slug",
+                      })?.banner?.file_path?.replace(
+                        "/upload",
+                        "/upload/w_50,h_50,c_fit/f_avif/q_100"
+                      )}
                     />
                   </div>
                   <div className="category-title filter-bar-main-title">
@@ -332,13 +339,14 @@ const ActiveFiltersBar = ({ currency, searchParams, filters, params }) => {
                     <img
                       width={20}
                       height={20}
-                      src={
-                        getItemData({
-                          value: brand,
-                          arr: filters.brands,
-                          key: "slug",
-                        })?.icon?.file_path
-                      }
+                      src={getItemData({
+                        value: brand,
+                        arr: filters.brands,
+                        key: "slug",
+                      })?.icon?.file_path?.replace(
+                        "/upload",
+                        "/upload/w_50,h_50,c_fit/f_avif/q_100"
+                      )}
                     />
                   </div>
                   <div
@@ -542,11 +550,11 @@ const FilterItem = ({ term, item, searchParams, currency, params }) => {
             width={70}
             height={70}
             className="object-center"
-            src={
+            src={(
               item.most_viewed_product_thumbnail?.file_path ??
               item.flat_photo_path?.file_path ??
               item?.icon?.file_path
-            }
+            )?.replace("/upload", "/upload/w_50,h_50,c_fit/f_avif/q_100")}
           />
         </div>
         <div className="category-text-container flex-col align-center">
@@ -601,7 +609,10 @@ const FilterItem = ({ term, item, searchParams, currency, params }) => {
             className="brand-photo"
             width={70}
             height={70}
-            src={item.icon?.file_path}
+            src={item.icon?.file_path?.replace(
+              "/upload",
+              "/upload/w_50,h_50,c_fit/f_avif/q_100"
+            )}
           />
         </div>
 
