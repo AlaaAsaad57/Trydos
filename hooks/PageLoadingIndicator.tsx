@@ -16,6 +16,9 @@ export default function PageLoadingIndicator() {
     });
 
     registerRouteChangeListener("completed", () => {
+      document.body.style.cursor = "initial";
+      document.body.style.overflow = "initial";
+      document.body.scrollTop = 0;
       setIsLoading(null);
     });
   }, []);

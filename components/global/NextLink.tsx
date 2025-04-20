@@ -26,7 +26,9 @@ export default function NextLink({
     onClick?.(e);
 
     if (pathname !== href) {
-      console.log("start", data);
+      document.body.style.cursor = "progress";
+      document.body.style.overflow = "hidden";
+      document.body.scrollTop = 0;
       dispatchRouteChangeEvent("start", {
         ...data,
       });
