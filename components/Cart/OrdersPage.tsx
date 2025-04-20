@@ -9,7 +9,7 @@ import {
 import { useParams } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import ShippingAddressContainer from "./ShippingAddressContainer";
-import { Swiper as SwiperType } from "node_modules/swiper/types";
+import { Swiper as SwiperType } from "swiper/types";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import AddAddressForm from "./AddAddressForm";
 import SelectRegion from "./SelectRegion";

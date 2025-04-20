@@ -9,7 +9,7 @@ import AboutIcon from "public/svg/AboutIcon.svg";
 import ShareAppIcon from "public/svg/ShareAppIcon.svg";
 import LanguageIcon from "public/svg/LanguageIcon.svg";
 
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 import { allCountries } from "country-telephone-data";
 import Flag from "react-world-flags";
 import order from "services/order";

@@ -9,6 +9,7 @@ import CompareLoadingWidget from "./CompareLoadingWidget";
 import { toast } from "react-toastify";
 import SearchService from "services/search";
 import { useAppStore } from "store";
+import NextLink from "./NextLink";
 const ComparePage: React.FC = ({
   showInstantLoading = true,
 }: {
@@ -297,12 +298,12 @@ const ComparePage: React.FC = ({
       key: "name",
       label: translateFunction("Name"),
       render: (product: ProductInterface) => (
-        <Link
+        <NextLink
           href={`/${lang}/products/${product.slug}`}
           className="text-blue-600 hover:text-blue-800 hover:underline"
         >
           {product.name}
-        </Link>
+        </NextLink>
       ),
     },
     {

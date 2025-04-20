@@ -8,7 +8,7 @@ import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
 import Logo from "components/Home/Logo";
 import UserNavTopSection from "components/Home/UserNavTopSection";
-import Skeleton from "node_modules/react-loading-skeleton/dist";
+import Skeleton from "react-loading-skeleton";
 import NavbarClient from "components/Home/NavbarClient";
 
 export const metadata = {

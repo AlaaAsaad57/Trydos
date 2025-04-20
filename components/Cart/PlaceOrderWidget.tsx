@@ -19,7 +19,7 @@ import ApplePayIcon from "assets/svg/cart/Payment/ApplePay.svg";
 import GooglePayIcon from "assets/svg/cart/Payment/GooglePay.svg";
 import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
 import OrderSuccess from "./OrderSuccess";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 function PlaceOrderWidget() {
   const { orderData } = useAppStore();

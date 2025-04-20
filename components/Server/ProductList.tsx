@@ -14,6 +14,7 @@ import {
 } from "store/homepage/cachedActions";
 import { translateFunction } from "utils/functions";
 import ProductsInfiniteScroll from "components/ListingPage/ProductsList";
+import NextLink from "components/global/NextLink";
 async function ProductListServer({ params, searchParams }) {
   const ProductData = await getProductsAndFilters({
     searchParams,
@@ -64,7 +65,7 @@ async function ProductListServer({ params, searchParams }) {
               data-cy="countProduct"
               key={product.slug}
             >
-              <Link
+              <NextLink
                 suppressHydrationWarning
                 // @ts-ignore
                 // onClick={(e, bool = false) => {
@@ -202,7 +203,7 @@ async function ProductListServer({ params, searchParams }) {
                     <BuyButtonProduct product={product} />
                   </Suspense>
                 </div>
-              </Link>
+              </NextLink>
             </div>
           );
         })}

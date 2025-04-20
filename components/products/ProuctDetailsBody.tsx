@@ -16,7 +16,7 @@ import FreeShippingOption from "./FreeShippingOption";
 
 import CameraShots from "./CameraShots";
 import ProductViews from "./ProductViews";
-import dynamic from "node_modules/next/dynamic";
+import dynamic from "next/dynamic";
 
 function ProuctDetailsBody({ product, lang }) {
   return (

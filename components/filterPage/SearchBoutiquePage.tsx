@@ -3,7 +3,7 @@ import React from "react";
 import SearchIcon from "public/svg/listing/searchIcon.svg";
 import { filterProducts, Sendevent, UpdateFilter } from "utils/functions";
 import { useAppStore } from "store";
-import { DebounceInput } from "node_modules/react-debounce-input/src";
+import { DebounceInput } from "react-debounce-input/src";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 function SearchBoutiquePage() {
   const UrlParams = useParams();

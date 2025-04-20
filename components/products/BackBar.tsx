@@ -4,7 +4,7 @@ import BackIcon from "public/svg/listing/backIcon.svg";
 import { useParams, useRouter } from "next/navigation";
 import { LogData } from "store/homepage/actions";
 import NextLink from "components/global/NextLink";
-import { PrefetchKind } from "node_modules/next/dist/client/components/router-reducer/router-reducer-types";
+import { PrefetchKind } from "next/dist/client/components/router-reducer/router-reducer-types";
 import { useAppStore } from "store";
 function BackBar({
   close,

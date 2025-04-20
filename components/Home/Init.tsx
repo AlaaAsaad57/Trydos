@@ -1,6 +1,6 @@
 "use client";
 import { useParams, useSearchParams } from "next/navigation";
-import axios from "node_modules/axios";
+import axios from "axios";
 
 import React, { useEffect, useState } from "react";
 import HomeService from "services/home";

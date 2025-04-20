@@ -1,9 +1,7 @@
-"use client";
-
-// eslint-disable-next-line no-restricted-imports
 import Link from "next/link";
-import React, { ComponentProps } from "react";
-import { useRouter } from "next/navigation";
+import React, { ComponentProps, Suspense } from "react";
+import PrefetchLinkUtil from "./PrefetchLinkUtil";
+
 export interface INextLinkProps
   extends Omit<ComponentProps<typeof Link>, "href"> {
   href: string;
@@ -15,17 +13,19 @@ export default function NextLink({
   onClick,
   ...props
 }: INextLinkProps) {
-  const router = useRouter();
-
   return (
     <Link
       className={className}
+      prefetch
       href={href}
       {...props}
-      onClick={(e) => {
-        if (onClick) onClick(e);
-      }}
+      // onClick={(e) => {
+      //   if (onClick) onClick(e);
+      // }}
     >
+      <Suspense key={href} fallback={<></>}>
+        <PrefetchLinkUtil href={href} />
+      </Suspense>
       <>{children}</>
     </Link>
   );

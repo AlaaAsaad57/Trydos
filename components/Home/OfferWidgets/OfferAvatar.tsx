@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import NextLink from "components/global/NextLink";
 
 interface OfferAvatarProps {
   images: string;
@@ -26,7 +27,7 @@ function OfferAvatar({
     } else return images;
   };
   return (
-    <Link
+    <NextLink
       href={linkUrl}
       className="offer-avatar"
       style={{
@@ -51,7 +52,7 @@ function OfferAvatar({
         unselectable="on"
         style={{ borderRadius: "50%", height: "40px" }}
       />
-    </Link>
+    </NextLink>
   );
 }
 

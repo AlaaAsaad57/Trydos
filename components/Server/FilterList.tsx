@@ -5,10 +5,10 @@ import {
 } from "store/homepage/cachedActions";
 
 import SwitchFiltersButton from "components/filterPage/SwitchFiltersButton";
-import Link from "node_modules/next/link";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import CloseIcon from "public/svg/CloseIcon.svg";
 import Search from "public/svg/SearchIcon.svg";
+import NextLink from "components/global/NextLink";
 
 async function FilterList({ searchParams, params }) {
   const filtersData = await getProductsAndFilters({
@@ -97,9 +97,9 @@ const ActiveFiltersBar = ({ currency, searchParams, filters }) => {
       className="filter-info-bar flex-row cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none "
       data-cy="filterInfo"
     >
-      <Link href={`?`}>
+      <NextLink href={`?`}>
         <CloseIcon data-cy="closeIcon" className="mr-2 ml-2" />
-      </Link>
+      </NextLink>
       {activeFilters?.categories?.length > 0 && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
@@ -446,7 +446,7 @@ const FilterItem = ({ term, item, searchParams }) => {
     );
 
     return (
-      <Link
+      <NextLink
         href={href}
         className={`category-circle flex-col align-center ${
           item?.categories_sub?.length > 0 && "extended-circle"
@@ -493,7 +493,7 @@ const FilterItem = ({ term, item, searchParams }) => {
           </span>
           {/* <span className="category-typo">1100</span> */}
         </div>
-      </Link>
+      </NextLink>
     );
   }
   if (term === "brands") {
@@ -504,7 +504,7 @@ const FilterItem = ({ term, item, searchParams }) => {
     );
 
     return (
-      <Link
+      <NextLink
         href={href}
         className={`category-circle flex-col align-center ${
           true && "extended-circle"
@@ -548,7 +548,7 @@ const FilterItem = ({ term, item, searchParams }) => {
           </span>
           {/* <span className="category-typo">1100</span> */}
         </div>
-      </Link>
+      </NextLink>
     );
   }
   if (term === "colors") {
@@ -558,7 +558,7 @@ const FilterItem = ({ term, item, searchParams }) => {
       term
     );
     return (
-      <Link
+      <NextLink
         href={href}
         className={`category-circle flex-col align-center ${
           true && "extended-circle"
@@ -602,7 +602,7 @@ const FilterItem = ({ term, item, searchParams }) => {
           ></div>
         </div>
         <div className="category-text-container flex-col align-center"></div>
-      </Link>
+      </NextLink>
     );
   }
   if (term === "sizes") {
@@ -612,7 +612,7 @@ const FilterItem = ({ term, item, searchParams }) => {
       term
     );
     return (
-      <Link
+      <NextLink
         href={href}
         className={`category-circle flex-col align-center ${
           true && "extended-circle"
@@ -663,7 +663,7 @@ const FilterItem = ({ term, item, searchParams }) => {
           </span>
           {/* <span className="category-typo">1100</span> */}
         </div>
-      </Link>
+      </NextLink>
     );
   }
   if (term === "prices") {
@@ -673,7 +673,7 @@ const FilterItem = ({ term, item, searchParams }) => {
       term
     );
     return (
-      <Link
+      <NextLink
         href={href}
         className={`category-circle flex-col align-center ${
           true && "extended-circle"
@@ -705,7 +705,7 @@ const FilterItem = ({ term, item, searchParams }) => {
         <div className="category-text-container flex-col align-center">
           {/* <span className="category-typo">1100</span> */}
         </div>
-      </Link>
+      </NextLink>
     );
   }
 };

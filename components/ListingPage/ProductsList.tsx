@@ -15,7 +15,7 @@ import { CurrencyApi } from "models/Api";
 import { useAppStore } from "store";
 import { getProductsAndFilters } from "store/homepage/cachedActions";
 import { BuyButtonProduct, ProductPhotosSlider } from "./Product";
-import Link from "node_modules/next/link";
+import NextLink from "components/global/NextLink";
 
 function ProductsInfiniteScroll({
   offset,
@@ -104,7 +104,7 @@ function ProductsInfiniteScroll({
           data-cy="countProduct"
           key={product.slug}
         >
-          <Link
+          <NextLink
             suppressHydrationWarning
             // @ts-ignore
             // onClick={(e, bool = false) => {
@@ -237,7 +237,7 @@ function ProductsInfiniteScroll({
 
               <BuyButtonProduct product={product} />
             </div>
-          </Link>
+          </NextLink>
         </div>
       ))}
 

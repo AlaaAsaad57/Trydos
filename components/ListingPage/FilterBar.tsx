@@ -19,8 +19,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import NextLink from "components/global/NextLink";
-import { DebounceInput } from "node_modules/react-debounce-input/src";
-import { PrefetchKind } from "node_modules/next/dist/client/components/router-reducer/router-reducer-types";
+import { PrefetchKind } from "next/dist/client/components/router-reducer/router-reducer-types";
 import { useAppStore } from "store";
 
 function FilterBar({ boutique, filters: filtersObj, productsServer }) {

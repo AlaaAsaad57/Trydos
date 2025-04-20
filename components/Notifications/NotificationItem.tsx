@@ -9,6 +9,7 @@ import {
 import { NotificationItem as NotificationItemType } from "../../types/notifications";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
+import NextLink from "components/global/NextLink";
 
 interface NotificationItemProps {
   notification: NotificationItemType;
@@ -103,9 +104,11 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
     switch (parsedDescription.type) {
       case "boutique created":
         return (
-          <Link href={`/${lang}/boutiques/${parsedDescription.boutique_slug}`}>
+          <NextLink
+            href={`/${lang}/boutiques/${parsedDescription.boutique_slug}`}
+          >
             {content}
-          </Link>
+          </NextLink>
         );
       default:
         if (parsedDescription.type?.startsWith("product hurry up")) {
@@ -132,24 +135,24 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         }
         if (parsedDescription.type?.startsWith("product")) {
           return (
-            <Link
+            <NextLink
               href={`/${lang}/products/${
                 parsedDescription.product_slug || parsedDescription.slug
               }`}
             >
               {content}
-            </Link>
+            </NextLink>
           );
         }
         if (parsedDescription.type === "category created") {
           return (
-            <Link
+            <NextLink
               href={`/${lang}/boutiques/listing?categories=${
                 parsedDescription.category_slug || parsedDescription.slug
               }`}
             >
               {content}
-            </Link>
+            </NextLink>
           );
         }
 

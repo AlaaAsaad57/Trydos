@@ -6,7 +6,7 @@ import CartContainer from ".";
 import home from "services/home";
 import { Swiper, SwiperSlide } from "swiper/react";
 import OrdersPage from "./OrdersPage";
-import { Swiper as SwiperType } from "node_modules/swiper/types";
+import { Swiper as SwiperType } from "swiper/types";
 import ModalIframe from "./ModalIframe";
 import { ToastContainer } from "react-toastify";
 import { useAppStore } from "store";

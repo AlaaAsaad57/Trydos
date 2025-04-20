@@ -5,7 +5,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { useRef } from "react";
 import PointsSlider from "./PointsSlider";
 import { getConfiguredImage } from "utils/functions";
-// import { stopProgress } from "node_modules/next-nprogress-bar/dist";
+
 function ImageSlider({
   renderVar,
   product_name,

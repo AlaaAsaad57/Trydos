@@ -3,7 +3,7 @@ import SettingTopBar from "./TopBar";
 import AddressInfo from "public/svg/cart/AddressInfo.svg";
 import { translateFunction } from "utils/functions";
 import Flag from "react-world-flags";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 import { changeAppCountry } from "store/homepage/actions";
 import { changeAppCountryServer } from "store/homepage/cachedActions";
 import { useAppStore } from "store";

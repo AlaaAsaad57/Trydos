@@ -3,8 +3,9 @@ import OfferAvatars from "./OfferAvatars";
 import Image from "next/image";
 import { Boutique } from "models/offer";
 import OfferPhotosSlider from "./OfferPhotosSlider";
-import Link from "node_modules/next/link";
 import PrefetchLink from "components/global/PrefetchLink";
+import NextLink from "components/global/NextLink";
+import { Suspense } from "react";
 
 interface NormalWidgetProps {
   boutique: Boutique;
@@ -14,11 +15,16 @@ interface NormalWidgetProps {
 const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
   return (
     <div className="w-full flex relative">
-      <PrefetchLink
-        link={`/${lang}/boutiques/${boutique.slug}`}
-        slug={boutique.slug}
-      />
-      <Link
+      <Suspense
+        fallback={<></>}
+        key={`bputiques/${lang}/boutiques/${boutique.slug}`}
+      >
+        <PrefetchLink
+          link={`/${lang}/boutiques/${boutique.slug}`}
+          slug={boutique.slug}
+        />
+      </Suspense>
+      <NextLink
         href={`/${lang}/boutique/${boutique.slug}`}
         aria-label={`Go To listing Page`}
         className="offer-widget"
@@ -75,7 +81,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
             </div>
           )}
         </div>
-      </Link>
+      </NextLink>
       <div className="offer-category absolute top-[18px] right-[18px] z-20">
         {boutique.mainCategoriesForProductIds
           .slice(0, 5)
@@ -83,7 +89,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
             // @ts-ignore
             if (category?.flat_photo_path?.file_path) {
               return (
-                <Link
+                <NextLink
                   href={`/${lang}/boutique/${boutique.slug}?categories=[${category.slug}]`}
                   key={key}
                   className={`${key > 0 && "ml-[13px]"}`}
@@ -102,7 +108,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
                       `/upload/h_50/f_webp/q_auto`
                     )}
                   />
-                </Link>
+                </NextLink>
               );
             }
           })}
