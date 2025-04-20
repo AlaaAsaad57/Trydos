@@ -26,6 +26,10 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
       </Suspense>
       <NextLink
         href={`/${lang}/boutique/${boutique.slug}`}
+        data={{
+          is_boutique: true,
+          ...boutique,
+        }}
         aria-label={`Go To listing ${lang} ${boutique.slug}`}
         className="offer-widget"
         id={`boutique-${boutique.slug}`}
@@ -90,6 +94,10 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
             if (category?.flat_photo_path?.file_path) {
               return (
                 <NextLink
+                  data={{
+                    is_boutique: true,
+                    ...category,
+                  }}
                   aria-label={`Go To listing ${lang} ${boutique.slug} ${category.slug}`}
                   href={`/${lang}/boutique/${boutique.slug}?categories=["${category.slug}"]`}
                   key={key}

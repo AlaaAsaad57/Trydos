@@ -3,6 +3,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { PrefetchKind } from "next/dist/client/components/router-reducer/router-reducer-types";
 function PrefetchLinkUtil({ href, label }) {
+  const [isPrefetching, setIsPrefetching] = React.useState(false);
   const router = useRouter();
   React.useEffect(() => {
     const observer = new IntersectionObserver(
@@ -21,6 +22,7 @@ function PrefetchLinkUtil({ href, label }) {
     );
 
     const element = document.querySelector(`a[aria-label="${label}"]`);
+
     if (element) {
       observer.observe(element);
     }

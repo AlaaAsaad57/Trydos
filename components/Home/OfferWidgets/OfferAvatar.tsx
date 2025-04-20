@@ -2,6 +2,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import NextLink from "components/global/NextLink";
+import { Boutique } from "models/offer";
 
 interface OfferAvatarProps {
   images: string;
@@ -10,6 +11,7 @@ interface OfferAvatarProps {
   category: string | number;
   linkUrl: string;
   priority: boolean;
+  boutique: Boutique;
 }
 function OfferAvatar({
   images,
@@ -18,6 +20,7 @@ function OfferAvatar({
   category,
   priority,
   linkUrl,
+  boutique,
 }: OfferAvatarProps) {
   const router = useRouter();
   const getImageCld = () => {
@@ -28,6 +31,10 @@ function OfferAvatar({
   };
   return (
     <NextLink
+      data={{
+        is_boutique: true,
+        ...boutique,
+      }}
       href={linkUrl}
       aria-label={`Go To listing boutique ${name} ${category}`}
       className="offer-avatar"

@@ -186,6 +186,10 @@ const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
         {wishlistItems.length > 0 ? (
           wishlistItems.map((item) => (
             <NextLink
+              data={{
+                is_product: true,
+                ...item,
+              }}
               ariaLabel={`wishlist item ${item.slug}`}
               key={item.id}
               data-cy="wishlist-item"

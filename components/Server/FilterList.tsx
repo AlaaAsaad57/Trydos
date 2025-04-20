@@ -126,7 +126,13 @@ const ActiveFiltersBar = ({ currency, searchParams, filters, params }) => {
       className="filter-info-bar flex-row cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none "
       data-cy="filterInfo"
     >
-      <NextLink href={`?`} ariaLabel={`close filter ${params.lang}`}>
+      <NextLink
+        data={{
+          is_filter: true,
+        }}
+        href={`?`}
+        ariaLabel={`close filter ${params.lang}`}
+      >
         <CloseIcon data-cy="closeIcon" className="mr-2 ml-2" />
       </NextLink>
       {activeFilters?.categories?.length > 0 && (
@@ -516,6 +522,10 @@ const FilterItem = ({ term, item, searchParams, currency, params }) => {
 
     return (
       <NextLink
+        data={{
+          is_filter: true,
+          ...item,
+        }}
         ariaLabel={`filter category ${item.slug} ${params.lang}`}
         href={href}
         className={`category-circle flex-col align-center ${
@@ -575,6 +585,10 @@ const FilterItem = ({ term, item, searchParams, currency, params }) => {
 
     return (
       <NextLink
+        data={{
+          is_filter: true,
+          ...item,
+        }}
         href={href}
         ariaLabel={`filter brand ${item.slug} ${params.lang}`}
         className={`category-circle flex-col align-center ${
@@ -633,6 +647,10 @@ const FilterItem = ({ term, item, searchParams, currency, params }) => {
     );
     return (
       <NextLink
+        data={{
+          is_filter: true,
+          ...item,
+        }}
         href={href}
         ariaLabel={`filter color ${item} ${params.lang}`}
         className={`category-circle flex-col align-center ${
@@ -688,6 +706,10 @@ const FilterItem = ({ term, item, searchParams, currency, params }) => {
     );
     return (
       <NextLink
+        data={{
+          is_filter: true,
+          ...item,
+        }}
         href={href}
         ariaLabel={`filter size ${item} ${params.lang}`}
         className={`category-circle flex-col align-center ${
@@ -750,6 +772,10 @@ const FilterItem = ({ term, item, searchParams, currency, params }) => {
     );
     return (
       <NextLink
+        data={{
+          is_filter: true,
+          ...item,
+        }}
         href={href}
         ariaLabel={`filter price ${item.min_price}-${item.max_price} ${params.lang}`}
         className={`category-circle flex-col align-center ${

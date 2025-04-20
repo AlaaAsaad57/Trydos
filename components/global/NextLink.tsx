@@ -1,11 +1,15 @@
+"use client";
 import Link from "next/link";
-import React, { ComponentProps, Suspense } from "react";
+import React, { ComponentProps, MouseEventHandler, Suspense } from "react";
 import PrefetchLinkUtil from "./PrefetchLinkUtil";
+import { usePathname } from "next/navigation";
+import { dispatchRouteChangeEvent } from "utils/events";
 
 export interface INextLinkProps
   extends Omit<ComponentProps<typeof Link>, "href"> {
   href: string;
   ariaLabel?: string;
+  data?: any;
 }
 export default function NextLink({
   href,
@@ -13,8 +17,19 @@ export default function NextLink({
   children,
   onClick,
   ariaLabel,
+  data,
   ...props
 }: INextLinkProps) {
+  const pathname = usePathname();
+
+  const handleClick: MouseEventHandler<HTMLAnchorElement> = (e) => {
+    onClick?.(e);
+    if (pathname !== href) {
+      dispatchRouteChangeEvent("start", {
+        ...data,
+      });
+    }
+  };
   return (
     <Link
       aria-label={ariaLabel}
@@ -22,13 +37,13 @@ export default function NextLink({
       prefetch
       href={href}
       {...props}
+      onClick={handleClick}
       // onClick={(e) => {
       //   if (onClick) onClick(e);
       // }}
     >
-      <Suspense key={href} fallback={<></>}>
-        <PrefetchLinkUtil href={href} label={ariaLabel} />
-      </Suspense>
+      <PrefetchLinkUtil href={href} label={ariaLabel} />
+
       <>{children}</>
     </Link>
   );

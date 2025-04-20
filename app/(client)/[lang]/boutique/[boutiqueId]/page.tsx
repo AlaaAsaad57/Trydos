@@ -112,6 +112,9 @@ export default function Page({
     <>
       <div className="filter-listing-bar relative flex-row align-center">
         <NextLink
+          data={{
+            is_full_home: true,
+          }}
           href={`/${params.lang}`}
           ariaLabel={`TryDos Home ${params.lang}`}
           className="back-icon"
@@ -220,7 +223,11 @@ async function BoutiqueHeader({ boutiqueId, lang }) {
 const BouqiuePhotoSlider = ({ banners }) => {
   return (
     <div className="boutique-photo-holder ">
-      <div className="offer-slider-container">
+      <div
+        className={`${
+          banners?.length > 1 && "justify-start"
+        } offer-slider-container`}
+      >
         {banners &&
           banners?.map((banner, index) => (
             <div

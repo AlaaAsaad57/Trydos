@@ -36,6 +36,15 @@ function BackBar({
   return (
     <div className="back-bar align-center w-100 flex-row">
       <NextLink
+        data={
+          activeRoute === "/"
+            ? {
+                is_full_home: true,
+              }
+            : {
+                is_boutique: true,
+              }
+        }
         ariaLabel={`Back to ${activeRoute} ${lang}`}
         href={link ? activeRoute : "#"}
         data-cy="backIcon_productPage"

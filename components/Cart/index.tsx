@@ -274,6 +274,10 @@ function CartContainer({ close, toOrders }) {
                             ? "#"
                             : getURLOfProduct({ product })
                         }
+                        data={{
+                          is_product: true,
+                          ...product,
+                        }}
                         ariaLabel={`Cart Product ${product.slug} ${params.lang}`}
                         className={`flex-row mt-2 w-full relative  ${
                           product.have_hurry_up_notify || true
@@ -679,6 +683,10 @@ function CartContainer({ close, toOrders }) {
                   {oldCart?.oldCart.map((product, key) => (
                     <div className="relative px-[12px]" key={key}>
                       <NextLink
+                        data={{
+                          is_product: true,
+                          ...product,
+                        }}
                         href={
                           params?.productId === product.slug &&
                           product?.variations[0]?.color ===

@@ -91,6 +91,10 @@ const CategoryNavItem = ({
         <>
           {!searchEnabled && (
             <NextLink
+              data={{
+                is_home: true,
+                slug,
+              }}
               ariaLabel={`Category ${slug} ${lang}`}
               href={
                 decodeURI(searchParams.mainCategory) === slug

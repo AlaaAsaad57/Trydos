@@ -6,6 +6,10 @@ function ProductAvailable({ data }) {
   const { lang } = useParams();
   return (
     <NextLink
+      data={{
+        is_product: true,
+        ...data,
+      }}
       className="flex-row"
       ariaLabel={`notification Product Available ${data.product_slug}`}
       href={`/${lang}/products/${data.product_slug}`}

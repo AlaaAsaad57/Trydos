@@ -99,6 +99,10 @@ function ProductsInfiniteScroll({
           key={product.slug}
         >
           <NextLink
+            data={{
+              is_product: true,
+              ...product,
+            }}
             ariaLabel={`Product ${product.slug} ${lang}`}
             suppressHydrationWarning
             // @ts-ignore

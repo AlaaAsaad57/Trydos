@@ -407,6 +407,11 @@ function ChatMessage(props) {
             )}
 
             <NextLink
+              data={{
+                is_product: true,
+                slug: JSON.parse(props.message.message_content.content)[0]
+                  .product_slug,
+              }}
               href={`/products/${
                 JSON.parse(props.message.message_content.content)[0]
                   .product_slug
@@ -1979,6 +1984,11 @@ function ChatMessage(props) {
             )}
 
             <NextLink
+              data={{
+                is_product: true,
+                slug: JSON.parse(props.message.message_content.content)[0]
+                  .product_slug,
+              }}
               href={`/products/${
                 JSON.parse(props.message.message_content.content)[0]
                   .product_slug

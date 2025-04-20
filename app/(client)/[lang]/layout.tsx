@@ -10,7 +10,7 @@ import Logo from "components/Home/Logo";
 import UserNavTopSection from "components/Home/UserNavTopSection";
 import Skeleton from "react-loading-skeleton";
 import NavbarClient from "components/Home/NavbarClient";
-
+import PageLoadingIndicator from "hooks/PageLoadingIndicator";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -102,6 +102,7 @@ export default async function RootLayout({ params, children }) {
       </head>
 
       <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
+        <PageLoadingIndicator />
         <Providers>
           <div
             className="site-container items-center"
@@ -112,6 +113,9 @@ export default async function RootLayout({ params, children }) {
             </Suspense>
             <div className="home-navbar max-h-[1365px]">
               <NextLink
+                data={{
+                  is_full_home: true,
+                }}
                 href={`/${params.lang}`}
                 aria-label="TryDos Home"
                 data-cy="NavLogo"

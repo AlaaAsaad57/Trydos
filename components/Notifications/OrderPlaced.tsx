@@ -5,9 +5,13 @@ function OrderPlaced({ data }) {
   const { lang } = useParams();
   return (
     <NextLink
+      data={{
+        is_settings: true,
+        ...data,
+      }}
       ariaLabel={`notification Order Placed ${data.order_id} ${lang}`}
       className="flex-row"
-      href={`/${lang}`}
+      href={`/${lang}/setting?tab=Orders`}
       prefetch
     >
       <div className="flex-col m-2">

@@ -72,6 +72,9 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
       </div>
       <div className="login-button-group">
         <NextLink
+          data={{
+            is_settings: true,
+          }}
           ariaLabel={`Complete My Profile ${lang}`}
           href={`/${lang}/setting?tab=Profile`}
           className="login-button"

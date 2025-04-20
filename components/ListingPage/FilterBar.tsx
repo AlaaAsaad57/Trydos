@@ -94,6 +94,9 @@ function FilterBar({ boutique, filters: filtersObj, productsServer }) {
     <>
       <div className="filter-listing-bar relative flex-row align-center">
         <NextLink
+          data={{
+            is_full_home: true,
+          }}
           ariaLabel={`Back to home ${paramsVar.lang}`}
           href={filterEnabled ? "#" : "/"}
           className="back-icon"

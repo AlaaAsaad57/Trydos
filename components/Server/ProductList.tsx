@@ -65,6 +65,10 @@ async function ProductListServer({ params, searchParams }) {
             key={product.slug}
           >
             <NextLink
+              data={{
+                is_product: true,
+                ...product,
+              }}
               ariaLabel={`go to product ${product.slug} ${params.lang}`}
               suppressHydrationWarning
               // @ts-ignore
