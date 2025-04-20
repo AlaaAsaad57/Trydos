@@ -103,7 +103,10 @@ export default async function RootLayout({ params, children }) {
 
       <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <Providers>
-          <div className="site-container items-center">
+          <div
+            className="site-container items-center"
+            key={`${JSON.stringify(params)}`}
+          >
             <Suspense fallback={<></>}>
               <NavbarClient />
             </Suspense>
