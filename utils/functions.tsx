@@ -177,6 +177,8 @@ export const getProductMeta = async ({ productId, lang, color }) => {
   return data.data;
 };
 export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
+  if (boutiqueId === "listing")
+    return { name: "Search", banners: null, icon: null };
   let [country, language] = lang.split("-");
   let start = new Date();
   let resp = await fetch(

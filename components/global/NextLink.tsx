@@ -24,7 +24,9 @@ export default function NextLink({
 
   const handleClick: MouseEventHandler<HTMLAnchorElement> = (e) => {
     onClick?.(e);
+
     if (pathname !== href) {
+      console.log("start", data);
       dispatchRouteChangeEvent("start", {
         ...data,
       });

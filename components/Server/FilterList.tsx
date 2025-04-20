@@ -1,9 +1,4 @@
 import React, { Suspense } from "react";
-import {
-  getCurrency,
-  getProductsAndFilters,
-} from "store/homepage/cachedActions";
-
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import CloseIcon from "public/svg/CloseIcon.svg";
 import Search from "public/svg/SearchIcon.svg";
@@ -23,32 +18,7 @@ const FilterLabel = dynamic(
     ssr: false,
   }
 );
-async function FilterList({ searchParams, params }) {
-  const filtersData = await getProductsAndFilters({
-    searchParams,
-    lang: params.lang ? params.lang.split("-")[1] : null,
-    country: params.lang ? params.lang.split("-")[0] : null,
-    noProducts: true,
-    noFilters: false,
-    boutiqueId: params.boutiqueId === "listing" ? null : params.boutiqueId,
-    offset: false,
-  });
-
-  let filters = {
-    categories: filtersData.data?.categories,
-    brands: filtersData.data?.brands,
-    colors: filtersData.data?.colors,
-    prices: filtersData.data?.prices?.priceRanges,
-    sizes: filtersData.data?.attributes[0]?.options,
-    boutiques:
-      params.boutiqueId !== "listing" ? null : filtersData.data?.boutiques,
-    search_text: searchParams?.searchText || null,
-  };
-  const currency = await getCurrency({
-    country: params.lang.split("-")[0],
-    lang: params.lang.split("-")[1],
-  });
-  ``;
+function FilterList({ searchParams, params, filters, currency, boutique }) {
   return (
     <>
       <div className={`w-full flex-row items-center pl-[15px]`}>
@@ -78,6 +48,7 @@ async function FilterList({ searchParams, params }) {
                   </Suspense>
                   <FilterItemsRow
                     index={index}
+                    boutique={boutique}
                     params={params}
                     currency={currency}
                     searchParams={searchParams}
@@ -92,6 +63,7 @@ async function FilterList({ searchParams, params }) {
       </div>
       <ActiveFiltersBar
         params={params}
+        boutique={boutique}
         currency={currency}
         searchParams={searchParams}
         filters={filters}
@@ -101,7 +73,13 @@ async function FilterList({ searchParams, params }) {
 }
 
 export default FilterList;
-const ActiveFiltersBar = ({ currency, searchParams, filters, params }) => {
+const ActiveFiltersBar = ({
+  currency,
+  searchParams,
+  filters,
+  params,
+  boutique,
+}) => {
   let activeFilters: any = Object.keys(searchParams).reduce((acc, key) => {
     return {
       ...acc,
@@ -129,6 +107,7 @@ const ActiveFiltersBar = ({ currency, searchParams, filters, params }) => {
       <NextLink
         data={{
           is_filter: true,
+          ...boutique,
         }}
         href={`?`}
         ariaLabel={`close filter ${params.lang}`}
@@ -459,6 +438,7 @@ const FilterItemsRow = ({
   term,
   params,
   index,
+  boutique,
 }) => {
   const getDataCy = () => {
     if (term === "categories") return "categoryBox";
@@ -478,6 +458,7 @@ const FilterItemsRow = ({
           items?.map((item) => (
             <FilterItem
               params={params}
+              boutique={boutique}
               searchParams={searchParams}
               key={item.id}
               currency={currency}
@@ -489,7 +470,14 @@ const FilterItemsRow = ({
     </div>
   );
 };
-const FilterItem = ({ term, item, searchParams, currency, params }) => {
+const FilterItem = ({
+  term,
+  item,
+  searchParams,
+  currency,
+  params,
+  boutique,
+}) => {
   const getPrice = (num) => {
     let rateVariable = currency?.exchange_rate;
     let price = parseFloat(num);
@@ -524,7 +512,7 @@ const FilterItem = ({ term, item, searchParams, currency, params }) => {
       <NextLink
         data={{
           is_filter: true,
-          ...item,
+          ...boutique,
         }}
         ariaLabel={`filter category ${item.slug} ${params.lang}`}
         href={href}
@@ -587,7 +575,7 @@ const FilterItem = ({ term, item, searchParams, currency, params }) => {
       <NextLink
         data={{
           is_filter: true,
-          ...item,
+          ...boutique,
         }}
         href={href}
         ariaLabel={`filter brand ${item.slug} ${params.lang}`}
@@ -649,7 +637,7 @@ const FilterItem = ({ term, item, searchParams, currency, params }) => {
       <NextLink
         data={{
           is_filter: true,
-          ...item,
+          ...boutique,
         }}
         href={href}
         ariaLabel={`filter color ${item} ${params.lang}`}
@@ -708,7 +696,7 @@ const FilterItem = ({ term, item, searchParams, currency, params }) => {
       <NextLink
         data={{
           is_filter: true,
-          ...item,
+          ...boutique,
         }}
         href={href}
         ariaLabel={`filter size ${item} ${params.lang}`}
@@ -774,7 +762,7 @@ const FilterItem = ({ term, item, searchParams, currency, params }) => {
       <NextLink
         data={{
           is_filter: true,
-          ...item,
+          ...boutique,
         }}
         href={href}
         ariaLabel={`filter price ${item.min_price}-${item.max_price} ${params.lang}`}
@@ -841,7 +829,7 @@ function getFilterStateForItem(
     const isFiltered =
       Array.isArray(currentValues) && currentValues.includes(itemValue);
     const newValues = isFiltered ? [] : [itemValue];
-
+    let newParamsStr = params.toString();
     // Create a new set of URLSearchParams
     const newParams = new URLSearchParams(params.toString());
 
@@ -929,9 +917,11 @@ function getFilterStateForItem(
   if (newParams.get("colors") && newParams.get("colors").length > 0) {
     newSearchParams.set("colors", newParams.get("colors"));
   }
+  let newParamsStr = newSearchParams.toString().replace(/"/g, "'");
+  newParamsStr = newParamsStr.replace(/%22/g, "'");
 
   return {
     isFiltered,
-    href: `?${newSearchParams.toString()}`,
+    href: `?${newParamsStr}`,
   };
 }

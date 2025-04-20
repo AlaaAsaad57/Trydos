@@ -5,30 +5,17 @@ import {
   ProductPhotosSlider,
 } from "components/ListingPage/Product";
 // import ProductsList from "components/ListingPage/ProductsList";
-import Link from "next/link";
-
 import React, { Suspense } from "react";
-import {
-  getCurrency,
-  getProductsAndFilters,
-} from "store/homepage/cachedActions";
 import { translateFunction } from "utils/functions";
 import ProductsInfiniteScroll from "components/ListingPage/ProductsList";
 import NextLink from "components/global/NextLink";
-async function ProductListServer({ params, searchParams }) {
-  const ProductData = await getProductsAndFilters({
-    searchParams,
-    lang: params.lang ? params.lang.split("-")[1] : null,
-    country: params.lang ? params.lang.split("-")[0] : null,
-    noProducts: false,
-    noFilters: true,
-    boutiqueId: params.boutiqueId === "listing" ? null : params.boutiqueId,
-    offset: false,
-  });
-  const currency = await getCurrency({
-    country: params.lang.split("-")[0],
-    lang: params.lang.split("-")[1],
-  });
+function ProductListServer({
+  params,
+  searchParams,
+  products,
+  currency,
+  offset,
+}) {
   const getPrice = (num) => {
     let rateVariable = currency?.exchange_rate;
     let price = parseFloat(num);
@@ -57,7 +44,7 @@ async function ProductListServer({ params, searchParams }) {
       className={"listing-container relative flex pb-[350px] max-w-[1310px]"}
       data-cy="allCategory"
     >
-      {ProductData.data.products.map((product, key) => {
+      {products.map((product, key) => {
         return (
           <div
             className="max-h-[362px]"
@@ -211,7 +198,7 @@ async function ProductListServer({ params, searchParams }) {
       })}
       <ProductsInfiniteScroll
         currency={currency}
-        offset={ProductData.data.offset}
+        offset={offset}
         searchParams={searchParams}
         boutiqueId={params.boutiqueId}
       />

@@ -824,7 +824,11 @@ export const getProductsAndFilters = async ({
     // console.warn(configured_url, data.data.prices?.priceRanges);
     return data;
   } catch (error) {
-    console.error(`Listing Products and Filters Error: ${error}`, searchParams);
+    console.error(
+      `Listing Products and Filters Error: ${error}`,
+      searchParams,
+      offset
+    );
     return {
       data: {
         products: [],
@@ -871,7 +875,7 @@ const configureSearchParams = ({
     params.set("search_text", searchParams.search_text);
   }
   if (searchParams.categories) {
-    params.set("category_slugs", decodeURI(searchParams.categories));
+    params.set("category_slugs", decodeURIComponent(searchParams.categories));
   }
   if (searchParams.prices) {
     params.set("price", decodeURIComponent(searchParams.prices));
@@ -882,7 +886,7 @@ const configureSearchParams = ({
       JSON.stringify([
         {
           id: 1,
-          options: JSON.parse(decodeURI(searchParams.sizes)),
+          options: JSON.parse(decodeURIComponent(searchParams.sizes)),
           name: "Size",
         },
       ])

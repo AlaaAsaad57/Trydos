@@ -6,7 +6,11 @@ import SortIcon from "public/svg/listing/sortIcon.svg";
 import ListingSkeleton from "components/skeleton/listing";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { getBoutiques } from "store/homepage/cachedActions";
+import {
+  getBoutiques,
+  getCurrency,
+  getProductsAndFilters,
+} from "store/homepage/cachedActions";
 import { getBoutiqueMeta, getConfiguredImage } from "utils/functions";
 import NextLink from "components/global/NextLink";
 import VerificationIcon from "public/svg/listing/VerificationIcon.svg";
@@ -104,11 +108,36 @@ export default async function Page({
   params: ParamsType;
   searchParams: any;
 }) {
-  // const [boutiqueData, filterData, productData] = await Promise.all([
-  //   getBoutiqueMeta({ boutiqueId: params.boutiqueId, lang: params.lang }),
-  //   getFiltersData({ params, searchParams }),
-  //   getProductsData({ params, searchParams })
-  // ]);
+  const [filtersData, currency, boutique] = await Promise.all([
+    getProductsAndFilters({
+      searchParams,
+      lang: params.lang ? params.lang.split("-")[1] : null,
+      country: params.lang ? params.lang.split("-")[0] : null,
+      noProducts: false,
+      noFilters: false,
+      boutiqueId: params.boutiqueId === "listing" ? null : params.boutiqueId,
+      offset: false,
+    }),
+    getCurrency({
+      country: params.lang.split("-")[0],
+      lang: params.lang.split("-")[1],
+    }),
+    getBoutiqueMeta({
+      boutiqueId: params.boutiqueId,
+      lang: params.lang,
+    }),
+  ]);
+  console.log("boutique", boutique);
+  let filters = {
+    categories: filtersData.data?.categories,
+    brands: filtersData.data?.brands,
+    colors: filtersData.data?.colors,
+    prices: filtersData.data?.prices?.priceRanges,
+    sizes: filtersData.data?.attributes[0]?.options,
+    boutiques:
+      params.boutiqueId !== "listing" ? null : filtersData.data?.boutiques,
+    search_text: searchParams?.searchText || null,
+  };
   return (
     <>
       <div
@@ -165,12 +194,14 @@ export default async function Page({
       <div
         className={`boutique-header ${"flex-col"} align-center`}
         data-cy="boutiqueOpen"
+        key={`boutique-header-${params.boutiqueId}-${JSON.stringify(
+          searchParams
+        )}`}
       >
         <Suspense key={params.boutiqueId} fallback={<BoutiqueHeaderSkeleton />}>
           <BoutiqueHeader
-            boutiqueId={params.boutiqueId}
+            boutique={boutique}
             key={params.boutiqueId}
-            lang={params.lang}
           ></BoutiqueHeader>
         </Suspense>
         <Suspense
@@ -178,6 +209,9 @@ export default async function Page({
           fallback={<FiltersSkeleton />}
         >
           <FilterList
+            filters={filters}
+            boutique={boutique}
+            currency={currency}
             key={`filter-list-${params.boutiqueId}`}
             params={params}
             searchParams={searchParams}
@@ -189,6 +223,9 @@ export default async function Page({
         fallback={<ListingSkeleton forProducts={true} />}
       >
         <ProductListServer
+          products={filtersData.data.products}
+          offset={filtersData.data.offset}
+          currency={currency}
           key={`product-list-${JSON.stringify(searchParams)}`}
           searchParams={searchParams}
           params={params}
@@ -197,11 +234,7 @@ export default async function Page({
     </>
   );
 }
-async function BoutiqueHeader({ boutiqueId, lang }) {
-  const boutique =
-    boutiqueId === "listing"
-      ? { name: "Search", banners: null, icon: null }
-      : await getBoutiqueMeta({ boutiqueId, lang });
+async function BoutiqueHeader({ boutique }) {
   return (
     <>
       {boutique?.banners && (

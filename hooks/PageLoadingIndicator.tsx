@@ -24,7 +24,7 @@ export default function PageLoadingIndicator() {
     if (isLoading.is_home) return <HomeLoader />;
     if (isLoading.is_boutique) return <BoutiqueLoader boutique={isLoading} />;
     if (isLoading.is_product) return <></>;
-    if (isLoading.is_filter) return <></>;
+    if (isLoading.is_filter) return <BoutiqueLoader boutique={isLoading} />;
     if (isLoading.is_full_home) return <FullHomeLoader />;
     if (isLoading.is_settings) return <></>;
   }
