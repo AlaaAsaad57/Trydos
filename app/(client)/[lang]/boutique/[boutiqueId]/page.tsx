@@ -114,8 +114,8 @@ export default async function Page({
         }/api/search?${new URLSearchParams({
           boutiqueId:
             params.boutiqueId === "listing" ? null : params.boutiqueId,
-          lang: params.lang.split("-")[1],
-          country: params.lang.split("-")[0],
+          lang: params.lang?.split("-")[1],
+          country: params.lang?.split("-")[0],
           noProducts: "false",
           noFilters: "false",
           offset: "false",
