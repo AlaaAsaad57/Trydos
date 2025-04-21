@@ -10,34 +10,38 @@ function ListingSkeleton({
   withBanners,
 
   boutique,
+  isForSearch,
 }: {
   forProducts?: boolean;
   withBanners?: boolean;
   boutique?: any;
+  isForSearch?: boolean;
 }) {
   return (
     <>
       {forProducts !== true && withBanners && (
         <>
-          <div className="filter-listing-bar relative flex-row align-center">
-            <div className="back-icon">
-              <Skeleton width={20} height={20} borderRadius={"50%"} />
+          {!isForSearch && (
+            <div className="filter-listing-bar relative flex-row align-center">
+              <div className="back-icon">
+                <Skeleton width={20} height={20} borderRadius={"50%"} />
+              </div>
+              <div className="filter-bar-options flex-row align-center">
+                <div className="filter-option">
+                  <Skeleton width={20} height={20} borderRadius={"50%"} />
+                </div>
+                <div className="filter-option">
+                  <Skeleton width={20} height={20} borderRadius={"50%"} />
+                </div>
+                <div className="filter-option">
+                  <Skeleton width={20} height={20} borderRadius={"50%"} />
+                </div>
+                <div className="filter-option">
+                  <Skeleton width={20} height={20} borderRadius={"50%"} />
+                </div>
+              </div>
             </div>
-            <div className="filter-bar-options flex-row align-center">
-              <div className="filter-option">
-                <Skeleton width={20} height={20} borderRadius={"50%"} />
-              </div>
-              <div className="filter-option">
-                <Skeleton width={20} height={20} borderRadius={"50%"} />
-              </div>
-              <div className="filter-option">
-                <Skeleton width={20} height={20} borderRadius={"50%"} />
-              </div>
-              <div className="filter-option">
-                <Skeleton width={20} height={20} borderRadius={"50%"} />
-              </div>
-            </div>
-          </div>
+          )}
           <div className={`boutique-header flex-col align-center`}>
             <div className="boutique-top-info flex-col">
               <div className="boutique-logo-container flex-row align-center">

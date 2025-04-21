@@ -11,7 +11,9 @@ export default function PageLoadingIndicator() {
 
   useEffect(() => {
     registerRouteChangeListener("start", (data) => {
-      console.log("start", data);
+      document.body.style.overflow = "hidden";
+      document.body.scrollTop = 0;
+
       setIsLoading(data);
     });
 
@@ -30,6 +32,8 @@ export default function PageLoadingIndicator() {
     if (isLoading.is_filter) return <BoutiqueLoader boutique={isLoading} />;
     if (isLoading.is_full_home) return <FullHomeLoader />;
     if (isLoading.is_settings) return <></>;
+    if (isLoading.is_filter_search)
+      return <BoutiqueLoader boutique={isLoading} isForSearch={true} />;
   }
   return (
     <>
@@ -38,13 +42,9 @@ export default function PageLoadingIndicator() {
           style={{
             zIndex: "99999999999999",
           }}
-          className="fixed bg-black h-screen    w-screen animate-progress animate-pulse overflow-hidden rounded-full bg-gradient-to-r from-primary to-orange-300"
+          className="fixed bg-[#fafafa] h-screen    w-screen overflow-hidden rounded-full bg-gradient-to-r from-primary to-orange-300"
         >
-          <div
-            className={
-              "h-full w-2/6 animate-progress rounded-full bg-green-900"
-            }
-          ></div>
+          <HomeLoader />
         </div>
       )}
     </>

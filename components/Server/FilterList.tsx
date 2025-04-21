@@ -31,7 +31,10 @@ function FilterList({ searchParams, params, filters, currency, boutique }) {
           <SwitchFiltersButton
             length={
               Object.keys(filters).filter(
-                (s) => filters[s] && filters[s]?.length > 0
+                (s) =>
+                  filters[s] &&
+                  filters[s]?.length > 0 &&
+                  filters !== "search_text"
               ).length
             }
           />
@@ -40,7 +43,11 @@ function FilterList({ searchParams, params, filters, currency, boutique }) {
           className={`flex-row items-center pr-[100px]  justify-start align-start filter-container overflow-auto scroll-smooth`}
         >
           {Object.keys(filters).map((filter, index) => {
-            if (filters[filter] && filters[filter]?.length > 0)
+            if (
+              filter !== "search_text" &&
+              filters[filter] &&
+              filters[filter]?.length > 0
+            )
               return (
                 <>
                   <Suspense>
@@ -80,6 +87,7 @@ const ActiveFiltersBar = ({
   params,
   boutique,
 }) => {
+  console.log(searchParams);
   let activeFilters: any = Object.keys(searchParams).reduce((acc, key) => {
     return {
       ...acc,

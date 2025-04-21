@@ -1,12 +1,13 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import SearchIcon from "public/svg/listing/searchIcon.svg";
-import { filterProducts, Sendevent, UpdateFilter } from "utils/functions";
+import { Sendevent } from "utils/functions";
 import { useAppStore } from "store";
 import { DebounceInput } from "react-debounce-input/src";
-import { useParams, useSearchParams, useRouter } from "next/navigation";
-function SearchBoutiquePage() {
-  const UrlParams = useParams();
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { dispatchRouteChangeEvent } from "utils/events";
+function SearchBoutiquePage({ search_text, boutique }) {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
   const {
@@ -72,19 +73,41 @@ function SearchBoutiquePage() {
       //     searchText: e.target.value,
       //   });
       setFilterEnabled(false);
-      if (e.target.value > 0) {
-        params.set("searchText", e.target.value);
+      if (e.target.value.length > 0) {
+        params.set("search_text", e.target.value);
       } else {
-        params.delete("searchText");
+        params.delete("search_text");
       }
-      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-      router.replace(`${pathname}?${params.toString()}`, { shallow: true });
+      try {
+        console.log(`${pathname}?${params.toString()}`, e.target.value, params);
+        dispatchRouteChangeEvent("start", {
+          is_filter_search: true,
+          ...boutique,
+        });
+        router.replace(`${pathname}?${params.toString()}`);
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
+  useEffect(() => {
+    if (search_text?.length > 0) {
+      setFilterSearch(true);
+      document.querySelector<HTMLInputElement>("#searchIconBoutique")?.click();
+      document.querySelector<HTMLInputElement>("#filter-search")?.focus();
+    } else {
+      setFilterSearch(false);
+
+      document.querySelector<HTMLInputElement>("#filter-search")?.blur();
+    }
+  }, []);
   return (
     <div
+      id="searchIconBoutique"
       className={`filter-option transition-all filter-search-option relative ${
-        search &&
+        (search ||
+          search_text?.length > 0 ||
+          searchParams.get("search_text")?.length > 0) &&
         "w-[75%] [&>input]:w-full [&>input]:bg-[#f8f8f8] [&>input]:h-[40px]"
       }`}
       data-cy="searchIcon_boutiquePage"
@@ -106,15 +129,18 @@ function SearchBoutiquePage() {
       <DebounceInput
         data-cy="inputFiled"
         id="filter-search"
-        debounceTimeout={400}
+        debounceTimeout={600}
         onFocus={() => {
           document
             .querySelector<HTMLInputElement>(".filter-bar-options")
             .classList.add("w-full");
         }}
-        value={selectedFilter.searchText}
+        value={searchParams.get("search_text")}
         onBlur={() => {
-          if (selectedFilter?.searchText.length === 0) {
+          if (
+            selectedFilter?.searchText.length === 0 &&
+            searchParams.get("search_text")?.length === 0
+          ) {
             if (
               document.querySelector<HTMLInputElement>(
                 ".boutique-logo-container"
@@ -159,16 +185,13 @@ function SearchBoutiquePage() {
             //   });
             setFilterEnabled(false);
             if (selectedFilter.searchText.length > 0) {
-              params.set("searchText", selectedFilter.searchText);
+              params.set("search_text", selectedFilter.searchText);
             } else {
-              params.delete("searchText");
+              params.delete("search_text");
             }
-            //   router.replace(`${pathname}?${params.toString()}`, {
-            //     // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-
-            //     shallow: true,
-            //   });
+            router.replace(`${pathname}?${params.toString()}`);
             // @ts-ignore
+
             e.target.blur();
           }
         }}

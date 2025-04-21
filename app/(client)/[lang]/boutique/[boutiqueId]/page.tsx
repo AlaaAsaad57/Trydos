@@ -196,9 +196,9 @@ export default async function Page({
     brands: filtersData?.brands,
     colors: filtersData?.colors,
     prices: filtersData?.prices?.priceRanges,
-    sizes: filtersData?.attributes[0]?.options,
+    sizes: filtersData?.attributes?.[0]?.options,
     boutiques: params.boutiqueId !== "listing" ? null : filtersData?.boutiques,
-    search_text: searchParams?.searchText || null,
+    search_text: searchParams?.search_text || null,
   };
   if (boutique === "NOT_FOUND") {
     notFound();
@@ -221,7 +221,11 @@ export default async function Page({
           <BackIcon data-cy="back_icon_boutique_page" />
         </NextLink>
         {/** TODO: classname edit when serach active w-full */}
-        <div className={`filter-bar-options flex-row align-center`}>
+        <div
+          className={`filter-bar-options flex-row align-center ${
+            searchParams?.search_text?.length > 0 && "w-full"
+          }`}
+        >
           <Suspense
             fallback={
               <div className="filter-option">
@@ -229,7 +233,10 @@ export default async function Page({
               </div>
             }
           >
-            <SearchBoutiquePage />
+            <SearchBoutiquePage
+              boutique={boutique}
+              search_text={searchParams?.search_text}
+            />
           </Suspense>
           <div className="filter-option">
             <SortIcon data-cy="closeSearchInput" />
@@ -288,7 +295,7 @@ export default async function Page({
         fallback={<ListingSkeleton forProducts={true} />}
       >
         <ProductListServer
-          products={filtersData.products}
+          products={filtersData.products ?? []}
           offset={filtersData.offset}
           currency={currency}
           key={`product-list-${JSON.stringify(searchParams)}`}
