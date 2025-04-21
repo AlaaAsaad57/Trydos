@@ -119,7 +119,7 @@ export default async function Page({
           noProducts: "false",
           noFilters: "false",
           offset: "false",
-          searchParams: JSON.stringify(searchParams),
+          searchParams: searchParams ? JSON.stringify(searchParams) : "{}",
         }).toString()}`,
         {
           method: "GET",
