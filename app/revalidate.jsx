@@ -15,4 +15,8 @@ export default async function Revalidate() {
   revalidateTag("home-categories-ar");
   revalidateTag("stories-ar");
   revalidateTag("listing-data-ar");
+  revalidateTag("currency-Api");
+  revalidateTag("boutique-Api");
+  revalidateTag("search-Api");
+  revalidateTag("products-Api");
 }

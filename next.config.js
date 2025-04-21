@@ -18,16 +18,16 @@ let nextConfig = {
         headers: [
           {
             key: "Cache-Control",
-            value: "s-maxage=36000, stale-while-revalidate=36000",
+            value: "s-maxage=86400, stale-while-revalidate=86400",
           },
         ],
       },
       {
-        source: "/:lang/boutiques/:productCategory",
+        source: "/:lang/boutiques/:boutiqueId",
         headers: [
           {
             key: "Cache-Control",
-            value: "s-maxage=36000, stale-while-revalidate=36000",
+            value: "s-maxage=86400, stale-while-revalidate=86400",
           },
         ],
       },
@@ -36,7 +36,7 @@ let nextConfig = {
         headers: [
           {
             key: "Cache-Control",
-            value: "s-maxage=36000, stale-while-revalidate=36000",
+            value: "s-maxage=86400, stale-while-revalidate=86400",
           },
         ],
       },

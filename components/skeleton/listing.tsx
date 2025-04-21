@@ -73,7 +73,7 @@ function ListingSkeleton({
                       style={{ height: "100%" }}
                     />
 
-                    {boutique?.banners ? (
+                    {boutique?.banners && boutique?.banners?.length > 0 ? (
                       <>
                         <Image
                           loading={"eager"}
@@ -81,7 +81,7 @@ function ListingSkeleton({
                           style={{ borderRadius: "15px" }}
                           className="OfferImage object-cover"
                           src={getConfiguredImage({
-                            src: boutique.banners[0].file_path,
+                            src: boutique.banners[0]?.file_path,
                             height: 342,
                             width: 900,
                           })}

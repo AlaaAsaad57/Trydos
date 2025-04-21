@@ -6,12 +6,8 @@ import SortIcon from "public/svg/listing/sortIcon.svg";
 import ListingSkeleton from "components/skeleton/listing";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import {
-  getBoutiques,
-  getCurrency,
-  getProductsAndFilters,
-} from "store/homepage/cachedActions";
-import { getBoutiqueMeta, getConfiguredImage } from "utils/functions";
+import { getBoutiques } from "store/homepage/cachedActions";
+import { getConfiguredImage } from "utils/functions";
 import NextLink from "components/global/NextLink";
 import VerificationIcon from "public/svg/listing/VerificationIcon.svg";
 import TopStarIcon from "public/svg/listing/TopStar.svg";
@@ -87,7 +83,7 @@ export async function generateStaticParams({ params }) {
       str: "",
     });
 
-    return boutiques_slugs.map((category) => ({
+    return [...boutiques_slugs, "listing"].map((category) => ({
       boutiqueId: category,
       lang: params.lang,
     }));
@@ -108,36 +104,103 @@ export default async function Page({
   params: ParamsType;
   searchParams: any;
 }) {
+  const GetProductsData = async () => {
+    try {
+      let response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_API_BASE_URL
+        }/api/search?${new URLSearchParams({
+          boutiqueId:
+            params.boutiqueId === "listing" ? null : params.boutiqueId,
+          lang: params.lang.split("-")[1],
+          country: params.lang.split("-")[0],
+          noProducts: "false",
+          noFilters: "false",
+          offset: "false",
+          searchParams: JSON.stringify(searchParams),
+        }).toString()}`,
+        {
+          method: "GET",
+          next: {
+            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+          },
+        }
+      );
+      let data = await response.json();
+      return data.data;
+    } catch (error) {
+      console.log(error);
+      return {};
+    }
+  };
+  const GetCurrencyData = async () => {
+    try {
+      let response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_API_BASE_URL
+        }/api/currency?${new URLSearchParams({
+          country: params.lang.split("-")[0],
+          lang: params.lang.split("-")[1],
+        }).toString()}`,
+        {
+          method: "GET",
+          next: {
+            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
+          },
+        }
+      );
+      let data = await response.json();
+      return data.data.currency;
+    } catch (error) {
+      console.log(error);
+      return {};
+    }
+  };
+  const GetBoutiqueData = async () => {
+    try {
+      if (params.boutiqueId === "listing") {
+        return {
+          name: "Search",
+          banners: null,
+          icon: null,
+        };
+      }
+      let response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/boutiques/${params.boutiqueId}`,
+        {
+          method: "GET",
+          next: {
+            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
+          },
+        }
+      );
+      let data = await response.json();
+      if (data.code === 404) {
+        return "NOT_FOUND";
+      }
+      return data.data;
+    } catch (error) {
+      console.log(error);
+      return "NOT_FOUND";
+    }
+  };
   const [filtersData, currency, boutique] = await Promise.all([
-    getProductsAndFilters({
-      searchParams,
-      lang: params.lang ? params.lang.split("-")[1] : null,
-      country: params.lang ? params.lang.split("-")[0] : null,
-      noProducts: false,
-      noFilters: false,
-      boutiqueId: params.boutiqueId === "listing" ? null : params.boutiqueId,
-      offset: false,
-    }),
-    getCurrency({
-      country: params.lang.split("-")[0],
-      lang: params.lang.split("-")[1],
-    }),
-    getBoutiqueMeta({
-      boutiqueId: params.boutiqueId,
-      lang: params.lang,
-    }),
+    GetProductsData(),
+    GetCurrencyData(),
+    GetBoutiqueData(),
   ]);
-  console.log("boutique", boutique);
   let filters = {
-    categories: filtersData.data?.categories,
-    brands: filtersData.data?.brands,
-    colors: filtersData.data?.colors,
-    prices: filtersData.data?.prices?.priceRanges,
-    sizes: filtersData.data?.attributes[0]?.options,
-    boutiques:
-      params.boutiqueId !== "listing" ? null : filtersData.data?.boutiques,
+    categories: filtersData?.categories,
+    brands: filtersData?.brands,
+    colors: filtersData?.colors,
+    prices: filtersData?.prices?.priceRanges,
+    sizes: filtersData?.attributes[0]?.options,
+    boutiques: params.boutiqueId !== "listing" ? null : filtersData?.boutiques,
     search_text: searchParams?.searchText || null,
   };
+  if (boutique === "NOT_FOUND") {
+    notFound();
+  }
   return (
     <>
       <div
@@ -223,8 +286,8 @@ export default async function Page({
         fallback={<ListingSkeleton forProducts={true} />}
       >
         <ProductListServer
-          products={filtersData.data.products}
-          offset={filtersData.data.offset}
+          products={filtersData.products}
+          offset={filtersData.offset}
           currency={currency}
           key={`product-list-${JSON.stringify(searchParams)}`}
           searchParams={searchParams}
