@@ -1,5 +1,5 @@
 import FilterList from "components/Server/FilterList";
-import dynamic from "next/dynamic";
+import Nextdynamic from "next/dynamic";
 import ProductListServer from "components/Server/ProductList";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import SortIcon from "public/svg/listing/sortIcon.svg";
@@ -15,19 +15,20 @@ import Image from "next/image";
 import BorderImage from "components/ListingPage/BorderImage";
 import "styles/listing-components.css";
 import Skeleton from "react-loading-skeleton";
-const SearchBoutiquePage = dynamic(
+
+const SearchBoutiquePage = Nextdynamic(
   () => import("components/filterPage/SearchBoutiquePage"),
   {
     ssr: false,
   }
 );
-const FilterBoutiquePageButton = dynamic(
+const FilterBoutiquePageButton = Nextdynamic(
   () => import("components/filterPage/FilterBoutiquePageButton"),
   {
     ssr: false,
   }
 );
-const ShareBoutiquePageButton = dynamic(
+const ShareBoutiquePageButton = Nextdynamic(
   () => import("components/filterPage/ShareBoutiquePageButton"),
   {
     ssr: false,
@@ -65,6 +66,7 @@ export const dynamicParams = true;
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"];
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
+export const dynamic = "force-dynamic";
 export function generateMetadata() {
   return {
     title: "Trydos - Boutique",
