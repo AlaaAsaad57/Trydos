@@ -8,8 +8,8 @@ export async function GET(
 ) {
   const { slug } = params;
   const { searchParams } = req.nextUrl;
-  const lang = searchParams.get("lang");
-  const country = searchParams.get("country");
+  const lang = searchParams.get("lang") ?? "en";
+  const country = searchParams.get("country") ?? "tr";
 
   // You can use the slug to fetch or filter data
   const boutique = await fetch(

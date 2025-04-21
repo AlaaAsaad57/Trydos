@@ -2,8 +2,8 @@ import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
-  const country = searchParams.get("country");
-  const lang = searchParams.get("lang");
+  const country = searchParams.get("country") ?? "tr";
+  const lang = searchParams.get("lang") ?? "en";
   let response = await fetch(
     process.env.NEXT_PUBLIC_BACKEND_URL +
       `/mobile/home/currency?lang=${lang}&country=${country}`,

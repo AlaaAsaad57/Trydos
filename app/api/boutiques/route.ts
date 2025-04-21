@@ -5,9 +5,9 @@ import { fetchWithRetry } from "utils/functions";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  let str = searchParams.get("str");
-  let offset = searchParams.get("offset");
-  let lang = searchParams.get("lang");
+  let str = searchParams.get("str") ?? "";
+  let offset = searchParams.get("offset") ?? 0;
+  let lang = searchParams.get("lang") ?? "tr-en";
   let [country, language] = lang?.split("-");
   let BOUTIQUE_URL =
     "/api/home/boutiques" +

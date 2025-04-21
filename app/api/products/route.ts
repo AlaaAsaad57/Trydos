@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
 
-  const slug = searchParams.get("slug");
+  const slug = searchParams.get("slug") ?? "";
 
   const data = {
     slug,

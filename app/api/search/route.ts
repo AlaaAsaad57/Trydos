@@ -5,13 +5,13 @@ import { NextRequest } from "next/server";
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
 
-  const noProducts = searchParams.get("noProducts");
-  const noFilters = searchParams.get("noFilters");
-  const country = searchParams.get("country");
-  const lang = searchParams.get("lang");
-  const offset = searchParams.get("offset");
-  const boutiqueId = searchParams.get("boutiqueId");
-  const searchParamsVar = JSON.parse(searchParams.get("searchParams"));
+  const noProducts = searchParams.get("noProducts") ?? "false";
+  const noFilters = searchParams.get("noFilters") ?? "false";
+  const country = searchParams.get("country") ?? "tr";
+  const lang = searchParams.get("lang") ?? "en";
+  const offset = searchParams.get("offset") ?? "false";
+  const boutiqueId = searchParams.get("boutiqueId") ?? "listing";
+  const searchParamsVar = JSON.parse(searchParams.get("searchParams")) ?? {};
 
   let params = configureSearchParams({
     searchParams: searchParamsVar,

@@ -74,24 +74,24 @@ export function generateMetadata() {
     },
   };
 }
-export async function generateStaticParams({ params }) {
-  // Fetch your main product categories
-  try {
-    const boutiques_slugs = await getBoutiques({
-      lang: params.lang ? params.lang.split("-")[1] : null,
-      country: params.lang ? params.lang.split("-")[0] : null,
-      str: "",
-    });
+// export async function generateStaticParams({ params }) {
+//   // Fetch your main product categories
+//   try {
+//     const boutiques_slugs = await getBoutiques({
+//       lang: params.lang ? params.lang.split("-")[1] : null,
+//       country: params.lang ? params.lang.split("-")[0] : null,
+//       str: "",
+//     });
 
-    return [...boutiques_slugs, "listing"].map((category) => ({
-      boutiqueId: category,
-      lang: params.lang,
-    }));
-  } catch (error) {
-    console.log(error);
-    return [];
-  }
-}
+//     return [...boutiques_slugs].map((category) => ({
+//       boutiqueId: category,
+//       lang: params.lang,
+//     }));
+//   } catch (error) {
+//     console.log(error);
+//     return [];
+//   }
+// }
 
 interface ParamsType {
   lang: string;
