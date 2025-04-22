@@ -1,6 +1,10 @@
 "use client";
 import Link from "next/link";
-import React, { ComponentProps, MouseEventHandler } from "react";
+import React, {
+  ComponentProps,
+  MouseEventHandler,
+  TouchEventHandler,
+} from "react";
 import { usePathname } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { useAppStore } from "store";
@@ -17,15 +21,19 @@ export default function NextLink({
   children,
   onClick,
   ariaLabel,
+  exportparts,
   data,
   ...props
 }: INextLinkProps) {
   const pathname = usePathname();
   const { setEnableSearch, setFilterEnabled } = useAppStore();
-  const handleClick: MouseEventHandler<HTMLAnchorElement> = (e) => {
+  const handleClick = (e) => {
     onClick?.(e);
-
-    if (pathname !== href) {
+    // @ts-ignore
+    if (e.target.closest(".no-navigate")) {
+      return;
+    }
+    if (pathname !== href && exportparts !== "no-navigate") {
       document.body.style.cursor = "progress";
       document.body.style.overflow = "hidden";
       document.body.scrollTop = 0;
@@ -45,7 +53,8 @@ export default function NextLink({
       prefetch={true}
       href={href}
       {...props}
-      onClick={handleClick}
+      onTouchEnd={handleClick}
+      onMouseUp={handleClick}
       // onClick={(e) => {
       //   if (onClick) onClick(e);
       // }}

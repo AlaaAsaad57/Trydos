@@ -62,13 +62,7 @@ export const BuyButtonProduct = ({ product }) => {
     <BuyButton
       buy={(e) => {
         // @ts-ignore
-
-        stopProgress(true);
         addToCart();
-        setTimeout(() => {
-          dispatchRouteChangeEvent("completed");
-          // stopProgress(true);
-        }, 2000);
       }}
     />
   );

@@ -381,7 +381,6 @@ function AddToCartButton({
           setOption("AddToCart");
           document.documentElement.style.overflow = "hidden";
           document.documentElement.scrollTop = 0;
-
           enableAddToCartOption(false);
         } else {
           Sendevent({

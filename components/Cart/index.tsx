@@ -18,8 +18,6 @@ import "styles/productDetails.css";
 import NextLink from "components/global/NextLink";
 import { useParams, useSearchParams } from "next/navigation";
 import home from "services/home";
-
-import { toast } from "react-toastify";
 import OrderButton from "./OrderButton";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { dispatchRouteChangeEvent } from "utils/events";
@@ -267,6 +265,11 @@ function CartContainer({ close, toOrders }) {
                     <div className="relative px-[12px]" key={key}>
                       {" "}
                       <NextLink
+                        exportparts={
+                          params?.productId === product.slug
+                            ? "no-navigate"
+                            : ""
+                        }
                         href={
                           params?.productId === product.slug &&
                           product?.variations[0]?.color ===
@@ -690,6 +693,11 @@ function CartContainer({ close, toOrders }) {
                   {oldCart?.oldCart.map((product, key) => (
                     <div className="relative px-[12px]" key={key}>
                       <NextLink
+                        exportparts={
+                          params?.productId === product.slug
+                            ? "no-navigate"
+                            : ""
+                        }
                         data={{
                           is_product: true,
                           ...product,

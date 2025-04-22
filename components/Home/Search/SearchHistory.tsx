@@ -64,9 +64,9 @@ function SearchHistory({ options, setOptions, deleteOption }) {
       </div>
       {!openMenu && (
         <div className="search-filter-options s1 flex-row">
-          {options.map((s, index) => (
-            <>
-              {s?.length > 0 && (
+          {options.map((s, index) => {
+            if (s.length > 0)
+              return (
                 <div
                   key={index}
                   className="search-filter-option"
@@ -103,9 +103,8 @@ function SearchHistory({ options, setOptions, deleteOption }) {
                     </div>
                   }
                 </div>
-              )}
-            </>
-          ))}
+              );
+          })}
         </div>
       )}
       {openMenu && (
@@ -124,7 +123,7 @@ function SearchHistory({ options, setOptions, deleteOption }) {
         <div className="flex-col search-filter-menu">
           {options.map((s, index) => (
             <div
-              key={index}
+              key={`${s}-${index}`}
               className="option-row-search flex-row"
               onClick={(e) => {
                 // @ts-ignore

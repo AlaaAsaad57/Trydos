@@ -23,7 +23,7 @@ import { useAppStore } from "store";
 function AddToCartWidget() {
   const {
     getProductDetailsForCart,
-    getProductVariation,
+
     disableAddToCartOption,
     addToCartSize,
     storeProductBoutique,
@@ -51,7 +51,7 @@ function AddToCartWidget() {
     let additionalData = await auth.getProductNotify({
       id: SelectedProduct.slug,
     });
-    getProductDetailsForCart(data);
+
     storeProductBoutique({ ...product, ...data });
     if (data.choice_options) {
       let a = data?.choice_options?.filter((s) => s.title == "Size")[0]
@@ -71,16 +71,18 @@ function AddToCartWidget() {
       color: searchParams.get("color"),
       size: searchParams.get("size"),
     };
-
-    getProductVariation({
+    getProductDetailsForCart({
       ...product,
       // @ts-ignore
+
       is_product_notify_for_user: additionalData?.is_product_notify_for_user,
       variation: arr,
       likes: null,
       is_liked: null,
       color,
       size,
+      ...data,
+      temp_id: SelectedProduct.id,
     });
   };
   useEffect(() => {
@@ -129,7 +131,7 @@ function AddToCartWidget() {
               : getPrice(product.price)
           }
         />
-        {SelectedProduct.choice_options && SelectedProduct?.variation ? (
+        {SelectedProduct?.choice_options && SelectedProduct?.variation ? (
           <div className="Extended-area-product">
             <svg
               className="border-svg"

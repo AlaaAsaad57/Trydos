@@ -26,6 +26,7 @@ function PaymentMethod() {
     orderLoading,
     orderData,
     available_payment_method,
+    setOrderData,
     wallet,
     total,
     total_cash,
@@ -34,9 +35,6 @@ function PaymentMethod() {
   // @ts-ignore
   const language = lang.split("-")[1];
 
-  const setOrderData = (e) => {
-    setOrderData(e);
-  };
   // const totalBalance = () => {
   //   let val = 0;
   //   orderData.payment.map((s) => {
@@ -141,7 +139,7 @@ function PaymentMethod() {
           {available_payment_method &&
             available_payment_method.length &&
             available_payment_method.map((item, key) => {
-              if (item === "COD") {
+              if (item?.toLowerCase() === "cash_on_delivery".toLowerCase()) {
                 return (
                   <CODInput
                     key={key}
@@ -207,7 +205,7 @@ function PaymentMethod() {
                   />
                 );
               }
-              if (item === "TrydosWallet") {
+              if (item?.toLowerCase() === "trydos_wallet".toLowerCase()) {
                 return (
                   <TryDosWalletInput
                     key={key}
@@ -257,7 +255,7 @@ function PaymentMethod() {
                   />
                 );
               }
-              if (item === "Crypto") {
+              if (item?.toLowerCase() === "crypto".toLowerCase()) {
                 return (
                   <CryptoInput
                     key={key}
@@ -323,7 +321,7 @@ function PaymentMethod() {
                   />
                 );
               }
-              if (item === "Card") {
+              if (item?.toLowerCase() === "card".toLowerCase()) {
                 return (
                   <CreditInput
                     key={key}

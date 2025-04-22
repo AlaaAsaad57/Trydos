@@ -16,7 +16,7 @@ export async function GET(
   const offset = searchParams.get("offset") ?? "false";
   const boutiqueId = searchParams.get("boutiqueId") ?? "listing";
   const searchParamsVar = JSON.parse(searchParams.get("searchParams")) ?? {};
-  console.log(searchParamsVar);
+
   let configuredparams = configureSearchParams({
     searchParams: searchParamsVar,
     noProducts,

@@ -20,7 +20,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   notification,
   onClose,
 }) => {
-  const { enableCart } = useAppStore();
+  const { enableCart, disableAddToCartOption } = useAppStore();
   const { lang } = useParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -122,6 +122,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
               onClick={() => {
                 window.history.pushState({ isPopup: true }, "open Cart");
                 enableCart(true);
+                disableAddToCartOption();
                 const newParams = new URLSearchParams(searchParams);
                 newParams.set("cart", "true");
 

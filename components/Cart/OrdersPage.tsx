@@ -145,12 +145,12 @@ function OrdersPage({
       if (orderData?.payment?.length === 1) {
         let payment_method =
           orderData?.payment[0]?.id === 0
-            ? "COD"
+            ? "cash_on_delivery"
             : orderData?.payment[0]?.id === 1
-            ? "TrydosWallet"
+            ? "trydos_wallet"
             : orderData?.payment[0]?.id === 2
-            ? "Card"
-            : "Crypto";
+            ? "card"
+            : "crypto";
         setLoading(true);
         await order.PlaceOrder({
           payment_method,

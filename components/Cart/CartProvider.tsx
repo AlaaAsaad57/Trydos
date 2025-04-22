@@ -1,5 +1,10 @@
 "use client";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { expandView, normalizeView, Sendevent } from "utils/functions";
 import CartContainer from ".";
@@ -10,6 +15,7 @@ import { Swiper as SwiperType } from "swiper/types";
 import ModalIframe from "./ModalIframe";
 import { ToastContainer } from "react-toastify";
 import { useAppStore } from "store";
+import { getCurrency } from "store/chat/actions";
 const CartProvider = () => {
   const {
     enableCart,
@@ -17,6 +23,7 @@ const CartProvider = () => {
     setEnableSearch,
     setLoginOpen,
     setSelectedStory,
+    setCurrency,
     setChatOpen,
     filterEnabled,
     openPayIframe,
@@ -26,7 +33,9 @@ const CartProvider = () => {
 
   const pathname = usePathname();
   const router = useRouter();
-
+  const { lang } = useParams();
+  // @ts-ignore
+  const [country, language] = lang?.split("-");
   const searchParams = useSearchParams();
 
   const enableCartAction = (s) => {
@@ -52,6 +61,13 @@ const CartProvider = () => {
   useEffect(() => {
     setTimeout(() => {
       home.getClientData();
+      getCurrency({
+        lang: language,
+        country: country,
+        callback: (data) => {
+          setCurrency(data.currency);
+        },
+      });
       home.GetFireBaseSettings();
     }, 10);
     window.addEventListener("popstate", (event) => {

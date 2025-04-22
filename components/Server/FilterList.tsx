@@ -35,7 +35,8 @@ function FilterList({ searchParams, params, filters, currency, boutique }) {
                 (s) =>
                   filters[s] &&
                   filters[s]?.length > 0 &&
-                  filters !== "search_text"
+                  filters !== "search_text" &&
+                  filters !== "boutiques"
               ).length
             }
           />
@@ -46,6 +47,7 @@ function FilterList({ searchParams, params, filters, currency, boutique }) {
           {Object.keys(filters).map((filter, index) => {
             if (
               filter !== "search_text" &&
+              filter !== "boutiques" &&
               filters[filter] &&
               filters[filter]?.length > 0
             )
@@ -88,7 +90,6 @@ const ActiveFiltersBar = ({
   params,
   boutique,
 }) => {
-  console.log(searchParams);
   let activeFilters: any = Object.keys(searchParams).reduce((acc, key) => {
     return {
       ...acc,
@@ -848,11 +849,8 @@ function getFilterStateForItem(
     ) {
       newSearchParams.set("search_text", newParams.get("search_text"));
     }
-    if (
-      newParams.get("boutique_slug") &&
-      newParams.get("boutique_slug").length > 0
-    ) {
-      newSearchParams.set("boutique_slug", newParams.get("boutique_slug"));
+    if (newParams.get("boutiques") && newParams.get("boutiques").length > 0) {
+      newSearchParams.set("boutiques", newParams.get("boutiques"));
     }
     if (newParams.get("prices") && newParams.get("prices").length > 0) {
       newSearchParams.set("prices", newParams.get("prices"));
@@ -897,11 +895,8 @@ function getFilterStateForItem(
   if (newParams.get("search_text") && newParams.get("search_text").length > 0) {
     newSearchParams.set("search_text", newParams.get("search_text"));
   }
-  if (
-    newParams.get("boutique_slug") &&
-    newParams.get("boutique_slug").length > 0
-  ) {
-    newSearchParams.set("boutique_slug", newParams.get("boutique_slug"));
+  if (newParams.get("boutiques") && newParams.get("boutiques").length > 0) {
+    newSearchParams.set("boutiques", newParams.get("boutiques"));
   }
   if (newParams.get("prices") && newParams.get("prices").length > 0) {
     newSearchParams.set("prices", newParams.get("prices"));

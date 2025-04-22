@@ -79,7 +79,6 @@ function SearchBoutiquePage({ search_text, boutique }) {
         params.delete("search_text");
       }
       try {
-        console.log(`${pathname}?${params.toString()}`, e.target.value, params);
         dispatchRouteChangeEvent("start", {
           is_filter_search: true,
           ...boutique,

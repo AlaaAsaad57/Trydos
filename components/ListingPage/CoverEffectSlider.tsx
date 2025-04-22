@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import ImageAvatar from "./ImageAvatar";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { EffectCoverflow } from "swiper/modules";
-// import { stopProgress } from "next-nprogress-bar";
+import { dispatchRouteChangeEvent } from "utils/events";
 function CoverEffectSlider({
   images,
   active,
@@ -71,7 +71,7 @@ function CoverEffectSlider({
   return (
     <div
       className={
-        "product-photos-slider overflow-visible flex absolute align-center justify-center max-h[35px]"
+        "product-photos-slider no-navigate overflow-visible flex absolute align-center justify-center max-h[35px]"
       }
       data-cy="productPhotoSlider"
       onWheel={throttle(callback, 250)}
@@ -88,7 +88,7 @@ function CoverEffectSlider({
         className="avatar-slider"
         onSlideChange={(swiper) => {
           setTimeout(() => {
-            // stopProgress(true);
+            dispatchRouteChangeEvent("completed");
           }, 300);
           setActive(swiper.activeIndex);
           setActiveColor({ ...images[swiper.activeIndex], index: 0 });

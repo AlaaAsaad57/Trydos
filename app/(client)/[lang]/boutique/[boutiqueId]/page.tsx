@@ -36,33 +36,7 @@ const ShareBoutiquePageButton = Nextdynamic(
 );
 
 export const dynamicParams = true;
-// export async function generateMetadata({ params, searchParams }: Props) {
-//   const boutiqueId = params.boutiqueId;
-//   try {
-//     const metaData =
-//       boutiqueId === "listing"
-//         ? { name: "listing" }
-//         : await getBoutiqueMeta({ boutiqueId, lang: params.lang });
 
-//     if (!metaData?.name) {
-//       notFound();
-//     }
-//     if (boutiqueId === "listing") {
-//       return {
-//         title: `Trydos - ${searchParams.searchText || "Search"} `,
-//         description: ``,
-//       };
-//     } else
-//       return {
-//         title: `Trydos - ${metaData?.name} `,
-//         // @ts-ignore
-//         description: `${metaData?.name} - ${metaData?.description} `,
-//       };
-//   } catch (error) {
-//     console.error(error);
-//     notFound();
-//   }
-// }
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"];
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
@@ -106,6 +80,49 @@ export default async function Page({
   params: ParamsType;
   searchParams: any;
 }) {
+  let EditedSearchParams: any = {};
+  if (searchParams?.search_text) {
+    EditedSearchParams = {
+      ...EditedSearchParams,
+      search_text: searchParams?.search_text,
+    };
+  }
+  if (searchParams?.categories) {
+    EditedSearchParams = {
+      ...EditedSearchParams,
+      categories: searchParams?.categories,
+    };
+  }
+  if (searchParams?.brands) {
+    EditedSearchParams = {
+      ...EditedSearchParams,
+      brands: searchParams?.brands,
+    };
+  }
+  if (searchParams?.colors) {
+    EditedSearchParams = {
+      ...EditedSearchParams,
+      colors: searchParams?.colors,
+    };
+  }
+  if (searchParams?.prices) {
+    EditedSearchParams = {
+      ...EditedSearchParams,
+      prices: searchParams?.prices,
+    };
+  }
+  if (searchParams?.sizes) {
+    EditedSearchParams = {
+      ...EditedSearchParams,
+      sizes: searchParams?.sizes,
+    };
+  }
+  if (searchParams?.boutiques) {
+    EditedSearchParams = {
+      ...EditedSearchParams,
+      boutiques: searchParams?.boutiques,
+    };
+  }
   const GetProductsData = async () => {
     let response;
     try {
@@ -118,7 +135,10 @@ export default async function Page({
           noProducts: "false",
           noFilters: "false",
           offset: "false",
-          searchParams: searchParams ? JSON.stringify(searchParams) : "{}",
+          searchParams:
+            Object.keys(EditedSearchParams).length > 0
+              ? JSON.stringify(EditedSearchParams)
+              : "{}",
         }).toString()}`,
         {
           method: "GET",
@@ -194,7 +214,7 @@ export default async function Page({
     prices: filtersData?.prices?.priceRanges,
     sizes: filtersData?.attributes?.[0]?.options,
     boutiques: params.boutiqueId !== "listing" ? null : filtersData?.boutiques,
-    search_text: searchParams?.search_text || null,
+    search_text: EditedSearchParams?.search_text || null,
   };
   if (boutique === "NOT_FOUND") {
     notFound();
@@ -203,7 +223,7 @@ export default async function Page({
     <>
       <div
         className="filter-listing-bar relative flex-row align-center"
-        key={`${params.boutiqueId}-${JSON.stringify(searchParams)}`}
+        key={`${params.boutiqueId}-${JSON.stringify(EditedSearchParams)}`}
       >
         <NextLink
           data={{
@@ -219,7 +239,7 @@ export default async function Page({
         {/** TODO: classname edit when serach active w-full */}
         <div
           className={`filter-bar-options flex-row align-center ${
-            searchParams?.search_text?.length > 0 && "w-full"
+            EditedSearchParams?.search_text?.length > 0 && "w-full"
           }`}
         >
           <Suspense
@@ -231,7 +251,7 @@ export default async function Page({
           >
             <SearchBoutiquePage
               boutique={boutique}
-              search_text={searchParams?.search_text}
+              search_text={EditedSearchParams?.search_text}
             />
           </Suspense>
           <div className="filter-option">
@@ -263,7 +283,7 @@ export default async function Page({
         className={`boutique-header ${"flex-col"} align-center`}
         data-cy="boutiqueOpen"
         key={`boutique-header-${params.boutiqueId}-${JSON.stringify(
-          searchParams
+          EditedSearchParams
         )}`}
       >
         <Suspense key={params.boutiqueId} fallback={<BoutiqueHeaderSkeleton />}>
@@ -282,20 +302,20 @@ export default async function Page({
             currency={currency}
             key={`filter-list-${params.boutiqueId}`}
             params={params}
-            searchParams={searchParams}
+            searchParams={EditedSearchParams}
           />
         </Suspense>
       </div>
       <Suspense
-        key={`Suspense-product-list-${JSON.stringify(searchParams)}`}
+        key={`Suspense-product-list-${JSON.stringify(EditedSearchParams)}`}
         fallback={<ListingSkeleton forProducts={true} />}
       >
         <ProductListServer
           products={filtersData.products ?? []}
           offset={filtersData.offset}
           currency={currency}
-          key={`product-list-${JSON.stringify(searchParams)}`}
-          searchParams={searchParams}
+          key={`product-list-${JSON.stringify(EditedSearchParams)}`}
+          searchParams={EditedSearchParams}
           params={params}
         />
       </Suspense>

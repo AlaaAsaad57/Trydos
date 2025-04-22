@@ -446,7 +446,7 @@ export const useCartStore = (set, get) => ({
       localCart: state.localCart.filter((s) => s.item_id !== id),
     })),
 
-  setCartLoading: (loading) => set({ loading }),
+  setCartLoading: (loading) => set({ cart_loading: loading }),
 
   enableCart: (enable) => {
     openCart(enable);
@@ -459,8 +459,9 @@ export const useCartStore = (set, get) => ({
         ?.options[0];
       if (
         state.AddToCartOption.enable &&
-        state.SelectedProduct.id === product?.id
+        state.SelectedProduct.id === product?.temp_id
       ) {
+        console.log("product", product);
         return {
           AddToCartOption: {
             ...state.AddToCartOption,
@@ -608,8 +609,7 @@ export const useCartStore = (set, get) => ({
       AddToCartOption: {
         ...state.AddToCartOption,
         enable: false,
-        selectedSize: null,
-        selectedColor: {},
+
         quantity: 0,
         price: null,
         UID: "",

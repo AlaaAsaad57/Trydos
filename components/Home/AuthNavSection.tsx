@@ -6,16 +6,26 @@ import { getNew } from "components/Chat/chatsFunctions";
 import ChatNotification from "./ChatNotification";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import { useEffect } from "react";
 
 function AuthNavSection({ onClick }: { onClick: () => void }) {
-  const { language, user, chatVar, data: chats } = useAppStore();
+  const {
+    language,
+    userProfile,
+    user,
+    chatVar,
+    data: chats,
+    currency,
+  } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-
+  useEffect(() => {
+    console.log({ currency });
+  }, [currency]);
   return (
     <>
       {
@@ -51,12 +61,16 @@ function AuthNavSection({ onClick }: { onClick: () => void }) {
         className={`welcome-user ${language + "-medium"}`}
         style={{ marginRight: "12px", marginLeft: "0px" }}
       >
-        {translate("Hello", language)} {user?.name && <span>,</span>}{" "}
+        {translate("Hello", language)}{" "}
+        {(userProfile?.name || user?.name) && <span>,</span>}{" "}
         <span className={`${language + "-light"}`} data-cy="NavUserName">
-          {user?.name}
+          {userProfile?.name}
         </span>
       </div>
-      <UserAvatar onClick={onClick} avatar={user?.image} />
+      <UserAvatar
+        onClick={onClick}
+        avatar={userProfile?.image || userProfile?.image}
+      />
     </>
   );
 }

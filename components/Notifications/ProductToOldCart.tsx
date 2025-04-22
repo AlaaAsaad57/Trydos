@@ -10,10 +10,8 @@ function ProductToOldCart({ data }) {
   const openCart = () => {
     window.history.pushState({ isPopup: true }, "open Cart");
     enableCart(true);
-
     const newParams = new URLSearchParams(searchParams);
     newParams.set("cart", "true");
-
     // Use router.push with pathname and updated query
     // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
     router.push(`${pathname}?${newParams.toString()}`, { shallow: true });

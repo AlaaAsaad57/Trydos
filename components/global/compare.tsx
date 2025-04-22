@@ -107,7 +107,6 @@ const ComparePage: React.FC = ({
         `/api/${lang}/search?searchText=${inputValue}&noFilters=true`
     );
     const productsVarJson = await productsVar.json();
-    console.log(productsVarJson);
     return productsVarJson;
   };
   const search = async (inputValue: string) => {

@@ -25,7 +25,7 @@ function ProductListServer({
       {products.map((product, key) => {
         return (
           <div
-            className="max-h-[362px]"
+            className="max-h-[362px] relative"
             data-cy="countProduct"
             key={product.slug}
           >
@@ -174,11 +174,11 @@ function ProductListServer({
                     {currency?.symbol}
                   </span>
                 </div>
-                <Suspense fallback={<>loading</>}>
-                  <BuyButtonProduct product={product} />
-                </Suspense>
               </div>
             </NextLink>
+            <Suspense fallback={<></>}>
+              <BuyButtonProduct product={product} />
+            </Suspense>
           </div>
         );
       })}

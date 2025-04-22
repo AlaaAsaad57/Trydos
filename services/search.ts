@@ -30,37 +30,45 @@ class SearchService {
       noProducts,
       noFilters
     );
-    const searchFiltersEdit = {
-      categories: "",
-      brands: "",
-      boutiques: "",
-      search_text: "",
-    };
+    let searchFiltersEdit = {};
     if (searchFilters?.categories && searchFilters.categories.length > 0) {
-      searchFiltersEdit.categories = JSON.stringify(
-        searchFilters.categories.map((s) => s.slug)
-      );
+      searchFiltersEdit = {
+        ...searchFiltersEdit,
+        categories: JSON.stringify(searchFilters.categories.map((s) => s.slug)),
+      };
     }
     if (searchFilters?.brands && searchFilters.brands.length > 0) {
-      searchFiltersEdit.brands = JSON.stringify(
-        searchFilters.brands.map((s) => s.slug)
-      );
+      searchFiltersEdit = {
+        ...searchFiltersEdit,
+        brands: JSON.stringify(searchFilters.brands.map((s) => s.slug)),
+      };
     }
     if (searchFilters?.boutiques && searchFilters.boutiques.length > 0) {
-      searchFiltersEdit.boutiques = JSON.stringify(
-        searchFilters.boutiques.map((s) => s.slug)
-      );
+      searchFiltersEdit = {
+        ...searchFiltersEdit,
+        boutiques: JSON.stringify(searchFilters.boutiques.map((s) => s.slug)),
+      };
     }
-    if (value?.length >= 0) {
-      searchFiltersEdit.search_text = value;
+    if (value?.length > 0) {
+      searchFiltersEdit = {
+        ...searchFiltersEdit,
+        search_text: value,
+      };
     }
 
     ("use server");
+    let requestSearchParams = new URLSearchParams();
+    let requestSearchParamsString = "";
+    if (Object.keys(searchFiltersEdit).length > 0) {
+      requestSearchParams.set(
+        "searchParams",
+        JSON.stringify(searchFiltersEdit)
+      );
+      requestSearchParamsString = `&${requestSearchParams.toString()}`;
+    }
     const filtersResponseJson = await fetch(
       process.env.NEXT_PUBLIC_API_BASE_URL +
-        `/api/${lang}/search?${params.toString()}&${new URLSearchParams({
-          searchParams: JSON.stringify(searchFiltersEdit),
-        }).toString()}`
+        `/api/${lang}/search?${params.toString()}${requestSearchParamsString}`
     );
 
     const filtersResponse = await filtersResponseJson.json();
@@ -431,19 +439,25 @@ class SearchService {
     if (searchFilters.categories.length > 0) {
       params.set(
         "categories",
-        JSON.stringify(searchFilters.categories.map((s) => s.slug))
+        encodeURIComponent(
+          JSON.stringify(searchFilters.categories.map((s) => s.slug))
+        )
       );
     }
     if (searchFilters.brands.length > 0) {
       params.set(
         "brands",
-        JSON.stringify(searchFilters.brands.map((s) => s.slug))
+        encodeURIComponent(
+          JSON.stringify(searchFilters.brands.map((s) => s.slug))
+        )
       );
     }
     if (searchFilters.boutiques.length > 0) {
       params.set(
         "boutiques",
-        JSON.stringify(searchFilters.boutiques.map((s) => s.slug))
+        encodeURIComponent(
+          JSON.stringify(searchFilters.boutiques.map((s) => s.slug))
+        )
       );
     }
     if (value?.length > 0) {

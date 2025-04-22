@@ -55,7 +55,7 @@ const getProductSimpleDetails = async ({
       }
     );
     let data = await response.json();
-    console.log(data, "getProductSimpleDetails");
+
     return data;
   } catch (error) {
     console.log(error, "getProductSimpleDetails", response);
@@ -95,7 +95,7 @@ const getProductExtendedDetails = async ({
       }
     );
     let data = await response.json();
-    console.log(data, "getProductSimpleDetails");
+
     return data;
   } catch (error) {
     console.log(error, "getProductExtendedDetails", response);

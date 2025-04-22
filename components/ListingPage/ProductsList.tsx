@@ -94,7 +94,7 @@ function ProductsInfiniteScroll({
     <>
       {products?.map((product, key) => (
         <div
-          className="max-h-[362px]"
+          className="max-h-[362px] relative"
           data-cy="countProduct"
           key={product.slug}
         >
@@ -233,10 +233,9 @@ function ProductsInfiniteScroll({
                   {currency?.symbol}
                 </span>
               </div>
-
-              <BuyButtonProduct product={product} />
             </div>
           </NextLink>
+          <BuyButtonProduct product={product} />
         </div>
       ))}
 

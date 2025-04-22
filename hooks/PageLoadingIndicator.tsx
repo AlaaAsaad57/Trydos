@@ -6,7 +6,10 @@ import HomeLoader from "components/skeleton/loaders/HomeLoader";
 import ProductLoader from "components/skeleton/loaders/ProductLoader";
 
 import { type ReactNode, useEffect, useState } from "react";
-import { registerRouteChangeListener } from "utils/events";
+import {
+  dispatchRouteChangeEvent,
+  registerRouteChangeListener,
+} from "utils/events";
 
 export default function PageLoadingIndicator() {
   const [isLoading, setIsLoading] = useState(null);
@@ -17,7 +20,11 @@ export default function PageLoadingIndicator() {
       document.documentElement.style.overflow = "hidden";
       document.body.scrollTop = 0;
 
-      setIsLoading(data);
+      if (data) {
+        setIsLoading(data);
+      } else {
+        dispatchRouteChangeEvent("completed");
+      }
     });
 
     registerRouteChangeListener("completed", () => {
@@ -46,7 +53,7 @@ export default function PageLoadingIndicator() {
           style={{
             zIndex: "99999999999999",
           }}
-          className="fixed bg-[#fafafa] h-screen    w-screen overflow-hidden rounded-full bg-gradient-to-r from-primary to-orange-300"
+          className="fixed bg-[#fafafa] h-screen    w-screen overflow-hidden rounded-full"
         >
           <HomeLoader />
         </div>
