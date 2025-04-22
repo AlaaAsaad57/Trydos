@@ -73,7 +73,7 @@ export const BuyButtonProduct = ({ product }) => {
     />
   );
 };
-export const ProductPhotosSlider = ({ product, priority }) => {
+export function ProductPhotosSlider({ product, priority }) {
   const [productState, dispatch] = useReducer(ProductReducer, {
     isActiveTopSlide: false,
     activeColor:
@@ -224,5 +224,4 @@ export const ProductPhotosSlider = ({ product, priority }) => {
       </div>
     </>
   );
-};
-export const ProductCardFooter = () => {};
+}

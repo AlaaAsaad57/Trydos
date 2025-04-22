@@ -70,6 +70,7 @@ function ExtendedAreaInfo({
         style={{
           animationFillMode: "forwards",
           width: "100%",
+          zIndex: "99999999999999",
         }}
         unmountAnim={unmountAnim}
       >

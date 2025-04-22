@@ -9,6 +9,7 @@ import React, { Suspense } from "react";
 import { translateFunction } from "utils/functions";
 import ProductsInfiniteScroll from "components/ListingPage/ProductsList";
 import NextLink from "components/global/NextLink";
+import { getPrice } from "utils/tinyUtils";
 function ProductListServer({
   params,
   searchParams,
@@ -16,29 +17,6 @@ function ProductListServer({
   currency,
   offset,
 }) {
-  const getPrice = (num) => {
-    let rateVariable = currency?.exchange_rate;
-    let price = parseFloat(num);
-    price = parseFloat((price * rateVariable).toFixed(0));
-    let ceil = 2;
-    if (price >= 1000000) {
-      return (
-        (ceil
-          ? Math.ceil(parseFloat((price / 1000000).toFixed(3)) * ceil) / ceil
-          : parseFloat((price / 1000000).toFixed(3))) +
-        translateFunction("M", params.lang.split("-")[1])
-      ); // For millions
-    } else if (price >= 1000) {
-      return (
-        (ceil
-          ? Math.ceil(parseFloat((price / 1000).toFixed(3)) * ceil) / ceil
-          : parseFloat((price / 1000).toFixed(3))) +
-        translateFunction("K", params.lang.split("-")[1])
-      ); // For thousands
-    } else {
-      return price; // For prices under 1000
-    }
-  };
   return (
     <div
       className={"listing-container relative flex pb-[350px] max-w-[1310px]"}
@@ -161,7 +139,11 @@ function ProductListServer({
                 >
                   {product?.offer_price >= 0 && (
                     <span className="old-price relative f-12 color-dark-gray light-text">
-                      {getPrice(product.price)}
+                      {getPrice(
+                        product.price,
+                        params.lang.split("-")[1],
+                        currency
+                      )}
                       <svg
                         className="absolute w-100"
                         xmlns="http://www.w3.org/2000/svg"
@@ -182,7 +164,11 @@ function ProductListServer({
                   )}
                   <span className="new-price bold-text color-dark-gray flex f-12">
                     {product?.offer_price >= 0 &&
-                      getPrice(product?.offer_price)}
+                      getPrice(
+                        product?.offer_price,
+                        params.lang.split("-")[1],
+                        currency
+                      )}
                   </span>
                   <span className="currency-label light-text color-dark-gray flex f-10">
                     {currency?.symbol}

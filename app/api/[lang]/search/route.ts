@@ -2,18 +2,21 @@
 
 import { NextRequest } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { lang: string } }
+) {
   const { searchParams } = req.nextUrl;
+  const [country, lang] = params.lang.split("-");
 
   const noProducts = searchParams.get("noProducts") ?? "false";
   const noFilters = searchParams.get("noFilters") ?? "false";
-  const country = searchParams.get("country") ?? "tr";
-  const lang = searchParams.get("lang") ?? "en";
+
   const offset = searchParams.get("offset") ?? "false";
   const boutiqueId = searchParams.get("boutiqueId") ?? "listing";
   const searchParamsVar = JSON.parse(searchParams.get("searchParams")) ?? {};
 
-  let params = configureSearchParams({
+  let configuredparams = configureSearchParams({
     searchParams: searchParamsVar,
     noProducts,
     noFilters,
@@ -21,7 +24,7 @@ export async function GET(req: NextRequest) {
     offset,
     boutiqueId,
   });
-  let configured_url = `/api/products/searchInCatalog?${params.toString()}`;
+  let configured_url = `/api/products/searchInCatalog?${configuredparams.toString()}`;
   let response = await fetch(
     process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + configured_url,
     {

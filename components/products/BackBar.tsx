@@ -17,9 +17,6 @@ function BackBar({
   link: any;
   data?: any;
 }) {
-  useEffect(() => {
-    LogData(data);
-  }, []);
   const router = useRouter();
   const { activeRoute } = useAppStore();
   const { lang } = useParams();

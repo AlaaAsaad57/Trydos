@@ -10,7 +10,7 @@ function ProductDetailsText({
   product,
 }: {
   details: string;
-  product: ProductInterface;
+  product: ProductInterface["sync_color_images"];
 }) {
   const { setActiveColorDetails } = useAppStore();
   const { lang } = useParams();
@@ -28,14 +28,12 @@ function ProductDetailsText({
   useEffect(() => {
     const color = searchParams.get("color");
     if (color) {
-      const selectedColor = product.sync_color_images?.find(
-        (s) => s.color_name === color
-      );
+      const selectedColor = product?.find((s) => s.color_name === color);
       if (selectedColor) {
         setActiveColorDetails(selectedColor);
       }
     }
-  }, [searchParams, product.sync_color_images]);
+  }, [searchParams, product]);
 
   const toggleText = () => {
     const newShowState = !show;

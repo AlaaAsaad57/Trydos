@@ -61,7 +61,7 @@ function ProuctDetailsBody({ product, lang }) {
 
         <ProductDetailsText product={product} details={product.details} />
         <ProductProperties lang={lang} />
-        <ProductDescriptors descriptors={product.descriptors} />
+
         <ProductColors
           colors={product.sync_color_images || []}
           ProductColorsArray={product.colors}

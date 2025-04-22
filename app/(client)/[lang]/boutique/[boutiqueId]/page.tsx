@@ -107,15 +107,14 @@ export default async function Page({
   searchParams: any;
 }) {
   const GetProductsData = async () => {
+    let response;
     try {
-      let response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_BASE_URL
-        }/api/search?${new URLSearchParams({
+      response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${
+          params.lang
+        }/search?${new URLSearchParams({
           boutiqueId:
             params.boutiqueId === "listing" ? null : params.boutiqueId,
-          lang: params.lang?.split("-")[1],
-          country: params.lang?.split("-")[0],
           noProducts: "false",
           noFilters: "false",
           offset: "false",
@@ -131,19 +130,15 @@ export default async function Page({
       let data = await response.json();
       return data.data;
     } catch (error) {
-      console.log(error);
+      console.log(error, "getProductsData", response);
       return {};
     }
   };
   const GetCurrencyData = async () => {
+    let response;
     try {
-      let response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_BASE_URL
-        }/api/currency?${new URLSearchParams({
-          country: params.lang.split("-")[0],
-          lang: params.lang.split("-")[1],
-        }).toString()}`,
+      response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/currency`,
         {
           method: "GET",
           next: {
@@ -154,11 +149,12 @@ export default async function Page({
       let data = await response.json();
       return data.data.currency;
     } catch (error) {
-      console.log(error);
+      console.log(error, "getCurrencyData", response);
       return {};
     }
   };
   const GetBoutiqueData = async () => {
+    let response;
     try {
       if (params.boutiqueId === "listing") {
         return {
@@ -168,7 +164,7 @@ export default async function Page({
         };
       }
       let response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/boutiques/${params.boutiqueId}`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/boutiques/${params.boutiqueId}`,
         {
           method: "GET",
           next: {
@@ -182,7 +178,7 @@ export default async function Page({
       }
       return data.data;
     } catch (error) {
-      console.log(error);
+      console.log(error, "getBoutiqueData", response);
       return "NOT_FOUND";
     }
   };

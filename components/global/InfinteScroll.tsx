@@ -36,7 +36,7 @@ function InfinteScroll({ offsetVariable }) {
     if (!loading && !isEnd) {
       setLoading(true);
       let res = await fetch(
-        `/api/boutiques?lang=${params.lang}&offset=${offset}${
+        `/api/${params.lang}/boutiques?offset=${offset}${
           params.mainCategory?.length > 0 ? `&str=${params.mainCategory}` : ""
         }`,
         {

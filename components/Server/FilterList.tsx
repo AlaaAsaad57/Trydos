@@ -5,6 +5,7 @@ import Search from "public/svg/SearchIcon.svg";
 import NextLink from "components/global/NextLink";
 import { translateFunction } from "utils/functions";
 import dynamic from "next/dynamic";
+import { getPrice } from "utils/tinyUtils";
 
 const SwitchFiltersButton = dynamic(
   () => import("components/filterPage/SwitchFiltersButton"),
@@ -486,29 +487,6 @@ const FilterItem = ({
   params,
   boutique,
 }) => {
-  const getPrice = (num) => {
-    let rateVariable = currency?.exchange_rate;
-    let price = parseFloat(num);
-    price = parseFloat((price * rateVariable).toFixed(0));
-    let ceil = 2;
-    if (price >= 1000000) {
-      return (
-        (ceil
-          ? Math.ceil(parseFloat((price / 1000000).toFixed(3)) * ceil) / ceil
-          : parseFloat((price / 1000000).toFixed(3))) +
-        translateFunction("M", params.lang.split("-")[1])
-      ); // For millions
-    } else if (price >= 1000) {
-      return (
-        (ceil
-          ? Math.ceil(parseFloat((price / 1000).toFixed(3)) * ceil) / ceil
-          : parseFloat((price / 1000).toFixed(3))) +
-        translateFunction("K", params.lang.split("-")[1])
-      ); // For thousands
-    } else {
-      return price; // For prices under 1000
-    }
-  };
   if (term === "categories") {
     const { href, isFiltered } = getFilterStateForItem(
       searchParams,
@@ -798,9 +776,15 @@ const FilterItem = ({
               minWidth: "140px",
             }}
           >
-            {` ${currency.symbol} ${getPrice(item.min_price)} - ${
-              currency.symbol
-            } ${getPrice(item.max_price)}`}
+            {` ${currency.symbol} ${getPrice(
+              item.min_price,
+              params.lang.split("-")[1],
+              currency
+            )} - ${currency.symbol} ${getPrice(
+              item.max_price,
+              params.lang.split("-")[1],
+              currency
+            )}`}
           </div>
         </div>
         <div className="category-text-container flex-col align-center">

@@ -1,24 +1,19 @@
-// app/api/products/[slug]/route.ts
-
 import { NextRequest } from "next/server";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: { lang: string; slug: string } }
 ) {
   const { slug } = params;
-  const { searchParams } = req.nextUrl;
-  const lang = searchParams.get("lang") ?? "en";
-  const country = searchParams.get("country") ?? "tr";
-
+  const [country, language] = params.lang.split("-");
   // You can use the slug to fetch or filter data
   const boutique = await fetch(
     process.env.NEXT_PUBLIC_BACKEND_URL +
-      `/web/boutique/simpleDetails/${slug}?lang=${lang}&country=${country}`,
+      `/web/boutique/simpleDetails/${slug}?lang=${language}&country=${country}`,
     {
       method: "GET",
       headers: new Headers({
-        lang: lang,
+        lang: language,
         country: country,
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",

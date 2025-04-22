@@ -82,7 +82,7 @@ function ProductFooterSection({ product, currency }) {
     settings,
   } = useAppStore();
   let { lang } = useParams();
-  console.log(currency, settings);
+
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
@@ -210,16 +210,6 @@ function ProductFooterSection({ product, currency }) {
     disableAddToCartOption();
   }, []);
 
-  const getPrice = (num) => {
-    if (currency?.exchange_rate === null || !currency?.exchange_rate)
-      return null;
-    if (settings && Object.keys(settings).includes("starting-setting"))
-      return RoundPrice({
-        num: num,
-        rate: currency?.exchange_rate,
-        points: settings["starting-setting"]?.decimal_point_settings || 0,
-      });
-  };
   const shareAction = () => {
     if (sharedContacts.length > 0) {
       const messageShare = {
@@ -254,9 +244,8 @@ function ProductFooterSection({ product, currency }) {
     <>
       {option === "AddToCart" && <SelectColor close={() => setOption("")} />}
       {!loginOpen && (
-        <div className="product-details-footer z-[999999999]">
-          <ProductDetails />
-          <ProductInfo
+        <>
+          {/* <ProductInfo
             shipping={product?.shipping_cost || 0}
             currency={currency?.symbol}
             newPrice={
@@ -269,7 +258,7 @@ function ProductFooterSection({ product, currency }) {
                 ? getPrice(AddToCartOption?.price?.price)
                 : getPrice(product.price)
             }
-          />
+          /> */}
           {
             <ExtendedAreaInfo
               loading={loading}
@@ -327,7 +316,7 @@ function ProductFooterSection({ product, currency }) {
               else setOption(e);
             }}
           />
-        </div>
+        </>
       )}
     </>
   );

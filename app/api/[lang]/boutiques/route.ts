@@ -3,12 +3,14 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { fetchWithRetry } from "utils/functions";
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { lang: string } }
+) {
   const { searchParams } = new URL(request.url);
   let str = searchParams.get("str") ?? "";
   let offset = searchParams.get("offset") ?? 0;
-  let lang = searchParams.get("lang") ?? "tr-en";
-  let [country, language] = lang?.split("-");
+  let [country, language] = params.lang?.split("-");
   let BOUTIQUE_URL =
     "/api/home/boutiques" +
     (str?.length > 0
