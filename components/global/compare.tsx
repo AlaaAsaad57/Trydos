@@ -100,12 +100,19 @@ const ComparePage: React.FC = ({
   };
 
   const [searchLoading, setSearchLoading] = useState(false);
+  const searchFunction = async (inputValue: string) => {
+    setSearchLoading(true);
+    const productsVar = await fetch(
+      process.env.NEXT_PUBLIC_API_BASE_URL +
+        `/api/${lang}/search?searchText=${inputValue}&noFilters=true`
+    );
+    const productsVarJson = await productsVar.json();
+    console.log(productsVarJson);
+    return productsVarJson;
+  };
   const search = async (inputValue: string) => {
     setSearchLoading(true);
-    const productsVar = await SearchService.searchProducts({
-      searchText: inputValue,
-    });
-
+    const productsVar = await searchFunction(inputValue);
     setProducts(
       productsVar?.map((p) => ({
         label: p.name,

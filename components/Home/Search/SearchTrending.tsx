@@ -4,16 +4,16 @@ import SearchMiniIcon from "public/svg/SearchMiniIcon.svg";
 
 import home from "services/home";
 import { useAppStore } from "store";
+import search from "services/search";
+import { useParams } from "next/navigation";
 
 function SearchTrending() {
   const {
-    editFilterSearch,
     setSearchPartialLoading,
     findProducts,
     setSearchLoading,
     setSearchWord,
     trending,
-    searchFilters,
   } = useAppStore();
   const [openMenu, setOpen] = useState(false);
   useEffect(() => {
@@ -49,9 +49,7 @@ function SearchTrending() {
     }
   }, []);
 
-  const setLoading = (e) => {
-    setSearchPartialLoading(e);
-  };
+  const { lang } = useParams();
 
   return (
     <div
@@ -79,19 +77,9 @@ function SearchTrending() {
                 setSearchWord(s.term);
                 setSearchPartialLoading(true);
                 setSearchLoading(true);
-                home.UpdateFilters({
-                  search_text: s.term || "",
-                  callback: (e) => {
-                    setLoading(false);
-                    editFilterSearch(e);
-                  },
-                });
-                home.SearchProducts({
-                  search_text: s.term,
-                  searchFilters: searchFilters,
-                  callback: (e) => {
-                    findProducts(e);
-                  },
+                search.getSearchOptions({
+                  noProducts: false,
+                  lang: lang,
                 });
               }}
             >
@@ -114,23 +102,13 @@ function SearchTrending() {
         <span
           className="clear-options-button"
           onClick={(e) => {
-            setLoading(true);
+            setSearchLoading(true);
+            setSearchPartialLoading(true);
             setSearchWord("");
-
             findProducts([]);
-            home.UpdateFilters({
-              search_text: "",
-              callback: (e) => {
-                setLoading(false);
-                editFilterSearch(e);
-              },
-            });
-            home.SearchProducts({
-              search_text: "",
-              searchFilters: searchFilters,
-              callback: (e) => {
-                findProducts(e);
-              },
+            search.getSearchOptions({
+              noProducts: true,
+              lang: lang,
             });
           }}
         >
@@ -147,20 +125,6 @@ function SearchTrending() {
                 setSearchWord(s.term);
                 setSearchPartialLoading(true);
                 setSearchLoading(true);
-                home.UpdateFilters({
-                  search_text: s.term || "",
-                  callback: (e) => {
-                    setLoading(false);
-                    editFilterSearch(e);
-                  },
-                });
-                home.SearchProducts({
-                  search_text: s.term,
-                  searchFilters: searchFilters,
-                  callback: (e) => {
-                    findProducts(e);
-                  },
-                });
               }}
             >
               {s.term}{" "}

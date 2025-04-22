@@ -35,6 +35,7 @@ function InfinteScroll({ offsetVariable }) {
   const getNextBoutique = async () => {
     if (!loading && !isEnd) {
       setLoading(true);
+      ("use server");
       let res = await fetch(
         `/api/${params.lang}/boutiques?offset=${offset}${
           params.mainCategory?.length > 0 ? `&str=${params.mainCategory}` : ""
@@ -43,6 +44,9 @@ function InfinteScroll({ offsetVariable }) {
           headers: {
             lang: lang.split("-")[1],
             country: lang.split("-")[0],
+          },
+          next: {
+            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
           },
         }
       );

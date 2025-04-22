@@ -9,6 +9,8 @@ interface SearchResults {
   brands: any[];
   categories: any[];
   boutiques: any[];
+  colors: any[];
+  sizes: any[];
 }
 
 interface SearchState {
@@ -33,6 +35,8 @@ const initialState: SearchState = {
     brands: [],
     categories: [],
     boutiques: [],
+    colors: [],
+    sizes: [],
   },
   enable_search: false,
   searchFilters: { categories: [], brands: [], boutiques: [] },
@@ -136,13 +140,11 @@ export const useSearchStore = (set, get) => ({
       totalProducts: null,
     })),
 
-  editFilterSearch: (payload: { total_size: number; [key: string]: any }) =>
+  setTotalSizeOfProducts: (payload: {
+    total_size: number;
+    [key: string]: any;
+  }) =>
     set((state) => ({
-      loading_search: false,
-      searchResults: {
-        ...state.searchResults,
-        ...payload,
-      },
       totalProducts: payload.total_size,
     })),
 });

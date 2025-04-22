@@ -1,17 +1,12 @@
 import React, { useEffect, useState } from "react";
 import SearchHistoryIcon from "public/svg/SearchHistoryIcon.svg";
 import CloseIconOption from "public/svg/CloseIconOption.svg";
-import home from "services/home";
 import { useAppStore } from "store";
+import search from "services/search";
+import { useParams } from "next/navigation";
 
 function SearchHistory({ options, setOptions, deleteOption }) {
-  const {
-    editFilterSearch,
-    setSearchPartialLoading,
-    findProducts,
-    setSearchLoading,
-    searchFilters,
-  } = useAppStore();
+  const { setSearchPartialLoading, setSearchLoading } = useAppStore();
   const [openMenu, setOpen] = useState(false);
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -46,10 +41,7 @@ function SearchHistory({ options, setOptions, deleteOption }) {
     }
   }, []);
 
-  const setLoading = (e) => {
-    setSearchPartialLoading(e);
-  };
-
+  const { lang } = useParams();
   return (
     <div
       className={` ${
@@ -83,21 +75,11 @@ function SearchHistory({ options, setOptions, deleteOption }) {
                     if (!e.target.closest(".close-icon-container")) {
                       setSearchPartialLoading(true);
                       setSearchLoading(true);
-                      home.UpdateFilters({
-                        search_text: s || "",
-                        callback: (e) => {
-                          setLoading(false);
-                          editFilterSearch(e);
-                        },
-                      });
-                      home.SearchProducts({
-                        search_text: s,
-                        searchFilters: searchFilters,
-                        callback: (e) => {
-                          findProducts(e);
-                        },
-                      });
                       setOptions(s);
+                      search.getSearchOptions({
+                        noProducts: false,
+                        lang: lang,
+                      });
                     }
                   }}
                 >
@@ -149,20 +131,6 @@ function SearchHistory({ options, setOptions, deleteOption }) {
                 if (!e.target.closest(".close-icon-container")) {
                   setSearchPartialLoading(true);
                   setSearchLoading(true);
-                  home.UpdateFilters({
-                    search_text: s || "",
-                    callback: (e) => {
-                      setLoading(false);
-                      editFilterSearch(e);
-                    },
-                  });
-                  home.SearchProducts({
-                    search_text: s,
-                    searchFilters: searchFilters,
-                    callback: (e) => {
-                      findProducts(e);
-                    },
-                  });
                   setOptions(s);
                 }
               }}

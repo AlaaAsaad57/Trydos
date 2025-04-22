@@ -6,6 +6,7 @@ import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import search from "services/search";
 
 function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
   const { language } = useAppStore();
@@ -23,7 +24,10 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
     let image_result = await fileToGenerativePart(file);
     const result = await model
       .generateContent([
-        translate("in one word what is in this photo?", language),
+        translate(
+          "describe the product in the image with 6 words max like: T-shirt black xxl size",
+          language
+        ),
         image_result,
       ])
       .catch((e) => {
@@ -34,6 +38,10 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
     const text = response.text();
     setSearchValue(text);
     setLoading(false);
+    search.getSearchOptions({
+      noProducts: false,
+      lang: lang,
+    });
   };
   async function fileToGenerativePart(file) {
     const base64EncodedDataPromise = new Promise((resolve) => {

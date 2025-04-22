@@ -6,10 +6,13 @@ import SearchComponent from "../SearchComponent";
 
 import { normalizeView, Sendevent } from "utils/functions";
 import { useAppStore } from "store";
+import { useParams } from "next/navigation";
+import search from "services/search";
 
 function SearchIcon() {
-  const { setEnableSearch, enable_search } = useAppStore();
-
+  const { setEnableSearch, enable_search, setSearchLoading, loading_search } =
+    useAppStore();
+  const { lang } = useParams();
   const [focuse, setFocus] = useState(false);
   const [rendered, setRendered] = useState(false);
 
@@ -28,6 +31,12 @@ function SearchIcon() {
       setRendered(true);
     }, 2000);
   }, []);
+  useEffect(() => {
+    if (enable_search) {
+      search.getSearchOptions({ noProducts: true, lang: lang });
+    }
+  }, [enable_search]);
+
   return (
     <>
       {rendered && (

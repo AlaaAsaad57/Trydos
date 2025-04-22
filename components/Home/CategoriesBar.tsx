@@ -1,6 +1,5 @@
 import { useState } from "react";
 import "styles/skeleton.css";
-import { Category } from "models/Category";
 import CategoryNavItem from "./CategoryNavItem";
 import SearchIcon from "./Search/SearchIcon";
 import { useParams } from "next/navigation";

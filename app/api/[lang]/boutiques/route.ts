@@ -27,6 +27,7 @@ export async function GET(
       headers: new Headers({
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        "Cache-Control": "no-cache",
         lang:
           (language.length && language) ??
           cookies().get("language")?.value ??
@@ -39,5 +40,9 @@ export async function GET(
     },
     "Next Boutique Request"
   );
-  return NextResponse.json(boutiques_response);
+  return NextResponse.json(boutiques_response, {
+    headers: {
+      "Cache-Control": `public, s-maxage=${process.env.NEXT_PUBLIC_REVALIDATE}`,
+    },
+  });
 }

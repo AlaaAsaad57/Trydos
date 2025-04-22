@@ -13,33 +13,89 @@ class SearchService {
     const { setTrendingSearch } = useAppStore.getState();
     setTrendingSearch(data);
   }
-  async searchProducts({ searchText }) {
-    let product: FilterProductApi["data"] = await AxiosGet({
-      url:
-        process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        `/api/products/searchInCatalog?limit=4&search_text=${searchText}`,
-      title: "Search Products",
-    });
-    console.log(product);
-    return product.products;
-  }
-  async getSearchOptions() {
-    let categories: FilterProductApi["data"] = await AxiosGet({
-      url:
-        process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        "/api/products/searchInCatalog?with_products=false",
-      title: "get Search Filter Options Request",
-    });
 
-    return [
-      {
-        categories: categories?.categories ?? [],
-        brands: categories?.brands ?? [],
-        boutiques: categories?.boutiques ?? [],
-        colors: categories.colors ?? [],
-      },
-      {},
-    ];
+  async getSearchOptions({ noProducts = false, lang, noFilters = false }) {
+    const {
+      setSearchLoading,
+      setSearchResults,
+      searchFilters,
+      value,
+      setSearchPartialLoading,
+      setTotalSizeOfProducts,
+    } = useAppStore.getState();
+    setSearchPartialLoading(true);
+    setSearchLoading(true);
+    let params = this.getSearchParamsFromObj(
+      searchFilters,
+      noProducts,
+      noFilters
+    );
+    const searchFiltersEdit = {
+      categories: "",
+      brands: "",
+      boutiques: "",
+      search_text: "",
+    };
+    if (searchFilters?.categories && searchFilters.categories.length > 0) {
+      searchFiltersEdit.categories = JSON.stringify(
+        searchFilters.categories.map((s) => s.slug)
+      );
+    }
+    if (searchFilters?.brands && searchFilters.brands.length > 0) {
+      searchFiltersEdit.brands = JSON.stringify(
+        searchFilters.brands.map((s) => s.slug)
+      );
+    }
+    if (searchFilters?.boutiques && searchFilters.boutiques.length > 0) {
+      searchFiltersEdit.boutiques = JSON.stringify(
+        searchFilters.boutiques.map((s) => s.slug)
+      );
+    }
+    if (value?.length >= 0) {
+      searchFiltersEdit.search_text = value;
+    }
+
+    ("use server");
+    const filtersResponseJson = await fetch(
+      process.env.NEXT_PUBLIC_API_BASE_URL +
+        `/api/${lang}/search?${params.toString()}&${new URLSearchParams({
+          searchParams: JSON.stringify(searchFiltersEdit),
+        }).toString()}`
+    );
+
+    const filtersResponse = await filtersResponseJson.json();
+    const {
+      products,
+      categories,
+      brands,
+      boutiques,
+      colors,
+      attributes: attributes,
+      total_size,
+    } = filtersResponse.data;
+    setTotalSizeOfProducts({ total_size });
+    setSearchLoading(false);
+    setSearchPartialLoading(false);
+    setSearchResults({
+      products,
+      categories,
+      brands,
+      boutiques,
+      colors,
+      sizes: attributes?.[0]?.options,
+    });
+    return filtersResponse;
+  }
+  getSearchParamsFromObj(obj, noProducts, noFilters) {
+    let params = new URLSearchParams();
+
+    if (noProducts) {
+      params.set("noProducts", "true");
+    }
+    if (noFilters) {
+      params.set("noFilters", "true");
+    }
+    return params;
   }
   ProcessSearchInput(str: string): {
     str: string;
@@ -365,6 +421,35 @@ class SearchService {
       ...result,
       str: result.str.join(" "),
     };
+  }
+  getSearchPageUrl() {
+    let { searchFilters, value } = useAppStore.getState();
+    if (searchFilters.categories.length > 0) {
+    }
+    let url = "/boutique/listing";
+    let params = new URLSearchParams();
+    if (searchFilters.categories.length > 0) {
+      params.set(
+        "categories",
+        JSON.stringify(searchFilters.categories.map((s) => s.slug))
+      );
+    }
+    if (searchFilters.brands.length > 0) {
+      params.set(
+        "brands",
+        JSON.stringify(searchFilters.brands.map((s) => s.slug))
+      );
+    }
+    if (searchFilters.boutiques.length > 0) {
+      params.set(
+        "boutiques",
+        JSON.stringify(searchFilters.boutiques.map((s) => s.slug))
+      );
+    }
+    if (value?.length > 0) {
+      params.set("search_text", value);
+    }
+    return url + "?" + params.toString();
   }
 }
 export default new SearchService();

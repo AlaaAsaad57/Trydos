@@ -1,6 +1,7 @@
 // app/api/products/route.ts
 
 import { NextRequest } from "next/server";
+import { configureSearchParams } from "utils/tinyUtils";
 
 export async function GET(
   req: NextRequest,
@@ -15,7 +16,7 @@ export async function GET(
   const offset = searchParams.get("offset") ?? "false";
   const boutiqueId = searchParams.get("boutiqueId") ?? "listing";
   const searchParamsVar = JSON.parse(searchParams.get("searchParams")) ?? {};
-
+  console.log(searchParamsVar);
   let configuredparams = configureSearchParams({
     searchParams: searchParamsVar,
     noProducts,
@@ -71,65 +72,3 @@ export async function GET(
 }
 
 // Mock function for demo
-
-const configureSearchParams = ({
-  searchParams,
-  noFilters,
-  noProducts,
-  lang,
-  offset,
-  boutiqueId,
-}): URLSearchParams => {
-  let params = new URLSearchParams();
-  params.set("lang", lang);
-  params.set("limit", "8");
-  if (offset && offset !== "false") {
-    params.set("offset", `[${offset}]`);
-  }
-  if (noProducts && noProducts !== "false") {
-    params.set("with_products", "false");
-  }
-  if (noFilters && noFilters !== "false") {
-    params.set("with_filters", "false");
-  }
-  if (searchParams.search_text) {
-    params.set("search_text", searchParams.search_text);
-  }
-  if (searchParams.categories) {
-    params.set("category_slugs", decodeURIComponent(searchParams.categories));
-  }
-  if (searchParams.prices) {
-    params.set("price", decodeURIComponent(searchParams.prices));
-  }
-  if (searchParams.sizes) {
-    params.set(
-      "attributes",
-      JSON.stringify([
-        {
-          id: 1,
-          options: JSON.parse(decodeURIComponent(searchParams.sizes)),
-          name: "Size",
-        },
-      ])
-    );
-  }
-  if (searchParams.colors) {
-    params.set("colors", decodeURIComponent(searchParams.colors));
-  }
-  if (searchParams.brands) {
-    params.set("brand_slugs", decodeURI(searchParams.brands));
-  }
-  if (searchParams.boutiques && searchParams.boutiques !== "null") {
-    params.set("boutique_slugs", decodeURI(searchParams.boutiques));
-  }
-  if (boutiqueId && boutiqueId !== "listing" && boutiqueId !== "null") {
-    params.set("boutique_slugs", `["${boutiqueId}"]`);
-  }
-
-  // console.log(
-  //   `params: ${decodeURIComponent(params.toString())} ${JSON.stringify(
-  //     searchParams
-  //   )}`
-  // );
-  return params;
-};

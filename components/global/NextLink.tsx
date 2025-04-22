@@ -1,9 +1,9 @@
 "use client";
 import Link from "next/link";
-import React, { ComponentProps, MouseEventHandler, Suspense } from "react";
-import PrefetchLinkUtil from "./PrefetchLinkUtil";
+import React, { ComponentProps, MouseEventHandler } from "react";
 import { usePathname } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
+import { useAppStore } from "store";
 
 export interface INextLinkProps
   extends Omit<ComponentProps<typeof Link>, "href"> {
@@ -21,7 +21,7 @@ export default function NextLink({
   ...props
 }: INextLinkProps) {
   const pathname = usePathname();
-
+  const { setEnableSearch, setFilterEnabled } = useAppStore();
   const handleClick: MouseEventHandler<HTMLAnchorElement> = (e) => {
     onClick?.(e);
 
@@ -32,6 +32,10 @@ export default function NextLink({
       dispatchRouteChangeEvent("start", {
         ...data,
       });
+      if (data.is_home || data.is_full_home) {
+        setEnableSearch(false);
+        setFilterEnabled(false);
+      }
     }
   };
   return (

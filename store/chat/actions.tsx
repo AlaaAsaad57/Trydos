@@ -363,7 +363,7 @@ export async function getPage(channel, mid) {
   } catch (e) {}
 }
 export async function SearchContact(payload) {
-  const { setSearchResults } = useAppStore.getState();
+  const { setChatSearchResults } = useAppStore.getState();
   let axios = (await import("axios")).default;
   try {
     const AxiosInstance = axios.create({
@@ -382,7 +382,7 @@ export async function SearchContact(payload) {
     });
     if (payload?.length > 0) {
       let res = await AxiosInstance.get(SEARCH_CONTACTS_URL + payload);
-      setSearchResults(res.data.data);
+      setChatSearchResults(res.data.data);
     }
   } catch (e) {}
 }

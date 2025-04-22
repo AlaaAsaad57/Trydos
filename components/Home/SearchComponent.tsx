@@ -31,7 +31,6 @@ function SearchComponent({
   setFocuse,
 }: SearchComponentProps) {
   const {
-    editFilterSearch,
     setSearchPartialLoading,
     findProducts,
     setSearchLoading,
@@ -42,21 +41,12 @@ function SearchComponent({
   } = useAppStore();
 
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
-    console.log(SearchService.ProcessSearchInput(e.target.value));
-    if (e.target.value.length === 0) {
-      e.preventDefault();
-    }
-
     setSearchWord(e.target.value);
-    setSearchPartialLoading(true);
-    setSearchLoading(true);
-    home.UpdateFilters({
-      search_text: e.target.value || "",
-      callback: (e) => {
-        setLoading(false);
-        editFilterSearch(e);
-      },
+    SearchService.getSearchOptions({
+      noProducts: false,
+      lang: lang,
     });
+    router.prefetch(SearchService.getSearchPageUrl());
   };
   const onInput = (e) => {
     let suggestion = document.querySelector<HTMLDivElement>(".predicted-word");
@@ -141,10 +131,10 @@ function SearchComponent({
     // } else
     if (e.keyCode == 13 && e.target.value.length > 0) {
       onClickSearchHistory(value);
-      handleSearch(searchFilters);
-      dispatchRouteChangeEvent("start", { to: "boutique" });
-      document.documentElement.style.overflow = "hidden";
-      document.documentElement.scrollTop = 0;
+      dispatchRouteChangeEvent("start", {
+        is_boutique: true,
+      });
+      router.push(SearchService.getSearchPageUrl());
       //go to listing
     } else {
     }
@@ -208,19 +198,9 @@ function SearchComponent({
                 setSearchWord("");
 
                 findProducts([]);
-                home.UpdateFilters({
-                  search_text: "",
-                  callback: (e) => {
-                    setLoading(false);
-                    editFilterSearch(e);
-                  },
-                });
-                home.SearchProducts({
-                  search_text: "",
-                  searchFilters: searchFilters,
-                  callback: (e) => {
-                    findProducts(e);
-                  },
+                SearchService.getSearchOptions({
+                  noProducts: true,
+                  lang: lang,
                 });
               } else {
                 Sendevent({
@@ -231,6 +211,10 @@ function SearchComponent({
                 close();
                 setSearchWord("");
                 setFocuse(false);
+                SearchService.getSearchOptions({
+                  noProducts: true,
+                  lang: lang,
+                });
               }
             }}
           />
@@ -248,20 +232,6 @@ function SearchComponent({
 
                   setSearchWord(e);
                   setSearchLoading(true);
-                  home.UpdateFilters({
-                    search_text: e || "",
-                    callback: (e) => {
-                      setLoading(false);
-                      editFilterSearch(e);
-                    },
-                  });
-                  home.SearchProducts({
-                    search_text: e,
-                    searchFilters: searchFilters,
-                    callback: (e) => {
-                      findProducts(e);
-                    },
-                  });
                 }
               }}
             />
@@ -277,20 +247,6 @@ function SearchComponent({
 
                   setSearchWord(e);
                   setSearchLoading(true);
-                  home.UpdateFilters({
-                    search_text: e || "",
-                    callback: (e) => {
-                      setLoading(false);
-                      editFilterSearch(e);
-                    },
-                  });
-                  home.SearchProducts({
-                    search_text: e,
-                    searchFilters: searchFilters,
-                    callback: (e) => {
-                      findProducts(e);
-                    },
-                  });
                 }
               }}
             />
@@ -306,23 +262,17 @@ function SearchComponent({
                 setSearchWord("");
                 findProducts([]);
                 setSearchLoading(true);
-                home.UpdateFilters({
-                  search_text: "",
-                  callback: (e) => {
-                    setLoading(false);
-                    editFilterSearch(e);
-                  },
-                });
-                home.SearchProducts({
-                  search_text: "",
-                  searchFilters: searchFilters,
-                  callback: (e) => {
-                    findProducts(e);
-                  },
+                SearchService.getSearchOptions({
+                  noProducts: true,
+                  lang: lang,
                 });
               } else {
                 close();
                 setSearchWord("");
+                SearchService.getSearchOptions({
+                  noProducts: true,
+                  lang: lang,
+                });
               }
             }}
           />

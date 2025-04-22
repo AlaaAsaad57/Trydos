@@ -8,10 +8,12 @@ import { LogData } from "store/homepage/actions";
 import search from "services/search";
 import { Suspense } from "react";
 import { useAppStore } from "store";
+import { useParams } from "next/navigation";
 
 function SearchContainer({ active }) {
-  const { setSearchResults, setSearchWord, value } = useAppStore();
+  const { setSearchWord, value } = useAppStore();
   const [searchHistoryItems, setSearchHistory] = useState([]);
+  const { lang } = useParams();
 
   const mountAnim = ` 
     0% {transform:translateX(-800px)}
@@ -29,11 +31,10 @@ function SearchContainer({ active }) {
     }
   }, [value]);
   const getSearchData = async () => {
-    let [{ categories, brands, boutiques, colors }, res] =
-      await search.getSearchOptions();
-    LogData(res);
-    // @ts-ignore
-    setSearchResults({ categories, brands, boutiques, colors });
+    await search.getSearchOptions({
+      noProducts: true,
+      lang: lang,
+    });
     await search.getTrendingSearch();
   };
   useEffect(() => {

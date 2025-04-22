@@ -145,7 +145,7 @@ export const useChatStore = (set, get) => ({
 
   setContacts: (payload: any[]) => set({ contacts: payload }),
 
-  setSearchResults: (payload: any[]) => set({ chatSearchResults: payload }),
+  setChatSearchResults: (payload: any[]) => set({ chatSearchResults: payload }),
 
   setForwardMessage: (payload: any) =>
     set({

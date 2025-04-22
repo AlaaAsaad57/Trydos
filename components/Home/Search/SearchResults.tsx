@@ -18,10 +18,12 @@ import home from "services/home";
 import Spinner from "components/global/Spinner";
 import FilterInfoBar from "components/ListingPage/FilterInfoBar";
 import { useAppStore } from "store";
+import search from "services/search";
+import ActiveSearchFilterBar from "./ActiveSearchFilterBar";
+import NextLink from "components/global/NextLink";
 
 function SearchResults() {
   const {
-    editFilterSearch,
     resetSearchFilter,
     setSearchPartialLoading,
     setSearchCategory,
@@ -35,10 +37,6 @@ function SearchResults() {
     searchFilters,
     value,
   } = useAppStore();
-
-  const setLoading = (e) => {
-    setSearchPartialLoading(e);
-  };
   const searchParams = useSearchParams();
   const showFilterBar = () => {
     return (
@@ -86,10 +84,6 @@ function SearchResults() {
       value: "apply_home_search_result_button",
     });
     onClickSearchHistory(value || "");
-    handleSearch(searchFilters);
-    dispatchRouteChangeEvent("start", { to: "boutique" });
-    document.documentElement.style.overflow = "hidden";
-    document.documentElement.scrollTop = 0;
   };
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -130,25 +124,18 @@ function SearchResults() {
       value: "reset_home_search_button",
     });
     resetSearchFilter();
-    setLoading(true);
+    setSearchPartialLoading(true);
     setSearchWord("");
-    home.UpdateFilters({
-      search_text: "",
-      callback: (e) => {
-        setLoading(false);
-        editFilterSearch(e);
-      },
+    search.getSearchOptions({
+      noProducts: true,
+      lang: lang,
     });
   };
   const updateFiltersApi = () => {
-    setLoading(true);
-
-    home.UpdateFilters({
-      search_text: value || "",
-      callback: (e) => {
-        setLoading(false);
-        editFilterSearch(e);
-      },
+    console.log(searchFilters);
+    search.getSearchOptions({
+      noProducts: false,
+      lang: lang,
     });
   };
   const showButton = () => {
@@ -221,7 +208,9 @@ function SearchResults() {
           </div>
         )}
 
-        {(searchResults?.categories?.length > 0 || partialLoading) && (
+        {(searchResults?.categories?.length > 0 ||
+          partialLoading ||
+          loading_search) && (
           <div
             className="products-results brand-results"
             data-cy="ContainerOfCategories"
@@ -255,7 +244,9 @@ function SearchResults() {
             </div>
           </div>
         )}
-        {(searchResults?.boutiques?.length > 0 || partialLoading) && (
+        {(searchResults?.boutiques?.length > 0 ||
+          partialLoading ||
+          loading_search) && (
           <div
             className="products-results brand-results"
             data-cy="ContainerOfBoutiques"
@@ -289,31 +280,34 @@ function SearchResults() {
             </div>
           </div>
         )}
-        {totalProducts === 0 && !partialLoading && (
-          <div className="flex p-3 justify-center items-center light text-[#5d5d5d] text-[14px]">
-            {translateFunction("No Results Found")}
-          </div>
-        )}
-        {showFilterBar() && (
-          <FilterInfoBar
-            searchValue={value}
-            reset={() => reset()}
-            filtersVariable={searchFilters}
-          />
-        )}
+        {(!totalProducts || totalProducts === 0) &&
+          !partialLoading &&
+          !loading_search && (
+            <div className="flex p-3 justify-center items-center light text-[#5d5d5d] text-[14px]">
+              {translateFunction("No Results Found")}
+            </div>
+          )}
+        {showFilterBar() && <ActiveSearchFilterBar />}
         {
           <div
             className="flex-row w-full mt-3 justify-center"
             data-cy="searchResult"
           >
-            {(showButton() || partialLoading) && (
-              <div
+            {(showButton() || partialLoading || loading_search) && (
+              <NextLink
+                href={search.getSearchPageUrl()}
+                data={{
+                  is_boutique: true,
+                }}
+                aria-disabled={partialLoading || loading_search}
                 className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
                 data-cy="searchTotalProduct"
-                onClick={() => apply()}
+                onClick={() => {
+                  apply();
+                }}
               >
                 {translateFunction("Search")}{" "}
-                {partialLoading ? (
+                {partialLoading || loading_search ? (
                   <span className="ml-2">
                     <Spinner className="" />
                   </span>
@@ -329,9 +323,9 @@ function SearchResults() {
                     )}
                   </>
                 )}
-              </div>
+              </NextLink>
             )}
-            {(showButton() || totalProducts === 0) && (
+            {(showButton() || totalProducts === 0 || loading_search) && (
               <div
                 className="w-16 h-10 ml-4 cursor-pointer p-2 flex bg-[#f8f8f8] text-[#ff5549] justify-center items-center rounded-xl"
                 data-cy="resetIcon"

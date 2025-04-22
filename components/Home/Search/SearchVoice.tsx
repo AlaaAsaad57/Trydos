@@ -5,23 +5,26 @@ import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
 import { useAppStore } from "store";
+import search from "services/search";
+import { useParams } from "next/navigation";
 
 function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
   const { language } = useAppStore();
-  const {
-    finalTranscript,
-    listening,
-    resetTranscript,
-    browserSupportsSpeechRecognition,
-  } = useSpeechRecognition();
+  const { finalTranscript, listening, browserSupportsSpeechRecognition } =
+    useSpeechRecognition();
 
   function handleOnRecord() {
     SpeechRecognition.startListening({
       language: language === "ar" ? "ar-SA" : "en-US",
     });
   }
+  const { lang } = useParams();
   useEffect(() => {
     setSearchValue(finalTranscript);
+    search.getSearchOptions({
+      noProducts: false,
+      lang: lang,
+    });
   }, [finalTranscript]);
   return (
     <>

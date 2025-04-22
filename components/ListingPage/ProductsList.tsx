@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 
 import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";
-import homeService from "services/home";
+
 import { dispatchRouteChangeEvent } from "utils/events";
 
-import { filterProducts, RoundPrice, translateFunction } from "utils/functions";
+import { RoundPrice, translateFunction } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
-import ListingSkeleton from "components/skeleton/listing";
+
 import AddToCartWidget from "components/Cart/AddToCartWidget";
 import { CurrencyApi } from "models/Api";
 import { useAppStore } from "store";
