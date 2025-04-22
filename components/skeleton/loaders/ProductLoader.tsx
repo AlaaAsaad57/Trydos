@@ -64,7 +64,10 @@ function ProductLoader({ product }) {
             <div className="embla__container">
               {product?.id
                 ? product.images.map((img, i) => (
-                    <div className="embla__slide product-slider-images">
+                    <div
+                      className="embla__slide product-slider-images"
+                      key={`img-product-${i}`}
+                    >
                       <Image
                         width={320}
                         height={464}
@@ -81,7 +84,10 @@ function ProductLoader({ product }) {
                     </div>
                   ))
                 : Array.from({ length: 3 }).map((img, i) => (
-                    <div className="embla__slide product-slider-images">
+                    <div
+                      className="embla__slide product-slider-images"
+                      key={`img-product-${i}`}
+                    >
                       <Skeleton width={320} height={464} borderRadius="15px" />
                     </div>
                   ))}
@@ -177,7 +183,10 @@ function ProductLoader({ product }) {
             <div className="flex-row product-descriptors-row">
               {product?.descriptors?.map((descriptor, key) => {
                 return (
-                  <div className="flex-row product-descriptor relative align-center">
+                  <div
+                    className="flex-row product-descriptor relative align-center"
+                    key={`product-descriptor-${key}`}
+                  >
                     <DescriptorBorder className="descriptor-border absolute" />
                     <div className="descriptor-icon">
                       <img
@@ -193,7 +202,10 @@ function ProductLoader({ product }) {
                       <div className="descriptor-values flex-row">
                         {descriptor?.descriptors?.map(
                           (sub_descriptor, index) => (
-                            <div className="sub-descriptor align-center flex-row">
+                            <div
+                              className="sub-descriptor align-center flex-row"
+                              key={`sub-descriptor-${index}`}
+                            >
                               {index !== 0 && (
                                 <span className="descriptor-separtor">|</span>
                               )}
