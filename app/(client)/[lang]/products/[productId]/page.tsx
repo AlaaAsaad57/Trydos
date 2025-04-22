@@ -162,6 +162,7 @@ async function Page({ params, searchParams }: Props) {
       return data;
     } catch (error) {
       console.log(error);
+      return {};
     }
   };
   const getCurrency = async () => {
@@ -178,6 +179,7 @@ async function Page({ params, searchParams }: Props) {
       return data.data.currency;
     } catch (error) {
       console.log(error);
+      return {};
     }
   };
   let [product, currency] = await Promise.all([
