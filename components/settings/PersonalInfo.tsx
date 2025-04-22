@@ -70,8 +70,7 @@ function PersonalInfo({
       userProfileData.name &&
       userProfileData.phone &&
       userProfileData.email &&
-      userProfileData.gender &&
-      userProfileData.alternative_phone
+      userProfileData.gender
     );
   };
 
