@@ -274,10 +274,17 @@ function CartContainer({ close, toOrders }) {
                             ? "#"
                             : getURLOfProduct({ product })
                         }
-                        data={{
-                          is_product: true,
-                          ...product,
-                        }}
+                        data={
+                          params?.productId === product.slug &&
+                          product?.variations[0]?.color ===
+                            sarchParams.get("color")
+                            ? null
+                            : {
+                                is_product: true,
+                                active_color: sarchParams.get("color"),
+                                ...product,
+                              }
+                        }
                         ariaLabel={`Cart Product ${product.slug} ${params.lang}`}
                         className={`flex-row mt-2 w-full relative  ${
                           product.have_hurry_up_notify || true

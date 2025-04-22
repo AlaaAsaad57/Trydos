@@ -15,6 +15,7 @@ import { LikesSharesCommentsApi, ProductViews, SharesCount } from "models/Api";
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
+import { dispatchRouteChangeEvent } from "utils/events";
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
     return {
@@ -205,7 +206,7 @@ function ProductFooterSection({ product, currency }) {
   };
   useEffect(() => {
     setLoadedCart(false);
-
+    dispatchRouteChangeEvent("completed");
     getData();
     disableAddToCartOption();
   }, []);

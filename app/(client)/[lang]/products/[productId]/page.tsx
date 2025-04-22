@@ -24,6 +24,7 @@ import VerifiedIcon from "public/svg/product/Verified.svg";
 import Flag from "public/svg/product/flag.svg";
 import ProductDescriptors from "components/products/ProductDescriptors";
 import { getPrice } from "utils/tinyUtils";
+import { ProductFooterSkeleton } from "components/skeleton/loaders/ProductLoader";
 const ProductFooterSection = dynamic(
   () => import("components/products/ProductFooterSection"),
   {
@@ -580,27 +581,4 @@ const getImages = (productData, color): { images: any[] } => {
     return productData?.sync_color_images[0];
   }
   return productData ?? { images: [productData.thumbnail] };
-};
-const ProductFooterSkeleton = () => {
-  return (
-    <div className="product-options-container">
-      <div className={`add-cart-button`} data-cy="ProductQuantityFinished">
-        <Skeleton width={90} height={70} />
-      </div>
-      <div className="options-container" data-cy="InteraCtionBoX">
-        <div className={`product-option-item`} data-cy="LoveSymbol">
-          <Skeleton width={30} height={30} />
-        </div>
-        <div className={`product-option-item`} data-cy="LoveSymbol">
-          <Skeleton width={30} height={30} />
-        </div>
-        <div className={`product-option-item`} data-cy="LoveSymbol">
-          <Skeleton width={30} height={30} />
-        </div>
-        <div className={`product-option-item`} data-cy="LoveSymbol">
-          <Skeleton width={30} height={30} />
-        </div>
-      </div>
-    </div>
-  );
 };
