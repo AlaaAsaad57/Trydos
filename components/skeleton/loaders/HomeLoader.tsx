@@ -6,7 +6,7 @@ function HomeLoader() {
     <div
       style={{
         zIndex: "99999999999999",
-        top: "200px",
+        top: "350px",
       }}
       className="fixed bg-[#fafafa] min-h-screen  flex    w-screen  overflow-hidden"
     >
