@@ -145,6 +145,11 @@ export default async function Page({
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
           },
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          },
         }
       );
       let data = await response.json();

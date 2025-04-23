@@ -104,7 +104,14 @@ const ComparePage: React.FC = ({
     setSearchLoading(true);
     const productsVar = await fetch(
       process.env.NEXT_PUBLIC_API_BASE_URL +
-        `/api/${lang}/search?searchText=${inputValue}&noFilters=true`
+        `/api/${lang}/search?searchText=${inputValue}&noFilters=true`,
+      {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      }
     );
     const productsVarJson = await productsVar.json();
     return productsVarJson;
