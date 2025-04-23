@@ -19,7 +19,7 @@ export default function PageLoadingIndicator() {
       console.log("start");
       document.documentElement.style.overflow = "hidden";
       document.body.scrollTop = 0;
-
+      document.documentElement.scrollTop = 0;
       setIsLoading(data);
     });
 
