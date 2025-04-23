@@ -9,8 +9,14 @@ import "public/styles/newLogin.css";
 import "public/styles/login.css";
 import { useAppStore } from "store";
 
-function ConfirmMobileChange({ closeWindow, value, successCallbackFunction }) {
-  const { setWrongNumber, verficationID, wrongNumber } = useAppStore();
+function ConfirmMobileChange({
+  closeWindow,
+  value,
+  successCallbackFunction,
+  forVerify,
+}) {
+  const { setWrongNumber, verficationID, wrongNumber, updateUserIsVerified } =
+    useAppStore();
   const [stepIndicator, setStepIndicator] = useState(3);
   const [inputValue, setInputValue] = useState(value);
 
@@ -45,6 +51,16 @@ function ConfirmMobileChange({ closeWindow, value, successCallbackFunction }) {
   const [rendere, setRender] = useState(true);
   const VerifyOtpHook = async ({ code, verificationID }) => {
     try {
+      if (forVerify) {
+        let data = await AuthService.VerifyOtp(
+          code,
+          verficationID,
+          "",
+          () => {}
+        );
+        FinaliseLogin();
+        return data;
+      }
       let data = await AuthService.VerifyOtpForUpdatePhone(
         code,
         verificationID
@@ -112,6 +128,8 @@ function ConfirmMobileChange({ closeWindow, value, successCallbackFunction }) {
     // localStorage.setItem("has-phone", value);
 
     successCallbackFunction(data);
+
+    updateUserIsVerified({ is_phone_verified: 1 });
     setLoadingPin(false);
   };
 

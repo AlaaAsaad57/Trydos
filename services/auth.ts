@@ -161,7 +161,21 @@ class AuthService {
           `?verificationId=${verficationID}&otp=${code}`,
         getHeader()
       );
+
       let data = await response.json();
+      if (data?.data?.message === "user not found") {
+        throw new Error("user not found");
+      }
+      if (data?.isSuccessful === false) {
+        throw new Error("Wrong Code");
+      }
+      localStorage.setItem("ID-TOKEN", data.data.id_token);
+      store.dispatch({
+        type: "UPDATE_USER_IS_VERFIED",
+        payload: {
+          is_phone_verified: 1,
+        },
+      });
       return data.data.id_token;
     } catch (error) {
       throw error;

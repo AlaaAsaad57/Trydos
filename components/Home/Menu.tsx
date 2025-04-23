@@ -165,6 +165,12 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
   return (
     <>
       <div
+        onClick={() => {
+          setMenuOpen(false);
+        }}
+        className=" w-full h-full fixed top-0 left-0 z-50"
+      />
+      <div
         style={{
           position: "absolute",
           top: "50px",
