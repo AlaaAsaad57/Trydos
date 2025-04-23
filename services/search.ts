@@ -465,5 +465,16 @@ class SearchService {
     }
     return url + "?" + params.toString();
   }
+  getPageUrl({ term, value }) {
+    let params = new URLSearchParams();
+    if (term && value) {
+      params.set(
+        term,
+        encodeURIComponent(JSON.stringify(value.map((s) => s.slug)))
+      );
+    }
+    return "?" + params.toString();
+    return;
+  }
 }
 export default new SearchService();

@@ -4,6 +4,7 @@ import OfferAvatar from "./OfferAvatar";
 import { Boutique } from "models/offer";
 import { useRouter } from "next/navigation";
 import MoreOfferAvatar from "./MoreOfferAvatar";
+import search from "services/search";
 
 interface OfferAvatarsProps {
   priority: boolean;
@@ -53,7 +54,10 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
               <OfferAvatar
                 boutique={boutique}
                 name={product.name}
-                linkUrl={`/boutique/${boutique.slug}?categories=["${product.slug}"]`}
+                linkUrl={`/boutique/${boutique.slug}${search.getPageUrl({
+                  term: "categories",
+                  value: [product],
+                })}`}
                 key={index}
                 category={product.name}
                 images={product?.most_viewed_product_thumbnail.file_path}

@@ -6,6 +6,7 @@ import OfferPhotosSlider from "./OfferPhotosSlider";
 import PrefetchLink from "components/global/PrefetchLink";
 import NextLink from "components/global/NextLink";
 import { Suspense } from "react";
+import search from "services/search";
 
 interface NormalWidgetProps {
   boutique: Boutique;
@@ -99,7 +100,10 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
                     ...category,
                   }}
                   aria-label={`Go To listing ${lang} ${boutique.slug} ${category.slug}`}
-                  href={`/${lang}/boutique/${boutique.slug}?categories=["${category.slug}"]`}
+                  href={`/${lang}/boutique/${boutique.slug}${search.getPageUrl({
+                    term: "categories",
+                    value: [category],
+                  })}`}
                   key={key}
                   className={`${key > 0 && "ml-[13px]"}`}
                 >
