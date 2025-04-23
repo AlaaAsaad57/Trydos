@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Logo from "components/Home/Logo";
 import { LogError } from "utils/functions";
+import { dispatchRouteChangeEvent } from "utils/events";
 
 export default function Error({
   error,
@@ -31,6 +32,7 @@ export default function Error({
     LogError(error.message, null, location.href);
   };
   useEffect(() => {
+    dispatchRouteChangeEvent("completed");
     sendError(error);
   }, [error]);
   if (
