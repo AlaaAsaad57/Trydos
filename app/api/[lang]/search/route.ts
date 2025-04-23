@@ -58,7 +58,10 @@ export async function GET(
     );
   }
   let data = await response.json();
-
+  console.log({
+    url: decodeURIComponent(configured_url),
+    data: { ...data },
+  });
   return NextResponse.json(
     {
       ...data,
