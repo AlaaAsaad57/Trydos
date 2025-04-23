@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { errorPNG } from "utils/AxiosApi";
 import Loader from "components/global/Loader";
 import Image from "next/image";
@@ -23,6 +23,14 @@ function Story({
   };
 
   const [load, onLoad] = useState(null);
+  const ref = useRef<HTMLImageElement>(null);
+  useEffect(() => {
+    if (ref.current) {
+      if (ref?.current?.complete) {
+        onLoad("loaded");
+      }
+    }
+  }, [ref]);
   return (
     <div
       className="story-element-item"
@@ -40,6 +48,7 @@ function Story({
             onLoad("loaded");
           }}
           width={100}
+          ref={ref}
           height={160}
           priority={true}
           loading="eager"
