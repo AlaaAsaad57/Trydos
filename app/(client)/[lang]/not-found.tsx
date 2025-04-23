@@ -1,7 +1,12 @@
 "use client";
 import Link from "next/link";
+import { useEffect } from "react";
+import { dispatchRouteChangeEvent } from "utils/events";
 
 export default function NotFound() {
+  useEffect(() => {
+    dispatchRouteChangeEvent("completed");
+  }, []);
   return (
     <>
       {/* @ts-ignore*/}
