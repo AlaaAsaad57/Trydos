@@ -13,27 +13,6 @@ export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"];
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const dynamicParams = true;
-export async function generateStaticParams() {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/countries`
-    );
-    if (!response.ok) {
-      throw new Error("Failed to fetch countries");
-    }
-    const data = await response.json();
-    const languages = ["en", "ar", "tr"];
-
-    return data.data.countries?.flatMap((country) =>
-      languages.map((lang) => ({
-        lang: `${country.iso.toLowerCase()}-${lang}`,
-      }))
-    );
-  } catch (error) {
-    console.error("Error generating static params:", error);
-    return [];
-  }
-}
 
 function HomePage({ params }: { params: { lang: string } }) {
   return (

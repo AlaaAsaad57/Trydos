@@ -57,27 +57,7 @@ const quicksand_semibold = localFont({
   fallback: ["system-ui", "arial"],
 });
 export const revalidte = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-export async function generateStaticParams() {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/countries`
-    );
-    if (!response.ok) {
-      throw new Error("Failed to fetch countries");
-    }
-    const data = await response.json();
-    const languages = ["en", "ar", "tr"];
 
-    return data.data.countries?.flatMap((country) =>
-      languages.map((lang) => ({
-        lang: `${country.iso.toLowerCase()}-${lang}`,
-      }))
-    );
-  } catch (error) {
-    console.error("Error generating static params:", error);
-    return [];
-  }
-}
 export default async function RootLayout({ params, children }) {
   // ${sf_pro_rounded_light.variable}
   // ${sf_pro_rounded_semibold.variable}
