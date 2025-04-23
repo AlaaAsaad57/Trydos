@@ -67,8 +67,7 @@ class SearchService {
       requestSearchParamsString = `&${requestSearchParams.toString()}`;
     }
     const filtersResponseJson = await fetch(
-      process.env.NEXT_PUBLIC_API_BASE_URL +
-        `/api/${lang}/search?${params.toString()}${requestSearchParamsString}`
+      `/api/${lang}/search?${params.toString()}${requestSearchParamsString}`
     );
 
     const filtersResponse = await filtersResponseJson.json();
