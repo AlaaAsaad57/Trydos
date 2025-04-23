@@ -1,5 +1,13 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+export const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
 
+export async function OPTIONS(req: NextRequest) {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
 export async function GET(
   req: NextRequest,
   { params }: { params: { lang: string } }
@@ -30,7 +38,7 @@ export async function GET(
   }
   let data = await response.json();
 
-  return Response.json(
+  return NextResponse.json(
     {
       ...data,
     },

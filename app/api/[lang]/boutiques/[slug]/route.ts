@@ -1,5 +1,13 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+export const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
 
+export async function OPTIONS(req: NextRequest) {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
 export async function GET(
   req: NextRequest,
   { params }: { params: { lang: string; slug: string } }
@@ -26,15 +34,28 @@ export async function GET(
   );
 
   if (!boutique) {
-    return Response.json({ error: "Boutique not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Boutique not found" },
+      {
+        status: 404,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      }
+    );
   }
   let data = await boutique.json();
-  return Response.json(
+  return NextResponse.json(
     { ...data },
     {
       status: 200,
       headers: {
         "Cache-Control": `public, s-maxage=${process.env.NEXT_PUBLIC_REVALIDATE_LISTING}`,
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
       },
     }
   );
