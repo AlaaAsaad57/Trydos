@@ -20,11 +20,7 @@ export default function PageLoadingIndicator() {
       document.documentElement.style.overflow = "hidden";
       document.body.scrollTop = 0;
 
-      if (data) {
-        setIsLoading(data);
-      } else {
-        dispatchRouteChangeEvent("completed");
-      }
+      setIsLoading(data);
     });
 
     registerRouteChangeListener("completed", () => {

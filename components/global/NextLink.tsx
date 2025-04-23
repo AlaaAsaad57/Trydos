@@ -33,7 +33,7 @@ export default function NextLink({
     if (e.target.closest(".no-navigate")) {
       return;
     }
-    if (pathname !== href && exportparts !== "no-navigate") {
+    if (pathname !== href) {
       document.body.style.cursor = "progress";
       document.body.style.overflow = "hidden";
       document.body.scrollTop = 0;
@@ -53,8 +53,7 @@ export default function NextLink({
       prefetch={true}
       href={href}
       {...props}
-      onTouchEnd={handleClick}
-      onMouseUp={handleClick}
+      onClick={handleClick}
       // onClick={(e) => {
       //   if (onClick) onClick(e);
       // }}
