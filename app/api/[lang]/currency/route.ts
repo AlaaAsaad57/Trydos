@@ -37,7 +37,10 @@ export async function GET(
     {
       status: 200,
       headers: {
-        "Cache-Control": "public, s-maxage=3600", // Cache on the edge for 1hr
+        "Cache-Control": "public, s-maxage=3600",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization", // Cache on the edge for 1hr
       },
     }
   );

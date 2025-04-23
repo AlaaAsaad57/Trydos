@@ -9,6 +9,7 @@ interface IEventDetail {
 }
 
 // Dispatch the route change event
+
 export const dispatchRouteChangeEvent = (
   event: "start" | "completed",
   data?: IEventDetail["data"]

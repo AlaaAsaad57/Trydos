@@ -43,6 +43,9 @@ export async function GET(
   return NextResponse.json(boutiques_response, {
     headers: {
       "Cache-Control": `public, s-maxage=${process.env.NEXT_PUBLIC_REVALIDATE}`,
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
     },
   });
 }
