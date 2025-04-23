@@ -351,7 +351,10 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
       </div>
 
       {showNotifications && (
-        <NotificationsPanel onClose={() => setShowNotifications(false)} />
+        <NotificationsPanel
+          closeWindow={() => setMenuOpen(false)}
+          onClose={() => setShowNotifications(false)}
+        />
       )}
 
       {showWishList && <WishListPanel onClose={() => setShowWishList(false)} />}

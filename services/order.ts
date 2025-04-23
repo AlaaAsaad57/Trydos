@@ -58,7 +58,7 @@ class OrderService {
   }
   async GetAddressList() {
     const { setOrderLoading, setAddressList } = useAppStore.getState();
-
+    this.GetProvinces();
     try {
       setOrderLoading(true);
       let data: GetAddressListApi = await AxiosGet({
@@ -197,6 +197,23 @@ class OrderService {
         hasMessageOnly: true,
       });
 
+      setOrderLoading(false);
+    } catch (error) {
+      setOrderLoading(false);
+    }
+  }
+  async GetProvinces() {
+    const { setOrderLoading, setProvinces } = useAppStore.getState();
+    try {
+      setOrderLoading(true);
+      let data = await AxiosGet({
+        url:
+          process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+          "/api/addresses/get-provinces-by-iso",
+        title: "Get Provinces",
+      });
+      console.log(data);
+      setProvinces(data);
       setOrderLoading(false);
     } catch (error) {
       setOrderLoading(false);

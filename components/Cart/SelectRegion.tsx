@@ -118,6 +118,7 @@ function SelectRegion({ closeSelect }) {
 export default SelectRegion;
 
 const SearchLocations = ({ closeSelect, setFocused }) => {
+  const { provinces, setProvinces } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
   const [country, language] = lang.split("-");
@@ -142,8 +143,10 @@ const SearchLocations = ({ closeSelect, setFocused }) => {
       },
     };
   };
+  const [search, setSearch] = useState("");
   const searchAction = async (val) => {
     setLoading(true);
+
     await fetch(
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
         `/api/addresses/get-address-by-text`,
@@ -214,9 +217,11 @@ const SearchLocations = ({ closeSelect, setFocused }) => {
           }}
           minLength={2}
           onChange={(e) => {
+            setSearch(e.target.value);
             if (e.target.value.length > 0) searchAction(e.target.value);
           }}
           onInput={(e) => {}}
+          value={search}
           placeholder={translateFunction(
             "Search Province | District | Town | Street"
           )}
@@ -229,14 +234,21 @@ const SearchLocations = ({ closeSelect, setFocused }) => {
         closeSelect={() => {
           closeSelect();
         }}
+        searchAction={searchAction}
+        shouldShowProvinces={search.length === 0}
         searchResults={searchResults}
       />
     </>
   );
 };
 
-const SearchResults = ({ searchResults, closeSelect }) => {
-  const { setMapCenter, setAddressDetails } = useAppStore();
+const SearchResults = ({
+  searchResults,
+  closeSelect,
+  shouldShowProvinces,
+  searchAction,
+}) => {
+  const { setMapCenter, setAddressDetails, provinces } = useAppStore();
   const showLocationText = (location) => {
     let str = "";
     if (location.country) str += location.country;
@@ -265,18 +277,35 @@ const SearchResults = ({ searchResults, closeSelect }) => {
   };
   return (
     <div className="flex-col w-full h-auto max-h-[290px] overflow-auto mt-[2px]">
-      {searchResults.map((s, i) => (
-        <div
-          key={i}
-          className="flex text-[#1D1D1D] min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]"
-          data-cy="Firstly-Search-Result"
-          onClick={() => {
-            select(s);
-          }}
-        >
-          {showLocationText(s)}
-        </div>
-      ))}
+      {shouldShowProvinces ? (
+        <>
+          {provinces.map((s, i) => (
+            <div
+              key={i}
+              className="flex text-[#1D1D1D] min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]"
+              data-cy="Firstly-Search-Result"
+              onClick={() => {
+                searchAction(s);
+              }}
+            >
+              {s}
+            </div>
+          ))}
+        </>
+      ) : (
+        searchResults.map((s, i) => (
+          <div
+            key={i}
+            className="flex text-[#1D1D1D] min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]"
+            data-cy="Firstly-Search-Result"
+            onClick={() => {
+              select(s);
+            }}
+          >
+            {showLocationText(s)}
+          </div>
+        ))
+      )}
     </div>
   );
 };

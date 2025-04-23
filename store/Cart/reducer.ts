@@ -16,6 +16,7 @@ const getCountry = () => {
 const initialState = {
   orderLoading: false,
   cart: [],
+  provinces: [],
   selectedOrder: null,
   addressLists: [],
   center: null,
@@ -101,6 +102,7 @@ export const useCartStore = (set, get) => ({
   coupon_discount: null,
   total_discount: null,
   total_shipping_cost: null,
+  provinces: [],
   total_cash: null,
   sub_total: null,
   total: null,
@@ -162,7 +164,7 @@ export const useCartStore = (set, get) => ({
 
   // Actions
   setOrderDetails: (order) => set({ selectedOrder: order }),
-
+  setProvinces: (provinces) => set({ provinces }),
   setCryptoCardPayment: (url) =>
     set({
       openPayIframe: true,

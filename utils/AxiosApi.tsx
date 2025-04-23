@@ -158,9 +158,15 @@ export const AxiosPost = async ({
         error.status === 422 ||
         error.status === 500 ||
         error === "Failed" ||
+        error.status === 400 ||
+        error.status === 403 ||
         error?.message === "Failed"
       ) {
-        toast.error(`${title} : ${error.message ?? "Failed"}`);
+        if (error.response.data.message) {
+          toast.error(`${title} : ${error.response.data?.message ?? "Failed"}`);
+        } else {
+          toast.error(`${title} : ${error.message ?? "Failed"}`);
+        }
         attempt = 2;
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`

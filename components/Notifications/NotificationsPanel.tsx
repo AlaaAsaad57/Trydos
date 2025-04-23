@@ -6,9 +6,13 @@ import NotificationItem from "./NotificationItem";
 
 interface NotificationsPanelProps {
   onClose: () => void;
+  closeWindow: () => void;
 }
 
-const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
+const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
+  onClose,
+  closeWindow,
+}) => {
   const notificationsRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [notifications, setNotifications] = useState<NotificationItemType[]>(
@@ -196,6 +200,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
             key={index}
             notification={notification}
             onClose={onClose}
+            closeWindow={closeWindow}
           />
         ))}
         {loading && (

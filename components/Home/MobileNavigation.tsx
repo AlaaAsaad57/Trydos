@@ -1,7 +1,7 @@
 "use client";
 import CategoryNavMobile from "./CategoryNavMobile";
 import SearchIcon from "./Search/SearchIcon";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
 function MobileNavigation({ categories }: { categories: any[] }) {
@@ -9,13 +9,14 @@ function MobileNavigation({ categories }: { categories: any[] }) {
   const [activeCategory, setActiveCatgory] = useState(
     searchParams.mainCategory ?? false
   );
-  if (typeof document !== "undefined") {
+  useEffect(() => {
     const slider: HTMLDivElement = document?.querySelector(".mobile-bar");
     let isDown = false;
     let startX: number;
     let scrollLeft: number;
 
     slider?.addEventListener("mousedown", (e: MouseEvent) => {
+      console.log("mousedown");
       isDown = true;
       slider.classList.add("active");
       startX = e.pageX - slider.offsetLeft;
@@ -36,13 +37,19 @@ function MobileNavigation({ categories }: { categories: any[] }) {
       const walk = (x - startX) * 3; //scroll-fast
       slider.scrollLeft = scrollLeft - walk;
     });
-  }
+    return () => {
+      slider?.removeEventListener("mousedown", (e: MouseEvent) => {});
+      slider?.removeEventListener("mouseleave", () => {});
+      slider?.removeEventListener("mouseup", () => {});
+      slider?.removeEventListener("mousemove", (e) => {});
+    };
+  }, []);
   return (
     <div className="flex-row search-nav-holder">
       <SearchIcon />
 
       <div
-        className={`categories-bar-container ${"mobile-bar"}`}
+        className={`categories-bar-container mobile-bar `}
         data-cy="categoryNavBar"
       >
         {typeof categories !== "string" &&

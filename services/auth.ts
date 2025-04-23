@@ -154,6 +154,7 @@ class AuthService {
     }
   }
   async VerifyOtpForUpdatePhone(code: string, verficationID: string) {
+    const { updateUserIsVerified, setWrongNumber } = useAppStore.getState();
     try {
       let response = await fetch(
         process.env.NEXT_PUBLIC_BACKEND_URL +
@@ -166,18 +167,15 @@ class AuthService {
       if (data?.data?.message === "user not found") {
         throw new Error("user not found");
       }
+
       if (data?.isSuccessful === false) {
         throw new Error("Wrong Code");
       }
       localStorage.setItem("ID-TOKEN", data.data.id_token);
-      store.dispatch({
-        type: "UPDATE_USER_IS_VERFIED",
-        payload: {
-          is_phone_verified: 1,
-        },
-      });
+      updateUserIsVerified({ is_phone_verified: 1 });
       return data.data.id_token;
     } catch (error) {
+      setWrongNumber(error.message);
       throw error;
     }
   }

@@ -203,7 +203,7 @@ function AccountNotFound({
           close();
         }}
       >
-        {translate("Cancel & Take A Look At The App", language)}
+        {translate("Cancel & Take A Look At The Site", language)}
       </div>
     </Animated.div>
   );

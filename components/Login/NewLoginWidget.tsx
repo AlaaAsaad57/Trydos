@@ -400,6 +400,8 @@ function NewLoginWidget() {
             setWrongNumber={(e) => {
               setWrongNumber(e);
             }}
+            hideEdit={false}
+            setShowMobile={() => {}}
             setStepIndicator={(e: number) => setStepIndicator(e)}
             setMessageMethod={(e: string) => setMessageMethod(e)}
             inputValue={inputValue}
@@ -525,7 +527,7 @@ function NewLoginWidget() {
               marginTop: stepIndicator === 1 && "29px",
             }}
           >
-            {translate("Later, Take A Look At The App", language)}
+            {translate("Later, Take A Look At The Site", language)}
           </div>
         </AnimatedComponent>
         {(stepIndicator > 1 || window.innerWidth > 600) && (

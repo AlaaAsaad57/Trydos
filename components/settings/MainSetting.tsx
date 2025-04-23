@@ -92,7 +92,7 @@ function MainSetting({
               <Spinner />
             ) : (
               <>
-                {formatPrice(wallet)} {currency?.symbol}{" "}
+                {formatPrice(wallet?.wallet_balance)} {currency?.symbol}{" "}
                 {translateFunction("Your Balance")}
               </>
             )}

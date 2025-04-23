@@ -442,15 +442,24 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 .categories-bar-container {
-  display: flex;
+  margin: 0 !important;
+  max-width: 900px !important;
+  display: flex !important;
+  width: 100% !important;
   justify-content: flex-start;
-  align-items: flex-start;
-  padding-top: 7px;
-  z-index: 90;
-  min-height: 28px;
-  margin-left: 20px !important;
+  padding-left: 15px;
+  padding-right: 5px;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  min-height: 47px;
+  background-color: #fff;
+  padding-top: 7px !important;
+  z-index: 8;
+  white-space: nowrap;
 }
-
+a {
+  -webkit-user-drag: none;
+}
 .categories-bar-container div,
 .categories-bar-item {
   display: flex;

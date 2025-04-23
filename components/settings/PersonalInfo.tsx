@@ -47,7 +47,13 @@ function PersonalInfo({
       goBack();
     } catch (error) {
       setLoading(false);
-
+      setUserProfileData({
+        name: userProfile?.name,
+        phone: userProfile?.phone,
+        email: userProfile?.email,
+        gender: userProfile?.gender?.value || userProfile?.gender,
+        alternative_phone: userProfile?.alternative_phone,
+      });
       console.log(error);
     }
   };
@@ -55,10 +61,11 @@ function PersonalInfo({
   const isEdited = () => {
     return (
       userProfileData.name !== userProfile?.name ||
-      userProfileData.phone !== userProfile?.phone ||
+      Number(userProfileData.phone) !== Number(userProfile?.phone) ||
       userProfileData.email !== userProfile?.email ||
       userProfileData.gender !== userProfile?.gender?.value ||
-      userProfileData.alternative_phone !== userProfile?.alternative_phone
+      Number(userProfileData.alternative_phone) !==
+        Number(userProfile?.alternative_phone)
     );
   };
   const isPhoneEdited = () => {
@@ -293,8 +300,8 @@ function PersonalInfo({
                 data-cy="Contact-Phone-input"
                 aria-autocomplete="both"
                 aria-haspopup="false"
-                type="text"
-                value={userProfileData?.phone}
+                type="number"
+                value={Number(userProfileData?.phone)}
                 onChange={(e) => {
                   setUserProfileData({
                     ...userProfileData,
@@ -302,7 +309,6 @@ function PersonalInfo({
                   });
                 }}
                 spellCheck="false"
-                accept=""
                 autoCapitalize="off"
                 autoComplete="off"
                 pattern="[0-9]*"
@@ -341,7 +347,7 @@ function PersonalInfo({
                 aria-autocomplete="both"
                 aria-haspopup="false"
                 spellCheck="false"
-                value={userProfileData?.alternative_phone}
+                value={Number(userProfileData?.alternative_phone)}
                 onChange={(e) => {
                   setUserProfileData({
                     ...userProfileData,

@@ -63,7 +63,8 @@ export const useAuthStore = (set, get) => ({
 
   // Actions
   setIsActiveAddress: (isActive) => set({ isActiveAddress: isActive }),
-
+  updateUserIsVerified: (user_obj) =>
+    set((state) => ({ userProfile: { ...state.userProfile, ...user_obj } })),
   setTotalOrders: (total) => set({ totalOrders: total }),
 
   editUserInfo: (info) =>

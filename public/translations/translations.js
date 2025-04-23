@@ -175,7 +175,7 @@ const translations = {
     "No Contacts": "No Contacts",
     "Log in Through our App to access contacts":
       "Log in Through our App to access contacts",
-    "Cancel & Take A Look At The App": "Cancel & Take A Look At The App",
+    "Cancel & Take A Look At The Site": "Cancel & Take A Look At The Site",
     "Create New Account & Continue": "Create New Account & Continue",
     "Register & Create New Account With Us In A Few Simple Steps":
       "Register & Create New Account With Us In A Few Simple Steps",
@@ -197,7 +197,7 @@ const translations = {
     "Didn't You Receive A Code?": "Didn't You Receive A Code?",
     "the Method Of Receiving": "the Method Of Receiving",
     "The Code Sent Has Expired": "The Code Sent Has Expired",
-    "Later, Take A Look At The App": "Later, Take A Look At The App",
+    "Later, Take A Look At The Site": "Later, Take A Look At The Site",
     "Invalid Phone Number": "Invalid Phone Number",
     "Enter Your Phone Number To Login": "Enter Your Phone Number To Login",
     "To ": "To ",
@@ -277,6 +277,8 @@ const translations = {
   ar: {
     "Total Products:": "إجمالي المنتجات:",
     "Full Name": "الاسم الكامل",
+    Verified: "تم التحقق",
+    "Verify Now": "تحقق الان",
     "Your Size Info": "معلومات الحجم",
     "000 CM": "000 سم",
     "Loading...": "جاري التحميل...",
@@ -571,7 +573,7 @@ const translations = {
     "In Lebanon": "في لبنان",
     "in one word what is in this photo?":
       "في كلمة واحدة ماذا يوجد في هذه الصورة أجبني باللغة العربية؟",
-    Man: "رجال",
+    Man: "ذكر",
     "To Take Advantage Of All The Advantages Of The Application, Please Join Us In Quick And Easy Steps And For Just One Time":
       "للاستفادة من ميزات التطبيق انضم لنا بخطوات سربعة وبسيطة لمرة واحدة",
     "Terms Of Services ": "قواعد الاستخدام",
@@ -597,7 +599,7 @@ const translations = {
     "Enter Your Phone Number To Login": "ادخل رقمك لتسجيل الدخول",
     "the Method Of Receiving": "طريقة الاستلام",
     "Invalid Phone Number": "رقم خاطئ",
-    "Later, Take A Look At The App": "لاحقا, القي نظرة على التطبيق",
+    "Later, Take A Look At The Site": "لاحقا, القي نظرة على الموقع",
     "The Code Sent Has Expired": "انتهت فترة استلام الرمز",
     "Didn't You Receive A Code?": "لم تستلم رمزا؟",
     Change: "تغيير",
@@ -615,7 +617,7 @@ const translations = {
     "You Can Log In Now": "يمكنك تسجيل الدخول الان",
     "Register & Create New Account With Us In A Few Simple Steps":
       "سجل وانشئ حساب جديد بخطوات بسيطة",
-    "Cancel & Take A Look At The App": "خروج والقاء نظرة على التطبيق",
+    "Cancel & Take A Look At The Site": "خروج والقاء نظرة على الموقع",
     "Create New Account & Continue": "انشاء حساب ومتابعة",
     "Voice Call": "مكالمة صوتية",
     "Video Call": "مكالمة فيديو",
@@ -652,7 +654,7 @@ const translations = {
     Offer: "عرض",
     "Best Offers From Brands": "أفضل العروض من العلامات التجارية",
     "this message was deleted": "تم حذف هذه الرسالة",
-    Woman: "نساء",
+    Woman: "أنثى",
     Kids: "أطفال",
     Home: "منزلي",
     Electrical: "كهربائيات",
@@ -1194,7 +1196,7 @@ const translations = {
     "No Contacts": "İletişim Yok",
     "Log in Through our App to access contacts":
       "İletişimlere Erişmek İçin Uygulamamızla Giriş Yapın",
-    "Cancel & Take A Look At The App": "İptal Et ve Uygulamaya Göz At",
+    "Cancel & Take A Look At The Site": "İptal Et ve Uygulamaya Göz At",
     "Create New Account & Continue": "Yeni Hesap Oluştur & Devam Et",
     "Register & Create New Account With Us In A Few Simple Steps":
       "Birkaç Basit Adımla Bizimle Kayıt Olun ve Yeni Hesap Oluşturun",
@@ -1218,7 +1220,7 @@ const translations = {
     "Didn't You Receive A Code?": "Kod Almadınız mı?",
     "the Method Of Receiving": "Alım Yöntemi",
     "The Code Sent Has Expired": "Gönderilen Kodun Süresi Dolmuş",
-    "Later, Take A Look At The App": "Sonra, Uygulamaya Göz At",
+    "Later, Take A Look At The Site": "Sonra, Uygulamaya Göz At",
     "Invalid Phone Number": "Geçersiz Telefon Numarası",
     "Enter Your Phone Number To Login":
       "Giriş Yapmak İçin Telefon Numaranızı Girin",

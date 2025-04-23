@@ -14,11 +14,13 @@ import NextLink from "components/global/NextLink";
 interface NotificationItemProps {
   notification: NotificationItemType;
   onClose: () => void;
+  closeWindow: () => void;
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({
   notification,
   onClose,
+  closeWindow,
 }) => {
   const { enableCart, disableAddToCartOption } = useAppStore();
   const { lang } = useParams();
@@ -111,6 +113,10 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
             }}
             ariaLabel={`notification Boutique ${parsedDescription.boutique_slug} ${lang}`}
             href={`/${lang}/boutiques/${parsedDescription.boutique_slug}`}
+            onClick={() => {
+              closeWindow();
+              onClose();
+            }}
           >
             {content}
           </NextLink>
@@ -133,6 +139,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                   shallow: true,
                 });
                 onClose();
+                closeWindow();
               }}
             >
               {content}
@@ -152,6 +159,10 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
               href={`/${lang}/products/${
                 parsedDescription.product_slug || parsedDescription.slug
               }`}
+              onClick={() => {
+                closeWindow();
+                onClose();
+              }}
             >
               {content}
             </NextLink>
@@ -170,6 +181,10 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
               href={`/${lang}/boutiques/listing?categories=${
                 parsedDescription.category_slug || parsedDescription.slug
               }`}
+              onClick={() => {
+                closeWindow();
+                onClose();
+              }}
             >
               {content}
             </NextLink>

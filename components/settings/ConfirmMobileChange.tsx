@@ -15,8 +15,7 @@ function ConfirmMobileChange({
   successCallbackFunction,
   forVerify,
 }) {
-  const { setWrongNumber, verficationID, wrongNumber, updateUserIsVerified } =
-    useAppStore();
+  const { setWrongNumber, verficationID, wrongNumber } = useAppStore();
   const [stepIndicator, setStepIndicator] = useState(3);
   const [inputValue, setInputValue] = useState(value);
 
@@ -67,8 +66,9 @@ function ConfirmMobileChange({
       );
       return data;
     } catch (error) {
-      // errorCallback(error);
       console.error("VerifyOtp failed:", error);
+      // errorCallback(error);
+      throw error;
     }
   };
   const FinaliseLogin = async () => {
@@ -77,60 +77,63 @@ function ConfirmMobileChange({
   const [failedLogin, setFailed] = useState(false);
   const [loadingPin, setLoadingPin] = useState(false);
   const loginFunc = async (e) => {
-    setLoadingPin(true);
-    let data = await VerifyOtpHook({
-      code: e,
-      verificationID: verficationID,
-      // errorCallback: (e) => {
-      //   Sendevent({
-      //     event: "programming_event",
-      //     value: "otp_failed_event",
-      //   });
-      //   setFailed(true);
-      //   setTimeout(() => {
-      //     setPins("");
-      //     setRender(false);
-      //     setFailed(false);
-      //     setTimeout(() => {
-      //       setRender(true);
-      //     }, 300);
-      //   }, 1000);
-      //   if (e.message === "user not found") {
-      //     Sendevent({
-      //       event: "programming_event",
+    try {
+      setLoadingPin(true);
+      let data = await VerifyOtpHook({
+        code: e,
+        verificationID: verficationID,
+        // errorCallback: (e) => {
+        //   Sendevent({
+        //     event: "programming_event",
+        //     value: "otp_failed_event",
+        //   });
+        //   setFailed(true);
+        //   setTimeout(() => {
+        //     setPins("");
+        //     setRender(false);
+        //     setFailed(false);
+        //     setTimeout(() => {
+        //       setRender(true);
+        //     }, 300);
+        //   }, 1000);
+        //   if (e.message === "user not found") {
+        //     Sendevent({
+        //       event: "programming_event",
 
-      //       value: "phone_number_not_registered_event",
-      //     });
+        //       value: "phone_number_not_registered_event",
+        //     });
 
-      //     setStepIndicator(6);
-      //   }
-      //   setLoadingPin(false);
-      // },
-      // successCallback: async (exists, name) => {
-      //   Sendevent({
-      //     event: "programming_event",
+        //     setStepIndicator(6);
+        //   }
+        //   setLoadingPin(false);
+        // },
+        // successCallback: async (exists, name) => {
+        //   Sendevent({
+        //     event: "programming_event",
 
-      //     value: "verify_otp_signin_success_event",
-      //   });
+        //     value: "verify_otp_signin_success_event",
+        //   });
 
-      //   await FinaliseLogin();
+        //   await FinaliseLogin();
 
-      //   setTimeout(() => {
-      //     setLoadingPin(false);
-      //     closeWindow();
-      //     goToOrders();
-      //   }, 2000);
-      // },
-    });
+        //   setTimeout(() => {
+        //     setLoadingPin(false);
+        //     closeWindow();
+        //     goToOrders();
+        //   }, 2000);
+        // },
+      });
 
-    // let idToken = "";
-    // await new Promise((resolve) => setTimeout(resolve, 2000));
-    // localStorage.setItem("has-phone", value);
+      // let idToken = "";
+      // await new Promise((resolve) => setTimeout(resolve, 2000));
+      // localStorage.setItem("has-phone", value);
 
-    successCallbackFunction(data);
+      successCallbackFunction(data);
 
-    updateUserIsVerified({ is_phone_verified: 1 });
-    setLoadingPin(false);
+      setLoadingPin(false);
+    } catch (error) {
+      setLoadingPin(false);
+    }
   };
 
   useEffect(() => {
