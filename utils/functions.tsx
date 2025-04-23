@@ -691,6 +691,7 @@ export const getOldCart = async () => {
   storeOldCart(oldCartData?.original?.data);
 };
 export const getCart = async ({ callback }) => {
+  const { initCart } = useAppStore.getState();
   if (
     !localStorage.getItem("DEVICE-TOKEN") &&
     !localStorage.getItem("MARKET-TOKEN")
@@ -700,7 +701,7 @@ export const getCart = async ({ callback }) => {
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/cart_shipping",
     title: "Cart Request",
   });
-  callback([data, {}]);
+  initCart(data);
   return data;
 };
 export const GetCartOreview = async () => {

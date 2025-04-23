@@ -796,7 +796,7 @@ export const getProductsAndFilters = async ({
       boutiqueId,
     });
     let configured_url = `/api/products/searchInCatalog?${params.toString()}`;
-    // console.log(`configured_url: ${configured_url}`);
+
     let response = await fetch(
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + configured_url,
       {
@@ -822,6 +822,8 @@ export const getProductsAndFilters = async ({
     }
     let data: FilterProductApi = await response.json();
     // console.warn(configured_url, data.data.prices?.priceRanges);
+    console.log(`configured_url: ${configured_url}`, { data: data });
+
     return data;
   } catch (error) {
     console.error(
