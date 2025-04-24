@@ -49,7 +49,7 @@ class OrderService {
       });
       setWalletUser({
         ...data,
-        wallet_balance: toUSD(data.wallet_balance || 0),
+        wallet_balance: data.wallet_balance || 0,
       });
       setOrderLoading(false);
     } catch (error) {

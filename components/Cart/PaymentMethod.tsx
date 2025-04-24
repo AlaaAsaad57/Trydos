@@ -30,6 +30,7 @@ function PaymentMethod() {
     wallet,
     total,
     total_cash,
+    currency,
   } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
@@ -149,8 +150,10 @@ function PaymentMethod() {
                     setActive={() => {
                       if (
                         !(
-                          wallet?.wallet_balance >= total &&
-                          wallet.wallet_balance >= total_cash
+                          wallet?.wallet_balance / currency?.exchange_rate >=
+                            total &&
+                          wallet.wallet_balance / currency?.exchange_rate >=
+                            total_cash
                         )
                       ) {
                         if (!orderLoading) {
@@ -225,7 +228,12 @@ function PaymentMethod() {
                           setOrderData({
                             payment: [
                               ...orderData.payment,
-                              { id: 1, balance: wallet?.wallet_balance },
+                              {
+                                id: 1,
+                                balance:
+                                  wallet?.wallet_balance /
+                                  currency?.exchange_rate,
+                              },
                             ],
                           });
                         } else {
@@ -244,7 +252,9 @@ function PaymentMethod() {
                               payment: [
                                 {
                                   id: 1,
-                                  balance: wallet?.wallet_balance,
+                                  balance:
+                                    wallet?.wallet_balance /
+                                    currency?.exchange_rate,
                                 },
                               ],
                             });
@@ -265,8 +275,10 @@ function PaymentMethod() {
                     setActive={() => {
                       if (
                         !(
-                          wallet?.wallet_balance >= total &&
-                          wallet.wallet_balance >= total_cash
+                          wallet?.wallet_balance / currency?.exchange_rate >=
+                            total &&
+                          wallet.wallet_balance / currency?.exchange_rate >=
+                            total_cash
                         )
                       ) {
                         if (!orderLoading) {
@@ -331,8 +343,10 @@ function PaymentMethod() {
                     setActive={() => {
                       if (
                         !(
-                          wallet?.wallet_balance >= total &&
-                          wallet.wallet_balance >= total_cash
+                          wallet?.wallet_balance / currency?.exchange_rate >=
+                            total &&
+                          wallet.wallet_balance / currency?.exchange_rate >=
+                            total_cash
                         )
                       ) {
                         if (!orderLoading) {

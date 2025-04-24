@@ -210,13 +210,15 @@ export const useCartStore = (set, get) => ({
       localCart: [],
     })),
 
-  setOrderData: (data) =>
-    set((state) => ({
+  setOrderData: (data) => {
+    console.log(data);
+    return set((state) => ({
       orderData: {
         ...state.orderData,
         ...data,
       },
-    })),
+    }));
+  },
 
   setOrderLoading: (loading) => set({ orderLoading: loading }),
 
