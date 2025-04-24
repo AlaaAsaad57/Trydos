@@ -11,6 +11,9 @@ import Spinner from "components/global/Spinner";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import { AxiosGet, AxiosPost } from "utils/AxiosApi";
+import { QuantityDetailsProductApi } from "models/Api";
+import { useEffect } from "react";
 
 function AddToCartButton({
   setOption,
@@ -27,13 +30,19 @@ function AddToCartButton({
 }) {
   const {
     setLoadedCart,
+    updateProductQuantityInCart,
     addProductToCart,
+    cart,
     editQuantity,
     enableAddToCartOption,
     notifyProduct,
+    addToCartColor,
     addToCartQuantity,
     AddToCartOption,
     localCart,
+    removeFromCart,
+    errRemoveFromCart,
+    getProductDetailsForCart,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -242,139 +251,6 @@ function AddToCartButton({
     }
   };
   const AddAction = async (e) => {
-    // e.preventDefault();
-    //                   Sendevent({
-    //                     event: "button_clicked",
-    //                     value: "increase_qty_button",
-    //                   });
-
-    //                   AddToCartAction({ quantity: 1 });
-    //                   Sendevent({
-    //                     event: "button_clicked",
-    //                     value: "add_product_to_bag_button",
-    //                   });
-    //                   dispatch({ type: "LOADED-CART", payload: false });
-    //                   AddToCartAction({ quantity: 1 });
-    //                   home.AddToCart({
-    //                     slug: product.slug_en_topic,
-    //                     alreadyExist: isAlreayAdded({
-    //                       sku: `${product?.id}${
-    //                         AddToCartOption?.selectedColor?.color_name
-    //                           ? `-${AddToCartOption?.selectedColor?.color_name}`
-    //                           : product.colors?.length > 0
-    //                           ? `-${product.colors[0]?.name}`
-    //                           : ""
-    //                       }${
-    //                         AddToCartOption?.selectedSize?.name
-    //                           ? `-${AddToCartOption?.selectedSize?.name}`
-    //                           : ""
-    //                       }`,
-    //                     }),
-    //                     callback: ({ id }) => {
-    //                       try {
-    //                         let elem = document.querySelector(".add-cart-button");
-    //                         setTimeout(() => {
-    //                           elem.classList.add("success-add");
-    //                         }, 200);
-    //                         Sendevent({
-    //                           event: "button_clicked",
-    //                           value: "added_product_to_bag_event",
-    //                         });
-
-    //                         setTimeout(() => {
-    //                           elem.classList.remove("success-add");
-    //                           dispatch({
-    //                             type: "ADD-PRODUCT-TO-CART",
-    //                             payload: {
-    //                               id: product?.id,
-    //                               item_id: id,
-    //                               color: product?.colors
-    //                                 ? product?.colors.filter(
-    //                                     (s) =>
-    //                                       s?.name ===
-    //                                       AddToCartOption?.selectedColor
-    //                                         ?.color_name
-    //                                   )[0]?.color
-    //                                 : null,
-    //                               image: product?.sync_color_images
-    //                                 ? product?.sync_color_images.filter(
-    //                                     (s) =>
-    //                                       s.color_name ===
-    //                                       AddToCartOption?.selectedColor
-    //                                         ?.color_name
-    //                                   )[0].images[0]?.file_path ??
-    //                                   product?.sync_color_images.filter(
-    //                                     (s) =>
-    //                                       s.color_name ===
-    //                                       AddToCartOption?.selectedColor
-    //                                         ?.color_name
-    //                                   )[0].images[0]
-    //                                 : product?.images[0]?.file_path ??
-    //                                   product?.images[0],
-    //                               quantity: AddToCartOption?.quantity || 1,
-    //                               size:
-    //                                 AddToCartOption?.selectedSize?.name ?? null,
-    //                               sku: `${product?.id}${
-    //                                 AddToCartOption?.selectedColor?.color_name
-    //                                   ? `-${AddToCartOption?.selectedColor?.color_name}`
-    //                                   : product.colors?.length > 0
-    //                                   ? `-${product.colors[0]?.name}`
-    //                                   : ""
-    //                               }${
-    //                                 AddToCartOption?.selectedSize?.name
-    //                                   ? `-${AddToCartOption?.selectedSize?.name}`
-    //                                   : ""
-    //                               }`,
-    //                               UID: `${product?.id}${AddToCartOption?.selectedColor?.color_name}${AddToCartOption?.selectedSize?.name}`,
-    //                             },
-    //                           });
-    //                           // setOption("AddToCart");
-    //                         }, 1200);
-    //                       } catch (e) {
-    //                         console.log(e);
-    //                       }
-    //                     },
-    //                     errCallback: () => {
-    //                       setOption("");
-    //                     },
-    //                     id: product?.id,
-    //                     color:
-    //                       product?.colors?.length === 1
-    //                         ? product?.colors[0].color
-    //                         : product?.colors
-    //                         ? product?.colors.filter(
-    //                             (s) =>
-    //                               s.name ===
-    //                               AddToCartOption?.selectedColor?.color_name
-    //                           )[0]?.color
-    //                         : null,
-    //                     image: product?.sync_color_images
-    //                       ? product?.sync_color_images.filter(
-    //                           (s) =>
-    //                             s.color_name ===
-    //                             AddToCartOption?.selectedColor?.color_name
-    //                         )[0].images[0]?.file_path ??
-    //                         product?.sync_color_images.filter(
-    //                           (s) =>
-    //                             s.color_name ===
-    //                             AddToCartOption?.selectedColor?.color_name
-    //                         )[0].images[0]
-    //                       : product?.images[0]?.file_path ?? product?.images[0],
-    //                     quantity: getQuantityForAdd({
-    //                       sku: `${product?.id}${
-    //                         AddToCartOption?.selectedColor?.color_name
-    //                           ? `-${AddToCartOption?.selectedColor?.color_name}`
-    //                           : product.colors?.length > 0
-    //                           ? `-${product.colors[0]?.name}`
-    //                           : ""
-    //                       }${
-    //                         AddToCartOption?.selectedSize?.name
-    //                           ? `-${AddToCartOption?.selectedSize?.name}`
-    //                           : ""
-    //                       }`,
-    //                     }),
-    //                     size: AddToCartOption?.selectedSize?.name ?? null,
-    //                   });
     if (!product.country_is_restricted) {
       if (loading) {
         if (!AddToCartOption?.enable) {
@@ -485,18 +361,22 @@ function AddToCartButton({
                     )[0]?.color
                   : null,
               image: product?.sync_color_images
-                ? product?.sync_color_images.filter(
-                    (s) =>
-                      s.color_name ===
-                      // @ts-ignore
-                      AddToCartOption?.selectedColor?.color_name
-                  )[0].images[0]?.file_path ??
-                  product?.sync_color_images.filter(
-                    (s) =>
-                      s.color_name ===
-                      // @ts-ignore
-                      AddToCartOption?.selectedColor?.color_name
-                  )[0].images[0]
+                ? (
+                    product?.sync_color_images.filter(
+                      (s) =>
+                        s.color_name ===
+                        // @ts-ignore
+                        AddToCartOption?.selectedColor?.color_name
+                    )[0] || product?.sync_color_images[0]
+                  ).images[0]?.file_path ??
+                  (
+                    product?.sync_color_images.filter(
+                      (s) =>
+                        s.color_name ===
+                        // @ts-ignore
+                        AddToCartOption?.selectedColor?.color_name
+                    )[0] || product?.sync_color_images[0]
+                  ).images[0]
                 : product?.images[0]?.file_path ?? product?.images[0],
               quantity: getQuantityForAdd({
                 sku: `${product?.id}${
@@ -534,6 +414,112 @@ function AddToCartButton({
     if (allVarIsEmpty()) return false;
     return false;
   };
+  const updateDataForProduct = async (slug) => {
+    if (product?.slug === slug || productVar?.slug === slug) {
+      let data: QuantityDetailsProductApi["data"] = await AxiosGet({
+        url:
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+          "/web/product/qtyPriceDetails" +
+          `/${slug}`,
+        title: "Get Product",
+      });
+      getProductDetailsForCart({ ...data, temp_id: data.id });
+    }
+  };
+  const shouldShowRemoveButton = () => {
+    let temp = localCart.filter((s) => s.id === product.id);
+    return temp.length > 0;
+  };
+  const decreaseQuantity = () => {
+    let temp = localCart.filter((s) => s.id === product.id);
+    // @ts-ignore
+    let color_name = AddToCartOption?.selectedColor?.color_name ?? null;
+    let size = AddToCartOption?.selectedSize?.name ?? null;
+    let color_value =
+      (product?.colors || productVar?.colors)?.find(
+        (s) => s.name === color_name
+      )?.color ?? null;
+    let selectedVariant =
+      temp.find((s) => s.size === size && s.color === color_value) ?? temp[0];
+
+    handleDecreaseQuantity({
+      id: selectedVariant.item_id,
+      quantity: selectedVariant.quantity,
+    });
+  };
+  const handleDecreaseQuantity = async ({ id, quantity }) => {
+    if (quantity > 1) {
+      let dataBody = [];
+      let dataObj = { key: id, quantity: quantity - 1 };
+      for (var property in dataObj) {
+        if (dataObj[property] || dataObj[property] === 0) {
+          var encodedKey = encodeURIComponent(property);
+          var encodedValue = encodeURIComponent(dataObj[property]);
+          dataBody.push(encodedKey + "=" + encodedValue);
+        }
+      }
+      // @ts-ignore
+      dataBody = dataBody.join("&");
+      try {
+        setLoadedCart(false);
+        updateProductQuantityInCart({ id, qty: quantity - 1 });
+        await AxiosPost({
+          url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
+          title: "Update Quantity For Product In cart",
+          body: dataBody,
+        });
+        updateProductQuantityInCart({ id, qty: quantity - 1 });
+      } catch (error) {
+        updateProductQuantityInCart({ id, qty: quantity });
+      }
+    } else if (quantity === 1) {
+      let temp_local_cart_item = localCart.filter((s) => s.item_id === id);
+      let temp_cart_item = cart.filter((s) => s.id === id);
+      try {
+        setLoadedCart(false);
+        await home.RemoveFromCart({ key: id });
+        removeFromCart(id);
+      } catch (error) {
+        errRemoveFromCart({
+          local_cart_item: temp_local_cart_item,
+          cart_item: temp_cart_item,
+        });
+      }
+    }
+    await updateDataForProduct(product?.slug);
+    setLoadedCart(true);
+  };
+  const showImagesOfProductInCart = () => {
+    let cart_of_product = localCart.filter((s) => s.id === product.id);
+    return cart_of_product?.map((s, key) => {
+      return Array(s.quantity)
+        .fill(1)
+        .map((num, index) => {
+          return (
+            <img
+              src={getConfiguredImage({
+                src: s.image,
+                width: 50,
+                height: 50,
+              })}
+              id={`img${index}`}
+              key={`${index}${s.id}`}
+              className="rounded-md w-8 h-8 static"
+            />
+          );
+        });
+    });
+  };
+  useEffect(() => {
+    if (AddToCartOption.enable) {
+      addToCartColor({
+        color_name:
+          // @ts-ignore
+          AddToCartOption?.selectedColor?.color_name ??
+          product?.colors?.[0]?.color_name,
+      });
+    }
+  }, [AddToCartOption.enable]);
   return (
     <>
       {AddToCartOption.enable && shouldShowNotifyButton() ? (
@@ -714,73 +700,13 @@ function AddToCartButton({
                 />
               )}
 
-              {/* {AddToCartOption.selectedOptions.filter(
-                (s) =>
-                  s.UID ===
-                  `${product?.id}${AddToCartOption?.selectedColor?.color_name}${AddToCartOption?.selectedSize?.name}`
-              ).length > 0 &&
-                AddToCartOption.selectedOptions.filter(
-                  (s) =>
-                    s.UID ===
-                    `${product?.id}${AddToCartOption?.selectedColor?.color_name}${AddToCartOption?.selectedSize?.name}`
-                )[0]?.quantity > 0 && (
-                  <span
-                    className="absolute top-0 left-0 rounded-2xl bg-white flex justify-center items-center p-2 plus-icon-button"
-                    onClick={() => {
-                      Sendevent({
-                        event: "button_clicked",
-                        value: "decrease_qty_button",
-                      });
-                      dispatch({
-                        type: "REMOVE-QUANTITY",
-                        payload: `${product?.id}${AddToCartOption?.selectedColor?.color_name}${AddToCartOption?.selectedSize?.name}`,
-                      });
-                    }}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="15.002"
-                      height="3.188"
-                      viewBox="0 0 15.002 3.188"
-                    >
-                      <path
-                        id="Path_21462"
-                        data-name="Path 21462"
-                        d="M2.1,2.165A1.567,1.567,0,0,1,.942,1.7,1.573,1.573,0,0,1,.48.544,1.479,1.479,0,0,1,.942-.586,1.623,1.623,0,0,1,2.1-1.02H13.862a1.594,1.594,0,0,1,1.156.449A1.525,1.525,0,0,1,15.48.573a1.525,1.525,0,0,1-.462,1.144,1.594,1.594,0,0,1-1.156.449Z"
-                        transform="translate(-0.479 1.021)"
-                        fill="#505050"
-                      />
-                    </svg>
-                  </span>
-                )} */}
-
               <div className="button-desc">
                 <div
                   className={`flex-row  justify-end relative image-container-cart ${
                     !AddToCartOption.enable && "pr-0"
                   }`}
                 >
-                  {AddToCartOption?.enable &&
-                    localCart
-                      .filter((s) => s.id === product.id)
-                      ?.map((s, key) => {
-                        return Array(s.quantity)
-                          .fill(1)
-                          .map((num, index) => {
-                            return (
-                              <img
-                                src={getConfiguredImage({
-                                  src: s.image,
-                                  width: 50,
-                                  height: 50,
-                                })}
-                                id={`img${index}`}
-                                key={`${index}${s.id}`}
-                                className="rounded-md w-8 h-8 static"
-                              />
-                            );
-                          });
-                      })}
+                  {AddToCartOption?.enable && showImagesOfProductInCart()}
                   {getTotalQuantity() > 0 && loading && (
                     <span className="bg-green-500 text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
                       {getTotalQuantity()}
@@ -867,12 +793,17 @@ function AddToCartButton({
             </div>
           ) : (
             <div
-              className={` add-cart-button ${
+              className={`add-cart-button ${
                 AddToCartOption?.enable &&
                 `extended-add-to-cart  ${!loading && "opacity-45"}`
               }  `}
               data-cy="AddToCartButton-data-cy"
               onClick={(e) => {
+                // @ts-ignore
+                if (e.target.closest(".minuse-qty-icon")) {
+                  e.preventDefault();
+                  return;
+                }
                 AddAction(e);
               }}
             >
@@ -887,6 +818,33 @@ function AddToCartButton({
                 />
               )}
 
+              {shouldShowRemoveButton() && (
+                <span
+                  className="absolute minuse-qty-icon top-0 left-0 rounded-2xl bg-white flex justify-center items-center p-2 plus-icon-button"
+                  onClick={() => {
+                    Sendevent({
+                      event: "button_clicked",
+                      value: "decrease_qty_button",
+                    });
+                    decreaseQuantity();
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="15.002"
+                    height="3.188"
+                    viewBox="0 0 15.002 3.188"
+                  >
+                    <path
+                      id="Path_21462"
+                      data-name="Path 21462"
+                      d="M2.1,2.165A1.567,1.567,0,0,1,.942,1.7,1.573,1.573,0,0,1,.48.544,1.479,1.479,0,0,1,.942-.586,1.623,1.623,0,0,1,2.1-1.02H13.862a1.594,1.594,0,0,1,1.156.449A1.525,1.525,0,0,1,15.48.573a1.525,1.525,0,0,1-.462,1.144,1.594,1.594,0,0,1-1.156.449Z"
+                      transform="translate(-0.479 1.021)"
+                      fill="#505050"
+                    />
+                  </svg>
+                </span>
+              )}
               {/* {AddToCartOption.selectedOptions.filter(
                 (s) =>
                   s.UID ===
@@ -932,27 +890,7 @@ function AddToCartButton({
                     !AddToCartOption.enable && "pr-0"
                   }`}
                 >
-                  {AddToCartOption?.enable &&
-                    localCart
-                      .filter((s) => s.id === product.id)
-                      ?.map((s, key) => {
-                        return Array(s.quantity)
-                          .fill(1)
-                          .map((num, index) => {
-                            return (
-                              <img
-                                src={getConfiguredImage({
-                                  src: s.image,
-                                  width: 50,
-                                  height: 50,
-                                })}
-                                id={`img${index}`}
-                                key={`${index}${s.id}`}
-                                className="rounded-md w-8 h-8 static"
-                              />
-                            );
-                          });
-                      })}
+                  {AddToCartOption?.enable && showImagesOfProductInCart()}
                   {getTotalQuantity() > 0 && loading && (
                     <span className="bg-green-500 text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
                       {getTotalQuantity()}

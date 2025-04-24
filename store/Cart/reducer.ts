@@ -142,7 +142,9 @@ export const useCartStore = (set, get) => ({
   cart_enable: false,
   AddToCartOption: {
     enable: false,
-    selectedSize: null,
+    selectedSize: {
+      name: null,
+    },
     selectedColor: {},
     quantity: 0,
     price: null,
@@ -310,6 +312,15 @@ export const useCartStore = (set, get) => ({
 
   setLoadedCart: (loaded) => set({ loaded }),
 
+  updateProductQuantityInCart: ({ id, qty }) =>
+    set((state) => {
+      const arr = state.localCart.map((s) => {
+        if (s.item_id === id) return { ...s, quantity: qty };
+        else return s;
+      });
+      return { localCart: arr };
+    }),
+
   addProductToCart: (product) =>
     set((state) => {
       if (state.localCart.some((s) => s.item_id === product.item_id)) {
@@ -447,7 +458,11 @@ export const useCartStore = (set, get) => ({
       cart: state.cart.filter((s) => s.id !== id),
       localCart: state.localCart.filter((s) => s.item_id !== id),
     })),
-
+  errRemoveFromCart: ({ local_cart_item, cart_item }) =>
+    set((state) => ({
+      cart: [...state.cart, cart_item],
+      local_cart: [...state.local_cart, local_cart_item],
+    })),
   setCartLoading: (loading) => set({ cart_loading: loading }),
 
   enableCart: (enable) => {

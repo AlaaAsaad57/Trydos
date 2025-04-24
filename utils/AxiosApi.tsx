@@ -162,8 +162,10 @@ export const AxiosPost = async ({
         error.status === 403 ||
         error?.message === "Failed"
       ) {
-        if (error.response.data.message) {
-          toast.error(`${title} : ${error.response.data?.message ?? "Failed"}`);
+        if (error?.response?.data?.message) {
+          toast.error(
+            `${title} : ${error?.response?.data?.message ?? "Failed"}`
+          );
         } else {
           toast.error(`${title} : ${error.message ?? "Failed"}`);
         }

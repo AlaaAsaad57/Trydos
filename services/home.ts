@@ -675,7 +675,9 @@ class HomeService {
         body: { key: key },
         title: "Remove From Cart",
       });
-    } catch (error) {}
+    } catch (error) {
+      throw error;
+    }
   }
   async StoreNotificationProduct({ type_id, variant, product_id }) {
     let detail = {

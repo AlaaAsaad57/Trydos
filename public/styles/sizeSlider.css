@@ -73,7 +73,7 @@
   height: calc(100vh - 518px);
 }
 .moved-min-img {
-  height: calc(100vh - 650px);
+  height: calc(100vh - 500px);
 }
 .inset-select-shadow-image:before {
   position: absolute;
