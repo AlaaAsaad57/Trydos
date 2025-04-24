@@ -1,4 +1,5 @@
 import {
+  formatPrice,
   getConfiguredImage,
   RoundPrice,
   translateFunction,
@@ -582,7 +583,7 @@ const TryDosWalletInput = ({ total }) => {
           {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: total })} {currency?.symbol}
+          {formatPrice(total)} {currency?.symbol}
         </span>
       </div>
     </div>

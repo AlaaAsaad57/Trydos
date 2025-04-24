@@ -1,5 +1,5 @@
 import { useParams } from "next/navigation";
-import { RoundPrice, translateFunction } from "utils/functions";
+import { formatPrice, RoundPrice, translateFunction } from "utils/functions";
 import WalletIcon from "assets/svg/cart/WalletIcon.svg";
 import CreditIcon from "assets/svg/cart/CreditIcon.svg";
 import PaymentIconOne from "assets/svg/cart/Payment/DimondPay.svg";
@@ -639,7 +639,7 @@ const TryDosWalletInput = ({ active, setActive }) => {
           {translateFunction("Your Balance")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: wallet?.wallet_balance || 0 })} {currency?.symbol}
+          {formatPrice(wallet?.wallet_balance)} {currency?.symbol}
         </span>
       </div>
     </div>

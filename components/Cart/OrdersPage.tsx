@@ -164,7 +164,7 @@ function OrdersPage({
         ) {
           setLoading(true);
           await order.PlaceOrder({
-            payment_method: "Card",
+            payment_method: "card",
             pay_by_wallet: true,
           });
           setLoading(false);
@@ -175,7 +175,7 @@ function OrdersPage({
         ) {
           setLoading(true);
           await order.PlaceOrder({
-            payment_method: "Crypto",
+            payment_method: "crypto",
             pay_by_wallet: true,
           });
           setLoading(false);
@@ -186,7 +186,7 @@ function OrdersPage({
         ) {
           setLoading(true);
           await order.PlaceOrder({
-            payment_method: "COD",
+            payment_method: "cash_on_delivery",
             pay_by_wallet: true,
           });
           setLoading(false);

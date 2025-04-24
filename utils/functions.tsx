@@ -580,8 +580,8 @@ export const UpdateFilter = async ({
 };
 export function formatPrice(price) {
   const { currency } = useAppStore.getState();
+  let ceil = currency?.ciel ?? 0;
 
-  let ceil = currency?.ciel;
   if (price >= 1000000) {
     return (
       (ceil

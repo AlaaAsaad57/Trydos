@@ -31,6 +31,7 @@ function MainSetting({
   swipeToScreen: (index: number) => void;
 }) {
   const { wallet, currency, totalOrders } = useAppStore();
+
   const { lang } = useParams();
   // @ts-ignore
   let country = lang?.split("-")[0];
