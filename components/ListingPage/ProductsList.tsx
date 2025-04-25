@@ -8,9 +8,7 @@ import Spinner from "../global/Spinner";
 import { dispatchRouteChangeEvent } from "utils/events";
 
 import { RoundPrice, translateFunction } from "utils/functions";
-import { useParams, useSearchParams } from "next/navigation";
-
-import AddToCartWidget from "components/Cart/AddToCartWidget";
+import { useParams } from "next/navigation";
 import { CurrencyApi } from "models/Api";
 import { useAppStore } from "store";
 import { getProductsAndFilters } from "store/homepage/cachedActions";
