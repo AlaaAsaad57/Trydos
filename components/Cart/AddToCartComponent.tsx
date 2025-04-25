@@ -16,12 +16,13 @@ import Skeleton from "react-loading-skeleton";
 import "public/styles/sizeSlider.css";
 import Spinner from "components/global/Spinner";
 import { useParams, useSearchParams } from "next/navigation";
-import { SliderRuler } from "components/products/SelectSize";
+
 import NotifySVG from "public/svg/cart/NotifyCart.svg";
 import cart from "services/cart";
 import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 import auth from "services/auth";
 import home from "services/home";
+import { SliderRuler } from "./SliderRuler";
 
 function AddToCartComponent({
   color,

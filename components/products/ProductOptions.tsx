@@ -102,13 +102,7 @@ function ProductOptions({
         <ShareButton onClick={() => shareAction()} />
       ) : (
         <>
-          <AddToCartButton
-            setOption={(s) => setOption(s)}
-            productVar={product}
-            product={SelectedProduct}
-            loading={loaded && SelectedProduct.choice_options}
-            showLoading={loading}
-          />
+          <AddToCartButton product={SelectedProduct} />
           <div className="options-container" data-cy="InteraCtionBoX">
             <div
               className={`product-option-item ${
