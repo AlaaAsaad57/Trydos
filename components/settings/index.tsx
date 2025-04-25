@@ -17,6 +17,7 @@ import OrderDetails from "./OrderDetails";
 
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
+import { ToastContainer } from "react-toastify";
 
 interface SettingOption {
   id: string;
@@ -213,6 +214,10 @@ function Settings({ lang }: { lang: string }) {
     );
   return (
     <div className="max-h-full h-full overflow-auto flex w-full max-w-[1365px] justify-center bg-white">
+      <ToastContainer
+        position="top-right"
+        style={{ zIndex: "9999999999999999" }}
+      />
       {/* Sidebar Navigation */}
 
       {/* Main Content Area */}

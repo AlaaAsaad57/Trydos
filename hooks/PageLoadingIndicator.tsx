@@ -1,9 +1,11 @@
 "use client";
 
+import Spinner from "components/global/Spinner";
 import BoutiqueLoader from "components/skeleton/loaders/BoutiqueLoader";
 import FullHomeLoader from "components/skeleton/loaders/FullHomeLoader";
 import HomeLoader from "components/skeleton/loaders/HomeLoader";
 import ProductLoader from "components/skeleton/loaders/ProductLoader";
+import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
 
 import { type ReactNode, useEffect, useState } from "react";
 import {
@@ -35,7 +37,7 @@ export default function PageLoadingIndicator() {
     if (isLoading.is_product) return <ProductLoader product={isLoading} />;
     if (isLoading.is_filter) return <BoutiqueLoader boutique={isLoading} />;
     if (isLoading.is_full_home) return <FullHomeLoader />;
-    if (isLoading.is_settings) return <></>;
+    if (isLoading.is_settings) return <SettingsLoader />;
     if (isLoading.is_filter_search)
       return <BoutiqueLoader boutique={isLoading} isForSearch={true} />;
   }
@@ -48,7 +50,9 @@ export default function PageLoadingIndicator() {
           }}
           className="fixed bg-[#fafafa] h-screen    w-screen overflow-hidden rounded-full"
         >
-          <HomeLoader />
+          <span className="scale-[5]">
+            <Spinner />
+          </span>
         </div>
       )}
     </>

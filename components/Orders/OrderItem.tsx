@@ -78,6 +78,7 @@ const OrderProductSlider = ({ products }: { products: OrderDetail[] }) => {
   );
 };
 const OrderStatus = ({ status }: { status: string }) => {
+  const { settings } = useAppStore();
   return (
     <div className="flex-row items-center">
       <svg
@@ -149,7 +150,12 @@ const OrderStatus = ({ status }: { status: string }) => {
       </svg>
 
       <span className="ml-[4px] text-[#1D1D1D] text-[12px] regular">
-        {translateFunction(getStatusDisplayName(status))}
+        {translateFunction(
+          getStatusDisplayName(
+            status,
+            settings["starting-setting"].order_statuses
+          )
+        )}
       </span>
       <svg
         className="ml-[7px]"

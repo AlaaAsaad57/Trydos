@@ -11,7 +11,7 @@ function OrderPlaced({ data }) {
       }}
       ariaLabel={`notification Order Placed ${data.order_id} ${lang}`}
       className="flex-row"
-      href={`/${lang}/setting?tab=Orders`}
+      href={`/${lang}/setting?tab=Orders&id=${data?.order_id}`}
       prefetch
     >
       <div className="flex-col m-2">

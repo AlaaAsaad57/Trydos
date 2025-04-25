@@ -20,6 +20,7 @@ import { initializeAnalytics, isSupported } from "firebase/analytics";
 import OrderPlaced from "components/Notifications/OrderPlaced";
 import { AxiosGet } from "./AxiosApi";
 import ProductHurryUp from "components/Notifications/ProductHurry";
+import OrderStatusChanged from "components/Notifications/OrderStatusChanged";
 const firebaseConfig = {
   // apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
   // authDomain: "trydos-ce234.firebaseapp.com",
@@ -110,6 +111,13 @@ export const onMessageListener = async () => {
       console.log(payload);
       if (payload.data.title === "market") {
         const data = JSON.parse(payload.data.body);
+        if (data?.type === "order status changed") {
+          const toaster = (myProps, toastProps): Id =>
+            toast(<OrderStatusChanged {...myProps} />, { ...toastProps });
+          toaster.info = (myProps, toastProps): Id =>
+            toast.info(<OrderStatusChanged {...myProps} />, { ...toastProps });
+          toaster.info({ data: data }, { data: data });
+        }
         if (JSON.parse(payload.data.body)?.type?.includes("product hurry up")) {
           const toaster = (myProps, toastProps): Id =>
             toast(<ProductHurryUp {...myProps} />, { ...toastProps });

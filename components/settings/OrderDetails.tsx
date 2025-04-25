@@ -79,7 +79,7 @@ function OrderDetails({
 
 export default OrderDetails;
 const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
-  const { currency } = useAppStore();
+  const { currency, settings } = useAppStore();
 
   return (
     <div className="bg-[#fff] mt-[20px] rounded-[10px] w-full h-auto p-[12px] flex-col flex items-start">
@@ -414,7 +414,10 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
           <div className="text-[#1D1D1D] flex-row text-[12px] regular mt-[3px]">
             <span>
               {translateFunction(
-                getStatusDisplayName(order.order_status.value)
+                getStatusDisplayName(
+                  order.order_status.value,
+                  settings["starting-setting"].order_statuses
+                )
               )}
             </span>
             <svg
@@ -525,7 +528,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
   );
 };
 const ProductCard = ({ product }: { product: OrderDetail }) => {
-  const { currency } = useAppStore();
+  const { currency, settings } = useAppStore();
 
   return (
     <div className="flex-row relative w-full border-t border-[#C4C2C27f] py-[12px]">
@@ -594,7 +597,12 @@ const ProductCard = ({ product }: { product: OrderDetail }) => {
               {translateFunction("Item Status")}:
             </span>
             <span className="text-[#505050] text-[10px] medium ml-[2px]">
-              {translateFunction(getStatusDisplayName(product.delivery_status))}
+              {translateFunction(
+                getStatusDisplayName(
+                  product.delivery_status,
+                  settings["starting-setting"].order_group_statuses
+                )
+              )}
             </span>
             <svg
               xmlns="http://www.w3.org/2000/svg"

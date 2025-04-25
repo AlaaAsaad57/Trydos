@@ -29,7 +29,7 @@ firebase.initializeApp(firebaseConfig);
 // Retrieve firebase messaging
 const messaging = firebase.messaging();
 // let url = `${'http://localhost:3006'}`;
-let url = "https://trydos-front.vercel.app/";
+let url = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 messaging.onBackgroundMessage(async function (payload) {
   try {
@@ -170,7 +170,25 @@ messaging.onBackgroundMessage(async function (payload) {
           body: JSON.parse(payload.data.body)?.description,
           // image: JSON.parse(payload.data.body)?.image,
           data: {
-            url,
+            url: url + `setting?tab=Orders`,
+          }, // The URL which we are going to use later
+        };
+        self.registration.showNotification(
+          JSON.parse(payload?.data.body)?.showed_type ??
+            JSON.parse(payload.data.body).description,
+          notificationOptions
+        );
+      }
+      if (JSON.parse(payload.data.body).type === "order status changed") {
+        notificationOptions = {
+          body: JSON.parse(payload.data.body)?.description,
+          // image: JSON.parse(payload.data.body)?.image,
+          data: {
+            url:
+              url +
+              `setting?tab=Orders&id=${
+                JSON.parse(payload.data.body).order_group_id
+              }`,
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(

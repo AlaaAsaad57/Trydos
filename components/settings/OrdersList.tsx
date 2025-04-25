@@ -5,24 +5,13 @@ import { OrderItem as OrderItemType, OrdersResponse } from "../../types/orders";
 import { fetchOrders } from "../../services/orders";
 import OrderItem from "../Orders/OrderItem"; // Assuming OrderItem component exists and can be reused
 import { translateFunction } from "utils/functions"; // Assuming translateFunction exists
+import { useAppStore } from "store";
+import { useRouter, useSearchParams } from "next/navigation";
+import { dispatchRouteChangeEvent } from "utils/events";
 
 // Helper function to get status display name (replace with actual logic if needed)
-export const getStatusDisplayName = (key: string): string => {
-  const statusMap: { [key: string]: string } = {
-    all: "All",
-    pending: "Pending",
-    processing: "Processing",
-    ready_to_shipping: "Ready to Shipping",
-    shipped: "Shipped",
-    out_for_delivery: "Out for Delivery",
-    delivered: "Delivered",
-    partial_return: "Partial Return",
-    returned: "Returned",
-    failed: "Failed",
-    canceled: "Canceled",
-    canceled_archived: "Canceled Archived",
-  };
-  return statusMap[key] || key;
+export const getStatusDisplayName = (key: string, statusMap: any): string => {
+  return statusMap.find((s) => s.value === key)?.label || key;
 };
 
 function OrdersList({
@@ -41,7 +30,9 @@ function OrdersList({
   const [page, setPage] = useState(1);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const statusSliderRef = useRef<HTMLDivElement>(null); // Ref for the status slider
-
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const id = searchParams.get("id");
   let order_statues = [
     { key: "all", name: "All" },
     { key: "pending", name: "Pending" },
@@ -200,7 +191,14 @@ function OrdersList({
       slider.removeEventListener("mousemove", handleMouseMove);
     };
   }, []); // Run only once on mount
-
+  useEffect(() => {
+    if (orders.find((order) => order.order_group_id === id)) {
+      setSelectedOrder(orders.find((order) => order.order_group_id === id));
+      swipeToScreen(10);
+      router.replace("/setting?tab=Orders");
+    }
+    dispatchRouteChangeEvent("completed");
+  }, [orders, searchParams]);
   return (
     <div className="flex-col max-h-[calc(100vh-200px)]">
       <SettingTopBar
@@ -267,7 +265,6 @@ function OrdersList({
                 order={order}
                 showDetails={() => {
                   setSelectedOrder({ ...order });
-
                   swipeToScreen(10);
                 }}
               />
