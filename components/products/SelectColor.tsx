@@ -216,9 +216,9 @@ export const SelectColorsSlider = ({ colors }) => {
         setActive(colors[e.activeIndex]);
       }}
       slidesPerView={7}
-      initialSlide={getInitial()}
+      initialSlide={0}
       threshold={1}
-      centeredSlides={true}
+      centeredSlides={false}
       loop={false}
       ref={ref}
     >
@@ -234,12 +234,12 @@ export const SelectColorsSlider = ({ colors }) => {
             minWidth: "70px",
             height: "70px",
           }}
-          className="w-[70px] h-[70px] color-swipe-slide relative rounded-full"
+          className="w-[70px] h-[70px] color-swipe-slide bg-white relative rounded-full"
         >
           {({ isActive }) => (
             <>
               <img
-                className="w-[70px] h-[70px] rounded-full"
+                className="w-[70px] h-[70px] rounded-full bg-white"
                 src={getConfiguredImage({
                   src:
                     (typeof color.images[0] === "string" && color.images[0]) ||

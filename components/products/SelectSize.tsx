@@ -476,7 +476,7 @@ const SelectSizeSlider = ({ sizes, setActive, getVariants }) => {
     </>
   );
 };
-function SliderRuler() {
+export function SliderRuler() {
   return (
     <>
       <svg

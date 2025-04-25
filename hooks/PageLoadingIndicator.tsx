@@ -16,7 +16,6 @@ export default function PageLoadingIndicator() {
 
   useEffect(() => {
     registerRouteChangeListener("start", (data) => {
-      console.log("start");
       document.documentElement.style.overflow = "hidden";
       document.body.scrollTop = 0;
       document.documentElement.scrollTop = 0;
@@ -24,8 +23,6 @@ export default function PageLoadingIndicator() {
     });
 
     registerRouteChangeListener("completed", () => {
-      console.log("completed");
-      document.documentElement.style.cursor = "initial";
       document.body.style.overflow = "initial";
       document.body.scrollTop = 0;
       setIsLoading(null);

@@ -33,7 +33,7 @@ import FreeShippingOption from "components/products/FreeShippingOption";
 function ProductLoader({ product }) {
   const { lang } = useParams();
   const { currency } = useAppStore();
-  const color = product.active_color;
+  const color = product?.active_color;
   // @ts-ignore
   const [country, languageVariable] = lang?.split("-");
   return (
@@ -63,7 +63,7 @@ function ProductLoader({ product }) {
           <div className="embla">
             <div className="embla__container">
               {product?.id
-                ? product.images.map((img, i) => (
+                ? (product?.images ?? [product?.image])?.map((img, i) => (
                     <div
                       className="embla__slide product-slider-images"
                       key={`img-product-${i}`}
@@ -73,7 +73,7 @@ function ProductLoader({ product }) {
                         height={464}
                         priority={i === 0}
                         loading={"eager"}
-                        alt={product.name}
+                        alt={product?.name}
                         src={getConfiguredImage({
                           src: img,
                           width: 500,
@@ -111,9 +111,9 @@ function ProductLoader({ product }) {
           >
             <ProductViews
               product={{
-                name: product.name,
-                id: product.id,
-                categories: product.categories,
+                name: product?.name,
+                id: product?.id,
+                categories: product?.categories,
               }}
             />
           </Suspense>
@@ -124,34 +124,34 @@ function ProductLoader({ product }) {
                 <img
                   width={"auto"}
                   height={18}
-                  src={product.brand.icon}
-                  alt={product.brand.name}
+                  src={product?.brand?.icon}
+                  alt={product?.brand?.name}
                 />
               )}
             </div>
             <div className="product-text-section flex-row align-center">
               <div className="product-name" data-cy="productName_productPage">
-                {product.name}
+                {product?.name}
               </div>
               <div className="product-category">
                 {product?.category?.icon && (
                   <img
                     width={15}
                     height={15}
-                    src={product.category.icon}
-                    alt={product.category.name}
+                    src={product?.category?.icon}
+                    alt={product?.category?.name}
                   />
                 )}
               </div>
               <span className="separtor">|</span>
 
               <div className="product-category-name">
-                {product.category?.name}
+                {product?.category?.name}
               </div>
             </div>
             {product?.details ? (
               <ProductDetailsText
-                product={product.sync_color_images}
+                product={product?.sync_color_images}
                 details={product?.details}
               />
             ) : (
@@ -239,8 +239,8 @@ function ProductLoader({ product }) {
             </Suspense>
             <Suspense fallback={<></>}>
               <ProductColors
-                colors={product.sync_color_images || []}
-                ProductColorsArray={product.colors}
+                colors={product?.sync_color_images || []}
+                ProductColorsArray={product?.colors}
               />
             </Suspense>
             <Suspense fallback={<></>}>
@@ -260,7 +260,7 @@ function ProductLoader({ product }) {
             <Suspense>
               <ProductShippingOption />
             </Suspense>
-            {product.shipping_cost === 0 && (
+            {product?.shipping_cost === 0 && (
               <Suspense>
                 <FreeShippingOption lang={lang} />
               </Suspense>
@@ -332,7 +332,7 @@ function ProductLoader({ product }) {
                   </svg>
                   {(currency?.exchange_rate &&
                     RoundPrice({
-                      num: product.price,
+                      num: product?.price,
                       rate: currency?.exchange_rate,
                       points: 0,
                     })) ?? <Skeleton width={30} height={10} />}
@@ -341,7 +341,7 @@ function ProductLoader({ product }) {
               <div className="product-new-price">
                 {(currency?.exchange_rate &&
                   RoundPrice({
-                    num: product.offer_price,
+                    num: product?.offer_price,
                     rate: currency?.exchange_rate,
                     points: 0,
                   })) ?? <Skeleton width={30} height={10} />}

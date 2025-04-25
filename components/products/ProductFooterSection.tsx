@@ -16,6 +16,7 @@ import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { dispatchRouteChangeEvent } from "utils/events";
+
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
     return {
@@ -79,8 +80,6 @@ function ProductFooterSection({ product, currency }) {
     setShareLoading,
     setSharesCount,
     loginOpen,
-    AddToCartOption,
-    settings,
   } = useAppStore();
   let { lang } = useParams();
 
@@ -240,10 +239,8 @@ function ProductFooterSection({ product, currency }) {
       );
     }
   };
-
   return (
     <>
-      {option === "AddToCart" && <SelectColor close={() => setOption("")} />}
       {!loginOpen && (
         <>
           {/* <ProductInfo

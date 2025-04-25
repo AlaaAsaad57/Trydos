@@ -50,13 +50,12 @@ const getIndex = (product, productState) => {
   return index;
 };
 export const BuyButtonProduct = ({ product }) => {
-  const { enableAddToCartOption, storeProductBoutique } = useAppStore();
+  const { setSelectedProductForCart } = useAppStore();
 
   const addToCart = () => {
     document.documentElement.style.overflow = "hidden";
     document.documentElement.scrollTop = 0;
-    storeProductBoutique({ ...product });
-    enableAddToCartOption(product);
+    setSelectedProductForCart(product);
   };
   return (
     <BuyButton

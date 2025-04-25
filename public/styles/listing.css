@@ -421,7 +421,8 @@ svg {
   flex-wrap: wrap;
   background-color: #f4f4f4;
   justify-content: space-around;
-  min-width: 100vw;
+  width: 100vw;
+  max-width: 1365px;
   min-height: 48vh;
   padding-bottom: 200px;
 }

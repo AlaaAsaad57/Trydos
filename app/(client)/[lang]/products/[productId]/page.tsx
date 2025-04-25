@@ -427,7 +427,7 @@ async function Page({ params, searchParams }: Props) {
         </div>
       </div>
 
-      <div className="product-details-footer z-[999999999]">
+      <div className="product-details-footer alternate-product-details-footer z-[999999999]">
         <div className="product-info-container">
           <div className="product-info-price">
             {product?.offer_price > 0 && (

@@ -323,51 +323,13 @@ export const useCartStore = (set, get) => ({
       return { localCart: arr };
     }),
 
-  addProductToCart: (product) =>
+  addProductToCart: (cart_item) =>
     set((state) => {
-      if (state.localCart.some((s) => s.item_id === product.item_id)) {
-        const arr = [];
-        let prod = null;
-        state.localCart.map((s) => {
-          if (s.item_id !== product.item_id) {
-            arr.push(s);
-          } else {
-            prod = s;
-          }
-        });
-        arr.push({
-          ...prod,
-          quantity: parseInt(prod.quantity + product.quantity),
-        });
-        const selectedOptions = [];
-        state.AddToCartOption.selectedOptions.map((s) => {
-          selectedOptions.push(s);
-        });
-        return {
-          localCart: arr,
-          AddToCartOption: {
-            ...state.AddToCartOption,
-            quantity: 0,
-            selectedOptions,
-          },
-        };
-      } else {
-        const selectedOptions = [];
-        state.AddToCartOption.selectedOptions.map((s) => {
-          if (s.UID === product.UID) {
-          } else {
-            selectedOptions.push(s);
-          }
-        });
-        return {
-          localCart: [...state.localCart, product],
-          AddToCartOption: {
-            ...state.AddToCartOption,
-            quantity: 0,
-            selectedOptions,
-          },
-        };
-      }
+      console.log(cart_item);
+      return {
+        ...state,
+        localCart: [...state.localCart, cart_item],
+      };
     }),
 
   storeOldCart: (cart) =>

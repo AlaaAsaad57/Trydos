@@ -16,6 +16,7 @@ import ModalIframe from "./ModalIframe";
 import { ToastContainer } from "react-toastify";
 import { useAppStore } from "store";
 import { getCurrency } from "store/chat/actions";
+import AddToCartComponent from "./AddToCartComponent";
 const CartProvider = () => {
   const {
     enableCart,
@@ -29,6 +30,8 @@ const CartProvider = () => {
     openPayIframe,
     payIframeURL,
     cart_enable: enable,
+    selected_product_for_add_to_cart,
+    setSelectedProductForCart,
   } = useAppStore();
 
   const pathname = usePathname();
@@ -117,6 +120,20 @@ const CartProvider = () => {
   return (
     <>
       {enable ? <StepSlider enableCart={(e) => enableCartAction(e)} /> : <></>}
+      {selected_product_for_add_to_cart && (
+        <AddToCartComponent
+          close={() => {
+            setSelectedProductForCart(null);
+          }}
+          color={selected_product_for_add_to_cart?.colors[0]}
+          size={
+            selected_product_for_add_to_cart?.choice_options?.[0]?.options?.[0]
+          }
+          product={selected_product_for_add_to_cart}
+          slug={selected_product_for_add_to_cart?.slug}
+          isFromListing={true}
+        />
+      )}
       {openIframe.isShow && (
         <div
           ref={modalIframeRef}

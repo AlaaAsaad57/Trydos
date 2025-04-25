@@ -90,6 +90,7 @@ function ProductsInfiniteScroll({
         (settings && settings["starting-setting"]?.decimal_point_settings) || 0,
     });
   };
+  const [enabledAddToCart, setEnabledAddToCart] = useState(true);
   return (
     <>
       {products?.map((product, key) => (
@@ -245,8 +246,6 @@ function ProductsInfiniteScroll({
                       {translate("No Results Found")}
                     </div>
                   )} */}
-
-      {AddToCartOption.enable && <AddToCartWidget />}
       {
         <div
           className="get-next-product regular-text color-dark-gray absolute flex justify-center items-end bottom-[300px]"

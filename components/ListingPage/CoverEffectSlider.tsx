@@ -85,7 +85,11 @@ function CoverEffectSlider({
         onInit={(swiper) => {
           ref.current = swiper;
         }}
-        className="avatar-slider"
+        className="avatar-slider mx-auto my-0 !w-fit"
+        style={{
+          width: "fit-content !important",
+          margin: "0 auto",
+        }}
         onSlideChange={(swiper) => {
           setTimeout(() => {
             dispatchRouteChangeEvent("completed");
@@ -121,7 +125,7 @@ function CoverEffectSlider({
               setActive(i);
               setActiveColor(images[i]);
             }}
-            className={`image-avatar overflow-visible w-100 rounded-50 flex relative cursor-pointer wid-${getSize(
+            className={`image-avatar bg-white overflow-visible w-100 rounded-50 flex relative cursor-pointer wid-${getSize(
               i
             )}`}
             style={{

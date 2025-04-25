@@ -43,6 +43,7 @@ function AddToCartButton({
     removeFromCart,
     errRemoveFromCart,
     getProductDetailsForCart,
+    setSelectedProductForCart,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -678,12 +679,15 @@ function AddToCartButton({
             // @ts-ignore
             <div
               onClick={() => {
-                if (!AddToCartOption?.enable) {
-                  setOption("AddToCart");
-                  document.documentElement.style.overflow = "hidden";
-                  document.documentElement.scrollTop = 0;
-                  enableAddToCartOption(false);
-                }
+                // if (!AddToCartOption?.enable) {
+                //   setOption("AddToCart");
+                //   document.documentElement.style.overflow = "hidden";
+                //   document.documentElement.scrollTop = 0;
+                //   enableAddToCartOption(false);
+                // }
+                document.documentElement.style.overflow = "hidden";
+                document.documentElement.scrollTop = 0;
+                setSelectedProductForCart(product);
               }}
               className={`add-cart-button   ${
                 AddToCartOption?.enable &&
@@ -800,11 +804,14 @@ function AddToCartButton({
               data-cy="AddToCartButton-data-cy"
               onClick={(e) => {
                 // @ts-ignore
-                if (e.target.closest(".minuse-qty-icon")) {
-                  e.preventDefault();
-                  return;
-                }
-                AddAction(e);
+                // if (e.target.closest(".minuse-qty-icon")) {
+                //   e.preventDefault();
+                //   return;
+                // }
+                // AddAction(e);
+                document.documentElement.style.overflow = "hidden";
+                document.documentElement.scrollTop = 0;
+                setSelectedProductForCart(product);
               }}
             >
               {product && !isReachedMax() && (

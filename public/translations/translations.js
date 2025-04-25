@@ -656,6 +656,8 @@ const translations = {
     "this message was deleted": "تم حذف هذه الرسالة",
     Woman: "أنثى",
     Kids: "أطفال",
+    "You will be notified for this product already":
+      "لقد قمت بالفعل بتفعيل الاشعارات لهذا المنتج",
     Home: "منزلي",
     Electrical: "كهربائيات",
     Shop: "متجر",
@@ -797,6 +799,8 @@ const translations = {
     "The Purchase Was Completed Successfully":
       "Satın Alma Başarıyla Tamamlandı",
     "000 CM": "000 CM",
+    "You will be notified for this product already":
+      "Bu Ürün Hakkında Bildirim Alındı",
     "Item Status": "Ürün Durumu",
     "Composed Of": "İçerik",
     Recipient: "Alıcı",

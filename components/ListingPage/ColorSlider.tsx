@@ -88,6 +88,7 @@ function ColorSlider({
                   overflow: "visible",
                   position: "relative",
                 }}
+                className="bg-white"
               >
                 <>
                   <BorderImage isBig={false} />

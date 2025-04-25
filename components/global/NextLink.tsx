@@ -34,7 +34,6 @@ export default function NextLink({
       return;
     }
     if (pathname !== href) {
-      document.body.style.cursor = "progress";
       document.body.style.overflow = "hidden";
       document.body.scrollTop = 0;
       dispatchRouteChangeEvent("start", {

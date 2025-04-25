@@ -89,6 +89,7 @@ function ImageSlider({
                 overflow: "visible",
                 position: "relative",
               }}
+              className="bg-white"
             >
               {({ isActive }) => (
                 <>

@@ -117,7 +117,7 @@ function ExtendedAreaInfo({
         )}
 
         {option === "More" && <MoreOptionsSection />}
-        {option === "AddToCart" &&
+        {/* {option === "AddToCart" &&
           product?.choice_options?.filter((s) => s.title == "Size")[0]
             ?.options &&
           (loading ? (
@@ -157,7 +157,7 @@ function ExtendedAreaInfo({
               }
               variants={product.variation}
             />
-          ))}
+          ))} */}
       </Animated.div>
     </>
   );

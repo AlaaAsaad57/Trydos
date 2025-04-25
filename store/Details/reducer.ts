@@ -61,11 +61,13 @@ interface DetailsState {
   product: any;
   details_loading: boolean;
   sharesCount: number | null;
+  selected_product_for_add_to_cart: null | any;
 }
 
 const initialState: DetailsState = {
   activeCameraGallery: false,
   shareLoading: false,
+  selected_product_for_add_to_cart: null,
   totalProducts: null,
   InfoMessage: {
     showInfoMessage: false,
@@ -133,7 +135,8 @@ export const useDetailsStore = (set, get) => ({
   ...initialState,
 
   setShareLoading: (loading: boolean) => set({ shareLoading: loading }),
-
+  setSelectedProductForCart: (product: any) =>
+    set({ selected_product_for_add_to_cart: product }),
   storeProduct: (product: any) =>
     set((state) => ({
       product: {
