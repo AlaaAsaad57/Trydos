@@ -1,11 +1,10 @@
 "use client";
 import React, { useEffect, useReducer, useState } from "react";
-import ProductInfo from "./ProductInfo";
+
 import ExtendedAreaInfo from "./ExtendedAreaInfo";
 import ProductOptions from "./ProductOptions";
-import ProductDetails from "./ProductDetails";
-import SelectColor from "./SelectColor";
-import { RoundPrice, translateFunction } from "utils/functions";
+
+import { translateFunction } from "utils/functions";
 
 import { toast } from "react-toastify";
 import chat from "services/chat";
