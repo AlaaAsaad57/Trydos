@@ -197,7 +197,7 @@ const ActiveFiltersBar = ({
                     value: category,
                     arr: filters.categories,
                     key: "slug",
-                  })?.categories_sub?.map((s) => (
+                  })?.childes?.map((s) => (
                     <>
                       <div className="sub-category-icon flex-row min-h-[10px] min-w-[10px]">
                         <svg
@@ -488,6 +488,15 @@ const FilterItem = ({
   params,
   boutique,
 }) => {
+  const getSubCategoryUrl = (slug) => {
+    console.log(item);
+    let { href, isFiltered } = getFilterStateForItem(
+      searchParams,
+      slug,
+      "categories"
+    );
+    return { href, isFiltered };
+  };
   if (term === "categories") {
     const { href, isFiltered } = getFilterStateForItem(
       searchParams,
@@ -496,59 +505,229 @@ const FilterItem = ({
     );
 
     return (
-      <NextLink
-        data={{
-          is_filter: true,
-          ...boutique,
-        }}
-        ariaLabel={`filter category ${item.slug} ${params.lang}`}
-        href={href}
-        className={`category-circle flex-col align-center ${
-          item?.categories_sub?.length > 0 && "extended-circle"
-        }`}
-        data-cy="category_botiquePage"
-      >
-        <div className="relative w-[70px] h-[70px] z-10">
-          {isFiltered && (
-            <ActiveCategoryIcon className="active-category-icon" />
-          )}
-          <svg
-            className="absolute z-10 top-0 left-0"
-            xmlns="http://www.w3.org/2000/svg"
-            width="70"
-            height="70"
-            viewBox="0 0 70 70"
-          >
-            <g
-              id="Ellipse_283"
-              data-name="Ellipse 283"
-              fill="none"
-              stroke={isFiltered ? "#FF5F61" : "#fff"}
-              strokeWidth="0.5"
+      <>
+        <NextLink
+          data={{
+            is_filter: true,
+            ...boutique,
+          }}
+          ariaLabel={`filter category ${item.slug} ${params.lang}`}
+          href={href}
+          className={`category-circle flex-col align-center ${
+            item?.childes?.length > 0 && "extended-circle"
+          }`}
+          data-cy="category_botiquePage"
+        >
+          <div className="relative w-[70px] h-[70px] z-10">
+            {isFiltered && (
+              <ActiveCategoryIcon className="active-category-icon" />
+            )}
+            <svg
+              className="absolute z-10 top-0 left-0"
+              xmlns="http://www.w3.org/2000/svg"
+              width="70"
+              height="70"
+              viewBox="0 0 70 70"
             >
-              <circle cx="35" cy="35" r="35" stroke="none" />
-              <circle cx="35" cy="35" r="34.5" fill="none" />
-            </g>
-          </svg>
-          <div className="category-shadow"></div>
-          <img
-            width={70}
-            height={70}
-            className="object-center"
-            src={(
-              item.most_viewed_product_thumbnail?.file_path ??
-              item.flat_photo_path?.file_path ??
-              item?.icon?.file_path
-            )?.replace("/upload", "/upload/w_50,h_50,c_fit/f_avif/q_100")}
-          />
-        </div>
-        <div className="category-text-container flex-col align-center">
-          <span className="category-title" data-cy="categoryTitle">
-            {item.name}
-          </span>
-          {/* <span className="category-typo">1100</span> */}
-        </div>
-      </NextLink>
+              <g
+                id="Ellipse_283"
+                data-name="Ellipse 283"
+                fill="none"
+                stroke={isFiltered ? "#FF5F61" : "#fff"}
+                strokeWidth="0.5"
+              >
+                <circle cx="35" cy="35" r="35" stroke="none" />
+                <circle cx="35" cy="35" r="34.5" fill="none" />
+              </g>
+            </svg>
+            <div className="category-shadow"></div>
+            <img
+              width={70}
+              height={70}
+              className="object-center"
+              src={(
+                item.most_viewed_product_thumbnail?.file_path ??
+                item.flat_photo_path?.file_path ??
+                item?.icon?.file_path
+              )?.replace("/upload", "/upload/w_50,h_50,c_fit/f_avif/q_100")}
+            />
+          </div>
+          <div className="category-text-container flex-col align-center max-w-[70px]">
+            <span className="category-title" data-cy="categoryTitle">
+              {item.name}
+            </span>
+            {/* <span className="category-typo">1100</span> */}
+          </div>
+        </NextLink>
+        {item.childes?.length > 0 && (
+          <div
+            className={`categories-sub-circles ${
+              isFiltered && "no-transform"
+            } z-0`}
+            style={{
+              minWidth: isFiltered ? "max-content" : "10px",
+            }}
+          >
+            {item.childes.map((s, index) => {
+              return (
+                <>
+                  <NextLink
+                    data={{
+                      is_filter: true,
+                      ...boutique,
+                    }}
+                    href={getSubCategoryUrl(s.slug)?.href}
+                    className="sub-circle"
+                    style={{
+                      zIndex: 4 - index,
+                    }}
+                  >
+                    {isFiltered && getSubCategoryUrl(s.slug)?.isFiltered && (
+                      <ActiveCategoryIcon
+                        className="active-category-icon"
+                        style={{ top: "-5px", left: "-5px" }}
+                      />
+                    )}
+                    <div
+                      style={{
+                        position: "absolute",
+                        zIndex: "7",
+                        width: "50px",
+                        height: "50px",
+                      }}
+                      className="category-shadow"
+                    ></div>
+                    <svg
+                      style={{ position: "absolute", zIndex: "6" }}
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="50"
+                      height="50"
+                      viewBox="0 0 50 50"
+                    >
+                      <g
+                        id="Ellipse_283"
+                        data-name="Ellipse 283"
+                        fill="none"
+                        stroke={
+                          getSubCategoryUrl(s.slug)?.isFiltered && isFiltered
+                            ? "#FF5F61"
+                            : "#fff"
+                        }
+                        strokeWidth="0.5"
+                      >
+                        <circle cx="25" cy="25" r="25" stroke="none" />
+                        <circle cx="25" cy="25" r="25" fill="none" />
+                      </g>
+                    </svg>
+
+                    <img
+                      width={50}
+                      height={50}
+                      src={
+                        s.most_viewed_product_thumbnail?.file_path ??
+                        s.flat_photo_path?.file_path ??
+                        s?.icon?.file_path
+                      }
+                    />
+                    {isFiltered && (
+                      <div className="category-text-container flex-col align-center max-w-[50px]">
+                        <span className="category-title">{s.name}</span>
+                        {/* <span className="category-typo">1100</span> */}
+                      </div>
+                    )}
+                  </NextLink>
+                  {s.childes?.length > 0 && (
+                    <div
+                      className={`categories-sub-circles ${
+                        getSubCategoryUrl(s.slug)?.isFiltered &&
+                        "no-transform ml-[10px]"
+                      } z-0`}
+                      style={{
+                        minWidth: getSubCategoryUrl(s.slug)?.isFiltered
+                          ? "max-content"
+                          : "10px",
+                      }}
+                    >
+                      {s.childes.map((sub_s, index) => {
+                        return (
+                          <NextLink
+                            data={{
+                              is_filter: true,
+                              ...boutique,
+                            }}
+                            href={getSubCategoryUrl(sub_s.slug)?.href}
+                            className="sub-circle w-[40px] h-[40px]"
+                            style={{
+                              zIndex: 4 - index,
+                            }}
+                          >
+                            {getSubCategoryUrl(sub_s.slug)?.isFiltered &&
+                              getSubCategoryUrl(s.slug)?.isFiltered && (
+                                <ActiveCategoryIcon
+                                  className="active-category-icon"
+                                  style={{ top: "-5px", left: "-5px" }}
+                                />
+                              )}
+                            <div
+                              style={{
+                                position: "absolute",
+                                zIndex: "7",
+                                width: "40px",
+                                height: "40px",
+                              }}
+                              className="category-shadow"
+                            ></div>
+                            <svg
+                              style={{ position: "absolute", zIndex: "6" }}
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="40"
+                              height="40"
+                              viewBox="0 0 40 40"
+                            >
+                              <g
+                                id="Ellipse_283"
+                                data-name="Ellipse 283"
+                                fill="none"
+                                stroke={
+                                  getSubCategoryUrl(s.slug)?.isFiltered &&
+                                  getSubCategoryUrl(sub_s.slug)?.isFiltered
+                                    ? "#FF5F61"
+                                    : "#fff"
+                                }
+                                strokeWidth="0.5"
+                              >
+                                <circle cx="20" cy="20" r="20" stroke="none" />
+                                <circle cx="20" cy="20" r="20" fill="none" />
+                              </g>
+                            </svg>
+
+                            <img
+                              className="min-w-[40px] min-h-[40px] w-[40px] h-[40px]"
+                              width={40}
+                              height={40}
+                              src={
+                                s.most_viewed_product_thumbnail?.file_path ??
+                                s.flat_photo_path?.file_path ??
+                                s?.icon?.file_path
+                              }
+                            />
+                            {getSubCategoryUrl(s.slug)?.isFiltered && (
+                              <div className="category-text-container flex-col align-center mt-2 max-w-[50px]">
+                                <span className="category-title">{s.name}</span>
+                                {/* <span className="category-typo">1100</span> */}
+                              </div>
+                            )}
+                          </NextLink>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              );
+            })}
+          </div>
+        )}
+      </>
     );
   }
   if (term === "brands") {

@@ -71,7 +71,7 @@
   height: 103px;
   margin-left: 10px;
   cursor: pointer;
-  padding-right: 10px;
+  padding-right: 12px;
   overflow-x: scroll;
   overflow-y: hidden;
 
@@ -138,11 +138,12 @@
 .categories-sub-circles {
   min-width: 10px; /* min-width as the pixel value */
   width: 0;
-
+  margin-left: 10px;
   transition: 0.3s;
-  height: 90px;
+  height: 130px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: flex-end;
 }
 .sub-circle,
 .sub-circle img {
@@ -155,6 +156,9 @@
   max-width: 10000px;
 
   margin-left: 5px;
+}
+.sub-circle {
+  position: relative;
 }
 .no-transform > .sub-circle {
   transform: translateX(0px) !important;
