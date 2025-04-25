@@ -1099,8 +1099,9 @@ const SizesSkeleton = ({ product }) => {
           </div>
           <div className="flex-col items-center h-[96px] w-full max-w-[420px] min-w-[420px] relative">
             <div className="flex-row justify-center w-full">
-              {Array.from({ length: 6 }).map(() => (
+              {Array.from({ length: 6 }).map((s, i) => (
                 <Skeleton
+                  key={i}
                   containerClassName="h-20 items-center flex-row"
                   className="w-20 h-20 rounded-full ml-2 items-center flex-row"
                 />
@@ -1371,7 +1372,7 @@ const AddToCartButton = ({
                 height: 50,
               })}
               id={`img${index}`}
-              key={`${index}${s.id}`}
+              key={`${index}-${s.id}`}
               className="rounded-md w-8 h-8 static"
             />
           );
