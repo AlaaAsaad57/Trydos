@@ -110,9 +110,9 @@ export const getConfiguredImage = ({
   q,
 }: {
   src: string | any;
-  width?: number;
-  height?: number;
-  q?: number;
+  width?: number | string;
+  height?: number | string;
+  q?: number | string;
 }) => {
   if (typeof src === "string") {
     return src.replace(
