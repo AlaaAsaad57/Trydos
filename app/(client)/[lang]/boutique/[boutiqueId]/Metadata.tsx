@@ -164,63 +164,31 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
       description: pageDescription,
       url: canonicalUrl,
       siteName: "TryDos",
-      images: [
-        {
-          url: getConfiguredImage({
-            src: ogImage,
-            width: 100,
-            height: 52,
-            q: 80,
-          }),
-          width: 100,
-          height: 52,
-          alt: boutique.name,
-        },
-        {
-          url: getConfiguredImage({
-            src: ogImage,
-            width: 200,
-            height: 104,
-            q: 80,
-          }),
-          width: 200,
-          height: 104,
-          alt: boutique.name,
-        },
-        {
-          url: getConfiguredImage({
-            src: ogImage,
-            width: 400,
-            height: 209,
-            q: 80,
-          }),
-          width: 400,
-          height: 209,
-          alt: boutique.name,
-        },
-        {
-          url: getConfiguredImage({
-            src: ogImage,
-            width: 800,
-            height: 418,
-            q: 80,
-          }),
-          width: 800,
-          height: 418,
-          alt: boutique.name,
-        },
-        {
-          url: getConfiguredImage({
-            src: ogImage,
+      images: boutique?.banners
+        ? boutique?.banners?.map((s) => ({
+            url: getConfiguredImage({
+              src: s.file_path,
+              width: 1200,
+              height: 630,
+              q: 80,
+            }),
             width: 1200,
             height: 630,
-            q: 80,
-          }),
-          width: 1200,
-          height: 630,
-          alt: boutique.name,
-        },
-      ],
+            alt: boutique.name,
+          }))
+        : [
+            {
+              url: getConfiguredImage({
+                src: ogImage,
+                width: 1200,
+                height: 630,
+                q: 80,
+              }),
+              width: 1200,
+              height: 630,
+              alt: boutique.name,
+            },
+          ],
     },
     twitter: {
       card: "summary_large_image",
