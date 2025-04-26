@@ -682,6 +682,7 @@ const FilterItem = ({
                       {s.childes.map((sub_s, index) => {
                         return (
                           <NextLink
+                            key={sub_s.slug}
                             data={{
                               is_filter: true,
                               ...boutique,
