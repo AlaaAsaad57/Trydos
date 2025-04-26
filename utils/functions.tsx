@@ -103,14 +103,27 @@ export function encode_utf8(params: {
   return "";
 }
 
-export const getConfiguredImage = ({ src, width, height }) => {
+export const getConfiguredImage = ({
+  src,
+  width,
+  height,
+  q,
+}: {
+  src: string | any;
+  width?: number;
+  height?: number;
+  q?: number;
+}) => {
   if (typeof src === "string") {
-    return src.replace("/upload", `/upload/h_${height}/f_avif/q_auto`);
+    return src.replace(
+      "/upload",
+      `/upload/h_${height}/f_avif/q_${q || "auto"}`
+    );
   }
   if (src?.file_path?.includes("cloudinary")) {
     return src.file_path.replace(
       "/upload",
-      `/upload/h_${height}/f_avif/q_auto`
+      `/upload/h_${height}/f_avif/q_${q || "auto"}`
     );
   } else return src?.file_path || "";
 };

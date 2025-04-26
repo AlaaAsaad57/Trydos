@@ -272,7 +272,7 @@ function PersonalInfoCountries({
                   }}
                   className={`w-full flex-row cursor-pointer mt-[12px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center`}
                 >
-                  {country.iso === "sy" ? (
+                  {country.iso?.toLowerCase() === "sy" ? (
                     <SyFlage data-cy="country-flag" />
                   ) : (
                     <Flag

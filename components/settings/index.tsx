@@ -18,6 +18,7 @@ import OrderDetails from "./OrderDetails";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { ToastContainer } from "react-toastify";
+import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
 
 interface SettingOption {
   id: string;
@@ -206,12 +207,7 @@ function Settings({ lang }: { lang: string }) {
     // @ts-ignore
     setTimeout(() => setIsAnimating(false), 300); // Match transition duration
   };
-  if (!userProfile)
-    return (
-      <div className="w-full h-full flex justify-center items-center">
-        <Spinner className="scale-150" />
-      </div>
-    );
+  if (!userProfile) return <SettingsLoader />;
   return (
     <div className="max-h-full h-full overflow-auto flex w-full max-w-[1365px] justify-center bg-white">
       <ToastContainer

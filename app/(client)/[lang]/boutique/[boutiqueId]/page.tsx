@@ -15,6 +15,7 @@ import Image from "next/image";
 import BorderImage from "components/ListingPage/BorderImage";
 import "styles/listing-components.css";
 import Skeleton from "react-loading-skeleton";
+import { getBoutiqueMetadata } from "./Metadata";
 
 const SearchBoutiquePage = Nextdynamic(
   () => import("components/filterPage/SearchBoutiquePage"),
@@ -41,33 +42,17 @@ export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"];
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const dynamic = "force-dynamic";
-export function generateMetadata() {
-  return {
-    title: "Trydos - Boutique",
-    description: "Trydos - Boutique",
-    headers: {
-      "Cache-Control": "public, s-maxage=864000, stale-while-revalidate=864000",
-    },
-  };
-}
-// export async function generateStaticParams({ params }) {
-//   // Fetch your main product categories
-//   try {
-//     const boutiques_slugs = await getBoutiques({
-//       lang: params.lang ? params.lang.split("-")[1] : null,
-//       country: params.lang ? params.lang.split("-")[0] : null,
-//       str: "",
-//     });
+export async function generateMetadata({ params, searchParams }) {
+  // Fetch your main product categories
+  try {
+    const metadata = await getBoutiqueMetadata({ params, searchParams });
 
-//     return [...boutiques_slugs].map((category) => ({
-//       boutiqueId: category,
-//       lang: params.lang,
-//     }));
-//   } catch (error) {
-//     console.log(error);
-//     return [];
-//   }
-// }
+    return metadata;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+}
 
 interface ParamsType {
   lang: string;

@@ -14,6 +14,20 @@ export async function GET(
 ) {
   const { slug } = params;
   const [country, language] = params.lang.split("-");
+  if (slug === "listing") {
+    return NextResponse.json(
+      { name: "listing", banners: null, icon: null, slug: "listing" },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": `public, s-maxage=${process.env.NEXT_PUBLIC_REVALIDATE_LISTING}`,
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      }
+    );
+  }
   // You can use the slug to fetch or filter data
   const boutique = await fetch(
     process.env.NEXT_PUBLIC_BACKEND_URL +
