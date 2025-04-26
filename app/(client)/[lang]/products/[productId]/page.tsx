@@ -27,6 +27,7 @@ import { getPrice } from "utils/tinyUtils";
 import { ProductFooterSkeleton } from "components/skeleton/loaders/ProductLoader";
 import { generateProductMetaData } from "./MetaData";
 import ProductImagesSlider from "components/products/ProductImageSlider";
+import ProductDetails from "components/products/ProductDetails";
 const ProductFooterSection = dynamic(
   () => import("components/products/ProductFooterSection"),
   {
@@ -253,6 +254,7 @@ async function Page({ params, searchParams }: Props) {
               </div>
             }
           >
+            <ProductDetails />
             <ProductDetailsText
               product={product.sync_color_images}
               details={product.details}

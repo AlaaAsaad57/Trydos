@@ -118,7 +118,7 @@ export async function generateProductMetaData({ params, searchParams }) {
       ]
     );
   };
-  console.log(getImages(), product?.sync_color_images);
+
   return {
     title: pageTitle,
     description: pageDescription,

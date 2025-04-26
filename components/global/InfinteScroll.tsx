@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import Spinner from "./Spinner";
 import { useParams } from "next/navigation";
 import NormalWidget from "components/Home/OfferWidgets/NormalWidget";
+import { dispatchRouteChangeEvent } from "utils/events";
 const useInfiniteScroll = (fetchNextPage) => {
   useEffect(() => {
     // Function to check scroll position
@@ -68,7 +69,9 @@ function InfinteScroll({ offsetVariable }) {
     }
   };
   useInfiniteScroll(getNextBoutique);
-
+  useEffect(() => {
+    dispatchRouteChangeEvent("completed");
+  }, []);
   return (
     <>
       {boutiques.map((boutique) => {

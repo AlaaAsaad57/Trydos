@@ -212,7 +212,7 @@ class OrderService {
           "/api/addresses/get-provinces-by-iso",
         title: "Get Provinces",
       });
-      console.log(data);
+
       setProvinces(data);
       setOrderLoading(false);
     } catch (error) {

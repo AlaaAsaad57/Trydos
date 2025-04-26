@@ -115,7 +115,6 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
     GetProductsData(),
     GetBoutiqueData(),
   ]);
-  console.log(filtersData, boutique);
   let filters = {
     categories: filtersData?.categories,
     brands: filtersData?.brands,

@@ -132,7 +132,6 @@ function SearchResults() {
     });
   };
   const updateFiltersApi = () => {
-    console.log(searchFilters);
     search.getSearchOptions({
       noProducts: false,
       lang: lang,
