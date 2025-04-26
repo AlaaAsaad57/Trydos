@@ -23,9 +23,7 @@ function AuthNavSection({ onClick }: { onClick: () => void }) {
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  useEffect(() => {
-    console.log({ currency });
-  }, [currency]);
+
   return (
     <>
       {

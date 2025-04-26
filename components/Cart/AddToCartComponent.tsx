@@ -54,7 +54,7 @@ function AddToCartComponent({
   const getProductData = async () => {
     try {
       setLoading(true);
-      console.log("jsd");
+
       let [data1, data2] = await Promise.all([
         AxiosGet({
           url:
@@ -100,7 +100,7 @@ function AddToCartComponent({
           setSelectedSize(tempProductData?.choice_options?.[0]?.options?.[0]);
         }
       }
-      console.log(tempProductData);
+
       setLoading(false);
     } catch (e) {
       console.log(e);
@@ -1405,7 +1405,6 @@ const AddToCartButton = ({
       setLoading(true);
 
       if (isVariantInCart({ exact: false })) {
-        console.log(isVariantInCart({ exact: false }));
         await cart.UpdateCart({
           cart_id: isVariantInCart({ exact: false })?.item_id,
           qty: (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
@@ -1432,7 +1431,6 @@ const AddToCartButton = ({
     }
   };
   const decreaseHandler = async () => {
-    console.log(isVariantInCart({ exact: true }));
     try {
       if (isVariantInCart({ exact: true })?.quantity > 1) {
         setLoading(true);

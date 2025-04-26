@@ -2,7 +2,6 @@ import NextLink from "components/global/NextLink";
 import { useAppStore } from "store";
 
 function OrderStatusChanged({ data }) {
-  console.log(data);
   return (
     <NextLink
       href={`/setting?tab=Orders&id=${data?.order_group_id}`}

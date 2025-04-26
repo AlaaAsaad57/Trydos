@@ -14,7 +14,6 @@ interface NormalWidgetProps {
   lang: string;
 }
 const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
-  console.log(boutique?.childCategoriesForProductIds);
   return (
     <div className="w-full flex relative">
       <Suspense

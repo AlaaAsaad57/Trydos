@@ -16,7 +16,6 @@ function MobileNavigation({ categories }: { categories: any[] }) {
     let scrollLeft: number;
 
     slider?.addEventListener("mousedown", (e: MouseEvent) => {
-      console.log("mousedown");
       isDown = true;
       slider.classList.add("active");
       startX = e.pageX - slider.offsetLeft;

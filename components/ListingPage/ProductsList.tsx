@@ -75,7 +75,6 @@ function ProductsInfiniteScroll({
       response.data.products.length === 0 ||
       offsetValue === response.data.offset
     ) {
-      console.log("end of products");
       setLoading(false);
       setIsReachEnd(true);
     }

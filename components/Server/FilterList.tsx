@@ -497,7 +497,6 @@ const FilterItem = ({
   boutique,
 }) => {
   const getSubCategoryUrl = (slug) => {
-    console.log(item);
     let { href, isFiltered } = getFilterStateForItem(
       searchParams,
       slug,

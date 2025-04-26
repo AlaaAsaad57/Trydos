@@ -80,7 +80,7 @@ function PersonalInfo({
       userProfileData.gender
     );
   };
-  console.log(userProfileData, userProfile);
+
   return (
     <div
       className={`flex-col relative ${loading ? "opacity-50 scale-95" : ""}`}
