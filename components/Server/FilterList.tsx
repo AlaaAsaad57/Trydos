@@ -199,42 +199,50 @@ const ActiveFiltersBar = ({
                     key: "slug",
                   })?.childes?.map((s) => (
                     <>
-                      <div className="sub-category-icon flex-row min-h-[10px] min-w-[10px]">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="10"
-                          height="10"
-                          viewBox="0 0 10 10"
-                          style={{ zIndex: "1" }}
-                        >
-                          <g
-                            id="Ellipse_283"
-                            data-name="Ellipse 283"
-                            fill="none"
-                            stroke="#ff5f61"
-                            strokeWidth="0.5"
-                          >
-                            <circle cx="5" cy="5" r="5" stroke="none" />
-                            <circle cx="5" cy="5" r="4.75" fill="none" />
-                          </g>
-                        </svg>
-                        <img
-                          src={(
-                            s.icon?.file_path ||
-                            filters.categories.filter(
-                              (sub) => sub.slug === s.slug
-                            )[0]?.icon?.file_path
-                          )?.replace(
-                            "/upload",
-                            "/upload/w_50,h_50,c_fit/f_avif/q_100"
-                          )}
-                          width={10}
-                          height={10}
-                        />
-                      </div>
-                      <div className="category-title filter-bar-main-title">
-                        {s.name}
-                      </div>
+                      {getItemData({
+                        value: s,
+                        arr: filters.categories,
+                        key: "slug",
+                      }) && (
+                        <>
+                          <div className="sub-category-icon flex-row min-h-[10px] min-w-[10px]">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="10"
+                              height="10"
+                              viewBox="0 0 10 10"
+                              style={{ zIndex: "1" }}
+                            >
+                              <g
+                                id="Ellipse_283"
+                                data-name="Ellipse 283"
+                                fill="none"
+                                stroke="#ff5f61"
+                                strokeWidth="0.5"
+                              >
+                                <circle cx="5" cy="5" r="5" stroke="none" />
+                                <circle cx="5" cy="5" r="4.75" fill="none" />
+                              </g>
+                            </svg>
+                            <img
+                              src={(
+                                s.icon?.file_path ||
+                                filters.categories.filter(
+                                  (sub) => sub.slug === s.slug
+                                )[0]?.icon?.file_path
+                              )?.replace(
+                                "/upload",
+                                "/upload/w_50,h_50,c_fit/f_avif/q_100"
+                              )}
+                              width={10}
+                              height={10}
+                            />
+                          </div>
+                          <div className="category-title filter-bar-main-title">
+                            {s.name}
+                          </div>
+                        </>
+                      )}
                     </>
                   ))}
                 </>
@@ -503,7 +511,31 @@ const FilterItem = ({
       item.slug,
       term
     );
-
+    const shouldShowSubCategories = () => {
+      let sub_index = 0;
+      if (
+        getFilterStateForItem(searchParams, item.slug, "categories")?.isFiltered
+      ) {
+        sub_index++;
+      }
+      item?.childes.map((sub) => {
+        if (
+          getFilterStateForItem(searchParams, sub.slug, "categories")
+            ?.isFiltered
+        ) {
+          sub_index++;
+          sub?.childes.map((sub_sub) => {
+            if (
+              getFilterStateForItem(searchParams, sub_sub.slug, "categories")
+                ?.isFiltered
+            ) {
+              sub_index++;
+            }
+          });
+        }
+      });
+      return sub_index > 0;
+    };
     return (
       <>
         <NextLink
@@ -562,10 +594,10 @@ const FilterItem = ({
         {item.childes?.length > 0 && (
           <div
             className={`categories-sub-circles ${
-              isFiltered && "no-transform"
+              shouldShowSubCategories() && "no-transform"
             } z-0`}
             style={{
-              minWidth: isFiltered ? "max-content" : "10px",
+              minWidth: shouldShowSubCategories() ? "max-content" : "10px",
             }}
           >
             {item.childes.map((s, index) => {
@@ -582,7 +614,7 @@ const FilterItem = ({
                       zIndex: 4 - index,
                     }}
                   >
-                    {isFiltered && getSubCategoryUrl(s.slug)?.isFiltered && (
+                    {getSubCategoryUrl(s.slug)?.isFiltered && (
                       <ActiveCategoryIcon
                         className="active-category-icon"
                         style={{ top: "-5px", left: "-5px" }}
@@ -609,7 +641,7 @@ const FilterItem = ({
                         data-name="Ellipse 283"
                         fill="none"
                         stroke={
-                          getSubCategoryUrl(s.slug)?.isFiltered && isFiltered
+                          getSubCategoryUrl(s.slug)?.isFiltered
                             ? "#FF5F61"
                             : "#fff"
                         }
@@ -629,7 +661,7 @@ const FilterItem = ({
                         s?.icon?.file_path
                       }
                     />
-                    {isFiltered && (
+                    {shouldShowSubCategories() && (
                       <div className="category-text-container flex-col align-center max-w-[50px]">
                         <span className="category-title">{s.name}</span>
                         {/* <span className="category-typo">1100</span> */}
@@ -639,11 +671,10 @@ const FilterItem = ({
                   {s.childes?.length > 0 && (
                     <div
                       className={`categories-sub-circles ${
-                        getSubCategoryUrl(s.slug)?.isFiltered &&
-                        "no-transform ml-[10px]"
+                        shouldShowSubCategories() && "no-transform ml-[10px]"
                       } z-0`}
                       style={{
-                        minWidth: getSubCategoryUrl(s.slug)?.isFiltered
+                        minWidth: shouldShowSubCategories()
                           ? "max-content"
                           : "10px",
                       }}
@@ -661,13 +692,12 @@ const FilterItem = ({
                               zIndex: 4 - index,
                             }}
                           >
-                            {getSubCategoryUrl(sub_s.slug)?.isFiltered &&
-                              getSubCategoryUrl(s.slug)?.isFiltered && (
-                                <ActiveCategoryIcon
-                                  className="active-category-icon"
-                                  style={{ top: "-5px", left: "-5px" }}
-                                />
-                              )}
+                            {getSubCategoryUrl(sub_s.slug)?.isFiltered && (
+                              <ActiveCategoryIcon
+                                className="active-category-icon"
+                                style={{ top: "-5px", left: "-5px" }}
+                              />
+                            )}
                             <div
                               style={{
                                 position: "absolute",
@@ -689,7 +719,6 @@ const FilterItem = ({
                                 data-name="Ellipse 283"
                                 fill="none"
                                 stroke={
-                                  getSubCategoryUrl(s.slug)?.isFiltered &&
                                   getSubCategoryUrl(sub_s.slug)?.isFiltered
                                     ? "#FF5F61"
                                     : "#fff"
@@ -711,9 +740,11 @@ const FilterItem = ({
                                 s?.icon?.file_path
                               }
                             />
-                            {getSubCategoryUrl(s.slug)?.isFiltered && (
+                            {shouldShowSubCategories() && (
                               <div className="category-text-container flex-col align-center mt-2 max-w-[50px]">
-                                <span className="category-title">{s.name}</span>
+                                <span className="category-title">
+                                  {sub_s.name}
+                                </span>
                                 {/* <span className="category-typo">1100</span> */}
                               </div>
                             )}

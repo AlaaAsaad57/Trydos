@@ -47,13 +47,13 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
       onMouseMove={(e) => handleMove(e)}
       onClick={() => {}}
     >
-      {boutique?.mainCategoriesForProductIds.map((product, index) => {
+      {boutique?.childCategoriesForProductIds.map((product, index) => {
         if (index < 7) {
           if (product?.most_viewed_product_thumbnail.file_path)
             return (
               <OfferAvatar
                 boutique={boutique}
-                name={product.name}
+                name={product.most_viewed_product_name}
                 linkUrl={`/boutique/${boutique.slug}${search.getPageUrl({
                   term: "categories",
                   value: [product],
