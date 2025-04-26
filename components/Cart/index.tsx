@@ -524,7 +524,7 @@ function CartContainer({ close, toOrders }) {
                                 <span className="regular ml-1">
                                   {product.have_hurry_up_notify_time_left &&
                                     translate(
-                                      "Quantity Running Out. ",
+                                      "Time Running Out. ",
                                       LocalizationServiceClass.GetAppLanguage()
                                     )}
                                 </span>
