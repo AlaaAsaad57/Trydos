@@ -5,6 +5,7 @@ import { toast, ToastContainer } from "react-toastify";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import {
   getConfiguredImage,
+  RoundPrice,
   Sendevent,
   translateFunction,
 } from "utils/functions";
@@ -384,12 +385,19 @@ function AddToCartComponent({
                     strokeWidth="2"
                   />
                 </svg>
-                {getSelectedVariantQty()?.price ?? (
+                {getSelectedVariantQty()?.price &&
+                RoundPrice({ num: getSelectedVariantQty()?.price }) ? (
+                  <>{RoundPrice({ num: getSelectedVariantQty()?.price })}</>
+                ) : (
                   <Skeleton width={30} height={10} />
                 )}
               </div>
               <div className="product-new-price">
-                {getSelectedVariantQty()?.offer_price ?? (
+                {RoundPrice({ num: getSelectedVariantQty()?.offer_price }) ? (
+                  <>
+                    {RoundPrice({ num: getSelectedVariantQty()?.offer_price })}
+                  </>
+                ) : (
                   <Skeleton width={30} height={10} />
                 )}
               </div>
@@ -933,10 +941,15 @@ const SizesSkeleton = ({ product }) => {
                 strokeWidth="2"
               />
             </svg>
-            {<Skeleton width={30} height={10} />}
+            {(product?.price && RoundPrice({ num: product?.price })) ?? (
+              <Skeleton width={30} height={10} />
+            )}
           </div>
           <div className="product-new-price">
-            {product?.offer_price ?? <Skeleton width={30} height={10} />}
+            {(product?.offer_price &&
+              RoundPrice({ num: product?.offer_price })) ?? (
+              <Skeleton width={30} height={10} />
+            )}
           </div>
           <div className="product-currency">
             {currency?.symbol ?? (

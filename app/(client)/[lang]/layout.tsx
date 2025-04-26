@@ -72,7 +72,7 @@ export default async function RootLayout({ params, children }) {
       ${quicksand_medium.variable}
       ${quicksand_bold.variable}
       ${quicksand_semibold.variable}
-      font-sans`}
+      font-sans overflow-x-hidden`}
       lang={params.lang.split("-")[1] === "ar" ? "ar-AE" : "en-US"}
     >
       <head>

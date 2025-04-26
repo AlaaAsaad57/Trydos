@@ -46,6 +46,27 @@ function PaymentMethod() {
   // const isBalanceEnough = () => {
   //   return totalBalance() >= cart.total_cash;
   // };
+  const getOrderPaymentCod = () => {
+    if (orderData?.payment?.filter((s) => s.id === 1).length > 0) {
+      return (
+        total_cash - orderData?.payment?.filter((s) => s.id === 1)[0]?.balance
+      );
+    } else {
+      return total_cash;
+    }
+  };
+  const walletIsEnough = () => {
+    if (wallet?.wallet_balance <= 0) {
+      return false;
+    }
+    if (wallet?.wallet_balance / currency?.exchange_rate >= total) {
+      return true;
+    } else if (orderData?.payment?.filter((s) => s.id === 1).length === 0) {
+      return true;
+    } else {
+      return false;
+    }
+  };
   return (
     <>
       <div className="px-[12px] flex-col">
@@ -140,7 +161,10 @@ function PaymentMethod() {
           {available_payment_method &&
             available_payment_method.length &&
             available_payment_method.map((item, key) => {
-              if (item?.toLowerCase() === "cash_on_delivery".toLowerCase()) {
+              if (
+                item?.toLowerCase() === "cash_on_delivery".toLowerCase() &&
+                !walletIsEnough()
+              ) {
                 return (
                   <CODInput
                     key={key}
@@ -205,6 +229,7 @@ function PaymentMethod() {
                         );
                       }
                     }}
+                    total={getOrderPaymentCod()}
                   />
                 );
               }
@@ -584,7 +609,7 @@ export default PaymentMethod;
 //     </div>
 //   );
 // };
-const CODInput = ({ active, setActive }) => {
+const CODInput = ({ active, setActive, total }) => {
   const { total_cash, currency } = useAppStore();
 
   return (
@@ -613,7 +638,7 @@ const CODInput = ({ active, setActive }) => {
           {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: total_cash })} {currency?.symbol}
+          {RoundPrice({ num: total })} {currency?.symbol}
         </span>
       </div>
     </div>

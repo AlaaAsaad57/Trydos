@@ -26,6 +26,7 @@ import ProductDescriptors from "components/products/ProductDescriptors";
 import { getPrice } from "utils/tinyUtils";
 import { ProductFooterSkeleton } from "components/skeleton/loaders/ProductLoader";
 import { generateProductMetaData } from "./MetaData";
+import ProductImagesSlider from "components/products/ProductImageSlider";
 const ProductFooterSection = dynamic(
   () => import("components/products/ProductFooterSection"),
   {
@@ -164,27 +165,25 @@ async function Page({ params, searchParams }: Props) {
       </div>
 
       <div className="product-details-slider" key={`key-${color}`}>
-        <div className="embla">
-          <div className="embla__container">
-            {getImages(product, color).images.map((img, i) => (
-              <div className="embla__slide product-slider-images" key={img}>
-                <Image
-                  width={320}
-                  height={464}
-                  priority={i === 0}
-                  loading={"eager"}
-                  alt={product.name}
-                  src={getConfiguredImage({
-                    src: img,
-                    width: 500,
-                    height: 700,
-                  })}
-                  unoptimized
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+        <ProductImagesSlider>
+          {getImages(product, color).images.map((img, i) => (
+            <div className="embla__slide product-slider-images" key={img}>
+              <Image
+                width={320}
+                height={464}
+                priority={i === 0}
+                loading={"eager"}
+                alt={product.name}
+                src={getConfiguredImage({
+                  src: img,
+                  width: 500,
+                  height: 700,
+                })}
+                unoptimized
+              />
+            </div>
+          ))}
+        </ProductImagesSlider>
       </div>
       <Suspense fallback={<></>}>
         <ProductDetailsSlider product={product} currency={currency} />

@@ -31,7 +31,6 @@ export default function PageLoadingIndicator() {
     });
 
     registerRouteChangeListener("completed", () => {
-      clearTimeout(timeout);
       document.body.style.overflow = "initial";
       document.body.scrollTop = 0;
       setIsLoading(null);

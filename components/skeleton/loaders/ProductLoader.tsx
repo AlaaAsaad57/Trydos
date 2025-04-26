@@ -30,12 +30,16 @@ import ProductStories from "components/products/ProductStories";
 import ProductSizes from "components/products/ProductSizes";
 import ProductShippingOption from "components/products/ProductShippingOption";
 import FreeShippingOption from "components/products/FreeShippingOption";
+import useEmblaCarousel from "node_modules/embla-carousel-react";
 function ProductLoader({ product }) {
   const { lang } = useParams();
   const { currency } = useAppStore();
   const color = product?.active_color;
   // @ts-ignore
   const [country, languageVariable] = lang?.split("-");
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: false,
+  });
   return (
     <div
       style={{
@@ -61,7 +65,7 @@ function ProductLoader({ product }) {
         </div>
 
         <div className="product-details-slider">
-          <div className="embla">
+          <div className="embla" ref={emblaRef}>
             <div className="embla__container">
               {product?.id
                 ? (product?.images ?? [product?.image])?.map((img, i) => (
