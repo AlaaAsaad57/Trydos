@@ -30,6 +30,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
         data={{
           is_boutique: true,
           ...boutique,
+          href: `/${lang}/boutique/${boutique.slug}`,
         }}
         aria-label={`Go To listing ${lang} ${boutique.slug}`}
         className="offer-widget"
@@ -98,6 +99,12 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
                   data={{
                     is_boutique: true,
                     ...category,
+                    href: `/${lang}/boutique/${
+                      boutique.slug
+                    }${search.getPageUrl({
+                      term: "categories",
+                      value: [category],
+                    })}`,
                   }}
                   aria-label={`Go To listing ${lang} ${boutique.slug} ${category.slug}`}
                   href={`/${lang}/boutique/${boutique.slug}${search.getPageUrl({

@@ -218,6 +218,7 @@ export default async function Page({
         <NextLink
           data={{
             is_full_home: true,
+            href: `/${params.lang}`,
           }}
           href={`/${params.lang}`}
           ariaLabel={`TryDos Home ${params.lang}`}

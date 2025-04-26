@@ -9,6 +9,7 @@ function ProductAvailable({ data }) {
       data={{
         is_product: true,
         ...data,
+        href: `/${lang}/products/${data.product_slug}`,
       }}
       className="flex-row"
       ariaLabel={`notification Product Available ${data.product_slug}`}

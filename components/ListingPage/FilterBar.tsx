@@ -96,6 +96,7 @@ function FilterBar({ boutique, filters: filtersObj, productsServer }) {
         <NextLink
           data={{
             is_full_home: true,
+            href: "/",
           }}
           ariaLabel={`Back to home ${paramsVar.lang}`}
           href={filterEnabled ? "#" : "/"}

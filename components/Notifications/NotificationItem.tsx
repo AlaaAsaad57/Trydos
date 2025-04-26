@@ -110,6 +110,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
             data={{
               is_boutique: true,
               ...parsedDescription,
+              href: `/${lang}/boutiques/${parsedDescription.boutique_slug}`,
             }}
             ariaLabel={`notification Boutique ${parsedDescription.boutique_slug} ${lang}`}
             href={`/${lang}/boutiques/${parsedDescription.boutique_slug}`}
@@ -152,6 +153,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
               data={{
                 is_product: true,
                 ...parsedDescription,
+                href: `/${lang}/products/${
+                  parsedDescription.product_slug || parsedDescription.slug
+                }`,
               }}
               ariaLabel={`notification Product ${
                 parsedDescription.product_slug || parsedDescription.slug
@@ -174,6 +178,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
               data={{
                 is_category: true,
                 ...parsedDescription,
+                href: `/boutique/listing?categories=${
+                  parsedDescription.category_slug || parsedDescription.slug
+                }`,
               }}
               ariaLabel={`notification Category ${
                 parsedDescription.category_slug || parsedDescription.slug

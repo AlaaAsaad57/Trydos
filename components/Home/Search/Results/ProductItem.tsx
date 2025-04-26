@@ -11,6 +11,7 @@ function ProductItem({ product, onClick }) {
       data={{
         is_product: true,
         ...product,
+        href: `/${lang}/products/${product.slug}`,
       }}
       ariaLabel={`Product ${product.slug} ${lang}`}
       suppressHydrationWarning

@@ -95,6 +95,7 @@ export default async function RootLayout({ params, children }) {
               <NextLink
                 data={{
                   is_full_home: true,
+                  href: `/${params.lang}`,
                 }}
                 href={`/${params.lang}`}
                 aria-label="TryDos Home"

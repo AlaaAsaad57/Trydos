@@ -94,6 +94,10 @@ const CategoryNavItem = ({
               data={{
                 is_home: true,
                 slug,
+                href:
+                  decodeURI(searchParams.mainCategory) === slug
+                    ? `/${lang}`
+                    : `/${lang}/categories/${slug}`,
               }}
               ariaLabel={`Category ${slug} ${lang}`}
               href={

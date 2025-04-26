@@ -411,6 +411,10 @@ function ChatMessage(props) {
                 is_product: true,
                 slug: JSON.parse(props.message.message_content.content)[0]
                   .product_slug,
+                href: `/products/${
+                  JSON.parse(props.message.message_content.content)[0]
+                    .product_slug
+                }`,
               }}
               href={`/products/${
                 JSON.parse(props.message.message_content.content)[0]
@@ -1988,6 +1992,10 @@ function ChatMessage(props) {
                 is_product: true,
                 slug: JSON.parse(props.message.message_content.content)[0]
                   .product_slug,
+                href: `/products/${
+                  JSON.parse(props.message.message_content.content)[0]
+                    .product_slug
+                }`,
               }}
               href={`/products/${
                 JSON.parse(props.message.message_content.content)[0]

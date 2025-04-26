@@ -46,6 +46,10 @@ function CategoryNavMobile({
         icon,
         slug,
         active,
+        href:
+          decodeURI(searchParams.mainCategory) === slug
+            ? `/${lang}`
+            : `/${lang}/categories/${slug}`,
       }}
       ariaLabel={`Category ${slug} ${lang}`}
       className={`categories-bar-item ${

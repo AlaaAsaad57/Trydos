@@ -25,6 +25,7 @@ import Flag from "public/svg/product/flag.svg";
 import ProductDescriptors from "components/products/ProductDescriptors";
 import { getPrice } from "utils/tinyUtils";
 import { ProductFooterSkeleton } from "components/skeleton/loaders/ProductLoader";
+import { generateProductMetaData } from "./MetaData";
 const ProductFooterSection = dynamic(
   () => import("components/products/ProductFooterSection"),
   {
@@ -80,37 +81,8 @@ export const preferredRegion = ["bom1", "sin1"]; // For Middle East users
 export async function generateMetadata({ params, searchParams }) {
   const productId = params.productId;
   try {
-    const metaData = await getProductMeta({
-      productId,
-      lang: params.lang,
-      color: searchParams.color,
-    });
-    if (!metaData?.name) {
-      notFound();
-    }
-    return {
-      title: `${metaData?.name} ${
-        searchParams.color ? `- ${searchParams.color}` : ""
-      }`,
-      description: `${metaData.details}`,
-      openGraph: {
-        title: `${metaData?.name} ${
-          searchParams.color && `- ${searchParams.color}`
-        }`,
-        description: `${metaData.details}`,
-        images: [
-          {
-            url: getConfiguredImage({
-              src: metaData.photo.file_path,
-              width: 600,
-              height: 315,
-            }),
-            width: 600,
-            height: 315,
-          },
-        ],
-      },
-    };
+    const metaData = await generateProductMetaData({ params, searchParams });
+    return metaData;
   } catch (error) {
     notFound();
   }
@@ -130,6 +102,7 @@ interface Props {
 }
 async function Page({ params, searchParams }: Props) {
   let [countryVariable, languageVariable] = params.lang.split("-");
+
   const getProductData = async () => {
     try {
       let response = await fetch(
@@ -179,6 +152,7 @@ async function Page({ params, searchParams }: Props) {
         <NextLink
           data={{
             is_full_home: true,
+            href: `/${params.lang}`,
           }}
           ariaLabel={`Back `}
           href={"../"}

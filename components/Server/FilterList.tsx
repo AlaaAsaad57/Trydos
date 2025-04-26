@@ -118,6 +118,7 @@ const ActiveFiltersBar = ({
         data={{
           is_filter: true,
           ...boutique,
+          href: `?`,
         }}
         href={`?`}
         ariaLabel={`close filter ${params.lang}`}
@@ -541,6 +542,7 @@ const FilterItem = ({
           data={{
             is_filter: true,
             ...boutique,
+            href: href,
           }}
           ariaLabel={`filter category ${item.slug} ${params.lang}`}
           href={href}
@@ -606,6 +608,7 @@ const FilterItem = ({
                     data={{
                       is_filter: true,
                       ...boutique,
+                      href: getSubCategoryUrl(s.slug)?.href,
                     }}
                     href={getSubCategoryUrl(s.slug)?.href}
                     className="sub-circle"
@@ -685,6 +688,7 @@ const FilterItem = ({
                             data={{
                               is_filter: true,
                               ...boutique,
+                              href: getSubCategoryUrl(sub_s.slug)?.href,
                             }}
                             href={getSubCategoryUrl(sub_s.slug)?.href}
                             className="sub-circle w-[40px] h-[40px]"
@@ -773,6 +777,7 @@ const FilterItem = ({
         data={{
           is_filter: true,
           ...boutique,
+          href: href,
         }}
         href={href}
         ariaLabel={`filter brand ${item.slug} ${params.lang}`}
@@ -835,6 +840,7 @@ const FilterItem = ({
         data={{
           is_filter: true,
           ...boutique,
+          href: href,
         }}
         href={href}
         ariaLabel={`filter color ${item} ${params.lang}`}
@@ -894,6 +900,7 @@ const FilterItem = ({
         data={{
           is_filter: true,
           ...boutique,
+          href: href,
         }}
         href={href}
         ariaLabel={`filter size ${item} ${params.lang}`}
@@ -960,6 +967,7 @@ const FilterItem = ({
         data={{
           is_filter: true,
           ...boutique,
+          href: href,
         }}
         href={href}
         ariaLabel={`filter price ${item.min_price}-${item.max_price} ${params.lang}`}

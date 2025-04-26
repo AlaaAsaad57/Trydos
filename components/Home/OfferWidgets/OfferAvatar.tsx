@@ -34,6 +34,7 @@ function OfferAvatar({
       data={{
         is_boutique: true,
         ...boutique,
+        href: linkUrl,
       }}
       href={linkUrl}
       aria-label={`Go To listing boutique ${name} ${category}`}

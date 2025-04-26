@@ -100,6 +100,7 @@ function ProductsInfiniteScroll({
             data={{
               is_product: true,
               ...product,
+              href: `/${lang}/products/${product.slug}`,
             }}
             ariaLabel={`Product ${product.slug} ${lang}`}
             suppressHydrationWarning

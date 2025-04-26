@@ -33,6 +33,7 @@ function ProductListServer({
               data={{
                 is_product: true,
                 ...product,
+                href: `/${params.lang}/products/${product.slug}`,
               }}
               ariaLabel={`go to product ${product.slug} ${params.lang}`}
               suppressHydrationWarning

@@ -19,6 +19,7 @@ function Boutique({ data }) {
       data={{
         is_boutique: true,
         ...data,
+        href: `/${lang}/boutiques/${data.boutique_slug}`,
       }}
       ariaLabel={`Boutique ${data.boutique_slug} ${lang}`}
       className="flex-col"

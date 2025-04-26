@@ -37,9 +37,11 @@ function BackBar({
           activeRoute === "/"
             ? {
                 is_full_home: true,
+                href: link ? activeRoute : "#",
               }
             : {
                 is_boutique: true,
+                href: link ? activeRoute : "#",
               }
         }
         ariaLabel={`Back to ${activeRoute} ${lang}`}

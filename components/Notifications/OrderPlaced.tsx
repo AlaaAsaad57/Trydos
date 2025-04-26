@@ -8,6 +8,7 @@ function OrderPlaced({ data }) {
       data={{
         is_settings: true,
         ...data,
+        href: `/${lang}/setting?tab=Orders&id=${data?.order_id}`,
       }}
       ariaLabel={`notification Order Placed ${data.order_id} ${lang}`}
       className="flex-row"

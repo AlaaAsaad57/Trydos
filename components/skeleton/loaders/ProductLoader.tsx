@@ -49,6 +49,7 @@ function ProductLoader({ product }) {
           <NextLink
             data={{
               is_full_home: true,
+              href: "../",
             }}
             ariaLabel={`Back`}
             href={"../"}

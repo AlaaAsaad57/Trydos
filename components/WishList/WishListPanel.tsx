@@ -3,6 +3,7 @@ import { translateFunction } from "utils/functions";
 import Image from "next/image";
 import NextLink from "components/global/NextLink";
 import { useAppStore } from "store";
+import { useParams } from "next/navigation";
 
 interface WishListPanelProps {
   onClose: () => void;
@@ -10,6 +11,7 @@ interface WishListPanelProps {
 
 const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
   const { currency } = useAppStore();
+  const { lang } = useParams();
   const wishListRef = useRef<HTMLDivElement>(null);
   // Handle document scroll lock
   useEffect(() => {
@@ -189,6 +191,7 @@ const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
               data={{
                 is_product: true,
                 ...item,
+                href: `/${lang}/products/${item.slug}`,
               }}
               ariaLabel={`wishlist item ${item.slug}`}
               key={item.id}

@@ -30,7 +30,8 @@ function AddToCartComponent({
   product,
   slug,
   close,
-  isFromListing,
+
+  enableCartAction,
 }) {
   const searchParams = useSearchParams();
   const [sizeFromUrl, colorFromUrl] = [
@@ -235,6 +236,9 @@ function AddToCartComponent({
               event: "button_clicked",
               value: "cart_nav_bar_button",
             });
+            enableCartAction(true);
+            document.documentElement.style.overflow = "initial";
+            document.documentElement.scrollTop = 0;
             close();
           }}
         >

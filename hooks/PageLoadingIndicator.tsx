@@ -17,14 +17,21 @@ export default function PageLoadingIndicator() {
   const [isLoading, setIsLoading] = useState(null);
 
   useEffect(() => {
+    let timeout;
     registerRouteChangeListener("start", (data) => {
       document.documentElement.style.overflow = "hidden";
       document.body.scrollTop = 0;
       document.documentElement.scrollTop = 0;
       setIsLoading(data);
+      console.log(data);
+      timeout = setTimeout(() => {
+        // @ts-ignore
+        window.location.href = data?.href;
+      }, 15000);
     });
 
     registerRouteChangeListener("completed", () => {
+      clearTimeout(timeout);
       document.body.style.overflow = "initial";
       document.body.scrollTop = 0;
       setIsLoading(null);

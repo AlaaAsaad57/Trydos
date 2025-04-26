@@ -122,6 +122,7 @@ const CartProvider = () => {
       {enable ? <StepSlider enableCart={(e) => enableCartAction(e)} /> : <></>}
       {selected_product_for_add_to_cart && (
         <AddToCartComponent
+          enableCartAction={enableCartAction}
           close={() => {
             setSelectedProductForCart(null);
           }}
@@ -131,7 +132,6 @@ const CartProvider = () => {
           }
           product={selected_product_for_add_to_cart}
           slug={selected_product_for_add_to_cart?.slug}
-          isFromListing={true}
         />
       )}
       {openIframe.isShow && (

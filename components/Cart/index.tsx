@@ -286,6 +286,12 @@ function CartContainer({ close, toOrders }) {
                                 is_product: true,
                                 active_color: sarchParams.get("color"),
                                 ...product,
+                                href:
+                                  params?.productId === product.slug &&
+                                  product?.variations[0]?.color ===
+                                    sarchParams.get("color")
+                                    ? "#"
+                                    : getURLOfProduct({ product }),
                               }
                         }
                         ariaLabel={`Cart Product ${product.slug} ${params.lang}`}
@@ -701,6 +707,12 @@ function CartContainer({ close, toOrders }) {
                         data={{
                           is_product: true,
                           ...product,
+                          href:
+                            params?.productId === product.slug &&
+                            product?.variations[0]?.color ===
+                              sarchParams.get("color")
+                              ? "#"
+                              : getURLOfProduct({ product }),
                         }}
                         href={
                           params?.productId === product.slug &&
@@ -1964,7 +1976,7 @@ const QuantutyInput = ({
                   <div className="product-new-price text-[18px] bold">
                     {RoundPrice({
                       num: product?.offer_price * product.quantity,
-                      rate: currency.exchange_rate,
+                      rate: currency?.exchange_rate,
                       points:
                         (settings &&
                           settings["starting-setting"]
@@ -1999,7 +2011,7 @@ const QuantutyInput = ({
               <div className="product-new-price text-[14px] light text-[#1D1D1D]">
                 {RoundPrice({
                   num: product.price * product.quantity,
-                  rate: currency.exchange_rate,
+                  rate: currency?.exchange_rate,
                   points:
                     (settings &&
                       settings["starting-setting"]?.decimal_point_settings) ||

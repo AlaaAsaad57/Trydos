@@ -315,6 +315,7 @@ const ComparePage: React.FC = ({
           data={{
             is_product: true,
             ...product,
+            href: `/${lang}/products/${product.slug}`,
           }}
           ariaLabel={`Compare Product ${product.slug} ${lang}`}
           href={`/${lang}/products/${product.slug}`}
