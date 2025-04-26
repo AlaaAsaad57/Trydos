@@ -29,7 +29,7 @@ firebase.initializeApp(firebaseConfig);
 // Retrieve firebase messaging
 const messaging = firebase.messaging();
 // let url = `${'http://localhost:3006'}`;
-let url = process.env.NEXT_PUBLIC_API_BASE_URL;
+let url = "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
 
 messaging.onBackgroundMessage(async function (payload) {
   try {
