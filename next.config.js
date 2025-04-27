@@ -58,7 +58,7 @@ let nextConfig = {
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
 
     staleTimes: {
-      dynamic: 86400,
+      dynamic: 60,
       static: 86400,
     },
   },
