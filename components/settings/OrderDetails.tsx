@@ -55,7 +55,7 @@ function OrderDetails({
           <OrderNumberCard number={selectedOrder.order_group_id} />
           <OrderDateCard time={selectedOrder.created_at} />
           <OrderInvoiceCard
-            amount={selectedOrder.order_amount + selectedOrder.shipping_cost}
+            amount={selectedOrder.order_amount}
             payments={selectedOrder.payment_method}
           />
         </div>
@@ -90,8 +90,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
           <span className="bold mx-[2px]"> {order.details.length}</span>{" "}
           {translateFunction("Items")} .{" "}
           <span className="bold mx-[2px]">
-            {RoundPrice({ num: order.order_amount + order.shipping_cost })}{" "}
-            {currency?.symbol}
+            {RoundPrice({ num: order.order_amount })} {currency?.symbol}
           </span>
         </div>
       </div>
@@ -541,7 +540,7 @@ const ProductCard = ({ product }: { product: OrderDetail }) => {
         />
         <img
           className="w-[104px] h-[144px] rounded-[15px]"
-          src={product.product_details.thumbnail}
+          src={product.image}
           alt={product.product_details.name}
         />
       </div>
@@ -578,6 +577,7 @@ const ProductCard = ({ product }: { product: OrderDetail }) => {
               {translateFunction("Composed Of")}:
             </span>
             <span className="text-[#505050] text-[10px] medium ml-[2px]">
+              {product?.product_details?.count_of_pieces}{" "}
               {translateFunction("Pieces")}
             </span>
           </div>

@@ -186,8 +186,12 @@ async function Page({ params, searchParams }: Props) {
           ))}
         </ProductImagesSlider>
       </div>
-      <Suspense fallback={<></>}>
-        <ProductDetailsSlider product={product} currency={currency} />
+      <Suspense key={`${product?.slug}-${color}`} fallback={<></>}>
+        <ProductDetailsSlider
+          images={getImages(product, color)?.images}
+          product={product}
+          currency={currency}
+        />
       </Suspense>
       <div className="product-details-body flex-row relative">
         <Suspense

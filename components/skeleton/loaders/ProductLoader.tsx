@@ -69,10 +69,7 @@ function ProductLoader({ product }) {
             <div className="embla__container">
               {product?.id
                 ? (product?.images ?? [product?.image])?.map((img, i) => (
-                    <div
-                      className="embla__slide product-slider-images"
-                      key={`img-product-${i}`}
-                    >
+                    <div className="embla__slide " key={`img-product-${i}`}>
                       <Image
                         width={320}
                         height={464}
@@ -89,19 +86,16 @@ function ProductLoader({ product }) {
                     </div>
                   ))
                 : Array.from({ length: 3 }).map((img, i) => (
-                    <div
-                      className="embla__slide product-slider-images"
-                      key={`img-product-${i}`}
-                    >
+                    <div className="embla__slide " key={`img-product-${i}`}>
                       <Skeleton width={320} height={464} borderRadius="15px" />
                     </div>
                   ))}
             </div>
           </div>
         </div>
-        <Suspense fallback={<></>}>
+        {/* <Suspense fallback={<></>}>
           <ProductDetailsSlider product={product} currency={currency} />
-        </Suspense>
+        </Suspense> */}
         <div className="product-details-body flex-row relative">
           <Suspense
             fallback={

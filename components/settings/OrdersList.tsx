@@ -33,20 +33,6 @@ function OrdersList({
   const searchParams = useSearchParams();
   const router = useRouter();
   const id = searchParams.get("id");
-  let order_statues = [
-    { key: "all", name: "All" },
-    { key: "pending", name: "Pending" },
-    { key: "processing", name: "Processing" },
-    { key: "ready_to_shipping", name: "Ready to Shipping" },
-    { key: "shipped", name: "Shipped" },
-    { key: "out_for_delivery", name: "Out for Delivery" },
-    { key: "delivered", name: "Delivered" },
-    { key: "partial_return", name: "Partial Return" },
-    { key: "returned", name: "Returned" },
-    { key: "failed", name: "Failed" },
-    { key: "canceled", name: "Canceled" },
-    { key: "canceled_archived", name: "Canceled Archived" },
-  ];
 
   // Function to load orders
   const loadMoreOrders = async (
@@ -107,7 +93,8 @@ function OrdersList({
       setLoading(false);
     }
   };
-
+  const { settings } = useAppStore();
+  console.log(settings);
   // Initial load and load on status change
   useEffect(() => {
     setOrders([]); // Reset orders when status changes
@@ -223,29 +210,32 @@ function OrdersList({
             ref={statusSliderRef}
             className="flex-row flex-1 ml-[2px] statues-container overflow-x-scroll overflow-y-hidden user-select-none whitespace-nowrap [&::-webkit-scrollbar]:hidden"
           >
-            {order_statues.map((status) => (
+            {[
+              { label: "All", value: "all" },
+              ...settings?.["starting-setting"]?.order_group_statuses,
+            ].map((status) => (
               <div
                 onClick={() => {
-                  if (status.key === selectedStatus) return;
-                  if (status.key !== "all") setSelectedStatus(status.key);
+                  if (status.value === selectedStatus) return;
+                  if (status.value !== "all") setSelectedStatus(status.value);
                   else setSelectedStatus(null);
                   setPage(1);
                   setOrders([]);
                   setHasMore(true);
                   loadMoreOrders(
                     true,
-                    status.key === "all" ? null : status.key
+                    status.value === "all" ? null : status.value
                   );
                 }}
                 className="flex-row py-[4px] h-[25px] rounded-[10px] bg-[#F8F8F8] px-[11px] ml-[10px] cursor-pointer text-nowrap text-center"
                 style={{
                   border:
-                    selectedStatus === status?.key && "1px solid #3C8AFF7f",
+                    selectedStatus === status?.value && "1px solid #3C8AFF7f",
                 }}
-                key={status.key}
+                key={status.value}
               >
                 <span className="text-[#8D8D8D] text-[12px] regular">
-                  {translateFunction(status.name)}
+                  {translateFunction(status.label)}
                 </span>
               </div>
             ))}

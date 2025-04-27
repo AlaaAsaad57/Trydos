@@ -12,7 +12,7 @@ export const fetchOrders = async (
       url:
         process.env.NEXT_PUBLIC_BACKEND_URL +
         `/customer/order/list?offset=${page}&limit=${pageSize}${
-          selectedStatus ? `&order_status=${selectedStatus}` : ""
+          selectedStatus ? `&order_group_status=${selectedStatus}` : ""
         }`,
       title: "Fetch Orders",
     });

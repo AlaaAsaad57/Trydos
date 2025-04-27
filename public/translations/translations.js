@@ -792,6 +792,7 @@ const translations = {
     Sizes: "المقاسات",
     Price: "السعر",
     "Offer Price": "سعر العرض",
+    "Order Number has been Copied": "تم نسخ رقم الطلب",
     "Product Comparison": "مقارنة المنتجات",
     "Loading your selected products for a detailed side-by-side comparison. This will help you make an informed decision by comparing features, prices, and specifications.":
       "جاري تحميل المنتجات المحددة لمقارنة مفصلة جنباً إلى جنب. سيساعدك هذا في اتخاذ قرار مستنير من خلال مقارنة الميزات والأسعار والمواصفات.",
@@ -805,6 +806,7 @@ const translations = {
     "Item Status": "Ürün Durumu",
     "Composed Of": "İçerik",
     Recipient: "Alıcı",
+    "Order Number has been Copied": "Sipariş Numarası Kopyalandı",
     "Recipient Phone": "Alıcı Telefon Numarası",
     "Loading...": "Yükleniyor...",
     "Order Date": "Sipariş Tarihi",

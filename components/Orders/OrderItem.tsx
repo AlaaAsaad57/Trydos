@@ -34,7 +34,7 @@ const OrderItem: React.FC<OrderItemProps> = ({ order, showDetails }) => {
         <OrderInvoice
           invoice={{
             items: order.details.length,
-            total: order.order_amount + order.shipping_cost,
+            total: order.order_amount,
           }}
         />
       </div>
@@ -44,7 +44,7 @@ const OrderItem: React.FC<OrderItemProps> = ({ order, showDetails }) => {
 };
 
 export default OrderItem;
-const OrderProductSlider = ({ products }: { products: OrderDetail[] }) => {
+const OrderProductSlider = ({ products }: { products: any[] }) => {
   return (
     <div className="flex-row items-center pl-[12px] mt-[12px] whitespace-nowrap overflow-x-scroll overflow-y-hidden [&::-webkit-scrollbar]:hidden">
       {products.map((product) => (
@@ -55,7 +55,7 @@ const OrderProductSlider = ({ products }: { products: OrderDetail[] }) => {
           <img
             className="w-full h-full object-contain bg-white rounded-[15px]"
             src={getConfiguredImage({
-              src: product.product_details.thumbnail,
+              src: product?.image,
               width: 91,
               height: 125,
             })}

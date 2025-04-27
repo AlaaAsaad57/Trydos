@@ -66,8 +66,10 @@ export interface OrderDetail {
   id: number;
   order_id: number;
   product_id: number;
+  image: string;
   product_details: {
     id: number;
+    count_of_pieces: any;
     name: string;
     slug: string;
     share_link: string;

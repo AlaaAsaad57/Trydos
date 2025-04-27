@@ -43,7 +43,7 @@ function OrderItemsList({
           >
             <img
               className="w-full h-full object-cover rounded-[15px]"
-              src={product.product_details.thumbnail}
+              src={product.image}
               alt={product.product_details.name}
               width={100}
               height={100}

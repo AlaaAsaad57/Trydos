@@ -9,16 +9,19 @@ import { useAppStore } from "store";
 function ProductDetailsSlider({
   product: productObj,
   currency,
+  images,
 }: {
   product: any;
   currency: any;
+  images: any[];
 }) {
   const { editInfo, storeProduct, setCurrency, product } = useAppStore();
   const productData = productObj;
   const [imageShow, showImage] = useState(-1);
-  const [emblaRef] = useEmblaCarousel();
-  const [emblaRef1] = useEmblaCarousel({ startIndex: imageShow || 0 });
-  const activeColor = product.activeColor;
+  const [emblaRef1, emblaApi] = useEmblaCarousel({
+    startIndex: imageShow || 0,
+  });
+
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -49,6 +52,7 @@ function ProductDetailsSlider({
     let elements = document.querySelectorAll(".product-slider-images");
     elements.forEach((elem, index) => {
       elem.addEventListener("click", function (e) {
+        document.documentElement.style.overflow = "hidden";
         showImage(index);
       });
     });
@@ -62,26 +66,22 @@ function ProductDetailsSlider({
   return (
     <>
       {imageShow >= 0 && (
-        <div className="fixed bg-[#0000004d] flex justify-center items-center h-[100vh] w-[100vw] top-0 left-0 p-4 z-[9999999999]">
+        <div className="fixed cursor-pointer bg-[#0000004d] flex justify-center items-center h-[100vh] w-[100vw] top-0 left-0 p-4 z-[9999999999]">
           <span className="absolute right-3 top-4 z-50">
             {" "}
-            <CloseIcon close={() => showImage(-1)} />
+            <CloseIcon
+              close={() => {
+                document.documentElement.style.overflow = "initial";
+                showImage(-1);
+              }}
+            />
           </span>
+
           <div className="embla" ref={emblaRef1}>
             <div className="embla__container">
-              {(
-                activeColor ??
-                (searchParams.get("color") &&
-                  productData?.sync_color_images &&
-                  productData?.sync_color_images?.filter(
-                    (s) => s.color_name === searchParams.get("color")
-                  )[0]) ??
-                (productData?.sync_color_images &&
-                  productData?.sync_color_images[0]) ??
-                productData
-              )?.images?.map((img, i) => (
+              {images?.map((img, i) => (
                 <div
-                  className="embla__slide"
+                  className="embla__slide flex justify-center min-w-[98%]"
                   key={img}
                   onClick={() => {
                     showImage(i);
@@ -91,8 +91,10 @@ function ProductDetailsSlider({
                     width={320}
                     height={464}
                     style={{
-                      height: "100%",
-                      width: "95%",
+                      height: "auto",
+                      maxHeight: "90%",
+                      width: "100%",
+
                       borderRadius: "10px",
                     }}
                     priority={i === 0}
