@@ -161,77 +161,94 @@ function PaymentMethod() {
           {available_payment_method &&
             available_payment_method.length &&
             available_payment_method.map((item, key) => {
-              if (
-                item?.toLowerCase() === "cash_on_delivery".toLowerCase() &&
-                !walletIsEnough()
-              ) {
-                return (
-                  <CODInput
-                    key={key}
-                    active={
-                      orderData?.payment?.filter((s) => s.id === 0).length > 0
-                    }
-                    setActive={() => {
-                      if (
-                        !(
-                          wallet?.wallet_balance / currency?.exchange_rate >=
-                            total &&
-                          wallet.wallet_balance / currency?.exchange_rate >=
-                            total_cash
-                        )
-                      ) {
-                        if (!orderLoading) {
-                          if (
-                            orderData.payment.length === 1 &&
-                            orderData?.payment?.filter((one) => one.id === 1)
-                              .length === 1 &&
-                            orderData?.payment?.filter((one) => one.id === 1)[0]
-                              .balance < total_cash
-                          ) {
-                            setCodUser();
-                            setOrderData({
-                              payment: [
-                                ...orderData.payment,
-                                {
-                                  id: 0,
-                                  balance:
-                                    total_cash -
-                                    orderData?.payment?.filter(
-                                      (one) => one.id === 1
-                                    )[0].balance,
-                                },
-                              ],
-                            });
-                          } else {
+              if (item?.toLowerCase() === "cash_on_delivery".toLowerCase()) {
+                if (!walletIsEnough())
+                  return (
+                    <CODInput
+                      key={key}
+                      active={
+                        orderData?.payment?.filter((s) => s.id === 0).length > 0
+                      }
+                      setActive={() => {
+                        if (
+                          !(
+                            wallet?.wallet_balance / currency?.exchange_rate >=
+                              total &&
+                            wallet.wallet_balance / currency?.exchange_rate >=
+                              total_cash
+                          )
+                        ) {
+                          if (!orderLoading) {
                             if (
-                              orderData?.payment?.filter((s) => s.id === 0)
-                                .length > 0
+                              orderData.payment.length === 1 &&
+                              orderData?.payment?.filter((one) => one.id === 1)
+                                .length === 1 &&
+                              orderData?.payment?.filter(
+                                (one) => one.id === 1
+                              )[0].balance < total_cash
                             ) {
                               setCodUser();
                               setOrderData({
-                                payment: orderData?.payment?.filter(
-                                  (s) => s.id !== 0
-                                ),
+                                payment: [
+                                  ...orderData.payment,
+                                  {
+                                    id: 0,
+                                    balance:
+                                      total_cash -
+                                      orderData?.payment?.filter(
+                                        (one) => one.id === 1
+                                      )[0].balance,
+                                  },
+                                ],
                               });
                             } else {
-                              setCodUser();
-                              setOrderData({
-                                payment: [{ id: 0, balance: total_cash }],
-                              });
+                              if (
+                                orderData?.payment?.filter((s) => s.id === 0)
+                                  .length > 0
+                              ) {
+                                setCodUser();
+                                setOrderData({
+                                  payment: orderData?.payment?.filter(
+                                    (s) => s.id !== 0
+                                  ),
+                                });
+                              } else {
+                                setCodUser();
+                                setOrderData({
+                                  payment: [{ id: 0, balance: total_cash }],
+                                });
+                              }
                             }
                           }
+                        } else {
+                          toast.info(
+                            translateFunction(
+                              "Only Allowed To Pay through TryDos Wallet"
+                            )
+                          );
                         }
-                      } else {
+                      }}
+                      total={getOrderPaymentCod()}
+                    />
+                  );
+                else {
+                  return (
+                    <CODInput
+                      key={key}
+                      active={
+                        orderData?.payment?.filter((s) => s.id === 0).length > 0
+                      }
+                      setActive={() => {
                         toast.info(
                           translateFunction(
                             "Only Allowed To Pay through TryDos Wallet"
                           )
                         );
-                      }
-                    }}
-                    total={getOrderPaymentCod()}
-                  />
-                );
+                      }}
+                      total={total_cash}
+                    />
+                  );
+                }
               }
               if (item?.toLowerCase() === "trydos_wallet".toLowerCase()) {
                 return (
