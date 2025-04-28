@@ -191,7 +191,7 @@ function SearchResults() {
               {searchResults?.brands?.map((brand, index) => (
                 <BrandItem
                   brand={brand}
-                  key={index}
+                  key={brand?.slug}
                   onClick={() => {
                     Sendevent({
                       event: "button_clicked",
@@ -248,7 +248,7 @@ function SearchResults() {
               {searchResults?.categories?.map((category, index) => (
                 <CategoryItem
                   category={category}
-                  key={index}
+                  key={category?.slug}
                   onClick={(e) => {
                     Sendevent({
                       event: "button_clicked",
@@ -304,7 +304,7 @@ function SearchResults() {
               {searchResults?.boutiques?.map((boutique, index) => (
                 <BoutiqueItem
                   boutique={boutique}
-                  key={index}
+                  key={boutique?.slug}
                   onClick={() => {
                     Sendevent({
                       event: "button_clicked",
