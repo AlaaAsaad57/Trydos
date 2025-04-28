@@ -170,7 +170,7 @@ export const useCartStore = (set, get) => ({
   setCryptoCardPayment: (url) =>
     set({
       openPayIframe: true,
-      payIframeURL: url,
+      payIframeURL: url?.url,
     }),
 
   setWalletBalance: () =>

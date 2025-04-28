@@ -579,7 +579,7 @@ export const DeleteModalComponent = ({
         }}
       />
       <div
-        className="flex-col w-full h-full px-[24px] absolute z-[999999999]  justify-between"
+        className="flex-col w-full h-[90%] px-[24px] absolute z-[999999999]  justify-between"
         style={{
           backdropFilter: "blur(7px) brightness(1.3)",
         }}
@@ -777,10 +777,11 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
     });
     return val;
   };
+
   const isBalanceEnough = () => {
     return (
       RoundPrice({ num: totalBalance(), returnNumber: true }) >=
-      RoundPrice({ num: total_cash, returnNumber: true })
+      RoundPrice({ num: getTotalPrice(), returnNumber: true })
     );
   };
   const isValid = () => {

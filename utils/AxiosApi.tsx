@@ -65,7 +65,7 @@ export const AxiosGet = async ({
         throw new Error(res.data.message);
       }
     } catch (error) {
-      if (error.status === 422 || error.status === 500) {
+      if (error.status !== 401) {
         attempt = 2;
         toast.error(`${title} : ${error.message ?? "Failed"}`);
         throw new Error(
@@ -154,14 +154,7 @@ export const AxiosPost = async ({
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
         );
       }
-      if (
-        error.status === 422 ||
-        error.status === 500 ||
-        error === "Failed" ||
-        error.status === 400 ||
-        error.status === 403 ||
-        error?.message === "Failed"
-      ) {
+      if (error.status !== 401) {
         if (error?.response?.data?.message) {
           toast.error(
             `${title} : ${error?.response?.data?.message ?? "Failed"}`

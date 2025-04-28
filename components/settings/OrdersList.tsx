@@ -10,9 +10,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
 
 // Helper function to get status display name (replace with actual logic if needed)
-export const getStatusDisplayName = (key: string, statusMap: any): string => {
-  return statusMap.find((s) => s.value === key)?.label || key;
-};
 
 function OrdersList({
   swipeToScreen,
@@ -64,8 +61,14 @@ function OrdersList({
             );
             if (existingOrder) {
               existingOrder.details = [
-                ...existingOrder.details,
-                ...curr.details,
+                ...existingOrder.details?.map((s) => ({
+                  ...s,
+                  order_status: existingOrder?.order_status?.label,
+                })),
+                ...curr.details.map((s) => ({
+                  ...s,
+                  order_status: existingOrder?.order_status?.label,
+                })),
               ];
               existingOrder.order_amount =
                 existingOrder.order_amount + curr.order_amount;

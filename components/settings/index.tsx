@@ -210,10 +210,6 @@ function Settings({ lang }: { lang: string }) {
   if (!userProfile) return <SettingsLoader />;
   return (
     <div className="max-h-full h-full overflow-auto flex w-full max-w-[1365px] justify-center bg-white">
-      <ToastContainer
-        position="top-right"
-        style={{ zIndex: "9999999999999999" }}
-      />
       {/* Sidebar Navigation */}
 
       {/* Main Content Area */}

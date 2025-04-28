@@ -8,7 +8,7 @@ interface OrderDateCardProps {
 const OrderDateCard: React.FC<OrderDateCardProps> = ({ time }) => {
   // Format the date string to a more readable format
   const formatTime = (timeString: string) => {
-    const date = new Date(timeString);
+    const date = new Date(timeString + "Z");
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);

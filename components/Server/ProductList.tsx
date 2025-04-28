@@ -6,10 +6,10 @@ import {
 } from "components/ListingPage/Product";
 // import ProductsList from "components/ListingPage/ProductsList";
 import React, { Suspense } from "react";
-import { translateFunction } from "utils/functions";
+import { RoundPrice, translateFunction } from "utils/functions";
 import ProductsInfiniteScroll from "components/ListingPage/ProductsList";
 import NextLink from "components/global/NextLink";
-import { getPrice } from "utils/tinyUtils";
+
 function ProductListServer({
   params,
   searchParams,
@@ -140,11 +140,11 @@ function ProductListServer({
                 >
                   {product?.offer_price >= 0 && (
                     <span className="old-price relative f-12 color-dark-gray light-text">
-                      {getPrice(
-                        product.price,
-                        params.lang.split("-")[1],
-                        currency
-                      )}
+                      {RoundPrice({
+                        num: product?.price,
+                        rate: currency?.exchange_rate,
+                        points: 0,
+                      })}
                       <svg
                         className="absolute w-100"
                         xmlns="http://www.w3.org/2000/svg"
@@ -165,11 +165,11 @@ function ProductListServer({
                   )}
                   <span className="new-price bold-text color-dark-gray flex f-12">
                     {product?.offer_price >= 0 &&
-                      getPrice(
-                        product?.offer_price,
-                        params.lang.split("-")[1],
-                        currency
-                      )}
+                      RoundPrice({
+                        num: product?.offer_price,
+                        rate: currency?.exchange_rate,
+                        points: 0,
+                      })}
                   </span>
                   <span className="currency-label light-text color-dark-gray flex f-10">
                     {currency?.symbol}

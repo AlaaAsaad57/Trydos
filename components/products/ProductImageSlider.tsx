@@ -1,5 +1,5 @@
 "use client";
-import useEmblaCarousel from "node_modules/embla-carousel-react";
+import useEmblaCarousel from "embla-carousel-react";
 import React from "react";
 function ProductImagesSlider({ children }) {
   const [emblaRef] = useEmblaCarousel({

@@ -155,10 +155,12 @@ function PersonalInfoAddress({
             <div className="w-full cursor-pointer py-[12px] h-[84px] mt-[12px] bg-[#F8F8F8] justify-start rounded-[15px] flex-col items-center">
               <AddressInfo />
               <span className="medium text-[12px] text-[#C4C2C2] mt-[11px]">
-                Your Address List Is Empty
+                {translateFunction("Your Address List Is Empty")}
               </span>
               <span className="medium text-[12px] text-[#C4C2C2] mt-[3px]">
-                You Can Also Create Multiple Addresses To Use
+                {translateFunction(
+                  "You Can Also Create Multiple Addresses To Use"
+                )}
               </span>
             </div>
           ) : (

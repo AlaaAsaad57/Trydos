@@ -42,7 +42,7 @@ function OrderItemsList({
             className="flex-row cursor-pointer items-center relative w-[91px] h-[125px] ml-[5px]"
           >
             <img
-              className="w-full h-full object-cover rounded-[15px]"
+              className="w-full h-full object-contain bg-white rounded-[15px]"
               src={product.image}
               alt={product.product_details.name}
               width={100}

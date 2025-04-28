@@ -55,9 +55,10 @@ const ModalIframe = ({
   handleIframeLoad,
   _closeIframe,
 }: ModalIframeProps) => {
-  const { setOrderData, cart } = useAppStore.getState();
+  const { setOrderData, cart } = useAppStore();
   const iframeRef = useRef(null);
   useEffect(() => {
+    console.log(openIframe);
     const handleMessage = async (event: any) => {
       if (event.data === "close-iframe") {
         if (iframeRef.current) {

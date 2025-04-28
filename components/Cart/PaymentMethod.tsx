@@ -17,6 +17,7 @@ import Spinner from "components/global/Spinner";
 import CouponElement from "./couponElement";
 import { toast } from "react-toastify";
 import { useAppStore } from "store";
+import { useEffect } from "react";
 function PaymentMethod() {
   const {
     setWalletBalance,
@@ -35,36 +36,124 @@ function PaymentMethod() {
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
-
-  // const totalBalance = () => {
-  //   let val = 0;
-  //   orderData.payment.map((s) => {
-  //     val += s.balance;
-  //   });
-  //   return val;
-  // };
-  // const isBalanceEnough = () => {
-  //   return totalBalance() >= cart.total_cash;
-  // };
-  const getOrderPaymentCod = () => {
-    if (orderData?.payment?.filter((s) => s.id === 1).length > 0) {
-      return (
-        total_cash - orderData?.payment?.filter((s) => s.id === 1)[0]?.balance
+  const getWalletInUSD = () => {
+    if (wallet?.wallet_balance > 0)
+      return wallet?.wallet_balance / currency?.exchange_rate;
+    else return 0;
+  };
+  useEffect(() => {
+    if (getWalletInUSD() > 0 && getWalletInUSD() < total) {
+      setWalletBalance();
+      setOrderData({
+        payment: [
+          ...orderData.payment?.filter((s) => s.id !== 1),
+          {
+            id: 1,
+            balance: getWalletInUSD(),
+          },
+        ],
+      });
+    }
+    if (getWalletInUSD() >= total) {
+      setWalletBalance();
+      setOrderData({
+        payment: [
+          ...orderData.payment?.filter((s) => s.id !== 1),
+          {
+            id: 1,
+            balance: total,
+          },
+        ],
+      });
+    }
+  }, [available_payment_method, wallet]);
+  const handleCODPayment = () => {
+    if (getWalletInUSD() >= total) {
+      toast.info(
+        translateFunction("Only Allowed To Pay through TryDos Wallet")
       );
     } else {
-      return total_cash;
+      if (orderData?.payment?.find((s) => s.id === 0)) {
+        setOrderData({
+          payment: orderData?.payment?.filter((s) => s.id !== 0),
+        });
+      } else {
+        setCodUser();
+        setOrderData({
+          payment: [
+            ...orderData.payment?.filter((s) => s.id === 1),
+            {
+              id: 0,
+              balance: total_cash - (getWalletInUSD() || 0),
+            },
+          ],
+        });
+      }
     }
   };
-  const walletIsEnough = () => {
-    if (wallet?.wallet_balance <= 0) {
-      return false;
-    }
-    if (wallet?.wallet_balance / currency?.exchange_rate >= total) {
-      return true;
-    } else if (orderData?.payment?.filter((s) => s.id === 1).length === 0) {
-      return true;
+  const handleWalletPayment = () => {
+    if (orderData?.payment?.find((s) => s.id === 1)) {
+      toast.info(
+        translateFunction("Only Allowed To Pay through TryDos Wallet")
+      );
     } else {
-      return false;
+      if (getWalletInUSD() <= 0) {
+        toast.info(translateFunction("your TryDos Wallet balance is empty"));
+      }
+    }
+  };
+  const handleCryptoPayment = () => {
+    if (getWalletInUSD() >= total) {
+      toast.info(
+        translateFunction("Only Allowed To Pay through TryDos Wallet")
+      );
+    } else {
+      if (orderData?.payment?.find((s) => s.id === 3)) {
+        setOrderData({
+          payment: orderData?.payment?.filter((s) => s.id !== 3),
+        });
+      } else {
+        setCryptoUser();
+        setOrderData({
+          payment: [
+            ...orderData.payment?.filter((s) => s.id === 1),
+            {
+              id: 3,
+              balance: total - (getWalletInUSD() || 0),
+            },
+          ],
+        });
+      }
+    }
+  };
+  const handleCardPayment = () => {
+    if (getWalletInUSD() >= total) {
+      toast.info(
+        translateFunction("Only Allowed To Pay through TryDos Wallet")
+      );
+    } else {
+      if (orderData?.payment?.find((s) => s.id === 2)) {
+        setOrderData({
+          payment: orderData?.payment?.filter((s) => s.id !== 2),
+        });
+      } else {
+        setCreditUser();
+        setOrderData({
+          payment: [
+            ...orderData.payment?.filter((s) => s.id === 1),
+            {
+              id: 2,
+              balance: total - (getWalletInUSD() || 0),
+            },
+          ],
+        });
+      }
+    }
+  };
+  const showCodValue = () => {
+    if (getWalletInUSD() <= 0 || getWalletInUSD() >= total) return total_cash;
+    if (getWalletInUSD() > 0 && getWalletInUSD() < total) {
+      return total_cash - getWalletInUSD();
     }
   };
   return (
@@ -162,93 +251,20 @@ function PaymentMethod() {
             available_payment_method.length &&
             available_payment_method.map((item, key) => {
               if (item?.toLowerCase() === "cash_on_delivery".toLowerCase()) {
-                if (!walletIsEnough())
-                  return (
-                    <CODInput
-                      key={key}
-                      active={
-                        orderData?.payment?.filter((s) => s.id === 0).length > 0
+                return (
+                  <CODInput
+                    key={key}
+                    active={
+                      orderData?.payment?.filter((s) => s.id === 0).length > 0
+                    }
+                    setActive={() => {
+                      if (!orderLoading) {
+                        handleCODPayment();
                       }
-                      setActive={() => {
-                        if (
-                          !(
-                            wallet?.wallet_balance / currency?.exchange_rate >=
-                              total &&
-                            wallet.wallet_balance / currency?.exchange_rate >=
-                              total_cash
-                          )
-                        ) {
-                          if (!orderLoading) {
-                            if (
-                              orderData.payment.length === 1 &&
-                              orderData?.payment?.filter((one) => one.id === 1)
-                                .length === 1 &&
-                              orderData?.payment?.filter(
-                                (one) => one.id === 1
-                              )[0].balance < total_cash
-                            ) {
-                              setCodUser();
-                              setOrderData({
-                                payment: [
-                                  ...orderData.payment,
-                                  {
-                                    id: 0,
-                                    balance:
-                                      total_cash -
-                                      orderData?.payment?.filter(
-                                        (one) => one.id === 1
-                                      )[0].balance,
-                                  },
-                                ],
-                              });
-                            } else {
-                              if (
-                                orderData?.payment?.filter((s) => s.id === 0)
-                                  .length > 0
-                              ) {
-                                setCodUser();
-                                setOrderData({
-                                  payment: orderData?.payment?.filter(
-                                    (s) => s.id !== 0
-                                  ),
-                                });
-                              } else {
-                                setCodUser();
-                                setOrderData({
-                                  payment: [{ id: 0, balance: total_cash }],
-                                });
-                              }
-                            }
-                          }
-                        } else {
-                          toast.info(
-                            translateFunction(
-                              "Only Allowed To Pay through TryDos Wallet"
-                            )
-                          );
-                        }
-                      }}
-                      total={getOrderPaymentCod()}
-                    />
-                  );
-                else {
-                  return (
-                    <CODInput
-                      key={key}
-                      active={
-                        orderData?.payment?.filter((s) => s.id === 0).length > 0
-                      }
-                      setActive={() => {
-                        toast.info(
-                          translateFunction(
-                            "Only Allowed To Pay through TryDos Wallet"
-                          )
-                        );
-                      }}
-                      total={total_cash}
-                    />
-                  );
-                }
+                    }}
+                    total={showCodValue()}
+                  />
+                );
               }
               if (item?.toLowerCase() === "trydos_wallet".toLowerCase()) {
                 return (
@@ -259,49 +275,7 @@ function PaymentMethod() {
                     }
                     setActive={() => {
                       if (!orderLoading) {
-                        if (
-                          orderData.payment.length === 1 &&
-                          orderData?.payment?.filter(
-                            (one) => one.id === 2 || one.id === 3
-                          ).length === 1 &&
-                          wallet?.wallet_balance < total_cash
-                        ) {
-                          setWalletBalance();
-                          setOrderData({
-                            payment: [
-                              ...orderData.payment,
-                              {
-                                id: 1,
-                                balance:
-                                  wallet?.wallet_balance /
-                                  currency?.exchange_rate,
-                              },
-                            ],
-                          });
-                        } else {
-                          if (
-                            orderData?.payment?.filter((s) => s.id === 1)
-                              .length > 0
-                          ) {
-                            setOrderData({
-                              payment: orderData?.payment?.filter(
-                                (s) => s.id !== 1
-                              ),
-                            });
-                          } else {
-                            setWalletBalance();
-                            setOrderData({
-                              payment: [
-                                {
-                                  id: 1,
-                                  balance:
-                                    wallet?.wallet_balance /
-                                    currency?.exchange_rate,
-                                },
-                              ],
-                            });
-                          }
-                        }
+                        handleWalletPayment();
                       }
                     }}
                   />
@@ -315,61 +289,8 @@ function PaymentMethod() {
                       orderData?.payment?.filter((s) => s.id === 3).length > 0
                     }
                     setActive={() => {
-                      if (
-                        !(
-                          wallet?.wallet_balance / currency?.exchange_rate >=
-                            total &&
-                          wallet.wallet_balance / currency?.exchange_rate >=
-                            total_cash
-                        )
-                      ) {
-                        if (!orderLoading) {
-                          if (
-                            orderData.payment.length === 1 &&
-                            orderData?.payment?.filter((one) => one.id === 1)
-                              .length === 1 &&
-                            orderData?.payment?.filter((one) => one.id === 1)[0]
-                              .balance < total_cash
-                          ) {
-                            setCryptoUser();
-                            setOrderData({
-                              payment: [
-                                ...orderData.payment,
-                                {
-                                  id: 3,
-                                  balance:
-                                    total_cash -
-                                    orderData?.payment?.filter(
-                                      (one) => one.id === 1
-                                    )[0].balance,
-                                },
-                              ],
-                            });
-                          } else {
-                            if (
-                              orderData?.payment?.filter((s) => s.id === 3)
-                                .length > 0
-                            ) {
-                              setCryptoUser();
-                              setOrderData({
-                                payment: orderData?.payment?.filter(
-                                  (s) => s.id !== 3
-                                ),
-                              });
-                            } else {
-                              setCryptoUser();
-                              setOrderData({
-                                payment: [{ id: 3, balance: total_cash }],
-                              });
-                            }
-                          }
-                        }
-                      } else {
-                        toast.info(
-                          translateFunction(
-                            "Only Allowed To Pay through TryDos Wallet"
-                          )
-                        );
+                      if (!orderLoading) {
+                        handleCryptoPayment();
                       }
                     }}
                   />
@@ -383,62 +304,7 @@ function PaymentMethod() {
                       orderData?.payment?.filter((s) => s.id === 2).length > 0
                     }
                     setActive={() => {
-                      if (
-                        !(
-                          wallet?.wallet_balance / currency?.exchange_rate >=
-                            total &&
-                          wallet.wallet_balance / currency?.exchange_rate >=
-                            total_cash
-                        )
-                      ) {
-                        if (!orderLoading) {
-                          if (
-                            orderData.payment.length === 1 &&
-                            orderData?.payment?.filter((one) => one.id === 1)
-                              .length === 1 &&
-                            orderData?.payment?.filter((one) => one.id === 1)[0]
-                              .balance < total_cash
-                          ) {
-                            setCreditUser();
-                            setOrderData({
-                              payment: [
-                                ...orderData.payment,
-                                {
-                                  id: 2,
-                                  balance:
-                                    total_cash -
-                                    orderData?.payment?.filter(
-                                      (one) => one.id === 1
-                                    )[0].balance,
-                                },
-                              ],
-                            });
-                          } else {
-                            if (
-                              orderData?.payment?.filter((s) => s.id === 2)
-                                .length > 0
-                            ) {
-                              setCreditUser();
-                              setOrderData({
-                                payment: orderData?.payment?.filter(
-                                  (s) => s.id !== 2
-                                ),
-                              });
-                            } else {
-                              setCreditUser();
-                              setOrderData({
-                                payment: [{ id: 2, balance: total_cash }],
-                              });
-                            }
-                          }
-                        }
-                      } else {
-                        toast.info(
-                          translateFunction(
-                            "Only Allowed To Pay through TryDos Wallet"
-                          )
-                        );
-                      }
+                      handleCardPayment();
                     }}
                   />
                 );
@@ -666,10 +532,10 @@ const TryDosWalletInput = ({ active, setActive }) => {
   return (
     <div
       onClick={() => {
-        if (wallet?.wallet_balance > 0) setActive();
+        setActive();
       }}
       className={`${
-        wallet?.wallet_balance === 0 && "opacity-45"
+        wallet?.wallet_balance <= 0 && "opacity-45"
       } w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
       style={{
         border: active && "1px solid rgb(56 144 255 / 51%)",

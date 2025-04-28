@@ -155,10 +155,7 @@ const sentryWebpackPluginOptions = {
 // Make sure adding Sentry options is the last code to run before exporting
 // module.exports = ;
 if (process.env.ENABLE_SENTRY === "false") {
-  const withBundleAnalyzer = require("@next/bundle-analyzer")({
-    enabled: false,
-  });
-  module.exports = withBundleAnalyzer(nextConfig);
+  module.exports = nextConfig;
 } else {
   const { withSentryConfig } = require("@sentry/nextjs");
   module.exports = withSentryConfig(

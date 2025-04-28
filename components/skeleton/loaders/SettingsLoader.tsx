@@ -1,8 +1,7 @@
-import Spinner from "components/global/Spinner";
 import React from "react";
 import { useAppStore } from "store";
 import Qr from "public/svg/Userqr.svg";
-import Skeleton from "node_modules/react-loading-skeleton/dist";
+import Skeleton from "react-loading-skeleton";
 import OrdersIcon from "public/svg/OrdersIcon.svg";
 import { translateFunction } from "utils/functions";
 import TryDosWalletIcon from "public/svg/TryDosWalletIcon.svg";

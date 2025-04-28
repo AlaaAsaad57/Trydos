@@ -234,7 +234,10 @@ const SearchLocations = ({ closeSelect, setFocused }) => {
         closeSelect={() => {
           closeSelect();
         }}
-        searchAction={searchAction}
+        searchAction={(e) => {
+          setSearch(e);
+          searchAction(e);
+        }}
         shouldShowProvinces={search.length === 0}
         searchResults={searchResults}
       />

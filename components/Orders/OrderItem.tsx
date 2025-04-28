@@ -4,11 +4,10 @@ import {
   RoundPrice,
   getConfiguredImage,
 } from "utils/functions";
-import { OrderDetail, OrderItem as OrderItemType } from "../../types/orders";
+import { OrderItem as OrderItemType } from "../../types/orders";
 
 import { useParams } from "next/navigation";
 
-import { getStatusDisplayName } from "components/settings/OrdersList";
 import { useAppStore } from "store";
 
 interface OrderItemProps {
@@ -30,7 +29,7 @@ const OrderItem: React.FC<OrderItemProps> = ({ order, showDetails }) => {
         <OrderItemId id={order.order_group_id.toString()} />
       </div>
       <div className="flex-row w-full justify-between items-start mt-[11px]">
-        <OrderStatus status={order.order_status?.value} />
+        <OrderStatus status={order.order_group_status?.label} />
         <OrderInvoice
           invoice={{
             items: order.details.length,
@@ -150,12 +149,7 @@ const OrderStatus = ({ status }: { status: string }) => {
       </svg>
 
       <span className="ml-[4px] text-[#1D1D1D] text-[12px] regular">
-        {translateFunction(
-          getStatusDisplayName(
-            status,
-            settings["starting-setting"].order_statuses
-          )
-        )}
+        {status}
       </span>
       <svg
         className="ml-[7px]"
@@ -382,7 +376,7 @@ const OrderInvoice = ({
 };
 const OrderItemTime = ({ time }: { time: string }) => {
   const formatTime = (timeString: string) => {
-    const date = new Date(timeString);
+    const date = new Date(timeString + "Z");
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);

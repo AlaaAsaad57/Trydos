@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
-    "@next/bundle-analyzer": "^14.2.3",
     "react-avatar-editor": "^13.0.2",
     "@sentry/nextjs": "^7.93.0",
     "@types/dom-speech-recognition": "^0.0.4",

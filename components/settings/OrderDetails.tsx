@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { getStatusDisplayName, OrdersIcon } from "./OrdersList";
+import React, { useState } from "react";
+import { OrdersIcon } from "./OrdersList";
 import SettingTopBar from "./TopBar";
 
 import { OrderDateCard, OrderInvoiceCard, OrderNumberCard } from "./cards";
@@ -61,7 +61,7 @@ function OrderDetails({
         </div>
         <div className="flex-row justify-between items-center w-full mt-[8px]">
           <OrderExpectedDeliveryCard time={selectedOrder.created_at} />
-          <OrderStatusCard status={selectedOrder.order_status.value} />
+          <OrderStatusCard status={selectedOrder.order_group_status.label} />
         </div>
         <OrderAddressCard address={selectedOrder.shipping_address_data} />
       </div>
@@ -411,14 +411,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
             {translateFunction("Order Status")}
           </span>
           <div className="text-[#1D1D1D] flex-row text-[12px] regular mt-[3px]">
-            <span>
-              {translateFunction(
-                getStatusDisplayName(
-                  order.order_status.value,
-                  settings["starting-setting"].order_statuses
-                )
-              )}
-            </span>
+            <span>{order?.order_group_status?.label}</span>
             <svg
               className="ml-[11px]"
               xmlns="http://www.w3.org/2000/svg"
@@ -520,13 +513,23 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
       </div>
       <div className="flex-col w-full mt-[12px]">
         {order.details.map((Product) => (
-          <ProductCard product={Product} key={Product.id} />
+          <ProductCard
+            status={order?.order_status?.label}
+            product={Product}
+            key={Product.id}
+          />
         ))}
       </div>
     </div>
   );
 };
-const ProductCard = ({ product }: { product: OrderDetail }) => {
+const ProductCard = ({
+  product,
+  status,
+}: {
+  product: OrderDetail;
+  status: string;
+}) => {
   const { currency, settings } = useAppStore();
 
   return (
@@ -597,12 +600,7 @@ const ProductCard = ({ product }: { product: OrderDetail }) => {
               {translateFunction("Item Status")}:
             </span>
             <span className="text-[#505050] text-[10px] medium ml-[2px]">
-              {translateFunction(
-                getStatusDisplayName(
-                  product.delivery_status,
-                  settings["starting-setting"].order_group_statuses
-                )
-              )}
+              {product?.order_status ?? status}
             </span>
             <svg
               xmlns="http://www.w3.org/2000/svg"

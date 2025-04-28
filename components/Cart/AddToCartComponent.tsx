@@ -210,12 +210,13 @@ function AddToCartComponent({
       }),
     });
   };
+
   return (
     <div className="flex-col h-full w-[100vw] flex top-0 left-0 fixed z-[99999999999999999] justify-start ">
-      <ToastContainer
+      {/* <ToastContainer
         position="top-right"
         style={{ zIndex: "9999999999999999" }}
-      />
+      /> */}
       <div className=" bg-[#4f4f4f80]  flex fixed top-0 left-0 h-full w-full z-[99]" />
       <div className="back-bar align-center w-100 flex-row min-h-12 bg-[#fff] p-4 z-[99999999] justify-between">
         <div
