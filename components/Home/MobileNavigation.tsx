@@ -9,8 +9,9 @@ function MobileNavigation({ categories }: { categories: any[] }) {
   const [activeCategory, setActiveCatgory] = useState(
     searchParams.mainCategory ?? false
   );
-  const slider: HTMLDivElement = document?.querySelector(".mobile-bar");
+
   useEffect(() => {
+    const slider: HTMLDivElement = document?.querySelector(".mobile-bar");
     let isDown = false;
     let startX: number;
     let scrollLeft: number;
@@ -43,7 +44,7 @@ function MobileNavigation({ categories }: { categories: any[] }) {
       const walk = (x - startX) * 3; //scroll-fast
       slider.scrollLeft = scrollLeft - walk;
     });
-  }, [slider]);
+  }, []);
   return (
     <div className="flex-row search-nav-holder">
       <SearchIcon />

@@ -90,11 +90,38 @@ export const useSearchStore = (set, get) => ({
       },
     })),
 
-  setSearchResults: (results: Partial<SearchResults>) =>
+  setSearchResults: (results: Partial<SearchResults>, replace = true) =>
     set((state) => ({
       searchResults: {
         ...state.searchResults,
-        ...results,
+        products: results?.products,
+        categories: replace
+          ? results.categories
+          : Array.from(
+              new Map(
+                [...state.searchResults.categories, ...results?.categories].map(
+                  (item) => [item.id, item]
+                )
+              ).values()
+            ),
+        brands: replace
+          ? results?.brands
+          : Array.from(
+              new Map(
+                [...state.searchResults.brands, ...results?.brands].map(
+                  (item) => [item.id, item]
+                )
+              ).values()
+            ),
+        boutiques: replace
+          ? results?.boutiques
+          : Array.from(
+              new Map(
+                [...state.searchResults.boutiques, ...results?.boutiques].map(
+                  (item) => [item.id, item]
+                )
+              ).values()
+            ),
       },
     })),
 

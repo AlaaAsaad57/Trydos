@@ -29,10 +29,14 @@ export const configureSearchParams = ({
   lang,
   offset,
   boutiqueId,
+  filters_offset = null,
 }): URLSearchParams => {
   let params = new URLSearchParams();
   params.set("lang", lang);
   params.set("limit", "8");
+  if (filters_offset && filters_offset !== "") {
+    params.set("filters_offset", filters_offset);
+  }
   if (offset && offset !== "false") {
     params.set("offset", `[${offset}]`);
   }

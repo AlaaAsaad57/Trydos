@@ -136,8 +136,8 @@ function InfiniteScrollFilters({
       {showFilters()}
       {loading ? (
         <>
-          {Array.from({ length: 4 })?.map((s) => (
-            <div className="category-circle flex-col align-center">
+          {Array.from({ length: 4 })?.map((_, i) => (
+            <div className="category-circle flex-col align-center" key={i}>
               <div className="relative w-[70px] h-[70px]">
                 <Skeleton width={70} height={70} borderRadius={"50%"} />
               </div>

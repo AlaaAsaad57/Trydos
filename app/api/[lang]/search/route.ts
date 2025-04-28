@@ -23,7 +23,7 @@ export async function GET(
   const offset = searchParams.get("offset") ?? "false";
   const boutiqueId = searchParams.get("boutiqueId") ?? "listing";
   const searchParamsVar = JSON.parse(searchParams.get("searchParams")) ?? {};
-
+  const filters_offset = searchParams.get("filters_offset");
   let configuredparams = configureSearchParams({
     searchParams: searchParamsVar,
     noProducts,
@@ -31,6 +31,7 @@ export async function GET(
     lang,
     offset,
     boutiqueId,
+    filters_offset,
   });
   let configured_url = `/api/products/searchInCatalog?${configuredparams.toString()}`;
   let response = await fetch(

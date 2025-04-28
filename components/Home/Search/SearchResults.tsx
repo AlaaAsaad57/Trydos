@@ -21,6 +21,7 @@ import { useAppStore } from "store";
 import search from "services/search";
 import ActiveSearchFilterBar from "./ActiveSearchFilterBar";
 import NextLink from "components/global/NextLink";
+import InfiniteScrollFiltersSearch from "components/ListingPage/filterComponents/InfiniteScrollFilterSearch";
 
 function SearchResults() {
   const {
@@ -35,6 +36,7 @@ function SearchResults() {
     totalProducts,
     loading_search,
     searchFilters,
+    setSearchLoading,
     value,
   } = useAppStore();
   const searchParams = useSearchParams();
@@ -131,11 +133,15 @@ function SearchResults() {
       lang: lang,
     });
   };
-  const updateFiltersApi = () => {
-    search.getSearchOptions({
+  const updateFiltersApi = async () => {
+    setSearchPartialLoading(true);
+    setSearchLoading(true);
+    await search.getSearchOptions({
       noProducts: false,
       lang: lang,
     });
+    setSearchPartialLoading(false);
+    setSearchLoading(false);
   };
   const showButton = () => {
     if (
@@ -203,6 +209,26 @@ function SearchResults() {
                   )}
                 />
               ))}
+              <InfiniteScrollFiltersSearch
+                term="brands"
+                isActive={(item) => {
+                  return searchFilters?.brands.some(
+                    (s) => s.slug === item.slug
+                  );
+                }}
+                onClick={(e) => {
+                  Sendevent({
+                    event: "button_clicked",
+                    value: "add_filter_button",
+                    extra: {
+                      type: "brand",
+                      name: e.name,
+                    },
+                  });
+                  setSearchBrand(e);
+                  updateFiltersApi();
+                }}
+              />
             </div>
           </div>
         )}
@@ -240,6 +266,26 @@ function SearchResults() {
                   )}
                 />
               ))}
+              <InfiniteScrollFiltersSearch
+                term="categories"
+                isActive={(item) => {
+                  return searchFilters?.categories.some(
+                    (s) => s.slug === item.slug
+                  );
+                }}
+                onClick={(e) => {
+                  Sendevent({
+                    event: "button_clicked",
+                    value: "add_filter_button",
+                    extra: {
+                      type: "category",
+                      name: e.name,
+                    },
+                  });
+                  setSearchCategory(e);
+                  updateFiltersApi();
+                }}
+              />
             </div>
           </div>
         )}
@@ -276,6 +322,26 @@ function SearchResults() {
                   )}
                 />
               ))}
+              <InfiniteScrollFiltersSearch
+                term="boutiques"
+                onClick={(e) => {
+                  Sendevent({
+                    event: "button_clicked",
+                    value: "add_filter_button",
+                    extra: {
+                      type: "boutique",
+                      name: e.name,
+                    },
+                  });
+                  setSearchBoutique(e);
+                  updateFiltersApi();
+                }}
+                isActive={(item) => {
+                  return searchFilters?.boutiques.some(
+                    (s) => s.slug === item.slug
+                  );
+                }}
+              />
             </div>
           </div>
         )}

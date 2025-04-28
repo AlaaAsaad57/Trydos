@@ -14,21 +14,21 @@ class SearchService {
     setTrendingSearch(data);
   }
 
-  async getSearchOptions({ noProducts = false, lang, noFilters = false }) {
-    const {
-      setSearchLoading,
-      setSearchResults,
-      searchFilters,
-      value,
-      setSearchPartialLoading,
-      setTotalSizeOfProducts,
-    } = useAppStore.getState();
-    setSearchPartialLoading(true);
-    setSearchLoading(true);
+  async getSearchOptions({
+    noProducts = false,
+    lang,
+    noFilters = false,
+    filters_offset = null,
+    replace = true,
+  }) {
+    const { setSearchResults, searchFilters, value, setTotalSizeOfProducts } =
+      useAppStore.getState();
+
     let params = this.getSearchParamsFromObj(
       searchFilters,
       noProducts,
-      noFilters
+      noFilters,
+      filters_offset
     );
     let searchFiltersEdit = {};
     if (searchFilters?.categories && searchFilters.categories.length > 0) {
@@ -81,21 +81,25 @@ class SearchService {
       total_size,
     } = filtersResponse.data;
     setTotalSizeOfProducts({ total_size });
-    setSearchLoading(false);
-    setSearchPartialLoading(false);
-    setSearchResults({
-      products,
-      categories,
-      brands,
-      boutiques,
-      colors,
-      sizes: attributes?.[0]?.options,
-    });
+
+    setSearchResults(
+      {
+        products,
+        categories,
+        brands,
+        boutiques,
+        colors,
+        sizes: attributes?.[0]?.options,
+      },
+      replace
+    );
     return filtersResponse;
   }
-  getSearchParamsFromObj(obj, noProducts, noFilters) {
+  getSearchParamsFromObj(obj, noProducts, noFilters, filters_offset?) {
     let params = new URLSearchParams();
-
+    if (filters_offset) {
+      params.set("filters_offset", `${filters_offset}`);
+    }
     if (noProducts) {
       params.set("noProducts", "true");
     }
