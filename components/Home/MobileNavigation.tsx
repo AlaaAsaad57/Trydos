@@ -9,40 +9,41 @@ function MobileNavigation({ categories }: { categories: any[] }) {
   const [activeCategory, setActiveCatgory] = useState(
     searchParams.mainCategory ?? false
   );
+  const slider: HTMLDivElement = document?.querySelector(".mobile-bar");
   useEffect(() => {
-    const slider: HTMLDivElement = document?.querySelector(".mobile-bar");
     let isDown = false;
     let startX: number;
     let scrollLeft: number;
-
+    console.log("use effect mobile");
     slider?.addEventListener("mousedown", (e: MouseEvent) => {
+      console.log("md");
       isDown = true;
       slider.classList.add("active");
       startX = e.pageX - slider.offsetLeft;
       scrollLeft = slider.scrollLeft;
     });
     slider?.addEventListener("mouseleave", () => {
+      console.log("ml");
+
       isDown = false;
       slider.classList.remove("active");
     });
     slider?.addEventListener("mouseup", () => {
+      console.log("mu");
+
       isDown = false;
       slider.classList.remove("active");
     });
     slider?.addEventListener("mousemove", (e) => {
+      console.log("mm");
+
       if (!isDown) return;
       e.preventDefault();
       const x = e.pageX - slider.offsetLeft;
       const walk = (x - startX) * 3; //scroll-fast
       slider.scrollLeft = scrollLeft - walk;
     });
-    return () => {
-      slider?.removeEventListener("mousedown", (e: MouseEvent) => {});
-      slider?.removeEventListener("mouseleave", () => {});
-      slider?.removeEventListener("mouseup", () => {});
-      slider?.removeEventListener("mousemove", (e) => {});
-    };
-  }, []);
+  }, [slider]);
   return (
     <div className="flex-row search-nav-holder">
       <SearchIcon />

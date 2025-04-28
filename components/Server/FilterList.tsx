@@ -6,6 +6,7 @@ import NextLink from "components/global/NextLink";
 import { translateFunction } from "utils/functions";
 import dynamic from "next/dynamic";
 import { getPrice } from "utils/tinyUtils";
+import InfiniteScrollFilters from "components/ListingPage/filterComponents/InfiniteScrollFilters";
 
 const SwitchFiltersButton = dynamic(
   () => import("components/filterPage/SwitchFiltersButton"),
@@ -485,11 +486,21 @@ const FilterItemsRow = ({
               item={item}
             />
           ))}
+
+        <InfiniteScrollFilters
+          term={term}
+          boutique={boutique}
+          searchParams={searchParams}
+          lang={params?.lang}
+          currency={currency}
+          params={params}
+          key={searchParams}
+        />
       </div>
     </div>
   );
 };
-const FilterItem = ({
+export const FilterItem = ({
   term,
   item,
   searchParams,
@@ -989,7 +1000,7 @@ const FilterItem = ({
         }}
         href={href}
         ariaLabel={`filter price ${item.min_price}-${item.max_price} ${params.lang}`}
-        className={`category-circle flex-col align-center ${
+        className={`category-circle flex-col align-center min-w-[140px] w-auto static ${
           true && "extended-circle"
         }`}
         data-cy="categoryPrice"

@@ -94,7 +94,12 @@ class ChatService {
       let response = await axios.post(
         process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
           "/api/v1/messages/share_product",
-        JSON.stringify({ receiver_ids: userId, content: [product] }),
+        JSON.stringify({
+          receiver_ids: userId,
+          content: [
+            { ...product, product_image_width: 400, product_image_height: 400 },
+          ],
+        }),
         { ...ChatHeader() }
       );
       await GetChats("share");

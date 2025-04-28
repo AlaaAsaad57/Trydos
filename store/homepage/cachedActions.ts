@@ -777,6 +777,7 @@ export const getProductsAndFilters = async ({
   noFilters,
   offset,
   boutiqueId,
+  filters_offset,
 }: {
   searchParams: URLSearchParams;
   lang: string;
@@ -785,6 +786,7 @@ export const getProductsAndFilters = async ({
   noFilters: boolean;
   offset: number | boolean;
   boutiqueId?: string;
+  filters_offset?: number;
 }) => {
   try {
     let params = configureSearchParams({
@@ -794,6 +796,7 @@ export const getProductsAndFilters = async ({
       lang,
       offset,
       boutiqueId,
+      filters_offset,
     });
     let configured_url = `/api/products/searchInCatalog?${params.toString()}`;
 
@@ -860,6 +863,7 @@ const configureSearchParams = ({
   lang,
   offset,
   boutiqueId,
+  filters_offset,
 }): URLSearchParams => {
   let params = new URLSearchParams();
   params.set("lang", lang);
@@ -906,7 +910,9 @@ const configureSearchParams = ({
   if (boutiqueId) {
     params.set("boutique_slugs", `["${boutiqueId}"]`);
   }
-
+  if (filters_offset) {
+    params.set("filters_offset", `${filters_offset}`);
+  }
   // console.log(
   //   `params: ${decodeURIComponent(params.toString())} ${JSON.stringify(
   //     searchParams

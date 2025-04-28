@@ -6,7 +6,7 @@ import {
 } from "components/ListingPage/Product";
 // import ProductsList from "components/ListingPage/ProductsList";
 import React, { Suspense } from "react";
-import { RoundPrice, translateFunction } from "utils/functions";
+import { RoundPrice } from "utils/functions";
 import ProductsInfiniteScroll from "components/ListingPage/ProductsList";
 import NextLink from "components/global/NextLink";
 

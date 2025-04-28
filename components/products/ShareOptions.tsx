@@ -4,6 +4,8 @@ import "styles/share-options.css";
 import {
   FacebookIcon,
   FacebookShareButton,
+  TelegramIcon,
+  TelegramShareButton,
   TwitterIcon,
   TwitterShareButton,
   WhatsappIcon,
@@ -94,6 +96,23 @@ function ShareOptions({
           </WhatsappShareButton>
         </div>
         <div className="share-name">WhatsApp</div>
+      </div>
+      <div className={`share-avatar`} data-cy="Whatsapp">
+        <div className="share-image social shadow-none">
+          <TelegramShareButton
+            beforeOnClick={() => {
+              Sendevent({
+                event: "button_clicked",
+                value: "share_with_whatsapp_button",
+              });
+              shareSocial("Telegram");
+            }}
+            url={window.location.href}
+          >
+            <TelegramIcon size={70} borderRadius={20} />
+          </TelegramShareButton>
+        </div>
+        <div className="share-name">Telegram</div>
       </div>
       {getUserChat() &&
         user &&
