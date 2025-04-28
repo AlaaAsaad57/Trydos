@@ -2,6 +2,7 @@
 
 import Spinner from "components/global/Spinner";
 import BoutiqueLoader from "components/skeleton/loaders/BoutiqueLoader";
+import FilterLoader from "components/skeleton/loaders/FilterLoader";
 import FullHomeLoader from "components/skeleton/loaders/FullHomeLoader";
 import HomeLoader from "components/skeleton/loaders/HomeLoader";
 import ProductLoader from "components/skeleton/loaders/ProductLoader";
@@ -26,7 +27,10 @@ export default function PageLoadingIndicator() {
 
       timeout = setTimeout(() => {
         // @ts-ignore
-        window.location.href = data?.href;
+        if (data?.href) {
+          // @ts-ignore
+          window.location.href = data?.href;
+        }
       }, 15000);
     });
 
@@ -42,11 +46,12 @@ export default function PageLoadingIndicator() {
     if (isLoading.is_home) return <HomeLoader />;
     if (isLoading.is_boutique) return <BoutiqueLoader boutique={isLoading} />;
     if (isLoading.is_product) return <ProductLoader product={isLoading} />;
-    if (isLoading.is_filter) return <BoutiqueLoader boutique={isLoading} />;
+    if (isLoading.is_filter)
+      return <FilterLoader isForSearch boutique={isLoading} />;
     if (isLoading.is_full_home) return <FullHomeLoader />;
     if (isLoading.is_settings) return <SettingsLoader />;
     if (isLoading.is_filter_search)
-      return <BoutiqueLoader boutique={isLoading} isForSearch={true} />;
+      return <FilterLoader isForSearch boutique={isLoading} />;
   }
   return (
     <>

@@ -72,18 +72,7 @@ export function ProductPhotosSlider({ product, priority }) {
     activeColor:
       product.sync_color_images &&
       product.sync_color_images[0]?.images?.length > 0
-        ? {
-            ...product.sync_color_images?.filter(
-              (color) => color.images.length > 0
-            )[
-              Math.round(
-                product.sync_color_images?.filter(
-                  (color) => color.images.length > 0
-                ).length / 2
-              ) - 1
-            ],
-            index: 0,
-          }
+        ? product.sync_color_images[0]
         : {
             images:
               product.images?.length > 0

@@ -109,7 +109,7 @@ function CoverEffectSlider({
         }}
         slidesPerView={"auto"}
         centeredSlides={true}
-        initialSlide={Math.round(images.length / 2) - 1}
+        initialSlide={0}
         resistanceRatio={0}
         virtualTranslate={false}
       >

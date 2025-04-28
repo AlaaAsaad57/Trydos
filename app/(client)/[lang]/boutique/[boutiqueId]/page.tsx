@@ -283,19 +283,15 @@ export default async function Page({
             key={params.boutiqueId}
           ></BoutiqueHeader>
         </Suspense>
-        <Suspense
-          key={`Suspense-filter-list-${params.boutiqueId}`}
-          fallback={<FiltersSkeleton />}
-        >
-          <FilterList
-            filters={filters}
-            boutique={boutique}
-            currency={currency}
-            key={`filter-list-${params.boutiqueId}`}
-            params={params}
-            searchParams={EditedSearchParams}
-          />
-        </Suspense>
+
+        <FilterList
+          filters={filters}
+          boutique={boutique}
+          currency={currency}
+          key={`filter-list-${params.boutiqueId}`}
+          params={params}
+          searchParams={EditedSearchParams}
+        />
       </div>
       <Suspense
         key={`Suspense-product-list-${JSON.stringify(EditedSearchParams)}`}
