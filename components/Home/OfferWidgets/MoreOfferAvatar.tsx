@@ -3,18 +3,23 @@ import Image from "next/image";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import NextLink from "components/global/NextLink";
 
 interface MoreOfferAvatarProps {
   images: string;
   zIndex: number;
   viewed: number;
   priority: boolean;
+  boutique: any;
+  href: string;
 }
 function MoreOfferAvatar({
   images,
   zIndex,
   viewed,
   priority,
+  boutique,
+  href,
 }: MoreOfferAvatarProps) {
   let { lang } = useParams();
   // @ts-ignore
@@ -25,7 +30,13 @@ function MoreOfferAvatar({
   const { language } = useAppStore();
 
   return (
-    <div
+    <NextLink
+      href={href}
+      data={{
+        is_boutique: true,
+        href: href,
+        ...boutique,
+      }}
       className="offer-avatar hasMore"
       style={{ zIndex: zIndex, transform: `translateX(-${viewed * 5}px)` }}
     >
@@ -44,7 +55,7 @@ function MoreOfferAvatar({
         height={40}
         style={{ borderRadius: "50%", height: "40px" }}
       />
-    </div>
+    </NextLink>
   );
 }
 

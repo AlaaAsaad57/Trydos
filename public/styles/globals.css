@@ -1054,6 +1054,7 @@ svg {
   width: 50px;
   justify-content: space-between;
   height: 24px !important;
+  display: none;
   opacity: 0;
   transition: 0.3s;
   top: 47px;

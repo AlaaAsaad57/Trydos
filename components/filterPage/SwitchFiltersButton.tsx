@@ -22,7 +22,7 @@ function SwitchFiltersButton({ length }) {
   };
   return (
     <div
-      className="filter-button flex-row items-center h-[25px]"
+      className="filter-button absolute left-[15px] top-1/3 flex-row items-center h-[25px]"
       data-cy="rightScrool"
       onClick={() => onClick()}
     >

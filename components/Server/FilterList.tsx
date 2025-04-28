@@ -22,7 +22,7 @@ const FilterLabel = dynamic(
 function FilterList({ searchParams, params, filters, currency, boutique }) {
   return (
     <>
-      <div className={`w-full flex-row items-center pl-[15px]`}>
+      <div className={`w-full relative flex-row items-center pl-[15px]`}>
         <Suspense
           key={`switch-filters-button-${JSON.stringify(filters)}`}
           fallback={
@@ -42,7 +42,7 @@ function FilterList({ searchParams, params, filters, currency, boutique }) {
           />
         </Suspense>
         <div
-          className={`flex-row items-center pr-[100px]  justify-start align-start filter-container overflow-auto scroll-smooth`}
+          className={`flex-row items-center pr-[20px] ml-[45px]  justify-start align-start filter-container overflow-auto scroll-smooth`}
         >
           {Object.keys(filters).map((filter, index) => {
             if (
@@ -577,7 +577,7 @@ const FilterItem = ({
             <img
               width={70}
               height={70}
-              className="object-center"
+              className="object-center bg-white"
               src={(
                 item.most_viewed_product_thumbnail?.file_path ??
                 item.flat_photo_path?.file_path ??
@@ -594,11 +594,14 @@ const FilterItem = ({
         </NextLink>
         {item.childes?.length > 0 && (
           <div
-            className={`categories-sub-circles ${
-              shouldShowSubCategories() && "no-transform"
+            className={`categories-sub-circles relative ${
+              shouldShowSubCategories() ? "no-transform" : "ml-0"
             } z-0`}
             style={{
-              minWidth: shouldShowSubCategories() ? "max-content" : "10px",
+              minWidth: shouldShowSubCategories()
+                ? "max-content"
+                : `${(item?.childes?.length * 10) / 2}px`,
+              right: shouldShowSubCategories() ? "0px" : "40px",
             }}
           >
             {item.childes.map((s, index) => {
@@ -611,9 +614,17 @@ const FilterItem = ({
                       href: getSubCategoryUrl(s.slug)?.href,
                     }}
                     href={getSubCategoryUrl(s.slug)?.href}
-                    className="sub-circle"
+                    className={`sub-circle`}
                     style={{
-                      zIndex: 4 - index,
+                      position: shouldShowSubCategories()
+                        ? "relative"
+                        : "absolute",
+                      left: shouldShowSubCategories() ? "0" : `${index * 8}px`,
+                      zIndex: shouldShowSubCategories() ? "auto" : 100 - index,
+                      transform: shouldShowSubCategories()
+                        ? "none"
+                        : `scale(${1 - index * 0.05})`,
+                      transition: "all 0.5s ease",
                     }}
                   >
                     {getSubCategoryUrl(s.slug)?.isFiltered && (
@@ -657,6 +668,7 @@ const FilterItem = ({
                     <img
                       width={50}
                       height={50}
+                      className="bg-white"
                       src={
                         s.most_viewed_product_thumbnail?.file_path ??
                         s.flat_photo_path?.file_path ??
@@ -681,80 +693,86 @@ const FilterItem = ({
                           : "10px",
                       }}
                     >
-                      {s.childes.map((sub_s, index) => {
-                        return (
-                          <NextLink
-                            key={sub_s.slug}
-                            data={{
-                              is_filter: true,
-                              ...boutique,
-                              href: getSubCategoryUrl(sub_s.slug)?.href,
-                            }}
-                            href={getSubCategoryUrl(sub_s.slug)?.href}
-                            className="sub-circle w-[40px] h-[40px]"
-                            style={{
-                              zIndex: 4 - index,
-                            }}
-                          >
-                            {getSubCategoryUrl(sub_s.slug)?.isFiltered && (
-                              <ActiveCategoryIcon
-                                className="active-category-icon"
-                                style={{ top: "-5px", left: "-5px" }}
-                              />
-                            )}
-                            <div
-                              style={{
-                                position: "absolute",
-                                zIndex: "7",
-                                width: "40px",
-                                height: "40px",
+                      {shouldShowSubCategories() &&
+                        s.childes.map((sub_s, index) => {
+                          return (
+                            <NextLink
+                              key={sub_s.slug}
+                              data={{
+                                is_filter: true,
+                                ...boutique,
+                                href: getSubCategoryUrl(sub_s.slug)?.href,
                               }}
-                              className="category-shadow"
-                            ></div>
-                            <svg
-                              style={{ position: "absolute", zIndex: "6" }}
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="40"
-                              height="40"
-                              viewBox="0 0 40 40"
+                              href={getSubCategoryUrl(sub_s.slug)?.href}
+                              className="sub-circle w-[40px] h-[40px]"
+                              style={{
+                                zIndex: 4 - index,
+                              }}
                             >
-                              <g
-                                id="Ellipse_283"
-                                data-name="Ellipse 283"
-                                fill="none"
-                                stroke={
-                                  getSubCategoryUrl(sub_s.slug)?.isFiltered
-                                    ? "#FF5F61"
-                                    : "#fff"
-                                }
-                                strokeWidth="0.5"
+                              {getSubCategoryUrl(sub_s.slug)?.isFiltered && (
+                                <ActiveCategoryIcon
+                                  className="active-category-icon"
+                                  style={{ top: "-5px", left: "-5px" }}
+                                />
+                              )}
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  zIndex: "7",
+                                  width: "40px",
+                                  height: "40px",
+                                }}
+                                className="category-shadow"
+                              ></div>
+                              <svg
+                                style={{ position: "absolute", zIndex: "6" }}
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="40"
+                                height="40"
+                                viewBox="0 0 40 40"
                               >
-                                <circle cx="20" cy="20" r="20" stroke="none" />
-                                <circle cx="20" cy="20" r="20" fill="none" />
-                              </g>
-                            </svg>
+                                <g
+                                  id="Ellipse_283"
+                                  data-name="Ellipse 283"
+                                  fill="none"
+                                  stroke={
+                                    getSubCategoryUrl(sub_s.slug)?.isFiltered
+                                      ? "#FF5F61"
+                                      : "#fff"
+                                  }
+                                  strokeWidth="0.5"
+                                >
+                                  <circle
+                                    cx="20"
+                                    cy="20"
+                                    r="20"
+                                    stroke="none"
+                                  />
+                                  <circle cx="20" cy="20" r="20" fill="none" />
+                                </g>
+                              </svg>
 
-                            <img
-                              className="min-w-[40px] min-h-[40px] w-[40px] h-[40px]"
-                              width={40}
-                              height={40}
-                              src={
-                                s.most_viewed_product_thumbnail?.file_path ??
-                                s.flat_photo_path?.file_path ??
-                                s?.icon?.file_path
-                              }
-                            />
-                            {shouldShowSubCategories() && (
-                              <div className="category-text-container flex-col align-center mt-2 max-w-[50px]">
-                                <span className="category-title">
-                                  {sub_s.name}
-                                </span>
-                                {/* <span className="category-typo">1100</span> */}
-                              </div>
-                            )}
-                          </NextLink>
-                        );
-                      })}
+                              <img
+                                className="min-w-[40px] min-h-[40px] w-[40px] h-[40px]"
+                                width={40}
+                                height={40}
+                                src={
+                                  s.most_viewed_product_thumbnail?.file_path ??
+                                  s.flat_photo_path?.file_path ??
+                                  s?.icon?.file_path
+                                }
+                              />
+                              {shouldShowSubCategories() && (
+                                <div className="category-text-container flex-col align-center mt-2 max-w-[50px]">
+                                  <span className="category-title">
+                                    {sub_s.name}
+                                  </span>
+                                  {/* <span className="category-typo">1100</span> */}
+                                </div>
+                              )}
+                            </NextLink>
+                          );
+                        })}
                     </div>
                   )}
                 </>

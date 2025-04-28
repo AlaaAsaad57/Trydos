@@ -2,7 +2,7 @@
 import { useRef } from "react";
 import OfferAvatar from "./OfferAvatar";
 import { Boutique } from "models/offer";
-import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import MoreOfferAvatar from "./MoreOfferAvatar";
 import search from "services/search";
 
@@ -12,7 +12,7 @@ interface OfferAvatarsProps {
 }
 function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
   const ref = useRef<HTMLDivElement>();
-  const router = useRouter();
+  const { lang } = useParams();
   const handleMove = (e: any) => {
     let elemnts: Element[] = Array.from(ref.current.children);
     let clientX = e.clientX || e.touches[0]?.clientX;
@@ -70,6 +70,8 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
       {boutique?.childCategoriesForProductIds?.length > 7 && (
         <MoreOfferAvatar
           priority={false}
+          href={`/${lang}/boutique/${boutique?.slug}`}
+          boutique={boutique}
           images={
             boutique?.childCategoriesForProductIds[7]
               .most_viewed_product_thumbnail.file_path
