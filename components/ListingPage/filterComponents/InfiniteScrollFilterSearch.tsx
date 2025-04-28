@@ -43,7 +43,7 @@ function InfiniteScrollFiltersSearch({ isActive, onClick, term }) {
           {Array.from({ length: 4 })?.map((_, i) => (
             <div
               className="brand-item min-w-[81px] p-0 relative ml-2 "
-              data-cy="brandItem"
+              key={i}
               onClick={() => onClick()}
             >
               <Skeleton
