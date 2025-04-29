@@ -12,7 +12,7 @@ function Index() {
         <div className="stories-bar-container">
           <div id="stories-bar" className="stories-bar">
             <div className="stories-bars">
-              {user?.id && <AddStory />}
+              {user?.id && <AddStory stories={storiesData} />}
 
               {storiesData.map((story, index) => (
                 <StoryElement key={index} index={index} story={story} />

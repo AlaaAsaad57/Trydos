@@ -12,6 +12,7 @@ import UserNavTopSection from "components/Home/UserNavTopSection";
 import Skeleton from "react-loading-skeleton";
 import NavbarClient from "components/Home/NavbarClient";
 import PageLoadingIndicator from "hooks/PageLoadingIndicator";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",

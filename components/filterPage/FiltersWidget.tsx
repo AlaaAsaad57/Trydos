@@ -18,9 +18,24 @@ import Image from "node_modules/next/image";
 import Spinner from "components/global/Spinner";
 import PriceSlider from "components/ListingPage/filterComponents/PriceSlider";
 import PriceChart from "components/ListingPage/filterComponents/PriceChart";
-
-function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
+function FilterWidgetContainer({
+  priceVariable,
+  filters,
+  searchParams,
+  priceRanges,
+}) {
   if (typeof window === "undefined") return <></>;
+  return (
+    <FiltersWidget
+      priceVariable={priceVariable}
+      filters={filters}
+      searchParams={searchParams}
+      priceRanges={priceRanges}
+    />
+  );
+}
+export default FilterWidgetContainer;
+function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
   let activeFilters = getActiveFilters(searchParams);
   const { lang } = useParams();
   const {
@@ -148,7 +163,10 @@ function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
         searchResults?.prices?.min_price &&
         searchResults?.prices?.max_price > 0 &&
         searchResults?.prices?.min_price >= 0 && (
-          <div className="flex-col justify-start align-start filter-container relative w-full mt-[10px] pb-6">
+          <div
+            className="flex-col justify-start align-start filter-container relative w-full mt-[10px] pb-6"
+            key={`prices-container}`}
+          >
             <PriceCancel
               className="price-cancel-icon"
               onClick={() => {
@@ -248,7 +266,6 @@ function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
   );
 }
 
-export default FiltersWidget;
 const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
   const { lang } = useParams();
   const {
@@ -451,9 +468,10 @@ const ShowFilterRow = ({ term, values }) => {
 
   return (
     <div className="flex-row align-center justify-start mt-[10px]">
-      {values.map((value) => {
+      {values.map((value, index) => {
         return (
           <div
+            key={`${term}-${index}`}
             className="flex-col cursor-pointer  ml-[10px] items-center justify-start relative min-w-[70px] w-auto h-[100px] min-h-[100px]"
             onClick={() => {
               handleFilterClick(value);

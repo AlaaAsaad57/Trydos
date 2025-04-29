@@ -16,7 +16,7 @@ import BorderImage from "components/ListingPage/BorderImage";
 import "styles/listing-components.css";
 import Skeleton from "react-loading-skeleton";
 import { getBoutiqueMetadata } from "./Metadata";
-import FiltersWidget from "components/filterPage/FiltersWidget";
+import FilterWidgetContainer from "components/filterPage/FiltersWidget";
 
 const SearchBoutiquePage = Nextdynamic(
   () => import("components/filterPage/SearchBoutiquePage"),
@@ -214,7 +214,7 @@ export default async function Page({
     <>
       <Suspense>
         {
-          <FiltersWidget
+          <FilterWidgetContainer
             priceVariable={{
               min_price: filtersData?.prices?.min_price,
               max_price: filtersData?.prices?.max_price,
