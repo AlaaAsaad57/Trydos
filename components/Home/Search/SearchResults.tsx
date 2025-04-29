@@ -13,10 +13,8 @@ import {
 import { useParams, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
-import { dispatchRouteChangeEvent } from "utils/events";
-import home from "services/home";
 import Spinner from "components/global/Spinner";
-import FilterInfoBar from "components/ListingPage/FilterInfoBar";
+
 import { useAppStore } from "store";
 import search from "services/search";
 import ActiveSearchFilterBar from "./ActiveSearchFilterBar";

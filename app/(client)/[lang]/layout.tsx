@@ -4,6 +4,7 @@ import "styles/home.css";
 import "styles/unused-onload.css";
 import Providers from "store/provider";
 import localFont from "next/font/local";
+import { reportWebVitals } from "utils/libs/new_stories_lib/report-web-vitals";
 import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
 import Logo from "components/Home/Logo";
@@ -57,7 +58,7 @@ const quicksand_semibold = localFont({
   fallback: ["system-ui", "arial"],
 });
 export const revalidte = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-
+export { reportWebVitals };
 export default async function RootLayout({ params, children }) {
   // ${sf_pro_rounded_light.variable}
   // ${sf_pro_rounded_semibold.variable}

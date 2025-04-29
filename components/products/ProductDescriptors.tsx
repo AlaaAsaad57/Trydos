@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect } from "react";
-import DescriptorBorder from "public/svg/product/descriptorBorder.svg";
+
 function ProductDescriptors() {
   useEffect(() => {
     if (typeof document !== "undefined") {

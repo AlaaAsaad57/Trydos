@@ -242,20 +242,6 @@ function ProductFooterSection({ product, currency }) {
     <>
       {!loginOpen && (
         <>
-          {/* <ProductInfo
-            shipping={product?.shipping_cost || 0}
-            currency={currency?.symbol}
-            newPrice={
-              AddToCartOption.price?.offer_price
-                ? getPrice(AddToCartOption?.price?.offer_price)
-                : getPrice(product?.offer_price)
-            }
-            oldPrice={
-              AddToCartOption.price?.price
-                ? getPrice(AddToCartOption?.price?.price)
-                : getPrice(product.price)
-            }
-          /> */}
           {
             <ExtendedAreaInfo
               loading={loading}

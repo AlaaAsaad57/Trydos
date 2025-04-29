@@ -4,7 +4,7 @@ import ProductListServer from "components/Server/ProductList";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import SortIcon from "public/svg/listing/sortIcon.svg";
 import ListingSkeleton from "components/skeleton/listing";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { getConfiguredImage } from "utils/functions";

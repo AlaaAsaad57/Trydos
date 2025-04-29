@@ -147,16 +147,11 @@ function ProductLoader({ product }) {
                 {product?.category?.name}
               </div>
             </div>
-            {product?.details ? (
-              <ProductDetailsText
-                product={product?.sync_color_images}
-                details={product?.details}
-              />
-            ) : (
+            {
               <div className="product-details-text">
                 <Skeleton width={300} height={100} />
               </div>
-            )}
+            }
 
             <div className="flex-row product-properties w-100">
               <div className="flex-row product-property-row">

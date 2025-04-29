@@ -6,7 +6,6 @@ import { getNew } from "components/Chat/chatsFunctions";
 import ChatNotification from "./ChatNotification";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import { useEffect } from "react";
 
 function AuthNavSection({ onClick }: { onClick: () => void }) {
   const {
