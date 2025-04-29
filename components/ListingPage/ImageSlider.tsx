@@ -97,7 +97,7 @@ function ImageSlider({
                   <div className="inset-shadow-img w-100 h-100 rounded-15 absolute" />
                   {(isActive || i === 0) && (
                     <img
-                      loading={priority && i === 0 ? "eager" : "lazy"}
+                      loading="eager"
                       fetchPriority={priority && i === 0 ? "high" : "low"}
                       style={{ borderRadius: "15px", zIndex: "3" }}
                       src={getConfiguredImage({

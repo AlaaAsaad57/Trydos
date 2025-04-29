@@ -66,7 +66,7 @@ export const OptimizedImage = ({ src, alt, width, height }) => {
       alt={alt}
       width={width}
       height={height}
-      loading="lazy"
+      loading="eager"
       placeholder="blur"
       blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRg..."
       quality={75}

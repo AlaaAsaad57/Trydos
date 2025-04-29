@@ -98,7 +98,7 @@ function ProductDetailsSlider({
                       borderRadius: "10px",
                     }}
                     priority={i === 0}
-                    loading={i === 0 ? "eager" : "lazy"}
+                    loading="eager"
                     alt={productData.name}
                     src={getConfiguredImage({
                       src: img,

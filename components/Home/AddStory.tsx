@@ -1,6 +1,6 @@
 "use client";
 import StoryService from "services/story";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 const CircularProgressbarComponent = dynamic(() => import("./Progress"), {
   ssr: false,
 });
@@ -16,8 +16,9 @@ import { toast } from "react-toastify";
 import { Sendevent, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 
-function AddStory() {
-  const { setOpenCamera, user, OpenCamera, setNameModal } = useAppStore();
+function AddStory({ stories }) {
+  const { setOpenCamera, user, OpenCamera, setNameModal, setStoryData } =
+    useAppStore();
   const [uploaded, setUpload] = useState(0);
 
   const [openMenu, setOpenMenu] = useState(false);
@@ -179,6 +180,9 @@ function AddStory() {
     );
     handleChange({ target: { files: [a] } });
   };
+  useEffect(() => {
+    setStoryData(stories);
+  }, [stories]);
   if (user)
     return (
       <>

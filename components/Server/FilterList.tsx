@@ -54,9 +54,6 @@ function FilterList({ searchParams, params, filters, currency, boutique }) {
             )
               return (
                 <>
-                  <Suspense>
-                    <FilterLabel text={`Filter By ${filter}`} />
-                  </Suspense>
                   <FilterItemsRow
                     index={index}
                     boutique={boutique}
@@ -1159,3 +1156,14 @@ function getFilterStateForItem(
     href: `?${newParamsStr}`,
   };
 }
+export const getActiveFilters = (searchParams: URLSearchParams | string) => {
+  const params = new URLSearchParams(searchParams);
+  const activeFilters = {};
+  params.forEach((value, key) => {
+    activeFilters[key] =
+      key === "search_text"
+        ? decodeURIComponent(value)
+        : JSON.parse(decodeURIComponent(value));
+  });
+  return activeFilters;
+};

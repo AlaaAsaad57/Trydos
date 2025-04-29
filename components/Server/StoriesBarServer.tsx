@@ -12,7 +12,7 @@ async function StoriesBarServer() {
       <div className="stories-bar-container">
         <div id="stories-bar" className="stories-bar">
           <div className="stories-bars">
-            {<AddStory />}
+            {<AddStory stories={stories} />}
 
             {stories.map((story, index) => (
               <StoryElement key={index} index={index} story={story} />

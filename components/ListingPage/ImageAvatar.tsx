@@ -67,7 +67,7 @@ function ImageAvatar({
       )}
       <div className="shadow-inset-avatar rounded-50 absolute w-100 h-100" />
       <img
-        loading={priority ? "eager" : "lazy"}
+        loading="eager"
         src={getConfiguredImage({ src: image, width: 50, height: 50 })}
         alt={alt || "alt"}
         className="w-full"

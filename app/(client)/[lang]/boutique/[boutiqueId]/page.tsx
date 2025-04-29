@@ -16,6 +16,7 @@ import BorderImage from "components/ListingPage/BorderImage";
 import "styles/listing-components.css";
 import Skeleton from "react-loading-skeleton";
 import { getBoutiqueMetadata } from "./Metadata";
+import FiltersWidget from "components/filterPage/FiltersWidget";
 
 const SearchBoutiquePage = Nextdynamic(
   () => import("components/filterPage/SearchBoutiquePage"),
@@ -211,6 +212,24 @@ export default async function Page({
   }
   return (
     <>
+      <Suspense>
+        {
+          <FiltersWidget
+            priceVariable={{
+              min_price: filtersData?.prices?.min_price,
+              max_price: filtersData?.prices?.max_price,
+            }}
+            searchParams={EditedSearchParams}
+            filters={{
+              categories: filtersData?.categories,
+              brands: filtersData?.brands,
+              colors: filtersData?.colors,
+              sizes: filtersData?.attributes?.[0]?.options,
+            }}
+            priceRanges={filtersData?.prices?.priceRanges}
+          />
+        }
+      </Suspense>
       <div
         className="filter-listing-bar relative flex-row align-center"
         key={`${params.boutiqueId}-${JSON.stringify(EditedSearchParams)}`}
@@ -407,21 +426,5 @@ const BoutiqueHeaderSkeleton = () => {
         </div>
       </div>
     </>
-  );
-};
-const FiltersSkeleton = () => {
-  return (
-    <div className={`w-full flex-row items-center pl-[15px] mt-[20px]`}>
-      {Array.from({ length: 20 }).map((_, index) => (
-        <div key={index} className="filter-option w-[70px] h-[70px]">
-          <Skeleton
-            width={70}
-            height={70}
-            borderRadius={"50%"}
-            className="ml-2"
-          />
-        </div>
-      ))}
-    </div>
   );
 };

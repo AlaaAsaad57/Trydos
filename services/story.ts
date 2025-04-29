@@ -35,7 +35,6 @@ class StoryService {
       }
     );
     let repo: GetStoriesApi = await res.json();
-
     const data: StoriesInterface[] = repo.data.data;
     setStoryData(data);
     if (typeof window !== "undefined") {

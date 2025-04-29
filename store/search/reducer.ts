@@ -2,6 +2,10 @@ interface SearchFilter {
   categories: Array<{ slug: string; [key: string]: any }>;
   brands: Array<{ slug: string; [key: string]: any }>;
   boutiques: Array<{ slug: string; [key: string]: any }>;
+  prices: { min_price: number; max_price: number };
+  sizes: Array<{ slug: string; [key: string]: any }>;
+  colors: Array<{ slug: string; [key: string]: any }>;
+  search_text: string;
 }
 
 interface SearchResults {
@@ -11,6 +15,9 @@ interface SearchResults {
   boutiques: any[];
   colors: any[];
   sizes: any[];
+  prices: { min_price: null | number; max_price: null | number };
+  search_text: string;
+  prices_ranges: any[];
 }
 
 interface SearchState {
@@ -32,14 +39,25 @@ const initialState: SearchState = {
   totalProducts: null,
   searchResults: {
     products: [],
+    prices: { min_price: null, max_price: null },
     brands: [],
     categories: [],
     boutiques: [],
     colors: [],
     sizes: [],
+    search_text: "",
+    prices_ranges: [],
   },
   enable_search: false,
-  searchFilters: { categories: [], brands: [], boutiques: [] },
+  searchFilters: {
+    categories: [],
+    brands: [],
+    boutiques: [],
+    prices: { min_price: null, max_price: null },
+    sizes: [],
+    colors: [],
+    search_text: "",
+  },
   loading_search: false,
   partialLoading: false,
 };
@@ -89,7 +107,31 @@ export const useSearchStore = (set, get) => ({
           : [...state.searchFilters.boutiques, boutique],
       },
     })),
-
+  setSearchColor: (color: { slug: string; [key: string]: any }) =>
+    set((state) => ({
+      searchFilters: {
+        ...state.searchFilters,
+        colors: state.searchFilters.colors.some((s) => s === color)
+          ? state.searchFilters.colors.filter((s) => color !== s)
+          : [...state.searchFilters.colors, color],
+      },
+    })),
+  setSearchSize: (size: { slug: string; [key: string]: any }) =>
+    set((state) => ({
+      searchFilters: {
+        ...state.searchFilters,
+        sizes: state.searchFilters.sizes.some((s) => s === size)
+          ? state.searchFilters.sizes.filter((s) => size !== s)
+          : [...state.searchFilters.sizes, size],
+      },
+    })),
+  setSearchPrice: (price: { min_price: number; max_price: number }) =>
+    set((state) => ({
+      searchFilters: {
+        ...state.searchFilters,
+        prices: price,
+      },
+    })),
   setSearchResults: (results: Partial<SearchResults>, replace = true) =>
     set((state) => ({
       searchResults: {
@@ -122,6 +164,26 @@ export const useSearchStore = (set, get) => ({
                 )
               ).values()
             ),
+        colors: replace
+          ? results?.colors
+          : Array.from(
+              new Map(
+                [...state.searchResults.colors, ...results?.colors].map(
+                  (item) => [item, item]
+                )
+              ).values()
+            ),
+        sizes: replace
+          ? results?.sizes
+          : Array.from(
+              new Map(
+                [...state.searchResults.sizes, ...results?.sizes].map(
+                  (item) => [item.name, item]
+                )
+              ).values()
+            ),
+        prices: results?.prices || { min_price: null, max_price: null },
+        prices_ranges: results?.prices_ranges || [],
       },
     })),
 
@@ -150,6 +212,10 @@ export const useSearchStore = (set, get) => ({
               categories: [],
               brands: [],
               boutiques: [],
+              prices: { min_price: null, max_price: null },
+              sizes: [],
+              colors: [],
+              search_text: "",
             },
             enable_search: false,
             totalProducts: null,
@@ -163,6 +229,10 @@ export const useSearchStore = (set, get) => ({
         categories: [],
         brands: [],
         boutiques: [],
+        prices: { min_price: null, max_price: null },
+        sizes: [],
+        colors: [],
+        search_text: "",
       },
       totalProducts: null,
     })),

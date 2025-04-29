@@ -49,6 +49,29 @@ class SearchService {
         boutiques: JSON.stringify(searchFilters.boutiques.map((s) => s.slug)),
       };
     }
+    if (searchFilters?.colors && searchFilters.colors.length > 0) {
+      searchFiltersEdit = {
+        ...searchFiltersEdit,
+        colors: JSON.stringify(searchFilters.colors.map((s) => s)),
+      };
+    }
+    if (searchFilters?.sizes && searchFilters.sizes.length > 0) {
+      searchFiltersEdit = {
+        ...searchFiltersEdit,
+        sizes: JSON.stringify(searchFilters.sizes.map((s) => s)),
+      };
+    }
+    if (
+      searchFilters?.prices?.max_price > 0 &&
+      searchFilters?.prices?.min_price >= 0
+    ) {
+      searchFiltersEdit = {
+        ...searchFiltersEdit,
+        prices: JSON.stringify([
+          `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
+        ]),
+      };
+    }
     if (value?.length > 0) {
       searchFiltersEdit = {
         ...searchFiltersEdit,
@@ -90,9 +113,15 @@ class SearchService {
         boutiques,
         colors,
         sizes: attributes?.[0]?.options,
+        prices: {
+          min_price: filtersResponse?.data?.prices?.min_price || null,
+          max_price: filtersResponse?.data?.prices?.max_price || null,
+        },
+        prices_ranges: filtersResponse?.data?.prices?.priceRanges || [],
       },
       replace
     );
+
     return filtersResponse;
   }
   getSearchParamsFromObj(obj, noProducts, noFilters, filters_offset?) {
@@ -465,6 +494,33 @@ class SearchService {
     }
     if (value?.length > 0) {
       params.set("search_text", value);
+    }
+    if (
+      searchFilters.prices.min_price !== null &&
+      searchFilters?.prices?.max_price !== null &&
+      searchFilters?.prices?.max_price > 0 &&
+      searchFilters?.prices?.min_price >= 0
+    ) {
+      params.set(
+        "prices",
+        encodeURIComponent(
+          JSON.stringify([
+            `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
+          ])
+        )
+      );
+    }
+    if (searchFilters.colors.length > 0) {
+      params.set(
+        "colors",
+        encodeURIComponent(JSON.stringify(searchFilters.colors.map((s) => s)))
+      );
+    }
+    if (searchFilters.sizes.length > 0) {
+      params.set(
+        "sizes",
+        encodeURIComponent(JSON.stringify(searchFilters.sizes.map((s) => s)))
+      );
     }
     return url + "?" + params.toString();
   }

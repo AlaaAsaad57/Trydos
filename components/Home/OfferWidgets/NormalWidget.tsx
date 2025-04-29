@@ -44,7 +44,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
                 id={"img-" + boutique.id}
                 className="object-contain"
                 alt={boutique.name}
-                loading={myKey < 2 ? "eager" : "lazy"}
+                loading="eager"
                 fetchPriority={myKey < 2 ? "high" : "low"}
                 priority={myKey < 2}
                 style={{
@@ -117,7 +117,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
                   <Image
                     id={"img-" + boutique.id}
                     alt={boutique.name}
-                    loading={myKey < 2 ? "eager" : "lazy"}
+                    loading="eager"
                     fetchPriority={myKey < 2 ? "high" : "low"}
                     priority={myKey < 2}
                     width={12}

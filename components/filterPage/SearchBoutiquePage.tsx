@@ -162,26 +162,6 @@ function SearchBoutiquePage({ search_text, boutique }) {
           if (e.keyCode == 13) {
             const params = new URLSearchParams(searchParams);
             setSkeleton(true);
-            //   filterProducts({
-            //     serachTrigger: true,
-            //     boutiqueId:
-            //       (params.get("boutique_slugs") &&
-            //         params.get("boutique_slugs")) ||
-            //         UrlParams.productCategory,
-            //     lang: UrlParams.lang,
-            //     sizesAttr: sizesAttr,
-            //     callback: (products) => {
-            //       getProducts({ products });
-            //     },
-            //     offset: 1,
-            //     storeCallback: (e) => {
-            //       setActiveFilter(e);
-            //     },
-            //     newFiltersCallback: ({ filtersVar }) => {
-            //       editFilter(filtersVar);
-            //     },
-            //     searchText: selectedFilter.searchText,
-            //   });
             setFilterEnabled(false);
             if (selectedFilter.searchText.length > 0) {
               params.set("search_text", selectedFilter.searchText);

@@ -50,7 +50,7 @@ function OfferAvatar({
       </div>
       <div className="offer-avatr-inner-s w-full h-full" />
       <Image
-        loading={priority ? "eager" : "lazy"}
+        loading="eager"
         src={getImageCld()}
         priority={priority}
         alt="avatar"

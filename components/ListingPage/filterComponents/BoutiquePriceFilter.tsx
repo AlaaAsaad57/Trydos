@@ -94,21 +94,7 @@ function BoutiquePriceFilter() {
           </div>
         )}
       </div>
-      <PriceSlider
-        min={
-          getPrice(selectedFilter?.prices?.min) >= 0
-            ? getPrice(selectedFilter?.prices?.min)
-            : 100
-        }
-        max={getPrice(selectedFilter?.prices?.max) || 500}
-        Value={{
-          min: getPrice(filters?.prices?.min_price),
-          max: getPrice(filters?.prices?.max_price),
-        }}
-        set_Value={(e) => {
-          set_Value(e);
-        }}
-      />
+      <PriceSlider />
       <PriceChart
         points={
           filters?.prices?.priceRanges?.map((s) => s.products_count) || [0]
