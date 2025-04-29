@@ -4,9 +4,9 @@ import ProductListServer from "components/Server/ProductList";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import SortIcon from "public/svg/listing/sortIcon.svg";
 import ListingSkeleton from "components/skeleton/listing";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
-import { getBoutiques } from "store/homepage/cachedActions";
+
 import { getConfiguredImage } from "utils/functions";
 import NextLink from "components/global/NextLink";
 import VerificationIcon from "public/svg/listing/VerificationIcon.svg";
@@ -207,7 +207,7 @@ export default async function Page({
     search_text: EditedSearchParams?.search_text || null,
   };
   if (boutique === "NOT_FOUND") {
-    notFound();
+    redirect(`/${params.lang}?message=boutique_not_found`);
   }
   return (
     <>

@@ -11,7 +11,7 @@ import {
   getProductMeta,
   translateFunction,
 } from "utils/functions";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { getProducts } from "store/homepage/cachedActions";
 import NextLink from "components/global/NextLink";
 import Image from "next/image";
@@ -84,9 +84,12 @@ export async function generateMetadata({ params, searchParams }) {
   const productId = params.productId;
   try {
     const metaData = await generateProductMetaData({ params, searchParams });
+    if (metaData.error) {
+      redirect(`/${params.lang}?message=product_not_found`);
+    }
     return metaData;
   } catch (error) {
-    notFound();
+    redirect(`/${params.lang}?message=product_not_found`);
   }
 }
 export const dynamicParams = true;

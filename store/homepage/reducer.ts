@@ -120,7 +120,7 @@ export const useHomeStore = (set, get) => ({
   nextStory: (currentId: string | number) =>
     set((state) => {
       if (!state.storiesData) return state;
-      const index = state.storiesData.findIndex(
+      const index = state.storiesData?.findIndex(
         (story) => story.id === currentId
       );
       if (index < state.storiesData.length - 1) {
@@ -138,7 +138,7 @@ export const useHomeStore = (set, get) => ({
   prevStory: (currentId: string | number) =>
     set((state) => {
       if (!state.storiesData) return state;
-      const index = state.storiesData.findIndex(
+      const index = state.storiesData?.findIndex(
         (story) => story.id === currentId
       );
       if (index > 0) {
