@@ -127,6 +127,7 @@ export default async function RootLayout({ params, children }) {
             {children}
           </div>
         </Providers>
+        <SpeedInsights />
       </body>
     </html>
   );
