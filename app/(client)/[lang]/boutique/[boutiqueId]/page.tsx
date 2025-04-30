@@ -1,5 +1,4 @@
 import FilterList from "components/Server/FilterList";
-import Nextdynamic from "next/dynamic";
 import ProductListServer from "components/Server/ProductList";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import SortIcon from "public/svg/listing/sortIcon.svg";
@@ -195,7 +194,22 @@ export default async function Page({
   }
   return (
     <>
-      <Suspense fallback={<></>}>{<FilterWidgetContainer />}</Suspense>
+      <Suspense fallback={<></>}>
+        <FilterWidgetContainer
+          priceVariable={{
+            min_price: filtersData?.prices?.min_price,
+            max_price: filtersData?.prices?.max_price,
+          }}
+          searchParams={EditedSearchParams}
+          filters={{
+            categories: filtersData?.categories,
+            brands: filtersData?.brands,
+            colors: filtersData?.colors,
+            sizes: filtersData?.attributes?.[0]?.options,
+          }}
+          priceRanges={filtersData?.prices?.priceRanges}
+        />
+      </Suspense>
       <div
         className="filter-listing-bar relative flex-row align-center"
         key={`${params.boutiqueId}-${JSON.stringify(EditedSearchParams)}`}

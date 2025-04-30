@@ -34,6 +34,7 @@ export async function GET(
     filters_offset,
   });
   let configured_url = `/api/products/searchInCatalog?${configuredparams.toString()}`;
+  console.log(configured_url, "configured_url");
   let response = await fetch(
     process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + configured_url,
     {

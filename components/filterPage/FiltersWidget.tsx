@@ -9,11 +9,11 @@ import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import { DebounceInput } from "node_modules/react-debounce-input/src";
-import { Sendevent, translateFunction } from "utils/functions";
-import { useParams } from "next/navigation";
+import { RoundPrice, Sendevent, translateFunction } from "utils/functions";
+import { useParams, useSearchParams } from "next/navigation";
 import FilterLabel from "components/ListingPage/filterComponents/FilterLabel";
 import search from "services/search";
-// import { getActiveFilters } from "components/Server/FilterList";
+import { getActiveFilters } from "components/Server/FilterList";
 import Image from "node_modules/next/image";
 import Spinner from "components/global/Spinner";
 import PriceSlider from "components/ListingPage/filterComponents/PriceSlider";
@@ -25,26 +25,25 @@ const PriceChart = dynamic(
     ssr: false,
   }
 );
-function FilterWidgetContainer() {
-  return <FiltersWidget />;
+function FilterWidgetContainer({
+  priceVariable,
+  filters,
+  searchParams,
+  priceRanges,
+}) {
+  return (
+    <FiltersWidget
+      priceVariable={priceVariable}
+      filters={filters}
+      searchParams={searchParams}
+      priceRanges={priceRanges}
+    />
+  );
 }
 export default FilterWidgetContainer;
-function FiltersWidget() {
-  const getInitialData = async () => {
-    setSearchLoading(true);
-    setSearchPartialLoading(true);
-    const response = await search.getSearchOptions({
-      noProducts: false,
-      lang: lang,
-    });
-    setSearchLoading(false);
-    setSearchPartialLoading(false);
-  };
-  useEffect(() => {
-    getInitialData();
-  }, []);
-  // let activeFilters = getActiveFilters(searchParams);
-  const { lang } = useParams();
+function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
+  let activeFilters = getActiveFilters(searchParams);
+  const { lang, boutiqueId } = useParams();
   const {
     filterEnabled,
     currency,
@@ -59,6 +58,7 @@ function FiltersWidget() {
     totalProducts,
     resetSearchFilter,
     partialLoading,
+    setSearchBoutique,
     value,
   } = useAppStore();
   const [isSearch, setIsSearch] = useState(false);
@@ -69,18 +69,39 @@ function FiltersWidget() {
       document?.documentElement?.style?.setProperty("overflow", "auto");
     }
   }, [filterEnabled]);
-
+  useEffect(() => {
+    setSearchResults({
+      categories: filters.categories,
+      brands: filters.brands,
+      colors: filters.colors,
+      prices: priceVariable,
+      sizes: filters.sizes,
+      boutiques: filters.boutiques,
+      search_text: filters.search_text,
+      products: [],
+      prices_ranges: priceRanges,
+    });
+    if (filters?.search_text) {
+      setIsSearch(true);
+      setSearchWord(filters?.search_text);
+    }
+  }, [filters, filterEnabled]);
+  useEffect(() => {
+    if (
+      boutiqueId !== "listing" &&
+      !searchFilters?.boutiques?.find((s) => s.slug === boutiqueId)
+    ) {
+      setSearchBoutique({ slug: boutiqueId.toString() });
+    }
+  }, []);
   if (!filterEnabled) return <></>;
   const resetPrice = async () => {
-    setSearchPrice({
-      min_price: null,
-      max_price: null,
-    });
+    setSearchPrice({ min_price: null, max_price: null });
     setSearchResults({
       ...searchResults,
       prices: {
-        min_price: searchResults?.prices?.min_price,
-        max_price: searchResults?.prices?.max_price,
+        min_price: filters?.prices?.min_price,
+        max_price: filters?.prices?.max_price,
       },
     });
     setSearchPartialLoading(true);
@@ -94,7 +115,16 @@ function FiltersWidget() {
   };
   const resetFilters = () => {
     resetSearchFilter();
-    getInitialData();
+    setSearchResults({
+      categories: filters.categories,
+      brands: filters.brands,
+      colors: filters.colors,
+      prices: priceVariable,
+      sizes: filters.sizes,
+      boutiques: filters.boutiques,
+      search_text: filters.search_text,
+      products: [],
+    });
     setSearchWord("");
     setIsSearch(false);
   };
@@ -121,30 +151,29 @@ function FiltersWidget() {
         }}
       />
 
-      {searchResults &&
-        Object?.keys(searchResults).map((key) => {
-          if (
-            key !== "search_text" &&
-            key !== "boutiques" &&
-            key !== "products" &&
-            key !== "prices_ranges" &&
-            searchResults?.[key]?.length > 0
-          )
-            return (
-              <div className="flex-col mt-[20px] relative" key={key}>
-                <div className="flex">
-                  {" "}
-                  <FilterLabel text={`Filter By ${key}`} />
-                  {loading_search && (
-                    <span className="ml-[10px]">
-                      <Spinner />
-                    </span>
-                  )}
-                </div>
-                <ShowFilterRow term={key} values={searchResults[key]} />
+      {Object?.keys(searchResults).map((key) => {
+        if (
+          key !== "search_text" &&
+          key !== "boutiques" &&
+          key !== "products" &&
+          key !== "prices_ranges" &&
+          searchResults?.[key]?.length > 0
+        )
+          return (
+            <div className="flex-col mt-[20px] relative" key={key}>
+              <div className="flex">
+                {" "}
+                <FilterLabel text={`Filter By ${key}`} />
+                {loading_search && (
+                  <span className="ml-[10px]">
+                    <Spinner />
+                  </span>
+                )}
               </div>
-            );
-        })}
+              <ShowFilterRow term={key} values={searchResults[key]} />
+            </div>
+          );
+      })}
       {searchResults?.prices?.max_price &&
         searchResults?.prices?.min_price &&
         searchResults?.prices?.max_price > 0 &&
@@ -160,6 +189,7 @@ function FiltersWidget() {
               }}
             />
             <div className="flex">
+              {" "}
               <FilterLabel text={`Filter By Prices`} />
               {loading_search && (
                 <span className="ml-[10px]">
@@ -367,7 +397,7 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
                 transform="matrix(0.695, -0.719, 0.719, 0.695, 1294.105, 113.345)"
                 fill="none"
                 stroke="#ff5f61"
-                strokeLinecap="round"
+                stroke-linecap="round"
                 stroke-width="1"
               />
               <line
@@ -377,7 +407,7 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
                 transform="matrix(0.719, 0.695, -0.695, 0.719, 1293.849, 98.605)"
                 fill="none"
                 stroke="#ff5f61"
-                strokeLinecap="round"
+                stroke-linecap="round"
                 stroke-width="1"
               />
             </g>
@@ -396,6 +426,8 @@ const ShowFilterRow = ({ term, values }) => {
     setSearchColor,
     setSearchCategory,
     setSearchSize,
+    setSearchPrice,
+    loading_search,
     searchFilters,
   } = useAppStore();
   const updateFiltersApi = async () => {

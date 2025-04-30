@@ -124,6 +124,54 @@ class SearchService {
 
     return filtersResponse;
   }
+  async resetSearchFilters({ filter_obj, lang }) {
+    const { setSearchResults, setTotalSizeOfProducts } = useAppStore.getState();
+    try {
+      ("use server");
+      let requestSearchParams = new URLSearchParams();
+      let requestSearchParamsString = "";
+      console.log(filter_obj, "filter_obj");
+      if (Object.keys(filter_obj).length > 0) {
+        requestSearchParams.set("searchParams", JSON.stringify(filter_obj));
+        requestSearchParamsString = `&${requestSearchParams.toString()}`;
+      }
+      const filtersResponseJson = await fetch(
+        `/api/${lang}/search?noProducts=true&${requestSearchParamsString}`
+      );
+
+      const filtersResponse = await filtersResponseJson.json();
+      const {
+        products,
+        categories,
+        brands,
+        boutiques,
+        colors,
+        attributes: attributes,
+        total_size,
+      } = filtersResponse.data;
+      setTotalSizeOfProducts({ total_size });
+
+      setSearchResults(
+        {
+          products,
+          categories,
+          brands,
+          boutiques,
+          colors,
+          sizes: attributes?.[0]?.options,
+          prices: {
+            min_price: filtersResponse?.data?.prices?.min_price || null,
+            max_price: filtersResponse?.data?.prices?.max_price || null,
+          },
+          prices_ranges: filtersResponse?.data?.prices?.priceRanges || [],
+        },
+        true
+      );
+      return filtersResponse.data;
+    } catch (error) {
+      console.log(error, "resetSearchFilters");
+    }
+  }
   getSearchParamsFromObj(obj, noProducts, noFilters, filters_offset?) {
     let params = new URLSearchParams();
     if (filters_offset) {
