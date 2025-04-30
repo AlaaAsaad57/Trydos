@@ -16,7 +16,7 @@ import { toast } from "react-toastify";
 import { Sendevent, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 
-function AddStory({ stories }) {
+function AddStory() {
   const { setOpenCamera, user, OpenCamera, setNameModal, setStoryData } =
     useAppStore();
   const [uploaded, setUpload] = useState(0);
@@ -180,9 +180,7 @@ function AddStory({ stories }) {
     );
     handleChange({ target: { files: [a] } });
   };
-  useEffect(() => {
-    setStoryData(stories);
-  }, [stories]);
+
   if (user)
     return (
       <>

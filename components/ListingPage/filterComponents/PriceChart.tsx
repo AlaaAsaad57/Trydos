@@ -1,6 +1,11 @@
-import React from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 function PriceChart({ points }) {
+  const [windowWidth, setWindowWidth] = useState(0);
+  useEffect(() => {
+    setWindowWidth(window.innerWidth);
+  }, []);
   return (
     <div className="chart-container flex-row top-8  absolute w-full">
       <Chart
@@ -40,7 +45,7 @@ function PriceChart({ points }) {
           },
         ]}
         type="area"
-        width={window.innerWidth - 58}
+        width={windowWidth - 58}
         height={100}
       />
     </div>

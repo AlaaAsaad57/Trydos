@@ -1,16 +1,47 @@
-import MobileNavigation from "components/Home/MobileNavigation";
 import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
-import { Suspense } from "react";
-import { getMainCategories } from "store/homepage/cachedActions";
 
-async function NavbarServer({ lang }: { lang: string }) {
+import { getMainCategories } from "store/homepage/cachedActions";
+import SearchIcon from "../Home/Search/SearchIcon";
+import CategoryNavMobile from "components/Home/CategoryNavMobile";
+import HortiznalScrollBar from "components/global/HortiznalScrollBar";
+
+async function NavbarServer({
+  lang,
+  mainCategory,
+}: {
+  lang: string;
+  mainCategory: string;
+}) {
   try {
     const [categories, response] = await getMainCategories({
       lang: lang.split("-")[1],
       country: lang.split("-")[0],
     });
+    categories.sort((a, b) => (a.slug === mainCategory ? -1 : 1));
+    return (
+      <div className="flex-row search-nav-holder">
+        <SearchIcon />
 
-    return <MobileNavigation categories={categories} />;
+        <HortiznalScrollBar
+          id="categories-bar-container"
+          className={`categories-bar-container mobile-bar `}
+          dataCy="categoryNavBar"
+        >
+          {typeof categories !== "string" &&
+            categories?.map((category, key) => (
+              <CategoryNavMobile
+                params={{ lang, mainCategory }}
+                name={category.name}
+                active={mainCategory === category.slug}
+                key={key}
+                myKey={key}
+                icon={category?.flat_photo_path?.file_path}
+                slug={category.slug}
+              />
+            ))}
+        </HortiznalScrollBar>
+      </div>
+    );
   } catch (error) {
     console.error("Error loading navbar:", error);
     return <MobileNavigationSkeleton />;

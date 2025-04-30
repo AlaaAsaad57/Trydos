@@ -1,11 +1,9 @@
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import Image from "next/image";
-import { useParams } from "next/navigation";
-import React, { useEffect } from "react";
 
-import { Sendevent, translateFunction } from "utils/functions";
+import React from "react";
+
 import NextLink from "components/global/NextLink";
-import { useAppStore } from "store";
 
 interface CategoryNavMobileProps {
   name: string;
@@ -13,7 +11,7 @@ interface CategoryNavMobileProps {
   myKey: number;
   slug: string;
   active: boolean;
-  setActive: Function;
+  params: any;
 }
 function CategoryNavMobile({
   name,
@@ -21,23 +19,11 @@ function CategoryNavMobile({
   myKey,
   slug,
   active,
-  setActive,
+  params,
 }: CategoryNavMobileProps) {
-  const { language } = useAppStore();
-  let { lang } = useParams();
   // @ts-ignore
-  let languageVariable = lang.split("-")[1];
-  const translate = (key, lang) => {
-    return translateFunction(key, languageVariable);
-  };
-  const searchParams: { lang: string; mainCategory: string } = useParams();
-  useEffect(() => {
-    if (active) {
-      document.querySelector(".active-nav-category").scrollIntoView({
-        behavior: "smooth",
-      });
-    }
-  }, []);
+  let language = params.lang.split("-")[1];
+
   return (
     <NextLink
       data={{
@@ -47,30 +33,30 @@ function CategoryNavMobile({
         slug,
         active,
         href:
-          decodeURI(searchParams.mainCategory) === slug
-            ? `/${lang}`
-            : `/${lang}/categories/${slug}`,
+          decodeURI(params.mainCategory) === slug
+            ? `/${params?.lang}`
+            : `/${params?.lang}/categories/${slug}`,
       }}
-      ariaLabel={`Category ${slug} ${lang}`}
+      ariaLabel={`Category ${slug} ${params?.lang}`}
       className={`categories-bar-item ${
-        decodeURI(searchParams.mainCategory) === slug && "active-nav-category"
+        decodeURI(params.mainCategory) === slug && "active-nav-category"
       }`}
       key={myKey}
       href={
-        decodeURI(searchParams.mainCategory) === slug
-          ? `/${lang}`
-          : `/${lang}/categories/${slug}`
+        decodeURI(params.mainCategory) === slug
+          ? `/${params?.lang}`
+          : `/${params?.lang}/categories/${slug}`
       }
-      onClick={() => {
-        setActive(slug);
-        Sendevent({
-          event: "button_clicked",
-          value: `choose_category_button`,
-          extra: {
-            category: slug,
-          },
-        });
-      }}
+      // onClick={() => {
+      //   setActive(slug);
+      //   Sendevent({
+      //     event: "button_clicked",
+      //     value: `choose_category_button`,
+      //     extra: {
+      //       category: slug,
+      //     },
+      //   });
+      // }}
     >
       {active && (
         <ActiveCategoryIcon
@@ -94,7 +80,7 @@ function CategoryNavMobile({
       {
         <div className="categories-bar-item-description">
           <div className={`categories-bar-item-name ${language + "-regular"} `}>
-            {translate(name, language)}
+            {name}
           </div>
         </div>
       }

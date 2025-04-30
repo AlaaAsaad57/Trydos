@@ -824,9 +824,6 @@ export const getProductsAndFilters = async ({
       );
     }
     let data: FilterProductApi = await response.json();
-    // console.warn(configured_url, data.data.prices?.priceRanges);
-    console.log(`configured_url: ${configured_url}`, { data: data });
-
     return data;
   } catch (error) {
     console.error(

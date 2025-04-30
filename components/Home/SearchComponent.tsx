@@ -2,17 +2,16 @@
 import CloseIcon from "public/svg/CloseIcon.svg";
 import SearchCloseIcon from "public/svg/SearchCloseIcon.svg";
 
-import { ChangeEvent, useEffect } from "react";
+import { ChangeEvent } from "react";
 import {
   caseCheck,
   onClickSearchHistory,
   Sendevent,
   translateFunction,
 } from "utils/functions";
-import home from "services/home";
 import { DebounceInput } from "react-debounce-input";
 import { dispatchRouteChangeEvent } from "utils/events";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import SearchVoice from "./Search/SearchVoice";
 import SearchImage from "./Search/SearchImage";
@@ -36,7 +35,6 @@ function SearchComponent({
     setSearchLoading,
     setSearchWord,
     value,
-    searchFilters,
     searchWords,
   } = useAppStore();
 
@@ -82,53 +80,9 @@ function SearchComponent({
     ) {
     }
   };
-  const searchParams = useSearchParams();
-
   const { lang } = useParams();
   const router = useRouter();
-  const handleSearch = (data) => {
-    const params = new URLSearchParams(searchParams);
-    //categories
-    if (data.categories.length > 0) {
-      params.set("categories", `${data.categories.map((s) => s.slug)}`);
-    } else {
-      if (params.get("categories")) {
-        params.delete("categories");
-      }
-    }
-    //brands
-    if (data.brands.length > 0) {
-      params.set("brands", `${data.brands.map((s) => s.slug)}`);
-    } else {
-      if (params.get("brands")) {
-        params.delete("brands");
-      }
-    }
-    if (data.boutiques.length > 0) {
-      params.set("boutique_slugs", `${data.boutiques.map((s) => s.slug)}`);
-    } else {
-      if (params.get("boutique_slugs")) {
-        params.delete("boutique_slugs");
-      }
-    }
-    params.set("searchText", value);
-
-    router.push(`/${lang}/boutiques/listing?${params.toString()}`);
-  };
-
   const onKeyDown = (e) => {
-    let suggestion = document.querySelector(".predicted-word");
-    // @ts-ignore
-    // if (e.keyCode == 13 && suggestion.innerText !== "") {
-    //   // @ts-ignore
-    //   onClickSearchHistory(suggestion.innerText);
-    //   e.preventDefault();
-    //   // @ts-ignore
-    //   // dispatch({ type: "SEARCH-WORD", payload: suggestion.innerText });
-    //   //clear the suggestion
-    //   clearSuggestion();
-    //   // @ts-ignore
-    // } else
     if (e.keyCode == 13 && e.target.value.length > 0) {
       onClickSearchHistory(value);
       dispatchRouteChangeEvent("start", {
@@ -173,110 +127,105 @@ function SearchComponent({
           }}
           debounceTimeout={400}
         />
-        {/* <div className="predicted-word hidden">
-          {searchValue.length > 0 &&
-            searchValue.length < 30 &&
-            words.filter(
-              (s) =>
-                s.substr(0, searchValue.length).toUpperCase() ===
-                searchValue.toUpperCase()
-            )[0]}
-        </div> */}
       </div>
 
-      {focus ? (
-        <div className="input-icons flex-row close-search-icon">
-          <SearchCloseIcon
-            data-cy="SearchInputCloseIcon"
-            onClick={() => {
-              if (value.length > 0) {
-                Sendevent({
-                  event: "button_clicked",
-                  value: "reset_home_search_button",
-                });
-                setLoading(true);
-                setSearchWord("");
+      {searchEnabled && (
+        <>
+          {focus ? (
+            <div className="input-icons flex-row close-search-icon">
+              <SearchCloseIcon
+                data-cy="SearchInputCloseIcon"
+                onClick={() => {
+                  if (value.length > 0) {
+                    Sendevent({
+                      event: "button_clicked",
+                      value: "reset_home_search_button",
+                    });
+                    setLoading(true);
+                    setSearchWord("");
 
-                findProducts([]);
-                SearchService.getSearchOptions({
-                  noProducts: true,
-                  lang: lang,
-                });
-              } else {
-                Sendevent({
-                  event: "button_clicked",
-                  value: "search_close_icon_button",
-                });
+                    findProducts([]);
+                    SearchService.getSearchOptions({
+                      noProducts: true,
+                      lang: lang,
+                    });
+                  } else {
+                    Sendevent({
+                      event: "button_clicked",
+                      value: "search_close_icon_button",
+                    });
 
-                close();
-                setSearchWord("");
-                setFocuse(false);
-                SearchService.getSearchOptions({
-                  noProducts: true,
-                  lang: lang,
-                });
-              }
-            }}
-          />
-        </div>
-      ) : (
-        <div className="input-icons flex-row">
-          <div className="input-icon">
-            <SearchImage
-              setSearchValue={(e) => {
-                if (e?.length > 0) {
-                  Sendevent({
-                    event: "button_clicked",
-                    value: "search_with_image_button",
-                  });
+                    close();
+                    setSearchWord("");
+                    setFocuse(false);
+                    SearchService.getSearchOptions({
+                      noProducts: true,
+                      lang: lang,
+                    });
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            <div className="input-icons flex-row">
+              <div className="input-icon">
+                <SearchImage
+                  setSearchValue={(e) => {
+                    if (e?.length > 0) {
+                      Sendevent({
+                        event: "button_clicked",
+                        value: "search_with_image_button",
+                      });
 
-                  setSearchWord(e);
-                  setSearchLoading(true);
-                }
-              }}
-            />
-          </div>
-          <div className="input-icon">
-            <SearchVoice
-              setSearchValue={(e) => {
-                if (e?.length > 0) {
-                  Sendevent({
-                    event: "button_clicked",
-                    value: "search_with_voice_button",
-                  });
+                      setSearchWord(e);
+                      setSearchLoading(true);
+                    }
+                  }}
+                />
+              </div>
+              <div className="input-icon">
+                <SearchVoice
+                  setSearchValue={(e) => {
+                    if (e?.length > 0) {
+                      Sendevent({
+                        event: "button_clicked",
+                        value: "search_with_voice_button",
+                      });
 
-                  setSearchWord(e);
-                  setSearchLoading(true);
-                }
-              }}
-            />
-          </div>
-        </div>
-      )}
-      {!focus && (
-        <div className="search-colse-icon flex-row">
-          <CloseIcon
-            data-cy="closeIcon_searchPage"
-            onClick={() => {
-              if (value.length > 0) {
-                setSearchWord("");
-                findProducts([]);
-                setSearchLoading(true);
-                SearchService.getSearchOptions({
-                  noProducts: true,
-                  lang: lang,
-                });
-              } else {
-                close();
-                setSearchWord("");
-                SearchService.getSearchOptions({
-                  noProducts: true,
-                  lang: lang,
-                });
-              }
-            }}
-          />
-        </div>
+                      setSearchWord(e);
+                      setSearchLoading(true);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          )}
+          {!focus && (
+            <div className="search-colse-icon flex-row">
+              <CloseIcon
+                data-cy="closeIcon_searchPage"
+                onClick={() => {
+                  if (value.length > 0) {
+                    setSearchWord("");
+                    findProducts([]);
+                    setSearchLoading(true);
+                    SearchService.getSearchOptions({
+                      noProducts: true,
+                      lang: lang,
+                    });
+                  } else {
+                    close();
+                    setSearchWord("");
+                    SearchService.getSearchOptions({
+                      noProducts: true,
+                      lang: lang,
+                    });
+                  }
+                }}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import Slider from "rc-slider";
 import "styles/slider.css";
@@ -33,11 +34,13 @@ function PriceSlider({}: {}) {
     >
       <Slider
         defaultValue={[
-          searchFilters?.prices?.min_price,
+          searchFilters?.prices?.min_price || searchResults?.prices?.min_price,
           searchFilters?.prices?.max_price || searchResults?.prices?.max_price,
         ]}
         range
-        min={searchFilters?.prices?.min_price}
+        min={
+          searchFilters?.prices?.min_price || searchResults?.prices?.min_price
+        }
         max={
           searchFilters?.prices?.max_price || searchResults?.prices?.max_price
         }

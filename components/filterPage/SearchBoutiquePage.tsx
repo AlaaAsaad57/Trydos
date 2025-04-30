@@ -11,23 +11,17 @@ function SearchBoutiquePage({ search_text, boutique }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const {
-    disableAddToCartOption,
-    resetSelectedBack,
-    initFilter,
     setFilterLoading,
-    resetFilters,
-    editFilter,
+
     setFilterSearch,
     searchFilter,
     setFilterEnabled,
-    getProducts,
+
     setSkeleton,
-    resetBoutique,
-    setActiveFilter,
-    selectedFilter,
+
+    searchFilters,
     filterEnabled,
-    activeFilters,
-    products,
+    value,
     filters,
     search,
   } = useAppStore();
@@ -105,7 +99,7 @@ function SearchBoutiquePage({ search_text, boutique }) {
       id="searchIconBoutique"
       className={`filter-option transition-all filter-search-option relative ${
         (search ||
-          search_text?.length > 0 ||
+          value?.length > 0 ||
           searchParams.get("search_text")?.length > 0) &&
         "w-[75%] [&>input]:w-full [&>input]:bg-[#f8f8f8] [&>input]:h-[40px]"
       }`}
@@ -136,18 +130,21 @@ function SearchBoutiquePage({ search_text, boutique }) {
         }}
         value={searchParams.get("search_text")}
         onBlur={() => {
+          console.log(value, searchParams.get("search_text"));
           if (
-            selectedFilter?.searchText.length === 0 &&
-            searchParams.get("search_text")?.length === 0
+            value.length === 0 &&
+            (!searchParams.get("search_text") ||
+              searchParams.get("search_text")?.length === 0)
           ) {
             if (
               document.querySelector<HTMLInputElement>(
                 ".boutique-logo-container"
               )
-            )
+            ) {
               document.querySelector<HTMLInputElement>(
                 ".boutique-logo-container"
               ).style.display = "flex";
+            }
             setFilterSearch(false);
             document
               .querySelector<HTMLInputElement>(".filter-bar-options")
@@ -163,8 +160,8 @@ function SearchBoutiquePage({ search_text, boutique }) {
             const params = new URLSearchParams(searchParams);
             setSkeleton(true);
             setFilterEnabled(false);
-            if (selectedFilter.searchText.length > 0) {
-              params.set("search_text", selectedFilter.searchText);
+            if (value.length > 0) {
+              params.set("search_text", value);
             } else {
               params.delete("search_text");
             }

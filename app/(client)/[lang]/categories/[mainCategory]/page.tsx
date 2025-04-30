@@ -20,7 +20,7 @@ function page({ params }: Props) {
   return (
     <>
       <Suspense fallback={<MobileNavigationSkeleton />}>
-        <NavbarServer lang={params.lang} />
+        <NavbarServer lang={params.lang} mainCategory={params?.mainCategory} />
       </Suspense>
       <Suspense fallback={<StoriesSkeleton />}>
         <StoriesBarServer />

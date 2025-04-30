@@ -84,6 +84,7 @@ export default async function RootLayout({ params, children }) {
       </head>
 
       <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
+        <SpeedInsights debug={true} />
         <PageLoadingIndicator />
         <Providers>
           <div
@@ -127,7 +128,6 @@ export default async function RootLayout({ params, children }) {
             {children}
           </div>
         </Providers>
-        <SpeedInsights />
       </body>
     </html>
   );

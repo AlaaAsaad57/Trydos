@@ -17,26 +17,9 @@ import "styles/listing-components.css";
 import Skeleton from "react-loading-skeleton";
 import { getBoutiqueMetadata } from "./Metadata";
 import FilterWidgetContainer from "components/filterPage/FiltersWidget";
-
-const SearchBoutiquePage = Nextdynamic(
-  () => import("components/filterPage/SearchBoutiquePage"),
-  {
-    ssr: false,
-  }
-);
-const FilterBoutiquePageButton = Nextdynamic(
-  () => import("components/filterPage/FilterBoutiquePageButton"),
-  {
-    ssr: false,
-  }
-);
-const ShareBoutiquePageButton = Nextdynamic(
-  () => import("components/filterPage/ShareBoutiquePageButton"),
-  {
-    ssr: false,
-  }
-);
-
+import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
+import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
+import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 export const dynamicParams = true;
 
 export const runtime = "nodejs";
@@ -212,24 +195,7 @@ export default async function Page({
   }
   return (
     <>
-      <Suspense>
-        {
-          <FilterWidgetContainer
-            priceVariable={{
-              min_price: filtersData?.prices?.min_price,
-              max_price: filtersData?.prices?.max_price,
-            }}
-            searchParams={EditedSearchParams}
-            filters={{
-              categories: filtersData?.categories,
-              brands: filtersData?.brands,
-              colors: filtersData?.colors,
-              sizes: filtersData?.attributes?.[0]?.options,
-            }}
-            priceRanges={filtersData?.prices?.priceRanges}
-          />
-        }
-      </Suspense>
+      <Suspense fallback={<></>}>{<FilterWidgetContainer />}</Suspense>
       <div
         className="filter-listing-bar relative flex-row align-center"
         key={`${params.boutiqueId}-${JSON.stringify(EditedSearchParams)}`}
@@ -252,40 +218,18 @@ export default async function Page({
             EditedSearchParams?.search_text?.length > 0 && "w-full"
           }`}
         >
-          <Suspense
-            fallback={
-              <div className="filter-option">
-                <Skeleton width={30} height={30} borderRadius={10} />
-              </div>
-            }
-          >
-            <SearchBoutiquePage
-              boutique={boutique}
-              search_text={EditedSearchParams?.search_text}
-            />
-          </Suspense>
+          <SearchBoutiquePage
+            boutique={boutique}
+            search_text={EditedSearchParams?.search_text}
+          />
+
           <div className="filter-option">
             <SortIcon data-cy="closeSearchInput" />
           </div>
-          <Suspense
-            key={"filter-button"}
-            fallback={
-              <div className="filter-option">
-                <Skeleton width={30} height={30} borderRadius={10} />
-              </div>
-            }
-          >
-            <FilterBoutiquePageButton key={"filter-button"} />
-          </Suspense>
-          <Suspense
-            fallback={
-              <div className="filter-option">
-                <Skeleton width={30} height={30} borderRadius={10} />
-              </div>
-            }
-          >
-            <ShareBoutiquePageButton />
-          </Suspense>
+
+          <FilterBoutiquePageButton key={"filter-button"} />
+
+          <ShareBoutiquePageButton />
         </div>
       </div>
 
