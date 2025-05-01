@@ -474,6 +474,9 @@ export const onMessageListener = async () => {
           } else {
             GetChats(true);
           }
+        } else if (payload.data.type === "ShareProductEvent") {
+          let data = JSON.parse(payload.data.data);
+          console.log(data);
         }
         if (payload.data.type === "ChannelWatchedEvent") {
           watchChannelEvent(JSON.parse(payload.data.data).channel_id);

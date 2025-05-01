@@ -14,11 +14,12 @@ import { GetChatsApi, GetContactsApi } from "models/Api";
 import { useAppStore } from "store";
 
 export const ChatConroller = (payload) => {
-  const { openChat } = useAppStore.getState();
+  const { openChat, setChatOpen } = useAppStore.getState();
   if (payload) document.documentElement.style.overflow = "hidden";
   else document.documentElement.style.overflow = "initial";
   window.history.pushState({ isPopup: true }, "open Chat");
   openChat(payload);
+  setChatOpen(payload);
 };
 export const GetChats = async (payload) => {
   const {

@@ -12,7 +12,7 @@ import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 function Chat(props) {
   const {
-    ViewedScreen,
+    main: ViewedScreen,
     first,
     data: chats,
     fetch: loading,

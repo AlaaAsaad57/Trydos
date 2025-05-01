@@ -47,6 +47,7 @@ export default function PageLoadingIndicator() {
       return <FilterLoader isForSearch boutique={isLoading} />;
     if (isLoading.is_full_home) return <FullHomeLoader />;
     if (isLoading.is_settings) return <SettingsLoader />;
+
     if (isLoading.is_filter_search)
       return <FilterLoader isForSearch boutique={isLoading} />;
   }
