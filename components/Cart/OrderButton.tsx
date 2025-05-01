@@ -324,6 +324,7 @@ function OrderButton({ close, toOrders }) {
                   </div>
 
                   <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#A28E5B]">
+                    -{" "}
                     {RoundPrice({
                       num: total_discount,
                     })}{" "}
@@ -403,10 +404,11 @@ function OrderButton({ close, toOrders }) {
               <span className="flex-row justify-center items-center ml-[5px] bold  text-[16px] pr-[13px] text-[#1D1D1D]">
                 <span className="line-through regular mr-2">
                   {RoundPrice({
-                    num: total_cash + total_discount,
+                    num: total_cash,
                   })}
                 </span>{" "}
-                {RoundPrice({ num: total_cash })} {currency?.symbol}
+                {RoundPrice({ num: total_cash - total_discount })}{" "}
+                {currency?.symbol}
                 <span className="ml-2">
                   <MenuIcon className={expanded && "rotate-180"} />
                 </span>
