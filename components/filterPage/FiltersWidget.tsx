@@ -43,6 +43,7 @@ function FilterWidgetContainer({
 export default FilterWidgetContainer;
 function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
   let activeFilters = getActiveFilters(searchParams);
+
   const { lang, boutiqueId } = useParams();
   const {
     filterEnabled,
@@ -50,7 +51,7 @@ function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
     searchResults,
     setSearchResults,
     loading_search,
-    setSearchPrice,
+
     setSearchLoading,
     setSearchPartialLoading,
     searchFilters,
@@ -60,6 +61,11 @@ function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
     partialLoading,
     setSearchBoutique,
     value,
+    setSearchCategory,
+    setSearchBrand,
+    setSearchColor,
+    setSearchSize,
+    setSearchPrice,
   } = useAppStore();
   const [isSearch, setIsSearch] = useState(false);
   useEffect(() => {
@@ -69,6 +75,63 @@ function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
       document?.documentElement?.style?.setProperty("overflow", "auto");
     }
   }, [filterEnabled]);
+  const configureActiveFilters = () => {
+    if (activeFilters?.["categories"] && activeFilters?.categories) {
+      activeFilters?.categories?.forEach((c) => {
+        if (filters?.categories?.find((filter) => filter.slug === c)) {
+          setSearchCategory(
+            filters?.categories?.find((filter) => filter.slug === c)
+          );
+        }
+      });
+    }
+    if (activeFilters?.["brands"] && activeFilters?.brands) {
+      activeFilters?.brands?.forEach((b) => {
+        if (filters?.brands?.find((filter) => filter.slug === b)) {
+          setSearchBrand(filters?.brands?.find((filter) => filter.slug === b));
+        }
+      });
+    }
+    if (activeFilters?.["colors"] && activeFilters?.colors) {
+      activeFilters?.colors?.forEach((c) => {
+        if (filters?.colors?.find((filter) => filter.slug === c)) {
+          setSearchColor(filters?.colors?.find((filter) => filter === c));
+        }
+      });
+    }
+    if (activeFilters?.["sizes"] && activeFilters?.sizes) {
+      activeFilters?.sizes?.forEach((s) => {
+        if (filters?.attributes?.[0]?.options?.find((filter) => filter === s)) {
+          setSearchSize(
+            filters?.attributes?.[0]?.options?.find((filter) => filter === s)
+          );
+        }
+      });
+    }
+    if (activeFilters?.["prices"] && activeFilters?.prices) {
+      setSearchPrice({
+        min_price: activeFilters?.prices?.min_price,
+        max_price: activeFilters?.prices?.max_price,
+      });
+    }
+    if (activeFilters?.["search_text"] && activeFilters?.search_text) {
+      setSearchWord(activeFilters?.search_text);
+    }
+    if (activeFilters?.["boutiques"] && activeFilters?.boutiques) {
+      if (boutiqueId === "listing") {
+        activeFilters?.boutiques?.forEach((b) => {
+          if (filters?.boutiques?.find((filter) => filter.slug === b)) {
+            setSearchBoutique(
+              filters?.boutiques?.find((filter) => filter.slug === b)
+            );
+          }
+        });
+      }
+    }
+    if (boutiqueId !== "listing") {
+      setSearchBoutique({ slug: boutiqueId.toString() });
+    }
+  };
   useEffect(() => {
     setSearchResults({
       categories: filters.categories,
@@ -81,6 +144,7 @@ function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
       products: [],
       prices_ranges: priceRanges,
     });
+    configureActiveFilters();
     if (filters?.search_text) {
       setIsSearch(true);
       setSearchWord(filters?.search_text);
@@ -125,13 +189,13 @@ function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
       search_text: filters.search_text,
       products: [],
     });
+    configureActiveFilters();
     setSearchWord("");
     setIsSearch(false);
   };
   const showButton = () => {
     return (
       (totalProducts !== null &&
-        totalProducts > 0 &&
         (searchFilters?.categories?.length > 0 ||
           searchFilters?.brands?.length > 0 ||
           searchFilters?.colors?.length > 0 ||
@@ -397,7 +461,7 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
                 transform="matrix(0.695, -0.719, 0.719, 0.695, 1294.105, 113.345)"
                 fill="none"
                 stroke="#ff5f61"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 stroke-width="1"
               />
               <line
@@ -407,7 +471,7 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
                 transform="matrix(0.719, 0.695, -0.695, 0.719, 1293.849, 98.605)"
                 fill="none"
                 stroke="#ff5f61"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 stroke-width="1"
               />
             </g>

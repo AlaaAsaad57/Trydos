@@ -28,55 +28,16 @@ import { ProductFooterSkeleton } from "components/skeleton/loaders/ProductLoader
 import { generateProductMetaData } from "./MetaData";
 import ProductImagesSlider from "components/products/ProductImageSlider";
 import ProductDetails from "components/products/ProductDetails";
-const ProductFooterSection = dynamic(
-  () => import("components/products/ProductFooterSection"),
-  {
-    ssr: false,
-    loading: () => <ProductFooterSkeleton />,
-  }
-);
-const ProductDetailsSlider = dynamic(
-  () => import("components/products/ProductDetailsSlider"),
-  {
-    ssr: false,
-  }
-);
-const ProductDetailsText = dynamic(
-  () => import("components/products/ProductDetailsText"),
-  {
-    ssr: false,
-  }
-);
-const ProductStories = dynamic(
-  () => import("components/products/ProductStories"),
-  {
-    ssr: false,
-  }
-);
-const ProductSizes = dynamic(() => import("components/products/ProductSizes"), {
-  ssr: false,
-});
-const ProductShippingOption = dynamic(
-  () => import("components/products/ProductShippingOption"),
-  {
-    ssr: false,
-  }
-);
-const FreeShippingOption = dynamic(
-  () => import("components/products/FreeShippingOption"),
-  {
-    ssr: false,
-  }
-);
-const ProductColors = dynamic(
-  () => import("components/products/ProductColors"),
-  {
-    ssr: false,
-  }
-);
-const CameraShots = dynamic(() => import("components/products/CameraShots"), {
-  ssr: false,
-});
+import ProductFooterSection from "components/products/ProductFooterSection";
+import ProductDetailsSlider from "components/products/ProductDetailsSlider";
+import ProductDetailsText from "components/products/ProductDetailsText";
+import ProductStories from "components/products/ProductStories";
+import ProductSizes from "components/products/ProductSizes";
+import ProductShippingOption from "components/products/ProductShippingOption";
+import FreeShippingOption from "components/products/FreeShippingOption";
+import ProductColors from "components/products/ProductColors";
+import CameraShots from "components/products/CameraShots";
+
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"]; // For Middle East users
 

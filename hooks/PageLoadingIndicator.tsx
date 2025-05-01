@@ -8,11 +8,8 @@ import HomeLoader from "components/skeleton/loaders/HomeLoader";
 import ProductLoader from "components/skeleton/loaders/ProductLoader";
 import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
 
-import { type ReactNode, useEffect, useState } from "react";
-import {
-  dispatchRouteChangeEvent,
-  registerRouteChangeListener,
-} from "utils/events";
+import { useEffect, useState } from "react";
+import { registerRouteChangeListener } from "utils/events";
 
 export default function PageLoadingIndicator() {
   const [isLoading, setIsLoading] = useState(null);

@@ -3,23 +3,13 @@ import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import CloseIcon from "public/svg/CloseIcon.svg";
 import Search from "public/svg/SearchIcon.svg";
 import NextLink from "components/global/NextLink";
-import { translateFunction } from "utils/functions";
+
 import dynamic from "next/dynamic";
 import { getPrice } from "utils/tinyUtils";
 import InfiniteScrollFilters from "components/ListingPage/filterComponents/InfiniteScrollFilters";
 
-const SwitchFiltersButton = dynamic(
-  () => import("components/filterPage/SwitchFiltersButton"),
-  {
-    ssr: false,
-  }
-);
-const FilterLabel = dynamic(
-  () => import("components/ListingPage/filterComponents/FilterLabel"),
-  {
-    ssr: false,
-  }
-);
+import SwitchFiltersButton from "components/filterPage/SwitchFiltersButton";
+
 function FilterList({ searchParams, params, filters, currency, boutique }) {
   return (
     <>
@@ -1156,7 +1146,9 @@ function getFilterStateForItem(
     href: `?${newParamsStr}`,
   };
 }
-export const getActiveFilters = (searchParams: URLSearchParams | string) => {
+export const getActiveFilters = (
+  searchParams: URLSearchParams | string
+): any => {
   const params = new URLSearchParams(searchParams);
   const activeFilters = {};
   params.forEach((value, key) => {
