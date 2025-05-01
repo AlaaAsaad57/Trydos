@@ -72,7 +72,7 @@ export const requestFirebaseNotificationPermission = async () => {
       if (currentToken) {
         setNotificationPermission(true);
         localStorage.setItem("FBTokenExpiry", nowDate.toISOString());
-
+        localStorage.setItem("FCMToken", currentToken);
         return currentToken;
       } else {
       }
@@ -80,6 +80,8 @@ export const requestFirebaseNotificationPermission = async () => {
     .catch((err) => {
       setNotificationPermission(false);
       console.error(err);
+      localStorage.setItem("FCMError", null);
+      throw err;
     });
 };
 

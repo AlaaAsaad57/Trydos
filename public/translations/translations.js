@@ -278,6 +278,7 @@ const translations = {
     "Total Products:": "إجمالي المنتجات:",
     "Full Name": "الاسم الكامل",
     Verified: "تم التحقق",
+    "Discount Coupon": "قسيمة خصم",
     "Verify Now": "تحقق الان",
     "Your Size Info": "معلومات الحجم",
     "000 CM": "000 سم",
@@ -802,6 +803,7 @@ const translations = {
     "The Purchase Was Completed Successfully":
       "Satın Alma Başarıyla Tamamlandı",
     "000 CM": "000 CM",
+    "Discount Coupon": "İndirim Kuponu",
     "You will be notified for this product already":
       "Bu Ürün Hakkında Bildirim Alındı",
     "your TryDos Wallet balance is empty":

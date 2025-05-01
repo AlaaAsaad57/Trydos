@@ -5,8 +5,14 @@ import { AxiosGet } from "utils/AxiosApi";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 
 const CouponElement = ({ active, setActive, close }) => {
-  const { setOrderData, initCart, orderData, currency, coupon_discount } =
-    useAppStore();
+  const {
+    setOrderData,
+    initCart,
+    orderData,
+    currency,
+    coupon_discount,
+    setCouponDiscount,
+  } = useAppStore();
   const [coupon, setCoupon] = useState<number | false>(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -40,7 +46,7 @@ const CouponElement = ({ active, setActive, close }) => {
         throw new Error(response.message);
       }
 
-      getCart({
+      await getCart({
         callback: ([data]) => {
           initCart(data ?? { cart: [] });
         },

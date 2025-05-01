@@ -396,7 +396,19 @@ const AddressOrder = ({ success }) => {
   );
 };
 const PaymentOrder = ({ success }) => {
-  const { orderData } = useAppStore();
+  const { orderData, coupon_discount, currency, wallet, total, total_cash } =
+    useAppStore();
+  const getWalletInUSD = () => {
+    if (wallet?.wallet_balance > 0)
+      return wallet?.wallet_balance / currency?.exchange_rate;
+    else return 0;
+  };
+  const showCodValue = () => {
+    if (getWalletInUSD() <= 0 || getWalletInUSD() >= total) return total_cash;
+    if (getWalletInUSD() > 0 && getWalletInUSD() < total) {
+      return total_cash - getWalletInUSD();
+    }
+  };
   return (
     <div className="px-[12px] flex-col">
       <div
@@ -491,9 +503,7 @@ const PaymentOrder = ({ success }) => {
           )}
         </div> */}
         {orderData?.payment?.filter((s) => s.id === 0).length > 0 && (
-          <CODInput
-            total={orderData?.payment?.filter((s) => s.id === 0)[0].balance}
-          />
+          <CODInput total={showCodValue()} />
         )}
         {orderData?.payment?.filter((s) => s.id === 1).length > 0 && (
           <TryDosWalletInput
@@ -519,6 +529,32 @@ const PaymentOrder = ({ success }) => {
               orderData?.payment?.filter((s) => s.id === 3)[0].balance
             }
           />
+        )}
+        {coupon_discount > 0 && (
+          <div
+            className={`w-full cursor-pointer pt-[12px] mt-[30px] ${" h-[42px] bg-[#f8f8f8]"} rounded-[15px] flex-col items-start px-[12px]`}
+          >
+            <div className="flex-row ">
+              <div className="regular text-[#1D1D1D] text-[14px] ml-2">
+                {translateFunction("Discount Coupon")}
+              </div>
+            </div>
+
+            <div className="mt-[10px] w-full items-center justify-between flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative">
+              <div className="flex-row items-center w-full">
+                <div
+                  className={`transition-all text-[#1d1d1d] apply-button 
+                    min-w-full
+                    flex items-center justify-center h-[40px] rounded-[15px] bg-white`}
+                  style={{ border: "1px solid rgb(56 144 255 / 51%)" }}
+                >
+                  {`- ${RoundPrice({ num: coupon_discount })} ${
+                    currency.symbol
+                  }`}
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
       {/* {

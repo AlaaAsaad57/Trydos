@@ -18,6 +18,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
     total,
     total_cash,
     cart,
+    setCouponDiscount,
   } = useAppStore();
   const router = useNextRouter();
   const { lang } = useParams();
@@ -224,6 +225,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
                 success: false,
                 data: [],
               });
+              setCouponDiscount(null);
               close();
               return;
             }}

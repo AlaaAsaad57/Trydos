@@ -4,6 +4,10 @@ import { NotificationItem as NotificationItemType } from "../../types/notificati
 import { fetchNotifications } from "../../services/notifications";
 import NotificationItem from "./NotificationItem";
 
+import { isSupported } from "firebase/messaging";
+import auth from "services/auth";
+import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
+
 interface NotificationsPanelProps {
   onClose: () => void;
   closeWindow: () => void;
@@ -195,6 +199,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
         }}
         className="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent min-h-[400px]"
       >
+        <NotificationInfo />
         {notifications.map((notification, index) => (
           <NotificationItem
             key={index}
@@ -259,3 +264,65 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
 };
 
 export default NotificationsPanel;
+const NotificationInfo = () => {
+  const [supported, setSupported] = useState(false);
+  const [token, setToken] = useState(null);
+  const [error, setError] = useState(null);
+  const supportedFunction = async () => {
+    isSupported().then((bool) => {
+      console.log(bool);
+      setSupported(bool);
+    });
+    requestFirebaseNotificationPermission()
+      .then((Fbtoken) => {
+        setToken(Fbtoken);
+      })
+      .catch((err) => {
+        console.log(err);
+        setError(err);
+      });
+  };
+  useEffect(() => {
+    supportedFunction();
+  }, []);
+  return (
+    <div
+      className="flex-col w-full p-2 text-[#5d5d5d] cursor-copy"
+      onClick={() => {
+        window.navigator.clipboard.writeText(`
+        user_id:${auth.UserID()},
+        fcm_token:${token},
+        fcm_error:  ${error},
+        notification_permission:${Notification.permission},
+        firebase_supported:${supported},
+        `);
+      }}
+    >
+      <div className="flex-row w-full justify-between py-2">
+        <span>Notification Premission:</span>
+        <span>
+          {Notification.permission === "granted" ? "Enabled" : "Not Enabled"}
+        </span>
+      </div>
+      <div className="flex-row w-full justify-between py-2">
+        <span>FireBase Supported</span>
+        <span>{supported ? "Supported" : "Not Supported"}</span>
+      </div>
+      <div className="flex-row w-full justify-between">
+        <span>User ID:</span>
+        <span>{auth.UserID()}</span>
+      </div>
+      <div className="flex-row w-full justify-between">
+        <span>FCM Token:</span>
+        <span>
+          {token && token?.substring(0, 30)}
+          ...
+        </span>
+      </div>
+      <div className="flex-row w-full justify-between text-red-500">
+        <span>FCM Error:</span>
+        <span>{error?.message}</span>
+      </div>
+    </div>
+  );
+};

@@ -177,7 +177,7 @@ export const useCartStore = (set, get) => ({
     set((state) => ({
       balance: state.wallet?.wallet_balance || 0,
     })),
-
+  setCouponDiscount: (value) => set({ coupon_discount: value }),
   setCodUser: () =>
     set((state) => ({
       balance: state.total_cash || 0,
