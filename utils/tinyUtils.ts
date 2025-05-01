@@ -87,3 +87,123 @@ export const configureSearchParams = ({
   // );
   return params;
 };
+export const GetFilterUrlParams = ({
+  boutiqueId,
+  searchParams: filtersSearchParams,
+}) => {
+  let searchFilters, searchFiltersEdit;
+  if (filtersSearchParams?.get("categories")?.length > 0) {
+    searchFilters = {
+      ...searchFilters,
+      categories: JSON.parse(
+        decodeURIComponent(filtersSearchParams?.get("categories"))
+      )?.map((s) => ({ slug: s })),
+    };
+  }
+  if (filtersSearchParams?.get("brands")?.length > 0) {
+    searchFilters = {
+      ...searchFilters,
+      brands: JSON.parse(
+        decodeURIComponent(filtersSearchParams?.get("brands"))
+      ).map((s) => ({ slug: s })),
+    };
+  }
+  if (filtersSearchParams?.get("colors")?.length > 0) {
+    searchFilters = {
+      ...searchFilters,
+      colors: JSON.parse(
+        decodeURIComponent(filtersSearchParams?.get("colors"))
+      ),
+    };
+  }
+  if (filtersSearchParams?.get("sizes")?.length > 0) {
+    searchFilters = {
+      ...searchFilters,
+      sizes: JSON.parse(decodeURIComponent(filtersSearchParams?.get("sizes"))),
+    };
+  }
+  if (filtersSearchParams?.get("prices")?.length > 0) {
+    searchFilters = {
+      ...searchFilters,
+      prices: JSON.parse(
+        decodeURIComponent(filtersSearchParams?.get("prices"))
+      ),
+    };
+  }
+  if (
+    boutiqueId === "listing" &&
+    filtersSearchParams?.get("boutiques")?.length > 0
+  ) {
+    searchFilters = {
+      ...searchFilters,
+      boutiques: JSON.parse(
+        decodeURIComponent(filtersSearchParams?.get("boutiques"))
+      ).map((s) => ({ slug: s })),
+    };
+  }
+  if (boutiqueId !== "listing") {
+    searchFilters = {
+      ...searchFilters,
+      boutiques: JSON.parse(decodeURIComponent(`["${boutiqueId}"]`)).map(
+        (s) => ({
+          slug: s,
+        })
+      ),
+    };
+  }
+  if (filtersSearchParams?.search_text?.length > 0) {
+    searchFilters = {
+      ...searchFilters,
+      search_text: filtersSearchParams?.search_text,
+    };
+  }
+
+  if (searchFilters?.categories && searchFilters.categories.length > 0) {
+    searchFiltersEdit = {
+      ...searchFiltersEdit,
+      categories: JSON.stringify(searchFilters.categories.map((s) => s.slug)),
+    };
+  }
+  if (searchFilters?.brands && searchFilters.brands.length > 0) {
+    searchFiltersEdit = {
+      ...searchFiltersEdit,
+      brands: JSON.stringify(searchFilters.brands.map((s) => s.slug)),
+    };
+  }
+  if (searchFilters?.boutiques && searchFilters.boutiques.length > 0) {
+    searchFiltersEdit = {
+      ...searchFiltersEdit,
+      boutiques: JSON.stringify(searchFilters.boutiques.map((s) => s.slug)),
+    };
+  }
+  if (searchFilters?.colors && searchFilters.colors.length > 0) {
+    searchFiltersEdit = {
+      ...searchFiltersEdit,
+      colors: JSON.stringify(searchFilters.colors.map((s) => s)),
+    };
+  }
+  if (searchFilters?.sizes && searchFilters.sizes.length > 0) {
+    searchFiltersEdit = {
+      ...searchFiltersEdit,
+      sizes: JSON.stringify(searchFilters.sizes.map((s) => s)),
+    };
+  }
+  if (searchFilters?.prices?.length > 0) {
+    searchFiltersEdit = {
+      ...searchFiltersEdit,
+      prices: JSON.stringify(searchFilters?.prices?.map((s) => s)),
+    };
+  }
+  if (searchFilters?.search_text?.length > 0) {
+    searchFiltersEdit = {
+      ...searchFiltersEdit,
+      search_text: searchFilters?.search_text,
+    };
+  }
+  let requestSearchParams = new URLSearchParams();
+  if (searchFiltersEdit && Object.keys(searchFiltersEdit)?.length > 0) {
+    requestSearchParams.set("searchParams", JSON.stringify(searchFiltersEdit));
+  }
+  requestSearchParams.set("noProducts", "true");
+  return requestSearchParams;
+};

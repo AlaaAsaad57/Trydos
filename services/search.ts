@@ -1,6 +1,5 @@
-import { AxiosGet, AxiosPost } from "utils/AxiosApi";
+import { AxiosGet } from "utils/AxiosApi";
 import { useAppStore } from "store";
-import { FilterProductApi } from "models/Api";
 
 class SearchService {
   async getTrendingSearch() {

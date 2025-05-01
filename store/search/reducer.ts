@@ -236,7 +236,11 @@ export const useSearchStore = (set, get) => ({
       },
       totalProducts: null,
     })),
-
+  setSearchFilters: (payload) =>
+    set((state) => ({
+      ...state,
+      searchFilters: { ...state.searchFilters, ...payload },
+    })),
   setTotalSizeOfProducts: (payload: {
     total_size: number;
     [key: string]: any;

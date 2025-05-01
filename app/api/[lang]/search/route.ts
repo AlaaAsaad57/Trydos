@@ -16,10 +16,8 @@ export async function GET(
 ) {
   const { searchParams } = req.nextUrl;
   const [country, lang] = params.lang.split("-");
-
   const noProducts = searchParams.get("noProducts") ?? "false";
   const noFilters = searchParams.get("noFilters") ?? "false";
-
   const offset = searchParams.get("offset") ?? "false";
   const boutiqueId = searchParams.get("boutiqueId") ?? "listing";
   const searchParamsVar = JSON.parse(searchParams.get("searchParams")) ?? {};

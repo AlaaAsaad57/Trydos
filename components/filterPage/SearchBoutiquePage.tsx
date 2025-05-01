@@ -128,7 +128,7 @@ function SearchBoutiquePage({ search_text, boutique }) {
             .querySelector<HTMLInputElement>(".filter-bar-options")
             .classList.add("w-full");
         }}
-        value={searchParams.get("search_text")}
+        value={search_text || value}
         onBlur={() => {
           console.log(value, searchParams.get("search_text"));
           if (
@@ -172,12 +172,14 @@ function SearchBoutiquePage({ search_text, boutique }) {
           }
         }}
         className={`${
-          search && "pl-[40px]"
+          (search || search_text?.length > 0) && "pl-[40px]"
         } rounded-[15px]  w-0 h-full border-0 outline-none text-[#5d5d5d]`}
       />
       <SearchIcon
         className={`absolute z-10 ${
-          search ? "top-[9px] left-[14px]" : "top-0 left-0"
+          search || search_text?.length > 0
+            ? "top-[9px] left-[14px]"
+            : "top-0 left-0"
         }`}
       />
     </div>

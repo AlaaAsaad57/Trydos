@@ -27,8 +27,8 @@ function FilterList({ searchParams, params, filters, currency, boutique }) {
                 (s) =>
                   filters[s] &&
                   filters[s]?.length > 0 &&
-                  filters !== "search_text" &&
-                  filters !== "boutiques"
+                  s !== "search_text" &&
+                  s !== "boutiques"
               ).length
             }
           />

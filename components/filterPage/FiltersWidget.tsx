@@ -4,12 +4,11 @@ import NextLink from "components/global/NextLink";
 import FilterIcon from "public/svg/listing/filterIcon.svg";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import PriceCancel from "public/svg/listing/PriceCancel.svg";
-
 import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import { DebounceInput } from "node_modules/react-debounce-input/src";
-import { RoundPrice, Sendevent, translateFunction } from "utils/functions";
+import { Sendevent, translateFunction } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
 import FilterLabel from "components/ListingPage/filterComponents/FilterLabel";
 import search from "services/search";
@@ -18,6 +17,8 @@ import Image from "node_modules/next/image";
 import Spinner from "components/global/Spinner";
 import PriceSlider from "components/ListingPage/filterComponents/PriceSlider";
 import dynamic from "next/dynamic";
+import { GetFilterUrlParams } from "utils/tinyUtils";
+import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 
 const PriceChart = dynamic(
   () => import("components/ListingPage/filterComponents/PriceChart"),
@@ -25,24 +26,181 @@ const PriceChart = dynamic(
     ssr: false,
   }
 );
-function FilterWidgetContainer({
-  priceVariable,
-  filters,
-  searchParams,
-  priceRanges,
-}) {
-  return (
-    <FiltersWidget
-      priceVariable={priceVariable}
-      filters={filters}
-      searchParams={searchParams}
-      priceRanges={priceRanges}
-    />
-  );
+function FilterWidgetContainer({}) {
+  const {
+    setSearchResults,
+    setSearchWord,
+    setFilterEnabled,
+    filterEnabled,
+    setSearchFilters,
+    searchFilters,
+  } = useAppStore();
+  const [loading, setLoading] = useState(true);
+  const [Initialfilters, setInitialfilters] = useState<any>({});
+  const { boutiqueId, lang } = useParams();
+  const searchParams = useSearchParams();
+  let activeFilters = getActiveFilters(searchParams);
+  const getSearchFilters = async () => {
+    const filtersUrl = GetFilterUrlParams({ boutiqueId, searchParams });
+    if (searchParams?.get("search_text")?.length > 0) {
+      let val = decodeURI(searchParams?.get("search_text"));
+      setSearchWord(val);
+    }
+    setLoading(true);
+    let res = await fetch(
+      process.env.NEXT_PUBLIC_API_BASE_URL +
+        `/api/${lang}/search?${filtersUrl?.toString()}`
+    );
+    let { data: filters } = await res.json();
+
+    setSearchResults({
+      categories: filters.categories,
+      brands: filters.brands,
+      colors: filters.colors,
+      prices: filters?.prices && {
+        min_price: filters?.prices?.min_price,
+        max_price: filters?.prices?.max_price,
+      },
+      sizes: filters?.attributes?.[0]?.options,
+      boutiques: filters.boutiques,
+      search_text: filters.search_text,
+      products: [],
+      prices_ranges: filters?.prices?.priceRanges,
+    });
+    setInitialfilters({
+      categories: filters.categories,
+      brands: filters.brands,
+      colors: filters.colors,
+      prices: filters?.prices && {
+        min_price: filters?.prices?.min_price,
+        max_price: filters?.prices?.max_price,
+      },
+      sizes: filters?.attributes?.[0]?.options,
+      boutiques: filters.boutiques,
+      search_text: filters.search_text,
+      products: [],
+      prices_ranges: filters?.prices?.priceRanges,
+    });
+    configureActiveFilters({
+      categories: filters.categories,
+      brands: filters.brands,
+      colors: filters.colors,
+      prices: filters?.prices && {
+        min_price: filters?.prices?.min_price,
+        max_price: filters?.prices?.max_price,
+      },
+      sizes: filters?.attributes?.[0]?.options,
+      boutiques: filters.boutiques,
+      search_text: filters.search_text,
+      products: [],
+      prices_ranges: filters?.prices?.priceRanges,
+    });
+    setLoading(false);
+  };
+  useEffect(() => {
+    if (filterEnabled) getSearchFilters();
+  }, [filterEnabled]);
+  const configureActiveFilters = (filtersObj?) => {
+    let obj = {
+      categories: [],
+      brands: [],
+      sizes: [],
+      colors: [],
+      prices: {},
+      boutiques: [],
+    };
+    let filters = filtersObj || Initialfilters;
+    if (activeFilters?.["categories"] && activeFilters?.categories) {
+      activeFilters?.categories?.forEach((c) => {
+        if (filters?.categories?.find((filter) => filter.slug === c)) {
+          obj.categories.push(
+            filters?.categories?.find((filter) => filter.slug === c)
+          );
+        }
+      });
+    }
+    if (activeFilters?.["brands"] && activeFilters?.brands) {
+      activeFilters?.brands?.forEach((b) => {
+        if (filters?.brands?.find((filter) => filter.slug === b)) {
+          obj.brands.push(filters?.brands?.find((filter) => filter.slug === b));
+        }
+      });
+    }
+    if (activeFilters?.["colors"] && activeFilters?.colors) {
+      activeFilters?.colors?.forEach((c) => {
+        if (filters?.colors?.find((filter) => filter === c)) {
+          obj.colors?.push(filters?.colors?.find((filter) => filter === c));
+        }
+      });
+    }
+    if (activeFilters?.["sizes"] && activeFilters?.sizes) {
+      activeFilters?.sizes?.forEach((s) => {
+        if (filters?.sizes?.find((filter) => filter === s)) {
+          obj.sizes.push(filters?.sizes?.find((filter) => filter === s));
+        }
+      });
+    }
+    if (activeFilters?.["prices"] && activeFilters?.prices) {
+      obj.prices = {
+        min_price: activeFilters?.prices?.min_price,
+        max_price: activeFilters?.prices?.max_price,
+      };
+    }
+    if (activeFilters?.["search_text"] && activeFilters?.search_text) {
+      setSearchWord(activeFilters?.search_text);
+    }
+    if (activeFilters?.["boutiques"] && activeFilters?.boutiques) {
+      if (boutiqueId === "listing") {
+        activeFilters?.boutiques?.forEach((b) => {
+          if (filters?.boutiques?.find((filter) => filter.slug === b)) {
+            obj.boutiques.push(
+              filters?.boutiques?.find((filter) => filter.slug === b)
+            );
+          }
+        });
+      }
+    }
+    if (boutiqueId !== "listing") {
+      obj.boutiques.push({ slug: boutiqueId.toString() });
+    }
+    setSearchFilters(obj);
+  };
+  if (!filterEnabled) return <></>;
+  if (loading && filterEnabled)
+    return (
+      <div className="fixed pt-[20px] overflow-x-hidden bg-white flex-col w-full max-h-[calc(100vh-100px)] h-[calc(100vh-100px)] overflow-y-auto top-[97px] pl-[14px] pr-[20px] left-0 z-[9999999]">
+        <FilterTobBar
+          isSearch={false}
+          setIsSearch={() => {}}
+          Goback={() => {
+            setFilterEnabled(false);
+          }}
+        />
+        {Object.keys(searchFilters).map((s) => (
+          <div className="flex-col mt-[20px] relative max-w-full" key={s}>
+            <div className="flex">
+              {" "}
+              <FilterLabel text={`Filter By ${s}`} />
+              <span className="ml-[10px]">
+                <Spinner />
+              </span>
+            </div>
+            <div className="flex-row align-center justify-start mt-[10px] h-[100px]"></div>
+          </div>
+        ))}
+      </div>
+    );
+  if (filterEnabled)
+    return (
+      <FiltersWidget
+        configureActiveFilters={() => configureActiveFilters()}
+        filters={Initialfilters}
+      />
+    );
 }
 export default FilterWidgetContainer;
-function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
-  let activeFilters = getActiveFilters(searchParams);
+function FiltersWidget({ filters, configureActiveFilters }) {
+  let priceVariable = null;
 
   const { lang, boutiqueId } = useParams();
   const {
@@ -51,7 +209,7 @@ function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
     searchResults,
     setSearchResults,
     loading_search,
-
+    setFilterEnabled,
     setSearchLoading,
     setSearchPartialLoading,
     searchFilters,
@@ -61,10 +219,6 @@ function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
     partialLoading,
     setSearchBoutique,
     value,
-    setSearchCategory,
-    setSearchBrand,
-    setSearchColor,
-    setSearchSize,
     setSearchPrice,
   } = useAppStore();
   const [isSearch, setIsSearch] = useState(false);
@@ -75,81 +229,7 @@ function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
       document?.documentElement?.style?.setProperty("overflow", "auto");
     }
   }, [filterEnabled]);
-  const configureActiveFilters = () => {
-    if (activeFilters?.["categories"] && activeFilters?.categories) {
-      activeFilters?.categories?.forEach((c) => {
-        if (filters?.categories?.find((filter) => filter.slug === c)) {
-          setSearchCategory(
-            filters?.categories?.find((filter) => filter.slug === c)
-          );
-        }
-      });
-    }
-    if (activeFilters?.["brands"] && activeFilters?.brands) {
-      activeFilters?.brands?.forEach((b) => {
-        if (filters?.brands?.find((filter) => filter.slug === b)) {
-          setSearchBrand(filters?.brands?.find((filter) => filter.slug === b));
-        }
-      });
-    }
-    if (activeFilters?.["colors"] && activeFilters?.colors) {
-      activeFilters?.colors?.forEach((c) => {
-        if (filters?.colors?.find((filter) => filter.slug === c)) {
-          setSearchColor(filters?.colors?.find((filter) => filter === c));
-        }
-      });
-    }
-    if (activeFilters?.["sizes"] && activeFilters?.sizes) {
-      activeFilters?.sizes?.forEach((s) => {
-        if (filters?.attributes?.[0]?.options?.find((filter) => filter === s)) {
-          setSearchSize(
-            filters?.attributes?.[0]?.options?.find((filter) => filter === s)
-          );
-        }
-      });
-    }
-    if (activeFilters?.["prices"] && activeFilters?.prices) {
-      setSearchPrice({
-        min_price: activeFilters?.prices?.min_price,
-        max_price: activeFilters?.prices?.max_price,
-      });
-    }
-    if (activeFilters?.["search_text"] && activeFilters?.search_text) {
-      setSearchWord(activeFilters?.search_text);
-    }
-    if (activeFilters?.["boutiques"] && activeFilters?.boutiques) {
-      if (boutiqueId === "listing") {
-        activeFilters?.boutiques?.forEach((b) => {
-          if (filters?.boutiques?.find((filter) => filter.slug === b)) {
-            setSearchBoutique(
-              filters?.boutiques?.find((filter) => filter.slug === b)
-            );
-          }
-        });
-      }
-    }
-    if (boutiqueId !== "listing") {
-      setSearchBoutique({ slug: boutiqueId.toString() });
-    }
-  };
-  useEffect(() => {
-    setSearchResults({
-      categories: filters.categories,
-      brands: filters.brands,
-      colors: filters.colors,
-      prices: priceVariable,
-      sizes: filters.sizes,
-      boutiques: filters.boutiques,
-      search_text: filters.search_text,
-      products: [],
-      prices_ranges: priceRanges,
-    });
-    configureActiveFilters();
-    if (filters?.search_text) {
-      setIsSearch(true);
-      setSearchWord(filters?.search_text);
-    }
-  }, [filters, filterEnabled]);
+
   useEffect(() => {
     if (
       boutiqueId !== "listing" &&
@@ -206,93 +286,95 @@ function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
     );
   };
   return (
-    <div className="fixed bg-white flex-col w-full max-h-[calc(100vh-100px)] h-[calc(100vh-100px)] overflow-y-auto top-[97px] pl-[14px] pr-[20px] left-0 z-[9999999]">
-      <FilterTobBar
-        isSearch={isSearch}
-        setIsSearch={setIsSearch}
-        Goback={() => {
-          resetFilters();
-        }}
-      />
+    <>
+      <div className="fixed pb-[100px] pt-[20px] overflow-x-hidden bg-white flex-col w-full max-h-[calc(100vh-100px)] h-[calc(100vh-100px)] overflow-y-auto top-[97px] pl-[14px] pr-[20px] left-0 z-[9999999]">
+        <FilterTobBar
+          isSearch={isSearch}
+          setIsSearch={setIsSearch}
+          Goback={() => {
+            resetFilters();
+          }}
+        />
 
-      {Object?.keys(searchResults).map((key) => {
-        if (
-          key !== "search_text" &&
-          key !== "boutiques" &&
-          key !== "products" &&
-          key !== "prices_ranges" &&
-          searchResults?.[key]?.length > 0
-        )
-          return (
-            <div className="flex-col mt-[20px] relative" key={key}>
+        {Object?.keys(searchResults).map((key) => {
+          if (
+            key !== "search_text" &&
+            key !== "boutiques" &&
+            key !== "products" &&
+            key !== "prices_ranges" &&
+            searchResults?.[key]?.length > 0
+          )
+            return (
+              <div className="flex-col mt-[20px] relative max-w-full" key={key}>
+                <div className="flex">
+                  {" "}
+                  <FilterLabel text={`Filter By ${key}`} />
+                  {loading_search && (
+                    <span className="ml-[10px]">
+                      <Spinner />
+                    </span>
+                  )}
+                </div>
+                <ShowFilterRow term={key} values={searchResults[key]} />
+              </div>
+            );
+        })}
+        {searchResults?.prices?.max_price &&
+          searchResults?.prices?.min_price &&
+          searchResults?.prices?.max_price > 0 &&
+          searchResults?.prices?.min_price >= 0 && (
+            <div
+              className="flex-col justify-start align-start filter-container relative w-full mt-[10px] pb-6"
+              key={`prices-container}`}
+            >
+              <PriceCancel
+                className="price-cancel-icon"
+                onClick={() => {
+                  resetPrice();
+                }}
+              />
               <div className="flex">
                 {" "}
-                <FilterLabel text={`Filter By ${key}`} />
+                <FilterLabel text={`Filter By Prices`} />
                 {loading_search && (
                   <span className="ml-[10px]">
                     <Spinner />
                   </span>
                 )}
               </div>
-              <ShowFilterRow term={key} values={searchResults[key]} />
+              <div className="price-min-max flex-row z-20">
+                {searchFilters?.prices?.min_price >= 0 && (
+                  <div className="price-min">
+                    Min{" "}
+                    {(searchFilters.prices?.min_price ||
+                      searchResults?.prices?.min_price) *
+                      currency?.exchange_rate}{" "}
+                    <span>{currency?.symbol}</span>
+                  </div>
+                )}
+                {searchFilters?.prices?.max_price >= 0 && (
+                  <div className="price-max">
+                    Max{" "}
+                    {(searchFilters.prices?.max_price ||
+                      searchResults?.prices?.max_price) *
+                      currency?.exchange_rate}{" "}
+                    <span>{currency?.symbol}</span>
+                  </div>
+                )}
+              </div>
+              <PriceSlider />
+              <PriceChart
+                points={
+                  searchResults?.prices_ranges?.map(
+                    (s) => s.products_count
+                  ) || [0]
+                }
+              />
             </div>
-          );
-      })}
-      {searchResults?.prices?.max_price &&
-        searchResults?.prices?.min_price &&
-        searchResults?.prices?.max_price > 0 &&
-        searchResults?.prices?.min_price >= 0 && (
-          <div
-            className="flex-col justify-start align-start filter-container relative w-full mt-[10px] pb-6"
-            key={`prices-container}`}
-          >
-            <PriceCancel
-              className="price-cancel-icon"
-              onClick={() => {
-                resetPrice();
-              }}
-            />
-            <div className="flex">
-              {" "}
-              <FilterLabel text={`Filter By Prices`} />
-              {loading_search && (
-                <span className="ml-[10px]">
-                  <Spinner />
-                </span>
-              )}
-            </div>
-            <div className="price-min-max flex-row z-20">
-              {searchFilters?.prices?.min_price >= 0 && (
-                <div className="price-min">
-                  Min{" "}
-                  {(searchFilters.prices?.min_price ||
-                    searchResults?.prices?.min_price) *
-                    currency?.exchange_rate}{" "}
-                  <span>{currency?.symbol}</span>
-                </div>
-              )}
-              {searchFilters?.prices?.max_price >= 0 && (
-                <div className="price-max">
-                  Max{" "}
-                  {(searchFilters.prices?.max_price ||
-                    searchResults?.prices?.max_price) *
-                    currency?.exchange_rate}{" "}
-                  <span>{currency?.symbol}</span>
-                </div>
-              )}
-            </div>
-            <PriceSlider />
-            <PriceChart
-              points={
-                searchResults?.prices_ranges?.map((s) => s.products_count) || [
-                  0,
-                ]
-              }
-            />
-          </div>
-        )}
+          )}
+      </div>
       <div
-        className="flex-row w-full mt-3 justify-center"
+        className=" fixed px-[10px] z-[99999999] mx-auto left-0 right-0 bottom-[50px] flex-row w-full mt-3 justify-center"
         data-cy="searchResult"
       >
         {showButton() &&
@@ -300,14 +382,15 @@ function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
             <NextLink
               href={search.getSearchPageUrl()}
               data={{
-                is_boutique: true,
+                is_filter: true,
                 href: search.getSearchPageUrl(),
               }}
               aria-disabled={partialLoading || loading_search}
               className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
               data-cy="searchTotalProduct"
               onClick={() => {
-                //   apply();
+                setFilterEnabled(false);
+                resetFilters();
               }}
             >
               {translateFunction("Search")}{" "}
@@ -341,7 +424,7 @@ function FiltersWidget({ priceVariable, filters, searchParams, priceRanges }) {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }
 
@@ -490,8 +573,6 @@ const ShowFilterRow = ({ term, values }) => {
     setSearchColor,
     setSearchCategory,
     setSearchSize,
-    setSearchPrice,
-    loading_search,
     searchFilters,
   } = useAppStore();
   const updateFiltersApi = async () => {
@@ -546,7 +627,10 @@ const ShowFilterRow = ({ term, values }) => {
   };
 
   return (
-    <div className="flex-row align-center justify-start mt-[10px]">
+    <HortiznalScrollBar
+      className="flex-row align-center justify-start mt-[10px]"
+      id={`filter-${term}-row`}
+    >
       {values.map((value, index) => {
         return (
           <div
@@ -598,6 +682,6 @@ const ShowFilterRow = ({ term, values }) => {
           </div>
         );
       })}
-    </div>
+    </HortiznalScrollBar>
   );
 };

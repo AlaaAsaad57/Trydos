@@ -196,25 +196,9 @@ export default async function Page({
   return (
     <>
       <Suspense fallback={<></>}>
-        <FilterWidgetContainer
-          priceVariable={{
-            min_price: filtersData?.prices?.min_price,
-            max_price: filtersData?.prices?.max_price,
-          }}
-          searchParams={EditedSearchParams}
-          filters={{
-            categories: filtersData?.categories,
-            brands: filtersData?.brands,
-            colors: filtersData?.colors,
-            sizes: filtersData?.attributes?.[0]?.options,
-          }}
-          priceRanges={filtersData?.prices?.priceRanges}
-        />
+        <FilterWidgetContainer key={JSON.stringify(EditedSearchParams)} />
       </Suspense>
-      <div
-        className="filter-listing-bar relative flex-row align-center"
-        key={`${params.boutiqueId}-${JSON.stringify(EditedSearchParams)}`}
-      >
+      <div className="filter-listing-bar relative flex-row align-center">
         <NextLink
           data={{
             is_full_home: true,
@@ -255,12 +239,17 @@ export default async function Page({
           EditedSearchParams
         )}`}
       >
-        <Suspense key={params.boutiqueId} fallback={<BoutiqueHeaderSkeleton />}>
-          <BoutiqueHeader
-            boutique={boutique}
+        {params?.boutiqueId !== "listing" && (
+          <Suspense
             key={params.boutiqueId}
-          ></BoutiqueHeader>
-        </Suspense>
+            fallback={<BoutiqueHeaderSkeleton />}
+          >
+            <BoutiqueHeader
+              boutique={boutique}
+              key={params.boutiqueId}
+            ></BoutiqueHeader>
+          </Suspense>
+        )}
 
         <FilterList
           filters={filters}

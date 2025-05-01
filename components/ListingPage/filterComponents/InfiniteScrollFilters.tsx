@@ -39,7 +39,7 @@ function InfiniteScrollFilters({
         boutiqueId:
           params?.boutiqueId === "listing" ? null : params?.boutiqueId,
       });
-      console.log(response?.data);
+
       setData({
         categories: [
           ...(data.categories || []),
