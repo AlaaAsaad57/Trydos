@@ -19,6 +19,7 @@ import FilterWidgetContainer from "components/filterPage/FiltersWidget";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
+import CarouselContainer from "components/filterPage/CarouselContainer";
 export const dynamicParams = true;
 
 export const runtime = "nodejs";
@@ -275,6 +276,7 @@ export default async function Page({
         fallback={<ListingSkeleton forProducts={true} />}
       >
         <ProductListServer
+          colors={filtersData?.colors}
           products={filtersData.products ?? []}
           offset={filtersData.offset}
           currency={currency}
@@ -314,39 +316,43 @@ const BouqiuePhotoSlider = ({ banners }) => {
           banners?.length > 1 && "justify-start"
         } offer-slider-container`}
       >
-        {banners &&
-          banners?.map((banner, index) => (
-            <div
-              className="offer-slide-item"
-              style={{ width: "100%" }}
-              key={index}
-            >
-              <div className="image-offer">
+        <CarouselContainer>
+          {banners &&
+            banners?.map((banner, index) => (
+              <div className="embla__slide" key={index}>
                 <div
-                  className="image-inner-shadow"
-                  style={{ height: "100%" }}
-                />
+                  className="offer-slide-item"
+                  style={{ width: "100%" }}
+                  key={index}
+                >
+                  <div className="image-offer">
+                    <div
+                      className="image-inner-shadow"
+                      style={{ height: "100%" }}
+                    />
 
-                <Image
-                  loading={"eager"}
-                  fetchPriority={"high"}
-                  style={{ borderRadius: "15px" }}
-                  className="OfferImage object-cover"
-                  src={getConfiguredImage({
-                    src: banner.file_path,
-                    height: 342,
-                    width: 900,
-                  })}
-                  width={380}
-                  unoptimized
-                  height={135}
-                  alt="offer"
-                />
+                    <Image
+                      loading={"eager"}
+                      fetchPriority={"high"}
+                      style={{ borderRadius: "15px" }}
+                      className="OfferImage object-cover"
+                      src={getConfiguredImage({
+                        src: banner.file_path,
+                        height: 342,
+                        width: 900,
+                      })}
+                      width={380}
+                      unoptimized
+                      height={135}
+                      alt="offer"
+                    />
 
-                <BorderImage />
+                    <BorderImage />
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+        </CarouselContainer>
       </div>
     </div>
   );

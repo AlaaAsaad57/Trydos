@@ -9,6 +9,7 @@ import { getPrice } from "utils/tinyUtils";
 import InfiniteScrollFilters from "components/ListingPage/filterComponents/InfiniteScrollFilters";
 
 import SwitchFiltersButton from "components/filterPage/SwitchFiltersButton";
+import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 
 function FilterList({ searchParams, params, filters, currency, boutique }) {
   return (
@@ -32,8 +33,9 @@ function FilterList({ searchParams, params, filters, currency, boutique }) {
             }
           />
         </Suspense>
-        <div
-          className={`flex-row items-center pr-[20px] ml-[45px]  justify-start align-start filter-container overflow-auto scroll-smooth`}
+        <HortiznalScrollBar
+          id="filter-list-row-container"
+          className="flex-row items-center pr-[20px] ml-[45px]  justify-start align-start filter-container overflow-auto scroll-smooth"
         >
           {Object.keys(filters).map((filter, index) => {
             if (
@@ -57,7 +59,7 @@ function FilterList({ searchParams, params, filters, currency, boutique }) {
                 </>
               );
           })}
-        </div>
+        </HortiznalScrollBar>
       </div>
       <ActiveFiltersBar
         params={params}

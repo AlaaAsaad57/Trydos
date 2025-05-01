@@ -9,6 +9,7 @@ import React, { Suspense } from "react";
 import { RoundPrice } from "utils/functions";
 import ProductsInfiniteScroll from "components/ListingPage/ProductsList";
 import NextLink from "components/global/NextLink";
+import { getActiveFilters } from "./FilterList";
 
 function ProductListServer({
   params,
@@ -16,13 +17,27 @@ function ProductListServer({
   products,
   currency,
   offset,
+  colors,
 }) {
+  const activeFilters = getActiveFilters(searchParams)?.colors || [];
+
+  let activeColor = colors?.find(
+    (s) => s === activeFilters[activeFilters.length - 1]
+  );
+
   return (
     <div
       className={"listing-container relative flex pb-[350px] max-w-[1310px]"}
       data-cy="allCategory"
     >
       {products.map((product, key) => {
+        let color_name = product?.colors?.find(
+          (s) => s.color === activeColor
+        )?.name;
+        let productColor = product?.sync_color_images?.find(
+          (s) => s.color_name === color_name
+        );
+
         return (
           <div
             className="max-h-[362px] relative"
@@ -33,42 +48,22 @@ function ProductListServer({
               data={{
                 is_product: true,
                 ...product,
-                href: `/${params.lang}/products/${product.slug}`,
+                sync_color_images: productColor
+                  ? [productColor]
+                  : product?.sync_color_images,
+                images: productColor ? productColor.images : product?.images,
+
+                href: `/${params.lang}/products/${product.slug}${
+                  productColor ? `?color=${productColor.color_name}` : ""
+                }`,
               }}
               ariaLabel={`go to product ${product.slug} ${params.lang}`}
               suppressHydrationWarning
-              // @ts-ignore
-              // onClick={(e, bool = false) => {
-              //   /* @ts-ignore*/
-              //   if (
-              //     /* @ts-ignore*/
-              //     e.target.closest(".top-slider-enable") ||
-              //     /* @ts-ignore*/
-              //     e.target.closest(".product-photos-slider") ||
-              //     /* @ts-ignore*/
-              //     e.target.closest(".buy-button") ||
-              //     /* @ts-ignore*/
-              //     e.target.closest(".inset-shadow-img")
-              //   ) {
-              //     // stopProgress(true);
-              //     dispatchRouteChangeEvent("completed");
-              //     return false;
-              //   } else {
-              //     Sendevent({
-              //       event: "button_clicked",
-              //       value: "choose_product_button",
-              //     });
-              //   }
-              // }}
-              href={`/${params.lang}/products/${product.slug}`}
+              href={`/${params.lang}/products/${product.slug}${
+                productColor ? `?color=${productColor.color_name}` : ""
+              }`}
               className="product-container  align-center flex-col relative"
               data-cy="on_mouse_over_product"
-              // onMouseLeave={() => {
-              //   if (productState?.isActiveTopSlide || productState?.isColorSelected) {
-              //     dispatch({ type: "setActiveTopSlide", payload: false });
-              //     dispatch({ type: "setColor", payload: false });
-              //   }
-              // }}
             >
               <Suspense fallback={<div className="min-w-full min-h-[290px]" />}>
                 <ProductPhotosSlider
@@ -184,6 +179,7 @@ function ProductListServer({
         );
       })}
       <ProductsInfiniteScroll
+        activeColor={activeColor}
         currency={currency}
         offset={offset}
         searchParams={searchParams}
