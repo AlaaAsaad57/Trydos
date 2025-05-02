@@ -1,3 +1,4 @@
+import { toast } from "react-toastify";
 import React from "react";
 import { translateFunction } from "utils/functions";
 
@@ -7,7 +8,17 @@ interface OrderNumberCardProps {
 
 const OrderNumberCard: React.FC<OrderNumberCardProps> = ({ number }) => {
   return (
-    <div className="bg-[#F4F4F4] w-1/3 min-h-[74px] h-auto rounded-[15px] py-[8px] px-[12px] flex-col">
+    <div
+      className="bg-[#F4F4F4] cursor-pointer w-1/3 min-h-[74px] h-auto rounded-[15px] py-[8px] px-[12px] flex-col"
+      onClick={() => {
+        navigator.clipboard.writeText(number).then(
+          function () {
+            toast.success(translateFunction("Order Number has been Copied"));
+          },
+          function () {}
+        );
+      }}
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"

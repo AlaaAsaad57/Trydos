@@ -1,8 +1,9 @@
 import React from "react";
-import { getStatusDisplayName } from "../OrdersList";
 import { translateFunction } from "utils/functions";
+import { useAppStore } from "store";
 
 function OrderStatusCard({ status }: { status: string }) {
+  const { settings } = useAppStore();
   return (
     <div className="bg-[#F4F4F4] ml-[8px] w-1/2 min-h-[74px] h-auto  rounded-[15px] py-[8px] px-[12px] flex-col">
       <div className="flex flex-row items-end">
@@ -214,7 +215,7 @@ function OrderStatusCard({ status }: { status: string }) {
         {translateFunction("Order Status")}
       </span>
       <div className="text-[#1D1D1D] flex-row text-[12px] regular mt-[3px]">
-        <span>{translateFunction(getStatusDisplayName(status))}</span>
+        <span>{status}</span>
         <svg
           className="ml-[11px]"
           xmlns="http://www.w3.org/2000/svg"

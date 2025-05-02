@@ -8,20 +8,22 @@ import {
 } from "next/navigation";
 import { NotificationItem as NotificationItemType } from "../../types/notifications";
 import { translateFunction } from "utils/functions";
-
-import { useDispatch } from "react-redux/es";
+import { useAppStore } from "store";
+import NextLink from "components/global/NextLink";
 
 interface NotificationItemProps {
   notification: NotificationItemType;
   onClose: () => void;
+  closeWindow: () => void;
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({
   notification,
   onClose,
+  closeWindow,
 }) => {
+  const { enableCart, disableAddToCartOption } = useAppStore();
   const { lang } = useParams();
-  const dispatch = useDispatch();
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -104,9 +106,21 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
     switch (parsedDescription.type) {
       case "boutique created":
         return (
-          <Link href={`/${lang}/boutiques/${parsedDescription.boutique_slug}`}>
+          <NextLink
+            data={{
+              is_boutique: true,
+              ...parsedDescription,
+              href: `/${lang}/boutiques/${parsedDescription.boutique_slug}`,
+            }}
+            ariaLabel={`notification Boutique ${parsedDescription.boutique_slug} ${lang}`}
+            href={`/${lang}/boutiques/${parsedDescription.boutique_slug}`}
+            onClick={() => {
+              closeWindow();
+              onClose();
+            }}
+          >
             {content}
-          </Link>
+          </NextLink>
         );
       default:
         if (parsedDescription.type?.startsWith("product hurry up")) {
@@ -114,8 +128,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
             <div
               onClick={() => {
                 window.history.pushState({ isPopup: true }, "open Cart");
-                dispatch({ type: "ENABLE-CART", payload: true });
-
+                enableCart(true);
+                disableAddToCartOption();
                 const newParams = new URLSearchParams(searchParams);
                 newParams.set("cart", "true");
 
@@ -126,6 +140,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                   shallow: true,
                 });
                 onClose();
+                closeWindow();
               }}
             >
               {content}
@@ -134,24 +149,52 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         }
         if (parsedDescription.type?.startsWith("product")) {
           return (
-            <Link
+            <NextLink
+              data={{
+                is_product: true,
+                ...parsedDescription,
+                href: `/${lang}/products/${
+                  parsedDescription.product_slug || parsedDescription.slug
+                }`,
+              }}
+              ariaLabel={`notification Product ${
+                parsedDescription.product_slug || parsedDescription.slug
+              } ${lang}`}
               href={`/${lang}/products/${
                 parsedDescription.product_slug || parsedDescription.slug
               }`}
+              onClick={() => {
+                closeWindow();
+                onClose();
+              }}
             >
               {content}
-            </Link>
+            </NextLink>
           );
         }
         if (parsedDescription.type === "category created") {
           return (
-            <Link
+            <NextLink
+              data={{
+                is_category: true,
+                ...parsedDescription,
+                href: `/boutique/listing?categories=${
+                  parsedDescription.category_slug || parsedDescription.slug
+                }`,
+              }}
+              ariaLabel={`notification Category ${
+                parsedDescription.category_slug || parsedDescription.slug
+              } ${lang}`}
               href={`/${lang}/boutiques/listing?categories=${
                 parsedDescription.category_slug || parsedDescription.slug
               }`}
+              onClick={() => {
+                closeWindow();
+                onClose();
+              }}
             >
               {content}
-            </Link>
+            </NextLink>
           );
         }
 

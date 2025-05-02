@@ -4,15 +4,16 @@ import React, { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 import "leaflet/dist/leaflet.css";
 import Map from "./Map";
-
+import SyFlage from "public/svg/sy.svg";
 import { useParams } from "next/navigation";
 import Addressicon from "public/svg/cart/AddressIcon.svg";
 import AddressInfo from "public/svg/cart/AddressInfo.svg";
 import Flag from "react-world-flags";
 import TargetIcon from "public/svg/cart/Target.svg";
 import ContactInfoIcon from "public/svg/cart/ContactInfoIcon.svg";
-import { useDispatch, useSelector } from "react-redux";
+
 import order from "services/order";
+import { useAppStore } from "store";
 
 function AddAddressForm({
   setAddressDetails,
@@ -20,20 +21,15 @@ function AddAddressForm({
   setOpenSelect,
   activeIndex,
 }) {
+  const { setMapCenter, center, addressDetails, countries, orderLoading } =
+    useAppStore();
   const { lang } = useParams();
   const [expanded, setExpanded] = useState(false);
-  const dispatch = useDispatch();
-  const center = useSelector((state: StateInterface) => state.cart.center);
+
   const setCenter = (e) => {
-    dispatch({ type: "MAP-CENTER", payload: e });
+    setMapCenter(e);
   };
 
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
-  const countries = useSelector(
-    (state: StateInterface) => state.homepage.countries
-  );
   const getCenter = async () => {
     // to do
     // let ipData: IpDataApi = await axios.get("http://ip-api.com/json");
@@ -43,7 +39,7 @@ function AddAddressForm({
 
       (s) => s.iso.toLowerCase() === lang.split("-")[0].toLowerCase()
     )[0];
-    console.log(UserCountries);
+
     setCenter({
       lat: parseFloat(UserCountries?.latitude),
       lng: parseFloat(UserCountries?.longitude),
@@ -78,9 +74,7 @@ function AddAddressForm({
     }
     return valid;
   };
-  const orderLoading = useSelector(
-    (state: StateInterface) => state.cart.orderLoading
-  );
+
   useEffect(() => {
     if (countries.length > 0) {
       getCenter();
@@ -227,6 +221,7 @@ const AddressSection = ({ setOpenSelect }) => {
   );
 };
 const CountryLabel = () => {
+  const { setAddressDetails } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
   let country = lang.split("-")[0];
@@ -234,12 +229,9 @@ const CountryLabel = () => {
     name: allCountries.filter((s) => s.iso2 === country)[0]?.name,
     iso: country,
   };
-  const dispatch = useDispatch();
+
   useEffect(() => {
-    dispatch({
-      type: "set-address-details",
-      payload: { Country: { name: country?.name, code: country.iso } },
-    });
+    setAddressDetails({ Country: { name: country?.name, code: country.iso } });
   }, []);
   return (
     <div
@@ -260,7 +252,11 @@ const CountryLabel = () => {
           className="h-[15px] rounded-[5px] w-[22px]"
           data-cy="country-flag"
         >
-          <Flag height={"15"} code={country.iso} />
+          {country.iso?.toLowerCase() === "sy" ? (
+            <SyFlage />
+          ) : (
+            <Flag height={"15"} code={country.iso} />
+          )}
         </span>
         <div
           className="medium flex text-[#1D1D1D] text-[14px] ml-[8px]"
@@ -274,9 +270,8 @@ const CountryLabel = () => {
 };
 
 const SelectRegion = ({ setOpenSelect }) => {
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
+  const { addressDetails } = useAppStore();
+
   return (
     <div
       onClick={() => {
@@ -311,10 +306,8 @@ const SelectRegion = ({ setOpenSelect }) => {
 };
 
 const DetailsAddress = () => {
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
-  const dispatch = useDispatch();
+  const { setAddressDetails, addressDetails } = useAppStore();
+
   return (
     <div
       className="flex-col details-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
@@ -338,10 +331,7 @@ const DetailsAddress = () => {
             data-cy="text-area-placeholder"
             value={addressDetails.address_detail}
             onChange={(e) => {
-              dispatch({
-                type: "set-address-details",
-                payload: { address_detail: e.target.value },
-              });
+              setAddressDetails({ address_detail: e.target.value });
             }}
             placeholder={translateFunction(
               "Write The Address Clearly, Including The Street Address, Building, Flat, Door, Unit."
@@ -355,10 +345,7 @@ const DetailsAddress = () => {
 };
 
 const AddressTitle = () => {
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
-  const dispatch = useDispatch();
+  const { setAddressDetails, addressDetails } = useAppStore();
   return (
     <div
       data-cy="address-title" // Added data-cy
@@ -382,10 +369,7 @@ const AddressTitle = () => {
             data-cy="add-address-input"
             value={addressDetails.address}
             onChange={(e) => {
-              dispatch({
-                type: "set-address-details",
-                payload: { address: e.target.value },
-              });
+              setAddressDetails({ address: e.target.value });
             }}
             placeholder={translateFunction("Ex: Home, My Office, 2 Home Ect.")}
             className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
@@ -396,25 +380,8 @@ const AddressTitle = () => {
   );
 };
 const ContactInfo = () => {
-  const user = useSelector((state: StateInterface) => state.auth.user);
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
-  const dispatch = useDispatch();
-  // useEffect(() => {
-  //   if (!addressDetails.id && user) {
-  //     dispatch({
-  //       type: "set-address-details",
-  //       payload: {
-  //         contact_info: {
-  //           ...addressDetails.contact_info,
-  //           contact_person_name: user?.name,
-  //           name: user?.name,
-  //         },
-  //       },
-  //     });
-  //   }
-  // }, [addressDetails?.id, user]);
+  const { setAddressDetails, addressDetails } = useAppStore();
+
   return (
     <div
       className="flex-col w-full mt-[30px] px-[12px] pb-[110px]"
@@ -455,13 +422,10 @@ const ContactInfo = () => {
               data-cy="recipient-name-input"
               value={addressDetails.contact_info.contact_person_name}
               onChange={(e) => {
-                dispatch({
-                  type: "set-address-details",
-                  payload: {
-                    contact_info: {
-                      ...addressDetails.contact_info,
-                      contact_person_name: e.target.value,
-                    },
+                setAddressDetails({
+                  contact_info: {
+                    ...addressDetails.contact_info,
+                    contact_person_name: e.target.value,
                   },
                 });
               }}
@@ -503,13 +467,10 @@ const ContactInfo = () => {
               inputMode="numeric"
               value={addressDetails.contact_info.phone}
               onChange={(e) => {
-                dispatch({
-                  type: "set-address-details",
-                  payload: {
-                    contact_info: {
-                      ...addressDetails.contact_info,
-                      phone: e.target.value,
-                    },
+                setAddressDetails({
+                  contact_info: {
+                    ...addressDetails.contact_info,
+                    phone: e.target.value,
                   },
                 });
               }}
@@ -554,13 +515,10 @@ const ContactInfo = () => {
               type="number"
               value={addressDetails.contact_info.alternative_phone}
               onChange={(e) => {
-                dispatch({
-                  type: "set-address-details",
-                  payload: {
-                    contact_info: {
-                      ...addressDetails.contact_info,
-                      alternative_phone: e.target.value,
-                    },
+                setAddressDetails({
+                  contact_info: {
+                    ...addressDetails.contact_info,
+                    alternative_phone: e.target.value,
                   },
                 });
               }}
@@ -576,10 +534,9 @@ const ContactInfo = () => {
   );
 };
 export const AddAddressButtons = ({ valid, slidePrev }) => {
-  const dispatch = useDispatch();
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
+  const { addAddress, updateAddress, addressDetails, orderLoading } =
+    useAppStore();
+
   const shake = (v) => {
     if (document.querySelector(`.${v}`)) {
       document.querySelector(`.${v}`)?.scrollIntoView({ block: "end" });
@@ -612,9 +569,7 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
       shake("phone-border");
     }
   };
-  const orderLoading = useSelector(
-    (state: StateInterface) => state.cart.orderLoading
-  );
+
   const { lang } = useParams();
   // @ts-ignore
   let country = lang.split("-")[0];
@@ -635,6 +590,7 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
       <div
         onClick={() => {
           if (valid && !orderLoading) {
+            // @ts-ignore
             if (addressDetails?.id) {
               order.UpdateAddressList({
                 address: { ...addressDetails, Country: country },
@@ -642,7 +598,7 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
                   slidePrev();
                 },
               });
-              dispatch({ type: "UPDATE-ADDRESS", payload: addressDetails });
+              updateAddress(addressDetails);
             } else {
               order.AddAddressList({
                 address: addressDetails,
@@ -650,7 +606,7 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
                   slidePrev();
                 },
               });
-              dispatch({ type: "ADD-ADDRESS", payload: addressDetails });
+              addAddress();
             }
 
             return;
@@ -662,6 +618,7 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
         } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
         data-cy="AddSaveButton"
       >
+        {/* @ts-ignore */}
         {addressDetails?.id
           ? translateFunction("Edit & Save")
           : translateFunction("Add & Save")}

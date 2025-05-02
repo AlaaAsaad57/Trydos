@@ -1,18 +1,27 @@
 import { toast } from "react-toastify";
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
+import { useAppStore } from "store";
+import { dispatchRouteChangeEvent } from "utils/events";
+import { useParams, useRouter } from "next/navigation";
+import useNextRouter from "hooks/useNextRouter";
+import NextLink from "components/global/NextLink";
 
 function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
-  const cart = useSelector((state: StateInterface) => state.cart);
-  const currency_symbol = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
-  const orderData = useSelector(
-    (state: StateInterface) => state.cart.orderData
-  );
+  const {
+    setOrderData,
+    initCart,
+    currency,
+    orderData,
+    total,
+    total_cash,
+    cart,
+    setCouponDiscount,
+  } = useAppStore();
+  const router = useNextRouter();
+  const { lang } = useParams();
   const shake = (v) => {
     if (document.querySelector(`.${v}`)) {
       document.querySelector(`.${v}`).scrollIntoView({ block: "end" });
@@ -34,9 +43,8 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
       shake("agree-valid-border");
     }
   };
-  const dispatch = useDispatch();
   const setAgree = (e) => {
-    dispatch({ type: "ORDER-DATA", payload: { agree: e } });
+    setOrderData({ agree: e });
   };
   const [loading, setLoading] = useState(false);
   const VerifyCart = async () => {
@@ -45,7 +53,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
       let a = (
         await getCart({
           callback: ([data, res]) => {
-            dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+            initCart(data ?? { cart: [] });
           },
         })
       ).cart;
@@ -74,9 +82,9 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   };
   const getTotalPrice = () => {
     if (orderData.payment.filter((s) => s.id === 0).length > 0) {
-      return cart.total_cash;
+      return total_cash;
     } else {
-      return cart.total;
+      return total;
     }
   };
   return (
@@ -152,12 +160,11 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
           orderLoading && "opacity-55"
         }  text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
       >
-        <div
-          onClick={() => {
-            if (orderData.success) {
-              dispatch({
-                type: "ORDER-DATA",
-                payload: {
+        {!orderData.success && (
+          <div
+            onClick={() => {
+              if (orderData.success) {
+                setOrderData({
                   payment: [],
                   coupon: false,
                   agree: false,
@@ -165,58 +172,76 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
                   loading: false,
                   success: false,
                   data: [],
-                },
+                });
+
+                close();
+                return;
+              }
+              Validate();
+              if (isValid() && !orderLoading) {
+                VerifyCart();
+              }
+            }}
+            className={`  w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${
+              orderData.success
+                ? "bg-[#1D1D1D]"
+                : isValid()
+                ? "bg-[#346BFF]"
+                : "bg-[#C4C2C2]"
+            } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
+          >
+            {orderData.loading || loading ? (
+              <Spinner />
+            ) : (
+              <>
+                <span>{translateFunction("Place Order")}</span>
+                <span
+                  className={`text-[#FEFEFE] text-[14px] medium ${
+                    LocalizationServiceClass.GetAppLanguage() === "ar" &&
+                    "dir-rtl"
+                  } `}
+                >
+                  {cart.length} {translateFunction("items")}{" "}
+                  {RoundPrice({ num: getTotalPrice() })} {currency?.symbol}
+                </span>
+              </>
+            )}
+          </div>
+        )}
+        {orderData.success && (
+          <NextLink
+            href={`/${lang}`}
+            data={{
+              is_full_home: true,
+              href: `/${lang}`,
+            }}
+            onClick={() => {
+              setOrderData({
+                payment: [],
+                coupon: false,
+                agree: false,
+                coupon_number: "",
+                loading: false,
+                success: false,
+                data: [],
               });
+              setCouponDiscount(null);
               close();
               return;
-            }
-            Validate();
-            if (isValid() && !orderLoading) {
-              VerifyCart();
-            }
-          }}
-          className={`  w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px] ${
-            orderData.success
-              ? "bg-[#1D1D1D]"
-              : isValid()
-              ? "bg-[#346BFF]"
-              : "bg-[#C4C2C2]"
-          } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
-        >
-          {orderData.loading || loading ? (
-            <Spinner />
-          ) : (
-            <>
-              {orderData.success ? (
-                <>
-                  <span>{translateFunction("Done")}</span>
-                  <span
-                    className={`text-[#FEFEFE] text-[14px] medium ${
-                      LocalizationServiceClass.GetAppLanguage() === "ar" &&
-                      "dir-rtl"
-                    } `}
-                  >
-                    {translateFunction("Back To HomePage")}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span>{translateFunction("Place Order")}</span>
-                  <span
-                    className={`text-[#FEFEFE] text-[14px] medium ${
-                      LocalizationServiceClass.GetAppLanguage() === "ar" &&
-                      "dir-rtl"
-                    } `}
-                  >
-                    {cart.cart.length} {translateFunction("items")}{" "}
-                    {RoundPrice({ num: getTotalPrice() })}{" "}
-                    {currency_symbol?.symbol}
-                  </span>
-                </>
-              )}
-            </>
-          )}
-        </div>
+            }}
+            className={`w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px]
+             bg-[#1D1D1D] text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
+          >
+            <span>{translateFunction("Done")}</span>
+            <span
+              className={`text-[#FEFEFE] text-[14px] medium ${
+                LocalizationServiceClass.GetAppLanguage() === "ar" && "dir-rtl"
+              } `}
+            >
+              {translateFunction("Back To HomePage")}
+            </span>
+          </NextLink>
+        )}
       </div>
     </div>
   );

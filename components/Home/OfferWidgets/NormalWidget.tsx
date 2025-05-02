@@ -3,8 +3,10 @@ import OfferAvatars from "./OfferAvatars";
 import Image from "next/image";
 import { Boutique } from "models/offer";
 import OfferPhotosSlider from "./OfferPhotosSlider";
-import Link from "node_modules/next/link";
 import PrefetchLink from "components/global/PrefetchLink";
+import NextLink from "components/global/NextLink";
+import { Suspense } from "react";
+import search from "services/search";
 
 interface NormalWidgetProps {
   boutique: Boutique;
@@ -14,13 +16,23 @@ interface NormalWidgetProps {
 const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
   return (
     <div className="w-full flex relative">
-      <PrefetchLink
-        link={`/${lang}/boutiques/${boutique.slug}`}
-        slug={boutique.slug}
-      />
-      <Link
-        href={`/${lang}/boutiques/${boutique.slug}`}
-        aria-label={`Go To listing Page`}
+      <Suspense
+        fallback={<></>}
+        key={`bputiques/${lang}/boutiques/${boutique.slug}`}
+      >
+        <PrefetchLink
+          link={`/${lang}/boutiques/${boutique.slug}`}
+          slug={boutique.slug}
+        />
+      </Suspense>
+      <NextLink
+        href={`/${lang}/boutique/${boutique.slug}`}
+        data={{
+          is_boutique: true,
+          ...boutique,
+          href: `/${lang}/boutique/${boutique.slug}`,
+        }}
+        aria-label={`Go To listing ${lang} ${boutique.slug}`}
         className="offer-widget"
         id={`boutique-${boutique.slug}`}
         key={boutique.slug}
@@ -32,7 +44,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
                 id={"img-" + boutique.id}
                 className="object-contain"
                 alt={boutique.name}
-                loading={myKey < 2 ? "eager" : "lazy"}
+                loading="eager"
                 fetchPriority={myKey < 2 ? "high" : "low"}
                 priority={myKey < 2}
                 style={{
@@ -75,7 +87,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
             </div>
           )}
         </div>
-      </Link>
+      </NextLink>
       <div className="offer-category absolute top-[18px] right-[18px] z-20">
         {boutique.mainCategoriesForProductIds
           .slice(0, 5)
@@ -83,15 +95,29 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
             // @ts-ignore
             if (category?.flat_photo_path?.file_path) {
               return (
-                <Link
-                  href={`/${lang}/boutiques/${boutique.slug}?categories=${category.slug}`}
+                <NextLink
+                  data={{
+                    is_boutique: true,
+                    ...category,
+                    href: `/${lang}/boutique/${
+                      boutique.slug
+                    }${search.getPageUrl({
+                      term: "categories",
+                      value: [category],
+                    })}`,
+                  }}
+                  aria-label={`Go To listing ${lang} ${boutique.slug} ${category.slug}`}
+                  href={`/${lang}/boutique/${boutique.slug}${search.getPageUrl({
+                    term: "categories",
+                    value: [category],
+                  })}`}
                   key={key}
                   className={`${key > 0 && "ml-[13px]"}`}
                 >
                   <Image
                     id={"img-" + boutique.id}
                     alt={boutique.name}
-                    loading={myKey < 2 ? "eager" : "lazy"}
+                    loading="eager"
                     fetchPriority={myKey < 2 ? "high" : "low"}
                     priority={myKey < 2}
                     width={12}
@@ -102,7 +128,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
                       `/upload/h_50/f_webp/q_auto`
                     )}
                   />
-                </Link>
+                </NextLink>
               );
             }
           })}

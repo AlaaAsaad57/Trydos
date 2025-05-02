@@ -3,7 +3,7 @@
 const path = require("path");
 let nextConfig = {
   swcMinify: true,
-  reactStrictMode: true,
+  reactStrictMode: false,
   compress: true,
   logging: {
     fetches: {
@@ -18,16 +18,16 @@ let nextConfig = {
         headers: [
           {
             key: "Cache-Control",
-            value: "s-maxage=36000, stale-while-revalidate=36000",
+            value: "s-maxage=86400, stale-while-revalidate=86400",
           },
         ],
       },
       {
-        source: "/:lang/boutiques/:productCategory",
+        source: "/:lang/boutiques/:boutiqueId",
         headers: [
           {
             key: "Cache-Control",
-            value: "s-maxage=36000, stale-while-revalidate=36000",
+            value: "s-maxage=86400, stale-while-revalidate=86400",
           },
         ],
       },
@@ -36,7 +36,7 @@ let nextConfig = {
         headers: [
           {
             key: "Cache-Control",
-            value: "s-maxage=36000, stale-while-revalidate=36000",
+            value: "s-maxage=86400, stale-while-revalidate=86400",
           },
         ],
       },
@@ -51,14 +51,15 @@ let nextConfig = {
       "market_staging.trydos.tech",
       "s3.ap-south-1.amazonaws.com",
     ],
-    minimumCacheTTL: 300,
+    minimumCacheTTL: 86400,
   },
   experimental: {
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
+
     staleTimes: {
-      dynamic: 36000,
-      static: 36000,
+      dynamic: 60,
+      static: 86400,
     },
   },
   webpack(config, { dev, isServer }) {
@@ -154,10 +155,7 @@ const sentryWebpackPluginOptions = {
 // Make sure adding Sentry options is the last code to run before exporting
 // module.exports = ;
 if (process.env.ENABLE_SENTRY === "false") {
-  const withBundleAnalyzer = require("@next/bundle-analyzer")({
-    enabled: false,
-  });
-  module.exports = withBundleAnalyzer(nextConfig);
+  module.exports = nextConfig;
 } else {
   const { withSentryConfig } = require("@sentry/nextjs");
   module.exports = withSentryConfig(

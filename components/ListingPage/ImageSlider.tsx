@@ -5,7 +5,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { useRef } from "react";
 import PointsSlider from "./PointsSlider";
 import { getConfiguredImage } from "utils/functions";
-import { stopProgress } from "node_modules/next-nprogress-bar/dist";
+
 function ImageSlider({
   renderVar,
   product_name,
@@ -74,7 +74,7 @@ function ImageSlider({
           centeredSlides={true}
           onSlideChange={(swiper) => {
             setTimeout(() => {
-              stopProgress(true);
+              // stopProgress(true);
             }, 300);
 
             setActiveImage({ ...activeColor, index: swiper.activeIndex });
@@ -89,6 +89,7 @@ function ImageSlider({
                 overflow: "visible",
                 position: "relative",
               }}
+              className="bg-white"
             >
               {({ isActive }) => (
                 <>
@@ -96,7 +97,7 @@ function ImageSlider({
                   <div className="inset-shadow-img w-100 h-100 rounded-15 absolute" />
                   {(isActive || i === 0) && (
                     <img
-                      loading={priority && i === 0 ? "eager" : "lazy"}
+                      loading="eager"
                       fetchPriority={priority && i === 0 ? "high" : "low"}
                       style={{ borderRadius: "15px", zIndex: "3" }}
                       src={getConfiguredImage({

@@ -1,10 +1,11 @@
 import React from "react";
 import ShareAvatar from "./ShareAvatar";
 import "styles/share-options.css";
-import { useDispatch, useSelector } from "react-redux";
 import {
   FacebookIcon,
   FacebookShareButton,
+  TelegramIcon,
+  TelegramShareButton,
   TwitterIcon,
   TwitterShareButton,
   WhatsappIcon,
@@ -14,6 +15,7 @@ import {
 import { ProductInterface } from "models/product";
 import { getUserChat, Sendevent } from "utils/functions";
 import { AxiosPost } from "utils/AxiosApi";
+import { useAppStore } from "store";
 function ShareOptions({
   setShareContacts,
   sharedContacts,
@@ -23,13 +25,9 @@ function ShareOptions({
   setShareContacts: (e: Array<number>) => void;
   product: ProductInterface;
 }) {
-  const sharesCount = useSelector(
-    (state: StateInterface) => state.details.sharesCount
-  );
-  const shareLoading = useSelector(
-    (state: StateInterface) => state.details.shareLoading
-  );
-  const dispatch = useDispatch();
+  const { incrementSharesCount, sharesCount, shareLoading, user, contacts } =
+    useAppStore();
+
   const shareSocial = async (appName) => {
     await AxiosPost({
       url:
@@ -43,10 +41,8 @@ function ShareOptions({
       title: "Share Product on Social",
     });
 
-    dispatch({ type: "SHARE-SOCIAL" });
+    incrementSharesCount();
   };
-  const contacts = useSelector((state: StateInterface) => state.chat.contacts);
-  const user = useSelector((state: StateInterface) => state.auth.user);
   return (
     <div className="share-options">
       <div className={`share-avatar`} data-cy="Facebook">
@@ -100,6 +96,23 @@ function ShareOptions({
           </WhatsappShareButton>
         </div>
         <div className="share-name">WhatsApp</div>
+      </div>
+      <div className={`share-avatar`} data-cy="Whatsapp">
+        <div className="share-image social shadow-none">
+          <TelegramShareButton
+            beforeOnClick={() => {
+              Sendevent({
+                event: "button_clicked",
+                value: "share_with_whatsapp_button",
+              });
+              shareSocial("Telegram");
+            }}
+            url={window.location.href}
+          >
+            <TelegramIcon size={70} borderRadius={20} />
+          </TelegramShareButton>
+        </div>
+        <div className="share-name">Telegram</div>
       </div>
       {getUserChat() &&
         user &&

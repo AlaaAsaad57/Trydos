@@ -4,11 +4,21 @@ import { NotificationItem as NotificationItemType } from "../../types/notificati
 import { fetchNotifications } from "../../services/notifications";
 import NotificationItem from "./NotificationItem";
 
+import { isSupported } from "firebase/messaging";
+import auth from "services/auth";
+import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
+import NextLink from "components/global/NextLink";
+import { useParams } from "next/navigation";
+
 interface NotificationsPanelProps {
   onClose: () => void;
+  closeWindow: () => void;
 }
 
-const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
+const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
+  onClose,
+  closeWindow,
+}) => {
   const notificationsRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [notifications, setNotifications] = useState<NotificationItemType[]>(
@@ -191,11 +201,17 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
         }}
         className="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent min-h-[400px]"
       >
+        <NotificationInfo
+          closeWindow={() => {
+            closeWindow();
+          }}
+        />
         {notifications.map((notification, index) => (
           <NotificationItem
             key={index}
             notification={notification}
             onClose={onClose}
+            closeWindow={closeWindow}
           />
         ))}
         {loading && (
@@ -254,3 +270,79 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
 };
 
 export default NotificationsPanel;
+const NotificationInfo = ({ closeWindow }) => {
+  const { lang } = useParams();
+  const [supported, setSupported] = useState(false);
+  const [token, setToken] = useState(null);
+  const [error, setError] = useState(null);
+  const supportedFunction = async () => {
+    isSupported().then((bool) => {
+      console.log(bool);
+      setSupported(bool);
+    });
+    requestFirebaseNotificationPermission()
+      .then((Fbtoken) => {
+        setToken(Fbtoken);
+      })
+      .catch((err) => {
+        console.log(err);
+        setError(err);
+      });
+  };
+  useEffect(() => {
+    supportedFunction();
+  }, []);
+  return (
+    <>
+      <div
+        className="flex-col w-full p-2 text-[#5d5d5d] cursor-copy"
+        onClick={() => {
+          window.navigator.clipboard.writeText(`
+        user_id:${auth.UserID()},
+        fcm_token:${token},
+        fcm_error:  ${error},
+        notification_permission:${Notification.permission},
+        firebase_supported:${supported},
+        `);
+        }}
+      >
+        <div className="flex-row w-full justify-between py-2">
+          <span>Notification Premission:</span>
+          <span>
+            {Notification.permission === "granted" ? "Enabled" : "Not Enabled"}
+          </span>
+        </div>
+        <div className="flex-row w-full justify-between py-2">
+          <span>FireBase Supported</span>
+          <span>{supported ? "Supported" : "Not Supported"}</span>
+        </div>
+        <div className="flex-row w-full justify-between">
+          <span>User ID:</span>
+          <span>{auth.UserID()}</span>
+        </div>
+        <div className="flex-row w-full justify-between">
+          <span>FCM Token:</span>
+          <span>
+            {token && token?.substring(0, 30)}
+            ...
+          </span>
+        </div>
+        <div className="flex-row w-full justify-between text-red-500">
+          <span>FCM Error:</span>
+          <span>{error?.message}</span>
+        </div>
+      </div>
+      <NextLink
+        onClick={() => {
+          closeWindow();
+        }}
+        data-cy="notification-settings"
+        data={{ is_setting: true, href: `/${lang}/settings` }}
+        href={`/${lang}/settings`}
+        className="flex-row w-full rounded-md shadow-md h-[50px] bg-[#f8f8f8] text-[#5d5d5d] medium text-[14px] justify-center items-center"
+      >
+        <span>Notification Settings</span>
+      </NextLink>
+    </>
+  );
+};

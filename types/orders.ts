@@ -6,6 +6,10 @@ export interface OrderItem {
     value: string;
     label: string;
   };
+  order_group_status: {
+    value: string;
+    label: string;
+  };
   payment_method: {
     value: string;
     label: string;
@@ -66,8 +70,11 @@ export interface OrderDetail {
   id: number;
   order_id: number;
   product_id: number;
+  image: string;
+  order_status: string;
   product_details: {
     id: number;
+    count_of_pieces: any;
     name: string;
     slug: string;
     share_link: string;

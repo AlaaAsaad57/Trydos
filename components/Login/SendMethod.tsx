@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+
 import { Sendevent, translateFunction } from "utils/functions";
 import WAIcon from "public/svg/WAIcon.svg";
 import MessageIcon from "public/svg/MessageIcon.svg";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 import AuthService from "services/auth";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 
 function SendMethod({
   inputValue,
@@ -24,18 +25,15 @@ function SendMethod({
   setShowMobile?: Function;
   hideEdit?: boolean;
 }) {
-  const wrongNumber = useSelector(
-    (state: StateInterface) => state.auth.wrongNumber
-  );
+  const { language, wrongNumber } = useAppStore();
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
+
   const [loading, setLoading] = useState(false);
   const SendOtpHook = async ({
     errorCallback,

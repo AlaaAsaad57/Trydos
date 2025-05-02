@@ -4,7 +4,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import BorderImage from "./BorderImage";
 
 import { getConfiguredImage } from "utils/functions";
-import { stopProgress } from "next-nprogress-bar";
+// import { stopProgress } from "next-nprogress-bar";
 function ColorSlider({
   active,
   activeColor,
@@ -72,7 +72,7 @@ function ColorSlider({
         centeredSlides={true}
         onSlideChange={(swiper) => {
           setTimeout(() => {
-            stopProgress(true);
+            // stopProgress(true);
           }, 300);
           setActiveColor({ ...colors[swiper.activeIndex], index: 0 });
         }}
@@ -88,12 +88,13 @@ function ColorSlider({
                   overflow: "visible",
                   position: "relative",
                 }}
+                className="bg-white"
               >
                 <>
                   <BorderImage isBig={false} />
                   <div className="inset-shadow-img rounded-15 absolute w-100 h-100" />
                   <img
-                    loading={priority ? "eager" : "lazy"}
+                    loading="eager"
                     fetchPriority={priority ? "high" : "low"}
                     style={{ borderRadius: "15px", zIndex: "3" }}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

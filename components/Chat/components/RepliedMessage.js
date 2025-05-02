@@ -1,6 +1,6 @@
 import React from "react";
 import { getTwoLetters } from "../chatsFunctions";
-import { useSelector } from "react-redux";
+
 import ImageIcon from "../svg/image.svg";
 import VideoIcon from "../svg/video.svg";
 import AudioIcon from "../svg/audio.svg";
@@ -9,6 +9,7 @@ import profile from "public/images/profileNo.png";
 import out from "../svg/output.png";
 import Image from "next/image";
 import { getUserChat } from "utils/functions";
+import { useAppStore } from "store";
 function RepliedMessage({
   moving,
   message,
@@ -16,7 +17,7 @@ function RepliedMessage({
   message_ref,
   onClick,
 }) {
-  const activeChat = useSelector((state) => state.chat.activeChat);
+  const { activeChat } = useAppStore();
   const sameSource = () => {
     if (message.sender_user_id === parent_message.sender_user_id) {
       return true;

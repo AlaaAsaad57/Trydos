@@ -3,7 +3,7 @@ import Recorder from "components/Chat/components/Recorder";
 import ChatHeader from "components/Chat/components/ChatHeader";
 import ChatMessage from "components/Chat/components/ChatMessage";
 import { useStopwatch } from "react-timer-hook";
-import { useSelector, useDispatch } from "react-redux";
+
 import MicIcon from "../svg/mic.svg";
 import RedMicIcon from "../svg/redmic.svg";
 import WaveIcon from "../svg/wave.svg";
@@ -33,6 +33,7 @@ import dynamic from "next/dynamic";
 import { push, ref, set } from "firebase/database";
 import { db } from "utils/firebaseInitv1";
 import ChatSearch from "../components/ChatSearch";
+import { useAppStore } from "store";
 const VideoCall = dynamic(
   () => import("components/Chat/components/VideoCall"),
   { ssr: false }
@@ -49,18 +50,28 @@ function ConversationContainer({
   first,
   setSearch,
 }) {
+  const {
+    callLoading,
+    mid,
+    AgoraToken,
+    openChatRenderer,
+    qouted,
+    call,
+    replyMessage,
+    refs,
+    activeChat,
+    language,
+    data: chats,
+    setRefs,
+    sendMessage,
+    watchChannel,
+    setQouted,
+    setMessagesPage,
+    setReplyMessage,
+  } = useAppStore();
   const [vid, setVid] = useState(null);
-  const callLoading = useSelector((state) => state.chat.callLoading);
   const imageFile = useRef(null);
   const [imgs, setImgs] = useState(null);
-  const mid = useSelector((state) => state.chat.mid);
-  const AgoraToken = useSelector((state) => state.chat.AgoraToken);
-  const openChat = useSelector((state) => state.chat.openChat);
-  const qouted = useSelector((state) => state.chat.qouted);
-  const call = useSelector((state) => state.chat.call);
-  const replyMessage = useSelector((state) => state.chat.replyMessage);
-  const refs = useSelector((state) => state.chat.refs);
-  const channels = useSelector((state) => state.chat.channels);
   const sendStatues = (desc) => {
     let obj = { id: activeChat.id, uid: getUser()?.id, desc: desc };
     if (activeChat.id) {
@@ -184,10 +195,8 @@ function ConversationContainer({
     return type;
   };
   const [mics, setMic] = useState(false);
-  const activeChat = useSelector((state) => state.chat.activeChat);
-
   const [message, setMessage] = useState("");
-  const dispatch = useDispatch();
+
   var a = 0;
   const showDuration = () => {
     return `${minutes > 9 ? minutes : "0" + minutes}:${
@@ -195,7 +204,7 @@ function ConversationContainer({
     }`;
   };
   const sendAudio = async (i) => {
-    dispatch({ type: "REFS" });
+    setRefs();
     if (blobs.current) {
       setRecording(false);
       sendStatues(null);
@@ -208,46 +217,42 @@ function ConversationContainer({
 
       reader.onloadend = function () {
         var base64data = reader.result;
-        dispatch({
-          type: "SEND-MESSAGE",
-          payload: {
-            isNew:
-              typeof activeChat?.id === "string" &&
-              activeChat?.id?.includes("ch")
-                ? activeChat.id
-                : false,
-            act: { ...activeChat, id: activeChat.id || "ch-" },
-            message: {
-              parent_message: replyMessage,
-              receiver_user_id: activeChat.channel_members.filter(
-                (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-              )[0]?.user_id,
-              receiver_role_id: activeChat.channel_members.filter(
-                (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-              )[0]?.role_id,
-              sender_role_id: getUser().role_id,
-              sender_user_id: getUser()?.id,
-              message_type: { name: "VoiceMessage" },
-              message_content: [{ file_path: base64data }],
-              created_at: new Date(),
-              type: "pending",
-              mid: i,
-              message_status: [
-                {
-                  is_watched: false,
-                  is_received: 0,
-                  user_id: localStorage.getItem("USER-CHAT") && getUser()?.id,
-                },
-                {
-                  is_received: 0,
-                  is_watched: false,
-                  user_id: activeChat.channel_members.filter(
-                    (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-                  )[0]?.user_id,
-                },
-              ],
-              cid: activeChat.id,
-            },
+        sendMessage({
+          isNew:
+            typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
+              ? activeChat.id
+              : false,
+          act: { ...activeChat, id: activeChat.id || "ch-" },
+          message: {
+            parent_message: replyMessage,
+            receiver_user_id: activeChat.channel_members.filter(
+              (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+            )[0]?.user_id,
+            receiver_role_id: activeChat.channel_members.filter(
+              (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+            )[0]?.role_id,
+            sender_role_id: getUser().role_id,
+            sender_user_id: getUser()?.id,
+            message_type: { name: "VoiceMessage" },
+            message_content: [{ file_path: base64data }],
+            created_at: new Date(),
+            type: "pending",
+            mid: i,
+            message_status: [
+              {
+                is_watched: false,
+                is_received: 0,
+                user_id: localStorage.getItem("USER-CHAT") && getUser()?.id,
+              },
+              {
+                is_received: 0,
+                is_watched: false,
+                user_id: activeChat.channel_members.filter(
+                  (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+                )[0]?.user_id,
+              },
+            ],
+            cid: activeChat.id,
           },
         });
       };
@@ -276,7 +281,7 @@ function ConversationContainer({
     }
   };
   const sendPhoto = (m, i, type) => {
-    dispatch({ type: "REFS" });
+    setRefs();
     toBase64(m, i, type);
   };
   const send_mes = (data, type) => {
@@ -304,45 +309,42 @@ function ConversationContainer({
           ? activeChat.id
           : false
       );
-      dispatch({
-        type: "SEND-MESSAGE",
-        payload: {
-          isNew:
-            typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
-              ? activeChat.id
-              : false,
-          act: activeChat,
-          message: {
-            parent_message: replyMessage,
-            receiver_user_id: activeChat.channel_members.filter(
-              (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-            )[0]?.user_id,
-            receiver_role_id: activeChat.channel_members.filter(
-              (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-            )[0]?.role_id,
-            sender_role_id: getUser().role_id,
-            sender_user_id: getUser()?.id,
-            message_type: { name: "TextMessage" },
-            message_content: { content: data },
-            created_at: new Date(),
-            mid: i,
-            message_status: [
-              {
-                is_watched: false,
-                is_received: 0,
-                user_id: localStorage.getItem("USER-CHAT") && getUser()?.id,
-              },
-              {
-                is_received: 0,
-                is_watched: false,
-                user_id: activeChat.channel_members.filter(
-                  (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-                )[0]?.user_id,
-              },
-            ],
-            type: "pending",
-            cid: activeChat.id,
-          },
+      sendMessage({
+        isNew:
+          typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
+            ? activeChat.id
+            : false,
+        act: activeChat,
+        message: {
+          parent_message: replyMessage,
+          receiver_user_id: activeChat.channel_members.filter(
+            (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+          )[0]?.user_id,
+          receiver_role_id: activeChat.channel_members.filter(
+            (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+          )[0]?.role_id,
+          sender_role_id: getUser().role_id,
+          sender_user_id: getUser()?.id,
+          message_type: { name: "TextMessage" },
+          message_content: { content: data },
+          created_at: new Date(),
+          mid: i,
+          message_status: [
+            {
+              is_watched: false,
+              is_received: 0,
+              user_id: localStorage.getItem("USER-CHAT") && getUser()?.id,
+            },
+            {
+              is_received: 0,
+              is_watched: false,
+              user_id: activeChat.channel_members.filter(
+                (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+              )[0]?.user_id,
+            },
+          ],
+          type: "pending",
+          cid: activeChat.id,
         },
       });
       sendStatues(null);
@@ -369,43 +371,40 @@ function ConversationContainer({
           ? activeChat.id
           : false
       );
-      dispatch({
-        type: "SEND-MESSAGE",
-        payload: {
-          isNew:
-            typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
-              ? activeChat.id
-              : false,
-          act: activeChat,
-          message: {
-            parent_message: replyMessage,
-            receiver_user_id: activeChat.channel_members.filter(
-              (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-            )[0]?.user_id,
-            receiver_role_id: activeChat.channel_members.filter(
-              (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-            )[0]?.role_id,
-            sender_role_id: getUser().role_id,
-            message_type: { name: "ImageMessage" },
-            type: "pending",
-            created_at: new Date(),
-            message_status: [
-              {
-                is_watched: false,
-                is_received: 0,
-                user_id: localStorage.getItem("USER-CHAT") && getUser()?.id,
-              },
-              {
-                is_received: 0,
-                is_watched: false,
-                user_id: activeChat.channel_members.filter(
-                  (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-                )[0]?.user_id,
-              },
-            ],
-            message_content: [{ file_path: data }],
-            cid: activeChat.id,
-          },
+      sendMessage({
+        isNew:
+          typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
+            ? activeChat.id
+            : false,
+        act: activeChat,
+        message: {
+          parent_message: replyMessage,
+          receiver_user_id: activeChat.channel_members.filter(
+            (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+          )[0]?.user_id,
+          receiver_role_id: activeChat.channel_members.filter(
+            (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+          )[0]?.role_id,
+          sender_role_id: getUser().role_id,
+          message_type: { name: "ImageMessage" },
+          type: "pending",
+          created_at: new Date(),
+          message_status: [
+            {
+              is_watched: false,
+              is_received: 0,
+              user_id: localStorage.getItem("USER-CHAT") && getUser()?.id,
+            },
+            {
+              is_received: 0,
+              is_watched: false,
+              user_id: activeChat.channel_members.filter(
+                (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+              )[0]?.user_id,
+            },
+          ],
+          message_content: [{ file_path: data }],
+          cid: activeChat.id,
         },
       });
     }
@@ -431,9 +430,59 @@ function ConversationContainer({
           ? activeChat.id
           : false
       );
-      dispatch({
-        type: "SEND-MESSAGE",
-        payload: {
+      sendMessage({
+        isNew:
+          typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
+            ? activeChat.id
+            : false,
+        act: activeChat,
+        message: {
+          parent_message: replyMessage,
+          receiver_user_id: activeChat.channel_members.filter(
+            (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+          )[0]?.user_id,
+          receiver_role_id: activeChat.channel_members.filter(
+            (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+          )[0]?.role_id,
+          sender_role_id: getUser().role_id,
+          message_type: { name: "VoiceMessage" },
+          type: "pending",
+          created_at: new Date(),
+          message_status: [
+            {
+              is_watched: false,
+              is_received: 0,
+              user_id: localStorage.getItem("USER-CHAT") && getUser()?.id,
+            },
+            {
+              is_received: 0,
+              is_watched: false,
+              user_id: activeChat.channel_members.filter(
+                (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+              )[0]?.user_id,
+            },
+          ],
+          message_content: [{ file_path: data }],
+          cid: activeChat.id,
+        },
+      });
+    }
+    setRefs();
+    setTimeout(() => {
+      document
+        .querySelector("#scroled")
+        ?.scrollIntoView({ block: "end", inline: "end" });
+    }, 400);
+  };
+  const toBase64 = (file, i, type) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        resolve(reader.result);
+
+        // dispatch({type:"SEND-MESSAGE",payload:{act:activeChat,message:{sender:"me",sent:"19:12",recived:"",read:"",content:base64data,type:"audio"}}})
+        sendMessage({
           isNew:
             typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
               ? activeChat.id
@@ -448,7 +497,9 @@ function ConversationContainer({
               (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
             )[0]?.role_id,
             sender_role_id: getUser().role_id,
-            message_type: { name: "VoiceMessage" },
+            sender_user_id: getUser()?.id,
+            message_type: { name: type },
+            message_content: [{ file_path: reader.result }],
             type: "pending",
             created_at: new Date(),
             message_status: [
@@ -465,67 +516,8 @@ function ConversationContainer({
                 )[0]?.user_id,
               },
             ],
-            message_content: [{ file_path: data }],
+            mid: i,
             cid: activeChat.id,
-          },
-        },
-      });
-    }
-    dispatch({ type: "REFS" });
-    setTimeout(() => {
-      document
-        .querySelector("#scroled")
-        ?.scrollIntoView({ block: "end", inline: "end" });
-    }, 400);
-  };
-  const toBase64 = (file, i, type) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        resolve(reader.result);
-
-        // dispatch({type:"SEND-MESSAGE",payload:{act:activeChat,message:{sender:"me",sent:"19:12",recived:"",read:"",content:base64data,type:"audio"}}})
-        dispatch({
-          type: "SEND-MESSAGE",
-          payload: {
-            isNew:
-              typeof activeChat?.id === "string" &&
-              activeChat?.id?.includes("ch")
-                ? activeChat.id
-                : false,
-            act: activeChat,
-            message: {
-              parent_message: replyMessage,
-              receiver_user_id: activeChat.channel_members.filter(
-                (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-              )[0]?.user_id,
-              receiver_role_id: activeChat.channel_members.filter(
-                (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-              )[0]?.role_id,
-              sender_role_id: getUser().role_id,
-              sender_user_id: getUser()?.id,
-              message_type: { name: type },
-              message_content: [{ file_path: reader.result }],
-              type: "pending",
-              created_at: new Date(),
-              message_status: [
-                {
-                  is_watched: false,
-                  is_received: 0,
-                  user_id: localStorage.getItem("USER-CHAT") && getUser()?.id,
-                },
-                {
-                  is_received: 0,
-                  is_watched: false,
-                  user_id: activeChat.channel_members.filter(
-                    (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-                  )[0]?.user_id,
-                },
-              ],
-              mid: i,
-              cid: activeChat.id,
-            },
           },
         });
 
@@ -584,45 +576,42 @@ function ConversationContainer({
   };
   const SendCameraImg = async (imageFile) => {
     let i = parseInt(Math.random() * 1000);
-    dispatch({
-      type: "SEND-MESSAGE",
-      payload: {
-        isNew:
-          typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
-            ? activeChat.id
-            : false,
-        act: activeChat,
-        message: {
-          parent_message: replyMessage,
-          receiver_user_id: activeChat.channel_members.filter(
-            (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-          )[0]?.user_id,
-          receiver_role_id: activeChat.channel_members.filter(
-            (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-          )[0]?.role_id,
-          sender_role_id: getUser().role_id,
-          sender_user_id: getUser()?.id,
-          message_type: { name: "ImageMessage" },
-          message_content: [{ file_path: imageFile }],
-          type: "pending",
-          created_at: new Date(),
-          message_status: [
-            {
-              is_watched: false,
-              is_received: 0,
-              user_id: localStorage.getItem("USER-CHAT") && getUser()?.id,
-            },
-            {
-              is_received: 0,
-              is_watched: false,
-              user_id: activeChat.channel_members.filter(
-                (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-              )[0]?.user_id,
-            },
-          ],
-          mid: i,
-          cid: activeChat.id,
-        },
+    sendMessage({
+      isNew:
+        typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
+          ? activeChat.id
+          : false,
+      act: activeChat,
+      message: {
+        parent_message: replyMessage,
+        receiver_user_id: activeChat.channel_members.filter(
+          (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+        )[0]?.user_id,
+        receiver_role_id: activeChat.channel_members.filter(
+          (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+        )[0]?.role_id,
+        sender_role_id: getUser().role_id,
+        sender_user_id: getUser()?.id,
+        message_type: { name: "ImageMessage" },
+        message_content: [{ file_path: imageFile }],
+        type: "pending",
+        created_at: new Date(),
+        message_status: [
+          {
+            is_watched: false,
+            is_received: 0,
+            user_id: localStorage.getItem("USER-CHAT") && getUser()?.id,
+          },
+          {
+            is_received: 0,
+            is_watched: false,
+            user_id: activeChat.channel_members.filter(
+              (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+            )[0]?.user_id,
+          },
+        ],
+        mid: i,
+        cid: activeChat.id,
       },
     });
     var file = dataURLtoFile(imageFile, "image-" + i + ".jpg");
@@ -668,7 +657,8 @@ function ConversationContainer({
           }, 1200);
         }
       } else {
-        dispatch({ type: "qouted", payload: quoteId });
+        setQouted(qouted);
+
         getMessagesBetweenMessage({
           first: activeChat?.id,
           second:
@@ -679,7 +669,6 @@ function ConversationContainer({
     },
     [activeChat]
   );
-  const language = useSelector((state) => state.homepage.language);
   const showDate = (d) => {
     var days = [
       translateFunction("Sunday", language),
@@ -742,7 +731,7 @@ function ConversationContainer({
               el.classList.remove("backdrop_msg");
             }, 1000);
           }
-          dispatch({ type: "qouted", payload: null });
+          setQouted(null);
         }
       }, 300);
     }
@@ -752,17 +741,14 @@ function ConversationContainer({
     document
       .querySelector("#scroled")
       .scrollIntoView({ block: "end", inline: "end" });
-  }, [openChat]);
+  }, [openChatRenderer]);
 
   useEffect(() => {
     document
       .querySelector("#scroled")
       .scrollIntoView({ block: "center", inline: "center" });
-    activeChat &&
-      activeChat.id &&
-      dispatch({ type: "WATCH_CHANNEL", payload: activeChat.id });
+    activeChat && activeChat.id && watchChannel(activeChat?.id);
   }, [refs]);
-  const chats = useSelector((state) => state.chat.data);
   const [DetailsVar, openDetails] = useState(false);
   useEffect(() => {}, []);
   const sendVid = async (e, i, type) => {
@@ -1075,12 +1061,7 @@ function ConversationContainer({
                 getNext={() => {
                   if (loading && active?.id && active?.messages[0])
                     getPage(active?.id, active?.messages[0]?.id);
-                  dispatch({
-                    type: "GET_CHAT_PAGE",
-                    channel: active?.id,
-                    mid: active?.messages[0]?.id,
-                    payload: active?.messages[0]?.id,
-                  });
+                  setMessagesPage(active?.messages[0]?.id);
                 }}
               />
             )}
@@ -1137,7 +1118,7 @@ function ConversationContainer({
               <ReplyMessage
                 message={replyMessage}
                 cancel={() => {
-                  dispatch({ type: "REPLY-MESSAGE", payload: null });
+                  setReplyMessage(null);
                 }}
               />
             )}
@@ -1175,7 +1156,7 @@ function ConversationContainer({
               <ReplyMessage
                 message={replyMessage}
                 cancel={() => {
-                  dispatch({ type: "REPLY-MESSAGE", payload: null });
+                  setReplyMessage(null);
                 }}
               />
             )}

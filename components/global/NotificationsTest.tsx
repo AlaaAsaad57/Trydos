@@ -1,10 +1,6 @@
 import home from "services/home";
-import { useSelector } from "react-redux";
 
 function NotificationsTest() {
-  const starttingSetting = useSelector(
-    (state: StateInterface) => state.homepage.settings
-  );
   return (
     <div className="flex">
       <div className=" bg-slate-100 top-[110px] right-8">
@@ -117,7 +113,9 @@ function NotificationsTest() {
             </div>
           </div>
           <div className="flex-row justify-between p-3">
-            <span className="test text-[#000000]">before stock out product</span>
+            <span className="test text-[#000000]">
+              before stock out product
+            </span>
             <div
               className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md"
               onClick={() => {
@@ -128,7 +126,9 @@ function NotificationsTest() {
             </div>
           </div>
           <div className="flex-row justify-between p-3">
-            <span className="test text-[#000000]">if Product Change In Price</span>
+            <span className="test text-[#000000]">
+              if Product Change In Price
+            </span>
             <div
               className="p-2 flex justify-center items-center cursor-pointer text-[#fafafa]  bg-slate-800 rounded-md"
               onClick={() => {

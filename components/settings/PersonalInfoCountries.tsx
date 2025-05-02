@@ -2,13 +2,12 @@ import React, { useEffect, useState } from "react";
 import SettingTopBar from "./TopBar";
 import AddressInfo from "public/svg/cart/AddressInfo.svg";
 import { translateFunction } from "utils/functions";
-
-import { usePathname, useRouter } from "next/navigation";
 import Flag from "react-world-flags";
-import { useDispatch, useSelector } from "node_modules/react-redux/es";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 import { changeAppCountry } from "store/homepage/actions";
 import { changeAppCountryServer } from "store/homepage/cachedActions";
+import { useAppStore } from "store";
+import SyFlage from "public/svg/sy.svg";
 function PersonalInfoCountries({
   swipeToScreen,
   goBack,
@@ -16,12 +15,8 @@ function PersonalInfoCountries({
   swipeToScreen: (index: number) => void;
   goBack: () => void;
 }) {
-  const router = useRouter();
-  const pathname = usePathname();
+  const { countries } = useAppStore();
 
-  const countries = useSelector(
-    (state: StateInterface) => state.homepage.countries
-  );
   const { lang } = useParams();
   const [selectedCountry, setSelectedCountry] = useState(
     countries.find(
@@ -40,7 +35,7 @@ function PersonalInfoCountries({
       );
   }, [countries]);
   const [isSettingCountry, setIsSettingCountry] = useState(false);
-  const dispatch = useDispatch();
+
   const changeCountry = async (country: any) => {
     setIsSettingCountry(true);
     const current = window.location.pathname;
@@ -54,9 +49,9 @@ function PersonalInfoCountries({
       window.history.replaceState(null, "", newPath);
     }
 
-    let action = await changeAppCountry(country.iso.toLowerCase());
+    await changeAppCountry(country.iso.toLowerCase());
     await changeAppCountryServer(country.iso.toLowerCase());
-    dispatch(action);
+
     setSelectedCountry(country);
     setIsSettingCountry(false);
   };
@@ -277,15 +272,20 @@ function PersonalInfoCountries({
                   }}
                   className={`w-full flex-row cursor-pointer mt-[12px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center`}
                 >
-                  <Flag
-                    code={country.iso.toUpperCase()}
-                    height="18"
-                    style={{
-                      borderRadius: "4px",
-                    }}
-                    width="28"
-                    alt={`${country.name} flag`}
-                  />
+                  {country.iso?.toLowerCase() === "sy" ? (
+                    <SyFlage data-cy="country-flag" />
+                  ) : (
+                    <Flag
+                      code={country.iso.toUpperCase()}
+                      height="18"
+                      style={{
+                        borderRadius: "4px",
+                      }}
+                      width="28"
+                      alt={`${country.name} flag`}
+                    />
+                  )}
+
                   <span className="text-[14px] regular text-[#1d1d1d] ml-[12px] ">
                     {country.name}
                   </span>

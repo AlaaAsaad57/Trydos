@@ -1,10 +1,54 @@
-const initialState = {
+interface FirebaseSettings {
+  subscribed_topics: Array<{ topic: string }>;
+  unsubscribed_topics: string[];
+  email: number;
+  whatsapp: number;
+  firebase: number;
+}
+
+interface User {
+  name?: string;
+  [key: string]: any;
+}
+
+interface AuthState {
+  user: User | null;
+  Tempuser: User | null;
+  failedLogin: boolean;
+  attempts: number;
+  wrongNumber: string;
+
+  verficationID: string | null;
+  firebaseSettings: FirebaseSettings;
+  userProfile: any | null;
+  totalOrders: number;
+  isActiveAddress: boolean;
+
+  // Actions
+  setIsActiveAddress: (isActive: boolean) => void;
+  setTotalOrders: (total: number) => void;
+  editUserInfo: (info: Partial<any>) => void;
+  cancelAuth: () => void;
+  loginSuccess: (userData: User) => void;
+  loginFailed: () => void;
+  setWrongNumber: (number: string) => void;
+  setVerificationId: (id: string) => void;
+  updateUserInfo: (profile: any) => void;
+  getFirebaseSettings: (settings: FirebaseSettings) => void;
+  disableNotification: (topic: string) => void;
+  enableNotification: (topic: string) => void;
+  setTempUser: (user: User) => void;
+  updateName: (name: string) => void;
+}
+
+export const useAuthStore = (set, get) => ({
+  // Initial state
   user: null,
   Tempuser: null,
   failedLogin: false,
   attempts: 4,
   wrongNumber: "",
-  loading: false,
+
   verficationID: null,
   firebaseSettings: {
     subscribed_topics: [],
@@ -16,112 +60,78 @@ const initialState = {
   userProfile: null,
   totalOrders: -1,
   isActiveAddress: false,
-};
 
-const AuthReducer = (state = initialState, { type, payload }) => {
-  switch (type) {
-    case "SET-IS-ACTIVE-Address": {
-      return {
-        ...state,
-        isActiveAddress: payload,
-      };
-    }
-    case "TOTAL_ORDERS": {
-      return {
-        ...state,
-        totalOrders: payload,
-      };
-    }
-    case "EDIT_USER_INFO": {
-      return {
-        ...state,
-        userProfile: { ...state.userProfile, ...payload },
-      };
-    }
-    case "CANCEL-AUTH": {
-      return {
-        ...state,
-        user: null,
-        Tempuser: null,
-        failedLogin: false,
-        attempts: 4,
-        wrongNumber: "",
-        loading: false,
-        verficationID: null,
-      };
-    }
-    case "LOGIN_SUCCESS":
-      return {
-        ...state,
-        user: state.user ? { ...state.user, ...payload } : payload,
-        Tempuser: state.user ? { ...state.user, ...payload } : payload,
-        failedLogin: false,
-      };
-    case "LOGIN_FAILED": {
-      return { ...state, failedLogin: true, attempts: state.attempts - 1 };
-    }
+  // Actions
+  setIsActiveAddress: (isActive) => set({ isActiveAddress: isActive }),
+  updateUserIsVerified: (user_obj) =>
+    set((state) => ({ userProfile: { ...state.userProfile, ...user_obj } })),
+  setTotalOrders: (total) => set({ totalOrders: total }),
 
-    case "WRONG-NUMBER": {
-      return { ...state, wrongNumber: payload };
-    }
+  editUserInfo: (info) =>
+    set((state) => ({
+      userProfile: { ...state.userProfile, ...info },
+    })),
 
-    case "SET-VERFICATION-ID": {
-      return {
-        ...state,
-        verficationID: payload,
-      };
-    }
-    case "UPDATE_USER_INFO": {
-      return {
-        ...state,
-        userProfile: payload,
-      };
-    }
-    case "GET_FIREBASE_SETTINGS": {
-      return {
-        ...state,
-        firebaseSettings: payload,
-      };
-    }
-    case "DISABLE-NOTIFICATION": {
-      return {
-        ...state,
-        firebaseSettings: {
-          ...state.firebaseSettings,
-          subscribed_topics: state.firebaseSettings.subscribed_topics.filter(
-            (s) => s.topic !== payload
-          ),
-        },
-      };
-    }
-    case "ENABLE-NOTIFICATION": {
-      return {
-        ...state,
-        firebaseSettings: {
-          ...state.firebaseSettings,
-          subscribed_topics: [
-            ...state.firebaseSettings.subscribed_topics,
-            { topic: payload },
-          ],
-        },
-      };
-    }
-    case "TEMP-USER": {
-      return {
-        ...state,
-        Tempuser: payload,
-      };
-    }
-    case "UPDATE-NAME": {
-      return {
-        ...state,
-        user: { ...state.user, name: payload },
-        Tempuser: { ...state.user, name: payload },
-      };
-    }
-    default:
-      return state;
-  }
-};
+  cancelAuth: () =>
+    set({
+      user: null,
+      Tempuser: null,
+      failedLogin: false,
+      attempts: 4,
+      wrongNumber: "",
 
-export default AuthReducer;
+      verficationID: null,
+    }),
+
+  loginSuccess: (userData) =>
+    set((state) => ({
+      user: state.user ? { ...state.user, ...userData } : userData,
+      Tempuser: state.user ? { ...state.user, ...userData } : userData,
+      failedLogin: false,
+    })),
+
+  loginFailed: () =>
+    set((state) => ({
+      failedLogin: true,
+      attempts: state.attempts - 1,
+    })),
+
+  setWrongNumber: (number) => set({ wrongNumber: number }),
+
+  setVerificationId: (id) => set({ verficationID: id }),
+
+  updateUserInfo: (profile) => set({ userProfile: profile }),
+
+  getFirebaseSettings: (settings) => set({ firebaseSettings: settings }),
+
+  disableNotification: (topic) =>
+    set((state) => ({
+      firebaseSettings: {
+        ...state.firebaseSettings,
+        subscribed_topics: state.firebaseSettings.subscribed_topics.filter(
+          (s) => s.topic !== topic
+        ),
+      },
+    })),
+
+  enableNotification: (topic) =>
+    set((state) => ({
+      firebaseSettings: {
+        ...state.firebaseSettings,
+        subscribed_topics: [
+          ...state.firebaseSettings.subscribed_topics,
+          { topic },
+        ],
+      },
+    })),
+
+  setTempUser: (user) => set({ Tempuser: user }),
+
+  updateName: (name) =>
+    set((state) => ({
+      user: { ...state.user, name },
+      Tempuser: { ...state.user, name },
+    })),
+});
+
+export default useAuthStore;

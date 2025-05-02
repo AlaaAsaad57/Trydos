@@ -102,7 +102,7 @@ function TopSlider({
               height={40}
               unoptimized
               alt={product_name || "alt"}
-              loading="lazy"
+              loading="eager"
               style={{
                 objectPosition: "center top",
                 objectFit: "cover",

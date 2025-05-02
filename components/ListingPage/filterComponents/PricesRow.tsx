@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
-import { useDispatch, useSelector } from "react-redux";
-
 import { useParams, useSearchParams } from "next/navigation";
 import {
   filterProducts,
@@ -9,6 +7,7 @@ import {
   Sendevent,
   UpdateFilter,
 } from "utils/functions";
+import { useAppStore } from "store";
 
 function SizeCircle({
   text,
@@ -18,19 +17,28 @@ function SizeCircle({
     max_price?: number;
   };
 }) {
-  const selectedFilter = useSelector(
-    (state: StateInterface) => state.details.selectedFilter
-  );
+  const {
+    setFilterLoading,
+    filterPrice,
+    filterPriceText,
+    editFilter,
+    filterStart,
+    getProducts,
+    setSkeleton,
+    setActiveFilter,
+    selectedFilter,
+    filters,
+    filterEnabled,
+    settings,
+    currency,
+  } = useAppStore();
+
   const pathName = useParams();
-  const filters = useSelector((state: StateInterface) => state.details.filters);
-  const dispatch = useDispatch();
-  const filterEnabled = useSelector(
-    (state: StateInterface) => state.listing.filterEnabled
-  );
+
   const selectCategory = (e) => {
     let { min_price, max_price } = e;
 
-    dispatch({ type: "FILTER-LOADING", payload: true });
+    setFilterLoading(true);
     Sendevent({
       event: "button_clicked",
       value: "add_filter_button",
@@ -39,12 +47,10 @@ function SizeCircle({
         name: `${Math.round(min_price)} - ${Math.round(max_price)}`,
       },
     });
-    dispatch({
-      type: "FILTER-PRICE",
-      payload: {
-        min: Math.round(min_price),
-        max: Math.round(max_price),
-      },
+
+    filterPrice({
+      min: Math.round(min_price),
+      max: Math.round(max_price),
     });
     Sendevent({
       event: "button_clicked",
@@ -54,20 +60,18 @@ function SizeCircle({
         name: `${min_price} - ${max_price}`,
       },
     });
-    dispatch({
-      type: "FILTER-PRICE-TEXT",
-      payload: `${min_price} - ${max_price}`,
-    });
+
+    filterPriceText(`${min_price} - ${max_price}`);
     UpdateFilter({
       boutiqueId: pathName.productCategory,
       lang: pathName.lang,
       sizesAttr: filters.sizesAttr,
       newFiltersCallback: ({ filtersVar }) => {
-        dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+        editFilter(filtersVar);
       },
       searchText: "",
       done: () => {
-        dispatch({ type: "FILTER-LOADING", payload: false });
+        setFilterLoading(false);
       },
     });
     if (!filterEnabled) {
@@ -76,8 +80,8 @@ function SizeCircle({
   };
   const SearchParams = useSearchParams();
   const filter = () => {
-    dispatch({ type: "FILTER-START" });
-    dispatch({ type: "Skeleton-Listing" });
+    filterStart();
+    setSkeleton(true);
     filterProducts({
       boutiqueId:
         (SearchParams.get("boutique_slugs") &&
@@ -86,17 +90,14 @@ function SizeCircle({
       lang: pathName.lang,
       sizesAttr: filters.sizesAttr,
       callback: (products) => {
-        dispatch({ type: "GET_PRODUCT", payload: { products } });
+        getProducts({ products });
       },
       offset: 1,
       storeCallback: (e) => {
-        dispatch({
-          type: "ACTIVE-FILTER",
-          payload: e,
-        });
+        setActiveFilter(e);
       },
       newFiltersCallback: ({ filtersVar }) => {
-        dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+        editFilter(filtersVar);
       },
     });
   };
@@ -107,12 +108,6 @@ function SizeCircle({
       ).length > 0
     );
   };
-  const decimal_point_settings = useSelector(
-    (state: StateInterface) => state.homepage.settings
-  );
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  ) || { exchange_rate: 1, symbol: "" };
 
   return (
     <div
@@ -145,12 +140,12 @@ function SizeCircle({
           {currency?.symbol}
           {` ${RoundPrice({
             num: text.min_price,
-            points: decimal_point_settings,
-            rate: currency.exchange_rate,
+            points: settings,
+            rate: currency?.exchange_rate,
           })} - ${RoundPrice({
             num: text.max_price,
-            points: decimal_point_settings,
-            rate: currency.exchange_rate,
+            points: settings,
+            rate: currency?.exchange_rate,
           })}`}
         </div>
       </div>
@@ -162,8 +157,7 @@ function SizeCircle({
 }
 
 function PricesRow() {
-  const filters = useSelector((state: StateInterface) => state.details.filters);
-
+  const { filters } = useAppStore();
   useEffect(() => {
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector(".prices-row");

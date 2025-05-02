@@ -1,6 +1,5 @@
-import { AxiosGet, AxiosPost } from "utils/AxiosApi";
-import { store } from "store";
-import { FilterProductApi } from "models/Api";
+import { AxiosGet } from "utils/AxiosApi";
+import { useAppStore } from "store";
 
 class SearchService {
   async getTrendingSearch() {
@@ -10,35 +9,180 @@ class SearchService {
         "/api/products/popular-search",
       title: "Get Trending Search",
     });
-    store.dispatch({ type: "TRENDING-SEARCH", payload: data });
+    const { setTrendingSearch } = useAppStore.getState();
+    setTrendingSearch(data);
   }
-  async searchProducts({ searchText }) {
-    let product: FilterProductApi["data"] = await AxiosGet({
-      url:
-        process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        `/api/products/searchInCatalog?limit=4&search_text=${searchText}`,
-      title: "Search Products",
-    });
-    console.log(product);
-    return product.products;
-  }
-  async getSearchOptions() {
-    let categories: FilterProductApi["data"] = await AxiosGet({
-      url:
-        process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        "/api/products/searchInCatalog?with_products=false",
-      title: "get Search Filter Options Request",
-    });
 
-    return [
+  async getSearchOptions({
+    noProducts = false,
+    lang,
+    noFilters = false,
+    filters_offset = null,
+    replace = true,
+  }) {
+    const { setSearchResults, searchFilters, value, setTotalSizeOfProducts } =
+      useAppStore.getState();
+
+    let params = this.getSearchParamsFromObj(
+      searchFilters,
+      noProducts,
+      noFilters,
+      filters_offset
+    );
+    let searchFiltersEdit = {};
+    if (searchFilters?.categories && searchFilters.categories.length > 0) {
+      searchFiltersEdit = {
+        ...searchFiltersEdit,
+        categories: JSON.stringify(searchFilters.categories.map((s) => s.slug)),
+      };
+    }
+    if (searchFilters?.brands && searchFilters.brands.length > 0) {
+      searchFiltersEdit = {
+        ...searchFiltersEdit,
+        brands: JSON.stringify(searchFilters.brands.map((s) => s.slug)),
+      };
+    }
+    if (searchFilters?.boutiques && searchFilters.boutiques.length > 0) {
+      searchFiltersEdit = {
+        ...searchFiltersEdit,
+        boutiques: JSON.stringify(searchFilters.boutiques.map((s) => s.slug)),
+      };
+    }
+    if (searchFilters?.colors && searchFilters.colors.length > 0) {
+      searchFiltersEdit = {
+        ...searchFiltersEdit,
+        colors: JSON.stringify(searchFilters.colors.map((s) => s)),
+      };
+    }
+    if (searchFilters?.sizes && searchFilters.sizes.length > 0) {
+      searchFiltersEdit = {
+        ...searchFiltersEdit,
+        sizes: JSON.stringify(searchFilters.sizes.map((s) => s)),
+      };
+    }
+    if (
+      searchFilters?.prices?.max_price > 0 &&
+      searchFilters?.prices?.min_price >= 0
+    ) {
+      searchFiltersEdit = {
+        ...searchFiltersEdit,
+        prices: JSON.stringify([
+          `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
+        ]),
+      };
+    }
+    if (value?.length > 0) {
+      searchFiltersEdit = {
+        ...searchFiltersEdit,
+        search_text: value,
+      };
+    }
+
+    ("use server");
+    let requestSearchParams = new URLSearchParams();
+    let requestSearchParamsString = "";
+    if (Object.keys(searchFiltersEdit).length > 0) {
+      requestSearchParams.set(
+        "searchParams",
+        JSON.stringify(searchFiltersEdit)
+      );
+      requestSearchParamsString = `&${requestSearchParams.toString()}`;
+    }
+    const filtersResponseJson = await fetch(
+      `/api/${lang}/search?${params.toString()}${requestSearchParamsString}`
+    );
+
+    const filtersResponse = await filtersResponseJson.json();
+    const {
+      products,
+      categories,
+      brands,
+      boutiques,
+      colors,
+      attributes: attributes,
+      total_size,
+    } = filtersResponse.data;
+    setTotalSizeOfProducts({ total_size });
+
+    setSearchResults(
       {
-        categories: categories?.categories ?? [],
-        brands: categories?.brands ?? [],
-        boutiques: categories?.boutiques ?? [],
-        colors: categories.colors ?? [],
+        products,
+        categories,
+        brands,
+        boutiques,
+        colors,
+        sizes: attributes?.[0]?.options,
+        prices: {
+          min_price: filtersResponse?.data?.prices?.min_price || null,
+          max_price: filtersResponse?.data?.prices?.max_price || null,
+        },
+        prices_ranges: filtersResponse?.data?.prices?.priceRanges || [],
       },
-      {},
-    ];
+      replace
+    );
+
+    return filtersResponse;
+  }
+  async resetSearchFilters({ filter_obj, lang }) {
+    const { setSearchResults, setTotalSizeOfProducts } = useAppStore.getState();
+    try {
+      ("use server");
+      let requestSearchParams = new URLSearchParams();
+      let requestSearchParamsString = "";
+      console.log(filter_obj, "filter_obj");
+      if (Object.keys(filter_obj).length > 0) {
+        requestSearchParams.set("searchParams", JSON.stringify(filter_obj));
+        requestSearchParamsString = `&${requestSearchParams.toString()}`;
+      }
+      const filtersResponseJson = await fetch(
+        `/api/${lang}/search?noProducts=true&${requestSearchParamsString}`
+      );
+
+      const filtersResponse = await filtersResponseJson.json();
+      const {
+        products,
+        categories,
+        brands,
+        boutiques,
+        colors,
+        attributes: attributes,
+        total_size,
+      } = filtersResponse.data;
+      setTotalSizeOfProducts({ total_size });
+
+      setSearchResults(
+        {
+          products,
+          categories,
+          brands,
+          boutiques,
+          colors,
+          sizes: attributes?.[0]?.options,
+          prices: {
+            min_price: filtersResponse?.data?.prices?.min_price || null,
+            max_price: filtersResponse?.data?.prices?.max_price || null,
+          },
+          prices_ranges: filtersResponse?.data?.prices?.priceRanges || [],
+        },
+        true
+      );
+      return filtersResponse.data;
+    } catch (error) {
+      console.log(error, "resetSearchFilters");
+    }
+  }
+  getSearchParamsFromObj(obj, noProducts, noFilters, filters_offset?) {
+    let params = new URLSearchParams();
+    if (filters_offset) {
+      params.set("filters_offset", `${filters_offset}`);
+    }
+    if (noProducts) {
+      params.set("noProducts", "true");
+    }
+    if (noFilters) {
+      params.set("noFilters", "true");
+    }
+    return params;
   }
   ProcessSearchInput(str: string): {
     str: string;
@@ -364,6 +508,79 @@ class SearchService {
       ...result,
       str: result.str.join(" "),
     };
+  }
+  getSearchPageUrl() {
+    let { searchFilters, value } = useAppStore.getState();
+    if (searchFilters.categories.length > 0) {
+    }
+    let url = "/boutique/listing";
+    let params = new URLSearchParams();
+    if (searchFilters.categories.length > 0) {
+      params.set(
+        "categories",
+        encodeURIComponent(
+          JSON.stringify(searchFilters.categories.map((s) => s.slug))
+        )
+      );
+    }
+    if (searchFilters.brands.length > 0) {
+      params.set(
+        "brands",
+        encodeURIComponent(
+          JSON.stringify(searchFilters.brands.map((s) => s.slug))
+        )
+      );
+    }
+    if (searchFilters.boutiques.length > 0) {
+      params.set(
+        "boutiques",
+        encodeURIComponent(
+          JSON.stringify(searchFilters.boutiques.map((s) => s.slug))
+        )
+      );
+    }
+    if (value?.length > 0) {
+      params.set("search_text", value);
+    }
+    if (
+      searchFilters.prices.min_price !== null &&
+      searchFilters?.prices?.max_price !== null &&
+      searchFilters?.prices?.max_price > 0 &&
+      searchFilters?.prices?.min_price >= 0
+    ) {
+      params.set(
+        "prices",
+        encodeURIComponent(
+          JSON.stringify([
+            `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
+          ])
+        )
+      );
+    }
+    if (searchFilters.colors.length > 0) {
+      params.set(
+        "colors",
+        encodeURIComponent(JSON.stringify(searchFilters.colors.map((s) => s)))
+      );
+    }
+    if (searchFilters.sizes.length > 0) {
+      params.set(
+        "sizes",
+        encodeURIComponent(JSON.stringify(searchFilters.sizes.map((s) => s)))
+      );
+    }
+    return url + "?" + params.toString();
+  }
+  getPageUrl({ term, value }) {
+    let params = new URLSearchParams();
+    if (term && value) {
+      params.set(
+        term,
+        encodeURIComponent(JSON.stringify(value.map((s) => s.slug)))
+      );
+    }
+    return "?" + params.toString();
+    return;
   }
 }
 export default new SearchService();

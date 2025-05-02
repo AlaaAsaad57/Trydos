@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { getStatusDisplayName, OrdersIcon } from "./OrdersList";
+import React, { useState } from "react";
+import { OrdersIcon } from "./OrdersList";
 import SettingTopBar from "./TopBar";
 
 import { OrderDateCard, OrderInvoiceCard, OrderNumberCard } from "./cards";
-import { useDispatch, useSelector } from "react-redux";
+
 import OrderExpectedDeliveryCard from "./cards/OrderExpectedDeliveryCard";
 import OrderStatusCard from "./cards/OrderStatusCard";
 import OrderAddressCard from "./cards/OrderAddressCard";
 import OrderItemsList from "./cards/OrderItemsList";
 import { OrderDetail, OrderItem } from "types/orders";
 import { RoundPrice, translateFunction } from "utils/functions";
+import { useAppStore } from "store";
 
 function OrderDetails({
   resetOrderDetails,
@@ -18,12 +19,10 @@ function OrderDetails({
   resetOrderDetails: () => void;
   goBack: () => void;
 }) {
-  const selectedOrder = useSelector(
-    (state: StateInterface) => state.cart.selectedOrder
-  );
-  const dispatch = useDispatch();
+  const { setOrderDetails, selectedOrder } = useAppStore();
+
   const resetOrder = () => {
-    dispatch({ type: "ORDER-DETAILS", payload: null });
+    setOrderDetails(null);
     goBack();
   };
   const [isExpanded, setIsExpanded] = useState(false);
@@ -56,13 +55,13 @@ function OrderDetails({
           <OrderNumberCard number={selectedOrder.order_group_id} />
           <OrderDateCard time={selectedOrder.created_at} />
           <OrderInvoiceCard
-            amount={selectedOrder.order_amount + selectedOrder.shipping_cost}
+            amount={selectedOrder.order_amount}
             payments={selectedOrder.payment_method}
           />
         </div>
         <div className="flex-row justify-between items-center w-full mt-[8px]">
           <OrderExpectedDeliveryCard time={selectedOrder.created_at} />
-          <OrderStatusCard status={selectedOrder.order_status.value} />
+          <OrderStatusCard status={selectedOrder.order_group_status.label} />
         </div>
         <OrderAddressCard address={selectedOrder.shipping_address_data} />
       </div>
@@ -80,9 +79,8 @@ function OrderDetails({
 
 export default OrderDetails;
 const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+  const { currency, settings } = useAppStore();
+
   return (
     <div className="bg-[#fff] mt-[20px] rounded-[10px] w-full h-auto p-[12px] flex-col flex items-start">
       <span className="w-[70px] h-[10px] bg-[#C4C2C27f]"></span>
@@ -92,8 +90,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
           <span className="bold mx-[2px]"> {order.details.length}</span>{" "}
           {translateFunction("Items")} .{" "}
           <span className="bold mx-[2px]">
-            {RoundPrice({ num: order.order_amount + order.shipping_cost })}{" "}
-            {currency?.symbol}
+            {RoundPrice({ num: order.order_amount })} {currency?.symbol}
           </span>
         </div>
       </div>
@@ -414,11 +411,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
             {translateFunction("Order Status")}
           </span>
           <div className="text-[#1D1D1D] flex-row text-[12px] regular mt-[3px]">
-            <span>
-              {translateFunction(
-                getStatusDisplayName(order.order_status.value)
-              )}
-            </span>
+            <span>{order?.order_group_status?.label}</span>
             <svg
               className="ml-[11px]"
               xmlns="http://www.w3.org/2000/svg"
@@ -520,16 +513,25 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
       </div>
       <div className="flex-col w-full mt-[12px]">
         {order.details.map((Product) => (
-          <ProductCard product={Product} key={Product.id} />
+          <ProductCard
+            status={order?.order_status?.label}
+            product={Product}
+            key={Product.id}
+          />
         ))}
       </div>
     </div>
   );
 };
-const ProductCard = ({ product }: { product: OrderDetail }) => {
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+const ProductCard = ({
+  product,
+  status,
+}: {
+  product: OrderDetail;
+  status: string;
+}) => {
+  const { currency, settings } = useAppStore();
+
   return (
     <div className="flex-row relative w-full border-t border-[#C4C2C27f] py-[12px]">
       <div className="flex-row  relative">
@@ -541,7 +543,7 @@ const ProductCard = ({ product }: { product: OrderDetail }) => {
         />
         <img
           className="w-[104px] h-[144px] rounded-[15px]"
-          src={product.product_details.thumbnail}
+          src={product.image}
           alt={product.product_details.name}
         />
       </div>
@@ -578,6 +580,7 @@ const ProductCard = ({ product }: { product: OrderDetail }) => {
               {translateFunction("Composed Of")}:
             </span>
             <span className="text-[#505050] text-[10px] medium ml-[2px]">
+              {product?.product_details?.count_of_pieces}{" "}
               {translateFunction("Pieces")}
             </span>
           </div>
@@ -597,7 +600,7 @@ const ProductCard = ({ product }: { product: OrderDetail }) => {
               {translateFunction("Item Status")}:
             </span>
             <span className="text-[#505050] text-[10px] medium ml-[2px]">
-              {translateFunction(getStatusDisplayName(product.delivery_status))}
+              {product?.order_status ?? status}
             </span>
             <svg
               xmlns="http://www.w3.org/2000/svg"

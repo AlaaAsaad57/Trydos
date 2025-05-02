@@ -1,4 +1,3 @@
-import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import ConfirmMobile from "./ConfirmMobile";
@@ -7,12 +6,22 @@ import { useSwipeable } from "react-swipeable";
 import OrderMarquee from "./OrderMarquee";
 import DiscoutIcon from "public/svg/cart/Disount.svg";
 import ShippingIcon from "public/svg/cart/Shipping.svg";
-import { AxiosGet } from "utils/AxiosApi";
 import Spinner from "components/global/Spinner";
 import { toast } from "react-toastify";
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
+import { useAppStore } from "store";
 function OrderButton({ close, toOrders }) {
+  const {
+    initCart,
+    total_discount,
+    currency,
+    user,
+    sub_total,
+    total_cash,
+    total_shipping_cost,
+    cart,
+  } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -21,11 +30,9 @@ function OrderButton({ close, toOrders }) {
   };
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
-  const cart = useSelector((state: StateInterface) => state.cart);
+
   const [option, setOption] = useState(false);
-  const currency_symbol = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+
   const ItemsIcon = () => {
     return (
       <svg
@@ -108,7 +115,6 @@ function OrderButton({ close, toOrders }) {
       </svg>
     );
   };
-  const user = useSelector((state: StateInterface) => state.auth.user);
 
   const MenuIcon = ({ className }) => {
     return (
@@ -135,17 +141,17 @@ function OrderButton({ close, toOrders }) {
     );
   };
   const getDiscount = () => {
-    var a = parseInt(((cart.total_discount / cart.sub_total) * 100).toString());
+    var a = parseInt(((total_discount / sub_total) * 100).toString());
     return a;
   };
-  const dispatch = useDispatch();
+
   const GoToOrders = async (bool?) => {
     try {
       setLoading(true);
       let a = (
         await getCart({
           callback: ([data, res]) => {
-            dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+            initCart(data ?? { cart: [] });
           },
         })
       ).cart;
@@ -192,7 +198,7 @@ function OrderButton({ close, toOrders }) {
   });
   const IsNotAvailable = () => {
     let a = false;
-    cart.cart.map((product) => {
+    cart.map((product) => {
       if (parseInt(product.quantity) > product.available_quantity) a = true;
     });
     return a;
@@ -217,7 +223,7 @@ function OrderButton({ close, toOrders }) {
         }}
         className="order-bottom-button flex-col z-50 fixed  left-0 bg-white min-h-[100px] w-full"
       >
-        {cart.cart.length > 0 && (
+        {cart.length > 0 && (
           <div
             data-cy="overflow-hidden-container"
             {...handlers}
@@ -274,7 +280,7 @@ function OrderButton({ close, toOrders }) {
                 </g>
               </svg>
             </div>
-            <OrderMarquee shippingCost={cart.total_shipping_cost} />
+            <OrderMarquee shippingCost={total_shipping_cost} />
             {expanded && (
               <div
                 data-cy="itemPriceDiscountShipping-container"
@@ -300,9 +306,7 @@ function OrderButton({ close, toOrders }) {
                       className="regular text-[11px]"
                     >
                       {translate("Total Items")}
-                      <span data-cy="itemsLength" className="ml-1 bold">
-                        {cart.cart.length}
-                      </span>
+                      <span className="ml-1 bold">{cart.length}</span>
                     </span>
                   </div>
                 </div>
@@ -324,12 +328,11 @@ function OrderButton({ close, toOrders }) {
                       {translateFunction("Normal Price")}
                     </span>
                   </div>
-                  <span
-                    data-cy="currency_symbol-Price"
-                    className="ml-[5px] medium text-[#1D1D1D] text-[13px] pr-[13px]"
-                  >
-                    {RoundPrice({ num: cart.sub_total })}{" "}
-                    {currency_symbol.symbol}
+                  <span className="ml-[5px] medium text-[#1D1D1D] text-[13px] pr-[13px]">
+                    {RoundPrice({
+                      num: total_cash + total_discount - total_shipping_cost,
+                    })}{" "}
+                    {currency.symbol}
                   </span>
                 </div>
                 <div
@@ -371,14 +374,12 @@ function OrderButton({ close, toOrders }) {
                     </div>
                   </div>
 
-                  <span
-                    data-cy="RoundPrice"
-                    className="ml-[5px] bold  text-[13px] pr-[13px] text-[#A28E5B]"
-                  >
+                  <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#A28E5B]">
+                    -{" "}
                     {RoundPrice({
-                      num: cart.total_discount,
+                      num: total_discount,
                     })}{" "}
-                    {currency_symbol.symbol}
+                    {currency.symbol}
                   </span>
                 </div>
                 {/* <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
@@ -414,27 +415,20 @@ function OrderButton({ close, toOrders }) {
                     >
                       <ShippingIcon data-cy="Shipping-svg" />
                     </span>{" "}
-                    {cart.total_shipping_cost === 0 && (
-                      <div
-                        data-cy="Shipping-statement-container"
-                        className="flex-col pl-1 text-[#5BA260]"
-                      >
-                        <span
-                          data-cy="Shipping-text"
-                          className="medium text-[13px] text-[#5BA260]"
-                        >
+                    {
+                      <div className="flex-col pl-1 text-[#5BA260]">
+                        <span className="medium text-[13px] text-[#5BA260]">
                           {translate("Shipping")}
                         </span>
-                        <span
-                          data-cy="Completely-text"
-                          className="regular text-[11px] text-[#5BA260]"
-                        >
-                          {translate(
-                            "Shipping Is Completely Free Without Any Extras"
-                          )}
-                        </span>
+                        {total_shipping_cost === 0 && (
+                          <span className="regular text-[11px] text-[#5BA260]">
+                            {translate(
+                              "Shipping Is Completely Free Without Any Extras"
+                            )}
+                          </span>
+                        )}
                       </div>
-                    )}
+                    }
                   </div>
 
                   <span
@@ -442,9 +436,8 @@ function OrderButton({ close, toOrders }) {
                     className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]"
                   >
                     <span className="">
-                      {" "}
-                      {RoundPrice({ num: cart.total_shipping_cost })}{" "}
-                      {currency_symbol.symbol}
+                      + {RoundPrice({ num: total_shipping_cost })}{" "}
+                      {currency.symbol}
                     </span>
                   </span>
                 </div>
@@ -492,11 +485,11 @@ function OrderButton({ close, toOrders }) {
                   className="line-through regular mr-2"
                 >
                   {RoundPrice({
-                    num: cart.total_cash + cart.total_discount,
+                    num: total_cash + total_discount,
                   })}
                 </span>{" "}
-                {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}
-                <span data-cy="total-right-text" className="ml-2">
+                {RoundPrice({ num: total_cash })} {currency?.symbol}
+                <span className="ml-2">
                   <MenuIcon className={expanded && "rotate-180"} />
                 </span>
               </span>
@@ -521,7 +514,7 @@ function OrderButton({ close, toOrders }) {
                 "inset 0px 3px 6px rgba(255,255,255,0.16), 0px 3px 6px rgba(0,0,0,0.1)",
             }}
             onClick={() => {
-              if (cart.cart.length === 0) {
+              if (cart.length === 0) {
                 close();
               } else {
                 if (!auth.getUser()) {
@@ -557,7 +550,7 @@ function OrderButton({ close, toOrders }) {
                 ) : (
                   <>
                     {" "}
-                    {cart.cart.length === 0 ? (
+                    {cart.length === 0 ? (
                       <>
                         <span
                           className="text-[#FEFEFE] text-[18px] medium "
@@ -586,9 +579,8 @@ function OrderButton({ close, toOrders }) {
                               "ar" && "dir-rtl"
                           } `}
                         >
-                          {cart.cart.length} {translate("items")}{" "}
-                          {RoundPrice({ num: cart.total_cash })}{" "}
-                          {currency_symbol?.symbol}
+                          {cart.length} {translate("items")}{" "}
+                          {RoundPrice({ num: total_cash })} {currency?.symbol}
                         </span>
                       </>
                     )}

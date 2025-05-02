@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import ImageAvatar from "./ImageAvatar";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { EffectCoverflow } from "swiper/modules";
-import { stopProgress } from "next-nprogress-bar";
+import { dispatchRouteChangeEvent } from "utils/events";
 function CoverEffectSlider({
   images,
   active,
@@ -71,7 +71,7 @@ function CoverEffectSlider({
   return (
     <div
       className={
-        "product-photos-slider overflow-visible flex absolute align-center justify-center max-h[35px]"
+        "product-photos-slider no-navigate overflow-visible flex absolute align-center justify-center max-h[35px]"
       }
       data-cy="productPhotoSlider"
       onWheel={throttle(callback, 250)}
@@ -85,10 +85,14 @@ function CoverEffectSlider({
         onInit={(swiper) => {
           ref.current = swiper;
         }}
-        className="avatar-slider"
+        className="avatar-slider mx-auto my-0 !w-fit"
+        style={{
+          width: "fit-content !important",
+          margin: "0 auto",
+        }}
         onSlideChange={(swiper) => {
           setTimeout(() => {
-            stopProgress(true);
+            dispatchRouteChangeEvent("completed");
           }, 300);
           setActive(swiper.activeIndex);
           setActiveColor({ ...images[swiper.activeIndex], index: 0 });
@@ -105,7 +109,7 @@ function CoverEffectSlider({
         }}
         slidesPerView={"auto"}
         centeredSlides={true}
-        initialSlide={Math.round(images.length / 2) - 1}
+        initialSlide={0}
         resistanceRatio={0}
         virtualTranslate={false}
       >
@@ -121,7 +125,7 @@ function CoverEffectSlider({
               setActive(i);
               setActiveColor(images[i]);
             }}
-            className={`image-avatar overflow-visible w-100 rounded-50 flex relative cursor-pointer wid-${getSize(
+            className={`image-avatar bg-white overflow-visible w-100 rounded-50 flex relative cursor-pointer wid-${getSize(
               i
             )}`}
             style={{

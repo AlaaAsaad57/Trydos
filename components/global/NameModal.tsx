@@ -1,21 +1,20 @@
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+
 import AuthService from "services/auth";
 import { translateFunction } from "utils/functions";
 import ManIcon from "public/svg/manIcon.svg";
 import Border from "./Border";
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
 import "styles/Modal.css";
+import { useAppStore } from "store";
 
 function NameModal() {
-  const Open = useSelector((state: StateInterface) => state.chat.nameModal);
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
+  const { language, nameModal: Open, setNameModal } = useAppStore();
+
   const [value, setValue] = useState("");
-  const dispatch = useDispatch();
+
   const close = () => {
-    dispatch({ type: "SHOW-MODAL", payload: false });
+    setNameModal(false);
   };
   return (
     <>

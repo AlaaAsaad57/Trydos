@@ -3,10 +3,10 @@ import SettingTopBar from "./TopBar";
 import { translateFunction } from "utils/functions";
 
 import AddressInfo from "public/svg/cart/AddressInfo.svg";
-import { useDispatch, useSelector } from "react-redux";
 import auth from "services/auth";
 import ConfirmMobileChange from "./ConfirmMobileChange";
 import XIcon from "public/svg/Xicon.svg";
+import { useAppStore } from "store";
 function PersonalInfo({
   swipeToScreen,
   goBack,
@@ -14,14 +14,13 @@ function PersonalInfo({
   swipeToScreen: (index: number) => void;
   goBack: () => void;
 }) {
-  const userProfile = useSelector(
-    (state: StateInterface) => state.auth.userProfile
-  );
+  const { editUserInfo, userProfile } = useAppStore();
+
   const [userProfileData, setUserProfileData] = useState({
     name: userProfile?.name,
     phone: userProfile?.phone,
     email: userProfile?.email,
-    gender: userProfile?.gender.value,
+    gender: userProfile?.gender?.value || userProfile?.gender,
     alternative_phone: userProfile?.alternative_phone,
   });
   const [loading, setLoading] = useState(false);
@@ -39,27 +38,34 @@ function PersonalInfo({
         obj = { ...obj, gender: payload.gender };
       if (userProfile.alternative_phone !== payload.alternative_phone)
         obj = { ...obj, alternative_phone: payload.alternative_phone };
+      if (payload.id_token) {
+        obj = { ...obj, id_token: payload.id_token };
+      }
       await auth.UpdateProfile({ ...obj });
-      dispatch({
-        type: "EDIT_USER_INFO",
-        payload: { ...payload, gender: { value: payload.gender } },
-      });
+      editUserInfo({ ...payload, gender: { value: payload.gender } });
       setLoading(false);
       goBack();
     } catch (error) {
       setLoading(false);
-
+      setUserProfileData({
+        name: userProfile?.name,
+        phone: userProfile?.phone,
+        email: userProfile?.email,
+        gender: userProfile?.gender?.value || userProfile?.gender,
+        alternative_phone: userProfile?.alternative_phone,
+      });
       console.log(error);
     }
   };
-  const dispatch = useDispatch();
+
   const isEdited = () => {
     return (
       userProfileData.name !== userProfile?.name ||
-      userProfileData.phone !== userProfile?.phone ||
+      Number(userProfileData.phone) !== Number(userProfile?.phone) ||
       userProfileData.email !== userProfile?.email ||
-      userProfileData.gender !== userProfile?.gender.value ||
-      userProfileData.alternative_phone !== userProfile?.alternative_phone
+      userProfileData.gender !== userProfile?.gender?.value ||
+      Number(userProfileData.alternative_phone) !==
+        Number(userProfile?.alternative_phone)
     );
   };
   const isPhoneEdited = () => {
@@ -71,8 +77,7 @@ function PersonalInfo({
       userProfileData.name &&
       userProfileData.phone &&
       userProfileData.email &&
-      userProfileData.gender &&
-      userProfileData.alternative_phone
+      userProfileData.gender
     );
   };
 
@@ -82,11 +87,18 @@ function PersonalInfo({
     >
       {isPhoneShouldChange && (
         <ConfirmationModal
+          forVerify={false}
           closeWindow={() => {
             setIsPhoneShouldChange(false);
           }}
           value={userProfileData.phone}
-          successCallback={() => {
+          successCallback={(idToken) => {
+            updateUserProfile({
+              ...userProfileData,
+              phone: userProfileData.phone,
+              id_token: idToken,
+            });
+
             setIsPhoneShouldChange(false);
           }}
         />
@@ -289,7 +301,7 @@ function PersonalInfo({
                 aria-autocomplete="both"
                 aria-haspopup="false"
                 type="number"
-                value={userProfileData?.phone}
+                value={Number(userProfileData?.phone)}
                 onChange={(e) => {
                   setUserProfileData({
                     ...userProfileData,
@@ -335,7 +347,7 @@ function PersonalInfo({
                 aria-autocomplete="both"
                 aria-haspopup="false"
                 spellCheck="false"
-                value={userProfileData?.alternative_phone}
+                value={Number(userProfileData?.alternative_phone)}
                 onChange={(e) => {
                   setUserProfileData({
                     ...userProfileData,
@@ -458,7 +470,12 @@ function PersonalInfo({
 }
 
 export default PersonalInfo;
-const ConfirmationModal = ({ closeWindow, value, successCallback }) => {
+export const ConfirmationModal = ({
+  closeWindow,
+  value,
+  successCallback,
+  forVerify,
+}) => {
   return (
     <>
       <XIcon
@@ -469,9 +486,10 @@ const ConfirmationModal = ({ closeWindow, value, successCallback }) => {
 
       <div className="p-5 flex  w-auto justify-center z-30 h-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[15px]">
         <ConfirmMobileChange
+          forVerify={forVerify}
           closeWindow={closeWindow}
           value={value}
-          successCallback={(idToken) => {
+          successCallbackFunction={(idToken) => {
             successCallback(idToken);
           }}
         />

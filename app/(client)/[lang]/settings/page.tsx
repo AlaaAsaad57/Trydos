@@ -1,5 +1,4 @@
 import Setting from "components/global/Setting";
-import CustomNavbarServer from "components/Server/ServerCustomNav";
 import React from "react";
 
 async function page({ params }) {

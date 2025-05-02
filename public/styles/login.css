@@ -18,6 +18,7 @@
   width: 90vw;
   min-height: 100px;
   top: 56px;
+  right: 10px;
   flex-direction: column;
   background-color: transparent;
   z-index: 999999999;

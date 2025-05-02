@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+
 import {
   getCart,
   getOldCart,
@@ -18,8 +18,6 @@ import "styles/productDetails.css";
 import NextLink from "components/global/NextLink";
 import { useParams, useSearchParams } from "next/navigation";
 import home from "services/home";
-
-import { toast } from "react-toastify";
 import OrderButton from "./OrderButton";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { dispatchRouteChangeEvent } from "utils/events";
@@ -27,21 +25,29 @@ import Spinner from "components/global/Spinner";
 import Timer from "components/Login/Timer";
 import { QuantityDetailsProductApi } from "models/Api";
 import LocalizationServiceClass from "services/localization";
+import { useAppStore } from "store";
 
 function CartContainer({ close, toOrders }) {
+  const {
+    storeOldCart,
+    hideOldCart,
+    initCart,
+    removeFromCart,
+    setCartLoading,
+    getProductDetailsForCart,
+    setActiveColorDetails,
+    language,
+    oldCart,
+    cart_loading,
+    product,
+    cart,
+  } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key: string, lang?: string) => {
     return translateFunction(key, languageVariable);
   };
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
-  const oldCart = useSelector((state: StateInterface) => state.cart.oldCart);
-
-  const loading = useSelector((state: StateInterface) => state.cart.loading);
-  const cart = useSelector((state: StateInterface) => state.cart?.cart);
 
   const getURLOfProduct = ({ product }) => {
     let productUrl;
@@ -61,21 +67,15 @@ function CartContainer({ close, toOrders }) {
       }${`?size=${product?.variations[0]?.Size}&color=${product?.variations[0]?.color}`}`;
     return productUrl;
   };
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  ) || { exchange_rate: 1, symbol: "" };
-  const decimal_point_settings = useSelector(
-    (state: StateInterface) => state.homepage.settings
-  );
-  const dispatch = useDispatch();
+
   useEffect(() => {
-    dispatch({ type: "CART-LOADING" });
+    setCartLoading(true);
     getData();
   }, []);
   const getData = async () => {
     await getCart({
       callback: ([data, res]) => {
-        dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+        initCart(data ?? { cart: [] });
       },
     });
     await getOldCart();
@@ -84,9 +84,7 @@ function CartContainer({ close, toOrders }) {
 
   const sarchParams = useSearchParams();
 
-  const ProductDetails = useSelector(
-    (state: StateInterface) => state.details.product
-  );
+  const ProductDetails = product;
   const updateDataForProduct = async (slug) => {
     if (params?.productId === slug) {
       let data: QuantityDetailsProductApi["data"] = await AxiosGet({
@@ -96,14 +94,11 @@ function CartContainer({ close, toOrders }) {
           `/${slug}`,
         title: "Get Product",
       });
-      dispatch({ type: "GET-PRODUCT-DETAILS-FOR-CART", payload: data });
+      getProductDetailsForCart(data);
     }
   };
-  const RemoveFromCart = async (product) => {
-    dispatch({
-      type: "REMOVE-FROM-CART",
-      payload: product.id,
-    });
+  const RemoveFromCartAction = async (product) => {
+    removeFromCart(product.id);
     await home.RemoveFromCart({ key: product.id });
     await GetCartOreview();
     await updateDataForProduct(product.slug);
@@ -273,15 +268,10 @@ function CartContainer({ close, toOrders }) {
           <ShareIcon data-cy="shareIcon-onHeader" />
         </div>
       </div>
-      <div
-        className="flex-col overflow-auto max-h-screen"
-        data-cy="container-ofProducts"
-      >
-        <div
-          className="flex-col  w-full h-auto mt-10 pb-[20px]"
-          data-cy="container2-ofProducts"
-        >
-          {!loading ? (
+
+      <div className="flex-col overflow-auto max-h-screen">
+        <div className="flex-col  w-full h-auto mt-10 pb-[20px]">
+          {!cart_loading ? (
             <>
               {cart.length > 0 ? (
                 <>
@@ -293,7 +283,11 @@ function CartContainer({ close, toOrders }) {
                     >
                       {" "}
                       <NextLink
-                        data-cy="product-card"
+                        exportparts={
+                          params?.productId === product.slug
+                            ? "no-navigate"
+                            : ""
+                        }
                         href={
                           params?.productId === product.slug &&
                           product?.variations[0]?.color ===
@@ -301,6 +295,24 @@ function CartContainer({ close, toOrders }) {
                             ? "#"
                             : getURLOfProduct({ product })
                         }
+                        data={
+                          params?.productId === product.slug &&
+                          product?.variations[0]?.color ===
+                            sarchParams.get("color")
+                            ? null
+                            : {
+                                is_product: true,
+                                active_color: sarchParams.get("color"),
+                                ...product,
+                                href:
+                                  params?.productId === product.slug &&
+                                  product?.variations[0]?.color ===
+                                    sarchParams.get("color")
+                                    ? "#"
+                                    : getURLOfProduct({ product }),
+                              }
+                        }
+                        ariaLabel={`Cart Product ${product.slug} ${params.lang}`}
                         className={`flex-row mt-2 w-full relative  ${
                           product.have_hurry_up_notify || true
                             ? "min-h-[230px]"
@@ -312,17 +324,15 @@ function CartContainer({ close, toOrders }) {
 
                           if (params?.productId === product.slug) {
                             if (product.variations[0].color) {
-                              dispatch({
-                                type: "SET-ACTIVE-COLOR-DETAILS",
-                                payload:
-                                  ProductDetails.sync_color_images[
-                                    ProductDetails.sync_color_images.findIndex(
-                                      (s) =>
-                                        s.color_name ===
-                                        product?.variations[0]?.color
-                                    )
-                                  ],
-                              });
+                              setActiveColorDetails(
+                                ProductDetails.sync_color_images[
+                                  ProductDetails.sync_color_images.findIndex(
+                                    (s) =>
+                                      s.color_name ===
+                                      product?.variations[0]?.color
+                                  )
+                                ]
+                              );
                             }
                           } else {
                           }
@@ -581,7 +591,7 @@ function CartContainer({ close, toOrders }) {
                                 <span className="regular ml-1">
                                   {product.have_hurry_up_notify_time_left &&
                                     translate(
-                                      "Quantity Running Out. ",
+                                      "Time Running Out. ",
                                       LocalizationServiceClass.GetAppLanguage()
                                     )}
                                 </span>
@@ -630,7 +640,7 @@ function CartContainer({ close, toOrders }) {
                         setValue={() => {}}
                         value={product.quantity}
                         deleteFunction={() => {
-                          RemoveFromCart(product);
+                          RemoveFromCartAction(product);
                         }}
                       />
                     </div>
@@ -748,7 +758,7 @@ function CartContainer({ close, toOrders }) {
                     value: "remove_old_products_button",
                   });
                   home.hideOldCart({});
-                  dispatch({ type: "STORE-OLD-CART", payload: [] });
+                  storeOldCart([]);
                 }}
               >
                 {translate(
@@ -761,7 +771,7 @@ function CartContainer({ close, toOrders }) {
               className="flex-col  w-full h-auto mt-3"
               data-cy="Product_Non_Available_In_Cart"
             >
-              {!loading ? (
+              {!cart_loading ? (
                 <>
                   {oldCart?.oldCart.map((product, key) => (
                     <div
@@ -770,7 +780,21 @@ function CartContainer({ close, toOrders }) {
                       data-cy="oldProduct-card"
                     >
                       <NextLink
-                        data-cy="goTo-addAgain"
+                        exportparts={
+                          params?.productId === product.slug
+                            ? "no-navigate"
+                            : ""
+                        }
+                        data={{
+                          is_product: true,
+                          ...product,
+                          href:
+                            params?.productId === product.slug &&
+                            product?.variations[0]?.color ===
+                              sarchParams.get("color")
+                              ? "#"
+                              : getURLOfProduct({ product }),
+                        }}
                         href={
                           params?.productId === product.slug &&
                           product?.variations[0]?.color ===
@@ -778,6 +802,7 @@ function CartContainer({ close, toOrders }) {
                             ? "#"
                             : getURLOfProduct({ product })
                         }
+                        ariaLabel={`old Cart Product ${product.slug} ${params.lang}`}
                         className="flex-row mt-2 w-full relative  min-h-[230px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
                         key={key}
                         style={{ border: "1px solid #ff5f617a" }}
@@ -791,17 +816,15 @@ function CartContainer({ close, toOrders }) {
                           }
                           if (params?.productId === product.slug) {
                             if (product.variations[0].color) {
-                              dispatch({
-                                type: "SET-ACTIVE-COLOR-DETAILS",
-                                payload:
-                                  ProductDetails.sync_color_images[
-                                    ProductDetails.sync_color_images.findIndex(
-                                      (s) =>
-                                        s.color_name ===
-                                        product?.variations[0]?.color
-                                    )
-                                  ],
-                              });
+                              setActiveColorDetails(
+                                ProductDetails.sync_color_images[
+                                  ProductDetails.sync_color_images.findIndex(
+                                    (s) =>
+                                      s.color_name ===
+                                      product?.variations[0]?.color
+                                  )
+                                ]
+                              );
                             }
                           } else {
                           }
@@ -933,11 +956,7 @@ function CartContainer({ close, toOrders }) {
                                 event: "button_clicked",
                                 value: "remove_old_product_item_button",
                               });
-
-                              dispatch({
-                                type: "HIDE-OLD-CART",
-                                payload: product.id,
-                              });
+                              hideOldCart(product.id);
                               home.hideOldCart({ id: product.id });
                             }}
                           >
@@ -1115,7 +1134,7 @@ function CartContainer({ close, toOrders }) {
         )}
       </div>
 
-      {!loading && (
+      {!cart_loading && (
         <OrderButton toOrders={() => toOrders()} close={() => close()} />
       )}
     </div>
@@ -1751,6 +1770,7 @@ const QuantutyInput = ({
   maxAllowed,
   isCollectedAfterOrdering,
 }) => {
+  const { initCart, settings, currency } = useAppStore();
   const [inputValue, setInputValue] = useState(parseInt(value));
   const PlusIcon = ({ className }) => {
     return (
@@ -1810,7 +1830,7 @@ const QuantutyInput = ({
       </svg>
     );
   };
-  const dispatch = useDispatch();
+
   const updateQuantity = async (quantity, bool) => {
     let dataBody = [];
     let dataObj = { key: id, quantity: quantity };
@@ -1829,10 +1849,10 @@ const QuantutyInput = ({
         title: "Update Quantity For Product In cart",
         body: dataBody,
       });
-      dispatch({
-        type: "UPDATE-CART-QUANTITY",
-        payload: { key: id, quantity: quantity },
-      });
+      // dispatch({
+      //   type: "UPDATE-CART-QUANTITY",
+      //   payload: { key: id, quantity: quantity },
+      // });
       updateData();
     } catch (error) {
       setLoading(false);
@@ -1843,18 +1863,13 @@ const QuantutyInput = ({
       }
     }
   };
-  const decimal_point_settings = useSelector(
-    (state: StateInterface) => state.homepage.settings
-  );
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key: string, lang?: string) => {
     return translateFunction(key, languageVariable);
   };
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  ) || { exchange_rate: 1, symbol: "" };
   const decreaseQuantity = async (i) => {
     if (!loading) {
       setInputValue(parseInt(i) - 1);
@@ -1863,7 +1878,7 @@ const QuantutyInput = ({
       await updateQuantity(parseInt(i.toString()) - 1, false);
       await getCart({
         callback: ([data, res]) => {
-          dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+          initCart(data ?? { cart: [] });
         },
       });
       setLoading(false);
@@ -1877,7 +1892,7 @@ const QuantutyInput = ({
       await updateQuantity(parseInt(i.toString()) + 1, true);
       await getCart({
         callback: ([data, res]) => {
-          dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+          initCart(data ?? { cart: [] });
         },
       });
       setLoading(false);
@@ -2023,8 +2038,8 @@ const QuantutyInput = ({
                       num: product.price * product.quantity,
                       rate: currency?.exchange_rate,
                       points:
-                        (decimal_point_settings &&
-                          decimal_point_settings["starting-setting"]
+                        (settings &&
+                          settings["starting-setting"]
                             ?.decimal_point_settings) ||
                         0,
                     })}
@@ -2052,10 +2067,10 @@ const QuantutyInput = ({
                   >
                     {RoundPrice({
                       num: product?.offer_price * product.quantity,
-                      rate: currency.exchange_rate,
+                      rate: currency?.exchange_rate,
                       points:
-                        (decimal_point_settings &&
-                          decimal_point_settings["starting-setting"]
+                        (settings &&
+                          settings["starting-setting"]
                             ?.decimal_point_settings) ||
                         0,
                     })}
@@ -2093,11 +2108,10 @@ const QuantutyInput = ({
               <div className="product-new-price text-[14px] light text-[#1D1D1D]">
                 {RoundPrice({
                   num: product.price * product.quantity,
-                  rate: currency.exchange_rate,
+                  rate: currency?.exchange_rate,
                   points:
-                    (decimal_point_settings &&
-                      decimal_point_settings["starting-setting"]
-                        ?.decimal_point_settings) ||
+                    (settings &&
+                      settings["starting-setting"]?.decimal_point_settings) ||
                     0,
                 })}
               </div>

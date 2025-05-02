@@ -1,4 +1,3 @@
-import { useDispatch, useSelector } from "react-redux";
 import ChatIcon from "public/svg/ChatIcon.svg";
 import { Sendevent, translateFunction } from "utils/functions";
 import UserAvatar from "./UserAvatar";
@@ -6,22 +5,23 @@ import { ChatConroller } from "store/chat/actions";
 import { getNew } from "components/Chat/chatsFunctions";
 import ChatNotification from "./ChatNotification";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 
 function AuthNavSection({ onClick }: { onClick: () => void }) {
+  const {
+    language,
+    userProfile,
+    user,
+    chatVar,
+    data: chats,
+    currency,
+  } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
-  const chatVar = useSelector((state: StateInterface) => state.chat.chatVar);
-  const user = useSelector((state: StateInterface) => state.auth.user);
-
-  const chats = useSelector((state: StateInterface) => state.chat.data);
-  const dispatch = useDispatch();
 
   return (
     <>
@@ -42,7 +42,7 @@ function AuthNavSection({ onClick }: { onClick: () => void }) {
               event: "button_clicked",
               value: "chat_nav_bar_button",
             });
-            dispatch(ChatConroller(true));
+            ChatConroller(true);
           }}
         >
           {!chatVar && getNew(chats).length === 0 ? (
@@ -58,12 +58,16 @@ function AuthNavSection({ onClick }: { onClick: () => void }) {
         className={`welcome-user ${language + "-medium"}`}
         style={{ marginRight: "12px", marginLeft: "0px" }}
       >
-        {translate("Hello", language)} {user?.name && <span>,</span>}{" "}
+        {translate("Hello", language)}{" "}
+        {(userProfile?.name || user?.name) && <span>,</span>}{" "}
         <span className={`${language + "-light"}`} data-cy="NavUserName">
-          {user?.name}
+          {userProfile?.name}
         </span>
       </div>
-      <UserAvatar onClick={onClick} avatar={user?.image} />
+      <UserAvatar
+        onClick={onClick}
+        avatar={userProfile?.image || userProfile?.image}
+      />
     </>
   );
 }

@@ -1,22 +1,32 @@
-import Home from "components/Home";
-// import BrandsBar from "components/Home/Bars/BrandsBar";
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
 import StoriesBarServer from "components/Server/StoriesBarServer";
 import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
 import OfferListSkeleton from "components/skeleton/OfferList";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
-import { Suspense } from "react";
-import "regenerator-runtime/runtime";
-export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 
-function HomePage({ params }) {
+import { Suspense } from "react";
+
+import Home from "components/Home";
+export const runtime = "nodejs";
+export const preferredRegion = ["bom1", "sin1"];
+export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
+export const dynamicParams = true;
+
+function HomePage({
+  params,
+}: {
+  params: { lang: string; mainCategory?: string };
+}) {
   return (
     <>
-      <Suspense fallback={<MobileNavigationSkeleton />}>
-        <NavbarServer lang={params.lang} />
+      <Suspense
+        fallback={<MobileNavigationSkeleton />}
+        key={`Navbar ${params.lang}`}
+      >
+        <NavbarServer lang={params.lang} mainCategory={params?.mainCategory} />
       </Suspense>
-      <Suspense fallback={<StoriesSkeleton />}>
+      <Suspense fallback={<StoriesSkeleton />} key={`Stories ${params.lang}`}>
         <StoriesBarServer />
       </Suspense>
       <Suspense
@@ -25,10 +35,14 @@ function HomePage({ params }) {
             Loading...
           </div>
         }
+        key={`Home ${params.lang}`}
       >
         <Home />
       </Suspense>
-      <Suspense fallback={<OfferListSkeleton />}>
+      <Suspense
+        fallback={<OfferListSkeleton />}
+        key={`OfferList ${params.lang}`}
+      >
         <OfferListServer params={params} />
       </Suspense>
     </>

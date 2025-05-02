@@ -5,12 +5,14 @@ const routeEventName = (event: string) => `route-change-${event}`;
 interface IEventDetail {
   from?: string;
   to?: string;
+  data?: any;
 }
 
 // Dispatch the route change event
+
 export const dispatchRouteChangeEvent = (
   event: "start" | "completed",
-  data?: IEventDetail
+  data?: IEventDetail["data"]
 ) => {
   // if (event === "start") {
   //   document.documentElement.style.overflow = "hidden";
@@ -22,7 +24,9 @@ export const dispatchRouteChangeEvent = (
     new CustomEvent(routeEventName(event), {
       bubbles: false,
       cancelable: true,
-      detail: data,
+      detail: {
+        ...data,
+      },
     })
   );
 };

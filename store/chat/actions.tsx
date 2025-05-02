@@ -7,24 +7,35 @@ import {
   SEND_MESSAGE_URL,
   SET_CHANNEL_OPT_UTL,
 } from "utils/endpointConfig";
-import { store } from "../index";
-import { getUserChat, translateFunction } from "utils/functions";
+import { getUserChat } from "utils/functions";
 
 import { AxiosGet } from "utils/AxiosApi";
 import { GetChatsApi, GetContactsApi } from "models/Api";
+import { useAppStore } from "store";
 
 export const ChatConroller = (payload) => {
+  const { openChat, setChatOpen } = useAppStore.getState();
   if (payload) document.documentElement.style.overflow = "hidden";
   else document.documentElement.style.overflow = "initial";
   window.history.pushState({ isPopup: true }, "open Chat");
-  return { type: "CHAT-OPEN", payload: payload };
+  openChat(payload);
+  setChatOpen(payload);
 };
 export const GetChats = async (payload) => {
+  const {
+    setChatLoading,
+    setChatDone,
+    setChats,
+    setIsTyping,
+    setLastNotificationDate,
+    setContacts,
+  } = useAppStore.getState();
+
   const { onValue, ref } = await import("firebase/database");
   try {
     let axios = (await import("axios")).default;
     if (!payload) {
-      store.dispatch({ type: "CHAT_LOADING" });
+      setChatLoading();
     }
     let resp: GetChatsApi = await axios.post(
       process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + GET_CHATS_URL,
@@ -37,12 +48,7 @@ export const GetChats = async (payload) => {
         },
       }
     );
-
-    store.dispatch({
-      type: "GET_CHAT_RED",
-      payload: resp.data.data.channels,
-      param: resp.data.data.pinned_channels,
-    });
+    setChats(resp.data.data.channels, resp.data.data.pinned_channels);
     const { db } = await import("../../utils/firebaseInitv1");
     let chats = [...resp.data.data.channels, ...resp.data.data.pinned_channels];
     chats.map((chat) => {
@@ -58,36 +64,24 @@ export const GetChats = async (payload) => {
 
         if (!!desc) {
           if (typeof desc === "string") {
-            store.dispatch({
-              type: "IS_TYPING_TRUE",
-              payload: { id: chat.id, desc: desc },
-            });
+            setIsTyping({ id: chat.id, desc: desc });
           } else {
-            store.dispatch({
-              type: "IS_TYPING_TRUE",
-              payload: {
-                id: chat.id,
-                desc:
-                  Object.keys(desc).length > 0
-                    ? desc[Object.keys(desc)[0]]
-                    : null,
-              },
+            setIsTyping({
+              id: chat.id,
+              desc:
+                Object.keys(desc).length > 0
+                  ? desc[Object.keys(desc)[0]]
+                  : null,
             });
           }
         } else {
-          store.dispatch({
-            type: "IS_TYPING_TRUE",
-            payload: { id: chat.id, desc: null },
-          });
+          setIsTyping({ id: chat.id, desc: null });
         }
       });
     });
-    store.dispatch({
-      type: "SET_LAST_NOTIFICATION_DATE",
-      payload: new Date().toLocaleString(),
-    });
 
-    store.dispatch({ type: "CHAT_DONE" });
+    setLastNotificationDate(new Date().toLocaleString());
+    setChatDone();
     if (payload !== "share") {
       getCalls(null);
       let response: GetContactsApi = await axios.get(
@@ -100,13 +94,14 @@ export const GetChats = async (payload) => {
           },
         }
       );
-      store.dispatch({ type: "GET_CONTACTS_RED", payload: response.data.data });
+      setContacts(response.data.data);
     }
   } catch (e) {
     console.error(e);
   }
 };
 export const GetLastSeen = async (chatId, friendID) => {
+  const { setServerTime, setIsTyping } = useAppStore.getState();
   try {
     const { onValue, ref } = await import("firebase/database");
     const { db } = await import("../../utils/firebaseInitv1");
@@ -126,7 +121,7 @@ export const GetLastSeen = async (chatId, friendID) => {
       )
       .then((data) => {
         server_time = data.data.data;
-        store.dispatch({ type: "SET_SERVER_TIME", payload: data.data.data });
+        setServerTime(data.data.data);
       });
     const dbRef = ref(db, `ConnectStatus/${friendID.toString()}`);
     onValue(dbRef, async (snapshot) => {
@@ -135,29 +130,19 @@ export const GetLastSeen = async (chatId, friendID) => {
       if (!!desc) {
         if (typeof desc === "string") {
           let date = desc;
-
-          store.dispatch({
-            type: "IS_TYPING_TRUE",
-            payload: { id: chatId.toString(), date: date },
-          });
+          setIsTyping({ id: chatId.toString(), date: date });
         } else {
           const { showDate } = await import("components/Chat/chatsFunctions");
           let date =
             Object.keys(desc).length > 0 &&
             showDate(desc[Object.keys(desc)[0]]);
-          store.dispatch({
-            type: "IS_TYPING_TRUE",
-            payload: {
-              id: chatId.toString(),
-              desc: Object.keys(desc).length > 0 ? date : null,
-            },
+          setIsTyping({
+            id: chatId.toString(),
+            desc: Object.keys(desc).length > 0 ? date : null,
           });
         }
       } else {
-        store.dispatch({
-          type: "IS_TYPING_TRUE",
-          payload: { id: chatId.toString(), desc: null, date: null },
-        });
+        setIsTyping({ id: chatId.toString(), desc: null, date: null });
       }
     });
   } catch (e) {
@@ -165,6 +150,7 @@ export const GetLastSeen = async (chatId, friendID) => {
   }
 };
 export const setLastSeen = async (MyId) => {
+  const { setServerTime } = useAppStore.getState();
   try {
     const { push, ref, set } = await import("firebase/database");
     let server_time;
@@ -183,7 +169,7 @@ export const setLastSeen = async (MyId) => {
       )
       .then((data) => {
         server_time = data.data.data;
-        store.dispatch({ type: "SET_SERVER_TIME", payload: data.data.data });
+        setServerTime(data.data.data);
       });
     const { db } = await import("../../utils/firebaseInitv1");
     push(ref(db, `ConnectStatus/${MyId.toString()}`));
@@ -197,9 +183,10 @@ export const setLastSeen = async (MyId) => {
   }
 };
 export const getCalls = async (id) => {
+  const { setCallLoading, setCalls } = useAppStore.getState();
   try {
     let axios = (await import("axios")).default;
-    store.dispatch({ type: "CALL_LOADING", payload: true });
+    setCallLoading(true);
     await axios
       .post(
         process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + "/api/v1/channels/my_calls",
@@ -213,17 +200,14 @@ export const getCalls = async (id) => {
         }
       )
       .then((data) => {
-        store.dispatch({
-          type: "GET_CALLS",
-          payload: data.data.data,
-          param: id,
-        });
+        setCalls(data.data.data);
       });
   } catch (e) {
     console.error(e);
   }
 };
 export const SendMessage = async (payload, isNew) => {
+  const { sendNewMessage, sendRealMessage } = useAppStore.getState();
   let axios = (await import("axios")).default;
   const AxiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL,
@@ -247,24 +231,18 @@ export const SendMessage = async (payload, isNew) => {
     );
     if (a.data.data) {
       if (isNew) {
-        store.dispatch({
-          type: "SEND_MES_RED_NEW",
-          payload: {
-            channel: {
-              id: a.data.data.channel_id,
-              messages: [{ ...a.data.data }],
-              mid: isNew,
-            },
+        sendNewMessage({
+          channel: {
+            id: a.data.data.channel_id,
+            messages: [{ ...a.data.data }],
+            mid: isNew,
           },
         });
       } else {
-        store.dispatch({
-          type: "SEND_MES_RED",
-          payload: {
-            ...a.data.data,
-            mid: payload.mid,
-            cid: payload.cid,
-          },
+        sendRealMessage({
+          ...a.data.data,
+          mid: payload.mid,
+          cid: payload.cid,
         });
       }
     }
@@ -361,6 +339,7 @@ export async function Recive(payload) {
   } catch (e) {}
 }
 export async function getPage(channel, mid) {
+  const { setPageData } = useAppStore.getState();
   let axios = (await import("axios")).default;
   try {
     const AxiosInstance = axios.create({
@@ -381,13 +360,11 @@ export async function getPage(channel, mid) {
     let res = await AxiosInstance.post(
       `api/v1/messages/messages_of_channel/${channel_id}?message_id=${mid}&limit=10`
     );
-    store.dispatch({
-      type: "GRP",
-      payload: { mes: res.data.data, ch: channel_id },
-    });
+    setPageData({ mes: res.data.data, ch: channel_id });
   } catch (e) {}
 }
 export async function SearchContact(payload) {
+  const { setChatSearchResults } = useAppStore.getState();
   let axios = (await import("axios")).default;
   try {
     const AxiosInstance = axios.create({
@@ -406,7 +383,7 @@ export async function SearchContact(payload) {
     });
     if (payload?.length > 0) {
       let res = await AxiosInstance.get(SEARCH_CONTACTS_URL + payload);
-      store.dispatch({ type: "SEARCH_REDUCER", payload: res.data.data });
+      setChatSearchResults(res.data.data);
     }
   } catch (e) {}
 }
@@ -466,6 +443,7 @@ export async function MuteChat(payload) {
   } catch (e) {}
 }
 export async function getMessagesBetweenMessage(payload) {
+  const { setPageData } = useAppStore.getState();
   let axios = (await import("axios")).default;
   const AxiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL,
@@ -485,13 +463,11 @@ export async function getMessagesBetweenMessage(payload) {
     `/api/v1/messages/messages_of_channel/${payload.first}`,
     JSON.stringify({ limit: payload.second + 1 })
   );
-  store.dispatch({
-    type: "GRP",
-    payload: { mes: res.data.data, ch: payload.first },
-  });
+  setPageData({ mes: res.data.data, ch: payload.first });
 }
 
 export async function getContacts() {
+  const { setContacts } = useAppStore.getState();
   let axios = (await import("axios")).default;
   const AxiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL,
@@ -508,9 +484,10 @@ export async function getContacts() {
     },
   });
   let res = await AxiosInstance.get("/api/v1/users/my_contacts");
-  store.dispatch({ type: "GET_CONTACTS_RED", payload: res.data.data });
+  setContacts(res.data.data);
 }
 export const getMedia = async (id, media) => {
+  const { editChatInfoMedia } = useAppStore.getState();
   try {
     let axios = (await import("axios")).default;
     let resp = await axios.post(
@@ -525,10 +502,7 @@ export const getMedia = async (id, media) => {
         },
       }
     );
-    store.dispatch({
-      type: "EDIT_CHAT_INFO_MEDIA",
-      payload: { id: id, data: resp.data.data, media: media },
-    });
+    editChatInfoMedia({ id: id, data: resp.data.data, media: media });
   } catch (e) {}
 };
 export const getMediaReducer = (media, data) => {
@@ -543,29 +517,8 @@ export const getMediaReducer = (media, data) => {
   }
 };
 
-//   if (
-//     store.getState().chat.channels.filter((ch) => ch.id === channelId)
-//       .length === 0
-//   ) {
-//     let ch = pusherVar.subscribe(`presence-typing-${channelId?.toString(16)}`);
-//     ch.bind("client-TypingEvent", (data) => {
-//       if (
-//         parseInt(JSON.parse(JSON.stringify(data)).uid) !== getUserChat()?.id
-//       ) {
-//         store.dispatch({
-//           type: "IS_TYPING_TRUE",
-//           payload: JSON.parse(JSON.stringify(data)),
-//         });
-//       }
-//     });
-//     store.dispatch({
-//       type: "PUSHER_RED",
-//       payload: { id: channelId, channel: ch },
-//     });
-//   }
-// };
-
 export const GetChatDetails = async (id) => {
+  const { editChatInfo } = useAppStore.getState();
   try {
     let axios = (await import("axios")).default;
     let resp = await axios.get(
@@ -578,10 +531,7 @@ export const GetChatDetails = async (id) => {
         },
       }
     );
-    store.dispatch({
-      type: "EDIT_CHAT_INFO",
-      payload: { id: id, data: resp.data.data },
-    });
+    editChatInfo({ id: id, data: resp.data.data });
   } catch (e) {}
 };
 export const getCurrency = async ({ lang, country, callback }) => {

@@ -1,7 +1,8 @@
-import { dispatchRouteChangeEvent } from "utils/events";
 import Image from "next/image";
-import { useRouter } from "next-nprogress-bar";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import NextLink from "components/global/NextLink";
+import { Boutique } from "models/offer";
 
 interface OfferAvatarProps {
   images: string;
@@ -10,6 +11,7 @@ interface OfferAvatarProps {
   category: string | number;
   linkUrl: string;
   priority: boolean;
+  boutique: Boutique;
 }
 function OfferAvatar({
   images,
@@ -18,6 +20,7 @@ function OfferAvatar({
   category,
   priority,
   linkUrl,
+  boutique,
 }: OfferAvatarProps) {
   const router = useRouter();
   const getImageCld = () => {
@@ -27,8 +30,14 @@ function OfferAvatar({
     } else return images;
   };
   return (
-    <Link
+    <NextLink
+      data={{
+        is_boutique: true,
+        ...boutique,
+        href: linkUrl,
+      }}
       href={linkUrl}
+      aria-label={`Go To listing boutique ${name} ${category}`}
       className="offer-avatar"
       style={{
         zIndex: zIndex,
@@ -41,7 +50,7 @@ function OfferAvatar({
       </div>
       <div className="offer-avatr-inner-s w-full h-full" />
       <Image
-        loading={priority ? "eager" : "lazy"}
+        loading="eager"
         src={getImageCld()}
         priority={priority}
         alt="avatar"
@@ -52,7 +61,7 @@ function OfferAvatar({
         unselectable="on"
         style={{ borderRadius: "50%", height: "40px" }}
       />
-    </Link>
+    </NextLink>
   );
 }
 

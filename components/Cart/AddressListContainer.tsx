@@ -1,8 +1,8 @@
-import { useDispatch, useSelector } from "react-redux";
 import React from "react";
 import { translateFunction } from "utils/functions";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import order from "services/order";
+import { useAppStore } from "store";
 export const GetAddressString = (location) => {
   let str = "";
   if (
@@ -30,10 +30,8 @@ export const GetAddressString = (location) => {
   return str;
 };
 function AddressListContainer({ closeSelect, slideNext, Delete }) {
-  const addressLists = useSelector(
-    (state: StateInterface) => state.cart.addressLists
-  );
-  const dispatch = useDispatch();
+  const { addressLists, initAddressForm, updateAddress, setDefaultAddress } =
+    useAppStore();
 
   return (
     <>
@@ -67,8 +65,8 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
                   if (!e.target.closest(".map-element-icon")) {
                     closeSelect(false);
                     order.SetDefault({ id: s.id });
-                    dispatch({ type: "UPDATE-ADDRESS", payload: s });
-                    dispatch({ type: "SET-DEF-ADDRESS", payload: s.id });
+                    updateAddress(s);
+                    setDefaultAddress(s.id);
                   }
                 }}
                 style={{
@@ -230,7 +228,8 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
               borderRadius: "15px",
             }}
             onClick={() => {
-              dispatch({ type: "INIT-ADDRESS-FORM", payload: true });
+              initAddressForm();
+
               closeSelect();
               slideNext();
             }}
@@ -248,11 +247,12 @@ function AddressListContainer({ closeSelect, slideNext, Delete }) {
 
 export default AddressListContainer;
 const EditIcon = ({ address, onClick }) => {
-  const dispatch = useDispatch();
+  const { startUpdateAddress } = useAppStore();
+
   return (
     <span
       onClick={() => {
-        dispatch({ type: "START-UPDATE-ADDRESS", payload: address });
+        startUpdateAddress(address);
         onClick();
       }}
       className="map-element-icon p-1 cursor-pointer flex justify-center absolute z-[10] right-[32px] top-[8px]"
@@ -325,7 +325,6 @@ const EditIcon = ({ address, onClick }) => {
   );
 };
 const DeleteIcon = ({ address, onClick }) => {
-  const dispatch = useDispatch();
   return (
     <span
       onClick={() => {

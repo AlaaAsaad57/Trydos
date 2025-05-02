@@ -3,6 +3,12 @@ import NextLink from "components/global/NextLink";
 function Category({ data }) {
   return (
     <NextLink
+      data={{
+        is_category: true,
+        ...data,
+        href: `/boutiques/listing?categories=${data.category_slug}`,
+      }}
+      ariaLabel={`notification Category ${data.category_slug}`}
       className="flex-col"
       href={`/boutiques/listing?categories=${data.category_slug}`}
       prefetch

@@ -5,25 +5,11 @@ import { OrderItem as OrderItemType, OrdersResponse } from "../../types/orders";
 import { fetchOrders } from "../../services/orders";
 import OrderItem from "../Orders/OrderItem"; // Assuming OrderItem component exists and can be reused
 import { translateFunction } from "utils/functions"; // Assuming translateFunction exists
+import { useAppStore } from "store";
+import { useRouter, useSearchParams } from "next/navigation";
+import { dispatchRouteChangeEvent } from "utils/events";
 
 // Helper function to get status display name (replace with actual logic if needed)
-export const getStatusDisplayName = (key: string): string => {
-  const statusMap: { [key: string]: string } = {
-    all: "All",
-    pending: "Pending",
-    processing: "Processing",
-    ready_to_shipping: "Ready to Shipping",
-    shipped: "Shipped",
-    out_for_delivery: "Out for Delivery",
-    delivered: "Delivered",
-    partial_return: "Partial Return",
-    returned: "Returned",
-    failed: "Failed",
-    canceled: "Canceled",
-    canceled_archived: "Canceled Archived",
-  };
-  return statusMap[key] || key;
-};
 
 function OrdersList({
   swipeToScreen,
@@ -41,21 +27,9 @@ function OrdersList({
   const [page, setPage] = useState(1);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const statusSliderRef = useRef<HTMLDivElement>(null); // Ref for the status slider
-
-  let order_statues = [
-    { key: "all", name: "All" },
-    { key: "pending", name: "Pending" },
-    { key: "processing", name: "Processing" },
-    { key: "ready_to_shipping", name: "Ready to Shipping" },
-    { key: "shipped", name: "Shipped" },
-    { key: "out_for_delivery", name: "Out for Delivery" },
-    { key: "delivered", name: "Delivered" },
-    { key: "partial_return", name: "Partial Return" },
-    { key: "returned", name: "Returned" },
-    { key: "failed", name: "Failed" },
-    { key: "canceled", name: "Canceled" },
-    { key: "canceled_archived", name: "Canceled Archived" },
-  ];
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const id = searchParams.get("id");
 
   // Function to load orders
   const loadMoreOrders = async (
@@ -87,8 +61,14 @@ function OrdersList({
             );
             if (existingOrder) {
               existingOrder.details = [
-                ...existingOrder.details,
-                ...curr.details,
+                ...existingOrder.details?.map((s) => ({
+                  ...s,
+                  order_status: existingOrder?.order_status?.label,
+                })),
+                ...curr.details.map((s) => ({
+                  ...s,
+                  order_status: existingOrder?.order_status?.label,
+                })),
               ];
               existingOrder.order_amount =
                 existingOrder.order_amount + curr.order_amount;
@@ -116,7 +96,8 @@ function OrdersList({
       setLoading(false);
     }
   };
-
+  const { settings } = useAppStore();
+  console.log(settings);
   // Initial load and load on status change
   useEffect(() => {
     setOrders([]); // Reset orders when status changes
@@ -200,7 +181,14 @@ function OrdersList({
       slider.removeEventListener("mousemove", handleMouseMove);
     };
   }, []); // Run only once on mount
-
+  useEffect(() => {
+    if (orders.find((order) => order.order_group_id === id)) {
+      setSelectedOrder(orders.find((order) => order.order_group_id === id));
+      swipeToScreen(10);
+      router.replace("/setting?tab=Orders");
+    }
+    dispatchRouteChangeEvent("completed");
+  }, [orders, searchParams]);
   return (
     <div className="flex-col max-h-[calc(100vh-200px)]">
       <SettingTopBar
@@ -225,29 +213,32 @@ function OrdersList({
             ref={statusSliderRef}
             className="flex-row flex-1 ml-[2px] statues-container overflow-x-scroll overflow-y-hidden user-select-none whitespace-nowrap [&::-webkit-scrollbar]:hidden"
           >
-            {order_statues.map((status) => (
+            {[
+              { label: "All", value: "all" },
+              ...settings?.["starting-setting"]?.order_group_statuses,
+            ].map((status) => (
               <div
                 onClick={() => {
-                  if (status.key === selectedStatus) return;
-                  if (status.key !== "all") setSelectedStatus(status.key);
+                  if (status.value === selectedStatus) return;
+                  if (status.value !== "all") setSelectedStatus(status.value);
                   else setSelectedStatus(null);
                   setPage(1);
                   setOrders([]);
                   setHasMore(true);
                   loadMoreOrders(
                     true,
-                    status.key === "all" ? null : status.key
+                    status.value === "all" ? null : status.value
                   );
                 }}
                 className="flex-row py-[4px] h-[25px] rounded-[10px] bg-[#F8F8F8] px-[11px] ml-[10px] cursor-pointer text-nowrap text-center"
                 style={{
                   border:
-                    selectedStatus === status?.key && "1px solid #3C8AFF7f",
+                    selectedStatus === status?.value && "1px solid #3C8AFF7f",
                 }}
-                key={status.key}
+                key={status.value}
               >
                 <span className="text-[#8D8D8D] text-[12px] regular">
-                  {translateFunction(status.name)}
+                  {translateFunction(status.label)}
                 </span>
               </div>
             ))}
@@ -267,7 +258,6 @@ function OrdersList({
                 order={order}
                 showDetails={() => {
                   setSelectedOrder({ ...order });
-
                   swipeToScreen(10);
                 }}
               />

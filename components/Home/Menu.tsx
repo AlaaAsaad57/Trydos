@@ -5,12 +5,12 @@ import { Sendevent, translateFunction } from "utils/functions";
 import NextLink from "components/global/NextLink";
 import { useParams, usePathname } from "next/navigation";
 import { changeAppLanguage } from "store/homepage/actions";
-import { useDispatch, useSelector } from "react-redux";
+
 import NotificationsPanel from "../Notifications/NotificationsPanel";
 
 import WishListPanel from "../WishList/WishListPanel";
 import CountrySelector from "components/global/CountrySelector";
-import { useRouter } from "next-nprogress-bar";
+import { useAppStore } from "store";
 
 interface MenuProps {
   user: any;
@@ -34,16 +34,13 @@ const MenuIcon: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 );
 
 const LanguageSelector: React.FC = () => {
+  const { language } = useAppStore();
   const { lang } = useParams();
-  const dispatch = useDispatch();
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
 
   const isSelected = (val: string) => language === val;
 
   const handleLanguageChange = (newLang: string) => {
-    dispatch(changeAppLanguage(newLang));
+    changeAppLanguage(newLang);
     window.location.href = window.location.href.replace(
       // @ts-ignore
       lang,
@@ -112,6 +109,11 @@ const MenuItem: React.FC<{
   if (href && !pathname.includes(href)) {
     return (
       <NextLink
+        data={{
+          is_settings: true,
+          href,
+        }}
+        ariaLabel={`Menu Item ${href}`}
         data-cy={dataCy}
         style={style}
         href={href}
@@ -162,6 +164,12 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
 
   return (
     <>
+      <div
+        onClick={() => {
+          setMenuOpen(false);
+        }}
+        className=" w-full h-full fixed top-0 left-0 z-50"
+      />
       <div
         style={{
           position: "absolute",
@@ -343,7 +351,10 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
       </div>
 
       {showNotifications && (
-        <NotificationsPanel onClose={() => setShowNotifications(false)} />
+        <NotificationsPanel
+          closeWindow={() => setMenuOpen(false)}
+          onClose={() => setShowNotifications(false)}
+        />
       )}
 
       {showWishList && <WishListPanel onClose={() => setShowWishList(false)} />}

@@ -8,12 +8,13 @@ import CommentIcon from "./CommentIcon";
 import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
-import { useDispatch, useSelector } from "react-redux";
+
 import { Sendevent, translateFunction } from "utils/functions";
 import home from "services/home";
 import { AxiosPost } from "utils/AxiosApi";
 import { toast } from "react-toastify";
 import auth from "services/auth";
+import { useAppStore } from "store";
 
 function ProductOptions({
   activeOption,
@@ -34,24 +35,13 @@ function ProductOptions({
   product: any;
   loading: boolean;
 }) {
-  const loaded = useSelector((state: StateInterface) => state.cart.loaded);
-  const sharesCount = useSelector(
-    (state: StateInterface) => state.details.sharesCount
-  );
-  const SelectedProduct = useSelector(
-    (state: StateInterface) => state.cart.SelectedProduct
-  );
-
+  const { editInfo, loaded, sharesCount, SelectedProduct } = useAppStore();
   const [isLiked, setLiked] = useState(false);
-  const dispatch = useDispatch();
   const LikeProduct = async (bool) => {
     let language_code = window.location.pathname.split("/")[1].split("-")[1];
     let country_code = window.location.pathname.split("/")[1].split("-")[0];
     if (bool) {
-      dispatch({
-        type: "EDIT-INFO",
-        payload: { likes: SelectedProduct?.likes + 1, is_liked: true },
-      });
+      editInfo({ likes: SelectedProduct?.likes + 1, is_liked: true });
       try {
         await AxiosPost({
           url: process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/store`,
@@ -68,17 +58,11 @@ function ProductOptions({
         //   topic: `product_comment_${SelectedProduct?.id}`,
         // });
       } catch (error) {
-        dispatch({
-          type: "EDIT-INFO",
-          payload: { likes: SelectedProduct?.likes, is_liked: true },
-        });
+        editInfo({ likes: SelectedProduct?.likes, is_liked: true });
       }
     } else {
       setLiked(false);
-      dispatch({
-        type: "EDIT-INFO",
-        payload: { likes: SelectedProduct?.likes - 1, is_liked: false },
-      });
+      editInfo({ likes: SelectedProduct?.likes - 1, is_liked: false });
       try {
         AxiosPost({
           url: process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/delete`,
@@ -95,10 +79,7 @@ function ProductOptions({
           topic: `product_comment_${SelectedProduct?.id}`,
         });
       } catch (error) {
-        dispatch({
-          type: "EDIT-INFO",
-          payload: { likes: SelectedProduct?.likes + 1, is_liked: false },
-        });
+        editInfo({ likes: SelectedProduct?.likes + 1, is_liked: false });
       }
     }
   };
@@ -113,18 +94,15 @@ function ProductOptions({
     }
   }, []);
   return (
-    <div className="product-options-container">
+    <div
+      className="product-options-container"
+      style={{ zIndex: "99999999999999" }}
+    >
       {share ? (
         <ShareButton onClick={() => shareAction()} />
       ) : (
         <>
-          <AddToCartButton
-            setOption={(s) => setOption(s)}
-            productVar={product}
-            product={SelectedProduct}
-            loading={loaded && SelectedProduct.choice_options}
-            showLoading={loading}
-          />
+          <AddToCartButton product={SelectedProduct} />
           <div className="options-container" data-cy="InteraCtionBoX">
             <div
               className={`product-option-item ${

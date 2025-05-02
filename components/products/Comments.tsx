@@ -2,8 +2,6 @@ import React, { useEffect } from "react";
 import CommentItem from "./CommentItem";
 import { showDate } from "components/Chat/chatsFunctions";
 import Skeleton from "react-loading-skeleton";
-
-import { useSelector } from "react-redux";
 import { AxiosPost } from "utils/AxiosApi";
 import { AddComment } from "models/Api";
 import auth from "services/auth";
@@ -20,7 +18,6 @@ function Comments({
   setRender,
   verifyCommentAction,
 }) {
-  const user = useSelector((state: StateInterface) => state.auth.user);
   useEffect(() => {}, [Render, comments]);
   const resendCommentApi = async (mid, s) => {
     try {

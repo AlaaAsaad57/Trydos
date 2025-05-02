@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+
 import Loader from "components/global/Loader";
 import { setNextStory, setPreviousStory } from "store/homepage/actions";
 import { StoryType } from "models/story";
 import ReactInstaStories from "utils/react-insta-stories-master/src";
 import { Sendevent } from "utils/functions";
+import { useAppStore } from "store";
 
 interface Props {
   story: StoryType;
@@ -12,10 +13,8 @@ interface Props {
   isPaused: boolean;
 }
 function StoryHolder({ story, active, isPaused }: Props) {
-  const dispatch = useDispatch();
-  const selectedStory = useSelector(
-    (state: StateInterface) => state.homepage.selectedStory
-  );
+  const { selectedStory } = useAppStore();
+
   const [currentStoryId, setCurrentStoryId] = useState(0);
 
   useEffect(() => {
@@ -47,7 +46,7 @@ function StoryHolder({ story, active, isPaused }: Props) {
                 if (currentStoryId > 0) {
                   setCurrentStoryId(currentStoryId - 1);
                 } else {
-                  dispatch(setPreviousStory(story.id));
+                  setPreviousStory(story.id);
                 }
               }
             }}
@@ -60,7 +59,7 @@ function StoryHolder({ story, active, isPaused }: Props) {
                 if (currentStoryId < story.stories.length - 1) {
                   setCurrentStoryId(currentStoryId + 1);
                 } else {
-                  dispatch(setNextStory(story.id));
+                  setNextStory(story.id);
                 }
               }
             }}
@@ -87,7 +86,7 @@ function StoryHolder({ story, active, isPaused }: Props) {
                 if (active) {
                   setCurrentStoryId(0);
 
-                  dispatch(setNextStory(story.id));
+                  setNextStory(story.id);
                 }
               }, 10);
             }}

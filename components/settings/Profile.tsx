@@ -4,8 +4,9 @@ import PersonIcon from "public/svg/PersonIcon.svg";
 import SizeIcon from "public/svg/SizeIcon.svg";
 import AddressIcon from "public/svg/AddressIcon.svg";
 import BankIcon from "public/svg/BankIcon.svg";
-import { useSelector } from "react-redux";
+
 import { translateFunction } from "utils/functions";
+import { useAppStore } from "store";
 function Profile({
   swipeToScreen,
   goBack,
@@ -13,9 +14,8 @@ function Profile({
   swipeToScreen: (index: number) => void;
   goBack: () => void;
 }) {
-  const userProfile = useSelector(
-    (state: StateInterface) => state.auth.userProfile
-  );
+  const { userProfile } = useAppStore();
+
   const options = [
     {
       name: "Personal Info",

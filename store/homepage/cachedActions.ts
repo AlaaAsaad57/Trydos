@@ -5,27 +5,19 @@ import { LogData } from "./actions";
 import {
   CategoriesApi,
   CountriesApi,
+  CurrencyApi,
   FilterProductApi,
   GetStoriesApi,
   GlobalDetailsProductApi,
   HomeBoutiqueApi,
   QuantityDetailsProductApi,
 } from "models/Api";
-
-export const getHomeData = async ({ str, lang }) => {
-  const cookies = (await import("next/headers")).cookies;
-  const language = lang;
-  const cookieStore = cookies();
-  let url =
-    HOME_DATA_URL +
-    (str?.length
-      ? `?lang=${language}&category_slugs=["${str}"]&limit=10`
-      : `?lang=${language}&category_slugs=[]&limit=10`);
+export const getBoutiques = async ({ str, lang, country }) => {
+  let url = HOME_DATA_URL + `?lang=${lang}&limit=10000`;
 
   let method = { method: "GET" };
 
   try {
-    let start = new Date().getTime();
     const res = await fetch(process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + url, {
       ...method,
       next: {
@@ -35,34 +27,79 @@ export const getHomeData = async ({ str, lang }) => {
       headers: new Headers({
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        lang: await getLang(language, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
+        lang: lang,
+        country: country,
       }),
       credentials: "include",
       mode: "cors",
     });
     const repo: HomeBoutiqueApi = await res.json();
-
-    let end = new Date().getTime();
-    let time = end - start;
-    let returned_res = {
-      type: res.type,
-      headers: new Headers({
-        lang: await getLang(language, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
-      }),
-      url: res.url,
-      time: time + "ms",
-      response: repo,
-      request: "Get boutiques",
-    };
-
-    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-      return [repo.data, returned_res];
-    else return [repo.data, {}];
+    return repo.data.boutiques.map((s) => s.slug);
   } catch (e) {
     console.log(e);
-    return [[], e.toString()];
+    return [];
+  }
+};
+export const getProducts = async ({ lang, country }) => {
+  const language = lang;
+  let url = "/api/products/searchInCatalog" + `?lang=${language}&limit=1000`;
+  let method = { method: "GET" };
+
+  try {
+    const res = await fetch(process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + url, {
+      ...method,
+      next: {
+        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
+        tags: [`product-slugs`],
+      },
+      headers: new Headers({
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        lang: lang,
+        country: country,
+      }),
+      credentials: "include",
+      mode: "cors",
+    });
+    const repo: FilterProductApi = await res.json();
+
+    return repo.data.products.map((s) => s.slug);
+  } catch (e) {
+    console.log(e);
+    return [];
+  }
+};
+export const getHomeData = async ({ str, lang, country }) => {
+  const language = lang;
+  let url =
+    HOME_DATA_URL +
+    (str?.length
+      ? `?lang=${language}&category_slugs=["${str}"]&limit=10`
+      : `?lang=${language}&category_slugs=[]&limit=10`);
+
+  let method = { method: "GET" };
+
+  try {
+    const res = await fetch(process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + url, {
+      ...method,
+      next: {
+        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_BOUTIQUES),
+        tags: [`home-boutiques`],
+      },
+      headers: new Headers({
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        lang: language,
+        country: country,
+      }),
+      credentials: "include",
+      mode: "cors",
+    });
+    const repo: HomeBoutiqueApi = await res.json();
+    return repo.data;
+  } catch (e) {
+    console.log(e);
+    return { boutiques: [], offset: null };
   }
 };
 export const getStoriesServer = async () => {
@@ -101,9 +138,8 @@ export const getStoriesServer = async () => {
 };
 export const getMainCategories = async ({
   lang,
+  country,
 }): Promise<[CategoriesApi["data"]["mainCategories"], any]> => {
-  const cookies = (await import("next/headers")).cookies;
-  const cookieStore = cookies();
   const language = lang;
 
   try {
@@ -118,9 +154,8 @@ export const getMainCategories = async ({
           tags: ["home-categories"],
         },
         headers: new Headers({
-          lang: await getLang(language, cookieStore.get("language")?.value),
-          country:
-            cookieStore.get("country") && cookieStore.get("country").value,
+          lang: lang,
+          country: country,
         }),
       }
     );
@@ -131,8 +166,8 @@ export const getMainCategories = async ({
     let returned_res = {
       type: res.type,
       headers: new Headers({
-        lang: await getLang(language, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
+        lang: lang,
+        country: country,
       }),
       url: res.url,
       time: time + "ms",
@@ -211,6 +246,7 @@ export const getCountry = (country, cookieCountry) => {
 export const getListingData = async ({
   categories,
   lang,
+  country,
   productCategory,
   searchParams,
   noProducts,
@@ -218,6 +254,7 @@ export const getListingData = async ({
 }: {
   categories?: string[];
   lang: string;
+  country: string;
   productCategory: string;
   searchParams: {
     searchText?: string;
@@ -233,8 +270,6 @@ export const getListingData = async ({
 }) => {
   let language = lang;
   let start = new Date().getTime();
-  const cookies = (await import("next/headers")).cookies;
-  const cookieStore = cookies();
   if (Object.keys(searchParams).length > 0) {
     let obj: {
       search_text?: string;
@@ -365,23 +400,22 @@ export const getListingData = async ({
           ],
         },
         headers: new Headers({
-          lang: await getLang(language, cookieStore.get("language")?.value),
-          country:
-            cookieStore.get("country") && cookieStore.get("country").value,
+          lang: lang,
+          country: country,
           Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         }),
       }
     );
-    console.log(productRes.url);
+
     let repo: FilterProductApi = await productRes.json();
     let end = new Date().getTime();
     let time = end - start;
     let returned_res = {
       type: productRes.type,
       headers: new Headers({
-        lang: await getLang(language, cookieStore.get("language")?.value),
-        country: cookieStore.get("country") && cookieStore.get("country").value,
+        lang: lang,
+        country: country,
       }),
       url: productRes.url,
       time: time + "ms",
@@ -439,9 +473,8 @@ export const getListingData = async ({
         },
 
         headers: new Headers({
-          lang: await getLang(language, cookieStore.get("language")?.value),
-          country:
-            cookieStore.get("country") && cookieStore.get("country").value,
+          lang: lang,
+          country: country,
           Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         }),
@@ -452,9 +485,8 @@ export const getListingData = async ({
       let returned_res = {
         type: res.type,
         headers: new Headers({
-          lang: await getLang(language, cookieStore.get("language")?.value),
-          country:
-            cookieStore.get("country") && cookieStore.get("country").value,
+          lang: lang,
+          country: country,
         }),
         url: res.url,
         time: time + "ms",
@@ -736,4 +768,170 @@ export const getCountriesApi = async () => {
       },
     ];
   }
+};
+export const getProductsAndFilters = async ({
+  searchParams,
+  lang,
+  country,
+  noProducts,
+  noFilters,
+  offset,
+  boutiqueId,
+  filters_offset,
+}: {
+  searchParams: URLSearchParams;
+  lang: string;
+  country: string;
+  noProducts: boolean;
+  noFilters: boolean;
+  offset: number | boolean;
+  boutiqueId?: string;
+  filters_offset?: number;
+}) => {
+  try {
+    let params = configureSearchParams({
+      searchParams,
+      noProducts,
+      noFilters,
+      lang,
+      offset,
+      boutiqueId,
+      filters_offset,
+    });
+    let configured_url = `/api/products/searchInCatalog?${params.toString()}`;
+    console.log(configured_url, "configured_url");
+    let response = await fetch(
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + configured_url,
+      {
+        method: "GET",
+        headers: new Headers({
+          lang: lang,
+          country: country,
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        }),
+        next: {
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
+        },
+      }
+    );
+    if (response.status !== 200) {
+      const errorBody = await response.json();
+      throw new Error(
+        `Listing Products and Filters Error: ${
+          response.status
+        } ${JSON.stringify(errorBody.message)}`
+      );
+    }
+    let data: FilterProductApi = await response.json();
+    return data;
+  } catch (error) {
+    console.error(
+      `Listing Products and Filters Error: ${error}`,
+      searchParams,
+      offset
+    );
+    return {
+      data: {
+        products: [],
+        brands: [],
+        attributes: [],
+        colors: [],
+        categories: [],
+        boutiques: [],
+        prices: {
+          min_price: 0,
+          max_price: 0,
+          priceRanges: [],
+        },
+        search_time: "0.00",
+        offset: 0,
+        total_size: 0,
+        limit: 8,
+        process_time: "0.00",
+      },
+    };
+  }
+};
+const configureSearchParams = ({
+  searchParams,
+  noFilters,
+  noProducts,
+  lang,
+  offset,
+  boutiqueId,
+  filters_offset,
+}): URLSearchParams => {
+  let params = new URLSearchParams();
+  params.set("lang", lang);
+  params.set("limit", "8");
+  if (offset) {
+    params.set("offset", `[${offset}]`);
+  }
+  if (noProducts) {
+    params.set("with_products", "false");
+  }
+  if (noFilters) {
+    params.set("with_filters", "false");
+  }
+  if (searchParams.search_text) {
+    params.set("search_text", searchParams.search_text);
+  }
+  if (searchParams.categories) {
+    params.set("category_slugs", decodeURIComponent(searchParams.categories));
+  }
+  if (searchParams.prices) {
+    params.set("price", decodeURIComponent(searchParams.prices));
+  }
+  if (searchParams.sizes) {
+    params.set(
+      "attributes",
+      JSON.stringify([
+        {
+          id: 1,
+          options: JSON.parse(decodeURIComponent(searchParams.sizes)),
+          name: "Size",
+        },
+      ])
+    );
+  }
+  if (searchParams.colors) {
+    params.set("colors", decodeURIComponent(searchParams.colors));
+  }
+  if (searchParams.brands) {
+    params.set("brand_slugs", decodeURI(searchParams.brands));
+  }
+  if (searchParams.boutiques) {
+    params.set("boutique_slugs", decodeURI(searchParams.boutiques));
+  }
+  if (boutiqueId) {
+    params.set("boutique_slugs", `["${boutiqueId}"]`);
+  }
+  if (filters_offset) {
+    params.set("filters_offset", `${filters_offset}`);
+  }
+  // console.log(
+  //   `params: ${decodeURIComponent(params.toString())} ${JSON.stringify(
+  //     searchParams
+  //   )}`
+  // );
+  return params;
+};
+export const getCurrency = async ({ lang, country }) => {
+  let data = await fetch(
+    process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile/home/currency",
+    {
+      next: {
+        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+      },
+      headers: new Headers({
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        lang: lang,
+        country: country,
+      }),
+    }
+  );
+  let currency: CurrencyApi = await data.json();
+  return currency.data.currency;
 };

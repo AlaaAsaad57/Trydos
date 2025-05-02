@@ -4,12 +4,13 @@ import React, { useEffect, useState } from "react";
 import "styles/cameraShot.css";
 import CameraShotIcon from "public/svg/product/CameraShotIcon.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
-import { useDispatch, useSelector } from "react-redux";
 import { useSwipeable } from "react-swipeable";
 import GalleryItem from "./GalleryItem";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 function CameraShotGallery({ images, close }) {
+  const { activeCameraGallery, showInfoMessage } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -17,10 +18,7 @@ function CameraShotGallery({ images, close }) {
     return translateFunction(key, languageVariable);
   };
   const [extended, setExtended] = useState(false);
-  const activeCameraGallery = useSelector(
-    (state: StateInterface) => state.details.activeCameraGallery
-  );
-  const dispatch = useDispatch();
+
   var dir = 0;
   const swipeToClose = (e) => {
     let container = document.querySelector(".container-gallery");
@@ -88,17 +86,14 @@ function CameraShotGallery({ images, close }) {
               <ColorsInfo
                 className="ml-1 cursor-pointer"
                 onClick={() => {
-                  dispatch({
-                    type: "SHOW-INFO-MESSAGE",
-                    payload: {
-                      showInfoMessage: true,
-                      title: ` ${translate("Buyers Camera")} 12 ${translate(
-                        "Shot"
-                      )}`,
-                      text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
-                      icon: "/svg/product/CameraShotIcon.svg",
-                      value: ["Birthday", "Casual", "Business"],
-                    },
+                  showInfoMessage({
+                    showInfoMessage: true,
+                    title: ` ${translate("Buyers Camera")} 12 ${translate(
+                      "Shot"
+                    )}`,
+                    text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
+                    icon: "/svg/product/CameraShotIcon.svg",
+                    value: ["Birthday", "Casual", "Business"],
                   });
                 }}
               />

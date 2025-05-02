@@ -14,14 +14,11 @@ function BuyButton({ buy }) {
   };
   return (
     <div
-      className="buy-button light-text flex align-start justify-start cursor-pointer"
+      className="buy-button light-text flex align-start justify-start cursor-pointer absolute z-[50] bottom-0 right-[10px] h-[40px] items-center"
       data-cy="Cart-ByButton"
       onClick={(e) => {
         e.preventDefault();
         buy();
-        setTimeout(() => {
-          dispatchRouteChangeEvent("completed");
-        }, 1000);
       }}
     >
       <span className="f-10 flex align-start">

@@ -4,10 +4,14 @@ import "styles/home.css";
 import "styles/unused-onload.css";
 import Providers from "store/provider";
 import localFont from "next/font/local";
-
-import "regenerator-runtime/runtime";
-import PageTransition from "components/global/PageTransition";
-import CustomNavbarServer from "components/Server/ServerCustomNav";
+import { Suspense } from "react";
+import NextLink from "components/global/NextLink";
+import Logo from "components/Home/Logo";
+import UserNavTopSection from "components/Home/UserNavTopSection";
+import Skeleton from "react-loading-skeleton";
+import NavbarClient from "components/Home/NavbarClient";
+import PageLoadingIndicator from "hooks/PageLoadingIndicator";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -53,14 +57,14 @@ const quicksand_semibold = localFont({
   preload: false,
   fallback: ["system-ui", "arial"],
 });
-export const revalidte = 360000;
+export const revalidte = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
+
 export default async function RootLayout({ params, children }) {
   // ${sf_pro_rounded_light.variable}
   // ${sf_pro_rounded_semibold.variable}
   // ${sf_pro_rounded_regular.variable}
   // ${sf_pro_rounded_medium.variable}
   // ${sf_pro_rounded_bold.variable}
-
   return (
     <html
       className={`
@@ -69,7 +73,7 @@ export default async function RootLayout({ params, children }) {
       ${quicksand_medium.variable}
       ${quicksand_bold.variable}
       ${quicksand_semibold.variable}
-      font-sans`}
+      font-sans overflow-x-hidden`}
       lang={params.lang.split("-")[1] === "ar" ? "ar-AE" : "en-US"}
     >
       <head>
@@ -79,10 +83,48 @@ export default async function RootLayout({ params, children }) {
       </head>
 
       <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
+        <SpeedInsights />
+        <PageLoadingIndicator />
         <Providers>
-          <div className="site-container">
-            <CustomNavbarServer lang={params.lang} />
-            <PageTransition init={params.lang}>{children}</PageTransition>
+          <div
+            className="site-container items-center"
+            key={`${JSON.stringify(params)}`}
+          >
+            <Suspense fallback={<></>}>
+              <NavbarClient />
+            </Suspense>
+            <div className="home-navbar max-h-[1365px]">
+              <NextLink
+                data={{
+                  is_full_home: true,
+                  href: `/${params.lang}`,
+                }}
+                href={`/${params.lang}`}
+                aria-label="TryDos Home"
+                data-cy="NavLogo"
+              >
+                <Logo animated={false} style={false} key={1} />
+              </NextLink>
+              <Suspense
+                fallback={
+                  <div className="user-nav-container">
+                    <div className="nav-question-item">
+                      <Skeleton className="w-[30px] h-[30px] rounded-sm" />
+                    </div>
+                    <div className="nav-question-item ml-2">
+                      <Skeleton className="w-[30px] h-[30px] rounded-sm" />
+                    </div>
+                    <div className="nav-question-item ml-2">
+                      <Skeleton className="w-[30px] h-[30px] rounded-sm" />
+                    </div>
+                  </div>
+                }
+              >
+                <UserNavTopSection />
+              </Suspense>
+            </div>
+
+            {children}
           </div>
         </Providers>
       </body>

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
-import { useSelector } from "react-redux";
 import { Sendevent, translateFunction } from "utils/functions";
 import AuthService from "services/auth";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 
 function AccountNotFound({
   inputValue,
@@ -19,15 +19,15 @@ function AccountNotFound({
   signStep: string;
   setStepIndicator: Function;
 }) {
+  const { language } = useAppStore();
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
+
   const [active, setActive] = useState(false);
   const mountAnim = ` 
   0% {transform:translateX(800px)}
@@ -203,7 +203,7 @@ function AccountNotFound({
           close();
         }}
       >
-        {translate("Cancel & Take A Look At The App", language)}
+        {translate("Cancel & Take A Look At The Site", language)}
       </div>
     </Animated.div>
   );

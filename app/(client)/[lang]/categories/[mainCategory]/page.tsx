@@ -1,8 +1,4 @@
 import Home from "components/Home";
-// import BrandsBar from "components/Home/Bars/BrandsBar";
-// import CategoryBar from "components/Home/Bars/CategoryBar";
-// import OfferBar from "components/Home/Bars/OfferBar";
-// import QuickOffer from "components/Home/Bars/QuickOffer";
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
 import StoriesBarServer from "components/Server/StoriesBarServer";
@@ -12,7 +8,8 @@ import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import { Suspense } from "react";
 
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-
+export const runtime = "nodejs";
+export const preferredRegion = ["bom1", "sin1"];
 interface Props {
   params: {
     lang: string;
@@ -23,7 +20,7 @@ function page({ params }: Props) {
   return (
     <>
       <Suspense fallback={<MobileNavigationSkeleton />}>
-        <NavbarServer lang={params.lang} />
+        <NavbarServer lang={params.lang} mainCategory={params?.mainCategory} />
       </Suspense>
       <Suspense fallback={<StoriesSkeleton />}>
         <StoriesBarServer />

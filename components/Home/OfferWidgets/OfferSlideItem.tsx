@@ -18,7 +18,7 @@ function OfferSlideItem({
         <div className="image-inner-shadow" style={{ height: "100%" }} />
         {
           <Image
-            loading={mykey < 2 ? "eager" : "lazy"}
+            loading="eager"
             fetchPriority={mykey < 2 ? "high" : "low"}
             priority={mykey < 2}
             style={{ borderRadius: "15px" }}

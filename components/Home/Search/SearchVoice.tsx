@@ -1,28 +1,30 @@
 import React, { useEffect } from "react";
+import "regenerator-runtime/runtime";
 import SearchMicIcon from "public/svg/SearchMicIcon.svg";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
-import { useSelector } from "react-redux";
-import "regenerator-runtime/runtime";
+import { useAppStore } from "store";
+import search from "services/search";
+import { useParams } from "next/navigation";
+
 function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
-  const {
-    finalTranscript,
-    listening,
-    resetTranscript,
-    browserSupportsSpeechRecognition,
-  } = useSpeechRecognition();
+  const { language } = useAppStore();
+  const { finalTranscript, listening, browserSupportsSpeechRecognition } =
+    useSpeechRecognition();
 
   function handleOnRecord() {
     SpeechRecognition.startListening({
       language: language === "ar" ? "ar-SA" : "en-US",
     });
   }
+  const { lang } = useParams();
   useEffect(() => {
     setSearchValue(finalTranscript);
+    search.getSearchOptions({
+      noProducts: false,
+      lang: lang,
+    });
   }, [finalTranscript]);
   return (
     <>

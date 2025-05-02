@@ -1,11 +1,13 @@
-import { store } from "store";
+import { useAppStore } from "store";
 
 class LocalizationService {
   GetAppLanguage() {
-    return store.getState().homepage.language;
+    const { language } = useAppStore.getState();
+    return language;
   }
   GetAppCountry() {
-    return store.getState().homepage.country;
+    const { country } = useAppStore.getState();
+    return country;
   }
 }
 let LocalizationServiceClass = new LocalizationService();

@@ -8,14 +8,15 @@ import LegalInfoIcon from "public/svg/LegalInfoIcon.svg";
 import AboutIcon from "public/svg/AboutIcon.svg";
 import ShareAppIcon from "public/svg/ShareAppIcon.svg";
 import LanguageIcon from "public/svg/LanguageIcon.svg";
-
-import { useParams } from "node_modules/next/navigation";
+import SyFlage from "public/svg/sy.svg";
+import { useParams } from "next/navigation";
 import { allCountries } from "country-telephone-data";
 import Flag from "react-world-flags";
 import order from "services/order";
-import { useSelector } from "node_modules/react-redux/es";
-import { RoundPrice, translateFunction } from "utils/functions";
+
+import { formatPrice, RoundPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
+import { useAppStore } from "store";
 
 const options = [
   { name: "Settings", Icon: <SettingsIcon /> },
@@ -29,6 +30,8 @@ function MainSetting({
 }: {
   swipeToScreen: (index: number) => void;
 }) {
+  const { wallet, currency, totalOrders } = useAppStore();
+
   const { lang } = useParams();
   // @ts-ignore
   let country = lang?.split("-")[0];
@@ -37,12 +40,6 @@ function MainSetting({
     iso: country,
   };
   const [loading, setLoading] = useState(false);
-  const wallet = useSelector(
-    (state: StateInterface) => state.cart.wallet?.wallet_balance
-  );
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
 
   useEffect(() => {
     getWallet();
@@ -57,9 +54,7 @@ function MainSetting({
       setLoading(false);
     }
   };
-  const totalOrders = useSelector(
-    (state: StateInterface) => state.auth.totalOrders
-  );
+
   return (
     <div className="flex-col w-full pt-[20px] px-[12px]">
       <ProfileCard
@@ -98,7 +93,7 @@ function MainSetting({
               <Spinner />
             ) : (
               <>
-                {RoundPrice({ num: wallet })} {currency?.symbol}{" "}
+                {formatPrice(wallet?.wallet_balance)} {currency?.symbol}{" "}
                 {translateFunction("Your Balance")}
               </>
             )}
@@ -116,15 +111,20 @@ function MainSetting({
             }}
             className="flex-row w-1/2 h-[53px] bg-[#F8F8F8] rounded-[15px] px-[12px] items-center cursor-pointer"
           >
-            <Flag
-              code={country.iso.toUpperCase()}
-              height="18"
-              style={{
-                borderRadius: "4px",
-              }}
-              width="28"
-              alt={`${country.name} flag`}
-            />
+            {country.iso === "sy" ? (
+              <SyFlage data-cy="country-flag" />
+            ) : (
+              <Flag
+                code={country.iso.toUpperCase()}
+                height="18"
+                style={{
+                  borderRadius: "4px",
+                }}
+                width="28"
+                alt={`${country.name} flag`}
+              />
+            )}
+
             <span className="text-[#1D1D1D] text-[14px] regular ml-[12px]">
               {country.name}
             </span>

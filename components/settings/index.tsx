@@ -12,10 +12,13 @@ import PersonalBankCards from "./PersonalBankCards";
 import PersonalInfoCountries from "./PersonalInfoCountries";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import OrdersList from "./OrdersList";
-import { OrderItem as OrderItemType } from "types/orders";
+
 import OrderDetails from "./OrderDetails";
-import { useDispatch, useSelector } from "react-redux/es";
+
 import Spinner from "components/global/Spinner";
+import { useAppStore } from "store";
+import { ToastContainer } from "react-toastify";
+import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
 
 interface SettingOption {
   id: string;
@@ -28,19 +31,18 @@ interface SettingOption {
 }
 
 function Settings({ lang }: { lang: string }) {
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
-  const userProfile = useSelector(
-    (state: StateInterface) => state.auth.userProfile
-  );
+  const {
+    setIsActiveAddress,
+    userProfile,
+    setOrderDetails,
+    setAddressDetails,
+  } = useAppStore();
 
-  const dispatch = useDispatch();
   const setSelectedOrder = (order) => {
-    dispatch({ type: "ORDER-DETAILS", payload: order });
+    setOrderDetails(order);
   };
   const setIsActive = (e) => {
-    dispatch({ type: "SET-IS-ACTIVE-Address", payload: e });
+    setIsActiveAddress(e);
   };
   const [NavigationOptions, setNavigationOptions] = useState<SettingOption[]>([
     {
@@ -115,8 +117,7 @@ function Settings({ lang }: { lang: string }) {
           {
             <PersonalInfoAddressModal
               goBack={() => {
-                dispatch({ type: "set-address-details", payload: null });
-
+                setAddressDetails(null);
                 swipeToScreen(5);
               }}
               swipeToScreen={(index) => swipeToScreen(index)}
@@ -206,18 +207,13 @@ function Settings({ lang }: { lang: string }) {
     // @ts-ignore
     setTimeout(() => setIsAnimating(false), 300); // Match transition duration
   };
-  if (!userProfile)
-    return (
-      <div className="w-full h-full flex justify-center items-center">
-        <Spinner className="scale-150" />
-      </div>
-    );
+  if (!userProfile) return <SettingsLoader />;
   return (
     <div className="max-h-full h-full overflow-auto flex w-full max-w-[1365px] justify-center bg-white">
       {/* Sidebar Navigation */}
 
       {/* Main Content Area */}
-      <div className="w-full h-full flex-1 relative overflow-hidden">
+      <div className="w-full h-full flex-1 relative overflow-hidden min-h-screen">
         <div
           className="absolute w-full h-full transition-transform duration-300 ease-in-out"
           style={{

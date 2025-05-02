@@ -224,6 +224,7 @@ const styles = {
     background: "#111",
     position: "relative" as const,
     WebkitUserSelect: "none" as const,
+    paddingBlock: "30px",
   },
   overlay: {
     position: "absolute" as const,

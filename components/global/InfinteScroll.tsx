@@ -1,9 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { InView } from "react-intersection-observer";
 import Spinner from "./Spinner";
 import { useParams } from "next/navigation";
 import NormalWidget from "components/Home/OfferWidgets/NormalWidget";
+import { dispatchRouteChangeEvent } from "utils/events";
 const useInfiniteScroll = (fetchNextPage) => {
   useEffect(() => {
     // Function to check scroll position
@@ -36,14 +36,18 @@ function InfinteScroll({ offsetVariable }) {
   const getNextBoutique = async () => {
     if (!loading && !isEnd) {
       setLoading(true);
+      ("use server");
       let res = await fetch(
-        `/api/boutiques?lang=${params.lang}&offset=${offset}${
+        `/api/${params.lang}/boutiques?offset=${offset}${
           params.mainCategory?.length > 0 ? `&str=${params.mainCategory}` : ""
         }`,
         {
           headers: {
             lang: lang.split("-")[1],
             country: lang.split("-")[0],
+          },
+          next: {
+            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
           },
         }
       );
@@ -65,7 +69,9 @@ function InfinteScroll({ offsetVariable }) {
     }
   };
   useInfiniteScroll(getNextBoutique);
-
+  useEffect(() => {
+    dispatchRouteChangeEvent("completed");
+  }, []);
   return (
     <>
       {boutiques.map((boutique) => {

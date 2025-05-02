@@ -4,9 +4,7 @@ import CommentSection from "./CommentSection";
 import ShareSection from "./ShareSection";
 import MoreOptionsSection from "./MoreOptionsSection";
 import { ProductInterface } from "models/product";
-import SelectSize from "./SelectSize";
 import { getContacts } from "store/chat/actions";
-import Skeleton from "react-loading-skeleton";
 
 function ExtendedAreaInfo({
   option,
@@ -70,6 +68,7 @@ function ExtendedAreaInfo({
         style={{
           animationFillMode: "forwards",
           width: "100%",
+          zIndex: "99999999999999",
         }}
         unmountAnim={unmountAnim}
       >
@@ -116,47 +115,6 @@ function ExtendedAreaInfo({
         )}
 
         {option === "More" && <MoreOptionsSection />}
-        {option === "AddToCart" &&
-          product?.choice_options?.filter((s) => s.title == "Size")[0]
-            ?.options &&
-          (loading ? (
-            <>
-              <div className="flex-row justify-center w-full h-[235px] items-center">
-                <Skeleton
-                  containerClassName="h-20 items-center flex-row"
-                  className="w-20 h-20 rounded-full ml-2 items-center flex-row"
-                />
-                <Skeleton
-                  containerClassName="h-20 items-center flex-row"
-                  className="w-20 h-20 rounded-full ml-2 flex-row"
-                />
-                <Skeleton
-                  containerClassName="h-20 items-center flex-row"
-                  className="w-20 h-20 rounded-full ml-2 flex-row"
-                />
-                <Skeleton
-                  containerClassName="h-20 items-center flex-row"
-                  className="w-20 h-20 rounded-full ml-2 flex-row"
-                />
-                <Skeleton
-                  containerClassName="h-20 items-center flex-row"
-                  className="w-20 h-20 rounded-full ml-2 flex-row"
-                />
-                <Skeleton
-                  containerClassName="h-20 items-center flex-row"
-                  className="w-20 h-20 rounded-full ml-2 flex-row"
-                />
-              </div>
-            </>
-          ) : (
-            <SelectSize
-              sizes={
-                product?.choice_options?.filter((s) => s.title == "Size")[0]
-                  ?.options || []
-              }
-              variants={product.variation}
-            />
-          ))}
       </Animated.div>
     </>
   );

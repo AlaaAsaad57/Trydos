@@ -2,7 +2,7 @@ const translations = {
   en: {
     Buy: "Buy",
 
-    K: "k",
+    K: "K",
     M: "M",
     "Shipping & Delivery Address": "Shipping & Delivery Address",
     "No Address Selected": "No Address Selected",
@@ -175,7 +175,7 @@ const translations = {
     "No Contacts": "No Contacts",
     "Log in Through our App to access contacts":
       "Log in Through our App to access contacts",
-    "Cancel & Take A Look At The App": "Cancel & Take A Look At The App",
+    "Cancel & Take A Look At The Site": "Cancel & Take A Look At The Site",
     "Create New Account & Continue": "Create New Account & Continue",
     "Register & Create New Account With Us In A Few Simple Steps":
       "Register & Create New Account With Us In A Few Simple Steps",
@@ -197,7 +197,7 @@ const translations = {
     "Didn't You Receive A Code?": "Didn't You Receive A Code?",
     "the Method Of Receiving": "the Method Of Receiving",
     "The Code Sent Has Expired": "The Code Sent Has Expired",
-    "Later, Take A Look At The App": "Later, Take A Look At The App",
+    "Later, Take A Look At The Site": "Later, Take A Look At The Site",
     "Invalid Phone Number": "Invalid Phone Number",
     "Enter Your Phone Number To Login": "Enter Your Phone Number To Login",
     "To ": "To ",
@@ -277,6 +277,9 @@ const translations = {
   ar: {
     "Total Products:": "إجمالي المنتجات:",
     "Full Name": "الاسم الكامل",
+    Verified: "تم التحقق",
+    "Discount Coupon": "قسيمة خصم",
+    "Verify Now": "تحقق الان",
     "Your Size Info": "معلومات الحجم",
     "000 CM": "000 سم",
     "Loading...": "جاري التحميل...",
@@ -495,6 +498,7 @@ const translations = {
     "Cart is Empty": "السلة فارغة",
     "Hurry Up!": "أسرع!",
     "Quantity Running Out. ": "الكمية تنفذ.",
+    "Time Running Out. ": "الوقت ينفذ.",
     "Confirm And Continue": "الموافقة والمتابعة",
     items: "عناصر",
     "Size,": "حجم, ",
@@ -571,7 +575,7 @@ const translations = {
     "In Lebanon": "في لبنان",
     "in one word what is in this photo?":
       "في كلمة واحدة ماذا يوجد في هذه الصورة أجبني باللغة العربية؟",
-    Man: "رجال",
+    Man: "ذكر",
     "To Take Advantage Of All The Advantages Of The Application, Please Join Us In Quick And Easy Steps And For Just One Time":
       "للاستفادة من ميزات التطبيق انضم لنا بخطوات سربعة وبسيطة لمرة واحدة",
     "Terms Of Services ": "قواعد الاستخدام",
@@ -597,7 +601,7 @@ const translations = {
     "Enter Your Phone Number To Login": "ادخل رقمك لتسجيل الدخول",
     "the Method Of Receiving": "طريقة الاستلام",
     "Invalid Phone Number": "رقم خاطئ",
-    "Later, Take A Look At The App": "لاحقا, القي نظرة على التطبيق",
+    "Later, Take A Look At The Site": "لاحقا, القي نظرة على الموقع",
     "The Code Sent Has Expired": "انتهت فترة استلام الرمز",
     "Didn't You Receive A Code?": "لم تستلم رمزا؟",
     Change: "تغيير",
@@ -615,7 +619,7 @@ const translations = {
     "You Can Log In Now": "يمكنك تسجيل الدخول الان",
     "Register & Create New Account With Us In A Few Simple Steps":
       "سجل وانشئ حساب جديد بخطوات بسيطة",
-    "Cancel & Take A Look At The App": "خروج والقاء نظرة على التطبيق",
+    "Cancel & Take A Look At The Site": "خروج والقاء نظرة على الموقع",
     "Create New Account & Continue": "انشاء حساب ومتابعة",
     "Voice Call": "مكالمة صوتية",
     "Video Call": "مكالمة فيديو",
@@ -652,8 +656,10 @@ const translations = {
     Offer: "عرض",
     "Best Offers From Brands": "أفضل العروض من العلامات التجارية",
     "this message was deleted": "تم حذف هذه الرسالة",
-    Woman: "نساء",
+    Woman: "أنثى",
     Kids: "أطفال",
+    "You will be notified for this product already":
+      "لقد قمت بالفعل بتفعيل الاشعارات لهذا المنتج",
     Home: "منزلي",
     Electrical: "كهربائيات",
     Shop: "متجر",
@@ -787,6 +793,8 @@ const translations = {
     Sizes: "المقاسات",
     Price: "السعر",
     "Offer Price": "سعر العرض",
+    "Order Number has been Copied": "تم نسخ رقم الطلب",
+    "your TryDos Wallet balance is empty": "لا يوجد رصيد في محفظتك",
     "Product Comparison": "مقارنة المنتجات",
     "Loading your selected products for a detailed side-by-side comparison. This will help you make an informed decision by comparing features, prices, and specifications.":
       "جاري تحميل المنتجات المحددة لمقارنة مفصلة جنباً إلى جنب. سيساعدك هذا في اتخاذ قرار مستنير من خلال مقارنة الميزات والأسعار والمواصفات.",
@@ -795,9 +803,15 @@ const translations = {
     "The Purchase Was Completed Successfully":
       "Satın Alma Başarıyla Tamamlandı",
     "000 CM": "000 CM",
+    "Discount Coupon": "İndirim Kuponu",
+    "You will be notified for this product already":
+      "Bu Ürün Hakkında Bildirim Alındı",
+    "your TryDos Wallet balance is empty":
+      "TryDos Cüzdanınızda bakiye bulunmamaktadır",
     "Item Status": "Ürün Durumu",
     "Composed Of": "İçerik",
     Recipient: "Alıcı",
+    "Order Number has been Copied": "Sipariş Numarası Kopyalandı",
     "Recipient Phone": "Alıcı Telefon Numarası",
     "Loading...": "Yükleniyor...",
     "Order Date": "Sipariş Tarihi",
@@ -860,6 +874,8 @@ const translations = {
     Size: "Boyut",
     Address: "Adres",
     Action: "İşlem",
+    "Quantity Running Out. ": "Miktar Bitiyor. ",
+    "Time Running Out. ": "Zaman Bitiyor. ",
     "Share App": "Uygulamayı Paylaş",
     "Legal Information": "Hukukî Bilgiler",
     "Add Size": "Ekle",
@@ -1194,7 +1210,7 @@ const translations = {
     "No Contacts": "İletişim Yok",
     "Log in Through our App to access contacts":
       "İletişimlere Erişmek İçin Uygulamamızla Giriş Yapın",
-    "Cancel & Take A Look At The App": "İptal Et ve Uygulamaya Göz At",
+    "Cancel & Take A Look At The Site": "İptal Et ve Uygulamaya Göz At",
     "Create New Account & Continue": "Yeni Hesap Oluştur & Devam Et",
     "Register & Create New Account With Us In A Few Simple Steps":
       "Birkaç Basit Adımla Bizimle Kayıt Olun ve Yeni Hesap Oluşturun",
@@ -1218,7 +1234,7 @@ const translations = {
     "Didn't You Receive A Code?": "Kod Almadınız mı?",
     "the Method Of Receiving": "Alım Yöntemi",
     "The Code Sent Has Expired": "Gönderilen Kodun Süresi Dolmuş",
-    "Later, Take A Look At The App": "Sonra, Uygulamaya Göz At",
+    "Later, Take A Look At The Site": "Sonra, Uygulamaya Göz At",
     "Invalid Phone Number": "Geçersiz Telefon Numarası",
     "Enter Your Phone Number To Login":
       "Giriş Yapmak İçin Telefon Numaranızı Girin",

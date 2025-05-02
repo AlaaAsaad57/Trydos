@@ -8,6 +8,12 @@ function ProductItem({ product, onClick }) {
   const { lang } = useParams();
   return (
     <NextLink
+      data={{
+        is_product: true,
+        ...product,
+        href: `/${lang}/products/${product.slug}`,
+      }}
+      ariaLabel={`Product ${product.slug} ${lang}`}
       suppressHydrationWarning
       // @ts-ignore
       onClick={(e, bool = false) => {

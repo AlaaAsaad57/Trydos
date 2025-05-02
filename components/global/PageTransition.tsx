@@ -4,8 +4,10 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import "public/styles/pageTransition.css";
 import { getCurrency } from "store/chat/actions";
-import { useDispatch } from "node_modules/react-redux/es";
+
+import { useAppStore } from "store";
 function PageTransition({ children, init }) {
+  const { setCurrency } = useAppStore();
   const pathname = usePathname();
   const [prevPathname, setPrevPathname] = useState("");
   const [isAnimating, setIsAnimating] = useState(false);
@@ -20,7 +22,6 @@ function PageTransition({ children, init }) {
     }
     setPrevPathname(pathname);
   }, [pathname]);
-  const dispatch = useDispatch();
 
   useEffect(() => {
     let country = init?.split("-")[0];
@@ -34,7 +35,7 @@ function PageTransition({ children, init }) {
         } else if (country === "lb") {
           ciel = parseInt(process.env.NEXT_PUBLIC_LB_CIEL);
         }
-        dispatch({ type: "CURRENCY", payload: { ...currency, ceil: ciel } });
+        setCurrency({ ...currency, ceil: ciel });
       },
     });
   }, []);

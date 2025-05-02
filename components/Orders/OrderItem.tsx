@@ -4,11 +4,11 @@ import {
   RoundPrice,
   getConfiguredImage,
 } from "utils/functions";
-import { OrderDetail, OrderItem as OrderItemType } from "../../types/orders";
-import { useSelector } from "react-redux";
+import { OrderItem as OrderItemType } from "../../types/orders";
+
 import { useParams } from "next/navigation";
 
-import { getStatusDisplayName } from "components/settings/OrdersList";
+import { useAppStore } from "store";
 
 interface OrderItemProps {
   order: OrderItemType;
@@ -29,11 +29,11 @@ const OrderItem: React.FC<OrderItemProps> = ({ order, showDetails }) => {
         <OrderItemId id={order.order_group_id.toString()} />
       </div>
       <div className="flex-row w-full justify-between items-start mt-[11px]">
-        <OrderStatus status={order.order_status?.value} />
+        <OrderStatus status={order.order_group_status?.label} />
         <OrderInvoice
           invoice={{
             items: order.details.length,
-            total: order.order_amount + order.shipping_cost,
+            total: order.order_amount,
           }}
         />
       </div>
@@ -43,7 +43,7 @@ const OrderItem: React.FC<OrderItemProps> = ({ order, showDetails }) => {
 };
 
 export default OrderItem;
-const OrderProductSlider = ({ products }: { products: OrderDetail[] }) => {
+const OrderProductSlider = ({ products }: { products: any[] }) => {
   return (
     <div className="flex-row items-center pl-[12px] mt-[12px] whitespace-nowrap overflow-x-scroll overflow-y-hidden [&::-webkit-scrollbar]:hidden">
       {products.map((product) => (
@@ -54,7 +54,7 @@ const OrderProductSlider = ({ products }: { products: OrderDetail[] }) => {
           <img
             className="w-full h-full object-contain bg-white rounded-[15px]"
             src={getConfiguredImage({
-              src: product.product_details.thumbnail,
+              src: product?.image,
               width: 91,
               height: 125,
             })}
@@ -77,6 +77,7 @@ const OrderProductSlider = ({ products }: { products: OrderDetail[] }) => {
   );
 };
 const OrderStatus = ({ status }: { status: string }) => {
+  const { settings } = useAppStore();
   return (
     <div className="flex-row items-center">
       <svg
@@ -148,7 +149,7 @@ const OrderStatus = ({ status }: { status: string }) => {
       </svg>
 
       <span className="ml-[4px] text-[#1D1D1D] text-[12px] regular">
-        {translateFunction(getStatusDisplayName(status))}
+        {status}
       </span>
       <svg
         className="ml-[7px]"
@@ -255,9 +256,7 @@ const OrderInvoice = ({
 }: {
   invoice: { items: number; total: number };
 }) => {
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+  const { currency } = useAppStore();
   return (
     <div className="flex-row items-center">
       <svg
@@ -377,7 +376,7 @@ const OrderInvoice = ({
 };
 const OrderItemTime = ({ time }: { time: string }) => {
   const formatTime = (timeString: string) => {
-    const date = new Date(timeString);
+    const date = new Date(timeString + "Z");
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);

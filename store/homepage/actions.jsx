@@ -2,25 +2,31 @@ import StoryService from "services/story";
 import Cookies from "js-cookie";
 import { Sendevent } from "utils/functions";
 import { changeAppLanguageServer, changeToken } from "./cachedActions";
+import { useAppStore } from "store";
 export const changeAppLanguage = (language) => {
+  const { setAppLanguage } = useAppStore.getState();
   Cookies.set("language", language, {
     expires: 365,
   });
   changeAppLanguageServer(language);
   changeToken({ key: "language", value: language });
   changeToken({ key: "lang", value: language });
-  return { type: "APP-LANGUAGE", payload: language };
+  setAppLanguage(language);
 };
 export const changeAppCountry = async (iso) => {
+  const { setAppCountry } = useAppStore.getState();
+
   // Cookies.set("country", iso, {
   //   expires: 365,
   // });
   await changeToken({ key: "country", value: iso });
-  return { type: "APP-COUNTRY", payload: iso };
+  setAppCountry(iso);
 };
 
 /*Stories Actions */
 export const SelectStory = (e) => {
+  const { setSelectedStory } = useAppStore.getState();
+
   if (e) {
     window.history.pushState({ isPopup: true }, "open Cart");
   }
@@ -28,17 +34,21 @@ export const SelectStory = (e) => {
     Sendevent({ event: "button_clicked", value: "view_story_button" });
     StoryService.WatchStory(e.stories[0].id, e.id);
   }
-  return { type: "STORY-SELECTED", payload: e };
+  setSelectedStory(e);
 };
 
 export const setNextStory = (storyId) => {
-  return { type: "NEXT-STORY", payload: storyId };
+  const { nextStory } = useAppStore.getState();
+
+  nextStory(storyId);
 };
 export const setPreviousStory = (storyId) => {
-  return { type: "PREV-STORY", payload: storyId };
+  const { prevStory } = useAppStore.getState();
+  prevStory(storyId);
 };
 export const AddStoryAction = (story) => {
-  return { type: "ADD-STORY", payload: story };
+  const { addStory } = useAppStore.getState();
+  addStory(story);
 };
 export const GetUnviewedStory = (story) => {
   let index = 0;

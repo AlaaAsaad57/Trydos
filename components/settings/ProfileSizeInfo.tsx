@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import SettingTopBar from "./TopBar";
 import { translateFunction } from "utils/functions";
 import AddressInfo from "public/svg/cart/AddressInfo.svg";
-import { useDispatch, useSelector } from "react-redux";
 import auth from "services/auth";
+import { useAppStore } from "store";
 
 function ProfileSizeInfo({
   swipeToScreen,
@@ -12,9 +12,7 @@ function ProfileSizeInfo({
   swipeToScreen: (index: number) => void;
   goBack: () => void;
 }) {
-  const userProfile = useSelector(
-    (state: StateInterface) => state.auth.userProfile
-  );
+  const { editUserInfo, userProfile } = useAppStore();
   const [userProfileData, setUserProfileData] = useState({
     tall: userProfile?.tall,
     weight: userProfile?.weight,
@@ -26,15 +24,12 @@ function ProfileSizeInfo({
     );
   };
   const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
   const updateUserProfile = async (payload) => {
     try {
       setLoading(true);
       await auth.UpdateProfile(payload);
-      dispatch({
-        type: "EDIT_USER_INFO",
-        payload: payload,
-      });
+
+      editUserInfo(payload);
       setLoading(false);
       goBack();
     } catch (error) {

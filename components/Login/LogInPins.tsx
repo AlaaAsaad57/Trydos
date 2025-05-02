@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import PinInput from "react-pin-input";
-import { useSelector } from "react-redux";
 import { Sendevent, translateFunction } from "utils/functions";
 import Timer from "./Timer";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 import { useParams } from "next/navigation";
 import Spinner from "components/global/Spinner";
+import { useAppStore } from "store";
 
 function LogInPins({
   setPin,
@@ -26,6 +26,7 @@ function LogInPins({
   inputValue,
   init,
   loadingPin,
+  forChanging,
 }: {
   inputValue: string;
   rendere: boolean;
@@ -44,17 +45,17 @@ function LogInPins({
   successLogin: boolean;
   disabled: boolean;
   loadingPin: boolean;
+  forChanging?: boolean;
 }) {
+  const { language, Tempuser } = useAppStore();
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const user = useSelector((state: StateInterface) => state.auth.Tempuser);
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
+
   const isKeyboardOpen = useDetectKeyboardOpen(200);
 
   useEffect(() => {
@@ -125,7 +126,7 @@ function LogInPins({
       }
     }
   }, [isKeyboardOpen]);
-  useEffect(() => {}, [user, failedLogin]);
+  useEffect(() => {}, [Tempuser, failedLogin]);
   const [active, setActive] = useState(false);
   const mountAnim = ` 
   0% {transform:translateX(800px)}
@@ -505,16 +506,16 @@ function LogInPins({
                         "pin-border-element" +
                         " " +
                         (expired && "input-expired ") +
-                        (user && " input-success ") +
+                        (Tempuser && !forChanging && " input-success ") +
                         " " +
                         ((wrongNumber || failedLogin) &&
-                          !user &&
+                          !Tempuser &&
                           "input-failed")
                       }
                       style={{
                         backgroundColor: wrongNumber
                           ? "#fff5f5"
-                          : user
+                          : Tempuser && !forChanging
                           ? "#F4FFF4"
                           : pin[index] || disabled
                           ? "#f5f5f5"

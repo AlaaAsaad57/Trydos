@@ -193,7 +193,7 @@ export interface CategoriesApi {
       name: string;
       description?: string;
       bio: string;
-      flat_photo_path: string;
+      flat_photo_path: { file_path: string };
       outline_photo_path: string;
       png_photo_path?: string;
       fill_photo_path: string;

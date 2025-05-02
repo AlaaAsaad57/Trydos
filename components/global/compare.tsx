@@ -7,13 +7,15 @@ import AsyncSelectCustom from "./AsyncSelectCustom";
 import Link from "next/link";
 import CompareLoadingWidget from "./CompareLoadingWidget";
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
 import SearchService from "services/search";
+import { useAppStore } from "store";
+import NextLink from "./NextLink";
 const ComparePage: React.FC = ({
   showInstantLoading = true,
 }: {
   showInstantLoading?: boolean;
 }) => {
+  const { currency } = useAppStore();
   const searchParams = useSearchParams();
   const [product1, setProduct1] = useState<any>(null);
   const [product2, setProduct2] = useState<any>(null);
@@ -21,9 +23,6 @@ const ComparePage: React.FC = ({
   const [loading2, setLoading2] = useState(false);
   const [initialLoading, setInitialLoading] = useState(showInstantLoading);
   const { lang } = useParams();
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
   useEffect(() => {
     const { f_p, s_p } = {
       f_p: searchParams.get("f_p"),
@@ -101,12 +100,25 @@ const ComparePage: React.FC = ({
   };
 
   const [searchLoading, setSearchLoading] = useState(false);
+  const searchFunction = async (inputValue: string) => {
+    setSearchLoading(true);
+    const productsVar = await fetch(
+      process.env.NEXT_PUBLIC_API_BASE_URL +
+        `/api/${lang}/search?searchText=${inputValue}&noFilters=true`,
+      {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      }
+    );
+    const productsVarJson = await productsVar.json();
+    return productsVarJson;
+  };
   const search = async (inputValue: string) => {
     setSearchLoading(true);
-    const productsVar = await SearchService.searchProducts({
-      searchText: inputValue,
-    });
-
+    const productsVar = await searchFunction(inputValue);
     setProducts(
       productsVar?.map((p) => ({
         label: p.name,
@@ -299,12 +311,18 @@ const ComparePage: React.FC = ({
       key: "name",
       label: translateFunction("Name"),
       render: (product: ProductInterface) => (
-        <Link
+        <NextLink
+          data={{
+            is_product: true,
+            ...product,
+            href: `/${lang}/products/${product.slug}`,
+          }}
+          ariaLabel={`Compare Product ${product.slug} ${lang}`}
           href={`/${lang}/products/${product.slug}`}
           className="text-blue-600 hover:text-blue-800 hover:underline"
         >
           {product.name}
-        </Link>
+        </NextLink>
       ),
     },
     {

@@ -1,10 +1,10 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useSelector } from "react-redux";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { translateFunction } from "utils/functions";
 import { toast } from "react-toastify";
 import Spinner from "components/global/Spinner";
+import { useAppStore } from "store";
 const MapElement = dynamic(
   () => import("./MapElement").then((mod) => mod.MapElement),
   { ssr: false }
@@ -17,9 +17,7 @@ const Map = ({
   setExpanded,
   setCenter,
 }) => {
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
+  const { addressDetails } = useAppStore();
   const [locationLoading, setLocationLoading] = useState(false);
   const setLocationBasedOnUserLocation = () => {
     if ("geolocation" in navigator) {

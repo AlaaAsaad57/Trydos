@@ -1,6 +1,5 @@
 "use client";
-import { useRouter } from "next-nprogress-bar/dist";
-import { PrefetchKind } from "next/dist/client/components/router-reducer/router-reducer-types";
+
 import React, { useEffect } from "react";
 import { Sendevent } from "utils/functions";
 

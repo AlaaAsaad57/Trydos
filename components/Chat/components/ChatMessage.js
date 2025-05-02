@@ -11,7 +11,7 @@ import ForwardIcon from "../svg/forwarded.svg";
 import MissedIcon from "../svg/misscall.svg";
 import VideoIconMissed from "../svg/VideoMissed.svg";
 import profile from "public/images/profileNo.png";
-import { useDispatch, useSelector } from "react-redux";
+
 import OptionsMenu from "./OptionsMenu";
 import { getTwoLetters, getUser } from "../chatsFunctions";
 import RepliedMessage from "./RepliedMessage";
@@ -25,7 +25,9 @@ import Image from "next/image";
 import { DeleteMessageApi } from "store/chat/actions";
 import NextLink from "components/global/NextLink";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 function ChatMessage(props) {
+  const { language, activeChat, deleteMessage } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -36,14 +38,11 @@ function ChatMessage(props) {
   const message_ref = useRef();
   const [width, setWidth] = useState(0);
   const [opens, setOpen] = useState(false);
-  const language = useSelector((state) => state.homepage.language);
   const refmessage = useRef();
   const AudioRef = useRef();
-  const activeChat = useSelector((state) => state.chat.activeChat);
+
   const [playing, setPlay] = useState(false);
   const [DeleteModal, setDelete] = useState(false);
-
-  const dispatch = useDispatch();
   const getStatues = () => {
     let a = props.message.message_status.filter(
       (a) => a.user_id !== getUserChat()?.id
@@ -193,7 +192,7 @@ function ChatMessage(props) {
     }
   };
   const DeleteMessage = (ch_id, msg_id, bool) => {
-    dispatch({ type: "DELETE_MESSAGE", payload: { ch_id, msg_id, bool } });
+    deleteMessage({ ch_id, msg_id, bool });
     DeleteMessageApi(msg_id, bool);
   };
 
@@ -261,6 +260,7 @@ function ChatMessage(props) {
     document.execCommand("Copy");
   };
   const showMessage = () => {
+    const { setForwardMessage, setReplyMessage } = useAppStore.getState();
     // if (
     //   !props.message?.auth_message_status ||
     //   props.message?.auth_message_status.is_deleted !== 1
@@ -407,6 +407,15 @@ function ChatMessage(props) {
             )}
 
             <NextLink
+              data={{
+                is_product: true,
+                slug: JSON.parse(props.message.message_content.content)[0]
+                  .product_slug,
+                href: `/products/${
+                  JSON.parse(props.message.message_content.content)[0]
+                    .product_slug
+                }`,
+              }}
               href={`/products/${
                 JSON.parse(props.message.message_content.content)[0]
                   .product_slug
@@ -600,11 +609,11 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
+               forward={() =>
+                setForwardMessage(props.message)
               }
               click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
+                setReplyMessage(props.message)
               }
             /> */}
           </div>
@@ -826,12 +835,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -1064,12 +1069,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -1350,12 +1351,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -1550,12 +1547,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -1785,12 +1778,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -1999,6 +1988,15 @@ function ChatMessage(props) {
             )}
 
             <NextLink
+              data={{
+                is_product: true,
+                slug: JSON.parse(props.message.message_content.content)[0]
+                  .product_slug,
+                href: `/products/${
+                  JSON.parse(props.message.message_content.content)[0]
+                    .product_slug
+                }`,
+              }}
               href={`/products/${
                 JSON.parse(props.message.message_content.content)[0]
                   .product_slug
@@ -2152,10 +2150,10 @@ function ChatMessage(props) {
               }
               copy={() => copyText()}
               forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
+                setForwardMessage(props.message)
               }
               click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
+                setReplyMessage(props.message)
               }
             /> */}
           </div>
@@ -2331,12 +2329,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -2517,12 +2511,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -2766,12 +2756,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -2930,12 +2916,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -3127,12 +3109,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );

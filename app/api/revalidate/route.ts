@@ -14,9 +14,18 @@ export async function GET(request: NextRequest) {
     revalidatePath("/listing", "layout");
     revalidateTag("home-categories-en"); // Update cached posts
     revalidateTag("home-categories-ar"); // Update cached posts
-
+    revalidateTag("search-Api");
     revalidatePath("/boutiques/[productCategory]", "page");
     revalidatePath("/boutiques/[productCategory]", "layout");
   }
-  return NextResponse.json({ revalidated: "true" });
+  return NextResponse.json(
+    { revalidated: "true" },
+    {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      },
+    }
+  );
 }

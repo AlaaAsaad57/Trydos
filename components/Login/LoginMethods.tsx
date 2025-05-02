@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import Qr from "public/svg/qr.svg";
 import LoginCall from "public/svg/loginCall.svg";
 import { translateFunction } from "utils/functions";
-import { useSelector } from "react-redux";
+
 import Border from "./Border";
 import "styles/methods.css";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 
 const LoginMethods = ({ confirm }) => {
+  const { language } = useAppStore();
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -15,9 +18,6 @@ const LoginMethods = ({ confirm }) => {
     return translateFunction(key, languageVariable);
   };
   const [showQr, setShowQr] = useState(false);
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
   useEffect(() => {
     let e = document.querySelector<HTMLDivElement>(".login-widget-container");
     if (e.classList.contains("qr-extend-comtainer")) {

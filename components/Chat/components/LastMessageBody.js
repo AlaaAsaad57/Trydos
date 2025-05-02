@@ -3,16 +3,16 @@ import ImageIcon from "../svg/image.svg";
 import VideoIcon from "../svg/video.svg";
 import AudioIcon from "../svg/audio.svg";
 import { translateFunction } from "utils/functions";
-import { useSelector } from "react-redux";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 function LastMessageBody({ message, status }) {
+  const { language } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const language = useSelector((state) => state.homepage.language);
   const getMessage = () => {
     if (message?.auth_message_status?.is_deleted === 1) {
       return (

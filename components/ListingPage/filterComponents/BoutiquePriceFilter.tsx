@@ -1,28 +1,29 @@
-import React, { useState } from "react";
+import React from "react";
 import FilterLabel from "./FilterLabel";
 
 import PriceCancel from "public/svg/listing/PriceCancel.svg";
 import PriceSlider from "./PriceSlider";
-import { useDispatch, useSelector } from "react-redux";
-
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { RoundPrice, Sendevent, UpdateFilter } from "utils/functions";
+import { useAppStore } from "store";
 
 const PriceChart = dynamic(() => import("./PriceChart"), {
   ssr: false,
 });
 function BoutiquePriceFilter() {
-  const dispatch = useDispatch();
-  const selectedFilter = useSelector(
-    (state: StateInterface) => state.details.selectedFilter
-  );
-  const filters = useSelector((state: StateInterface) => state.details.filters);
-  const loading = useSelector((state: StateInterface) => state.details.loading);
+  const {
+    setFilterLoading,
+    filterPrice,
+    resetPrice,
+    editFilter,
+    selectedFilter,
+    filters,
+    currency,
+    settings,
+  } = useAppStore();
+
   const pathName = useParams();
-  const currency_symbol = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
 
   const set_Value = (e) => {
     if (
@@ -32,7 +33,7 @@ function BoutiquePriceFilter() {
     ) {
       return;
     } else if (e.min < e.max) {
-      dispatch({ type: "FILTER-LOADING", payload: true });
+      setFilterLoading(true);
       Sendevent({
         event: "button_clicked",
         value: "add_filter_button",
@@ -43,41 +44,31 @@ function BoutiquePriceFilter() {
           }`,
         },
       });
-      dispatch({
-        type: "FILTER-PRICE",
-        payload: {
-          min: e.min / currency?.exchange_rate,
-          max: e.max / currency?.exchange_rate,
-        },
+      filterPrice({
+        min: e.min / currency?.exchange_rate,
+        max: e.max / currency?.exchange_rate,
       });
       UpdateFilter({
         boutiqueId: pathName.productCategory,
         lang: pathName.lang,
         sizesAttr: filters.sizesAttr,
         newFiltersCallback: ({ filtersVar }) => {
-          dispatch({ type: "EDIT-FILTER", payload: filtersVar });
+          editFilter(filtersVar);
         },
         searchText: "",
         done: () => {
-          dispatch({ type: "FILTER-LOADING", payload: false });
+          setFilterLoading(false);
         },
       });
     }
   };
-  const decimal_point_settings = useSelector(
-    (state: StateInterface) => state.homepage.settings
-  );
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  ) || { exchange_rate: 1 };
+
   const getPrice = (num) => {
     return RoundPrice({
       num: num,
       rate: currency?.exchange_rate,
       points:
-        (decimal_point_settings &&
-          decimal_point_settings["starting-setting"]?.decimal_point_settings) ||
-        0,
+        (settings && settings["starting-setting"]?.decimal_point_settings) || 0,
     });
   };
   return (
@@ -86,41 +77,27 @@ function BoutiquePriceFilter() {
       <PriceCancel
         className="price-cancel-icon"
         onClick={() => {
-          dispatch({ type: "RESET-PRICE" });
+          resetPrice();
         }}
       />
       <div className="price-min-max flex-row z-20">
         {selectedFilter?.prices?.min >= 0 && (
           <div className="price-min">
             Min {getPrice(filters.prices?.min_price)}{" "}
-            <span>{currency_symbol?.symbol}</span>
+            <span>{currency?.symbol}</span>
           </div>
         )}
         {selectedFilter?.prices?.max >= 0 && (
           <div className="price-max">
             Max {getPrice(filters.prices?.max_price)}{" "}
-            <span>{currency_symbol?.symbol}</span>
+            <span>{currency?.symbol}</span>
           </div>
         )}
       </div>
-      <PriceSlider
-        min={
-          getPrice(selectedFilter?.prices?.min) >= 0
-            ? getPrice(selectedFilter?.prices?.min)
-            : 100
-        }
-        max={getPrice(selectedFilter?.prices?.max) || 500}
-        Value={{
-          min: getPrice(filters?.prices?.min_price),
-          max: getPrice(filters?.prices?.max_price),
-        }}
-        set_Value={(e) => {
-          set_Value(e);
-        }}
-      />
+      <PriceSlider />
       <PriceChart
         points={
-          filters.prices?.priceRanges?.map((s) => s.products_count) || [0]
+          filters?.prices?.priceRanges?.map((s) => s.products_count) || [0]
         }
       />
     </div>

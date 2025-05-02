@@ -1,4 +1,4 @@
-import { store } from "store";
+import { useAppStore } from "store";
 import { getUserChat, translateFunction } from "utils/functions";
 
 export const makeVideoCall = async (
@@ -8,9 +8,10 @@ export const makeVideoCall = async (
   mobilePhone
 ) => {
   let axios = (await import("axios")).default;
-
+  const { setCallLoading, setVideoCall, endCall, setAudioCall, editCall } =
+    useAppStore.getState();
   try {
-    store.dispatch({ type: "CALL-LOADING", payload: "video" });
+    setCallLoading("video");
     let obj =
       typeof channelId === "string" && channelId.includes("ch")
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
@@ -39,19 +40,16 @@ export const makeVideoCall = async (
         }
       )
       .then((data) => {
-        store.dispatch({
-          type: "VIDEO_CALL",
-          payload: data.data.data.token,
-          source: data.data.data.message,
-        });
-        store.dispatch({ type: "edit-call", payload: data.data.data.message });
-        store.dispatch({ type: "CALL-LOADING", payload: null });
+        setVideoCall(data.data.data.token, data.data.data.message);
+        editCall(data.data.data.message);
+
+        setCallLoading(null);
       });
   } catch (e) {
     const { toast } = await import("react-toastify");
 
     toast.info("User in Another Call");
-    store.dispatch({ type: "END-CALL", payload: -1 });
+    endCall(-1);
     console.error(e);
   }
 };
@@ -61,13 +59,16 @@ export const makeVoiceCall = async (
   callerPhoto,
   mobilePhone
 ) => {
+  const { setCallLoading, setAudioCall, editCall, language } =
+    useAppStore.getState();
+
   try {
     let axios = (await import("axios")).default;
     let obj =
       typeof channelId === "string" && channelId.includes("ch")
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
         : { channel_id: channelId };
-    store.dispatch({ type: "CALL-LOADING", payload: "voice" });
+    setCallLoading("voice");
     await axios
       .post(
         process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
@@ -92,35 +93,29 @@ export const makeVoiceCall = async (
         }
       )
       .then((data) => {
-        store.dispatch({
-          type: "AUDIO_CALL",
-          payload: data.data.data.token,
-          source: data.data.data.message,
-        });
-        store.dispatch({ type: "edit-call", payload: data.data.data.message });
-        store.dispatch({ type: "CALL-LOADING", payload: null });
+        setAudioCall(data.data.data.token, data.data.data.message);
+        editCall(data.data.data.message);
+        setCallLoading(null);
       });
   } catch (e) {
     console.error(e);
 
     const { toast } = await import("react-toastify");
     toast.info("User in Another Call");
-    store.dispatch({ type: "CALL-LOADING", payload: null });
+    setCallLoading(null);
   }
 };
 export const AnswerCall = async (channelId, messageId) => {
+  const { setCallLoading, language, answerCall, endCall } =
+    useAppStore.getState();
+
   try {
     let axios = (await import("axios")).default;
-    store.dispatch({ type: "CALL-LOADING", payload: "call" });
+    setCallLoading("call");
     let status = null;
 
     const { toast } = await import("react-toastify");
-    toast.info(
-      translateFunction(
-        "Initialize Call please wait..",
-        store.getState().homepage.language
-      )
-    );
+    toast.info(translateFunction("Initialize Call please wait..", language));
     await axios
       .get(
         process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
@@ -161,21 +156,18 @@ export const AnswerCall = async (channelId, messageId) => {
         )
         .then((data) => {
           Answer(channelId, messageId);
-          store.dispatch({ type: "ANSWER_CALL", payload: data.data.data });
+          answerCall(data.data.data);
         });
     } else {
       const { toast } = await import("react-toastify");
       toast.info(
-        translateFunction(
-          "Call Answered from another account",
-          store.getState().homepage.language
-        )
+        translateFunction("Call Answered from another account", language)
       );
-      store.dispatch({ type: "USER_END_CALL", payload: messageId });
+      endCall(messageId);
     }
-    store.dispatch({ type: "CALL-LOADING", payload: null });
+    setCallLoading(null);
   } catch (e) {
-    store.dispatch({ type: "CALL-LOADING", payload: null });
+    setCallLoading(null);
     console.error(e);
   }
 };
@@ -205,6 +197,7 @@ export const InCall = async (channelId, messageId) => {
   } catch (error) {}
 };
 export const RefuseCall = async (channelId, messageId, duration) => {
+  const { endCall } = useAppStore.getState();
   try {
     let axios = (await import("axios")).default;
     if (messageId) {
@@ -230,7 +223,7 @@ export const RefuseCall = async (channelId, messageId, duration) => {
           }
         )
         .then(() => {
-          store.dispatch({ type: "USER_END_CALL", payload: messageId });
+          endCall(messageId);
         });
     }
   } catch (e) {

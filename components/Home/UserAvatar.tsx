@@ -1,14 +1,13 @@
 import UserIcon from "public/svg/userIcon.svg";
 import Image from "next/image";
-import { useSelector } from "react-redux";
+import { useAppStore } from "store";
+
 interface UserAvatarProps {
   avatar: string | any;
   onClick?: () => void;
 }
 function UserAvatar({ avatar, onClick }: UserAvatarProps) {
-  const userProfile = useSelector(
-    (state: StateInterface) => state.auth.userProfile
-  );
+  const { userProfile } = useAppStore();
   return (
     <>
       {avatar || userProfile?.image ? (

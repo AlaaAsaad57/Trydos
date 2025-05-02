@@ -1,6 +1,6 @@
+import { useAppStore } from "store";
 import { getTwoLetters, getUser } from "../chatsFunctions";
 import ProfilePicture from "public/images/profileNo.png";
-import { useDispatch, useSelector } from "react-redux";
 
 function SearchResult({
   key,
@@ -10,8 +10,7 @@ function SearchResult({
   handleClickChat,
   item,
 }) {
-  const dispatch = useDispatch();
-  const chats = useSelector((state) => state.chat.data);
+  const { setMain } = useAppStore();
   const handleClick = () => {
     if (isUser) {
       setTimeout(() => {
@@ -39,7 +38,7 @@ function SearchResult({
           id: "ch-" + item.contact_user_id,
           mid: "ch-" + item.contact_user_id,
         });
-        dispatch({ type: "MAIN", payload: "chat" });
+        setMain("chat");
       }, 500);
     } else {
     }

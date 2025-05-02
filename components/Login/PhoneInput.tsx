@@ -5,7 +5,7 @@ import { allCountries } from "country-telephone-data";
 import replaceString from "replace-string";
 import { textMarshal } from "text-marshal";
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
-import { useSelector } from "react-redux";
+
 import LoginIcon from "public/svg/LoginIcon.svg";
 import BlueCall from "public/svg/BlueCall.svg";
 import PrivacyIcon from "public/svg/privacyicon.svg";
@@ -16,6 +16,7 @@ const { flag } = require("country-emoji");
 
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 
 function PhoneInput({
   stepIndicator,
@@ -36,6 +37,8 @@ function PhoneInput({
   inputValue: string;
   setInputValue: Function;
 }) {
+  const { language } = useAppStore();
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -112,9 +115,7 @@ function PhoneInput({
           (text || inputValue).startsWith(countryItem.dialCode)
         )[0];
   };
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
+
   const isKeyboardOpen = useDetectKeyboardOpen(200);
   useEffect(() => {
     if (isKeyboardOpen) {

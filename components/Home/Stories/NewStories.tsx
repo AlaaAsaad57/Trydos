@@ -1,17 +1,16 @@
 "use client";
 import "styles/stories.css";
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import Cube from "react-cube-navigation";
 import { SelectStory } from "store/homepage/actions";
 import { useSwipeable } from "react-swipeable";
 import StoryServiceClass from "services/story";
 import StoryHolder from "./StoryHolder";
+import { useAppStore } from "store";
+import Spinner from "components/global/Spinner";
 function StoriesContainer({ activeId, selectedStory }) {
-  const storiesData = useSelector(
-    (state: StateInterface) => state.homepage.storiesData
-  );
-  const dispatch = useDispatch();
+  const { storiesData } = useAppStore();
+
   var dir = 0;
   const [isTop, setIsTop] = useState("");
 
@@ -44,7 +43,7 @@ function StoriesContainer({ activeId, selectedStory }) {
             ).style.transform = `translateY(${100}%)`;
 
             setTimeout(() => {
-              dispatch(SelectStory(null));
+              SelectStory(null);
             }, 150);
           } else {
             document.querySelector<HTMLDivElement>(
@@ -68,6 +67,14 @@ function StoriesContainer({ activeId, selectedStory }) {
       passive: false,
     },
   });
+  if (!storiesData || storiesData?.length === 0)
+    return (
+      <div className="bg-white rounded-lg w-[300px] h-[400px] flex-row p-4 fixed z-[99999999] justify-center items-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+        <span className="scale-[4]">
+          <Spinner />
+        </span>
+      </div>
+    );
   return (
     <div
       className="fixed-layout justify-start"
@@ -87,15 +94,15 @@ function StoriesContainer({ activeId, selectedStory }) {
       }}
     >
       <Cube
-        index={storiesData.findIndex((s) => s.id === selectedStory?.id)}
+        index={storiesData?.findIndex((s) => s.id === selectedStory?.id)}
         onChange={(i) => {
           if (
             Math.abs(
-              storiesData.findIndex((s) => s.id === selectedStory?.id) - i
+              storiesData?.findIndex((s) => s.id === selectedStory?.id) - i
             ) === 1 &&
             i > -1
           ) {
-            dispatch(SelectStory(storiesData[i]));
+            SelectStory(storiesData[i]);
           }
         }}
         width={window.innerWidth}

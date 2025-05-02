@@ -1,5 +1,5 @@
 import translations from "public/translations/translations.js";
-import { store } from "store";
+import { useAppStore } from "store";
 import Cookies from "js-cookie";
 
 import { notFound } from "next/navigation";
@@ -64,6 +64,8 @@ export const Sendevent = async (params: {
   extra?: any;
   category?: any;
 }) => {
+  let { session_id, previous_event_button_name, setGAEvent } =
+    useAppStore.getState();
   try {
     let userId = localStorage.getItem("USER")
       ? JSON.parse(localStorage.getItem("USER"))?.id
@@ -80,13 +82,12 @@ export const Sendevent = async (params: {
         device_language: Cookies.get("language"),
         time_stamp: new Date().toISOString(),
 
-        our_session_id: store.getState().homepage.session_id,
-        previous_event_button_name:
-          store.getState().homepage.previous_event_button_name,
+        our_session_id: session_id,
+        previous_event_button_name: previous_event_button_name,
       });
     }
 
-    store.dispatch({ type: "GA-EVENT", payload: params.value });
+    setGAEvent(params.value);
   } catch (e) {
     console.error(e);
   }
@@ -102,14 +103,27 @@ export function encode_utf8(params: {
   return "";
 }
 
-export const getConfiguredImage = ({ src, width, height }) => {
+export const getConfiguredImage = ({
+  src,
+  width,
+  height,
+  q,
+}: {
+  src: string | any;
+  width?: number | string;
+  height?: number | string;
+  q?: number | string;
+}) => {
   if (typeof src === "string") {
-    return src.replace("/upload", `/upload/h_${height}/f_avif/q_auto`);
+    return src.replace(
+      "/upload",
+      `/upload/h_${height}/f_avif/q_${q || "auto"}`
+    );
   }
   if (src?.file_path?.includes("cloudinary")) {
     return src.file_path.replace(
       "/upload",
-      `/upload/h_${height}/f_avif/q_auto`
+      `/upload/h_${height}/f_avif/q_${q || "auto"}`
     );
   } else return src?.file_path || "";
 };
@@ -134,8 +148,6 @@ export const getLang = (lang, cookieLang) => {
 };
 
 export const getProductMeta = async ({ productId, lang, color }) => {
-  const cookies = (await import("next/headers")).cookies;
-  const cookieStore = cookies();
   let start = new Date();
   let [country, language] = lang.split("-");
 
@@ -151,8 +163,8 @@ export const getProductMeta = async ({ productId, lang, color }) => {
       headers: new Headers({
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        lang: await getLang(language, cookieStore.get("language")?.value),
-        country: country || cookieStore.get("country")?.value,
+        lang: language,
+        country: country,
       }),
     },
     "Product SimpleDetails"
@@ -165,12 +177,8 @@ export const getProductMeta = async ({ productId, lang, color }) => {
       process.env.NEXT_PUBLIC_BACKEND_URL +
       `/web/product/simpleDetails/${productId}`,
     headers: {
-      Authorization: `Bearer ${
-        typeof localStorage !== "undefined" &&
-        localStorage.getItem("MARKET-TOKEN")
-      }`,
-      lang: getLang(null, cookieStore.get("language")?.value),
-      country: cookieStore.get("country")?.value,
+      lang: language,
+      country: country,
     },
     response: data,
     time: end.getTime() - start.getTime(),
@@ -182,8 +190,8 @@ export const getProductMeta = async ({ productId, lang, color }) => {
   return data.data;
 };
 export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
-  const cookies = (await import("next/headers")).cookies;
-  const cookieStore = cookies();
+  if (boutiqueId === "listing")
+    return { name: "Search", banners: null, icon: null };
   let [country, language] = lang.split("-");
   let start = new Date();
   let resp = await fetch(
@@ -196,9 +204,8 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
       headers: new Headers({
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        lang: await getLang(language, cookieStore.get("language")?.value),
-        country:
-          cookieStore.get("country") && cookieStore.get("country")?.value,
+        lang: language,
+        country: country,
       }),
     }
   );
@@ -211,13 +218,8 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
       process.env.NEXT_PUBLIC_BACKEND_URL +
       `/web/boutique/simpleDetails/${boutiqueId}`,
     headers: {
-      Authorization: `Bearer ${
-        typeof localStorage !== "undefined"
-          ? localStorage.getItem("MARKET-TOKEN")
-          : cookieStore.get("token")?.value
-      }`,
-      lang: getLang(null, cookieStore.get("language")?.value),
-      country: cookieStore.get("country")?.value,
+      lang: language,
+      country: country,
     },
     response: data,
     time: end.getTime() - start.getTime(),
@@ -252,7 +254,8 @@ export const caseCheck = (word, value) => {
   return word.join("");
 };
 export const expandView = ({ filter }) => {
-  let filterEnabled = store.getState().listing.filterEnabled;
+  const { filterEnabled } = useAppStore.getState();
+
   if (!filter && filterEnabled) {
     return;
   }
@@ -320,7 +323,7 @@ export const expandView = ({ filter }) => {
     ).style.maxHeight = "0px";
 };
 export const normalizeView = () => {
-  let filterEnabled = store.getState().listing.filterEnabled;
+  const { filterEnabled } = useAppStore.getState();
   if (filterEnabled) {
     return;
   }
@@ -421,7 +424,9 @@ export const filterProducts = async ({
   searchText?: string;
   serachTrigger?: boolean;
 }) => {
-  const filterObj = store.getState().details.selectedFilter;
+  const { selectedFilter } = useAppStore.getState();
+
+  const filterObj = selectedFilter;
 
   storeCallback(filterObj);
 
@@ -479,7 +484,8 @@ export const filterProducts = async ({
   return product.data.products;
 };
 export const urlParams = ({ filters, noProducts, noFilter = false }) => {
-  const PriceFiltered = store.getState().details.PriceFiltered;
+  const { PriceFiltered } = useAppStore.getState();
+
   let urlParams = new URLSearchParams();
   if (filters.categories.length > 0) {
     urlParams.set("category_slugs", JSON.stringify(filters.categories));
@@ -532,7 +538,9 @@ export const UpdateFilter = async ({
   filtersVar?: any;
 }) => {
   try {
-    const filterObj = filtersVar || store.getState().details.selectedFilter;
+    const { selectedFilter } = useAppStore.getState();
+
+    const filterObj = filtersVar || selectedFilter;
 
     let filters = {
       categories: filterObj.categories.map((s) => s.slug),
@@ -584,8 +592,9 @@ export const UpdateFilter = async ({
   }
 };
 export function formatPrice(price) {
-  let currency = store.getState().homepage.currency;
-  let ceil = currency?.ciel;
+  const { currency } = useAppStore.getState();
+  let ceil = currency?.ciel ?? 0;
+
   if (price >= 1000000) {
     return (
       (ceil
@@ -603,7 +612,8 @@ export function formatPrice(price) {
   }
 }
 export const toUSD = (price) => {
-  let currency = store.getState().homepage.currency;
+  const { currency } = useAppStore.getState();
+
   return price / currency?.exchange_rate;
 };
 export const RoundPrice = ({
@@ -617,14 +627,12 @@ export const RoundPrice = ({
   points?: any;
   returnNumber?: boolean;
 }): number => {
-  let currency = store.getState().homepage.currency;
-  let rateVariable =
-    rate || store.getState().homepage.currency?.exchange_rate || 1;
+  const { currency, settings } = useAppStore.getState();
+
+  let rateVariable = rate || currency?.exchange_rate || 1;
   let pointsVariable =
     points ||
-    (store.getState().homepage?.settings &&
-      store.getState().homepage?.settings["starting-setting"]
-        ?.decimal_point_settings) ||
+    (settings && settings["starting-setting"]?.decimal_point_settings) ||
     0;
   let a = parseFloat(num);
 
@@ -692,12 +700,11 @@ export const getOldCart = async () => {
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/old-cart/get_old_cart",
     title: "Old Cart Request",
   });
-  store.dispatch({
-    type: "STORE-OLD-CART",
-    payload: oldCartData?.original?.data,
-  });
+  const { storeOldCart } = useAppStore.getState();
+  storeOldCart(oldCartData?.original?.data);
 };
 export const getCart = async ({ callback }) => {
+  const { initCart } = useAppStore.getState();
   if (
     !localStorage.getItem("DEVICE-TOKEN") &&
     !localStorage.getItem("MARKET-TOKEN")
@@ -707,15 +714,16 @@ export const getCart = async ({ callback }) => {
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/cart_shipping",
     title: "Cart Request",
   });
-  callback([data, {}]);
+  initCart(data);
   return data;
 };
 export const GetCartOreview = async () => {
+  const { setCartPreview } = useAppStore.getState();
   let data = await AxiosGet({
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/cart_overview",
     title: "Cart Oreview",
   });
-  store.dispatch({ type: "CART-OREVIEW", payload: data });
+  setCartPreview(data);
 };
 export const AddToCartAnimation = () => {
   let productImage = document.getElementById("added-to-cart");
@@ -776,9 +784,6 @@ export const AddToCartAnimation = () => {
       fill: "forwards",
     }
   );
-  // setTimeout(() => {
-  //   store.dispatch({ type: "LOADED-CART", payload: true });
-  // }, 1500);
 };
 
 export const LogError = (error, url, href) => {
@@ -791,9 +796,10 @@ export const LogError = (error, url, href) => {
 };
 
 export const WaitForCondition = async () => {
+  const { isRegisteringReady } = useAppStore.getState();
   return new Promise((resolve, reject) => {
     const interval = setInterval(() => {
-      const isReady = store.getState().homepage.isRegisteringReady;
+      const isReady = isRegisteringReady;
       if (isReady) {
         clearInterval(interval);
         resolve("Ready, now performing the request!");

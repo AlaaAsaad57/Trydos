@@ -3,37 +3,28 @@ import DownArrow from "public/svg/arrow-down.svg";
 import UpArrow from "public/svg/arrow-up.svg";
 import XIcon from "public/svg/Xicon.svg";
 import { DebounceInput } from "react-debounce-input";
-import { useDispatch, useSelector } from "react-redux";
 import Spinner from "components/global/Spinner";
 import axios from "axios";
 import { getMessagesBetweenMessage } from "store/chat/actions";
 import { getUserChat } from "utils/functions";
 import { GetMessageSearchApi } from "models/Api";
+import { useAppStore } from "store";
 
 function ChatSearch({ close }) {
-  const searchValue = useSelector(
-    (state: StateInterface) => state.chat.search.searchValue
-  );
-  const loading = useSelector(
-    (state: StateInterface) => state.chat.search.loading
-  );
-  const offset = useSelector(
-    (state: StateInterface) => state.chat.search.offset
-  );
-  const activeMessage = useSelector(
-    (state: StateInterface) => state.chat.search.activeMessage
-  );
-  const messages = useSelector(
-    (state: StateInterface) => state.chat.search.messages
-  );
-  const activeChat = useSelector(
-    (state: StateInterface) => state.chat.activeChat
-  );
+  const {
+    searchChat,
+    activeChat,
+    setChatSearchLoading,
+    setChatSearchValue,
+    setChatSearchRequest,
+    setQouted,
+    setChatSearchId,
+  } = useAppStore();
 
-  const dispatch = useDispatch();
   const onChange = (e) => {
-    dispatch({ type: "CHAT-SEARCH-LOADING", payload: true });
-    dispatch({ type: "CHAT-SEARCH-VALUE", payload: e.target.value });
+    setChatSearchLoading(true);
+    setChatSearchValue(e.target.value);
+
     getMessagesForSearch(e.target.value);
   };
   const getMessagesForSearch = async (value) => {
@@ -44,7 +35,7 @@ function ChatSearch({ close }) {
         query: value,
         channel_id: parseInt(activeChat.id),
         limit: 100,
-        offset: parseInt(offset),
+        offset: parseInt(searchChat.offset),
       },
       {
         headers: {
@@ -54,18 +45,13 @@ function ChatSearch({ close }) {
     );
     let messages = response.data.messages_ids;
     let newOffset = response.data.offset;
-    dispatch({
-      type: "CHAT-SEARCH-REQUEST",
-      payload: {
-        messages,
-        newOffset,
-      },
+    setChatSearchRequest({
+      messages,
+      newOffset,
     });
-    dispatch({
-      type: "qouted",
-      payload:
-        response.data.messages_ids[response.data.messages_ids.length - 1],
-    });
+    setQouted(
+      response.data.messages_ids[response.data.messages_ids.length - 1]
+    );
     if (
       activeChat.messages.filter(
         (s) =>
@@ -108,26 +94,23 @@ function ChatSearch({ close }) {
   };
   const NextSearch = async () => {
     let nextMessageId;
-    messages.map((s, index) => {
-      if (s === activeMessage) {
-        if (messages[index + 1]) {
-          nextMessageId = messages[index + 1];
+    searchChat.messages.map((s, index) => {
+      if (s === searchChat.activeMessage) {
+        if (searchChat.messages[index + 1]) {
+          nextMessageId = searchChat.messages[index + 1];
         }
       }
       return;
     });
 
     if (nextMessageId) {
-      dispatch({
-        type: "qouted",
-        payload: nextMessageId,
-      });
+      setQouted(nextMessageId);
       if (
         activeChat.messages.filter((s) => parseInt(s.id) === nextMessageId)
           .length > 0
       ) {
       } else {
-        dispatch({ type: "CHAT-SEARCH-LOADING", payload: true });
+        setChatSearchLoading(true);
         await getMessagesBetweenMessage({
           first: activeChat?.id,
           second:
@@ -135,7 +118,7 @@ function ChatSearch({ close }) {
             parseInt(nextMessageId),
         });
       }
-      dispatch({ type: "CHAT-SEARCH-ID", payload: nextMessageId });
+      setChatSearchId(nextMessageId);
       var numb = nextMessageId?.toString()?.match(/\d/g);
       numb = numb?.join("");
       let el = document.querySelector(`#main-container-${nextMessageId}`);
@@ -153,25 +136,22 @@ function ChatSearch({ close }) {
   };
   const PreviousSearch = async () => {
     let prevMessageId;
-    messages.map((s, index) => {
-      if (s === activeMessage) {
-        if (messages[index - 1]) {
-          prevMessageId = messages[index - 1];
+    searchChat.messages.map((s, index) => {
+      if (s === searchChat.activeMessage) {
+        if (searchChat.messages[index - 1]) {
+          prevMessageId = searchChat.messages[index - 1];
         }
       }
     });
 
     if (prevMessageId) {
-      dispatch({
-        type: "qouted",
-        payload: prevMessageId,
-      });
+      setQouted(prevMessageId);
       if (
         activeChat.messages.filter((s) => parseInt(s.id) === prevMessageId)
           .length > 0
       ) {
       } else {
-        dispatch({ type: "CHAT-SEARCH-LOADING", payload: true });
+        setChatSearchLoading(true);
         await getMessagesBetweenMessage({
           first: activeChat?.id,
           second:
@@ -179,7 +159,7 @@ function ChatSearch({ close }) {
             parseInt(prevMessageId),
         });
       }
-      dispatch({ type: "CHAT-SEARCH-ID", payload: prevMessageId });
+      setChatSearchId(prevMessageId);
       var numb = prevMessageId?.toString()?.match(/\d/g);
       numb = numb?.join("");
       let el = document.querySelector(`#main-container-${prevMessageId}`);
@@ -196,11 +176,13 @@ function ChatSearch({ close }) {
     }
   };
   useEffect(() => {
-    if (activeMessage) {
+    if (searchChat.activeMessage) {
       document
-        .querySelector(`#main-container-${activeMessage}`)
+        .querySelector(`#main-container-${searchChat.activeMessage}`)
         ?.scrollIntoView({ block: "center", inline: "center" });
-      let el = document.querySelector(`#main-container-${activeMessage}`);
+      let el = document.querySelector(
+        `#main-container-${searchChat.activeMessage}`
+      );
       if (el) {
         el.scrollIntoView({ block: "center" });
 
@@ -211,9 +193,9 @@ function ChatSearch({ close }) {
           el.classList.remove("backdrop_msg");
         }, 1000);
       }
-      dispatch({ type: "qouted", payload: null });
+      setQouted(null);
     }
-  }, [activeMessage]);
+  }, [searchChat.activeMessage]);
   return (
     <div className=" z-[99] absolute h-[50px] top-[48px] items-center left-0 w-full bg-[#fafafa] py-2 px-3 flex-row justify-between">
       <div className="flex relative w-full">
@@ -275,12 +257,14 @@ function ChatSearch({ close }) {
             </g>
           </g>
         </svg>
-        {loading && <Spinner className=" absolute right-2 top-3 z-[99] " />}
+        {searchChat.loading && (
+          <Spinner className=" absolute right-2 top-3 z-[99] " />
+        )}
         <DebounceInput
           className="w-full h-full border-none outline-none absolute top-0 left-0 pl-11 z-10 light rounded-[15px] bg-[#fafafa]"
           minLength={1}
           placeholder="Search"
-          value={searchValue}
+          value={searchChat.searchValue}
           onChange={(e) => {
             onChange(e);
           }}
@@ -289,22 +273,35 @@ function ChatSearch({ close }) {
       </div>
       <div className="flex ml-2">
         <div
-          className={`flex cursor-pointer ${loading && "opacity-0"} ${
-            activeMessage === messages[messages.length - 1] && "opacity-5"
+          className={`flex cursor-pointer ${
+            searchChat.loading && "opacity-0"
+          } ${
+            searchChat.activeMessage ===
+              searchChat.messages[searchChat.messages.length - 1] && "opacity-5"
           }`}
           onClick={() => {
-            if (!loading && activeMessage !== messages[messages.length - 1])
+            if (
+              !searchChat.loading &&
+              searchChat.activeMessage !==
+                searchChat.messages[searchChat.messages.length - 1]
+            )
               NextSearch();
           }}
         >
           <DownArrow style={{ transform: "scale(0.8)" }} />
         </div>
         <div
-          className={`flex ml-1 cursor-pointer  ${loading && "opacity-0"} ${
-            activeMessage === messages[0] && "opacity-5"
+          className={`flex ml-1 cursor-pointer  ${
+            searchChat.loading && "opacity-0"
+          } ${
+            searchChat.activeMessage === searchChat.messages[0] && "opacity-5"
           }`}
           onClick={() => {
-            if (!loading && activeMessage !== messages[0]) PreviousSearch();
+            if (
+              !searchChat.loading &&
+              searchChat.activeMessage !== searchChat.messages[0]
+            )
+              PreviousSearch();
           }}
         >
           <UpArrow style={{ transform: "scale(0.8)" }} />

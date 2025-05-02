@@ -1,22 +1,20 @@
 import LogInPins from "components/Login/LogInPins";
 import PhoneInput from "components/Login/PhoneInput";
 import SendMethod from "components/Login/SendMethod";
-import { useDispatch, useSelector } from "react-redux";
 import React, { useEffect, useState } from "react";
 import AuthService from "services/auth";
 import { Sendevent } from "utils/functions";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
+import { useAppStore } from "store";
 
 function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
+  const { setWrongNumber, verficationID, wrongNumber } = useAppStore();
   const [stepIndicator, setStepIndicator] = useState(3);
   const [inputValue, setInputValue] = useState("");
-  const dispatch = useDispatch();
   const [MessageMethod, setMessageMethod] = useState("");
   const [pins, setPins] = useState("");
-  const verficationID = useSelector(
-    (state: StateInterface) => state.auth.verficationID
-  );
+
   const [disabled, setDisabled] = useState(false);
   const [expired, setExpired] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -116,9 +114,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
       },
     });
   };
-  const wrongNumber = useSelector(
-    (state: StateInterface) => state.auth.wrongNumber
-  );
+
   useEffect(() => {
     if (hasMobile) {
       let phone = localStorage.getItem("has-phone");
@@ -127,6 +123,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
     }
   }, []);
   const [showMobile, setShowMobile] = useState(false);
+
   return (
     <div>
       {(!hasMobile || showMobile) && (
@@ -135,8 +132,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
           inputValue={inputValue}
           wrongNumber={wrongNumber}
           setWrongNumber={(e) => {
-            //   setWrongNumber(e);
-            dispatch({ type: "WRONG-NUMBER", payload: e });
+            setWrongNumber(e);
           }}
           setInputValue={(e) => setInputValue(e)}
           stepIndicator={stepIndicator}
@@ -147,7 +143,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
       <SendMethod
         stepIndicator={stepIndicator}
         setWrongNumber={(e) => {
-          dispatch({ type: "WRONG-NUMBER", payload: e });
+          setWrongNumber(e);
         }}
         setStepIndicator={(e: number) => setStepIndicator(e)}
         setShowMobile={setShowMobile}

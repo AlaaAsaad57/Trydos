@@ -4,12 +4,14 @@ import TargetIcon from "public/svg/cart/Target.svg";
 import { useParams } from "next/navigation";
 import { allCountries } from "country-telephone-data";
 import Flag from "react-world-flags";
-import { useDispatch, useSelector } from "react-redux";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 import { GetAddressByTextApi } from "models/Api";
 import Cookies from "js-cookie";
+import { useAppStore } from "store";
+import SyFlage from "public/svg/sy.svg";
 function SelectRegion({ closeSelect }) {
+  const { addressDetails } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
   let country = lang.split("-")[0];
@@ -17,9 +19,6 @@ function SelectRegion({ closeSelect }) {
     name: allCountries.filter((s) => s.iso2 === country)[0].name,
     iso: country,
   };
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
   const showRegion = () => {
     return (
       <>
@@ -94,7 +93,11 @@ function SelectRegion({ closeSelect }) {
         </div>
         <div className="flex-row items-center w-full justify-center mt-[11px]">
           <span className="min-h-[16px] w-[23px]">
-            <Flag height={"15"} code={country.iso} data-cy="country-flag" />
+            {country.iso?.toLowerCase() === "sy" ? (
+              <SyFlage data-cy="country-flag" />
+            ) : (
+              <Flag height={"15"} data-cy="country-flag" code={country.iso} />
+            )}
           </span>
 
           <div className="flex-row ml-[8px]" data-cy="region-div">
@@ -115,6 +118,7 @@ function SelectRegion({ closeSelect }) {
 export default SelectRegion;
 
 const SearchLocations = ({ closeSelect, setFocused }) => {
+  const { provinces, setProvinces } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
   const [country, language] = lang.split("-");
@@ -139,8 +143,10 @@ const SearchLocations = ({ closeSelect, setFocused }) => {
       },
     };
   };
+  const [search, setSearch] = useState("");
   const searchAction = async (val) => {
     setLoading(true);
+
     await fetch(
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
         `/api/addresses/get-address-by-text`,
@@ -211,9 +217,11 @@ const SearchLocations = ({ closeSelect, setFocused }) => {
           }}
           minLength={2}
           onChange={(e) => {
+            setSearch(e.target.value);
             if (e.target.value.length > 0) searchAction(e.target.value);
           }}
           onInput={(e) => {}}
+          value={search}
           placeholder={translateFunction(
             "Search Province | District | Town | Street"
           )}
@@ -226,13 +234,24 @@ const SearchLocations = ({ closeSelect, setFocused }) => {
         closeSelect={() => {
           closeSelect();
         }}
+        searchAction={(e) => {
+          setSearch(e);
+          searchAction(e);
+        }}
+        shouldShowProvinces={search.length === 0}
         searchResults={searchResults}
       />
     </>
   );
 };
 
-const SearchResults = ({ searchResults, closeSelect }) => {
+const SearchResults = ({
+  searchResults,
+  closeSelect,
+  shouldShowProvinces,
+  searchAction,
+}) => {
+  const { setMapCenter, setAddressDetails, provinces } = useAppStore();
   const showLocationText = (location) => {
     let str = "";
     if (location.country) str += location.country;
@@ -243,39 +262,53 @@ const SearchResults = ({ searchResults, closeSelect }) => {
     if (location?.building) str += ` | ${location.building}`;
     return str;
   };
-  const dispatch = useDispatch();
+
   const select = (s) => {
     let a = { lat: s.coordinates[0]?.lat, lng: s.coordinates[0]?.lon };
-    if (a.lat && a.lng) dispatch({ type: "MAP-CENTER", payload: a });
-    dispatch({
-      type: "set-address-details",
-      payload: {
-        region_details: {
-          city: s.city,
-          province: s?.province,
-          town: s.town,
-          street: s.street,
-          building: s.building,
-        },
-        region: showLocationText(s),
+    if (a.lat && a.lng) setMapCenter(a);
+    setAddressDetails({
+      region_details: {
+        city: s.city,
+        province: s?.province,
+        town: s.town,
+        street: s.street,
+        building: s.building,
       },
+      region: showLocationText(s),
     });
     closeSelect();
   };
   return (
     <div className="flex-col w-full h-auto max-h-[290px] overflow-auto mt-[2px]">
-      {searchResults.map((s, i) => (
-        <div
-          key={i}
-          className="flex text-[#1D1D1D] min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]"
-          data-cy="Firstly-Search-Result"
-          onClick={() => {
-            select(s);
-          }}
-        >
-          {showLocationText(s)}
-        </div>
-      ))}
+      {shouldShowProvinces ? (
+        <>
+          {provinces.map((s, i) => (
+            <div
+              key={i}
+              className="flex text-[#1D1D1D] min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]"
+              data-cy="Firstly-Search-Result"
+              onClick={() => {
+                searchAction(s);
+              }}
+            >
+              {s}
+            </div>
+          ))}
+        </>
+      ) : (
+        searchResults.map((s, i) => (
+          <div
+            key={i}
+            className="flex text-[#1D1D1D] min-h-[50px] mt-[2px] text-center items-center regual h-[50px] bg-[#F8F8F8] rounded-[12px] pl-[37px]"
+            data-cy="Firstly-Search-Result"
+            onClick={() => {
+              select(s);
+            }}
+          >
+            {showLocationText(s)}
+          </div>
+        ))
+      )}
     </div>
   );
 };

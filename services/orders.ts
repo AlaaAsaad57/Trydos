@@ -1,4 +1,4 @@
-import { store } from "store";
+import { useAppStore } from "store";
 import { OrdersResponse } from "../types/orders";
 import { AxiosGet } from "utils/AxiosApi";
 
@@ -12,11 +12,13 @@ export const fetchOrders = async (
       url:
         process.env.NEXT_PUBLIC_BACKEND_URL +
         `/customer/order/list?offset=${page}&limit=${pageSize}${
-          selectedStatus ? `&order_status=${selectedStatus}` : ""
+          selectedStatus ? `&order_group_status=${selectedStatus}` : ""
         }`,
       title: "Fetch Orders",
     });
-    store.dispatch({ type: "TOTAL_ORDERS", payload: response.data.total });
+    const { setTotalOrders } = useAppStore.getState();
+    setTotalOrders(response.data.total);
+
     return response;
   } catch (error) {
     console.error("Error fetching orders:", error);
