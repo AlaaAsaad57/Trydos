@@ -1,22 +1,14 @@
 import "styles/productDetails.css";
 import "styles/product-body.css";
 import EyeIcon from "public/svg/product/EyeIcon.svg";
-import BackIcon from "public/svg/listing/backIcon.svg";
 import DescriptorBorder from "public/svg/product/descriptorBorder.svg";
 import ReturnIcon from "public/svg/product/ReturnIcon.svg";
 import FreeReturnIcon from "public/svg/product/FreeReturnIcon.svg";
 
-import {
-  getConfiguredImage,
-  getProductMeta,
-  translateFunction,
-} from "utils/functions";
+import { getConfiguredImage, translateFunction } from "utils/functions";
 import { redirect } from "next/navigation";
-import { getProducts } from "store/homepage/cachedActions";
-import NextLink from "components/global/NextLink";
 import Image from "next/image";
 import { Suspense } from "react";
-import dynamic from "next/dynamic";
 import ProductViews from "components/products/ProductViews";
 import Skeleton from "react-loading-skeleton";
 import QualityIcon from "public/svg/product/QualityIcon.svg";
@@ -24,7 +16,6 @@ import VerifiedIcon from "public/svg/product/Verified.svg";
 import Flag from "public/svg/product/flag.svg";
 import ProductDescriptors from "components/products/ProductDescriptors";
 import { getPrice } from "utils/tinyUtils";
-import { ProductFooterSkeleton } from "components/skeleton/loaders/ProductLoader";
 import { generateProductMetaData } from "./MetaData";
 import ProductImagesSlider from "components/products/ProductImageSlider";
 import ProductDetails from "components/products/ProductDetails";
@@ -37,6 +28,7 @@ import ProductShippingOption from "components/products/ProductShippingOption";
 import FreeShippingOption from "components/products/FreeShippingOption";
 import ProductColors from "components/products/ProductColors";
 import CameraShots from "components/products/CameraShots";
+import ProductBackButton from "components/products/ProductBackButton";
 
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"]; // For Middle East users
@@ -114,20 +106,7 @@ async function Page({ params, searchParams }: Props) {
   const color = searchParams.color;
   return (
     <div className="product-details-container w-full">
-      <div className="back-bar align-center w-100 flex-row">
-        <NextLink
-          data={{
-            is_full_home: true,
-            href: `/${params.lang}`,
-          }}
-          ariaLabel={`Back `}
-          href={"../"}
-          data-cy="backIcon_productPage"
-          className={`back-icon flex-row`}
-        >
-          <BackIcon />
-        </NextLink>
-      </div>
+      <ProductBackButton />
 
       <div className="product-details-slider" key={`key-${color}`}>
         <ProductImagesSlider>

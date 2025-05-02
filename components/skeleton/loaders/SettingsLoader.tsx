@@ -26,7 +26,7 @@ function SettingsLoader() {
         zIndex: "99999999999999",
         top: "100px",
       }}
-      className="fixed bg-[#fafafa] min-h-screen  flex-col    w-screen  overflow-hidden"
+      className="fixed max-w-[1365px] mx-auto bg-[#fafafa] min-h-screen  flex-col    w-screen  overflow-hidden"
     >
       {" "}
       <div className="w-full h-full flex-1 relative overflow-hidden min-h-screen">

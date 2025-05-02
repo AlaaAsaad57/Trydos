@@ -7,7 +7,7 @@ function PriceChart({ points }) {
     setWindowWidth(window.innerWidth);
   }, []);
   return (
-    <div className="chart-container flex-row top-8  absolute w-full">
+    <div className="chart-container flex-row top-0  absolute w-full">
       <Chart
         options={{
           stroke: { curve: "smooth", show: false },

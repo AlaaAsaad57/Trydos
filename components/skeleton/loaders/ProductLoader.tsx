@@ -21,7 +21,6 @@ import Image from "next/image";
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
 import ProductViews from "components/products/ProductViews";
-import ProductDetailsText from "components/products/ProductDetailsText";
 import ProductColors from "components/products/ProductColors";
 import ProductDescriptors from "components/products/ProductDescriptors";
 import CameraShots from "components/products/CameraShots";
@@ -45,22 +44,20 @@ function ProductLoader({ product }) {
         zIndex: "99999999999999",
         top: "100px",
       }}
-      className="fixed bg-[#fafafa] min-h-screen  flex    w-screen  overflow-hidden"
+      className="fixed max-w-[1365px] mx-auto bg-[#fafafa] min-h-screen  flex    w-screen  overflow-hidden"
     >
       <div className="product-details-container w-full">
         <div className="back-bar align-center w-100 flex-row">
-          <NextLink
-            data={{
-              is_full_home: true,
-              href: "../",
+          <div
+            onClick={() => {
+              // window.history.back();
             }}
-            ariaLabel={`Back`}
-            href={"../"}
+            aria-label={`Back`}
             data-cy="backIcon_productPage"
             className={`back-icon flex-row`}
           >
             <BackIcon />
-          </NextLink>
+          </div>
         </div>
 
         <div className="product-details-slider">
@@ -148,8 +145,13 @@ function ProductLoader({ product }) {
               </div>
             </div>
             {
-              <div className="product-details-text">
-                <Skeleton width={300} height={100} />
+              <div
+                className="product-details-text"
+                dangerouslySetInnerHTML={{
+                  __html: product?.details,
+                }}
+              >
+                {product?.description}
               </div>
             }
 

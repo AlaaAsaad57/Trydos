@@ -58,7 +58,7 @@ export default function PageLoadingIndicator() {
           style={{
             zIndex: "99999999999999",
           }}
-          className="fixed bg-[#fafafa] h-screen    w-screen overflow-hidden rounded-full"
+          className="fixed bg-[#fafafa] h-screen max-w-[1365px] mx-auto    w-screen overflow-hidden rounded-full"
         >
           <span className="scale-[5]">
             <Spinner />

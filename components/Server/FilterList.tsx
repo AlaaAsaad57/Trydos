@@ -3,8 +3,6 @@ import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import CloseIcon from "public/svg/CloseIcon.svg";
 import Search from "public/svg/SearchIcon.svg";
 import NextLink from "components/global/NextLink";
-
-import dynamic from "next/dynamic";
 import { getPrice } from "utils/tinyUtils";
 import InfiniteScrollFilters from "components/ListingPage/filterComponents/InfiniteScrollFilters";
 
@@ -501,7 +499,8 @@ export const FilterItem = ({
     let { href, isFiltered } = getFilterStateForItem(
       searchParams,
       slug,
-      "categories"
+      "categories",
+      item.slug
     );
     return { href, isFiltered };
   };
@@ -1035,7 +1034,8 @@ export const FilterItem = ({
 function getFilterStateForItem(
   searchParams: URLSearchParams | string,
   itemValue: string,
-  filterKey: string
+  filterKey: string,
+  parentValue?: string
 ) {
   // Convert to URLSearchParams if it's a string
   const params = new URLSearchParams(searchParams);
@@ -1106,7 +1106,7 @@ function getFilterStateForItem(
     Array.isArray(currentValues) && currentValues.includes(itemValue);
   const newValues = isFiltered
     ? currentValues.filter((val) => val !== itemValue)
-    : [...currentValues, itemValue];
+    : [...currentValues?.filter((val) => val !== parentValue), itemValue];
 
   // Create a new set of URLSearchParams
   const newParams = new URLSearchParams(params.toString());

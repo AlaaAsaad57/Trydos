@@ -799,7 +799,7 @@ export const getProductsAndFilters = async ({
       filters_offset,
     });
     let configured_url = `/api/products/searchInCatalog?${params.toString()}`;
-
+    console.log(configured_url, "configured_url");
     let response = await fetch(
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + configured_url,
       {

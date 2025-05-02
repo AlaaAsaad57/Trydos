@@ -19,7 +19,7 @@ function FilterLoader({
         zIndex: "99999999999999",
         top: `${getOffset()}px`,
       }}
-      className="fixed flex-col bg-[#fafafa] min-h-screen flex    w-screen  overflow-hidden"
+      className="fixed max-w-[1365px] mx-auto flex-col bg-[#fafafa] min-h-screen flex    w-screen  overflow-hidden"
     >
       <ListingSkeleton
         isForSearch={isForSearch}

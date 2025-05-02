@@ -8,7 +8,7 @@ function HomeLoader() {
         zIndex: "99999999999999",
         top: "350px",
       }}
-      className="fixed bg-[#fafafa] min-h-screen  flex    w-screen  overflow-hidden"
+      className="fixed max-w-[1365px] mx-auto bg-[#fafafa] min-h-screen  flex    w-screen  overflow-hidden"
     >
       <OfferListSkeleton />
     </div>

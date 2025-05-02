@@ -1,9 +1,10 @@
 "use client";
-import Spinner from "components/global/Spinner";
+
 import { FilterItem } from "components/Server/FilterList";
 import Skeleton from "node_modules/react-loading-skeleton/dist";
 import React, { useState } from "react";
 import { InView } from "react-intersection-observer";
+import { useAppStore } from "store";
 import { getProductsAndFilters } from "store/homepage/cachedActions";
 
 function InfiniteScrollFilters({
@@ -14,8 +15,9 @@ function InfiniteScrollFilters({
   currency,
   params,
 }) {
+  const { partialLoading, setSearchPartialLoading } = useAppStore();
   const [country, language] = params.lang?.split("-");
-  const [loading, setLoading] = useState(false);
+
   const [offset, setOffset] = useState(1);
   const [hasEnd, setHasEnd] = useState(false);
   const [data, setData] = useState({
@@ -27,7 +29,7 @@ function InfiniteScrollFilters({
   });
   const getNextFilters = async () => {
     try {
-      setLoading(true);
+      setSearchPartialLoading(true);
       const response = await getProductsAndFilters({
         lang: language,
         offset: false,
@@ -64,9 +66,9 @@ function InfiniteScrollFilters({
       } else {
         setHasEnd(false);
       }
-      setLoading(false);
+      setSearchPartialLoading(false);
     } catch (error) {
-      setLoading(false);
+      setSearchPartialLoading(false);
     }
   };
   const showFilters = () => {
@@ -134,7 +136,7 @@ function InfiniteScrollFilters({
   return (
     <>
       {showFilters()}
-      {loading ? (
+      {partialLoading ? (
         <>
           {Array.from({ length: 4 })?.map((_, i) => (
             <div className="category-circle flex-col align-center" key={i}>
@@ -149,7 +151,7 @@ function InfiniteScrollFilters({
           className="spinner-container"
           as="div"
           onChange={(inView, entry) => {
-            if (inView && !loading && !hasEnd) {
+            if (inView && !partialLoading && !hasEnd) {
               getNextFilters();
             }
           }}
