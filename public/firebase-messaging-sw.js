@@ -29,7 +29,7 @@ firebase.initializeApp(firebaseConfig);
 // Retrieve firebase messaging
 const messaging = firebase.messaging();
 // let url = `${'http://localhost:3006'}`;
-let url = "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app";
+let url = "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app/";
 
 messaging.onBackgroundMessage(async function (payload) {
   try {
@@ -42,7 +42,7 @@ messaging.onBackgroundMessage(async function (payload) {
           data: {
             url:
               url +
-              `/boutiques/${JSON.parse(payload?.data.body)?.boutique_slug}`,
+              `boutiques/${JSON.parse(payload?.data.body)?.boutique_slug}`,
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
