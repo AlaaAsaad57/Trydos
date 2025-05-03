@@ -2,6 +2,7 @@ import React from "react";
 import ShareAvatar from "./ShareAvatar";
 import "styles/share-options.css";
 import {
+  EmailIcon,
   FacebookIcon,
   FacebookShareButton,
   TelegramIcon,
@@ -113,6 +114,24 @@ function ShareOptions({
           </TelegramShareButton>
         </div>
         <div className="share-name">Telegram</div>
+      </div>
+      <div className={`share-avatar`} data-cy="Whatsapp">
+        <div className="share-image social shadow-none">
+          <a
+            onClick={() => {
+              Sendevent({
+                event: "button_clicked",
+                value: "share_with_email_button",
+              });
+              shareSocial("email");
+            }}
+            href={`https://mail.google.com/mail/?view=cm&fs=1&su=Check%20this%20out&body=${product?.name} %0A ${window.location.href}`}
+            target="_blank"
+          >
+            <EmailIcon size={70} borderRadius={20} />
+          </a>
+        </div>
+        <div className="share-name">Gmail</div>
       </div>
       {getUserChat() &&
         user &&
