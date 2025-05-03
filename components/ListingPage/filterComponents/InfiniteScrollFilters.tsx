@@ -140,7 +140,7 @@ function InfiniteScrollFilters({
       {partialLoading ? (
         <>
           <div className="category-circle flex-col align-center">
-            <div className="relative w-[70px] h-[70px] flex items-center justify-center">
+            <div className="relative w-[40px] h-[70px] flex items-center justify-center">
               <Spinner />
             </div>
           </div>
