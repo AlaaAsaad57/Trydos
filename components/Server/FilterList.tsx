@@ -79,13 +79,14 @@ const ActiveFiltersBar = ({
   boutique,
 }) => {
   let activeFilters: any = Object.keys(searchParams).reduce((acc, key) => {
-    return {
-      ...acc,
-      [key]:
-        key === "search_text"
-          ? searchParams[key]
-          : JSON.parse(decodeURIComponent(searchParams[key])),
-    };
+    if (!["changed-country", "cart", "no-country"]?.includes(key))
+      return {
+        ...acc,
+        [key]:
+          key === "search_text"
+            ? searchParams[key]
+            : JSON.parse(decodeURIComponent(searchParams[key])),
+      };
   }, {});
   const getItemData = ({ value, arr, key }) => {
     try {
@@ -1154,10 +1155,11 @@ export const getActiveFilters = (
   const params = new URLSearchParams(searchParams);
   const activeFilters = {};
   params.forEach((value, key) => {
-    activeFilters[key] =
-      key === "search_text"
-        ? decodeURIComponent(value)
-        : JSON.parse(decodeURIComponent(value));
+    if (!["changed-country", "cart", "no-country"]?.includes(key))
+      activeFilters[key] =
+        key === "search_text"
+          ? decodeURIComponent(value)
+          : JSON.parse(decodeURIComponent(value));
   });
   return activeFilters;
 };

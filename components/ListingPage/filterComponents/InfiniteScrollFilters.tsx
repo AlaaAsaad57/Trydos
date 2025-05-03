@@ -1,5 +1,6 @@
 "use client";
 
+import Spinner from "components/global/Spinner";
 import { FilterItem } from "components/Server/FilterList";
 import Skeleton from "node_modules/react-loading-skeleton/dist";
 import React, { useState } from "react";
@@ -138,13 +139,11 @@ function InfiniteScrollFilters({
       {showFilters()}
       {partialLoading ? (
         <>
-          {Array.from({ length: 4 })?.map((_, i) => (
-            <div className="category-circle flex-col align-center" key={i}>
-              <div className="relative w-[70px] h-[70px]">
-                <Skeleton width={70} height={70} borderRadius={"50%"} />
-              </div>
+          <div className="category-circle flex-col align-center">
+            <div className="relative w-[70px] h-[70px] flex items-center justify-center">
+              <Spinner />
             </div>
-          ))}
+          </div>
         </>
       ) : (
         <InView

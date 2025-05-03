@@ -280,8 +280,10 @@ function FiltersWidget({ filters, configureActiveFilters }) {
           searchFilters?.brands?.length > 0 ||
           searchFilters?.colors?.length > 0 ||
           searchFilters?.sizes?.length > 0 ||
-          searchFilters?.prices?.min_price !== null ||
-          searchFilters?.prices?.max_price !== null)) ||
+          (searchFilters?.prices?.min_price &&
+            searchFilters?.prices?.min_price !== null) ||
+          (searchFilters?.prices?.max_price &&
+            searchFilters?.prices?.max_price !== null))) ||
       value?.length > 0
     );
   };

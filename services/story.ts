@@ -154,6 +154,7 @@ class StoryService {
         );
         returnedData.push({
           url: vid,
+          link: storyItem.link,
           FixedUrl: vid,
           is_seen: storyItem.is_seen,
           id: storyItem.id,
@@ -173,6 +174,7 @@ class StoryService {
         );
         returnedData.push({
           url: img,
+          link: storyItem.link,
           FixedUrl: img,
           is_seen: storyItem.is_seen,
           duration: 5000,

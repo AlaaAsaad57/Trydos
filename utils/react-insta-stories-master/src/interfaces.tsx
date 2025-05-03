@@ -116,6 +116,7 @@ export interface StoryState {
 
 export interface Story {
   url?: string;
+  link?: string;
   seeMore?: Function;
   seeMoreCollapsed?: React.ComponentType<{
     toggleMore: (show: boolean) => void;

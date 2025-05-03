@@ -3,7 +3,7 @@ import Spinner from "../components/Spinner";
 import { Renderer, Tester } from "./../interfaces";
 import WithHeader from "./wrappers/withHeader";
 import WithSeeMore from "./wrappers/withSeeMore";
-
+import { SelectStory } from "../../../../store/homepage/actions";
 export const renderer: Renderer = ({
   story,
   action,
@@ -69,6 +69,18 @@ export const renderer: Renderer = ({
     <WithHeader {...{ story, globalHeader: config.header }}>
       <WithSeeMore {...{ story, action }}>
         <div style={styles.videoContainer}>
+          {story?.link && (
+            <a
+              className="absolute z-[999999999]  bottom-[70px] mx-auto left-0 right-0 text-white text-center text-lg regular underline"
+              href={story.link}
+              target="_self"
+              onClick={() => {
+                SelectStory(null);
+              }}
+            >
+              {story.link}
+            </a>
+          )}
           <video
             ref={vid}
             style={computedStyles}
