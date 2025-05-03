@@ -4,6 +4,7 @@ import { Renderer, Tester } from "./../interfaces";
 import WithHeader from "./wrappers/withHeader";
 import WithSeeMore from "./wrappers/withSeeMore";
 import { SelectStory } from "../../../../store/homepage/actions";
+import XIcon from "../../../../public/svg/Xicon.svg";
 export const renderer: Renderer = ({
   story,
   action,
@@ -42,6 +43,14 @@ export const renderer: Renderer = ({
     <WithHeader {...{ story, globalHeader: config.header }}>
       <WithSeeMore {...{ story, action }}>
         <div style={{ position: "relative", width, height }}>
+          <div
+            className="absolute cursor-pointer z-[999999999] top-[70px]  right-[30px] text-white text-center text-lg regular"
+            onClick={() => {
+              SelectStory(null);
+            }}
+          >
+            <XIcon className="[&>path]:fill-[#D3D3D3]" />
+          </div>
           {story?.link && (
             <a
               className="absolute z-[999999999] bottom-[70px] mx-auto left-0 right-0 text-white text-center text-lg regular underline"
