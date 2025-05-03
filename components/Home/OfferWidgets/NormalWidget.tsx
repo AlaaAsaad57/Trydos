@@ -45,7 +45,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
                 className="object-contain"
                 alt={boutique.name}
                 loading="eager"
-                fetchPriority={myKey < 2 ? "high" : "low"}
+                fetchPriority="auto"
                 priority={myKey < 2}
                 style={{
                   maxWidth: "187px",
@@ -118,7 +118,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
                     id={"img-" + boutique.id}
                     alt={boutique.name}
                     loading="eager"
-                    fetchPriority={myKey < 2 ? "high" : "low"}
+                    fetchPriority="auto"
                     priority={myKey < 2}
                     width={12}
                     height={12}

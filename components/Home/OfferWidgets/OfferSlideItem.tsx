@@ -19,7 +19,7 @@ function OfferSlideItem({
         {
           <Image
             loading="eager"
-            fetchPriority={mykey < 2 ? "high" : "low"}
+            fetchPriority="auto"
             priority={mykey < 2}
             style={{ borderRadius: "15px" }}
             className="OfferImage object-cover"

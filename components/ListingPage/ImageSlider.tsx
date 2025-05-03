@@ -98,7 +98,7 @@ function ImageSlider({
                   {(isActive || i === 0) && (
                     <img
                       loading="eager"
-                      fetchPriority={priority && i === 0 ? "high" : "low"}
+                      fetchPriority="auto"
                       style={{ borderRadius: "15px", zIndex: "3" }}
                       src={getConfiguredImage({
                         src: img.file_path,

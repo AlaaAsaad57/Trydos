@@ -49,7 +49,7 @@ function MoreOfferAvatar({
         src={images}
         className="absolute"
         priority={priority}
-        fetchPriority={priority ? "high" : "low"}
+        fetchPriority="auto"
         alt="avatar"
         width={40}
         height={40}

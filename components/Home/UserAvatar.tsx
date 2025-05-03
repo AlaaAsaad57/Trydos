@@ -33,7 +33,7 @@ function UserAvatar({ avatar, onClick }: UserAvatarProps) {
               src={avatar || userProfile?.image}
               quality={100}
               priority={true}
-              fetchPriority="low"
+              fetchPriority="auto"
               className="avatar-user-image object-cover object-center"
             />
           </div>

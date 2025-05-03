@@ -95,7 +95,7 @@ function ColorSlider({
                   <div className="inset-shadow-img rounded-15 absolute w-100 h-100" />
                   <img
                     loading="eager"
-                    fetchPriority={priority ? "high" : "low"}
+                    fetchPriority="auto"
                     style={{ borderRadius: "15px", zIndex: "3" }}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     src={getConfiguredImage({
