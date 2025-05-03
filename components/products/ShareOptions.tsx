@@ -17,6 +17,8 @@ import { ProductInterface } from "models/product";
 import { getUserChat, Sendevent } from "utils/functions";
 import { AxiosPost } from "utils/AxiosApi";
 import { useAppStore } from "store";
+import { toast } from "react-toastify";
+import CopyIcon from "public/svg/copyIcon.svg";
 function ShareOptions({
   setShareContacts,
   sharedContacts,
@@ -132,6 +134,19 @@ function ShareOptions({
           </a>
         </div>
         <div className="share-name">Gmail</div>
+      </div>
+      <div className={`share-avatar`} data-cy="Whatsapp">
+        <div
+          className="share-image social shadow-none"
+          onClick={() => {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+              toast.success("Link Copied to Clipboard");
+            });
+          }}
+        >
+          <CopyIcon />
+        </div>
+        <div className="share-name">Copy Link</div>
       </div>
       {getUserChat() &&
         user &&
