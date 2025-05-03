@@ -64,7 +64,10 @@ function ProductLoader({ product }) {
           <div className="embla" ref={emblaRef}>
             <div className="embla__container">
               {product?.id
-                ? (product?.images ?? [product?.image])?.map((img, i) => (
+                ? (
+                    product?.sync_color_images?.[0]?.images ||
+                    (product?.images ?? [product?.image])
+                  )?.map((img, i) => (
                     <div className="embla__slide " key={`img-product-${i}`}>
                       <Image
                         width={320}
