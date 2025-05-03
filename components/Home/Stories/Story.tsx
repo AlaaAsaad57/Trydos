@@ -22,15 +22,6 @@ function Story({
     SelectStory(e);
   };
 
-  const [load, onLoad] = useState(null);
-  const ref = useRef<HTMLImageElement>(null);
-  useEffect(() => {
-    if (ref.current) {
-      if (ref?.current?.complete) {
-        onLoad("loaded");
-      }
-    }
-  }, [ref]);
   return (
     <div
       className="story-element-item"
@@ -39,16 +30,12 @@ function Story({
     >
       <div className="linear-g-image" />
       <div className="story-text overflow-hidden">{Name}</div>
-      {<Loader style={{ display: load ? "none" : "flex" }} />}
-      <div className="" style={{ display: !load ? "none" : "flex" }}>
+
+      <div className="" style={{ display: "flex" }}>
         <Image
           className="thumb-img"
           alt="story"
-          onLoad={(e) => {
-            onLoad("loaded");
-          }}
           width={100}
-          ref={ref}
           height={160}
           priority={true}
           loading="eager"
@@ -56,7 +43,6 @@ function Story({
             e.currentTarget.src = errorPNG;
             e.currentTarget.onerror = null;
           }}
-          unoptimized
           src={StoryServiceClass.getThumb(
             media.full_video_path || media.photo_path,
             media.full_video_path

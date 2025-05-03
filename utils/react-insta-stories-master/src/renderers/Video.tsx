@@ -69,7 +69,7 @@ export const renderer: Renderer = ({
   return (
     <WithHeader {...{ story, globalHeader: config.header }}>
       <WithSeeMore {...{ story, action }}>
-        <div style={styles.videoContainer} className="relative">
+        <div style={styles.videoContainer} className="">
           <div
             className="absolute cursor-pointer z-[999999999] top-[50px]  right-[30px] text-white text-center text-lg regular"
             onClick={() => {

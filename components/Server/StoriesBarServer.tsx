@@ -1,4 +1,5 @@
 "use client";
+import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import AddStory from "components/Home/AddStory";
 import StoriesBorder from "components/Home/Stories/StoriesBorder";
 import StoryElement from "components/Home/Stories/StoryElement";
@@ -21,13 +22,16 @@ function StoriesBarServer() {
       <div className="stories-bar-container">
         <div id="stories-bar" className="stories-bar">
           {storiesData ? (
-            <div className="stories-bars">
+            <HortiznalScrollBar
+              id="stories-bar-container"
+              className="stories-bars"
+            >
               {<AddStory />}
 
               {storiesData?.map((story, index) => (
                 <StoryElement key={index} index={index} story={story} />
               ))}
-            </div>
+            </HortiznalScrollBar>
           ) : (
             <StoriesSkeleton />
           )}
