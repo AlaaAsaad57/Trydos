@@ -244,10 +244,11 @@ function ProductFooterSection({ product, currency }) {
         <>
           {
             <ExtendedAreaInfo
-              loading={loading}
+              setOption={(e) => {
+                setOption(e);
+              }}
               getComments={async () => await getComments()}
               Render={productState?.Render}
-              colors={product.sync_color_images}
               verifyCommentAction={(mid) =>
                 dispatch({ type: "VerifyComment", payload: mid })
               }

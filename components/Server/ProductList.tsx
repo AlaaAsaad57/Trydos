@@ -179,6 +179,7 @@ function ProductListServer({
         );
       })}
       <ProductsInfiniteScroll
+        productIds={products.map((s) => s.slug)}
         activeColor={activeColor}
         currency={currency}
         offset={offset}

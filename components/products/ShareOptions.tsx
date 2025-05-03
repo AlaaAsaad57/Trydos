@@ -137,7 +137,7 @@ function ShareOptions({
       </div>
       <div className={`share-avatar`} data-cy="Whatsapp">
         <div
-          className="share-image social shadow-none"
+          className="share-image social shadow-none flex justify-center items-center bg-[#f8f8e4]"
           onClick={() => {
             navigator.clipboard.writeText(window.location.href).then(() => {
               toast.success("Link Copied to Clipboard");
