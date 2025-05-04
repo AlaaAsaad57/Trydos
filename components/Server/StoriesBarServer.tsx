@@ -21,13 +21,12 @@ function StoriesBarServer() {
     return (
       <div className="stories-bar-container">
         <div id="stories-bar" className="stories-bar">
+          {<AddStory />}
           {storiesData ? (
             <HortiznalScrollBar
               id="stories-bar-container"
-              className="stories-bars"
+              className="stories-bars pl-[10px]"
             >
-              {<AddStory />}
-
               {storiesData?.map((story, index) => (
                 <StoryElement key={index} index={index} story={story} />
               ))}

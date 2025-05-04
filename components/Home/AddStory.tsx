@@ -287,7 +287,7 @@ function AddStory() {
         )}
         <div
           data-cy="Add-Story-Button"
-          className="story-element-container add-story-container flex align-center justify-center"
+          className="story-element-container add-story-container flex align-center justify-center ml-[20px]"
           style={{
             borderRadius: "20px",
             animation: "none",
