@@ -15,7 +15,7 @@ import { Swiper as SwiperType } from "swiper/types";
 import ModalIframe from "./ModalIframe";
 import { toast, ToastContainer } from "react-toastify";
 import { useAppStore } from "store";
-import { getCurrency } from "store/chat/actions";
+import { getCurrency } from "utils/tinyUtils";
 import AddToCartComponent from "./AddToCartComponent";
 const CartProvider = () => {
   const {

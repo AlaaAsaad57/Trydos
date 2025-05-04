@@ -1,7 +1,7 @@
 import ChatIcon from "public/svg/ChatIcon.svg";
 import { Sendevent, translateFunction } from "utils/functions";
 import UserAvatar from "./UserAvatar";
-import { ChatConroller } from "store/chat/actions";
+import { ChatConroller } from "utils/tinyUtils";
 import { getNew } from "components/Chat/chatsFunctions";
 import ChatNotification from "./ChatNotification";
 import { useParams } from "next/navigation";

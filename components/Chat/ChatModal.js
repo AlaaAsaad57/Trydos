@@ -6,7 +6,7 @@ const CallComponent = dynamic(
 );
 const Chat = dynamic(() => import("./index"), { ssr: false });
 
-import { ChatConroller } from "store/chat/actions";
+import { ChatConroller } from "utils/tinyUtils";
 
 import { SSRDetect, getUserChat } from "utils/functions";
 import ChatService from "services/chat";

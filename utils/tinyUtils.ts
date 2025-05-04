@@ -1,3 +1,5 @@
+import { useAppStore } from "store";
+import { AxiosGet } from "./AxiosApi";
 import { translateFunction } from "./functions";
 
 export const getPrice = (num, lang, currency) => {
@@ -206,4 +208,21 @@ export const GetFilterUrlParams = ({
   }
   requestSearchParams.set("noProducts", "true");
   return requestSearchParams;
+};
+export const ChatConroller = (payload) => {
+  const { openChat, setChatOpen } = useAppStore.getState();
+  if (payload) document.documentElement.style.overflow = "hidden";
+  else document.documentElement.style.overflow = "initial";
+  window.history.pushState({ isPopup: true }, "open Chat");
+  openChat(payload);
+  setChatOpen(payload);
+};
+export const getCurrency = async ({ lang, country, callback }) => {
+  let currency = await AxiosGet({
+    url: process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile/home/currency",
+    title: "Currency Request",
+  });
+  //
+  callback({ currency: currency?.currency, res: {} });
+  return currency?.currency;
 };

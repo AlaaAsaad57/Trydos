@@ -13,14 +13,6 @@ import { AxiosGet } from "utils/AxiosApi";
 import { GetChatsApi, GetContactsApi } from "models/Api";
 import { useAppStore } from "store";
 
-export const ChatConroller = (payload) => {
-  const { openChat, setChatOpen } = useAppStore.getState();
-  if (payload) document.documentElement.style.overflow = "hidden";
-  else document.documentElement.style.overflow = "initial";
-  window.history.pushState({ isPopup: true }, "open Chat");
-  openChat(payload);
-  setChatOpen(payload);
-};
 export const GetChats = async (payload) => {
   const {
     setChatLoading,
@@ -533,13 +525,4 @@ export const GetChatDetails = async (id) => {
     );
     editChatInfo({ id: id, data: resp.data.data });
   } catch (e) {}
-};
-export const getCurrency = async ({ lang, country, callback }) => {
-  let currency = await AxiosGet({
-    url: process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile/home/currency",
-    title: "Currency Request",
-  });
-  //
-  callback({ currency: currency?.currency, res: {} });
-  return currency?.currency;
 };
