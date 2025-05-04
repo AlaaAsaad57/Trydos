@@ -8,12 +8,12 @@ import SyFlage from "public/svg/sy.svg";
 import { useParams } from "next/navigation";
 import Addressicon from "public/svg/cart/AddressIcon.svg";
 import AddressInfo from "public/svg/cart/AddressInfo.svg";
-import Flag from "react-world-flags";
 import TargetIcon from "public/svg/cart/Target.svg";
 import ContactInfoIcon from "public/svg/cart/ContactInfoIcon.svg";
 
 import order from "services/order";
 import { useAppStore } from "store";
+import { FlagIcon } from "utils/tinyUtils";
 
 function AddAddressForm({
   setAddressDetails,
@@ -249,14 +249,12 @@ const CountryLabel = () => {
       </div>
       <div className="flex-row items-center mt-[3px] ">
         <span
-          className="h-[15px] rounded-[5px] w-[22px]"
+          className="h-[20px] rounded-[5px] w-[30px]"
           data-cy="country-flag"
         >
-          {country.iso?.toLowerCase() === "sy" ? (
-            <SyFlage />
-          ) : (
-            <Flag height={"15"} code={country.iso} />
-          )}
+          <span className="w-[30px] h-[20px]">
+            <FlagIcon iso={country.iso} />
+          </span>
         </span>
         <div
           className="medium flex text-[#1D1D1D] text-[14px] ml-[8px]"

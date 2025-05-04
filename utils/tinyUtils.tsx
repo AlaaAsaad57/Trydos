@@ -1,6 +1,7 @@
 import { useAppStore } from "store";
 import { AxiosGet } from "./AxiosApi";
 import { translateFunction } from "./functions";
+import dynamic from "next/dynamic";
 
 export const getPrice = (num, lang, currency) => {
   let rateVariable = currency?.exchange_rate;
@@ -225,4 +226,12 @@ export const getCurrency = async ({ lang, country, callback }) => {
   //
   callback({ currency: currency?.currency, res: {} });
   return currency?.currency;
+};
+export const FlagIcon = ({ iso }) => {
+  let FlagSy = dynamic(() => import(`public/svg/sy.svg`));
+  if (iso.toLowerCase() === "sy") return <FlagSy />;
+  let Flag = dynamic(
+    () => import(`react-world-flags/src/svgs/${iso?.toLowerCase()}.svg`)
+  );
+  return <Flag />;
 };

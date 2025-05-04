@@ -11,12 +11,12 @@ import LanguageIcon from "public/svg/LanguageIcon.svg";
 import SyFlage from "public/svg/sy.svg";
 import { useParams } from "next/navigation";
 import { allCountries } from "country-telephone-data";
-import Flag from "react-world-flags";
 import order from "services/order";
 
 import { formatPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
+import { FlagIcon } from "utils/tinyUtils";
 
 const options = [
   { name: "Settings", Icon: <SettingsIcon /> },
@@ -111,19 +111,10 @@ function MainSetting({
             }}
             className="flex-row w-1/2 h-[53px] bg-[#F8F8F8] rounded-[15px] px-[12px] items-center cursor-pointer"
           >
-            {country.iso === "sy" ? (
-              <SyFlage data-cy="country-flag" />
-            ) : (
-              <Flag
-                code={country.iso.toUpperCase()}
-                height="18"
-                style={{
-                  borderRadius: "4px",
-                }}
-                width="28"
-                alt={`${country.name} flag`}
-              />
-            )}
+            <span className="w-[30px] h-[20px]">
+              {" "}
+              <FlagIcon iso={country.iso} />
+            </span>
 
             <span className="text-[#1D1D1D] text-[14px] regular ml-[12px]">
               {country.name}

@@ -1,5 +1,4 @@
 "use client";
-import Flag from "react-world-flags";
 import { useEffect, useState } from "react";
 import {
   changeAppCountryServer,
@@ -7,6 +6,7 @@ import {
 } from "store/homepage/cachedActions";
 import { translateFunction } from "utils/functions";
 import SyFlage from "public/svg/sy.svg";
+import { FlagIcon } from "utils/tinyUtils";
 interface Country {
   name: string;
   iso: string;
@@ -89,16 +89,10 @@ function CountrySelector({ init }: CountrySelectorProps) {
               window.location.href = newUrl;
             }}
           >
-            {country.iso?.toLowerCase() === "sy" ? (
-              <SyFlage data-cy="country-flag" />
-            ) : (
-              <Flag
-                height="20"
-                width="30"
-                data-cy="country-flag"
-                code={country.iso.toUpperCase()}
-              />
-            )}
+            <span className="w-[30px] h-[20px]">
+              {" "}
+              <FlagIcon iso={country.iso} />
+            </span>
           </div>
         ))}
       </div>
