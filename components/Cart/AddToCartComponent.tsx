@@ -20,7 +20,7 @@ import { useParams, useSearchParams } from "next/navigation";
 
 import NotifySVG from "public/svg/cart/NotifyCart.svg";
 import cart from "services/cart";
-import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
+
 import auth from "services/auth";
 import home from "services/home";
 import { SliderRuler } from "./SliderRuler";
@@ -1554,17 +1554,10 @@ const AddToCartButton = ({
 };
 const NotifyCartButton = ({ isNotified, setNotify, selected_variant, id }) => {
   const NotifyAction = async () => {
+    const permission = await Notification.requestPermission();
     if (!isNotified) {
       Sendevent({ event: "button_clicked", value: "notify_me_button" });
       setNotify();
-      requestFirebaseNotificationPermission().then((fbtoken) => {
-        // if (fbtoken) {
-        //   fbtoken &&
-        //     ChatService.StoreToken({
-        //       token: fbtoken,
-        //     });
-        // }
-      });
       await auth.NotifyForProducts({
         id: id,
         variant: selected_variant,

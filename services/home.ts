@@ -23,10 +23,7 @@ import {
 import { SSRDetect } from "utils/functions";
 import { toast } from "react-toastify";
 import axios from "axios";
-import {
-  onMessageListener,
-  requestFirebaseNotificationPermission,
-} from "utils/firebaseInitv1";
+
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { changeToken } from "store/homepage/cachedActions";
 import {
@@ -217,9 +214,15 @@ class HomeService {
     }
   }
   async RequestFireBase() {
+    const permission = await Notification.requestPermission();
+
+    if (permission !== "granted") {
+      console.log("Notification permission denied or dismissed.");
+      return null;
+    }
+    const { requestFirebaseNotificationPermission, onMessageListener } =
+      await import("utils/firebaseInitv1");
     await requestFirebaseNotificationPermission().then(async (token) => {
-      let language_code = window.location.pathname.split("/")[1].split("-")[1];
-      let country_code = window.location.pathname.split("/")[1].split("-")[0];
       // @ts-ignore
       if (token) {
         localStorage.setItem("FB-DEVICE-TOKEN", token);
@@ -235,6 +238,11 @@ class HomeService {
               },
               title: "register firebase token",
             });
+            typeof window !== "undefined" &&
+              "serviceWorker" in navigator &&
+              onMessageListener()
+                .then((payload) => {})
+                .catch((err) => {});
           }
         }, 2000);
         // ininit
@@ -283,11 +291,6 @@ class HomeService {
       this.RegisterDevice();
     }
     await this.RequestFireBase();
-    typeof window !== "undefined" &&
-      "serviceWorker" in navigator &&
-      onMessageListener()
-        .then((payload) => {})
-        .catch((err) => {});
   }
   async RegisterDevice() {
     const { isRegisteringReady, setIsRegisteringReady } =

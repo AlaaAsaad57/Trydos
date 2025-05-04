@@ -3,10 +3,8 @@ import { translateFunction } from "utils/functions";
 import { NotificationItem as NotificationItemType } from "../../types/notifications";
 import { fetchNotifications } from "../../services/notifications";
 import NotificationItem from "./NotificationItem";
-
-import { isSupported } from "firebase/messaging";
 import auth from "services/auth";
-import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
+
 import NextLink from "components/global/NextLink";
 import { useParams } from "next/navigation";
 
@@ -276,6 +274,16 @@ const NotificationInfo = ({ closeWindow }) => {
   const [token, setToken] = useState(null);
   const [error, setError] = useState(null);
   const supportedFunction = async () => {
+    const permission = await Notification.requestPermission();
+
+    if (permission !== "granted") {
+      console.log("Notification permission denied or dismissed.");
+      return null;
+    }
+    const { requestFirebaseNotificationPermission } = await import(
+      "utils/firebaseInitv1"
+    );
+    const { isSupported } = await import("firebase/messaging");
     isSupported().then((bool) => {
       console.log(bool);
       setSupported(bool);

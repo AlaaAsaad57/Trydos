@@ -5,7 +5,6 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import HomeService from "services/home";
 import PopupCountry from "utils/PopupCountry";
-import { requestFirebaseNotificationPermission } from "utils/firebaseInitv1";
 import home from "services/home";
 import { toast } from "react-toastify";
 import Smartlook from "smartlook-client";
@@ -133,8 +132,16 @@ function Init() {
       };
     });
   }, []);
+  const initPageLoad = async () => {
+    const permission = await Notification.requestPermission();
 
-  useEffect(() => {
+    if (permission !== "granted") {
+      console.log("Notification permission denied or dismissed.");
+      return null;
+    }
+    const { requestFirebaseNotificationPermission } = await import(
+      "utils/firebaseInitv1"
+    );
     if (!shouldShowBluredInfo()) {
       const handlePageRefresh = async () => {
         try {
@@ -148,6 +155,9 @@ function Init() {
 
       handlePageRefresh(); // Run the function on initial load
     }
+  };
+  useEffect(() => {
+    initPageLoad();
   }, []); // Runs once when the app initializes
 
   return (
