@@ -292,7 +292,8 @@ function AddToCartComponent({
               src:
                 selectedColor?.images?.[0]?.file_path ||
                 selectedColor?.images?.[0] ||
-                ProductData?.images?.[0]?.file_path,
+                ProductData?.images?.[0]?.file_path ||
+                ProductData?.images?.[0],
               width: 400,
               height: 400,
             })}
