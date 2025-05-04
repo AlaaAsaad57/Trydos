@@ -1,15 +1,20 @@
 "use client";
+import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
 import Skeleton from "node_modules/react-loading-skeleton/dist";
 import React, { useState } from "react";
 import { InView } from "react-intersection-observer";
 import search from "services/search";
 
-function InfiniteScrollFiltersSearch({ isActive, onClick, term }) {
+function InfiniteScrollFiltersSearch({ term }) {
   const { lang } = useParams();
   const [loading, setLoading] = useState(false);
   const [offset, setOffset] = useState(1);
-  const [hasEnd, setHasEnd] = useState(false);
+  const [hasEnd, setHasEnd] = useState({
+    categories: false,
+    brands: false,
+    boutiques: false,
+  });
   const getNextFilters = async () => {
     try {
       setLoading(true);
@@ -21,17 +26,15 @@ function InfiniteScrollFiltersSearch({ isActive, onClick, term }) {
         replace: false,
       });
       setOffset(offset + 1);
-      if (
-        response?.data?.categories?.length === 0 &&
-        response?.data?.brands?.length === 0 &&
-        response?.data?.boutiques?.length === 0
-      ) {
-        setHasEnd(true);
-      } else {
-        setHasEnd(false);
-      }
+      console.log(response);
+      setHasEnd({
+        categories: response?.data?.categories?.length === 0,
+        brands: response?.data?.brands?.length === 0,
+        boutiques: response?.data?.boutiques?.length === 0,
+      });
       setLoading(false);
     } catch (error) {
+      console.log(error, "getSearchOptions");
       setLoading(false);
     }
   };
@@ -41,30 +44,22 @@ function InfiniteScrollFiltersSearch({ isActive, onClick, term }) {
       {loading ? (
         <>
           {Array.from({ length: 4 })?.map((_, i) => (
-            <div
-              className="brand-item min-w-[81px] p-0 relative ml-2 "
-              key={i}
-              onClick={() => onClick()}
-            >
-              <Skeleton
-                width={85}
-                height={30}
-                borderRadius={"10"}
-                className="h-full max-h-[30px] object-contain"
-              />
+            <div className="brand-item min-w-[81px] p-0 relative ml-2 " key={i}>
+              <Spinner />
             </div>
           ))}
         </>
       ) : (
-        <InView
-          className="spinner-container"
-          as="div"
-          onChange={(inView, entry) => {
-            if (inView && !loading && !hasEnd) {
+        !hasEnd[term] && (
+          <div
+            className="brand-item min-w-[100px] p-0 relative ml-2 text-center text-[#5d5d5d] light shadow-sm bg-[#e8e8e8] rounded-full justify-center items-center"
+            onClick={() => {
               getNextFilters();
-            }
-          }}
-        ></InView>
+            }}
+          >
+            More {term}
+          </div>
+        )
       )}
     </>
   );

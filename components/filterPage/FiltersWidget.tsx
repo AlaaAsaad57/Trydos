@@ -173,6 +173,7 @@ function FilterWidgetContainer({}) {
           isSearch={false}
           setIsSearch={() => {}}
           Goback={() => {
+            document?.documentElement?.style?.setProperty("overflow", "auto");
             setFilterEnabled(false);
           }}
         />
@@ -391,6 +392,10 @@ function FiltersWidget({ filters, configureActiveFilters }) {
               className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
               data-cy="searchTotalProduct"
               onClick={() => {
+                document?.documentElement?.style?.setProperty(
+                  "overflow",
+                  "auto"
+                );
                 setFilterEnabled(false);
                 resetFilters();
               }}
@@ -459,6 +464,7 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
         data-cy="backIcon_productPage"
         className={`back-icon flex-row`}
         onClick={() => {
+          document?.documentElement?.style?.setProperty("overflow", "auto");
           Goback();
           setFilterEnabled(false);
         }}
@@ -525,6 +531,7 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
         <div
           className="filter-option w-[20px]"
           onClick={() => {
+            document?.documentElement?.style?.setProperty("overflow", "auto");
             setFilterEnabled(false);
           }}
         >

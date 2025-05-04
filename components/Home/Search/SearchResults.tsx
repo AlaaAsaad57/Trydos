@@ -207,26 +207,7 @@ function SearchResults() {
                   )}
                 />
               ))}
-              <InfiniteScrollFiltersSearch
-                term="brands"
-                isActive={(item) => {
-                  return searchFilters?.brands.some(
-                    (s) => s.slug === item.slug
-                  );
-                }}
-                onClick={(e) => {
-                  Sendevent({
-                    event: "button_clicked",
-                    value: "add_filter_button",
-                    extra: {
-                      type: "brand",
-                      name: e.name,
-                    },
-                  });
-                  setSearchBrand(e);
-                  updateFiltersApi();
-                }}
-              />
+              <InfiniteScrollFiltersSearch term="brands" />
             </div>
           </div>
         )}
@@ -264,26 +245,7 @@ function SearchResults() {
                   )}
                 />
               ))}
-              <InfiniteScrollFiltersSearch
-                term="categories"
-                isActive={(item) => {
-                  return searchFilters?.categories.some(
-                    (s) => s.slug === item.slug
-                  );
-                }}
-                onClick={(e) => {
-                  Sendevent({
-                    event: "button_clicked",
-                    value: "add_filter_button",
-                    extra: {
-                      type: "category",
-                      name: e.name,
-                    },
-                  });
-                  setSearchCategory(e);
-                  updateFiltersApi();
-                }}
-              />
+              <InfiniteScrollFiltersSearch term="categories" />
             </div>
           </div>
         )}
@@ -320,26 +282,7 @@ function SearchResults() {
                   )}
                 />
               ))}
-              <InfiniteScrollFiltersSearch
-                term="boutiques"
-                onClick={(e) => {
-                  Sendevent({
-                    event: "button_clicked",
-                    value: "add_filter_button",
-                    extra: {
-                      type: "boutique",
-                      name: e.name,
-                    },
-                  });
-                  setSearchBoutique(e);
-                  updateFiltersApi();
-                }}
-                isActive={(item) => {
-                  return searchFilters?.boutiques.some(
-                    (s) => s.slug === item.slug
-                  );
-                }}
-              />
+              <InfiniteScrollFiltersSearch term="boutiques" />
             </div>
           </div>
         )}

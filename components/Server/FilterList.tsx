@@ -126,7 +126,10 @@ const ActiveFiltersBar = ({
                 key: "slug",
               }) && (
                 <>
-                  <div className="main-category-icon flex-row min-w-[15px] min-h-[15px]">
+                  <div
+                    className="main-category-icon flex-row min-w-[15px] min-h-[15px]"
+                    key={category}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="15"
@@ -195,7 +198,10 @@ const ActiveFiltersBar = ({
                         key: "slug",
                       }) && (
                         <>
-                          <div className="sub-category-icon flex-row min-h-[10px] min-w-[10px]">
+                          <div
+                            className="sub-category-icon flex-row min-h-[10px] min-w-[10px]"
+                            key={s}
+                          >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="10"
@@ -251,7 +257,10 @@ const ActiveFiltersBar = ({
                 key: "slug",
               }) && (
                 <>
-                  <div className="main-category-icon flex-row min-w-[15px] min-h-[15px]">
+                  <div
+                    className="main-category-icon flex-row min-w-[15px] min-h-[15px]"
+                    key={category}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="15"
@@ -309,7 +318,10 @@ const ActiveFiltersBar = ({
                 key: "slug",
               }) && (
                 <>
-                  <div className="main-category-icon flex-row min-w-[15px] min-h-[15px]">
+                  <div
+                    className="main-category-icon flex-row min-w-[15px] min-h-[15px]"
+                    key={brand}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="15"
@@ -364,7 +376,10 @@ const ActiveFiltersBar = ({
           <ActiveCategoryIcon style={{ height: "21px" }} />
           {activeFilters?.colors.map((color) => (
             <>
-              <div className="main-category-icon flex-row min-w-[15px] min-h-[15px]">
+              <div
+                className="main-category-icon flex-row min-w-[15px] min-h-[15px]"
+                key={color}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="15"
@@ -400,7 +415,10 @@ const ActiveFiltersBar = ({
             <>
               {activeFilters.prices.map((price, index) => (
                 <>
-                  <div className="category-title filter-bar-main-title">
+                  <div
+                    className="category-title filter-bar-main-title"
+                    key={price}
+                  >
                     {price}
                   </div>
                 </>
@@ -417,6 +435,7 @@ const ActiveFiltersBar = ({
               <div
                 className="category-title filter-bar-main-title uppercase"
                 data-cy="sizeFilterTitle"
+                key={size}
               >
                 {size}
               </div>
@@ -475,15 +494,17 @@ const FilterItemsRow = ({
             />
           ))}
 
-        <InfiniteScrollFilters
-          term={term}
-          boutique={boutique}
-          searchParams={searchParams}
-          lang={params?.lang}
-          currency={currency}
-          params={params}
-          key={searchParams}
-        />
+        {items?.length >= 8 && (
+          <InfiniteScrollFilters
+            term={term}
+            boutique={boutique}
+            searchParams={searchParams}
+            lang={params?.lang}
+            currency={currency}
+            params={params}
+            key={searchParams}
+          />
+        )}
       </div>
     </div>
   );
@@ -615,6 +636,7 @@ export const FilterItem = ({
                     }}
                     href={getSubCategoryUrl(s.slug)?.href}
                     className={`sub-circle`}
+                    key={s.slug}
                     style={{
                       position: shouldShowSubCategories()
                         ? "relative"

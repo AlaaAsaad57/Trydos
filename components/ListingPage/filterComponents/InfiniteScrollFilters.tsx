@@ -20,7 +20,13 @@ function InfiniteScrollFilters({
   const [country, language] = params.lang?.split("-");
 
   const [offset, setOffset] = useState(1);
-  const [hasEnd, setHasEnd] = useState(false);
+  const [hasEnd, setHasEnd] = useState({
+    categories: false,
+    brands: false,
+    colors: false,
+    sizes: false,
+    prices: false,
+  });
   const [data, setData] = useState({
     categories: [],
     brands: [],
@@ -57,16 +63,16 @@ function InfiniteScrollFilters({
         prices: [],
       });
       setOffset(offset + 1);
-      if (
-        response?.data?.categories?.length === 0 &&
-        response?.data?.brands?.length === 0 &&
-        response?.data?.colors?.length === 0 &&
-        response?.data?.attributes?.length === 0
-      ) {
-        setHasEnd(true);
-      } else {
-        setHasEnd(false);
-      }
+      setHasEnd({
+        categories: response?.data?.categories?.length === 0,
+        brands: response?.data?.brands?.length === 0,
+        colors: response?.data?.colors?.length === 0,
+        sizes:
+          response?.data?.attributes?.length === 0 ||
+          response?.data?.attributes?.[0]?.options?.length === 0,
+        prices: response?.data?.prices?.priceRanges?.length === 0,
+      });
+
       setSearchPartialLoading(false);
     } catch (error) {
       setSearchPartialLoading(false);
@@ -146,15 +152,16 @@ function InfiniteScrollFilters({
           </div>
         </>
       ) : (
-        <InView
-          className="spinner-container"
-          as="div"
-          onChange={(inView, entry) => {
-            if (inView && !partialLoading && !hasEnd) {
+        !hasEnd[term] && (
+          <div
+            onClick={() => {
               getNextFilters();
-            }
-          }}
-        ></InView>
+            }}
+            className=" mb-[34px] p-2 text-wrap text-center category-circle h-[70px] flex-col align-center extended-circle text-[#5d5d5d] light shadow-sm bg-[#e8e8e8] rounded-full justify-center items-center"
+          >
+            More {term}
+          </div>
+        )
       )}
     </>
   );

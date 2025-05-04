@@ -29,99 +29,105 @@ class SearchService {
       noFilters,
       filters_offset
     );
-    let searchFiltersEdit = {};
-    if (searchFilters?.categories && searchFilters.categories.length > 0) {
-      searchFiltersEdit = {
-        ...searchFiltersEdit,
-        categories: JSON.stringify(searchFilters.categories.map((s) => s.slug)),
-      };
-    }
-    if (searchFilters?.brands && searchFilters.brands.length > 0) {
-      searchFiltersEdit = {
-        ...searchFiltersEdit,
-        brands: JSON.stringify(searchFilters.brands.map((s) => s.slug)),
-      };
-    }
-    if (searchFilters?.boutiques && searchFilters.boutiques.length > 0) {
-      searchFiltersEdit = {
-        ...searchFiltersEdit,
-        boutiques: JSON.stringify(searchFilters.boutiques.map((s) => s.slug)),
-      };
-    }
-    if (searchFilters?.colors && searchFilters.colors.length > 0) {
-      searchFiltersEdit = {
-        ...searchFiltersEdit,
-        colors: JSON.stringify(searchFilters.colors.map((s) => s)),
-      };
-    }
-    if (searchFilters?.sizes && searchFilters.sizes.length > 0) {
-      searchFiltersEdit = {
-        ...searchFiltersEdit,
-        sizes: JSON.stringify(searchFilters.sizes.map((s) => s)),
-      };
-    }
-    if (
-      searchFilters?.prices?.max_price > 0 &&
-      searchFilters?.prices?.min_price >= 0
-    ) {
-      searchFiltersEdit = {
-        ...searchFiltersEdit,
-        prices: JSON.stringify([
-          `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
-        ]),
-      };
-    }
-    if (value?.length > 0) {
-      searchFiltersEdit = {
-        ...searchFiltersEdit,
-        search_text: value,
-      };
-    }
+    try {
+      let searchFiltersEdit = {};
+      if (searchFilters?.categories && searchFilters.categories.length > 0) {
+        searchFiltersEdit = {
+          ...searchFiltersEdit,
+          categories: JSON.stringify(
+            searchFilters.categories.map((s) => s.slug)
+          ),
+        };
+      }
+      if (searchFilters?.brands && searchFilters.brands.length > 0) {
+        searchFiltersEdit = {
+          ...searchFiltersEdit,
+          brands: JSON.stringify(searchFilters.brands.map((s) => s.slug)),
+        };
+      }
+      if (searchFilters?.boutiques && searchFilters.boutiques.length > 0) {
+        searchFiltersEdit = {
+          ...searchFiltersEdit,
+          boutiques: JSON.stringify(searchFilters.boutiques.map((s) => s.slug)),
+        };
+      }
+      if (searchFilters?.colors && searchFilters.colors.length > 0) {
+        searchFiltersEdit = {
+          ...searchFiltersEdit,
+          colors: JSON.stringify(searchFilters.colors.map((s) => s)),
+        };
+      }
+      if (searchFilters?.sizes && searchFilters.sizes.length > 0) {
+        searchFiltersEdit = {
+          ...searchFiltersEdit,
+          sizes: JSON.stringify(searchFilters.sizes.map((s) => s)),
+        };
+      }
+      if (
+        searchFilters?.prices?.max_price > 0 &&
+        searchFilters?.prices?.min_price >= 0
+      ) {
+        searchFiltersEdit = {
+          ...searchFiltersEdit,
+          prices: JSON.stringify([
+            `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
+          ]),
+        };
+      }
+      if (value?.length > 0) {
+        searchFiltersEdit = {
+          ...searchFiltersEdit,
+          search_text: value,
+        };
+      }
 
-    ("use server");
-    let requestSearchParams = new URLSearchParams();
-    let requestSearchParamsString = "";
-    if (Object.keys(searchFiltersEdit).length > 0) {
-      requestSearchParams.set(
-        "searchParams",
-        JSON.stringify(searchFiltersEdit)
+      ("use server");
+      let requestSearchParams = new URLSearchParams();
+      let requestSearchParamsString = "";
+      if (Object.keys(searchFiltersEdit).length > 0) {
+        requestSearchParams.set(
+          "searchParams",
+          JSON.stringify(searchFiltersEdit)
+        );
+        requestSearchParamsString = `&${requestSearchParams.toString()}`;
+      }
+      const filtersResponseJson = await fetch(
+        `/api/${lang}/search?${params.toString()}${requestSearchParamsString}`
       );
-      requestSearchParamsString = `&${requestSearchParams.toString()}`;
-    }
-    const filtersResponseJson = await fetch(
-      `/api/${lang}/search?${params.toString()}${requestSearchParamsString}`
-    );
 
-    const filtersResponse = await filtersResponseJson.json();
-    const {
-      products,
-      categories,
-      brands,
-      boutiques,
-      colors,
-      attributes: attributes,
-      total_size,
-    } = filtersResponse.data;
-    setTotalSizeOfProducts({ total_size });
-
-    setSearchResults(
-      {
+      const filtersResponse = await filtersResponseJson.json();
+      const {
         products,
         categories,
         brands,
         boutiques,
         colors,
-        sizes: attributes?.[0]?.options,
-        prices: {
-          min_price: filtersResponse?.data?.prices?.min_price || null,
-          max_price: filtersResponse?.data?.prices?.max_price || null,
-        },
-        prices_ranges: filtersResponse?.data?.prices?.priceRanges || [],
-      },
-      replace
-    );
+        attributes: attributes,
+        total_size,
+      } = filtersResponse.data;
+      setTotalSizeOfProducts({ total_size });
 
-    return filtersResponse;
+      setSearchResults(
+        {
+          products,
+          categories,
+          brands,
+          boutiques,
+          colors,
+          sizes: attributes?.[0]?.options || [],
+          prices: {
+            min_price: filtersResponse?.data?.prices?.min_price || null,
+            max_price: filtersResponse?.data?.prices?.max_price || null,
+          },
+          prices_ranges: filtersResponse?.data?.prices?.priceRanges || [],
+        },
+        replace
+      );
+
+      return filtersResponse;
+    } catch (error) {
+      console.log(error, "getSearchOptions");
+    }
   }
   async resetSearchFilters({ filter_obj, lang }) {
     const { setSearchResults, setTotalSizeOfProducts } = useAppStore.getState();
