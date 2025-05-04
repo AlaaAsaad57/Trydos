@@ -97,7 +97,7 @@ function OrdersList({
     }
   };
   const { settings } = useAppStore();
-  console.log(settings);
+
   // Initial load and load on status change
   useEffect(() => {
     setOrders([]); // Reset orders when status changes

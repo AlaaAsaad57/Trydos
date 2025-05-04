@@ -238,16 +238,18 @@ class HomeService {
               },
               title: "register firebase token",
             });
-            typeof window !== "undefined" &&
-              "serviceWorker" in navigator &&
-              onMessageListener()
-                .then((payload) => {})
-                .catch((err) => {});
           }
         }, 2000);
         // ininit
       }
     });
+    typeof window !== "undefined" &&
+      "serviceWorker" in navigator &&
+      onMessageListener()
+        .then((payload) => {})
+        .catch((err) => {
+          console.log(err);
+        });
   }
   async CheckLogin() {
     const { loginSuccess } = useAppStore.getState();
