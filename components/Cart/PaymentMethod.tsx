@@ -93,9 +93,7 @@ function PaymentMethod() {
   };
   const handleWalletPayment = () => {
     if (orderData?.payment?.find((s) => s.id === 1)) {
-      toast.info(
-        translateFunction("Only Allowed To Pay through TryDos Wallet")
-      );
+      toast.info(translateFunction("Wallet Already Selected"));
     } else {
       if (getWalletInUSD() <= 0) {
         toast.info(translateFunction("your TryDos Wallet balance is empty"));

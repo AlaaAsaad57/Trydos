@@ -15,9 +15,8 @@ import OrdersList from "./OrdersList";
 
 import OrderDetails from "./OrderDetails";
 
-import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
-import { ToastContainer } from "react-toastify";
+
 import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
 
 interface SettingOption {

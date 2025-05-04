@@ -277,6 +277,7 @@ const translations = {
   ar: {
     "Total Products:": "إجمالي المنتجات:",
     "Full Name": "الاسم الكامل",
+    "Wallet Already Selected": "المحفظة محددة بالفعل",
     Verified: "تم التحقق",
     "Discount Coupon": "قسيمة خصم",
     "Verify Now": "تحقق الان",
@@ -804,6 +805,7 @@ const translations = {
       "Satın Alma Başarıyla Tamamlandı",
     "000 CM": "000 CM",
     "Discount Coupon": "İndirim Kuponu",
+    "Wallet Already Selected": "Cüzdan Zaten Seçildi",
     "You will be notified for this product already":
       "Bu Ürün Hakkında Bildirim Alındı",
     "your TryDos Wallet balance is empty":

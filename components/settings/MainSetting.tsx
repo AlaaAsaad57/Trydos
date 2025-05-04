@@ -14,7 +14,7 @@ import { allCountries } from "country-telephone-data";
 import Flag from "react-world-flags";
 import order from "services/order";
 
-import { formatPrice, RoundPrice, translateFunction } from "utils/functions";
+import { formatPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 
