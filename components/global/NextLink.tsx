@@ -14,6 +14,7 @@ export interface INextLinkProps
   href: string;
   ariaLabel?: string;
   data?: any;
+  exportparts?: string;
 }
 export default function NextLink({
   href,
