@@ -340,11 +340,26 @@ class AuthService {
     Cookies.remove("MARKET-TOKEN");
   }
   async UpdateProfile(userObj) {
+    const { userProfile } = useAppStore.getState();
     let res = await AxiosPost({
       url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-profile",
       body: userObj,
       title: "Update Profile",
     });
+    // let stories_update = AxiosPost({
+    //   url: process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + "/api/v1/users/update",
+    //   body: { ...userProfile, ...userObj },
+    //   title: "Update Stories Profile",
+    //   token: localStorage.getItem("STORIES-TOKEN"),
+    // });
+    // let chat_update = AxiosPost({
+    //   url:
+    //     process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+    //     "/api/v1/users/update_profile",
+    //   body: { ...userProfile, ...userObj },
+    //   title: "Update Chat Profile",
+    //   token: localStorage.getItem("CHAT-TOKEN"),
+    // });
     return res;
   }
   async UpdateProfileImage(image) {
