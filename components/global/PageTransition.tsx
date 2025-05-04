@@ -3,7 +3,7 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import "public/styles/pageTransition.css";
-import { getCurrency } from "store/chat/actions";
+import { getCurrency } from "utils/tinyUtils";
 
 import { useAppStore } from "store";
 function PageTransition({ children, init }) {
