@@ -34,7 +34,6 @@ export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"]; // For Middle East users
 
 export async function generateMetadata({ params, searchParams }) {
-  const productId = params.productId;
   try {
     const metaData = await generateProductMetaData({ params, searchParams });
     if (metaData.error) {

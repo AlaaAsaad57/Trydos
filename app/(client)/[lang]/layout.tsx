@@ -59,7 +59,7 @@ const quicksand_semibold = localFont({
 });
 export const revalidte = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 
-export default async function RootLayout({ params, children }) {
+export default function RootLayout({ params, children }) {
   // ${sf_pro_rounded_light.variable}
   // ${sf_pro_rounded_semibold.variable}
   // ${sf_pro_rounded_regular.variable}
@@ -84,7 +84,10 @@ export default async function RootLayout({ params, children }) {
 
       <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <SpeedInsights />
-        <PageLoadingIndicator />
+        <Suspense>
+          <PageLoadingIndicator />
+        </Suspense>
+
         <Providers>
           <div
             className="site-container items-center"
