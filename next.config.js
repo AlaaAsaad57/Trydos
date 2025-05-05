@@ -23,7 +23,7 @@ let nextConfig = {
         ],
       },
       {
-        source: "/:lang/boutiques/:boutiqueId",
+        source: "/:lang/boutique/:boutiqueId",
         headers: [
           {
             key: "Cache-Control",

@@ -4,7 +4,7 @@ importScripts(
 importScripts(
   "https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js"
 );
-
+import search from "../services/search";
 const firebaseConfig = {
   // apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
   // authDomain: "trydos-ce234.firebaseapp.com",
@@ -58,9 +58,12 @@ messaging.onBackgroundMessage(async function (payload) {
           data: {
             url:
               url +
-              `boutiques/listing?categories=${
-                JSON.parse(payload?.data.body).category_slug
-              }`,
+              `boutiques/listing?${search.getPageUrl({
+                term: "categories",
+                value: [
+                  { slug: JSON.parse(payload?.data.body)?.category_slug },
+                ],
+              })}`,
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(

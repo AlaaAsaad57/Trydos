@@ -10,6 +10,7 @@ import { NotificationItem as NotificationItemType } from "../../types/notificati
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import NextLink from "components/global/NextLink";
+import search from "services/search";
 
 interface NotificationItemProps {
   notification: NotificationItemType;
@@ -110,10 +111,10 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
             data={{
               is_boutique: true,
               ...parsedDescription,
-              href: `/${lang}/boutiques/${parsedDescription.boutique_slug}`,
+              href: `/${lang}/boutique/${parsedDescription.boutique_slug}`,
             }}
             ariaLabel={`notification Boutique ${parsedDescription.boutique_slug} ${lang}`}
-            href={`/${lang}/boutiques/${parsedDescription.boutique_slug}`}
+            href={`/${lang}/boutique/${parsedDescription.boutique_slug}`}
             onClick={() => {
               closeWindow();
               onClose();
@@ -178,16 +179,29 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
               data={{
                 is_category: true,
                 ...parsedDescription,
-                href: `/boutique/listing?categories=${
-                  parsedDescription.category_slug || parsedDescription.slug
-                }`,
+                href: `/boutique/listing${search.getPageUrl({
+                  term: "categories",
+                  value: [
+                    {
+                      slug:
+                        parsedDescription.category_slug ||
+                        parsedDescription.slug,
+                    },
+                  ],
+                })}`,
               }}
               ariaLabel={`notification Category ${
                 parsedDescription.category_slug || parsedDescription.slug
               } ${lang}`}
-              href={`/${lang}/boutiques/listing?categories=${
-                parsedDescription.category_slug || parsedDescription.slug
-              }`}
+              href={`/${lang}/boutique/listing${search.getPageUrl({
+                term: "categories",
+                value: [
+                  {
+                    slug:
+                      parsedDescription.category_slug || parsedDescription.slug,
+                  },
+                ],
+              })}`}
               onClick={() => {
                 closeWindow();
                 onClose();

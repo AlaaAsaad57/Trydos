@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
     revalidateTag("home-categories-en"); // Update cached posts
     revalidateTag("home-categories-ar"); // Update cached posts
     revalidateTag("search-Api");
-    revalidatePath("/boutiques/[productCategory]", "page");
-    revalidatePath("/boutiques/[productCategory]", "layout");
+    revalidatePath("/boutique/[boutiqueId]", "page");
+    revalidatePath("/boutique/[boutiqueId]", "layout");
   }
   return NextResponse.json(
     { revalidated: "true" },

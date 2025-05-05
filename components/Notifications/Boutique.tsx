@@ -19,11 +19,11 @@ function Boutique({ data }) {
       data={{
         is_boutique: true,
         ...data,
-        href: `/${lang}/boutiques/${data.boutique_slug}`,
+        href: `/${lang}/boutique/${data.boutique_slug}`,
       }}
       ariaLabel={`Boutique ${data.boutique_slug} ${lang}`}
       className="flex-col"
-      href={`/${lang}/boutiques/${data.boutique_slug}`}
+      href={`/${lang}/boutique/${data.boutique_slug}`}
       prefetch
     >
       <div className="regular p-2">{data?.showed_type}</div>

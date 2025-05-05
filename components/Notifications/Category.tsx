@@ -1,4 +1,5 @@
 import NextLink from "components/global/NextLink";
+import search from "services/search";
 
 function Category({ data }) {
   return (
@@ -6,11 +7,17 @@ function Category({ data }) {
       data={{
         is_category: true,
         ...data,
-        href: `/boutiques/listing?categories=${data.category_slug}`,
+        href: `/boutique/listing${search.getPageUrl({
+          term: "categories",
+          value: [{ slug: data.category_slug }],
+        })}`,
       }}
       ariaLabel={`notification Category ${data.category_slug}`}
       className="flex-col"
-      href={`/boutiques/listing?categories=${data.category_slug}`}
+      href={`/boutique/listing${search.getPageUrl({
+        term: "categories",
+        value: [{ slug: data.category_slug }],
+      })}}`}
       prefetch
     >
       <div className="regular p-2">{data?.showed_type}</div>

@@ -76,7 +76,7 @@ function SearchResults() {
       }
     }
     if (value) params.set("searchText", value);
-    router.push(`/${lang}/boutiques/listing?${params.toString()}`);
+    router.push(`/${lang}/boutique/listing?${params.toString()}`);
   };
   const apply = () => {
     Sendevent({

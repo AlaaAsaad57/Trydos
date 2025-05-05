@@ -16,12 +16,9 @@ interface NormalWidgetProps {
 const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
   return (
     <div className="w-full flex relative">
-      <Suspense
-        fallback={<></>}
-        key={`bputiques/${lang}/boutiques/${boutique.slug}`}
-      >
+      <Suspense fallback={<></>} key={`/${lang}/boutique/${boutique.slug}`}>
         <PrefetchLink
-          link={`/${lang}/boutiques/${boutique.slug}`}
+          link={`/${lang}/boutique/${boutique.slug}`}
           slug={boutique.slug}
         />
       </Suspense>
