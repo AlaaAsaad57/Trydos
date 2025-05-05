@@ -11,6 +11,11 @@ function SwitchFiltersButton({ length }) {
         inline: "start",
       });
       setActive(0);
+      setTimeout(() => {
+        document
+          .querySelector(".filter-button")
+          .scrollIntoView({ block: "end", inline: "start" });
+      }, 200);
     } else {
       document.querySelector(`.scrollable-area-${active + 1}`).scrollIntoView({
         behavior: "smooth",
@@ -18,6 +23,11 @@ function SwitchFiltersButton({ length }) {
         inline: "start",
       });
       setActive(active + 1);
+      setTimeout(() => {
+        document
+          .querySelector(".filter-button")
+          .scrollIntoView({ block: "end", inline: "start" });
+      }, 200);
     }
   };
   return (
