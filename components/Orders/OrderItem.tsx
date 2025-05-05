@@ -48,7 +48,7 @@ const OrderProductSlider = ({ products }: { products: any[] }) => {
     <div className="flex-row items-center pl-[12px] mt-[12px] whitespace-nowrap overflow-x-scroll overflow-y-hidden [&::-webkit-scrollbar]:hidden">
       {products.map((product) => (
         <div
-          key={product.product_details.id}
+          key={product.id}
           className="flex-row cursor-pointer items-center relative w-[91px] h-[125px] ml-[5px]"
         >
           <img

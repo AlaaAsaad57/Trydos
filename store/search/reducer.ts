@@ -198,9 +198,16 @@ export const useSearchStore = (set, get) => ({
     })),
 
   setSearchLoading: (loading: boolean) => set({ loading_search: loading }),
-
   setSearchWord: (value: string) => set({ value }),
-
+  setFilteredColorsAndSizes: ({ colors, sizes }) =>
+    set((state) => ({
+      ...state,
+      searchFilters: {
+        ...state.searchFilters,
+        colors: colors,
+        sizes: sizes,
+      },
+    })),
   setEnableSearch: (enable: boolean) =>
     set((state) =>
       enable

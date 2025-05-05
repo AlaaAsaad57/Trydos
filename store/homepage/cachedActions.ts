@@ -12,6 +12,80 @@ import {
   HomeBoutiqueApi,
   QuantityDetailsProductApi,
 } from "models/Api";
+export const getCOlorsAndSizes = async () => {
+  const response = await fetch(
+    process.env.NEXT_PUBLIC_BACKEND_URL + "/web/get-colors-and-sizes",
+    {
+      cache: "force-cache",
+    }
+  );
+  const data = await response.json();
+  return { colors: data.data.colors, sizes: data.data.sizes };
+};
+export const processStrForSearch = async (str) => {
+  if (!str) return null;
+  let { colors: colorsData, sizes } = await getCOlorsAndSizes();
+  let colors = colorsData.map((s) => ({
+    translations: [{ name: s.name }],
+    code: s.code,
+  }));
+
+  // Convert input to lowercase for case-insensitive matching
+  const input = str.toLowerCase().split(" ");
+  const result = {
+    str: [],
+    colors: [] as string[],
+    sizes: [] as string[],
+  };
+
+  // Process each word
+  input.forEach((word) => {
+    let matched = false;
+
+    // Check colors
+    for (const color of colors) {
+      const colorNames = color.translations.map((t) => t.name.toLowerCase());
+      if (colorNames.includes(word)) {
+        console.log(colorNames);
+
+        result.colors.push(color.code);
+        matched = true;
+        break;
+      }
+    }
+
+    // Check sizes
+    const sizeMatch = sizes.find((size) => size.toLowerCase() === word);
+    if (sizeMatch) {
+      console.log(sizeMatch);
+      result.sizes.push(sizeMatch);
+      matched = true;
+    }
+
+    // If word didn't match color or size, add to remaining string
+    if (!matched) {
+      result.str.push(word);
+    }
+  });
+
+  // If no matches found, return original string
+  if (result.colors.length === 0 && result.sizes.length === 0) {
+    return { str };
+  }
+
+  // Join remaining words back into string
+  return {
+    colors:
+      result?.colors?.length === 0
+        ? null
+        : encodeURI(JSON.stringify(result?.colors)),
+    sizes:
+      result?.sizes?.length === 0
+        ? null
+        : encodeURI(JSON.stringify(result?.sizes)),
+    str: result.str.join(" "),
+  };
+};
 export const getBoutiques = async ({ str, lang, country }) => {
   let url = HOME_DATA_URL + `?lang=${lang}&limit=10000`;
 

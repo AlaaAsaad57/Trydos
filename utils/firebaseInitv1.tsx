@@ -113,7 +113,7 @@ export const onMessageListener = async () => {
       console.log(payload);
       if (payload.data.title === "market") {
         const data = JSON.parse(payload.data.body);
-        if (data?.type === "order status changed") {
+        if (data?.type?.startsWith("order status changed")) {
           const toaster = (myProps, toastProps): Id =>
             toast(<OrderStatusChanged {...myProps} />, { ...toastProps });
           toaster.info = (myProps, toastProps): Id =>

@@ -332,7 +332,7 @@ function ProfileSizeInfo({
               <input
                 data-cy="recipient-name-input"
                 placeholder={translateFunction("000 CM")}
-                value={userProfileData.tall}
+                value={userProfileData.tall || ""}
                 maxLength={3}
                 max={260}
                 type="number"
@@ -361,7 +361,7 @@ function ProfileSizeInfo({
             <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
               <input
                 placeholder={translateFunction("000 KG")}
-                value={userProfileData.weight}
+                value={userProfileData.weight || ""}
                 maxLength={3}
                 max={200}
                 type="number"

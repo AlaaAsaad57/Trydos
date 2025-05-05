@@ -20,6 +20,7 @@ import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButt
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import CarouselContainer from "components/filterPage/CarouselContainer";
+import { processStrForSearch } from "store/homepage/cachedActions";
 export const dynamicParams = true;
 
 export const runtime = "nodejs";
@@ -50,10 +51,14 @@ export default async function Page({
   searchParams: any;
 }) {
   let EditedSearchParams: any = {};
+  let processedSearchValue = await processStrForSearch(
+    searchParams.search_text
+  );
+
   if (searchParams?.search_text) {
     EditedSearchParams = {
       ...EditedSearchParams,
-      search_text: searchParams?.search_text,
+      search_text: processedSearchValue?.str,
     };
   }
   if (searchParams?.categories) {
@@ -68,10 +73,12 @@ export default async function Page({
       brands: searchParams?.brands,
     };
   }
-  if (searchParams?.colors) {
+  // @ts-ignore
+  if (searchParams?.colors || processedSearchValue?.colors) {
     EditedSearchParams = {
       ...EditedSearchParams,
-      colors: searchParams?.colors,
+      // @ts-ignore
+      colors: processedSearchValue?.colors ?? searchParams?.colors,
     };
   }
   if (searchParams?.prices) {
@@ -80,10 +87,12 @@ export default async function Page({
       prices: searchParams?.prices,
     };
   }
-  if (searchParams?.sizes) {
+  // @ts-ignore
+  if (searchParams?.sizes || processedSearchValue?.sizes) {
     EditedSearchParams = {
       ...EditedSearchParams,
-      sizes: searchParams?.sizes,
+      // @ts-ignore
+      sizes: processedSearchValue?.sizes ?? searchParams?.sizes,
     };
   }
   if (searchParams?.boutiques) {
@@ -92,6 +101,7 @@ export default async function Page({
       boutiques: searchParams?.boutiques,
     };
   }
+
   const GetProductsData = async () => {
     let response;
     try {

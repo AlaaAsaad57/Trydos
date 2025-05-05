@@ -335,10 +335,12 @@ const NotificationInfo = ({ closeWindow }) => {
             ...
           </span>
         </div>
-        <div className="flex-row w-full justify-between text-red-500">
-          <span>FCM Error:</span>
-          <span>{error?.message}</span>
-        </div>
+        {error?.message && (
+          <div className="flex-row w-full justify-between text-red-500">
+            <span>FCM Error:</span>
+            <span>{error?.message}</span>
+          </div>
+        )}
       </div>
       <NextLink
         onClick={() => {

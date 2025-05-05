@@ -11,6 +11,7 @@ import Smartlook from "smartlook-client";
 import "react-toastify/dist/ReactToastify.min.css";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/scss/main.scss";
+import search from "services/search";
 function Init() {
   useEffect(() => {
     const fallbackImage = "/error.png"; // Replace with your fallback image path
@@ -92,6 +93,7 @@ function Init() {
     }
   }, []);
   useEffect(() => {
+    search.getColorsAndSizes();
     window.addEventListener("resize", function () {
       var windowHeight = window.innerHeight;
       var outerHeight = window.outerHeight;

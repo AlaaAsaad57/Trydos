@@ -211,7 +211,33 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
             </NextLink>
           );
         }
-
+        if (parsedDescription.type.startsWith("order")) {
+          return (
+            <NextLink
+              data={{
+                is_settings: true,
+                ...parsedDescription,
+                href: `/setting?tab=Orders${
+                  parsedDescription?.order_group_id
+                    ? `&id=${parsedDescription.order_group_id}`
+                    : ""
+                }`,
+              }}
+              ariaLabel={`notification Order`}
+              href={`/setting?tab=Orders${
+                parsedDescription?.order_group_id
+                  ? `&id=${parsedDescription.order_group_id}`
+                  : ""
+              }`}
+              onClick={() => {
+                closeWindow();
+                onClose();
+              }}
+            >
+              {content}
+            </NextLink>
+          );
+        }
         return content;
     }
   };

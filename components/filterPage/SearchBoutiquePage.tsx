@@ -130,7 +130,6 @@ function SearchBoutiquePage({ search_text, boutique }) {
         }}
         value={search_text || value}
         onBlur={() => {
-          console.log(value, searchParams.get("search_text"));
           if (
             value.length === 0 &&
             (!searchParams.get("search_text") ||

@@ -188,11 +188,14 @@ function OrdersList({
       router.replace("/setting?tab=Orders");
     }
     dispatchRouteChangeEvent("completed");
-  }, [orders, searchParams]);
+  }, [orders]);
   return (
     <div className="flex-col max-h-[calc(100vh-200px)]">
       <SettingTopBar
-        goBack={() => goBack()}
+        goBack={() => {
+          router.replace("/setting?tab=Orders");
+          goBack();
+        }}
         screenName={
           <div className="flex-row items-stretch">
             <OrdersIcon />
