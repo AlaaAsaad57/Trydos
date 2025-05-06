@@ -30,6 +30,7 @@ export async function GET(
     {
       next: {
         revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+        tags: [""],
       },
 
       headers: new Headers({

@@ -121,7 +121,7 @@ export default async function Page({
           method: "GET",
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-            tags: ["featured-Api"],
+            tags: ["featured-Products-Api"],
           },
           headers: {
             "Access-Control-Allow-Origin": "*",

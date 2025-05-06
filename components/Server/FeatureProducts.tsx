@@ -45,7 +45,7 @@ async function FeatureProducts({ lang }) {
   ]);
   if (featuredProducts?.data?.products === 0) return <></>;
   return (
-    <>
+    <div className="flex-col px-[12px] flex items-start max-w-full">
       <NextLink
         href={`/${lang}/featured`}
         data={{ is_boutique: true }}
@@ -65,7 +65,7 @@ async function FeatureProducts({ lang }) {
         <span className="ml-[12px]">Featured Products</span>
       </NextLink>
       <HortiznalScrollBar
-        className="featured-products-container w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-[362px] py-[5px] "
+        className="featured-products-container w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-[362px] pb-[8px] "
         id="featured-products-container"
         dataCy="featured-products-container"
       >
@@ -83,7 +83,7 @@ async function FeatureProducts({ lang }) {
               ariaLabel={`go to product ${product.slug} ${lang}`}
               suppressHydrationWarning
               href={`/${lang}/products/${product.slug}`}
-              className="product-container  align-center flex-col relative"
+              className="product-container  align-center flex-col relative shadow-sm"
               data-cy="on_mouse_over_product"
             >
               <Suspense fallback={<div className="min-w-full min-h-[290px]" />}>
@@ -208,7 +208,7 @@ async function FeatureProducts({ lang }) {
           </div>
         </NextLink>
       </HortiznalScrollBar>
-    </>
+    </div>
   );
 }
 

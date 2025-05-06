@@ -46,26 +46,7 @@ function SearchBoutiquePage({ search_text, boutique }) {
     if (filterEnabled) {
     } else {
       const params = new URLSearchParams(searchParams);
-      //   setSkeleton(true);
-      //   filterProducts({
-      //     serachTrigger: true,
-      //     boutiqueId:
-      //       (params.get("boutique_slugs") && params.get("boutique_slugs")) ||
-      //       UrlParams.boutiqueId,
-      //     lang: UrlParams.lang,
-      //     sizesAttr: sizesAttr,
-      //     callback: (products) => {
-      //       getProducts({ products });
-      //     },
-      //     offset: 1,
-      //     storeCallback: (e) => {
-      //       setActiveFilter(e);
-      //     },
-      //     newFiltersCallback: ({ filtersVar }) => {
-      //       editFilter(filtersVar);
-      //     },
-      //     searchText: e.target.value,
-      //   });
+
       setFilterEnabled(false);
       if (e.target.value.length > 0) {
         params.set("search_text", e.target.value);

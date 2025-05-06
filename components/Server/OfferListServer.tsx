@@ -1,6 +1,4 @@
 import React from "react";
-import { getHomeData } from "store/homepage/cachedActions";
-
 import "styles/offers.css";
 import "styles/productDetails.css";
 import InfinteScroll from "components/global/InfinteScroll";
@@ -9,11 +7,22 @@ import OfferListSkeleton from "components/skeleton/OfferList";
 
 async function OfferListServer({ params }) {
   try {
-    const HomeData = await getHomeData({
-      str: params?.mainCategory,
-      lang: params.lang ? params.lang.split("-")[1] : null,
-      country: params.lang ? params.lang.split("-")[0] : null,
-    });
+    let newParams = new URLSearchParams();
+    if (params.mainCategory) {
+      newParams.set("str", params.mainCategory);
+    }
+
+    const data = await fetch(
+      process.env.NEXT_PUBLIC_API_BASE_URL +
+        `/api/${params.lang}/boutiques?${newParams.toString()}`,
+      {
+        next: {
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+          tags: [""],
+        },
+      }
+    );
+    let { data: HomeData } = await data.json();
 
     return (
       <div className={`offers-list pb-[184px]`} data-cy="boutiques">

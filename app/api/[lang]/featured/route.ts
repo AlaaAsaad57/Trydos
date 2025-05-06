@@ -86,7 +86,7 @@ export async function GET(
       }),
       next: {
         revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
-        tags: ["featured-Api"],
+        tags: ["featured-Products-Api"],
       },
     }
   );

@@ -1,7 +1,6 @@
 "use server";
 import { notFound } from "next/navigation";
 import { HOME_DATA_CATEGORIES_URL, HOME_DATA_URL } from "utils/endpointConfig";
-import { LogData } from "./actions";
 import {
   CategoriesApi,
   CountriesApi,
@@ -86,96 +85,7 @@ export const processStrForSearch = async (str) => {
     str: result.str.join(" "),
   };
 };
-export const getBoutiques = async ({ str, lang, country }) => {
-  let url = HOME_DATA_URL + `?lang=${lang}&limit=10000`;
 
-  let method = { method: "GET" };
-
-  try {
-    const res = await fetch(process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + url, {
-      ...method,
-      next: {
-        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_BOUTIQUES),
-        tags: [`home-boutiques`],
-      },
-      headers: new Headers({
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        lang: lang,
-        country: country,
-      }),
-      credentials: "include",
-      mode: "cors",
-    });
-    const repo: HomeBoutiqueApi = await res.json();
-    return repo.data.boutiques.map((s) => s.slug);
-  } catch (e) {
-    console.log(e);
-    return [];
-  }
-};
-export const getProducts = async ({ lang, country }) => {
-  const language = lang;
-  let url = "/api/products/searchInCatalog" + `?lang=${language}&limit=1000`;
-  let method = { method: "GET" };
-
-  try {
-    const res = await fetch(process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + url, {
-      ...method,
-      next: {
-        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
-        tags: [`product-slugs`],
-      },
-      headers: new Headers({
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        lang: lang,
-        country: country,
-      }),
-      credentials: "include",
-      mode: "cors",
-    });
-    const repo: FilterProductApi = await res.json();
-
-    return repo.data.products.map((s) => s.slug);
-  } catch (e) {
-    console.log(e);
-    return [];
-  }
-};
-export const getHomeData = async ({ str, lang, country }) => {
-  const language = lang;
-  let url =
-    HOME_DATA_URL +
-    (str?.length
-      ? `?lang=${language}&category_slugs=["${str}"]&limit=10`
-      : `?lang=${language}&category_slugs=[]&limit=10`);
-
-  let method = { method: "GET" };
-
-  try {
-    const res = await fetch(process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + url, {
-      ...method,
-      next: {
-        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_BOUTIQUES),
-        tags: [`home-boutiques`],
-      },
-      headers: new Headers({
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        lang: language,
-        country: country,
-      }),
-      credentials: "include",
-      mode: "cors",
-    });
-    const repo: HomeBoutiqueApi = await res.json();
-    return repo.data;
-  } catch (e) {
-    console.log(e);
-    return { boutiques: [], offset: null };
-  }
-};
 export const getStoriesServer = async () => {
   const cookies = (await import("next/headers")).cookies;
   const cookieStore = cookies();
@@ -208,51 +118,6 @@ export const getStoriesServer = async () => {
   } catch (e) {
     console.log(e);
     return { data: [], error: e };
-  }
-};
-export const getMainCategories = async ({
-  lang,
-  country,
-}): Promise<[CategoriesApi["data"]["mainCategories"], any]> => {
-  const language = lang;
-
-  try {
-    let start = new Date().getTime();
-    const res = await fetch(
-      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        HOME_DATA_CATEGORIES_URL +
-        `?lang=${language}`,
-      {
-        next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CATEGORIES),
-          tags: ["home-categories"],
-        },
-        headers: new Headers({
-          lang: lang,
-          country: country,
-        }),
-      }
-    );
-
-    const repo: CategoriesApi = await res.json();
-    let end = new Date().getTime();
-    let time = end - start;
-    let returned_res = {
-      type: res.type,
-      headers: new Headers({
-        lang: lang,
-        country: country,
-      }),
-      url: res.url,
-      time: time + "ms",
-      response: repo,
-      request: "Get Categories Navbar",
-    };
-    if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true")
-      return [repo.data.mainCategories, returned_res];
-    else return [repo.data.mainCategories, {}];
-  } catch (e) {
-    return [e.toString(), e.toString()];
   }
 };
 

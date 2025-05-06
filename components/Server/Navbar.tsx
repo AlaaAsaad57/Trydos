@@ -1,6 +1,4 @@
 import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
-
-import { getMainCategories } from "store/homepage/cachedActions";
 import SearchIcon from "../Home/Search/SearchIcon";
 import CategoryNavMobile from "components/Home/CategoryNavMobile";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
@@ -13,10 +11,18 @@ async function NavbarServer({
   mainCategory: string;
 }) {
   try {
-    const [categories, response] = await getMainCategories({
-      lang: lang.split("-")[1],
-      country: lang.split("-")[0],
-    });
+    const res = await fetch(
+      process.env.NEXT_PUBLIC_API_BASE_URL + `/api/${lang}/categories`,
+      {
+        next: {
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+          tags: ["main-categories-Api"],
+        },
+      }
+    );
+    const data = await res.json();
+    const { mainCategories: categories } = data.data;
+
     categories.sort((a, b) => (a.slug === mainCategory ? -1 : 1));
     return (
       <div className="flex-row search-nav-holder">
