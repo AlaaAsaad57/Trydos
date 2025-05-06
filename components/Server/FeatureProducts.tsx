@@ -9,11 +9,16 @@ import { RoundPrice } from "utils/functions";
 
 async function FeatureProducts({ lang }) {
   const getFeaturedProducts = async () => {
-    const featuredProducts = await fetch(
-      process.env.NEXT_PUBLIC_API_BASE_URL + `/api/${lang}/featured`
-    );
-    let data = await featuredProducts.json();
-    return data;
+    try {
+      const featuredProducts = await fetch(
+        process.env.NEXT_PUBLIC_API_BASE_URL + `/api/${lang}/featured`
+      );
+      let data = await featuredProducts.json();
+      return data;
+    } catch (e) {
+      console.log(e);
+      return { data: { products: [] } };
+    }
   };
   const GetCurrencyData = async () => {
     let response;
