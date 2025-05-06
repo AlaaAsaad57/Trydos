@@ -58,11 +58,9 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
               />
             )}
           </div>
-          <div
-            className="offer-desc"
-            id={`boutique-${boutique.id}`}
-            dangerouslySetInnerHTML={{ __html: boutique.description }}
-          ></div>
+          <div className="offer-desc" id={`boutique-${boutique.id}`}>
+            {boutique.name}
+          </div>
           {boutique?.banners?.length > 1 ? (
             <OfferPhotosSlider
               key={myKey}
