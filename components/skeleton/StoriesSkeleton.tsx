@@ -3,7 +3,7 @@ import React from "react";
 
 function StoriesSkeleton() {
   return (
-    <div className="stories-bar-container">
+    <div className="stories-bar-container md:pb-[40px]">
       <div id="stories-bar" className="stories-bar">
         <div className="stories-bars">
           {[1, 1, 1, 1, 1, 1, 1, 1, 1].map((story, index) => (
