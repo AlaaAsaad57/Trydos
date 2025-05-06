@@ -12,7 +12,9 @@ img {
 .filter-listing-bar.fixedAlign {
   top: 98px !important;
 }
-
+.featured-products-container::-webkit-scrollbar {
+  display: none;
+}
 @media only screen and (min-width: 430px) {
 }
 
