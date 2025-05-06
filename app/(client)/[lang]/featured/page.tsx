@@ -142,11 +142,17 @@ export default async function Page({
     try {
       response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/currency`,
+
         {
           method: "GET",
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
             tags: ["currency-Api"],
+          },
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
           },
         }
       );

@@ -123,6 +123,7 @@ export default async function Page({
           method: "GET",
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+            tags: [""],
           },
           headers: {
             "Access-Control-Allow-Origin": "*",
@@ -147,6 +148,12 @@ export default async function Page({
           method: "GET",
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
+            tags: [""],
+          },
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
           },
         }
       );
@@ -173,6 +180,12 @@ export default async function Page({
           method: "GET",
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
+            tags: [""],
+          },
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
           },
         }
       );

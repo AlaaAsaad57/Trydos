@@ -88,6 +88,7 @@ async function Page({ params, searchParams }: Props) {
         {
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
+            tags: [""],
           },
         }
       );

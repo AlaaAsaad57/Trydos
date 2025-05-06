@@ -67,6 +67,7 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
           method: "GET",
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+            tags: [""],
           },
           headers: {
             "Access-Control-Allow-Origin": "*",
@@ -98,6 +99,11 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
           method: "GET",
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
+          },
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
           },
         }
       );

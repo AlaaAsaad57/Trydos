@@ -105,7 +105,8 @@ function SearchComponent({
           minLength={0}
           data-cy="inputField"
           className="search-input"
-          placeholder={translateFunction("Search")}
+          // @ts-ignore
+          placeholder={translateFunction("Search", lang?.split("-")[1])}
           onFocus={() => setFocuse(true)}
           onInput={(e) => {
             onInput(e);
