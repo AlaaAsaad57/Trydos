@@ -32,7 +32,7 @@ function HomePage({
       <Suspense fallback={<StoriesSkeleton />} key={`Stories ${params.lang}`}>
         <StoriesBarServer />
       </Suspense>
-      <div className="flex-row h-[50px] w-full max-w-[1365px] px-[10px] items-center shadow-sm rounded-[15px] bg-[#e9e9e9] regular text-[#5d5d5d]">
+      <div className="flex-row h-[50px] w-full max-w-[1365px] px-[10px] items-center shadow-sm rounded-[15px] bg-[#f3f3f3] regular text-[#5d5d5d]">
         <span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
