@@ -447,7 +447,7 @@ export const filterProducts = async ({
   };
   let str = "";
   if (reset) {
-    str = `/api/products/searchInCatalog?limit=4&${
+    str = `/api/products/searchInCatalog?limit=10&${
       boutiqueId !== "listing" &&
       boutiqueId &&
       `boutique_slugs=${JSON.stringify([boutiqueId])}`

@@ -36,7 +36,7 @@ export const configureSearchParams = ({
 }): URLSearchParams => {
   let params = new URLSearchParams();
   params.set("lang", lang);
-  params.set("limit", "8");
+  params.set("limit", "10");
   if (filters_offset && filters_offset !== "") {
     params.set("filters_offset", filters_offset);
   }

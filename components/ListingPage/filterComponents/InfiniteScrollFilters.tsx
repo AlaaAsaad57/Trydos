@@ -2,9 +2,9 @@
 
 import Spinner from "components/global/Spinner";
 import { FilterItem } from "components/Server/FilterList";
-import Skeleton from "node_modules/react-loading-skeleton/dist";
+
 import React, { useState } from "react";
-import { InView } from "react-intersection-observer";
+
 import { useAppStore } from "store";
 import { getProductsAndFilters } from "store/homepage/cachedActions";
 
@@ -15,6 +15,15 @@ function InfiniteScrollFilters({
   boutique,
   currency,
   params,
+  isFeatured,
+}: {
+  searchParams: any;
+  lang: any;
+  term: any;
+  boutique: any;
+  currency: any;
+  params: any;
+  isFeatured?: boolean;
 }) {
   const { partialLoading, setSearchPartialLoading } = useAppStore();
   const [country, language] = params.lang?.split("-");
@@ -39,6 +48,7 @@ function InfiniteScrollFilters({
       setSearchPartialLoading(true);
       const response = await getProductsAndFilters({
         lang: language,
+        isFeatured: isFeatured,
         offset: false,
         searchParams: searchParams,
         country: country,

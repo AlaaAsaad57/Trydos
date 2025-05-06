@@ -18,6 +18,15 @@ function ProductListServer({
   currency,
   offset,
   colors,
+  isFeatured,
+}: {
+  params: any;
+  searchParams: any;
+  products: any;
+  currency: any;
+  offset: any;
+  colors: any;
+  isFeatured?: boolean;
 }) {
   const activeFilters = getActiveFilters(searchParams)?.colors || [];
 
@@ -185,6 +194,7 @@ function ProductListServer({
         offset={offset}
         searchParams={searchParams}
         boutiqueId={params.boutiqueId}
+        isFeatured={isFeatured}
       />
     </div>
   );

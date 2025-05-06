@@ -9,7 +9,21 @@ import InfiniteScrollFilters from "components/ListingPage/filterComponents/Infin
 import SwitchFiltersButton from "components/filterPage/SwitchFiltersButton";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 
-function FilterList({ searchParams, params, filters, currency, boutique }) {
+function FilterList({
+  searchParams,
+  params,
+  filters,
+  currency,
+  boutique,
+  isFeatured,
+}: {
+  searchParams: any;
+  params: any;
+  filters: any;
+  currency: any;
+  boutique: any;
+  isFeatured?: boolean;
+}) {
   return (
     <>
       <div className={`w-full relative flex-row items-center pl-[15px]`}>
@@ -47,6 +61,7 @@ function FilterList({ searchParams, params, filters, currency, boutique }) {
                   <FilterItemsRow
                     index={index}
                     boutique={boutique}
+                    isFeatured={isFeatured}
                     params={params}
                     currency={currency}
                     searchParams={searchParams}
@@ -466,6 +481,16 @@ const FilterItemsRow = ({
   params,
   index,
   boutique,
+  isFeatured,
+}: {
+  currency: any;
+  searchParams: any;
+  items: any;
+  term: any;
+  params: any;
+  index: any;
+  boutique: any;
+  isFeatured?: boolean;
 }) => {
   const getDataCy = () => {
     if (term === "categories") return "categoryBox";
@@ -497,6 +522,7 @@ const FilterItemsRow = ({
         {items?.length >= 8 && (
           <InfiniteScrollFilters
             term={term}
+            isFeatured={isFeatured}
             boutique={boutique}
             searchParams={searchParams}
             lang={params?.lang}

@@ -426,7 +426,7 @@ export const getListingData = async ({
       };
     }
 
-    let str = `/api/products/searchInCatalog?lang=${language}&limit=8${
+    let str = `/api/products/searchInCatalog?lang=${language}&limit=10${
       obj.categories?.length > 0
         ? `&category_slugs=${JSON.stringify(
             obj.categories.split(",").map((s) => s)
@@ -515,7 +515,7 @@ export const getListingData = async ({
 
     let url =
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-      (`/api/products/searchInCatalog?lang=${language}&limit=8${
+      (`/api/products/searchInCatalog?lang=${language}&limit=10${
         noFilters ? "&with_filters=false" : ""
       }${noProducts ? "&with_products=false" : ""}` +
         `${
@@ -852,6 +852,7 @@ export const getProductsAndFilters = async ({
   offset,
   boutiqueId,
   filters_offset,
+  isFeatured,
 }: {
   searchParams: URLSearchParams;
   lang: string;
@@ -861,6 +862,7 @@ export const getProductsAndFilters = async ({
   offset: number | boolean;
   boutiqueId?: string;
   filters_offset?: number;
+  isFeatured?: boolean;
 }) => {
   try {
     let params = configureSearchParams({
@@ -872,7 +874,9 @@ export const getProductsAndFilters = async ({
       boutiqueId,
       filters_offset,
     });
-    let configured_url = `/api/products/searchInCatalog?${params.toString()}`;
+    let configured_url = `/api/products/${
+      isFeatured ? "featured" : "searchInCatalog"
+    }?${params.toString()}`;
     console.log(configured_url, "configured_url");
     let response = await fetch(
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + configured_url,
@@ -921,7 +925,7 @@ export const getProductsAndFilters = async ({
         search_time: "0.00",
         offset: 0,
         total_size: 0,
-        limit: 8,
+        limit: 10,
         process_time: "0.00",
       },
     };
@@ -938,7 +942,7 @@ const configureSearchParams = ({
 }): URLSearchParams => {
   let params = new URLSearchParams();
   params.set("lang", lang);
-  params.set("limit", "8");
+  params.set("limit", "10");
   if (offset) {
     params.set("offset", `[${offset}]`);
   }

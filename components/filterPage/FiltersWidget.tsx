@@ -161,7 +161,7 @@ function FilterWidgetContainer({}) {
       }
     }
     if (boutiqueId !== "listing") {
-      obj.boutiques.push({ slug: boutiqueId.toString() });
+      obj.boutiques.push({ slug: boutiqueId?.toString() });
     }
     setSearchFilters(obj);
   };
@@ -236,7 +236,7 @@ function FiltersWidget({ filters, configureActiveFilters }) {
       boutiqueId !== "listing" &&
       !searchFilters?.boutiques?.find((s) => s.slug === boutiqueId)
     ) {
-      setSearchBoutique({ slug: boutiqueId.toString() });
+      setSearchBoutique({ slug: boutiqueId?.toString() });
     }
   }, []);
   if (!filterEnabled) return <></>;
