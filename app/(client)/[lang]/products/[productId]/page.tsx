@@ -28,6 +28,7 @@ import FreeShippingOption from "components/products/FreeShippingOption";
 import ProductColors from "components/products/ProductColors";
 import CameraShots from "components/products/CameraShots";
 import ProductBackButton from "components/products/ProductBackButton";
+import DescriptorBorder from "public/svg/product/descriptorBorder.svg";
 
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"]; // For Middle East users
@@ -233,10 +234,7 @@ async function Page({ params, searchParams }: Props) {
                   key={key}
                   className="flex-row product-descriptor relative align-center"
                 >
-                  <img
-                    src="/svg/product/descriptorBorder.svg"
-                    className="descriptor-border absolute"
-                  />
+                  <DescriptorBorder className="descriptor-border absolute" />
 
                   <div className="descriptor-icon">
                     <img
