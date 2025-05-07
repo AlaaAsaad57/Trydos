@@ -12,6 +12,7 @@ import home from "./home";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { LikesSharesCommentsApi } from "models/Api";
 import { changeToken } from "store/homepage/cachedActions";
+import axios from "axios";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -352,14 +353,21 @@ class AuthService {
     //   title: "Update Stories Profile",
     //   token: localStorage.getItem("STORIES-TOKEN"),
     // });
-    // let chat_update = AxiosPost({
-    //   url:
-    //     process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-    //     "/api/v1/users/update_profile",
-    //   body: { ...userProfile, ...userObj },
-    //   title: "Update Chat Profile",
-    //   token: localStorage.getItem("CHAT-TOKEN"),
-    // });
+    // let user_id = JSON.parse(localStorage.getItem("USER-CHAT")).id;
+    // let chat_update =await axios.put(
+    //   "https://chating_staging_trydos.trydos.dev" + `/api/v1/users/${user_id}`,
+    //   {
+    //     name: userObj?.name ?? userProfile?.name,
+    //     mobile_phone: userObj?.phone ?? userProfile?.phone,
+    //     photo_path: userObj?.image ?? userProfile?.image,
+    //   },
+    //   {
+    //     headers: {
+    //       Authorization: `Bearer ${localStorage.getItem("CHAT-TOKEN")}`,
+    //     },
+    //   }
+    // );
+
     return res;
   }
   async UpdateProfileImage(image) {

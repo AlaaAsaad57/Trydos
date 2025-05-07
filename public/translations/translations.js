@@ -741,7 +741,7 @@ const translations = {
     "Time Is Expected, It May Take More Or Less Than 2 Days":
       "الوقت تقديري قد يستغرق أكثر أو أقل من يومين",
     "We Will Inform You When this Is Available": "سنعلمك عند توفر المنتج",
-    "Notify Me When Size Is Available": "ارسل اشعار عند توفر المنتج",
+    "Notify Me When Product Is Available": "ارسل اشعار عند توفر المنتج",
     "Notify Me": "ارسل اشعارا",
     "Notifications Settings": "إعدادات الإشعارات",
     "Notification Test": "اختبار الإشعارات",
@@ -965,7 +965,8 @@ const translations = {
     Discounts: "İndirim",
     Offers: "Teklifler",
     "Share This Product With": "Bu Ürünü Paylaş",
-    "Notify Me When Size Is Available": "Bildirim Al, Boyut Mevcut Olduğunda",
+    "Notify Me When Product Is Available":
+      "Bildirim Al, Boyut Mevcut Olduğunda",
     Recommended: "Önerilen",
     "Comment About This Product": "Bu Ürün Hakkında Yorum",
     "We Will Inform You When this Is Available":

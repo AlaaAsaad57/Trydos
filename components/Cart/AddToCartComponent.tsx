@@ -1587,7 +1587,7 @@ const NotifyCartButton = ({ isNotified, setNotify, selected_variant, id }) => {
             <span className="mt-1">
               {isNotified
                 ? translateFunction("We Will Inform You When this Is Available")
-                : translateFunction("Notify Me When Size Is Available")}{" "}
+                : translateFunction("Notify Me When Product Is Available")}{" "}
             </span>
           </div>
         </div>
