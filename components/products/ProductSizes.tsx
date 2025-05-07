@@ -5,7 +5,7 @@ import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import NormalSizesSlider from "./NormalSizesSlider";
-import DashedCircleBorder from "public/svg/product/DashedCircleBorder.svg";
+
 import SizeInfoBox from "./SizeInfoBox";
 import { Sendevent, translateFunction } from "utils/functions";
 import {
@@ -139,7 +139,7 @@ function ProductSizes({ sizes }) {
                     {size.name}
                   </div>
 
-                  <DashedCircleBorder />
+                  <img src="/svg/product/DashedCircleBorder.svg" />
                 </div>
               )}
             </SwiperSlide>

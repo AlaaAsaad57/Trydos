@@ -230,8 +230,6 @@ export const getCurrency = async ({ lang, country, callback }) => {
 export const FlagIcon = ({ iso }) => {
   let FlagSy = dynamic(() => import(`public/svg/sy.svg`));
   if (iso.toLowerCase() === "sy") return <FlagSy />;
-  let Flag = dynamic(
-    () => import(`react-world-flags/src/svgs/${iso?.toLowerCase()}.svg`)
-  );
-  return <Flag />;
+
+  return <img src={`/svg/flag/${iso?.toLowerCase()}.svg`} alt={iso} />;
 };

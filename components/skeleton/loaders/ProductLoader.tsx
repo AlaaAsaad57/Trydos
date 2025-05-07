@@ -11,7 +11,7 @@ import "styles/productDetails.css";
 import "styles/product-body.css";
 import EyeIcon from "public/svg/product/EyeIcon.svg";
 import BackIcon from "public/svg/listing/backIcon.svg";
-import DescriptorBorder from "public/svg/product/descriptorBorder.svg";
+
 import ReturnIcon from "public/svg/product/ReturnIcon.svg";
 import FreeReturnIcon from "public/svg/product/FreeReturnIcon.svg";
 import QualityIcon from "public/svg/product/QualityIcon.svg";
@@ -185,7 +185,11 @@ function ProductLoader({ product }) {
                     className="flex-row product-descriptor relative align-center"
                     key={`product-descriptor-${key}`}
                   >
-                    <DescriptorBorder className="descriptor-border absolute" />
+                    <img
+                      src="/svg/product/descriptorBorder.svg"
+                      className="descriptor-border absolute"
+                    />
+
                     <div className="descriptor-icon">
                       <img
                         width={20}

@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect } from "react";
-import DashedCircleBorder from "public/svg/product/DashedCircleBorder.svg";
 function NormalSizesSlider({
   active,
   sizes,
@@ -63,7 +62,7 @@ function NormalSizesSlider({
           >
             {size.name}
           </div>
-          <DashedCircleBorder />
+          <img src="/svg/product/DashedCircleBorder.svg" />
         </div>
       ))}
     </div>

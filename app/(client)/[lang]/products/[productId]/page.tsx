@@ -1,7 +1,6 @@
 import "styles/productDetails.css";
 import "styles/product-body.css";
 import EyeIcon from "public/svg/product/EyeIcon.svg";
-import DescriptorBorder from "public/svg/product/descriptorBorder.svg";
 import ReturnIcon from "public/svg/product/ReturnIcon.svg";
 import FreeReturnIcon from "public/svg/product/FreeReturnIcon.svg";
 
@@ -234,7 +233,11 @@ async function Page({ params, searchParams }: Props) {
                   key={key}
                   className="flex-row product-descriptor relative align-center"
                 >
-                  <DescriptorBorder className="descriptor-border absolute" />
+                  <img
+                    src="/svg/product/descriptorBorder.svg"
+                    className="descriptor-border absolute"
+                  />
+
                   <div className="descriptor-icon">
                     <img
                       width={20}
