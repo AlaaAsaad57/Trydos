@@ -13,38 +13,22 @@ const NewStoryModal = dynamic(() => import("./Stories/CameraStory"), {
 import { dataURLtoFile } from "components/Chat/chatsFunctions";
 import dynamic from "next/dynamic";
 import { toast } from "react-toastify";
-import { Sendevent, translateFunction } from "utils/functions";
+import { Sendevent } from "utils/functions";
 import { useAppStore } from "store";
+import AddStoryWidget from "./Stories/AddStoryWidget";
 
 function AddStory() {
-  const { setOpenCamera, user, OpenCamera, setNameModal, setStoryData } =
-    useAppStore();
+  const {
+    setOpenCamera,
+    user,
+    OpenCamera,
+    setNameModal,
+    addStoryEnable,
+    setAddStory,
+  } = useAppStore();
   const [uploaded, setUpload] = useState(0);
-
-  const [openMenu, setOpenMenu] = useState(false);
-
-  const setOpenCameraAction = (value: boolean) => {
-    if (value) {
-      // @ts-ignore
-      document.querySelector(".stories-bar-container").style.zIndex =
-        "999999999999999999999999";
-      // @ts-ignore
-      document.querySelector(".stories-bars").classList.add("overflow-visible");
-      setOpenCamera(value);
-    } else {
-      // @ts-ignore
-      document.querySelector(".stories-bar-container").style.zIndex =
-        "99999999";
-      // @ts-ignore
-      document
-        .querySelector(".stories-bars")
-        .classList.remove("overflow-visible");
-      setOpenCamera(value);
-    }
-  };
   const [isSelected, setIsSelected] = useState(null);
   const [file, setFile] = useState(null);
-
   const handleChange = async (e: any) => {
     const { toast } = await import("react-toastify");
     if (e.target.files[0]?.type.includes("video")) {
@@ -173,117 +157,24 @@ function AddStory() {
       });
     }
   };
-  const sendStory = async (imageFile) => {
-    let a = dataURLtoFile(
-      imageFile,
-      "image-story" + parseInt((Math.random() * 1000).toString())
-    );
-    handleChange({ target: { files: [a] } });
+  const selectMedia = async ({ imageFile, link }) => {
+    console.log({ imageFile, link });
+
+    handleChange({ target: { files: [imageFile] } });
   };
 
   if (user)
     return (
       <>
-        {OpenCamera && (
-          <NewStoryModal
-            send={(e) => {
-              sendStory(e);
+        {addStoryEnable && (
+          <AddStoryWidget
+            selectMedia={({ media, link }) => {
+              selectMedia({ imageFile: media, link: link });
             }}
-            HandleUploadedVideo={(e) => {
-              let a = dataURLtoFile(
-                e,
-                "image-story" + parseInt((Math.random() * 1000).toString())
-              );
-              HandleUploadedVideo({ target: { files: [a] } });
-            }}
-            close={() => {
-              setOpenCameraAction(false);
-              document.body.style.overflow = "scroll";
+            onClose={() => {
+              setAddStory(false);
             }}
           />
-        )}
-        {openMenu && (
-          <div
-            className={`lang-modalDisable addStory-modal ${openMenu && "open"}`}
-            onClick={() => setOpenMenu(false)}
-          >
-            <div
-              className="file-picker"
-              style={{
-                width: "150px",
-                height: "auto",
-                backgroundColor: "#FAFAFA",
-                position: "absolute",
-                top: "200px",
-                overflow: "hidden",
-                left: "20px",
-
-                zIndex: 999999,
-                borderRadius: "15px",
-              }}
-            >
-              <div
-                className="menuItem"
-                style={{
-                  width: "100%",
-                  borderTopRightRadius: "15px",
-                  borderTopLeftRadius: "15px",
-                  padding: "10px",
-                  cursor: "pointer",
-                  textAlign: "center",
-                  border: "#00000029 1px solid",
-                }}
-                onClick={(e) => {
-                  setOpenCameraAction(true);
-                  Sendevent({
-                    event: "button_clicked",
-                    value: "upload_camera_button",
-                  });
-                  document.body.style.overflow = "hidden";
-                }}
-              >
-                {translateFunction("From Camera")}
-              </div>
-              <div
-                className="menuItem"
-                data-cy="Gallery-Photo-Option"
-                style={{
-                  width: "100%",
-                  borderBottomRightRadius: "15px",
-                  cursor: "pointer",
-                  borderBottomLeftRadius: "15px",
-                  padding: "10px",
-                  textAlign: "center",
-                  border: "#00000029 1px solid",
-                }}
-                onClick={() => {
-                  Sendevent({
-                    event: "button_clicked",
-                    value: "upload_gallery_button",
-                  });
-
-                  if (!isSelected) {
-                    let Image = document.createElement("input");
-                    Image.onblur = () => {};
-                    Image["data-cy"] = "Input-Story-File";
-                    Image.onchange = async (e) => {
-                      handleChange(e);
-                    };
-                    Image.type = "file";
-                    Image.hidden = true;
-                    Image.accept =
-                      "image/*;capture=camera,video/*;capture=camera";
-                    Image.style.position = "absolute";
-                    Image.style.position = "0";
-                    let i = document.body.appendChild(Image);
-                    i.click();
-                  }
-                }}
-              >
-                {translateFunction("From Files")}
-              </div>
-            </div>
-          </div>
         )}
         <div
           data-cy="Add-Story-Button"
@@ -302,7 +193,7 @@ function AddStory() {
                 event: "button_clicked",
                 value: "upload_story_button",
               });
-              setOpenMenu(true);
+              setAddStory(true);
             } else {
               setNameModal(true);
             }

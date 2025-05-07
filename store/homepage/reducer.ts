@@ -23,6 +23,7 @@ interface HomeState {
   selectedStory: any | null;
   renderStories: boolean;
   OpenCamera: boolean;
+  addStoryEnable: boolean;
   storiesData: Story[] | null;
   categories: any[];
   settings: Settings | null;
@@ -41,6 +42,7 @@ const initialState: HomeState = {
   language: "en",
   country: "",
   loading: false,
+  addStoryEnable: false,
   loadingStories: true,
   selectedStory: null,
   renderStories: false,
@@ -61,7 +63,7 @@ const initialState: HomeState = {
 
 export const useHomeStore = (set, get) => ({
   ...initialState,
-
+  setAddStory: (v) => set({ addStoryEnable: v }),
   setOpenCamera: (open: boolean) => set({ OpenCamera: open }),
 
   setIsRegisteringReady: (ready: boolean) => set({ isRegisteringReady: ready }),
