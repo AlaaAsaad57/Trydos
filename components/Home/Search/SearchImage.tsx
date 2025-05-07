@@ -7,6 +7,7 @@ import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import search from "services/search";
+import { ImageCropWidget } from "components/global/ImageCropWidget";
 
 function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
   const { language } = useAppStore();
@@ -19,6 +20,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
+  const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const GemeniFunc = async (file) => {
     let image_result = await fileToGenerativePart(file);
@@ -70,7 +72,8 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
       ];
 
       if (fileLocal && allowedTypes.includes(fileLocal.type)) {
-        GemeniFunc(fileLocal);
+        console.log(fileLocal);
+        setFile(fileLocal);
       } else {
         alert("please select supported image");
         // @ts-ignore
@@ -88,9 +91,25 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
     i.click();
   };
   return (
-    <div className="relative " data-cy="searchImageIcon">
-      {loading ? <Spinner /> : <SearchCamIcon onClick={OpenMenu} />}
-    </div>
+    <>
+      {file && (
+        <ImageCropWidget
+          image={file}
+          onClose={() => {
+            setFile(null);
+            setLoading(false);
+          }}
+          onSave={(e) => {
+            GemeniFunc(e);
+            setFile(null);
+            setLoading(false);
+          }}
+        />
+      )}
+      <div className="relative " data-cy="searchImageIcon">
+        {loading ? <Spinner /> : <SearchCamIcon onClick={OpenMenu} />}
+      </div>
+    </>
   );
 }
 

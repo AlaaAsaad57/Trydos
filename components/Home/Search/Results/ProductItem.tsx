@@ -58,9 +58,9 @@ function ProductItem({ product, onClick }) {
           <img
             src={getConfiguredImage({
               src:
-                product?.thumbnail?.file_path ||
-                (product?.images && product?.images[0]?.file_path) ||
-                product?.sync_color_images?.images[0]?.file_path,
+                product?.sync_color_images?.[0]?.images?.[0]?.file_path ||
+                (product?.images && product?.images?.[0]?.file_path) ||
+                product?.thumbnail?.file_path,
               width: 100,
               height: 100,
             })}

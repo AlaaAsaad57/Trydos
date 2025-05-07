@@ -26,6 +26,7 @@ class SearchService {
       value,
       setTotalSizeOfProducts,
       setSearchPartialLoading,
+      setSearchLoading,
     } = useAppStore.getState();
     let processed_search_value = await this.ProcessSearchInput(value);
     let params = this.getSearchParamsFromObj(
@@ -34,7 +35,6 @@ class SearchService {
       noFilters,
       filters_offset
     );
-    console.log(processed_search_value);
     try {
       let searchFiltersEdit = {};
       if (searchFilters?.categories && searchFilters.categories.length > 0) {
@@ -156,6 +156,7 @@ class SearchService {
         replace
       );
       setSearchPartialLoading(false);
+      setSearchLoading(false);
       return filtersResponse;
     } catch (error) {
       setSearchPartialLoading(false);
