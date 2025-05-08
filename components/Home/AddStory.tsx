@@ -29,7 +29,7 @@ function AddStory() {
   const [uploaded, setUpload] = useState(0);
   const [isSelected, setIsSelected] = useState(null);
   const [file, setFile] = useState(null);
-  const handleChange = async (e: any) => {
+  const handleChange = async (e, link) => {
     const { toast } = await import("react-toastify");
     if (e.target.files[0]?.type.includes("video")) {
       new Promise((resolve, reject) => {
@@ -62,7 +62,8 @@ function AddStory() {
                   () => {
                     setIsSelected(null);
                     setFile(null);
-                  }
+                  },
+                  link
                 )
                   .then((data) => {
                     Sendevent({
@@ -107,7 +108,8 @@ function AddStory() {
             e.target.files[0],
             (e) => setUpload(e),
             0,
-            () => {}
+            () => {},
+            link
           ).then((data) => {
             AddStoryAction(data);
           });
@@ -121,46 +123,47 @@ function AddStory() {
       });
     }
   };
-  const HandleUploadedVideo = async (e) => {
-    if (e.target.files[0]?.type.includes("video")) {
-      new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(e.target.files[0]);
-        reader.onload = async () => {
-          setFile(e.target.files[0]);
-          setIsSelected(reader.result);
-          let path = await StoryService.upload(
-            e.target.files[0],
-            (e: any) => setUpload(e),
-            1,
-            () => {
-              setIsSelected(null);
-              setFile(null);
-            }
-          )
-            .then((data) => {
-              AddStoryAction(data);
-            })
-            .catch((e) => {
-              setFile(null);
-              setIsSelected(null);
+  // const HandleUploadedVideo = async (e) => {
+  //   if (e.target.files[0]?.type.includes("video")) {
+  //     new Promise((resolve, reject) => {
+  //       const reader = new FileReader();
+  //       reader.readAsDataURL(e.target.files[0]);
+  //       reader.onload = async () => {
+  //         setFile(e.target.files[0]);
+  //         setIsSelected(reader.result);
+  //         let path = await StoryService.upload(
+  //           e.target.files[0],
+  //           (e: any) => setUpload(e),
+  //           1,
 
-              toast.error("Upload Failed Try Again");
-            });
-          setIsSelected(path);
-          setFile(e.target.files[0]);
+  //           () => {
+  //             setIsSelected(null);
+  //             setFile(null);
+  //           }
+  //         )
+  //           .then((data) => {
+  //             AddStoryAction(data);
+  //           })
+  //           .catch((e) => {
+  //             setFile(null);
+  //             setIsSelected(null);
 
-          setIsSelected(null);
-          setFile(null);
-          revalidateStories();
-        };
-      });
-    }
-  };
+  //             toast.error("Upload Failed Try Again");
+  //           });
+  //         setIsSelected(path);
+  //         setFile(e.target.files[0]);
+
+  //         setIsSelected(null);
+  //         setFile(null);
+  //         revalidateStories();
+  //       };
+  //     });
+  //   }
+  // };
   const selectMedia = async ({ imageFile, link }) => {
     console.log({ imageFile, link });
 
-    handleChange({ target: { files: [imageFile] } });
+    handleChange({ target: { files: [imageFile] } }, link);
   };
 
   if (user)

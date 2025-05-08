@@ -98,11 +98,15 @@ class StoryService {
     file: File,
     callback: Function,
     is_video: any,
-    endUpload: Function
+    endUpload: Function,
+    link
   ) {
     try {
       let axios = (await import("axios")).default;
       const formData = new FormData();
+      if (link?.length) {
+        formData.append("link", link);
+      }
       formData.append("file", file);
       formData.append("is_video", is_video);
       const response: UploadStoryApi = await axios.post(

@@ -53,7 +53,7 @@ export const renderer: Renderer = ({
           </div>
           {story?.link && (
             <a
-              className="absolute z-[999999999] bottom-[70px] mx-auto left-0 right-0 text-white text-center text-lg regular underline"
+              className="absolute w-full flex items-center justify-center bg-[#00000026] z-[999999999] bottom-[70px] mx-auto left-0 right-0 text-white text-center text-lg regular underline"
               href={story.link}
               target="_self"
               onClick={() => {

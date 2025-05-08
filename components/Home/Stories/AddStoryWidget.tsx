@@ -92,8 +92,14 @@ interface AddStoryWidgetProps {
 }
 
 const isValidUrl = (urlString: string) => {
+  if (!urlString) return true;
   try {
-    new URL(urlString);
+    // Add https:// if no protocol is specified
+    const url =
+      urlString.startsWith("http://") || urlString.startsWith("https://")
+        ? urlString
+        : `https://${urlString}`;
+    new URL(url);
     return true;
   } catch (e) {
     return false;
@@ -152,7 +158,9 @@ export default function AddStoryWidget({
     setLink(value);
 
     if (value && !isValidUrl(value)) {
-      setLinkError("Please enter a valid URL");
+      setLinkError(
+        "Please enter a valid URL (e.g., example.com or www.example.com)"
+      );
     } else {
       setLinkError("");
     }
@@ -160,10 +168,17 @@ export default function AddStoryWidget({
 
   const handleShareStory = () => {
     if (link && !isValidUrl(link)) {
-      setLinkError("Please enter a valid URL");
+      setLinkError(
+        "Please enter a valid URL (e.g., example.com or www.example.com)"
+      );
       return;
     }
-    selectMedia({ media: selectedFile, link: link });
+    // Add https:// if no protocol is specified
+    const finalLink =
+      link && !link.startsWith("http://") && !link.startsWith("https://")
+        ? `https://${link}`
+        : link;
+    selectMedia({ media: selectedFile, link: finalLink });
     setPreview(null);
     setSelectedFile(null);
     onClose();
@@ -241,7 +256,7 @@ export default function AddStoryWidget({
           </div>
 
           {/* Options Area */}
-          <div className="w-64 pl-4 flex flex-col gap-4">
+          <div className="w-64 pl-4 flex flex-col gap-4 items-start">
             <button
               onClick={handleCameraClick}
               className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg"
