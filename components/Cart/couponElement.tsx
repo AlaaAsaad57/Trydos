@@ -13,7 +13,7 @@ const CouponElement = ({ active, setActive, close }) => {
     coupon_discount,
     setCouponDiscount,
   } = useAppStore();
-  const [coupon, setCoupon] = useState<number | false>(false);
+  const [coupon, setCoupon] = useState<number | false | string>(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -28,8 +28,9 @@ const CouponElement = ({ active, setActive, close }) => {
     setOrderData({ coupon_number: e });
   };
 
-  const applyCoupon = async () => {
-    if (!orderData.coupon_number) return;
+  const applyCoupon = async (e?) => {
+    console.log(orderData);
+    if (!orderData.coupon_number && !e) return;
     if (coupon) return;
     setLoading(true);
     setError("");
@@ -38,11 +39,12 @@ const CouponElement = ({ active, setActive, close }) => {
       const response = await AxiosGet({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/coupon/apply?code=${orderData.coupon_number}`,
+          `/coupon/apply?code=${e ?? orderData.coupon_number}`,
         title: "apply coupon request",
       });
 
       if (!response.data.status) {
+        localStorage.removeItem("coupon-number");
         throw new Error(response.message);
       }
 
@@ -51,7 +53,7 @@ const CouponElement = ({ active, setActive, close }) => {
           initCart(data ?? { cart: [] });
         },
       });
-
+      localStorage.removeItem("coupon-number");
       setCoupon(response.discount);
     } catch (err) {
       setError(err.message);
@@ -59,7 +61,13 @@ const CouponElement = ({ active, setActive, close }) => {
       setLoading(false);
     }
   };
-
+  useEffect(() => {
+    if (localStorage.getItem("coupon-number")) {
+      onChange(localStorage.getItem("coupon-number"));
+      applyCoupon(localStorage.getItem("coupon-number"));
+      setActive(true);
+    }
+  }, []);
   return (
     <div
       onClick={(e) => {
