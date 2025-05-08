@@ -17,7 +17,7 @@ async function OfferListServer({ params }) {
         `/api/${params.lang}/boutiques?${newParams.toString()}`,
       {
         next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+          revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
           tags: ["home", "boutiques"],
         },
       }

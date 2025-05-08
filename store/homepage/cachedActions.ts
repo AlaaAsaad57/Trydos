@@ -101,7 +101,7 @@ export const getStoriesServer = async () => {
       {
         ...method,
         next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_STORIES),
+          revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
           tags: [`home-stories`, "home"],
         },
         headers: new Headers({

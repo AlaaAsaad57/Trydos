@@ -15,7 +15,7 @@ async function NavbarServer({
       process.env.NEXT_PUBLIC_API_BASE_URL + `/api/${lang}/categories`,
       {
         next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+          revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
           tags: ["main-categories-Api", "home"],
         },
       }

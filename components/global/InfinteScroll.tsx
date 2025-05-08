@@ -47,7 +47,7 @@ function InfinteScroll({ offsetVariable }) {
             country: lang.split("-")[0],
           },
           next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+            revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
             tags: ["home", "boutiques"],
           },
         }

@@ -85,7 +85,7 @@ export async function GET(
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
       }),
       next: {
-        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
+        revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
         tags: ["featured-Products-Api"],
       },
     }

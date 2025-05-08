@@ -24,7 +24,7 @@ export async function GET(req: NextRequest, { params }) {
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
       }),
       next: {
-        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+        revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
         tags: ["main-categories-Api", "home"],
       },
     }
