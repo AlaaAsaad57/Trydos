@@ -354,8 +354,9 @@ class AuthService {
     //   token: localStorage.getItem("STORIES-TOKEN"),
     // });
     // let user_id = JSON.parse(localStorage.getItem("USER-CHAT")).id;
-    // let chat_update =await axios.put(
-    //   "https://chating_staging_trydos.trydos.dev" + `/api/v1/users/${user_id}`,
+    // let chat_update = await axios.put(
+    //   "https://chating_staging_trydos.trydos.dev" +
+    //     `/api/v1/users/${this.UserID()}`,
     //   {
     //     name: userObj?.name ?? userProfile?.name,
     //     mobile_phone: userObj?.phone ?? userProfile?.phone,

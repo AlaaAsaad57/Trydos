@@ -227,10 +227,11 @@ function NewLoginWidget() {
   };
 
   if (!loginOpen) return <></>;
+
   return (
     <>
       <div
-        data-testid="backdrop-login"
+        data-testid="backdrop-login "
         onClick={() => {
           Sendevent({
             event: "button_clicked",
@@ -238,12 +239,12 @@ function NewLoginWidget() {
           });
           setLoginOpenAction(false);
         }}
-        className="backdrop-login"
+        className="backdrop-login z-[9999999999]"
       />
       <div
         data-testid="login-widget-container"
         data-cy="login-widget-container"
-        className={`login-widget-container login-w2-container pb-${stepIndicator} step${stepIndicator}`}
+        className={`login-widget-container  z-[99999999999] login-w2-container pb-${stepIndicator} step${stepIndicator}`}
         id="widget-auth"
         style={{
           backgroundColor: stepIndicator >= 6 && getPageColor(),
