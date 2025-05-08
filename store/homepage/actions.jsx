@@ -51,6 +51,13 @@ export const AddStoryAction = (story) => {
   addStory(story);
 };
 export const GetUnviewedStory = (story) => {
+  if (typeof window !== "undefined") {
+    if (
+      localStorage.getItem("USER-STORIES") &&
+      JSON.parse(localStorage.getItem("USER-STORIES"))?.id === story.id
+    )
+      return 0;
+  }
   let index = 0;
   let unseen = [];
   story.stories.map((s, id) => {

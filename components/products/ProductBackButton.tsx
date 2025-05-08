@@ -6,7 +6,10 @@ import { useParams } from "next/navigation";
 
 function ProductBackButton() {
   const { lang } = useParams();
-  if (!document.referrer.includes(window.location.origin))
+  if (
+    typeof window !== "undefined" &&
+    !document.referrer.includes(window.location.origin)
+  )
     return (
       <div className="back-bar align-center w-100 flex-row">
         <NextLink
