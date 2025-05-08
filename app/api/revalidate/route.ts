@@ -3,20 +3,26 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
   let searchParams = request.nextUrl.searchParams;
   let value = searchParams.get("value");
-  if (value) {
-    revalidateTag(value);
-  } else {
-    revalidateTag("listing");
-    revalidateTag("search-api");
-    revalidateTag("currency-api");
-    // products
-    revalidateTag("product-details");
-    // home req
+
+  if (value === "home") {
     revalidateTag("main-categories-Api");
     revalidateTag("featured-Products-Api");
-    revalidateTag("home");
     revalidateTag("boutiques");
-    revalidateTag("home-stories");
+    revalidateTag("stories");
+  } else if (value === "listing") {
+    revalidateTag("listing");
+    revalidateTag("currency-api");
+  } else if (value === "products") {
+    revalidateTag("product-details");
+    revalidateTag("currency-api");
+  } else {
+    revalidateTag("main-categories-Api");
+    revalidateTag("featured-Products-Api");
+    revalidateTag("boutiques");
+    revalidateTag("stories");
+    revalidateTag("listing");
+    revalidateTag("currency-api");
+    revalidateTag("product-details");
   }
   return NextResponse.json(
     { revalidated: "true" },

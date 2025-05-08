@@ -42,7 +42,7 @@ export async function GET(
       }),
       next: {
         revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
-        tags: ["boutique-Api", `${slug}`, "listing"],
+        tags: ["listing"],
       },
     }
   );

@@ -48,7 +48,7 @@ function InfinteScroll({ offsetVariable }) {
           },
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
-            tags: ["home", "boutiques"],
+            tags: ["boutiques"],
           },
         }
       );

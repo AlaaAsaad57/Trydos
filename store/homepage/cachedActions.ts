@@ -102,7 +102,7 @@ export const getStoriesServer = async () => {
         ...method,
         next: {
           revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
-          tags: [`home-stories`, "home"],
+          tags: [`stories`],
         },
         headers: new Headers({
           Accept: "application/json",
@@ -382,7 +382,7 @@ export const getProductsAndFilters = async ({
         }),
         next: {
           revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
-          tags: ["listing", "search-api"],
+          tags: ["listing"],
         },
       }
     );

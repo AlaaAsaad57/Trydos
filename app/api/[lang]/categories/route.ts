@@ -25,7 +25,7 @@ export async function GET(req: NextRequest, { params }) {
       }),
       next: {
         revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
-        tags: ["main-categories-Api", "home"],
+        tags: ["main-categories-Api"],
       },
     }
   );
