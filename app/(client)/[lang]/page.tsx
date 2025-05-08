@@ -33,7 +33,7 @@ function HomePage({
         <StoriesBarServer />
       </Suspense>
 
-      <Suspense fallback={<FeaturedProductsSkeleton />}>
+      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
         <FeatureProducts lang={params.lang} />
       </Suspense>
       <Suspense

@@ -277,6 +277,7 @@ const translations = {
   ar: {
     "Total Products:": "إجمالي المنتجات:",
     "Full Name": "الاسم الكامل",
+    "Featured Products": "المنتجات المميزة",
     "Wallet Already Selected": "المحفظة محددة بالفعل",
     Verified: "تم التحقق",
     "Discount Coupon": "قسيمة خصم",
@@ -803,6 +804,8 @@ const translations = {
   tr: {
     "The Purchase Was Completed Successfully":
       "Satın Alma Başarıyla Tamamlandı",
+    "Featured Products": "Öne Çıkan Ürünler",
+
     "000 CM": "000 CM",
     "Discount Coupon": "İndirim Kuponu",
     "Wallet Already Selected": "Cüzdan Zaten Seçildi",
