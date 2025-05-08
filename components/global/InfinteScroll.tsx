@@ -48,6 +48,7 @@ function InfinteScroll({ offsetVariable }) {
           },
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+            tags: ["home", "boutiques"],
           },
         }
       );

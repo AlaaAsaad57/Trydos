@@ -16,7 +16,7 @@ async function NavbarServer({
       {
         next: {
           revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-          tags: ["main-categories-Api"],
+          tags: ["main-categories-Api", "home"],
         },
       }
     );

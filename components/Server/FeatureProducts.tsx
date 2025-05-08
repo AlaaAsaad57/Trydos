@@ -5,7 +5,11 @@ import {
   ProductPhotosSlider,
 } from "components/ListingPage/Product";
 import React, { Suspense } from "react";
-import { RoundPrice, translateFunction } from "utils/functions";
+import {
+  getConfiguredImage,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 
 async function FeatureProducts({ lang }) {
   const getFeaturedProducts = async () => {
@@ -43,7 +47,7 @@ async function FeatureProducts({ lang }) {
     getFeaturedProducts(),
     GetCurrencyData(),
   ]);
-  if (featuredProducts?.data?.products === 0) return <></>;
+  if (featuredProducts?.data?.products?.length === 0) return <></>;
   return (
     <div className="flex-col px-[12px] flex items-start max-w-full">
       <NextLink
@@ -67,13 +71,13 @@ async function FeatureProducts({ lang }) {
         </span>
       </NextLink>
       <HortiznalScrollBar
-        className="featured-products-container w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-[362px] pb-[8px] "
+        className="featured-products-container w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-[200px] pb-[8px] "
         id="featured-products-container"
         dataCy="featured-products-container"
       >
         {featuredProducts?.data?.products?.map((product, key) => (
           <div
-            className="max-h-[362px] relative mx-[10px]"
+            className="max-h-[200px] max-w-[150px] relative mx-[10px]"
             data-cy="countProduct"
             key={product.slug}
           >
@@ -85,19 +89,19 @@ async function FeatureProducts({ lang }) {
               ariaLabel={`go to product ${product.slug} ${lang}`}
               suppressHydrationWarning
               href={`/${lang}/products/${product.slug}`}
-              className="product-container  align-center flex-col relative shadow-sm"
+              className="product-container  align-center flex-col relative shadow-sm max-h-[200px] max-w-[150px]"
               data-cy="on_mouse_over_product"
             >
-              <Suspense fallback={<div className="min-w-full min-h-[290px]" />}>
-                <ProductPhotosSlider
-                  product={{
-                    sync_color_images: product.sync_color_images,
-                    images: product.images,
-                    thumbnail: product.thumbnail,
-                  }}
-                  priority={key < 3}
+              <div className="max-h-[130px] w-full">
+                <img
+                  className="rounded w-full flex  max-h-[130px] min-h-[130px]"
+                  src={getConfiguredImage({
+                    src: product.thumbnail,
+                    width: 150,
+                    height: 130,
+                  })}
                 />
-              </Suspense>
+              </div>
               <div className="product-body w-100 flex-col align-start justify-start max-h-[30px] min-h-[30px]">
                 <p
                   className="prouct-details overflow-hidden w-100 regular-text color-dark-gray f-10"
@@ -203,7 +207,7 @@ async function FeatureProducts({ lang }) {
         <NextLink
           href={`/${lang}/featured`}
           data={{ is_boutique: true }}
-          className="product-container items-center justify-center min-w-[200px] bg-[#0002]  align-center flex-col relative"
+          className="product-container items-center justify-center min-w-[150px] max-h-[200px] bg-[#0002]  align-center flex-col relative"
         >
           <div className="flex regular rounded-md p-3 items-center justify-center bg-[#5d5d5d] text-white shadow-md shadow-[#fff]">
             Show More

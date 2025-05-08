@@ -67,7 +67,7 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
           method: "GET",
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-            tags: [""],
+            tags: ["search-api", "listing"],
           },
           headers: {
             "Access-Control-Allow-Origin": "*",
@@ -99,6 +99,7 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
           method: "GET",
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
+            tags: ["search-api", "listing"],
           },
           headers: {
             "Access-Control-Allow-Origin": "*",

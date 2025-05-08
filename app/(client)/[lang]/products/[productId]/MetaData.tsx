@@ -14,7 +14,7 @@ export async function generateProductMetaData({ params, searchParams }) {
               revalidate: parseInt(
                 process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS
               ),
-              tags: [`product-details product-${params.productId}`],
+              tags: [`product-details`, `product-${params.productId}`],
             },
           }
         );

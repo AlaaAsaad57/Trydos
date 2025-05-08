@@ -123,7 +123,7 @@ export default async function Page({
           method: "GET",
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-            tags: [""],
+            tags: ["search-api", "listing"],
           },
           headers: {
             "Access-Control-Allow-Origin": "*",
@@ -148,7 +148,7 @@ export default async function Page({
           method: "GET",
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
-            tags: [""],
+            tags: ["currency-api"],
           },
           headers: {
             "Access-Control-Allow-Origin": "*",
@@ -180,7 +180,7 @@ export default async function Page({
           method: "GET",
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
-            tags: [""],
+            tags: ["search-api", "listing"],
           },
           headers: {
             "Access-Control-Allow-Origin": "*",

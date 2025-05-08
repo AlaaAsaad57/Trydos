@@ -25,7 +25,7 @@ export async function GET(
       }),
       next: {
         revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
-        tags: ["currency-Api"],
+        tags: ["currency-api"],
       },
     }
   );

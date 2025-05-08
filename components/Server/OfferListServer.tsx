@@ -18,7 +18,7 @@ async function OfferListServer({ params }) {
       {
         next: {
           revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-          tags: [""],
+          tags: ["home", "boutiques"],
         },
       }
     );

@@ -70,7 +70,7 @@ async function Page({ params, searchParams }: Props) {
             revalidate: parseInt(
               process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS
             ),
-            tags: [`product-details product-${params.productId}`],
+            tags: [`product-details`, `product-${params.productId}`],
           },
         }
       );
@@ -88,7 +88,7 @@ async function Page({ params, searchParams }: Props) {
         {
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
-            tags: [""],
+            tags: ["currency-api"],
           },
         }
       );

@@ -22,21 +22,21 @@ function FeaturedProductsSkeleton({ lang }) {
         </span>
       </div>
       <div
-        className="featured-products-container mt-[12px] flex-row justify-start items-center max-w-[1365px] h-[362px] py-[5px] "
+        className="featured-products-container mt-[12px] flex-row justify-start items-center max-w-[1365px] h-[150px] py-[5px] "
         id="featured-products-container"
         data-cy="featured-products-container"
       >
         {Array.from({ length: 5 })?.map((product, key) => (
           <div
-            className="max-h-[362px] relative mx-[10px] shadow-md rounded-md"
+            className="max-h-[200px] max-w-[150px] relative mx-[10px] shadow-md rounded-md"
             data-cy="countProduct"
             key={key}
           >
             <div
               suppressHydrationWarning
-              className="product-container  align-center flex-col relative"
+              className="product-container max-h-[200px] max-w-[150px] align-center flex-col relative"
             >
-              <Skeleton className="min-w-full min-h-[290px] max-h-[290px]" />
+              <Skeleton className="min-w-full min-h-[140px] max-h-[140px]" />
               <div className="product-body w-100 flex-col align-start justify-start max-h-[50px] min-h-[50px]">
                 <p
                   className="prouct-details overflow-hidden w-100 regular-text color-dark-gray f-10"

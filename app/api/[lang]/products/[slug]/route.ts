@@ -53,7 +53,8 @@ const getProductSimpleDetails = async ({
             process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS
           ),
           tags: [
-            `product-details product-simple-details-${slug}-${country}-${lang}`,
+            `product-details`,
+            `product-simple-details-${slug}-${country}-${lang}`,
           ],
         },
         headers: new Headers({
@@ -94,7 +95,10 @@ const getProductExtendedDetails = async ({
           revalidate: parseInt(
             process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS
           ),
-          tags: [`product-details product-details-${slug}-${country}-${lang}`],
+          tags: [
+            `product-details`,
+            `product-details-${slug}-${country}-${lang}`,
+          ],
         },
         headers: new Headers({
           lang: lang,

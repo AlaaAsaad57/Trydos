@@ -6,17 +6,29 @@ export async function GET(request: NextRequest) {
   if (value) {
     revalidateTag(value);
   } else {
-    revalidatePath("/", "layout");
-    revalidatePath("/", "page");
-    revalidateTag("home-boutiques");
-    revalidateTag("stories");
-    revalidateTag("listing-data");
-    revalidatePath("/listing", "layout");
-    revalidateTag("home-categories-en"); // Update cached posts
-    revalidateTag("home-categories-ar"); // Update cached posts
-    revalidateTag("search-Api");
-    revalidatePath("/boutique/[boutiqueId]", "page");
-    revalidatePath("/boutique/[boutiqueId]", "layout");
+    // revalidatePath("/", "layout");
+    // revalidatePath("/", "page");
+    // revalidateTag("home-boutiques");
+    // revalidateTag("stories");
+    // revalidateTag("listing-data");
+    // revalidatePath("/listing", "layout");
+    // revalidateTag("home-categories-en"); // Update cached posts
+    // revalidateTag("home-categories-ar"); // Update cached posts
+    // revalidateTag("search-Api");
+    // revalidatePath("/boutique/[boutiqueId]", "page");
+    // revalidatePath("/boutique/[boutiqueId]", "layout");
+    // Listing Req
+    revalidateTag("listing");
+    revalidateTag("search-api");
+    revalidateTag("currency-api");
+    // products
+    revalidateTag("product-details");
+    // home req
+    revalidateTag("main-categories-Api");
+    revalidateTag("featured-Products-Api");
+    revalidateTag("home");
+    revalidateTag("boutiques");
+    revalidateTag("home-stories");
   }
   return NextResponse.json(
     { revalidated: "true" },

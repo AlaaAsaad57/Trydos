@@ -45,7 +45,7 @@ export async function GET(
       }),
       next: {
         revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
-        tags: ["search-Api"],
+        tags: ["search-api", "listing"],
       },
     }
   );
