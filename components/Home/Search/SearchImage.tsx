@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import SearchCamIcon from "public/svg/SearchCamIcon.svg";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { translateFunction } from "utils/functions";
-
 import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import search from "services/search";
 import { ImageCropWidget } from "components/global/ImageCropWidget";
+import { toast } from "react-toastify";
 
 function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
   const { language } = useAppStore();
@@ -23,6 +23,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const GemeniFunc = async (file) => {
+    setLoading(true);
     let image_result = await fileToGenerativePart(file);
     const result = await model
       .generateContent([
@@ -33,6 +34,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
         image_result,
       ])
       .catch((e) => {
+        toast.error(e?.message || e || "failed to search with image");
         setLoading(false);
       });
     // @ts-ignore
@@ -102,7 +104,6 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
           onSave={(e) => {
             GemeniFunc(e);
             setFile(null);
-            setLoading(false);
           }}
         />
       )}
