@@ -3,7 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
   let searchParams = request.nextUrl.searchParams;
   let value = searchParams.get("value");
-
+  if (value === "stories") {
+    revalidateTag("stories");
+  }
   if (value === "home") {
     revalidateTag("main-categories-Api");
     revalidateTag("featured-Products-Api");
