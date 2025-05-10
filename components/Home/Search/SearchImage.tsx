@@ -27,7 +27,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
     const result = await model
       .generateContent([
         translate(
-          "describe the product in the image with 6 words max like: T-shirt black xxl size",
+          "Describe the product most clearly shown in this picture with no more than 5 words like: T-shirt black xxl",
           language
         ),
         image_result,
