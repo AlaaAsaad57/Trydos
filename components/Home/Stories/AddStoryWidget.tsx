@@ -229,7 +229,7 @@ export default function AddStoryWidget({
           </button>
         </div>
 
-        <div className="flex h-[calc(100vh-150px)]">
+        <div className="flex h-[calc(100vh-250px)]">
           {/* Preview Area */}
           <div className="flex-1 flex items-center justify-center border-r border-gray-200 pr-4">
             {preview ? (
