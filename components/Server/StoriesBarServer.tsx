@@ -3,8 +3,7 @@ import AddStory from "components/Home/AddStory";
 import StoriesBorder from "components/Home/Stories/StoriesBorder";
 import StoryElement from "components/Home/Stories/StoryElement";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
-import React, { useEffect } from "react";
-import { useAppStore } from "store";
+import React from "react";
 import { getStoriesServer } from "store/homepage/cachedActions";
 
 async function StoriesBarServer() {

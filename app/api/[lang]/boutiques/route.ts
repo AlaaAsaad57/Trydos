@@ -1,6 +1,4 @@
 import { GetBoutiqueApi } from "models/Api";
-import { cookies } from "next/headers";
-
 import { fetchWithRetry } from "utils/functions";
 import { NextRequest, NextResponse } from "next/server";
 export async function OPTIONS(req: NextRequest) {
@@ -37,14 +35,8 @@ export async function GET(
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         "Cache-Control": "no-cache",
-        lang:
-          (language.length && language) ??
-          cookies().get("language")?.value ??
-          request.cookies.get("language")?.value,
-        country:
-          (country.length && country) ??
-          cookies().get("country")?.value ??
-          request.cookies.get("country")?.value,
+        lang: language ?? "en",
+        country: country ?? "tr",
       }),
     },
     "Next Boutique Request"

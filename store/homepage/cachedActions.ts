@@ -1,16 +1,5 @@
 "use server";
-import { notFound } from "next/navigation";
-import { HOME_DATA_CATEGORIES_URL, HOME_DATA_URL } from "utils/endpointConfig";
-import {
-  CategoriesApi,
-  CountriesApi,
-  CurrencyApi,
-  FilterProductApi,
-  GetStoriesApi,
-  GlobalDetailsProductApi,
-  HomeBoutiqueApi,
-  QuantityDetailsProductApi,
-} from "models/Api";
+import { CountriesApi, CurrencyApi, FilterProductApi } from "models/Api";
 export const getCOlorsAndSizes = async () => {
   const response = await fetch(
     process.env.NEXT_PUBLIC_BACKEND_URL + "/web/get-colors-and-sizes",
