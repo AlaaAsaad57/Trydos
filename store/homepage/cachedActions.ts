@@ -113,7 +113,7 @@ export const getStoriesServer = async () => {
         }),
       }
     );
-    const repo: GetStoriesApi = await res.json();
+    const repo = await res.json();
     return { data: repo.data.data };
   } catch (e) {
     console.log(e);

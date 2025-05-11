@@ -347,27 +347,34 @@ class AuthService {
       body: userObj,
       title: "Update Profile",
     });
-    // let stories_update = AxiosPost({
-    //   url: process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + "/api/v1/users/update",
-    //   body: { ...userProfile, ...userObj },
-    //   title: "Update Stories Profile",
-    //   token: localStorage.getItem("STORIES-TOKEN"),
-    // });
+    await axios.post(
+      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + "/api/v1/users/update",
+      {
+        name: userObj?.name ?? userProfile?.name,
+        mobile_phone: userObj?.phone ?? userProfile?.phone,
+        photo_path: userObj?.image ?? userProfile?.image,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("STORIES-TOKEN")}`,
+        },
+      }
+    );
     // let user_id = JSON.parse(localStorage.getItem("USER-CHAT")).id;
-    // let chat_update = await axios.put(
-    //   "https://chating_staging_trydos.trydos.dev" +
-    //     `/api/v1/users/${this.UserID()}`,
-    //   {
-    //     name: userObj?.name ?? userProfile?.name,
-    //     mobile_phone: userObj?.phone ?? userProfile?.phone,
-    //     photo_path: userObj?.image ?? userProfile?.image,
-    //   },
-    //   {
-    //     headers: {
-    //       Authorization: `Bearer ${localStorage.getItem("CHAT-TOKEN")}`,
-    //     },
-    //   }
-    // );
+    let chat_update = await axios.put(
+      "https://chating_staging_trydos.trydos.dev" +
+        `/api/v1/users/${this.UserID()}`,
+      {
+        name: userObj?.name ?? userProfile?.name,
+        mobile_phone: userObj?.phone ?? userProfile?.phone,
+        photo_path: userObj?.image ?? userProfile?.image,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("CHAT-TOKEN")}`,
+        },
+      }
+    );
 
     return res;
   }

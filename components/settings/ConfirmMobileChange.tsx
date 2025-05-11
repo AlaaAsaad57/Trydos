@@ -8,6 +8,7 @@ import AuthService from "services/auth";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
 import { useAppStore } from "store";
+import PhoneInput from "components/Login/PhoneInput";
 
 function ConfirmMobileChange({
   closeWindow,
@@ -15,7 +16,8 @@ function ConfirmMobileChange({
   successCallbackFunction,
   forVerify,
 }) {
-  const { setWrongNumber, verficationID, wrongNumber } = useAppStore();
+  const { setWrongNumber, verficationID, wrongNumber, userProfile } =
+    useAppStore();
   const [stepIndicator, setStepIndicator] = useState(3);
   const [inputValue, setInputValue] = useState(value);
 
@@ -137,15 +139,33 @@ function ConfirmMobileChange({
   };
 
   useEffect(() => {
-    if (value) {
+    if (value && value !== "0") {
       let phone = value;
       setInputValue(phone);
       setStepIndicator(4);
+    } else {
+      setInputValue("");
+      setStepIndicator(3);
     }
   }, []);
   const [showMobile, setShowMobile] = useState(false);
   return (
     <div>
+      {!userProfile?.phone ||
+        (userProfile.phone === "0" && (
+          <PhoneInput
+            isForCart={true}
+            inputValue={inputValue}
+            wrongNumber={wrongNumber}
+            setWrongNumber={(e) => {
+              setWrongNumber(e);
+            }}
+            setInputValue={(e) => setInputValue(e)}
+            stepIndicator={stepIndicator}
+            setStepIndicator={(e) => setStepIndicator(e)}
+            operation={"login"}
+          />
+        ))}
       <SendMethod
         stepIndicator={stepIndicator}
         setWrongNumber={(e) => {
