@@ -77,10 +77,10 @@ export const configureSearchParams = ({
     params.set("brand_slugs", decodeURI(searchParams.brands));
   }
   if (searchParams.boutiques && searchParams.boutiques !== "null") {
-    params.set("boutique_slugs", decodeURI(searchParams.boutiques));
+    params.set("boutique_slugs", decodeURIComponent(searchParams.boutiques));
   }
   if (boutiqueId && boutiqueId !== "listing" && boutiqueId !== "null") {
-    params.set("boutique_slugs", `["${boutiqueId}"]`);
+    params.set("boutique_slugs", `["${decodeURIComponent(boutiqueId)}"]`);
   }
 
   // console.log(
