@@ -204,6 +204,23 @@ class AuthService {
         body: { name: name },
         title: "Update Name",
       });
+      let chat_update = await axios.put(
+        "https://chating_staging_trydos.trydos.dev" +
+          `/api/v1/users/${this.UserID()}`,
+        { name: name },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("CHAT-TOKEN")}`,
+          },
+        }
+      );
+      localStorage.setItem(
+        "USER-CHAT",
+        JSON.stringify({
+          ...JSON.parse(localStorage.getItem("USER-STORIES")),
+          name: name,
+        })
+      );
       await home.getCustomerInfo();
       if (!localStorage.getItem("STORIES-TOKEN")) {
         await this.ConfirmSignIn();
