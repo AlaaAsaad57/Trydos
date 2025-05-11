@@ -14,6 +14,7 @@ export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"];
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const dynamicParams = true;
+export const dynamic = "auto";
 
 function HomePage({
   params,

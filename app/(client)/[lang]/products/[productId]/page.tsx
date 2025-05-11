@@ -45,7 +45,7 @@ export async function generateMetadata({ params, searchParams }) {
   }
 }
 export const dynamicParams = true;
-
+export const dynamic = "auto";
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 
 interface Props {

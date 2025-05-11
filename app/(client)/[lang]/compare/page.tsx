@@ -2,7 +2,7 @@ import "styles/productDetails.css";
 
 import { notFound } from "next/navigation";
 import ComparePage from "components/global/compare";
-export const dynamic = "force-dynamic";
+export const dynamic = "auto";
 export async function generateMetadata({ params, searchParams }) {
   try {
     return {
