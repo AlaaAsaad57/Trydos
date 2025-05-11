@@ -49,7 +49,7 @@ async function FeatureProducts({ lang }) {
   ]);
   if (featuredProducts?.data?.products?.length === 0) return <></>;
   return (
-    <div className="flex-col px-[12px] flex items-start max-w-full">
+    <div className="flex-col px-[12px] flex items-start max-w-full w-full">
       <NextLink
         href={`/${lang}/featured`}
         data={{ is_boutique: true }}

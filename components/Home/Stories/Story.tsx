@@ -1,7 +1,6 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+
 import { errorPNG } from "utils/AxiosApi";
-import Loader from "components/global/Loader";
 import Image from "next/image";
 import StoryServiceClass from "services/story";
 import { Story as StoryType } from "models/story";
