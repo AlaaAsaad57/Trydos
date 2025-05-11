@@ -140,6 +140,7 @@ class StoryService {
     } catch (e) {
       callback(null);
       endUpload();
+      throw e;
     }
   }
   getUserStories() {
