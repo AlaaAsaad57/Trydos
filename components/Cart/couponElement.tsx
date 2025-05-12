@@ -109,7 +109,7 @@ const CouponElement = ({ active, setActive, close }) => {
                   coupon ? "min-w-full" : "w-[100px] min-w-[100px]"
                 } flex items-center justify-center h-[40px] rounded-[15px] bg-white`}
                 style={{ border: "1px solid rgb(56 144 255 / 51%)" }}
-                onClick={applyCoupon}
+                onClick={() => applyCoupon()}
               >
                 {loading
                   ? translateFunction("Applying...")

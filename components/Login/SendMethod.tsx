@@ -223,7 +223,7 @@ function SendMethod({
                 data-cy="Edit-Phone-Number-plus"
                 style={{ color: "#5d5d5d" }}
               >
-                +{inputValue}
+                {inputValue}
               </span>
               {!hideEdit && (
                 <span data-cy="span-edit-number">

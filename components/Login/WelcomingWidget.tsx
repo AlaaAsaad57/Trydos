@@ -149,7 +149,7 @@ function WelcomingWidget({
       </div> */}
       <div className="welcoming-container">
         <div className="welcoming-label">{translate("Hello,", language)}</div>
-        <div className="welcoming-user">{Name || "Alaa Asaad"}</div>
+        <div className="welcoming-user">{Name}</div>
       </div>
       <div
         className="welcoming-enjoy"

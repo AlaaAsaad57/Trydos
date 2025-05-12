@@ -276,7 +276,7 @@ function LogInPins({
                   fill="#8d8d8d"
                 />
               </svg>
-              <span style={{ color: "#5d5d5d" }}>+{inputValue}</span>
+              <span style={{ color: "#5d5d5d" }}>{inputValue}</span>
             </div>
             <div className="icon-detail" style={{ marginTop: "5px" }}>
               {MessageMethod === "SMS" ? (
