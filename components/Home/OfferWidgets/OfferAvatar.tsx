@@ -54,7 +54,7 @@ function OfferAvatar({
         src={getImageCld()}
         priority={priority}
         alt="avatar"
-        quality={70}
+        quality={100}
         width={40}
         height={40}
         unselectable="on"
