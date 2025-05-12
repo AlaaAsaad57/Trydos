@@ -1,16 +1,12 @@
 /** @type {import('next').NextConfig} */
 
+import { NextConfig } from "node_modules/next";
+
 const path = require("path");
-let nextConfig = {
+let nextConfig: NextConfig = {
   swcMinify: true,
   reactStrictMode: false,
   compress: true,
-  logging: {
-    fetches: {
-      hmrRefreshes: true,
-      fullUrl: true,
-    },
-  },
   async headers() {
     return [
       {
@@ -44,6 +40,8 @@ let nextConfig = {
   },
   images: {
     unoptimized: false,
+    formats: ["image/avif"],
+    qualities: [70, 80, 90, 100],
     domains: [
       "res.cloudinary.com",
       "eu.ui-avatars.com",

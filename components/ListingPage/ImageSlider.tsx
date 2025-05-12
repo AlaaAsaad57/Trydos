@@ -5,6 +5,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { useRef } from "react";
 import PointsSlider from "./PointsSlider";
 import { getConfiguredImage } from "utils/functions";
+import Image from "node_modules/next/image";
 
 function ImageSlider({
   renderVar,
@@ -96,7 +97,9 @@ function ImageSlider({
                   {/* <BorderImage isBig={true} /> */}
                   <div className="inset-shadow-img w-100 h-100 rounded-15 absolute" />
                   {(isActive || i === 0) && (
-                    <img
+                    <Image
+                      width={400}
+                      height={300}
                       loading="eager"
                       fetchPriority="auto"
                       style={{ borderRadius: "15px", zIndex: "3" }}

@@ -4,6 +4,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import BorderImage from "./BorderImage";
 
 import { getConfiguredImage } from "utils/functions";
+import Image from "next/image";
 // import { stopProgress } from "next-nprogress-bar";
 function ColorSlider({
   active,
@@ -93,11 +94,12 @@ function ColorSlider({
                 <>
                   <BorderImage isBig={false} />
                   <div className="inset-shadow-img rounded-15 absolute w-100 h-100" />
-                  <img
+                  <Image
                     loading="eager"
                     fetchPriority="auto"
                     style={{ borderRadius: "15px", zIndex: "3" }}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    width={400}
+                    height={300}
                     src={getConfiguredImage({
                       src: img.images[0].file_path,
                       width: 400,

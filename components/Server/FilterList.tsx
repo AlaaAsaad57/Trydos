@@ -8,6 +8,7 @@ import InfiniteScrollFilters from "components/ListingPage/filterComponents/Infin
 
 import SwitchFiltersButton from "components/filterPage/SwitchFiltersButton";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
+import Image from "next/image";
 
 function FilterList({
   searchParams,
@@ -164,7 +165,8 @@ const ActiveFiltersBar = ({
                       </g>
                     </svg>
 
-                    <img
+                    <Image
+                      alt={category?.name}
                       width={20}
                       height={20}
                       src={(
@@ -185,7 +187,7 @@ const ActiveFiltersBar = ({
                         }).flat_photo_path?.file_path
                       )?.replace(
                         "/upload",
-                        "/upload/w_50,h_50,c_fit/f_avif/q_100"
+                        "/upload/w_100,h_100,c_fit/f_avif/q_100"
                       )}
                     />
                   </div>
@@ -235,7 +237,8 @@ const ActiveFiltersBar = ({
                                 <circle cx="5" cy="5" r="4.75" fill="none" />
                               </g>
                             </svg>
-                            <img
+                            <Image
+                              alt={s?.name}
                               src={(
                                 s.icon?.file_path ||
                                 filters.categories.filter(
@@ -243,7 +246,7 @@ const ActiveFiltersBar = ({
                                 )[0]?.icon?.file_path
                               )?.replace(
                                 "/upload",
-                                "/upload/w_50,h_50,c_fit/f_avif/q_100"
+                                "/upload/w_100,h_100,c_fit/f_avif/q_100"
                               )}
                               width={10}
                               height={10}
@@ -295,7 +298,8 @@ const ActiveFiltersBar = ({
                       </g>
                     </svg>
 
-                    <img
+                    <Image
+                      alt={category?.name}
                       width={20}
                       height={20}
                       src={getItemData({
@@ -304,7 +308,7 @@ const ActiveFiltersBar = ({
                         key: "slug",
                       })?.banner?.file_path?.replace(
                         "/upload",
-                        "/upload/w_50,h_50,c_fit/f_avif/q_100"
+                        "/upload/w_100,h_100,c_fit/f_avif/q_100"
                       )}
                     />
                   </div>
@@ -356,7 +360,8 @@ const ActiveFiltersBar = ({
                       </g>
                     </svg>
 
-                    <img
+                    <Image
+                      alt={brand?.name}
                       width={20}
                       height={20}
                       src={getItemData({
@@ -365,7 +370,7 @@ const ActiveFiltersBar = ({
                         key: "slug",
                       })?.icon?.file_path?.replace(
                         "/upload",
-                        "/upload/w_50,h_50,c_fit/f_avif/q_100"
+                        "/upload/w_100,h_100,c_fit/f_avif/q_100"
                       )}
                     />
                   </div>
@@ -621,7 +626,8 @@ export const FilterItem = ({
               </g>
             </svg>
             <div className="category-shadow"></div>
-            <img
+            <Image
+              alt={item?.name}
               width={70}
               height={70}
               className="object-center bg-white"
@@ -629,7 +635,7 @@ export const FilterItem = ({
                 item.most_viewed_product_thumbnail?.file_path ??
                 item.flat_photo_path?.file_path ??
                 item?.icon?.file_path
-              )?.replace("/upload", "/upload/w_50,h_50,c_fit/f_avif/q_100")}
+              )?.replace("/upload", "/upload/w_100,h_100,c_fit/f_avif/q_100")}
             />
           </div>
           <div className="category-text-container flex-col align-center max-w-[70px]">
@@ -713,7 +719,8 @@ export const FilterItem = ({
                       </g>
                     </svg>
 
-                    <img
+                    <Image
+                      alt={s?.name}
                       width={50}
                       height={50}
                       className="bg-white"
@@ -800,7 +807,8 @@ export const FilterItem = ({
                                 </g>
                               </svg>
 
-                              <img
+                              <Image
+                                alt={s?.name}
                                 className="min-w-[40px] min-h-[40px] w-[40px] h-[40px]"
                                 width={40}
                                 height={40}
@@ -875,13 +883,14 @@ export const FilterItem = ({
             </g>
           </svg>
           <div className="category-shadow"></div>
-          <img
+          <Image
+            alt={item?.name}
             className="brand-photo"
             width={70}
             height={70}
             src={item.icon?.file_path?.replace(
               "/upload",
-              "/upload/w_50,h_50,c_fit/f_avif/q_100"
+              "/upload/w_100,h_100,c_fit/f_avif/q_100"
             )}
           />
         </div>

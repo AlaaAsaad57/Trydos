@@ -10,6 +10,7 @@ import { RoundPrice } from "utils/functions";
 import ProductsInfiniteScroll from "components/ListingPage/ProductsList";
 import NextLink from "components/global/NextLink";
 import { getActiveFilters } from "./FilterList";
+import Image from "next/image";
 
 function ProductListServer({
   params,
@@ -91,7 +92,7 @@ function ProductListServer({
                 >
                   {product?.brand?.icon &&
                     typeof product.brand.icon === "string" && (
-                      <img
+                      <Image
                         loading={"eager"}
                         src={product?.brand?.icon?.replace(
                           "/upload",
@@ -115,7 +116,7 @@ function ProductListServer({
                       </span>
                       {product?.category?.flat_photo_path?.file_path?.length >
                         0 && (
-                        <img
+                        <Image
                           loading={"eager"}
                           src={product?.category?.flat_photo_path?.file_path?.replace(
                             "/upload",

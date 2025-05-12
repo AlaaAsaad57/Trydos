@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 
 function ImageAvatar({
@@ -66,8 +67,10 @@ function ImageAvatar({
         </div>
       )}
       <div className="shadow-inset-avatar rounded-50 absolute w-100 h-100" />
-      <img
+      <Image
         loading="eager"
+        width={50}
+        height={50}
         src={getConfiguredImage({ src: image, width: 50, height: 50 })}
         alt={alt || "alt"}
         className="w-full"
