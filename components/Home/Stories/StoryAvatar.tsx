@@ -10,7 +10,7 @@ function StoryAvatar({
     <div className={`story-avatar ${isSeen && "is-seen-story"}`}>
       {avatar && (
         <Image
-          quality={60}
+          quality={70}
           loading="eager"
           src={avatar}
           alt="user"

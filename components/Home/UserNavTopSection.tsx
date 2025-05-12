@@ -150,7 +150,7 @@ function UserNavTopSection() {
           <div className="nav-question-item">
             <Image
               src="/svg/userIcon.svg"
-              quality={50}
+              quality={70}
               width={30}
               data-cy="avatar-options"
               onClick={() => setMenuOpen(!menuOpen)}
