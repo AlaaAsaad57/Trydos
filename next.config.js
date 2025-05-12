@@ -1,7 +1,5 @@
 /** @type {import('next').NextConfig} */
 
-import { NextConfig } from "node_modules/next";
-
 const path = require("path");
 let nextConfig = {
   swcMinify: true,
