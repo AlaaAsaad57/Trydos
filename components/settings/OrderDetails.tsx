@@ -11,6 +11,8 @@ import OrderItemsList from "./cards/OrderItemsList";
 import { OrderDetail, OrderItem } from "types/orders";
 import { RoundPrice, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
+import NextLink from "components/global/NextLink";
+import { useParams } from "next/navigation";
 
 function OrderDetails({
   resetOrderDetails,
@@ -531,9 +533,13 @@ const ProductCard = ({
   status: string;
 }) => {
   const { currency, settings } = useAppStore();
-
+  const { lang } = useParams();
   return (
-    <div className="flex-row relative w-full border-t border-[#C4C2C27f] py-[12px]">
+    <NextLink
+      href={`/${lang}/products/${product.product_details.slug}`}
+      data={{ is_product: true, ...product.product_details }}
+      className="flex-row relative w-full border-t border-[#C4C2C27f] py-[12px]"
+    >
       <div className="flex-row  relative">
         <div
           className="absolute top-0 z-10 right-0 w-full h-full "
@@ -727,6 +733,6 @@ const ProductCard = ({
           {currency?.symbol}
         </span>
       </div>
-    </div>
+    </NextLink>
   );
 };

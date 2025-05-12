@@ -54,7 +54,13 @@ function MainSetting({
       setLoading(false);
     }
   };
-
+  const getLanguage = () => {
+    // @ts-ignore
+    let iso = lang.split("-")[1];
+    if (iso === "en") return "English";
+    if (iso === "ar") return "العربية";
+    if (iso === "tr") return "Turkish";
+  };
   return (
     <div className="flex-col w-full pt-[20px] px-[12px]">
       <ProfileCard
@@ -120,10 +126,15 @@ function MainSetting({
               {country.name}
             </span>
           </div>
-          <div className="flex-row w-1/2 h-[53px] bg-[#F8F8F8] rounded-[15px] px-[12px] items-center cursor-pointer ml-[12px]">
+          <div
+            className="flex-row w-1/2 h-[53px] bg-[#F8F8F8] rounded-[15px] px-[12px] items-center cursor-pointer ml-[12px]"
+            onClick={() => {
+              swipeToScreen(11);
+            }}
+          >
             <LanguageIcon />
             <span className="text-[#1D1D1D] text-[14px] regular ml-[12px]">
-              English
+              {getLanguage()}
             </span>
           </div>
         </div>

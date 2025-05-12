@@ -18,6 +18,7 @@ import OrderDetails from "./OrderDetails";
 import { useAppStore } from "store";
 
 import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
+import LanguageSetting from "./LanguageSetting";
 
 interface SettingOption {
   id: string;
@@ -170,6 +171,11 @@ function Settings({ lang }: { lang: string }) {
         />
       ),
       parentId: "Orders",
+    },
+    {
+      id: "Language",
+      title: "Language",
+      component: <LanguageSetting goBack={() => swipeToScreen(0)} />,
     },
   ]);
   let searchParams = useSearchParams();

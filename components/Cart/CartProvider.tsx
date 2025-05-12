@@ -91,19 +91,6 @@ const CartProvider = () => {
         }
       }
     });
-    if (searchParams?.get("message")?.length > 0) {
-      let message = searchParams.get("message");
-      if (message === "product_not_found") {
-        toast.error("Product not found");
-      }
-      if (message === "boutique_not_found") {
-        toast.error("Boutique not found");
-      }
-      const newParams = new URLSearchParams(searchParams);
-      newParams.delete("message");
-      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
-    }
   }, []);
 
   useEffect(() => {

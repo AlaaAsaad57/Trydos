@@ -110,7 +110,7 @@ async function Page({ params, searchParams }: Props) {
 
       <div className="product-details-slider" key={`key-${color}`}>
         <ProductImagesSlider>
-          {getImages(product, color).images.map((img, i) => (
+          {getImages(product, color)?.images?.map((img, i) => (
             <div className="embla__slide product-slider-images" key={img}>
               <Image
                 width={320}

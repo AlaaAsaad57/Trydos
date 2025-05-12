@@ -12,8 +12,13 @@ import { dispatchRouteChangeEvent } from "utils/events";
 import SearchContainer from "./Search/SearchContainer";
 import auth from "services/auth";
 import { useAppStore } from "store";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { toast } from "react-toastify";
 
 export default function Home() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { resetFilters, selectedStory, enable_search, nameModal } =
     useAppStore();
   useEffect(() => {
@@ -24,6 +29,19 @@ export default function Home() {
     try {
       initFB();
     } catch (e) {}
+    if (searchParams?.get("message")?.length > 0) {
+      let message = searchParams.get("message");
+      if (message === "product_not_found") {
+        toast.error("Product not found");
+      }
+      if (message === "boutique_not_found") {
+        toast.error("Boutique not found");
+      }
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("message");
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
+    }
   }, []);
   const initFB = async () => {
     resetFilters();

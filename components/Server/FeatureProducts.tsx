@@ -15,7 +15,13 @@ async function FeatureProducts({ lang }) {
   const getFeaturedProducts = async () => {
     try {
       const featuredProducts = await fetch(
-        process.env.NEXT_PUBLIC_API_BASE_URL + `/api/${lang}/featured`
+        process.env.NEXT_PUBLIC_API_BASE_URL + `/api/${lang}/featured`,
+        {
+          next: {
+            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+            tags: ["featured-Products-Api"],
+          },
+        }
       );
       let data = await featuredProducts.json();
       return data;
@@ -33,6 +39,7 @@ async function FeatureProducts({ lang }) {
           method: "GET",
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
+            tags: ["currency-api"],
           },
         }
       );

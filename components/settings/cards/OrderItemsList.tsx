@@ -1,6 +1,8 @@
 import React from "react";
 import { OrdersIcon } from "../OrdersList";
 import { translateFunction } from "utils/functions";
+import { useParams } from "next/navigation";
+import NextLink from "components/global/NextLink";
 
 function OrderItemsList({
   items,
@@ -11,6 +13,7 @@ function OrderItemsList({
   isExpanded: boolean;
   setExpanded: (s: boolean) => void;
 }) {
+  const { lang } = useParams();
   return (
     <div className="w-full flex-col">
       <div
@@ -37,8 +40,10 @@ function OrderItemsList({
         } flex-row   items-center pl-[12px]  whitespace-nowrap overflow-x-scroll overflow-y-hidden [&::-webkit-scrollbar]:hidden`}
       >
         {items.map((product) => (
-          <div
+          <NextLink
             key={product.product_details.id}
+            href={`/${lang}/products/${product.product_details.slug}`}
+            data={{ is_product: true, ...product.product_details }}
             className="flex-row cursor-pointer items-center relative w-[91px] h-[125px] ml-[5px]"
           >
             <img
@@ -226,7 +231,7 @@ function OrderItemsList({
                 boxShadow: "inset 0px 3px 6px rgba(255, 255, 255, 0.5)",
               }}
             />
-          </div>
+          </NextLink>
         ))}
       </div>
     </div>
