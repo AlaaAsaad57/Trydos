@@ -3,7 +3,7 @@
 import { NextConfig } from "node_modules/next";
 
 const path = require("path");
-let nextConfig: NextConfig = {
+let nextConfig = {
   swcMinify: true,
   reactStrictMode: false,
   compress: true,
