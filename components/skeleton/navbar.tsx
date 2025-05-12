@@ -1,6 +1,6 @@
 import React from "react";
 import Skeleton from "react-loading-skeleton";
-import CategoriesBarSkeleton from "./CategoriesBar";
+
 import MobileNavigationSkeleton from "./MobileNavigation";
 
 function NavbarSkeleton({ noCategory }: { noCategory: boolean }) {
@@ -10,7 +10,7 @@ function NavbarSkeleton({ noCategory }: { noCategory: boolean }) {
         <div className="logo-container">
           <Skeleton width={150} height={26} />
         </div>
-        {!noCategory && <CategoriesBarSkeleton />}
+
         <div className="user-nav-container">
           <div className={`welcome-user`}>
             <span>

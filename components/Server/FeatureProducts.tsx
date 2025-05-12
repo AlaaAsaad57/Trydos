@@ -4,6 +4,7 @@ import {
   BuyButtonProduct,
   ProductPhotosSlider,
 } from "components/ListingPage/Product";
+import Image from "next/image";
 import React, { Suspense } from "react";
 import {
   getConfiguredImage,
@@ -100,7 +101,10 @@ async function FeatureProducts({ lang }) {
               data-cy="on_mouse_over_product"
             >
               <div className="max-h-[130px] w-full">
-                <img
+                <Image
+                  alt={product.name}
+                  width={150}
+                  height={130}
                   className="rounded w-full flex  max-h-[130px] min-h-[130px]"
                   src={getConfiguredImage({
                     src: product.thumbnail,
@@ -116,7 +120,8 @@ async function FeatureProducts({ lang }) {
                 >
                   {product?.brand?.icon &&
                     typeof product.brand.icon === "string" && (
-                      <img
+                      <Image
+                        alt={product?.brand?.name}
                         loading={"eager"}
                         src={product?.brand?.icon?.replace(
                           "/upload",
@@ -124,7 +129,6 @@ async function FeatureProducts({ lang }) {
                         )}
                         width={16}
                         height={7}
-                        alt={product.name}
                         className="max-h-[20px] max-w-[40px]"
                       />
                     )}
@@ -140,7 +144,7 @@ async function FeatureProducts({ lang }) {
                       </span>
                       {product?.category?.flat_photo_path?.file_path?.length >
                         0 && (
-                        <img
+                        <Image
                           loading={"eager"}
                           src={product?.category?.flat_photo_path?.file_path?.replace(
                             "/upload",
@@ -153,7 +157,7 @@ async function FeatureProducts({ lang }) {
                             minWidth: "10px",
                             minHeight: "10px",
                           }}
-                          alt={product.name}
+                          alt={product?.category?.name}
                           className="max-h-[20px] max-w-[40px]"
                         />
                       )}

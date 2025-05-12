@@ -28,7 +28,6 @@ function OfferSlideItem({
               `/upload/h_342/f_avif/q_auto`
             )}
             width={900}
-            unoptimized
             height={342}
             alt="offer"
           />

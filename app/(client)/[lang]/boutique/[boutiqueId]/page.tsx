@@ -216,62 +216,44 @@ export default async function Page({
   if (boutique === "NOT_FOUND") {
     redirect(`/${params.lang}?message=boutique_not_found`);
   }
-  // const jsonLd = {
-  //   "@context": "https://schema.org",
-  //   "@type": "Store",
-  //   name: boutique.name,
-  //   description: boutique.description,
-  //   image: boutique.banners?.[0]?.file_path,
-  //   hasOfferCatalog: {
-  //     "@type": "OfferCatalog",
-  //     name: "Product Listing",
-  //     itemListElement: filtersData.products.map((product) => ({
-  //       "@type": "Product",
-  //       name: product.name,
-  //       image: product?.images?.[0]?.file_path,
-  //       offers: {
-  //         "@type": "Offer",
-  //         priceCurrency: currency?.name, // Update currency if necessary
-  //         price: product?.price,
-  //         availability: "https://schema.org/InStock",
-  //         url:
-  //           process.env.NEXT_PUBLIC_REMOTE_FRONT +
-  //           `${params.lang}/products/${product.slug}`,
-  //       },
-  //       color: product.colors?.map((s) => s.name),
-  //       brand: {
-  //         "@type": "Brand",
-  //         name: product.brand,
-  //       },
-  //       category: product.category,
-  //     })),
-  //   },
-  //   filter: {
-  //     "@type": "OfferFilter",
-  //     category: filtersData?.categories.map((category) => ({
-  //       "@type": "Category",
-  //       name: category.name,
-  //       icon: category.icon,
-  //     })),
-  //     brand: filtersData?.brands.map((brand) => ({
-  //       "@type": "Brand",
-  //       name: brand.name,
-  //       icon: brand.icon,
-  //     })),
-  //     color: filtersData?.colors.map((color) => ({
-  //       "@type": "Color",
-  //       name: color.name,
-  //       colorCode: color.code,
-  //     })),
-  //     priceRange: filtersData?.prices?.priceRanges?.map((range) => ({
-  //       "@type": "PriceRange",
-  //       name: range,
-  //     })),
-  //   },
-  // };
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    name: boutique.name,
+    description: boutique.name,
+    image: boutique.banners?.[0]?.file_path,
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Product Listing",
+      itemListElement: filtersData.products.map((product) => ({
+        "@type": "Product",
+        name: product.name,
+        image: product?.images?.[0]?.file_path,
+        offers: {
+          "@type": "Offer",
+          priceCurrency: currency?.name, // Update currency if necessary
+          price: product?.price * currency?.exchange_rate,
+          availability: "https://schema.org/InStock",
+          url:
+            process.env.NEXT_PUBLIC_REMOTE_FRONT +
+            `${params.lang}/products/${product.slug}`,
+        },
+        color: product.colors?.map((s) => s.name),
+        brand: {
+          "@type": "Brand",
+          name: product.brand?.name,
+        },
+        category: product.category?.name,
+      })),
+    },
+  };
   return (
     <>
       <Suspense fallback={<></>}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <FilterWidgetContainer key={JSON.stringify(EditedSearchParams)} />
       </Suspense>
       <div className="filter-listing-bar relative flex-row align-center">
@@ -362,7 +344,12 @@ async function BoutiqueHeader({ boutique }) {
           data-cy="boutique_top_info"
         >
           <div className="boutique-logo-container flex-row align-center">
-            <img width={130} height={20} src={boutique?.icon} />
+            <Image
+              alt={boutique?.name}
+              width={130}
+              height={20}
+              src={boutique?.icon}
+            />
             <VerificationIcon />
             <TopStarIcon />
           </div>
@@ -407,7 +394,6 @@ const BouqiuePhotoSlider = ({ banners }) => {
                         width: 900,
                       })}
                       width={380}
-                      unoptimized
                       height={135}
                       alt="offer"
                     />

@@ -43,7 +43,7 @@ let nextConfig = {
     ];
   },
   images: {
-    unoptimized: true,
+    unoptimized: false,
     domains: [
       "res.cloudinary.com",
       "eu.ui-avatars.com",

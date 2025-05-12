@@ -105,7 +105,6 @@ function ProductDetailsSlider({
                       width: 500,
                       height: 700,
                     })}
-                    unoptimized
                   />
                 </div>
               ))}

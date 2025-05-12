@@ -100,7 +100,6 @@ function TopSlider({
               })}
               width={30}
               height={40}
-              unoptimized
               alt={product_name || "alt"}
               loading="eager"
               style={{

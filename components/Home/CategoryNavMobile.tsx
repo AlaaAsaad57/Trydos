@@ -67,7 +67,6 @@ function CategoryNavMobile({
       {
         <div className="categories-bar-item-icon" data-cy="categoryIcons">
           <Image
-            unoptimized
             width={25}
             height={25}
             alt={name}

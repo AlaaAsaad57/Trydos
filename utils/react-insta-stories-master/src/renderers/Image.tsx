@@ -5,6 +5,7 @@ import WithHeader from "./wrappers/withHeader";
 import WithSeeMore from "./wrappers/withSeeMore";
 import { SelectStory } from "../../../../store/homepage/actions";
 import XIcon from "../../../../public/svg/Xicon.svg";
+import Image from "next/image";
 export const renderer: Renderer = ({
   story,
   action,
@@ -63,7 +64,10 @@ export const renderer: Renderer = ({
               {story.link}
             </a>
           )}
-          <img
+          <Image
+            width={820}
+            height={1000}
+            alt="stories"
             style={{
               ...computedStyles,
               opacity: loaded ? 1 : 0,

@@ -28,7 +28,6 @@ function ShareAvatar({
           height={80}
           alt="Omar"
           src={contact.contact_user?.photo_path ?? profilePng}
-          unoptimized
         />
       </div>
       <div className="share-name">

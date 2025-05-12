@@ -57,7 +57,6 @@ function OfferAvatar({
         quality={60}
         width={40}
         height={40}
-        unoptimized
         unselectable="on"
         style={{ borderRadius: "50%", height: "40px" }}
       />

@@ -35,7 +35,6 @@ function BoutiquePhoto({ photo }) {
                         width: 900,
                       })}
                       width={380}
-                      unoptimized
                       height={135}
                       alt="offer"
                     />
