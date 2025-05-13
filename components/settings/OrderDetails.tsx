@@ -15,7 +15,6 @@ import NextLink from "components/global/NextLink";
 import { useParams } from "next/navigation";
 import OrderStatusCartsIcon from "./cards/OrderStatusCartsIcon";
 import OrderStatusIcon from "./cards/OrderStatusIcon";
-import RatingStars from "./cards/RatingStars";
 
 function OrderDetails({
   resetOrderDetails,
@@ -72,6 +71,7 @@ function OrderDetails({
       </div>
       <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full">
         <OrderItemsList
+          order_group_status={selectedOrder.order_status.label}
           setExpanded={setIsExpanded}
           isExpanded={isExpanded}
           items={selectedOrder.details}

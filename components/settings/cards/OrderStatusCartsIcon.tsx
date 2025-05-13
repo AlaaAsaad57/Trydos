@@ -54,7 +54,7 @@ function OrderStatusCartsIcon({ status }) {
 }
 
 export default OrderStatusCartsIcon;
-const PendingStatus = () => {
+export const PendingStatus = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -121,7 +121,7 @@ const PendingStatus = () => {
     </svg>
   );
 };
-const PreparingStatus = () => {
+export const PreparingStatus = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -188,7 +188,7 @@ const PreparingStatus = () => {
     </svg>
   );
 };
-const DeliveredStatus = () => {
+export const DeliveredStatus = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -255,7 +255,7 @@ const DeliveredStatus = () => {
     </svg>
   );
 };
-const ShippedSatus = () => {
+export const ShippedSatus = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
