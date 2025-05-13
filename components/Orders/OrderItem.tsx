@@ -9,6 +9,7 @@ import { OrderItem as OrderItemType } from "../../types/orders";
 import { useParams } from "next/navigation";
 
 import { useAppStore } from "store";
+import OrderStatusIcon from "components/settings/cards/OrderStatusIcon";
 
 interface OrderItemProps {
   order: OrderItemType;
@@ -151,102 +152,9 @@ const OrderStatus = ({ status }: { status: string }) => {
       <span className="ml-[4px] text-[#1D1D1D] text-[12px] regular">
         {status}
       </span>
-      <svg
-        className="ml-[7px]"
-        xmlns="http://www.w3.org/2000/svg"
-        xmlnsXlink="http://www.w3.org/1999/xlink"
-        width="15"
-        height="15"
-        viewBox="0 0 15 15"
-      >
-        <defs>
-          <clipPath id="clip-path343">
-            <rect
-              id="Rectangle_4561"
-              data-name="Rectangle 4561"
-              width="15"
-              height="15"
-              fill="none"
-            />
-          </clipPath>
-        </defs>
-        <g
-          id="Mask_Group_689"
-          data-name="Mask Group 689"
-          clipPath="url(#clip-path343)"
-        >
-          <g id="work" transform="translate(0 0.298)">
-            <path
-              id="Path_22949"
-              data-name="Path 22949"
-              d="M4.739,10.128v5.131H7.132V12.182h4.288v3.077h.312V12.182H15.4V10.128Z"
-              transform="translate(-0.79 -1.192)"
-            />
-            <path
-              id="Path_22950"
-              data-name="Path 22950"
-              d="M12.173,8.75h2.919v.877H12.173Z"
-              transform="translate(-2.029 -0.962)"
-            />
-            <path
-              id="Path_22951"
-              data-name="Path 22951"
-              d="M12.416,7.484h2.919v.878H12.416Z"
-              transform="translate(-2.069 -0.751)"
-            />
-            <path
-              id="Path_22952"
-              data-name="Path 22952"
-              d="M6.376,4.568l.3.2.294-.114a.5.5,0,0,1,.182-.034.5.5,0,0,1,.444.745l.139.09H9.283l.02-.03L6.854,3.832Z"
-              transform="translate(-1.063 -0.143)"
-            />
-            <path
-              id="Path_22953"
-              data-name="Path 22953"
-              d="M11.714,12.868H10.243V14.4l-.167-.114-.151.114-.141-.114-.161.114-.158-.114-.108.114v-1.53H7.886v3.183h3.829Z"
-              transform="translate(-1.314 -1.649)"
-            />
-            <path
-              id="Path_22954"
-              data-name="Path 22954"
-              d="M13.406,16.051h3.829V12.868H15.763V14.4l-.167-.114-.151.114-.141-.114-.161.114-.158-.114-.108.114v-1.53H13.406Z"
-              transform="translate(-2.234 -1.649)"
-            />
-            <path
-              id="Path_22955"
-              data-name="Path 22955"
-              d="M1.91,13.695a.574.574,0,0,0,.523.621l.05,0a.574.574,0,0,0,.571-.525l.289-3.358h0a.571.571,0,0,0,0-.068s0-.008,0-.013,0-.036-.006-.055c0,0,0-.006,0-.009L2.919,7.826a6.407,6.407,0,0,1,.135-2.172L2.062,4.6a.505.505,0,0,1,.368-.851.507.507,0,0,1,.368.159l.936.994.179.143a.373.373,0,0,0,.428.027l.95-.583,0,0,.622-.957.648.421,0-.008a.373.373,0,0,0-.16-.5L6.139,3.3a.373.373,0,0,0-.367.013l-1.6.981L2.912,3.29A.372.372,0,0,0,2.8,3.23.929.929,0,0,0,1.438,3.9c-.225.757.537,1.127-.367,3.1a1.276,1.276,0,0,0-.122.438.57.57,0,0,0,.037.351l1.2,2.7Z"
-              transform="translate(-0.156 -0.023)"
-            />
-            <path
-              id="Path_22956"
-              data-name="Path 22956"
-              d="M1.742,1.227a1.372,1.372,0,0,1,.042-.2C1.344,1.073.827,1.3.742,2.278.66,3.237.32,3.354.063,3.314s.32.523.992-.04c.517-.433.312-1.529.678-1.8A1.367,1.367,0,0,1,1.742,1.227Z"
-              transform="translate(0 0.325)"
-            />
-            <circle
-              id="Ellipse_536"
-              data-name="Ellipse 536"
-              cx="1.234"
-              cy="1.234"
-              r="1.234"
-              transform="translate(1.366 1.503) rotate(-37.523)"
-            />
-            <path
-              id="Path_22957"
-              data-name="Path 22957"
-              d="M7.146,5.983l-1.023.395L5.707,8.384l.223.046.28-1.35V9.166h3.829V7.08l.28,1.35.223-.046-.5-2.4h-2.9Z"
-              transform="translate(-0.951 -0.501)"
-            />
-            <path
-              id="Path_22958"
-              data-name="Path 22958"
-              d="M6.607,5.5a.373.373,0,1,0-.269-.7L4.288,5.6,2.925,4.152a.373.373,0,1,0-.543.512l1.535,1.63a.373.373,0,0,0,.406.092Z"
-              transform="translate(-0.38 -0.176)"
-            />
-          </g>
-        </g>
-      </svg>
+      <span className="ml-[7px]">
+        <OrderStatusIcon status={status} />
+      </span>
     </div>
   );
 };
