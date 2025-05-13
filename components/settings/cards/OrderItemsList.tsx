@@ -3,6 +3,7 @@ import { OrdersIcon } from "../OrdersList";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import NextLink from "components/global/NextLink";
+import RatingStars from "./RatingStars";
 
 function OrderItemsList({
   items,
@@ -36,27 +37,36 @@ function OrderItemsList({
       </div>
       <div
         className={` ${
-          isExpanded ? "h-0 pb-[0px] mt-[0px]" : "pb-[50px] mt-[12px] "
-        } flex-row   items-center pl-[12px]  whitespace-nowrap overflow-x-scroll overflow-y-hidden [&::-webkit-scrollbar]:hidden`}
+          isExpanded ? "h-0 pb-[0px] mt-[0px]" : "pb-[62px] mt-[12px] "
+        } flex-row    items-center pl-[12px]  whitespace-nowrap overflow-x-scroll overflow-y-hidden [&::-webkit-scrollbar]:hidden`}
       >
         {items.map((product) => (
-          <NextLink
-            key={product.product_details.id}
-            href={`/${lang}/products/${product.product_details.slug}`}
-            data={{ is_product: true, ...product.product_details }}
-            className="flex-row cursor-pointer items-center relative w-[91px] h-[125px] ml-[5px]"
-          >
-            <img
-              className="w-full h-full object-contain bg-white rounded-[15px]"
-              src={product.image}
-              alt={product.product_details.name}
-              width={100}
-              height={100}
-              style={{
-                border: "1px solid #FFFFFF7F",
-              }}
-            />
-            <div className="flex-col text-[10px] regular text-[#1d1d1d] absolute bottom-[-50px] items-center left-0 right-0 mx-[0_auto]">
+          <div className="relative flex-col">
+            <NextLink
+              key={product.product_details.id}
+              href={`/${lang}/products/${product.product_details.slug}`}
+              data={{ is_product: true, ...product.product_details }}
+              className="flex-row cursor-pointer items-center relative w-[91px] h-[125px] ml-[5px]"
+            >
+              <img
+                className="w-full h-full object-contain bg-white rounded-[15px]"
+                src={product.image}
+                alt={product.product_details.name}
+                width={100}
+                height={100}
+                style={{
+                  border: "1px solid #FFFFFF7F",
+                }}
+              />
+
+              <div
+                className="absolute z-10 top-0 left-0 w-full h-full "
+                style={{
+                  boxShadow: "inset 0px 3px 6px rgba(255, 255, 255, 0.5)",
+                }}
+              />
+            </NextLink>
+            <div className="flex-col text-[10px] regular text-[#1d1d1d] absolute bottom-[-60px] items-center left-0 right-0 mx-[0_auto]">
               <div className="flex flex-row">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -224,14 +234,11 @@ function OrderItemsList({
               </div>
               <span className="mt-[2px]">{product?.variation?.color}</span>
               <span>{product?.variation?.Size}</span>
+              <div className="flex-row mt-[4px]">
+                <RatingStars initialRating={1.5} onRatingChange={(e) => {}} />
+              </div>
             </div>
-            <div
-              className="absolute z-10 top-0 left-0 w-full h-full "
-              style={{
-                boxShadow: "inset 0px 3px 6px rgba(255, 255, 255, 0.5)",
-              }}
-            />
-          </NextLink>
+          </div>
         ))}
       </div>
     </div>

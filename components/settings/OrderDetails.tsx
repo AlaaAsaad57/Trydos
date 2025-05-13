@@ -15,6 +15,7 @@ import NextLink from "components/global/NextLink";
 import { useParams } from "next/navigation";
 import OrderStatusCartsIcon from "./cards/OrderStatusCartsIcon";
 import OrderStatusIcon from "./cards/OrderStatusIcon";
+import RatingStars from "./cards/RatingStars";
 
 function OrderDetails({
   resetOrderDetails,
