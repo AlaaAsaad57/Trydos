@@ -36,7 +36,7 @@ declare global {
       SkipForNow(): Chainable<void>;
       WaitUntilLoadWebsiteAndlogoutAndViewport(): Chainable<void>;
       HaveAccount(): Chainable<void>;
-      OpenBoutiqueAndAddProductToCartFromBoutiquePage(): Chainable<any>;
+      AddProductToCartFromBoutiquePage(): Chainable<any>;
       OpenBoutiqueAndAddProductToCartFromBoutiqueDatailPage(): Chainable<void>;
       RequestForThreeServers(): Chainable<void>;
       CreateNewAccount(): Chainable<void>;
@@ -49,7 +49,7 @@ declare global {
       ChooseWayToRecieveOtpAndWaitOtpRequest(): Chainable<void>;
       ComplateLoginByMobilePhone(): Chainable<void>;
       OpenLoginInterface(): Chainable<void>;
-      ColoredFieldRed(): Chainable<void>;
+      IncorrectCntry(): Chainable<void>;
       typePincode(pincode: string): Chainable<void>;
       enterPhoneNumber(phoneNumber: string): Chainable<void>;
       reEnterPhoneNumber(phoneNumber: string): Chainable<void>;
@@ -71,6 +71,10 @@ declare global {
       openOrdersWhenLogin(): Chainable<void>;
       ChooseBoutiqueAndVerifyComponentsAndBoxsInBoutiquePage(): Chainable<void>;
       ComplateAddProductOperationAndGoCartPage(): Chainable<void>;
+      ChooseBoutiqueAndOpenItsPage(): Chainable<void>;
+      checkOutBoutiquePage(): Chainable<void>;
+      verifyColorsAndSizesIfFounded(): Chainable<void>;
+      verifyExtendedArea(): Chainable<void>;
     }
     interface Window {
       isKeyboardOpen?: boolean;

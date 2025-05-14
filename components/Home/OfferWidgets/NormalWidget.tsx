@@ -23,6 +23,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
         />
       </Suspense>
       <NextLink
+        data-cy="second_boutique_component"
         href={`/${lang}/boutique/${boutique.slug}`}
         data={{
           is_boutique: true,
@@ -34,10 +35,14 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
         id={`boutique-${boutique.slug}`}
         key={boutique.slug}
       >
-        <div className="offer-container cursor-pointer">
-          <div className="offer-logo">
+        <div
+          className="offer-container cursor-pointer"
+          data-cy="offer_container_boutique"
+        >
+          <div className="offer-logo" data-cy="boutique_logo">
             {boutique.icon?.file_path && (
               <Image
+                data-cy="boutique_Image"
                 id={"img-" + boutique.id}
                 className="object-contain"
                 alt={boutique.name}
@@ -70,7 +75,10 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
               OfferPhotos={boutique.banners || []}
             />
           ) : (
-            <div className="offer-slider-container">
+            <div
+              className="offer-slider-container"
+              data-cy="offer_slider_container"
+            >
               {boutique?.banners && boutique?.banners[0] && (
                 <OfferSlideItem
                   mykey={myKey}

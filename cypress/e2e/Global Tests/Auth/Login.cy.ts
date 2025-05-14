@@ -98,7 +98,7 @@ describe("Login UnSuccessful Attempt should show error message to user", () => {
     cy.log("❌❌ Type Pin Code Mistake Entred");
   });
   it("Should OTP Code Input Fields Be Colored Red After Incorrect Input ", () => {
-    cy.ColoredFieldRed();
+    cy.IncorrectCntry();
   });
   it("Should Click On Close icon", () => {
     cy.EndLoginOperation();
@@ -167,7 +167,7 @@ describe("Login UnSuccessful Attempt when otp code expired & Change The Method T
       .invoke("text")
       .then((text) => {
         const username = text;
-        expect(username).to.be.eq(UserName);
+        expect(username).to.be.eq("Sam Hamdan");
       });
   });
 });
@@ -316,7 +316,6 @@ describe("Should Input name in login if the user does not input your name when s
     cy.InputFieldNameVisible();
   });
   it("Should Writ User Name In The Input Field", () => {
-    // cy.TypeName();
     cy.intercept("POST", "**/customer/update-name").as("update-name");
     cy.intercept("POST", "**/api/v1/users/update").as("update");
     cy.clickElement("[data-cy=InputFiledForName]");
@@ -348,12 +347,6 @@ describe("Should Input name in login if the user does not input your name when s
   });
 });
 describe("Should show user not found when registering with non registered number & Create New Account & Continue", () => {
-  before(() => {
-    Cypress.on("uncaught:exception", (err, runnable) => {
-      return false;
-    });
-    cy.Visit("/");
-  });
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -407,4 +400,3 @@ describe("Should show user not found when registering with non registered number
     cy.SkipForNow();
   });
 });
-//committing

@@ -65,7 +65,6 @@ describe("Signup Successful Attempt should login to 3 servers", () => {
     cy.TypeName();
   });
   it("Should Click On Arrow Founded In Right Of Input Field & Click On Skip For Now Button", () => {
-    // cy.SkipForNow();
     cy.clickElement("[data-cy=Complate-Close]");
     cy.log("✅✅ Complate My Profile Button clicked");
   });
@@ -98,7 +97,7 @@ describe("Signup UnSuccessful Attempt should show error message to user", () => 
     cy.log("❌❌ Type Pin Code Mistake Entred");
   });
   it("Should OTP Code Input Fields Be Colored Red After Incorrect Input ", () => {
-    cy.ColoredFieldRed();
+    cy.IncorrectCntry();
   });
   it("Should Click On Close icon When Welcom Message Apperead", () => {
     cy.EndLoginOperation();

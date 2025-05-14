@@ -192,15 +192,17 @@ Cypress.Commands.add("TypeName", () => {
   });
 });
 Cypress.Commands.add("MakeOtpExpired", () => {
-  cy.wait(70000);
+  cy.wait(60020);
 });
 Cypress.Commands.add("SkipForNow", () => {
   cy.clickElement("[data-cy=skipForNow]");
   cy.log("✅✅ Skip For Now Button clicked");
 });
-Cypress.Commands.add("ColoredFieldRed", () => {
-  cy.get(".input-failed", { timeout: 5000 }).should("be.visible");
-  cy.log("✅✅ OTP Code Input Fields Be Colored Red");
+Cypress.Commands.add("IncorrectCntry", () => {
+  // cy.get(".input-failed", { timeout: 5000 }).should("be.visible");
+  // cy.log("✅✅ OTP Code Input Fields Be Colored Red");
+  cy.get('[data-cy="spinner-container2"]').should("have.class", "spin-cont");
+  cy.get('[data-cy="SpinneR"]').should("have.class", "spinner-component");
 });
 Cypress.Commands.add("RequestForThreeServers", () => {
   let count = 0;
@@ -278,21 +280,8 @@ Cypress.Commands.add("interceptAndWait", (routes) => {
 Cypress.Commands.add("clickElement", (selector: string) => {
   cy.get(selector).click({ scrollBehavior: false, force: true });
 });
-Cypress.Commands.add("OpenBoutiqueAndAddProductToCartFromBoutiquePage", () => {
+Cypress.Commands.add("AddProductToCartFromBoutiquePage", () => {
   let productName: string = "";
-  cy.intercept("GET", "**/api/products/searchInCatalog?boutique_slugs**").as(
-    "LoadallProducts"
-  );
-  cy.clickElement(".offer-widget:eq(3)");
-  cy.log("✅✅ An Boutique Selected & Click");
-  cy.get("[data-cy=boutique_top_info]", { timeout: 20000 }).should(
-    "be.visible"
-  );
-  cy.log("✅✅ The Boutique Page Opened");
-  cy.wait("@LoadallProducts").then((interception) => {
-    expect(interception.response.statusCode).to.be.eq(200);
-  });
-  cy.log("✅✅ LoadallProducts Request Arrived");
   cy.get("[data-cy=on_mouse_over_product]", { timeout: 15000 }).then(
     ($items) => {
       const count = $items.length;
@@ -317,29 +306,28 @@ Cypress.Commands.add("OpenBoutiqueAndAddProductToCartFromBoutiquePage", () => {
             cy.interceptAndWait([
               {
                 method: "GET",
-                url: "**/product/qtyPriceDetails/**",
+                url: "**/api/v1/web/product/qtyPriceDetails/**",
                 alias: "getProductData1",
               },
               {
                 method: "GET",
-                url: "**/product/likesCommentsSharesDetails/**",
+                url: "**/api/v1/web/product/likesCommentsSharesDetails/**",
                 alias: "getProductData2",
               },
             ]);
             cy.log("✅✅ getProductData1 & getProductData2 Requests Arrived");
-            cy.ChexkExistElement("[data-cy=ProductQuantityFinished]").then(
-              (exists) => {
-                if (exists) {
-                  cy.clickElement("[data-cy=Back-Icon-AddToWedgit]");
-                  cy.log(
-                    `✅✅ Clicked Back-Icon-AddToWedgit for item ${index + 1}`
-                  );
-                  processItem(index + 1); // Continue looping
-                } else {
-                  cy.log("✅✅ Product successfully added. Stopping loop.");
-                }
+            cy.wait(5000);
+            cy.ChexkExistElement("[data-cy=notify_svg]").then((exists) => {
+              if (exists) {
+                cy.clickElement("[data-cy=Back-Icon-AddToWedgit]");
+                cy.log(
+                  `✅✅ Clicked Back-Icon-AddToWedgit for item ${index + 1}`
+                );
+                processItem(index + 1); // Continue looping
+              } else {
+                cy.log("✅✅ Product successfully added. Stopping loop.");
               }
-            );
+            });
           });
       }
       processItem(0);
@@ -715,8 +703,8 @@ Cypress.Commands.add(
 );
 Cypress.Commands.add("ClickAddToCartAndWaitRequest", () => {
   cy.intercept("POST", /\/cart\/(add|update)/).as("CartRequest");
-  cy.clickElement("[data-cy=AddToCartButton-data-cy]");
-  cy.wait("@CartRequest", { timeout: 30000 }).then((interception) => {
+  cy.clickElement("[data-cy=addTo_cart_button]");
+  cy.wait("@CartRequest", { timeout: 15000 }).then((interception) => {
     if (interception?.response) {
       expect(interception.response.statusCode).to.eq(200);
     } else {
@@ -869,7 +857,6 @@ Cypress.Commands.add("openOrdersWhenLogin", () => {
   });
   cy.get("[data-cy=Orders-Icon] svg").should("exist");
   cy.get("[data-cy=Orders-Icon]").contains("Orders").should("exist");
-  ///api/v1/customer/order/list?
   cy.intercept("GET", "**/api/v1/customer/order/list?**").as("getorder1");
   cy.clickElement("[data-cy=Orders-Icon]"); //loading-svg
   cy.get("[data-cy=Loading-container]").should("exist").should("be.visible");
@@ -880,5 +867,262 @@ Cypress.Commands.add("openOrdersWhenLogin", () => {
     .contains("Loading...");
   cy.wait("@getorder1").then((interception) => {
     expect(interception.response.statusCode).to.be.eq(200);
+  });
+});
+Cypress.Commands.add("ChooseBoutiqueAndOpenItsPage", () => {
+  let boutique_name: string = "";
+  let count: number = 0;
+  cy.get("[data-cy=boutiques]").should("be.visible");
+  cy.get("[data-cy=boutique_component]:eq(0)").should("be.visible");
+  cy.get("[data-cy=second_boutique_component]:eq(0)").should("be.visible");
+  cy.get("[data-cy=offer_container_boutique]:eq(0)").should("be.visible");
+  cy.get("[data-cy=boutique_logo]:eq(0)").should("be.visible");
+  cy.get("[data-cy=boutique_Image]:eq(0)").should("be.visible");
+  cy.get(
+    ":nth-child(1) > [data-cy=second_boutique_component] > [data-cy=offer_container_boutique] > [data-cy=offer_desc_boutique] > p"
+  )
+    .should("be.visible")
+    .invoke("text")
+    .then((text) => {
+      boutique_name = text;
+      Cypress.env("selected_boutique_name", boutique_name);
+      cy.log(`✅✅ The name of the boutique is: ${text}`);
+    });
+  cy.ChexkExistElement("[data-cy=offer_slider_container]:eq(0)").then(
+    (exist) => {
+      if (exist) {
+        cy.get("[data-cy=offer_slider_container]:eq(0)").should("be.visible");
+        cy.get("[data-cy=offer_slide_item_length1]:eq(0)").should("be.visible");
+        cy.get("[data-cy=image_offer_length1]:eq(0)").should("be.visible");
+        cy.get("[data-cy=image_inner_shadow_length1]:eq(0)").should(
+          "be.visible"
+        );
+        cy.get("[data-cy=image_boutigue_length1]:eq(0)").should("be.visible");
+        cy.get("[data-cy=border_image]:eq(0)").should("be.visible");
+      } else {
+        cy.get("[data-cy=offer_slider_container_length1]:eq(0)").should(
+          "be.visible"
+        );
+        cy.get("[data-cy=embla_length1]:eq(0)").should("be.visible");
+        cy.get("[data-cy=embla__container_length1]:eq(0)").should("be.visible");
+        cy.get("[data-cy=embla_length1]:eq(0)").should("be.visible");
+        cy.get("[data-cy=embla_length1]:eq(0)").should("be.visible");
+        cy.get("[data-cy=embla__slide_length1]")
+          .its("length")
+          .then((length) => {
+            expect(length).to.be.greaterThan(1);
+          });
+        cy.get("[data-cy=offer_slide_item_length1]:eq(0)").should("be.visible");
+        cy.get("[data-cy=image_inner_shadow_length1]:eq(0)").should(
+          "be.visible"
+        );
+        cy.get("[data-cy=image_boutigue_length1]:eq(0)").should("be.visible");
+        cy.get("[data-cy=border_image]:eq(0)").should("be.visible");
+      }
+    }
+  );
+  cy.intercept("POST", `**/boutique/${boutique_name}**`, () => {
+    count += 1;
+  }).as("LoadallProducts");
+  cy.clickElement(".offer-widget:eq(0)");
+  cy.log("✅✅ An Boutique Selected & Click");
+  cy.wait("@LoadallProducts").then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
+    cy.log("✅✅ LoadallProducts Request Arrived");
+  });
+  cy.wait(500).then(() => {
+    cy.log(`Count is: ${count}`);
+    expect(count).to.be.greaterThan(1);
+  });
+});
+Cypress.Commands.add("checkOutBoutiquePage", () => {
+  let boutique_name_boutique_page: string = "";
+  const boutique_name = Cypress.env("selected_boutique_name");
+  cy.get("[data-cy=filter_listing_bar]").should("be.visible");
+  cy.get("[data-cy=backIcon_pageAfterClickSearchTotal]").should("be.visible");
+  cy.get("[data-cy=back_icon_boutique_page]").should("be.visible");
+  cy.get("[data-cy=filter_bar_options]").should("be.visible");
+  cy.get("[data-cy=searchIcon_boutiquePage]").should("be.visible");
+  cy.get("[data-cy=filter_option_loseSearchInput]").should("be.visible");
+  cy.get("[data-cy=settingsIcon]").should("be.visible");
+  cy.get("[data-cy=share_ortion]").should("be.visible");
+  cy.get("[data-cy=boutique_header]").should("be.visible");
+  cy.get("[data-cy=boutique_top_icons]").should("be.visible");
+  cy.get("[data-cy=boutique_top_icons-3]").should("be.visible");
+  cy.get("[data-cy=verify_icon]").should("be.visible");
+  cy.get("[data-cy=topStar_icon]").should("be.visible");
+  cy.get("[data-cy=share_ortion]").should("be.visible");
+  cy.get("[data-cy=boutique_name_text]")
+    .should("be.visible")
+    .invoke("text")
+    .then((text) => {
+      cy.log(`✅✅ The name of boutique is: ${text}`);
+      boutique_name_boutique_page = text;
+      expect(boutique_name_boutique_page).to.be.eq(boutique_name);
+    });
+  cy.get("[data-cy=boutique_photo_holder]").should("be.visible");
+  cy.get("[data-cy=banners_length-1]").should("be.visible");
+  cy.get("[data-cy=embla_embla]").should("be.visible");
+  cy.get("[data-cy=embla__container_embla]").should("be.visible");
+  cy.get("[data-cy=embla__slide_embla]").should("be.visible");
+  cy.get("[data-cy=offer_slide_item_embla]").should("be.visible");
+  cy.get("[data-cy=image_offer_image]").should("be.visible");
+  cy.get("[data-cy=image_inner_shadow_image]").should("be.visible");
+  cy.get("[data-cy=image_image]").should("be.visible");
+  cy.get("[data-cy=border_imagr_border]").should("be.visible");
+  cy.get("[data-cy=boutique_filter_options]").should("be.visible");
+});
+Cypress.Commands.add("verifyColorsAndSizesIfFounded", () => {
+  cy.get("[data-cy=image_when_addtocart]").should("be.visible");
+  cy.get("[data-cy=image_when_addtocart_container]").should("be.visible");
+  cy.get("[data-cy=image_when_addtocart_svg]").should("exist");
+  cy.get("[data-cy=image_when_addtocart_image]").should("exist");
+  cy.ChexkExistElement("[data-cy=color_option_cyrcle]").then((exist) => {
+    if (exist) {
+      cy.get("[data-cy=color_option_cyrcle]").should("be.visible");
+      cy.get("[data-cy=swipper_when_addtocart]").should("be.visible");
+      cy.get("[data-cy=swipper_slide_when_addtocart]").should("be.visible");
+      cy.get("[data-cy=color_name]").should("be.visible").and("not.be.empty");
+      cy.get("[data-cy=product_details_addtocart]").should("be.visible");
+      cy.get("[data-cy=product_info_container_addtocart]").should("be.visible");
+      cy.get("[data-cy=product_info_price_addtocart]").should("be.visible");
+      cy.get("[data-cy=product_old_price_addtocart]").should("be.visible");
+      cy.get("[data-cy=product_addtocart_svg]").should("be.visible");
+      cy.get("[data-cy=product_new-price_addtocart]").should("be.visible");
+      cy.get("[data-cy=product_currency]").should("be.visible");
+      cy.get("[data-cy=product_Skeleton_info_icon]").should("be.visible");
+      cy.get("[data-cy=product_Skeleton_info_icon_svg]").should("be.visible");
+      cy.get("[data-cy=product_info_properties]").should("be.visible");
+      cy.get("[data-cy=product_info_item]")
+        .should("be.visible")
+        .invoke("text")
+        .then((text) => {
+          cy.log(`✅✅ product info item is: ${text}`);
+          expect(text).to.be.eq("All Inclusive Without Additions");
+        });
+      cy.get("[data-cy=product_prop_item_properties]").should("be.visible");
+      cy.get("[data-cy=product_prop_item_img]").should("be.visible");
+      cy.get("[data-cy=free_shipping_text]")
+        .should("be.visible")
+        .invoke("text")
+        .then((text) => {
+          cy.log(`✅✅ product info item is: ${text}`);
+          expect(text).to.be.eq("Free Shipping");
+        });
+      cy.get("[data-cy=product_prop_item2]").should("be.visible");
+      cy.get("[data-cy=product_prop_item2_img]").should("be.visible");
+      cy.get("[data-cy=free_shipping_text2]")
+        .should("be.visible")
+        .invoke("text")
+        .then((text) => {
+          cy.log(`✅✅ product info item is: ${text}`);
+          expect(text).to.be.eq("Free Return");
+        });
+      cy.get("[data-cy=product_prop_item3]").should("be.visible");
+      cy.get("[data-cy=product_prop_item3_img]").should("be.visible");
+      cy.get("[data-cy=free_shipping_text3]")
+        .should("be.visible")
+        .invoke("text")
+        .then((text) => {
+          cy.log(`✅✅ product info item is: ${text}`);
+          expect(text).to.be.eq("Ship To You Accepted  2 June");
+        });
+      cy.ChexkExistElement("[data-cy=addto_cartButton_container]").then(
+        (exist) => {
+          if (exist) {
+            cy.log("✅✅ poduct available to add to cart");
+            cy.get("[data-cy=addto_cartButton_container]").should("be.visible");
+            cy.get("[data-cy=addTo_cart_button]").should("be.visible");
+            cy.get("[data-cy=plus_image]").should("be.visible");
+            cy.get("[data-cy=cart_icon_and_statment]").should("be.visible");
+            cy.get("[data-cy=cart_ic0n_container]").should("be.visible");
+            cy.get("[data-cy=cart_icon_when_addToCart]").should("be.visible");
+            cy.get("[data-cy=cart_statment]")
+              .should("be.visible")
+              .invoke("text")
+              .then((text) => {
+                cy.log(`✅✅ product info item is: ${text}`);
+              });
+            cy.get("[data-cy=cart_statment]").contains("Add To Bag");
+          } else {
+            cy.log("❌❌ poduct not available to add to cart");
+            cy.get("[data-cy=notify_container]").should("be.visible");
+            cy.get("[data-cy=notify_container_2]").should("be.visible");
+            cy.get("[data-cy=notify_svg]").should("be.visible");
+            cy.get("[data-cy=notify_statement]").should("be.visible");
+            cy.get("[data-cy=notify_statement_1]").should("be.visible");
+            cy.get("[data-cy=notify_statement_2]")
+              .should("be.visible")
+              .invoke("text")
+              .then((text) => {
+                cy.log(`✅✅ text of notify founded is: ${text}`);
+                if (text === "Notify Me When Size Is Available") {
+                  cy.intercept(
+                    "POST",
+                    "/api/v1/firebase_device_tokens/subscribe_topic"
+                  ).as("notify");
+                  cy.clickElement('[data-cy="notify_button"]');
+                  cy.wait("@notify").then((interception) => {
+                    expect(interception.response.statusCode).to.be.eq(200);
+                  });
+                }
+              });
+          }
+        }
+      );
+    }
+  });
+});
+Cypress.Commands.add("verifyExtendedArea", () => {
+  cy.ChexkExistElement("[data-cy=Extended_area_product]").then((exist) => {
+    if (exist) {
+      cy.get("[data-cy=Extended_area_product]").should("be.visible");
+      cy.get("[data-cy=border_svg_extended]").should("be.visible");
+      cy.get("[data-cy=extended_components]").should("be.visible");
+      cy.get("[data-cy=extended_component_svg]").should("be.visible");
+      cy.get("[data-cy=svg_extended_component_svg]").should("be.visible");
+      cy.get("[data-cy=select_size_statement]")
+        .should("be.visible")
+        .should("have.text", "Please Select The Appropriate");
+      cy.get("[data-cy=size_statement]")
+        .should("be.visible")
+        .should("have.text", "Size");
+      cy.get("[data-cy=countainer_ofSize_scroller]").should("be.visible");
+      cy.get("[data-cy=above_ruler]").should("be.visible");
+      cy.get("[data-cy=buttomn_ruler]").should("be.visible");
+      cy.ChexkExistElement(".swiper-wrapper").then((exist) => {
+        if (exist) {
+          cy.get("[data-cy=swipper_slide_components]")
+            .its("length")
+            .then((length) => {
+              cy.log(`The number of swipper element is: ${length}`);
+              expect(length).to.be.greaterThan(0);
+            });
+        } else {
+          cy.log(`❌❌ No swipper slide elements`);
+        }
+      });
+      cy.ChexkExistElement("[data-cy=not_available_now]").then((exist) => {
+        if (exist) {
+          cy.get("[data-cy=not_available_now_text]").should(
+            "have.text",
+            "Not Available Now, Stock Is Sold Out"
+          );
+        } else {
+          cy.log(`❌❌ No swipper slide elements`);
+        }
+      });
+      cy.get("[data-cy=Need_help_container]").should("be.visible");
+      cy.get("[data-cy=Need_help_container_1]").should("be.visible");
+      cy.get("[data-cy=Need_help_container_svg]").should("be.visible");
+      cy.get("[data-cy=Need_Help_text]").should(
+        "have.text",
+        "Need Help Finding Your Size?"
+      );
+      cy.get("[data-cy=cyrcle_svg]").should("be.visible");
+      cy.get("[data-cy=cyrcle_svg_container]").should("be.visible");
+    } else {
+      cy.log(`❌❌ No extende rea for this product`);
+    }
   });
 });

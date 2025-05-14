@@ -17,7 +17,6 @@ function AddToCartButton({ product }: { product: any }) {
   return (
     <div
       className={`add-cart-button`}
-      data-cy="AddToCartButton-data-cy"
       onClick={(e) => {
         document.documentElement.style.overflow = "hidden";
         document.documentElement.scrollTop = 0;
@@ -26,7 +25,7 @@ function AddToCartButton({ product }: { product: any }) {
     >
       {<img src={"/svg/plusCart.svg"} className="plus-icon-button" />}
 
-      <div className="button-desc" data-cy="addToCartButton_productPage">
+      <div className="button-desc">
         <div
           className={`flex-row  justify-end relative image-container-cart ${
             !AddToCartOption.enable && "pr-0"

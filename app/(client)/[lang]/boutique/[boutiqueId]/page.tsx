@@ -256,8 +256,12 @@ export default async function Page({
         />
         <FilterWidgetContainer key={JSON.stringify(EditedSearchParams)} />
       </Suspense>
-      <div className="filter-listing-bar relative flex-row align-center">
+      <div
+        data-cy="filter_listing_bar"
+        className="filter-listing-bar relative flex-row align-center"
+      >
         <NextLink
+          data-cy="backIcon_pageAfterClickSearchTotal"
           data={{
             is_full_home: true,
             href: `/${params.lang}`,
@@ -265,12 +269,12 @@ export default async function Page({
           href={`/${params.lang}`}
           ariaLabel={`TryDos Home ${params.lang}`}
           className="back-icon"
-          data-cy="backIcon_pageAfterClickSearchTotal"
         >
           <BackIcon data-cy="back_icon_boutique_page" />
         </NextLink>
         {/** TODO: classname edit when serach active w-full */}
         <div
+          data-cy="filter_bar_options"
           className={`filter-bar-options flex-row align-center ${
             EditedSearchParams?.search_text?.length > 0 && "w-full"
           }`}
@@ -280,7 +284,10 @@ export default async function Page({
             search_text={EditedSearchParams?.search_text}
           />
 
-          <div className="filter-option">
+          <div
+            data-cy="filter_option_loseSearchInput"
+            className="filter-option"
+          >
             <SortIcon data-cy="closeSearchInput" />
           </div>
 
@@ -291,8 +298,8 @@ export default async function Page({
       </div>
 
       <div
+        data-cy="boutique_header"
         className={`boutique-header ${"flex-col"} align-center`}
-        data-cy="boutiqueOpen"
         key={`boutique-header-${params.boutiqueId}-${JSON.stringify(
           EditedSearchParams
         )}`}
@@ -340,6 +347,7 @@ async function BoutiqueHeader({ boutique }) {
     <>
       {boutique?.banners && (
         <div
+          data-cy="boutique_top_icons"
           className="boutique-top-info flex-col items-center"
           data-cy="boutique_top_info"
         >
@@ -353,7 +361,6 @@ async function BoutiqueHeader({ boutique }) {
             <VerificationIcon />
             <TopStarIcon />
           </div>
-          <div className="boutique-text">{boutique.name}</div>
         </div>
       )}
       {boutique?.banners && <BouqiuePhotoSlider banners={boutique.banners} />}
@@ -362,8 +369,9 @@ async function BoutiqueHeader({ boutique }) {
 }
 const BouqiuePhotoSlider = ({ banners }) => {
   return (
-    <div className="boutique-photo-holder ">
+    <div data-cy="boutique_photo_holder" className="boutique-photo-holder">
       <div
+        data-cy="banners_length-1"
         className={`${
           banners?.length > 1 && "justify-start"
         } offer-slider-container`}
@@ -371,19 +379,26 @@ const BouqiuePhotoSlider = ({ banners }) => {
         <CarouselContainer>
           {banners &&
             banners?.map((banner, index) => (
-              <div className="embla__slide" key={index}>
+              <div
+                data-cy="embla__slide_embla"
+                className="embla__slide"
+                key={index}
+              >
                 <div
+                  data-cy="offer_slide_item_embla"
                   className="offer-slide-item"
                   style={{ width: "100%" }}
                   key={index}
                 >
-                  <div className="image-offer">
+                  <div data-cy="image_offer_image" className="image-offer">
                     <div
+                      data-cy="image_inner_shadow_image"
                       className="image-inner-shadow"
                       style={{ height: "100%" }}
                     />
 
                     <Image
+                      data-cy="image_image"
                       loading={"eager"}
                       fetchPriority={"high"}
                       style={{ borderRadius: "15px" }}

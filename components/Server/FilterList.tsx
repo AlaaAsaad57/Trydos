@@ -27,7 +27,10 @@ function FilterList({
 }) {
   return (
     <>
-      <div className={`w-full relative flex-row items-center pl-[15px]`}>
+      <div
+        data-cy="boutique_filter_options"
+        className={`w-full relative flex-row items-center pl-[15px]`}
+      >
         <Suspense
           key={`switch-filters-button-${JSON.stringify(filters)}`}
           fallback={
