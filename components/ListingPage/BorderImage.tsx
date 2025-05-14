@@ -3,6 +3,7 @@ import React from "react";
 function BorderImage({ isBig }: { isBig?: boolean }) {
   return (
     <svg
+      data-cy="border_imagr_border"
       className="boutique-border"
       xmlns="http://www.w3.org/2000/svg"
       width="100%"

@@ -135,7 +135,7 @@ describe("Should Verify components and check if products purchased later are out
           .and("be.visible")
           .contains("Back To HomePage");
         cy.clickElement("[data-cy=Confirm-Order-Button]");
-        cy.OpenBoutiqueAndAddProductToCartFromBoutiquePage();
+        cy.AddProductToCartFromBoutiquePage();
         cy.clickElement("[data-cy=AddToCartButton-data-cy]");
         cy.clickElement("[data-cy=CartIcon]");
       } else if (!emptyCart && oldCartOutOfBag) {

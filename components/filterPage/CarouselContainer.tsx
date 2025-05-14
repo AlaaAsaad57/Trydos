@@ -8,8 +8,10 @@ function CarouselContainer({ children }) {
     Autoplay({ delay: 3000 }),
   ]);
   return (
-    <div className="embla" ref={emblaRef}>
-      <div className="embla__container">{children}</div>
+    <div data-cy="embla_embla" className="embla" ref={emblaRef}>
+      <div data-cy="embla__container_embla" className="embla__container">
+        {children}
+      </div>
     </div>
   );
 }

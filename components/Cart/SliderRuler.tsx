@@ -2,6 +2,7 @@ export function SliderRuler() {
   return (
     <>
       <svg
+        data-cy="above_ruler"
         className="absolute top-0 left-0"
         xmlns="http://www.w3.org/2000/svg"
         width="405.298"
@@ -683,6 +684,7 @@ export function SliderRuler() {
         </g>
       </svg>
       <svg
+        data-cy="buttomn_ruler"
         className="absolute bottom-0 left-0"
         xmlns="http://www.w3.org/2000/svg"
         width="405.298"

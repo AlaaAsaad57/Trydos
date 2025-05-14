@@ -454,7 +454,7 @@ export default ProductLoader;
 export const ProductFooterSkeleton = () => {
   return (
     <div className="product-options-container">
-      <div className={`add-cart-button`} data-cy="ProductQuantityFinished">
+      <div className={`add-cart-button`}>
         <Skeleton width={90} height={70} />
       </div>
       <div className="options-container" data-cy="InteraCtionBoX">

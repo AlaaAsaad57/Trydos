@@ -6,6 +6,7 @@ function BorderImage(): ReactElement {
   };
   return (
     <svg
+      data-cy="border_image"
       className="image-border"
       xmlns="http://www.w3.org/2000/svg"
       width={getWidth()}

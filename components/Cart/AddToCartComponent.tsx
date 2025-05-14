@@ -249,16 +249,21 @@ function AddToCartComponent({
               {localCart.length}
             </span>
           )}
-          <CartIcon id={"cart-icon"} className="cart-icon" data-cy="CartIcon" />
+          <CartIcon data-cy="CartIcon" id={"cart-icon"} className="cart-icon" />
         </span>
       </div>
       <div
+        data-cy="image_when_addtocart"
         style={{ height: "calc(100vh - 461px)" }}
         className="flex-col mt-[10px] w-full   top-[103px] items-center z-[999999999]"
       >
-        <div className="flex-row w-auto justify-center h-available relative rounded-[15px] inset-select-shadow-image image-cart-container">
+        <div
+          data-cy="image_when_addtocart_container"
+          className="flex-row w-auto justify-center h-available relative rounded-[15px] inset-select-shadow-image image-cart-container"
+        >
           <svg
-            className="absolute  top-0 left-0"
+            data-cy="image_when_addtocart_svg"
+            className="absolute top-0 left-0"
             xmlns="http://www.w3.org/2000/svg"
             width="calc(100%)"
             height="calc(100%)"
@@ -287,6 +292,7 @@ function AddToCartComponent({
             </g>
           </svg>
           <img
+            data-cy="image_when_addtocart_image"
             id={"added-to-cart"}
             src={getConfiguredImage({
               src:
@@ -300,8 +306,12 @@ function AddToCartComponent({
           />
         </div>
         {ProductData?.sync_color_images && (
-          <div className="flex  w-full max-w-[420px] ">
+          <div
+            data-cy="color_option_cyrcle"
+            className="flex w-full max-w-[420px] "
+          >
             <Swiper
+              data-cy="swipper_when_addtocart"
               modules={[EffectCoverflow]}
               speed={100}
               style={{
@@ -330,6 +340,7 @@ function AddToCartComponent({
             >
               {ProductData?.sync_color_images?.map((color, i) => (
                 <SwiperSlide
+                  data-cy="swipper_slide_when_addtocart"
                   onClick={() => {
                     colorsSliderRef.current.swiper.slideTo(i, 400, false);
                     setSelectedColor(color);
@@ -345,6 +356,7 @@ function AddToCartComponent({
                   {({ isActive }) => (
                     <>
                       <img
+                        data-cy="swipper_slide_when_addtocart_img"
                         className="w-[70px] h-[70px] rounded-full bg-white"
                         src={getConfiguredImage({
                           src:
@@ -356,7 +368,10 @@ function AddToCartComponent({
                         })}
                       />
                       {isActive && (
-                        <span className="regular text-[#3C3C3C] text-[14px] absolute bottom-[-20px] w-full flex justify-center items-center">
+                        <span
+                          data-cy="color_name"
+                          className="regular text-[#3C3C3C] text-[14px] absolute bottom-[-20px] w-full flex justify-center items-center"
+                        >
                           {color.color_name}
                         </span>
                       )}
@@ -371,11 +386,28 @@ function AddToCartComponent({
       {loading ? (
         <SizesSkeleton product={ProductData} />
       ) : (
-        <div className="product-details-footer z-[9999] min-h-[100px] h-auto">
-          <div className="product-info-container">
-            <div className="product-info-price">
-              <div className="product-old-price">
-                <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="2">
+        <div
+          data-cy="product_details_addtocart"
+          className="product-details-footer z-[9999] min-h-[100px] h-auto"
+        >
+          <div
+            data-cy="product_info_container_addtocart"
+            className="product-info-container"
+          >
+            <div
+              data-cy="product_info_price_addtocart"
+              className="product-info-price"
+            >
+              <div
+                data-cy="product_old_price_addtocart"
+                className="product-old-price"
+              >
+                <svg
+                  data-cy="product_addtocart_svg"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="100%"
+                  height="2"
+                >
                   <line
                     id="Line_1104"
                     data-name="Line 1104"
@@ -393,7 +425,10 @@ function AddToCartComponent({
                   <Skeleton width={30} height={10} />
                 )}
               </div>
-              <div className="product-new-price">
+              <div
+                data-cy="product_new-price_addtocart"
+                className="product-new-price"
+              >
                 {RoundPrice({ num: getSelectedVariantQty()?.offer_price }) ? (
                   <>
                     {RoundPrice({ num: getSelectedVariantQty()?.offer_price })}
@@ -402,9 +437,10 @@ function AddToCartComponent({
                   <Skeleton width={30} height={10} />
                 )}
               </div>
-              <div className="product-currency">
+              <div data-cy="product_currency" className="product-currency">
                 {currency?.symbol ?? (
                   <Skeleton
+                    data-cy="product_Skeleton"
                     containerClassName="flex items-center"
                     className="flex items-center"
                     width={20}
@@ -412,8 +448,9 @@ function AddToCartComponent({
                   />
                 )}
               </div>
-              <div className="info-icon">
+              <div data-cy="product_Skeleton_info_icon" className="info-icon">
                 <svg
+                  data-cy="product_Skeleton_info_icon_svg"
                   xmlns="http://www.w3.org/2000/svg"
                   width="12"
                   height="12"
@@ -456,44 +493,63 @@ function AddToCartComponent({
                 </svg>
               </div>
             </div>
-            <div className="product-info-properties">
-              <div className="product-prop-item">
+            <div
+              data-cy="product_info_properties"
+              className="product-info-properties"
+            >
+              <div data-cy="product_info_item" className="product-prop-item">
                 {translateFunction("All Inclusive Without Additions")}
               </div>
               {ProductData?.shipping_cost === 0 && (
-                <div className="product-prop-item">
+                <div
+                  data-cy="product_prop_item_properties"
+                  className="product-prop-item"
+                >
                   <img
+                    data-cy="product_prop_item_img"
                     width={15}
                     height={15}
                     alt="truck"
                     src="/svg/greentruck.svg"
                   />
-                  <span>{translateFunction("Free Shipping")}</span>
+                  <span data-cy="free_shipping_text">
+                    {translateFunction("Free Shipping")}
+                  </span>
                 </div>
               )}
-              <div className="product-prop-item">
+              <div data-cy="product_prop_item2" className="product-prop-item">
                 <img
+                  data-cy="product_prop_item2_img"
                   width={15}
                   height={15}
                   alt="truck"
                   src="/svg/redtruck.svg"
                 />
-                <span>{translateFunction("Free Return")}</span>
+                <span data-cy="free_shipping_text2">
+                  {translateFunction("Free Return")}
+                </span>
               </div>
-              <div className="product-prop-item">
+              <div data-cy="product_prop_item3" className="product-prop-item">
                 <img
+                  data-cy="product_prop_item3_img"
                   width={10}
                   height={15}
                   alt="deliveryman"
                   src="/svg/deliveryman.svg"
                 />
-                <span>{translateFunction("Ship To You Accepted ")} 2 June</span>
+                <span data-cy="free_shipping_text3">
+                  {translateFunction("Ship To You Accepted ")} 2 June
+                </span>
               </div>
             </div>
           </div>
           {ProductData?.choice_options?.length > 0 && (
-            <div className="Extended-area-product">
+            <div
+              data-cy="Extended_area_product"
+              className="Extended-area-product"
+            >
               <svg
+                data-cy="border_svg_extended"
                 className="border-svg"
                 xmlns="http://www.w3.org/2000/svg"
                 width="100%"
@@ -510,9 +566,16 @@ function AddToCartComponent({
                   strokeWidth="0.7"
                 />
               </svg>
-              <div className="flex-col items-center justify-center pt-[20px] w-full h-[235px] regular text-[14px] text-[#505050] pl-5 pr-5">
-                <div className="flex-row items-center">
+              <div
+                data-cy="extended_components"
+                className="flex-col items-center justify-center pt-[20px] w-full h-[235px] regular text-[14px] text-[#505050] pl-5 pr-5"
+              >
+                <div
+                  data-cy="extended_component_svg"
+                  className="flex-row items-center"
+                >
                   <svg
+                    data-cy="svg_extended_component_svg"
                     id="Group_3644"
                     data-name="Group 3644"
                     xmlns="http://www.w3.org/2000/svg"
@@ -566,16 +629,20 @@ function AddToCartComponent({
                     </g>
                   </svg>
 
-                  <span className="ml-[10px]">
+                  <span data-cy="select_size_statement" className="ml-[10px]">
                     {translateFunction("Please Select The Appropriate")}{" "}
-                    <span className="medium ml-1">
+                    <span data-cy="size_statement" className="medium ml-1">
                       {translateFunction("Size")}
                     </span>
                   </span>
                 </div>
-                <div className="flex-row h-[96px] w-full max-w-[420px] min-w-[420px] relative">
+                <div
+                  data-cy="countainer_ofSize_scroller"
+                  className="flex-row h-[96px] w-full max-w-[420px] min-w-[420px] relative"
+                >
                   <SliderRuler />
                   <Swiper
+                    data-cy="slide_components"
                     modules={[EffectCoverflow]}
                     className=" size-slider-coverflow"
                     speed={100}
@@ -605,6 +672,7 @@ function AddToCartComponent({
                     {ProductData?.choice_options?.[0]?.options.map(
                       (size, i) => (
                         <SwiperSlide
+                          data-cy="swipper_slide_components"
                           key={i}
                           onClick={() => {
                             // @ts-ignore
@@ -631,8 +699,11 @@ function AddToCartComponent({
                   </Swiper>
                 </div>
                 {getVariantSizeQty(selectedSize?.name) === 0 ? (
-                  <div className="flex-row items-center text-[12px] text-[#FF5F61] mt-[9px] medium [&>span]:ml-1">
-                    <span>
+                  <div
+                    data-cy="not_available_now"
+                    className="flex-row items-center text-[12px] text-[#FF5F61] mt-[9px] medium [&>span]:ml-1"
+                  >
+                    <span data-cy="not_available_now_text">
                       {translateFunction(
                         "Not Available Now, Stock Is Sold Out"
                       )}{" "}
@@ -643,24 +714,39 @@ function AddToCartComponent({
                     {/* @ts-ignore */}
                     {ProductData?.collected_after_ordering !== 1 && (
                       <div
+                        data-cy="available_now_container"
                         className={
                           languageVariable === "ar"
                             ? "flex-row-rev items-center text-[12px] text-[#404040] mt-[9px] regular [&>span]:ml-1"
                             : "flex-row items-center text-[12px] text-[#404040] mt-[9px] regular [&>span]:ml-1"
                         }
                       >
-                        <span className="bold">M</span>
-                        <span> {translateFunction("Recommended")} </span>
-                        <span className="bold">
+                        <span data-cy="M_Text" className="bold">
+                          M
+                        </span>
+                        <span data-cy="Recommended_Text">
+                          {" "}
+                          {translateFunction("Recommended")}{" "}
+                        </span>
+                        <span data-cy="Size_Text" className="bold">
                           {translateFunction("Size")}{" "}
                         </span>
-                        <span> {translateFunction("For You")} </span>
+                        <span data-cy="For_You_Text">
+                          {" "}
+                          {translateFunction("For You")}{" "}
+                        </span>
                         {getVariantSizeQty(selectedSize?.name) < 10 && (
                           <>
-                            <span className="text-[#FFAF5F]">
+                            <span
+                              data-cy="Last_text"
+                              className="text-[#FFAF5F]"
+                            >
                               {translateFunction("Last")}{" "}
                             </span>
-                            <span className="text-[#FFAF5F] meduim">
+                            <span
+                              data-cy="Last_text_number"
+                              className="text-[#FFAF5F] meduim"
+                            >
                               {getVariantSizeQty(selectedSize?.name)}
                             </span>
                           </>
@@ -669,9 +755,16 @@ function AddToCartComponent({
                     )}
                   </>
                 )}
-                <div className="flex-row w-full mt-[10px]">
-                  <div className="flex bg-[#F8F8F8] rounded-[20px] h-[50px] text-[12px] text-[#505050] items-center justify-center w-full">
+                <div
+                  data-cy="Need_help_container"
+                  className="flex-row w-full mt-[10px]"
+                >
+                  <div
+                    data-cy="Need_help_container_1"
+                    className="flex bg-[#F8F8F8] rounded-[20px] h-[50px] text-[12px] text-[#505050] items-center justify-center w-full"
+                  >
                     <svg
+                      data-cy="Need_help_container_svg"
                       xmlns="http://www.w3.org/2000/svg"
                       width="20"
                       height="20"
@@ -826,12 +919,16 @@ function AddToCartComponent({
                       </g>
                     </svg>
 
-                    <span className="ml-[10px]">
+                    <span data-cy="Need_Help_text" className="ml-[10px]">
                       {translateFunction("Need Help Finding Your Size?")}
                     </span>
                   </div>
-                  <div className="flex bg-[#F8F8F8] rounded-[20px] ml-[10px] h-[50px] items-center justify-center w-[69px]">
+                  <div
+                    data-cy="cyrcle_svg"
+                    className="flex bg-[#F8F8F8] rounded-[20px] ml-[10px] h-[50px] items-center justify-center w-[69px]"
+                  >
                     <svg
+                      data-cy="cyrcle_svg_container"
                       xmlns="http://www.w3.org/2000/svg"
                       xmlnsXlink="http://www.w3.org/1999/xlink"
                       width="20"
@@ -1472,12 +1569,15 @@ const AddToCartButton = ({
     }
   };
   return (
-    <div className="product-options-container z-[9999999999999999] bg-white">
+    <div
+      data-cy="addto_cartButton_container"
+      className="product-options-container z-[9999999999999999] bg-white"
+    >
       <div
+        data-cy="addTo_cart_button"
         className={`add-cart-button transition-all duration-300 ease-in-out extended-add-to-cart ${
           loading && "opacity-40 scale-95"
         }`}
-        data-cy="AddToCartButton-data-cy"
         onClick={(e) => {
           // @ts-ignore
           if (e.target.closest(".minuse-qty-icon")) return;
@@ -1487,11 +1587,16 @@ const AddToCartButton = ({
         }}
       >
         {qty > 0 && (
-          <img src={"/svg/plusCart.svg"} className="plus-icon-button" />
+          <img
+            data-cy="plus_image"
+            src={"/svg/plusCart.svg"}
+            className="plus-icon-button"
+          />
         )}
 
         {productInCart()?.length > 0 && (
           <span
+            data-cy="minus_icon_container"
             className="absolute minuse-qty-icon top-0 left-0 rounded-2xl bg-white flex justify-center items-center p-2 plus-icon-button"
             onClick={() => {
               Sendevent({
@@ -1502,6 +1607,7 @@ const AddToCartButton = ({
             }}
           >
             <svg
+              data-cy="minus_icon_svg"
               xmlns="http://www.w3.org/2000/svg"
               width="15.002"
               height="3.188"
@@ -1518,13 +1624,17 @@ const AddToCartButton = ({
           </span>
         )}
 
-        <div className="button-desc " data-cy="addToCartButton_productPage">
+        <div data-cy="cart_icon_and_statment" className="button-desc">
           <div
-            className={`flex-row  justify-end relative image-container-cart pr-[0px] max-w-[30px]`}
+            data-cy="cart_ic0n_container"
+            className={`flex-row justify-end relative image-container-cart pr-[0px] max-w-[30px]`}
           >
             {showImagesOfProductInCart()}
             {getTotalQuantity() > 0 && !loading && (
-              <span className="bg-green-500 text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
+              <span
+                data-cy="quantity_added_toCart"
+                className="bg-green-500 text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center "
+              >
                 {getTotalQuantity()}
               </span>
             )}
@@ -1538,7 +1648,7 @@ const AddToCartButton = ({
             <AddCartIcon />
             {loading && <Spinner isMargen={true} />}
           </div>
-          <span className="mt-1">
+          <span data-cy="cart_statment" className="mt-1">
             {translateFunction("Add To Bag")}
             {` ${
               color
@@ -1576,8 +1686,12 @@ const NotifyCartButton = ({ isNotified, setNotify, selected_variant, id }) => {
     }
   };
   return (
-    <div className={`product-options-container z-[9999999999999999] bg-white`}>
+    <div
+      data-cy="notify_container"
+      className={`product-options-container z-[9999999999999999] bg-white`}
+    >
       <div
+        data-cy="notify_container_2"
         className={`add-cart-button flex-col extended-add-to-cart z-[9999999999] flex justify-center items-center ${
           !isNotified ? "bg-[#E6F1FF]" : "bg-[#FFFCE6]"
         }`}
@@ -1585,12 +1699,13 @@ const NotifyCartButton = ({ isNotified, setNotify, selected_variant, id }) => {
           NotifyAction();
         }}
       >
-        <NotifySVG className={`mr-[15px]`} />
-        <div className="button-desc" data-cy="addToCartButton_productPage">
+        <NotifySVG data-cy="notify_svg" className={`mr-[15px]`} />
+        <div data-cy="notify_statement" className="button-desc">
           <div
+            data-cy="notify_statement_1"
             className={`flex-row  justify-end relative image-container-cart pr-0`}
           >
-            <span className="mt-1">
+            <span data-cy="notify_statement_2" className="mt-1">
               {isNotified
                 ? translateFunction("We Will Inform You When this Is Available")
                 : translateFunction("Notify Me When Size Is Available")}{" "}
@@ -1604,6 +1719,7 @@ const NotifyCartButton = ({ isNotified, setNotify, selected_variant, id }) => {
 const AddCartIcon = () => {
   return (
     <svg
+      data-cy="cart_icon_when_addToCart"
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
       width="30"

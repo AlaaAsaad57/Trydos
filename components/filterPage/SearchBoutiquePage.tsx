@@ -96,6 +96,7 @@ function SearchBoutiquePage({ search_text, boutique }) {
   }, []);
   return (
     <div
+      data-cy="searchIcon_boutiquePage"
       id="searchIconBoutique"
       className={`filter-option transition-all filter-search-option relative ${
         (search ||
@@ -103,7 +104,6 @@ function SearchBoutiquePage({ search_text, boutique }) {
           searchParams.get("search_text")?.length > 0) &&
         "w-[75%] [&>input]:w-full [&>input]:bg-[#f8f8f8] [&>input]:h-[40px]"
       }`}
-      data-cy="searchIcon_boutiquePage"
       onClick={() => {
         Sendevent({
           event: "button_clicked",

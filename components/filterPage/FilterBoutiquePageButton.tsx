@@ -14,11 +14,14 @@ function FilterBoutiquePageButton() {
   return (
     <>
       <div
-        className="filter-option"
         data-cy="settingsIcon"
+        className="filter-option"
         onClick={handleFilterButtonClick}
       >
-        <FilterIcon className={`${filterEnabled && "filter-icon-enabled"}`} />
+        <FilterIcon
+          data-cy="settingsIcon_svg"
+          className={`${filterEnabled && "filter-icon-enabled"}`}
+        />
       </div>
     </>
   );

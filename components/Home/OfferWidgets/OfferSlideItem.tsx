@@ -13,11 +13,16 @@ function OfferSlideItem({
   offerPhoto,
 }: OfferSlideItemProps) {
   return (
-    <div className="offer-slide-item">
-      <div className="image-offer">
-        <div className="image-inner-shadow" style={{ height: "100%" }} />
+    <div data-cy="offer_slide_item_length1" className="offer-slide-item">
+      <div data-cy="image_offer_length1" className="image-offer">
+        <div
+          data-cy="image_inner_shadow_length1"
+          className="image-inner-shadow"
+          style={{ height: "100%" }}
+        />
         {
           <Image
+            data-cy="image_boutigue_length1"
             loading="eager"
             fetchPriority="auto"
             priority={mykey < 2}
