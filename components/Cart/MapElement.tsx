@@ -17,12 +17,15 @@ type MapProps = {
 
 export const MapElement: React.FC<MapProps> = memo(
   ({ center, expanded, setLocation }) => {
+    const { addressDetails, language } = useAppStore();
     const { isLoaded } = useJsApiLoader({
       id: "google-map-script",
       googleMapsApiKey: "AIzaSyCq5Gi3oBlQv5qbaX2w_piuYmXpGHVwxnM",
+      language: language,
+      preventGoogleFontsLoading: true,
     });
     const [map, setMap] = useState<google.maps.Map | null>(null);
-    const { addressDetails } = useAppStore();
+
     // const [mapType, setMapType] = useState<MapType>("roadmap");
 
     // // const getUrl = () => {
