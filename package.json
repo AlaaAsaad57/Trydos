@@ -17,6 +17,7 @@
     "@google/generative-ai": "^0.21.0",
     "@vercel/speed-insights": "^1.2.0",
     "react-avatar-editor": "^13.0.2",
+    "@react-google-maps/api": "^2.20.6",
     "@sentry/nextjs": "^7.93.0",
     "@types/dom-speech-recognition": "^0.0.4",
     "@types/leaflet": "^1.9.12",
