@@ -6,18 +6,20 @@ import React, { useState } from "react";
 import { InView } from "react-intersection-observer";
 import search from "services/search";
 
-function InfiniteScrollFiltersSearch({ term }) {
+function InfiniteScrollFiltersSearch({ term, shouldShow }) {
   const { lang } = useParams();
   const [loading, setLoading] = useState(false);
-  const [offset, setOffset] = useState(1);
+  const [offset, setOffset] = useState(2);
   const [hasEnd, setHasEnd] = useState({
     categories: false,
     brands: false,
     boutiques: false,
   });
+
   const getNextFilters = async () => {
     try {
       setLoading(true);
+
       const response = await search?.getSearchOptions({
         lang: lang,
         filters_offset: offset,
@@ -51,14 +53,15 @@ function InfiniteScrollFiltersSearch({ term }) {
         </>
       ) : (
         !hasEnd[term] && (
-          <div
-            className="brand-item min-w-[100px] p-0 relative ml-2 text-center text-[#5d5d5d] light shadow-sm bg-[#e8e8e8] rounded-full justify-center items-center"
-            onClick={() => {
-              getNextFilters();
+          <InView
+            className="spinner-container min-w-[80px]"
+            as="div"
+            onChange={(inView) => {
+              if (inView && !loading) {
+                getNextFilters();
+              }
             }}
-          >
-            More {term}
-          </div>
+          ></InView>
         )
       )}
     </>

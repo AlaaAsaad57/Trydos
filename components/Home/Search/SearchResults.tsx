@@ -50,34 +50,7 @@ function SearchResults() {
   const { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
-  const handleSearch = (data) => {
-    const params = new URLSearchParams(searchParams);
-    //categories
-    if (data.categories.length > 0) {
-      params.set("categories", `${data.categories.map((s) => s.slug)}`);
-    } else {
-      if (params.get("categories")) {
-        params.delete("categories");
-      }
-    }
-    //brands
-    if (data.brands.length > 0) {
-      params.set("brands", `${data.brands.map((s) => s.slug)}`);
-    } else {
-      if (params.get("brands")) {
-        params.delete("brands");
-      }
-    }
-    if (data.boutiques.length > 0) {
-      params.set("boutique_slugs", `${data.boutiques.map((s) => s.slug)}`);
-    } else {
-      if (params.get("boutique_slugs")) {
-        params.delete("boutique_slugs");
-      }
-    }
-    if (value) params.set("searchText", value);
-    router.push(`/${lang}/boutique/listing?${params.toString()}`);
-  };
+
   const apply = () => {
     Sendevent({
       event: "button_clicked",
@@ -207,7 +180,10 @@ function SearchResults() {
                   )}
                 />
               ))}
-              <InfiniteScrollFiltersSearch term="brands" />
+              <InfiniteScrollFiltersSearch
+                shouldShow={searchResults.brands?.length === 10}
+                term="brands"
+              />
             </div>
           </div>
         )}
@@ -245,7 +221,10 @@ function SearchResults() {
                   )}
                 />
               ))}
-              <InfiniteScrollFiltersSearch term="categories" />
+              <InfiniteScrollFiltersSearch
+                term="categories"
+                shouldShow={searchResults.categories.length === 10}
+              />
             </div>
           </div>
         )}
@@ -282,7 +261,10 @@ function SearchResults() {
                   )}
                 />
               ))}
-              <InfiniteScrollFiltersSearch term="boutiques" />
+              <InfiniteScrollFiltersSearch
+                term="boutiques"
+                shouldShow={searchResults.boutiques.length === 10}
+              />
             </div>
           </div>
         )}

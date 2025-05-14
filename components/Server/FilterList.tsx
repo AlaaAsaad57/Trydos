@@ -548,12 +548,12 @@ export const FilterItem = ({
   params,
   boutique,
 }) => {
-  const getSubCategoryUrl = (slug) => {
+  const getSubCategoryUrl = (slug, grand_slug?) => {
     let { href, isFiltered } = getFilterStateForItem(
       searchParams,
       slug,
       "categories",
-      item.slug
+      grand_slug ? [item.slug, grand_slug] : [item.slug]
     );
     return { href, isFiltered };
   };
@@ -564,6 +564,7 @@ export const FilterItem = ({
       term
     );
     const shouldShowSubCategories = () => {
+      console.log(JSON.stringify(item.childes));
       let sub_index = 0;
       if (
         getFilterStateForItem(searchParams, item.slug, "categories")?.isFiltered
@@ -571,12 +572,22 @@ export const FilterItem = ({
         sub_index++;
       }
       item?.childes.map((sub) => {
+        console.log(
+          getFilterStateForItem(searchParams, sub.slug, "categories"),
+          "child",
+          "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII"
+        );
         if (
           getFilterStateForItem(searchParams, sub.slug, "categories")
             ?.isFiltered
         ) {
           sub_index++;
           sub?.childes.map((sub_sub) => {
+            console.log(
+              getFilterStateForItem(searchParams, sub_sub.slug, "categories"),
+              "grand_child",
+              "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII"
+            );
             if (
               getFilterStateForItem(searchParams, sub_sub.slug, "categories")
                 ?.isFiltered
@@ -588,6 +599,7 @@ export const FilterItem = ({
       });
       return sub_index > 0;
     };
+
     return (
       <>
         <NextLink
@@ -756,15 +768,17 @@ export const FilterItem = ({
                               data={{
                                 is_filter: true,
                                 ...boutique,
-                                href: getSubCategoryUrl(sub_s.slug)?.href,
+                                href: getSubCategoryUrl(sub_s.slug, s.slug)
+                                  ?.href,
                               }}
-                              href={getSubCategoryUrl(sub_s.slug)?.href}
+                              href={getSubCategoryUrl(sub_s.slug, s.slug)?.href}
                               className="sub-circle w-[40px] h-[40px]"
                               style={{
                                 zIndex: 4 - index,
                               }}
                             >
-                              {getSubCategoryUrl(sub_s.slug)?.isFiltered && (
+                              {getSubCategoryUrl(sub_s.slug, s.slug)
+                                ?.isFiltered && (
                                 <ActiveCategoryIcon
                                   className="active-category-icon"
                                   style={{ top: "-5px", left: "-5px" }}
@@ -791,7 +805,8 @@ export const FilterItem = ({
                                   data-name="Ellipse 283"
                                   fill="none"
                                   stroke={
-                                    getSubCategoryUrl(sub_s.slug)?.isFiltered
+                                    getSubCategoryUrl(sub_s.slug, s.slug)
+                                      ?.isFiltered
                                       ? "#FF5F61"
                                       : "#fff"
                                   }
@@ -1093,7 +1108,7 @@ function getFilterStateForItem(
   searchParams: URLSearchParams | string,
   itemValue: string,
   filterKey: string,
-  parentValue?: string
+  parentValue?: string[]
 ) {
   // Convert to URLSearchParams if it's a string
   const params = new URLSearchParams(searchParams);
@@ -1164,7 +1179,10 @@ function getFilterStateForItem(
     Array.isArray(currentValues) && currentValues.includes(itemValue);
   const newValues = isFiltered
     ? currentValues.filter((val) => val !== itemValue)
-    : [...currentValues?.filter((val) => val !== parentValue), itemValue];
+    : [
+        ...currentValues?.filter((val) => !parentValue?.includes(val)),
+        itemValue,
+      ];
 
   // Create a new set of URLSearchParams
   const newParams = new URLSearchParams(params.toString());
