@@ -1496,17 +1496,28 @@ const AddToCartButton = ({
     });
   };
   const isVariantInCart = ({ exact }) => {
+    console.log(localCart, product.colors, color, size, product.id, id);
     if (product?.variation?.length === 0)
       return localCart?.find((s) => s.id === id);
     if (
       localCart.find(
         (s) =>
-          s.id === id && s.color === color?.color_name && s.size === size?.name
+          s.id === id &&
+          (s.color === color?.color_name ||
+            s.color ===
+              product?.colors?.find((cl) => cl.name === color?.color_name)
+                ?.color) &&
+          s.size === size?.name
       )
     )
       return localCart.find(
         (s) =>
-          s.id === id && s.color === color?.color_name && s.size === size?.name
+          s.id === id &&
+          (s.color === color?.color_name ||
+            s.color ===
+              product?.colors?.find((cl) => cl.name === color?.color_name)
+                ?.color) &&
+          s.size === size?.name
       );
     if (exact) return localCart?.find((s) => s.id === id);
   };
