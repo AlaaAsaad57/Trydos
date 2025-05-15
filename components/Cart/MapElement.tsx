@@ -1,10 +1,18 @@
 import { LegacyRef, memo, useEffect, useRef, useState } from "react";
-import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
+import {
+  GoogleMap,
+  useJsApiLoader,
+  Marker,
+  Polygon,
+} from "@react-google-maps/api";
 
 // import "leaflet/dist/leaflet.css";
 // import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 // import "leaflet-defaulticon-compatibility";
 import { useAppStore } from "store";
+import { toast } from "react-toastify";
+import { translateFunction } from "utils/functions";
+import Spinner from "components/global/Spinner";
 
 type MapProps = {
   center: {
@@ -13,11 +21,15 @@ type MapProps = {
   };
   expanded: boolean;
   setLocation: (location: { latitude: number; longitude: number }) => void;
+  cordinates: { lat: any; lon: any }[];
 };
 
 export const MapElement: React.FC<MapProps> = memo(
-  ({ center, expanded, setLocation }) => {
-    const { addressDetails, language } = useAppStore();
+  ({ center, expanded, setLocation, cordinates }) => {
+    const [mapReady, setMapReady] = useState(!cordinates);
+    const [locationLoading, setLocationLoading] = useState(false);
+
+    const { addressDetails, language, setAddressDetails } = useAppStore();
     const { isLoaded } = useJsApiLoader({
       id: "google-map-script",
       googleMapsApiKey: "AIzaSyCq5Gi3oBlQv5qbaX2w_piuYmXpGHVwxnM",
@@ -25,54 +37,7 @@ export const MapElement: React.FC<MapProps> = memo(
       preventGoogleFontsLoading: true,
     });
     const [map, setMap] = useState<google.maps.Map | null>(null);
-
-    // const [mapType, setMapType] = useState<MapType>("roadmap");
-
-    // // const getUrl = () => {
-    // //   const mapTypeUrls: Record<MapType, string> = {
-    // //     roadmap: "http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}",
-    // //     satellite: "http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}",
-    // //     hybrid: "http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}",
-    // //     terrain: "http://mt0.google.com/vt/lyrs=p&hl=en&x={x}&y={y}&z={z}",
-    // //   };
-    // //   return mapTypeUrls[mapType];
-    // // };
-
-    // // const HandlClick = () => {
-    // //   const map = useMap();
-
-    // //   useEffect(() => {
-    // //     // @ts-ignore
-    // //     if (center && center.lat !== "null" && center.lng !== "null") {
-    // //       map.panTo(center, { animate: true });
-    // //     }
-    // //   }, [center, expanded]);
-    // //   useEffect(() => {
-    // //     if (
-    // //       addressDetails.location.latitude &&
-    // //       addressDetails.location.latitude !== "null" &&
-    // //       addressDetails.location.longitude &&
-    // //       addressDetails.location.longitude !== "null"
-    // //     ) {
-    // //       map.panTo(
-    // //         {
-    // //           lat: addressDetails.location.latitude,
-    // //           lng: addressDetails.location.longitude,
-    // //         },
-    // //         { animate: true }
-    // //       );
-    // //     }
-    // //   }, [addressDetails.location?.latitude, expanded]);
-    // //   useMapEvent("click", (e) => {
-    // //     if (expanded)
-    // //       setLocation({
-    // //         latitude: e.latlng.lat,
-    // //         longitude: e.latlng.lng,
-    // //       });
-    // //   });
-    // //   return <></>;
-    // // };
-
+    const [polygon, setPolygon] = useState<google.maps.Polygon | null>(null);
     useEffect(() => {
       if (
         map &&
@@ -90,30 +55,87 @@ export const MapElement: React.FC<MapProps> = memo(
       <path d="M197.849,0C122.131,0,60.531,61.609,60.531,137.329c0,72.887,124.591,243.177,129.896,250.388l4.951,6.738   c0.579,0.792,1.501,1.255,2.471,1.255c0.985,0,1.901-0.463,2.486-1.255l4.948-6.738c5.308-7.211,129.896-177.501,129.896-250.388   C335.179,61.609,273.569,0,197.849,0z M197.849,88.138c27.13,0,49.191,22.062,49.191,49.191c0,27.115-22.062,49.191-49.191,49.191   c-27.114,0-49.191-22.076-49.191-49.191C148.658,110.2,170.734,88.138,197.849,88.138z"/>
     </g>
     </svg>`;
-    // const iconPerson = new Icon({
-    //   iconUrl: `data:image/svg+xml;base64,${btoa(iconSvg)}`,
-    //   //   iconRetinaUrl: require("./markerIcon.svg"),
-    //   iconAnchor: null,
-    //   popupAnchor: null,
-    //   shadowUrl: null,
-    //   shadowSize: null,
-    //   shadowAnchor: null,
-    //   iconSize: new Point(30, 30),
-    // });
+    const polygonPath =
+      cordinates?.map((coord) => ({
+        lat: Number(coord.lat),
+        lng: Number(coord.lon),
+      })) || [];
+
+    // Check if a point is inside the polygon
+    const isPointInPolygon = (point: google.maps.LatLng) => {
+      if (!polygon) return true; // If no polygon, allow all points
+      return google.maps.geometry.poly.containsLocation(point, polygon);
+    };
 
     const handleMapClick = (e: google.maps.MapMouseEvent) => {
       if (e.latLng) {
         const lat = e.latLng.lat();
         const lng = e.latLng.lng();
+        const point = new google.maps.LatLng(lat, lng);
 
-        setLocation({
-          latitude: lat,
-          longitude: lng,
-        });
+        // Only set location if point is inside polygon or no polygon exists
+        if (isPointInPolygon(point)) {
+          setLocation({
+            latitude: lat,
+            longitude: lng,
+          });
 
-        if (map) {
-          map.panTo({ lat, lng });
+          if (map) {
+            map.panTo({ lat, lng });
+          }
+        } else {
+          toast.error(
+            translateFunction(
+              "Pick Your Deleivery Location Inside Your Country"
+            )
+          );
         }
+      }
+    };
+
+    const handleGetLocation = () => {
+      setLocationLoading(true);
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            let point = new window.google.maps.LatLng(
+              position.coords.latitude,
+              position.coords.longitude
+            );
+            if (isPointInPolygon(point)) {
+              setLocation({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              });
+
+              if (map) {
+                map.panTo({
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude,
+                });
+              }
+            } else {
+              toast.error(
+                translateFunction(
+                  "Your Current Location is Not belong to Country Bounds"
+                )
+              );
+            }
+            setTimeout(() => {
+              setLocationLoading(false);
+            }, 1000);
+          },
+          (error) => {
+            setLocationLoading(false);
+            console.error("Error getting location:", error);
+            toast.error(translateFunction("Error getting your location"));
+          }
+        );
+      } else {
+        setLocationLoading(false);
+        toast.error(
+          translateFunction("Geolocation is not supported by your browser")
+        );
       }
     };
 
@@ -125,6 +147,7 @@ export const MapElement: React.FC<MapProps> = memo(
     return (
       <>
         <div
+          className="flex justify-center items-center relative"
           style={{
             width: "100%",
             height: "100vh",
@@ -168,32 +191,63 @@ export const MapElement: React.FC<MapProps> = memo(
           {isLoaded && (
             <GoogleMap
               mapContainerStyle={{ width: "100%", height: "100%" }}
-              // @ts-ignore
               center={
                 center?.lat !== "null" && center?.lng !== "null"
-                  ? { lat: center?.lat, lng: center.lng }
+                  ? { lat: Number(center.lat), lng: Number(center.lng) }
                   : defaultCenter
               }
               onClick={handleMapClick}
               clickableIcons={false}
-              zoom={4}
+              zoom={6}
+              options={{
+                streetViewControl: false,
+                fullscreenControl: false,
+                mapTypeControl: false,
+                zoomControl: false,
+                cameraControl: false,
+              }}
               onLoad={(m) => {
                 if (
                   center?.lat &&
                   center?.lng &&
-                  typeof center.lat !== "string"
+                  typeof center.lat !== "string" &&
+                  typeof center.lng !== "string"
                 ) {
+                  console.log(center);
                   // @ts-ignore
-                  const bounds = new window.google.maps.LatLngBounds(center);
-                  m.fitBounds(bounds);
+                  const point = new window.google.maps.LatLng(
+                    center.lat,
+                    center.lng
+                  );
+                  m.setCenter(point);
                 }
                 setMap(m);
               }}
               onUnmount={() => {
                 setMap(null);
+                setPolygon(null);
               }}
             >
-              {/* Child components, such as markers, info windows, etc. */}
+              {/* Draw polygon if coordinates exist */}
+              {polygonPath.length > 0 && (
+                <Polygon
+                  paths={polygonPath}
+                  options={{
+                    fillColor: "#FF0000",
+                    fillOpacity: 0.05,
+                    strokeColor: "#FF0000",
+                    strokeOpacity: 1,
+                    strokeWeight: 2,
+                  }}
+                  onLoad={(poly) => {
+                    setPolygon(poly);
+                    setMapReady(true);
+                  }}
+                  onClick={handleMapClick}
+                />
+              )}
+
+              {/* Existing marker */}
               {addressDetails.location.latitude &&
                 addressDetails.location.longitude && (
                   <Marker
@@ -208,6 +262,33 @@ export const MapElement: React.FC<MapProps> = memo(
                   />
                 )}
             </GoogleMap>
+          )}
+          {!isLoaded && !mapReady && <Spinner />}
+
+          {expanded && isLoaded && mapReady && (
+            <button
+              onClick={handleGetLocation}
+              className="absolute bottom-4 right-4 bg-white p-2 rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+              style={{ zIndex: 1000 }}
+            >
+              {locationLoading ? (
+                <Spinner />
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#5d5d5d"
+                  strokeWidth="1"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8zm0 10a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" />
+                </svg>
+              )}
+            </button>
           )}
         </div>
       </>

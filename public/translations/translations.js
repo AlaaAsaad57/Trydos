@@ -502,6 +502,8 @@ const translations = {
     "Search for Product 2": "البحث عن المنتج الثاني",
     Name: "الاسم",
     Image: "الصورة",
+    "Pick Your Deleivery Location Inside Your Country":
+      "اختر عنوان التوصيل ضمن حدود بلدك",
     Colors: "الألوان",
     "Offer Price": "سعر العرض",
     "Order Number has been Copied": "تم نسخ رقم الطلب",
@@ -509,10 +511,14 @@ const translations = {
     "Product Comparison": "مقارنة المنتجات",
     "Loading your selected products for a detailed side-by-side comparison. This will help you make an informed decision by comparing features, prices, and specifications.":
       "جاري تحميل المنتجات المحددة لمقارنة مفصلة جنباً إلى جنب. سيساعدك هذا في اتخاذ قرار مستنير من خلال مقارنة الميزات والأسعار والمواصفات.",
+    "Your Current Location is Not belong to Country Bounds":
+      "موقعك الحالي لا يقع ضمن حدود البلد المختار",
   },
   tr: {
     "The Purchase Was Completed Successfully":
       "Satın Alma Başarıyla Tamamlandı",
+    "Your Current Location is Not belong to Country Bounds":
+      "Mevcut Konumunuz Seçilen Ülke Sınırları İçinde Değil",
     "Featured Products": "Öne Çıkan Ürünler",
     "000 CM": "000 CM",
     "Discount Coupon": "İndirim Kuponu",
@@ -521,6 +527,8 @@ const translations = {
       "Bu Ürün Hakkında Bildirim Alındı",
     "your TryDos Wallet balance is empty":
       "TryDos Cüzdanınızda bakiye bulunmamaktadır",
+    "Pick Your Deleivery Location Inside Your Country":
+      "Ülkeniz İçindeki Teslimat Konumunuzu Seçin",
     "Item Status": "Ürün Durumu",
     "Composed Of": "İçerik",
     Recipient: "Alıcı",

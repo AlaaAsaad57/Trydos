@@ -52,11 +52,12 @@ export const AxiosGet = async ({
       if (
         url.includes("user-notifications/get") ||
         url.includes("/customer/order/list") ||
-        url.includes("/coupon/apply")
+        url.includes("/coupon/apply") ||
+        url.includes("/api/addresses/CountryBoundaryByIso")
       ) {
         return res.data;
       }
-      if (res.data.popular_search_terms) {
+      if (res?.data?.popular_search_terms) {
         return res.data.popular_search_terms;
       }
       if (res?.data.isSuccessful || res.data.data) {
@@ -67,7 +68,8 @@ export const AxiosGet = async ({
     } catch (error) {
       if (error.status !== 401) {
         attempt = 2;
-        toast.error(`${title} : ${error.message ?? "Failed"}`);
+        if (!url.includes("/api/addresses/CountryBoundaryByIso"))
+          toast.error(`${title} : ${error.message ?? "Failed"}`);
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
         );

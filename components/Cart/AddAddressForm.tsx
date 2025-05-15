@@ -49,7 +49,9 @@ function AddAddressForm({
     let valid = false;
 
     if (
-      addressDetails.contact_info.contact_person_name?.length > 0 &&
+      (addressDetails.contact_info.contact_person_name?.length > 0 ||
+        // @ts-ignore
+        addressDetails.contact_info.name?.length > 0) &&
       addressDetails.contact_info.phone?.length > 0
     ) {
       valid = true;
@@ -154,7 +156,6 @@ function AddAddressForm({
         {activeIndex && countries.length > 0 && (
           <Map
             expanded={expanded}
-            setCenter={(e) => setCenter(e)}
             setExpanded={(e) => setExpanded(e)}
             center={
               (addressDetails.location.latitude && {
@@ -418,12 +419,17 @@ const ContactInfo = () => {
           >
             <input
               data-cy="recipient-name-input"
-              value={addressDetails.contact_info.contact_person_name}
+              value={
+                addressDetails.contact_info.contact_person_name ||
+                // @ts-ignore
+                addressDetails.contact_info.name
+              }
               onChange={(e) => {
                 setAddressDetails({
                   contact_info: {
                     ...addressDetails.contact_info,
                     contact_person_name: e.target.value,
+                    name: e.target.value,
                   },
                 });
               }}
