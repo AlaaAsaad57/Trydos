@@ -567,7 +567,6 @@ export const FilterItem = ({
       term
     );
     const shouldShowSubCategories = () => {
-      console.log(JSON.stringify(item.childes));
       let sub_index = 0;
       if (
         getFilterStateForItem(searchParams, item.slug, "categories")?.isFiltered
@@ -575,22 +574,12 @@ export const FilterItem = ({
         sub_index++;
       }
       item?.childes.map((sub) => {
-        console.log(
-          getFilterStateForItem(searchParams, sub.slug, "categories"),
-          "child",
-          "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII"
-        );
         if (
           getFilterStateForItem(searchParams, sub.slug, "categories")
             ?.isFiltered
         ) {
           sub_index++;
           sub?.childes.map((sub_sub) => {
-            console.log(
-              getFilterStateForItem(searchParams, sub_sub.slug, "categories"),
-              "grand_child",
-              "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII"
-            );
             if (
               getFilterStateForItem(searchParams, sub_sub.slug, "categories")
                 ?.isFiltered

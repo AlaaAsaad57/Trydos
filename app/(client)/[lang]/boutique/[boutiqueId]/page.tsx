@@ -349,7 +349,6 @@ async function BoutiqueHeader({ boutique }) {
         <div
           data-cy="boutique_top_icons"
           className="boutique-top-info flex-col items-center"
-          data-cy="boutique_top_info"
         >
           <div className="boutique-logo-container flex-row align-center">
             <Image

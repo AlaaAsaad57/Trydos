@@ -74,7 +74,6 @@ export const MapElement: React.FC<MapProps> = memo(
     // // };
 
     useEffect(() => {
-      console.log(center);
       if (
         map &&
         center?.lat &&

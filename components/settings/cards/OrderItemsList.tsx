@@ -24,7 +24,6 @@ function OrderItemsList({
   order_group_status: any;
 }) {
   const getStatusIcon = (status) => {
-    console.log(status);
     if (status === "pending") return <PendingStatus />;
     if (status === "preparing") return <PreparingStatus />;
     if (status === "shipped") return <ShippedSatus />;

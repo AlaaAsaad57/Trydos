@@ -161,8 +161,6 @@ function AddStory() {
   //   }
   // };
   const selectMedia = async ({ imageFile, link }) => {
-    console.log({ imageFile, link });
-
     handleChange({ target: { files: [imageFile] } }, link);
   };
 

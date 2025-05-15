@@ -28,7 +28,7 @@ function InfiniteScrollFiltersSearch({ term, shouldShow }) {
         replace: false,
       });
       setOffset(offset + 1);
-      console.log(response);
+
       setHasEnd({
         categories: response?.data?.categories?.length === 0,
         brands: response?.data?.brands?.length === 0,

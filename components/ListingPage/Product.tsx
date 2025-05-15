@@ -4,7 +4,6 @@ import ImageSlider from "./ImageSlider";
 // import { stopProgress } from "next-nprogress-bar";
 
 import BuyButton from "./BuyButton";
-import { dispatchRouteChangeEvent } from "utils/events";
 
 import CoverEffectSlider from "./CoverEffectSlider";
 import TopSlider from "./TopSlider";

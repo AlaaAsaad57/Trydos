@@ -55,7 +55,7 @@ export default function Home() {
         "utils/firebaseInitv1"
       );
       requestFirebaseNotificationPermission().then(async (fbtoken) => {
-        if (fbtoken) {
+        if (fbtoken && getUserChat()?.id) {
           fbtoken &&
             ChatService.StoreToken({
               id: getUserChat()?.id,

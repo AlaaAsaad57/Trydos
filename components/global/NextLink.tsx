@@ -55,6 +55,7 @@ export default function NextLink({
       href={href}
       {...props}
       onClick={handleClick}
+      data-cy={props["data-cy"]}
       // onClick={(e) => {
       //   if (onClick) onClick(e);
       // }}

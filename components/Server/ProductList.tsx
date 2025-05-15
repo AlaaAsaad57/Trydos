@@ -38,7 +38,6 @@ function ProductListServer({
   return (
     <div
       className={"listing-container relative flex pb-[350px] max-w-[1310px]"}
-      data-cy="allCategory"
     >
       {products.map((product, key) => {
         let color_name = product?.colors?.find(
@@ -51,8 +50,8 @@ function ProductListServer({
         return (
           <div
             className="max-h-[362px] relative"
-            data-cy="countProduct"
             key={product.slug}
+            data-cy="product-card"
           >
             <NextLink
               data={{
@@ -73,7 +72,7 @@ function ProductListServer({
                 productColor ? `?color=${productColor.color_name}` : ""
               }`}
               className="product-container  align-center flex-col relative"
-              data-cy="on_mouse_over_product"
+              data-cy="product-cart-link"
             >
               <Suspense fallback={<div className="min-w-full min-h-[290px]" />}>
                 <ProductPhotosSlider

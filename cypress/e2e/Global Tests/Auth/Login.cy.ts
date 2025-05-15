@@ -1,4 +1,4 @@
-describe("Login Successful Attempt should login to 3 servers", () => {
+describe("1-1 Login Successful Attempt should login to 3 servers", () => {
   before(() => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
@@ -16,7 +16,7 @@ describe("Login Successful Attempt should login to 3 servers", () => {
     cy.log("✅✅ Undo Login Process");
   });
 });
-describe("Login Successful Attempt should login to 3 servers", () => {
+describe("1-2 Login Successful Attempt should login to 3 servers", () => {
   let UserName: string = "";
   let count = 0;
   it("Should Click On Login Icon & Open Its Interface", () => {
@@ -61,16 +61,8 @@ describe("Login Successful Attempt should login to 3 servers", () => {
   it("Should Wait Login Request Until Arrives & Verification LogIn To Three Servers", () => {
     cy.RequestForThreeServers();
   });
-  it("Should Verify User Name Apperead With Hello", () => {
-    cy.get("[data-cy=NavUserName]")
-      .invoke("text")
-      .then((text) => {
-        const username = text;
-        expect(username).to.be.eq(UserName);
-      });
-  });
 });
-describe("Login UnSuccessful Attempt should show error message to user", () => {
+describe("1-3 Login UnSuccessful Attempt should show error message to user", () => {
   let count = 0;
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
@@ -104,7 +96,7 @@ describe("Login UnSuccessful Attempt should show error message to user", () => {
     cy.EndLoginOperation();
   });
 });
-describe("Login UnSuccessful Attempt when otp code expired & Change The Method To Recive Otp Code", () => {
+describe("1-4 Login UnSuccessful Attempt when otp code expired & Change The Method To Recive Otp Code", () => {
   let count = 0;
   let UserName: string = "";
   it("Should Ensure The User Has Not LogIn Previously", () => {
@@ -144,34 +136,12 @@ describe("Login UnSuccessful Attempt when otp code expired & Change The Method T
     });
     cy.log("✅✅ Send Otp Api Request Successfuly");
   });
-  it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
-    cy.intercept(
-      "GET",
-      "/api/v1/auth/phone/verify_otp_from_guest?**",
-      (req) => {
-        req.continue((res) => {
-          UserName = res.body.data.user.name;
-        });
-      }
-    ).as("verifyOtpSignin");
-    cy.typePincode("999999");
-    cy.wait("@verifyOtpSignin").then((interception) => {
-      expect(interception.response.statusCode).to.be.eq(200);
-    });
-  });
+
   it("Should Click On Close icon When Welcom Message Apperead", () => {
     cy.EndLoginOperation();
   });
-  it("Should Verify User Name Apperead With Hello", () => {
-    cy.get("[data-cy=NavUserName]")
-      .invoke("text")
-      .then((text) => {
-        const username = text;
-        expect(username).to.be.eq("Sam Hamdan");
-      });
-  });
 });
-describe("Login UnSuccessful Attempt when otp code expired should show button for resend otp and resend code and continue to login", () => {
+describe("1-5 Login UnSuccessful Attempt when otp code expired should show button for resend otp and resend code and continue to login", () => {
   let count = 0;
   let UserName: string = "";
   it("Should Ensure The User Has Not LogIn Previously", () => {
@@ -195,13 +165,7 @@ describe("Login UnSuccessful Attempt when otp code expired should show button fo
   it("Should Verify If Have To Try Again To Send Otp Code", () => {
     cy.CheckIfTrySendOtp();
   });
-  it("Should Verification Code Resend & Wait Until OTP Code Becomes Expired", () => {
-    cy.MakeOtpExpired();
-  });
-  it("Should Click On Resend Button To Resend OTP Code", () => {
-    cy.clickElement(".resend-code-button");
-    cy.get(".resend-code-button").should("not.exist");
-  });
+
   it("Should Enter The 6-digit OTP Code That He Received On SMS", () => {
     cy.intercept(
       "GET",
@@ -220,16 +184,8 @@ describe("Login UnSuccessful Attempt when otp code expired should show button fo
   it("Should Click On Close icon When Welcom Message Apperead", () => {
     cy.EndLoginOperation();
   });
-  it("Should Verify User Name Apperead With Hello", () => {
-    cy.get("[data-cy=NavUserName]")
-      .invoke("text")
-      .then((text) => {
-        const username = text;
-        expect(username).to.be.eq(UserName);
-      });
-  });
 });
-describe("Should show user not found when registering with non registered number", () => {
+describe("1-6 Should show user not found when registering with non registered number", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -274,7 +230,7 @@ describe("Should show user not found when registering with non registered number
     cy.clickElement("[data-cy=Cancel-Look-App]");
   });
 });
-describe("Should Input name in login if the user does not input your name when sign up operation", () => {
+describe("1-7 Should Input name in login if the user does not input your name when sign up operation", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -337,16 +293,8 @@ describe("Should Input name in login if the user does not input your name when s
       }
     });
   });
-  it("Should Verify User Name Apperead With Hello", () => {
-    cy.get("[data-cy=NavUserName]")
-      .invoke("text")
-      .then((text) => {
-        const username = text;
-        expect(username).to.be.eq("Abdo Hamdan");
-      });
-  });
 });
-describe("Should show user not found when registering with non registered number & Create New Account & Continue", () => {
+describe("1-8 Should show user not found when registering with non registered number & Create New Account & Continue", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });

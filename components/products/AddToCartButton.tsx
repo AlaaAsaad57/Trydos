@@ -17,6 +17,7 @@ function AddToCartButton({ product }: { product: any }) {
   return (
     <div
       className={`add-cart-button`}
+      data-cy="addToCartButton"
       onClick={(e) => {
         document.documentElement.style.overflow = "hidden";
         document.documentElement.scrollTop = 0;

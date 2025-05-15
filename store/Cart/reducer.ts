@@ -399,7 +399,7 @@ export const useCartStore = (set, get) => ({
           image: s.image,
           quantity: s.quantity,
           size: s.choices?.length > 0 ? s.choices[0]?.choice_1 : null,
-          color: "",
+          color: s?.variations[0]?.color,
           sku: `${s.product_id}${
             s.variations?.length > 0 && s?.variations[0]?.color
               ? `-${s.variations[0].color}`

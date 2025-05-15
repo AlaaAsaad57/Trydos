@@ -23,7 +23,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
         />
       </Suspense>
       <NextLink
-        data-cy="second_boutique_component"
+        data-cy="boutique_link"
         href={`/${lang}/boutique/${boutique.slug}`}
         data={{
           is_boutique: true,

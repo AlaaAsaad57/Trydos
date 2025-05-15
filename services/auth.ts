@@ -205,7 +205,7 @@ class AuthService {
         title: "Update Name",
       });
       let chat_update = await axios.put(
-        "https://chating_staging_trydos.trydos.dev" +
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
           `/api/v1/users/${this.UserID()}`,
         { name: name },
         {
@@ -379,7 +379,7 @@ class AuthService {
     );
     // let user_id = JSON.parse(localStorage.getItem("USER-CHAT")).id;
     let chat_update = await axios.put(
-      "https://chating_staging_trydos.trydos.dev" +
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
         `/api/v1/users/${this.UserID()}`,
       {
         name: userObj?.name ?? userProfile?.name,

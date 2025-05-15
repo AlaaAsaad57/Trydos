@@ -13,9 +13,7 @@ describe("Open Stories After Login", () => {
   it("should Login If User Is Not Verified", () => {
     cy.intercept("GET", "**/api/v1/stories/users_stories").as("StoriesApi");
     cy.performLogin();
-    cy.wait("@StoriesApi").then((interceptions) => {
-      console.log(interceptions);
-    });
+    cy.wait("@StoriesApi").then((interceptions) => {});
   });
   it("should Open First Story and Show Story Content", () => {
     cy.get("[data-cy=story-element]", { timeout: 5000 }).eq(0).click({

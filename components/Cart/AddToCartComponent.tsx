@@ -221,7 +221,7 @@ function AddToCartComponent({
       <div className="back-bar align-center w-100 flex-row min-h-12 bg-[#fff] p-4 z-[99999999] justify-between">
         <div
           className="back-icon p-0"
-          data-cy="Back-Icon-AddToWedgit"
+          data-cy="Back-Icon-AddToCart"
           onClick={() => {
             setSelectedProductForCart(null);
             document.documentElement.style.overflow = "initial";
@@ -341,7 +341,7 @@ function AddToCartComponent({
             >
               {ProductData?.sync_color_images?.map((color, i) => (
                 <SwiperSlide
-                  data-cy="swipper_slide_when_addtocart"
+                  data-cy="color_slide"
                   onClick={() => {
                     colorsSliderRef.current.swiper.slideTo(i, 400, false);
                     setSelectedColor(color);
@@ -673,7 +673,7 @@ function AddToCartComponent({
                     {ProductData?.choice_options?.[0]?.options.map(
                       (size, i) => (
                         <SwiperSlide
-                          data-cy="swipper_slide_components"
+                          data-cy="size_slide"
                           key={i}
                           onClick={() => {
                             // @ts-ignore
@@ -1501,18 +1501,12 @@ const AddToCartButton = ({
     if (
       localCart.find(
         (s) =>
-          s.id === id &&
-          s.color ===
-            product?.colors?.find((s) => s.name === color?.color_name)?.color &&
-          s.size === size?.name
+          s.id === id && s.color === color?.color_name && s.size === size?.name
       )
     )
       return localCart.find(
         (s) =>
-          s.id === id &&
-          s.color ===
-            product?.colors?.find((s) => s.name === color?.color_name)?.color &&
-          s.size === size?.name
+          s.id === id && s.color === color?.color_name && s.size === size?.name
       );
     if (exact) return localCart?.find((s) => s.id === id);
   };

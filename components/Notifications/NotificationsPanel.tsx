@@ -285,7 +285,6 @@ const NotificationInfo = ({ closeWindow }) => {
     );
     const { isSupported } = await import("firebase/messaging");
     isSupported().then((bool) => {
-      console.log(bool);
       setSupported(bool);
     });
     requestFirebaseNotificationPermission()

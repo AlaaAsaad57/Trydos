@@ -74,7 +74,6 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
       ];
 
       if (fileLocal && allowedTypes.includes(fileLocal.type)) {
-        console.log(fileLocal);
         setFile(fileLocal);
       } else {
         alert("please select supported image");

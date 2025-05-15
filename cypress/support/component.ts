@@ -71,10 +71,6 @@ declare global {
       openOrdersWhenLogin(): Chainable<void>;
       ChooseBoutiqueAndVerifyComponentsAndBoxsInBoutiquePage(): Chainable<void>;
       ComplateAddProductOperationAndGoCartPage(): Chainable<void>;
-      ChooseBoutiqueAndOpenItsPage(): Chainable<void>;
-      checkOutBoutiquePage(): Chainable<void>;
-      verifyColorsAndSizesIfFounded(): Chainable<void>;
-      verifyExtendedArea(): Chainable<void>;
     }
     interface Window {
       isKeyboardOpen?: boolean;

@@ -29,7 +29,6 @@ const CouponElement = ({ active, setActive, close }) => {
   };
 
   const applyCoupon = async (e?) => {
-    console.log(orderData);
     if (!orderData.coupon_number && !e) return;
     if (coupon) return;
     setLoading(true);
