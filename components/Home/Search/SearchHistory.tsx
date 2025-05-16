@@ -70,6 +70,7 @@ function SearchHistory({ options, setOptions, deleteOption }) {
                 <div
                   key={index}
                   className="search-filter-option"
+                  data-cy="search-history-option"
                   onClick={(e) => {
                     // @ts-ignore
                     if (!e.target.closest(".close-icon-container")) {

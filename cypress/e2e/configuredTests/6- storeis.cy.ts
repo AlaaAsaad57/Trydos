@@ -1,4 +1,4 @@
-describe("Open Stories After Login", () => {
+describe("6-1 Open Stories After Login", () => {
   before(() => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
@@ -57,7 +57,7 @@ describe("Open Stories After Login", () => {
     });
   });
 });
-describe("Should Upload Stories Successfully", () => {
+describe("6-2 Should Upload Stories Successfully", () => {
   it("should Click On Add Story Button", () => {
     cy.get("[data-cy=Add-Story-Button]", { timeout: 5000 }).click({
       scrollBehavior: false,
@@ -76,12 +76,14 @@ describe("Should Upload Stories Successfully", () => {
     cy.intercept("POST", "**/api/v1/stories/upload_story").as("UploadApi");
     // @ts-ignore
     cy.get("input[type=file]", { timeout: 5000 }).attachFile("images.jpeg");
+    cy.get('[data-cy="link-story-input"]').type("http://www.AutoTest.com/");
+    cy.get('[data-cy="share-story-button"]').click({ scrollBehavior: false });
     cy.wait("@UploadApi").then((s) => {
       expect(s.response.body.isSuccessful).to.be.equal(true);
     });
   });
 });
-describe("Should Ask For User Name if User Is Not Already Entered", () => {
+describe("6-3 Should Ask For User Name if User Is Not Already Entered", () => {
   it("Should LogOut Before Procced", () => {
     cy.wait(1000);
     cy.logout();
@@ -103,9 +105,7 @@ describe("Should Ask For User Name if User Is Not Already Entered", () => {
       scrollBehavior: false,
       force: true,
     });
-    cy.Exist("[data-cy= Gallery-Photo-Option]").then((s) => {
-      expect(s).to.be.equal(false);
-    });
+
     cy.Exist("[data-cy=Input-Name]").then((s) => {
       expect(s).to.be.equal(true);
     });

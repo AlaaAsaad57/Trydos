@@ -98,7 +98,7 @@ async function FeatureProducts({ lang }) {
               suppressHydrationWarning
               href={`/${lang}/products/${product.slug}`}
               className="product-container  align-center flex-col relative shadow-sm max-h-[200px] max-w-[150px]"
-              data-cy="on_mouse_over_product"
+              data-cy="featured_product_link"
             >
               <div className="max-h-[130px] w-full">
                 <Image

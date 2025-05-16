@@ -28,6 +28,7 @@ function ProductItem({ product, onClick }) {
         document.documentElement.scrollTop = 0;
       }}
       href={`/${lang}/products/${product.slug}`}
+      data-cy="product-result-link"
     >
       <div className="result-product flex-row">
         <div className="image-result">

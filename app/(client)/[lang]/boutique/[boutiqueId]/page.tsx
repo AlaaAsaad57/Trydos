@@ -261,7 +261,7 @@ export default async function Page({
         className="filter-listing-bar relative flex-row align-center"
       >
         <NextLink
-          data-cy="backIcon_pageAfterClickSearchTotal"
+          data-cy="BackIcon_boutique"
           data={{
             is_full_home: true,
             href: `/${params.lang}`,

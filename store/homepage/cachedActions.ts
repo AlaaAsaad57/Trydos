@@ -358,7 +358,7 @@ export const getProductsAndFilters = async ({
     let configured_url = `/api/products/${
       isFeatured ? "featured" : "searchInCatalog"
     }?${params.toString()}`;
-    console.log(configured_url, "configured_url");
+
     let response = await fetch(
       process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + configured_url,
       {

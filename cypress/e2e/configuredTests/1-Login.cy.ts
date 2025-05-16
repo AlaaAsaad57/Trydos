@@ -3,7 +3,7 @@ describe("1-1 Login Successful Attempt should login to 3 servers", () => {
     Cypress.on("uncaught:exception", (err, runnable) => {
       return false;
     });
-    cy.Visit("/");
+    cy.Visit("/sy-en");
   });
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();

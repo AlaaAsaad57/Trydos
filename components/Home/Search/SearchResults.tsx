@@ -290,7 +290,7 @@ function SearchResults() {
                 }}
                 aria-disabled={partialLoading || loading_search}
                 className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
-                data-cy="searchTotalProduct"
+                data-cy="apply-filters-search"
                 onClick={() => {
                   apply();
                 }}
@@ -317,7 +317,7 @@ function SearchResults() {
             {(showButton() || totalProducts === 0 || loading_search) && (
               <div
                 className="w-16 h-10 ml-4 cursor-pointer p-2 flex bg-[#f8f8f8] text-[#ff5549] justify-center items-center rounded-xl"
-                data-cy="resetIcon"
+                data-cy="reset-filters-search"
                 onClick={() => reset()}
               >
                 {translateFunction("Reset")}

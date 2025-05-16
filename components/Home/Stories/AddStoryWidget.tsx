@@ -266,11 +266,12 @@ export default function AddStoryWidget({
             </button>
 
             <button
+              data-cy="Gallery-Photo-Option"
               onClick={handleFileClick}
               className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg"
             >
               <FileIcon />
-              <span>Upload Phoro/Video</span>
+              <span>Upload Photo/Video</span>
             </button>
 
             <div className="flex items-center gap-3 p-3">
@@ -279,6 +280,7 @@ export default function AddStoryWidget({
                 <input
                   type="url"
                   value={link}
+                  data-cy="link-story-input"
                   onChange={handleLinkChange}
                   placeholder="Add link..."
                   className={`w-full outline-none ${
@@ -294,6 +296,7 @@ export default function AddStoryWidget({
             {preview && (
               <button
                 onClick={handleShareStory}
+                data-cy="share-story-button"
                 className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 mt-auto disabled:bg-blue-200"
                 disabled={link && !isValidUrl(link)}
               >

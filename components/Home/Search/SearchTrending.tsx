@@ -71,6 +71,7 @@ function SearchTrending() {
             <div
               key={index}
               className="search-filter-option"
+              data-cy="search-trending-option"
               onClick={(e) => {
                 setSearchWord(s.term);
                 setSearchPartialLoading(true);
@@ -119,6 +120,7 @@ function SearchTrending() {
             <div
               key={index}
               className="option-row-search flex-row"
+              data-cy="search-trending-option"
               onClick={(e) => {
                 setSearchWord(s.term);
                 setSearchPartialLoading(true);

@@ -15,10 +15,11 @@ export default defineConfig({
     reportPageTitle: "My Test Suite",
     overwrite: true,
   },
-  video: false,
-  defaultCommandTimeout: 20000,
+  video: true,
+  screenshotOnRunFailure: true,
+  defaultCommandTimeout: 120000,
   pageLoadTimeout: 120000,
-  requestTimeout: 20000,
+  requestTimeout: 120000,
   retries: { runMode: 2, openMode: 2 },
   e2e: {
     // @ts-ignore

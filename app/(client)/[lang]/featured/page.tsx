@@ -192,7 +192,7 @@ export default async function Page({
           href={`/${params.lang}`}
           ariaLabel={`TryDos Home ${params.lang}`}
           className="back-icon"
-          data-cy="backIcon_pageAfterClickSearchTotal"
+          data-cy="BackIcon_boutique"
         >
           <BackIcon data-cy="back_icon_boutique_page" />
         </NextLink>

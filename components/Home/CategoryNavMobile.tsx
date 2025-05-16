@@ -38,6 +38,7 @@ function CategoryNavMobile({
             : `/${params?.lang}/categories/${slug}`,
       }}
       ariaLabel={`Category ${slug} ${params?.lang}`}
+      data-cy="category-Link"
       className={`categories-bar-item ${
         decodeURI(params.mainCategory) === slug && "active-nav-category"
       }`}

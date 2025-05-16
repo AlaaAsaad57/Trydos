@@ -21,7 +21,7 @@ describe("3-2 Should Add Product To Cart From Any Product Page", () => {
     cy.get('[data-cy="Back-Icon-AddToCart"]').click();
   });
   it("should go to product page", () => {
-    cy.get('[data-cy="product-cart-link"]').click({ force: true });
+    cy.get('[data-cy="product-link"]').first().click({ force: true });
   });
   it("should click on add to cart Button and wait to load data", () => {
     cy.intercept(
