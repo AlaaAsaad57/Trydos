@@ -17,7 +17,31 @@ interface NotificationItemProps {
   onClose: () => void;
   closeWindow: () => void;
 }
+const formatTime = (timeString: string) => {
+  const date = new Date(timeString + "Z");
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
 
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const seconds = date.getSeconds().toString().padStart(2, "0");
+  const timeFormat = `${hours}:${minutes}:${seconds}`;
+
+  if (date.toDateString() === today.toDateString()) {
+    return `Today | ${timeFormat}`;
+  }
+
+  if (date.toDateString() === yesterday.toDateString()) {
+    return `Yesterday | ${timeFormat}`;
+  }
+
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year} | ${timeFormat}`;
+};
 const NotificationItem: React.FC<NotificationItemProps> = ({
   notification,
   onClose,
@@ -60,7 +84,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
 
   const renderNotificationContent = () => {
     const content = (
-      <div className="flex items-start p-4 hover:bg-gray-50 transition-colors">
+      <div className="flex items-start p-4 hover:bg-gray-50 transition-colors relative">
         {parsedDescription.boutique_icon?.file_path ||
         parsedDescription.image?.file_path ||
         parsedDescription.boutique_icon ||
@@ -100,6 +124,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
               }}
             />
           )}
+          <div className="absolute bottom-2 right-2 text-[10px] light text-[#5d5d5d]">
+            {formatTime(notification.updated_at)}
+          </div>
         </div>
       </div>
     );

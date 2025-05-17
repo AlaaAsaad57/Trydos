@@ -1,6 +1,7 @@
 export interface NotificationItem {
   title: string;
   description: string;
+  updated_at: string;
 }
 
 interface PaginationLink {

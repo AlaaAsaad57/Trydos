@@ -14,7 +14,7 @@ function FilterBoutiquePageButton() {
   return (
     <>
       <div
-        data-cy="settingsIcon"
+        data-cy="filter-widget-button"
         className="filter-option"
         onClick={handleFilterButtonClick}
       >

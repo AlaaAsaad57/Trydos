@@ -424,7 +424,7 @@ function FiltersWidget({ filters, configureActiveFilters }) {
         {showButton() && (
           <div
             className="w-16 h-10 ml-4 cursor-pointer p-2 flex bg-[#f8f8f8] text-[#ff5549] justify-center items-center rounded-xl"
-            data-cy="resetIcon"
+            data-cy="reset-filter-button"
             onClick={() => resetFilters()}
           >
             {translateFunction("Reset")}
@@ -530,6 +530,7 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
         </div>
         <div
           className="filter-option w-[20px]"
+          data-cy="close-filter-widget-button"
           onClick={() => {
             document?.documentElement?.style?.setProperty("overflow", "auto");
             setFilterEnabled(false);
@@ -649,6 +650,7 @@ const ShowFilterRow = ({ term, values }) => {
               handleFilterClick(value);
               updateFiltersApi();
             }}
+            data-cy={`${term}-filter-item`}
           >
             {isActive(value) && (
               <ActiveCategoryIcon className="absolute left-0 top-[0px]" />

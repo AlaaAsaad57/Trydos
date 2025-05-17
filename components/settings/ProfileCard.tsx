@@ -20,6 +20,7 @@ function ProfileCard({
     <>
       <div
         className="w-full h-[138px] rounded-[15px] bg-[#F8F8F8] p-[12px] flex-row justify-between cursor-pointer"
+        data-cy="profile-card"
         onClick={(e) => {
           // @ts-ignore
           if (e.target.closest(".self-navigate")) {

@@ -129,6 +129,7 @@ const ActiveFiltersBar = ({
           href: `?`,
         }}
         href={`?`}
+        data-cy="reset_filter_button"
         ariaLabel={`close filter ${params.lang}`}
       >
         <CloseIcon data-cy="closeIcon" className="mr-2 ml-2" />
@@ -605,7 +606,7 @@ export const FilterItem = ({
           className={`category-circle flex-col align-center ${
             item?.childes?.length > 0 && "extended-circle"
           }`}
-          data-cy="category_botiquePage"
+          data-cy="category_filter_item"
         >
           <div className="relative w-[70px] h-[70px] z-10">
             {isFiltered && (
@@ -865,7 +866,7 @@ export const FilterItem = ({
         className={`category-circle flex-col align-center ${
           true && "extended-circle"
         }`}
-        data-cy="categoryShadow"
+        data-cy="brand_filter_item"
       >
         <div className="relative w-[70px] h-[70px]">
           {isFiltered && (
@@ -929,7 +930,7 @@ export const FilterItem = ({
         className={`category-circle flex-col align-center ${
           true && "extended-circle"
         }`}
-        data-cy="categoryColor"
+        data-cy="color_filter_item"
       >
         <div className="relative w-[70px] h-[70px]">
           {isFiltered && (
@@ -989,7 +990,7 @@ export const FilterItem = ({
         className={`category-circle flex-col align-center ${
           true && "extended-circle"
         }`}
-        data-cy="sizeBox"
+        data-cy="size_filter_item"
       >
         <div className="relative w-[70px] h-[70px]">
           {isFiltered && (
@@ -1056,7 +1057,7 @@ export const FilterItem = ({
         className={`category-circle flex-col align-center min-w-[140px] w-auto static ${
           true && "extended-circle"
         }`}
-        data-cy="categoryPrice"
+        data-cy="price_filter_item"
       >
         <div className="relative w-[140px] h-[70px]">
           {isFiltered && (
