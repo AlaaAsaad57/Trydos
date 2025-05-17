@@ -103,7 +103,7 @@ export const getStoriesServer = async () => {
       }
     );
     const repo = await res.json();
-    return { data: repo.data.data };
+    return { data: repo.data.data, next_page_url: repo.data.next_page_url };
   } catch (e) {
     console.log(e);
     return { data: [], error: e };

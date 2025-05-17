@@ -17,10 +17,12 @@ import { useAppStore } from "store";
 class StoryService {
   /* get stories */
 
-  async getStories() {
-    const { setStoryData } = useAppStore.getState();
+  async getStories(page: number = 1) {
+    const { setStoryData, storiesData } = useAppStore.getState();
     const res = await fetch(
-      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + GET_USERS_STORIES,
+      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
+        GET_USERS_STORIES +
+        `?page=${page}`,
       {
         headers: {
           Authorization:
@@ -36,12 +38,16 @@ class StoryService {
     );
     let repo: GetStoriesApi = await res.json();
     const data: StoriesInterface[] = repo.data.data;
-    setStoryData(data);
+    if (page == 1) {
+      setStoryData(data);
+    } else {
+      setStoryData([...storiesData, ...data]);
+    }
     if (typeof window !== "undefined") {
       _isStoreLastJson() &&
         localStorage.setItem("LAST_JSON", JSON.stringify(res));
     }
-    return data;
+    return { data, next_page_url: repo.data.next_page_url };
   }
   async loginStories() {
     const response: LoginStoreisApi = await axios.post(

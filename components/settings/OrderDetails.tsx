@@ -15,6 +15,7 @@ import NextLink from "components/global/NextLink";
 import { useParams } from "next/navigation";
 import OrderStatusCartsIcon from "./cards/OrderStatusCartsIcon";
 import OrderStatusIcon from "./cards/OrderStatusIcon";
+import RateOrderButton from "./cards/RateOrderButton";
 
 function OrderDetails({
   resetOrderDetails,
@@ -69,6 +70,7 @@ function OrderDetails({
         </div>
         <OrderAddressCard address={selectedOrder.shipping_address_data} />
       </div>
+      <RateOrderButton />
       <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full">
         <OrderItemsList
           order_group_status={selectedOrder.order_status.label}
