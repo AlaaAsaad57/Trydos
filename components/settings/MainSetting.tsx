@@ -71,6 +71,7 @@ function MainSetting({
       <div className="flex-row mt-[18px]">
         <div
           className="flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px] cursor-pointer"
+          data-cy="orders-page-button"
           onClick={() => {
             swipeToScreen(9);
           }}
@@ -115,6 +116,7 @@ function MainSetting({
             onClick={() => {
               swipeToScreen(8);
             }}
+            data-cy="country-select-button"
             className="flex-row w-1/2 h-[53px] bg-[#F8F8F8] rounded-[15px] px-[12px] items-center cursor-pointer"
           >
             <span className="w-[30px] h-[20px]">
@@ -128,6 +130,7 @@ function MainSetting({
           </div>
           <div
             className="flex-row w-1/2 h-[53px] bg-[#F8F8F8] rounded-[15px] px-[12px] items-center cursor-pointer ml-[12px]"
+            data-cy="language-select-button"
             onClick={() => {
               swipeToScreen(11);
             }}

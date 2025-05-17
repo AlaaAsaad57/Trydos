@@ -164,6 +164,7 @@ function UploadProfilePhoto({
   return (
     <div className="flex-col">
       <SettingTopBar
+        DataCy="save-image"
         goBack={() => {
           goBack();
           setFile(userProfile.image);
@@ -194,6 +195,7 @@ function UploadProfilePhoto({
 
           <div
             id="camera-photo-holder"
+            data-cy="change-photo-menu"
             onClick={() => {
               if (!file) {
                 setOpenMenu(!openMenu);
@@ -365,6 +367,7 @@ function UploadProfilePhoto({
                   </div>
                   <div
                     className="flex  flex-row mt-[10px] cursor-pointer"
+                    data-cy="upload-local-photo"
                     onClick={() => {
                       document
                         .querySelector<HTMLInputElement>("#profile-file-picker")
@@ -484,6 +487,7 @@ function UploadProfilePhoto({
             <div
               className="flex flex-row mt-[15px] cursor-pointer"
               onClick={() => setFile(null)}
+              data-cy="remove-photo-button"
             >
               <svg
                 id="delete"

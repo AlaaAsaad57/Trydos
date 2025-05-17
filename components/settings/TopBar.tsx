@@ -9,12 +9,14 @@ function SettingTopBar({
   screenName,
   goBack,
   Icon,
+  DataCy,
 }: {
   Save?: () => void;
   hasOptions?: boolean;
   screenName: string | React.ReactNode;
   goBack: () => void;
   Icon?: React.ReactNode;
+  DataCy?: string;
 }) {
   return (
     <div className="flex-row w-full min-h-[50px] h-[50px] items-center px-[12px] justify-between">
@@ -33,6 +35,7 @@ function SettingTopBar({
       </div>
       <span
         className="cursor-pointer medium text-[#402CDD] text-[14px]"
+        data-cy={DataCy || "save-button"}
         onClick={() => {
           if (Save) Save();
         }}

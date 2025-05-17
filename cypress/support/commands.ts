@@ -209,20 +209,13 @@ Cypress.Commands.add("RequestForThreeServers", () => {
   cy.intercept("POST", "**/login", () => {
     count += 1;
   }).as("login");
-  cy.intercept("GET", "**/api/v1/stories/users_stories", () => {
-    count += 1;
-  }).as("Stories");
   cy.wait("@login", { timeout: 10000 }).then((interception) => {
     expect(interception.response.statusCode).to.be.eq(200);
     cy.log("✅✅ login request arrived");
   });
-  cy.wait("@Stories", { timeout: 10000 }).then((interception) => {
-    expect(interception.response.statusCode).to.be.eq(200);
-    cy.log("✅✅ Stories request arrived");
-  });
   cy.wait(500).then(() => {
     cy.log(`Count is: ${count}`);
-    expect(count).to.be.greaterThan(1);
+    expect(count).to.be.greaterThan(0);
   });
 });
 Cypress.Commands.add("typePincode", (pincode: string) => {

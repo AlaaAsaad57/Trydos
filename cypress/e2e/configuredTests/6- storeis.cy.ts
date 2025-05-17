@@ -11,7 +11,7 @@ describe("6-1 Open Stories After Login", () => {
     cy.viewport(783, 824);
   });
   it("should Login If User Is Not Verified", () => {
-    cy.intercept("GET", "**/api/v1/stories/users_stories").as("StoriesApi");
+    cy.intercept("GET", "**/api/v1/stories/users_stories**").as("StoriesApi");
     cy.performLogin();
     cy.wait("@StoriesApi").then((interceptions) => {});
   });

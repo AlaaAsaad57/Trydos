@@ -47,7 +47,7 @@ const initialState: HomeState = {
   selectedStory: null,
   renderStories: false,
   OpenCamera: false,
-  storiesData: null,
+  storiesData: [],
   categories: [],
   settings: null,
   loginOpen: false,

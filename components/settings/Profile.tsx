@@ -19,11 +19,13 @@ function Profile({
   const options = [
     {
       name: "Personal Info",
+      dataCy: "personal-info-button",
       Icon: <PersonIcon />,
       callback: () => swipeToScreen(3),
     },
     {
       name: "Size",
+      dataCy: "personal-size-button",
       Icon: <SizeIcon />,
       callback: () => {
         swipeToScreen(4);
@@ -31,6 +33,7 @@ function Profile({
     },
     {
       name: "Address",
+      dataCy: "personal-address-button",
       Icon: <AddressIcon />,
       callback: () => {
         swipeToScreen(5);
@@ -38,6 +41,7 @@ function Profile({
     },
     {
       name: "Bank Cards",
+      dataCy: "personal-bank-button",
       Icon: <BankIcon />,
       callback: () => {
         swipeToScreen(7);
@@ -76,6 +80,7 @@ const ProfilePicture = ({
     return (
       <div
         onClick={() => GoToProfilePhotoScreen()}
+        data-cy="go-to-update-photo-screen"
         className="relative w-[128px] h-[128px] flex justify-center items-center object-cover cursor-pointer"
         style={{
           filter: "drop-shadow(0px 3px 6px #0000002a)",
@@ -97,6 +102,7 @@ const ProfilePicture = ({
     return (
       <div
         onClick={() => GoToProfilePhotoScreen()}
+        data-cy="go-to-update-photo-screen"
         className="relative w-[128px] h-[128px] flex justify-center items-center object-cover cursor-pointer"
         style={{
           filter: "drop-shadow(0px 3px 6px #0000002a)",
@@ -184,14 +190,17 @@ const SettingOption = ({
   name,
   Icon,
   callback,
+  dataCy,
 }: {
   name: string;
   Icon: React.ReactNode;
   callback: () => void;
+  dataCy;
 }) => {
   return (
     <div
       onClick={() => callback()}
+      data-cy={dataCy}
       className="w-full cursor-pointer flex-row mt-[4px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center"
     >
       {Icon}
