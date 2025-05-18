@@ -50,7 +50,11 @@ function Profile({
   ];
   return (
     <div className="flex-col">
-      <SettingTopBar goBack={() => goBack()} screenName="Profile" />
+      <SettingTopBar
+        goBack={() => goBack()}
+        screenName="Profile"
+        DataCy="profile"
+      />
       <div className="flex-row justify-center mt-[12px]">
         <ProfilePicture
           photo={userProfile.image}

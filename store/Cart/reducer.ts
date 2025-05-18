@@ -391,7 +391,6 @@ export const useCartStore = (set, get) => ({
   initCart: (data) =>
     set((state) => ({
       ...data,
-      cart_loading: false,
       localCart: [
         ...data.cart.map((s) => ({
           id: s.product_id,

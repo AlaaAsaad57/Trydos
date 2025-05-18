@@ -20,7 +20,11 @@ function SettingTopBar({
 }) {
   return (
     <div className="flex-row w-full min-h-[50px] h-[50px] items-center px-[12px] justify-between">
-      <span className="cursor-pointer" onClick={() => goBack()}>
+      <span
+        className="cursor-pointer"
+        onClick={() => goBack()}
+        data-cy={(DataCy && `${DataCy}-back-button`) || "back-button"}
+      >
         <BackIcon />
       </span>
       <div className="felx-row">

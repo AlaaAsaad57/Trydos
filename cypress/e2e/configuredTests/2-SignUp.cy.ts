@@ -285,11 +285,11 @@ describe("2-6 Signup Successful Attempt & complete the profile", () => {
       }
     ).as("verifyOtpSignin");
     cy.typePincode("999999");
-    cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
+    cy.wait("@verifyOtpSignin").then((interception) => {
       expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅ verifyOtpSignin request arrived");
     });
-    cy.wait("@login", { timeout: 10000 }).then((interception) => {
+    cy.wait("@login").then((interception) => {
       expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅ login request arrived");
     });
@@ -385,12 +385,6 @@ describe("2-7 Should show user is already registered when registering with regis
 // ****************************************************
 describe("2-8 Should show user is already registered when registering with registered number and write your name", () => {
   let userName: string = "a";
-  // before(() => {
-  //   Cypress.on("uncaught:exception", (err, runnable) => {
-  //     return false;
-  //   });
-  //   cy.Visit("/");
-  // });
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });

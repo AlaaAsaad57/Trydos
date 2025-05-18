@@ -209,7 +209,7 @@ Cypress.Commands.add("RequestForThreeServers", () => {
   cy.intercept("POST", "**/login", () => {
     count += 1;
   }).as("login");
-  cy.wait("@login", { timeout: 10000 }).then((interception) => {
+  cy.wait("@login").then((interception) => {
     expect(interception.response.statusCode).to.be.eq(200);
     cy.log("✅✅ login request arrived");
   });

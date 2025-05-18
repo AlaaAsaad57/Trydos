@@ -78,6 +78,7 @@ function CartContainer({ close, toOrders }) {
         initCart(data ?? { cart: [] });
       },
     });
+    setCartLoading(false);
     await getOldCart();
   };
   const params = useParams();

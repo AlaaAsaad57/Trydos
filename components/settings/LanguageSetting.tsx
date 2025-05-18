@@ -257,6 +257,7 @@ function LanguageSetting({ goBack }: { goBack: () => void }) {
               return (
                 <div
                   key={country}
+                  data-cy={`language-${country}`}
                   onClick={() => {
                     if (!isSettingCountry) {
                       changeCountry(country);

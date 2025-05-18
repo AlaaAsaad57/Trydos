@@ -95,7 +95,9 @@ function PersonalInfo({
           successCallback={(idToken) => {
             updateUserProfile({
               ...userProfileData,
-              phone: userProfileData.phone,
+              phone: userProfileData.phone?.includes("+")
+                ? userProfileData.phone
+                : `+${userProfileData.phone}`,
               id_token: idToken,
             });
 
@@ -126,6 +128,7 @@ function PersonalInfo({
               }
             : null
         }
+        DataCy="personal-info-save-button"
       />
       <div className="flex-row justify-center mt-[12px] w-full">
         <div
@@ -270,7 +273,7 @@ function PersonalInfo({
                     name: e.target.value,
                   });
                 }}
-                data-cy="recipient-name-input"
+                data-cy="personal-info-recipient-name-input"
                 placeholder={translateFunction("Enter Full Name")}
                 className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
               />
@@ -297,7 +300,7 @@ function PersonalInfo({
               data-cy="Contact-Phone"
             >
               <input
-                data-cy="Contact-Phone-input"
+                data-cy="personal-info-phone-number-input"
                 aria-autocomplete="both"
                 aria-haspopup="false"
                 type="number"
@@ -343,7 +346,7 @@ function PersonalInfo({
           <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
             <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
               <input
-                data-cy="optional-input"
+                data-cy="personal-info-alternative-phone-number-input"
                 aria-autocomplete="both"
                 aria-haspopup="false"
                 spellCheck="false"
@@ -385,7 +388,7 @@ function PersonalInfo({
               data-cy="Contact-Phone"
             >
               <input
-                data-cy="Contact-Phone-input"
+                data-cy="personal-info-Contact-email-input"
                 aria-autocomplete="both"
                 aria-haspopup="false"
                 type="email"
@@ -432,6 +435,11 @@ function PersonalInfo({
                 style={{
                   border: userProfileData.gender === 1 && "1px solid #402CDDa3",
                 }}
+                data-cy={
+                  userProfileData.gender === 1
+                    ? "active-gender-input"
+                    : "gender-input"
+                }
               >
                 {translateFunction("Man")}
               </div>
@@ -445,6 +453,11 @@ function PersonalInfo({
                 style={{
                   border: userProfileData.gender === 2 && "1px solid #402CDDa3",
                 }}
+                data-cy={
+                  userProfileData.gender === 2
+                    ? "active-gender-input"
+                    : "gender-input"
+                }
               >
                 {translateFunction("Woman")}
               </div>
@@ -458,6 +471,11 @@ function PersonalInfo({
                 style={{
                   border: userProfileData.gender === 3 && "1px solid #402CDDa3",
                 }}
+                data-cy={
+                  userProfileData.gender === 3
+                    ? "active-gender-input"
+                    : "gender-input"
+                }
               >
                 {translateFunction("Other")}
               </div>

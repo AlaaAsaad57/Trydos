@@ -6,10 +6,11 @@ import StoryElement from "./StoryElement";
 import story from "services/story";
 
 function StoriesPagination({ next_page_url }: { next_page_url: string }) {
+  console.log(next_page_url);
   const [loading, setLoading] = useState(false);
   const [next_page, setNextPage] = useState(next_page_url ? 2 : null);
   const [data, setData] = useState([]);
-  if (!next_page_url || !next_page) return <></>;
+  if (!next_page_url) return <></>;
   if (loading)
     return (
       <div className="flex justify-center items-center h-full w-[100px]">
@@ -27,22 +28,25 @@ function StoriesPagination({ next_page_url }: { next_page_url: string }) {
     }
     setLoading(false);
   };
+
   return (
     <>
       {data.map((item: any, index) => (
         <StoryElement key={item.id} index={index} story={item} />
       ))}
-      <div className="flex justify-center items-center w-[100px]">
-        <InView
-          className="spinner-container min-w-[80px]"
-          as="div"
-          onChange={(inView) => {
-            if (inView && !loading) {
-              getNextFilters();
-            }
-          }}
-        ></InView>
-      </div>
+      {next_page && (
+        <div className="flex justify-center items-center w-[100px]">
+          <InView
+            className="spinner-container min-w-[80px]"
+            as="div"
+            onChange={(inView) => {
+              if (inView && !loading) {
+                getNextFilters();
+              }
+            }}
+          ></InView>
+        </div>
+      )}
     </>
   );
 }

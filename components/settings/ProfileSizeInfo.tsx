@@ -51,6 +51,7 @@ function ProfileSizeInfo({
           });
           goBack();
         }}
+        DataCy="personal-size-save-button"
         screenName="Profile | Size Info"
         Save={
           isEdited() && isValid()
@@ -330,7 +331,7 @@ function ProfileSizeInfo({
           <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
             <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
               <input
-                data-cy="recipient-name-input"
+                data-cy="personal-size-tall-input"
                 placeholder={translateFunction("000 CM")}
                 value={userProfileData.tall || ""}
                 maxLength={3}
@@ -360,6 +361,7 @@ function ProfileSizeInfo({
           <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
             <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
               <input
+                data-cy="personal-size-weight-input"
                 placeholder={translateFunction("000 KG")}
                 value={userProfileData.weight || ""}
                 maxLength={3}

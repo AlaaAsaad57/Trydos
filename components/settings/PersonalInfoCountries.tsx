@@ -61,6 +61,7 @@ function PersonalInfoCountries({
       <SettingTopBar
         goBack={() => goBack()}
         screenName="Profile | Countries"
+        DataCy="personal-info-countries"
         Save={null}
       />
       <div className="flex-row justify-center mt-[12px] w-full">
@@ -260,6 +261,7 @@ function PersonalInfoCountries({
               return (
                 <div
                   key={country.iso}
+                  data-cy={`personal-info-countries-${country.iso}`}
                   onClick={() => {
                     if (!isSettingCountry) {
                       changeCountry(country);
