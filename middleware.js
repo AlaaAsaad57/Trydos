@@ -1,48 +1,9 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getCountriesApi } from "./store/homepage/cachedActions";
 
 const languagesString = '["en", "ar", "tr"]' || "[]";
 const languages = JSON.parse(languagesString);
 
-// Get the preferred locale, similar to the above or using a library
-async function getLocale(request) {
-  const cookieStore = cookies();
-  const localization = {
-    language: cookieStore.get("language")?.value?.toLowerCase(),
-    country: cookieStore.get("country")?.value?.toLowerCase(),
-  };
-  return localization;
-}
-function getLangByIp(ip) {
-  switch (ip) {
-    case "tr":
-      return "tr";
-    case "ar":
-      return "ar";
-    case "sy":
-      return "ar";
-    case "us":
-      return "en";
-    default:
-      return "en";
-  }
-}
-function getDefaultLocale(countryByIp, countries) {
-  const localeENV = {
-    country:
-      countryByIp &&
-      countries.some(
-        (country) => countryByIp.toLowerCase() == `${country.toLowerCase()}`
-      )
-        ? countryByIp
-        : process.env.NEXT_PUBLIC_DEFAULT_COUNTRY,
-    language: countryByIp
-      ? getLangByIp(countryByIp)
-      : process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE,
-  };
-  return localeENV;
-}
 const CheckLocalaization = ({
   countryFromCookies,
   langFromCookies,
@@ -58,7 +19,6 @@ const CheckLocalaization = ({
 };
 export async function middleware(request) {
   const response = NextResponse.next();
-  const ip = request.headers.get("x-forwarded-for") || request.ip;
   const url = request.nextUrl.clone();
   const countryLang = url.pathname.split("/")[1]?.toLowerCase();
   const countryUrl = url.pathname.split("/")[1]?.toLowerCase()?.split("-")[0];
@@ -66,6 +26,9 @@ export async function middleware(request) {
   const countryFromCookies = cookies.get("country")?.value?.toLowerCase();
   const langFromCookies = cookies.get("lang")?.value?.toLowerCase() || "en";
   if (
+    countryFromCookies?.length > 0 &&
+    countryUrl?.length > 0 &&
+    countryUrl?.toLowerCase() === countryFromCookies?.toLowerCase() &&
     countryUrl !== "gb" &&
     countryFromCookies !== "gb" &&
     !url.searchParams.get("changed-country")
@@ -81,7 +44,6 @@ export async function middleware(request) {
 
   let countries = data.map((s) => s.iso.toLowerCase());
   let defaultLocale = `${countries[0]}-en`;
-
   [...countries, "gb"].map((s) => {
     languages.map((l) => {
       supportedLocales.push(`${s}-${l}`);
@@ -90,8 +52,8 @@ export async function middleware(request) {
 
   // 1- for url
   if (
-    countryLang.split("-").length > 1 &&
-    supportedLocales.includes(countryLang)
+    countryLang?.split("-")?.length > 1 &&
+    supportedLocales?.includes(countryLang)
   ) {
     if (url.searchParams.get("selected")) {
       url.searchParams.delete("changed-country");

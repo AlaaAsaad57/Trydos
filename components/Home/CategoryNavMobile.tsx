@@ -79,9 +79,7 @@ function CategoryNavMobile({
       }
       {
         <div className="categories-bar-item-description">
-          <div className={`categories-bar-item-name ${language + "-regular"} `}>
-            {name}
-          </div>
+          <div className={`categories-bar-item-name regular `}>{name}</div>
         </div>
       }
     </NextLink>

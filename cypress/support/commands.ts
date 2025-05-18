@@ -114,7 +114,7 @@ Cypress.Commands.add("WaitUntilLoadWebsiteAndlogoutAndViewport", () => {
   cy.viewport(783, 824);
 });
 Cypress.Commands.add("OpenLoginInterface", () => {
-  cy.clickElement(".en-regular:nth-child(2)");
+  cy.clickElement("[data-cy=login-icon]");
   cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
   cy.log("✅✅ Click On Login Icon & Open Its Interface");
 });

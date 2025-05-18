@@ -350,9 +350,7 @@ function SendMethod({
             <WAIcon data-cy="way-icon" style={{ left: "34px", top: "17px" }} />
             <div
               data-cy="whattsapp-text"
-              className={`message-recieve-option-text ${
-                language + "-regular"
-              } `}
+              className={`message-recieve-option-text regular `}
             >
               {translate("WhatsApp", language)}
             </div>
@@ -413,9 +411,7 @@ function SendMethod({
             />
             <div
               data-cy="message-text"
-              className={`${
-                language + "-regular"
-              }  message-recieve-option-text`}
+              className={`regular  message-recieve-option-text`}
             >
               {translate("SMS", language)}
             </div>

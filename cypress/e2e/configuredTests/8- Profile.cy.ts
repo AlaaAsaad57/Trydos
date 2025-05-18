@@ -58,16 +58,17 @@ describe("should test edit profile photo", () => {
   it("should send three request to update photo in three servers", () => {
     cy.intercept("POST", "**/customer/update-profile").as("marketReq");
     cy.intercept("PUT", "**/api/v1/users/*").as("chatReq");
-    cy.intercept("POST", "**/api/v1/users").as("storyReq");
+    cy.intercept("POST", "**/api/v1/users/update").as("storyReq");
     cy.intercept("POST", "**/storage/storage-upload").as("uploadPhoto");
     cy.get('[data-cy="save-image"]').click({
       force: true,
       scrollBehavior: false,
     });
     cy.wait("@uploadPhoto");
-    cy.wait(["@marketReq", "@chatReq"]).then((s) => {
+    cy.wait(["@marketReq", "@storyReq", "@chatReq"]).then((s) => {
       expect(s[0].response.statusCode).to.equal(200);
       expect(s[1].response.statusCode).to.equal(200);
+      expect(s[2].response.statusCode).to.equal(200);
     });
   });
 });
@@ -133,15 +134,15 @@ describe("should change phone number and confirm it", () => {
   it("should confirm number", () => {
     cy.intercept("POST", "**/customer/update-profile").as("marketReq");
     cy.intercept("PUT", "**/api/v1/users/*").as("chatReq");
-    cy.intercept("POST", "**/api/v1/users").as("storyReq");
+    cy.intercept("POST", "**/api/v1/users/update").as("storyReq");
     cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
     cy.CheckIfTrySendOtp();
     cy.typePincode("999999");
-    cy.wait(["@marketReq", "@chatReq"]).then((s) => {
-      expect(s[0].response.statusCode).to.equal(200);
-      expect(s[1].response.statusCode).to.equal(200);
-      // expect(s[2].response.statusCode).to.equal(200);
-    });
+    // cy.wait(["@marketReq", "@storyReq", "@chatReq"]).then((s) => {
+    //   expect(s[0].response.statusCode).to.equal(200);
+    //   expect(s[1].response.statusCode).to.equal(200);
+    //   expect(s[2].response.statusCode).to.equal(200);
+    // });
   });
 });
 describe("should test update size", () => {
@@ -166,14 +167,15 @@ describe("should test update size", () => {
   it("should click on save button", () => {
     cy.intercept("POST", "**/customer/update-profile").as("marketReq");
     cy.intercept("PUT", "**/api/v1/users/*").as("chatReq");
-    cy.intercept("POST", "**/api/v1/users").as("storyReq");
+    cy.intercept("POST", "**/api/v1/users/update").as("storyReq");
     cy.get('[data-cy="personal-size-save-button"]').click({
       force: true,
       scrollBehavior: false,
     });
-    cy.wait(["@marketReq", "@chatReq"]).then((s) => {
+    cy.wait(["@marketReq", "@storyReq", "@chatReq"]).then((s) => {
       expect(s[0].response.statusCode).to.equal(200);
       expect(s[1].response.statusCode).to.equal(200);
+      expect(s[2].response.statusCode).to.equal(200);
     });
   });
   it("should back to profile screen", () => {

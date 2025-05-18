@@ -125,7 +125,7 @@ function UserNavTopSection() {
           >
             <img src="/svg/login.svg" width={15} height={15} alt="login" />
             <span
-              className={`${language + "-regular"}`}
+              className={`regular`}
               style={{
                 display: "flex",
                 color: "#707070",
