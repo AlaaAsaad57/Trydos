@@ -4,9 +4,10 @@ import { InView } from "react-intersection-observer";
 import React, { useState } from "react";
 import StoryElement from "./StoryElement";
 import story from "services/story";
+import { useAppStore } from "store";
 
 function StoriesPagination({ next_page_url }: { next_page_url: string }) {
-  console.log(next_page_url);
+  const { storiesData } = useAppStore();
   const [loading, setLoading] = useState(false);
   const [next_page, setNextPage] = useState(next_page_url ? 2 : null);
   const [data, setData] = useState([]);
@@ -19,6 +20,11 @@ function StoriesPagination({ next_page_url }: { next_page_url: string }) {
     );
   const getNextFilters = async () => {
     setLoading(true);
+    if (storiesData.length === 0) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setLoading(false);
+      return null;
+    }
     const res = await story.getStories(next_page);
     setData(res.data);
     if (res.next_page_url) {

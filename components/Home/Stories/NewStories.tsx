@@ -67,7 +67,12 @@ function StoriesContainer({ activeId, selectedStory }) {
       passive: false,
     },
   });
-  if (!storiesData || storiesData?.length === 0)
+  console.log(storiesData, selectedStory);
+  if (
+    !storiesData ||
+    storiesData?.length === 0 ||
+    !storiesData?.find((s) => s.id === selectedStory.id)
+  )
     return (
       <div className="bg-white rounded-lg w-[300px] h-[400px] flex-row p-4 fixed z-[99999999] justify-center items-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
         <span className="scale-[4]">

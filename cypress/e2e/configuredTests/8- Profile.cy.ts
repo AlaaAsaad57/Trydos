@@ -199,6 +199,14 @@ describe("should test language and country change", () => {
       force: true,
       scrollBehavior: false,
     });
+    cy.Exist('[data-cy="personal-info-countries-back-button"]').then((s) => {
+      if (s) {
+        cy.get('[data-cy="personal-info-countries-back-button"]').click({
+          force: true,
+          scrollBehavior: false,
+        });
+      }
+    });
   });
   it("should click on language button", () => {
     cy.get('[data-cy="language-button"]').click({
@@ -208,6 +216,14 @@ describe("should test language and country change", () => {
     cy.get('[data-cy="language-en"]').click({
       force: true,
       scrollBehavior: false,
+    });
+    cy.Exist('[data-cy="language-setting-back-button"]').then((s) => {
+      if (s) {
+        cy.get('[data-cy="language-setting-back-button"]').click({
+          force: true,
+          scrollBehavior: false,
+        });
+      }
     });
   });
 });
