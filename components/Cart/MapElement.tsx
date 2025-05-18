@@ -68,6 +68,11 @@ export const MapElement: React.FC<MapProps> = memo(
     };
 
     const handleMapClick = (e: google.maps.MapMouseEvent) => {
+      if (map.getZoom() < 10) {
+        map.setZoom(20);
+
+        return;
+      }
       if (e.latLng) {
         const lat = e.latLng.lat();
         const lng = e.latLng.lng();

@@ -39,9 +39,7 @@ export async function generateProductMetaData({ params, searchParams }) {
     const ogImage =
       product?.sync_color_images?.find(
         (s) => s.color_name === searchParams?.color
-      )?.images?.[0]?.file_path ??
-      product.images[0].file_path ??
-      product?.thumbnail?.file_path;
+      )?.images?.[0]?.file_path ?? product.images[0].file_path;
 
     //   const keywords = [
     //     boutique.name,
@@ -104,19 +102,7 @@ export async function generateProductMetaData({ params, searchParams }) {
             width: 1200,
             height: 630,
             alt: product.name,
-          }))) || [
-          {
-            url: getConfiguredImage({
-              src: product?.thumbnail,
-              width: 1200,
-              height: 630,
-              q: 80,
-            }),
-            width: 1200,
-            height: 630,
-            alt: product.name,
-          },
-        ]
+          })))
       );
     };
 

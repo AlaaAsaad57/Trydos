@@ -6,14 +6,15 @@ interface AsyncSelectProps {
   options: Array<{
     label: string;
     value: string;
-    thumbnail?: string;
+
+    images: { file_path: string };
     price?: number;
   }>;
   onChange: (
     option: {
       label: string;
       value: string;
-      thumbnail?: string;
+      images: { file_path: string };
       price?: number;
     } | null
   ) => void;
@@ -23,7 +24,7 @@ interface AsyncSelectProps {
   selectedOption?: {
     label: string;
     value: string;
-    thumbnail?: string;
+    images: { file_path: string };
     price?: number;
   } | null;
 }
@@ -43,7 +44,8 @@ const AsyncSelectCustom: React.FC<AsyncSelectProps> = ({
   const [internalSelectedOption, setInternalSelectedOption] = useState<{
     label: string;
     value: string;
-    thumbnail?: string;
+    images: { file_path: string };
+
     price?: number;
   } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -83,7 +85,8 @@ const AsyncSelectCustom: React.FC<AsyncSelectProps> = ({
   const handleOptionClick = (option: {
     label: string;
     value: string;
-    thumbnail?: string;
+    images: { file_path: string };
+
     price?: number;
   }) => {
     setInternalSelectedOption(option);
@@ -171,9 +174,9 @@ const AsyncSelectCustom: React.FC<AsyncSelectProps> = ({
                 className="px-4 py-2 cursor-pointer hover:bg-gray-100 flex items-center gap-3"
                 onClick={() => handleOptionClick(option)}
               >
-                {option.thumbnail && (
+                {option.images.file_path && (
                   <img
-                    src={option.thumbnail}
+                    src={option.images[0]?.file_path}
                     alt={option.label}
                     className="w-10 h-10 object-cover rounded"
                   />

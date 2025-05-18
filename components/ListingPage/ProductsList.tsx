@@ -164,7 +164,6 @@ function ProductsInfiniteScroll({
                   product={{
                     sync_color_images: product.sync_color_images,
                     images: product.images,
-                    thumbnail: product.thumbnail,
                   }}
                   priority={key < 3}
                 />

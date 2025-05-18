@@ -537,5 +537,5 @@ const getImages = (productData, color): { images: any[] } => {
   ) {
     return productData?.sync_color_images[0];
   }
-  return productData ?? { images: [productData.thumbnail] };
+  return productData;
 };

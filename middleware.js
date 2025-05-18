@@ -66,9 +66,6 @@ export async function middleware(request) {
   const countryFromCookies = cookies.get("country")?.value?.toLowerCase();
   const langFromCookies = cookies.get("lang")?.value?.toLowerCase() || "en";
   if (
-    countryFromCookies?.length > 0 &&
-    countryUrl?.length > 0 &&
-    countryUrl?.toLowerCase() === countryFromCookies?.toLowerCase() &&
     countryUrl !== "gb" &&
     countryFromCookies !== "gb" &&
     !url.searchParams.get("changed-country")

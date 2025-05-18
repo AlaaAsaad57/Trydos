@@ -107,7 +107,7 @@ async function FeatureProducts({ lang }) {
                   height={130}
                   className="rounded w-full flex  max-h-[130px] min-h-[130px]"
                   src={getConfiguredImage({
-                    src: product.thumbnail,
+                    src: product.images[0]?.file_path,
                     width: 150,
                     height: 130,
                   })}

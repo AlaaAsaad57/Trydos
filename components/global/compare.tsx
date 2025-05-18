@@ -123,7 +123,7 @@ const ComparePage: React.FC = ({
       productsVar?.map((p) => ({
         label: p.name,
         value: p.slug,
-        thumbnail: p.thumbnail?.file_path,
+        images: p.images[0]?.file_path,
         price: p.price,
       })) || []
     );
@@ -203,7 +203,7 @@ const ComparePage: React.FC = ({
       const option = {
         label: product.name,
         value: product.slug,
-        thumbnail: product.thumbnail,
+        images: product.images[0]?.file_path,
         price: product.price,
       };
       setProducts([option]);
@@ -332,7 +332,7 @@ const ComparePage: React.FC = ({
         <Link href={`/${lang}/products/${product.slug}`}>
           <img
             // @ts-ignore
-            src={product.thumbnail}
+            src={product.images}
             alt={product.name}
             className="w-32 h-32 object-contain hover:opacity-80 transition-opacity"
           />
@@ -534,7 +534,7 @@ const ComparePage: React.FC = ({
                       ? {
                           label: product1.name,
                           value: product1.slug,
-                          thumbnail: product1.thumbnail,
+                          images: product1.images[0],
                           price: product1.price,
                         }
                       : null
@@ -557,7 +557,7 @@ const ComparePage: React.FC = ({
                       ? {
                           label: product2.name,
                           value: product2.slug,
-                          thumbnail: product2.thumbnail,
+                          images: product2.images[0],
                           price: product2.price,
                         }
                       : null

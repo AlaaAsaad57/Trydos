@@ -73,10 +73,7 @@ export function ProductPhotosSlider({ product, priority }) {
       product.sync_color_images[0]?.images?.length > 0
         ? product.sync_color_images[0]
         : {
-            images:
-              product.images?.length > 0
-                ? product.images
-                : [product.thumbnail.file_path],
+            images: product.images,
           },
     // @ts-ignore
     activeImage:
@@ -84,10 +81,7 @@ export function ProductPhotosSlider({ product, priority }) {
       product?.sync_color_images[0]?.images?.length > 0
         ? // @ts-ignore
           product?.sync_color_images[0]?.images[0]?.file_path
-        : product.images?.length > 0
-        ? // @ts-ignore
-          product.images[0]?.file_path
-        : product.thumbnail.file_path,
+        : product.images?.[0].file_path,
     isColorSelected: false,
     activeImageIndex: 0,
     renderVar: false,

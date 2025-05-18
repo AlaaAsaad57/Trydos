@@ -601,7 +601,7 @@ export function formatPrice(price) {
         ? Math.ceil(parseFloat((price / 1000000).toFixed(3)) * ceil) / ceil
         : parseFloat((price / 1000000).toFixed(3))) + translateFunction("M")
     ); // For millions
-  } else if (price >= 1000) {
+  } else if (price >= 100000) {
     return (
       (ceil
         ? Math.ceil(parseFloat((price / 1000).toFixed(3)) * ceil) / ceil
@@ -641,9 +641,7 @@ export const RoundPrice = ({
     return a;
   }
   a = parseFloat((a * rateVariable).toFixed(pointsVariable));
-  if (currency?.ciel) {
-    a = Math.ceil(a / currency.ceil) * currency.ceil;
-  }
+
   return formatPrice(a);
 };
 export const onClickSearchHistory = (searchValue) => {
