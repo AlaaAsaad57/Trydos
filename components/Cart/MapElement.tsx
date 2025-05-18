@@ -69,8 +69,11 @@ export const MapElement: React.FC<MapProps> = memo(
 
     const handleMapClick = (e: google.maps.MapMouseEvent) => {
       if (map.getZoom() < 10) {
+        toast.info(
+          translateFunction("Please Be Accurate and select your Location")
+        );
         map.setZoom(20);
-
+        map.setCenter(e.latLng);
         return;
       }
       if (e.latLng) {

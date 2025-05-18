@@ -2,6 +2,8 @@ const translations = {
   en: {},
   ar: {
     "Total Products:": "إجمالي المنتجات:",
+    "Please Be Accurate and select your Location":
+      "كن دقيقا من فضلك باختيار موقعك الجغرافي",
     "Full Name": "الاسم الكامل",
     "Featured Products": "المنتجات المميزة",
     "Wallet Already Selected": "المحفظة محددة بالفعل",
@@ -517,6 +519,8 @@ const translations = {
   tr: {
     "The Purchase Was Completed Successfully":
       "Satın Alma Başarıyla Tamamlandı",
+    "Please Be Accurate and select your Location":
+      "Lütfen doğru ve konumunuzu seçin",
     "Your Current Location is Not belong to Country Bounds":
       "Mevcut Konumunuz Seçilen Ülke Sınırları İçinde Değil",
     "Featured Products": "Öne Çıkan Ürünler",

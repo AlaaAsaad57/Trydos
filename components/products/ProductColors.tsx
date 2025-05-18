@@ -169,7 +169,7 @@ function ProductColors({ colors, ProductColorsArray }) {
                       isActive
                         ? ProductColorsArray?.filter(
                             (s) => s.name === color.color_name
-                          )[0].color
+                          )?.[0]?.color
                         : "#fff"
                     }
                   />
