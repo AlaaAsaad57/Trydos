@@ -109,5 +109,13 @@ class CartService {
       return false;
     }
   }
+  async ConvertToOldCart({ cart_item }) {
+    let body = `key=${cart_item}`;
+    await AxiosPost({
+      url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/convert_to_old",
+      body: body,
+      title: "Convert to Old Cart",
+    });
+  }
 }
 export default new CartService();

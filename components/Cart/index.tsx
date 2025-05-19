@@ -26,6 +26,7 @@ import Timer from "components/Login/Timer";
 import { QuantityDetailsProductApi } from "models/Api";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
+import cart from "services/cart";
 
 function CartContainer({ close, toOrders }) {
   const {
@@ -1771,7 +1772,7 @@ const QuantutyInput = ({
   maxAllowed,
   isCollectedAfterOrdering,
 }) => {
-  const { initCart, settings, currency } = useAppStore();
+  const { initCart, settings, currency, removeFromCart } = useAppStore();
   const [inputValue, setInputValue] = useState(parseInt(value));
   const PlusIcon = ({ className }) => {
     return (
@@ -1912,6 +1913,12 @@ const QuantutyInput = ({
     }
     return false;
   };
+  const ConvertToOldCart = async () => {
+    setLoading(true);
+    await cart.ConvertToOldCart({ cart_item: id });
+    setLoading(false);
+    removeFromCart(id);
+  };
   return (
     <div
       data-cy="card-footer"
@@ -2027,7 +2034,9 @@ const QuantutyInput = ({
         {!disabled && (
           <div
             className="flex rounded-md p-3 items-center whitespace-nowrap bg-[#54b8ff] shadow-sm ml-[25px] text-[#fafafa] cursor-pointer"
-            onClick={() => {}}
+            onClick={() => {
+              ConvertToOldCart();
+            }}
           >
             <svg
               className="mr-[5px]"
