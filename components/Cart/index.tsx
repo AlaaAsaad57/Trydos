@@ -2024,6 +2024,28 @@ const QuantutyInput = ({
           className="outline-none hide-btn text-[14px] medium text-[#1D1D1D] text-center max-w-[72px] border-none py-1  w-[72px] h-[24px]"
         />
         {loading && <Spinner />}
+        {!disabled && (
+          <div
+            className="flex rounded-md p-3 items-center whitespace-nowrap bg-[#54b8ff] shadow-sm ml-[10px] text-[#fafafa] cursor-pointer"
+            onClick={() => {}}
+          >
+            <svg
+              className="mr-[5px]"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+            >
+              <path
+                d="M8 0C3.6 0 0 3.6 0 8C0 12.4 3.6 16 8 16C12.4 16 16 12.4 16 8C16 3.6 12.4 0 8 0ZM8 14C4.7 14 2 11.3 2 8C2 4.7 4.7 2 8 2C11.3 2 14 4.7 14 8C14 11.3 11.3 14 8 14Z"
+                fill="#fafafa"
+              />
+              <path d="M8.5 4H7V9L11.2 11.2L12 10L8.5 8.2V4Z" fill="#fafafa" />
+            </svg>
+            {translateFunction("Reschedule")}
+          </div>
+        )}
       </div>
       <div className={`pl-[30px]`} data-cy="oldNew-price-container">
         <div className="product-info-price" data-cy="oldNew-price-container2">
