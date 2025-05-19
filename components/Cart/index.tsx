@@ -1918,6 +1918,7 @@ const QuantutyInput = ({
     await cart.ConvertToOldCart({ cart_item: id });
     setLoading(false);
     removeFromCart(id);
+    await getOldCart();
   };
   return (
     <div
