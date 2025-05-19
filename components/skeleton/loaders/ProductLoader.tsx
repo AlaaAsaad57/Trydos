@@ -243,9 +243,7 @@ function ProductLoader({ product }) {
             <Suspense fallback={<></>}>
               <CameraShots images={product?.images || []} />
             </Suspense>
-            <Suspense fallback={<></>}>
-              <ProductStories />
-            </Suspense>
+            <Suspense fallback={<></>}></Suspense>
             <Suspense fallback={<></>}>
               <ProductSizes
                 sizes={

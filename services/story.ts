@@ -13,6 +13,7 @@ import axios from "axios";
 import { GetStoriesApi, LoginStoreisApi, UploadStoryApi } from "models/Api";
 import profilePicture from "public/images/profileNo.png";
 import { useAppStore } from "store";
+import { AxiosGet } from "utils/AxiosApi";
 
 class StoryService {
   /* get stories */
@@ -207,6 +208,19 @@ class StoryService {
       if (isVideo) {
         return url.replace("/upload", "/upload/h_194/f_avif/q_100");
       } else return url.replace("/upload", "/upload/h_194/f_avif/q_100");
+    }
+  }
+  async getStoriesForProducts({ id, page }) {
+    try {
+      let data = await AxiosGet({
+        url:
+          process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
+          `/api/v1/stories/product_stories/${id}?page=${page}`,
+      });
+      return data;
+    } catch (error) {
+      console.log(error);
+      return [];
     }
   }
 }

@@ -70,6 +70,7 @@ export interface OrderDetail {
   id: number;
   order_id: number;
   product_id: number;
+  product_slug: string;
   image: string;
   order_status: string;
   product_details: {

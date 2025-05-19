@@ -246,7 +246,7 @@ const ProductCard = ({
   const { lang } = useParams();
   return (
     <NextLink
-      href={`/${lang}/products/${product.product_details.slug}`}
+      href={`/${lang}/products/${product.product_slug}`}
       data={{ is_product: true, ...product.product_details }}
       className="flex-row relative w-full border-t border-[#C4C2C27f] py-[12px]"
     >

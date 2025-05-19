@@ -327,7 +327,7 @@ async function Page({ params, searchParams }: Props) {
               <CameraShots images={product?.images || []} />
             </Suspense>
             <Suspense fallback={<></>}>
-              <ProductStories />
+              <ProductStories id={product.id} />
             </Suspense>
             <Suspense fallback={<></>}>
               <ProductSizes

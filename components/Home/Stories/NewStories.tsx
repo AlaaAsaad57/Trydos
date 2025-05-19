@@ -8,9 +8,15 @@ import StoryServiceClass from "services/story";
 import StoryHolder from "./StoryHolder";
 import { useAppStore } from "store";
 import Spinner from "components/global/Spinner";
-function StoriesContainer({ activeId, selectedStory }) {
-  const { storiesData } = useAppStore();
-
+function StoriesContainer({
+  selectedStory,
+  stories,
+}: {
+  selectedStory: any;
+  stories?: any;
+}) {
+  const { storiesData: storiesCache } = useAppStore();
+  let storiesData = stories ?? storiesCache;
   var dir = 0;
   const [isTop, setIsTop] = useState("");
 

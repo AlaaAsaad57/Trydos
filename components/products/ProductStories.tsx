@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import StoreisIcon from "public/svg/product/StoreisIcon.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import { SelectStory } from "store/homepage/actions";
@@ -9,14 +9,19 @@ import StoriesContainer from "components/Home/Stories/NewStories";
 import InfoWindow from "./InfoWindow";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-function ProductStories() {
+import { InView } from "node_modules/react-intersection-observer/dist";
+import Spinner from "components/global/Spinner";
+function ProductStories({ id }) {
   const {
-    storiesData: stories,
     selectedStory,
     InfoMessage: showInfoMessageObj,
     showInfoMessage,
   } = useAppStore();
   let { lang } = useParams();
+  const [stories, setStories] = useState([]);
+  const [next_page, set_next_page] = useState(true);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang?) => {
@@ -25,11 +30,20 @@ function ProductStories() {
   const setSelectStory = (e) => {
     SelectStory(e);
   };
-  useEffect(() => {
-    setTimeout(() => {
-      StoryServiceClass.getStories();
-    }, 5000);
+  const GetData = async () => {
+    setLoading(true);
+    const data = await StoryServiceClass.getStoriesForProducts({
+      id: id,
+      page: page,
+    });
 
+    setPage(page + 1);
+    set_next_page(data.next_page_url);
+    setStories([...stories, ...data.data]);
+    setLoading(false);
+  };
+  useEffect(() => {
+    GetData();
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector(".stories-row");
       let isDown = false;
@@ -66,10 +80,7 @@ function ProductStories() {
     >
       {showInfoMessageObj.showInfoMessage && <InfoWindow />}
       {selectedStory && selectedStory?.id && (
-        <StoriesContainer
-          activeId={selectedStory?.id}
-          selectedStory={selectedStory}
-        />
+        <StoriesContainer stories={stories} selectedStory={selectedStory} />
       )}
       <div className="colors-label flex-row align-center">
         <StoreisIcon data-cy="StoriesIcon" />
@@ -114,6 +125,19 @@ function ProductStories() {
             <div className="inset-story-shadow absolute" />
           </div>
         ))}
+        {next_page && (
+          <InView
+            className="spinner-container min-w-[80px] flex justify-center items-center h-[194px]"
+            as="div"
+            onChange={(inView) => {
+              if (inView && !loading) {
+                GetData();
+              }
+            }}
+          >
+            <Spinner />
+          </InView>
+        )}
       </div>
     </div>
   );
