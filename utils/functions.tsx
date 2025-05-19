@@ -630,10 +630,7 @@ export const RoundPrice = ({
   const { currency, settings } = useAppStore.getState();
 
   let rateVariable = rate || currency?.exchange_rate || 1;
-  let pointsVariable =
-    points ||
-    (settings && settings["starting-setting"]?.decimal_point_settings) ||
-    0;
+  let pointsVariable = 2;
   let a = parseFloat(num);
 
   if (returnNumber) {
