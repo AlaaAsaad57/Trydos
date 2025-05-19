@@ -11,13 +11,13 @@ function StoryElement({ index, story }) {
       <StoryAvatar
         isSeen={story.stories.filter((s) => s.is_seen === false).length === 0}
         avatar={
-          (typeof story.photo_path === "string" &&
-            getConfiguredImage({
-              src: story.photo_path,
-              width: 20,
-              height: 20,
-            })) ??
-          profilePicture
+          typeof story.photo_path === "string"
+            ? getConfiguredImage({
+                src: story.photo_path,
+                width: 20,
+                height: 20,
+              })
+            : profilePicture
         }
       />
       <Story
