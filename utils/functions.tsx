@@ -18,6 +18,7 @@ import {
 } from "models/Api";
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
+import { CielNumber } from "./tinyUtils";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -591,24 +592,17 @@ export const UpdateFilter = async ({
     console.log(error);
   }
 };
+
 export function formatPrice(price) {
   const { currency } = useAppStore.getState();
   let ceil = currency?.ciel ?? 0;
 
   if (price >= 1000000) {
-    return (
-      (ceil
-        ? Math.ceil(parseFloat((price / 1000000).toFixed(3)) * ceil) / ceil
-        : parseFloat((price / 1000000).toFixed(3))) + translateFunction("M")
-    ); // For millions
+    return CielNumber(price / 1000000) + translateFunction("M"); // For millions
   } else if (price >= 100000) {
-    return (
-      (ceil
-        ? Math.ceil(parseFloat((price / 1000).toFixed(3)) * ceil) / ceil
-        : parseFloat((price / 1000).toFixed(3))) + translateFunction("K")
-    ); // For thousands
+    return CielNumber(price / 1000) + translateFunction("K"); // For thousands
   } else {
-    return price; // For prices under 1000
+    return Math.ceil(price); // For prices under 1000
   }
 }
 export const toUSD = (price) => {
@@ -638,10 +632,10 @@ export const RoundPrice = ({
   let a = parseFloat(num);
 
   if (returnNumber) {
-    a = parseFloat((a * rateVariable).toFixed(pointsVariable));
+    a = CielNumber(a * rateVariable);
     return a;
   }
-  a = parseFloat((a * rateVariable).toFixed(pointsVariable));
+  a = CielNumber(a * rateVariable);
 
   return formatPrice(a);
 };

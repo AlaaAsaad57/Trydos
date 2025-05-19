@@ -11,16 +11,19 @@ import { toast } from "react-toastify";
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
+import GiftIcon from "public/svg/cart/Gift.svg";
 function OrderButton({ close, toOrders }) {
   const {
     initCart,
     total_discount,
+    total,
     currency,
     user,
     sub_total,
     total_cash,
     total_shipping_cost,
     cart,
+    orderData,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -32,7 +35,13 @@ function OrderButton({ close, toOrders }) {
   const [loading, setLoading] = useState(false);
 
   const [option, setOption] = useState(false);
-
+  const getTotaPriceToShow = () => {
+    if (orderData?.payment?.find((s) => s.id === 0)) {
+      return total_cash;
+    } else {
+      return total;
+    }
+  };
   const ItemsIcon = () => {
     return (
       <svg
@@ -330,7 +339,10 @@ function OrderButton({ close, toOrders }) {
                   </div>
                   <span className="ml-[5px] medium text-[#1D1D1D] text-[13px] pr-[13px]">
                     {RoundPrice({
-                      num: total_cash + total_discount - total_shipping_cost,
+                      num:
+                        getTotaPriceToShow() +
+                        total_discount -
+                        total_shipping_cost,
                     })}{" "}
                     {currency.symbol}
                   </span>
@@ -382,7 +394,7 @@ function OrderButton({ close, toOrders }) {
                     {currency.symbol}
                   </span>
                 </div>
-                {/* <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
+                <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
                   <div className="flex-row pl-[12px]">
                     <span className="flex-row translate-y-[3px]">
                       <GiftIcon />
@@ -398,9 +410,9 @@ function OrderButton({ close, toOrders }) {
                   </div>
 
                   <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]">
-                    {RoundPrice({ num: -10 })} {currency_symbol.symbol}
+                    - {RoundPrice({ num: 0 })} {currency.symbol}
                   </span>
-                </div> */}
+                </div>
                 <div
                   data-cy="Shipping-container"
                   className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1"
@@ -485,10 +497,10 @@ function OrderButton({ close, toOrders }) {
                   className="line-through regular mr-2"
                 >
                   {RoundPrice({
-                    num: total_cash + total_discount,
+                    num: getTotaPriceToShow() + total_discount,
                   })}
                 </span>{" "}
-                {RoundPrice({ num: total_cash })} {currency?.symbol}
+                {RoundPrice({ num: getTotaPriceToShow() })} {currency?.symbol}
                 <span className="ml-2">
                   <MenuIcon className={expanded && "rotate-180"} />
                 </span>
@@ -580,7 +592,8 @@ function OrderButton({ close, toOrders }) {
                           } `}
                         >
                           {cart.length} {translate("items")}{" "}
-                          {RoundPrice({ num: total_cash })} {currency?.symbol}
+                          {RoundPrice({ num: getTotaPriceToShow() })}{" "}
+                          {currency?.symbol}
                         </span>
                       </>
                     )}

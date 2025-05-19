@@ -2,20 +2,20 @@ import { useAppStore } from "store";
 import { AxiosGet } from "./AxiosApi";
 import { translateFunction } from "./functions";
 import dynamic from "next/dynamic";
-
+export const CielNumber = (price) => {
+  return Math.ceil(price * 1000) / 1000;
+};
 export const getPrice = (num, lang, currency) => {
   let rateVariable = currency?.exchange_rate;
   let price = parseFloat(num);
   price = parseFloat((price * rateVariable).toFixed(0));
 
   if (price >= 1000000) {
-    return (
-      parseFloat((price / 1000000).toFixed(3)) + translateFunction("M", lang)
-    ); // For millions
+    return CielNumber(price / 1000000) + translateFunction("M", lang); // For millions
   } else if (price >= 100000) {
-    return parseFloat((price / 1000).toFixed(3)) + translateFunction("K", lang); // For thousands
+    return CielNumber(price / 1000) + translateFunction("K", lang); // For thousands
   } else {
-    return price; // For prices under 1000
+    return Math.ceil(price); // For prices under 1000
   }
 };
 export const configureSearchParams = ({

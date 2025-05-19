@@ -2026,7 +2026,7 @@ const QuantutyInput = ({
         {loading && <Spinner />}
         {!disabled && (
           <div
-            className="flex rounded-md p-3 items-center whitespace-nowrap bg-[#54b8ff] shadow-sm ml-[10px] text-[#fafafa] cursor-pointer"
+            className="flex rounded-md p-3 items-center whitespace-nowrap bg-[#54b8ff] shadow-sm ml-[25px] text-[#fafafa] cursor-pointer"
             onClick={() => {}}
           >
             <svg
