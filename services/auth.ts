@@ -357,43 +357,95 @@ class AuthService {
     localStorage.removeItem("USER");
     Cookies.remove("MARKET-TOKEN");
   }
-  async UpdateProfile(userObj) {
+  async UpdateProfile(userObj, previousUserObj) {
     const { userProfile } = useAppStore.getState();
-    let res = await AxiosPost({
-      url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-profile",
-      body: userObj,
-      title: "Update Profile",
-    });
-    await axios.post(
-      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + "/api/v1/users/update",
-      {
-        name: userObj?.name ?? userProfile?.name,
-        mobile_phone: userObj?.phone ?? userProfile?.phone,
-        photo_path: userObj?.image ?? userProfile?.image,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("STORIES-TOKEN")}`,
-        },
-      }
-    );
-    // let user_id = JSON.parse(localStorage.getItem("USER-CHAT")).id;
-    let chat_update = await axios.put(
-      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        `/api/v1/users/${this.UserID()}`,
-      {
-        name: userObj?.name ?? userProfile?.name,
-        mobile_phone: userObj?.phone ?? userProfile?.phone,
-        photo_path: userObj?.image ?? userProfile?.image,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("CHAT-TOKEN")}`,
-        },
-      }
-    );
+    let market_done = false,
+      chat_done = false,
+      stories_done = false;
 
-    return res;
+    try {
+      await axios
+        .post(
+          process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + "/api/v1/users/update",
+          {
+            name: userObj?.name ?? userProfile?.name,
+            mobile_phone: userObj?.phone ?? userProfile?.phone,
+            photo_path: userObj?.image ?? userProfile?.image,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("STORIES-TOKEN")}`,
+            },
+          }
+        )
+        .then((s) => {
+          stories_done = true;
+        });
+      // let user_id = JSON.parse(localStorage.getItem("USER-CHAT")).id;
+      let chat_update = await axios
+        .put(
+          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+            `/api/v1/users/${this.UserID()}`,
+          {
+            name: userObj?.name ?? userProfile?.name,
+            mobile_phone: userObj?.phone ?? userProfile?.phone,
+            photo_path: userObj?.image ?? userProfile?.image,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("CHAT-TOKEN")}`,
+            },
+          }
+        )
+        .then((s) => {
+          chat_done = true;
+        });
+      let res = await AxiosPost({
+        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-profile",
+        body: userObj,
+        title: "Update Profile",
+      }).then((s) => {
+        market_done = true;
+      });
+      return res;
+    } catch (error) {
+      if (market_done) {
+        await AxiosPost({
+          url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-profile",
+          body: userProfile,
+          title: "Update Profile",
+        }).then((s) => {
+          market_done = true;
+        });
+      }
+      if (stories_done) {
+        await axios.post(
+          process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + "/api/v1/users/update",
+          {
+            name: userProfile?.name,
+            mobile_phone: userProfile?.phone,
+            photo_path: userProfile?.image,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("STORIES-TOKEN")}`,
+            },
+          }
+        );
+      }
+      if (chat_done) {
+        await axios.put(
+          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+            `/api/v1/users/${this.UserID()}`,
+          {
+            name: userProfile?.name,
+            mobile_phone: userProfile?.phone,
+            photo_path: userProfile?.image,
+          }
+        );
+      }
+      throw error;
+    }
   }
   async UpdateProfileImage(image) {
     let formData = new FormData();

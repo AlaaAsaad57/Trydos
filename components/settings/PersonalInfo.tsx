@@ -41,7 +41,7 @@ function PersonalInfo({
       if (payload.id_token) {
         obj = { ...obj, id_token: payload.id_token };
       }
-      await auth.UpdateProfile({ ...obj });
+      await auth.UpdateProfile({ ...obj }, userProfile);
       editUserInfo({ ...payload, gender: { value: payload.gender } });
       setLoading(false);
       goBack();

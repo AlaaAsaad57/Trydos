@@ -351,6 +351,7 @@ class HomeService {
         );
 
         localStorage.removeItem("customer-info");
+        setIsRegisteringReady(true);
         if (repo.data.user) {
           if (Smartlook.initialized())
             Smartlook.identify(repo.data.user.id, {
@@ -360,7 +361,7 @@ class HomeService {
             });
           await this.RequestFireBase();
         }
-        setIsRegisteringReady(true);
+
         if (typeof window !== "undefined") {
           _isStoreLastJson() &&
             localStorage.setItem("LAST_JSON", JSON.stringify(repo));

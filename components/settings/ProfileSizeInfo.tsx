@@ -27,7 +27,7 @@ function ProfileSizeInfo({
   const updateUserProfile = async (payload) => {
     try {
       setLoading(true);
-      await auth.UpdateProfile(payload);
+      await auth.UpdateProfile(payload, userProfile);
 
       editUserInfo(payload);
       setLoading(false);

@@ -138,9 +138,12 @@ function UploadProfilePhoto({
       } else {
         res = { sub_path: userProfile.image };
       }
-      await auth.UpdateProfile({
-        image: file ? res.sub_path : null,
-      });
+      await auth.UpdateProfile(
+        {
+          image: file ? res.sub_path : null,
+        },
+        userProfile
+      );
       // setFile(res.data.image);
 
       editUserInfo({
