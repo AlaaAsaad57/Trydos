@@ -43,10 +43,6 @@ export async function GET(
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
       }),
-      next: {
-        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
-        tags: ["listing"],
-      },
     }
   );
   if (response.status !== 200) {
@@ -72,7 +68,6 @@ export async function GET(
     {
       status: 200,
       headers: {
-        "Cache-Control": `public, s-maxage=${process.env.NEXT_PUBLIC_REVALIDATE_LISTING}`,
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",

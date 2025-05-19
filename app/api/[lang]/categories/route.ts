@@ -23,10 +23,6 @@ export async function GET(req: NextRequest, { params }) {
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
       }),
-      next: {
-        revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
-        tags: ["main-categories-Api"],
-      },
     }
   );
   if (response.status !== 200) {
@@ -46,7 +42,6 @@ export async function GET(req: NextRequest, { params }) {
     {
       status: 200,
       headers: {
-        "Cache-Control": `public, s-maxage=${process.env.NEXT_PUBLIC_REVALIDATE_LISTING}`,
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",

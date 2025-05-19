@@ -26,11 +26,6 @@ export async function GET(
   let boutiques_response: GetBoutiqueApi = await fetchWithRetry(
     process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + BOUTIQUE_URL,
     {
-      next: {
-        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-        tags: ["boutiques"],
-      },
-
       headers: new Headers({
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -43,7 +38,6 @@ export async function GET(
   );
   return NextResponse.json(boutiques_response, {
     headers: {
-      "Cache-Control": `public, s-maxage=${process.env.NEXT_PUBLIC_REVALIDATE}`,
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",

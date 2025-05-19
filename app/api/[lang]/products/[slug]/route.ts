@@ -22,7 +22,6 @@ export async function GET(
     {
       status: 200,
       headers: {
-        "Cache-Control": `public, s-maxage=${process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS}`,
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization", // Cache on the edge for 1hr
@@ -48,15 +47,6 @@ const getProductSimpleDetails = async ({
       {
         method: "GET",
 
-        next: {
-          revalidate: parseInt(
-            process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS
-          ),
-          tags: [
-            `product-details`,
-            `product-simple-details-${slug}-${country}-${lang}`,
-          ],
-        },
         headers: new Headers({
           lang: lang,
           country: country,
@@ -91,15 +81,6 @@ const getProductExtendedDetails = async ({
       {
         method: "GET",
 
-        next: {
-          revalidate: parseInt(
-            process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS
-          ),
-          tags: [
-            `product-details`,
-            `product-details-${slug}-${country}-${lang}`,
-          ],
-        },
         headers: new Headers({
           lang: lang,
           country: country,
