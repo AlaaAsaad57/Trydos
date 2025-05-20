@@ -1,7 +1,7 @@
 import { defineConfig } from "cypress";
 import TS from "@cypress/code-coverage/task";
 export default defineConfig({
-  projectId: "d1rk7o",
+  projectId: "c2mz74",
   chromeWebSecurity: false,
   reporter: "cypress-mochawesome-reporter",
 
@@ -36,6 +36,7 @@ export default defineConfig({
     //   "https://trydos-front-git-development-trydos-front-team.vercel.app/",
     baseUrl: "http://localhost:3000",
     testIsolation: false,
+
     env: {
       browserPermissions: {
         notifications: "allow",

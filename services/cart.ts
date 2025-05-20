@@ -110,10 +110,21 @@ class CartService {
     }
   }
   async ConvertToOldCart({ cart_item }) {
-    let body = `key=${cart_item}`;
+    let dataBody = [];
+    let dataObj = { key: cart_item };
+    for (var property in dataObj) {
+      if (dataObj[property] || dataObj[property] === 0) {
+        var encodedKey = encodeURIComponent(property);
+        var encodedValue = encodeURIComponent(dataObj[property]);
+        dataBody.push(encodedKey + "=" + encodedValue);
+      }
+    }
+    // @ts-ignore
+    dataBody = dataBody.join("&");
+
     await AxiosPost({
       url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/convert_to_old",
-      body: body,
+      body: dataBody,
       title: "Convert to Old Cart",
     });
   }

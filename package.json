@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test:parallel": "node runTests.js",
     "lint": "next lint",
     "cypress": "cypress open",
     "test": "nyc cypress run --headless",
@@ -94,6 +95,8 @@
   "devDependencies": {
     "@cypress/code-coverage": "^3.13.11",
     "@svgr/webpack": "^8.1.0",
+    "glob": "^11.0.2",
+    "mkdirp": "^3.0.1",
     "@types/node": "^20.12.7",
     "autoprefixer": "^10.4.19",
     "cypress-file-upload": "^5.0.8",

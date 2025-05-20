@@ -1914,127 +1914,134 @@ const QuantutyInput = ({
     return false;
   };
   const ConvertToOldCart = async () => {
-    setLoading(true);
-    await cart.ConvertToOldCart({ cart_item: id });
-    setLoading(false);
-    removeFromCart(id);
-    await getOldCart();
+    try {
+      setLoading(true);
+      await cart.ConvertToOldCart({ cart_item: id });
+      setLoading(false);
+      removeFromCart(id);
+      await getOldCart();
+    } catch (error) {
+      setLoading(false);
+    }
   };
   return (
     <div
       data-cy="card-footer"
       className={`absolute flex-wrap ${"top-[125px]"} left-[137px] flex-row items-center justify-between max-w-[calc(100%-152px)] w-full`}
     >
-      <div
-        className={`${
-          loading && "opacity-40"
-        } flex-row hide-btn relative max-w-[72px] w-[72px] h-[24px] mt-4 z-50`}
-        data-cy="plus-delete-increase-container"
-      >
-        <svg
-          data-cy="square-icon"
-          className="absolute hide-btn"
-          xmlns="http://www.w3.org/2000/svg"
-          width="72"
-          height="24"
-          viewBox="0 0 72 24"
+      <div className="flex-col">
+        {" "}
+        <div
+          className={`${
+            loading && "opacity-40"
+          } flex-row hide-btn relative max-w-[72px] w-[72px] h-[24px] mt-4 z-50`}
+          data-cy="plus-delete-increase-container"
         >
-          <g
-            id="Group_12755"
-            data-name="Group 12755"
-            transform="translate(-140 -277)"
+          <svg
+            data-cy="square-icon"
+            className="absolute hide-btn"
+            xmlns="http://www.w3.org/2000/svg"
+            width="72"
+            height="24"
+            viewBox="0 0 72 24"
           >
             <g
-              id="Rectangle_5745"
-              data-name="Rectangle 5745"
-              transform="translate(140 277)"
-              fill="none"
-              stroke="#d3d3d3"
-              strokeWidth="0.5"
+              id="Group_12755"
+              data-name="Group 12755"
+              transform="translate(-140 -277)"
             >
-              <rect width="72" height="24" rx="5" stroke="none" />
-              <rect
-                x="0.25"
-                y="0.25"
-                width="71.5"
-                height="23.5"
-                rx="4.75"
+              <g
+                id="Rectangle_5745"
+                data-name="Rectangle 5745"
+                transform="translate(140 277)"
                 fill="none"
-              />
+                stroke="#d3d3d3"
+                strokeWidth="0.5"
+              >
+                <rect width="72" height="24" rx="5" stroke="none" />
+                <rect
+                  x="0.25"
+                  y="0.25"
+                  width="71.5"
+                  height="23.5"
+                  rx="4.75"
+                  fill="none"
+                />
+              </g>
             </g>
-          </g>
-        </svg>
-        {!shouldDisablePlus() && (
-          <div
-            className="absolute hide-btn h-[24px] flex items-center right-[6px]  cursor-pointer"
-            data-cy="PlusIcon_CartPage"
-            onClick={() => {
-              if (disabled) return false;
-              // if (inputValue === max) {
-              //   toast.error(translate("stock is limited"));
-              //   return false;
-              // }
-              // // @ts-ignore
-              // else {
-              increaseQuantity(inputValue);
-            }}
-          >
-            <PlusIcon className="" />
-          </div>
-        )}
-
-        {inputValue > 1 ? (
-          <>
+          </svg>
+          {!shouldDisablePlus() && (
             <div
-              className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
-              data-cy="MinusIcon_CartPage"
+              className="absolute hide-btn h-[24px] flex items-center right-[6px]  cursor-pointer"
+              data-cy="PlusIcon_CartPage"
               onClick={() => {
                 if (disabled) return false;
-                if (inputValue > 1) {
-                  // @ts-ignore
-
-                  decreaseQuantity(inputValue);
-                }
+                // if (inputValue === max) {
+                //   toast.error(translate("stock is limited"));
+                //   return false;
+                // }
+                // // @ts-ignore
+                // else {
+                increaseQuantity(inputValue);
               }}
             >
-              <MinusIcon className="" data-cy="minus-icon-svg" />
+              <PlusIcon className="" />
             </div>
-            {!loading && (
+          )}
+
+          {inputValue > 1 ? (
+            <>
               <div
-                className="absolute h-[24px] flex items-center hide-btn right-[-20px] top-[-1px] scale-125  cursor-pointer"
-                data-cy="DeleteIcon_CartPage"
+                className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
+                data-cy="MinusIcon_CartPage"
                 onClick={() => {
-                  deleteFunction();
+                  if (disabled) return false;
+                  if (inputValue > 1) {
+                    // @ts-ignore
+
+                    decreaseQuantity(inputValue);
+                  }
                 }}
               >
-                <DeleteIcon data-cy="delete-icon-svg" />
+                <MinusIcon className="" data-cy="minus-icon-svg" />
               </div>
-            )}
-          </>
-        ) : (
-          <div
-            className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
-            data-cy="DeleteIcon_CartPage"
-            onClick={() => {
-              deleteFunction();
-            }}
-          >
-            <DeleteIcon data-cy="delete-icon-svg" />
-          </div>
-        )}
-        <input
-          // @ts-ignore
-          value={parseInt(inputValue)}
-          data-cy="QuantityInCart"
-          max={max}
-          disabled
-          onChange={(e) => {}}
-          className="outline-none hide-btn text-[14px] medium text-[#1D1D1D] text-center max-w-[72px] border-none py-1  w-[72px] h-[24px]"
-        />
-        {loading && <Spinner />}
+              {!loading && (
+                <div
+                  className="absolute h-[24px] flex items-center hide-btn right-[-20px] top-[-1px] scale-125  cursor-pointer"
+                  data-cy="DeleteIcon_CartPage"
+                  onClick={() => {
+                    deleteFunction();
+                  }}
+                >
+                  <DeleteIcon data-cy="delete-icon-svg" />
+                </div>
+              )}
+            </>
+          ) : (
+            <div
+              className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
+              data-cy="DeleteIcon_CartPage"
+              onClick={() => {
+                deleteFunction();
+              }}
+            >
+              <DeleteIcon data-cy="delete-icon-svg" />
+            </div>
+          )}
+          <input
+            // @ts-ignore
+            value={parseInt(inputValue)}
+            data-cy="QuantityInCart"
+            max={max}
+            disabled
+            onChange={(e) => {}}
+            className="outline-none hide-btn text-[14px] medium text-[#1D1D1D] text-center max-w-[72px] border-none py-1  w-[72px] h-[24px]"
+          />
+          {loading && <Spinner />}
+        </div>
         {!disabled && (
           <div
-            className="flex rounded-md p-3 items-center whitespace-nowrap bg-[#54b8ff] shadow-sm ml-[25px] text-[#fafafa] cursor-pointer"
+            className="flex rounded-md p-[5px] items-center whitespace-nowrap bg-[#54b8ff] shadow-sm text-[10px] light mt-[5px] text-[#fafafa] cursor-pointer"
             onClick={() => {
               ConvertToOldCart();
             }}
@@ -2057,6 +2064,7 @@ const QuantutyInput = ({
           </div>
         )}
       </div>
+
       <div className={`pl-[30px]`} data-cy="oldNew-price-container">
         <div className="product-info-price" data-cy="oldNew-price-container2">
           {product?.offer_price ? (
