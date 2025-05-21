@@ -26,8 +26,6 @@ function PageTransition({ children, init }) {
   useEffect(() => {
     let country = init?.split("-")[0];
     getCurrency({
-      lang: init.split("-")[1],
-      country: init.split("-")[0],
       callback: ({ currency, res }) => {
         let ciel = null;
         if (country === "sy") {

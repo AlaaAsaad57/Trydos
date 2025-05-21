@@ -65,8 +65,6 @@ const CartProvider = () => {
     setTimeout(() => {
       home.getClientData();
       getCurrency({
-        lang: language,
-        country: country,
         callback: (data) => {
           setCurrency(data.currency);
         },

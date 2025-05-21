@@ -211,7 +211,7 @@ export const ChatConroller = (payload) => {
   openChat(payload);
   setChatOpen(payload);
 };
-export const getCurrency = async ({ lang, country, callback }) => {
+export const getCurrency = async ({ callback }) => {
   let currency = await AxiosGet({
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile/home/currency",
     title: "Currency Request",

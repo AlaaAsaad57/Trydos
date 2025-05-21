@@ -2,6 +2,7 @@ import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { useAppStore } from "store";
 import { GetAddressListApi, GetWalletApi, PlaceOrderApi } from "models/Api";
 import { GetCartOreview, toUSD } from "utils/functions";
+import { getCurrency } from "utils/tinyUtils";
 
 class OrderService {
   async PlaceOrder({ payment_method, pay_by_wallet }) {
@@ -38,9 +39,15 @@ class OrderService {
     }
   }
   async GetWallet() {
-    const { setOrderLoading, setWalletUser } = useAppStore.getState();
+    const { setOrderLoading, setWalletUser, setCurrency } =
+      useAppStore.getState();
     try {
       setOrderLoading(true);
+      getCurrency({
+        callback: (data) => {
+          setCurrency(data.currency);
+        },
+      });
       let data: GetWalletApi = await AxiosGet({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +

@@ -37,6 +37,7 @@ function PaymentMethod() {
   // @ts-ignore
   const language = lang.split("-")[1];
   const getWalletInUSD = () => {
+    console.log(wallet, currency);
     if (wallet?.wallet_balance > 0)
       return wallet?.wallet_balance / currency?.exchange_rate;
     else return 0;
@@ -154,6 +155,7 @@ function PaymentMethod() {
       return total_cash - getWalletInUSD();
     }
   };
+  console.log(getWalletInUSD(), showCodValue());
   return (
     <>
       <div data-cy="payment-viewer" className="px-[12px] flex-col">
@@ -579,7 +581,8 @@ const TryDosWalletInput = ({ active, setActive }) => {
           {translateFunction("Your Balance")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {formatPrice(wallet?.wallet_balance)} {currency?.symbol}
+          {RoundPrice({ num: wallet?.wallet_balance, returnNumber: true })}{" "}
+          {currency?.symbol}
         </span>
       </div>
     </div>

@@ -620,8 +620,7 @@ const TryDosWalletInput = ({ total }) => {
           {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {formatPrice(RoundPrice({ num: total, returnNumber: true }))}{" "}
-          {currency?.symbol}
+          {RoundPrice({ num: total, returnNumber: true })} {currency?.symbol}
         </span>
       </div>
     </div>
