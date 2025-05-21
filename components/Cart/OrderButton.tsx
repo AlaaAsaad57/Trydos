@@ -343,6 +343,7 @@ function OrderButton({ close, toOrders }) {
                         getTotaPriceToShow() +
                         total_discount -
                         total_shipping_cost,
+                      returnNumber: true,
                     })}{" "}
                     {currency.symbol}
                   </span>
@@ -390,6 +391,7 @@ function OrderButton({ close, toOrders }) {
                     -{" "}
                     {RoundPrice({
                       num: total_discount,
+                      returnNumber: true,
                     })}{" "}
                     {currency.symbol}
                   </span>
@@ -448,7 +450,11 @@ function OrderButton({ close, toOrders }) {
                     className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]"
                   >
                     <span className="">
-                      + {RoundPrice({ num: total_shipping_cost })}{" "}
+                      +{" "}
+                      {RoundPrice({
+                        num: total_shipping_cost,
+                        returnNumber: true,
+                      })}{" "}
                       {currency.symbol}
                     </span>
                   </span>
@@ -498,9 +504,11 @@ function OrderButton({ close, toOrders }) {
                 >
                   {RoundPrice({
                     num: getTotaPriceToShow() + total_discount,
+                    returnNumber: true,
                   })}
                 </span>{" "}
-                {RoundPrice({ num: getTotaPriceToShow() })} {currency?.symbol}
+                {RoundPrice({ num: getTotaPriceToShow(), returnNumber: true })}{" "}
+                {currency?.symbol}
                 <span className="ml-2">
                   <MenuIcon className={expanded && "rotate-180"} />
                 </span>
@@ -592,7 +600,10 @@ function OrderButton({ close, toOrders }) {
                           } `}
                         >
                           {cart.length} {translate("items")}{" "}
-                          {RoundPrice({ num: getTotaPriceToShow() })}{" "}
+                          {RoundPrice({
+                            num: getTotaPriceToShow(),
+                            returnNumber: true,
+                          })}{" "}
                           {currency?.symbol}
                         </span>
                       </>

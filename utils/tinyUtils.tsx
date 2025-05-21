@@ -5,17 +5,17 @@ import dynamic from "next/dynamic";
 export const CielNumber = (price) => {
   return Math.ceil(price * 1000) / 1000;
 };
-export const getPrice = (num, lang, currency) => {
+export const getPrice = (num, lang, currency, decimal = 0) => {
   let rateVariable = currency?.exchange_rate;
   let price = parseFloat(num);
-  price = parseFloat((price * rateVariable).toFixed(0));
+  price = parseFloat((price * rateVariable).toFixed(decimal));
 
   if (price >= 1000000) {
     return CielNumber(price / 1000000) + translateFunction("M", lang); // For millions
   } else if (price >= 100000) {
     return CielNumber(price / 1000) + translateFunction("K", lang); // For thousands
   } else {
-    return Math.ceil(price); // For prices under 1000
+    return price; // For prices under 1000
   }
 };
 export const configureSearchParams = ({

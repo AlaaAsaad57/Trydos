@@ -13,6 +13,7 @@ interface NormalWidgetProps {
   myKey: number;
   lang: string;
 }
+
 const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
   return (
     <div className="w-full flex relative">

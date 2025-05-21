@@ -1,0 +1,10 @@
+{
+  "suites": 2,
+  "tests": 18,
+  "passes": 17,
+  "pending": 0,
+  "failures": 1,
+  "start": "2025-05-20T10:25:37.713Z",
+  "duration": 589056,
+  "file": "cypress\\e2e\\configuredTests\\7-filters page.cy.ts"
+}

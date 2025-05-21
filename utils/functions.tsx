@@ -595,14 +595,13 @@ export const UpdateFilter = async ({
 
 export function formatPrice(price) {
   const { currency } = useAppStore.getState();
-  let ceil = currency?.ciel ?? 0;
 
   if (price >= 1000000) {
     return CielNumber(price / 1000000) + translateFunction("M"); // For millions
   } else if (price >= 100000) {
     return CielNumber(price / 1000) + translateFunction("K"); // For thousands
   } else {
-    return Math.ceil(price); // For prices under 1000
+    return price; // For prices under 1000
   }
 }
 export const toUSD = (price) => {
@@ -629,13 +628,12 @@ export const RoundPrice = ({
     points ||
     (settings && settings["starting-setting"]?.decimal_point_settings) ||
     0;
-  let a = parseFloat(num);
-
+  let a = num * rateVariable;
   if (returnNumber) {
-    a = CielNumber(a * rateVariable);
+    a = Number(a.toFixed(pointsVariable));
     return a;
   }
-  a = CielNumber(a * rateVariable);
+  a = Number(a.toFixed(pointsVariable));
 
   return formatPrice(a);
 };

@@ -548,9 +548,10 @@ const PaymentOrder = ({ success }) => {
                     flex items-center justify-center h-[40px] rounded-[15px] bg-white`}
                   style={{ border: "1px solid rgb(56 144 255 / 51%)" }}
                 >
-                  {`- ${RoundPrice({ num: coupon_discount })} ${
-                    currency.symbol
-                  }`}
+                  {`- ${RoundPrice({
+                    num: coupon_discount,
+                    returnNumber: true,
+                  })} ${currency.symbol}`}
                 </div>
               </div>
             </div>
@@ -592,7 +593,7 @@ const CODInput = ({ total }) => {
           {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: total })} {currency?.symbol}
+          {RoundPrice({ num: total, returnNumber: true })} {currency?.symbol}
         </span>
       </div>
     </div>
@@ -619,7 +620,8 @@ const TryDosWalletInput = ({ total }) => {
           {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {formatPrice(RoundPrice({ num: total }))} {currency?.symbol}
+          {formatPrice(RoundPrice({ num: total, returnNumber: true }))}{" "}
+          {currency?.symbol}
         </span>
       </div>
     </div>

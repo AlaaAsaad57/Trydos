@@ -202,7 +202,8 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
                   } `}
                 >
                   {cart.length} {translateFunction("items")}{" "}
-                  {RoundPrice({ num: getTotalPrice() })} {currency?.symbol}
+                  {RoundPrice({ num: getTotalPrice(), returnNumber: true })}{" "}
+                  {currency?.symbol}
                 </span>
               </>
             )}

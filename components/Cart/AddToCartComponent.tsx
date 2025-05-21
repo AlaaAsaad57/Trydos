@@ -173,6 +173,7 @@ function AddToCartComponent({
         ).style.display = "flex";
     };
   }, []);
+
   const shouldShowNotifyButton = () => {
     let bool = false;
     if (ProductData?.variation?.length > 0) {
@@ -420,7 +421,7 @@ function AddToCartComponent({
                   />
                 </svg>
                 {getSelectedVariantQty()?.price &&
-                RoundPrice({ num: getSelectedVariantQty()?.price }) ? (
+                RoundPrice({ num: getSelectedVariantQty()?.price }) >= 0 ? (
                   <>{RoundPrice({ num: getSelectedVariantQty()?.price })}</>
                 ) : (
                   <Skeleton width={30} height={10} />
@@ -430,7 +431,8 @@ function AddToCartComponent({
                 data-cy="product_new-price_addtocart"
                 className="product-new-price"
               >
-                {RoundPrice({ num: getSelectedVariantQty()?.offer_price }) ? (
+                {RoundPrice({ num: getSelectedVariantQty()?.offer_price }) >=
+                0 ? (
                   <>
                     {RoundPrice({ num: getSelectedVariantQty()?.offer_price })}
                   </>

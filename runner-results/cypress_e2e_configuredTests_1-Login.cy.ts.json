@@ -1,0 +1,10 @@
+{
+  "suites": 8,
+  "tests": 77,
+  "passes": 75,
+  "pending": 0,
+  "failures": 2,
+  "start": "2025-05-20T10:14:29.981Z",
+  "duration": 872131,
+  "file": "cypress\\e2e\\configuredTests\\1-Login.cy.ts"
+}

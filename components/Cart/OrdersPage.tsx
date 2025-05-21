@@ -897,7 +897,8 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
                 data-cy="Number-Of-Products-Required"
               >
                 {cart.length} {translateFunction("items")}{" "}
-                {RoundPrice({ num: getTotalPrice() })} {currency?.symbol}
+                {RoundPrice({ num: getTotalPrice(), returnNumber: true })}{" "}
+                {currency?.symbol}
               </span>
             </>
           )}
