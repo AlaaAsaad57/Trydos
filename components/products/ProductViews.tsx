@@ -11,6 +11,7 @@ function ProductViews({ product }) {
     setTimeout(() => {
       Sendevent({
         event: "viewed_product",
+        value: product.product_name,
         extra: {
           product_name: product.name,
           product_id: product.id,

@@ -74,18 +74,33 @@ export const Sendevent = async (params: {
     if (typeof window !== "undefined") {
       // @ts-ignore
       let a = analytics;
-      toast.success(
-        <div className="flex flex-col gap-2 text-black bg-white p-2 rounded-md">
-          <span> event: {params.event}</span>
-          <span> value: {params.value}</span>
-          <span> country_name: {Cookies.get("country")}</span>
-          <span> device_language: {Cookies.get("language")}</span>
-          <span> userID: {userId}</span>
-          <span> session_id: {session_id}</span>
-          <span> previous_event_button_name: {previous_event_button_name}</span>
-          <span> time_stamp: {new Date().toISOString()}</span>
-        </div>
+
+      let bool = confirm(
+        JSON.stringify({
+          event: params.event,
+          value: params.value,
+          country_name: Cookies.get("country"),
+          device_language: Cookies.get("language"),
+          userID: userId,
+          session_id: session_id,
+          previous_event_button_name: previous_event_button_name,
+          time_stamp: new Date().toISOString(),
+        })
       );
+      if (bool) {
+        navigator.clipboard.writeText(
+          JSON.stringify({
+            event: params.event,
+            value: params.value,
+            country_name: Cookies.get("country"),
+            device_language: Cookies.get("language"),
+            userID: userId,
+            session_id: session_id,
+            previous_event_button_name: previous_event_button_name,
+            time_stamp: new Date().toISOString(),
+          })
+        );
+      }
       // @ts-ignore
       logEvent(analytics, params.event, {
         executed_event_name: params.value,
