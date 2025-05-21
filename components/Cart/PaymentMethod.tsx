@@ -155,7 +155,6 @@ function PaymentMethod() {
       return total_cash - getWalletInUSD();
     }
   };
-  console.log(getWalletInUSD(), showCodValue());
   return (
     <>
       <div data-cy="payment-viewer" className="px-[12px] flex-col">
@@ -540,7 +539,8 @@ const CODInput = ({ active, setActive, total }) => {
   );
 };
 const TryDosWalletInput = ({ active, setActive }) => {
-  const { orderLoading, wallet, currency } = useAppStore();
+  const { orderLoading, wallet, currency, settings } = useAppStore();
+  const points = settings["starting-setting"]?.decimal_point_settings || 0;
   return (
     <div
       data-cy="second-bay-way"
@@ -581,11 +581,7 @@ const TryDosWalletInput = ({ active, setActive }) => {
           {translateFunction("Your Balance")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {!orderLoading &&
-            RoundPrice({
-              num: wallet?.wallet_balance,
-              returnNumber: true,
-            })}{" "}
+          {!orderLoading && wallet?.wallet_balance?.toFixed(points)}{" "}
           {currency?.symbol}
         </span>
       </div>

@@ -30,7 +30,8 @@ function MainSetting({
 }: {
   swipeToScreen: (index: number) => void;
 }) {
-  const { wallet, currency, totalOrders } = useAppStore();
+  const { wallet, currency, totalOrders, settings } = useAppStore();
+  const points = settings["starting-setting"]?.decimal_point_settings || 0;
 
   const { lang } = useParams();
   // @ts-ignore
@@ -100,7 +101,7 @@ function MainSetting({
               <Spinner />
             ) : (
               <>
-                {formatPrice(wallet?.wallet_balance)} {currency?.symbol}{" "}
+                {wallet?.wallet_balance?.toFixed(points)} {currency?.symbol}{" "}
                 {translateFunction("Your Balance")}
               </>
             )}
