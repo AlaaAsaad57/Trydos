@@ -56,11 +56,7 @@ export const _isStoreLastJson = () => {
   return !!process.env.NEXT_PUBLIC_IS_STORE_LAST_JSON;
 };
 export const Sendevent = async (params: {
-  event:
-    | "programming_event"
-    | "button_clicked"
-    | "viewed_product"
-    | "viewed_boutique";
+  event: string;
   value?: string;
   extra?: any;
   category?: any;
@@ -75,6 +71,16 @@ export const Sendevent = async (params: {
     if (typeof window !== "undefined") {
       // @ts-ignore
       let a = analytics;
+
+      console.log("GA EVENT", {
+        executed_event_name: params.value,
+        country_name: Cookies.get("country"),
+        userID: userId,
+        device_language: Cookies.get("language"),
+        time_stamp: new Date().toISOString(),
+        our_session_id: session_id,
+        previous_event_button_name: previous_event_button_name,
+      });
       // @ts-ignore
       logEvent(analytics, params.event, {
         executed_event_name: params.value,
@@ -82,7 +88,6 @@ export const Sendevent = async (params: {
         userID: userId,
         device_language: Cookies.get("language"),
         time_stamp: new Date().toISOString(),
-
         our_session_id: session_id,
         previous_event_button_name: previous_event_button_name,
       });

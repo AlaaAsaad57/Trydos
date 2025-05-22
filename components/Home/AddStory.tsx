@@ -1,31 +1,24 @@
 "use client";
 import StoryService from "services/story";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 const CircularProgressbarComponent = dynamic(() => import("./Progress"), {
   ssr: false,
 });
 import PlusIcon from "public/svg/chatplus.svg";
 import { AddStoryAction } from "store/homepage/actions";
 import { revalidateStories } from "utils/serverActions";
-const NewStoryModal = dynamic(() => import("./Stories/CameraStory"), {
-  ssr: false,
-});
-import { dataURLtoFile } from "components/Chat/chatsFunctions";
 import dynamic from "next/dynamic";
-import { toast } from "react-toastify";
 import { Sendevent } from "utils/functions";
 import { useAppStore } from "store";
 import AddStoryWidget from "./Stories/AddStoryWidget";
+import {
+  GA_CLICK_EVENT_VALUES,
+  GA_EVENT_NAMES,
+  GA_PROGRAMMING_EVENT_VALUES,
+} from "utils/GAEvents";
 
 function AddStory() {
-  const {
-    setOpenCamera,
-    user,
-    OpenCamera,
-    setNameModal,
-    addStoryEnable,
-    setAddStory,
-  } = useAppStore();
+  const { user, setNameModal, addStoryEnable, setAddStory } = useAppStore();
   const [uploaded, setUpload] = useState(0);
   const [isSelected, setIsSelected] = useState(null);
   const [file, setFile] = useState(null);
@@ -51,10 +44,7 @@ function AddStory() {
                 return;
               } else {
                 clearInterval(timer);
-                Sendevent({
-                  event: "button_clicked",
-                  value: "confirm_upload_story_button",
-                });
+
                 let path = await StoryService.upload(
                   e.target.files[0],
                   (e) => setUpload(e),
@@ -67,16 +57,16 @@ function AddStory() {
                 )
                   .then((data) => {
                     Sendevent({
-                      event: "programming_event",
-                      value: "upload_story_success",
+                      event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+                      value: GA_PROGRAMMING_EVENT_VALUES.UPLOAD_STORY_SUCCESS,
                     });
 
                     AddStoryAction(data);
                   })
                   .catch((e) => {
                     Sendevent({
-                      event: "programming_event",
-                      value: "upload_story_failed",
+                      event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+                      value: GA_PROGRAMMING_EVENT_VALUES.UPLOAD_STORY_FAILED,
                     });
 
                     setFile(null);
@@ -104,6 +94,7 @@ function AddStory() {
         reader.readAsDataURL(e.target.files[0]);
         reader.onload = async () => {
           setIsSelected(reader.result);
+
           let path = await StoryService.upload(
             e.target.files[0],
             (e) => setUpload(e),
@@ -173,6 +164,10 @@ function AddStory() {
               selectMedia({ imageFile: media, link: link });
             }}
             onClose={() => {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.CLOSE_ADD_STORY_WIDGET_BUTTON,
+              });
               setAddStory(false);
             }}
           />
@@ -191,8 +186,8 @@ function AddStory() {
           onClick={() => {
             if (JSON.parse(localStorage.getItem("USER"))?.name?.length > 1) {
               Sendevent({
-                event: "button_clicked",
-                value: "upload_story_button",
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.UPLOAD_STORY_BUTTON,
               });
               setAddStory(true);
             } else {

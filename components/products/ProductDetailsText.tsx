@@ -4,6 +4,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { useAppStore } from "store";
 import { Sendevent, translateFunction } from "utils/functions";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function ProductDetailsText({
   details,
@@ -39,8 +40,10 @@ function ProductDetailsText({
     const newShowState = !show;
     setShow(newShowState);
     Sendevent({
-      event: "button_clicked",
-      value: newShowState ? "read_more_button" : "read_less_button",
+      event: GA_EVENT_NAMES.CLICK,
+      value: newShowState
+        ? GA_CLICK_EVENT_VALUES.READ_MORE_BUTTON
+        : GA_CLICK_EVENT_VALUES.READ_LESS_BUTTON,
     });
   };
 

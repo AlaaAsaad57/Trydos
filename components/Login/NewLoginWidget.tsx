@@ -16,6 +16,11 @@ import LoginMethods from "./LoginMethods";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import {
+  GA_CLICK_EVENT_VALUES,
+  GA_EVENT_NAMES,
+  GA_PROGRAMMING_EVENT_VALUES,
+} from "utils/GAEvents";
 
 function NewLoginWidget() {
   let { lang } = useParams();
@@ -72,8 +77,8 @@ function NewLoginWidget() {
   useEffect(() => {
     if (loginOpen) {
       Sendevent({
-        event: "button_clicked",
-        value: "Open_Login_Widget",
+        event: GA_EVENT_NAMES.CLICK,
+        value: GA_CLICK_EVENT_VALUES.OPEN_LOGIN_WIDGET,
       });
     }
     setTimeout(() => {
@@ -116,8 +121,8 @@ function NewLoginWidget() {
       verificationID: verficationID,
       errorCallback: (e) => {
         Sendevent({
-          event: "programming_event",
-          value: "otp_failed_event",
+          event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+          value: GA_PROGRAMMING_EVENT_VALUES.OTP_FAILED_EVENT,
         });
         setFailed(true);
         setTimeout(() => {
@@ -130,9 +135,9 @@ function NewLoginWidget() {
         }, 1000);
         if (e.message === "user not found") {
           Sendevent({
-            event: "programming_event",
-
-            value: "phone_number_not_registered_event",
+            event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+            value:
+              GA_PROGRAMMING_EVENT_VALUES.PHONE_NUMBER_NOT_REGISTERED_EVENT,
           });
           setSignStep("notFound");
           setStepIndicator(6);
@@ -143,15 +148,14 @@ function NewLoginWidget() {
           setLoadingPin(false);
           if (operation === "signup") {
             Sendevent({
-              event: "programming_event",
-
-              value: "verify_otp_signup_success_event",
+              event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+              value:
+                GA_PROGRAMMING_EVENT_VALUES.VERIFY_OTP_SIGNUP_SUCCESS_EVENT,
             });
             if (exists && name?.length > 1) {
               Sendevent({
-                event: "programming_event",
-
-                value: "user_already_exists_event",
+                event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+                value: GA_PROGRAMMING_EVENT_VALUES.USER_ALREADY_EXISTS_EVENT,
               });
               setSignStep("alreadyExists");
               setStepIndicator(6);
@@ -166,9 +170,9 @@ function NewLoginWidget() {
           } else {
             if (exists && name?.length > 1) {
               Sendevent({
-                event: "programming_event",
-
-                value: "verify_otp_signin_success_event",
+                event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+                value:
+                  GA_PROGRAMMING_EVENT_VALUES.VERIFY_OTP_SIGNIN_SUCCESS_EVENT,
               });
               FinaliseLogin();
               setSignStep("welcomeLogin");
@@ -179,9 +183,9 @@ function NewLoginWidget() {
             }
             if (!exists) {
               Sendevent({
-                event: "programming_event",
-
-                value: "phone_number_not_registered_event",
+                event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+                value:
+                  GA_PROGRAMMING_EVENT_VALUES.PHONE_NUMBER_NOT_REGISTERED_EVENT,
               });
               setSignStep("notFound");
               setStepIndicator(6);
@@ -221,6 +225,10 @@ function NewLoginWidget() {
 100% {transform:translateX(-800px)}
 `;
   const backAction = () => {
+    Sendevent({
+      event: GA_EVENT_NAMES.CLICK,
+      value: GA_CLICK_EVENT_VALUES.LOGIN_WIDGET_BACK_ACTION,
+    });
     if (operation === "login" && stepIndicator === 2) {
       setStepIndicator(0);
     } else setStepIndicator(stepIndicator - 1);
@@ -234,8 +242,8 @@ function NewLoginWidget() {
         data-testid="backdrop-login "
         onClick={() => {
           Sendevent({
-            event: "button_clicked",
-            value: "later_take_look_button",
+            event: GA_EVENT_NAMES.CLICK,
+            value: GA_CLICK_EVENT_VALUES.LATER_TAKE_LOOK_BUTTON,
           });
           setLoginOpenAction(false);
         }}
@@ -341,8 +349,9 @@ function NewLoginWidget() {
                 className="login-button"
                 onClick={() => {
                   Sendevent({
-                    event: "button_clicked",
-                    value: "i_have_already_account_button",
+                    event: GA_EVENT_NAMES.CLICK,
+                    value:
+                      GA_PROGRAMMING_EVENT_VALUES.I_HAVE_ALREADY_ACCOUNT_BUTTON,
                   });
                   if (window.innerWidth > 912) {
                     setShowMethods(!showMethods);
@@ -368,8 +377,8 @@ function NewLoginWidget() {
                 className="login-button"
                 onClick={() => {
                   Sendevent({
-                    event: "button_clicked",
-                    value: "create_new_account_button",
+                    event: GA_EVENT_NAMES.CLICK,
+                    value: GA_CLICK_EVENT_VALUES.CREATE_NEW_ACCOUNT_BUTTON,
                   });
                   setStepIndicator(1);
                   setOperation("signup");
@@ -492,9 +501,8 @@ function NewLoginWidget() {
             close={() => {
               setLoginOpenAction(false);
               Sendevent({
-                event: "button_clicked",
-                category: "button_clicked",
-                value: "later_take_look_button",
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.LATER_TAKE_LOOK_BUTTON,
               });
             }}
             setStepIndactor={(e) => setStepIndicator(e)}
@@ -518,9 +526,8 @@ function NewLoginWidget() {
               setLoginOpenAction(false);
               AuthService.cancelAuth();
               Sendevent({
-                event: "button_clicked",
-                category: "button_clicked",
-                value: "skip login widget",
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.SKIP_LOGIN_WIDGET,
               });
             }}
             style={{
@@ -539,9 +546,8 @@ function NewLoginWidget() {
               if (stepIndicator < 6) AuthService.cancelAuth();
               setLoginOpenAction(false);
               Sendevent({
-                event: "button_clicked",
-                category: "button_clicked",
-                value: "later_take_look_button",
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.LATER_TAKE_LOOK_BUTTON,
               });
             }}
           >
@@ -549,9 +555,8 @@ function NewLoginWidget() {
             <svg
               onClick={() => {
                 Sendevent({
-                  event: "button_clicked",
-                  category: "button_clicked",
-                  value: "later_take_look_button",
+                  event: GA_EVENT_NAMES.CLICK,
+                  value: GA_CLICK_EVENT_VALUES.LATER_TAKE_LOOK_BUTTON,
                 });
                 if (stepIndicator < 6) AuthService.cancelAuth();
                 setLoginOpenAction(false);

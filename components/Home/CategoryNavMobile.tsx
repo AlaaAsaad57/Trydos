@@ -48,16 +48,6 @@ function CategoryNavMobile({
           ? `/${params?.lang}`
           : `/${params?.lang}/categories/${slug}`
       }
-      // onClick={() => {
-      //   setActive(slug);
-      //   Sendevent({
-      //     event: "button_clicked",
-      //     value: `choose_category_button`,
-      //     extra: {
-      //       category: slug,
-      //     },
-      //   });
-      // }}
     >
       {active && (
         <ActiveCategoryIcon

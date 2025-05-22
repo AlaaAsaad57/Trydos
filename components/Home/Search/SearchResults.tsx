@@ -20,6 +20,7 @@ import search from "services/search";
 import ActiveSearchFilterBar from "./ActiveSearchFilterBar";
 import NextLink from "components/global/NextLink";
 import InfiniteScrollFiltersSearch from "components/ListingPage/filterComponents/InfiniteScrollFilterSearch";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function SearchResults() {
   const {
@@ -53,8 +54,8 @@ function SearchResults() {
 
   const apply = () => {
     Sendevent({
-      event: "button_clicked",
-      value: "apply_home_search_result_button",
+      event: GA_EVENT_NAMES.CLICK,
+      value: GA_CLICK_EVENT_VALUES.APPLY_HOME_SEARCH_RESULT_BUTTON,
     });
     onClickSearchHistory(value || "");
   };
@@ -93,8 +94,8 @@ function SearchResults() {
   }, [searchResults]);
   const reset = () => {
     Sendevent({
-      event: "button_clicked",
-      value: "reset_home_search_button",
+      event: GA_EVENT_NAMES.CLICK,
+      value: GA_CLICK_EVENT_VALUES.RESET_HOME_SEARCH_RESULT_BUTTON,
     });
     resetSearchFilter();
     setSearchPartialLoading(true);
@@ -143,7 +144,16 @@ function SearchResults() {
                   <ProductItem
                     product={product}
                     key={index}
-                    onClick={(e) => onClickSearchHistory(e)}
+                    onClick={(e) => {
+                      Sendevent({
+                        event: GA_EVENT_NAMES.CLICK,
+                        value: GA_CLICK_EVENT_VALUES.CHOOSE_PRODUCT_BUTTON,
+                        extra: {
+                          product: product.id,
+                        },
+                      });
+                      onClickSearchHistory(e);
+                    }}
                   />
                 );
               })}
@@ -165,11 +175,11 @@ function SearchResults() {
                   key={brand?.slug}
                   onClick={() => {
                     Sendevent({
-                      event: "button_clicked",
-                      value: "add_filter_button",
+                      event: GA_EVENT_NAMES.CLICK,
+                      value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
                       extra: {
-                        type: "brand",
-                        name: brand.name,
+                        filter: "brand",
+                        value: brand.name,
                       },
                     });
                     setSearchBrand(brand);
@@ -206,11 +216,11 @@ function SearchResults() {
                   key={category?.slug}
                   onClick={(e) => {
                     Sendevent({
-                      event: "button_clicked",
-                      value: "add_filter_button",
+                      event: GA_EVENT_NAMES.CLICK,
+                      value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
                       extra: {
-                        type: "category",
-                        name: category.name,
+                        filter: "category",
+                        value: category.name,
                       },
                     });
                     setSearchCategory(e);
@@ -246,11 +256,11 @@ function SearchResults() {
                   key={boutique?.slug}
                   onClick={() => {
                     Sendevent({
-                      event: "button_clicked",
-                      value: "add_filter_button",
+                      event: GA_EVENT_NAMES.CLICK,
+                      value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
                       extra: {
-                        type: "boutique",
-                        name: boutique.name,
+                        filter: "boutique",
+                        value: boutique.name,
                       },
                     });
                     setSearchBoutique(boutique);

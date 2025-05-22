@@ -8,6 +8,7 @@ import PackingIcon from "public/svg/product/PackingIcon.svg";
 import MarkerIcon from "public/svg/product/MarkerIcon.svg";
 import { Sendevent, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 function ProductShippingOption() {
   let { lang } = useParams();
   // @ts-ignore
@@ -23,7 +24,10 @@ function ProductShippingOption() {
       }`}
       data-cy="ProductShiping"
       onClick={() => {
-        Sendevent({ event: "button_clicked", value: "at_your_address_button" });
+        Sendevent({
+          event: GA_EVENT_NAMES.CLICK,
+          value: GA_CLICK_EVENT_VALUES.AT_YOUR_ADDRESS_BUTTON,
+        });
         setExtended(!extended);
       }}
     >

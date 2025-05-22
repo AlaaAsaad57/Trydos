@@ -19,6 +19,7 @@ import { AxiosPost } from "utils/AxiosApi";
 import { useAppStore } from "store";
 import { toast } from "react-toastify";
 import CopyIcon from "public/svg/copyIcon.svg";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 function ShareOptions({
   setShareContacts,
   sharedContacts,
@@ -54,8 +55,8 @@ function ShareOptions({
             url={window.location.href}
             beforeOnClick={() => {
               Sendevent({
-                event: "button_clicked",
-                value: "share_with_facebook_button",
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.SHARE_WITH_FACEBOOK_BUTTON,
               });
               shareSocial("Facebook");
             }}
@@ -70,8 +71,8 @@ function ShareOptions({
           <TwitterShareButton
             beforeOnClick={() => {
               Sendevent({
-                event: "button_clicked",
-                value: "share_with_twiter_button",
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.SHARE_WITH_TWITTER_BUTTON,
               });
               shareSocial("Twitter");
             }}
@@ -88,8 +89,8 @@ function ShareOptions({
           <WhatsappShareButton
             beforeOnClick={() => {
               Sendevent({
-                event: "button_clicked",
-                value: "share_with_whatsapp_button",
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.SHARE_WITH_WHATSAPP_BUTTON,
               });
               shareSocial("WhatsApp");
             }}
@@ -105,8 +106,8 @@ function ShareOptions({
           <TelegramShareButton
             beforeOnClick={() => {
               Sendevent({
-                event: "button_clicked",
-                value: "share_with_whatsapp_button",
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.SHARE_WITH_TELEGRAM_BUTTON,
               });
               shareSocial("Telegram");
             }}
@@ -122,8 +123,8 @@ function ShareOptions({
           <a
             onClick={() => {
               Sendevent({
-                event: "button_clicked",
-                value: "share_with_email_button",
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.SHARE_WITH_EMAIL_BUTTON,
               });
               shareSocial("email");
             }}
@@ -139,6 +140,10 @@ function ShareOptions({
         <div
           className="share-image social shadow-none flex justify-center items-center bg-[#f8f8e4]"
           onClick={() => {
+            Sendevent({
+              event: GA_EVENT_NAMES.CLICK,
+              value: GA_CLICK_EVENT_VALUES.SHARE_WITH_COPY_LINK_BUTTON,
+            });
             navigator.clipboard.writeText(window.location.href).then(() => {
               toast.success("Link Copied to Clipboard");
             });

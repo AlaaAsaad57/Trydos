@@ -21,6 +21,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import CircleBorder from "public/svg/product/CircleBorder";
 import NormalColorSlider from "./NormalColorSlider";
 import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function ProductColors({ colors, ProductColorsArray }) {
   const { setActiveColorDetails, showInfoMessage, product } = useAppStore();
@@ -65,6 +66,10 @@ function ProductColors({ colors, ProductColorsArray }) {
           data-cy="QuestionMark"
           style={{ marginLeft: "9px" }}
           onClick={() => {
+            Sendevent({
+              event: GA_EVENT_NAMES.CLICK,
+              value: GA_CLICK_EVENT_VALUES.SHOW_AVAILABLE_COLOR_INFO_MESSAGE,
+            });
             showInfoMessage({
               showInfoMessage: true,
               title: `Available ${colors.length} Color`,
@@ -115,8 +120,8 @@ function ProductColors({ colors, ProductColorsArray }) {
           threshold={1}
           onSlideChange={(e) => {
             Sendevent({
-              event: "button_clicked",
-              value: "choose_available_color_button",
+              event: GA_EVENT_NAMES.CLICK,
+              value: GA_CLICK_EVENT_VALUES.CHOOSE_AVAILABLE_COLOR_BUTTON,
             });
             const newParams = new URLSearchParams(searchParams);
             newParams.set("color", colors[e.activeIndex].color_name);

@@ -84,52 +84,7 @@ function ConfirmMobileChange({
       let data = await VerifyOtpHook({
         code: e,
         verificationID: verficationID,
-        // errorCallback: (e) => {
-        //   Sendevent({
-        //     event: "programming_event",
-        //     value: "otp_failed_event",
-        //   });
-        //   setFailed(true);
-        //   setTimeout(() => {
-        //     setPins("");
-        //     setRender(false);
-        //     setFailed(false);
-        //     setTimeout(() => {
-        //       setRender(true);
-        //     }, 300);
-        //   }, 1000);
-        //   if (e.message === "user not found") {
-        //     Sendevent({
-        //       event: "programming_event",
-
-        //       value: "phone_number_not_registered_event",
-        //     });
-
-        //     setStepIndicator(6);
-        //   }
-        //   setLoadingPin(false);
-        // },
-        // successCallback: async (exists, name) => {
-        //   Sendevent({
-        //     event: "programming_event",
-
-        //     value: "verify_otp_signin_success_event",
-        //   });
-
-        //   await FinaliseLogin();
-
-        //   setTimeout(() => {
-        //     setLoadingPin(false);
-        //     closeWindow();
-        //     goToOrders();
-        //   }, 2000);
-        // },
       });
-
-      // let idToken = "";
-      // await new Promise((resolve) => setTimeout(resolve, 2000));
-      // localStorage.setItem("has-phone", value);
-
       successCallbackFunction(data);
 
       setLoadingPin(false);

@@ -7,6 +7,7 @@ import { AnimatedComponent } from "components/global/AnimatedComponent";
 import AuthService from "services/auth";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function SendMethod({
   inputValue,
@@ -175,6 +176,10 @@ function SendMethod({
               style={{ cursor: "pointer", marginTop: "3px" }}
               onClick={() => {
                 if (setShowMobile && !hideEdit) {
+                  Sendevent({
+                    event: GA_EVENT_NAMES.CLICK,
+                    value: GA_CLICK_EVENT_VALUES.EDIT_PHONE_NUMBER_BUTTON,
+                  });
                   setShowMobile(true);
                   setStepIndicator(3);
                 }
@@ -308,8 +313,8 @@ function SendMethod({
                 SendCodeRequest("1");
 
                 Sendevent({
-                  event: "button_clicked",
-                  value: "choose_whatsapp_button",
+                  event: GA_EVENT_NAMES.CLICK,
+                  value: GA_CLICK_EVENT_VALUES.CHOOSE_WHATSAPP_BUTTON,
                 });
               }
               // AuthService.SendOtp(inputValue, 1, (e) => {
@@ -366,8 +371,8 @@ function SendMethod({
 
                 SendCodeRequest("0");
                 Sendevent({
-                  event: "button_clicked",
-                  value: "choose_sms_button",
+                  event: GA_EVENT_NAMES.CLICK,
+                  value: GA_CLICK_EVENT_VALUES.CHOOSE_SMS_BUTTON,
                 });
               }
               // AuthService.SendOtp(inputValue, 0, (e) => {

@@ -17,6 +17,7 @@ import SearchVoice from "./Search/SearchVoice";
 import SearchImage from "./Search/SearchImage";
 import SearchService from "services/search";
 import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 interface SearchComponentProps {
   searchEnabled: boolean;
   close: Function;
@@ -117,6 +118,15 @@ function SearchComponent({
           onBlur={() => {
             if (value.length === 0) {
               setFocuse(false);
+            } else {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
+                extra: {
+                  filter: "search_text",
+                  value: value,
+                },
+              });
             }
           }}
           onSubmit={(e) => {
@@ -139,8 +149,8 @@ function SearchComponent({
                 onClick={() => {
                   if (value.length > 0) {
                     Sendevent({
-                      event: "button_clicked",
-                      value: "reset_home_search_button",
+                      event: GA_EVENT_NAMES.CLICK,
+                      value: GA_CLICK_EVENT_VALUES.RESET_HOME_SEARCH_BUTTON,
                     });
                     setLoading(true);
                     setSearchWord("");
@@ -152,8 +162,8 @@ function SearchComponent({
                     });
                   } else {
                     Sendevent({
-                      event: "button_clicked",
-                      value: "search_close_icon_button",
+                      event: GA_EVENT_NAMES.CLICK,
+                      value: GA_CLICK_EVENT_VALUES.SEARCH_CLOSE_ICON_BUTTON,
                     });
 
                     close();
@@ -189,8 +199,8 @@ function SearchComponent({
                   setSearchValue={(e) => {
                     if (e?.length > 0) {
                       Sendevent({
-                        event: "button_clicked",
-                        value: "search_with_voice_button",
+                        event: GA_EVENT_NAMES.CLICK,
+                        value: GA_CLICK_EVENT_VALUES.SEARCH_WITH_VOICE_BUTTON,
                       });
 
                       setSearchWord(e);
@@ -206,6 +216,10 @@ function SearchComponent({
               <CloseIcon
                 data-cy="closeIcon_searchPage"
                 onClick={() => {
+                  Sendevent({
+                    event: GA_EVENT_NAMES.CLICK,
+                    value: GA_CLICK_EVENT_VALUES.SEARCH_CLOSE_ICON_BUTTON,
+                  });
                   if (value.length > 0) {
                     setSearchWord("");
                     findProducts([]);

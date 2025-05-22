@@ -3,7 +3,6 @@ import OfferAvatars from "./OfferAvatars";
 import Image from "next/image";
 import { Boutique } from "models/offer";
 import OfferPhotosSlider from "./OfferPhotosSlider";
-import PrefetchLink from "components/global/PrefetchLink";
 import NextLink from "components/global/NextLink";
 import { Suspense } from "react";
 import search from "services/search";
@@ -17,12 +16,6 @@ interface NormalWidgetProps {
 const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
   return (
     <div className="w-full flex relative">
-      <Suspense fallback={<></>} key={`/${lang}/boutique/${boutique.slug}`}>
-        <PrefetchLink
-          link={`/${lang}/boutique/${boutique.slug}`}
-          slug={boutique.slug}
-        />
-      </Suspense>
       <NextLink
         data-cy="boutique_link"
         href={`/${lang}/boutique/${boutique.slug}`}

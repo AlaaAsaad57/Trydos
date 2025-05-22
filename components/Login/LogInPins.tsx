@@ -7,6 +7,11 @@ import { AnimatedComponent } from "components/global/AnimatedComponent";
 import { useParams } from "next/navigation";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
+import {
+  GA_CLICK_EVENT_VALUES,
+  GA_EVENT_NAMES,
+  GA_PROGRAMMING_EVENT_VALUES,
+} from "utils/GAEvents";
 
 function LogInPins({
   setPin,
@@ -155,8 +160,8 @@ function LogInPins({
   const ResendFunction = async () => {
     if (loading) return;
     Sendevent({
-      event: "button_clicked",
-      value: "resend_otp_button",
+      event: GA_EVENT_NAMES.CLICK,
+      value: GA_CLICK_EVENT_VALUES.RESEND_OTP_BUTTON,
     });
     setLoading(true);
     await resend();
@@ -435,8 +440,9 @@ function LogInPins({
                     onResume={() => setDisabled(false)}
                     onFinish={() => {
                       Sendevent({
-                        event: "programming_event",
-                        value: "timer_has_expired_event",
+                        event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+                        value:
+                          GA_PROGRAMMING_EVENT_VALUES.TIMER_HAS_EXPIRED_EVENT,
                       });
                       setDisabled(true);
                     }}
@@ -461,6 +467,10 @@ function LogInPins({
                     id="text-wrap-element"
                     style={{ cursor: "pointer" }}
                     onClick={() => {
+                      Sendevent({
+                        event: GA_EVENT_NAMES.CLICK,
+                        value: GA_CLICK_EVENT_VALUES.CHANGE_WAY_BUTTON,
+                      });
                       if (loading) return;
                       init();
                       setStepIndactor(4);
@@ -473,6 +483,10 @@ function LogInPins({
                     id="text-wrap-element"
                     style={{ cursor: "pointer" }}
                     onClick={() => {
+                      Sendevent({
+                        event: GA_EVENT_NAMES.CLICK,
+                        value: GA_CLICK_EVENT_VALUES.CHANGE_WAY_BUTTON,
+                      });
                       if (loading) return;
                       init();
                       setStepIndactor(4);

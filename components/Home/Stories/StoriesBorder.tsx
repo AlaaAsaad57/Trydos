@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Sendevent } from "utils/functions";
+import { GA_EVENT_NAMES, GA_PROGRAMMING_EVENT_VALUES } from "utils/GAEvents";
 
 function StoriesBorder() {
   const [show, setShow] = useState(false);
@@ -39,8 +40,8 @@ function StoriesBorder() {
       const walk = (x - startX) * 3; //scroll-fast
       slider.scrollLeft = scrollLeft - walk;
       Sendevent({
-        event: "programming_event",
-        value: "scroll_stories_in_home_event",
+        event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+        value: GA_PROGRAMMING_EVENT_VALUES.SCROLL_STORIES_IN_HOME_EVENT,
       });
     });
   }

@@ -4,11 +4,11 @@ import { Sendevent, translateFunction } from "utils/functions";
 import AuthService from "services/auth";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function AccountNotFound({
   inputValue,
   setStepIndicator,
-
   close,
   stepIndicator,
   signStep,
@@ -175,8 +175,8 @@ function AccountNotFound({
           data-cy="Create-New-Account"
           onClick={() => {
             Sendevent({
-              event: "button_clicked",
-              value: "create_new_account_continue_button",
+              event: GA_EVENT_NAMES.CLICK,
+              value: GA_CLICK_EVENT_VALUES.CREATE_NEW_ACCOUNT_CONTINUE_BUTTON,
             });
             setStepIndicator(7);
           }}

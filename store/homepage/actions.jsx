@@ -31,7 +31,10 @@ export const SelectStory = (e) => {
     window.history.pushState({ isPopup: true }, "open Cart");
   }
   if (e) {
-    Sendevent({ event: "button_clicked", value: "view_story_button" });
+    Sendevent({
+      event: GA_EVENT_NAMES.CLICK,
+      value: GA_CLICK_EVENT_VALUES.VIEW_STORY_BUTTON,
+    });
     StoryService.WatchStory(e.stories[0].id, e.id);
   }
   setSelectedStory(e);

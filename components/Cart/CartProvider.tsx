@@ -13,10 +13,12 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import OrdersPage from "./OrdersPage";
 import { Swiper as SwiperType } from "swiper/types";
 import ModalIframe from "./ModalIframe";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import { useAppStore } from "store";
 import { getCurrency } from "utils/tinyUtils";
 import AddToCartComponent from "./AddToCartComponent";
+import { GA_CLICK_EVENT_VALUES } from "utils/GAEvents";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 const CartProvider = () => {
   const {
     enableCart,
@@ -194,8 +196,8 @@ export const StepSlider = ({ enableCart }) => {
             }}
             close={() => {
               Sendevent({
-                event: "button_clicked",
-                value: "appbar_backicon_button",
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
               });
               enableCart(false);
             }}

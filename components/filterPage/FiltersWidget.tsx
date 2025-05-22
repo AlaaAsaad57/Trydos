@@ -19,6 +19,7 @@ import PriceSlider from "components/ListingPage/filterComponents/PriceSlider";
 import dynamic from "next/dynamic";
 import { GetFilterUrlParams } from "utils/tinyUtils";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 const PriceChart = dynamic(
   () => import("components/ListingPage/filterComponents/PriceChart"),
@@ -333,6 +334,10 @@ function FiltersWidget({ filters, configureActiveFilters }) {
               <PriceCancel
                 className="price-cancel-icon"
                 onClick={() => {
+                  Sendevent({
+                    event: GA_EVENT_NAMES.CLICK,
+                    value: GA_CLICK_EVENT_VALUES.RESET_PRICE,
+                  });
                   resetPrice();
                 }}
               />
@@ -392,6 +397,10 @@ function FiltersWidget({ filters, configureActiveFilters }) {
               className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
               data-cy="searchTotalProduct"
               onClick={() => {
+                Sendevent({
+                  event: GA_EVENT_NAMES.CLICK,
+                  value: GA_CLICK_EVENT_VALUES.APPLIED_FILTERS_EVENT,
+                });
                 document?.documentElement?.style?.setProperty(
                   "overflow",
                   "auto"
@@ -446,6 +455,14 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
     setSearchLoading,
   } = useAppStore();
   const handleInputChange = async (e) => {
+    Sendevent({
+      event: GA_EVENT_NAMES.CLICK,
+      value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
+      extra: {
+        filter: "search_text",
+        value: e?.target.value,
+      },
+    });
     setSearchWord(e?.target.value);
     setIsSearch(true);
     setSearchPartialLoading(true);
@@ -464,6 +481,10 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
         data-cy="backIcon_productPage"
         className={`back-icon flex-row`}
         onClick={() => {
+          Sendevent({
+            event: GA_EVENT_NAMES.CLICK,
+            value: GA_CLICK_EVENT_VALUES.CLOSE_FILTERS_WIDGET,
+          });
           document?.documentElement?.style?.setProperty("overflow", "auto");
           Goback();
           setFilterEnabled(false);
@@ -485,8 +506,8 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
           data-cy="searchIcon_boutiquePage"
           onClick={() => {
             Sendevent({
-              event: "button_clicked",
-              value: "open_search_field_button",
+              event: GA_EVENT_NAMES.CLICK,
+              value: GA_CLICK_EVENT_VALUES.OPEN_SEARCH_FIELD_BUTTON,
             });
             document
               .querySelector<HTMLInputElement>("#filter-search-input")
@@ -532,6 +553,10 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
           className="filter-option w-[20px]"
           data-cy="close-filter-widget-button"
           onClick={() => {
+            Sendevent({
+              event: GA_EVENT_NAMES.CLICK,
+              value: GA_CLICK_EVENT_VALUES.CLOSE_FILTERS_WIDGET,
+            });
             document?.documentElement?.style?.setProperty("overflow", "auto");
             setFilterEnabled(false);
           }}
@@ -647,6 +672,14 @@ const ShowFilterRow = ({ term, values }) => {
             key={`${term}-${index}`}
             className="flex-col cursor-pointer  ml-[10px] items-center justify-start relative min-w-[70px] w-auto h-[100px] min-h-[100px]"
             onClick={() => {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
+                extra: {
+                  filter: term,
+                  value: value,
+                },
+              });
               handleFilterClick(value);
               updateFiltersApi();
             }}

@@ -27,6 +27,7 @@ import { QuantityDetailsProductApi } from "models/Api";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import cart from "services/cart";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function CartContainer({ close, toOrders }) {
   const {
@@ -125,8 +126,8 @@ function CartContainer({ close, toOrders }) {
             data-cy="CartBackIcon"
             onClick={() => {
               Sendevent({
-                event: "button_clicked",
-                value: "appbar_backicon_button",
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
               });
               document.documentElement.style.overflow = "auto";
               close();
@@ -323,7 +324,11 @@ function CartContainer({ close, toOrders }) {
                         key={key}
                         onClick={(e) => {
                           // @ts-ignore
-
+                          Sendevent({
+                            event: GA_EVENT_NAMES.CLICK,
+                            value:
+                              GA_CLICK_EVENT_VALUES.PRODUCT_IN_CART_CLICKED,
+                          });
                           if (params?.productId === product.slug) {
                             if (product.variations[0].color) {
                               setActiveColorDetails(
@@ -756,8 +761,8 @@ function CartContainer({ close, toOrders }) {
                 className="cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]"
                 onClick={() => {
                   Sendevent({
-                    event: "button_clicked",
-                    value: "remove_old_products_button",
+                    event: GA_EVENT_NAMES.CLICK,
+                    value: GA_CLICK_EVENT_VALUES.REMOVE_OLD_PRODUCTS_BUTTON,
                   });
                   home.hideOldCart({});
                   storeOldCart([]);
@@ -816,6 +821,11 @@ function CartContainer({ close, toOrders }) {
                             }, 1500);
                             return false;
                           }
+                          Sendevent({
+                            event: GA_EVENT_NAMES.CLICK,
+                            value:
+                              GA_CLICK_EVENT_VALUES.PRODUCT_IN_OLD_CART_CLICKED,
+                          });
                           if (params?.productId === product.slug) {
                             if (product.variations[0].color) {
                               setActiveColorDetails(
@@ -955,8 +965,9 @@ function CartContainer({ close, toOrders }) {
                             onClick={(e) => {
                               e.preventDefault();
                               Sendevent({
-                                event: "button_clicked",
-                                value: "remove_old_product_item_button",
+                                event: GA_EVENT_NAMES.CLICK,
+                                value:
+                                  GA_CLICK_EVENT_VALUES.REMOVE_OLD_PRODUCT_ITEM_BUTTON,
                               });
                               hideOldCart(product.id);
                               home.hideOldCart({ id: product.id });
@@ -1874,6 +1885,10 @@ const QuantutyInput = ({
   };
   const decreaseQuantity = async (i) => {
     if (!loading) {
+      Sendevent({
+        event: GA_EVENT_NAMES.CLICK,
+        value: GA_CLICK_EVENT_VALUES.DECREASE_QUANTITY_BUTTON_FROM_CART,
+      });
       setInputValue(parseInt(i) - 1);
       setLoading(true);
 
@@ -1889,6 +1904,10 @@ const QuantutyInput = ({
   const [loading, setLoading] = useState(false);
   const increaseQuantity = async (i) => {
     if (!loading) {
+      Sendevent({
+        event: GA_EVENT_NAMES.CLICK,
+        value: GA_CLICK_EVENT_VALUES.INCREASE_QUANTITY_BUTTON_FROM_CART,
+      });
       setInputValue(parseInt(i.toString()) + 1);
       setLoading(true);
       await updateQuantity(parseInt(i.toString()) + 1, true);
@@ -2010,6 +2029,10 @@ const QuantutyInput = ({
                   className="absolute h-[24px] flex items-center hide-btn right-[-20px] top-[-1px] scale-125  cursor-pointer"
                   data-cy="DeleteIcon_CartPage"
                   onClick={() => {
+                    Sendevent({
+                      event: GA_EVENT_NAMES.CLICK,
+                      value: GA_CLICK_EVENT_VALUES.REMOVE_PRODUCT_FROM_CART,
+                    });
                     deleteFunction();
                   }}
                 >
@@ -2022,6 +2045,10 @@ const QuantutyInput = ({
               className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
               data-cy="DeleteIcon_CartPage"
               onClick={() => {
+                Sendevent({
+                  event: GA_EVENT_NAMES.CLICK,
+                  value: GA_CLICK_EVENT_VALUES.REMOVE_PRODUCT_FROM_CART,
+                });
                 deleteFunction();
               }}
             >
@@ -2043,6 +2070,10 @@ const QuantutyInput = ({
           <div
             className="flex rounded-md p-[5px] items-center whitespace-nowrap bg-[#54b8ff] shadow-sm text-[10px] light mt-[5px] text-[#fafafa] cursor-pointer"
             onClick={() => {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.CONVERT_TO_OLD_CART_BUTTON,
+              });
               ConvertToOldCart();
             }}
           >

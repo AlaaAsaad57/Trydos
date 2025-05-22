@@ -8,6 +8,7 @@ import { normalizeView, Sendevent } from "utils/functions";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import search from "services/search";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function SearchIcon() {
   const { setEnableSearch, enable_search, setSearchLoading, loading_search } =
@@ -42,8 +43,8 @@ function SearchIcon() {
         onClick={() => {
           if (!enable_search) {
             Sendevent({
-              event: "button_clicked",
-              value: "home_search_button",
+              event: GA_EVENT_NAMES.CLICK,
+              value: GA_CLICK_EVENT_VALUES.HOME_SEARCH_BUTTON,
             });
             normalizeView();
             document.documentElement.scrollTo({ top: 0 });
@@ -55,11 +56,6 @@ function SearchIcon() {
         <Search id="search-icon" className={`${focuse && "black-fill"}`} />
         <SearchComponent
           close={() => {
-            Sendevent({
-              event: "button_clicked",
-              value: "search_close_icon_button",
-            });
-
             EnableSearch(false);
             document.documentElement.style.overflow = "initial";
           }}
