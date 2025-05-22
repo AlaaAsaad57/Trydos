@@ -21,6 +21,7 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
   const { lang } = useParams();
   useEffect(() => {
     setSearchValue(finalTranscript);
+    console.log(finalTranscript);
     search.getSearchOptions({
       noProducts: false,
       lang: lang,

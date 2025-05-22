@@ -1,7 +1,6 @@
 "use client";
 import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
-import Skeleton from "node_modules/react-loading-skeleton/dist";
 import React, { useState } from "react";
 import { InView } from "react-intersection-observer";
 import search from "services/search";

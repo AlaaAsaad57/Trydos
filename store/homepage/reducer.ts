@@ -34,6 +34,7 @@ interface HomeState {
   activeRoute: string;
   showMessage: boolean;
   currency: any | null;
+  cod_cost: number | null;
   countries: any[];
   isRegisteringReady: boolean;
 }
@@ -43,6 +44,7 @@ const initialState: HomeState = {
   country: "",
   loading: false,
   addStoryEnable: false,
+  cod_cost: 0,
   loadingStories: true,
   selectedStory: null,
   renderStories: false,
