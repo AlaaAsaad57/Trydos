@@ -3,6 +3,7 @@ const translations = {
   ar: {
     "Total Products:": "إجمالي المنتجات:",
     Reschedule: "تأجيل",
+    "Please Select an Address": "الرجاء اختيار عنوان",
     "Please Be Accurate and select your Location":
       "كن دقيقا من فضلك باختيار موقعك الجغرافي",
     "Full Name": "الاسم الكامل",
@@ -520,6 +521,7 @@ const translations = {
   tr: {
     "The Purchase Was Completed Successfully":
       "Satın Alma Başarıyla Tamamlandı",
+    "Please Select an Address": "Lütfen Bir Adres Seçiniz",
     Reschedule: "Yeniden Planla",
     "Please Be Accurate and select your Location":
       "Lütfen doğru ve konumunuzu seçin",

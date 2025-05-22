@@ -815,11 +815,16 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
     }
   };
   const Validate = () => {
+    console.log(addressLists);
     if (!isBalanceEnough()) {
       shake("payment-valid-border");
       // alert(translateFunction("Your Balance Not meet purchase value"));
     }
-    if (!addressLists[0]?.id) {
+    if (
+      addressLists.length === 0 ||
+      addressLists?.filter((s) => s.is_default === 1)?.length === 0
+    ) {
+      toast.info(translateFunction("Please Select an Address"));
       shake("address-valid-border");
     }
     if (orderData.payment?.length === 0) {
