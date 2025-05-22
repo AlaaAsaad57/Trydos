@@ -6,6 +6,7 @@ const translations = {
     "Please Select an Address": "الرجاء اختيار عنوان",
     "Please Be Accurate and select your Location":
       "كن دقيقا من فضلك باختيار موقعك الجغرافي",
+    "Failed to recognize your voice": "فشل التعرف على الصوت",
     "Full Name": "الاسم الكامل",
     "Featured Products": "المنتجات المميزة",
     "Wallet Already Selected": "المحفظة محددة بالفعل",
@@ -529,6 +530,7 @@ const translations = {
       "Mevcut Konumunuz Seçilen Ülke Sınırları İçinde Değil",
     "Featured Products": "Öne Çıkan Ürünler",
     "000 CM": "000 CM",
+    "Failed to recognize your voice": "Sesinizi tanımlamada sorun oluştu",
     "Discount Coupon": "İndirim Kuponu",
     "Wallet Already Selected": "Cüzdan Zaten Seçildi",
     "You will be notified for this product already":

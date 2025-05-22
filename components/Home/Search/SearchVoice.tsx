@@ -7,6 +7,8 @@ import SpeechRecognition, {
 import { useAppStore } from "store";
 import search from "services/search";
 import { useParams } from "next/navigation";
+import { toast } from "node_modules/react-toastify/dist";
+import { translateFunction } from "utils/functions";
 
 function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
   const { language } = useAppStore();
@@ -20,12 +22,16 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
   }
   const { lang } = useParams();
   useEffect(() => {
-    setSearchValue(finalTranscript);
-    console.log(finalTranscript);
-    search.getSearchOptions({
-      noProducts: false,
-      lang: lang,
-    });
+    if (finalTranscript?.length > 0) {
+      setSearchValue(finalTranscript);
+      console.log(finalTranscript);
+      search.getSearchOptions({
+        noProducts: false,
+        lang: lang,
+      });
+    } else {
+      toast.info(translateFunction("Failed to recognize your voice", language));
+    }
   }, [finalTranscript]);
   return (
     <>
