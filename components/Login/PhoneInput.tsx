@@ -17,6 +17,7 @@ const { flag } = require("country-emoji");
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function PhoneInput({
   stepIndicator,
@@ -484,8 +485,8 @@ function PhoneInput({
                 e.target.blur();
                 if (validNumber && stepIndicator <= 3) {
                   Sendevent({
-                    event: "button_clicked",
-                    value: "confirm_phone_number_button",
+                    event: GA_EVENT_NAMES.CLICK,
+                    value: GA_CLICK_EVENT_VALUES.CONFIRM_PHONE_NUMBER_BUTTON,
                   });
                   setStepIndicator(4);
                 }
@@ -504,8 +505,8 @@ function PhoneInput({
               className="phone-arrow"
               onClick={() => {
                 Sendevent({
-                  event: "button_clicked",
-                  value: "confirm_phone_number_button",
+                  event: GA_EVENT_NAMES.CLICK,
+                  value: GA_CLICK_EVENT_VALUES.CONFIRM_PHONE_NUMBER_BUTTON,
                 });
                 setStepIndicator(4);
               }}

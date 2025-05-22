@@ -6,29 +6,32 @@ import { useAppStore } from "store";
 import { DebounceInput } from "react-debounce-input/src";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 function SearchBoutiquePage({ search_text, boutique }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
   const {
     setFilterLoading,
-
     setFilterSearch,
     searchFilter,
     setFilterEnabled,
-
     setSkeleton,
-
-    searchFilters,
     filterEnabled,
     value,
     filters,
     search,
   } = useAppStore();
-  const sizesAttr = filters.sizesAttr;
   const onChange = (e) => {
+    Sendevent({
+      event: GA_EVENT_NAMES.CLICK,
+      value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
+      extra: {
+        filter: "search_text",
+        value: e?.target.value,
+      },
+    });
     setFilterLoading(true);
-
     searchFilter(e.target.value);
     // UpdateFilter({
     //   sizesAttr: sizesAttr,
@@ -87,8 +90,8 @@ function SearchBoutiquePage({ search_text, boutique }) {
       }`}
       onClick={() => {
         Sendevent({
-          event: "button_clicked",
-          value: "open_search_field_button",
+          event: GA_EVENT_NAMES.CLICK,
+          value: GA_CLICK_EVENT_VALUES.OPEN_SEARCH_FIELD_BUTTON,
         });
         document.querySelector<HTMLInputElement>("#filter-search")?.focus();
         if (

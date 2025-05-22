@@ -2,7 +2,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
   let searchParams = request.nextUrl.searchParams;
-  let value = searchParams.get("value");
+  let value = searchParams?.get("value") || "";
   if (value === "stories") {
     revalidateTag("stories");
   }

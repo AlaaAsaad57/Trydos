@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { RoundPrice, Sendevent, UpdateFilter } from "utils/functions";
 import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 const PriceChart = dynamic(() => import("./PriceChart"), {
   ssr: false,
@@ -35,8 +36,8 @@ function BoutiquePriceFilter() {
     } else if (e.min < e.max) {
       setFilterLoading(true);
       Sendevent({
-        event: "button_clicked",
-        value: "add_filter_button",
+        event: GA_EVENT_NAMES.CLICK,
+        value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
         extra: {
           type: "price",
           name: `${e.min / currency?.exchange_rate} - ${

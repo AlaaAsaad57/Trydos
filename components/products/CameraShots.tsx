@@ -14,6 +14,7 @@ import CameraShotGallery from "./CameraShotGallery";
 import CircleBorder from "public/svg/product/CircleBorder";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function CameraShots({ images }) {
   const { setActiveCameraGallery, showInfoMessage } = useAppStore();
@@ -38,8 +39,8 @@ function CameraShots({ images }) {
         data-cy="CameraProduct"
         onClick={() => {
           Sendevent({
-            event: "button_clicked",
-            value: "show_buyers_camera_button",
+            event: GA_EVENT_NAMES.CLICK,
+            value: GA_CLICK_EVENT_VALUES.SHOW_BUYERS_CAMERA_BUTTON,
           });
           setActiveCameraGallery(true);
           window.scrollTo({ top: 0 });
@@ -55,6 +56,10 @@ function CameraShots({ images }) {
             data-cy="QuestionMark"
             style={{ marginLeft: "9px" }}
             onClick={() => {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.SHOW_BUYERS_CAMERA_INFO_MESSAGE,
+              });
               showInfoMessage({
                 showInfoMessage: true,
                 title: ` ${translate("Buyers Camera")} 12 ${translate("Shot")}`,

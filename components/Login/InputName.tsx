@@ -5,6 +5,8 @@ import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { useParams } from "next/navigation";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES } from "utils/GAEvents";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 
 function InputName({
   value,
@@ -287,8 +289,8 @@ function InputName({
                   //   stepIndicator === 3
                   // );
                   Sendevent({
-                    event: "button_clicked",
-                    value: "confirm_name_button",
+                    event: GA_EVENT_NAMES.CLICK,
+                    value: GA_CLICK_EVENT_VALUES.CONFIRM_NAME_BUTTON,
                   });
                   updateName();
                 }}

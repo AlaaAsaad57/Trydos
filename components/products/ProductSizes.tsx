@@ -15,6 +15,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function ProductSizes({ sizes }) {
   const { showInfoMessage } = useAppStore();
@@ -51,6 +52,10 @@ function ProductSizes({ sizes }) {
           data-cy="QuestionMark"
           style={{ marginLeft: "9px" }}
           onClick={() => {
+            Sendevent({
+              event: GA_EVENT_NAMES.CLICK,
+              value: GA_CLICK_EVENT_VALUES.SHOW_AVAILABLE_SIZE_INFO_MESSAGE,
+            });
             showInfoMessage({
               showInfoMessage: true,
               title: ` Available ${sizes.length} Sizes`,
@@ -91,8 +96,8 @@ function ProductSizes({ sizes }) {
           slideToClickedSlide={true}
           onChange={() => {
             Sendevent({
-              event: "button_clicked",
-              value: "choose_available_size_button",
+              event: GA_EVENT_NAMES.CLICK,
+              value: GA_CLICK_EVENT_VALUES.CHOOSE_AVAILABLE_SIZE_BUTTON,
             });
           }}
           onSlideChange={(swiper) => {

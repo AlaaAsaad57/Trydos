@@ -15,6 +15,7 @@ import { AxiosPost } from "utils/AxiosApi";
 import { toast } from "react-toastify";
 import auth from "services/auth";
 import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function ProductOptions({
   activeOption,
@@ -111,8 +112,8 @@ function ProductOptions({
               data-cy="LoveSymbol"
               onClick={() => {
                 Sendevent({
-                  event: "button_clicked",
-                  value: "like_product_button",
+                  event: GA_EVENT_NAMES.CLICK,
+                  value: GA_CLICK_EVENT_VALUES.LIKE_PRODUCT_BUTTON,
                 });
                 setOption("Like");
                 setLiked(!isLiked);
@@ -136,8 +137,8 @@ function ProductOptions({
               data-cy="CommentIcon"
               onClick={() => {
                 Sendevent({
-                  event: "button_clicked",
-                  value: "show_comments_button",
+                  event: GA_EVENT_NAMES.CLICK,
+                  value: GA_CLICK_EVENT_VALUES.SHOW_COMMENTS_BUTTON,
                 });
                 setOption("Comment");
               }}
@@ -158,8 +159,8 @@ function ProductOptions({
               data-cy="ShareIcon"
               onClick={() => {
                 Sendevent({
-                  event: "button_clicked",
-                  value: "share_product_button",
+                  event: GA_EVENT_NAMES.CLICK,
+                  value: GA_CLICK_EVENT_VALUES.SHARE_PRODUCT_BUTTON,
                 });
                 setOption("Share");
               }}
@@ -179,8 +180,8 @@ function ProductOptions({
               data-cy="ThreePointsIcon"
               onClick={() => {
                 Sendevent({
-                  event: "button_clicked",
-                  value: "more_options_button",
+                  event: GA_EVENT_NAMES.CLICK,
+                  value: GA_CLICK_EVENT_VALUES.MORE_OPTIONS_BUTTON,
                 });
                 setOption("More");
               }}

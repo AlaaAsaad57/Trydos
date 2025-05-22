@@ -6,6 +6,7 @@ import { getNew } from "components/Chat/chatsFunctions";
 import ChatNotification from "./ChatNotification";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function AuthNavSection({ onClick }: { onClick: () => void }) {
   const {
@@ -39,8 +40,8 @@ function AuthNavSection({ onClick }: { onClick: () => void }) {
           }}
           onClick={() => {
             Sendevent({
-              event: "button_clicked",
-              value: "chat_nav_bar_button",
+              event: GA_EVENT_NAMES.CLICK,
+              value: GA_CLICK_EVENT_VALUES.CHAT_ICON,
             });
             ChatConroller(true);
           }}
@@ -65,7 +66,13 @@ function AuthNavSection({ onClick }: { onClick: () => void }) {
         </span>
       </div>
       <UserAvatar
-        onClick={onClick}
+        onClick={() => {
+          onClick();
+          Sendevent({
+            event: GA_EVENT_NAMES.CLICK,
+            value: GA_CLICK_EVENT_VALUES.OPEN_SIDE_MENU,
+          });
+        }}
         avatar={userProfile?.image || userProfile?.image}
       />
     </>

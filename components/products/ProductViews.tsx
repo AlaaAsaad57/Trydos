@@ -4,14 +4,14 @@ import { Sendevent } from "utils/functions";
 import EyeIcon from "public/svg/product/EyeIcon.svg";
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 
 function ProductViews({ product }) {
   const { SelectedProduct } = useAppStore();
   useEffect(() => {
     setTimeout(() => {
       Sendevent({
-        event: "viewed_product",
-        value: product.product_name,
+        event: GA_EVENT_NAMES.VIEW_PRODUCT_EVENT,
         extra: {
           product_name: product.name,
           product_id: product.id,

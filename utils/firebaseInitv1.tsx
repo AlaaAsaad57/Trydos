@@ -15,8 +15,6 @@ import { Id } from "react-toastify";
 import ProductToOldCart from "components/Notifications/ProductToOldCart";
 import Category from "components/Notifications/Category";
 import ProductAvailable from "components/Notifications/ProductAvailable";
-import "firebase/analytics";
-import { initializeAnalytics, isSupported } from "firebase/analytics";
 import OrderPlaced from "components/Notifications/OrderPlaced";
 import { AxiosGet } from "./AxiosApi";
 import ProductHurryUp from "components/Notifications/ProductHurry";
@@ -47,10 +45,6 @@ export const messaging =
   typeof window !== "undefined" &&
   "serviceWorker" in navigator &&
   getMessaging(firebaseApp);
-export const analytics =
-  isSupported && typeof window !== "undefined"
-    ? initializeAnalytics(firebaseApp)
-    : null;
 
 export const requestFirebaseNotificationPermission = async () => {
   const { setNotificationPermission } = useAppStore.getState();

@@ -573,7 +573,7 @@ const PaymentOrder = ({ success }) => {
   );
 };
 const CODInput = ({ total }) => {
-  const { currency } = useAppStore();
+  const { currency, cod_cost } = useAppStore();
   return (
     <div
       className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
@@ -593,7 +593,7 @@ const CODInput = ({ total }) => {
           {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: total, returnNumber: true })} {currency?.symbol}
+          {RoundPrice({ num: cod_cost, returnNumber: true })} {currency?.symbol}
         </span>
       </div>
     </div>

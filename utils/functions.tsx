@@ -6,8 +6,6 @@ import { notFound } from "next/navigation";
 import { LogData } from "store/homepage/actions";
 import { AxiosCacheApi, AxiosGet } from "./AxiosApi";
 import home from "services/home";
-import { analytics } from "./firebaseInitv1";
-import { logEvent } from "@firebase/analytics";
 import axios from "axios";
 import {
   CartApi,
@@ -19,7 +17,7 @@ import {
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { CielNumber } from "./tinyUtils";
-import { toast } from "react-toastify";
+import { event } from "./gtag";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -57,11 +55,7 @@ export const _isStoreLastJson = () => {
   return !!process.env.NEXT_PUBLIC_IS_STORE_LAST_JSON;
 };
 export const Sendevent = async (params: {
-  event:
-    | "programming_event"
-    | "button_clicked"
-    | "viewed_product"
-    | "viewed_boutique";
+  event: string;
   value?: string;
   extra?: any;
   category?: any;
@@ -69,48 +63,16 @@ export const Sendevent = async (params: {
   let { session_id, previous_event_button_name, setGAEvent } =
     useAppStore.getState();
   try {
-    let userId = auth.UserID() || "empty";
     // @ts-ignore
     if (typeof window !== "undefined") {
       // @ts-ignore
-      let a = analytics;
 
-      let bool = confirm(
-        JSON.stringify({
-          event: params.event,
-          value: params.value,
-          country_name: Cookies.get("country"),
-          device_language: Cookies.get("language"),
-          userID: userId,
-          session_id: session_id,
-          previous_event_button_name: previous_event_button_name,
-          time_stamp: new Date().toISOString(),
-        })
-      );
-      if (bool) {
-        navigator.clipboard.writeText(
-          JSON.stringify({
-            event: params.event,
-            value: params.value,
-            country_name: Cookies.get("country"),
-            device_language: Cookies.get("language"),
-            userID: userId,
-            session_id: session_id,
-            previous_event_button_name: previous_event_button_name,
-            time_stamp: new Date().toISOString(),
-          })
-        );
-      }
       // @ts-ignore
-      logEvent(analytics, params.event, {
-        executed_event_name: params.value,
-        country_name: Cookies.get("country"),
-        userID: userId,
-        device_language: Cookies.get("language"),
-        time_stamp: new Date().toISOString(),
-
-        our_session_id: session_id,
-        previous_event_button_name: previous_event_button_name,
+      event({
+        action: params.event,
+        params: {
+          value: params.value,
+        },
       });
     }
 

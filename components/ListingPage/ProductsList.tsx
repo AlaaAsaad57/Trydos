@@ -125,34 +125,11 @@ function ProductsInfiniteScroll({
                 }}
                 ariaLabel={`Product ${product.slug} ${lang}`}
                 suppressHydrationWarning
-                // @ts-ignore
-                // onClick={(e, bool = false) => {
-                //   /* @ts-ignore*/
-                //   if (
-                //     /* @ts-ignore*/
-                //     e.target.closest(".top-slider-enable") ||
-                //     /* @ts-ignore*/
-                //     e.target.closest(".product-photos-slider") ||
-                //     /* @ts-ignore*/
-                //     e.target.closest(".buy-button") ||
-                //     /* @ts-ignore*/
-                //     e.target.closest(".inset-shadow-img")
-                //   ) {
-                //     // stopProgress(true);
-                //     dispatchRouteChangeEvent("completed");
-                //     return false;
-                //   } else {
-                //     Sendevent({
-                //       event: "button_clicked",
-                //       value: "choose_product_button",
-                //     });
-                //   }
-                // }}
                 href={`/${lang}/products/${product.slug}${
                   productColor ? `?color=${productColor.color_name}` : ""
                 }`}
                 className="product-container  align-center flex-col relative"
-                data-cy="on_mouse_over_product"
+                data-cy="product_link"
                 // onMouseLeave={() => {
                 //   if (productState?.isActiveTopSlide || productState?.isColorSelected) {
                 //     dispatch({ type: "setActiveTopSlide", payload: false });

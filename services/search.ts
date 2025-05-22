@@ -160,8 +160,6 @@ class SearchService {
       return filtersResponse;
     } catch (error) {
       setSearchPartialLoading(false);
-
-      console.log(error, "getSearchOptions");
     }
   }
   async resetSearchFilters({ filter_obj, lang }) {

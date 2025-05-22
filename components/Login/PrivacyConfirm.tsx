@@ -6,6 +6,7 @@ import ConditionIcon from "public/svg/ConditionIcon.svg";
 import { useTransition, animated } from "react-spring";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
   const { language } = useAppStore();
@@ -84,8 +85,8 @@ function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
                 data-testid="Agree Terms"
                 onClick={() => {
                   Sendevent({
-                    event: "button_clicked",
-                    value: "agree_continue_button",
+                    event: GA_EVENT_NAMES.CLICK,
+                    value: GA_CLICK_EVENT_VALUES.AGREE_CONTINUE_BUTTON,
                   });
                   setStepIndicator(2);
                 }}

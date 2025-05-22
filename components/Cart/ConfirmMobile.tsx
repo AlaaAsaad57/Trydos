@@ -7,6 +7,11 @@ import { Sendevent } from "utils/functions";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
 import { useAppStore } from "store";
+import {
+  GA_CLICK_EVENT_VALUES,
+  GA_EVENT_NAMES,
+  GA_PROGRAMMING_EVENT_VALUES,
+} from "utils/GAEvents";
 
 function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   const { setWrongNumber, verficationID, wrongNumber } = useAppStore();
@@ -74,8 +79,8 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
       verificationID: verficationID,
       errorCallback: (e) => {
         Sendevent({
-          event: "programming_event",
-          value: "otp_failed_event",
+          event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+          value: GA_PROGRAMMING_EVENT_VALUES.OTP_FAILED_EVENT,
         });
         setFailed(true);
         setTimeout(() => {
@@ -88,9 +93,10 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
         }, 1000);
         if (e.message === "user not found") {
           Sendevent({
-            event: "programming_event",
+            event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
 
-            value: "phone_number_not_registered_event",
+            value:
+              GA_PROGRAMMING_EVENT_VALUES.PHONE_NUMBER_NOT_REGISTERED_EVENT,
           });
 
           setStepIndicator(6);
@@ -99,9 +105,9 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
       },
       successCallback: async (exists, name) => {
         Sendevent({
-          event: "programming_event",
+          event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
 
-          value: "verify_otp_signin_success_event",
+          value: GA_PROGRAMMING_EVENT_VALUES.OTP_SUCCESS_EVENT,
         });
 
         await FinaliseLogin();

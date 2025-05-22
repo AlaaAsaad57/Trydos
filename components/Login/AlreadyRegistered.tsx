@@ -5,6 +5,8 @@ import { Sendevent, translateFunction } from "utils/functions";
 import AuthService from "services/auth";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES } from "utils/GAEvents";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 
 function AlreadyRegistered({
   inputValue,
@@ -176,8 +178,8 @@ function AlreadyRegistered({
           onClick={() => {
             if (Tempuser.name?.length > 1) {
               Sendevent({
-                event: "button_clicked",
-                value: "login_continue_button",
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.LOGIN_CONTINUE_BUTTON,
               });
               setStepSign("welcomeLogin");
               setStepIndicator(6);

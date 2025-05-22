@@ -24,6 +24,7 @@ import { toast } from "react-toastify";
 import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 const DeleteIcon = () => {
   return (
@@ -276,8 +277,8 @@ function OrdersPage({
                 className="cursor-pointer z-50"
                 onClick={() => {
                   Sendevent({
-                    event: "button_clicked",
-                    value: "appbar_backicon_button",
+                    event: GA_EVENT_NAMES.CLICK,
+                    value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
                   });
                   setStep(0);
                   setOrderStep(0);
@@ -435,8 +436,9 @@ function OrdersPage({
                           className="cursor-pointer z-50"
                           onClick={() => {
                             Sendevent({
-                              event: "button_clicked",
-                              value: "appbar_backicon_button",
+                              event: GA_EVENT_NAMES.CLICK,
+                              value:
+                                GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
                             });
                             ref.current.slidePrev();
                             setNextStep(false);
@@ -451,6 +453,11 @@ function OrdersPage({
                         <span
                           onClick={() => {
                             if (addressDetails.id) {
+                              Sendevent({
+                                event: GA_EVENT_NAMES.CLICK,
+                                value:
+                                  GA_CLICK_EVENT_VALUES.OPEN_DELETE_ADDRESS_MODAL,
+                              });
                               openAddressList(false);
                               setDeleteModal(addressDetails);
                             }
@@ -487,8 +494,8 @@ function OrdersPage({
                         data-cy="back-icon-addadresspage" // Added data-cy
                         onClick={() => {
                           Sendevent({
-                            event: "button_clicked",
-                            value: "appbar_backicon_button",
+                            event: GA_EVENT_NAMES.CLICK,
+                            value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
                           });
                           ref.current.slidePrev();
                           setNextStep(false);
@@ -511,6 +518,11 @@ function OrdersPage({
                         data-cy="delete-icon-container" // Added data-cy
                         onClick={() => {
                           if (addressDetails.id) {
+                            Sendevent({
+                              event: GA_EVENT_NAMES.CLICK,
+                              value:
+                                GA_CLICK_EVENT_VALUES.OPEN_DELETE_ADDRESS_MODAL,
+                            });
                             openAddressList(false);
                             setDeleteModal(addressDetails);
                           }
@@ -590,6 +602,10 @@ export const DeleteModalComponent = ({
       <div
         className="absolute top-0 left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-60 bg-[black]"
         onClick={() => {
+          Sendevent({
+            event: GA_EVENT_NAMES.CLICK,
+            value: GA_CLICK_EVENT_VALUES.CLOSE_DELETE_ADDRESS_MODAL,
+          });
           closeModal();
         }}
       />
@@ -739,6 +755,10 @@ export const DeleteModalComponent = ({
         <div className="flex-col w-full  delete-button-address">
           <div
             onClick={() => {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.DELETE_ADDRESS_BUTTON,
+              });
               slidePrev();
               closeModal();
               order.DeleteAddressList({ address: deletedAddress.id });
@@ -754,6 +774,10 @@ export const DeleteModalComponent = ({
           </div>
           <div
             onClick={() => {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.CLOSE_DELETE_ADDRESS_MODAL,
+              });
               closeModal();
             }}
             className="w-full flex justify-center items-center cursor-pointer  rounded-[15px] h-[50px] bg-transparent regular text-[16px] text-[#fff]"
@@ -815,11 +839,16 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
     }
   };
   const Validate = () => {
+    console.log(addressLists);
     if (!isBalanceEnough()) {
       shake("payment-valid-border");
       // alert(translateFunction("Your Balance Not meet purchase value"));
     }
-    if (!addressLists[0]?.id) {
+    if (
+      addressLists.length === 0 ||
+      addressLists?.filter((s) => s.is_default === 1)?.length === 0
+    ) {
+      toast.info(translateFunction("Please Select an Address"));
       shake("address-valid-border");
     }
     if (orderData.payment?.length === 0) {
@@ -874,6 +903,11 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
           onClick={() => {
             Validate();
             if (isValid() && !orderLoading) {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value:
+                  GA_CLICK_EVENT_VALUES.CONFIRM_SHIPPING_AND_PAYMENT_BUTTON,
+              });
               VerifyCart();
             }
           }}

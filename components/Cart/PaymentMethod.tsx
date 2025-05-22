@@ -32,6 +32,7 @@ function PaymentMethod() {
     total,
     total_cash,
     currency,
+    cod_cost,
   } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
@@ -500,7 +501,7 @@ export default PaymentMethod;
 //   );
 // };
 const CODInput = ({ active, setActive, total }) => {
-  const { total_cash, currency } = useAppStore();
+  const { cod_cost, currency } = useAppStore();
 
   return (
     <div
@@ -531,9 +532,12 @@ const CODInput = ({ active, setActive, total }) => {
         >
           {translateFunction("Total")}
         </span>
-        <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: total, returnNumber: true })} {currency?.symbol}
-        </span>
+        {currency && (
+          <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
+            {RoundPrice({ num: cod_cost, returnNumber: true })}{" "}
+            {currency?.symbol}
+          </span>
+        )}
       </div>
     </div>
   );

@@ -12,6 +12,8 @@ import Skeleton from "react-loading-skeleton";
 import NavbarClient from "components/Home/NavbarClient";
 import PageLoadingIndicator from "hooks/PageLoadingIndicator";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import Script from "next/script";
+import { GA_MEASUREMENT_ID } from "utils/gtag";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -77,6 +79,24 @@ export default function RootLayout({ params, children }) {
       lang={params.lang.split("-")[1] === "ar" ? "ar-AE" : "en-US"}
     >
       <head>
+        <Script
+          strategy="afterInteractive"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+        />
+        <Script
+          id="gtag-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${GA_MEASUREMENT_ID}', {
+                page_path: window.location.pathname,
+              });
+            `,
+          }}
+        />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <meta name="google" content="notranslate" />
