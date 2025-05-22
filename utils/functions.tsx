@@ -6,8 +6,6 @@ import { notFound } from "next/navigation";
 import { LogData } from "store/homepage/actions";
 import { AxiosCacheApi, AxiosGet } from "./AxiosApi";
 import home from "services/home";
-import { analytics } from "./firebaseInitv1";
-import { logEvent } from "@firebase/analytics";
 import axios from "axios";
 import {
   CartApi,
@@ -19,6 +17,7 @@ import {
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { CielNumber } from "./tinyUtils";
+import { event } from "./gtag";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -64,32 +63,16 @@ export const Sendevent = async (params: {
   let { session_id, previous_event_button_name, setGAEvent } =
     useAppStore.getState();
   try {
-    let userId = localStorage.getItem("USER")
-      ? JSON.parse(localStorage.getItem("USER"))?.id
-      : "empty";
     // @ts-ignore
     if (typeof window !== "undefined") {
       // @ts-ignore
-      let a = analytics;
 
-      console.log("GA EVENT", {
-        executed_event_name: params.value,
-        country_name: Cookies.get("country"),
-        userID: userId,
-        device_language: Cookies.get("language"),
-        time_stamp: new Date().toISOString(),
-        our_session_id: session_id,
-        previous_event_button_name: previous_event_button_name,
-      });
       // @ts-ignore
-      logEvent(analytics, params.event, {
-        executed_event_name: params.value,
-        country_name: Cookies.get("country"),
-        userID: userId,
-        device_language: Cookies.get("language"),
-        time_stamp: new Date().toISOString(),
-        our_session_id: session_id,
-        previous_event_button_name: previous_event_button_name,
+      event({
+        action: params.event,
+        params: {
+          value: params.value,
+        },
       });
     }
 

@@ -554,10 +554,6 @@ function NewLoginWidget() {
             {" "}
             <svg
               onClick={() => {
-                Sendevent({
-                  event: GA_EVENT_NAMES.CLICK,
-                  value: GA_CLICK_EVENT_VALUES.LATER_TAKE_LOOK_BUTTON,
-                });
                 if (stepIndicator < 6) AuthService.cancelAuth();
                 setLoginOpenAction(false);
               }}

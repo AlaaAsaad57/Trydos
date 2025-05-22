@@ -97,6 +97,10 @@ export const GA_CLICK_EVENT_VALUES = {
   VIEW_STORY_BUTTON: "view_story_button",
   CHOOSE_COUNTRY_AND_CONTINUE_BUTTON: "choose_country_and_continue_button",
   CONTINUE_WITH_COUNTRY_BUTTON: "continue_with_country_button",
+  LOGIN_METHOD_PHONE_BUTTON: "login_method_phone_button",
+  LOGIN_METHOD_QR_BUTTON: "login_method_qr_button",
+  SEARCH_TRENDING_OPTION: "search_trending_option_button",
+  SEARCH_HISTORY_OPTION: "search_history_option_button",
 };
 export const GA_PROGRAMMING_EVENT_VALUES = {
   OTP_FAILED_EVENT: "otp_failed_event",
