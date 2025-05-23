@@ -23,9 +23,9 @@ function UserInfoHeader() {
         ) : getUserChat().photo_path ? (
           <Image
             alt="user-img"
-            src={40}
+            src={getUserChat().photo_path}
             width={40}
-            height={getUserChat().photo_path}
+            height={40}
           />
         ) : getUserChat().name?.length > 1 ? (
           getTwoLetters(getUserChat().name)

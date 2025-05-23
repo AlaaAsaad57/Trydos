@@ -364,42 +364,67 @@ class AuthService {
       stories_done = false;
 
     try {
-      await axios
-        .post(
-          process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + "/api/v1/users/update",
-          {
+      if (localStorage.getItem("USER-STORIES")) {
+        await axios
+          .post(
+            process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
+              "/api/v1/users/update",
+            {
+              name: userObj?.name ?? userProfile?.name,
+              mobile_phone: userObj?.phone ?? userProfile?.phone,
+              photo_path: userObj?.image ?? userProfile?.image,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem(
+                  "STORIES-TOKEN"
+                )}`,
+              },
+            }
+          )
+          .then((s) => {
+            stories_done = true;
+          });
+        localStorage.setItem(
+          "USER-STORIES",
+          JSON.stringify({
+            ...JSON.parse(localStorage.getItem("USER-STORIES")),
             name: userObj?.name ?? userProfile?.name,
             mobile_phone: userObj?.phone ?? userProfile?.phone,
             photo_path: userObj?.image ?? userProfile?.image,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("STORIES-TOKEN")}`,
-            },
-          }
-        )
-        .then((s) => {
-          stories_done = true;
-        });
+          })
+        );
+      }
       // let user_id = JSON.parse(localStorage.getItem("USER-CHAT")).id;
-      let chat_update = await axios
-        .put(
-          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-            `/api/v1/users/${this.UserID()}`,
-          {
+      if (localStorage.getItem("USER-CHAT")) {
+        let chat_update = await axios
+          .put(
+            process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+              `/api/v1/users/${this.UserID()}`,
+            {
+              name: userObj?.name ?? userProfile?.name,
+              mobile_phone: userObj?.phone ?? userProfile?.phone,
+              photo_path: userObj?.image ?? userProfile?.image,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("CHAT-TOKEN")}`,
+              },
+            }
+          )
+          .then((s) => {
+            chat_done = true;
+          });
+        localStorage.setItem(
+          "USER-CHAT",
+          JSON.stringify({
+            ...JSON.parse(localStorage.getItem("USER-CHAT")),
             name: userObj?.name ?? userProfile?.name,
             mobile_phone: userObj?.phone ?? userProfile?.phone,
             photo_path: userObj?.image ?? userProfile?.image,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("CHAT-TOKEN")}`,
-            },
-          }
-        )
-        .then((s) => {
-          chat_done = true;
-        });
+          })
+        );
+      }
       let res = await AxiosPost({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-profile",
         body: userObj,
@@ -407,6 +432,15 @@ class AuthService {
       }).then((s) => {
         market_done = true;
       });
+      localStorage.setItem(
+        "USER",
+        JSON.stringify({
+          ...JSON.parse(localStorage.getItem("USER")),
+          name: userObj?.name ?? userProfile?.name,
+          phone: userObj?.phone ?? userProfile?.phone,
+          image: userObj?.image ?? userProfile?.image,
+        })
+      );
       return res;
     } catch (error) {
       if (market_done) {

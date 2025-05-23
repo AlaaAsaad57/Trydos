@@ -977,11 +977,21 @@ function ConversationContainer({
             </svg>
           </div>
           {vid ? (
-            <video src={vid} controls>
+            <video
+              src={vid}
+              controls
+              className="object-contain h-full w-auto bg-[#0000005d]"
+            >
               <source src={vid} />
             </video>
           ) : (
-            <Image fill sizes="100vw" alt="imgs" src={imgs} />
+            <Image
+              className="object-contain h-full w-auto bg-[#0000005d]"
+              fill
+              sizes="100vw"
+              alt="imgs"
+              src={imgs}
+            />
           )}
         </div>
       )}

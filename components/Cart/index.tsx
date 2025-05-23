@@ -775,7 +775,7 @@ function CartContainer({ close, toOrders }) {
               </span>
             </div>
             <div
-              className="flex-col  w-full h-auto mt-3"
+              className="flex-col  w-full h-auto mt-3 pb-[200px]"
               data-cy="Product_Non_Available_In_Cart"
             >
               {!cart_loading ? (
